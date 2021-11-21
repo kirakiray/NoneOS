@@ -1,0 +1,9 @@
+.pannel {
+  background-color: var(--pannel-bg-color);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: var(--pannel-border-radius);
+  box-shadow: var(--pannel-shadow);
+  color: var(--pannel-font-color);
+}

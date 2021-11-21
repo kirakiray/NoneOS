@@ -1,0 +1,19 @@
+{
+  "name": "noneos",
+  "version": "1.0.0",
+  "description": "A browser-based operating system",
+  "main": "top-sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kirakiray/NoneOS.git"
+  },
+  "author": "YAO",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/kirakiray/NoneOS/issues"
+  },
+  "homepage": "https://github.com/kirakiray/NoneOS#readme"
+}

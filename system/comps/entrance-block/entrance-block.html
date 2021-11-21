@@ -1,0 +1,55 @@
+<style>
+    :host {
+        display: block;
+    }
+
+    :host([selected="1"]) {
+        background-color: rgba(0, 110, 255, 0.1);
+    }
+
+    .entrance_block {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 10px 5px;
+        /* margin: 10px 5px; */
+        width: 80px;
+    }
+
+    .entrance_block.selected {
+        background-color: rgba(0, 110, 255, 0.1);
+    }
+
+    .entrance_block:hover {
+        background-color: rgba(0, 0, 0, .05);
+    }
+
+    .entrance_block_icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .entrance_block_name {
+        padding: 6px 0 0;
+        width: 80px;
+        height: 28px;
+        font-size: 11px;
+        line-height: 1.2em;
+        text-align: center;
+        overflow: hidden;
+        -webkit-line-clamp: 2;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+    }
+</style>
+<div class="entrance_block" attr:title="name">
+    <div class="entrance_block_icon">
+        <icon-view :type="icontype"></icon-view>
+    </div>
+    <div class="entrance_block_name">{{showname}}</div>
+    <!-- <div style="height:0;overflow:hidden;">
+        <div class="entrance_block_name">{{name}}</div>
+    </div> -->
+</div>

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>NoneOS</title>
+    <script src="system/libs/ofa.js"></script>
+    <script src="system/none-os/none-os.js"></script>
+    <link rel="stylesheet" href="system/css/index.css">
+</head>
+
+<body>
+    <none-os></none-os>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('top-sw.js')
+                .then(reg => {
+                    setTimeout(() => {
+                        // 一小时后自动更新
+                        reg.update()
+                    }, 60 * 60 * 1000)
+                });
+            // navigator.serviceWorker.register('top-sw.js').then(reg => reg.update())
+        }
+    </script>
+</body>
+
+</html>
