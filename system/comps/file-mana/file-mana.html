@@ -21,23 +21,32 @@
     </div>
     <div class="con_right">
         <div class="menu">
-            <div class="menu_btn" title="后退" style="margin-left: 20px;">&#xe61d;</div>
-            <div class="menu_btn" title="前进">&#xe623;</div>
-            <div class="menu_btn" title="向上">&#xe795;</div>
+            <div class="menu_btn" title="后退" class:disabled="history.length <= 1 || historyIndex <= 0" @click="back()"
+                style="margin-left: 20px;">&#xe61d;</div>
+            <div class="menu_btn" title="前进" @click="forward()" class:disabled="historyIndex >= history.length - 1">
+                &#xe623;</div>
+            <div class="menu_btn" title="向上" @click="upPath" class:disabled="fpath == '/'">&#xe795;</div>
             <div style="width:20px;height:10px;"></div>
             <div class="menu_btn" attr:title="multiSelectMode ? '取消选择' : '多选'" class:active="multiSelectMode"
                 @click="toMultiSelect">
                 &#xe62d;
             </div>
-            <div class="menu_btn" title="新建文件夹" class:hide="hasSelected || multiSelectMode" style="font-size: 18px;">&#xe684;</div>
-            <div class="menu_btn" title="导入文件" @click="addFile()" class:hide="hasSelected || multiSelectMode" style="font-size: 12px;">
+            <div class="menu_btn" title="新建文件夹" class:hide="hasSelected || multiSelectMode" style="font-size: 18px;">
+                &#xe684;</div>
+            <div class="menu_btn" title="导入文件" @click="addFile()" class:hide="hasSelected || multiSelectMode"
+                style="font-size: 12px;">
                 &#xe61a;</div>
             <!-- <div class="menu_btn" title="多选" class:active="hasSelected" class:hide="!hasSelected" @click="cancelSelecte">
                     &#xe62d;
                 </div> -->
-            <div class="menu_btn" title="删除" class:hide="!hasSelected && !multiSelectMode" class:disabled="!hasSelected">&#xe625;</div>
-            <div class="menu_btn" title="复制" class:hide="!hasSelected && !multiSelectMode" class:disabled="!hasSelected">&#xe622;</div>
-            <div class="menu_btn" title="剪切" class:hide="!hasSelected && !multiSelectMode" class:disabled="!hasSelected">&#xe600;</div>
+            <div class="menu_btn" title="删除" class:hide="!hasSelected && !multiSelectMode"
+                class:disabled="!hasSelected">&#xe625;</div>
+            <div class="menu_btn" title="复制" class:hide="!hasSelected && !multiSelectMode"
+                class:disabled="!hasSelected">&#xe622;</div>
+            <div class="menu_btn" title="剪切" class:hide="!hasSelected && !multiSelectMode"
+                class:disabled="!hasSelected">&#xe600;</div>
+            <div class="menu_btn" title="重命名" class:hide="!hasSelected && !multiSelectMode"
+                class:disabled="!hasSelected">&#xe657;</div>
         </div>
         <div class="main">
             <!-- <div class="con_main" fill:enter_block="content"> -->
@@ -46,6 +55,9 @@
                 <entrance-block name="我是一个很长很长的文件哈我是一个很长很长的文件哈"></entrance-block> -->
             </div>
         </div>
+        <!-- <div>
+            {{history}} -- {{historyIndex}}
+        </div> -->
         <div class="con_bottom">
             <div class="dir_text">{{fpath}}</div>
         </div>
@@ -57,7 +69,7 @@
 
 
 <div temp:left_block class="left_block" attr:active="$host.fpath == $data.path ? 1 : null"
-    @click="$host.fpath = $data.path">
+    @click="$host.toPath($data.path)">
     <div class="block_icon">&#xeac5;</div>
     <div class="block_name">{{$data.name}}</div>
 </div>

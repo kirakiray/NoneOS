@@ -21,6 +21,7 @@
                         // 一小时后自动更新
                         reg.update()
                     }, 60 * 60 * 1000)
+                }).catch(err => {
                 });
             // navigator.serviceWorker.register('top-sw.js').then(reg => reg.update())
         }

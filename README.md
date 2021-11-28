@@ -1,2 +1,2 @@
 # NoneOS
-An operating system based on the browser.
+A browser-based operating system
