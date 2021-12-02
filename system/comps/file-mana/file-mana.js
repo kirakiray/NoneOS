@@ -36,12 +36,7 @@ Component(async ({ load }) => {
             // 历史记录
             history: ["/$"],
             // 当前属于历史记录的游标
-            historyIndex: 0,
-            // 选中文件的权限
-            selectedAuthority: {
-                d: false,
-                n: false
-            }
+            historyIndex: 0
         },
         watch: {
             // 当前路径下的所有文件
@@ -79,6 +74,9 @@ Component(async ({ load }) => {
                 this.fpath = path;
                 this.historyIndex++;
                 this.history.splice(this.historyIndex, 100000, path);
+                // this.hasSelected = false;
+                // this.multiSelectMode = false;
+                this.restore();
             },
             // 返回
             back() {
@@ -125,6 +123,19 @@ Component(async ({ load }) => {
                     this.multiSelectMode = false;
                 }
             },
+            clickRename() {
+                if (this.selecteds.length != 1) {
+                    return;
+                }
+
+                this.selecteds[0].renameMode = true;
+            },
+            renameBlock(e) {
+                let { name, oldName } = e.data;
+
+                $(e.target).showname = name;
+                this.restore();
+            },
             // 添加文件夹
             addDir() {
 
@@ -132,6 +143,17 @@ Component(async ({ load }) => {
             // 添加文件
             addFile() {
 
+            },
+            // 还原所有状态
+            restore() {
+                if (this.selecteds.length == 1) {
+                    this.selecteds[0].renameMode = false;
+                }
+
+                this.hasSelected = false;
+                this.multiSelectMode = false;
+
+                this.shadow.all("entrance-block").forEach(e => e.selected = null);
             },
             get selecteds() {
                 return this.shadow.all(`entrance-block[selected="1"]`);
@@ -191,10 +213,7 @@ Component(async ({ load }) => {
             });
 
             con_ele.on("click", e => {
-                this.hasSelected = false;
-                this.multiSelectMode = false;
-
-                this.shadow.all("entrance-block").forEach(e => e.selected = null);
+                this.restore();
             });
         }
     };

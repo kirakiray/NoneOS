@@ -11,6 +11,8 @@ Component(async ({ load }) => {
             type: "",
             // icon的类型
             icontype: "",
+            // 是否重命名状态
+            renameMode: false
         },
         data: {
             showname: "",
@@ -28,6 +30,15 @@ Component(async ({ load }) => {
                     // 根据不同file又能展开显示图标
                     this.icontype = "file";
                 }
+            }
+        },
+        proto: {
+            blurName(e) {
+                // this.name = e.target.value;
+                this.trigger("rename-block", {
+                    oldName: this.showname,
+                    name: e.target.value
+                });
             }
         }
     };

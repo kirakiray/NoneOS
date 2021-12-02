@@ -22,7 +22,7 @@
         req.onerror = (event) => {
             throw {
                 desc: "数据创建出错",
-                evenet
+                event
             };
         };
     });
@@ -73,6 +73,28 @@
     }
 
     const remove = async (path) => {
+        const db = await filedb;
+
+        return new Promise((resolve, reject) => {
+            let req = db.transaction(["main"], "readwrite")
+                .objectStore("main")
+
+            req.onsuccess = (e) => {
+                resolve(true);
+            }
+            req.onerror = (e) => {
+                reject(e);
+            }
+
+            if (key instanceof Array) {
+                key.forEach(k => req.delete(k));
+            } else {
+                req.delete(path)
+            }
+        });
+    }
+
+    const rename = async (path, newName) => {
         const db = await filedb;
 
         return new Promise((resolve, reject) => {
@@ -154,7 +176,7 @@
     globalThis.fs = new Promise(res => {
         inited.then(e => {
             res({
-                write, read, remove
+                write, read, remove, rename
             });
         });
     });

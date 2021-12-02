@@ -43,12 +43,22 @@
         display: -webkit-box;
         -webkit-box-orient: vertical;
     }
+
+    .rename_inputer {
+        box-sizing: border-box;
+        width: 100%;
+        font-size: 12px;
+        text-align: center;
+    }
 </style>
 <div class="entrance_block" attr:title="name">
     <div class="entrance_block_icon">
         <icon-view :type="icontype"></icon-view>
     </div>
-    <div class="entrance_block_name">{{showname}}</div>
+    <div class="entrance_block_name" #if="!renameMode">{{showname}}</div>
+    <div class="entrance_block_name" #else>
+        <input type="text" class="rename_inputer" :value="showname" @blur="blurName">
+    </div>
     <!-- <div style="height:0;overflow:hidden;">
         <div class="entrance_block_name">{{name}}</div>
     </div> -->
