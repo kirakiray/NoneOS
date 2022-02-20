@@ -8,8 +8,13 @@
     <script src="../fs.js"></script>
   </head>
   <body>
+    test folder
     <script>
-      fs.write({ asd: "asdasd" });
+      (async () => {
+        await fs.inited;
+        await fs.mkdir("/apps").catch((err) => console.log(err));
+        await fs.mkdir("/apps/testdir").catch((err) => console.log(err));
+      })();
     </script>
   </body>
 </html>
