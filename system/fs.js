@@ -107,59 +107,66 @@
     });
   };
 
-  const getPathArr = (path) => {
+  // 读取文件或目录
+  const readPathDB = async (path) => {
+    let parentDirData = await readDB("/");
+
+    if (path === "/") {
+      return parentDirData;
+    }
+
+    path = path.replace(/\/$/, "");
     const pathArr = path.split("/");
 
     // 去除第一个根目录空白
     if (!pathArr[0]) {
       pathArr.splice(0, 1);
     }
+    const lastIndex = pathArr.length - 1;
+    let index = 0;
 
-    return pathArr;
+    while (index <= lastIndex) {
+      const name = pathArr[index];
+      const subData = parentDirData.content[name];
+      if (!subData) {
+        throw `can not read ${path}`;
+      }
+      parentDirData = await readDB(subData.fid);
+      index++;
+    }
+
+    return parentDirData;
   };
 
   // 添加文件夹
   const mkdir = async (path) => {
-    const pathArr = getPathArr(path),
-      lastIndex = pathArr.length - 1;
-    let index = 0;
+    const parentPath = path.replace(/(.*\/).+/, "$1");
+    const name = path.replace(/.*\/(.+)/, "$1");
 
-    let parentDirData = await readDB("/");
+    const parentDirData = await readPathDB(parentPath);
 
-    while (index <= lastIndex) {
-      const name = pathArr[index];
-      if (index === lastIndex) {
-        const { content } = parentDirData;
+    const { content } = parentDirData;
 
-        // 确定没有重复
-        if (content[name]) {
-          throw `${path} already exists`;
-        }
-
-        // 写入文件夹
-        const fid = createFid();
-        const subDir = {
-          fid,
-          name,
-          content: {},
-        };
-
-        content[name] = {
-          type: "folder",
-          fid,
-          name,
-        };
-
-        await writeDB([subDir, parentDirData]);
-      } else {
-        const subData = parentDirData.content[name];
-        if (!subData) {
-          throw `can not read ${path}`;
-        }
-        parentDirData = await readDB(subData.fid);
-      }
-      index++;
+    // 确定没有重复
+    if (content[name]) {
+      throw `${path} already exists`;
     }
+
+    // 写入文件夹
+    const fid = createFid();
+    const subDir = {
+      fid,
+      name,
+      content: {},
+    };
+
+    content[name] = {
+      type: "folder",
+      fid,
+      name,
+    };
+
+    await writeDB([subDir, parentDirData]);
 
     return true;
   };
@@ -170,6 +177,7 @@
 
   const fs = {
     mkdir,
+    readPathDB,
     inited: initRoot(),
   };
 
