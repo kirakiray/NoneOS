@@ -138,6 +138,7 @@
     return parentDirData;
   };
 
+  // ----暴露到外面的方法↓----
   // 添加文件夹
   const mkdir = async (path) => {
     const parentPath = path.replace(/(.*\/).+/, "$1");
@@ -154,19 +155,19 @@
 
     // 写入文件夹
     const fid = createFid();
-    const subDir = {
-      fid,
-      name,
-      content: {},
-    };
 
-    content[name] = {
+    const contentData = (content[name] = {
       type: "folder",
       fid,
       name,
+    });
+
+    const realData = {
+      ...contentData,
+      content: {},
     };
 
-    await writeDB([subDir, parentDirData]);
+    await writeDB([realData, parentDirData]);
 
     return true;
   };
@@ -175,9 +176,29 @@
 
   const remove = async (opts) => {};
 
+  // 读取文件
+  const read = async (path) => {
+    const targetData = await readPathDB(path);
+
+    return {
+      type: targetData.type,
+      content: Object.values(targetData.content),
+    };
+  };
+
+  // 写入文件
+  const write = async (opt) => {
+    // opt = {
+    //   type: "file", // file folder data
+    //   path: "",
+    //   content: "",
+    // };
+  };
+
   const fs = {
     mkdir,
-    readPathDB,
+    read,
+    write,
     inited: initRoot(),
   };
 

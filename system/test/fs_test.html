@@ -15,7 +15,7 @@
         await fs.mkdir("/apps").catch((err) => console.log(err));
         await fs.mkdir("/apps/testdir").catch((err) => console.log(err));
 
-        const data = await fs.readPathDB("/apps/testdir");
+        const data = await fs.read("/apps");
         console.log("data => ", data);
       })();
     </script>
