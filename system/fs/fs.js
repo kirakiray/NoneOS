@@ -19,7 +19,7 @@
       await writeDB([
         {
           fid: "/",
-          name: "/",
+          // name: "/",
           type: "folder",
           content: {},
         },
@@ -45,7 +45,6 @@
 
       // 为该数据库创建一个对象仓库
       db.createObjectStore("files", { keyPath: "fid" });
-      // db.createObjectStore("map", { path: "fid" });
     };
 
     req.onerror = (event) => {
@@ -107,6 +106,25 @@
     });
   };
 
+  // 删除数据
+  const removeDB = async (fid) => {
+    const db = await filedb;
+
+    return new Promise((resolve, reject) => {
+      let req = db
+        .transaction(["files"], "readwrite")
+        .objectStore("files")
+        .delete(fid);
+
+      req.onsuccess = (e) => {
+        resolve(e.target.result);
+      };
+      req.onerror = (err) => {
+        reject(err);
+      };
+    });
+  };
+
   // 读取文件或目录
   const readPathDB = async (path) => {
     let parentDirData = await readDB("/");
@@ -125,11 +143,13 @@
     const lastIndex = pathArr.length - 1;
     let index = 0;
 
+    let inDir = "";
     while (index <= lastIndex) {
       const name = pathArr[index];
+      inDir += "/" + name;
       const subData = parentDirData.content[name];
       if (!subData) {
-        throw `can not read ${path}`;
+        throw `error path:${path}, ${inDir} does not exist`;
       }
       parentDirData = await readDB(subData.fid);
       index++;
@@ -138,33 +158,36 @@
     return parentDirData;
   };
 
-  // ----暴露到外面的方法↓----
-  // 添加文件夹
-  const mkdir = async (path) => {
-    const parentPath = path.replace(/(.*\/).+/, "$1");
+  const getName = (path) => {
+    const dir = path.replace(/(.*\/).+/, "$1");
     const name = path.replace(/.*\/(.+)/, "$1");
+    return { dir, name };
+  };
 
-    const parentDirData = await readPathDB(parentPath);
+  // 写入数据
+  const writeData = async (path, type, data, existedCall) => {
+    const { dir, name } = getName(path);
 
-    const { content } = parentDirData;
+    const parentDirData = await readPathDB(dir);
+
+    const parentDirContent = parentDirData.content;
 
     // 确定没有重复
-    if (content[name]) {
-      throw `${path} already exists`;
+    if (parentDirContent[name]) {
+      await existedCall(path, parentDirContent[name]);
     }
 
     // 写入文件夹
     const fid = createFid();
 
-    const contentData = (content[name] = {
-      type: "folder",
+    const contentData = (parentDirContent[name] = {
+      type,
       fid,
-      name,
     });
 
     const realData = {
       ...contentData,
-      content: {},
+      content: data,
     };
 
     await writeDB([realData, parentDirData]);
@@ -172,9 +195,50 @@
     return true;
   };
 
-  const rename = async (opts) => {};
+  // ----暴露到外面的方法↓----
+  const remove = async (path) => {
+    const { dir, name } = getName(path);
 
-  const remove = async (opts) => {};
+    const dirData = await readPathDB(dir);
+    const dirContentTarget = dirData.content[name];
+
+    if (!dirContentTarget) {
+      throw `${path} not found,remove fail`;
+    }
+
+    if (dirContentTarget.type === "folder") {
+      const targetData = await readDB(dirContentTarget.fid);
+
+      // 删除子文件
+      await Promise.all(
+        Object.values(targetData.content).map(async (e) => {
+          let newPath = `${path}/${e.name}`;
+
+          await remove(newPath);
+        })
+      );
+
+      await removeDB(dirContentTarget.fid);
+    } else {
+      // 直接删除
+      await removeDB(dirContentTarget.fid);
+    }
+  };
+
+  // 添加文件夹
+  const mkdir = async (path) => {
+    return await writeData(path, "folder", {}, async (path) => {
+      throw `${path} already exists`;
+    });
+  };
+
+  const writeFile = async (path, data) => {
+    return await writeData(path, "data", data, async (path, existedData) => {
+      debugger;
+    });
+  };
+
+  const rename = async (opts) => {};
 
   // 读取文件
   const read = async (path) => {
@@ -182,7 +246,10 @@
 
     return {
       type: targetData.type,
-      content: Object.values(targetData.content),
+      content: Object.entries(targetData.content).map((e) => ({
+        name: e[0],
+        ...e[1],
+      })),
     };
   };
 
@@ -198,7 +265,8 @@
   const fs = {
     mkdir,
     read,
-    write,
+    writeFile,
+    remove,
     inited: initRoot(),
   };
 

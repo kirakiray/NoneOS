@@ -14,9 +14,13 @@
         await fs.inited;
         await fs.mkdir("/apps").catch((err) => console.log(err));
         await fs.mkdir("/apps/testdir").catch((err) => console.log(err));
+        await fs.mkdir("/apps/testdir2").catch((err) => console.log(err));
 
         const data = await fs.read("/apps");
         console.log("data => ", data);
+
+        // fs.writeFile("/apps/aaa.js", "asdasdasd");
+        // fs.remove("/apps");
       })();
     </script>
   </body>
