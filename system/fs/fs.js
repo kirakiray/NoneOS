@@ -196,11 +196,13 @@
   };
 
   // ----暴露到外面的方法↓----
-  const remove = async (path) => {
+  const DEEPREMOVE = Symbol("deep-remove");
+  const remove = async (path, isDeep) => {
     const { dir, name } = getName(path);
 
     const dirData = await readPathDB(dir);
-    const dirContentTarget = dirData.content[name];
+    const dirContent = dirData.content;
+    const dirContentTarget = dirContent[name];
 
     if (!dirContentTarget) {
       throw `${path} not found,remove fail`;
@@ -214,7 +216,7 @@
         Object.values(targetData.content).map(async (e) => {
           let newPath = `${path}/${e.name}`;
 
-          await remove(newPath);
+          await remove(newPath, DEEPREMOVE);
         })
       );
 
@@ -222,6 +224,11 @@
     } else {
       // 直接删除
       await removeDB(dirContentTarget.fid);
+    }
+
+    if (isDeep !== DEEPREMOVE) {
+      delete dirContent[name];
+      await writeDB([dirData]);
     }
   };
 
@@ -234,7 +241,7 @@
 
   const writeFile = async (path, data) => {
     return await writeData(path, "data", data, async (path, existedData) => {
-      debugger;
+      await remove(path);
     });
   };
 
@@ -244,12 +251,22 @@
   const read = async (path) => {
     const targetData = await readPathDB(path);
 
-    return {
-      type: targetData.type,
-      content: Object.entries(targetData.content).map((e) => ({
+    if (!targetData) {
+      return;
+    }
+
+    let { content } = targetData;
+
+    if (targetData.type === "folder") {
+      content = Object.entries(content).map((e) => ({
         name: e[0],
         ...e[1],
-      })),
+      }));
+    }
+
+    return {
+      type: targetData.type,
+      content,
     };
   };
 

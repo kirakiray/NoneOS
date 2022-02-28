@@ -4,24 +4,11 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>fs_test</title>
+    <title>fs test</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js/test/ok.js"></script>
     <script src="../fs.js"></script>
   </head>
   <body>
-    test folder
-    <script>
-      (async () => {
-        await fs.inited;
-        await fs.mkdir("/apps").catch((err) => console.log(err));
-        await fs.mkdir("/apps/testdir").catch((err) => console.log(err));
-        await fs.mkdir("/apps/testdir2").catch((err) => console.log(err));
-
-        const data = await fs.read("/apps");
-        console.log("data => ", data);
-
-        // fs.writeFile("/apps/aaa.js", "asdasdasd");
-        // fs.remove("/apps");
-      })();
-    </script>
+    <script src="./write-and-read.js"></script>
   </body>
 </html>
