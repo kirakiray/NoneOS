@@ -1,7 +1,7 @@
-(async () => {
+(() => {
   // 获取随机id
   const createFid = (() => {
-    if (window.crypto && crypto.randomUUID) {
+    if (globalThis.crypto && crypto.randomUUID) {
       return crypto.randomUUID.bind(crypto);
     }
     return () =>
@@ -287,5 +287,5 @@
     inited: initRoot(),
   };
 
-  window.fs = fs;
+  globalThis.fs = fs;
 })();

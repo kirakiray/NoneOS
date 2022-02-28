@@ -1,7 +1,31 @@
-self.addEventListener("fetch", function (event) {
-  let { request } = event;
+importScripts("system/fs/fs.js");
 
-  // console.log("request => ", request);
+self.addEventListener("fetch", function (event) {
+  const { request } = event;
+
+  const urldata = new URL(request.url);
+
+  // 修正虚拟目录
+  if (/^\/\$/.test(urldata.pathname)) {
+    const realUrl = urldata.pathname.replace(/\/\$/, "");
+    if (realUrl) {
+      event.respondWith(
+        (async () => {
+          try {
+            const data = await fs.read(realUrl);
+
+            return new Response(data.content, {
+              status: 200,
+            });
+          } catch (e) {
+            return new Response(undefined, {
+              status: 404,
+            });
+          }
+        })()
+      );
+    }
+  }
 });
 
 // 这个sw.js有更新的时候，触发这个事件
