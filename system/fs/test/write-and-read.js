@@ -28,4 +28,5 @@
   const aaajs = await fs.read("/fs_test_write_and_read/aaa.js");
 
   tester.ok(aaajs.content === `alert('${rdStr}')`, "write file ok");
+
 })();

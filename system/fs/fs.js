@@ -183,6 +183,7 @@
     const contentData = (parentDirContent[name] = {
       type,
       fid,
+      date: Date.now(),
     });
 
     const realData = {
@@ -213,8 +214,8 @@
 
       // 删除子文件
       await Promise.all(
-        Object.values(targetData.content).map(async (e) => {
-          let newPath = `${path}/${e.name}`;
+        Object.entries(targetData.content).map(async ([name, e]) => {
+          let newPath = `${path}/${name}`;
 
           await remove(newPath, DEEPREMOVE);
         })
@@ -284,6 +285,7 @@
     read,
     writeFile,
     remove,
+    readById: readDB,
     inited: initRoot(),
   };
 
