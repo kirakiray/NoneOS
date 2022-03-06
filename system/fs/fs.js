@@ -164,9 +164,33 @@
     return { dir, name };
   };
 
+  // 正在写入数据
+  const writing = {};
+
+  const waitWrite = (dir) => {
+    let targetPms = writing[dir] || (writing[dir] = Promise.resolve());
+
+    let resolve;
+
+    const pms = new Promise((res) => {
+      resolve = res;
+    });
+
+    writing[dir] = targetPms.then((e) => pms);
+
+    return {
+      pms: targetPms,
+      resolve,
+    };
+  };
+
   // 写入数据
   const writeData = async (path, type, data, existedCall) => {
     const { dir, name } = getName(path);
+
+    const { pms, resolve } = waitWrite(dir);
+
+    await pms;
 
     const parentDirData = await readPathDB(dir);
 
@@ -174,7 +198,10 @@
 
     // 确定没有重复
     if (parentDirContent[name]) {
-      await existedCall(path, parentDirContent[name]);
+      await existedCall(path, parentDirContent[name]).catch((e) => {
+        resolve();
+        throw e;
+      });
     }
 
     // 写入文件夹
@@ -192,6 +219,8 @@
     };
 
     await writeDB([realData, parentDirData]);
+
+    resolve();
 
     return true;
   };

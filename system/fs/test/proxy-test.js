@@ -1,6 +1,7 @@
 (async () => {
-  const tester = expect(2, "proxy test");
+  const tester = expect(1, "proxy test");
 
+  await fs.inited;
   await fs.mkdir("/proxy_test").catch((e) => {});
   const mid = Math.random();
   await fs.writeFile("/proxy_test/test.js", `console.log(${mid})`);
