@@ -58,14 +58,13 @@
       };
 
       transicator.onerror = (err) => {
-        debugger;
         reject(err);
       };
 
       const objectStore = transicator.objectStore("files");
 
       // 直接写入文件
-      opts.forEach((data) => objectStore.put(data));
+      opts.forEach((e) => objectStore[e.type || "put"](e.data));
     });
   };
 
@@ -88,25 +87,6 @@
     });
   };
 
-  // 直接从db删除
-  const removeDB = async (fid) => {
-    const db = await filedb;
-
-    return new Promise((resolve, reject) => {
-      let req = db
-        .transaction(["files"], "readwrite")
-        .objectStore("files")
-        .delete(fid);
-
-      req.onsuccess = (e) => {
-        resolve(e.target.result);
-      };
-      req.onerror = (err) => {
-        reject(err);
-      };
-    });
-  };
-
   // 没有初始化的情况下，进行根目录初始化
   const initRoot = async () => {
     const rootInfo = await readDB("/");
@@ -115,9 +95,11 @@
     if (!rootInfo) {
       await writeDB([
         {
-          fid: "/",
-          type: "folder",
-          content: {},
+          data: {
+            fid: "/",
+            type: "folder",
+            content: {},
+          },
         },
       ]);
     }
@@ -130,8 +112,8 @@
     return { dir, name };
   };
 
-  // 通用写入 data 方法
-  const writeData = async ({ dir, name, type, data }) => {
+  // 获取相应的目录数据
+  const readFolder = async (dir) => {
     const dirArr = dir.split("/").filter((e) => !!e);
 
     let targetFolder = await readDB("/");
@@ -150,14 +132,31 @@
       targetFolder = await readDB(nextData.fid);
     }
 
+    return targetFolder;
+  };
+
+  // 正在写入中的文件
+  const writingData = new Map();
+
+  // 通用写入 data 方法
+  const writeData = async ({ dir, name, type, data }) => {
+    let targetFolder = await readFolder(dir);
+
     const targetFolderContent = targetFolder.content;
+
+    let oldFiles = [];
 
     const contentTarget = targetFolderContent[name];
     if (contentTarget) {
       if (contentTarget.type === "folder") {
         throw `'${name}' folder already exists`;
       } else {
-        await removeDB(contentTarget.fid);
+        oldFiles = [
+          {
+            type: "delete",
+            data: contentTarget.fid,
+          },
+        ];
       }
     }
 
@@ -174,8 +173,17 @@
       type,
     };
 
+    let res;
+    const pms = new Promise((resolve) => (res = resolve));
+    writingData.set(targetFolder.fid, {
+      pms,
+      res,
+    });
+
     // 写入数据
-    await writeDB([newData, targetFolder]);
+    await writeDB([{ data: newData }, { data: targetFolder }, ...oldFiles]);
+
+    writingData.delete(targetFolder.fid);
   };
 
   // 添加文件夹
@@ -201,10 +209,28 @@
     });
   };
 
+  // 读取相应路径的文件
+  const read = async (path) => {
+    const { dir, name } = getName(path);
+
+    const parentFolderData = await readFolder(dir);
+
+    const targetInfo = parentFolderData.content[name];
+
+    if (!targetInfo) {
+      throw `${path} file not found`;
+    }
+
+    const targetData = await readDB(targetInfo.fid);
+
+    return targetData;
+  };
+
   const fs = {
     inited: initRoot(),
     mkdir,
     writeFile,
+    read,
   };
 
   globalThis.fs = fs;
