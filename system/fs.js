@@ -137,10 +137,58 @@
 
   // 正在写入中的文件
   const writingData = new Map();
+  const afterWriteData = new Map();
+  const getResolver = async (dir) => {
+    let pms,
+      resolve,
+      folderData = await readFolder(dir);
+
+    if (writingData.has(folderData.fid)) {
+      const oldPms = writingData.get(folderData.fid);
+
+      pms = oldPms.then((e) => new Promise((res) => (resolve = res)));
+      writingData.set(folderData.fid, pms);
+
+      await oldPms;
+
+      // 重新获取更新
+      folderData = await readDB(folderData.fid);
+    } else {
+      pms = new Promise((res) => (resolve = res));
+      writingData.set(folderData.fid, pms);
+
+      // 首次加入
+      let finallyResolve;
+      const finallyPms = new Promise((res) => (finallyResolve = res));
+      afterWriteData.set(dir, finallyPms);
+      finallyPms.reso = finallyResolve;
+    }
+
+    return {
+      resolve: () => {
+        const inWritingPms = writingData.get(folderData.fid);
+        if (inWritingPms === pms) {
+          writingData.delete(folderData.fid);
+
+          // 走末尾队列
+          const finallyPms = afterWriteData.get(dir);
+          finallyPms.reso();
+
+          afterWriteData.delete(folderData.fid);
+        }
+
+        resolve();
+      },
+      folderData,
+    };
+  };
 
   // 通用写入 data 方法
   const writeData = async ({ dir, name, type, data }) => {
-    let targetFolder = await readFolder(dir);
+    // let targetFolder = await readFolder(dir);
+
+    const { resolve, folderData } = await getResolver(dir);
+    const targetFolder = folderData;
 
     const targetFolderContent = targetFolder.content;
 
@@ -173,17 +221,10 @@
       type,
     };
 
-    let res;
-    const pms = new Promise((resolve) => (res = resolve));
-    writingData.set(targetFolder.fid, {
-      pms,
-      res,
-    });
-
     // 写入数据
     await writeDB([{ data: newData }, { data: targetFolder }, ...oldFiles]);
 
-    writingData.delete(targetFolder.fid);
+    resolve();
   };
 
   // 添加文件夹
@@ -219,6 +260,12 @@
 
     if (!targetInfo) {
       throw `${path} file not found`;
+    }
+
+    const fpms = afterWriteData.get(targetInfo.fid);
+
+    if (fpms) {
+      debugger;
     }
 
     const targetData = await readDB(targetInfo.fid);

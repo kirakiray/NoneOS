@@ -9,15 +9,16 @@
 
   // 同时写入三个文件
   const aaaContent = `aaa.js ${Math.random()}`;
-  await fs.writeFile("/base_test/aaa.js", aaaContent);
+  fs.writeFile("/base_test/aaa.js", aaaContent);
 
   const bbbContent = `bbb.js ${Math.random()}`;
-  await fs.writeFile("/base_test/bbb.js", bbbContent);
+  fs.writeFile("/base_test/bbb.js", bbbContent);
 
   const cccContent = `ccc.js ${Math.random()}`;
-  await fs.writeFile("/base_test/ccc.js", cccContent);
+  fs.writeFile("/base_test/ccc.js", cccContent);
 
   let baseTestData = await fs.read("/base_test");
+  // debugger
   tester.ok(baseTestData.type === "folder", "read folder ok");
   tester.ok(
     Object.entries(baseTestData.content).length === 3,
