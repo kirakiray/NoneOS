@@ -241,6 +241,10 @@
     if (dirContentTarget.type === "folder") {
       const targetData = await readDB(dirContentTarget.fid);
 
+      if (!targetData) {
+        debugger;
+      }
+
       // 删除子文件
       await Promise.all(
         Object.entries(targetData.content).map(async ([name, e]) => {
@@ -275,7 +279,9 @@
     });
   };
 
-  const rename = async (opts) => {};
+  const rename = async (opts) => {
+    debugger;
+  };
 
   // 读取文件
   const read = async (path) => {
@@ -314,6 +320,7 @@
     read,
     writeFile,
     remove,
+    rename,
     readById: readDB,
     inited: initRoot(),
   };
