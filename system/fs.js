@@ -136,59 +136,53 @@
   };
 
   // 正在写入中的文件
-  const writingData = new Map();
-  const afterWriteData = new Map();
+  const writingMap = new Map();
+  const writedMap = new Map();
+
   const getResolver = async (dir) => {
-    let pms,
-      resolve,
-      folderData = await readFolder(dir);
+    let pms, resolve;
 
-    if (writingData.has(folderData.fid)) {
-      const oldPms = writingData.get(folderData.fid);
+    if (!writingMap.has(dir)) {
+      pms = new Promise((res) => (resolve = res));
+      writingMap.set(dir, pms);
+      let finallyPmsResolve;
+      const finallyPms = new Promise((res) => (finallyPmsResolve = res));
+      finallyPms.res = finallyPmsResolve;
+      writedMap.set(dir, finallyPms);
+    } else {
+      // 正在写入中的目录进行排队操作
+      const oldPms = writingMap.get(dir);
 
-      pms = oldPms.then((e) => new Promise((res) => (resolve = res)));
-      writingData.set(folderData.fid, pms);
+      pms = oldPms.then(() => new Promise((res) => (resolve = res)));
+      writingMap.set(dir, pms);
 
       await oldPms;
-
-      // 重新获取更新
-      folderData = await readDB(folderData.fid);
-    } else {
-      pms = new Promise((res) => (resolve = res));
-      writingData.set(folderData.fid, pms);
-
-      // 首次加入
-      let finallyResolve;
-      const finallyPms = new Promise((res) => (finallyResolve = res));
-      afterWriteData.set(dir, finallyPms);
-      finallyPms.reso = finallyResolve;
     }
 
     return {
       resolve: () => {
-        const inWritingPms = writingData.get(folderData.fid);
+        dir;
+        const inWritingPms = writingMap.get(dir);
         if (inWritingPms === pms) {
-          writingData.delete(folderData.fid);
-
-          // 走末尾队列
-          const finallyPms = afterWriteData.get(dir);
-          finallyPms.reso();
-
-          afterWriteData.delete(folderData.fid);
+          writingMap.delete(dir);
         }
 
         resolve();
+
+        if (inWritingPms === pms) {
+          // 执行finally
+          const finallyPms = writedMap.get(dir);
+          finallyPms.res();
+          writedMap.delete(dir);
+        }
       },
-      folderData,
     };
   };
 
   // 通用写入 data 方法
   const writeData = async ({ dir, name, type, data }) => {
-    // let targetFolder = await readFolder(dir);
-
-    const { resolve, folderData } = await getResolver(dir);
-    const targetFolder = folderData;
+    const { resolve } = await getResolver(dir);
+    const targetFolder = await readFolder(dir);
 
     const targetFolderContent = targetFolder.content;
 
@@ -197,6 +191,7 @@
     const contentTarget = targetFolderContent[name];
     if (contentTarget) {
       if (contentTarget.type === "folder") {
+        resolve();
         throw `'${name}' folder already exists`;
       } else {
         oldFiles = [
@@ -262,15 +257,38 @@
       throw `${path} file not found`;
     }
 
-    const fpms = afterWriteData.get(targetInfo.fid);
+    if (!/\/$/.test(path)) {
+      path += "/";
+    }
+
+    const fpms = writedMap.get(path);
 
     if (fpms) {
-      debugger;
+      await fpms;
     }
 
     const targetData = await readDB(targetInfo.fid);
 
-    return targetData;
+    let reData = targetData;
+
+    if (targetData.type === "folder") {
+      reData = {
+        ...targetData,
+        content: Object.entries(targetData.content).map((e) => {
+          return {
+            name: e[0],
+            ...e[1],
+          };
+        }),
+      };
+    }
+
+    return reData;
+  };
+
+  // 删除文件或目录
+  const remove = (path) => {
+    
   };
 
   const fs = {
@@ -278,6 +296,7 @@
     mkdir,
     writeFile,
     read,
+    remove,
   };
 
   globalThis.fs = fs;

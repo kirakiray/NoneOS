@@ -18,10 +18,9 @@
   fs.writeFile("/base_test/ccc.js", cccContent);
 
   let baseTestData = await fs.read("/base_test");
-  // debugger
   tester.ok(baseTestData.type === "folder", "read folder ok");
   tester.ok(
-    Object.entries(baseTestData.content).length === 3,
+    baseTestData.content.length === 3,
     "write to file at the same time ok"
   );
 
