@@ -132,6 +132,10 @@
       targetFolder = await readDB(nextData.fid);
     }
 
+    if (!targetFolder) {
+      throw `find out ${dir}`;
+    }
+
     return targetFolder;
   };
 
@@ -286,9 +290,53 @@
     return reData;
   };
 
+  // 删除
+  const removeByData = async (parentFolderData, name, parentDir) => {
+    const targetInfo = parentFolderData.content[name];
+    const { type } = targetInfo;
+
+    const task = [
+      {
+        type: "delete",
+        data: targetInfo.fid,
+      },
+    ];
+
+    if (type === "folder") {
+      const folderData = await readDB(targetInfo.fid);
+      const folderPath = `${parentDir}${name}/`;
+
+      await Promise.all(
+        Object.entries(folderData.content).map(async ([fileName, data]) => {
+          await removeByData(folderData, fileName, folderPath);
+        })
+      );
+
+      delete parentFolderData.content[name];
+
+      task.push({
+        data: parentFolderData,
+      });
+    }
+
+    // 删除目录
+    await writeDB(task);
+  };
+
   // 删除文件或目录
-  const remove = (path) => {
-    
+  const remove = async (path) => {
+    const { dir, name } = getName(path);
+
+    const { resolve } = await getResolver(dir);
+
+    try {
+      const parentFolderData = await readFolder(dir);
+      await removeByData(parentFolderData, name, dir);
+      resolve();
+    } catch (error) {
+      resolve();
+      throw error;
+    }
   };
 
   const fs = {
