@@ -41,13 +41,17 @@
   // 直接写入db
   const writeDB = async (opts) => {
     // const item = {
-    //   // 类型
-    //   type: opts.type, // file 文件类型；folder 文件夹类型；
-    //   // 保存内容
-    //   content: [],
-    //   // 文件专属id
-    //   fid: opts.fid,
+    //   operation: "put",
+    //   data: {
+    //     // 类型
+    //     type: opts.type, // file 文件类型；folder 文件夹类型；
+    //     // 保存内容
+    //     content: [],
+    //     // 文件专属id
+    //     fid: opts.fid,
+    //   },
     // };
+
     const db = await filedb;
 
     return new Promise((resolve, reject) => {
@@ -64,7 +68,7 @@
       const objectStore = transicator.objectStore("files");
 
       // 直接写入文件
-      opts.forEach((e) => objectStore[e.type || "put"](e.data));
+      opts.forEach((e) => objectStore[e.operation || "put"](e.data));
     });
   };
 
@@ -200,7 +204,7 @@
       } else {
         oldFiles = [
           {
-            type: "delete",
+            operation: "delete",
             data: contentTarget.fid,
           },
         ];
@@ -297,7 +301,7 @@
 
     const task = [
       {
-        type: "delete",
+        operation: "delete",
         data: targetInfo.fid,
       },
     ];

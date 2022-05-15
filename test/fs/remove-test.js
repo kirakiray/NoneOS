@@ -19,6 +19,5 @@
 
   const parDir2 = await fs.read("/remove_test");
 
-
   tester.ok(parDir2.content.length === 0, "parent dir remove ok");
 })();
