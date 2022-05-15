@@ -68,7 +68,16 @@
       const objectStore = transicator.objectStore("files");
 
       // 直接写入文件
-      opts.forEach((e) => objectStore[e.operation || "put"](e.data));
+      opts.forEach((e) => {
+        let { operation, data } = e;
+        if (operation !== "delete") {
+          data = {
+            time: Date.now(),
+            ...data,
+          };
+        }
+        objectStore[operation || "put"](data);
+      });
     });
   };
 
@@ -259,6 +268,10 @@
 
     const parentFolderData = await readFolder(dir);
 
+    if (path === "/") {
+      return parentFolderData;
+    }
+
     const targetInfo = parentFolderData.content[name];
 
     if (!targetInfo) {
@@ -349,6 +362,13 @@
     writeFile,
     read,
     remove,
+    // 开放更底层的api方便优化
+    ext: (func) => {
+      func({
+        writeDB,
+        readDB,
+      });
+    },
   };
 
   globalThis.fs = fs;
