@@ -17,8 +17,11 @@ self.addEventListener("fetch", function (event) {
           try {
             const data = await read(realUrl);
 
+            const headers = data.options ? data.options.headers : {};
+
             return new Response(data.content, {
               status: 200,
+              headers,
             });
           } catch (e) {
             console.error(e);

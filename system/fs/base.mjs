@@ -29,10 +29,6 @@ const getFileDB = async () => {
       if (!db.objectStoreNames.contains("files")) {
         db.createObjectStore("files", { keyPath: "fid" });
       }
-
-      if (!db.objectStoreNames.contains("headers")) {
-        db.createObjectStore("headers", { keyPath: "fid" });
-      }
     };
 
     req.onerror = (event) => {
@@ -60,6 +56,9 @@ export const writeDB = async (opts) => {
   //     // 文件专属id
   //     fid: opts.fid,
   //   },
+  //   options:{
+  //     headers: {}
+  //   }
   // };
 
   const db = await getFileDB();

@@ -24,13 +24,14 @@ import getAll from "/system/fs/getAll.mjs";
       });
     } else {
       reEle = document.createElement("li");
-      reEle.innerHTML = `${data.path}`;
+      reEle.innerHTML = `<a href="${
+        location.origin + "/$" + data.path
+      }" target="_blank" style="color:white;">${data.path}</a>`;
     }
 
     return reEle;
   };
 
-  console.log("root data => ", rootdata);
   const ele = createUl(rootdata);
 
   document.body.appendChild(ele);

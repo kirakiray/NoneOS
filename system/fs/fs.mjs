@@ -73,7 +73,7 @@ const getResolver = async (dir) => {
 };
 
 // 通用写入 data 方法
-const writeData = async ({ dir, name, type, data }) => {
+const writeData = async ({ dir, name, type, data, options }) => {
   const { resolve } = await getResolver(dir);
   const targetFolder = await readFolder(dir);
 
@@ -104,6 +104,12 @@ const writeData = async ({ dir, name, type, data }) => {
     content: data,
   };
 
+  if (options) {
+    newData.options = {
+      headers: options.headers,
+    };
+  }
+
   targetFolderContent[name] = {
     fid,
     type,
@@ -127,7 +133,7 @@ export const mkdir = async (path) => {
   });
 };
 
-export const writeFile = async (path, data) => {
+export const writeFile = async (path, data, options) => {
   const { dir, name } = getName(path);
 
   return await writeData({
@@ -135,6 +141,7 @@ export const writeFile = async (path, data) => {
     name,
     type: "file",
     data,
+    options,
   });
 };
 
