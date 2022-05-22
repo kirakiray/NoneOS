@@ -1,29 +1,5 @@
-import { writeDB, readDB, createFid } from "./base.js";
-
-// 没有初始化的情况下，进行根目录初始化
-const initRoot = async () => {
-  const rootInfo = await readDB("/");
-
-  // root初始化
-  if (!rootInfo) {
-    await writeDB([
-      {
-        data: {
-          fid: "/",
-          type: "folder",
-          content: {},
-        },
-      },
-    ]);
-  }
-};
-
-// 根据 path 获取 路径 和 文件名
-const getName = (path) => {
-  const dir = path.replace(/(.*\/).+/, "$1");
-  const name = path.replace(/.*\/(.+)/, "$1");
-  return { dir, name };
-};
+import { writeDB, readDB, createFid, initRoot } from "./base.mjs";
+import { getName } from "./util.mjs";
 
 // 获取相应的目录数据
 const readFolder = async (dir) => {
@@ -140,7 +116,7 @@ const writeData = async ({ dir, name, type, data }) => {
 };
 
 // 添加文件夹
-const mkdir = async (path) => {
+export const mkdir = async (path) => {
   const { dir, name } = getName(path);
 
   return await writeData({
@@ -151,7 +127,7 @@ const mkdir = async (path) => {
   });
 };
 
-const writeFile = async (path, data) => {
+export const writeFile = async (path, data) => {
   const { dir, name } = getName(path);
 
   return await writeData({
@@ -163,7 +139,7 @@ const writeFile = async (path, data) => {
 };
 
 // 读取相应路径的文件
-const read = async (path) => {
+export const read = async (path) => {
   const { dir, name } = getName(path);
 
   const parentFolderData = await readFolder(dir);
@@ -241,7 +217,7 @@ const removeByData = async (parentFolderData, name, parentDir) => {
 };
 
 // 删除文件或目录
-const remove = async (path) => {
+export const remove = async (path) => {
   const { dir, name } = getName(path);
 
   const { resolve } = await getResolver(dir);
@@ -256,19 +232,10 @@ const remove = async (path) => {
   }
 };
 
-const fs = {
+export default {
   inited: initRoot(),
   mkdir,
   writeFile,
   read,
   remove,
-  // 开放更底层的api方便优化
-  ext: (func) => {
-    func({
-      writeDB,
-      readDB,
-    });
-  },
 };
-
-export default fs;

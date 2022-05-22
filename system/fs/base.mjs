@@ -85,7 +85,6 @@ export const readDB = async (fid) => {
   });
 };
 
-
 // 获取随机id
 export const createFid = (() => {
   if (globalThis.crypto && crypto.randomUUID) {
@@ -96,3 +95,21 @@ export const createFid = (() => {
       .map((e) => e.toString(16))
       .join("");
 })();
+
+// 没有初始化的情况下，进行根目录初始化
+export const initRoot = async () => {
+  const rootInfo = await readDB("/");
+
+  // root初始化
+  if (!rootInfo) {
+    await writeDB([
+      {
+        data: {
+          fid: "/",
+          type: "folder",
+          content: {},
+        },
+      },
+    ]);
+  }
+};

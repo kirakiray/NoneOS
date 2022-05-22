@@ -1,5 +1,5 @@
-import { readDB } from "./base.js";
-import fs from "./fs.js";
+import { readDB } from "./base.mjs";
+import fs from "./fs.mjs";
 
 // 获取制定mK
 const getData = async (fid, path) => {

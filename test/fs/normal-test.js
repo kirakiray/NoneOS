@@ -1,6 +1,7 @@
-import fs from "/system/fs/fs.js";
+import fs from "/system/fs/fs.mjs";
 
 (async () => {
+  await fs.inited;
   await fs.mkdir("/normal_test").catch((err) => {});
 
   fs.writeFile(

@@ -1,4 +1,4 @@
-import getAll from "/system/fs/getAll.js";
+import getAll from "/system/fs/getAll.mjs";
 
 (async () => {
   await new Promise((res) => setTimeout(res, 500));

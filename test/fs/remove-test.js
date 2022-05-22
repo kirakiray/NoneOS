@@ -1,4 +1,4 @@
-import fs from "/system/fs/fs.js";
+import fs from "/system/fs/fs.mjs";
 
 (async () => {
   const tester = expect(3, "remove test");
