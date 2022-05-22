@@ -1,5 +1,5 @@
-import { writeDB, readDB, createFid, initRoot } from "./base.mjs";
-import { getName } from "./util.mjs";
+import { writeDB, readDB, initRoot } from "./base.mjs";
+import { getName, createFid } from "./util.mjs";
 
 // 获取相应的目录数据
 const readFolder = async (dir) => {

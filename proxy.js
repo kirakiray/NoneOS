@@ -1,5 +1,5 @@
 // 保持和system同目录，才能启用noneos总代理
-import { read } from "/system/fs/fs.mjs";
+import fs, { read } from "/system/fs/fs.mjs";
 
 self.addEventListener("fetch", function (event) {
   const { request } = event;
@@ -12,6 +12,8 @@ self.addEventListener("fetch", function (event) {
     if (realUrl) {
       event.respondWith(
         (async () => {
+          await fs.inited;
+
           try {
             const data = await read(realUrl);
 
@@ -19,6 +21,7 @@ self.addEventListener("fetch", function (event) {
               status: 200,
             });
           } catch (e) {
+            console.error(e);
             return new Response(undefined, {
               status: 404,
             });

@@ -1,30 +1,52 @@
-// 主体要写入的表
-export const filedb = new Promise((resolve, reject) => {
-  // 根据id获取数据库
-  let req = indexedDB.open("noneos_files");
+let filedb;
 
-  req.onsuccess = (e) => {
-    //获取数据库
-    let db = e.target.result;
+const getFileDB = async () => {
+  if (filedb) {
+    return filedb;
+  }
 
-    resolve(db);
+  filedb = await new Promise((resolve, reject) => {
+    // 根据id获取数据库
+    let req = indexedDB.open("noneos_files");
+
+    req.onsuccess = (e) => {
+      //获取数据库
+      let db = e.target.result;
+
+      db.onclose = () => {
+        console.log("db onclose => ", db);
+      };
+
+      resolve(db);
+    };
+
+    // 创建时生成仓库
+    req.onupgradeneeded = (e) => {
+      // 保存 IDBDataBase 接口
+      let db = e.target.result;
+
+      // 为该数据库创建一个对象仓库
+      if (!db.objectStoreNames.contains("files")) {
+        db.createObjectStore("files", { keyPath: "fid" });
+      }
+
+      if (!db.objectStoreNames.contains("headers")) {
+        db.createObjectStore("headers", { keyPath: "fid" });
+      }
+    };
+
+    req.onerror = (event) => {
+      console.error("database error", event);
+      throw "Database creation error";
+    };
+  });
+
+  filedb.onclose = () => {
+    filedb = null;
   };
 
-  // 创建时生成仓库
-  req.onupgradeneeded = (e) => {
-    // 保存 IDBDataBase 接口
-    let db = e.target.result;
-
-    // 为该数据库创建一个对象仓库
-    if (!db.objectStoreNames.contains("files")) {
-      db.createObjectStore("files", { keyPath: "fid" });
-    }
-  };
-
-  req.onerror = (event) => {
-    throw "Database creation error";
-  };
-});
+  return filedb;
+};
 
 // 直接写入db
 export const writeDB = async (opts) => {
@@ -40,7 +62,7 @@ export const writeDB = async (opts) => {
   //   },
   // };
 
-  const db = await filedb;
+  const db = await getFileDB();
 
   return new Promise((resolve, reject) => {
     const transicator = db.transaction("files", "readwrite");
@@ -71,7 +93,7 @@ export const writeDB = async (opts) => {
 
 // 直接读取db
 export const readDB = async (fid) => {
-  const db = await filedb;
+  const db = await getFileDB();
 
   return new Promise((resolve, reject) => {
     let req = db.transaction("files", "readonly").objectStore("files").get(fid);
@@ -82,19 +104,11 @@ export const readDB = async (fid) => {
     req.onerror = (err) => {
       reject(err);
     };
+    req.onclose = () => {
+      console.warn("db close => ", req);
+    };
   });
 };
-
-// 获取随机id
-export const createFid = (() => {
-  if (globalThis.crypto && crypto.randomUUID) {
-    return crypto.randomUUID.bind(crypto);
-  }
-  return () =>
-    Array.from(crypto.getRandomValues(new Uint8Array(16)))
-      .map((e) => e.toString(16))
-      .join("");
-})();
 
 // 没有初始化的情况下，进行根目录初始化
 export const initRoot = async () => {
