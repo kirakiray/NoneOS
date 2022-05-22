@@ -11,7 +11,7 @@
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
-          .register("base-agent.js")
+          .register("base-agent.js", { type: "module" })
           .then((reg) => {
             setTimeout(() => {
               // 一小时后自动更新

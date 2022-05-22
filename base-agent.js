@@ -1,5 +1,6 @@
 // 保持和system同目录，才能启用noneos总代理
-importScripts("system/fs.js");
+// importScripts("system/fs/fs.js");
+import fs from "/system/fs/fs.js";
 
 self.addEventListener("fetch", function (event) {
   const { request } = event;

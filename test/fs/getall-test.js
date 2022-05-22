@@ -1,11 +1,13 @@
+import getAll from "/system/fs/getAll.js";
+
 (async () => {
   await new Promise((res) => setTimeout(res, 500));
 
-  const rootdata = await fsPlus.getAll("/");
+  const rootdata = await getAll("/");
 
   const createUl = (data) => {
     let reEle = document.createElement("ul");
-    reEle.innerHTML = `<div style="margin-left:-20px;color:red;">${data.path}</div>`;
+    reEle.innerHTML = `<div style="margin-left:-20px;color:green;">${data.path}</div>`;
 
     Object.assign(reEle.style, {
       color: "#fff",
@@ -20,9 +22,9 @@
         li.appendChild(c_ul);
         reEle.append(li);
       });
-    }else{
-        reEle = document.createElement('li');
-        reEle.innerHTML = `${data.path}`;
+    } else {
+      reEle = document.createElement("li");
+      reEle.innerHTML = `${data.path}`;
     }
 
     return reEle;

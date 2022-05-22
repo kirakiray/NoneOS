@@ -1,3 +1,5 @@
+import fs from "/system/fs/fs.js";
+
 (async () => {
   const tester = expect(8, "base test");
 
