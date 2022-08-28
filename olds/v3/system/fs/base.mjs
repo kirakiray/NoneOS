@@ -32,8 +32,8 @@ const getFileDB = async () => {
     };
 
     req.onerror = (event) => {
-      console.error("database creation error", event);
-      reject("database creation error");
+      console.error("database error", event);
+      throw "Database creation error";
     };
   });
 
@@ -70,10 +70,8 @@ export const writeDB = async (opts) => {
       resolve(true);
     };
 
-    transicator.onerror = (event) => {
-      const errDesc = `write database error`;
-      console.error(errDesc, event);
-      reject(errDesc);
+    transicator.onerror = (err) => {
+      reject(err);
     };
 
     const objectStore = transicator.objectStore("files");
@@ -102,10 +100,8 @@ export const readDB = async (fid) => {
     req.onsuccess = (e) => {
       resolve(e.target.result);
     };
-    req.onerror = (event) => {
-      const errDesc = `read database error`;
-      console.error(errDesc, event);
-      reject(errDesc);
+    req.onerror = (err) => {
+      reject(err);
     };
     req.onclose = () => {
       console.warn("db close => ", req);
@@ -113,21 +109,13 @@ export const readDB = async (fid) => {
   });
 };
 
-let isInitedRoot = false;
-let initingPms;
-
 // 没有初始化的情况下，进行根目录初始化
 export const initRoot = async () => {
-  if (isInitedRoot) {
-    await initingPms;
-    return;
-  }
-
   const rootInfo = await readDB("/");
 
   // root初始化
   if (!rootInfo) {
-    initingPms = writeDB([
+    await writeDB([
       {
         data: {
           fid: "/",
@@ -136,9 +124,5 @@ export const initRoot = async () => {
         },
       },
     ]);
-
-    await initingPms;
-
-    isInitedRoot = true;
   }
 };
