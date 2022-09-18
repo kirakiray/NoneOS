@@ -26,14 +26,17 @@ const getFileDB = async () => {
       let db = e.target.result;
 
       // 为该数据库创建一个对象仓库
-      if (!db.objectStoreNames.contains("files")) {
-        db.createObjectStore("files", { keyPath: "fid" });
+      if (!db.objectStoreNames.contains("file")) {
+        db.createObjectStore("file", { keyPath: "fid" });
+      }
+      if (!db.objectStoreNames.contains("folder")) {
+        db.createObjectStore("folder", { keyPath: "path" });
       }
     };
 
     req.onerror = (event) => {
-      console.error("database creation error", event);
-      reject("database creation error");
+      console.error("database error", event);
+      throw "Database creation error";
     };
   });
 
@@ -44,101 +47,91 @@ const getFileDB = async () => {
   return filedb;
 };
 
-// 直接写入db
-export const writeDB = async (opts) => {
-  // const item = {
-  //   operation: "put",
-  //   data: {
-  //     // 类型
-  //     type: opts.type, // file 文件类型；folder 文件夹类型；
-  //     // 保存内容
-  //     content: [],
-  //     // 文件专属id
-  //     fid: opts.fid,
-  //   },
-  //   options:{
-  //     headers: {}
-  //   }
-  // };
+// 生成直接写入DB的方法
+const initWriteDB = (name) => {
+  return async (opts) => {
+    // const item = {
+    //   operation: "put",
+    //   data: {
+    //     // 文件专属id
+    //     fid: opts.fid,
+    //     // 目录地址
+    //     path:''
+    //     // 保存内容
+    //     content: [],
+    //   }
+    // };
 
-  const db = await getFileDB();
+    const db = await getFileDB();
 
-  return new Promise((resolve, reject) => {
-    const transicator = db.transaction("files", "readwrite");
+    return new Promise((resolve, reject) => {
+      const transicator = db.transaction(name, "readwrite");
 
-    transicator.oncomplete = () => {
-      resolve(true);
-    };
+      transicator.oncomplete = () => {
+        resolve(true);
+      };
 
-    transicator.onerror = (event) => {
-      const errDesc = `write database error`;
-      console.error(errDesc, event);
-      reject(errDesc);
-    };
+      transicator.onerror = (err) => {
+        reject(err);
+      };
 
-    const objectStore = transicator.objectStore("files");
+      const objectStore = transicator.objectStore(name);
 
-    // 直接写入文件
-    opts.forEach((e) => {
-      let { operation, data } = e;
-      if (operation !== "delete") {
-        data = {
-          time: Date.now(),
-          ...data,
-        };
-      }
-      objectStore[operation || "put"](data);
+      // 直接写入文件
+      opts.forEach((e) => {
+        let { operation, data } = e;
+        if (operation !== "delete") {
+          data = {
+            time: Date.now(),
+            ...data,
+          };
+        }
+        objectStore[operation || "put"](data);
+      });
     });
-  });
+  };
 };
 
-// 直接读取db
-export const readDB = async (fid) => {
-  const db = await getFileDB();
+const initReadDB = (name) => {
+  return async (mainKey) => {
+    const db = await getFileDB();
 
-  return new Promise((resolve, reject) => {
-    let req = db.transaction("files", "readonly").objectStore("files").get(fid);
+    return new Promise((resolve, reject) => {
+      let req = db.transaction(name, "readonly").objectStore(name).get(mainKey);
 
-    req.onsuccess = (e) => {
-      resolve(e.target.result);
-    };
-    req.onerror = (event) => {
-      const errDesc = `read database error`;
-      console.error(errDesc, event);
-      reject(errDesc);
-    };
-    req.onclose = () => {
-      console.warn("db close => ", req);
-    };
-  });
+      req.onsuccess = (e) => {
+        resolve(e.target.result);
+      };
+      req.onerror = (err) => {
+        reject(err);
+      };
+      req.onclose = () => {
+        console.warn("db close => ", req);
+      };
+    });
+  };
 };
 
-let isInitedRoot = false;
-let initingPms;
+export const writeFileDB = initWriteDB("file");
+export const readFileDB = initReadDB("file");
+export const writeDirDB = initWriteDB("folder");
+export const readDirDB = initReadDB("folder");
 
 // 没有初始化的情况下，进行根目录初始化
 export const initRoot = async () => {
-  if (isInitedRoot) {
-    await initingPms;
-    return;
-  }
-
-  const rootInfo = await readDB("/");
+  const rootInfo = await readDirDB("/");
 
   // root初始化
   if (!rootInfo) {
-    initingPms = writeDB([
+    await writeDirDB([
       {
         data: {
-          fid: "/",
-          type: "folder",
+          path: "/",
           content: {},
         },
       },
     ]);
-
-    await initingPms;
-
-    isInitedRoot = true;
   }
 };
+
+initRoot();

@@ -3,7 +3,7 @@ self.addEventListener("fetch", function (event) {
 
   const urldata = new URL(request.url);
 
-  console.log("urldata => ", urldata);
+  // console.log("urldata => ", urldata);
 });
 
 self.addEventListener("install", () => {

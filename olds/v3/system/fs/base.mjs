@@ -32,8 +32,9 @@ const getFileDB = async () => {
     };
 
     req.onerror = (event) => {
-      console.error("database error", event);
-      throw "Database creation error";
+      const errDesc = `Failed to initialize database`;
+      console.error(errDesc, event);
+      reject(errDesc);
     };
   });
 

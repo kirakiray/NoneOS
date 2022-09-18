@@ -1,9 +1,10 @@
-import { writeDB, readDB, initRoot } from "./base.mjs";
-export { default as mkdir } from "./mkdir.mjs";
-
-initRoot();
+import { writeFileDB, readFileDB, writeDirDB, readDirDB } from "./base.mjs";
+import mkdir from "./mkdir.mjs";
 
 export default {
-  writeDB,
-  readDB,
+  writeFileDB,
+  readFileDB,
+  writeDirDB,
+  readDirDB,
+  mkdir,
 };

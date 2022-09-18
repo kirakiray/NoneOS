@@ -1,12 +1,14 @@
-import fs, { mkdir } from "../../system/fs/fs.mjs";
+import fs from "../../system/fs/fs.mjs";
 
 (async () => {
   const tester = expect(8, "base test");
 
-  console.log("fs => ", fs, mkdir);
+  console.log("fs => ", fs);
 
   // 创建 base test 目录
-  //   await fs.mkdir("/base_test").catch((err) => {});
+  await fs.mkdir("/base_test").catch((err) => {
+    console.log(err);
+  });
 
   // 同时写入三个文件
   //   const aaaContent = `aaa.js ${Math.random()}`;
