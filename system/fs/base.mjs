@@ -1,10 +1,10 @@
 let initedRes;
 const initedPms = new Promise((res) => (initedRes = res));
-const ISINITED = Symbol("inited");
+const ISIGNORE = Symbol("ignore");
 
 // 没有初始化的情况下，进行根目录初始化
 export const initRoot = async () => {
-  const rootInfo = await readDirDB("/", ISINITED);
+  const rootInfo = await readDirDB("/", ISIGNORE);
 
   // root初始化
   if (!rootInfo) {
@@ -17,7 +17,7 @@ export const initRoot = async () => {
           },
         },
       ],
-      ISINITED
+      ISIGNORE
     );
   }
 
@@ -88,7 +88,7 @@ const initWriteDB = (name) => {
     //   }
     // };
 
-    if (ignoreInit !== ISINITED) {
+    if (ignoreInit !== ISIGNORE) {
       await initedPms;
     }
 
@@ -124,7 +124,7 @@ const initWriteDB = (name) => {
 
 const initReadDB = (name) => {
   return async (mainKey, ignoreInit) => {
-    if (ignoreInit !== ISINITED) {
+    if (ignoreInit !== ISIGNORE) {
       await initedPms;
     }
 
