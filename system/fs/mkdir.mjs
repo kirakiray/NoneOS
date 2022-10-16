@@ -20,7 +20,6 @@ export default async function mkdir(path) {
   }
 
   const dirData = {
-    fid: createFid(),
     time: Date.now(),
   };
 

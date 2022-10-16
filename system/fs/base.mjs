@@ -1,3 +1,29 @@
+let initedRes;
+const initedPms = new Promise((res) => (initedRes = res));
+const ISINITED = Symbol("inited");
+
+// 没有初始化的情况下，进行根目录初始化
+export const initRoot = async () => {
+  const rootInfo = await readDirDB("/", ISINITED);
+
+  // root初始化
+  if (!rootInfo) {
+    await writeDirDB(
+      [
+        {
+          data: {
+            path: "/",
+            content: {},
+          },
+        },
+      ],
+      ISINITED
+    );
+  }
+
+  initedRes();
+};
+
 let filedb;
 
 const getFileDB = async () => {
@@ -49,7 +75,7 @@ const getFileDB = async () => {
 
 // 生成直接写入DB的方法
 const initWriteDB = (name) => {
-  return async (opts) => {
+  return async (opts, ignoreInit) => {
     // const item = {
     //   operation: "put",
     //   data: {
@@ -61,6 +87,10 @@ const initWriteDB = (name) => {
     //     content: [],
     //   }
     // };
+
+    if (ignoreInit !== ISINITED) {
+      await initedPms;
+    }
 
     const db = await getFileDB();
 
@@ -93,7 +123,11 @@ const initWriteDB = (name) => {
 };
 
 const initReadDB = (name) => {
-  return async (mainKey) => {
+  return async (mainKey, ignoreInit) => {
+    if (ignoreInit !== ISINITED) {
+      await initedPms;
+    }
+
     const db = await getFileDB();
 
     return new Promise((resolve, reject) => {
@@ -116,22 +150,5 @@ export const writeFileDB = initWriteDB("file");
 export const readFileDB = initReadDB("file");
 export const writeDirDB = initWriteDB("folder");
 export const readDirDB = initReadDB("folder");
-
-// 没有初始化的情况下，进行根目录初始化
-export const initRoot = async () => {
-  const rootInfo = await readDirDB("/");
-
-  // root初始化
-  if (!rootInfo) {
-    await writeDirDB([
-      {
-        data: {
-          path: "/",
-          content: {},
-        },
-      },
-    ]);
-  }
-};
 
 initRoot();
