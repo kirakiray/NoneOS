@@ -1,9 +1,6 @@
 import {
-  writeFileDB,
-  readFileDB,
   writeDirDB,
   readDirDB,
-  initRoot,
 } from "./base.mjs";
 
 import { getName, createFid } from "./util.mjs";
@@ -39,6 +36,4 @@ export default async function mkdir(path) {
   ];
 
   await writeDirDB(tasks);
-
-  console.log("dir  ==== ", targetData, name, dirData);
 }

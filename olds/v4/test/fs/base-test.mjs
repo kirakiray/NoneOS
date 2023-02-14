@@ -7,12 +7,12 @@ import fs from "../../system/fs/fs.mjs";
 
   // 创建 base test 目录
   await fs.mkdir("/base_test").catch((err) => {
-    console.log(err);
+    console.log("mkdir error", err);
   });
 
   // 同时写入三个文件
-  //   const aaaContent = `aaa.js ${Math.random()}`;
-  //   fs.writeFile("/base_test/aaa.js", aaaContent);
+  const aaaContent = `aaa.js ${Math.random()}`;
+  await fs.writeFile("/base_test/aaa.js", aaaContent);
 
   //   const bbbContent = `bbb.js ${Math.random()}`;
   //   fs.writeFile("/base_test/bbb.js", bbbContent);
