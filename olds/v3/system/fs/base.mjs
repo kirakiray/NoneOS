@@ -45,13 +45,11 @@ const getFileDB = async () => {
   return filedb;
 };
 
-// 直接写入db
+// Write directly to DB
 export const writeDB = async (opts) => {
   // const item = {
   //   operation: "put",
   //   data: {
-  //     // 类型
-  //     type: opts.type, // file 文件类型；folder 文件夹类型；
   //     // 保存内容
   //     content: [],
   //     // 文件专属id
@@ -77,7 +75,7 @@ export const writeDB = async (opts) => {
 
     const objectStore = transicator.objectStore("files");
 
-    // 直接写入文件
+    // Write directly to file
     opts.forEach((e) => {
       let { operation, data } = e;
       if (operation !== "delete") {
