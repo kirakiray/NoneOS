@@ -1,3 +1,7 @@
+import Waiter from "./waiter.js";
+
+const INNERDB = Symbol("inner_db");
+
 const getRandomId = (() => {
   if (globalThis.crypto && crypto.randomUUID) {
     return crypto.randomUUID.bind(crypto);
@@ -21,23 +25,33 @@ export default class FakeFS {
     this._fileDB = null;
     this._dbname = name;
 
-    this._initRoot();
+    // Directory being written
+    this._writing = new Waiter();
   }
 
-  async _initRoot() {
-    const rootInfo = await this._readDB("/");
+  async _initRoot(innerDB) {
+    if (!innerDB) {
+      return;
+    }
+
+    const rootInfo = await this._readDB("/", {
+      [INNERDB]: innerDB,
+    });
 
     if (!rootInfo) {
-      await this._writeDB([
-        {
-          data: {
-            fid: "/",
-            type: "folder",
-            // files: new Map(),
-            // dirs: new Map()
+      await this._writeDB(
+        [
+          {
+            data: {
+              fid: "/",
+              type: "folder",
+              // files: new Map(),
+              // folders: new Map()
+            },
           },
-        },
-      ]);
+        ],
+        { [INNERDB]: innerDB }
+      );
     }
   }
 
@@ -57,7 +71,9 @@ export default class FakeFS {
           fileDB = null;
         };
 
-        resolve(db);
+        this._initRoot(db).finally(() => {
+          resolve(db);
+        });
       };
 
       req.onupgradeneeded = (e) => {
@@ -79,8 +95,8 @@ export default class FakeFS {
     return fileDB;
   }
 
-  async _writeDB(queue) {
-    const db = await this._DB;
+  async _writeDB(queue, options = {}) {
+    const db = options[INNERDB] || (await this._DB);
 
     return new Promise((resolve, reject) => {
       const transicator = db.transaction("sources", "readwrite");
@@ -108,8 +124,8 @@ export default class FakeFS {
     });
   }
 
-  async _readDB(fid) {
-    const db = await this._DB;
+  async _readDB(fid, options = {}) {
+    const db = options[INNERDB] || (await this._DB);
 
     return new Promise((resolve, reject) => {
       const req = db
@@ -129,65 +145,90 @@ export default class FakeFS {
   async writeFile(path, data, options = {}) {
     const { parentPath, name } = getParentAndFileName(path);
 
-    const parentFolder = await this._readDB(parentPath);
+    const { next, waiter } = this._writing.lineup(parentPath);
 
-    if (!parentFolder) {
-      throw `Directory does not exist : ${parentPath}`;
+    try {
+      await waiter;
+
+      const parentFolder = await this._readDB(parentPath);
+
+      if (!parentFolder) {
+        throw `Directory does not exist : ${parentPath}`;
+      }
+
+      const files = parentFolder.files || (parentFolder.files = new Map());
+
+      // To delete old file data if it already exists
+      const oldFile = files.get(name);
+
+      const file = {
+        fid: (oldFile && oldFile.fid) || `file-${getRandomId()}`,
+        name,
+        type: options.type || "file",
+      };
+
+      files.set(name, { ...file });
+
+      file.data = data;
+
+      await this._writeDB([{ data: parentFolder }, { data: file }]);
+
+      next();
+
+      return file;
+    } catch (err) {
+      next();
+      throw err;
     }
-
-    const files = parentFolder.files || (parentFolder.files = new Map());
-
-    // To delete old file data if it already exists
-    const oldFile = files.get(name);
-
-    const file = {
-      fid: (oldFile && oldFile.fid) || `file-${getRandomId()}`,
-      name,
-      type: options.type || "file",
-    };
-
-    files.set(name, { ...file });
-
-    file.data = data;
-
-    await this._writeDB([{ data: parentFolder }, { data: file }]);
-
-    return file;
   }
 
   async mkdir(path) {
     const { parentPath, name } = getParentAndFileName(path);
 
-    const parentFolder = await this._readDB(parentPath);
+    const { next, waiter } = this._writing.lineup(parentPath);
 
-    if (!parentFolder) {
-      throw `Directory does not exist => ${parentPath}`;
+    try {
+      await waiter;
+
+      const parentFolder = await this._readDB(parentPath);
+
+      if (!parentFolder) {
+        throw `Directory does not exist => ${parentPath}`;
+      }
+
+      const folders =
+        parentFolder.folders || (parentFolder.folders = new Map());
+
+      const oldFolder = folders.get(name);
+
+      if (oldFolder) {
+        throw `This folder already exists : ${path}`;
+      }
+
+      const folder = {
+        fid: path,
+        name,
+        type: "folder",
+      };
+
+      folders.set(name, {
+        name,
+      });
+
+      await this._writeDB([{ data: parentFolder }, { data: folder }]);
+
+      next();
+
+      return folder;
+    } catch (err) {
+      next();
+      throw err;
     }
-
-    const folders = parentFolder.folders || (parentFolder.folders = new Map());
-
-    const oldFolder = folders.get(name);
-
-    if (oldFolder) {
-      throw `This folder already exists : ${path}`;
-    }
-
-    const folder = {
-      fid: path,
-      name,
-      type: "folder",
-    };
-
-    folders.set(name, {
-      name,
-    });
-
-    await this._writeDB([{ data: parentFolder }, { data: folder }]);
-
-    return folder;
   }
 
-  async readFile(path) {}
+  async readFile(path) {
+    
+  }
 
   async readDir(path) {}
 
