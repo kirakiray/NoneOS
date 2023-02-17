@@ -13,7 +13,12 @@ const getRandomId = (() => {
 })();
 
 const getParentAndFileName = (path) => {
-  const parentPath = path.replace(/(.*\/).+/, "$1");
+  let parentPath = path.replace(/(.*)\/.+/, "$1");
+
+  if (!parentPath) {
+    parentPath = "/";
+  }
+
   const name = path.split("/").pop();
 
   return { parentPath, name };
@@ -227,7 +232,29 @@ export default class FakeFS {
   }
 
   async readFile(path) {
-    
+    const { parentPath, name } = getParentAndFileName(path);
+
+    await this._writing.getWaiter(parentPath);
+
+    const parentFolder = await this._readDB(parentPath);
+
+    const { files } = parentFolder;
+
+    const targetCache = files.get(name);
+
+    if (!targetCache) {
+      throw `No target file found : ${path}`;
+    }
+
+    const { fid } = targetCache;
+
+    const file = await this._readDB(fid);
+
+    if (!file) {
+      throw `The target file is corrupted : ${path}`;
+    }
+
+    return file.data;
   }
 
   async readDir(path) {}
