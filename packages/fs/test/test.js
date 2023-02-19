@@ -20,4 +20,10 @@ import fs from "../index.mjs";
   console.log("root => ", d1);
   const d2 = await fs.readDir("/a");
   console.log("root => ", d2);
+
+  await fs.writeFile("/t_d1.md", "test md file");
+  await fs.remove("/t_d1.md");
+
+  await fs.mkdir("/t2");
+  await fs.remove("/t2");
 })();

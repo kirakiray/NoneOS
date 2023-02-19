@@ -1,7 +1,7 @@
 import Waiter from "./Waiter.js";
 import FileInfo from "./FileInfo.js";
 
-const DIRECTORY = "directory";
+const DIRECTORY = "dir";
 const FILE = "file";
 
 export const COMMON = {
@@ -156,7 +156,7 @@ export default class FakeFS {
     });
   }
 
-  async writeFile(path, data, options = {}) {
+  async writeFile(path, data) {
     const { parentPath, name } = getParentAndFileName(path);
 
     const { next, waiter } = this._writing.lineup(parentPath);
@@ -167,7 +167,7 @@ export default class FakeFS {
       const parentFolder = await this._readDB(parentPath);
 
       if (!parentFolder) {
-        throw `Directory does not exist : ${parentPath}`;
+        throw `parent directory not found : ${parentFolder}`;
       }
 
       const files = parentFolder.files || (parentFolder.files = {});
@@ -178,7 +178,7 @@ export default class FakeFS {
       const file = {
         fid: (oldFile && oldFile.fid) || `file-${getRandomId()}`,
         name,
-        type: options.type || FILE,
+        type: FILE,
       };
 
       files[name] = file;
@@ -213,7 +213,7 @@ export default class FakeFS {
       const parentFolder = await this._readDB(parentPath);
 
       if (!parentFolder) {
-        throw `Directory does not exist => ${parentPath}`;
+        throw `parent directory not found : ${parentFolder}`;
       }
 
       const folders = parentFolder.folders || (parentFolder.folders = {});
@@ -252,6 +252,10 @@ export default class FakeFS {
     await this._writing.getWaiter(parentPath);
 
     const parentFolder = await this._readDB(parentPath);
+
+    if (!parentFolder) {
+      throw `parent directory not found : ${parentFolder}`;
+    }
 
     const targetCache = parentFolder.files[name];
 
@@ -292,7 +296,63 @@ export default class FakeFS {
     return [...folders, ...files];
   }
 
-  async remove(path) {}
+  async remove(path) {
+    const { parentPath, name } = getParentAndFileName(path);
+
+    const { next, waiter } = this._writing.lineup(parentPath);
+
+    try {
+      await waiter;
+
+      const parentFolder = await this._readDB(parentPath);
+
+      if (!parentFolder) {
+        throw `parent directory not found : ${parentFolder}`;
+      }
+
+      const { files, folders } = parentFolder;
+
+      const targetFile = files[name];
+
+      if (targetFile) {
+        delete files[name];
+
+        this._writeDB([
+          { data: parentFolder },
+          {
+            operation: "delete",
+            data: targetFile.fid,
+          },
+        ]);
+
+        next();
+        return FILE;
+      }
+
+      const targetFolder = folders[name];
+
+      if (targetFolder) {
+        delete folders[name];
+
+        this._writeDB([
+          { data: parentFolder },
+          {
+            operation: "delete",
+            data: path,
+          },
+        ]);
+
+        next();
+        return DIRECTORY;
+      }
+
+      next();
+      return false;
+    } catch (err) {
+      next();
+      throw err;
+    }
+  }
 
   async rename(formPath, toPath) {}
 
