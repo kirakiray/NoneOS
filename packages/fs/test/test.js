@@ -2,16 +2,22 @@ import fs from "../index.mjs";
 
 (async () => {
   await fs.writeFile("/test.js", "alert('It is test.js')");
-  await fs.mkdir("/a").catch((e) => console.warn(e));
+  await fs.mkdir("/a").catch((err) => console.warn(err));
 
   await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
   await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
+  await fs.mkdir("/a/dir_test").catch((err) => console.warn(err));
 
   const text = await fs.readFile("/test.js");
 
   console.log("text => ", text);
 
-  const text2 = await fs.readFile("/b.js");
+  const text2 = await fs.readFile("/b.js").catch((err) => console.warn(err));
 
   console.log("text2 => ", text2);
+
+  const d1 = await fs.readDir("/");
+  console.log("root => ", d1);
+  const d2 = await fs.readDir("/a");
+  console.log("root => ", d2);
 })();

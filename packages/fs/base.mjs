@@ -1,4 +1,13 @@
-import Waiter from "./waiter.js";
+import Waiter from "./Waiter.js";
+import FileInfo from "./FileInfo.js";
+
+const DIRECTORY = "directory";
+const FILE = "file";
+
+export const COMMON = {
+  DIRECTORY,
+  FILE,
+};
 
 const INNERDB = Symbol("inner_db");
 
@@ -49,9 +58,9 @@ export default class FakeFS {
           {
             data: {
               fid: "/",
-              type: "folder",
-              // files: new Map(),
-              // folders: new Map()
+              type: DIRECTORY,
+              // files: {},
+              // folders: {}
             },
           },
         ],
@@ -161,22 +170,28 @@ export default class FakeFS {
         throw `Directory does not exist : ${parentPath}`;
       }
 
-      const files = parentFolder.files || (parentFolder.files = new Map());
+      const files = parentFolder.files || (parentFolder.files = {});
 
       // To delete old file data if it already exists
-      const oldFile = files.get(name);
+      const oldFile = files[name];
 
       const file = {
         fid: (oldFile && oldFile.fid) || `file-${getRandomId()}`,
         name,
-        type: options.type || "file",
+        type: options.type || FILE,
       };
 
-      files.set(name, { ...file });
+      files[name] = file;
 
-      file.data = data;
-
-      await this._writeDB([{ data: parentFolder }, { data: file }]);
+      await this._writeDB([
+        { data: parentFolder },
+        {
+          data: {
+            ...file,
+            data,
+          },
+        },
+      ]);
 
       next();
 
@@ -201,10 +216,9 @@ export default class FakeFS {
         throw `Directory does not exist => ${parentPath}`;
       }
 
-      const folders =
-        parentFolder.folders || (parentFolder.folders = new Map());
+      const folders = parentFolder.folders || (parentFolder.folders = {});
 
-      const oldFolder = folders.get(name);
+      const oldFolder = folders[name];
 
       if (oldFolder) {
         throw `This folder already exists : ${path}`;
@@ -213,12 +227,13 @@ export default class FakeFS {
       const folder = {
         fid: path,
         name,
-        type: "folder",
+        type: DIRECTORY,
       };
 
-      folders.set(name, {
+      folders[name] = {
+        type: DIRECTORY,
         name,
-      });
+      };
 
       await this._writeDB([{ data: parentFolder }, { data: folder }]);
 
@@ -238,9 +253,7 @@ export default class FakeFS {
 
     const parentFolder = await this._readDB(parentPath);
 
-    const { files } = parentFolder;
-
-    const targetCache = files.get(name);
+    const targetCache = parentFolder.files[name];
 
     if (!targetCache) {
       throw `No target file found : ${path}`;
@@ -257,7 +270,27 @@ export default class FakeFS {
     return file.data;
   }
 
-  async readDir(path) {}
+  async readDir(path) {
+    const d = await this._readDB(path);
+
+    if (!d) {
+      throw `Directory does not exist : ${path}`;
+    }
+
+    let folders = [];
+
+    if (d.folders) {
+      folders = Object.values(d.folders).map((e) => new FileInfo(e, path));
+    }
+
+    let files = [];
+
+    if (d.files) {
+      files = Object.values(d.files).map((e) => new FileInfo(e, path));
+    }
+
+    return [...folders, ...files];
+  }
 
   async remove(path) {}
 
