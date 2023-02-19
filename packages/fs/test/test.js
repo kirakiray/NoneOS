@@ -22,8 +22,15 @@ import fs from "../index.mjs";
   console.log("root => ", d2);
 
   await fs.writeFile("/t_d1.md", "test md file");
-  await fs.remove("/t_d1.md");
+  await fs.removeFile("/t_d1.md");
 
   await fs.mkdir("/t2");
-  await fs.remove("/t2");
+  await fs.removeDir("/t2");
+
+  await fs.removeFile("/rn_file02");
+  await fs.writeFile("/rn_file01", "I am rnfile01");
+  await fs.renameFile("/rn_file01", "/rn_file02");
+
+  // await fs.mkdir("/rn_dir01").catch((err) => console.warn(err));
+  // await fs.renameDir("/rn_dir01", "/rn_dir02");
 })();

@@ -296,7 +296,7 @@ export default class FakeFS {
     return [...folders, ...files];
   }
 
-  async remove(path) {
+  async removeFile(path) {
     const { parentPath, name } = getParentAndFileName(path);
 
     const { next, waiter } = this._writing.lineup(parentPath);
@@ -310,14 +310,14 @@ export default class FakeFS {
         throw `parent directory not found : ${parentFolder}`;
       }
 
-      const { files, folders } = parentFolder;
+      const { files = {} } = parentFolder;
 
       const targetFile = files[name];
 
       if (targetFile) {
         delete files[name];
 
-        this._writeDB([
+        await this._writeDB([
           { data: parentFolder },
           {
             operation: "delete",
@@ -326,15 +326,40 @@ export default class FakeFS {
         ]);
 
         next();
-        return FILE;
+        return true;
       }
+
+      next();
+      return false;
+    } catch (err) {
+      next();
+      throw err;
+    }
+  }
+
+  // TODO: Need to delete multi-level directories
+  async removeDir(path) {
+    const { parentPath, name } = getParentAndFileName(path);
+
+    const { next, waiter } = this._writing.lineup(parentPath);
+
+    try {
+      await waiter;
+
+      const parentFolder = await this._readDB(parentPath);
+
+      if (!parentFolder) {
+        throw `parent directory not found : ${parentFolder}`;
+      }
+
+      const { folders = {} } = parentFolder;
 
       const targetFolder = folders[name];
 
       if (targetFolder) {
         delete folders[name];
 
-        this._writeDB([
+        await this._writeDB([
           { data: parentFolder },
           {
             operation: "delete",
@@ -354,7 +379,42 @@ export default class FakeFS {
     }
   }
 
-  async rename(formPath, toPath) {}
+  async renameFile(fromPath, toPath) {
+    const { parentPath: fromParentPath, name: fromName } =
+      getParentAndFileName(fromPath);
 
-  async copy(formPath, toPath) {}
+    const { parentPath: toParentPath, name: toName } =
+      getParentAndFileName(toPath);
+
+    const fromParentFolder = await this._readDB(fromParentPath);
+
+    if (fromParentPath === toParentPath) {
+      const { files = {} } = fromParentFolder;
+      const targetFile = files[fromName];
+
+      if (targetFile) {
+        if (files[toName]) {
+          throw `File already exists : ${toName}`;
+        }
+
+        targetFile.name = toName;
+        delete files[fromName];
+        files[toName] = targetFile;
+
+        const originFile = await this._readDB(targetFile.fid);
+        originFile.name = toName;
+
+        await this._writeDB([{ data: fromParentFolder }, { data: originFile }]);
+
+        return true;
+      }
+
+      throw `Target file does not exist : ${fromPath}`;
+    } else {
+      // Cut to go elsewhere
+    }
+  }
+
+  async renameDir(fromPath, toPath) {}
+  // async copy(fromPath, toPath) {}
 }
