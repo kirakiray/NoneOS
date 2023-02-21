@@ -33,6 +33,18 @@ const getParentAndFileName = (path) => {
   return { parentPath, name };
 };
 
+const isEmpty = (obj) => {
+  if (!obj) {
+    return true;
+  }
+
+  for (let i in obj) {
+    return false;
+  }
+
+  return true;
+};
+
 export default class FakeFS {
   constructor(name) {
     // Replace with private later
@@ -159,6 +171,10 @@ export default class FakeFS {
   async writeFile(path, data) {
     const { parentPath, name } = getParentAndFileName(path);
 
+    if (!name) {
+      throw `Must have a file name : ${path}`;
+    }
+
     const { next, waiter } = this._writing.lineup(parentPath);
 
     try {
@@ -204,6 +220,10 @@ export default class FakeFS {
 
   async mkdir(path) {
     const { parentPath, name } = getParentAndFileName(path);
+
+    if (!name) {
+      throw `Must have a directory name : ${path}`;
+    }
 
     const { next, waiter } = this._writing.lineup(parentPath);
 
@@ -329,8 +349,7 @@ export default class FakeFS {
         return true;
       }
 
-      next();
-      return false;
+      throw `The file to be deleted does not exist : ${path}`;
     } catch (err) {
       next();
       throw err;
@@ -338,7 +357,12 @@ export default class FakeFS {
   }
 
   // TODO: Need to delete multi-level directories
-  async removeDir(path) {
+  async removeDir(
+    path,
+    options = {
+      // recursive: false,
+    }
+  ) {
     const { parentPath, name } = getParentAndFileName(path);
 
     const { next, waiter } = this._writing.lineup(parentPath);
@@ -350,6 +374,35 @@ export default class FakeFS {
 
       if (!parentFolder) {
         throw `parent directory not found : ${parentFolder}`;
+      }
+
+      const deleteTask = [];
+
+      const originFolder = await this._readDB(path);
+
+      const { files: oriFiles, folders: oriFolders } = originFolder;
+      const hasOriFiles = !isEmpty(oriFiles);
+      const hasOriFolders = !isEmpty(oriFolders);
+
+      if (!options.recursive && (hasOriFiles || hasOriFolders)) {
+        throw `${path} is not an empty directory, you need to set the recursive of removeDir to true`;
+      }
+
+      if (hasOriFiles) {
+        Object.values(oriFiles).forEach((e) => {
+          deleteTask.push({
+            operation: "delete",
+            data: e.fid,
+          });
+        });
+      }
+
+      if (hasOriFolders) {
+        await Promise.all(
+          Object.values(oriFolders).map(async (e) => {
+            await this.removeDir(`${path}/${e.name}`, { recursive: 1 });
+          })
+        );
       }
 
       const { folders = {} } = parentFolder;
@@ -365,10 +418,11 @@ export default class FakeFS {
             operation: "delete",
             data: path,
           },
+          ...deleteTask,
         ]);
 
         next();
-        return DIRECTORY;
+        return true;
       }
 
       next();
@@ -416,5 +470,6 @@ export default class FakeFS {
   }
 
   async renameDir(fromPath, toPath) {}
+
   // async copy(fromPath, toPath) {}
 }
