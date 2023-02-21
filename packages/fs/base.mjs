@@ -356,7 +356,6 @@ export default class FakeFS {
     }
   }
 
-  // TODO: Need to delete multi-level directories
   async removeDir(
     path,
     options = {
