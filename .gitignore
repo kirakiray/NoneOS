@@ -105,3 +105,6 @@ dist
 
 .DS_store
 */.DS_store
+/test-results/
+/playwright-report/
+/playwright/.cache/

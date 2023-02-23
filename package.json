@@ -3,7 +3,8 @@
   "version": "1.2.0",
   "description": "A browser-based operating system",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npx playwright test",
+    "detest": "npx playwright test tests/example.spec.js --debug"
   },
   "repository": {
     "type": "git",
@@ -14,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/kirakiray/NoneOS/issues"
   },
-  "homepage": "https://github.com/kirakiray/NoneOS#readme"
+  "homepage": "https://github.com/kirakiray/NoneOS#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.31.1"
+  }
 }
