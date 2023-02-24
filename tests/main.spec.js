@@ -1,11 +1,19 @@
-const { test, expect } = require("@playwright/test");
+const { test } = require("@playwright/test");
 
-test("haha", async ({ page }) => {
-  await page.goto("https://playwright.dev/");
+test("Base write and read file", async ({ page }) => {
+  await page.goto(
+    "http://localhost:3393/packages/fs/test/playwright-test.html"
+  );
 
-  return await page.waitForFunction((e) => {
-    return new Promise((res) => {
-      setTimeout(() => res(111), 1000);
-    });
-  }, 111);
+  return await page.waitForFunction(async (e) => {
+    const ramid = Math.random();
+
+    const fileContent = `"alert('It is test.js - ${ramid})"`;
+
+    await fs.writeFile("/test.js", fileContent);
+
+    const text = await fs.readFile("/test.js");
+
+    return fileContent === text;
+  }, true);
 });

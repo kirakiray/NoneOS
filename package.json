@@ -3,6 +3,7 @@
   "version": "1.2.0",
   "description": "A browser-based operating system",
   "scripts": {
+    "server": "node scripts/server",
     "test": "npx playwright test",
     "detest": "npx playwright test tests/example.spec.js --debug"
   },
@@ -17,6 +18,8 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
-    "@playwright/test": "^1.31.1"
+    "@playwright/test": "^1.31.1",
+    "koa": "^2.14.1",
+    "koa-static": "^5.0.0"
   }
 }
