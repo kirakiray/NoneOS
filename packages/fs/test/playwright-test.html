@@ -5,8 +5,30 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>playwright-test</title>
+    <script>
+      function getAllData() {
+        return new Promise((resolve) => {
+          const req = indexedDB.open("default_fs");
+
+          req.onsuccess = (e) => {
+            // Get the database
+            const db = e.target.result;
+
+            const req = db
+              .transaction("sources", "readonly")
+              .objectStore("sources")
+              .getAll();
+
+            req.onsuccess = (e) => {
+              resolve(e.target.result);
+            };
+          };
+        });
+      }
+    </script>
     <script type="module">
       import fs from "../index.mjs";
+
       globalThis.fs = fs;
     </script>
   </head>

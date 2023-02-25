@@ -6,4 +6,8 @@ const path = require("path");
 const home = serve(path.normalize(__dirname + "/../"));
 
 app.use(home);
-app.listen(3393);
+const _server = app.listen(3393);
+
+setTimeout(() => {
+    _server.close();
+}, 10000);
