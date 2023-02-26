@@ -441,30 +441,55 @@ export default class FakeFS {
 
     const fromParentFolder = await this._readDB(fromParentPath);
 
+    const files_f = fromParentFolder.files || (fromParentFolder.files = {});
+    const targetFile = files_f[fromName];
+
+    if (!targetFile) {
+      throw `Target file does not exist : ${fromPath}`;
+    }
+
     if (fromParentPath === toParentPath) {
-      const { files = {} } = fromParentFolder;
-      const targetFile = files[fromName];
-
-      if (targetFile) {
-        if (files[toName]) {
-          throw `File already exists : ${toName}`;
-        }
-
-        targetFile.name = toName;
-        delete files[fromName];
-        files[toName] = targetFile;
-
-        const originFile = await this._readDB(targetFile.fid);
-        originFile.name = toName;
-
-        await this._writeDB([{ data: fromParentFolder }, { data: originFile }]);
-
-        return true;
+      if (files_f[toName]) {
+        throw `File already exists : ${toName}`;
       }
 
-      throw `Target file does not exist : ${fromPath}`;
+      // Delete from old
+      targetFile.name = toName;
+      delete files_f[fromName];
+
+      files_f[toName] = targetFile;
+
+      const originFile = await this._readDB(targetFile.fid);
+      originFile.name = toName;
+
+      await this._writeDB([{ data: fromParentFolder }, { data: originFile }]);
+
+      return true;
     } else {
       // Cut to go elsewhere
+      const toParentFolder = await this._readDB(toParentPath);
+      const files_t = toParentFolder.files || (toParentFolder.files = {});
+
+      if (files_t[toName]) {
+        throw `File already exists : ${toName}`;
+      }
+
+      // Delete from old
+      targetFile.name = toName;
+      delete files_f[fromName];
+
+      files_t[toName] = targetFile;
+
+      const originFile = await this._readDB(targetFile.fid);
+      originFile.name = toName;
+
+      await this._writeDB([
+        { data: fromParentFolder },
+        { data: originFile },
+        { data: toParentFolder },
+      ]);
+
+      return true;
     }
   }
 
