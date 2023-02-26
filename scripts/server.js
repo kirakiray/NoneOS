@@ -8,6 +8,6 @@ const home = serve(path.normalize(__dirname + "/../"));
 app.use(home);
 const _server = app.listen(3393);
 
-setTimeout(() => {
-    _server.close();
-}, 10000);
+// setTimeout(() => {
+//     _server.close();
+// }, 10000);
