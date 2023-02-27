@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>waiter test</title>
+  </head>
+  <body>
+    waiter test
+    <div id="log"></div>
+
+    <script type="module">
+      import Waiter from "../Waiter.js";
+      globalThis.Waiter = Waiter;
+
+      const test = new Waiter();
+
+      const { next: n1, waiter: w1 } = test.lineup("1");
+
+      w1.then((e) => {
+        console.log("111");
+      });
+
+      const { next: n2, waiter: w2 } = test.lineup("1");
+
+      w2.then((e) => {
+        console.log("222");
+      });
+
+      const { next: n3, waiter: w3 } = test.lineup("1");
+
+      w3.then((e) => {
+        console.log("333");
+      });
+    </script>
+  </body>
+</html>

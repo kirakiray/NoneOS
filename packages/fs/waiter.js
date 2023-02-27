@@ -3,25 +3,25 @@ export default class Waiter {
     this._pool = {};
   }
 
-  getWaiter(str) {
-    let oldPms = this._pool[str];
+  getWaiter(id) {
+    let oldPms = this._pool[id];
 
     if (!oldPms) {
-      oldPms = this._pool[str] = Promise.resolve();
+      oldPms = this._pool[id] = Promise.resolve();
     }
 
     return oldPms;
   }
 
-  lineup(str) {
-    let oldPms = this.getWaiter();
+  lineup(id) {
+    let oldPms = this.getWaiter(id);
 
     let next;
     const innerPms = new Promise((resolve) => {
       next = resolve;
     });
 
-    this._pool[str] = oldPms.then((e) => {
+    this._pool[id] = oldPms.then((e) => {
       return innerPms;
     });
 

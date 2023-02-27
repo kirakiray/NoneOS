@@ -33,18 +33,6 @@ const getParentAndFileName = (path) => {
   return { parentPath, name };
 };
 
-const isEmpty = (obj) => {
-  if (!obj) {
-    return true;
-  }
-
-  for (let i in obj) {
-    return false;
-  }
-
-  return true;
-};
-
 export default class FakeFS {
   constructor(name) {
     // Replace with private later
@@ -269,8 +257,6 @@ export default class FakeFS {
   async readFile(path) {
     const { parentPath, name } = getParentAndFileName(path);
 
-    await this._writing.getWaiter(parentPath);
-
     const parentFolder = await this._readDB(parentPath);
 
     if (!parentFolder) {
@@ -356,80 +342,90 @@ export default class FakeFS {
     }
   }
 
-  async removeDir(
-    path,
-    options = {
-      // recursive: false,
-    }
-  ) {
-    const { parentPath, name } = getParentAndFileName(path);
+  async removeDir(path) {
+    const { parentPath } = getParentAndFileName(path);
 
-    const { next, waiter } = this._writing.lineup(parentPath);
+    const allSubs = await _getSubDirPaths(this, path);
+
+    const nexts = [];
+    const waiters = [];
+
+    [parentPath, ...allSubs].forEach((subPath) => {
+      const { next, waiter } = this._writing.lineup(subPath);
+      nexts.push(next);
+      waiters.push(waiter);
+    });
 
     try {
-      await waiter;
+      await Promise.all(waiters);
 
-      const parentFolder = await this._readDB(parentPath);
+      const transer = await this._getRemoveTranser(path, {
+        removeFromParent: 1,
+      });
 
-      if (!parentFolder) {
-        throw `parent directory not found : ${parentFolder}`;
-      }
+      this._writeDB(transer);
 
-      const deleteTask = [];
-
-      const originFolder = await this._readDB(path);
-
-      const { files: oriFiles, folders: oriFolders } = originFolder;
-      const hasOriFiles = !isEmpty(oriFiles);
-      const hasOriFolders = !isEmpty(oriFolders);
-
-      if (!options.recursive && (hasOriFiles || hasOriFolders)) {
-        throw `${path} is not an empty directory, you need to set the recursive of removeDir to true`;
-      }
-
-      if (hasOriFiles) {
-        Object.values(oriFiles).forEach((e) => {
-          deleteTask.push({
-            operation: "delete",
-            data: e.fid,
-          });
-        });
-      }
-
-      if (hasOriFolders) {
-        await Promise.all(
-          Object.values(oriFolders).map(async (e) => {
-            await this.removeDir(`${path}/${e.name}`, { recursive: 1 });
-          })
-        );
-      }
-
-      const { folders = {} } = parentFolder;
-
-      const targetFolder = folders[name];
-
-      if (targetFolder) {
-        delete folders[name];
-
-        await this._writeDB([
-          { data: parentFolder },
-          {
-            operation: "delete",
-            data: path,
-          },
-          ...deleteTask,
-        ]);
-
-        next();
-        return true;
-      }
-
-      next();
-      return false;
+      nexts.forEach((res) => res());
     } catch (err) {
-      next();
+      nexts.forEach((res) => res());
       throw err;
     }
+
+    return true;
+  }
+
+  async _getRemoveTranser(
+    path,
+    options = {
+      // removeFromParent: false,
+    }
+  ) {
+    // Data to be written to the db
+    const transer = [];
+
+    const { parentPath, name } = getParentAndFileName(path);
+
+    const [parentFolder, targetFolder] = await Promise.all([
+      this._readDB(parentPath),
+      this._readDB(path),
+    ]);
+
+    if (options.removeFromParent) {
+      const { folders: folder_p } = parentFolder;
+      delete folder_p[name];
+      transer.push({
+        data: parentFolder,
+      });
+    }
+
+    // delete self
+    transer.push({
+      operation: "delete",
+      data: path,
+    });
+
+    // delete sub files
+    const { files, folders } = targetFolder;
+    Object.values(files).forEach((e) => {
+      transer.push({
+        operation: "delete",
+        data: e.fid,
+      });
+    });
+
+    // Recursive Directory
+    if (folders) {
+      await Promise.all(
+        Object.values(folders).map(async (e) => {
+          const subPath = `${path}/${e.name}`;
+          const transer_s = await this._getRemoveTranser(subPath);
+
+          transer.push(...transer_s);
+        })
+      );
+    }
+
+    return transer;
   }
 
   async renameFile(fromPath, toPath) {
@@ -439,35 +435,27 @@ export default class FakeFS {
     const { parentPath: toParentPath, name: toName } =
       getParentAndFileName(toPath);
 
-    const fromParentFolder = await this._readDB(fromParentPath);
+    const { next: next_f, waiter: waiter_f } =
+      this._writing.lineup(fromParentPath);
 
-    const files_f = fromParentFolder.files || (fromParentFolder.files = {});
-    const targetFile = files_f[fromName];
+    try {
+      await waiter_f;
 
-    if (!targetFile) {
-      throw `Target file does not exist : ${fromPath}`;
-    }
+      const fromParentFolder = await this._readDB(fromParentPath);
 
-    if (fromParentPath === toParentPath) {
-      if (files_f[toName]) {
-        throw `File already exists : ${toName}`;
+      const files_f = fromParentFolder.files || (fromParentFolder.files = {});
+      const targetFile = files_f[fromName];
+
+      if (!targetFile) {
+        throw `Target file does not exist : ${fromPath}`;
       }
 
-      // Delete from old
-      targetFile.name = toName;
-      delete files_f[fromName];
-
-      files_f[toName] = targetFile;
-
-      const originFile = await this._readDB(targetFile.fid);
-      originFile.name = toName;
-
-      await this._writeDB([{ data: fromParentFolder }, { data: originFile }]);
-
-      return true;
-    } else {
       // Cut to go elsewhere
-      const toParentFolder = await this._readDB(toParentPath);
+      const toParentFolder =
+        fromParentPath === toParentPath
+          ? fromParentFolder
+          : await this._readDB(toParentPath);
+
       const files_t = toParentFolder.files || (toParentFolder.files = {});
 
       if (files_t[toName]) {
@@ -483,17 +471,42 @@ export default class FakeFS {
       const originFile = await this._readDB(targetFile.fid);
       originFile.name = toName;
 
-      await this._writeDB([
-        { data: fromParentFolder },
-        { data: originFile },
-        { data: toParentFolder },
-      ]);
+      const writeTasks = [{ data: fromParentFolder }, { data: originFile }];
 
+      if (fromParentFolder !== toParentFolder) {
+        writeTasks.push({ data: toParentFolder });
+      }
+
+      await this._writeDB(writeTasks);
+
+      next_f();
       return true;
+    } catch (err) {
+      next_f();
+      throw err;
     }
   }
 
   async renameDir(fromPath, toPath) {}
 
   // async copy(fromPath, toPath) {}
+}
+
+async function _getSubDirPaths(_this, path) {
+  const paths = [path];
+
+  const targetFolder = await _this._readDB(path);
+
+  const { folders } = targetFolder;
+
+  if (folders) {
+    await Promise.all(
+      Object.values(folders).map(async (e) => {
+        const subPaths = await _getSubDirPaths(_this, `${path}/${e.name}`);
+        paths.push(...subPaths);
+      })
+    );
+  }
+
+  return paths;
 }

@@ -8,51 +8,38 @@
     <script type="module">
       import fs from "../index.mjs";
 
-      function getAllData() {
-        return new Promise((resolve) => {
-          const req = indexedDB.open("default_fs");
-
-          req.onsuccess = (e) => {
-            // Get the database
-            const db = e.target.result;
-
-            const req = db
-              .transaction("sources", "readonly")
-              .objectStore("sources")
-              .getAll();
-
-            req.onsuccess = (e) => {
-              resolve(e.target.result);
-            };
-          };
-        });
-      }
-
       (async () => {
-        const ramid = Math.random();
-
-        const fileContent = `"alert('It is test.js - ${ramid})"`;
-
-        await fs.writeFile("/test.js", fileContent);
-
-        const text = await fs.readFile("/test.js");
-
-        if (fileContent !== text) {
-          throw "file content error";
+        // removeDir ----
+        try {
+          await fs.mkdir("/a");
+          await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
+          await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
+          await fs.mkdir("/a/dir_test");
+          await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
+        } catch (err) {
+          console.error(err);
         }
-        const datas1 = await getAllData();
+        // const firstCountOK = (await getAllData()).length === 6;
 
-        await fs.renameFile("/test.js", "/test2.js");
-        const text2 = await fs.readFile("/test2.js");
+        await fs.removeDir("/a");
+        // const lastCountOK = (await getAllData()).length === 1;
 
-        if (fileContent !== text2) {
-          throw "after file content error";
-        }
-        const datas2 = await getAllData();
-
-        if (!(datas1.length === 2 && datas2.length === 2)) {
-          throw "indexdb count error";
-        }
+        // rename file ----
+        // await fs.writeFile("/rn_file01", "I am rnfile01");
+        // await fs.mkdir("/a");
+        // await fs.renameFile("/rn_file01", "/a/f2");
+        // const text = await fs.readFile("/a/f2");
+        // if (text !== "I am rnfile01") {
+        //   throw "read text error";
+        // }
+        // rename dir ----
+        // try {
+        //   await fs.mkdir("/dir_a");
+        //   await fs.writeFile("/dir_a/f1", "file 1 text");
+        //   await fs.mkdir("/dir_a/sub_dir_a");
+        //   await fs.writeFile("/dir_a/sub_dir_a/f1", "file 2 text");
+        // } catch (err) {}
+        // await fs.renameDir("/dir_a", "/dir_b");
       })();
     </script>
   </head>
