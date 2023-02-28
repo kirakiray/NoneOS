@@ -5,7 +5,7 @@ console.log("dirname => ", __dirname);
 
 // 运行命令行命令
 exec(
-  `
+  `cd ${__dirname}
 pwd
 npm run test
 `,
