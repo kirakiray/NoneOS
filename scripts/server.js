@@ -10,4 +10,7 @@ app.use(home);
 const _server = app.listen(3393);
 console.log("server start");
 
-module.exports = _server;
+module.exports = {
+  server: _server,
+  home: path.normalize(__dirname + "/../"),
+};
