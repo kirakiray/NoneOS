@@ -4,7 +4,7 @@ const { expect, test } = require("@playwright/test");
 
 test.beforeEach(async ({ page, isMobile }) => {
   await page.goto(
-    "http://localhost:3393/packages/fs/test/playwright-test.html"
+    "http://127.0.0.1:3393/packages/fs/test/playwright-test.html"
   );
 });
 
@@ -151,7 +151,7 @@ test.describe("Base Function", () => {
 });
 
 test("Waiter test", async ({ page }) => {
-  await page.goto("http://localhost:3393/packages/fs/test/waiter-test.html");
+  await page.goto("http://127.0.0.1:3393/packages/fs/test/waiter-test.html");
 
   await expect(page.getByTestId("log")).toHaveText("Initial task completed");
 

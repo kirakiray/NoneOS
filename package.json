@@ -5,6 +5,7 @@
   "scripts": {
     "server": "node scripts/server",
     "test": "npx playwright test",
+    "ci-test": "node scripts/ci-test",
     "detest": "npx playwright test tests/example.spec.js --debug"
   },
   "repository": {
