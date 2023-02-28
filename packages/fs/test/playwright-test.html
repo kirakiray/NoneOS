@@ -28,11 +28,14 @@
     </script>
     <script type="module">
       import fs from "../index.mjs";
-
-      globalThis.fs = fs;
+      window.fs = fs;
     </script>
   </head>
   <body>
+    <script type="module">
+      import fs from "../index.mjs";
+      window.fs = fs;
+    </script>
     playwright-test
   </body>
 </html>
