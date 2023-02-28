@@ -21,6 +21,7 @@
   "devDependencies": {
     "@playwright/test": "^1.31.1",
     "koa": "^2.14.1",
-    "koa-static": "^5.0.0"
+    "koa-static": "^5.0.0",
+    "shelljs": "^0.8.5"
   }
 }
