@@ -7,8 +7,9 @@
     <title>waiter test</title>
   </head>
   <body>
-    waiter test
-    <div id="log"></div>
+    <div id="log" data-testid="log"></div>
+    <button data-testid="resolve-n1" id="resolve-n1">resolve n1</button>
+    <button data-testid="resolve-n2" id="resolve-n2">resolve n2</button>
 
     <script type="module">
       import Waiter from "../Waiter.js";
@@ -16,22 +17,24 @@
 
       const test = new Waiter();
 
-      const { next: n1, waiter: w1 } = test.lineup("1");
+      const { next: n1, waiter: w1 } = test.lineup("test");
+      document.querySelector("#resolve-n1").onclick = () => n1();
 
       w1.then((e) => {
-        console.log("111");
+        document.querySelector("#log").innerHTML = "Initial task completed";
       });
 
-      const { next: n2, waiter: w2 } = test.lineup("1");
+      const { next: n2, waiter: w2 } = test.lineup("test");
+      document.querySelector("#resolve-n2").onclick = () => n2();
 
       w2.then((e) => {
-        console.log("222");
+        document.querySelector("#log").innerHTML = "The second task";
       });
 
-      const { next: n3, waiter: w3 } = test.lineup("1");
+      const { next: n3, waiter: w3 } = test.lineup("test");
 
       w3.then((e) => {
-        console.log("333");
+        document.querySelector("#log").innerHTML = "The third task";
       });
     </script>
   </body>

@@ -266,7 +266,8 @@ export default class FakeFS {
     const targetCache = parentFolder.files[name];
 
     if (!targetCache) {
-      throw `No target file found : ${path}`;
+      return null;
+      // throw `No target file found : ${path}`;
     }
 
     const { fid } = targetCache;
@@ -284,7 +285,8 @@ export default class FakeFS {
     const d = await this._readDB(path);
 
     if (!d) {
-      throw `Directory does not exist : ${path}`;
+      // throw `Directory does not exist : ${path}`;
+      return null;
     }
 
     let folders = [];
@@ -343,8 +345,28 @@ export default class FakeFS {
   }
 
   async removeDir(path) {
-    const { parentPath } = getParentAndFileName(path);
+    const { next, waiter } = await this._waitSubs(path);
 
+    try {
+      await waiter;
+
+      const transer = await this._getRemoveTranser(path, {
+        removeFromParent: 1,
+      });
+
+      this._writeDB(transer);
+
+      next();
+    } catch (err) {
+      next();
+      throw err;
+    }
+
+    return true;
+  }
+
+  async _waitSubs(path) {
+    const { parentPath } = getParentAndFileName(path);
     const allSubs = await _getSubDirPaths(this, path);
 
     const nexts = [];
@@ -356,22 +378,10 @@ export default class FakeFS {
       waiters.push(waiter);
     });
 
-    try {
-      await Promise.all(waiters);
-
-      const transer = await this._getRemoveTranser(path, {
-        removeFromParent: 1,
-      });
-
-      this._writeDB(transer);
-
-      nexts.forEach((res) => res());
-    } catch (err) {
-      nexts.forEach((res) => res());
-      throw err;
-    }
-
-    return true;
+    return {
+      next: () => nexts.forEach((res) => res()),
+      waiter: Promise.all(waiters),
+    };
   }
 
   async _getRemoveTranser(
@@ -471,13 +481,13 @@ export default class FakeFS {
       const originFile = await this._readDB(targetFile.fid);
       originFile.name = toName;
 
-      const writeTasks = [{ data: fromParentFolder }, { data: originFile }];
+      const writeTranser = [{ data: fromParentFolder }, { data: originFile }];
 
       if (fromParentFolder !== toParentFolder) {
-        writeTasks.push({ data: toParentFolder });
+        writeTranser.push({ data: toParentFolder });
       }
 
-      await this._writeDB(writeTasks);
+      await this._writeDB(writeTranser);
 
       next_f();
       return true;
@@ -487,7 +497,98 @@ export default class FakeFS {
     }
   }
 
-  async renameDir(fromPath, toPath) {}
+  async renameDir(fromPath, toPath) {
+    const { next, waiter } = await this._waitSubs(fromPath);
+
+    try {
+      await waiter;
+
+      const { parentPath: fromParentPath, name: fromName } =
+        getParentAndFileName(fromPath);
+
+      const { parentPath: toParentPath, name: toName } =
+        getParentAndFileName(toPath);
+
+      const exitedFolder = await this._readDB(toPath);
+
+      if (exitedFolder) {
+        throw `Directory ${toPath} already exists`;
+      }
+
+      const fromParent = await this._readDB(fromParentPath);
+
+      const toParent =
+        fromParentPath === toParentPath
+          ? fromParent
+          : await this._readDB(toParentPath);
+
+      if (fromParent !== toParent) {
+        delete fromParent.folders[fromName];
+      }
+
+      const toFolders = toParent.folders || (toParent.folders = {});
+
+      const transers = await this._getRenameTranser(fromPath, toPath);
+
+      toFolders[toName] = {
+        type: "folder",
+        name: toName,
+      };
+
+      transers.unshift({ data: toParent });
+
+      if (toParent !== fromParent) {
+        transers.unshift({ data: fromParent });
+      }
+
+      await this._writeDB(transers);
+      next();
+      return true;
+    } catch (err) {
+      next();
+      throw err;
+    }
+  }
+
+  async _getRenameTranser(path, newPath) {
+    const transer = [];
+
+    const targetFolder = await this._readDB(path);
+
+    const { name } = getParentAndFileName(newPath);
+
+    targetFolder.fid = newPath;
+    if (targetFolder.name !== name) {
+      targetFolder.name = name;
+    }
+
+    transer.push(
+      {
+        data: targetFolder,
+      },
+      {
+        data: path,
+        operation: "delete",
+      }
+    );
+
+    const { folders } = targetFolder;
+
+    if (folders) {
+      await Promise.all(
+        Object.values(folders).map(async (e) => {
+          const subTasks = await this._getRenameTranser(
+            `${path}/${e.name}`,
+            `${newPath}/${e.name}`
+          );
+
+          transer.push(...subTasks);
+        })
+      );
+    }
+
+    return transer;
+  }
 
   // async copy(fromPath, toPath) {}
 }
