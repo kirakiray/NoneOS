@@ -21,10 +21,8 @@
         //   console.error(err);
         // }
         // const firstCountOK = (await getAllData()).length === 6;
-
         // await fs.renameDir("/a", "/b/a2");
         // const lastCountOK = (await getAllData()).length === 1;
-
         // rename file ----
         // await fs.writeFile("/rn_file01", "I am rnfile01");
         // await fs.mkdir("/a");
@@ -33,7 +31,6 @@
         // if (text !== "I am rnfile01") {
         //   throw "read text error";
         // }
-
         // rename dir ----
         // try {
         //   await fs.mkdir("/dir_a");
@@ -42,16 +39,23 @@
         //   await fs.writeFile("/dir_a/sub_dir_a/f1", "file 2 text");
         // } catch (err) {}
         // await fs.renameDir("/dir_a", "/dir_b");
-
         // removeDIr ---
+        // await fs.mkdir("/a");
+        // await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
+        // await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
+        // await fs.mkdir("/a/dir_test");
+        // await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
+        // await fs.removeDir("/a");
 
-        await fs.mkdir("/a");
-        await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
-        await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
-        await fs.mkdir("/a/dir_test");
-        await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
+        // proxy test ---
+        // await fs.writeFile("/a.js", "alert('I am a.js')");
+        // await fs.mkdir("/test_dir");
+        // await fs.writeFile("/test_dir/b.js", "alert('I am b.js')");
+        const content = await fetch("http://localhost:3393/@/a.js").then((e) =>
+          e.text()
+        );
 
-        await fs.removeDir("/a", { recursive: true });
+        debugger;
       })();
     </script>
   </head>

@@ -1,6 +1,6 @@
 {
-  "name": "noneos",
-  "version": "1.2.0",
+  "name": "NoneOS",
+  "version": "1.2.1",
   "description": "A browser-based operating system",
   "scripts": {
     "server": "node scripts/server",
