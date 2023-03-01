@@ -31,25 +31,3 @@ export default class Waiter {
     };
   }
 }
-
-// const test = new Waiter();
-
-// const { next: n1, waiter: w1 } = test.lineup("1");
-
-// w1.then((e) => {
-//   console.log("111");
-// });
-
-// const { next: n2, waiter: w2 } = test.lineup("1");
-
-// w2.then((e) => {
-//   console.log("222");
-// });
-
-// const { next: n3, waiter: w3 } = test.lineup("1");
-
-// w3.then((e) => {
-//   console.log("333");
-// });
-
-// Object.assign(window, { n1, n2, n3 });
