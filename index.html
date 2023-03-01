@@ -11,13 +11,15 @@
     <script>
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
-          .register("/proxy.js", { type: "module" })
+          .register("/sw.js", { type: "module" }) // oh no, firefox not work
           .then((reg) => {
             setTimeout(() => {
               reg.update();
             }, 60 * 60 * 1000);
           })
-          .catch((err) => {});
+          .catch((err) => {
+            console.error(err);
+          });
       }
     </script>
   </body>

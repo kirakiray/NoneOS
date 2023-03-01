@@ -48,14 +48,16 @@
         // await fs.removeDir("/a");
 
         // proxy test ---
-        // await fs.writeFile("/a.js", "alert('I am a.js')");
-        // await fs.mkdir("/test_dir");
-        // await fs.writeFile("/test_dir/b.js", "alert('I am b.js')");
-        const content = await fetch("http://localhost:3393/@/a.js").then((e) =>
+        try {
+          await fs.writeFile("/a.js", "alert('I am a.js')");
+          await fs.mkdir("/test_dir");
+          await fs.writeFile("/test_dir/b.js", "alert('I am b.js')");
+        } catch (err) {}
+        const content = await fetch("http://127.0.0.1:3393/@/a.js").then((e) =>
           e.text()
         );
 
-        debugger;
+        console.log("content => ", content);
       })();
     </script>
   </head>
