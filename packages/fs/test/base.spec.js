@@ -1,6 +1,8 @@
 const { expect, test } = require("@playwright/test");
 
-// test.use({ viewport: { width: 200, height: 200 } });
+// test.use({
+//   viewport: { width: 200, height: 200 },
+// });
 
 test.beforeEach(async ({ page, isMobile }) => {
   await page.goto(

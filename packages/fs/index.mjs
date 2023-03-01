@@ -1,4 +1,4 @@
-import FakeFS from "./base.mjs";
+import FakeFS from "./src/base.mjs";
 
 const fs = new FakeFS("default_fs");
 
