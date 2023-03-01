@@ -10,8 +10,13 @@
     NoneOS
     <script>
       if ("serviceWorker" in navigator) {
+        const isFirefox = navigator.userAgent.includes("Firefox");
+
         navigator.serviceWorker
-          .register("/sw.js", { type: "module" }) // oh no, firefox not work
+          .register(isFirefox ? "/sw-dist.js" : "sw.js", {
+            type: isFirefox ? "" : "module", // oh no, firefox not work in module
+            scope: "/",
+          })
           .then((reg) => {
             setTimeout(() => {
               reg.update();

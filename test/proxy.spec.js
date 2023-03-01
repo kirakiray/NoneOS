@@ -1,11 +1,11 @@
 const { expect, test } = require("@playwright/test");
 
 test("Waiter test", async ({ page }) => {
-  await page.goto("http://127.0.0.1:3393/");
+  await page.goto("http://localhost:3393/");
 
   await new Promise((res) => setTimeout(res, 3000));
 
-  await page.goto("http://127.0.0.1:3393/test/proxy-test.html");
+  await page.goto("http://localhost:3393/test/proxy-test.html");
 
   const contentA = `alert('I am a.js - ${Math.random()}')`;
   const contentB = `alert('I am b.js - ${Math.random()}')`;
@@ -31,15 +31,15 @@ test("Waiter test", async ({ page }) => {
         e.text()
       );
       const content2 = await fetch(
-        "http://127.0.0.1:3393/@/test_dir/b.js"
+        "http://localhost:3393/@/test_dir/b.js"
       ).then((e) => e.text());
 
       if (content1 !== contentA) {
-        throw "fetch content1 error";
+        throw `fetch content1 error content1 => ${content1}`;
       }
 
       if (content2 !== contentB) {
-        throw "fetch content2 error";
+        throw `fetch content2 error content2 => ${content2}`;
       }
     },
     { contentA, contentB }
