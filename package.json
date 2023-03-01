@@ -1,12 +1,13 @@
 {
-  "name": "noneos",
-  "version": "1.2.0",
+  "name": "NoneOS",
+  "version": "1.2.1",
   "description": "A browser-based operating system",
   "scripts": {
     "server": "node scripts/server",
     "test": "npx playwright test",
     "ci-test": "node scripts/ci-test",
-    "detest": "npx playwright test tests/example.spec.js --debug"
+    "detest": "npx playwright test tests/example.spec.js --debug",
+    "build-sw": "parcel build sw.js --out-dir . --out-file sw-dist.js --no-source-maps"
   },
   "repository": {
     "type": "git",
