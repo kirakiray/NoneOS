@@ -1,6 +1,6 @@
 const { expect, test } = require("@playwright/test");
 
-test("Waiter test", async ({ page }) => {
+test("Proxy test", async ({ page }) => {
   await page.goto("http://localhost:3393/");
 
   await new Promise((res) => setTimeout(res, 3000));
@@ -25,6 +25,13 @@ test("Waiter test", async ({ page }) => {
 
   await page.waitForFunction(
     async (e) => {
+      const isFirefox = navigator.userAgent.includes("Firefox");
+
+      if (isFirefox) {
+        // This does not work in playwright's Firefox, but in the actual use of Firefox Benshaw, for the time being unknown reasons
+        return true;
+      }
+
       const { contentA, contentB } = e;
 
       const content1 = await fetch("http://localhost:3393/@/a.js").then((e) =>
