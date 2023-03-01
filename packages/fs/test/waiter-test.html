@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>waiter test</title>
+  </head>
+  <body>
+    <div id="log" data-testid="log"></div>
+    <button data-testid="resolve-n1" id="resolve-n1">resolve n1</button>
+    <button data-testid="resolve-n2" id="resolve-n2">resolve n2</button>
+
+    <script type="module">
+      import Waiter from "../src/Waiter.js";
+      globalThis.Waiter = Waiter;
+
+      const test = new Waiter();
+
+      const { next: n1, waiter: w1 } = test.lineup("test");
+      document.querySelector("#resolve-n1").onclick = () => n1();
+
+      w1.then((e) => {
+        document.querySelector("#log").innerHTML = "Initial task completed";
+      });
+
+      const { next: n2, waiter: w2 } = test.lineup("test");
+      document.querySelector("#resolve-n2").onclick = () => n2();
+
+      w2.then((e) => {
+        document.querySelector("#log").innerHTML = "The second task";
+      });
+
+      const { next: n3, waiter: w3 } = test.lineup("test");
+
+      w3.then((e) => {
+        document.querySelector("#log").innerHTML = "The third task";
+      });
+    </script>
+  </body>
+</html>

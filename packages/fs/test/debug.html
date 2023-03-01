@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View All File</title>
+    <script type="module">
+      import fs from "../index.mjs";
+
+      (async () => {
+        // removeDir renameDir ----
+        // try {
+        //   await fs.mkdir("/a");
+        //   await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
+        //   await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
+        //   await fs.mkdir("/a/dir_test");
+        //   await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
+        //   await fs.mkdir("/b");
+        // } catch (err) {
+        //   console.error(err);
+        // }
+        // const firstCountOK = (await getAllData()).length === 6;
+
+        // await fs.renameDir("/a", "/b/a2");
+        // const lastCountOK = (await getAllData()).length === 1;
+
+        // rename file ----
+        // await fs.writeFile("/rn_file01", "I am rnfile01");
+        // await fs.mkdir("/a");
+        // await fs.renameFile("/rn_file01", "/a/f2");
+        // const text = await fs.readFile("/a/f2");
+        // if (text !== "I am rnfile01") {
+        //   throw "read text error";
+        // }
+
+        // rename dir ----
+        // try {
+        //   await fs.mkdir("/dir_a");
+        //   await fs.writeFile("/dir_a/f1", "file 1 text");
+        //   await fs.mkdir("/dir_a/sub_dir_a");
+        //   await fs.writeFile("/dir_a/sub_dir_a/f1", "file 2 text");
+        // } catch (err) {}
+        // await fs.renameDir("/dir_a", "/dir_b");
+
+        // removeDIr ---
+
+        await fs.mkdir("/a");
+        await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
+        await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
+        await fs.mkdir("/a/dir_test");
+        await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
+
+        await fs.removeDir("/a", { recursive: true });
+      })();
+    </script>
+  </head>
+  <body>
+    test file
+  </body>
+</html>
