@@ -26,7 +26,11 @@
         });
       }
     </script>
-    <script src="./build.js"></script>
+    <script type="module">
+      import fs from "../index.mjs";
+      window.fs = fs;
+    </script>
+    <!-- <script src="./build.js"></script> -->
   </head>
   <body>
     playwright-test
