@@ -1,0 +1,38 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: rgba(0, 0, 0, 0.2) 0 0 6px;
+}
+
+.content {
+  position: relative;
+  flex: 1;
+  .inner {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    overflow-y: auto;
+  }
+}
+
+.tool {
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  height: 50px;
+  border-bottom: #d9d9d9 solid 1px;
+}
+
+.block {
+  margin: 10px 0 0 10px;
+  width: 100px;
+  font-size: 12px;
+  text-align: center;
+}
