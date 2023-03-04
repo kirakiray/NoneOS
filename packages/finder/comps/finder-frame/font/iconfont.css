@@ -1,8 +1,8 @@
 @font-face {
   font-family: "nonefont"; /* Project id 2942503 */
-  src: url('iconfont.woff2?t=1677752557381') format('woff2'),
-       url('iconfont.woff?t=1677752557381') format('woff'),
-       url('iconfont.ttf?t=1677752557381') format('truetype');
+  src: url('./iconfont.woff2?t=1677836265248') format('woff2'),
+       url('./iconfont.woff?t=1677836265248') format('woff'),
+       url('./iconfont.ttf?t=1677836265248') format('truetype');
 }
 
 .nonefont {

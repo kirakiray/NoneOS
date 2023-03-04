@@ -1,0 +1,70 @@
+<link rel="stylesheet" href="./font/iconfont.css" />
+<link rel="stylesheet" href="./finder-frame.css" />
+<div class="container pannel">
+  <div class="con_left">
+    <div style="height: 30px"></div>
+    <div class="left_title">虚拟本地</div>
+    <div class="favorite_con">
+      <div class="left_block" active="1">
+        <div class="block_icon">
+          <span class="nonefont nicon-24gf-folderOpen"></span>
+        </div>
+        <div class="block_name">Default</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="con_right">
+    <div class="menu">
+      <div
+        class="menu_btn"
+        class:disabled="backDisabled"
+        title="后退"
+        @click="triggerHandler('back')"
+        style="margin-left: 20px"
+      >
+        <span class="nonefont nicon-houtui"></span>
+      </div>
+      <!-- <div class="menu_btn disabled" title="前进">
+        <span class="nonefont nicon-qianjin"></span>
+      </div> -->
+      <!-- <div class="menu_btn" title="向上">
+        <span class="nonefont nicon-xiangshang4"></span>
+      </div> -->
+      <div style="width: 20px; height: 10px"></div>
+      <div
+        class="menu_btn"
+        title="新建文件夹"
+        @click="triggerHandler('add-folder')"
+      >
+        <span
+          class="nonefont nicon-wenjianjiaFolders6"
+          style="font-size: 18px"
+        ></span>
+      </div>
+      <div class="menu_btn" title="导入文件">
+        <span class="nonefont nicon-daoru" style="font-size: 12px"></span>
+      </div>
+      <div class="menu_btn" title="重命名">
+        <span class="nonefont nicon-zhongmingming"></span>
+      </div>
+      <div class="menu_btn" title="删除">
+        <span class="nonefont nicon-shanchu"></span>
+      </div>
+      <div class="menu_btn" title="复制">
+        <span class="nonefont nicon-fuzhi1"></span>
+      </div>
+      <div class="menu_btn" title="剪切">
+        <span class="nonefont nicon-jianqie"></span>
+      </div>
+    </div>
+    <div class="main">
+      <div class="con_main">
+        <slot></slot>
+      </div>
+    </div>
+    <div class="con_bottom">
+      <div class="dir_text">{{path}}</div>
+    </div>
+  </div>
+</div>
