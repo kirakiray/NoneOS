@@ -94,14 +94,7 @@
         `entrance-block[type='${targetData.type}'][name='${targetData.name}']`
       );
 
-      targetBlock.renameMode = 1;
-      targetBlock.focusInput();
+      targetBlock.toRename();
     }
-  });
-
-  app.on("rename-block", (e) => {
-    const { data } = e;
-
-    console.log("data => ", data);
   });
 })();

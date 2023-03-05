@@ -26,13 +26,14 @@ Component(async ({ load }) => {
     },
     proto: {
       blurName(e) {
-        debugger
         this.trigger("rename-block", {
           oldName: this.showname,
           name: e.target.value,
+          type: this.type,
         });
       },
-      focusInput() {
+      toRename() {
+        this.renameMode = 1;
         $.nextTick(() => {
           this.shadow.$(".rename_inputer").ele.focus();
         });

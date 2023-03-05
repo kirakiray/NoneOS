@@ -524,16 +524,14 @@ export default class FakeFS {
           ? fromParent
           : await this._readDB(toParentPath);
 
-      if (fromParent !== toParent) {
-        delete fromParent.folders[fromName];
-      }
+      delete fromParent.folders[fromName];
 
       const toFolders = toParent.folders || (toParent.folders = {});
 
       const transers = await this._getRenameTranser(fromPath, toPath);
 
       toFolders[toName] = {
-        type: "folder",
+        type: DIRECTORY,
         name: toName,
       };
 

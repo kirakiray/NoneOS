@@ -129,6 +129,34 @@ test.describe("Base Function", () => {
       await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
       await fs.mkdir("/a/dir_test");
       await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
+
+      const firstCountOK = (await getAllData()).length === 6;
+
+      await fs.renameDir("/a", "/b");
+
+      const oldDirOK = !(await fs.readDir("/a"));
+
+      const content1 = await fs.readFile("/b/a1.js");
+      const content2 = await fs.readFile("/b/a2.js");
+
+      const content1OK = content1 === "alert('It is a1.js')";
+      const content2OK = content2 === "alert('It is a2.js')";
+
+      const lastCountOK = (await getAllData()).length === 6;
+
+      return (
+        firstCountOK && lastCountOK && content1OK && content2OK && oldDirOK
+      );
+    });
+  });
+
+  test("renameDir in cut mode", async ({ page }) => {
+    return await page.waitForFunction(async () => {
+      await fs.mkdir("/a");
+      await fs.writeFile("/a/a1.js", "alert('It is a1.js')");
+      await fs.writeFile("/a/a2.js", "alert('It is a2.js')");
+      await fs.mkdir("/a/dir_test");
+      await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
       await fs.mkdir("/b");
 
       const firstCountOK = (await getAllData()).length === 7;

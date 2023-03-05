@@ -1778,15 +1778,16 @@
     ]);
 
     // Trigger native events
-    const triggerEvenet = (_this, name, data, bubbles = true) => {
+    const triggerEvenet = (_this, name, data, options = {}) => {
         let TargeEvent = EventMap.get(name) || CustomEvent;
 
         const event =
             name instanceof Event ?
             name :
             new TargeEvent(name, {
-                bubbles,
+                bubbles: true,
                 cancelable: true,
+                ...options,
             });
 
         event.data = data;
@@ -1869,11 +1870,13 @@
 
             return eid;
         },
-        trigger(name, data) {
-            return triggerEvenet(this, name, data);
+        trigger(name, data, options = {}) {
+            return triggerEvenet(this, name, data, options);
         },
         triggerHandler(name, data) {
-            return triggerEvenet(this, name, data, false);
+            return triggerEvenet(this, name, data, {
+                bubbles: false,
+            });
         },
     });
 

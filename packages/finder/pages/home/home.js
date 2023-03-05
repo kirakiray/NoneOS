@@ -50,8 +50,17 @@ Page(async ({ load }) => {
       await this.reload();
       this.isReady = true;
 
-      this.shadow.on("rename-block", (e) => {
-        debugger;
+      this.shadow.on("rename-block", async (e) => {
+        const { data } = e;
+        const { path } = this;
+
+        const oldPath = `${path === "/" ? "" : path}/${data.oldName}`;
+        const newPath = `${path === "/" ? "" : path}/${data.name}`;
+
+        if (data.type === "dir") {
+          await fs.renameDir(oldPath, newPath);
+          this.reload();
+        }
       });
     },
   };
