@@ -23,7 +23,7 @@
 
   finderFrame.path = "/";
 
-  finderFrame.on("add-folder", async (e) => {
+  finderFrame.on("click-add-folder", async (e) => {
     const lastPage = $.all("o-page").slice(-1)[0];
 
     const { path } = lastPage;
@@ -48,11 +48,60 @@
     const { data } = e;
 
     app.router.push(`pages/home/home.js?path=${data.path}`);
-
-    console.log("goto => ", data);
   });
 
   finderFrame.on("back", () => {
     app.back();
+  });
+
+  let selecteds = [];
+
+  finderFrame.on("selected-change", (e) => {
+    selecteds = e.data;
+    finderFrame.hasSelected = !!selecteds.length;
+  });
+
+  finderFrame.on("click-delete", async () => {
+    const bool = confirm("Delete It?");
+
+    if (bool && selecteds.length) {
+      const target = selecteds[0];
+
+      const needDeleteFilePath = `${
+        finderFrame.path === "/" ? "/" : `${finderFrame.path}/`
+      }${target.name}`;
+      console.log("bool => ", bool, needDeleteFilePath);
+
+      if (target.type === "dir") {
+        await fs.removeDir(needDeleteFilePath);
+      } else {
+        debugger;
+      }
+
+      const lastPage = $.all("o-page").slice(-1)[0];
+      lastPage.reload();
+
+      finderFrame.hasSelected = false;
+    }
+  });
+
+  finderFrame.on("click-rename", (e) => {
+    if (selecteds.length) {
+      const targetData = selecteds[0];
+      const lastPage = $.all("o-page").slice(-1)[0];
+
+      const targetBlock = lastPage.shadow.$(
+        `entrance-block[type='${targetData.type}'][name='${targetData.name}']`
+      );
+
+      targetBlock.renameMode = 1;
+      targetBlock.focusInput();
+    }
+  });
+
+  app.on("rename-block", (e) => {
+    const { data } = e;
+
+    console.log("data => ", data);
   });
 })();

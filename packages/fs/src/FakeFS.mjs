@@ -416,12 +416,14 @@ export default class FakeFS {
 
     // delete sub files
     const { files, folders } = targetFolder;
-    Object.values(files).forEach((e) => {
-      transer.push({
-        operation: "delete",
-        data: e.fid,
+    if (files) {
+      Object.values(files).forEach((e) => {
+        transer.push({
+          operation: "delete",
+          data: e.fid,
+        });
       });
-    });
+    }
 
     // Recursive Directory
     if (folders) {

@@ -35,28 +35,44 @@
       <div
         class="menu_btn"
         title="新建文件夹"
-        @click="triggerHandler('add-folder')"
+        class:disabled="hasSelected"
+        @click="!hasSelected && triggerHandler('click-add-folder')"
       >
         <span
           class="nonefont nicon-wenjianjiaFolders6"
           style="font-size: 18px"
         ></span>
       </div>
-      <div class="menu_btn" title="导入文件">
+      <div
+        class="menu_btn"
+        title="导入文件"
+        class:disabled="hasSelected"
+        @click="!hasSelected && triggerHandler('import-file')"
+      >
         <span class="nonefont nicon-daoru" style="font-size: 12px"></span>
       </div>
-      <div class="menu_btn" title="重命名">
+      <div
+        class="menu_btn"
+        title="重命名"
+        class:disabled="!hasSelected"
+        @click="hasSelected && triggerHandler('click-rename')"
+      >
         <span class="nonefont nicon-zhongmingming"></span>
       </div>
-      <div class="menu_btn" title="删除">
+      <div
+        class="menu_btn"
+        title="删除"
+        class:disabled="!hasSelected"
+        @click="hasSelected && triggerHandler('click-delete')"
+      >
         <span class="nonefont nicon-shanchu"></span>
       </div>
-      <div class="menu_btn" title="复制">
+      <!-- <div class="menu_btn" title="复制" class:disabled="!hasSelected">
         <span class="nonefont nicon-fuzhi1"></span>
       </div>
-      <div class="menu_btn" title="剪切">
+      <div class="menu_btn" title="剪切" class:disabled="!hasSelected">
         <span class="nonefont nicon-jianqie"></span>
-      </div>
+      </div> -->
     </div>
     <div class="main">
       <div class="con_main">

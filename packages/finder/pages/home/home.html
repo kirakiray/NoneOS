@@ -28,5 +28,7 @@
   temp:block
   :name="$data.name"
   :type="$data.type"
+  :selected="$data.selected"
   @dblclick="$host.enterFolder($data)"
+  @click="$host.select($data)"
 ></entrance-block>

@@ -6,6 +6,7 @@ Component(async ({ load }) => {
     data: {
       path: "",
       backDisabled: false,
+      hasSelected: false,
     },
   };
 });

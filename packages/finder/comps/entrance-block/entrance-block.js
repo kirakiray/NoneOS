@@ -6,14 +6,10 @@ Component(async ({ load }) => {
       name: "",
       selected: null,
       type: "",
-      // icon的类型
       icontype: "",
-      // 是否重命名状态
-      renameMode: false,
     },
     data: {
       showname: "",
-      // 重命名状态
       renameMode: false,
     },
     watch: {
@@ -24,17 +20,21 @@ Component(async ({ load }) => {
         if (type == "folder" || type == "dir") {
           this.icontype = "folder";
         } else {
-          // 根据不同file又能展开显示图标
           this.icontype = "file";
         }
       },
     },
     proto: {
       blurName(e) {
-        // this.name = e.target.value;
+        debugger
         this.trigger("rename-block", {
           oldName: this.showname,
           name: e.target.value,
+        });
+      },
+      focusInput() {
+        $.nextTick(() => {
+          this.shadow.$(".rename_inputer").ele.focus();
         });
       },
     },

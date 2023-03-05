@@ -113,7 +113,7 @@ test.describe("Base Function", () => {
       await fs.writeFile("/a/dir_test/b.js", "alert('bbb)");
       const firstCountOK = (await getAllData()).length === 6;
 
-      await fs.removeDir("/a", { recursive: true });
+      await fs.removeDir("/a");
       const lastCountOK = (await getAllData()).length === 1;
 
       if (!(firstCountOK && lastCountOK)) {
