@@ -11,7 +11,7 @@ self.addEventListener("fetch", function (event) {
     event.respondWith(
       (async () => {
         try {
-          const data = await fs.readFile(path);
+          const data = await fs.readFile(decodeURIComponent(path));
 
           if (!data) {
             throw `File does not exist : ${urldata.pathname}`;

@@ -3,7 +3,7 @@
 <div class="container pannel">
   <div class="con_left">
     <div style="height: 30px"></div>
-    <div class="left_title">虚拟本地</div>
+    <div class="left_title">Virtual Local</div>
     <div class="favorite_con">
       <div class="left_block" active="1">
         <div class="block_icon">
@@ -19,22 +19,22 @@
       <div
         class="menu_btn"
         class:disabled="backDisabled"
-        title="后退"
+        title="Back"
         @click="triggerHandler('back')"
         style="margin-left: 20px"
       >
         <span class="nonefont nicon-houtui"></span>
       </div>
-      <!-- <div class="menu_btn disabled" title="前进">
+      <!-- <div class="menu_btn disabled" title="Forward">
         <span class="nonefont nicon-qianjin"></span>
       </div> -->
-      <!-- <div class="menu_btn" title="向上">
+      <!-- <div class="menu_btn" title="Upward">
         <span class="nonefont nicon-xiangshang4"></span>
       </div> -->
       <div style="width: 20px; height: 10px"></div>
       <div
         class="menu_btn"
-        title="新建文件夹"
+        title="New Folder"
         class:disabled="hasSelected"
         @click="!hasSelected && triggerHandler('click-add-folder')"
       >
@@ -45,15 +45,15 @@
       </div>
       <div
         class="menu_btn"
-        title="导入文件"
+        title="Import File"
         class:disabled="hasSelected"
-        @click="!hasSelected && triggerHandler('import-file')"
+        @click="!hasSelected && triggerHandler('click-import')"
       >
         <span class="nonefont nicon-daoru" style="font-size: 12px"></span>
       </div>
       <div
         class="menu_btn"
-        title="重命名"
+        title="Rename"
         class:disabled="!hasSelected"
         @click="hasSelected && triggerHandler('click-rename')"
       >
@@ -61,16 +61,16 @@
       </div>
       <div
         class="menu_btn"
-        title="删除"
+        title="Delete"
         class:disabled="!hasSelected"
         @click="hasSelected && triggerHandler('click-delete')"
       >
         <span class="nonefont nicon-shanchu"></span>
       </div>
-      <!-- <div class="menu_btn" title="复制" class:disabled="!hasSelected">
+      <!-- <div class="menu_btn" title="Copy" class:disabled="!hasSelected">
         <span class="nonefont nicon-fuzhi1"></span>
       </div>
-      <div class="menu_btn" title="剪切" class:disabled="!hasSelected">
+      <div class="menu_btn" title="Cut" class:disabled="!hasSelected">
         <span class="nonefont nicon-jianqie"></span>
       </div> -->
     </div>
