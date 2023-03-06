@@ -3,8 +3,6 @@ import fs from "../../system/fs/fs.mjs";
 (async () => {
   const tester = expect(8, "base test");
 
-  console.log("fs => ", fs);
-
   // 创建 base test 目录
   await fs.mkdir("/base_test").catch((err) => {
     console.log("mkdir error", err);

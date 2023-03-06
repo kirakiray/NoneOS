@@ -4,7 +4,9 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NoneOS</title>
+    <title>finder test</title>
+    <script src="../../public/ofa.js"></script>
+    <script src="./comps/file-mana/file-mana.js"></script>
     <style>
       html,
       body {
@@ -33,28 +35,17 @@
           #f7c978 100%
         );
       }
+      .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+      }
     </style>
   </head>
   <body>
-    NoneOS
-    <script>
-      if ("serviceWorker" in navigator) {
-        const isFirefox = navigator.userAgent.includes("Firefox");
-
-        navigator.serviceWorker
-          .register(isFirefox ? "/sw-dist.js" : "sw.js", {
-            type: isFirefox ? "" : "module", // oh no, firefox not work in module
-            scope: "/",
-          })
-          .then((reg) => {
-            setTimeout(() => {
-              reg.update();
-            }, 60 * 60 * 1000);
-          })
-          .catch((err) => {
-            console.error(err);
-          });
-      }
-    </script>
+    <div class="container">
+      <file-mana style="width: 90%; height: 80%"></file-mana>
+    </div>
   </body>
 </html>

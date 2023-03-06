@@ -1,0 +1,107 @@
+{
+  "id": "2942503",
+  "name": "NoneOS",
+  "font_family": "nonefont",
+  "css_prefix_text": "nicon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "14929745",
+      "name": "文件夹Folders (6)",
+      "font_class": "wenjianjiaFolders6",
+      "unicode": "e684",
+      "unicode_decimal": 59012
+    },
+    {
+      "icon_id": "5855856",
+      "name": "选择（已选择）",
+      "font_class": "xuanzeyixuanze",
+      "unicode": "e62d",
+      "unicode_decimal": 58925
+    },
+    {
+      "icon_id": "12694599",
+      "name": "导入",
+      "font_class": "daoru",
+      "unicode": "e61a",
+      "unicode_decimal": 58906
+    },
+    {
+      "icon_id": "13075013",
+      "name": "删除",
+      "font_class": "shanchu1",
+      "unicode": "e625",
+      "unicode_decimal": 58917
+    },
+    {
+      "icon_id": "15391377",
+      "name": "复制",
+      "font_class": "fuzhi1",
+      "unicode": "e622",
+      "unicode_decimal": 58914
+    },
+    {
+      "icon_id": "12323766",
+      "name": "重命名",
+      "font_class": "zhongmingming",
+      "unicode": "e657",
+      "unicode_decimal": 58967
+    },
+    {
+      "icon_id": "1117",
+      "name": "剪切",
+      "font_class": "jianqie",
+      "unicode": "e600",
+      "unicode_decimal": 58880
+    },
+    {
+      "icon_id": "1346663",
+      "name": "删除",
+      "font_class": "shanchu",
+      "unicode": "e630",
+      "unicode_decimal": 58928
+    },
+    {
+      "icon_id": "16290359",
+      "name": "创建&添加&批量添加",
+      "font_class": "chuangjiantianjiapiliangtianjia",
+      "unicode": "e624",
+      "unicode_decimal": 58916
+    },
+    {
+      "icon_id": "630342",
+      "name": "向上4",
+      "font_class": "xiangshang4",
+      "unicode": "e795",
+      "unicode_decimal": 59285
+    },
+    {
+      "icon_id": "1616450",
+      "name": "后退",
+      "font_class": "houtui",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "1617150",
+      "name": "前进",
+      "font_class": "qianjin",
+      "unicode": "e623",
+      "unicode_decimal": 58915
+    },
+    {
+      "icon_id": "7594875",
+      "name": "24gf-folderOpen",
+      "font_class": "24gf-folderOpen",
+      "unicode": "eac5",
+      "unicode_decimal": 60101
+    },
+    {
+      "icon_id": "7594860",
+      "name": "24gf-fileEmpty",
+      "font_class": "24gf-fileEmpty",
+      "unicode": "eac3",
+      "unicode_decimal": 60099
+    }
+  ]
+}

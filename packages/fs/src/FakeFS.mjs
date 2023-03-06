@@ -416,12 +416,14 @@ export default class FakeFS {
 
     // delete sub files
     const { files, folders } = targetFolder;
-    Object.values(files).forEach((e) => {
-      transer.push({
-        operation: "delete",
-        data: e.fid,
+    if (files) {
+      Object.values(files).forEach((e) => {
+        transer.push({
+          operation: "delete",
+          data: e.fid,
+        });
       });
-    });
+    }
 
     // Recursive Directory
     if (folders) {
@@ -522,16 +524,14 @@ export default class FakeFS {
           ? fromParent
           : await this._readDB(toParentPath);
 
-      if (fromParent !== toParent) {
-        delete fromParent.folders[fromName];
-      }
+      delete fromParent.folders[fromName];
 
       const toFolders = toParent.folders || (toParent.folders = {});
 
       const transers = await this._getRenameTranser(fromPath, toPath);
 
       toFolders[toName] = {
-        type: "folder",
+        type: DIRECTORY,
         name: toName,
       };
 

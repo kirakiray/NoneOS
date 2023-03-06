@@ -1,0 +1,34 @@
+<style>
+  .container {
+    padding: 5px;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+  }
+  .block-con {
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+  }
+  .loading-con {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    height: 50%;
+  }
+</style>
+<div class="container">
+  <div class="block-con" fill:block="details"></div>
+  <div class="loading-con" #if="!isReady">Loading</div>
+  <div class="loading-con" #if="(isReady && !details.length)">Empty</div>
+</div>
+
+<entrance-block
+  temp:block
+  :name="$data.name"
+  :type="$data.type"
+  :selected="$data.selected"
+  @dblclick="$host.enterFolder($data)"
+  @click="$host.select($data)"
+></entrance-block>

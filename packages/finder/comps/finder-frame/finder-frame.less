@@ -1,7 +1,20 @@
-@import "../../css/public.css";
-
 :host {
   display: block;
+  --pannel-bg-color: rgba(255, 255, 255, 0.5);
+  --pannel-main-bg-color: #ffffff;
+  --pannel-font-color: #000;
+  --pannel-border-radius: 5px;
+  --pannel-shadow: rgba(0, 0, 0, 0.1) 0 0 5px;
+}
+
+.pannel {
+  background-color: var(--pannel-bg-color);
+  -webkit-backdrop-filter: blur(10px);
+  -moz-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-radius: var(--pannel-border-radius);
+  box-shadow: var(--pannel-shadow);
+  color: var(--pannel-font-color);
 }
 
 .container {
@@ -37,7 +50,6 @@
         margin-right: 6px;
         width: 26px;
         flex-shrink: 0;
-        font-family: "nonefont";
         color: none;
         text-align: center;
         color: #006eff;
@@ -91,7 +103,6 @@
     display: flex;
     flex-wrap: wrap;
     align-items: flex-start;
-    padding-left: 5px;
     overflow-y: auto;
 
     entrance-block {
@@ -100,7 +111,6 @@
   }
 
   .menu_btn {
-    font-family: "nonefont";
     display: flex;
     justify-content: center;
     align-items: center;
