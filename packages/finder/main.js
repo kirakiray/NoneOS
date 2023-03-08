@@ -78,7 +78,7 @@
       if (target.type === "dir") {
         await fs.removeDir(needDeleteFilePath);
       } else {
-        debugger;
+        await fs.removeFile(needDeleteFilePath);
       }
 
       const lastPage = getLastPage();

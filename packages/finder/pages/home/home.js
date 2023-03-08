@@ -59,8 +59,10 @@ Page(async ({ load }) => {
 
         if (data.type === "dir") {
           await fs.renameDir(oldPath, newPath);
-          this.reload();
+        } else {
+          await fs.renameFile(oldPath, newPath);
         }
+        this.reload();
       });
     },
   };
