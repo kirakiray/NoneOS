@@ -50,7 +50,11 @@
   finderFrame.on("goto-folder", (e) => {
     const { data } = e;
 
-    app.router.push(`pages/home/home.js?path=${data.path}`);
+    if (data.type === "dir") {
+      app.router.push(`pages/home/home.js?path=${data.path}`);
+    } else {
+      window.open(`${origin}/@${data.path}`);
+    }
   });
 
   finderFrame.on("back", () => {

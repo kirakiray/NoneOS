@@ -12,6 +12,7 @@ Page(async ({ load }) => {
       enterFolder(data) {
         this.trigger("goto-folder", {
           path: (this.path === "/" ? "/" : `${this.path}/`) + data.name,
+          type: data.type,
         });
       },
       async reload() {
