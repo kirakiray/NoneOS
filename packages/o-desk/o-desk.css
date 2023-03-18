@@ -38,19 +38,8 @@
   top: 0;
   width: 100%;
   height: calc(100% - 38px);
+  pointer-events: none;
 }
-.entry-block {
-  display: flex;
-  align-items: center;
-  flex-direction: column;
-  width: 100px;
-  min-height: 100px;
-  background-color: red;
-}
-.entry-block .entry-icon {
-  width: 50px;
-  height: 50px;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+.layer > * {
+  pointer-events: auto;
 }

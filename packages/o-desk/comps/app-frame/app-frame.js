@@ -25,6 +25,14 @@ Component(async () => {
       },
     },
     proto: {
+      focus() {
+        this.parent.forEach((e) => e.blur());
+
+        this.style.zIndex = 2;
+      },
+      blur() {
+        this.style.zIndex = null;
+      },
       moveStart(e) {
         const { pageX: p1x, pageY: p1y } = e;
 
@@ -32,6 +40,7 @@ Component(async () => {
           diffY = 0;
 
         this.showMask();
+        this.focus();
 
         const moveId = $("body").on("mousemove", (e2) => {
           if (this.isMax) {
@@ -119,15 +128,34 @@ Component(async () => {
           top: this.y + "px",
         });
       },
-      showMask() {
+      showMask(effectBrother = true) {
         this.shadow.$(".resize-mask").style.display = "";
+
+        if (effectBrother) {
+          this.parent.forEach((e) => {
+            if (e !== this) {
+              e.showMask(false);
+            }
+          });
+        }
       },
-      hideMask() {
+      hideMask(effectBrother = true) {
         this.shadow.$(".resize-mask").style.display = "none";
+
+        if (effectBrother) {
+          this.parent.forEach((e) => {
+            if (e !== this) {
+              e.hideMask(false);
+            }
+          });
+        }
       },
       tapClose() {
         this.remove();
       },
+    },
+    ready() {
+      this.focus();
     },
   };
 });

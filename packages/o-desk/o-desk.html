@@ -1,15 +1,16 @@
 <link rel="stylesheet" href="./o-desk.css" />
 <div class="main">
   <div class="layer" id="desktop-layer">
-    <div class="entry-block">
-      <div
-        class="entry-icon"
-        style="background-image: url(./icons/folder.svg)"
-      ></div>
-    </div>
+    <entrance-block
+      name="Document"
+      type="folder"
+      @click="selectBlock($target)"
+      @dblclick="dbl"
+    ></entrance-block>
+    <entrance-block name="ID" type="id"></entrance-block>
   </div>
   <div class="layer" id="app-layer">
-    <app-frame src="/packages/finder/index.html"></app-frame>
+    <!-- <app-frame src="/packages/finder/index.html"></app-frame> -->
   </div>
 </div>
 <div class="tool-bar">
