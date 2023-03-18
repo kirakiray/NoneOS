@@ -30,7 +30,7 @@ self.addEventListener("fetch", function (event) {
     );
   }
 
-  console.log("urldata => ", urldata);
+  // console.log("urldata => ", urldata);
 });
 
 self.addEventListener("install", () => {

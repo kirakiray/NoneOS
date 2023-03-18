@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoneOS</title>
+    <script src="public/ofa.js"></script>
+    <script src="packages/o-desk/o-desk.js"></script>
     <style>
       html,
       body {
@@ -21,7 +23,7 @@
         --pannel-border-radius: 5px;
         --pannel-shadow: rgba(0, 0, 0, 0.1) 0 0 5px;
         background-image: linear-gradient(
-          to top,
+          45deg,
           #3f51b1 0%,
           #5a55ae 13%,
           #7b5fac 25%,
@@ -36,7 +38,7 @@
     </style>
   </head>
   <body>
-    NoneOS
+    <o-desk></o-desk>
     <script>
       if ("serviceWorker" in navigator) {
         const isFirefox = navigator.userAgent.includes("Firefox");

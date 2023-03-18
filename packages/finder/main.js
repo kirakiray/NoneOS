@@ -51,7 +51,7 @@
     const { data } = e;
 
     if (data.type === "dir") {
-      app.router.push(`pages/home/home.js?path=${data.path}`);
+      app.router.push(`pages/list/list.js?path=${data.path}`);
     } else {
       window.open(`${origin}/@${data.path}`);
     }

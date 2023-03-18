@@ -1,5 +1,5 @@
 Page(async ({ load }) => {
-  await load("../../comps/entrance-block -p");
+  await load("../../../entrance-block -p");
   const { default: fs } = await load("/packages/fs/index.mjs");
 
   return {

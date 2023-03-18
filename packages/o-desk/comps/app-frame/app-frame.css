@@ -1,0 +1,75 @@
+:host {
+  position: absolute;
+  display: block;
+  min-width: 500px;
+  min-height: 380px;
+}
+.app-toolbar {
+  display: flex;
+  width: 100%;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.7);
+}
+.app-toolbar .toolbar-left {
+  flex: 1;
+}
+.app-toolbar .toolbar-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  cursor: default;
+}
+.app-toolbar .toolbar-btn:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+.app-frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 400px;
+  min-height: 300px;
+  box-shadow: rgba(0, 0, 0, 0.1) 0 0 5px;
+}
+.app-frame > iframe {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.app-frame .border-bottom {
+  position: absolute;
+  z-index: 2;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 5px;
+  background-color: red;
+}
+.app-frame .border-right {
+  position: absolute;
+  z-index: 2;
+  right: -3px;
+  top: 0;
+  width: 5px;
+  height: 100%;
+  background-color: red;
+}
+.app-frame .point-right-bottom {
+  position: absolute;
+  z-index: 2;
+  right: -5px;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  cursor: nwse-resize;
+}
+.resize-mask {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
