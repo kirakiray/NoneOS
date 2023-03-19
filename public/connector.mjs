@@ -36,10 +36,49 @@ export class WebSocketClient {
   }
 
   async send(message) {
-    (await this.socket).send(message);
+    (await this.socket).send(
+      message instanceof Object ? JSON.stringify(message) : message
+    );
   }
 
   async close() {
     (await this.socket).close();
+  }
+}
+
+export class RTCAgent {
+  constructor(userData) {
+    this._client = new WebSocketClient("ws://localhost:3900");
+    this.userName = userData.userName;
+    this.publicKey = userData.publicKey;
+    this._initRTC();
+  }
+
+  async _initRTC() {
+    const pc = (this.pc = new RTCPeerConnection());
+
+    pc.addEventListener("icecandidate", (event) => {
+      console.log(
+        `pc1 ICE candidate: ${
+          event.candidate ? event.candidate.candidate : "(null)"
+        }`
+      );
+    });
+
+    const channel = pc.createDataChannel("sendDataChannel");
+
+    channel.onmessage = (e) => {
+      console.log("pc1 get message => ", e.data);
+    };
+
+    const desc = await pc.createOffer();
+
+    this._client.send({
+      action: "init",
+      userName: this.userName,
+      desc,
+    });
+
+    console.log("desc => ", desc);
   }
 }

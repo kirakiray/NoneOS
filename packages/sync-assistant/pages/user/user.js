@@ -1,6 +1,6 @@
 Page(async ({ load }) => {
   const { generateKeyPair } = await load("/public/crypto.mjs");
-  const { WebSocketClient } = await load("/public/ws.mjs");
+  const { RTCAgent } = await load("/public/connector.mjs");
 
   let savedData = {};
 
@@ -17,40 +17,7 @@ Page(async ({ load }) => {
     localStorage._saveUserSetting = JSON.stringify(savedData);
   }
 
-  let pc;
-
-  async function syncUser() {
-    pc = new RTCPeerConnection();
-
-    pc.addEventListener("icecandidate", (event) => {
-      console.log(
-        `pc1 ICE candidate: ${
-          event.candidate ? event.candidate.candidate : "(null)"
-        }`
-      );
-    });
-
-    const p1Channel = pc.createDataChannel("sendDataChannel");
-
-    p1Channel.onmessage = (e) => {
-      console.log("pc1 get message => ", e.data);
-    };
-
-    const desc = await pc.createOffer();
-
-    console.log("desc => ", desc);
-  }
-
   return {
-    proto: {
-      async connectUser() {
-        const client = new WebSocketClient("ws://localhost:3900");
-
-        client.send("haha");
-
-        window.client = client;
-      },
-    },
     async ready() {
       const formData = this.shadow.form();
 
@@ -63,9 +30,7 @@ Page(async ({ load }) => {
         });
       });
 
-      syncUser();
-
-      this.connectUser();
+      const agent = new RTCAgent({ ...savedData, ...formData });
     },
   };
 });

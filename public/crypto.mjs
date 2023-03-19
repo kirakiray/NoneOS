@@ -1,6 +1,7 @@
 export async function generateKeyPair() {
   if (!window.crypto || !crypto.subtle) {
     throw new Error("Web Crypto API is not available");
+    // return {};
   }
 
   const algorithm = { name: "ECDSA", namedCurve: "P-256" };
