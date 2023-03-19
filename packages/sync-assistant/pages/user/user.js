@@ -1,5 +1,7 @@
 Page(async ({ load }) => {
-  const { generateKeyPair } = await load("/public/crypto.mjs");
+  const { generateKeyPair, generateRandomId } = await load(
+    "/public/crypto.mjs"
+  );
   const { RTCAgent } = await load("/public/connector.mjs");
 
   let savedData = {};
@@ -11,6 +13,7 @@ Page(async ({ load }) => {
 
     savedData = {
       userName: "user_" + Math.random().toString(32).slice(2),
+      id: generateRandomId(),
       ...data,
     };
 

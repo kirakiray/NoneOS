@@ -3,6 +3,8 @@ export class WebSocketClient {
     this.url = url;
     this._socket = null;
     this.socket;
+
+    this.onmessage = null;
   }
 
   get socket() {
@@ -11,23 +13,29 @@ export class WebSocketClient {
         const socket = new WebSocket(this.url);
 
         socket.addEventListener("open", (event) => {
-          console.log("WebSocket is open");
+          // console.log("WebSocket is open");
           resolve(socket);
         });
 
         socket.addEventListener("message", (event) => {
-          console.log(`Received message: ${event.data}`);
+          // console.log(`Received message: ${event.data}`);
+          if (this.onmessage) {
+            this.onmessage(event.data);
+          }
         });
 
         socket.addEventListener("close", (event) => {
-          console.log("WebSocket is closed");
+          // console.log("WebSocket is closed");
           this._socket = null;
           reject();
+          console.error(event);
         });
 
         socket.addEventListener("error", (event) => {
           this._socket = null;
-          console.error("WebSocket error occurred");
+          reject();
+          console.error(event);
+          // console.error("WebSocket error occurred");
         });
       });
     }
@@ -48,10 +56,18 @@ export class WebSocketClient {
 
 export class RTCAgent {
   constructor(userData) {
-    this._client = new WebSocketClient("ws://localhost:3900");
     this.userName = userData.userName;
     this.publicKey = userData.publicKey;
+    this._initWS();
     this._initRTC();
+  }
+
+  async _initWS() {
+    this._client = new WebSocketClient("ws://localhost:3900");
+
+    this._client.onmessage = (data) => {
+      console.log("data => ", data);
+    };
   }
 
   async _initRTC() {
@@ -63,6 +79,11 @@ export class RTCAgent {
           event.candidate ? event.candidate.candidate : "(null)"
         }`
       );
+
+      // this._client.send({
+      //   action: "switch-ice",
+      //   candidate: event.candidate,
+      // });
     });
 
     const channel = pc.createDataChannel("sendDataChannel");
