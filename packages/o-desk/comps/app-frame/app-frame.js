@@ -1,4 +1,4 @@
-Component(async () => {
+Component(async ({ load }) => {
   return {
     data: {
       sw: 500,

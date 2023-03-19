@@ -5,9 +5,9 @@
       name="Document"
       type="folder"
       @click="selectBlock($target)"
-      @dblclick="dbl"
+      @dblclick="openFolder"
     ></entrance-block>
-    <entrance-block name="ID" type="id"></entrance-block>
+    <entrance-block name="ID" type="id" @dblclick="openSyncAss"></entrance-block>
   </div>
   <div class="layer" id="app-layer">
     <!-- <app-frame src="/packages/finder/index.html"></app-frame> -->

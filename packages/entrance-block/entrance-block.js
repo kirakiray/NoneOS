@@ -19,8 +19,7 @@ Component(async ({ load }) => {
       type(type) {
         if (type == "folder" || type == "dir") {
           this.icontype = "folder";
-        }
-        if (type) {
+        } else if (type) {
           this.icontype = type;
         } else {
           this.icontype = "file";

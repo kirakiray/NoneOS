@@ -17,9 +17,14 @@ Component(async ({ load }) => {
           target.selected = 1;
         }
       },
-      dbl() {
+      openFolder() {
         this.shadow.$("#app-layer").push(`
         <app-frame src="/packages/finder/index.html"></app-frame>
+        `);
+      },
+      openSyncAss() {
+        this.shadow.$("#app-layer").push(`
+        <app-frame src="/packages/sync-assistant/index.html"></app-frame>
         `);
       },
     },
