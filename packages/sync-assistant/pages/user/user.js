@@ -1,5 +1,6 @@
 Page(async ({ load }) => {
   const { generateKeyPair } = await load("/public/crypto.mjs");
+  const { WebSocketClient } = await load("/public/ws.mjs");
 
   let savedData = {};
 
@@ -16,8 +17,10 @@ Page(async ({ load }) => {
     localStorage._saveUserSetting = JSON.stringify(savedData);
   }
 
+  let pc;
+
   async function syncUser() {
-    const pc = new RTCPeerConnection();
+    pc = new RTCPeerConnection();
 
     pc.addEventListener("icecandidate", (event) => {
       console.log(
@@ -40,15 +43,12 @@ Page(async ({ load }) => {
 
   return {
     proto: {
-      async fetchUser() {
-        const text = await (
-          await fetch("https://testhome.kirakiray.com:4433/api2/", {
-            method: "GET",
-            mode: "cors",
-          })
-        ).json();
+      async connectUser() {
+        const client = new WebSocketClient("ws://localhost:3900");
 
-        console.log("text => ", text);
+        client.send("haha");
+
+        window.client = client;
       },
     },
     async ready() {
@@ -65,7 +65,7 @@ Page(async ({ load }) => {
 
       syncUser();
 
-      this.fetchUser();
+      this.connectUser();
     },
   };
 });
