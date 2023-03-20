@@ -57,21 +57,43 @@ export class WebSocketClient {
 export class RTCAgent {
   constructor(userData) {
     this.userName = userData.userName;
+    this.id = userData.id;
     this.publicKey = userData.publicKey;
-    this._initWS();
-    this._initRTC();
+    this._users = [];
+    this._initWS().then(() => this._initRTC());
   }
 
-  async _initWS() {
-    this._client = new WebSocketClient("ws://localhost:3900");
+  _initWS() {
+    return new Promise((resolve) => {
+      this._client = new WebSocketClient("ws://localhost:3900");
 
-    this._client.onmessage = (data) => {
-      console.log("data => ", data);
-    };
+      this._client.send({
+        action: "init",
+        userName: this.userName,
+        id: this.id,
+      });
+
+      this._client.onmessage = (e) => {
+        const { action, data, from } = JSON.parse(e);
+
+        switch (action) {
+          case "push-users":
+            this._users = data;
+            resolve();
+            break;
+          case "switch":
+            this._onswitch({ data, from });
+            break;
+        }
+      };
+    });
   }
 
   async _initRTC() {
     const pc = (this.pc = new RTCPeerConnection());
+
+    let toUser,
+      cacheIces = [];
 
     pc.addEventListener("icecandidate", (event) => {
       console.log(
@@ -80,12 +102,17 @@ export class RTCAgent {
         }`
       );
 
-      // this._client.send({
-      //   action: "switch-ice",
-      //   candidate: event.candidate,
-      // });
+      if (event.candidate) {
+        if (toUser) {
+          this.sendById(toUser, {
+            type: "exchange-ice",
+            ices: [event.candidate],
+          });
+        } else {
+          cacheIces.push(event.candidate);
+        }
+      }
     });
-
     const channel = pc.createDataChannel("sendDataChannel");
 
     channel.onmessage = (e) => {
@@ -94,12 +121,45 @@ export class RTCAgent {
 
     const desc = await pc.createOffer();
 
-    this._client.send({
-      action: "init",
-      userName: this.userName,
-      desc,
-    });
+    pc.setLocalDescription(desc);
 
-    console.log("desc => ", desc);
+    this._onswitch = ({ data, from }) => {
+      switch (data.type) {
+        case "exchange-offer":
+          toUser = from;
+          if (cacheIces.length) {
+            this.sendById(toUser, {
+              type: "exchange-ice",
+              ices: cacheIces,
+            });
+          }
+          break;
+        case "exchange-ice":
+          const { ices } = data;
+
+          console.log("ices => ", ices);
+        // pc2.setRemoteDescription(desc);
+      }
+      console.log("data => ", from, data);
+    };
+
+    if (this._users?.length) {
+      const targetUser = this._users[0];
+
+      this.sendById(targetUser.id, {
+        type: "exchange-offer",
+        desc,
+      });
+
+      // 有用户的情况下才进行交换
+    }
+  }
+
+  sendById(id, data) {
+    this._client.send({
+      action: "switch",
+      to: id,
+      data,
+    });
   }
 }

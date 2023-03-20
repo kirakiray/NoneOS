@@ -6,20 +6,38 @@
 
   .line {
     display: flex;
+    align-items: center;
     padding: 6px 0;
+    font-size: 12px;
     border-bottom: #eee solid 1px;
   }
 
   .line-key {
+    font-size: 14px;
     font-weight: 14px;
     padding-right: 12px;
     font-weight: bold;
+  }
+
+  #log-container {
+    padding: 4px;
+    font-size: 12px;
+    max-height: 60vh;
+    overflow-y: auto;
   }
 </style>
 <div>
   <div class="line">
     <div class="line-key">User Name</div>
     <input type="text" name="userName" />
+  </div>
+  <div class="line">
+    <div class="line-key">ID</div>
+    <div id="user-id">0</div>
+  </div>
+  <div class="line">
+    <div class="line-key">logs</div>
+    <div id="log-container">empty</div>
   </div>
   <div style="margin: 16px auto">
     <button>Save</button>

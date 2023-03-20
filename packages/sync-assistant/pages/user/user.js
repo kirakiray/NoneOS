@@ -33,6 +33,8 @@ Page(async ({ load }) => {
         });
       });
 
+      this.shadow.$("#user-id").html = formData.id;
+
       const agent = new RTCAgent({ ...savedData, ...formData });
     },
   };
