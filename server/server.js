@@ -48,7 +48,6 @@ export class ConnectorServer {
               })
             );
 
-            console.log(targetUser, msg);
             break;
         }
       });

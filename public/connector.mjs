@@ -54,6 +54,86 @@ export class WebSocketClient {
   }
 }
 
+export class Connecter {
+  constructor() {
+    const pc = (this._pc = new RTCPeerConnection());
+
+    this._channel = null;
+    this.onmessage = null;
+
+    this.ices = new Promise((resolve) => {
+      const ices = [];
+
+      pc.addEventListener("icecandidate", (event) => {
+        if (event.candidate) {
+          ices.push(event.candidate);
+        } else {
+          resolve(ices);
+        }
+      });
+    });
+  }
+
+  async offer() {
+    const pc = this._pc;
+
+    const channel = (this._channel = pc.createDataChannel("sendDataChannel"));
+
+    channel.onmessage = (e) => {
+      console.log("pc1 get message => ", e.data);
+      if (this.onmessage) {
+        this.onmessage(e.data);
+      }
+    };
+
+    const desc = await pc.createOffer();
+
+    pc.setLocalDescription(desc);
+
+    return desc;
+  }
+
+  addIces(ices) {
+    if (ices instanceof Array) {
+      ices.forEach((ice) => this._pc.addIceCandidate(ice));
+    } else {
+      this._pc.addIceCandidate(ices);
+    }
+  }
+
+  setRemoteDesc(desc) {
+    this._pc.setRemoteDescription(desc);
+  }
+
+  async answer(remoteDesc) {
+    const pc = this._pc;
+
+    pc.ondatachannel = (e) => {
+      const { channel } = e;
+
+      this._channel = channel;
+
+      channel.onmessage = (event) => {
+        console.log("pc2 get message => ", event.data);
+        if (this.onmessage) {
+          this.onmessage(e.data);
+        }
+      };
+    };
+
+    pc.setRemoteDescription(remoteDesc);
+
+    const desc = await pc.createAnswer();
+    pc.setLocalDescription(desc);
+
+    return desc;
+  }
+
+  send(text) {
+    this._channel.send(text);
+  }
+}
+
 export class RTCAgent {
   constructor(userData) {
     this.userName = userData.userName;
@@ -90,55 +170,31 @@ export class RTCAgent {
   }
 
   async _initRTC() {
-    const pc = (this.pc = new RTCPeerConnection());
+    const connector = new Connecter();
 
-    let toUser,
-      cacheIces = [];
+    window.connector = connector;
 
-    pc.addEventListener("icecandidate", (event) => {
-      console.log(
-        `pc1 ICE candidate: ${
-          event.candidate ? event.candidate.candidate : "(null)"
-        }`
-      );
+    this._onswitch = async ({ data, from }) => {
+      const { desc: remoteDesc, ices: remoteIces } = data;
 
-      if (event.candidate) {
-        if (toUser) {
-          this.sendById(toUser, {
-            type: "exchange-ice",
-            ices: [event.candidate],
-          });
-        } else {
-          cacheIces.push(event.candidate);
-        }
-      }
-    });
-    const channel = pc.createDataChannel("sendDataChannel");
-
-    channel.onmessage = (e) => {
-      console.log("pc1 get message => ", e.data);
-    };
-
-    const desc = await pc.createOffer();
-
-    pc.setLocalDescription(desc);
-
-    this._onswitch = ({ data, from }) => {
       switch (data.type) {
         case "exchange-offer":
-          toUser = from;
-          if (cacheIces.length) {
-            this.sendById(toUser, {
-              type: "exchange-ice",
-              ices: cacheIces,
-            });
-          }
-          break;
-        case "exchange-ice":
-          const { ices } = data;
+          const desc = await connector.answer(remoteDesc);
+          connector.addIces(remoteIces);
 
-          console.log("ices => ", ices);
-        // pc2.setRemoteDescription(desc);
+          const ices = await connector.ices;
+
+          this.sendById(from, {
+            type: "exchange-answer",
+            ices,
+            desc,
+          });
+          break;
+
+        case "exchange-answer":
+          connector.setRemoteDesc(remoteDesc);
+          connector.addIces(remoteIces);
+          break;
       }
       console.log("data => ", from, data);
     };
@@ -146,12 +202,14 @@ export class RTCAgent {
     if (this._users?.length) {
       const targetUser = this._users[0];
 
+      const desc = await connector.offer();
+      const ices = await connector.ices;
+
       this.sendById(targetUser.id, {
         type: "exchange-offer",
         desc,
+        ices,
       });
-
-      // 有用户的情况下才进行交换
     }
   }
 
