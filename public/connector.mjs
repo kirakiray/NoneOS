@@ -58,6 +58,10 @@ export class Connecter {
   constructor() {
     const pc = (this._pc = new RTCPeerConnection());
 
+    pc.addEventListener("connectionstatechange", () => {
+      console.log("connectionState:", pc.connectionState);
+    });
+
     this._channel = null;
     this.onmessage = null;
 
@@ -85,6 +89,10 @@ export class Connecter {
         this.onmessage(e.data);
       }
     };
+
+    channel.addEventListener("close", () => {
+      console.log("Data channel closed");
+    });
 
     const desc = await pc.createOffer();
 
@@ -116,7 +124,7 @@ export class Connecter {
       channel.onmessage = (event) => {
         console.log("pc2 get message => ", event.data);
         if (this.onmessage) {
-          this.onmessage(e.data);
+          this.onmessage(event.data);
         }
       };
     };
@@ -172,7 +180,7 @@ export class RTCAgent {
   async _initRTC() {
     const connector = new Connecter();
 
-    window.connector = connector;
+    window.connector = this._connector = connector;
 
     this._onswitch = async ({ data, from }) => {
       const { desc: remoteDesc, ices: remoteIces } = data;

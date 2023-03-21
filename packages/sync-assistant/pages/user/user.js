@@ -35,7 +35,24 @@ Page(async ({ load }) => {
 
       this.shadow.$("#user-id").html = formData.id;
 
-      const agent = new RTCAgent({ ...savedData, ...formData });
+      this._rtcAgent = new RTCAgent({
+        ...savedData,
+        ...formData,
+      });
+
+      setTimeout(() => {
+        this._rtcAgent._connector.onmessage = (text) => {
+          this.shadow.$("#log-container").html += `${text}<br>`;
+        };
+      }, 1000);
+    },
+    proto: {
+      sendMessage() {
+        const text = this.shadow.$("#inputer").value;
+        this.shadow.$("#inputer").value = "";
+
+        this._rtcAgent._connector.send(text);
+      },
     },
   };
 });
