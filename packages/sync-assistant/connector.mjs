@@ -1,10 +1,9 @@
-export class WebSocketClient {
+export class WebSocketClient extends EventTarget {
   constructor(url) {
+    super();
     this.url = url;
     this._socket = null;
     this.socket;
-
-    this.onmessage = null;
   }
 
   get socket() {
@@ -15,26 +14,29 @@ export class WebSocketClient {
         socket.addEventListener("open", (event) => {
           // console.log("WebSocket is open");
           resolve(socket);
+
+          this.dispatchEvent(new Event("open"));
         });
 
         socket.addEventListener("message", (event) => {
-          // console.log(`Received message: ${event.data}`);
-          if (this.onmessage) {
-            this.onmessage(event.data);
-          }
+          const e = new Event("message");
+          e.data = JSON.parse(event.data);
+          this.dispatchEvent(e);
         });
 
         socket.addEventListener("close", (event) => {
           // console.log("WebSocket is closed");
           this._socket = null;
           reject();
+          this.dispatchEvent(new Event("close", event));
+
           console.error(event);
         });
 
         socket.addEventListener("error", (event) => {
           this._socket = null;
           reject();
-          console.error(event);
+          this.dispatchEvent(new Event("close", event));
           // console.error("WebSocket error occurred");
         });
       });
@@ -54,8 +56,9 @@ export class WebSocketClient {
   }
 }
 
-export class Connecter {
+export class Connecter extends EventTarget {
   constructor() {
+    super();
     const pc = (this._pc = new RTCPeerConnection());
 
     pc.addEventListener("connectionstatechange", () => {
@@ -142,40 +145,97 @@ export class Connecter {
   }
 }
 
-export class RTCAgent {
+export class RTCAgent extends EventTarget {
   constructor(userData) {
+    super();
     this.userName = userData.userName;
     this.id = userData.id;
     this.publicKey = userData.publicKey;
-    this._users = [];
-    this._initWS().then(() => this._initRTC());
+    this.wsClients = [];
+    // this._initWS().then(() => this._initRTC());
+    if (userData.ws) {
+      this.lookup(userData.ws);
+    }
   }
 
-  _initWS() {
-    return new Promise((resolve) => {
-      this._client = new WebSocketClient("ws://localhost:3900");
+  get users() {
+    const users = [];
 
-      this._client.send({
+    this.wsClients.forEach((client) => {
+      users.push(...client.users);
+    });
+
+    return users;
+  }
+
+  lookup(url) {
+    return new Promise((resolve, reject) => {
+      const client = new WebSocketClient(url);
+
+      this.wsClients.push(client);
+
+      client.send({
         action: "init",
         userName: this.userName,
         id: this.id,
       });
 
-      this._client.onmessage = (e) => {
-        const { action, data, from } = JSON.parse(e);
+      client.addEventListener("message", (e) => {
+        const { action, data, from } = e.data;
 
         switch (action) {
           case "push-users":
-            this._users = data;
-            resolve();
+            client.users = data;
+            resolve(client);
+            const event = new Event("updateUsers");
+            event.client = client;
+            this.dispatchEvent(event);
             break;
           case "switch":
             this._onswitch({ data, from });
             break;
         }
+      });
+
+      const closeFunc = (event) => {
+        const index = this.wsClients.indexOf(client);
+
+        if (index > -1) {
+          this.wsClients.splice(index, 1);
+        }
+        reject(event);
       };
+
+      client.addEventListener("close", closeFunc);
+      client.addEventListener("error", closeFunc);
     });
   }
+
+  // _initWS() {
+  //   return new Promise((resolve, reject) => {
+  //     this._client = new WebSocketClient("ws://localhost:3900");
+
+  //     this._client.send({
+  //       action: "init",
+  //       userName: this.userName,
+  //       id: this.id,
+  //     });
+
+  //     this._client.onmessage = (e) => {
+  //       const { action, data, from } = JSON.parse(e);
+
+  //       switch (action) {
+  //         case "push-users":
+  //           this._users = data;
+  //           resolve();
+  //           break;
+  //         case "switch":
+  //           this._onswitch({ data, from });
+  //           break;
+  //       }
+  //     };
+  //   });
+  // }
 
   async _initRTC() {
     const connector = new Connecter();
