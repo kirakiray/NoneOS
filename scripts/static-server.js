@@ -8,7 +8,7 @@ const home = serve(path.normalize(__dirname + "/../"));
 app.use(home);
 
 const _server = app.listen(3393);
-console.log("server start");
+console.log(`server start => http://localhost:3393/`);
 
 module.exports = {
   server: _server,

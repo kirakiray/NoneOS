@@ -1,0 +1,22 @@
+<style>
+  :host {
+    display: none;
+  }
+</style>
+<link rel="stylesheet" href="./app-frame.css" />
+<div class="app-toolbar">
+  <div
+    class="toolbar-left"
+    @mousedown="moveStart"
+    @dblclick="switchMaximize"
+  ></div>
+  <div class="toolbar-btn" title="Minimize">—</div>
+  <div class="toolbar-btn" title="Close" @click="tapClose">X</div>
+</div>
+<div class="app-frame">
+  <div class="resize-mask" style="display: none"></div>
+  <iframe attr:src="src" frameborder="0"></iframe>
+  <!-- <div class="border-bottom"></div>
+  <div class="border-right"></div> -->
+  <div class="point-right-bottom" @mousedown="resizeStart"></div>
+</div>

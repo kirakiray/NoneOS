@@ -3,11 +3,13 @@
   "version": "1.2.1",
   "description": "A browser-based operating system",
   "scripts": {
-    "server": "node scripts/server",
+    "static-server": "node scripts/static-server",
     "test": "npx playwright test",
     "ci-test": "node scripts/ci-test",
     "detest": "npx playwright test tests/example.spec.js --debug",
-    "build-sw": "parcel build sw.js --out-dir . --out-file sw-dist.js --no-source-maps"
+    "build-sw": "parcel build sw.js --out-dir . --out-file sw-dist.js --no-source-maps",
+    "rtc-server": "node server/main.js",
+    "debug-server": "cd server && nodemon --inspect ./main.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,9 @@
     "koa": "^2.14.1",
     "koa-static": "^5.0.0",
     "shelljs": "^0.8.5"
+  },
+  "dependencies": {
+    "koa-bodyparser": "^4.4.0",
+    "koa-router": "^12.0.0"
   }
 }

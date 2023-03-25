@@ -1,4 +1,4 @@
-const { server, home } = require("./server");
+const { server, home } = require("./static-server");
 const shell = require("shelljs");
 
 console.log("home => ", home);
