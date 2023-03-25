@@ -1,7 +1,17 @@
 export default class Connecter extends EventTarget {
   constructor() {
     super();
-    const pc = (this._pc = new RTCPeerConnection());
+    const pc = (this._pc = new RTCPeerConnection({
+      iceServers: [
+        { urls: "stun:stun.qq.com" },
+        { urls: "stun:stun.syncthing.net" },
+        { urls: "stun:stun.miwifi.com" },
+        { urls: "stun:stun1.l.google.com:19302" },
+        { urls: "stun:stun2.l.google.com:19302" },
+        { urls: "stun:stun3.l.google.com:19302" },
+        { urls: "stun:stun4.l.google.com:19302" },
+      ],
+    }));
 
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
