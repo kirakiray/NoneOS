@@ -3,7 +3,7 @@ Page(async ({ load }) => {
     "/public/crypto.mjs"
   );
 
-  const { RTCAgent } = await load("../../connector.mjs");
+  const { default: RTCAgent } = await load("../../../connector/RTCAgent.mjs");
 
   let savedData = {};
 
@@ -67,8 +67,8 @@ Page(async ({ load }) => {
         this.step = 2;
       },
 
-      async linkClient(data) {
-        debugger;
+      async linkClient(item) {
+        item.connect();
       },
 
       sendMessage() {
