@@ -4,6 +4,7 @@ export class WebSocketClient extends EventTarget {
     this.url = url;
     this._socket = null;
     this.socket;
+    this.users = [];
   }
 
   get socket() {
@@ -162,10 +163,35 @@ export class RTCAgent extends EventTarget {
     const users = [];
 
     this.wsClients.forEach((client) => {
-      users.push(...client.users);
+      users.push(
+        ...client.users.map((e) => {
+          return {
+            ...e,
+            get client() {
+              return client;
+            },
+          };
+        })
+      );
     });
 
     return users;
+  }
+
+  update(data = {}) {
+    const { userName = this.userName } = data;
+
+    Object.assign(this, {
+      userName,
+    });
+
+    this.wsClients.forEach((client) => {
+      client.send({
+        action: "init",
+        userName: this.userName,
+        id: this.id,
+      });
+    });
   }
 
   lookup(url) {
@@ -190,6 +216,7 @@ export class RTCAgent extends EventTarget {
             const event = new Event("updateUsers");
             event.client = client;
             this.dispatchEvent(event);
+
             break;
           case "switch":
             this._onswitch({ data, from });
@@ -236,6 +263,8 @@ export class RTCAgent extends EventTarget {
   //     };
   //   });
   // }
+
+  async connectUser(id) {}
 
   async _initRTC() {
     const connector = new Connecter();

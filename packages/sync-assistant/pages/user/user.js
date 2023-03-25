@@ -51,17 +51,13 @@ Page(async ({ load }) => {
 
       rtcAgent.addEventListener("updateUsers", (e) => {
         const { users } = rtcAgent;
-
         this.users = users;
       });
-
-      // setTimeout(() => {
-      //   this._rtcAgent._connector.onmessage = (text) => {
-      //     this.shadow.$("#log-container").html += `${text}<br>`;
-      //   };
-      // }, 1000);
     },
     proto: {
+      reloadUser() {
+        this._rtcAgent.update();
+      },
       async connectServer() {
         const serverUrl = this.shadow.$('[name="server"]').value;
 

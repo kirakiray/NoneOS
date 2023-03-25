@@ -78,13 +78,8 @@
 
 <div class="container" #if="step >=2 ">
   <h3>可以连接的用户</h3>
-  <!-- <button>刷新</button> -->
+  <button @click="reloadUser">刷新</button>
   <br />
   <div fill:user-block="users" style="display: flex; flex-wrap: wrap"></div>
   <div :show="!users.length">空</div>
 </div>
-<!-- 
-<textarea id="inputer"></textarea> <button @click="sendMessage">发送</button>
-<br />
-<b>logs:</b>
-<div id="log-container"></div> -->

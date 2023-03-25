@@ -14,13 +14,6 @@ export class ConnectorServer {
     };
 
     wss.on("connection", (ws) => {
-      ws.send(
-        JSON.stringify({
-          action: "push-users",
-          data: Array.from(users.values()),
-        })
-      );
-
       const user = {
         ws,
         toJSON: userToJSON,
@@ -34,6 +27,13 @@ export class ConnectorServer {
             user.id = msg.id;
             user.userName = msg.userName;
             users.set(user.id, user);
+
+            ws.send(
+              JSON.stringify({
+                action: "push-users",
+                data: Array.from(users.values()).filter((e) => e.id !== msg.id),
+              })
+            );
 
             console.log("client connected , all user => ", users);
             break;
