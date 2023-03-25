@@ -53,6 +53,33 @@ Page(async ({ load }) => {
         const { users } = rtcAgent;
         this.users = users;
       });
+
+      rtcAgent.addEventListener("connector-change", (e) => {
+        console.log("connector-change", e);
+
+        if (e.add) {
+          const target = e.add;
+
+          this.linkedUsers.push({
+            _connector: target,
+            val: "",
+            logs: [],
+          });
+
+          target.addEventListener("message", (e) => {
+            const obj = this.linkedUsers.find((e2) => e2._connector === target);
+            obj.logs.push(e.data);
+          });
+        }
+        if (e.remove) {
+          const id = this.linkedUsers.findIndex(
+            (e2) => e2._connector === e.remove
+          );
+          if (id > -1) {
+            this.linkedUsers.splice(id, 1);
+          }
+        }
+      });
     },
     proto: {
       reloadUser() {
@@ -71,10 +98,13 @@ Page(async ({ load }) => {
         item.connect();
       },
 
-      sendMessage() {
-        const text = this.shadow.$("#inputer").value;
-        this.shadow.$("#inputer").value = "";
+      sendMsg(item) {
+        const { val } = item;
+        item.val = "";
 
+        item.logs.push("self:" + val);
+
+        item._connector.send(val);
         // this._rtcAgent._connector.send(text);
       },
     },

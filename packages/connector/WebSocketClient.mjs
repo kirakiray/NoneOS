@@ -5,6 +5,7 @@ export default class WebSocketClient extends EventTarget {
     this._socket = null;
     this.socket;
     this.users = [];
+    this.connectors = [];
   }
 
   get socket() {

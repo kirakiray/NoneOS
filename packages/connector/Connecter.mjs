@@ -13,12 +13,21 @@ export default class Connecter extends EventTarget {
       ],
     }));
 
+    this._triggerClosed = false;
+
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
+      if (
+        !this._triggerClosed &&
+        (pc.connectionState === "disconnected" ||
+          pc.connectionState === "failed")
+      ) {
+        this.dispatchEvent(new Event("close"));
+        this._triggerClosed = true;
+      }
     });
 
     this._channel = null;
-    this.onmessage = null;
 
     this.ices = new Promise((resolve) => {
       const ices = [];
@@ -40,13 +49,19 @@ export default class Connecter extends EventTarget {
 
     channel.onmessage = (e) => {
       console.log("pc1 get message => ", e.data);
-      if (this.onmessage) {
-        this.onmessage(e.data);
-      }
+      const event = new Event("message");
+      event.data = e.data;
+      this.dispatchEvent(event);
     };
 
-    channel.addEventListener("close", () => {
-      console.log("Data channel closed");
+    channel.addEventListener("close", (e) => {
+      console.log("Data channel closed", e);
+      this.dispatchEvent(new Event("close"));
+      this._triggerClosed = true;
+    });
+
+    channel.addEventListener("error", (e) => {
+      console.log("Data channel error", e);
     });
 
     const desc = await pc.createOffer();
@@ -76,11 +91,14 @@ export default class Connecter extends EventTarget {
 
       this._channel = channel;
 
-      channel.onmessage = (event) => {
-        console.log("pc2 get message => ", event.data);
-        if (this.onmessage) {
-          this.onmessage(event.data);
-        }
+      channel.onmessage = (e) => {
+        console.log("pc2 get message => ", e.data);
+        const event = new Event("message");
+        event.data = e.data;
+        this.dispatchEvent(event);
+        // if (this.onmessage) {
+        //   this.onmessage(event.data);
+        // }
       };
     };
 

@@ -83,3 +83,17 @@
   <div fill:user-block="users" style="display: flex; flex-wrap: wrap"></div>
   <div :show="!users.length">空</div>
 </div>
+
+<div temp:chat-block>
+  <input type="text" sync:value="$data.val" />
+  <button @click="$host.sendMsg($data)">发送</button>
+  <div fill:chat-block-line="$data.logs"></div>
+</div>
+
+<div temp:chat-block-line style="color: green">{{$data}}</div>
+
+<div
+  class="container"
+  #if="linkedUsers.length"
+  fill:chat-block="linkedUsers"
+></div>

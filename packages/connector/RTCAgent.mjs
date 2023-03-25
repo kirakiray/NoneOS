@@ -1,12 +1,36 @@
 import WebSocketClient from "./WebSocketClient.mjs";
 import Connecter from "./Connecter.mjs";
 
+const bindClientClose = (client, connector) => {
+  client.connectors.push(connector);
+
+  const event = new Event("connector-change");
+  event.add = connector;
+  client.dispatchEvent(event);
+
+  let f;
+  connector.addEventListener(
+    "close",
+    (f = () => {
+      const id = client.connectors.indexOf(connector);
+      if (id > -1) {
+        client.connectors.splice(id, 1);
+      }
+      connector.removeEventListener("close", f);
+
+      const e = new Event("connector-change");
+      e.remove = connector;
+      client.dispatchEvent(e);
+    })
+  );
+};
+
 async function connectUser() {
   const { client, userId } = this;
 
   const connector = new Connecter();
 
-  window.connector = connector;
+  bindClientClose(client, connector);
 
   let f;
 
@@ -71,6 +95,16 @@ export default class RTCAgent extends EventTarget {
     });
 
     return users;
+  }
+
+  get connectors() {
+    const connectors = [];
+
+    this.wsClients.forEach((client) => {
+      connectors.push(...client.connectors);
+    });
+
+    return connectors;
   }
 
   update(data = {}) {
@@ -145,8 +179,6 @@ export default class RTCAgent extends EventTarget {
           case "exchange-offer":
             const connector = new Connecter();
 
-            window.connector = connector;
-
             const desc = await connector.answer(remoteDesc);
             connector.addIces(remoteIces);
 
@@ -157,10 +189,21 @@ export default class RTCAgent extends EventTarget {
               ices,
               desc,
             });
+
+            bindClientClose(client, connector);
+
             break;
         }
 
         console.log("data => ", from, data);
+      });
+
+      client.addEventListener("connector-change", (e) => {
+        const event = new Event("connector-change");
+        event.client = client;
+        event.add = e.add;
+        event.remove = e.remove;
+        this.dispatchEvent(event);
       });
     });
   }
