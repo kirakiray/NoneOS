@@ -17,11 +17,7 @@ export default class Connecter extends EventTarget {
 
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
-      if (
-        !this._triggerClosed &&
-        (pc.connectionState === "disconnected" ||
-          pc.connectionState === "failed")
-      ) {
+      if (!this._triggerClosed && pc.connectionState === "failed") {
         this.dispatchEvent(new Event("close"));
         this._triggerClosed = true;
       }
@@ -48,7 +44,6 @@ export default class Connecter extends EventTarget {
     const channel = (this._channel = pc.createDataChannel("sendDataChannel"));
 
     channel.onmessage = (e) => {
-      console.log("pc1 get message => ", e.data);
       const event = new Event("message");
       event.data = e.data;
       this.dispatchEvent(event);
@@ -92,13 +87,9 @@ export default class Connecter extends EventTarget {
       this._channel = channel;
 
       channel.onmessage = (e) => {
-        console.log("pc2 get message => ", e.data);
         const event = new Event("message");
         event.data = e.data;
         this.dispatchEvent(event);
-        // if (this.onmessage) {
-        //   this.onmessage(event.data);
-        // }
       };
     };
 

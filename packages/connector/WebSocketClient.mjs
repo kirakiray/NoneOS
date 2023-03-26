@@ -31,15 +31,12 @@ export default class WebSocketClient extends EventTarget {
           this._socket = null;
           reject();
           this.dispatchEvent(new Event("close", event));
-
-          console.error(event);
         });
 
         socket.addEventListener("error", (event) => {
           this._socket = null;
           reject();
           this.dispatchEvent(new Event("close", event));
-          // console.error("WebSocket error occurred");
         });
       });
     }

@@ -1,7 +1,9 @@
 import WebSocketClient from "./WebSocketClient.mjs";
 import Connecter from "./Connecter.mjs";
 
-const bindClientClose = (client, connector) => {
+const bindClient = (client, connector, remoteUserId) => {
+  connector.userId = remoteUserId;
+  
   client.connectors.push(connector);
 
   const event = new Event("connector-change");
@@ -26,11 +28,11 @@ const bindClientClose = (client, connector) => {
 };
 
 async function connectUser() {
-  const { client, userId } = this;
+  const { client, userId: remoteUserId } = this;
 
   const connector = new Connecter();
 
-  bindClientClose(client, connector);
+  bindClient(client, connector, remoteUserId);
 
   let f;
 
@@ -39,7 +41,7 @@ async function connectUser() {
     (f = async (e) => {
       const { data, from } = e;
 
-      if (userId === from) {
+      if (remoteUserId === from) {
         const { desc: remoteDesc, ices: remoteIces } = data;
 
         switch (data.type) {
@@ -58,7 +60,7 @@ async function connectUser() {
   const desc = await connector.offer();
   const ices = await connector.ices;
 
-  client.sendById(userId, {
+  client.sendById(remoteUserId, {
     type: "exchange-offer",
     desc,
     ices,
@@ -124,7 +126,14 @@ export default class RTCAgent extends EventTarget {
   }
 
   lookup(url) {
-    return new Promise((resolve, reject) => {
+    const exitedClient = this.wsClients.find((e) => e.url === url);
+
+    if (exitedClient) {
+      exitedClient.socket;
+      return exitedClient;
+    }
+
+    return new Promise((resolve) => {
       const client = new WebSocketClient(url);
 
       this.wsClients.push(client);
@@ -141,8 +150,7 @@ export default class RTCAgent extends EventTarget {
         switch (action) {
           case "push-users":
             client.users = data;
-            resolve(client);
-            const event = new Event("updateUsers");
+            const event = new Event("update-users");
             event.client = client;
             this.dispatchEvent(event);
 
@@ -155,20 +163,21 @@ export default class RTCAgent extends EventTarget {
             e.client = client;
             this.dispatchEvent(e);
             break;
+          case "error":
+            console.error(e.data);
+            break;
         }
       });
 
-      const closeFunc = (event) => {
-        const index = this.wsClients.indexOf(client);
-
-        if (index > -1) {
-          this.wsClients.splice(index, 1);
-        }
-        reject(event);
+      const eventBindFun = (event) => {
+        const e = new Event(`ws-${event.type}`);
+        e.client = client;
+        this.dispatchEvent(e);
       };
 
-      client.addEventListener("close", closeFunc);
-      client.addEventListener("error", closeFunc);
+      client.addEventListener("open", eventBindFun);
+      client.addEventListener("close", eventBindFun);
+      client.addEventListener("error", eventBindFun);
 
       client.addEventListener("switch", async (e) => {
         const { data, from } = e;
@@ -190,7 +199,7 @@ export default class RTCAgent extends EventTarget {
               desc,
             });
 
-            bindClientClose(client, connector);
+            bindClient(client, connector, from);
 
             break;
         }
@@ -205,6 +214,8 @@ export default class RTCAgent extends EventTarget {
         event.remove = e.remove;
         this.dispatchEvent(event);
       });
+
+      resolve(client);
     });
   }
 }

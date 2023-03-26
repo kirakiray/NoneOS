@@ -3,7 +3,7 @@ Page(async ({ load }) => {
     "/public/crypto.mjs"
   );
 
-  const { default: RTCAgent } = await load("../../../connector/RTCAgent.mjs");
+  const { default: RTCAgent } = await load("../../connector/RTCAgent.mjs");
 
   let savedData = {};
 
@@ -49,9 +49,17 @@ Page(async ({ load }) => {
         ...formData,
       }));
 
-      rtcAgent.addEventListener("updateUsers", (e) => {
+      rtcAgent.addEventListener("update-users", (e) => {
         const { users } = rtcAgent;
         this.users = users;
+      });
+
+      rtcAgent.addEventListener("ws-open", () => {
+        this.isConnectWS = true;
+      });
+
+      rtcAgent.addEventListener("ws-close", () => {
+        this.isConnectWS = false;
       });
 
       rtcAgent.addEventListener("connector-change", (e) => {
@@ -90,7 +98,6 @@ Page(async ({ load }) => {
 
         await this._rtcAgent.lookup(serverUrl);
 
-        this.isConnectWS = true;
         this.step = 2;
       },
 
