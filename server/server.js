@@ -48,6 +48,8 @@ export class ConnectorServer {
               })
             );
 
+            console.log("switch data => ", msg.data);
+
             break;
         }
       });
