@@ -85,6 +85,10 @@
 </div>
 
 <div temp:chat-block>
+  <div class="line">
+    <div class="line-key">Opponent ID</div>
+    <div>{{$data._connector.userId}}</div>
+  </div>
   <input type="text" sync:value="$data.val" />
   <button @click="$host.sendMsg($data)">发送</button>
   <div fill:chat-block-line="$data.logs"></div>

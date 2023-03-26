@@ -40,13 +40,22 @@ export class ConnectorServer {
           case "switch":
             const targetUser = users.get(msg.to);
 
-            targetUser.ws.send(
-              JSON.stringify({
-                action: "switch",
-                from: user.id,
-                data: msg.data,
-              })
-            );
+            if (targetUser) {
+              targetUser.ws.send(
+                JSON.stringify({
+                  action: "switch",
+                  from: user.id,
+                  data: msg.data,
+                })
+              );
+            } else {
+              ws.send(
+                JSON.stringify({
+                  action: "error",
+                  desc: "Failed to find target user",
+                })
+              );
+            }
 
             console.log("switch data => ", msg.data);
 

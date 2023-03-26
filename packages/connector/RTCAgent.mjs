@@ -1,7 +1,9 @@
 import WebSocketClient from "./WebSocketClient.mjs";
 import Connecter from "./Connecter.mjs";
 
-const bindClientClose = (client, connector) => {
+const bindClient = (client, connector, remoteUserId) => {
+  connector.userId = remoteUserId;
+  
   client.connectors.push(connector);
 
   const event = new Event("connector-change");
@@ -26,11 +28,11 @@ const bindClientClose = (client, connector) => {
 };
 
 async function connectUser() {
-  const { client, userId } = this;
+  const { client, userId: remoteUserId } = this;
 
   const connector = new Connecter();
 
-  bindClientClose(client, connector);
+  bindClient(client, connector, remoteUserId);
 
   let f;
 
@@ -39,7 +41,7 @@ async function connectUser() {
     (f = async (e) => {
       const { data, from } = e;
 
-      if (userId === from) {
+      if (remoteUserId === from) {
         const { desc: remoteDesc, ices: remoteIces } = data;
 
         switch (data.type) {
@@ -58,7 +60,7 @@ async function connectUser() {
   const desc = await connector.offer();
   const ices = await connector.ices;
 
-  client.sendById(userId, {
+  client.sendById(remoteUserId, {
     type: "exchange-offer",
     desc,
     ices,
@@ -161,6 +163,9 @@ export default class RTCAgent extends EventTarget {
             e.client = client;
             this.dispatchEvent(e);
             break;
+          case "error":
+            console.error(e.data);
+            break;
         }
       });
 
@@ -194,7 +199,7 @@ export default class RTCAgent extends EventTarget {
               desc,
             });
 
-            bindClientClose(client, connector);
+            bindClient(client, connector, from);
 
             break;
         }

@@ -44,7 +44,6 @@ export default class Connecter extends EventTarget {
     const channel = (this._channel = pc.createDataChannel("sendDataChannel"));
 
     channel.onmessage = (e) => {
-      console.log("pc1 get message => ", e.data);
       const event = new Event("message");
       event.data = e.data;
       this.dispatchEvent(event);
@@ -88,13 +87,9 @@ export default class Connecter extends EventTarget {
       this._channel = channel;
 
       channel.onmessage = (e) => {
-        console.log("pc2 get message => ", e.data);
         const event = new Event("message");
         event.data = e.data;
         this.dispatchEvent(event);
-        // if (this.onmessage) {
-        //   this.onmessage(event.data);
-        // }
       };
     };
 
