@@ -54,6 +54,14 @@ Page(async ({ load }) => {
         this.users = users;
       });
 
+      rtcAgent.addEventListener("ws-open", () => {
+        this.isConnectWS = true;
+      });
+
+      rtcAgent.addEventListener("ws-close", () => {
+        this.isConnectWS = false;
+      });
+
       rtcAgent.addEventListener("connector-change", (e) => {
         console.log("connector-change", e);
 
@@ -90,7 +98,6 @@ Page(async ({ load }) => {
 
         await this._rtcAgent.lookup(serverUrl);
 
-        this.isConnectWS = true;
         this.step = 2;
       },
 

@@ -124,6 +124,13 @@ export default class RTCAgent extends EventTarget {
   }
 
   lookup(url) {
+    const exitedClient = this.wsClients.find((e) => e.url === url);
+
+    if (exitedClient) {
+      exitedClient.socket;
+      return exitedClient;
+    }
+
     return new Promise((resolve, reject) => {
       const client = new WebSocketClient(url);
 
@@ -158,17 +165,15 @@ export default class RTCAgent extends EventTarget {
         }
       });
 
-      const closeFunc = (event) => {
-        const index = this.wsClients.indexOf(client);
-
-        if (index > -1) {
-          this.wsClients.splice(index, 1);
-        }
-        reject(event);
+      const eventBindFun = (event) => {
+        const e = new Event(`ws-${event.type}`);
+        e.client = client;
+        this.dispatchEvent(e);
       };
 
-      client.addEventListener("close", closeFunc);
-      client.addEventListener("error", closeFunc);
+      client.addEventListener("open", eventBindFun);
+      client.addEventListener("close", eventBindFun);
+      client.addEventListener("error", eventBindFun);
 
       client.addEventListener("switch", async (e) => {
         const { data, from } = e;
