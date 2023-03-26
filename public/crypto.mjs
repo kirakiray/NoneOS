@@ -1,3 +1,5 @@
+const currentDir = new URL(".", import.meta.url).pathname;
+
 export async function generateKeyPair() {
   if (!window.crypto || !crypto.subtle) {
     throw new Error("Web Crypto API is not available");
@@ -45,4 +47,17 @@ export function generateRandomId() {
   return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
     ""
   );
+}
+
+export function calculateFileHash(data) {
+  return new Promise((resolve) => {
+    const worker = new Worker(`${currentDir}worker/calculateFileHash.js`);
+
+    worker.addEventListener("message", (event) => {
+      resolve(event.data);
+      worker.terminate();
+    });
+
+    worker.postMessage(data);
+  });
 }

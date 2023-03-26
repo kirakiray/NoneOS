@@ -1,5 +1,6 @@
 import Waiter from "./Waiter.js";
 import FileInfo from "./FileInfo.js";
+import { calculateFileHash } from "../../../public/crypto.mjs";
 
 const DIRECTORY = "dir";
 const FILE = "file";
@@ -178,6 +179,9 @@ export default class FakeFS {
 
       // To delete old file data if it already exists
       const oldFile = files[name];
+
+      const fiiid = await calculateFileHash(data);
+      console.log("fiidda => ", fiiid);
 
       const file = {
         fid: (oldFile && oldFile.fid) || `file-${getRandomId()}`,

@@ -13,14 +13,11 @@ export default class Connecter extends EventTarget {
       ],
     }));
 
-    this._triggerClosed = false;
-
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
-      if (!this._triggerClosed && pc.connectionState === "failed") {
-        this.dispatchEvent(new Event("close"));
-        this._triggerClosed = true;
-      }
+      const e = new Event("state-change");
+      e.state = connectionState;
+      this.dispatchEvent(e);
     });
 
     this._channel = null;
@@ -52,7 +49,6 @@ export default class Connecter extends EventTarget {
     channel.addEventListener("close", (e) => {
       console.log("Data channel closed", e);
       this.dispatchEvent(new Event("close"));
-      this._triggerClosed = true;
     });
 
     channel.addEventListener("error", (e) => {
