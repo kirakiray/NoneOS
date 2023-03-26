@@ -3,7 +3,7 @@ Page(async ({ load }) => {
     "/public/crypto.mjs"
   );
 
-  const { default: RTCAgent } = await load("../../../connector/RTCAgent.mjs");
+  const { default: RTCAgent } = await load("../../connector/RTCAgent.mjs");
 
   let savedData = {};
 
