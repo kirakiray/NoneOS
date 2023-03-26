@@ -131,7 +131,7 @@ export default class RTCAgent extends EventTarget {
       return exitedClient;
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const client = new WebSocketClient(url);
 
       this.wsClients.push(client);
@@ -148,8 +148,7 @@ export default class RTCAgent extends EventTarget {
         switch (action) {
           case "push-users":
             client.users = data;
-            resolve(client);
-            const event = new Event("updateUsers");
+            const event = new Event("update-users");
             event.client = client;
             this.dispatchEvent(event);
 
@@ -210,6 +209,8 @@ export default class RTCAgent extends EventTarget {
         event.remove = e.remove;
         this.dispatchEvent(event);
       });
+
+      resolve(client);
     });
   }
 }

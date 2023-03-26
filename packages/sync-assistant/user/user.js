@@ -49,7 +49,7 @@ Page(async ({ load }) => {
         ...formData,
       }));
 
-      rtcAgent.addEventListener("updateUsers", (e) => {
+      rtcAgent.addEventListener("update-users", (e) => {
         const { users } = rtcAgent;
         this.users = users;
       });
