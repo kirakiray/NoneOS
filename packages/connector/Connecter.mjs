@@ -20,7 +20,30 @@ export default class Connecter extends EventTarget {
       this.dispatchEvent(e);
     });
 
-    this._channel = null;
+    this.channels = {};
+
+    pc.addEventListener("datachannel", (e) => {
+      const { channel } = e;
+
+      console.log("ondatachannel => ", e);
+
+      this.channels[channel.label] = channel;
+
+      channel.onmessage = (e) => {
+        const event = new Event("message");
+        event.data = e.data;
+        this.dispatchEvent(event);
+
+        console.log(`channel ${channel.label} msg2 => `, e.data);
+      };
+
+      if (channel.label === "init") {
+        channel.addEventListener("close", (e) => {
+          console.log("Data channel closed", e);
+          this.dispatchEvent(new Event("close"));
+        });
+      }
+    });
 
     this.ices = new Promise((resolve) => {
       const ices = [];
@@ -33,17 +56,31 @@ export default class Connecter extends EventTarget {
         }
       });
     });
+
+    this.agreements = {};
   }
 
   async offer() {
     const pc = this._pc;
 
-    const channel = (this._channel = pc.createDataChannel("sendDataChannel"));
+    const channel = pc.createDataChannel("init");
+
+    this.channels.init = channel;
 
     channel.onmessage = (e) => {
       const event = new Event("message");
-      event.data = e.data;
+      const data = (event.data = e.data);
+
+      let json;
+      if (typeof data === "string") {
+        try {
+          json = JSON.parse(data);
+        } catch (err) {}
+      }
+
       this.dispatchEvent(event);
+
+      console.log("channel msg => ", e.data);
     };
 
     channel.addEventListener("close", (e) => {
@@ -77,18 +114,6 @@ export default class Connecter extends EventTarget {
   async answer(remoteDesc) {
     const pc = this._pc;
 
-    pc.ondatachannel = (e) => {
-      const { channel } = e;
-
-      this._channel = channel;
-
-      channel.onmessage = (e) => {
-        const event = new Event("message");
-        event.data = e.data;
-        this.dispatchEvent(event);
-      };
-    };
-
     pc.setRemoteDescription(remoteDesc);
 
     const desc = await pc.createAnswer();
@@ -98,6 +123,32 @@ export default class Connecter extends EventTarget {
   }
 
   send(text) {
-    this._channel.send(text);
+    this.channels.init.send(text);
+  }
+
+  createChannel(name) {
+    if (name === "init") {
+      throw "You cannot create a channel named init";
+    }
+
+    if (this.channels[name]) {
+      throw `This channel already exists : ${name}`;
+    }
+
+    const channel = this._pc.createDataChannel(name);
+
+    channel.addEventListener("close", (e) => {
+      console.log("Data channel closed", e);
+      const event = new Event("channel-close");
+      event.channel = channel;
+      this.dispatchEvent(event);
+      delete this.channels[channel.label];
+    });
+
+    return channel;
+  }
+
+  agree(task) {
+    console.log("agree => ", task);
   }
 }
