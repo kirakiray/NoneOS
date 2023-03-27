@@ -3,6 +3,8 @@ Page(async ({ load }) => {
     "/public/crypto.mjs"
   );
 
+  const { default: fileSync } = await load("../file-sync.mjs");
+
   const { default: RTCAgent } = await load("../../connector/RTCAgent.mjs");
 
   let savedData = {};
@@ -68,10 +70,26 @@ Page(async ({ load }) => {
         if (e.add) {
           const target = e.add;
 
+          // target.agree(fileSync);
+
           this.linkedUsers.push({
             _connector: target,
+            disabled: true,
             val: "",
             logs: [],
+          });
+
+          target.addEventListener("state-change", (e) => {
+            const obj = this.linkedUsers.find((e2) => e2._connector === target);
+            const { state } = e;
+
+            if (obj) {
+              if (state === "connected") {
+                obj.disabled = false;
+              } else {
+                obj.disabled = true;
+              }
+            }
           });
 
           target.addEventListener("message", (e) => {

@@ -13,17 +13,26 @@ export default class Connecter extends EventTarget {
       ],
     }));
 
-    this._triggerClosed = false;
-
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
-      if (!this._triggerClosed && pc.connectionState === "failed") {
-        this.dispatchEvent(new Event("close"));
-        this._triggerClosed = true;
-      }
+      const e = new Event("state-change");
+      e.state = pc.connectionState;
+      this.dispatchEvent(e);
     });
 
-    this._channel = null;
+    this.channels = {};
+
+    pc.addEventListener("datachannel", (e) => {
+      const { channel } = e;
+
+      console.log("ondatachannel => ", e);
+
+      this._bindChannel(channel);
+
+      channel.onmessage = (e) => {
+        this._dispatchMsg(e, channel);
+      };
+    });
 
     this.ices = new Promise((resolve) => {
       const ices = [];
@@ -36,34 +45,32 @@ export default class Connecter extends EventTarget {
         }
       });
     });
+
+    this.agreements = {};
   }
 
   async offer() {
     const pc = this._pc;
 
-    const channel = (this._channel = pc.createDataChannel("sendDataChannel"));
+    const channel = this.createChannel("init");
 
     channel.onmessage = (e) => {
-      const event = new Event("message");
-      event.data = e.data;
-      this.dispatchEvent(event);
+      this._dispatchMsg(e, channel);
     };
-
-    channel.addEventListener("close", (e) => {
-      console.log("Data channel closed", e);
-      this.dispatchEvent(new Event("close"));
-      this._triggerClosed = true;
-    });
-
-    channel.addEventListener("error", (e) => {
-      console.log("Data channel error", e);
-    });
 
     const desc = await pc.createOffer();
 
     pc.setLocalDescription(desc);
 
     return desc;
+  }
+
+  _dispatchMsg(e, channel) {
+    const event = new Event("message");
+    event.data = e.data;
+    event.channel = channel;
+    this.dispatchEvent(event);
+    console.log(`channel ${channel.label} msg2 => `, e.data);
   }
 
   addIces(ices) {
@@ -81,18 +88,6 @@ export default class Connecter extends EventTarget {
   async answer(remoteDesc) {
     const pc = this._pc;
 
-    pc.ondatachannel = (e) => {
-      const { channel } = e;
-
-      this._channel = channel;
-
-      channel.onmessage = (e) => {
-        const event = new Event("message");
-        event.data = e.data;
-        this.dispatchEvent(event);
-      };
-    };
-
     pc.setRemoteDescription(remoteDesc);
 
     const desc = await pc.createAnswer();
@@ -102,6 +97,42 @@ export default class Connecter extends EventTarget {
   }
 
   send(text) {
-    this._channel.send(text);
+    this.channels.init.send(text);
+  }
+
+  createChannel(name) {
+    if (this.channels[name]) {
+      throw `This channel already exists : ${name}`;
+    }
+
+    const channel = this._pc.createDataChannel(name);
+
+    this._bindChannel(channel);
+
+    return channel;
+  }
+
+  _bindChannel(channel) {
+    this.channels[channel.label] = channel;
+
+    channel.addEventListener("close", (e) => {
+      console.log("Data channel closed", e);
+      if (channel.label === "init") {
+        this.dispatchEvent(new Event("close"));
+      } else {
+        const event = new Event("channel-close");
+        event.channel = channel;
+        this.dispatchEvent(event);
+        delete this.channels[channel.label];
+      }
+    });
+
+    channel.addEventListener("error", (e) => {
+      console.log("Data channel error", e);
+    });
+  }
+
+  agree(task) {
+    console.log("agree => ", task);
   }
 }
