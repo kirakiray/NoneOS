@@ -27,22 +27,11 @@ export default class Connecter extends EventTarget {
 
       console.log("ondatachannel => ", e);
 
-      this.channels[channel.label] = channel;
+      this._bindChannel(channel);
 
       channel.onmessage = (e) => {
-        const event = new Event("message");
-        event.data = e.data;
-        this.dispatchEvent(event);
-
-        console.log(`channel ${channel.label} msg2 => `, e.data);
+        this._dispatchMsg(e, channel);
       };
-
-      if (channel.label === "init") {
-        channel.addEventListener("close", (e) => {
-          console.log("Data channel closed", e);
-          this.dispatchEvent(new Event("close"));
-        });
-      }
     });
 
     this.ices = new Promise((resolve) => {
@@ -63,40 +52,25 @@ export default class Connecter extends EventTarget {
   async offer() {
     const pc = this._pc;
 
-    const channel = pc.createDataChannel("init");
-
-    this.channels.init = channel;
+    const channel = this.createChannel("init");
 
     channel.onmessage = (e) => {
-      const event = new Event("message");
-      const data = (event.data = e.data);
-
-      let json;
-      if (typeof data === "string") {
-        try {
-          json = JSON.parse(data);
-        } catch (err) {}
-      }
-
-      this.dispatchEvent(event);
-
-      console.log("channel msg => ", e.data);
+      this._dispatchMsg(e, channel);
     };
-
-    channel.addEventListener("close", (e) => {
-      console.log("Data channel closed", e);
-      this.dispatchEvent(new Event("close"));
-    });
-
-    channel.addEventListener("error", (e) => {
-      console.log("Data channel error", e);
-    });
 
     const desc = await pc.createOffer();
 
     pc.setLocalDescription(desc);
 
     return desc;
+  }
+
+  _dispatchMsg(e, channel) {
+    const event = new Event("message");
+    event.data = e.data;
+    event.channel = channel;
+    this.dispatchEvent(event);
+    console.log(`channel ${channel.label} msg2 => `, e.data);
   }
 
   addIces(ices) {
@@ -127,25 +101,35 @@ export default class Connecter extends EventTarget {
   }
 
   createChannel(name) {
-    if (name === "init") {
-      throw "You cannot create a channel named init";
-    }
-
     if (this.channels[name]) {
       throw `This channel already exists : ${name}`;
     }
 
     const channel = this._pc.createDataChannel(name);
 
-    channel.addEventListener("close", (e) => {
-      console.log("Data channel closed", e);
-      const event = new Event("channel-close");
-      event.channel = channel;
-      this.dispatchEvent(event);
-      delete this.channels[channel.label];
-    });
+    this._bindChannel(channel);
 
     return channel;
+  }
+
+  _bindChannel(channel) {
+    this.channels[channel.label] = channel;
+
+    channel.addEventListener("close", (e) => {
+      console.log("Data channel closed", e);
+      if (channel.label === "init") {
+        this.dispatchEvent(new Event("close"));
+      } else {
+        const event = new Event("channel-close");
+        event.channel = channel;
+        this.dispatchEvent(event);
+        delete this.channels[channel.label];
+      }
+    });
+
+    channel.addEventListener("error", (e) => {
+      console.log("Data channel error", e);
+    });
   }
 
   agree(task) {
