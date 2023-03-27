@@ -1,4 +1,5 @@
 import fs from "./packages/fs/index.mjs";
+import { fetch as connectorFetch } from "./packages/connector/sw-connector.mjs";
 
 self.addEventListener("fetch", function (event) {
   const { request } = event;
@@ -28,9 +29,12 @@ self.addEventListener("fetch", function (event) {
         }
       })()
     );
+  } else if (/^\/api\/connector/.test(urldata.pathname)) {
+    connectorFetch({
+      urldata,
+      event,
+    });
   }
-
-  // console.log("urldata => ", urldata);
 });
 
 self.addEventListener("install", () => {

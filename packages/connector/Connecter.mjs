@@ -16,7 +16,7 @@ export default class Connecter extends EventTarget {
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
       const e = new Event("state-change");
-      e.state = connectionState;
+      e.state = pc.connectionState;
       this.dispatchEvent(e);
     });
 
