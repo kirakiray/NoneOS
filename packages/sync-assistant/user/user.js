@@ -70,7 +70,7 @@ Page(async ({ load }) => {
         if (e.add) {
           const target = e.add;
 
-          target.agree(fileSync);
+          // target.agree(fileSync);
 
           this.linkedUsers.push({
             _connector: target,
