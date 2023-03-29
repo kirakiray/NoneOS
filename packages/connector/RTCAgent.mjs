@@ -28,9 +28,9 @@ const bindClient = (client, connector, remoteUserId) => {
 };
 
 async function connectUser() {
-  const { client, userId: remoteUserId } = this;
+  const { client, userId: remoteUserId, _agrees } = this;
 
-  const connector = new Connecter();
+  const connector = new Connecter(_agrees);
 
   bindClient(client, connector, remoteUserId);
 
@@ -74,6 +74,7 @@ export default class RTCAgent extends EventTarget {
     this.id = userData.id;
     this.publicKey = userData.publicKey;
     this.wsClients = [];
+    this._agrees = [];
     if (userData.ws) {
       this.lookup(userData.ws);
     }
@@ -81,6 +82,7 @@ export default class RTCAgent extends EventTarget {
 
   get users() {
     const users = [];
+    const { _agrees } = this;
 
     this.wsClients.forEach((client) => {
       users.push(
@@ -99,7 +101,11 @@ export default class RTCAgent extends EventTarget {
                 throw "The current user has connected";
               }
 
-              return connectUser.call({ userId: e.id, client });
+              return connectUser.call({
+                userId: e.id,
+                client,
+                _agrees,
+              });
             },
           };
         })
@@ -196,7 +202,7 @@ export default class RTCAgent extends EventTarget {
 
         switch (data.type) {
           case "exchange-offer":
-            const connector = new Connecter();
+            const connector = new Connecter(this._agrees);
 
             const desc = await connector.answer(remoteDesc);
             connector.addIces(remoteIces);
@@ -227,5 +233,9 @@ export default class RTCAgent extends EventTarget {
 
       resolve(client);
     });
+  }
+
+  agree(task) {
+    this._agrees.push(task);
   }
 }

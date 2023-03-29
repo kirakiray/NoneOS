@@ -1,5 +1,5 @@
 export default class Connecter extends EventTarget {
-  constructor() {
+  constructor(agrees) {
     super();
     const pc = (this._pc = new RTCPeerConnection({
       iceServers: [
@@ -23,6 +23,7 @@ export default class Connecter extends EventTarget {
     });
 
     this.channels = {};
+    this.agreements = {};
 
     pc.addEventListener("datachannel", (e) => {
       const { channel } = e;
@@ -48,7 +49,28 @@ export default class Connecter extends EventTarget {
       });
     });
 
-    this.agreements = {};
+    this._initAgreement(agrees);
+  }
+
+  async _initAgreement(agrees) {
+    agrees.forEach((func) => {
+      const { channels: channelsName, agreementName } = func;
+
+      if (!channelsName) {
+        throw "agreement channles is empty";
+      }
+
+      const channels = {};
+
+      channelsName.forEach((name) => {
+        if (this.channels[name]) {
+          throw "Duplicate channel name";
+        }
+        channels[name] = this.createChannel(name);
+      });
+
+      this.agreements[agreementName] = func({ channels });
+    });
   }
 
   async offer() {
@@ -132,9 +154,5 @@ export default class Connecter extends EventTarget {
     channel.addEventListener("error", (e) => {
       console.log("Data channel error", e);
     });
-  }
-
-  agree(task) {
-    console.log("agree => ", task);
   }
 }
