@@ -13,10 +13,12 @@ export default class Connecter extends EventTarget {
       ],
     }));
 
+    this.state = "new";
+
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
       const e = new Event("state-change");
-      e.state = pc.connectionState;
+      this.state = e.state = pc.connectionState;
       this.dispatchEvent(e);
     });
 

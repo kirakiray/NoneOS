@@ -53,7 +53,12 @@ Page(async ({ load }) => {
 
       rtcAgent.addEventListener("update-users", (e) => {
         const { users } = rtcAgent;
+
+        console.log("users => ", users);
+
         this.users = users;
+
+        window.users = users;
       });
 
       rtcAgent.addEventListener("ws-open", () => {
@@ -70,7 +75,7 @@ Page(async ({ load }) => {
         if (e.add) {
           const target = e.add;
 
-          // target.agree(fileSync);
+          target.agree(fileSync);
 
           this.linkedUsers.push({
             _connector: target,
@@ -108,6 +113,10 @@ Page(async ({ load }) => {
       });
     },
     proto: {
+      linkBtnDisable(data) {
+        return !!data.connector;
+      },
+
       reloadUser() {
         this._rtcAgent.update();
       },

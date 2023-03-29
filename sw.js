@@ -1,5 +1,5 @@
 import fs from "./packages/fs/index.mjs";
-// import { fetch as connectorFetch } from "./packages/connector/sw-connector.mjs";
+// import { fetch as connectorFetch } from "./packages/connector/swConnector.mjs";
 
 self.addEventListener("fetch", function (event) {
   const { request } = event;

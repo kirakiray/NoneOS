@@ -3,7 +3,7 @@ import Connecter from "./Connecter.mjs";
 
 const bindClient = (client, connector, remoteUserId) => {
   connector.userId = remoteUserId;
-  
+
   client.connectors.push(connector);
 
   const event = new Event("connector-change");
@@ -90,7 +90,17 @@ export default class RTCAgent extends EventTarget {
             get client() {
               return client;
             },
-            connect: connectUser.bind({ userId: e.id, client }),
+            get connector() {
+              return client.connectors.find((e2) => e2.userId === e.id);
+            },
+
+            connect() {
+              if (this.connector) {
+                throw "The current user has connected";
+              }
+
+              return connectUser.call({ userId: e.id, client });
+            },
           };
         })
       );
