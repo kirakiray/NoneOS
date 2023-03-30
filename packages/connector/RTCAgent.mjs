@@ -52,8 +52,6 @@ async function connectUser() {
             break;
         }
       }
-
-      console.log("data => ", from, data);
     })
   );
 
@@ -219,8 +217,6 @@ export default class RTCAgent extends EventTarget {
 
             break;
         }
-
-        console.log("data => ", from, data);
       });
 
       client.addEventListener("connector-change", (e) => {

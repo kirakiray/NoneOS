@@ -106,7 +106,7 @@ Page(async ({ load }) => {
 
           target.addEventListener("message", (e) => {
             const obj = this.linkedUsers.find((e2) => e2._connector === target);
-            obj.logs.push(e.data);
+            obj.logs.push(e.channel.label + " => " + e.data);
           });
         }
         if (e.remove) {
