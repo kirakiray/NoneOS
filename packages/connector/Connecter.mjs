@@ -141,7 +141,13 @@ export default class Connecter extends EventTarget {
 
     if (channel.label === "init") {
       channel.addEventListener("message", (e) => {
-        const data = JSON.parse(e.data);
+        let data;
+        try {
+          data = JSON.parse(e.data);
+        } catch (err) {
+          console.log("msg => ", data);
+          return;
+        }
 
         switch (data.type) {
           case "init-agrees":
