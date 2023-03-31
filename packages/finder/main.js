@@ -113,7 +113,7 @@
     return Promise.all(
       Object.entries(obj).map(async ([name, data]) => {
         const newPath = `${path === "/" ? "" : path}/${name}`;
-        if (data instanceof File) {
+        if (data instanceof Blob) {
           await fs.writeFile(newPath, data);
           return;
         }

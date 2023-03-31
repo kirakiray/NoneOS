@@ -9,7 +9,7 @@ async function calculateHash(data) {
   if (typeof data === "string") {
     const encoder = new TextEncoder();
     buffer = encoder.encode(data);
-  } else if (data instanceof File) {
+  } else if (data instanceof Blob) {
     buffer = await data.arrayBuffer();
   } else {
     throw new Error("Unsupported data type");
