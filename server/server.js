@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 
 export class ConnectorServer {
-  constructor({ port = 3900 } = {}) {
+  constructor({ port = 3901 } = {}) {
     const wss = (this.wss = new WebSocketServer({ port }));
 
     const users = (this.users = new Map());
