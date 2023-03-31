@@ -37,6 +37,9 @@ export class ConnectorServer {
 
             console.log("client connected , all user => ", users);
             break;
+          case "update":
+            user.userName = msg.userName;
+            break;
           case "switch":
             const targetUser = users.get(msg.to);
 
@@ -58,8 +61,9 @@ export class ConnectorServer {
             }
 
             console.log("switch data => ", msg.data);
-
             break;
+          default:
+            ws.terminate();
         }
       });
 

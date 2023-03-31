@@ -51,9 +51,20 @@ Page(async ({ load }) => {
         ...formData,
       }));
 
+      rtcAgent.agree(fileSync);
+
       rtcAgent.addEventListener("update-users", (e) => {
         const { users } = rtcAgent;
+
         this.users = users;
+
+        if (users.length) {
+          users.forEach((e) => {
+            if (!e.connector) {
+              e.connect();
+            }
+          });
+        }
       });
 
       rtcAgent.addEventListener("ws-open", () => {
@@ -69,8 +80,6 @@ Page(async ({ load }) => {
 
         if (e.add) {
           const target = e.add;
-
-          // target.agree(fileSync);
 
           this.linkedUsers.push({
             _connector: target,
@@ -94,7 +103,9 @@ Page(async ({ load }) => {
 
           target.addEventListener("message", (e) => {
             const obj = this.linkedUsers.find((e2) => e2._connector === target);
-            obj.logs.push(e.data);
+            if (!e.channel.label.includes("fileSync")) {
+              obj.logs.push(e.channel.label + " => " + e.data);
+            }
           });
         }
         if (e.remove) {
@@ -108,6 +119,10 @@ Page(async ({ load }) => {
       });
     },
     proto: {
+      linkBtnDisable(data) {
+        return !!data.connector;
+      },
+
       reloadUser() {
         this._rtcAgent.update();
       },

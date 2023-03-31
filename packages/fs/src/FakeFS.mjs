@@ -258,6 +258,23 @@ export default class FakeFS {
     }
   }
 
+  async mkdirSure(path) {
+    const pathArr = path.split("/");
+    pathArr.shift();
+
+    let p = "";
+
+    for await (let e of pathArr) {
+      p += "/" + e;
+
+      const d = await this.readDir(p);
+
+      if (!d) {
+        await this.mkdir(p);
+      }
+    }
+  }
+
   async readFile(path) {
     const { parentPath, name } = getParentAndFileName(path);
 

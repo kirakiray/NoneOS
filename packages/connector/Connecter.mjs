@@ -1,5 +1,5 @@
 export default class Connecter extends EventTarget {
-  constructor() {
+  constructor(agrees, userInfo) {
     super();
     const pc = (this._pc = new RTCPeerConnection({
       iceServers: [
@@ -13,25 +13,24 @@ export default class Connecter extends EventTarget {
       ],
     }));
 
+    this.state = "new";
+
     pc.addEventListener("connectionstatechange", () => {
       console.log("connectionState:", pc.connectionState);
       const e = new Event("state-change");
-      e.state = pc.connectionState;
+      this.state = e.state = pc.connectionState;
       this.dispatchEvent(e);
     });
 
+    this._userInfo = userInfo;
+    this._agrees = agrees;
     this.channels = {};
+    this.agreements = {};
 
     pc.addEventListener("datachannel", (e) => {
       const { channel } = e;
 
-      console.log("ondatachannel => ", e);
-
       this._bindChannel(channel);
-
-      channel.onmessage = (e) => {
-        this._dispatchMsg(e, channel);
-      };
     });
 
     this.ices = new Promise((resolve) => {
@@ -45,17 +44,26 @@ export default class Connecter extends EventTarget {
         }
       });
     });
-
-    this.agreements = {};
   }
 
   async offer() {
     const pc = this._pc;
 
-    const channel = this.createChannel("init");
+    const initChannel = this.createChannel("init");
 
-    channel.onmessage = (e) => {
-      this._dispatchMsg(e, channel);
+    initChannel.onopen = () => {
+      initChannel.send(
+        JSON.stringify({
+          type: "init-agrees",
+          agrees: this._agrees.map((f) => {
+            const { agreementName, version } = f;
+            return {
+              agreementName,
+              version,
+            };
+          }),
+        })
+      );
     };
 
     const desc = await pc.createOffer();
@@ -63,14 +71,6 @@ export default class Connecter extends EventTarget {
     pc.setLocalDescription(desc);
 
     return desc;
-  }
-
-  _dispatchMsg(e, channel) {
-    const event = new Event("message");
-    event.data = e.data;
-    event.channel = channel;
-    this.dispatchEvent(event);
-    console.log(`channel ${channel.label} msg2 => `, e.data);
   }
 
   addIces(ices) {
@@ -115,6 +115,14 @@ export default class Connecter extends EventTarget {
   _bindChannel(channel) {
     this.channels[channel.label] = channel;
 
+    channel.addEventListener("message", (e) => {
+      const event = new Event("message");
+      event.data = e.data;
+      event.channel = channel;
+      this.dispatchEvent(event);
+      console.log(`channel ${channel.label} msg => `, e.data);
+    });
+
     channel.addEventListener("close", (e) => {
       console.log("Data channel closed", e);
       if (channel.label === "init") {
@@ -130,9 +138,85 @@ export default class Connecter extends EventTarget {
     channel.addEventListener("error", (e) => {
       console.log("Data channel error", e);
     });
+
+    if (channel.label === "init") {
+      channel.addEventListener("message", (e) => {
+        const data = JSON.parse(e.data);
+
+        switch (data.type) {
+          case "init-agrees":
+            {
+              const remoteAgrees = data.agrees;
+
+              const accepts = [];
+
+              this._agrees.forEach((e) => {
+                const target = remoteAgrees.find(
+                  (e2) =>
+                    e2.agreementName === e.agreementName &&
+                    e2.version === e.version
+                );
+
+                if (target) {
+                  accepts.push(target.agreementName);
+                }
+              });
+
+              this._initAgrees(accepts, channel);
+            }
+            break;
+          case "init-agree-dock":
+            {
+              this._initAgrees(data.accepts, null, true);
+            }
+            break;
+        }
+      });
+    }
   }
 
-  agree(task) {
-    console.log("agree => ", task);
+  _initAgrees(accepts, originChannel, isDock = false) {
+    accepts.forEach(async (name) => {
+      const targetFunc = this._agrees.find((f) => f.agreementName === name);
+      const { channels: channelsName, agreementName } = targetFunc;
+
+      const channels = {};
+
+      if (!isDock) {
+        await Promise.all(
+          channelsName.map(
+            (name) =>
+              new Promise((resolve) => {
+                if (this.channels[name]) {
+                  throw "Duplicate channel name";
+                }
+
+                const channel = (channels[name] = this.createChannel(name));
+
+                channel.addEventListener("open", () => {
+                  resolve();
+                });
+              })
+          )
+        );
+
+        originChannel.send(
+          JSON.stringify({
+            type: "init-agree-dock",
+            accepts,
+          })
+        );
+      } else {
+        channelsName.forEach((name) => {
+          channels[name] = this.channels[name];
+        });
+      }
+
+      this.agreements[agreementName] = targetFunc({
+        channels,
+        originate: !isDock,
+        userInfo: this._userInfo,
+      });
+    });
   }
 }

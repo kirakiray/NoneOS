@@ -3,7 +3,7 @@ import Connecter from "./Connecter.mjs";
 
 const bindClient = (client, connector, remoteUserId) => {
   connector.userId = remoteUserId;
-  
+
   client.connectors.push(connector);
 
   const event = new Event("connector-change");
@@ -28,9 +28,11 @@ const bindClient = (client, connector, remoteUserId) => {
 };
 
 async function connectUser() {
-  const { client, userId: remoteUserId } = this;
+  const { client, userId: remoteUserId, _agrees } = this;
 
-  const connector = new Connecter();
+  const connector = new Connecter(_agrees, {
+    id: remoteUserId,
+  });
 
   bindClient(client, connector, remoteUserId);
 
@@ -52,8 +54,6 @@ async function connectUser() {
             break;
         }
       }
-
-      console.log("data => ", from, data);
     })
   );
 
@@ -74,6 +74,7 @@ export default class RTCAgent extends EventTarget {
     this.id = userData.id;
     this.publicKey = userData.publicKey;
     this.wsClients = [];
+    this._agrees = [];
     if (userData.ws) {
       this.lookup(userData.ws);
     }
@@ -81,6 +82,7 @@ export default class RTCAgent extends EventTarget {
 
   get users() {
     const users = [];
+    const { _agrees } = this;
 
     this.wsClients.forEach((client) => {
       users.push(
@@ -90,7 +92,21 @@ export default class RTCAgent extends EventTarget {
             get client() {
               return client;
             },
-            connect: connectUser.bind({ userId: e.id, client }),
+            get connector() {
+              return client.connectors.find((e2) => e2.userId === e.id);
+            },
+
+            connect() {
+              if (this.connector) {
+                throw "The current user has connected";
+              }
+
+              return connectUser.call({
+                userId: e.id,
+                client,
+                _agrees,
+              });
+            },
           };
         })
       );
@@ -186,7 +202,9 @@ export default class RTCAgent extends EventTarget {
 
         switch (data.type) {
           case "exchange-offer":
-            const connector = new Connecter();
+            const connector = new Connecter(this._agrees, {
+              id: this.id,
+            });
 
             const desc = await connector.answer(remoteDesc);
             connector.addIces(remoteIces);
@@ -203,8 +221,6 @@ export default class RTCAgent extends EventTarget {
 
             break;
         }
-
-        console.log("data => ", from, data);
       });
 
       client.addEventListener("connector-change", (e) => {
@@ -217,5 +233,9 @@ export default class RTCAgent extends EventTarget {
 
       resolve(client);
     });
+  }
+
+  agree(task) {
+    this._agrees.push(task);
   }
 }

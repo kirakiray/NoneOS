@@ -73,7 +73,12 @@
     <div>{{$data.id}}</div>
   </div>
   <br />
-  <button @click="$host.linkClient($data)">连接</button>
+  <button
+    @click="$host.linkClient($data)"
+    :disabled="$host.linkBtnDisable($data)"
+  >
+    连接
+  </button>
 </div>
 
 <div class="container" #if="step >=2 ">
@@ -92,10 +97,11 @@
   <div>
     <h5>普通发送数据：</h5>
     <input type="text" sync:value="$data.val" :disabled="$data.disabled" />
-    <button @click="$host.sendMsg($data)" :disabled="$data.disabled">发送</button>
+    <button @click="$host.sendMsg($data)" :disabled="$data.disabled">
+      发送
+    </button>
     <div fill:chat-block-line="$data.logs"></div>
   </div>
-  <button>将数据拉到本地</button>
 </div>
 
 <div temp:chat-block-line style="color: green">{{$data}}</div>
