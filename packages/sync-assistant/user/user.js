@@ -51,15 +51,12 @@ Page(async ({ load }) => {
         ...formData,
       }));
 
-
       rtcAgent.agree(fileSync);
 
       rtcAgent.addEventListener("update-users", (e) => {
         const { users } = rtcAgent;
 
         this.users = users;
-
-        window.users = users;
 
         if (users.length) {
           users.forEach((e) => {
@@ -106,7 +103,9 @@ Page(async ({ load }) => {
 
           target.addEventListener("message", (e) => {
             const obj = this.linkedUsers.find((e2) => e2._connector === target);
-            obj.logs.push(e.channel.label + " => " + e.data);
+            if (!e.channel.label.includes("fileSync")) {
+              obj.logs.push(e.channel.label + " => " + e.data);
+            }
           });
         }
         if (e.remove) {

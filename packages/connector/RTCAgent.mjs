@@ -30,7 +30,9 @@ const bindClient = (client, connector, remoteUserId) => {
 async function connectUser() {
   const { client, userId: remoteUserId, _agrees } = this;
 
-  const connector = new Connecter(_agrees);
+  const connector = new Connecter(_agrees, {
+    id: remoteUserId,
+  });
 
   bindClient(client, connector, remoteUserId);
 
@@ -200,7 +202,9 @@ export default class RTCAgent extends EventTarget {
 
         switch (data.type) {
           case "exchange-offer":
-            const connector = new Connecter(this._agrees);
+            const connector = new Connecter(this._agrees, {
+              id: this.id,
+            });
 
             const desc = await connector.answer(remoteDesc);
             connector.addIces(remoteIces);
