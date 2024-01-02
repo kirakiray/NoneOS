@@ -7,5 +7,81 @@
   </head>
   <body>
     Document
+    <script type="module">
+      import { read } from "./core/fs/base.js";
+
+      const root = await read();
+
+      console.log("root", root);
+
+      for await (let item of root.entries()) {
+        console.log("item", item);
+      }
+
+      const files = await read("testDir/subDir");
+
+      debugger;
+
+      // root.read("a", {
+      //   create: true,
+      // });
+
+      // (async () => {
+      //   console.log(
+      //     "navigator.storage.estimate():",
+      //     await navigator.storage.estimate()
+      //   );
+
+      //   const rootDir = await navigator.storage.getDirectory();
+      //   console.log("rootDir: ", rootDir);
+
+      //   const fileHandle = await rootDir.getFileHandle("test.md", {
+      //     create: true,
+      //   });
+
+      //   {
+      //     const writable = await fileHandle.createWritable();
+      //     await writable.write("test text");
+      //     await writable.close();
+      //   }
+
+      //   const dir = await rootDir.getDirectoryHandle("testDir", {
+      //     create: true,
+      //   });
+
+      //   {
+      //     const fileHandle = await dir.getFileHandle("test2.md", {
+      //       create: true,
+      //     });
+      //     const writable = await fileHandle.createWritable();
+      //     await writable.write("test text2");
+      //     await writable.close();
+
+      //     const subdir = await dir.getDirectoryHandle("subDir", {
+      //       create: true,
+      //     });
+
+      //     {
+      //       const fileHandle = await subdir.getFileHandle("test3.md", {
+      //         create: true,
+      //       });
+      //       const writable = await fileHandle.createWritable();
+      //       await writable.write("test text3");
+      //       await writable.close();
+
+      //       // console.log("haha", await subdir.resolve(rootDir));
+      //     }
+      //   }
+
+      //   for await (let item of rootDir.entries()) {
+      //     console.log(item);
+      //   }
+
+      //   // console.log("data: ", rootDir, data);
+
+      //   const targetDir = await rootDir.getDirectoryHandle("testDir");
+      //   console.log("targetDir", targetDir);
+      // })();
+    </script>
   </body>
 </html>
