@@ -1,0 +1,1 @@
+Store system applications

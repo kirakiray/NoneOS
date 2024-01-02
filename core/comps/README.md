@@ -1,0 +1,1 @@
+Store common components
