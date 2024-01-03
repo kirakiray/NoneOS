@@ -8,9 +8,9 @@
   <body>
     Document
     <script type="module">
-      import { read } from "./core/fs/base.js";
+      import { get } from "./core/fs/main.js";
 
-      const root = await read();
+      const root = await get();
 
       console.log("root", root);
 
@@ -18,11 +18,19 @@
         console.log("item", item);
       }
 
-      const target = await read("testDir/subDir/test4.md", {
+      const target = await get("testDir/subDir/test4.md", {
         // type: "directory",
-      }).then((e) => e.text());
+        // create: true,
+      });
+
+      const file = new File(["bbbb"], "test.md", {
+        type: "text/plain",
+      });
+
+      await target.write(file);
 
       console.log("target: ", target);
+      console.log("target2: ", await target.file());
 
       // root.read("a", {
       //   create: true,
