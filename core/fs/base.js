@@ -27,10 +27,10 @@ export class NBaseHandle {
     return this._handle.name;
   }
 
-  set name(newName) {
-    debugger;
-    return true;
-  }
+  //   set name(newName) {
+  //     debugger;
+  //     return true;
+  //   }
 
   async remove(options) {
     const defaults = {
@@ -56,15 +56,68 @@ export class NDirHandle extends NBaseHandle {
 
     Object.assign(defaults, options);
 
-    const handle = this._handle;
+    const paths = name.split("/");
+    const lastId = paths.length - 1;
 
-    if (defaults.type) {
-      debugger;
-    } else {
-      try {
-      } catch (err) {}
-      debugger;
+    let targetHandle = this._handle;
+    let count = 0;
+
+    for (let name of paths) {
+      if (count === lastId) {
+        if (defaults.type) {
+          try {
+            switch (defaults.type) {
+              case "file":
+                targetHandle = await targetHandle.getFileHandle(name, {
+                  create: defaults.create,
+                });
+                break;
+              case "directory":
+                targetHandle = await targetHandle.getDirectoryHandle(name, {
+                  create: defaults.create,
+                });
+                break;
+            }
+          } catch (err) {
+            console.error(err);
+            return err;
+          }
+        } else {
+          let lastHandle;
+          try {
+            lastHandle = await targetHandle.getDirectoryHandle(name);
+          } catch (err) {
+            try {
+              lastHandle = await targetHandle.getFileHandle(name, {
+                create: defaults.create,
+              });
+            } catch (err2) {
+              console.error(err2);
+              return err2;
+            }
+          }
+
+          targetHandle = lastHandle;
+        }
+        break;
+      }
+
+      targetHandle = await targetHandle.getDirectoryHandle(name, {
+        create: defaults.create,
+      });
+
+      count++;
     }
+
+    if (targetHandle.kind === "file") {
+      return new NFileHandle(targetHandle, paths, this._root);
+    } else if (targetHandle.kind === "directory") {
+      return new NDirHandle(targetHandle, paths, this._root);
+    }
+
+    debugger;
+
+    return null;
   }
 
   async *entries() {
@@ -100,7 +153,28 @@ export class NFileHandle extends NBaseHandle {
 
     Object.assign(defaults, options);
 
-    debugger;
+    const file = await this._handle.getFile();
+
+    if (defaults.type === "file") {
+      return file;
+    }
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+
+      reader.onload = () => resolve(reader.result);
+
+      switch (defaults.type) {
+        case "text":
+          reader.readAsText(file);
+          break;
+        case "buffer":
+          reader.readAsArrayBuffer(file);
+          break;
+        default:
+          reject(new Error(`"${defaults.type}" type is not supported`));
+      }
+    });
   }
 
   file() {
@@ -118,19 +192,14 @@ export class NFileHandle extends NBaseHandle {
 
 const rootHandlePms = navigator.storage.getDirectory();
 
-export const read = async (path = "", { handle, create } = {}) => {
+export const read = async (path = "", { handle, create, type } = {}) => {
   const root = new NDirHandle(handle || (await rootHandlePms));
   if (!path) {
     return root;
   }
 
-  const paths = path.split("/");
-
-  let targetHandle;
-  for (let name of paths) {
-    targetHandle = await root.read(name);
-    debugger;
-  }
-
-  debugger;
+  return await root.read(path, {
+    create,
+    type,
+  });
 };

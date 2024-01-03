@@ -18,9 +18,11 @@
         console.log("item", item);
       }
 
-      const files = await read("testDir/subDir");
+      const target = await read("testDir/subDir/test4.md", {
+        // type: "directory",
+      }).then((e) => e.text());
 
-      debugger;
+      console.log("target: ", target);
 
       // root.read("a", {
       //   create: true,
