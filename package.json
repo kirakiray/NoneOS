@@ -2,8 +2,10 @@
   "name": "NoneOS",
   "version": "1.2.2",
   "description": "A browser-based operating system",
+  "type": "module",
   "scripts": {
     "static-server": "node scripts/static-server",
+    "start": "node scripts/start",
     "test": "npx playwright test"
   },
   "repository": {
@@ -20,6 +22,7 @@
     "@playwright/test": "^1.31.1",
     "koa": "^2.14.1",
     "koa-static": "^5.0.0",
+    "open": "^10.0.2",
     "shelljs": "^0.8.5"
   },
   "dependencies": {
