@@ -188,6 +188,18 @@ export class NFileHandle extends NBaseHandle {
   buffer() {
     return this._get({ type: "buffer" });
   }
+
+  async stat() {
+    const file = await this._get({ type: "file" });
+
+    const result = {};
+
+    ["lastModified", "lastModifiedDate", "name", "size", "type"].forEach(
+      (k) => (result[k] = file[k])
+    );
+
+    return result;
+  }
 }
 
 const rootHandlePms = navigator.storage.getDirectory();
