@@ -1,4 +1,4 @@
-export const home = "./pages/files.html";
+export const home = "./files.html";
 
 export const loading = () => {
   return `<div style="display:flex;justify-content:center;align-items:center;">

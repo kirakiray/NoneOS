@@ -27,5 +27,5 @@ await open("http://127.0.0.1:5559", { app: { name: apps.chrome } });
 
   app.use(home);
 
-  app.listen(5547);
+  app.listen(55470);
 }

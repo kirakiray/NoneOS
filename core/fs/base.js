@@ -1,12 +1,11 @@
 // 替换这个基础库，理论是可以兼容各个环境
 export class NBaseHandle {
   #root;
+  #relates;
   constructor(handle, paths, root) {
     this.#root = root || this;
+    this.#relates = paths || [];
     Object.defineProperties(this, {
-      relativePaths: {
-        value: paths || [],
-      },
       _handle: {
         value: handle,
       },
@@ -18,7 +17,7 @@ export class NBaseHandle {
   }
 
   get parent() {
-    if (!this.relativePaths.length) {
+    if (!this.#relates.length) {
       return null;
     }
 
@@ -26,7 +25,11 @@ export class NBaseHandle {
   }
 
   get path() {
-    return this.relativePaths.join("/");
+    return this.#relates.join("/");
+  }
+
+  get relativePaths() {
+    return this.#relates.slice();
   }
 
   get root() {

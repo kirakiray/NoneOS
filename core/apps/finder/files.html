@@ -1,0 +1,83 @@
+<template page>
+  <l-m src="./comps/icon-block.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .top {
+      height: 30px;
+      background-color: #bbb;
+    }
+    .main {
+      display: flex;
+      flex: 1;
+    }
+    .left {
+      width: 200px;
+      overflow: auto;
+      background-color: #eee;
+    }
+    .content {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      padding: 8px;
+      box-sizing: border-box;
+      flex: 1;
+      overflow-y: auto;
+    }
+    .content icon-block {
+      margin: 4px;
+    }
+  </style>
+  <div class="container">
+    <div class="top"></div>
+    <div class="main">
+      <div class="left"></div>
+      <div class="content">
+        <x-fill :value="files">
+          <icon-block :name="$data.name" :type="$data.type"></icon-block>
+        </x-fill>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let root;
+
+    export default async ({ load }) => {
+      const { get } = await load("../../fs/main.js");
+
+      if (!root) {
+        root = await get();
+      }
+
+      const files = [];
+      for await (let item of root.values()) {
+        console.log(item);
+        files.push({
+          type: item.kind,
+          name: item.name,
+        });
+      }
+
+      // const files = await root.entries();
+      // debugger;
+
+      return {
+        data: {
+          files,
+        },
+        proto: {
+          load,
+        },
+        ready() {},
+      };
+    };
+  </script>
+</template>

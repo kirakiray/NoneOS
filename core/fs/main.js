@@ -78,6 +78,28 @@ export class NDirHandle extends NBaseHandle {
   async *entries() {
     for await (let [name, handle] of this._handle.entries()) {
       if (handle.kind === "file") {
+        yield [
+          name,
+          new NFileHandle(handle, [...this.relativePaths, name], this.root),
+        ];
+      } else {
+        yield [
+          name,
+          new NDirHandle(handle, [...this.relativePaths, name], this.root),
+        ];
+      }
+    }
+  }
+
+  async *keys() {
+    for await (let key of this._handle.keys()) {
+      yield key;
+    }
+  }
+
+  async *values() {
+    for await (let [name, handle] of this._handle.entries()) {
+      if (handle.kind === "file") {
         yield new NFileHandle(handle, [...this.relativePaths, name], this.root);
       } else {
         yield new NDirHandle(handle, [...this.relativePaths, name], this.root);
