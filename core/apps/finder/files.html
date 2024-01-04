@@ -3,76 +3,53 @@
   <l-m src="@pui/packages/button/button.html"></l-m>
   <style>
     :host {
-      display: block;
-    }
-    .container {
-      display: flex;
-      height: 100%;
-    }
-    .left {
-      width: 200px;
-      overflow: auto;
-      background-color: #eee;
-    }
-    .main {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-    .top {
-      display: flex;
-      align-items: center;
-      height: 40px;
-      padding: 0 8px;
-      border-bottom: #eee solid 1px;
-    }
-    .content {
       display: flex;
       flex-wrap: wrap;
       align-items: flex-start;
       padding: 8px;
       box-sizing: border-box;
-      flex: 1;
       overflow-y: auto;
     }
-    .content icon-block {
+
+    icon-block {
       padding: 4px;
     }
 
-    .content icon-block:hover {
+    icon-block:hover {
       background-color: rgba(0, 0, 0, 0.05);
     }
   </style>
-  <div class="container">
-    <div class="left"></div>
-    <div class="main">
-      <div class="top">
-        <p-button size="small" variant="text">Back</p-button>
-      </div>
-      <div class="content">
-        <x-fill :value="files">
-          <icon-block :name="$data.name" :type="$data.type"></icon-block>
-        </x-fill>
-      </div>
-    </div>
-  </div>
+
+  <x-fill :value="files">
+    <icon-block
+      :name="$data.name"
+      :type="$data.type"
+      on:dblclick="$host.gotoPath($data)"
+    ></icon-block>
+  </x-fill>
 
   <script>
-    let root;
+    // let root;
+    let count = 0;
 
-    export default async ({ load }) => {
+    export default async ({ load, query }) => {
       const { get } = await load("../../fs/main.js");
 
-      if (!root) {
-        root = await get();
-      }
+      count++;
+
+      console.log("count:", count);
+
+      // debugger;
+      console.log("query", query);
+
+      const root = await get(query.path);
 
       const files = [];
       for await (let item of root.values()) {
-        console.log(item);
         files.push({
           type: item.kind,
           name: item.name,
+          _item: item,
         });
       }
 
@@ -80,11 +57,21 @@
       // debugger;
 
       return {
+        parent: "./frame.html",
         data: {
+          // paths: [],
+          paths: query.path ? query.path.split("/") : [],
           files,
         },
         proto: {
-          load,
+          gotoPath(data) {
+            if (data.type === "directory") {
+              this.app.goto(
+                "@nos/apps/finder/files.html?path=" +
+                  [...this.paths, data.name].join("/")
+              );
+            }
+          },
         },
         ready() {},
       };

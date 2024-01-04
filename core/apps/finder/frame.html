@@ -1,0 +1,75 @@
+<template page>
+  <l-m src="./comps/icon-block.html"></l-m>
+  <l-m src="@pui/packages/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      height: 100%;
+    }
+    .left {
+      width: 200px;
+      overflow: auto;
+      background-color: #eee;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px;
+      border-bottom: #eee solid 1px;
+    }
+    .content {
+      flex: 1;
+    }
+    .bottom {
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      height: 26px;
+      border-top: #eee solid 1px;
+      color: #4a4a4a;
+    }
+    .path {
+      font-size: 12px;
+    }
+  </style>
+  <div class="container">
+    <div class="left"></div>
+    <div class="main">
+      <div class="top">
+        <p-button size="small" variant="text" on:click="app.back()"
+          >Back</p-button
+        >
+      </div>
+      <div class="content">
+        <slot></slot>
+      </div>
+      <div class="bottom">
+        <div class="path">{{paths}}</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // let root;
+    let count = 0;
+
+    export default async ({ load, query }) => {
+      return {
+        data: {
+          // paths: [],
+          paths: query.path ? query.path.split("/") : [],
+        },
+        ready() {},
+      };
+    };
+  </script>
+</template>
