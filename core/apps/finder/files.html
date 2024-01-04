@@ -73,7 +73,9 @@
             }
           },
         },
-        ready() {},
+        ready() {
+          this.parent.paths = query.path ? query.path.split("/") : [];
+        },
       };
     };
   </script>

@@ -60,13 +60,17 @@
 
   <script>
     // let root;
-    let count = 0;
+    let frameCount = 0;
 
     export default async ({ load, query }) => {
+      frameCount++;
+
+      console.log("frameCount", frameCount);
+
       return {
         data: {
-          // paths: [],
-          paths: query.path ? query.path.split("/") : [],
+          paths: [],
+          //   paths: query.path ? query.path.split("/") : [],
         },
         ready() {},
       };

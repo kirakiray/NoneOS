@@ -10,13 +10,16 @@ export const pageAnime = {
   current: {
     opacity: 1,
     transform: "translate(0, 0)",
+    "transition-duration": ".05s",
   },
   next: {
     opacity: 0,
-    transform: "translate(30px, 0)",
+    transform: "translate(10px, 0)",
+    "transition-duration": ".05s",
   },
   previous: {
     opacity: 0,
-    transform: "translate(-30px, 0)",
+    transform: "translate(-10px, 0)",
+    "transition-duration": ".05s",
   },
 };
