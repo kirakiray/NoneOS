@@ -40,11 +40,6 @@ export class NBaseHandle {
     return this._handle.name;
   }
 
-  //   set name(newName) {
-  //     debugger;
-  //     return true;
-  //   }
-
   async remove(options) {
     const defaults = {
       recursive: false,
@@ -56,7 +51,7 @@ export class NBaseHandle {
       await this._handle.remove(defaults);
     } else {
       const parent = await this.parent();
-      await parent.removeEntry(this.name);
+      await parent.removeEntry(this.name, defaults);
     }
 
     return true;
@@ -68,5 +63,36 @@ export class NBaseHandle {
     return true;
   }
 
-  async move() {}
+  async move(...args) {
+    const { _handle } = this;
+    if (_handle.move) {
+      switch (args.length) {
+        case 2:
+          await _handle.move(args[0]._handle, args[1]);
+          return true;
+        case 1:
+          if (typeof args[0] === "string") {
+            await _handle.move(args[0]);
+          } else {
+            await _handle.move(args[0]._handle);
+          }
+          return true;
+      }
+    } else {
+      let name, targetHandle;
+      switch (args.length) {
+        case 2:
+          targetHandle = args[0];
+          name = args[1];
+        case 1:
+          if (typeof args[0] === "string") {
+            name = args[0];
+          } else {
+            targetHandle = args[0];
+          }
+      }
+
+      debugger;
+    }
+  }
 }

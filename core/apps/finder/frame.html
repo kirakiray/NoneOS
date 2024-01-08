@@ -1,6 +1,6 @@
 <template page>
   <l-m src="./comps/icon-block.html"></l-m>
-  <l-m src="@pui/button/button.html"></l-m>
+  <l-m src="@pui/button/button-group.html"></l-m>
   <style>
     :host {
       display: block;
@@ -54,14 +54,21 @@
         <p-button size="small" variant="text" on:click="addFolder">
           New Folder
         </p-button>
-        <p-button
-          size="small"
-          variant="text"
-          on:click="deleteItem(selectedName)"
-          attr:disabled="selectedName ? null : 1"
-        >
-          Delete
-        </p-button>
+        <p-button size="small" variant="text"> Import File </p-button>
+        <p-button-group size="small" variant="text">
+          <p-button
+            on:click="deleteItem(selectedName)"
+            attr:disabled="selectedName ? null : 1"
+          >
+            Delete
+          </p-button>
+          <p-button
+            on:click="renameItem(selectedName)"
+            attr:disabled="selectedName ? null : 1"
+          >
+            Rename
+          </p-button>
+        </p-button-group>
       </div>
       <div class="content">
         <slot></slot>
@@ -82,6 +89,9 @@
         proto: {
           addFolder() {
             this[0].addFolder();
+          },
+          renameItem(name) {
+            this[0].renameItem(name);
           },
           deleteItem(name) {
             this[0].deleteItem(name);

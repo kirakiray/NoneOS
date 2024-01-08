@@ -14,6 +14,11 @@
 
       console.log("root", root);
 
+      const rootMd = await root.get("test.md", {
+        create: true,
+      });
+      await rootMd.write("root md");
+
       for await (let item of root.entries()) {
         console.log("item", item);
       }

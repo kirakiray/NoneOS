@@ -6,6 +6,7 @@
       display: flex;
       flex-wrap: wrap;
       align-items: flex-start;
+      align-content: flex-start;
       padding: 8px;
       box-sizing: border-box;
       overflow-y: auto;
@@ -13,15 +14,28 @@
     }
 
     icon-block {
+      margin: 2px;
+    }
+    icon-block::part(container) {
       padding: 4px;
     }
 
-    icon-block:hover {
+    icon-block:hover::part(container) {
       background-color: rgba(0, 0, 0, 0.05);
     }
 
-    icon-block.select {
+    icon-block.selected::part(container) {
       background-color: rgba(14, 55, 205, 0.05);
+    }
+    .empty-con {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 300px;
+      font-size: 14px;
+      color: #aaa;
+      user-select: none;
     }
   </style>
 
@@ -33,6 +47,9 @@
       on:click="$host.select($event,$data)"
     ></icon-block>
   </x-fill>
+  <x-if :value="!files.length">
+    <div class="empty-con">Empty</div>
+  </x-if>
 
   <script>
     export default async ({ load, query }) => {
@@ -48,6 +65,10 @@
           files: [],
         },
         proto: {
+          async renameItem(name) {
+            const selectedItem = this.shadow.$("icon-block.selected");
+            selectedItem.renamemode = true;
+          },
           async deleteItem(name) {
             const item = await selfDir.get(name);
 
@@ -65,7 +86,7 @@
 
               await item.remove({ recursive: true });
             }
-            this.reloadFile();
+            this.reloadList();
           },
           async addFolder() {
             let name = "";
@@ -85,9 +106,9 @@
               create: true,
             });
 
-            await this.reloadFile();
+            await this.reloadList();
           },
-          async reloadFile() {
+          async reloadList() {
             const files = [];
             for await (let item of selfDir.values()) {
               files.push({
@@ -115,24 +136,30 @@
             e.stopPropagation();
             this.shadow.all("icon-block").forEach((block) => {
               if (data.name === block.name) {
-                block.classList.add("select");
+                block.classList.add("selected");
                 this.parent.selectedName = block.name;
               } else {
-                block.classList.remove("select");
+                block.classList.remove("selected");
               }
             });
           },
           clearSelect() {
             this.shadow.all("icon-block").forEach((block) => {
-              block.classList.remove("select");
+              block.classList.remove("selected");
             });
             this.parent.selectedName = "";
           },
         },
         ready() {
-          this.reloadFile();
+          this.reloadList();
           this.on("click", () => this.clearSelect());
           this.parent.paths = query.path ? query.path.split("/") : [];
+          this.shadow.on("change-name", async (e) => {
+            const { oldName, newName } = e.data;
+            const handle = await selfDir.get(oldName);
+            await handle.move(newName);
+            this.reloadList();
+          });
         },
       };
     };
