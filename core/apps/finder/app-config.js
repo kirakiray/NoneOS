@@ -13,6 +13,8 @@ export const loading = () => {
       <div style="transition: all 10s cubic-bezier(0, 0, 0.22, 0.84) 0s; height: 2px;width: 0;background-color: rgb(0, 161, 46);"></div>
     `,
   });
+
+  return loadingEl;
 };
 
 export const pageAnime = {

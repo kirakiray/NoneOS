@@ -26,6 +26,9 @@
       padding: 0 8px;
       border-bottom: #eee solid 1px;
     }
+    .top > * {
+      margin-right: 8px;
+    }
     .content {
       flex: 1;
     }
@@ -45,9 +48,20 @@
     <div class="left"></div>
     <div class="main">
       <div class="top">
-        <p-button size="small" variant="text" on:click="app.back()"
-          >Back</p-button
+        <p-button size="small" variant="text" on:click="app.back()">
+          Back
+        </p-button>
+        <p-button size="small" variant="text" on:click="addFolder">
+          New Folder
+        </p-button>
+        <p-button
+          size="small"
+          variant="text"
+          on:click="deleteItem(selectedName)"
+          attr:disabled="selectedName ? null : 1"
         >
+          Delete
+        </p-button>
       </div>
       <div class="content">
         <slot></slot>
@@ -59,19 +73,19 @@
   </div>
 
   <script>
-    // let root;
-    let frameCount = 0;
-
     export default async ({ load }) => {
-      frameCount++;
-
-      console.log("frameCount", frameCount);
-
       return {
         data: {
           paths: [],
+          selectedName: "",
         },
         proto: {
+          addFolder() {
+            this[0].addFolder();
+          },
+          deleteItem(name) {
+            this[0].deleteItem(name);
+          },
           get pathStr() {
             return this.paths.join("/");
           },

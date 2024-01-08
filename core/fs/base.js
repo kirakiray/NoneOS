@@ -52,7 +52,7 @@ export class NBaseHandle {
 
     Object.assign(defaults, options);
 
-    debugger;
+    await this._handle.remove();
   }
 
   async move() {}

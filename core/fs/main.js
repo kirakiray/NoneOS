@@ -36,8 +36,7 @@ export class NDirHandle extends NBaseHandle {
                 break;
             }
           } catch (err) {
-            console.error(err);
-            return err;
+            throw err;
           }
         } else {
           let lastHandle;
@@ -49,8 +48,7 @@ export class NDirHandle extends NBaseHandle {
                 create: defaults.create,
               });
             } catch (err2) {
-              console.error(err2);
-              return err2;
+              throw err2;
             }
           }
 
