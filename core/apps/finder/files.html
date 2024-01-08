@@ -100,13 +100,15 @@
             this.files = files;
             this.parent.selectedName = "";
           },
-          gotoPath(data) {
+          async gotoPath(data) {
             if (data.type === "directory") {
               this.app.goto(
                 "@nos/apps/finder/files.html?path=" +
                   [...this.paths, data.name].join("/")
               );
               this.parent.selectedName = "";
+            } else {
+              console.log(await data._item.text());
             }
           },
           select(e, data) {

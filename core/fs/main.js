@@ -154,6 +154,9 @@ export class NFileHandle extends NBaseHandle {
         case "buffer":
           reader.readAsArrayBuffer(file);
           break;
+        case "dataurl":
+          reader.readAsDataURL(file);
+          break;
         default:
           reject(new Error(`"${defaults.type}" type is not supported`));
       }
