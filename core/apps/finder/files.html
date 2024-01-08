@@ -56,7 +56,7 @@
             } catch (err) {
               const result = await confirm({
                 title: `删除 ${item.name}`,
-                content: "确认删除此文件夹？",
+                content: "文件夹内包含其他文件，是否删除该文件夹？",
               });
 
               if (!result) {
