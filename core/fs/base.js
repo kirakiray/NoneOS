@@ -16,12 +16,12 @@ export class NBaseHandle {
     return this._handle?.kind || "directory";
   }
 
-  get parent() {
+  async parent() {
     if (!this.#relates.length) {
       return null;
     }
 
-    debugger;
+    return this.root.get(this.relativePaths.slice(0, -1).join("/"));
   }
 
   get path() {
@@ -52,7 +52,20 @@ export class NBaseHandle {
 
     Object.assign(defaults, options);
 
-    await this._handle.remove();
+    if (this._handle.remove) {
+      await this._handle.remove(defaults);
+    } else {
+      const parent = await this.parent();
+      await parent.removeEntry(this.name);
+    }
+
+    return true;
+  }
+
+  async removeEntry(name) {
+    await this._handle.removeEntry(name);
+
+    return true;
   }
 
   async move() {}

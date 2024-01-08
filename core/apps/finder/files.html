@@ -1,6 +1,6 @@
 <template page>
   <l-m src="./comps/icon-block.html"></l-m>
-  <l-m src="@pui/packages/button/button.html"></l-m>
+  <l-m src="@pui/button/button.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -37,8 +37,9 @@
   <script>
     export default async ({ load, query }) => {
       const { get } = await load("../../fs/main.js");
+      const { confirm } = await load("@pui/dialog/command.js");
 
-      const root = await get(query.path);
+      const selfDir = await get(query.path);
 
       return {
         parent: "./frame.html",
@@ -48,7 +49,22 @@
         },
         proto: {
           async deleteItem(name) {
-            const item = await root.get(name).then((e) => e.remove());
+            const item = await selfDir.get(name);
+
+            try {
+              await item.remove();
+            } catch (err) {
+              const result = await confirm({
+                title: `删除 ${item.name}`,
+                content: "确认删除此文件夹？",
+              });
+
+              if (!result) {
+                return;
+              }
+
+              await item.remove({ recursive: true });
+            }
             this.reloadFile();
           },
           async addFolder() {
@@ -58,13 +74,13 @@
             while (true) {
               name = `newFolder${count}`;
               try {
-                const target = await root.get(name);
+                const target = await selfDir.get(name);
                 count++;
               } catch (err) {
                 break;
               }
             }
-            await root.get(name, {
+            await selfDir.get(name, {
               type: "directory",
               create: true,
             });
@@ -73,7 +89,7 @@
           },
           async reloadFile() {
             const files = [];
-            for await (let item of root.values()) {
+            for await (let item of selfDir.values()) {
               files.push({
                 type: item.kind,
                 name: item.name,

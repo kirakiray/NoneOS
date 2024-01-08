@@ -65,9 +65,17 @@ export class NDirHandle extends NBaseHandle {
     }
 
     if (targetHandle.kind === "file") {
-      return new NFileHandle(targetHandle, paths, this.root);
+      return new NFileHandle(
+        targetHandle,
+        [...this.relativePaths, ...paths],
+        this.root
+      );
     } else if (targetHandle.kind === "directory") {
-      return new NDirHandle(targetHandle, paths, this.root);
+      return new NDirHandle(
+        targetHandle,
+        [...this.relativePaths, ...paths],
+        this.root
+      );
     }
 
     return null;
@@ -78,12 +86,12 @@ export class NDirHandle extends NBaseHandle {
       if (handle.kind === "file") {
         yield [
           name,
-          new NFileHandle(handle, [...this.relativePaths, name], this.root),
+          new NFileHandle(handle, [...this.relativePaths, ...paths], this.root),
         ];
       } else {
         yield [
           name,
-          new NDirHandle(handle, [...this.relativePaths, name], this.root),
+          new NDirHandle(handle, [...this.relativePaths, ...paths], this.root),
         ];
       }
     }
