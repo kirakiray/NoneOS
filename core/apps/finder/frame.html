@@ -53,7 +53,7 @@
         <slot></slot>
       </div>
       <div class="bottom">
-        <div class="path">{{paths}}</div>
+        <div class="path">{{pathStr}}</div>
       </div>
     </div>
   </div>
@@ -62,7 +62,7 @@
     // let root;
     let frameCount = 0;
 
-    export default async ({ load, query }) => {
+    export default async ({ load }) => {
       frameCount++;
 
       console.log("frameCount", frameCount);
@@ -70,7 +70,11 @@
       return {
         data: {
           paths: [],
-          //   paths: query.path ? query.path.split("/") : [],
+        },
+        proto: {
+          get pathStr() {
+            return this.paths.join("/");
+          },
         },
         ready() {},
       };
