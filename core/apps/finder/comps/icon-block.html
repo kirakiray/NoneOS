@@ -65,9 +65,11 @@
   <script>
     export default {
       tag: "icon-block",
-      data: {
+      attrs: {
         type: "file",
-        name: "",
+        name: null,
+      },
+      data: {
         renamemode: null,
       },
       watch: {

@@ -3,14 +3,23 @@
   <l-m src="@pui/button/button.html"></l-m>
   <style>
     :host {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+    .container {
       display: flex;
       flex-wrap: wrap;
       align-items: flex-start;
       align-content: flex-start;
       padding: 8px;
       box-sizing: border-box;
-      overflow-y: auto;
       height: 100%;
+      overflow-y: auto;
     }
 
     icon-block {
@@ -39,14 +48,11 @@
     }
   </style>
 
-  <x-fill :value="files">
-    <icon-block
-      :name="$data.name"
-      :type="$data.type"
-      on:dblclick="$host.gotoPath($data)"
-      on:click="$host.select($event,$data)"
-    ></icon-block>
-  </x-fill>
+  <div class="container" on:dblclick="gotoPath" on:click="select">
+    <x-fill :value="files">
+      <icon-block :name="$data.name" :type="$data.type"></icon-block>
+    </x-fill>
+  </div>
   <x-if :value="!files.length">
     <div class="empty-con">Empty</div>
   </x-if>
@@ -63,6 +69,26 @@
         data: {
           paths: query.path ? query.path.split("/") : [],
           files: [],
+        },
+        watch: {
+          files(files) {
+            // let fragStr = "";
+            // files.forEach((item) => {
+            //   fragStr += `<icon-block name="${item.name}" type="${item.type}"></icon-block>`;
+            // });
+            // this.shadow.$(".container").html = fragStr;
+            // const frag = $.frag();
+            // files.forEach((item) => {
+            //   const ele = $(`
+            //   <icon-block name="${item.name}" type="${item.type}"></icon-block>
+            //   `);
+            //   ele.on("click", (e) => {
+            //     this.select(e, item);
+            //   });
+            //   frag.push(ele);
+            // });
+            // this.shadow.$(".container").push(frag);
+          },
         },
         proto: {
           async renameItem(name) {
@@ -121,7 +147,8 @@
             this.files = files;
             this.parent.selectedName = "";
           },
-          async gotoPath(data) {
+          async gotoPath(e) {
+            const data = $(e.target);
             if (data.type === "directory") {
               this.app.goto(
                 "@nos/apps/finder/files.html?path=" +
@@ -132,14 +159,22 @@
               console.log(await data._item.text());
             }
           },
-          select(e, data) {
+          select(e) {
             e.stopPropagation();
-            this.shadow.all("icon-block").forEach((block) => {
-              if (data.name === block.name) {
-                block.classList.add("selected");
-                this.parent.selectedName = block.name;
+
+            const target = $(e.target);
+            if (target) {
+              target.classList.toggle("selected");
+              if (target.classList.contains("selected")) {
+                this.parent.selectedName = target.name;
               } else {
-                block.classList.remove("selected");
+                this.parent.selectedName = "";
+              }
+            }
+
+            this.shadow.all(`.selected`).forEach((e) => {
+              if (e.name !== target.name) {
+                e.classList.remove("selected");
               }
             });
           },

@@ -23,6 +23,7 @@ export class NDirHandle extends NBaseHandle {
       if (name === "node_modules") {
         continue;
       }
+      
       if (count === lastId) {
         if (defaults.type) {
           try {
