@@ -54,7 +54,19 @@
         <p-button size="small" variant="text" on:click="addFolder">
           New Folder
         </p-button>
-        <p-button size="small" variant="text"> Import File </p-button>
+        <p-button size="small" variant="text">
+          Import File
+          <input type="file" on:change="importFile" button-goal multiple />
+        </p-button>
+        <p-button size="small" variant="text">
+          Import Dir
+          <input
+            type="file"
+            on:change="importFile"
+            button-goal
+            webkitdirectory
+          />
+        </p-button>
         <p-button-group size="small" variant="text">
           <p-button
             on:click="deleteItem(selectedName)"
@@ -81,6 +93,8 @@
 
   <script>
     export default async ({ load }) => {
+      const { get } = await load("../../fs/main.js");
+
       return {
         data: {
           paths: [],
@@ -95,6 +109,27 @@
           },
           deleteItem(name) {
             this[0].deleteItem(name);
+          },
+          async importFile(e) {
+            const fileList = e.target.files;
+
+            const dir = await get(this.pathStr);
+
+            await Promise.all(
+              Array.from(fileList).map(async (file) => {
+                const path = file.webkitRelativePath || file.name;
+
+                if (path) {
+                  const handle = await dir.get(path, {
+                    create: true,
+                  });
+
+                  await handle.write(file);
+                }
+              })
+            );
+
+            this[0].reloadList();
           },
           get pathStr() {
             return this.paths.join("/");
