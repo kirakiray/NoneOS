@@ -20,6 +20,9 @@ export class NDirHandle extends NBaseHandle {
     let count = 0;
 
     for (let name of paths) {
+      if (name === "node_modules") {
+        continue;
+      }
       if (count === lastId) {
         if (defaults.type) {
           try {
