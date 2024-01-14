@@ -1,6 +1,7 @@
 <template page>
   <l-m src="./comps/icon-block.html"></l-m>
   <l-m src="@pui/button/button-group.html"></l-m>
+  <l-m src="@pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -44,9 +45,38 @@
     .path {
       font-size: 12px;
     }
+
+    .left p-list-item::part(container) {
+      padding: 0 16px;
+    }
   </style>
   <div class="container">
-    <div class="left"></div>
+    <div class="left">
+      <div style="height: 40px"></div>
+      <p-list>
+        <x-fill :value="rootList">
+          <p-list-item
+            attr:button="$data.name === $host.activeRootName ? null : ''"
+            attr:active-item="$data.name === $host.activeRootName ? '' : null"
+            on:click="$host.clickRootItem($data)"
+          >
+            <div slot="prefix" style="width: 20px">
+              <img src="./icons/pc.svg" height="20" style="display: block" />
+            </div>
+            {{$data.name}}
+          </p-list-item>
+        </x-fill>
+        <p-list-item button on:click="clickOpen">
+          <div
+            slot="prefix"
+            style="width: 20px; text-align: center; font-size: 18px"
+          >
+            +
+          </div>
+          Mount Folder
+        </p-list-item>
+      </p-list>
+    </div>
     <div class="main">
       <div class="top">
         <p-button size="small" variant="text" on:click="app.back()">
@@ -87,21 +117,47 @@
         <slot></slot>
       </div>
       <div class="bottom">
-        <div class="path">{{pathStr}}</div>
+        <div class="path">{{activeRootName}}/{{pathStr}}</div>
       </div>
     </div>
   </div>
 
   <script>
     export default async ({ load }) => {
-      const { get } = await load("../../fs/main.js");
+      const { get, open, getAll } = await load("../../fs/main.js");
 
       return {
         data: {
-          paths: [],
-          selectedName: "",
+          activeRootName: "Local", // 左侧激活中的根文件名
+          rootList: [], // 左侧展示中可选用的空间
+          paths: [], // 文件路径
+          selectedName: "", // 选择的文件名
         },
         proto: {
+          clickRootItem(itemData) {
+            if (itemData.name === this.activeRootName) {
+              return;
+            }
+            this.goto(`./files.html?rootname=${itemData.name}`);
+          },
+          async clickOpen() {
+            const handle = await open();
+            console.log("handle", handle);
+
+            await this.reloadList();
+
+            this.goto(`./files.html?rootname=${handle.name}`);
+          },
+          async reloadList() {
+            const lists = await getAll();
+
+            this.rootList = lists.map((e) => {
+              return {
+                name: e.name,
+                _handle: e.handle,
+              };
+            });
+          },
           addFolder() {
             this[0].addFolder();
           },
@@ -136,7 +192,16 @@
             return this.paths.join("/");
           },
         },
-        ready() {},
+        ready() {
+          this.reloadList();
+        },
+        routerChange(e) {
+          console.log("router change", e);
+          const src = e.current.src;
+          const params = new URL(src).searchParams;
+
+          this.activeRootName = params.get("rootname") || "Local";
+        },
       };
     };
   </script>

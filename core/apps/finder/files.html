@@ -63,10 +63,24 @@
 
   <script>
     export default async ({ load, query }) => {
-      const { get } = await load("../../fs/main.js");
+      const { get, getAll } = await load("../../fs/main.js");
       const { confirm } = await load("@pui/dialog/command.js");
 
-      const selfDir = await get(query.path);
+      const all = await getAll();
+
+      let path = "";
+      let rootname = query.rootname || "Local";
+      const rootDir = all.find((e) => e.name === rootname)?.handle;
+
+      if (!rootDir) {
+        alert(`error. not found the "${rootname}"`);
+      }
+
+      if (query.path) {
+        path = query.path;
+      }
+
+      const selfDir = path ? await rootDir.get(query.path) : rootDir;
 
       return {
         parent: "./frame.html",
@@ -141,8 +155,10 @@
             const data = $(e.target);
             if (data.type === "directory") {
               this.app.goto(
-                "@nos/apps/finder/files.html?path=" +
-                  [...this.paths, data.name].join("/")
+                `@nos/apps/finder/files.html?rootname=${rootname}&path=${[
+                  ...this.paths,
+                  data.name,
+                ].join("/")}`
               );
               this.parent.selectedName = "";
             } else {
