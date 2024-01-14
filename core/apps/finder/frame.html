@@ -49,6 +49,16 @@
     .left p-list-item::part(container) {
       padding: 0 16px;
     }
+
+    .icon-prefix {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 20px;
+    }
+    .icon-prefix > img {
+      display: block;
+    }
   </style>
   <div class="container">
     <div class="left">
@@ -60,8 +70,13 @@
             attr:active-item="$data.name === $host.activeRootName ? '' : null"
             on:click="$host.clickRootItem($data)"
           >
-            <div slot="prefix" style="width: 20px">
-              <img src="./icons/pc.svg" height="20" style="display: block" />
+            <div class="icon-prefix" slot="prefix">
+              <x-if :value="$data.name === 'Local'">
+                <img src="./icons/pc.svg" height="22" style="display: block" />
+              </x-if>
+              <x-else>
+                <img src="./icons/harddisk.svg" height="16" />
+              </x-else>
             </div>
             {{$data.name}}
           </p-list-item>
