@@ -127,6 +127,14 @@
             Rename
           </p-button>
         </p-button-group>
+        <p-button
+          size="small"
+          variant="text"
+          attr:disabled="selectedName ? null : 1"
+          on:click="exploreZip"
+        >
+          Explore
+        </p-button>
       </div>
       <div class="content">
         <slot></slot>
@@ -139,6 +147,7 @@
 
   <script>
     export default async ({ load }) => {
+      const { exploreFolder } = await load("../../zip/main.js");
       const { get, open, getAll } = await load("../../fs/main.js");
 
       return {
@@ -154,6 +163,20 @@
               return;
             }
             this.goto(`./files.html?rootname=${itemData.name}`);
+          },
+          async exploreZip() {
+            const all = await getAll();
+            const root = all.find((e) => e.name === this.activeRootName).handle;
+            const targetHandle = await root.get(
+              `${this.paths.length ? this.paths.join("/") + "/" : ""}${
+                this.selectedName
+              }`
+            );
+            const file = await exploreFolder(targetHandle);
+
+            saveAs(file, this.selectedName);
+
+            console.log("file", file);
           },
           async clickOpen() {
             const handle = await open();
@@ -219,5 +242,14 @@
         },
       };
     };
+
+    function saveAs(blob, fileName) {
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
   </script>
 </template>

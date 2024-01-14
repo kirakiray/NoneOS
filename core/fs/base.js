@@ -122,7 +122,7 @@ export class NBaseHandle {
   }
 }
 
-async function flatFiles(parHandle, parNames = []) {
+export async function flatFiles(parHandle, parNames = []) {
   const files = [];
 
   for await (let [name, handle] of parHandle.entries()) {
