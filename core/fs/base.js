@@ -17,8 +17,11 @@ export class NBaseHandle {
   }
 
   async parent() {
-    if (!this.#relates.length) {
+    if (this.#relates.length === 0) {
       return null;
+    }
+    if (this.#relates.length === 1) {
+      return this.root;
     }
 
     return this.root.get(this.relativePaths.slice(0, -1).join("/"));
@@ -79,20 +82,61 @@ export class NBaseHandle {
           return true;
       }
     } else {
-      let name, targetHandle;
+      let name, parHandle;
       switch (args.length) {
         case 2:
-          targetHandle = args[0];
+          parHandle = args[0];
           name = args[1];
         case 1:
           if (typeof args[0] === "string") {
             name = args[0];
           } else {
-            targetHandle = args[0];
+            parHandle = args[0];
           }
       }
 
-      debugger;
+      if (!parHandle) {
+        // 文件夹重命名
+        parHandle = await this.parent();
+      }
+
+      // debugger;
+
+      // const tartgetHandle = await parHandle.get(name, {
+      //   type: "directory",
+      // });
+
+      // 一维化所有文件
+      const files = await flatFiles(this, [name]);
+
+      for (let item of files) {
+        const realPar = await parHandle.get(item.parNames.join("/"), {
+          type: "directory",
+          create: true,
+        });
+        await item.handle.move(realPar, item.name);
+      }
+
+      await this.remove({ recursive: true });
     }
   }
+}
+
+async function flatFiles(parHandle, parNames = []) {
+  const files = [];
+
+  for await (let [name, handle] of parHandle.entries()) {
+    if (handle.kind === "file") {
+      files.push({
+        name,
+        handle,
+        parNames,
+      });
+    } else {
+      const subFiles = await flatFiles(handle, [...parNames, name]);
+      files.push(...subFiles);
+    }
+  }
+
+  return files;
 }

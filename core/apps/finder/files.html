@@ -49,13 +49,17 @@
   </style>
 
   <div class="container" on:dblclick="gotoPath" on:click="select">
-    <x-fill :value="files">
-      <icon-block :name="$data.name" :type="$data.type"></icon-block>
+    <x-fill :value="files" fill-key="name">
+      <icon-block
+        :name="$data.name"
+        :type="$data.type"
+        :_item="$data._item"
+      ></icon-block>
     </x-fill>
+    <x-if :value="!files.length">
+      <div class="empty-con">Empty</div>
+    </x-if>
   </div>
-  <x-if :value="!files.length">
-    <div class="empty-con">Empty</div>
-  </x-if>
 
   <script>
     export default async ({ load, query }) => {
@@ -72,22 +76,8 @@
         },
         watch: {
           files(files) {
-            // let fragStr = "";
-            // files.forEach((item) => {
-            //   fragStr += `<icon-block name="${item.name}" type="${item.type}"></icon-block>`;
-            // });
-            // this.shadow.$(".container").html = fragStr;
-            // const frag = $.frag();
-            // files.forEach((item) => {
-            //   const ele = $(`
-            //   <icon-block name="${item.name}" type="${item.type}"></icon-block>
-            //   `);
-            //   ele.on("click", (e) => {
-            //     this.select(e, item);
-            //   });
-            //   frag.push(ele);
-            // });
-            // this.shadow.$(".container").push(frag);
+            // console.time("aa");
+            // $.nextTick(() => console.timeEnd("aa"));
           },
         },
         proto: {
