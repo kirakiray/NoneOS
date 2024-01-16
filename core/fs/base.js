@@ -60,12 +60,6 @@ export class NBaseHandle {
     return true;
   }
 
-  async removeEntry(name) {
-    await this._handle.removeEntry(name);
-
-    return true;
-  }
-
   async move(...args) {
     const { _handle } = this;
     if (_handle.move) {

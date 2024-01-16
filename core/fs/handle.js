@@ -119,6 +119,12 @@ export class NDirHandle extends NBaseHandle {
       }
     }
   }
+
+  async removeEntry(name) {
+    await this._handle.removeEntry(name);
+
+    return true;
+  }
 }
 
 export class NFileHandle extends NBaseHandle {
@@ -127,14 +133,14 @@ export class NFileHandle extends NBaseHandle {
   }
 
   async write(content) {
-    const writable = await this.getWriter();
+    const writable = await this._handle.createWritable();
     await writable.write(content);
     await writable.close();
   }
 
-  getWriter() {
-    return this._handle.createWritable();
-  }
+  // getWriter() {
+  //   return this._handle.createWritable();
+  // }
 
   async read(options) {
     const defaults = {

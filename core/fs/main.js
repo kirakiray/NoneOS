@@ -1,5 +1,5 @@
 import { NDirHandle } from "./handle.js";
-import { remotes } from "./remote.js";
+import { remotes } from "./remote/remote.js";
 
 const rootHandlePms = navigator.storage.getDirectory();
 
@@ -20,7 +20,7 @@ export const get = async (path = "", { handle, create, type } = {}) => {
   });
 };
 
-const otherHandles = [];
+export const otherHandles = [];
 
 // 通过打开浏览器选择目录
 export const open = async () => {
@@ -44,11 +44,28 @@ export const open = async () => {
 export const getAll = async () => {
   const root = await getLocal();
 
+  // 获取远端的数据
+  const remotesDir = [];
+
+  await Promise.all(
+    remotes.map(async (e) => {
+      const all = await e.getAll();
+
+      all.forEach((item) => {
+        remotesDir.push({
+          ...item,
+          remote: true,
+        });
+      });
+    })
+  );
+
   return [
     {
       name: "Local",
       handle: root,
     },
     ...otherHandles,
+    ...remotesDir,
   ];
 };
