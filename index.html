@@ -3,100 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>NoneOS</title>
   </head>
   <body>
     Document
     <script type="module">
-      import { get } from "./core/fs/main.js";
+      import { getAll } from "./core/fs/main.js";
 
-      const root = await get();
-
-      console.log("root", root);
-
-      const rootMd = await root.get("test.md", {
-        create: true,
-      });
-      await rootMd.write("root md");
-
-      for await (let item of root.entries()) {
-        console.log("item", item);
-      }
-
-      const target = await get("testDir/subDir/test4.md", {
-        // type: "directory",
-        // create: true,
-      });
-
-      const file = new File(["bbbb"], "test.md", {
-        type: "text/plain",
-      });
-
-      await target.write(file);
-
-      console.log("target: ", target);
-      console.log("target2: ", await target.file());
-
-      // root.read("a", {
-      //   create: true,
-      // });
-
-      // (async () => {
-      //   console.log(
-      //     "navigator.storage.estimate():",
-      //     await navigator.storage.estimate()
-      //   );
-
-      //   const rootDir = await navigator.storage.getDirectory();
-      //   console.log("rootDir: ", rootDir);
-
-      //   const fileHandle = await rootDir.getFileHandle("test.md", {
-      //     create: true,
-      //   });
-
-      //   {
-      //     const writable = await fileHandle.createWritable();
-      //     await writable.write("test text");
-      //     await writable.close();
-      //   }
-
-      //   const dir = await rootDir.getDirectoryHandle("testDir", {
-      //     create: true,
-      //   });
-
-      //   {
-      //     const fileHandle = await dir.getFileHandle("test2.md", {
-      //       create: true,
-      //     });
-      //     const writable = await fileHandle.createWritable();
-      //     await writable.write("test text2");
-      //     await writable.close();
-
-      //     const subdir = await dir.getDirectoryHandle("subDir", {
-      //       create: true,
-      //     });
-
-      //     {
-      //       const fileHandle = await subdir.getFileHandle("test3.md", {
-      //         create: true,
-      //       });
-      //       const writable = await fileHandle.createWritable();
-      //       await writable.write("test text3");
-      //       await writable.close();
-
-      //       // console.log("haha", await subdir.resolve(rootDir));
-      //     }
-      //   }
-
-      //   for await (let item of rootDir.entries()) {
-      //     console.log(item);
-      //   }
-
-      //   // console.log("data: ", rootDir, data);
-
-      //   const targetDir = await rootDir.getDirectoryHandle("testDir");
-      //   console.log("targetDir", targetDir);
-      // })();
+      navigator.serviceWorker
+        .register("sw.js", {
+          type: "module",
+        })
+        .then((reg) => {
+          setTimeout(() => {
+            reg.update();
+          }, 60 * 60 * 1000);
+        })
+        .catch((err) => {
+          console.error(err);
+        });
     </script>
   </body>
 </html>

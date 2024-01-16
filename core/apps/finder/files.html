@@ -162,7 +162,8 @@
               );
               this.parent.selectedName = "";
             } else {
-              console.log(await data._item.text());
+              window.open(`/$/${data._item.relativePaths.join("/")}`);
+              // console.log(await data._item.text());
             }
           },
           select(e) {

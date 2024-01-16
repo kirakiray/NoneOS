@@ -13,6 +13,9 @@ export class NDirHandle extends NBaseHandle {
 
     Object.assign(defaults, options);
 
+    // 去掉最头部的 "/"
+    name = name.replace(/^\//, "");
+
     const paths = name.split("/");
     const lastId = paths.length - 1;
 

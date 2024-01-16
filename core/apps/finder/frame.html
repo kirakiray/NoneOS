@@ -131,7 +131,7 @@
           size="small"
           variant="text"
           attr:disabled="selectedName ? null : 1"
-          on:click="exploreZip"
+          on:click="exploreData"
         >
           Explore
         </p-button>
@@ -164,7 +164,7 @@
             }
             this.goto(`./files.html?rootname=${itemData.name}`);
           },
-          async exploreZip() {
+          async exploreData() {
             const all = await getAll();
             const root = all.find((e) => e.name === this.activeRootName).handle;
             const targetHandle = await root.get(
@@ -172,6 +172,13 @@
                 this.selectedName
               }`
             );
+
+            if (targetHandle.kind === "file") {
+              const file = await targetHandle.file();
+              saveAs(file, this.selectedName);
+              return;
+            }
+
             const file = await exploreFolder(targetHandle);
 
             saveAs(file, this.selectedName);
