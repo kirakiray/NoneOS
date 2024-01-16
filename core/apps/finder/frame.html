@@ -97,6 +97,9 @@
         <p-button size="small" variant="text" on:click="app.back()">
           Back
         </p-button>
+        <p-button size="small" variant="text" on:click="reload">
+          Reload
+        </p-button>
         <p-button size="small" variant="text" on:click="addFolder">
           New Folder
         </p-button>
@@ -158,6 +161,9 @@
           selectedName: "", // 选择的文件名
         },
         proto: {
+          reload() {
+            this[0].reloadList();
+          },
           clickRootItem(itemData) {
             if (itemData.name === this.activeRootName) {
               return;

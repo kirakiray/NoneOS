@@ -1,4 +1,4 @@
-import { getAll, get } from "./core/fs/main.js";
+import { get } from "./core/fs/main.js";
 
 self.addEventListener("fetch", async (event) => {
   const { request } = event;
@@ -11,6 +11,11 @@ self.addEventListener("fetch", async (event) => {
     event.respondWith(
       (async () => {
         const pathArr = pathname.split("/");
+
+        const all = await getAll();
+
+        console.log("all", all);
+
         try {
           const handle = await get(
             decodeURIComponent(pathArr.slice(2).join("/"))

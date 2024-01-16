@@ -100,12 +100,6 @@ export class NBaseHandle {
         parHandle = await this.parent();
       }
 
-      // debugger;
-
-      // const tartgetHandle = await parHandle.get(name, {
-      //   type: "directory",
-      // });
-
       // 一维化所有文件
       const files = await flatFiles(this, [name]);
 
