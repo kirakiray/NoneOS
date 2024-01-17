@@ -34,12 +34,18 @@ filerootChannel.addEventListener("message", async (event) => {
   if (registerMaps[data.type]) {
     const result = await registerMaps[data.type]({ ...data });
 
-    filerootChannel.postMessage({
-      result,
-      taskId: data.taskId,
-    });
+    if (result !== undefined) {
+      filerootChannel.postMessage({
+        result,
+        taskId: data.taskId,
+      });
+    }
   }
 });
+
+export const post = (data) => {
+  filerootChannel.postMessage(data);
+};
 
 export const register = (eventName, func) => {
   registerMaps[eventName] = func;

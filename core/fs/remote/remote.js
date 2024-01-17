@@ -2,6 +2,7 @@ import { otherHandles } from "../main.js";
 import { NDirHandle } from "../handle.js";
 import { RemoteFileSystemDirectoryHandle } from "./handle.js";
 import { filerootChannel, fsId } from "./base.js";
+import { badge, register, post } from "./base.js";
 
 export const remotes = [];
 
@@ -11,8 +12,6 @@ if (document.querySelector("[data-fsid]")) {
 
 console.log("fsId", fsId);
 
-const resolver = {};
-
 // 远程控制器
 class RemoteControl {
   #id;
@@ -21,21 +20,11 @@ class RemoteControl {
   }
 
   async getAll() {
-    const results = await new Promise((resolve, reject) => {
-      filerootChannel.postMessage({
-        type: "getall",
-        id: this.#id,
-      });
-
-      const timer = setTimeout(() => {
-        resolver[this.#id] = null;
-        reject(`Request timeout: ${fsId}`);
-      }, 10000);
-
-      resolver[this.#id] = { resolve, reject, timer };
+    const result = await badge("get-all", {
+      fsId: this.#id,
     });
 
-    return results.map((e) => {
+    return result.handles.map((e) => {
       const rootRemoteSystemHandle = new RemoteFileSystemDirectoryHandle(
         this.#id,
         e.name
@@ -53,6 +42,14 @@ class RemoteControl {
   }
 }
 
+register("get-all", async (data) => {
+  if (data.fsId === fsId) {
+    return {
+      handles: otherHandles,
+    };
+  }
+});
+
 // 监听该频道并处理消息
 filerootChannel.addEventListener("message", (event) => {
   const { data } = event;
@@ -62,7 +59,7 @@ filerootChannel.addEventListener("message", (event) => {
       {
         const obj = new RemoteControl(data.fsId);
         remotes.push(obj);
-        filerootChannel.postMessage({
+        post({
           type: "result-init",
           fsId,
         });
@@ -80,25 +77,6 @@ filerootChannel.addEventListener("message", (event) => {
         remotes.splice(oldId, 1);
       }
       break;
-    case "getall":
-      // 获取所有其他
-      if (data.id === fsId) {
-        filerootChannel.postMessage({
-          type: "result-getall",
-          handles: otherHandles,
-          fsId,
-        });
-      }
-      break;
-    case "result-getall":
-      if (resolver[data.fsId]) {
-        resolver[data.fsId].resolve(data.handles);
-        resolver[data.fsId] = null;
-        clearTimeout(data.timer);
-      }
-      break;
-    case "getfile":
-      break;
   }
 
   if (document.querySelector("[data-remotes]")) {
@@ -110,13 +88,13 @@ filerootChannel.addEventListener("message", (event) => {
 
 window.remotes = remotes;
 
-filerootChannel.postMessage({
+post({
   type: "init",
   fsId,
 });
 
 globalThis.addEventListener("beforeunload", (event) => {
-  filerootChannel.postMessage({
+  post({
     type: "close",
     fsId,
   });
