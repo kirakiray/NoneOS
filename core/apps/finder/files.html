@@ -63,17 +63,22 @@
 
   <script>
     export default async ({ load, query }) => {
-      const { get, getAll } = await load("../../fs/main.js");
+      const { get, getAll, getRemotes } = await load("../../fs/main.js");
       const { confirm } = await load("@pui/dialog/command.js");
 
       const all = await getAll();
 
       let path = "";
       let rootname = query.rootname || "Local";
-      const rootDir = all.find((e) => e.name === rootname)?.handle;
+      let rootDir = all.find((e) => e.name === rootname)?.handle;
 
       if (!rootDir) {
-        alert(`error. not found the "${rootname}"`);
+        const remotes = await getRemotes();
+        rootDir = remotes.find((e) => e.name === rootname)?.handle;
+
+        if (!rootDir) {
+          alert(`error. not found the "${rootname}"`);
+        }
       }
 
       if (query.path) {

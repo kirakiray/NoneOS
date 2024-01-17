@@ -60,27 +60,30 @@
       display: block;
     }
   </style>
+
+  <template name="left-item">
+    <p-list-item
+      attr:button="$data.name === $host.activeRootName ? null : ''"
+      attr:active-item="$data.name === $host.activeRootName ? '' : null"
+      on:click="$host.clickRootItem($data)"
+    >
+      <div class="icon-prefix" slot="prefix">
+        <x-if :value="$data.name === 'Local'">
+          <img src="./icons/pc.svg" height="22" style="display: block" />
+        </x-if>
+        <x-else>
+          <img src="./icons/harddisk.svg" height="16" />
+        </x-else>
+      </div>
+      {{$data.name}}
+    </p-list-item>
+  </template>
   <div class="container">
     <div class="left">
       <div style="height: 40px"></div>
       <p-list>
-        <x-fill :value="rootList">
-          <p-list-item
-            attr:button="$data.name === $host.activeRootName ? null : ''"
-            attr:active-item="$data.name === $host.activeRootName ? '' : null"
-            on:click="$host.clickRootItem($data)"
-          >
-            <div class="icon-prefix" slot="prefix">
-              <x-if :value="$data.name === 'Local'">
-                <img src="./icons/pc.svg" height="22" style="display: block" />
-              </x-if>
-              <x-else>
-                <img src="./icons/harddisk.svg" height="16" />
-              </x-else>
-            </div>
-            {{$data.name}}
-          </p-list-item>
-        </x-fill>
+        <x-fill :value="rootList" name="left-item"> </x-fill>
+        <x-fill :value="remotes" name="left-item"> </x-fill>
         <p-list-item button on:click="clickOpen">
           <div
             slot="prefix"
@@ -151,7 +154,7 @@
   <script>
     export default async ({ load }) => {
       const { exploreFolder } = await load("../../zip/main.js");
-      const { get, open, getAll } = await load("../../fs/main.js");
+      const { get, open, getAll, getRemotes } = await load("../../fs/main.js");
 
       return {
         data: {
@@ -159,6 +162,7 @@
           rootList: [], // 左侧展示中可选用的空间
           paths: [], // 文件路径
           selectedName: "", // 选择的文件名
+          remotes: [], // 远端的数据
         },
         proto: {
           reload() {
@@ -242,9 +246,16 @@
           get pathStr() {
             return this.paths.join("/");
           },
+          async loadRemotes() {
+            const remotes = await getRemotes();
+            this.remotes = remotes;
+
+            console.log("remotes: ", remotes);
+          },
         },
         ready() {
           this.reloadList();
+          this.loadRemotes();
         },
         routerChange(e) {
           console.log("router change", e);

@@ -44,6 +44,16 @@ export const open = async () => {
 export const getAll = async () => {
   const root = await getLocal();
 
+  return [
+    {
+      name: "Local",
+      handle: root,
+    },
+    ...otherHandles,
+  ];
+};
+
+export const getRemotes = async () => {
   // 获取远端的数据
   const remotesDir = [];
 
@@ -60,12 +70,5 @@ export const getAll = async () => {
     })
   );
 
-  return [
-    {
-      name: "Local",
-      handle: root,
-    },
-    ...otherHandles,
-    ...remotesDir,
-  ];
+  return remotesDir;
 };

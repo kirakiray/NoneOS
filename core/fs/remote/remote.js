@@ -1,16 +1,20 @@
 import { otherHandles } from "../main.js";
 import { NDirHandle } from "../handle.js";
 import { RemoteFileSystemDirectoryHandle } from "./handle.js";
-import { filerootChannel, fsId } from "./base.js";
-import { badge, register, post } from "./base.js";
+import {
+  badge,
+  register,
+  post,
+  remotes,
+  filerootChannel,
+  fsId,
+} from "./base.js";
 
-export const remotes = [];
+export { remotes };
 
 if (document.querySelector("[data-fsid]")) {
   document.querySelector("[data-fsid]").innerHTML = fsId;
 }
-
-console.log("fsId", fsId);
 
 // 远程控制器
 class RemoteControl {
