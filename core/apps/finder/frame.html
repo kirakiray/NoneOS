@@ -229,7 +229,7 @@
 
                 if (path) {
                   const handle = await dir.get(path, {
-                    create: true,
+                    create: "file",
                   });
 
                   await handle.write(file);

@@ -132,8 +132,7 @@
               }
             }
             await selfDir.get(name, {
-              type: "directory",
-              create: true,
+              create: "directory",
             });
 
             await this.reloadList();

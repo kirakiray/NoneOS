@@ -99,8 +99,7 @@ export class NBaseHandle {
 
       for (let item of files) {
         const realPar = await parHandle.get(item.parNames.join("/"), {
-          type: "directory",
-          create: true,
+          create: "directory",
         });
         await item.handle.move(realPar, item.name);
       }

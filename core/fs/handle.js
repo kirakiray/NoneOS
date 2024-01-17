@@ -7,8 +7,7 @@ export class NDirHandle extends NBaseHandle {
 
   async get(name, options) {
     const defaults = {
-      //   type: "file",
-      create: false,
+      create: null, // "directory" or "file"
     };
 
     Object.assign(defaults, options);
@@ -28,17 +27,17 @@ export class NDirHandle extends NBaseHandle {
       }
 
       if (count === lastId) {
-        if (defaults.type) {
+        if (defaults.create) {
           try {
-            switch (defaults.type) {
+            switch (defaults.create) {
               case "file":
                 targetHandle = await targetHandle.getFileHandle(name, {
-                  create: defaults.create,
+                  create: true,
                 });
                 break;
               case "directory":
                 targetHandle = await targetHandle.getDirectoryHandle(name, {
-                  create: defaults.create,
+                  create: true,
                 });
                 break;
             }
@@ -51,9 +50,7 @@ export class NDirHandle extends NBaseHandle {
             lastHandle = await targetHandle.getDirectoryHandle(name);
           } catch (err) {
             try {
-              lastHandle = await targetHandle.getFileHandle(name, {
-                create: defaults.create,
-              });
+              lastHandle = await targetHandle.getFileHandle(name);
             } catch (err2) {
               throw err2;
             }
@@ -65,7 +62,7 @@ export class NDirHandle extends NBaseHandle {
       }
 
       targetHandle = await targetHandle.getDirectoryHandle(name, {
-        create: defaults.create,
+        create: !!defaults.create,
       });
 
       count++;

@@ -61,15 +61,7 @@ export class RemoteFileSystemDirectoryHandle {
     return;
   }
 
-  async remove() {
-    debugger;
-  }
-
   async removeEntry() {
-    debugger;
-  }
-
-  async move() {
     debugger;
   }
 
@@ -136,6 +128,10 @@ export class RemoteFileSystemFileHandle {
   }
 
   async getFile() {
+    debugger;
+  }
+
+  async move() {
     debugger;
   }
 }
