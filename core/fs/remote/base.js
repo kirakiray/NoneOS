@@ -1,14 +1,13 @@
 export const fsId = Math.random().toString(32).slice(2);
 export const filerootChannel = new BroadcastChannel("noneos-fs-channel");
 
-// export const remotes = [];
 export const remotes = $.stanz([]);
 
 console.log("fsId", fsId);
 
 export const badge = (eventName, options) => {
   return new Promise((resolve, reject) => {
-    const taskId = `${eventName}-${Math.random().toString(32)}`;
+    const taskId = `${eventName}-${Math.random().toString(32).slice(2)}`;
 
     filerootChannel.postMessage({
       type: eventName,

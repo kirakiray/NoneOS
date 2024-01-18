@@ -172,12 +172,12 @@
               );
               this.parent.selectedName = "";
             } else {
-              window.open(
-                `/$${
-                  rootname !== "Local" ? rootname : ""
-                }/${data._item.relativePaths.join("/")}`
-              );
-              // console.log(await data._item.text());
+              // window.open(
+              //   `/$${
+              //     rootname !== "Local" ? rootname : ""
+              //   }/${data._item.relativePaths.join("/")}`
+              // );
+              console.log(await data._item.text());
             }
           },
           select(e) {

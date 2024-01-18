@@ -1,10 +1,12 @@
 import { fsId, badge, register } from "./base.js";
 import { otherHandles } from "../main.js";
 
-register("get-dir", async (data) => {
-  debugger;
-  return "hha";
-});
+// register("get-dir", async (data) => {
+//   if (data.fsId === fsId) {
+//     debugger;
+//     return { ok: 1 };
+//   }
+// });
 
 register("dir-entries", async (data) => {
   if (data.fsId === fsId) {
@@ -39,7 +41,6 @@ export class RemoteFileSystemDirectoryHandle {
   constructor(fsId, fsName, paths) {
     this.#fsId = fsId;
     this.#fsName = fsName;
-    this.name = "";
     this.#paths = paths || [];
   }
 
@@ -47,18 +48,29 @@ export class RemoteFileSystemDirectoryHandle {
     return "directory";
   }
 
-  async getFileHandle() {
+  async getFileHandle(name) {
     debugger;
   }
 
   async getDirectoryHandle(name, options) {
-    const data = await badge("get-dir", {
-      name,
-      options,
-    });
+    if (options) {
+      if (options.create) {
+        debugger;
 
-    debugger;
-    return;
+        await badge("get-dir", {
+          name,
+          options,
+        });
+      }
+    }
+
+    const rootRemoteSystemHandle = new RemoteFileSystemDirectoryHandle(
+      this.#fsId,
+      this.#fsName,
+      [...this.#paths, name]
+    );
+
+    return rootRemoteSystemHandle;
   }
 
   async removeEntry() {
@@ -78,10 +90,7 @@ export class RemoteFileSystemDirectoryHandle {
 
       let result;
 
-      const newPaths = [...this.#paths];
-      if (this.name) {
-        newPaths.push(this.name);
-      }
+      const newPaths = [...this.#paths, item.name];
 
       if (item.kind === "directory") {
         result = new RemoteFileSystemDirectoryHandle(
