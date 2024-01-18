@@ -1,7 +1,8 @@
 export const fsId = Math.random().toString(32).slice(2);
 export const filerootChannel = new BroadcastChannel("noneos-fs-channel");
 
-export const remotes = [];
+// export const remotes = [];
+export const remotes = $.stanz([]);
 
 console.log("fsId", fsId);
 

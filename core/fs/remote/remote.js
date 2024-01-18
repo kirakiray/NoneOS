@@ -1,14 +1,7 @@
 import { otherHandles } from "../main.js";
 import { NDirHandle } from "../handle.js";
-import { RemoteFileSystemDirectoryHandle } from "./handle.js";
-import {
-  badge,
-  register,
-  post,
-  remotes,
-  filerootChannel,
-  fsId,
-} from "./base.js";
+import { RemoteFileSystemDirectoryHandle } from "./fake-handle.js";
+import { register, post, remotes, filerootChannel, fsId } from "./base.js";
 
 export { remotes };
 
@@ -16,62 +9,43 @@ if (document.querySelector("[data-fsid]")) {
   document.querySelector("[data-fsid]").innerHTML = fsId;
 }
 
-// 远程控制器
-class RemoteControl {
-  #id;
-  constructor(id) {
-    this.#id = id;
-  }
-
-  async getAll() {
-    const result = await badge("get-all", {
-      fsId: this.#id,
-    });
-
-    return result.handles.map((e) => {
-      const rootRemoteSystemHandle = new RemoteFileSystemDirectoryHandle(
-        this.#id,
-        e.name
-      );
-
-      return {
-        name: e.name,
-        handle: new NDirHandle(rootRemoteSystemHandle),
-      };
-    });
-  }
-
-  get fsId() {
-    return this.#id;
-  }
-}
-
-register("get-all", async (data) => {
-  if (data.fsId === fsId) {
-    return {
-      handles: otherHandles,
-    };
-  }
-});
-
-// 远端广播
-register("init", async (data) => {
+const addRemotes = (data) => {
   if (!remotes.some((e) => e.fsId === data.fsId)) {
-    const obj = new RemoteControl(data.fsId);
-    remotes.push(obj);
+    let folders = [];
+    if (data.others.length) {
+      folders = data.others.map((fsName) => {
+        const rootRemoteSystemHandle = new RemoteFileSystemDirectoryHandle(
+          data.fsId,
+          fsName
+        );
+
+        return {
+          name: fsName,
+          _handle: new NDirHandle(rootRemoteSystemHandle),
+        };
+      });
+    }
+
+    remotes.push({
+      fsId: data.fsId,
+      folders,
+    });
   }
+};
+
+// 基础远端数据广播
+register("init", async (data) => {
+  addRemotes(data);
 
   post({
     type: "re-init",
     fsId,
+    others: otherHandles.map((e) => e.name),
   });
 });
 
 register("re-init", async (data) => {
-  if (!remotes.some((e) => e.fsId === data.fsId)) {
-    const obj = new RemoteControl(data.fsId);
-    remotes.push(obj);
-  }
+  addRemotes(data);
 });
 
 register("close", async (data) => {
@@ -81,7 +55,21 @@ register("close", async (data) => {
   }
 });
 
-// 监听该频道并处理消息
+setTimeout(() => {
+  post({
+    type: "init",
+    fsId,
+    others: otherHandles.map((e) => e.name),
+  });
+});
+
+globalThis.addEventListener("beforeunload", (event) => {
+  post({
+    type: "close",
+    fsId,
+  });
+});
+
 filerootChannel.addEventListener("message", (event) => {
   if (document.querySelector("[data-remotes]")) {
     document.querySelector("[data-remotes]").innerHTML = JSON.stringify(
@@ -91,15 +79,3 @@ filerootChannel.addEventListener("message", (event) => {
 });
 
 window.remotes = remotes;
-
-post({
-  type: "init",
-  fsId,
-});
-
-globalThis.addEventListener("beforeunload", (event) => {
-  post({
-    type: "close",
-    fsId,
-  });
-});

@@ -1,6 +1,8 @@
 import { NDirHandle } from "./handle.js";
 import { remotes } from "./remote/remote.js";
 
+export { remotes };
+
 const rootHandlePms = navigator.storage.getDirectory();
 
 export const getLocal = async () => {
@@ -53,22 +55,22 @@ export const getAll = async () => {
   ];
 };
 
-export const getRemotes = async () => {
-  // 获取远端的数据
-  const remotesDir = [];
+// export const getRemotes = async () => {
+//   // 获取远端的数据
+//   const remotesDir = [];
 
-  await Promise.all(
-    remotes.map(async (e) => {
-      const all = await e.getAll();
+//   await Promise.all(
+//     remotes.map(async (e) => {
+//       const all = await e.getAll();
 
-      all.forEach((item) => {
-        remotesDir.push({
-          ...item,
-          remote: true,
-        });
-      });
-    })
-  );
+//       all.forEach((item) => {
+//         remotesDir.push({
+//           ...item,
+//           remote: true,
+//         });
+//       });
+//     })
+//   );
 
-  return remotesDir;
-};
+//   return remotesDir;
+// };
