@@ -1,7 +1,7 @@
 import { fsId, badge, register } from "./base.js";
 import { otherHandles } from "../main.js";
 
-// register("get-dir", async (data) => {
+// register("create-options", async (data) => {
 //   if (data.fsId === fsId) {
 //     debugger;
 //     return { ok: 1 };
@@ -44,12 +44,30 @@ export class RemoteFileSystemDirectoryHandle {
     this.#paths = paths || [];
   }
 
+  get name() {
+    return this.#paths.slice(-1)[0];
+  }
+
   get kind() {
     return "directory";
   }
 
-  async getFileHandle(name) {
-    debugger;
+  async getFileHandle(name, options) {
+    if (options) {
+      if (options.create) {
+        debugger;
+
+        await badge("create-options", {
+          name,
+          type: "file",
+        });
+      }
+    }
+
+    return new RemoteFileSystemFileHandle(this.#fsId, this.#fsName, [
+      ...this.#paths,
+      name,
+    ]);
   }
 
   async getDirectoryHandle(name, options) {
@@ -57,9 +75,9 @@ export class RemoteFileSystemDirectoryHandle {
       if (options.create) {
         debugger;
 
-        await badge("get-dir", {
+        await badge("create-options", {
           name,
-          options,
+          type: "dir",
         });
       }
     }
@@ -105,7 +123,7 @@ export class RemoteFileSystemDirectoryHandle {
           newPaths
         );
       }
-      result.name = item.name;
+      // result.name = item.name;
       yield [item.name, result];
     }
   }
@@ -117,6 +135,21 @@ export class RemoteFileSystemDirectoryHandle {
   }
 }
 
+register("get-file", async (data) => {
+  if (data.fsId === fsId) {
+    const { paths, fsName } = data;
+    const rootHandle = otherHandles.find((e) => e.name === fsName)?.handle;
+
+    const target = await rootHandle.get(paths.join("/"));
+
+    const file = await target.file();
+
+    debugger;
+
+    return { file };
+  }
+});
+
 export class RemoteFileSystemFileHandle {
   #fsId;
   #fsName;
@@ -124,8 +157,11 @@ export class RemoteFileSystemFileHandle {
   constructor(fsId, fsName, paths) {
     this.#fsId = fsId;
     this.#fsName = fsName;
-    this.name = "";
     this.#paths = paths;
+  }
+
+  get name() {
+    return this.#paths.slice(-1)[0];
   }
 
   get kind() {
@@ -137,7 +173,13 @@ export class RemoteFileSystemFileHandle {
   }
 
   async getFile() {
-    debugger;
+    const result = await badge("get-file", {
+      fsId: this.#fsId,
+      fsName: this.#fsName,
+      paths: this.#paths,
+    });
+
+    return result.file;
   }
 
   async move() {
