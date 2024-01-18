@@ -10,7 +10,9 @@ if (document.querySelector("[data-fsid]")) {
 }
 
 const addRemotes = (data) => {
-  if (!remotes.some((e) => e.fsId === data.fsId)) {
+  const targetRemote = remotes.find((e) => e.fsId === data.fsId);
+
+  if (!targetRemote) {
     let folders = [];
     if (data.others.length) {
       folders = data.others.map((fsName) => {
@@ -30,6 +32,23 @@ const addRemotes = (data) => {
       fsId: data.fsId,
       folders,
     });
+  } else {
+    if (data.others.length > targetRemote.folders.length) {
+      data.others.forEach((fsName) => {
+        // 添加不存在的节点
+        if (!targetRemote.folders.some((e) => e.name === fsName)) {
+          const rootRemoteSystemHandle = new RemoteFileSystemDirectoryHandle(
+            data.fsId,
+            fsName
+          );
+
+          targetRemote.folders.push({
+            name: fsName,
+            _handle: new NDirHandle(rootRemoteSystemHandle),
+          });
+        }
+      });
+    }
   }
 };
 
@@ -62,6 +81,14 @@ setTimeout(() => {
     others: otherHandles.map((e) => e.name),
   });
 });
+
+export const cast = () => {
+  post({
+    type: "re-init",
+    fsId,
+    others: otherHandles.map((e) => e.name),
+  });
+};
 
 globalThis.addEventListener("beforeunload", (event) => {
   post({

@@ -99,12 +99,12 @@
           paths: query.path ? query.path.split("/") : [],
           files: [],
         },
-        watch: {
-          files(files) {
-            // console.time("aa");
-            // $.nextTick(() => console.timeEnd("aa"));
-          },
-        },
+        // watch: {
+        //   files(files) {
+        //     // console.time("aa");
+        //     // $.nextTick(() => console.timeEnd("aa"));
+        //   },
+        // },
         proto: {
           async renameItem(name) {
             const selectedItem = this.shadow.$("icon-block.selected");

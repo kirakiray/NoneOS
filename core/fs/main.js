@@ -1,5 +1,5 @@
 import { NDirHandle } from "./handle.js";
-import { remotes } from "./remote/remote.js";
+import { remotes, cast } from "./remote/remote.js";
 
 export { remotes };
 
@@ -36,6 +36,8 @@ export const open = async () => {
       handle,
     });
 
+    cast();
+
     return handle;
   }
 
@@ -54,23 +56,3 @@ export const getAll = async () => {
     ...otherHandles,
   ];
 };
-
-// export const getRemotes = async () => {
-//   // 获取远端的数据
-//   const remotesDir = [];
-
-//   await Promise.all(
-//     remotes.map(async (e) => {
-//       const all = await e.getAll();
-
-//       all.forEach((item) => {
-//         remotesDir.push({
-//           ...item,
-//           remote: true,
-//         });
-//       });
-//     })
-//   );
-
-//   return remotesDir;
-// };

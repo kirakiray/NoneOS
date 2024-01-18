@@ -102,10 +102,14 @@
           </div>
           Mount Folder
         </p-list-item>
-        <h4 class:hide="!remotes.length">Other Tabs</h4>
-        <x-fill :value="remotes">
-          <x-fill :value="$data.folders" name="left-item"></x-fill>
-        </x-fill>
+        <div class:hide="!showRemote">
+          <h4>Other Tabs</h4>
+          <x-fill :value="remotes">
+            <div>
+              <x-fill :value="$data.folders" name="left-item"></x-fill>
+            </div>
+          </x-fill>
+        </div>
       </p-list>
     </div>
     <div class="main">
@@ -180,6 +184,11 @@
           remotes: [], // 远端的数据
         },
         proto: {
+          get showRemote() {
+            return this.remotes.some((e) => {
+              return e.folders.length;
+            });
+          },
           reload() {
             this[0].reloadList();
           },
@@ -261,15 +270,9 @@
           get pathStr() {
             return this.paths.join("/");
           },
-          async loadRemotes() {
-            // const remotes = await getRemotes();
-            // this.remotes = remotes;
-            // console.log("remotes: ", remotes);
-          },
         },
         ready() {
           this.reloadList();
-          // this.loadRemotes();
         },
         attached() {
           this.remotes = remotes;
