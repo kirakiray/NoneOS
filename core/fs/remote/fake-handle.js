@@ -1,25 +1,24 @@
 import { fsId, badge, register } from "./base.js";
 import { otherHandles } from "../main.js";
 
-// register("create-options", async (data) => {
-//   if (data.fsId === fsId) {
-//     debugger;
-//     return { ok: 1 };
-//   }
-// });
+const getTarget = async (data) => {
+  const { paths, fsName } = data;
+
+  const root = otherHandles.find((e) => e.name === fsName);
+
+  let targetFolder;
+  if (!paths.length) {
+    targetFolder = root.handle;
+  } else {
+    targetFolder = await root.handle.get(paths.join("/"));
+  }
+
+  return targetFolder;
+};
 
 register("dir-entries", async (data) => {
   if (data.fsId === fsId) {
-    const { paths, fsName } = data;
-
-    const root = otherHandles.find((e) => e.name === fsName);
-
-    let targetFolder;
-    if (!paths.length) {
-      targetFolder = root.handle;
-    } else {
-      targetFolder = await root.handle.get(paths.join("/"));
-    }
+    const targetFolder = await getTarget(data);
 
     const list = [];
 
@@ -31,6 +30,50 @@ register("dir-entries", async (data) => {
     }
 
     return list;
+  }
+});
+
+register("remove-entry", async (data) => {
+  if (data.fsId === fsId) {
+    const target = await getTarget(data);
+
+    debugger;
+  }
+});
+
+register("get-by-handle", async (data) => {
+  if (data.fsId === fsId) {
+    const target = await getTarget(data);
+    let targetDir;
+    if (data.dir) {
+      try {
+        targetDir = await target._handle.getDirectoryHandle(
+          data.name,
+          data.options || {}
+        );
+      } catch (err) {
+        return {
+          error: true,
+          desc: err.toString(),
+        };
+      }
+
+      return targetDir;
+    } else {
+      try {
+        targetDir = await target._handle.getFileHandle(
+          data.name,
+          data.options || {}
+        );
+      } catch (err) {
+        return {
+          error: true,
+          desc: err.toString(),
+        };
+      }
+
+      return targetDir;
+    }
   }
 });
 
@@ -53,15 +96,17 @@ export class RemoteFileSystemDirectoryHandle {
   }
 
   async getFileHandle(name, options) {
-    if (options) {
-      if (options.create) {
-        debugger;
+    const result = await badge("get-by-handle", {
+      fsId: this.#fsId,
+      fsName: this.#fsName,
+      paths: this.#paths,
+      name,
+      options,
+      dir: true,
+    });
 
-        await badge("create-options", {
-          name,
-          type: "file",
-        });
-      }
+    if (result.error) {
+      throw new Error(result.desc);
     }
 
     return new RemoteFileSystemFileHandle(this.#fsId, this.#fsName, [
@@ -71,15 +116,17 @@ export class RemoteFileSystemDirectoryHandle {
   }
 
   async getDirectoryHandle(name, options) {
-    if (options) {
-      if (options.create) {
-        debugger;
+    const result = await badge("get-by-handle", {
+      fsId: this.#fsId,
+      fsName: this.#fsName,
+      paths: this.#paths,
+      name,
+      options,
+      dir: true,
+    });
 
-        await badge("create-options", {
-          name,
-          type: "dir",
-        });
-      }
+    if (result.error) {
+      throw new Error(result.desc);
     }
 
     const rootRemoteSystemHandle = new RemoteFileSystemDirectoryHandle(
@@ -91,8 +138,17 @@ export class RemoteFileSystemDirectoryHandle {
     return rootRemoteSystemHandle;
   }
 
-  async removeEntry() {
-    debugger;
+  async removeEntry(name, options = {}) {
+    if (options.recursive) {
+      debugger;
+    }
+
+    const result = await badge("remove-entry", {
+      fsId: this.#fsId,
+      fsName: this.#fsName,
+      paths: this.#paths,
+      options,
+    });
   }
 
   async *entries() {
@@ -137,14 +193,9 @@ export class RemoteFileSystemDirectoryHandle {
 
 register("get-file", async (data) => {
   if (data.fsId === fsId) {
-    const { paths, fsName } = data;
-    const rootHandle = otherHandles.find((e) => e.name === fsName)?.handle;
-
-    const target = await rootHandle.get(paths.join("/"));
+    const target = await getTarget(data);
 
     const file = await target.file();
-
-    debugger;
 
     return { file };
   }
