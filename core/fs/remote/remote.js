@@ -54,35 +54,35 @@ register("get-all", async (data) => {
   }
 });
 
-// 监听该频道并处理消息
-filerootChannel.addEventListener("message", (event) => {
-  const { data } = event;
-
-  switch (data.type) {
-    case "init":
-      {
-        const obj = new RemoteControl(data.fsId);
-        remotes.push(obj);
-        post({
-          type: "result-init",
-          fsId,
-        });
-      }
-      break;
-    case "result-init":
-      if (!remotes.some((e) => e.fsId === data.fsId)) {
-        const obj = new RemoteControl(data.fsId);
-        remotes.push(obj);
-      }
-      break;
-    case "close":
-      const oldId = remotes.findIndex((e) => e.fsId === data.fsId);
-      if (oldId > -1) {
-        remotes.splice(oldId, 1);
-      }
-      break;
+// 远端广播
+register("init", async (data) => {
+  if (!remotes.some((e) => e.fsId === data.fsId)) {
+    const obj = new RemoteControl(data.fsId);
+    remotes.push(obj);
   }
 
+  post({
+    type: "re-init",
+    fsId,
+  });
+});
+
+register("re-init", async (data) => {
+  if (!remotes.some((e) => e.fsId === data.fsId)) {
+    const obj = new RemoteControl(data.fsId);
+    remotes.push(obj);
+  }
+});
+
+register("close", async (data) => {
+  const oldId = remotes.findIndex((e) => e.fsId === data.fsId);
+  if (oldId > -1) {
+    remotes.splice(oldId, 1);
+  }
+});
+
+// 监听该频道并处理消息
+filerootChannel.addEventListener("message", (event) => {
   if (document.querySelector("[data-remotes]")) {
     document.querySelector("[data-remotes]").innerHTML = JSON.stringify(
       remotes.map((e) => e.fsId)

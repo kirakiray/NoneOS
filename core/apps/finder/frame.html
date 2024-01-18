@@ -10,6 +10,9 @@
       display: flex;
       height: 100%;
     }
+    .hide {
+      display: none;
+    }
     .left {
       width: 200px;
       overflow: auto;
@@ -59,6 +62,13 @@
     .icon-prefix > img {
       display: block;
     }
+
+    .left h4 {
+      padding: 0;
+      margin: 8px 0 4px 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
   </style>
 
   <template name="left-item">
@@ -83,7 +93,6 @@
       <div style="height: 40px"></div>
       <p-list>
         <x-fill :value="rootList" name="left-item"> </x-fill>
-        <x-fill :value="remotes" name="left-item"> </x-fill>
         <p-list-item button on:click="clickOpen">
           <div
             slot="prefix"
@@ -93,6 +102,8 @@
           </div>
           Mount Folder
         </p-list-item>
+        <h4 class:hide="!remotes.length">Other Tabs</h4>
+        <x-fill :value="remotes" name="left-item"> </x-fill>
       </p-list>
     </div>
     <div class="main">
