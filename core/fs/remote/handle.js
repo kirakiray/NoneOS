@@ -3,11 +3,13 @@ export class RemoteBaseHandle {
   #relates;
   #name;
   #kind;
-  constructor(paths, name, root, kind) {
+  #badge;
+  constructor(paths, name, root, badge, kind) {
     this.#kind = kind;
     this.#name = name;
     this.#root = root || this;
     this.#relates = paths || [];
+    this.#badge = badge;
   }
 
   get kind() {
@@ -51,8 +53,8 @@ export class RemoteBaseHandle {
 }
 
 export class RemoteDirHandle extends RemoteBaseHandle {
-  constructor(...args) {
-    super(...args.slice(0, 3), "directory");
+  constructor({ paths, name, root, badge }) {
+    super(paths, name, root, badge, "directory");
   }
 
   async get(name, options) {
@@ -81,8 +83,8 @@ export class RemoteDirHandle extends RemoteBaseHandle {
 }
 
 export class RemoteFileHandle extends RemoteBaseHandle {
-  constructor(...args) {
-    super(...args.slice(0, 3), "file");
+  constructor({ paths, name, root, badge }) {
+    super(paths, name, root, badge, "file");
   }
 
   async write(content) {

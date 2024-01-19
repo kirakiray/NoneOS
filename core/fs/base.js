@@ -98,10 +98,16 @@ export class NBaseHandle {
       const files = await flatFiles(this, [name]);
 
       for (let item of files) {
-        const realPar = await parHandle.get(item.parNames.join("/"), {
-          create: "directory",
-        });
-        await item.handle.move(realPar, item.name);
+        if (item.kind === "file") {
+          const realPar = await parHandle.get(item.parNames.join("/"), {
+            create: "directory",
+          });
+          await item.handle.move(realPar, item.name);
+        } else {
+          await parHandle.get(item.parNames.join("/"), {
+            create: "directory",
+          });
+        }
       }
 
       await this.remove({ recursive: true });
@@ -111,10 +117,13 @@ export class NBaseHandle {
 
 export async function flatFiles(parHandle, parNames = []) {
   const files = [];
+  let isEmpty = true;
 
   for await (let [name, handle] of parHandle.entries()) {
+    isEmpty = false;
     if (handle.kind === "file") {
       files.push({
+        kind: "file",
         name,
         handle,
         parNames,
@@ -123,6 +132,13 @@ export async function flatFiles(parHandle, parNames = []) {
       const subFiles = await flatFiles(handle, [...parNames, name]);
       files.push(...subFiles);
     }
+  }
+
+  if (isEmpty) {
+    files.push({
+      kind: "dir",
+      parNames,
+    });
   }
 
   return files;
