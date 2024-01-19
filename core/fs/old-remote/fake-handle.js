@@ -33,13 +33,13 @@ register("dir-entries", async (data) => {
   }
 });
 
-register("remove-entry", async (data) => {
-  if (data.fsId === fsId) {
-    const target = await getTarget(data);
+// register("remove-entry", async (data) => {
+//   if (data.fsId === fsId) {
+//     const target = await getTarget(data);
 
-    debugger;
-  }
-});
+//     debugger;
+//   }
+// });
 
 register("get-by-handle", async (data) => {
   if (data.fsId === fsId) {
@@ -139,16 +139,18 @@ export class RemoteFileSystemDirectoryHandle {
   }
 
   async removeEntry(name, options = {}) {
-    if (options.recursive) {
-      debugger;
-    }
+    throw getErr("removeEntry");
 
-    const result = await badge("remove-entry", {
-      fsId: this.#fsId,
-      fsName: this.#fsName,
-      paths: this.#paths,
-      options,
-    });
+    // if (options.recursive) {
+    //   debugger;
+    // }
+
+    // const result = await badge("remove-entry", {
+    //   fsId: this.#fsId,
+    //   fsName: this.#fsName,
+    //   paths: this.#paths,
+    //   options,
+    // });
   }
 
   async *entries() {
@@ -220,7 +222,7 @@ export class RemoteFileSystemFileHandle {
   }
 
   async createWritable() {
-    debugger;
+    throw getErr("createWritable");
   }
 
   async getFile() {
@@ -234,6 +236,8 @@ export class RemoteFileSystemFileHandle {
   }
 
   async move() {
-    debugger;
+    throw getErr("move");
   }
 }
+
+const getErr = (name) => new Error(`can not use "${name}" in remote`);

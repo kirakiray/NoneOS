@@ -5,7 +5,9 @@ import { register, post, remotes, filerootChannel, fsId } from "./base.js";
 
 export { remotes };
 
-if (document.querySelector("[data-fsid]")) {
+const hasDocument = typeof document !== "undefined";
+
+if (hasDocument && document.querySelector("[data-fsid]")) {
   document.querySelector("[data-fsid]").innerHTML = fsId;
 }
 
@@ -97,12 +99,14 @@ globalThis.addEventListener("beforeunload", (event) => {
   });
 });
 
-filerootChannel.addEventListener("message", (event) => {
-  if (document.querySelector("[data-remotes]")) {
-    document.querySelector("[data-remotes]").innerHTML = JSON.stringify(
-      remotes.map((e) => e.fsId)
-    );
-  }
-});
+if (hasDocument) {
+  filerootChannel.addEventListener("message", (event) => {
+    if (document.querySelector("[data-remotes]")) {
+      document.querySelector("[data-remotes]").innerHTML = JSON.stringify(
+        remotes.map((e) => e.fsId)
+      );
+    }
+  });
+}
 
-window.remotes = remotes;
+globalThis.remotes = remotes;

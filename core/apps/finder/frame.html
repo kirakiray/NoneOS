@@ -102,14 +102,14 @@
           </div>
           Mount Folder
         </p-list-item>
-        <div class:hide="!showRemote">
+        <!-- <div class:hide="!showRemote">
           <h4>Other Tabs</h4>
           <x-fill :value="remotes">
             <div>
               <x-fill :value="$data.folders" name="left-item"></x-fill>
             </div>
           </x-fill>
-        </div>
+        </div> -->
       </p-list>
     </div>
     <div class="main">
@@ -171,9 +171,10 @@
   <script>
     export default async ({ load }) => {
       const { exploreFolder } = await load("../../zip/main.js");
-      const { get, open, getAll, remotes } = await load("../../fs/main.js");
+      // const { get, open, getAll, remotes } = await load("../../fs/main.js");
+      // console.log("remotes", remotes);
 
-      console.log("remotes", remotes);
+      const { get, open, getAll } = await load("../../fs/main.js");
 
       return {
         data: {
@@ -181,14 +182,14 @@
           rootList: [], // 左侧展示中可选用的空间
           paths: [], // 文件路径
           selectedName: "", // 选择的文件名
-          remotes: [], // 远端的数据
+          // remotes: [], // 远端的数据
         },
         proto: {
-          get showRemote() {
-            return this.remotes.some((e) => {
-              return e.folders.length;
-            });
-          },
+          // get showRemote() {
+          //   return this.remotes.some((e) => {
+          //     return e.folders.length;
+          //   });
+          // },
           reload() {
             this[0].reloadList();
           },
@@ -274,12 +275,12 @@
         ready() {
           this.reloadList();
         },
-        attached() {
-          this.remotes = remotes;
-        },
-        detached() {
-          this.remotes = [];
-        },
+        // attached() {
+        //   this.remotes = remotes;
+        // },
+        // detached() {
+        //   this.remotes = [];
+        // },
         routerChange(e) {
           console.log("router change", e);
           const src = e.current.src;
