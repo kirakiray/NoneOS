@@ -3,6 +3,8 @@ export const filerootChannel = new BroadcastChannel("noneos-fs-channel");
 
 export const remotes = [];
 
+globalThis.remotes = remotes;
+
 console.log("fsId", fsId);
 
 export const badge = (eventName, options) => {
@@ -60,3 +62,17 @@ export const post = (data) => {
 export const register = (eventName, func) => {
   registerMaps[eventName] = func;
 };
+
+if (typeof document !== "undefined") {
+  if (document.querySelector("[data-fsid]")) {
+    document.querySelector("[data-fsid]").innerHTML = fsId;
+  }
+  
+  filerootChannel.addEventListener("message", (event) => {
+    if (document.querySelector("[data-remotes]")) {
+      document.querySelector("[data-remotes]").innerHTML = JSON.stringify(
+        remotes.map((e) => e.fsId)
+      );
+    }
+  });
+}

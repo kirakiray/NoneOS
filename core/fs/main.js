@@ -1,7 +1,5 @@
 import { NDirHandle } from "./handle.js";
-// import { remotes, cast } from "./old-remote/remote.js";
-
-// export { remotes };
+import { cast } from "./remote/remote.js";
 
 const rootHandlePms = navigator.storage.getDirectory();
 
@@ -36,7 +34,7 @@ export const open = async () => {
       handle,
     });
 
-    // cast();
+    cast();
 
     return handle;
   }
