@@ -3,7 +3,7 @@ export class NBaseHandle {
   #root;
   #relates;
   constructor(handle, paths, root) {
-    this.#root = root || this;
+    this.#root = root || null;
     this.#relates = paths || [];
     Object.defineProperties(this, {
       _handle: {
@@ -36,7 +36,7 @@ export class NBaseHandle {
   }
 
   get root() {
-    return this.#root;
+    return this.#root || this;
   }
 
   get name() {

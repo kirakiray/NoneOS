@@ -1,5 +1,5 @@
 import { NDirHandle } from "./handle.js";
-import { cast } from "./remote/remote.js";
+import { cast } from "./remote/hardisk.js";
 
 const rootHandlePms = navigator.storage.getDirectory();
 
