@@ -98,12 +98,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   }
 
   async *entries() {
-    const result = await this.badge({
-      func: "handle-entries",
-      name: this.name,
-      paths: this.paths,
-      self: this,
-    });
+    const result = await this.convery("entries", []);
 
     for (let item of result) {
       if (item.kind === "file") {
