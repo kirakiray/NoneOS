@@ -94,9 +94,12 @@
 
       const selfDir = path ? await rootDir.get(query.path) : rootDir;
 
+      console.log("selfDir: ", selfDir);
+
       return {
         parent: "./frame.html",
         data: {
+          _selfDir: null,
           paths: query.path ? query.path.split("/") : [],
           files: [],
         },
@@ -208,6 +211,7 @@
           },
         },
         ready() {
+          this._selfDir = selfDir;
           this.reloadList();
           this.on("click", () => this.clearSelect());
           this.parent.paths = query.path ? query.path.split("/") : [];

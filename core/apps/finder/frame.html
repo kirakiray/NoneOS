@@ -248,7 +248,7 @@
           async importFile(e) {
             const fileList = e.target.files;
 
-            const dir = await get(this.pathStr);
+            const dir = this[0]._selfDir;
 
             await Promise.all(
               Array.from(fileList).map(async (file) => {
