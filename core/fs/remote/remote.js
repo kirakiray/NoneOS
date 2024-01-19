@@ -1,5 +1,6 @@
 import { otherHandles } from "../main.js";
-import { badge, post, register, fsId, remotes } from "./base.js";
+import { badge, post, register, fsId, remotes } from "./data.js";
+import { RemoteDirHandle } from "./handle.js";
 
 const addRemotes = (data) => {
   const targetRemote = remotes.find((e) => e.fsId === data.fsId);
@@ -7,10 +8,12 @@ const addRemotes = (data) => {
   if (!targetRemote) {
     remotes.push({
       fsId: data.fsId,
-      others: data.others,
+      others: data.others.map((name) => new RemoteDirHandle([], name)),
     });
   } else {
-    targetRemote.others = data.others;
+    targetRemote.others = data.others.map(
+      (name) => new RemoteDirHandle([], name)
+    );
   }
 };
 

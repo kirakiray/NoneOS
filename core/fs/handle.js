@@ -117,8 +117,8 @@ export class NDirHandle extends NBaseHandle {
     }
   }
 
-  async removeEntry(name) {
-    await this._handle.removeEntry(name);
+  async removeEntry(name, options) {
+    await this._handle.removeEntry(name, options);
 
     return true;
   }
@@ -134,10 +134,6 @@ export class NFileHandle extends NBaseHandle {
     await writable.write(content);
     await writable.close();
   }
-
-  // getWriter() {
-  //   return this._handle.createWritable();
-  // }
 
   async read(options) {
     const defaults = {
