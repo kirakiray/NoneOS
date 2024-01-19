@@ -1,4 +1,5 @@
-import { get } from "./core/fs/main.js";
+import { get, getAll } from "./core/fs/main.js";
+import { remotes } from "./core/fs/remote/data.js";
 
 self.addEventListener("fetch", async (event) => {
   const { request } = event;
@@ -12,14 +13,32 @@ self.addEventListener("fetch", async (event) => {
       (async () => {
         const pathArr = pathname.split("/");
 
-        const all = await getAll();
-
-        console.log("all", all);
-
         try {
-          const handle = await get(
-            decodeURIComponent(pathArr.slice(2).join("/"))
-          );
+          let handle;
+
+          if (pathArr[1].length > 1) {
+            // 虚拟本地目录
+            let rootname = pathArr[1].replace(/^\$/, "");
+            rootname = decodeURIComponent(rootname);
+
+            let targetHandle;
+            remotes.some((e) => {
+              e.others.some((item) => {
+                if (item.name === rootname) {
+                  targetHandle = item;
+                }
+              });
+            });
+
+            if (targetHandle) {
+              handle = await targetHandle.get(
+                decodeURIComponent(pathArr.slice(2).join("/"))
+              );
+            }
+          } else {
+            handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
+          }
+
           const file = await handle.file();
 
           return new Response(file, {

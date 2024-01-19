@@ -84,7 +84,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     const result = await this.convery("get", [name, options]);
 
     if (result.kind === "file") {
-      new RemoteFileHandle({
+      return new RemoteFileHandle({
         paths: [...this.relativePaths, name],
         root: this.root,
         badge: this.badge,
