@@ -54,13 +54,21 @@ export class RemoteBaseHandle {
     debugger;
   }
 
-  convery(name, args) {
-    return this.badge({
+  async convery(name, args) {
+    const data = await this.badge({
       func: "handle-" + name,
       paths: this.relativePaths,
       args,
       self: this,
     });
+
+    if (data.error) {
+      const error = new Error(data.error.desc);
+      error.code = data.error.code;
+      throw error;
+    }
+
+    return data;
   }
 }
 

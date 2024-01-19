@@ -50,13 +50,12 @@ export class NBaseHandle {
 
     Object.assign(defaults, options);
 
-    // if (this._handle.remove) {
-    //   await this._handle.remove(defaults);
-    // } else {
-    const parent = await this.parent();
-    debugger
-    await parent.removeEntry(this.name, defaults);
-    // }
+    if (this._handle.remove) {
+      await this._handle.remove(defaults);
+    } else {
+      const parent = await this.parent();
+      await parent.removeEntry(this.name, defaults);
+    }
 
     return true;
   }

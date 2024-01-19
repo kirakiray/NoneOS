@@ -36,56 +36,65 @@ const getHandle = async (data) => {
     : await targetRootHandle.get(`${data.paths.join("/")}`);
 };
 
+const catchError = async (func) => {
+  try {
+    return await func();
+  } catch (err) {
+    return {
+      error: {
+        desc: err.toString(),
+        code: err.code,
+      },
+    };
+  }
+};
+
 register("handle-entries", async (data) => {
   if (data.fsId === fsId) {
-    const handle = await getHandle(data);
+    return catchError(async () => {
+      const handle = await getHandle(data);
 
-    const ens = [];
-    for await (let e of handle.values()) {
-      ens.push({
-        name: e.name,
-        kind: e.kind,
-      });
-    }
+      const ens = [];
+      for await (let e of handle.values()) {
+        ens.push({
+          name: e.name,
+          kind: e.kind,
+        });
+      }
 
-    return ens;
+      return ens;
+    });
   }
 });
 
 register("handle-get", async (data) => {
   if (data.fsId === fsId) {
-    const handle = await getHandle(data);
+    return catchError(async () => {
+      const handle = await getHandle(data);
 
-    const result = await handle.get(...data.args);
+      const result = await handle.get(...data.args);
 
-    return {
-      kind: result.kind,
-    };
+      return {
+        kind: result.kind,
+      };
+    });
   }
 });
 
-register("handle-read", async (data) => {
-  if (data.fsId === fsId) {
-    const handle = await getHandle(data);
+[
+  ["read", "read"],
+  ["write", "write"],
+  ["remove-entry", "removeEntry"],
+].forEach(([name, funcName]) => {
+  register(`handle-${name}`, async (data) => {
+    if (data.fsId === fsId) {
+      return catchError(async () => {
+        const handle = await getHandle(data);
 
-    return await handle.read(...data.args);
-  }
-});
-
-register("handle-write", async (data) => {
-  if (data.fsId === fsId) {
-    const handle = await getHandle(data);
-
-    return await handle.write(...data.args);
-  }
-});
-
-register("handle-remove-entry", async (data) => {
-  if (data.fsId === fsId) {
-    const handle = await getHandle(data);
-
-    return await handle.removeEntry(...data.args);
-  }
+        return (await handle[funcName](...data.args)) || null;
+      });
+    }
+  });
 });
 
 const addRemotes = (data) => {
