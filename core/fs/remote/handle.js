@@ -1,12 +1,10 @@
 export class RemoteBaseHandle {
   #root;
   #relates;
-  #name;
   #kind;
   #badge;
-  constructor(paths, name, root, badge, kind) {
+  constructor(paths, root, badge, kind) {
     this.#kind = kind;
-    this.#name = name;
     this.#root = root || null;
     this.#relates = paths || [];
     this.#badge = badge;
@@ -17,7 +15,7 @@ export class RemoteBaseHandle {
   }
 
   get name() {
-    return this.#name;
+    return this._name || this.#relates.slice(-1)[0];
   }
 
   get badge() {
@@ -39,10 +37,6 @@ export class RemoteBaseHandle {
     return this.#relates.join("/");
   }
 
-  get paths() {
-    return this.#relates.slice();
-  }
-
   get relativePaths() {
     return this.#relates.slice();
   }
@@ -52,7 +46,8 @@ export class RemoteBaseHandle {
   }
 
   async remove(options) {
-    return this.parent.removeEntry(this.name, options);
+    const par = await this.parent();
+    return par.removeEntry(this.name, options);
   }
 
   async move(...args) {
@@ -62,8 +57,7 @@ export class RemoteBaseHandle {
   convery(name, args) {
     return this.badge({
       func: "handle-" + name,
-      paths: this.paths,
-      name: this.name,
+      paths: this.relativePaths,
       args,
       self: this,
     });
@@ -71,27 +65,26 @@ export class RemoteBaseHandle {
 }
 
 export class RemoteDirHandle extends RemoteBaseHandle {
-  constructor({ paths, name, root, badge }) {
-    super(paths, name, root, badge, "directory");
+  constructor({ paths, root, badge, _name }) {
+    super(paths, root, badge, "directory");
+    if (_name) {
+      this._name = _name;
+    }
   }
 
   async get(name, options) {
     const result = await this.convery("get", [name, options]);
 
-    const paths = this.root === this ? [] : [...this.paths, this.name];
-
     if (result.kind === "file") {
       new RemoteFileHandle({
-        paths,
-        name,
+        paths: [...this.relativePaths, name],
         root: this.root,
         badge: this.badge,
       });
     }
 
     return new RemoteDirHandle({
-      paths,
-      name,
+      paths: [...this.relativePaths, name],
       root: this.root,
       badge: this.badge,
     });
@@ -105,8 +98,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
         yield [
           item.name,
           new RemoteFileHandle({
-            paths: this.root === this ? [] : [...this.paths, this.name],
-            name: item.name,
+            paths: [...this.relativePaths, item.name],
             root: this.root,
             badge: this.badge,
           }),
@@ -115,8 +107,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
         yield [
           item.name,
           new RemoteDirHandle({
-            paths: this.root === this ? [] : [...this.paths, this.name],
-            name: item.name,
+            paths: [...this.relativePaths, item.name],
             root: this.root,
             badge: this.badge,
           }),
@@ -138,13 +129,16 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   }
 
   async removeEntry(name, options) {
-    debugger;
+    return await this.convery("remove-entry", [name, options]);
   }
 }
 
 export class RemoteFileHandle extends RemoteBaseHandle {
-  constructor({ paths, name, root, badge }) {
-    super(paths, name, root, badge, "file");
+  constructor({ paths, root, badge, _name }) {
+    super(paths, root, badge, "file");
+    if (_name) {
+      this._name = _name;
+    }
   }
 
   async write(content) {

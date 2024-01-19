@@ -21,7 +21,6 @@ const remoteBadge = async (options, itemFsId) => {
     paths,
     name,
     rootname: self.root.name,
-    isroot: self === self.root,
     fsId: itemFsId,
     args,
   });
@@ -32,11 +31,9 @@ const getHandle = async (data) => {
     (e) => e.name === data.rootname
   ).handle;
 
-  const fixedPaths = [...data.paths, data.name];
-
-  return data.isroot
+  return data.paths.length === 0
     ? targetRootHandle
-    : await targetRootHandle.get(`${fixedPaths.join("/")}`);
+    : await targetRootHandle.get(`${data.paths.join("/")}`);
 };
 
 register("handle-entries", async (data) => {
@@ -83,6 +80,14 @@ register("handle-write", async (data) => {
   }
 });
 
+register("handle-remove-entry", async (data) => {
+  if (data.fsId === fsId) {
+    const handle = await getHandle(data);
+
+    return await handle.removeEntry(...data.args);
+  }
+});
+
 const addRemotes = (data) => {
   const targetRemote = remotes.find((e) => e.fsId === data.fsId);
 
@@ -93,7 +98,7 @@ const addRemotes = (data) => {
         (name) =>
           new RemoteDirHandle({
             paths: [],
-            name,
+            _name: name,
             badge: (options) => remoteBadge(options, data.fsId),
           })
       ),
@@ -103,7 +108,7 @@ const addRemotes = (data) => {
       (name) =>
         new RemoteDirHandle({
           paths: [],
-          name,
+          _name: name,
           badge: (options) => remoteBadge(options, data.fsId),
         })
     );
