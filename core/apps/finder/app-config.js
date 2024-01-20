@@ -34,3 +34,12 @@ export const pageAnime = {
     "transition-duration": ".05s",
   },
 };
+
+const appSelfHost = new URL(import.meta.url).host;
+export const access = (url) => {
+  const obj = new URL(url);
+  if (obj.host === location.host || obj.host === appSelfHost) {
+    return true;
+  }
+  return false;
+};
