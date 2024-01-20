@@ -2,14 +2,11 @@
   "name": "NoneOS",
   "version": "1.2.2",
   "description": "A browser-based operating system",
+  "type": "module",
   "scripts": {
     "static-server": "node scripts/static-server",
-    "test": "npx playwright test",
-    "ci-test": "node scripts/ci-test",
-    "detest": "npx playwright test tests/example.spec.js --debug",
-    "build-sw": "parcel build sw.js --out-dir . --out-file sw-dist.js --no-source-maps",
-    "rtc-server": "node server/main.js",
-    "debug-server": "cd server && nodemon --inspect ./main.js"
+    "start": "node scripts/start",
+    "test": "npx playwright test"
   },
   "repository": {
     "type": "git",
@@ -25,6 +22,7 @@
     "@playwright/test": "^1.31.1",
     "koa": "^2.14.1",
     "koa-static": "^5.0.0",
+    "open": "^10.0.2",
     "shelljs": "^0.8.5"
   },
   "dependencies": {

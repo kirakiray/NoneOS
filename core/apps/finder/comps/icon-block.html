@@ -1,0 +1,103 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      width: 86px;
+      height: 86px;
+      border-radius: 5px;
+      font-size: 12px;
+      line-height: 1.3em;
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-radius: 4px;
+      user-select: none;
+    }
+    .icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 40px;
+    }
+    .name {
+      margin-top: 8px;
+      max-width: 100%;
+      word-break: break-all;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .icon img {
+      max-width: 40px;
+      max-height: 100%;
+    }
+    textarea {
+      margin-top: 5.5px;
+      font-size: inherit;
+      text-align: center;
+      font: inherit;
+      line-height: 1.2em;
+      resize: none;
+      max-width: 100%;
+    }
+  </style>
+
+  <div class="container" part="container">
+    <div class="icon">
+      <img attr:src="iconSrc" />
+    </div>
+    <x-if :value="!!renamemode">
+      <textarea
+        :value="name"
+        on:change="changeName"
+        on:blur="renamemode = null"
+      ></textarea>
+    </x-if>
+    <x-else>
+      <div class="name">{{name}}</div>
+    </x-else>
+  </div>
+  <script>
+    export default {
+      tag: "icon-block",
+      attrs: {
+        type: "file",
+        name: null,
+      },
+      data: {
+        renamemode: null,
+      },
+      watch: {
+        renamemode(val) {
+          if (val) {
+            setTimeout(() => this.shadow.$("textarea").ele.focus(), 100);
+          }
+        },
+      },
+      proto: {
+        changeName(e) {
+          this.emit("change-name", {
+            data: {
+              oldName: this.name,
+              newName: e.target.value,
+            },
+          });
+        },
+        get iconSrc() {
+          switch (this.type) {
+            case "directory":
+              return "../icons/folder.svg";
+            case "file":
+            default:
+              return "../icons/file.svg";
+          }
+        },
+      },
+    };
+  </script>
+</template>

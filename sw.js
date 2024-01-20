@@ -1,24 +1,47 @@
-import fs from "./packages/fs/index.mjs";
-// import { fetch as connectorFetch } from "./packages/connector/swConnector.mjs";
+import { get, getAll } from "./core/fs/main.js";
+import { remotes } from "./core/fs/remote/data.js";
 
-self.addEventListener("fetch", function (event) {
+self.addEventListener("fetch", async (event) => {
   const { request } = event;
+  const { url } = request;
+  const urlObj = new URL(url);
+  const { pathname } = urlObj;
 
-  const urldata = new URL(request.url);
-
-  if (/^\/@/.test(urldata.pathname)) {
-    const path = urldata.pathname.replace(/^\/@/, "");
-
+  // 属于$的进入虚拟空间获取数据
+  if (/^\/\$/.test(pathname)) {
     event.respondWith(
       (async () => {
-        try {
-          const data = await fs.readFile(decodeURIComponent(path));
+        const pathArr = pathname.split("/");
 
-          if (!data) {
-            throw `File does not exist : ${urldata.pathname}`;
+        try {
+          let handle;
+
+          if (pathArr[1].length > 1) {
+            // 虚拟本地目录
+            let rootname = pathArr[1].replace(/^\$/, "");
+            rootname = decodeURIComponent(rootname);
+
+            let targetHandle;
+            remotes.some((e) => {
+              e.others.some((item) => {
+                if (item.name === rootname) {
+                  targetHandle = item;
+                }
+              });
+            });
+
+            if (targetHandle) {
+              handle = await targetHandle.get(
+                decodeURIComponent(pathArr.slice(2).join("/"))
+              );
+            }
+          } else {
+            handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
           }
 
-          return new Response(data, {
+          const file = await handle.file();
+
+          return new Response(file, {
             status: 200,
           });
         } catch (err) {
@@ -30,13 +53,6 @@ self.addEventListener("fetch", function (event) {
       })()
     );
   }
-
-  // else if (/^\/api\/connector/.test(urldata.pathname)) {
-  //   connectorFetch({
-  //     urldata,
-  //     event,
-  //   });
-  // }
 });
 
 self.addEventListener("install", () => {
