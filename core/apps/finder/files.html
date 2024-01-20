@@ -168,8 +168,8 @@
           async gotoPath(e) {
             const data = $(e.target);
             if (data.type === "directory") {
-              this.app.goto(
-                `@nos/apps/finder/files.html?rootname=${rootname}&path=${[
+              this.goto(
+                `./files.html?rootname=${rootname}&path=${[
                   ...this.paths,
                   data.name,
                 ].join("/")}`

@@ -1,6 +1,15 @@
 import { flatFiles } from "../fs/base.js";
 
-const worker = new Worker(import.meta.resolve("./worker.js"));
+let worker;
+const workerPath = import.meta.resolve("./worker.js");
+
+try {
+  worker = new Worker(workerPath);
+} catch (err) {
+  const workerBlob = await fetch(workerPath).then((e) => e.blob());
+  const workerUrl = URL.createObjectURL(workerBlob);
+  worker = new Worker(workerUrl);
+}
 
 const resolver = {};
 

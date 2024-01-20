@@ -1,4 +1,8 @@
-importScripts("./jszip.js");
+try {
+  importScripts("./jszip.js");
+} catch (err) {
+  importScripts("https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js");
+}
 
 const zings = {};
 
