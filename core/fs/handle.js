@@ -90,12 +90,12 @@ export class NDirHandle extends NBaseHandle {
       if (handle.kind === "file") {
         yield [
           name,
-          new NFileHandle(handle, [...this.relativePaths], this.root),
+          new NFileHandle(handle, [...this.relativePaths, name], this.root),
         ];
       } else {
         yield [
           name,
-          new NDirHandle(handle, [...this.relativePaths], this.root),
+          new NDirHandle(handle, [...this.relativePaths, name], this.root),
         ];
       }
     }
