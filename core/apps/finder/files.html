@@ -188,6 +188,9 @@
             e.stopPropagation();
 
             const target = $(e.target);
+
+            window.__finder_select = target._item;
+
             if (target) {
               target.classList.toggle("selected");
               if (target.classList.contains("selected")) {
