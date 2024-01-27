@@ -1,5 +1,9 @@
 export const home = "./files.html";
 
+export const name = "Finder";
+
+export const icon = "./icon.svg";
+
 export const loading = () => {
   const loadingEl = $({
     tag: "div",
