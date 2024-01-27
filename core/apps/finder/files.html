@@ -167,6 +167,9 @@
           },
           async gotoPath(e) {
             const data = $(e.target);
+            if (!data.type) {
+              return;
+            }
             if (data.type === "directory") {
               this.goto(
                 `./files.html?rootname=${rootname}&path=${[

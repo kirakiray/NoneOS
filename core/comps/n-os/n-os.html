@@ -28,7 +28,7 @@
       <x-fill :value="using">
         <os-app-item
           :name="$data.name"
-          :active="$host.currentAppurl === $data.iconUrl ? '' : null"
+          :active="$host.currentAppicon === $data.iconUrl ? '' : null"
         >
           <img attr:src="$data.iconUrl" />
         </os-app-item>
@@ -63,7 +63,7 @@
           // 左侧栏正在使用中的app
           using: [],
           // 当前使用中的 app id
-          currentAppurl: "",
+          currentAppicon: "",
         },
         async ready() {
           // 获取主页应用的相关数据
@@ -73,11 +73,70 @@
           });
 
           this.using.push(homeAppData);
-          this.currentAppurl = homeAppData.iconUrl;
+          this.currentAppicon = homeAppData.iconUrl;
 
           this.shadow
             .$(".main")
             .push(`<o-app src="${defaults.homeApp}"></o-app>`);
+        },
+        proto: {
+          get currentApp() {
+            return this.shadow.$("o-app");
+          },
+        },
+        async attached() {
+          if (!history.state) {
+            history.pushState(
+              {
+                isBack: true,
+              },
+              "",
+              "#back"
+            );
+
+            await new Promise((res) => setTimeout(res, 500));
+
+            history.pushState(
+              {
+                isCurrent: true,
+              },
+              "",
+              location.pathname
+            );
+
+            await new Promise((res) => setTimeout(res, 100));
+
+            // history.pushState(
+            //   {
+            //     isForward: true,
+            //   },
+            //   "",
+            //   "#forward"
+            // );
+
+            // await new Promise((res) => setTimeout(res, 100));
+
+            // history.back();
+          }
+
+          window.addEventListener(
+            "popstate",
+            (this._popstate = (e) => {
+              const { state } = e;
+
+              if (state.isBack) {
+                console.log("click back");
+                this.currentApp.back();
+                history.forward();
+              } else if (state.isForward) {
+                console.log("click forward");
+                history.back();
+              }
+            })
+          );
+        },
+        detached() {
+          window.removeEventListener("popstate", this._popstate);
         },
       };
     };
