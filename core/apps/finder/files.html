@@ -94,8 +94,6 @@
 
       const selfDir = path ? await rootDir.get(query.path) : rootDir;
 
-      console.log("selfDir: ", selfDir);
-
       return {
         parent: "./frame.html",
         data: {
@@ -192,7 +190,7 @@
 
             const target = $(e.target);
 
-            window.__finder_select = target._item;
+            // window.__finder_select = target._item;
 
             if (target) {
               target.classList.toggle("selected");
