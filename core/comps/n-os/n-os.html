@@ -12,6 +12,12 @@
       width: 100%;
       height: 100%;
     }
+    .left {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 60px;
+    }
     .left p-nav-bar {
       height: 100%;
       border-radius: 35px;
@@ -27,12 +33,17 @@
     <div class="left">
       <x-fill :value="using">
         <os-app-item
+          on:click="$host.currentAppPath = $data.path"
           :name="$data.name"
-          :active="$host.currentAppicon === $data.iconUrl ? '' : null"
+          :active="$host.currentAppPath === $data.path ? '' : null"
         >
           <img attr:src="$data.iconUrl" />
         </os-app-item>
       </x-fill>
+
+      <os-app-item :name="'All Apps'" style="margin-top: auto">
+        <img width="34" src="./sources/menu.svg" />
+      </os-app-item>
     </div>
     <div class="main">
       <!-- <o-app src=""></o-app> -->
@@ -45,6 +56,7 @@
       const iconUrlObj = new URL(homeAppData.icon, appUrlObj);
 
       return {
+        path: appUrlObj.href,
         name: homeAppData.name,
         iconUrl: iconUrlObj.href,
       };
@@ -55,7 +67,7 @@
         homeApp: "/core/apps/finder/app-config.js",
       };
 
-      const home = "";
+      const apps = ["/core/apps/editor/app-config.js"];
 
       return {
         tag: "n-os",
@@ -63,7 +75,19 @@
           // 左侧栏正在使用中的app
           using: [],
           // 当前使用中的 app id
-          currentAppicon: "",
+          currentAppPath: "",
+        },
+        watch: {
+          currentAppPath(currentAppPath) {
+            const { currentApp } = this;
+            if (currentApp) {
+              currentApp.remove();
+            }
+
+            this.shadow
+              .$(".main")
+              .push(`<o-app src="${currentAppPath}"></o-app>`);
+          },
         },
         async ready() {
           // 获取主页应用的相关数据
@@ -73,13 +97,23 @@
           });
 
           this.using.push(homeAppData);
-          this.currentAppicon = homeAppData.iconUrl;
+          this.currentAppPath = homeAppData.path;
 
-          this.shadow
-            .$(".main")
-            .push(`<o-app src="${defaults.homeApp}"></o-app>`);
+          apps.forEach(async (e) => {
+            const appData = await getAppData({
+              PATH: this.PATH,
+              configUrl: e,
+            });
+
+            this.using.push(appData);
+          });
         },
         proto: {
+          clickItem(e) {
+            let target = $(e.currentTarget);
+
+            target;
+          },
           get currentApp() {
             return this.shadow.$("o-app");
           },
