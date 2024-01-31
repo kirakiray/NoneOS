@@ -14,9 +14,10 @@
       height: 100%;
     }
     .nav {
+      position: relative;
       display: flex;
       align-items: center;
-      height: 50px;
+      height: 40px;
       padding: 0 8px;
       border-bottom: #e2e2e2 solid 1px;
     }
@@ -39,26 +40,35 @@
       outline: none;
       padding: 4px;
     }
+    .editor-title {
+      position: absolute;
+      left: 30%;
+      width: 40%;
+      text-align: center;
+      font-size: 14px;
+    }
   </style>
   <div class="container">
     <div class="nav">
-      <p-select sync:value="fsize">
+      <p-select sync:value="fsize" size="small">
         <template is="replace-temp">
           <x-fill :value="[12,14,16,20,28,36,50]">
             <option attr:value="$data">{{$data}}px</option>
           </x-fill>
         </template>
       </p-select>
+      <div class="editor-title">未命名</div>
       <!-- <p-button disabled style="margin-left: auto"> Reset </p-button> -->
-      <p-button style="margin-left: auto" attr:disabled="!hasChange ? 1 : null">
+      <p-button
+        style="margin-left: auto"
+        size="small"
+        attr:disabled="!hasChange ? 1 : null"
+      >
         Save
       </p-button>
     </div>
     <div class="main">
-      <textarea class="main_inner">
-    嗷嗷
-    aa
-      </textarea>
+      <textarea class="main_inner"> </textarea>
     </div>
   </div>
   <script>
