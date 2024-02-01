@@ -45,6 +45,7 @@
       height: 500px;
       transition: all cubic-bezier(0, 0, 0, 1) 0.5s;
       overflow: hidden;
+      box-shadow: rgba(144, 144, 144, 0.2) 0 0 5px;
     }
     .apps-bubble.menu-hide {
       /* opacity: 0; */
@@ -57,7 +58,13 @@
       height: 100%;
       background-color: #fff;
       border-radius: 6px;
-      box-shadow: rgba(144, 144, 144, 0.1) 0 0 5px;
+    }
+
+    .main o-app {
+      display: none;
+    }
+    .main o-app[current-app] {
+      display: block;
     }
   </style>
   <div class="container">
@@ -81,7 +88,14 @@
       </os-app-item>
     </div>
     <div class="main">
-      <!-- <o-app src=""></o-app> -->
+      <x-fill :value="using">
+        <o-app
+          attr:src="$data.path"
+          fill-key="$data.path"
+          desk-app
+          attr:current-app="$data.path === $host.currentAppPath ? '' : null"
+        ></o-app>
+      </x-fill>
     </div>
     <x-if :value="menuActived">
       <div class="apps-mask" on:click="menuActived = false"></div>
@@ -108,28 +122,12 @@
           currentAppPath: "",
           menuActived: false,
         },
-        watch: {
-          currentAppPath(currentAppPath) {
-            const { currentApp } = this;
-            if (currentApp) {
-              currentApp.remove();
-            }
-
-            if (!currentAppPath) {
-              return;
-            }
-
-            this.shadow
-              .$(".main")
-              .push(`<o-app src="${currentAppPath}" desk-app></o-app>`);
-          },
-        },
         async ready() {
           const homeApp = systemApps.find((e) => e.isHome);
 
           await homeApp.watchUntil(() => homeApp.icon);
 
-          this.using.push(homeApp);
+          this.using.push(homeApp.toJSON());
           this.currentAppPath = homeApp.path;
         },
         proto: {
@@ -138,10 +136,18 @@
               data: { path },
             } = e;
 
-            debugger;
+            this.currentAppPath = path;
+
+            if (!this.using.some((e) => e.path === path)) {
+              const targetData = systemApps.find((item) => item.path === path);
+              this.using.push(targetData.toJSON());
+              // this.using.push(e.toJSON());
+            }
+
+            this.menuActived = false;
           },
           get currentApp() {
-            return this.shadow.$("o-app[desk-app]");
+            return this.shadow.$("o-app[desk-app][current-app]");
           },
         },
         async attached() {
