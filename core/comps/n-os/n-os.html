@@ -31,6 +31,8 @@
     .apps-mask {
       position: fixed;
       z-index: 9999;
+      top: 0;
+      left: 0;
       width: 100%;
       height: 100%;
     }
@@ -42,11 +44,14 @@
       width: 40vw;
       height: 500px;
       transition: all cubic-bezier(0, 0, 0, 1) 0.5s;
+      overflow: hidden;
     }
     .apps-bubble.menu-hide {
-      opacity: 0;
-      bottom: -100%;
+      /* opacity: 0; */
+      /* bottom: -500px; */
+      height: 0px;
       pointer-events: none;
+      transition: all ease 0.3s;
     }
     .apps-bubble o-app {
       height: 100%;
@@ -63,7 +68,7 @@
           :name="$data.name"
           :active="$host.currentAppPath === $data.path ? '' : null"
         >
-          <img attr:src="$data.iconUrl" />
+          <img attr:src="$data.icon" />
         </os-app-item>
       </x-fill>
 
@@ -82,29 +87,18 @@
       <div class="apps-mask" on:click="menuActived = false"></div>
     </x-if>
     <div class="apps-bubble" class:menu-hide="!menuActived">
-      <o-app src="/core/apps/manager/app-config.js"></o-app>
+      <div style="position: relative; width: 100%; height: 500px">
+        <o-app
+          src="/core/apps/manager/app-config.js"
+          on:click-app="clickApp"
+        ></o-app>
+      </div>
     </div>
   </div>
   <script>
-    const getAppData = async ({ PATH, configUrl }) => {
-      const appUrlObj = new URL(configUrl, PATH);
-      const homeAppData = await import(appUrlObj.href);
-      const iconUrlObj = new URL(homeAppData.icon, appUrlObj);
-
-      return {
-        path: appUrlObj.href,
-        name: homeAppData.name,
-        iconUrl: iconUrlObj.href,
-      };
-    };
+    import { systemApps, installedApps } from "../../data.js";
 
     export default async ({ load }) => {
-      const defaults = {
-        homeApp: "/core/apps/finder/app-config.js",
-      };
-
-      const apps = ["/core/apps/editor/app-config.js"];
-
       return {
         tag: "n-os",
         data: {
@@ -121,35 +115,30 @@
               currentApp.remove();
             }
 
+            if (!currentAppPath) {
+              return;
+            }
+
             this.shadow
               .$(".main")
               .push(`<o-app src="${currentAppPath}" desk-app></o-app>`);
           },
         },
         async ready() {
-          // 获取主页应用的相关数据
-          const homeAppData = await getAppData({
-            PATH: this.PATH,
-            configUrl: defaults.homeApp,
-          });
+          const homeApp = systemApps.find((e) => e.isHome);
 
-          this.using.push(homeAppData);
-          this.currentAppPath = homeAppData.path;
+          await homeApp.watchUntil(() => homeApp.icon);
 
-          apps.forEach(async (e) => {
-            const appData = await getAppData({
-              PATH: this.PATH,
-              configUrl: e,
-            });
-
-            this.using.push(appData);
-          });
+          this.using.push(homeApp);
+          this.currentAppPath = homeApp.path;
         },
         proto: {
-          clickItem(e) {
-            let target = $(e.currentTarget);
+          clickApp(e) {
+            const {
+              data: { path },
+            } = e;
 
-            target;
+            debugger;
           },
           get currentApp() {
             return this.shadow.$("o-app[desk-app]");
