@@ -1,5 +1,6 @@
 <template component>
   <l-m src="@pui/navigation/nav-bar.html"></l-m>
+  <l-m src="@pui/menu/menu-bind.html"></l-m>
   <l-m src="./comps/os-app-item.html"></l-m>
   <style>
     :host {
@@ -69,14 +70,26 @@
   </style>
   <div class="container">
     <div class="left">
-      <x-fill :value="using">
-        <os-app-item
-          on:click="$host.currentAppPath = $data.path"
-          :name="$data.name"
-          :active="$host.currentAppPath === $data.path ? '' : null"
-        >
-          <img attr:src="$data.icon" />
-        </os-app-item>
+      <x-fill :value="using" fill-key="path">
+        <p-menu-bind event="contextmenu" placement="right-start" point>
+          <os-app-item
+            slot="anchor"
+            on:click="$host.currentAppPath = $data.path"
+            :name="$data.name"
+            :active="$host.currentAppPath === $data.path ? '' : null"
+          >
+            <img attr:src="$data.icon" />
+          </os-app-item>
+          <p-menu>
+            <p-menu-item
+              on:click="$host.closeApp($data,$index)"
+              attr:disabled="$data.isHome ? '' : null"
+            >
+              <img src="./sources/close.svg" slot="prefix" />
+              Close {{$data.name}}
+            </p-menu-item>
+          </p-menu>
+        </p-menu-bind>
       </x-fill>
 
       <os-app-item
@@ -88,10 +101,9 @@
       </os-app-item>
     </div>
     <div class="main">
-      <x-fill :value="using">
+      <x-fill :value="using" fill-key="path">
         <o-app
           attr:src="$data.path"
-          fill-key="$data.path"
           desk-app
           attr:current-app="$data.path === $host.currentAppPath ? '' : null"
         ></o-app>
@@ -131,6 +143,13 @@
           this.currentAppPath = homeApp.path;
         },
         proto: {
+          closeApp(data, index) {
+            const target = this.using.splice(index, 1)[0];
+
+            if (this.currentAppPath === target.path) {
+              this.currentAppPath = this.using[0].path;
+            }
+          },
           clickApp(e) {
             const {
               data: { path },
