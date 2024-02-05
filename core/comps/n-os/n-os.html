@@ -104,6 +104,7 @@
       <x-fill :value="using" fill-key="path">
         <o-app
           attr:src="$data.path"
+          on:open-handle="$host.openHandle($event)"
           desk-app
           attr:current-app="$data.path === $host.currentAppPath ? '' : null"
         ></o-app>
@@ -143,6 +144,43 @@
           this.currentAppPath = homeApp.path;
         },
         proto: {
+          async openHandle(event) {
+            const {
+              data: { handle, path },
+            } = event;
+
+            const appName = handle.name;
+            let targetAppPath;
+            // 用应用打开
+            systemApps.some((appData) => {
+              const { suffixs } = appData;
+              if (suffixs) {
+                return suffixs.some((reg) => {
+                  const bool = reg.test(appName);
+                  if (bool) {
+                    targetAppPath = appData.path;
+                  }
+                  return bool;
+                });
+              }
+            });
+
+            if (targetAppPath) {
+              const app = await this.clickApp({
+                data: {
+                  path: targetAppPath,
+                },
+              });
+
+              const { onHandle } = app._module || {};
+
+              if (onHandle) {
+                onHandle.call(app, { handle });
+              }
+            } else {
+              window.open(path);
+            }
+          },
           closeApp(data, index) {
             const target = this.using.splice(index, 1)[0];
 
@@ -164,6 +202,16 @@
             }
 
             this.menuActived = false;
+
+            return new Promise((res) => {
+              $.nextTick(async () => {
+                const targetApp = this.shadow.$(`o-app[src="${path}"]`);
+
+                await targetApp.watchUntil(() => targetApp.appIsReady);
+
+                res(targetApp);
+              });
+            });
           },
           get currentApp() {
             return this.shadow.$("o-app[desk-app][current-app]");

@@ -47,3 +47,7 @@ export const access = (url) => {
   }
   return false;
 };
+
+export function onHandle({ handle }) {
+  console.log(this, handle);
+}

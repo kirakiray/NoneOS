@@ -5,6 +5,7 @@ export const systemApps = $.stanz([
   },
   {
     path: "/core/apps/editor/app-config.js",
+    suffixs: [/\.md$/, /\.txt$/],
   },
 ]);
 
