@@ -58,7 +58,7 @@
         </template>
       </p-select>
       <div class="editor-title">
-        {{name || '未命名'}} {{hasChange ? '*' : ''}}
+        {{name || '未选择文件'}} {{hasChange ? '*' : ''}}
       </div>
       <!-- <p-button disabled style="margin-left: auto"> Reset </p-button> -->
       <p-button
@@ -92,13 +92,9 @@
         },
         proto: {
           get hasChange() {
-            return this.originVal !== this.val;
+            return this._handle && this.originVal !== this.val;
           },
           async save() {
-            if (!this._handle) {
-              debugger;
-            }
-
             await this._handle.write(this.val);
 
             this.originVal = this.val;
@@ -109,7 +105,7 @@
             const text = (this.originVal = await handle.text());
             this.val = text;
 
-            this.name = this._handle.name;
+            this.name = this._handle.path;
           },
           initHandle(handle) {
             this._handle = handle;
