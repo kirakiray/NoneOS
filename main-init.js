@@ -4,10 +4,15 @@ import "https://cdn.jsdelivr.net/gh/ofajs/Punch-UI@0.1.5/init.js";
 import "./core/init.js";
 
 navigator.serviceWorker
-  .register("sw.js", {
-    type: "module",
-  })
+  .register(
+    navigator.userAgent.includes("Firefox") ? "sw-bundle.js" : "/sw.js",
+    {
+      type: "module",
+      scope: "/",
+    }
+  )
   .then((reg) => {
+    // reg.update();
     setTimeout(() => {
       reg.update();
     }, 60 * 60 * 1000);
@@ -15,3 +20,18 @@ navigator.serviceWorker
   .catch((err) => {
     console.error(err);
   });
+
+// navigator.serviceWorker
+//   .register("./test-sw.js", {
+//     type: "module",
+//     scope: "/",
+//   })
+//   .then((reg) => {
+//     // reg.update();
+//     setTimeout(() => {
+//       reg.update();
+//     }, 60 * 60 * 1000);
+//   })
+//   .catch((err) => {
+//     console.error(err);
+//   });

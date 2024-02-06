@@ -39,6 +39,8 @@ self.addEventListener("fetch", async (event) => {
             handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
           }
 
+          console.log("sw", request);
+
           const file = await handle.file();
 
           return new Response(file, {
