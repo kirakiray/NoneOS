@@ -49,6 +49,10 @@
       font-size: 12px;
     }
 
+    p-list-item {
+      margin: 2px 4px;
+    }
+
     .left p-list-item::part(container) {
       padding: 0 16px;
     }
@@ -73,6 +77,7 @@
 
   <template name="left-item">
     <p-list-item
+      radius
       attr:button="$data.name === $host.activeRootName ? null : ''"
       attr:active-item="$data.name === $host.activeRootName ? '' : null"
       on:click="$host.clickRootItem($data)"
@@ -93,7 +98,7 @@
       <div style="height: 40px"></div>
       <p-list>
         <x-fill :value="rootList" name="left-item"> </x-fill>
-        <p-list-item button on:click="clickOpen">
+        <p-list-item button radius on:click="clickOpen">
           <div
             slot="prefix"
             style="width: 20px; text-align: center; font-size: 18px"
@@ -292,7 +297,6 @@
           this.remotes = [];
         },
         routerChange(e) {
-          console.log("router change", e);
           const src = e.current.src;
           const params = new URL(src).searchParams;
 

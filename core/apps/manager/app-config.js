@@ -1,6 +1,6 @@
-export const home = "./files.html";
+export const home = "./manager.html";
 
-export const name = "Files";
+export const name = "Apps";
 
 export const icon = "./icon.svg";
 

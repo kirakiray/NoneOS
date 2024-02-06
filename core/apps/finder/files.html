@@ -94,8 +94,6 @@
 
       const selfDir = path ? await rootDir.get(query.path) : rootDir;
 
-      console.log("selfDir: ", selfDir);
-
       return {
         parent: "./frame.html",
         data: {
@@ -167,6 +165,9 @@
           },
           async gotoPath(e) {
             const data = $(e.target);
+            if (!data.type) {
+              return;
+            }
             if (data.type === "directory") {
               this.goto(
                 `./files.html?rootname=${rootname}&path=${[
@@ -176,11 +177,20 @@
               );
               this.parent.selectedName = "";
             } else {
-              window.open(
-                `/$${
-                  rootname !== "Local" ? rootname : ""
-                }/${data._item.relativePaths.join("/")}`
-              );
+              this.emit("open-handle", {
+                data: {
+                  handle: await selfDir.get(data.name),
+                  path: `/$${
+                    rootname !== "Local" ? rootname : ""
+                  }/${data._item.relativePaths.join("/")}`,
+                },
+              });
+              
+              // window.open(
+              //   `/$${
+              //     rootname !== "Local" ? rootname : ""
+              //   }/${data._item.relativePaths.join("/")}`
+              // );
               // console.log(await data._item.text());
             }
           },
@@ -189,7 +199,7 @@
 
             const target = $(e.target);
 
-            window.__finder_select = target._item;
+            // window.__finder_select = target._item;
 
             if (target) {
               target.classList.toggle("selected");

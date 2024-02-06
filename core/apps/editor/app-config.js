@@ -1,6 +1,6 @@
-export const home = "./files.html";
+export const home = "./editor.html";
 
-export const name = "Files";
+export const name = "Editor";
 
 export const icon = "./icon.svg";
 
@@ -47,3 +47,7 @@ export const access = (url) => {
   }
   return false;
 };
+
+export function onHandle({ handle }) {
+  this[0].initHandle(handle);
+}
