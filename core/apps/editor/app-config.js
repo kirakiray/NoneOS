@@ -49,5 +49,5 @@ export const access = (url) => {
 };
 
 export function onHandle({ handle }) {
-  console.log(this, handle);
+  this[0].initHandle(handle);
 }

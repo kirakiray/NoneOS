@@ -57,30 +57,63 @@
           </x-fill>
         </template>
       </p-select>
-      <div class="editor-title">未命名</div>
+      <div class="editor-title">
+        {{name || '未命名'}} {{hasChange ? '*' : ''}}
+      </div>
       <!-- <p-button disabled style="margin-left: auto"> Reset </p-button> -->
       <p-button
         style="margin-left: auto"
         size="small"
         attr:disabled="!hasChange ? 1 : null"
+        on:click="save"
       >
         Save
       </p-button>
     </div>
     <div class="main">
-      <textarea class="main_inner"> </textarea>
+      <textarea class="main_inner" sync:value="val"> </textarea>
     </div>
   </div>
   <script>
     export default async () => {
       return {
         data: {
-          hasChange: false,
+          // hasChange: false,
           fsize: "14",
+          _handle: null,
+          name: "",
+          originVal: "",
+          val: "",
         },
         watch: {
           fsize(fsize) {
             this.shadow.$("textarea").css.fontSize = fsize + "px";
+          },
+        },
+        proto: {
+          get hasChange() {
+            return this.originVal !== this.val;
+          },
+          async save() {
+            if (!this._handle) {
+              debugger;
+            }
+
+            await this._handle.write(this.val);
+
+            this.originVal = this.val;
+          },
+          async renderText() {
+            const handle = this._handle;
+
+            const text = (this.originVal = await handle.text());
+            this.val = text;
+
+            this.name = this._handle.name;
+          },
+          initHandle(handle) {
+            this._handle = handle;
+            this.renderText();
           },
         },
       };
