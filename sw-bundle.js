@@ -346,7 +346,7 @@
 
   const remotes = [];
 
-  globalThis.remotes = remotes;
+  // globalThis.remotes = remotes;
 
   console.log("fsId", fsId);
 
@@ -410,7 +410,7 @@
     if (document.querySelector("[data-fsid]")) {
       document.querySelector("[data-fsid]").innerHTML = fsId;
     }
-    
+
     filerootChannel.addEventListener("message", (event) => {
       if (document.querySelector("[data-remotes]")) {
         document.querySelector("[data-remotes]").innerHTML = JSON.stringify(

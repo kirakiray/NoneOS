@@ -20,18 +20,3 @@ navigator.serviceWorker
   .catch((err) => {
     console.error(err);
   });
-
-// navigator.serviceWorker
-//   .register("./test-sw.js", {
-//     type: "module",
-//     scope: "/",
-//   })
-//   .then((reg) => {
-//     // reg.update();
-//     setTimeout(() => {
-//       reg.update();
-//     }, 60 * 60 * 1000);
-//   })
-//   .catch((err) => {
-//     console.error(err);
-//   });
