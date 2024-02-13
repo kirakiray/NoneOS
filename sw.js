@@ -1,5 +1,15 @@
-import { get, getAll } from "./core/fs/main.js";
+// import { get } from "./core/fs/main.js";
 import { remotes } from "./core/fs/remote/data.js";
+import { storage } from "./core/fs/storage.js";
+
+(async () => {
+  try {
+    // await storage.setItem("haha", "hahahaha");
+  } catch (err) {
+    console.log("hahaerror");
+    console.error(err);
+  }
+})();
 
 self.addEventListener("fetch", async (event) => {
   const { request } = event;
@@ -38,6 +48,8 @@ self.addEventListener("fetch", async (event) => {
           } else {
             handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
           }
+
+          console.log("sw", request);
 
           const file = await handle.file();
 

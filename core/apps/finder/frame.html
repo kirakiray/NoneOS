@@ -98,7 +98,7 @@
       <div style="height: 40px"></div>
       <p-list>
         <x-fill :value="rootList" name="left-item"> </x-fill>
-        <p-list-item button radius on:click="clickOpen">
+        <p-list-item button radius on:click="clickOpen" attr:disabled="window.showDirectoryPicker ? null : ''">
           <div
             slot="prefix"
             style="width: 20px; text-align: center; font-size: 18px"

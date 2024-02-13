@@ -8,13 +8,15 @@
       src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.4.5/dist/ofa.min.js"
       debug
     ></script>
-    <!-- <script src="https://cdn.jsdelivr.net/gh/ofajs/Punch-UI@0.1.5/init.js"></script> -->
     <script src="./main-init.js" type="module"></script>
     <!-- <link
       rel="stylesheet"
       href="http://127.0.0.1:55470/packages/css/public.css"
     /> -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/ofajs/Punch-UI@0.1.5/packages/css/public.css">
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/ofajs/Punch-UI@0.1.5/packages/css/public.css"
+    />
     <link rel="stylesheet" href="./core/publics/theme.css" />
     <style>
       html,
@@ -24,6 +26,11 @@
         height: 100%;
       }
     </style>
+    <script type="module">
+      import { storage } from "./core/fs/storage.js";
+
+      storage.setItem("haha2", "haha222222");
+    </script>
   </head>
   <body>
     <l-m src="./core/comps/n-os/n-os.html"></l-m>

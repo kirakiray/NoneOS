@@ -6,7 +6,8 @@
   "scripts": {
     "static-server": "node scripts/static-server",
     "start": "node scripts/start",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "build-sw": "rollup sw.js --file sw-bundle.js --format iife"
   },
   "repository": {
     "type": "git",
@@ -23,6 +24,7 @@
     "koa": "^2.14.1",
     "koa-static": "^5.0.0",
     "open": "^10.0.2",
+    "rollup": "^4.9.6",
     "shelljs": "^0.8.5"
   },
   "dependencies": {
