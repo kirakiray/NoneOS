@@ -1,4 +1,4 @@
-// import { get } from "./core/fs/main.js";
+import { get } from "./core/fs/main.js";
 import { remotes } from "./core/fs/remote/data.js";
 import { storage } from "./core/fs/storage.js";
 
