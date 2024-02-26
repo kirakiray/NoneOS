@@ -1,0 +1,72 @@
+<template component>
+  <link rel="stylesheet" href="../text-field/inputer.css" />
+  <style id="default-style">
+    :host {
+      display: none !important;
+    }
+  </style>
+  <div
+    class="container"
+    attr:variant="variant"
+    class:disabled="typeof disabled === 'string'"
+    class:error="typeof error === 'string'"
+    class:hasprefix="hasprefix"
+  >
+    <div class="prefix">
+      <slot name="prefix"></slot>
+    </div>
+    <div class="bottom-line"></div>
+    <input type="text" class="inputer" sync:value="value" />
+    <div>
+      <div class="placeholder" class:not-empty="!!value">
+        <slot></slot>
+      </div>
+      <div class="border"></div>
+      <div class="bottom-line-active"></div>
+    </div>
+    <div class="helper-text">
+      <slot name="helper"></slot>
+    </div>
+    <div class="suffix" class:not-empty="!!value">
+      <slot name="suffix"></slot>
+    </div>
+  </div>
+  <script>
+    export default {
+      tag: "p-search-field",
+      attrs: {
+        name: null,
+        error: null,
+        variant: null,
+        disabled: null,
+        defaultValue: null,
+      },
+      data: {
+        value: "",
+        hasprefix: false,
+      },
+      watch: {
+        defaultValue(val) {
+          if (val) {
+            this.value = val;
+          }
+        },
+      },
+      proto: {},
+      ready() {
+        this.shadow.on("slotchange", () => {
+          let hasprefix = false;
+          this.forEach((e) => {
+            if (e.attr("slot") === "prefix") {
+              hasprefix = true;
+            }
+          });
+          this.hasprefix = hasprefix;
+        });
+      },
+      loaded() {
+        this.shadow.$("#default-style").remove();
+      },
+    };
+  </script>
+</template>

@@ -1,0 +1,127 @@
+<template page>
+  <l-m src="../packages/list/list.html"></l-m>
+  <style>
+    .test-avatar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+    }
+
+    .avatar-pic {
+      width: 50px;
+      height: 50px;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-color: #aaa;
+      background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+    }
+  </style>
+  <p-list>
+    <p-list-item> Headline 1</p-list-item>
+    <p-list-item>
+      <iconify-icon
+        icon="mdi:user-outline"
+        slot="prefix"
+        style="font-size: 22px"
+      ></iconify-icon>
+      Headline 2
+    </p-list-item>
+
+    <p-list-item>
+      <div slot="prefix" class="test-avatar">3</div>
+      Headline 3
+      <p-checkbox slot="suffix"></p-checkbox>
+    </p-list-item>
+    <p-list-item>
+      <div class="avatar-pic" slot="prefix"></div>
+      Headline 4
+      <span slot="suffix">4+</span>
+    </p-list-item>
+    <p-list-item>
+      <div
+        class="avatar-pic"
+        slot="prefix"
+        style="margin-left: 0; width: 80px; height: 56px"
+      ></div>
+      Headline 5
+      <span slot="suffix">5+</span>
+    </p-list-item>
+    <p-list-item>
+      Headline 6
+      <span secondary>Supporting text 6</span>
+    </p-list-item>
+    <p-list-item>
+      <iconify-icon
+        icon="mdi:user-outline"
+        slot="prefix"
+        style="font-size: 22px"
+      ></iconify-icon>
+      Headline 7
+      <span secondary>Supporting text 7</span>
+    </p-list-item>
+    <p-list-item>
+      <div slot="prefix" class="test-avatar">8</div>
+      Headline 8
+      <span secondary>Supporting text 8</span>
+      <p-checkbox slot="suffix"></p-checkbox>
+    </p-list-item>
+
+    <p-list-item>
+      <div class="avatar-pic" slot="prefix"></div>
+      Headline 9
+      <span secondary>Supporting text 9</span>
+      <span slot="suffix">9+</span>
+    </p-list-item>
+
+    <p-list-item>
+      <div
+        class="avatar-pic"
+        slot="prefix"
+        style="margin-left: 0; width: 80px; height: 56px"
+      ></div>
+      Headline 10
+      <span secondary>Supporting text 10</span>
+      <span slot="suffix">10+</span>
+    </p-list-item>
+    <p-list-item align-top>
+      <div
+        class="avatar-pic"
+        slot="prefix"
+        style="margin-left: 0; width: 80px; height: 56px"
+      ></div>
+      Headline 10.5
+      <span secondary ellipsis="2"
+        >Supporting line text lorem ipsum dolor sit amet, consectetur 10.5</span
+      >
+      <span slot="suffix">10.5+</span>
+    </p-list-item>
+
+    <p-list-item button="suffix">
+      <iconify-icon
+        icon="icon-park:multi-triangular-two"
+        slot="prefix"
+        style="font-size: 22px"
+      ></iconify-icon>
+      Headline 11
+      <span secondary>Supporting text 11</span>
+      <p-checkbox slot="suffix"></p-checkbox>
+    </p-list-item>
+
+    <p-list-item button="suffix">
+      <iconify-icon
+        icon="icon-park:multi-function-knife"
+        slot="prefix"
+        style="font-size: 22px"
+      ></iconify-icon>
+      Headline 12
+      <span secondary>Supporting text 12</span>
+      <!-- <p-checkbox slot="suffix"></p-checkbox> -->
+      <p-switch slot="suffix"></p-switch>
+    </p-list-item>
+  </p-list>
+</template>

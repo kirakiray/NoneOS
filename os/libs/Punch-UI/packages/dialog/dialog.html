@@ -1,0 +1,170 @@
+<template component>
+  <l-m src="./mask.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      font-size: 14px;
+    }
+    .main {
+      box-sizing: border-box;
+      padding: calc(var(--pui-space-y) * 6) calc(var(--pui-space-x) * 4);
+      border-radius: var(--dialog-border-radius, 30px);
+      background-color: var(--md-sys-color-on-normal);
+      width: var(--dialog-width, 320px);
+    }
+    .tltle {
+      display: flex;
+      align-items: center;
+      font-size: 20px;
+      font-weight: 400;
+      line-height: 1.2em;
+    }
+
+    ::slotted([slot="title"]) {
+      margin-bottom: calc(var(--pui-space-y) * 3);
+    }
+
+    .content {
+      line-height: 1.6em;
+      max-height: calc(100vh - 200px);
+      overflow: auto;
+    }
+    .bottom {
+      display: flex;
+      justify-content: var(--bottom-align, flex-end);
+    }
+    ::slotted([slot="bottom"]) {
+      margin: calc(var(--pui-space-y) * 6) var(--pui-space-x) 0;
+    }
+    ::slotted([slot="bottom"]:first-child) {
+      margin-left: 0;
+    }
+    ::slotted([slot="bottom"]:last-child) {
+      margin-right: 0;
+    }
+
+    .main {
+      pointer-events: none;
+    }
+    .showall.main {
+      pointer-events: auto;
+    }
+
+    .main > * {
+      opacity: 0;
+      transition: opacity ease 0.2s;
+      transition-delay: 0.2s;
+    }
+    .showall.main > * {
+      opacity: 1;
+    }
+
+    .close-btn {
+      display: none;
+      margin-right: calc(var(--pui-space-x) * 3);
+    }
+  </style>
+
+  <style :html="fstyle"></style>
+
+  <x-if :value="noMask === null">
+    <p-mask
+      sync:open="open"
+      sync:mask-id="maskId"
+      on:click-mask="emit('click-mask',{bubbles:false})"
+    >
+      <div class="main" class:showall="open" part="main">
+        <div class="tltle">
+          <span class="close-btn" on:click="emit('click-close',{bubbles:false})"
+            >✕</span
+          >
+          <slot name="title"></slot>
+        </div>
+        <div class="content" part="content"><slot></slot></div>
+        <div class="bottom">
+          <slot name="bottom"></slot>
+        </div>
+      </div>
+    </p-mask>
+  </x-if>
+  <x-else-if :value="open">
+    <div class="main showall" part="main">
+      <div class="tltle">
+        <span class="close-btn" on:click="emit('click-close',{bubbles:false})"
+          >✕</span
+        >
+        <slot name="title"></slot>
+      </div>
+      <div class="content" part="content"><slot></slot></div>
+      <div class="bottom">
+        <slot name="bottom"></slot>
+      </div>
+    </div>
+  </x-else-if>
+
+  <script>
+    export default async ({ load }) => {
+      load("./mask.html");
+
+      return {
+        tag: "p-dialog",
+        attrs: {
+          fullscreen: null,
+          autoclose: null,
+          noMask: null,
+        },
+        data: {
+          maskId: 100,
+          open: false,
+          fstyle: "",
+        },
+        proto: {},
+        watch: {
+          open(val) {
+            clearTimeout(this._focusTimer);
+            if (val) {
+              this._focusTimer = setTimeout(() => {
+                let targetInput = this.$("[autofocus]");
+
+                if (!targetInput) {
+                  targetInput = this.$("p-text-field");
+                }
+
+                if (!targetInput) {
+                  targetInput = this.$("p-button");
+                }
+
+                targetInput && targetInput.focus();
+              }, 100);
+            }
+          },
+          fullscreen(val) {
+            if (val !== null) {
+              this.fstyle = `
+      @media screen and (max-width: ${val === "" ? "100vw" : val + "px"}) {
+        .main {
+          height: 100%;
+          width: 100%;
+          border-radius:0;
+        }
+
+        .close-btn {
+          display: block;
+        }
+
+        .tltle {
+        }
+
+        .content {
+          max-height: calc(100vh - 150px);
+        }
+      }`;
+            } else {
+              this.fstyle = "";
+            }
+          },
+        },
+      };
+    };
+  </script>
+</template>

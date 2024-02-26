@@ -1,0 +1,103 @@
+<template component>
+  <l-m src="./menu.html"></l-m>
+  <l-m src="../tooltips/placement.html"></l-m>
+  <style>
+    :host {
+      display: contents;
+    }
+    ::slotted(p-menu) {
+      width: max-content;
+    }
+    p-placement {
+      margin: 0;
+      padding: 0;
+    }
+
+    p-placement::part(container) {
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+  <p-placement :placement="placement" :event="event" :point="point">
+    <slot></slot>
+  </p-placement>
+  <slot name="anchor"></slot>
+  <script>
+    export default async ({ load }) => {
+      await load("../tooltips/placement.html");
+
+      return {
+        tag: "p-menu-bind",
+        attrs: {
+          anchor: null,
+          event: null,
+          placement: null,
+          point: null,
+        },
+        watch: {
+          ["anchor,event,placement"]() {
+            this.init();
+          },
+        },
+        proto: {
+          init() {
+            if (!this.ele.isConnected) {
+              return;
+            }
+
+            const menu = this.$("p-menu");
+
+            if (!menu) {
+              return;
+            }
+
+            const { anchor, event, placement } = this;
+            const marked = `${anchor}-${event}-${placement}-${menu.xid}`;
+            if (marked === this._before_init_marked) {
+              return;
+            }
+
+            this._before_init_marked = marked;
+
+            const anchorEl = anchor
+              ? this.root.$(anchor)
+              : this.$('[slot="anchor"]');
+            const placementEl = this.shadow.$("p-placement");
+
+            if (!anchorEl) {
+              console.warn(
+                `menu-bind did not find the anchor element`,
+                this.ele
+              );
+              this.shadow.$("p-placement")._offBinding();
+              return;
+            }
+
+            this.$("p-menu").visibility = "hidden";
+
+            this.shadow.$("p-placement")._init({
+              self: anchorEl,
+              open: () => {
+                placementEl._refreshPosition(anchorEl);
+                this.$("p-menu").visibility = null;
+              },
+              close: () => {
+                this.$("p-menu").visibility = "hidden";
+              },
+            });
+
+            // console.log("menu-bind", anchorEl, marked);
+          },
+        },
+        attached() {
+          this.init();
+
+          this.on("click-item", () => {
+            this.shadow.$("p-placement").showmask = false;
+            this.$("p-menu").visibility = "hidden";
+          });
+        },
+      };
+    };
+  </script>
+</template>

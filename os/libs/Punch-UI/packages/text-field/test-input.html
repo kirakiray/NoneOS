@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Text Field</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.4.5/dist/ofa.min.js"
+      debug
+    ></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      *:not(:defined) {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/comp-shower.html"></l-m>
+    <l-m src="../../ancillary/dark-switch.html"></l-m>
+    <l-m src="./text-field.html"></l-m>
+    <dark-switch></dark-switch>
+    <div style="padding: 24px">
+      <p-text-field>
+        <label>Label</label>
+      </p-text-field>
+      <p-text-field variant="filled" autofocus>
+        <label>filled</label>
+      </p-text-field>
+      <p-text-field default-value="Default value haha">
+        <label>add default</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field size="small">
+        <label>Size Small</label>
+      </p-text-field>
+      <p-text-field variant="filled" size="small">
+        <label>Size Small 2</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field size="large">
+        <label>Size Large</label>
+      </p-text-field>
+      <p-text-field variant="filled" size="large">
+        <label>Size Large 2</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field multiline max-rows="3">
+        <label>multiline</label>
+      </p-text-field>
+      <p-text-field multiline variant="filled">
+        <label>multiline</label>
+      </p-text-field>
+      <p-text-field multiline rows="3">
+        <label>multiline</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field multiline max-rows="3" disabled>
+        <label>disabled true</label>
+      </p-text-field>
+      <p-text-field
+        multiline
+        max-rows="3"
+        disabled
+        default-value="Default value disabled"
+      >
+        <label>disabled true</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field>
+        <label>Label</label>
+        <div slot="helper">I am helper 1</div>
+      </p-text-field>
+      <p-text-field variant="filled">
+        <label>filled</label>
+        <div slot="helper">I am helper 2</div>
+      </p-text-field>
+      <p-text-field disabled>
+        <label>disabled</label>
+        <div slot="helper">I am helper 3</div>
+      </p-text-field>
+      <br /><br />
+
+      <p-text-field error>
+        <label>Error Label</label>
+        <div slot="helper">I am helper 1</div>
+      </p-text-field>
+      <p-text-field variant="filled" error default-value="Error Val">
+        <label>Error filled</label>
+        <div slot="helper">I am helper 2</div>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field>
+        <label>Label</label>
+        <div slot="prefix">$</div>
+      </p-text-field>
+      <p-text-field variant="filled">
+        <label>Label</label>
+        <div slot="prefix">$</div>
+      </p-text-field>
+      <p-text-field>
+        <label>filled</label>
+        <div slot="suffix">/ 100</div>
+      </p-text-field>
+      <p-text-field variant="filled">
+        <label>filled</label>
+        <div slot="suffix">/ 100</div>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field type="number">
+        <label>Number</label>
+      </p-text-field>
+      <p-text-field type="number" variant="filled">
+        <label>Number</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field type="email">
+        <label>email</label>
+      </p-text-field>
+      <p-text-field type="email">
+        <label>email</label>
+        <div slot="suffix">@gmail.com</div>
+      </p-text-field>
+      <p-text-field type="email" variant="filled">
+        <label>email</label>
+      </p-text-field>
+      <br />
+      <br />
+      <!-- <p-text-field type="time">
+        <label>Time</label>
+      </p-text-field>
+      <p-text-field type="time" variant="filled">
+        <label>Time</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field type="date">
+        <label>date</label>
+      </p-text-field>
+      <p-text-field type="date" variant="filled">
+        <label>date</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field type="datetime-local">
+        <label>datetime-local</label>
+      </p-text-field>
+      <p-text-field type="datetime-local" variant="filled">
+        <label>datetime-local</label>
+      </p-text-field> -->
+    </div>
+  </body>
+</html>

@@ -1,0 +1,241 @@
+<template page>
+  <l-m src="./comps/icon-block.html"></l-m>
+  <l-m src="@pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      align-content: flex-start;
+      padding: 8px;
+      box-sizing: border-box;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    icon-block {
+      margin: 2px;
+    }
+    icon-block::part(container) {
+      padding: 4px;
+    }
+
+    icon-block:hover::part(container) {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    icon-block.selected::part(container) {
+      background-color: rgba(14, 55, 205, 0.05);
+    }
+    .empty-con {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      min-height: 300px;
+      font-size: 14px;
+      color: #aaa;
+      user-select: none;
+    }
+  </style>
+
+  <div class="container" on:dblclick="gotoPath" on:click="select">
+    <x-fill :value="files" fill-key="name">
+      <icon-block
+        :name="$data.name"
+        :type="$data.type"
+        :_item="$data._item"
+      ></icon-block>
+    </x-fill>
+    <x-if :value="!files.length">
+      <div class="empty-con">Empty</div>
+    </x-if>
+  </div>
+
+  <script>
+    export default async ({ load, query }) => {
+      const { get, getAll } = await load("../../fs/system/main.js");
+      const { confirm } = await load("@pui/dialog/command.js");
+      const { remotes } = await load("../../fs/remote/data.js");
+
+      const all = await getAll();
+
+      let path = "";
+      let rootname = query.rootname || "Local";
+      let rootDir = all.find((e) => e.name === rootname)?.handle;
+
+      if (!rootDir) {
+        remotes.some((e) => {
+          return e.others.some((item) => {
+            if (item.name === rootname) {
+              rootDir = item;
+              return true;
+            }
+          });
+        });
+      }
+
+      if (!rootDir) {
+        alert(`error. not found the "${rootname}"`);
+      }
+
+      if (query.path) {
+        path = query.path;
+      }
+
+      const selfDir = path ? await rootDir.get(query.path) : rootDir;
+
+      return {
+        parent: "./system-handle-frame.html",
+        data: {
+          _selfDir: null,
+          paths: query.path ? query.path.split("/") : [],
+          files: [],
+        },
+        // watch: {
+        //   files(files) {
+        //     // console.time("aa");
+        //     // $.nextTick(() => console.timeEnd("aa"));
+        //   },
+        // },
+        proto: {
+          async renameItem(name) {
+            const selectedItem = this.shadow.$("icon-block.selected");
+            selectedItem.renamemode = true;
+          },
+          async deleteItem(name) {
+            const item = await selfDir.get(name);
+
+            try {
+              await item.remove();
+            } catch (err) {
+              const result = await confirm({
+                title: `删除 ${item.name}`,
+                content: "文件夹内包含其他文件，是否删除该文件夹？",
+              });
+
+              if (!result) {
+                return;
+              }
+
+              await item.remove({ recursive: true });
+            }
+            this.reloadList();
+          },
+          async addFolder() {
+            let name = "";
+
+            let count = 1;
+            while (true) {
+              name = `newFolder${count}`;
+              try {
+                const target = await selfDir.get(name);
+                count++;
+              } catch (err) {
+                break;
+              }
+            }
+            await selfDir.get(name, {
+              create: "directory",
+            });
+
+            await this.reloadList();
+          },
+          async reloadList() {
+            const files = [];
+            for await (let item of selfDir.values()) {
+              files.push({
+                type: item.kind,
+                name: item.name,
+                _item: item,
+              });
+            }
+
+            this.files = files;
+            this.parent.selectedName = "";
+          },
+          async gotoPath(e) {
+            const data = $(e.target);
+            if (!data.type) {
+              return;
+            }
+            if (data.type === "directory") {
+              this.goto(
+                `./system-handle-files.html?rootname=${rootname}&path=${[
+                  ...this.paths,
+                  data.name,
+                ].join("/")}`
+              );
+              this.parent.selectedName = "";
+            } else {
+              this.emit("open-handle", {
+                data: {
+                  handle: await selfDir.get(data.name),
+                  path: `/$${
+                    rootname !== "Local" ? rootname : ""
+                  }/${data._item.relativePaths.join("/")}`,
+                },
+              });
+
+              // window.open(
+              //   `/$${
+              //     rootname !== "Local" ? rootname : ""
+              //   }/${data._item.relativePaths.join("/")}`
+              // );
+              // console.log(await data._item.text());
+            }
+          },
+          select(e) {
+            e.stopPropagation();
+
+            const target = $(e.target);
+
+            // window.__finder_select = target._item;
+
+            if (target) {
+              target.classList.toggle("selected");
+              if (target.classList.contains("selected")) {
+                this.parent.selectedName = target.name;
+              } else {
+                this.parent.selectedName = "";
+              }
+            }
+
+            this.shadow.all(`.selected`).forEach((e) => {
+              if (e.name !== target.name) {
+                e.classList.remove("selected");
+              }
+            });
+          },
+          clearSelect() {
+            this.shadow.all("icon-block").forEach((block) => {
+              block.classList.remove("selected");
+            });
+            this.parent.selectedName = "";
+          },
+        },
+        ready() {
+          this._selfDir = selfDir;
+          this.reloadList();
+          this.on("click", () => this.clearSelect());
+          this.parent.paths = query.path ? query.path.split("/") : [];
+          this.shadow.on("change-name", async (e) => {
+            const { oldName, newName } = e.data;
+            const handle = await selfDir.get(oldName);
+            await handle.move(newName);
+            this.reloadList();
+          });
+        },
+      };
+    };
+  </script>
+</template>

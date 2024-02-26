@@ -1,0 +1,316 @@
+<template page>
+  <l-m src="./comps/icon-block.html"></l-m>
+  <l-m src="@pui/button/button-group.html"></l-m>
+  <l-m src="@pui/list/list.html"></l-m>
+  <l-m src="@pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      height: 100%;
+    }
+    .hide {
+      display: none;
+    }
+    .left {
+      width: 200px;
+      overflow: auto;
+      background-color: #eee;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      height: 40px;
+      padding: 0 8px;
+      border-bottom: #eee solid 1px;
+    }
+    .top > * {
+      margin-right: 8px;
+    }
+    .content {
+      position: relative;
+      flex: 1;
+    }
+    .bottom {
+      display: flex;
+      align-items: center;
+      padding: 0 8px;
+      height: 26px;
+      border-top: #eee solid 1px;
+      color: #4a4a4a;
+    }
+    .path {
+      font-size: 12px;
+    }
+
+    p-list-item {
+      margin: 2px 4px;
+    }
+
+    .left p-list-item::part(container) {
+      padding: 0 16px;
+    }
+
+    .icon-prefix {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 20px;
+    }
+    .icon-prefix > img {
+      display: block;
+    }
+
+    .left h4 {
+      padding: 0;
+      margin: 8px 0 4px 16px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+  </style>
+
+  <template name="left-item">
+    <p-list-item
+      radius
+      attr:button="$data.name === $host.activeRootName ? null : ''"
+      attr:active-item="$data.name === $host.activeRootName ? '' : null"
+      on:click="$host.clickRootItem($data)"
+    >
+      <div class="icon-prefix" slot="prefix">
+        <x-if :value="$data.name === 'Local'">
+          <img src="./icons/pc.svg" height="22" style="display: block" />
+        </x-if>
+        <x-else>
+          <img src="./icons/harddisk.svg" height="16" />
+        </x-else>
+      </div>
+      {{$data.name}}
+    </p-list-item>
+  </template>
+  <div class="container">
+    <div class="left">
+      <div style="height: 40px"></div>
+      <p-list>
+        <x-fill :value="rootList" name="left-item"> </x-fill>
+      </p-list>
+    </div>
+    <div class="main">
+      <div class="top">
+        <p-button size="small" variant="text" on:click="app.back()">
+          Back
+        </p-button>
+        <p-button size="small" variant="text" on:click="reload">
+          Reload
+        </p-button>
+        <p-button size="small" variant="text" on:click="addFolder">
+          New Folder
+        </p-button>
+        <p-button size="small" variant="text">
+          Import File
+          <input type="file" on:change="importFile" button-goal multiple />
+        </p-button>
+        <p-button size="small" variant="text">
+          Import Dir
+          <input
+            type="file"
+            on:change="importFile"
+            button-goal
+            webkitdirectory
+          />
+        </p-button>
+        <p-button-group size="small" variant="text">
+          <p-button
+            on:click="deleteItem(selectedName)"
+            attr:disabled="selectedName ? null : 1"
+          >
+            Delete
+          </p-button>
+          <p-button
+            on:click="renameItem(selectedName)"
+            attr:disabled="selectedName ? null : 1"
+          >
+            Rename
+          </p-button>
+        </p-button-group>
+        <p-button
+          size="small"
+          variant="text"
+          attr:disabled="selectedName ? null : 1"
+          on:click="exploreData"
+        >
+          Explore
+        </p-button>
+      </div>
+      <div class="content">
+        <slot></slot>
+      </div>
+      <div class="bottom">
+        <div class="path">{{activeRootName}}/{{pathStr}}</div>
+      </div>
+    </div>
+  </div>
+
+  　
+  <p-dialog :open="processing">
+    <div>{{processing}} files, please wait.</div>
+    <div style="font-size: 12px; font-weight: 500; white-space: nowrap">
+      {{processingDesc}}
+    </div>
+    <div>{{processingCount}} / {{processingTotal }}</div>
+    <p-progress
+      :value="processingCount / processingTotal * 100"
+      style="--progress-animation: none"
+    ></p-progress>
+  </p-dialog>
+
+  <script>
+    export default async ({ load }) => {
+      const { exploreFolder } = await load("../../zip/main.js");
+      const { get } = await load("../../fs/local/main.js");
+
+      return {
+        data: {
+          activeRootName: "Local", // 左侧激活中的根文件名
+          rootList: [{ name: "Local" }], // 左侧展示中可选用的空间
+          paths: [], // 文件路径
+          selectedName: "", // 选择的文件名
+          processing: "",
+          processingPath: "",
+          processingCount: 1,
+          processingTotal: 1,
+        },
+        proto: {
+          get processingDesc() {
+            const { processingPath } = this;
+            if (processingPath.length > 40) {
+              return (
+                processingPath.slice(0, 18) + "..." + processingPath.slice(-18)
+              );
+            }
+
+            return processingPath;
+          },
+          reload() {
+            this[0].reloadList();
+          },
+          clickRootItem(itemData) {
+            if (itemData.name === this.activeRootName) {
+              return;
+            }
+            this.goto(`./files.html?rootname=${itemData.name}`);
+          },
+          async exploreData() {
+            const targetHandle = await get(
+              `${this.paths.length ? this.paths.join("/") + "/" : ""}${
+                this.selectedName
+              }`
+            );
+
+            if (targetHandle.kind === "file") {
+              const file = await targetHandle.file();
+              saveAs(file, this.selectedName);
+              return;
+            }
+
+            const file = await exploreFolder(targetHandle, this.selectedName);
+
+            saveAs(file, this.selectedName);
+          },
+          addFolder() {
+            this[0].addFolder();
+          },
+          renameItem(name) {
+            this[0].renameItem(name);
+          },
+          deleteItem(name) {
+            this[0].deleteItem(
+              name,
+              ({ total, count, deleted, item, path }) => {
+                this.processingTotal = total;
+                this.processingCount = count;
+                this.processingPath = path;
+                this.processing = "Removing";
+
+                if (total === count) {
+                  setTimeout(() => {
+                    this.processing = "";
+                  }, 100);
+                }
+              }
+            );
+          },
+          async importFile(e) {
+            const fileList = Array.from(e.target.files).filter((file) => {
+              const path = file.webkitRelativePath || file.name;
+
+              // 不导入隐藏文件和node_modules
+              if (
+                path
+                  .split("/")
+                  .some((e) => e === "node_modules" || /^\./.test(e))
+              ) {
+                return false;
+              }
+
+              return true;
+            });
+
+            this.processing = "Importing";
+            this.processingTotal = fileList.length;
+            this.processingCount = 1;
+
+            const dir = this[0]._selfDir;
+
+            for (let file of fileList) {
+              const path = file.webkitRelativePath || file.name;
+
+              this.processingPath = path;
+
+              if (path) {
+                const handle = await dir.get(path, {
+                  create: "file",
+                });
+
+                await handle.write(file);
+
+                this.processingCount++;
+              }
+            }
+
+            this.processing = "";
+
+            this[0].reloadList();
+          },
+          get pathStr() {
+            return this.paths.join("/");
+          },
+        },
+        ready() {
+          // this.reloadList();
+        },
+        routerChange(e) {
+          const src = e.current.src;
+          const params = new URL(src).searchParams;
+
+          this.activeRootName = params.get("rootname") || "Local";
+        },
+      };
+    };
+
+    function saveAs(blob, fileName) {
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    }
+  </script>
+</template>

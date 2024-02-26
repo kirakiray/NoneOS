@@ -1,0 +1,263 @@
+<template component>
+  <l-m src="./tab.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: inline-block;
+      font-size: 14px;
+      border-bottom: var(--md-ref-palette-normal60) solid 0.5px;
+      overflow: auto;
+      --wave-color: var(--md-ref-palette-translucent-primary60);
+      /* overflow-x: clip; */
+    }
+    .container {
+      display: flex;
+      width: fit-content;
+    }
+
+    .indicator {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 0;
+      border-bottom: 3px solid var(--md-sys-color-primary);
+      border-left: 2px solid transparent;
+      border-right: 2px solid transparent;
+      /* transition: left ease 0.3s, width ease 0.3s; */
+    }
+
+    :host([secondary]) .indicator {
+      border-bottom: 2px solid var(--md-sys-color-primary);
+      border-left: 0px solid transparent;
+      border-right: 0px solid transparent;
+    }
+
+    .scroll-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      display: none;
+      width: 30px;
+      flex-shrink: 0;
+      z-index: 3;
+      cursor: pointer;
+      position: sticky;
+    }
+    .scroll-btn.left {
+      left: 0;
+      background-image: linear-gradient(
+        to right,
+        var(--md-sys-color-normal-container),
+        rgba(0, 0, 0, 0)
+      );
+    }
+    .scroll-btn.left:before {
+      display: block;
+      content: "";
+      border-right: var(--md-sys-color-on-primary-container) solid 5px;
+      border-top: transparent solid 5px;
+      border-bottom: transparent solid 5px;
+    }
+
+    .scroll-btn.right {
+      right: 0;
+      background-image: linear-gradient(
+        to left,
+        var(--md-sys-color-normal-container),
+        rgba(0, 0, 0, 0)
+      );
+    }
+    .scroll-btn.right:before {
+      display: block;
+      content: "";
+      border-left: var(--md-sys-color-on-primary-container) solid 5px;
+      border-top: transparent solid 5px;
+      border-bottom: transparent solid 5px;
+    }
+
+    :host([scroll-buttons]) .scroll-btn {
+      display: flex;
+    }
+  </style>
+
+  <inject-host>
+    <style>
+      p-tabs[secondary] p-tab[active-item] {
+        color: var(--md-sys-color-on-primary-container);
+      }
+    </style>
+  </inject-host>
+
+  <x-if :value="inited">
+    <style>
+      .indicator {
+        transition: left ease 0.3s, width ease 0.3s;
+      }
+    </style>
+  </x-if>
+  <div
+    class="container"
+    part="container"
+    class:scrollbtns="scrollButtons!==null"
+  >
+    <div class="scroll-btn left" on:click="clickLeftSbtn">
+      <p-wave></p-wave>
+    </div>
+    <slot></slot>
+    <div class="scroll-btn right" on:click="clickRightSbtn">
+      <p-wave></p-wave>
+    </div>
+    <div class="indicator" part="indicator"></div>
+  </div>
+  <script>
+    export default {
+      tag: "p-tabs",
+      attrs: {
+        activeId: 0, // 激活中的id
+        secondary: null,
+        scrollButtons: null,
+      },
+      data: {
+        inited: false,
+      },
+      proto: {
+        get current() {
+          return this[this.activeId];
+        },
+        clickLeftSbtn() {
+          if (this.scrollButtons === null) {
+            return;
+          }
+          if (this.activeId > 0) {
+            this.activeId--;
+            this.ele.scrollLeft = this[this.activeId].ele.offsetLeft;
+          }
+        },
+        clickRightSbtn() {
+          if (this.scrollButtons === null) {
+            return;
+          }
+          if (this.activeId < this.length - 1) {
+            this.activeId++;
+            this.ele.scrollLeft = this[this.activeId].ele.offsetLeft;
+          }
+        },
+        // 获取底部线的定位和宽度
+        getIndicatorPostion(activeId) {
+          const target = this[activeId];
+
+          if (target) {
+            if (this.secondary !== null) {
+              return {
+                left: target.ele.offsetLeft,
+                width: target.clientWidth,
+              };
+            }
+
+            if (target.container) {
+              const { ele } = target.container;
+
+              return {
+                left: target.ele.offsetLeft + ele.offsetLeft,
+                width: target.container.width - 4,
+              };
+            }
+          }
+
+          return {
+            left: 0,
+            width: 0,
+          };
+        },
+        // 修复底部线的定位
+        _fixBottomPosition() {
+          const target = this[this.activeId];
+          // console.log(target.container);
+          if (target && target.container) {
+            const { left, width } = this.getIndicatorPostion(this.activeId);
+
+            // console.log(left, width);
+
+            Object.assign(this.shadow.$(".indicator").style, {
+              left: `${left}px`,
+              width: `${width}px`,
+            });
+
+            this.all("[active-item]").forEach((e) =>
+              e.attr("active-item", null)
+            );
+
+            target.attr("active-item", "");
+          }
+        },
+      },
+      watch: {
+        activeId() {
+          this._fixBottomPosition();
+        },
+        secondary(val) {
+          if (val !== null) {
+            this.forEach((e) => {
+              if (e.tag === "p-tab") {
+                e.iconPosition = "start";
+              }
+            });
+          }
+        },
+      },
+      attached() {
+        const targetElement = document.getElementById("your-element-id");
+
+        const observer = (this._obs = new IntersectionObserver((entries) => {
+          for (const entry of entries) {
+            const { boundingClientRect } = entry;
+
+            const notDisplay =
+              boundingClientRect.x === 0 &&
+              boundingClientRect.y === 0 &&
+              boundingClientRect.width === 0 &&
+              boundingClientRect.height === 0;
+
+            if (entry.isIntersecting) {
+              if (!this.inited) {
+                // setTimeout(() => {
+                this.inited = true;
+                this._fixBottomPosition();
+
+                if (
+                  this.shadow.$(".container").clientWidth > this.ele.clientWidth
+                ) {
+                  const { current } = this;
+                  const left = current.ele.offsetLeft;
+                  this.ele.scrollLeft = left;
+                }
+                // }, 100);
+              }
+            } else {
+              // 元素离开视口，不可见
+              if (notDisplay) {
+                this.inited = false;
+              }
+            }
+          }
+        }));
+
+        observer.observe(this.ele);
+      },
+      detached() {
+        if (this._obs) {
+          this._obs.disconnect();
+        }
+      },
+      ready() {
+        this.on("click-tab-item", (e) => {
+          this.activeId = $(e.target).index;
+          e.stopPropagation();
+        });
+        this.on("attach-tab", () => {
+          this._fixBottomPosition();
+        });
+      },
+    };
+  </script>
+</template>

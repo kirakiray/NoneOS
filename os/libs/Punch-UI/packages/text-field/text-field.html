@@ -1,0 +1,141 @@
+<template component>
+  <link rel="stylesheet" href="./inputer.css" />
+  <style id="default-style">
+    :host {
+      display: none !important;
+    }
+  </style>
+  <div
+    class="container"
+    attr:type="type"
+    attr:variant="variant"
+    class:disabled="typeof disabled === 'string'"
+    class:error="typeof error === 'string'"
+    class:hasprefix="hasprefix"
+    attr:size="size"
+  >
+    <div class="prefix">
+      <slot name="prefix"></slot>
+    </div>
+    <div class="bottom-line"></div>
+    <x-if
+      :value="typeof multiline === 'string' && (type === null || type === 'text')"
+      on:rendered="afterTextarea"
+    >
+      <textarea
+        class="inputer"
+        sync:value="value"
+        on:input="changeEditor"
+        :css.max-height="editorMaxHeight"
+      >
+      </textarea>
+    </x-if>
+    <x-else>
+      <input
+        attr:type="type === null ? 'text' : type"
+        class="inputer"
+        sync:value="value"
+      />
+    </x-else>
+    <div>
+      <div class="placeholder" class:not-empty="!!value">
+        <slot></slot>
+      </div>
+      <div class="border"></div>
+      <div class="bottom-line-active"></div>
+    </div>
+    <div class="helper-text">
+      <slot name="helper"></slot>
+    </div>
+    <div class="suffix" class:not-empty="!!value">
+      <slot name="suffix"></slot>
+    </div>
+  </div>
+  <script>
+    export default {
+      tag: "p-text-field",
+      attrs: {
+        name: null,
+        error: null,
+        variant: null,
+        multiline: null,
+        maxRows: null,
+        rows: null,
+        disabled: null,
+        defaultValue: null,
+        type: null,
+        autofocus: null,
+        size: null,
+      },
+      data: {
+        value: "",
+        hasprefix: false,
+      },
+      watch: {
+        defaultValue(val) {
+          if (val) {
+            this.value = val;
+          }
+        },
+        autofocus(val) {
+          if (val !== null) {
+            setTimeout(() => {
+              this.shadow.$("input,textarea")?.ele.focus();
+            }, 50);
+          }
+        },
+      },
+      proto: {
+        get editorHeight() {
+          if (typeof this.multiline === "string" && this.rows) {
+            return 1.2 * parseInt(this.rows) + "em";
+          }
+
+          return null;
+        },
+        get editorMaxHeight() {
+          if (typeof this.multiline === "string" && this.maxRows) {
+            return 1.2 * parseInt(this.maxRows) + "em";
+          }
+          return null;
+        },
+        afterTextarea() {
+          if (this.rows) {
+            this.shadow.$("textarea").css.height = `${1.2 * this.rows}em`;
+          }
+        },
+        changeEditor(e) {
+          if (this.rows === null) {
+            let wrapCount = e.target.value.match(/\n/g);
+            wrapCount = wrapCount ? wrapCount.length : 0;
+            if (wrapCount) {
+              console.log(wrapCount);
+              e.target.style.height = 16 * 1.2 * (wrapCount + 1) + "px";
+            } else {
+              // e.target.style.height = "19.2px";
+              e.target.style.height = "";
+            }
+          }
+        },
+        focus() {
+          this.shadow.$("input,textarea") &&
+            this.shadow.$("input,textarea").ele.focus();
+        },
+      },
+      ready() {
+        this.shadow.on("slotchange", () => {
+          let hasprefix = false;
+          this.forEach((e) => {
+            if (e.attr("slot") === "prefix") {
+              hasprefix = true;
+            }
+          });
+          this.hasprefix = hasprefix;
+        });
+      },
+      loaded() {
+        this.shadow.$("#default-style").remove();
+      },
+    };
+  </script>
+</template>

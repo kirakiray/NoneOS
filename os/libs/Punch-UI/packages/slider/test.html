@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>slider test</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.4.5/dist/ofa.min.js"
+      debug
+    ></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/dark-switch.html"></l-m>
+    <l-m src="./slider.html"></l-m>
+    <dark-switch></dark-switch>
+    <div style="padding: 50px">
+      <p-slider step="0.5"></p-slider>
+    </div>
+    <div style="padding: 50px">
+      <p-slider min="0" max="150" style="width: 30%">
+        <p-slider-mark value="10">10C</p-slider-mark>
+        <p-slider-mark value="75">Half</p-slider-mark>
+      </p-slider>
+    </div>
+    <div style="padding: 50px">
+      <p-slider color="error" value="100" min="-100" max="200"></p-slider>
+    </div>
+  </body>
+</html>

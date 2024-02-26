@@ -1,0 +1,107 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+
+    p-placement::part(container) {
+      color: var(--tips-color, var(--md-sys-color-normal-container));
+      background-color: var(
+        --tips-bg-color,
+        var(--md-sys-color-on-normal-container)
+      );
+      pointer-events: none;
+      visibility: hidden;
+      opacity: 0;
+      font-size: 12px;
+      line-height: 1.3em;
+      border-radius: var(--pui-border-radius);
+      white-space: nowrap;
+      /* z-index: var(--tips-index, 10); */
+    }
+
+    :host([plain]) p-placement::part(container) {
+      color: inherit;
+      margin: 0;
+      padding: 0;
+    }
+
+    p-placement.open::part(container) {
+      opacity: 1;
+      pointer-events: auto;
+      visibility: visible;
+    }
+  </style>
+  <slot></slot>
+  <p-placement class:open="open" attr:placement="placement" :event="event">
+    <slot name="tips"></slot>
+  </p-placement>
+  <script>
+    export default async ({ load }) => {
+      await load("./placement.html");
+
+      return {
+        tag: "p-tooltips",
+        attrs: {
+          placement: null,
+          event: null,
+        },
+        data: {
+          open: false,
+        },
+        watch: {
+          open() {
+            if (this.open) {
+              this._refresh();
+            }
+          },
+          event() {
+            this.shadow.$("p-placement")._init({
+              self: this,
+              open: () => {
+                this.openTips();
+              },
+              close: () => {
+                this.closeTips();
+              },
+            });
+          },
+        },
+        proto: {
+          openTips() {
+            let isDisabled = false;
+            this.forEach((element) => {
+              if (element.attr("slot") === null && element.disabled) {
+                isDisabled = true;
+              }
+            });
+            if (!isDisabled) {
+              this.open = true;
+            }
+          },
+          closeTips() {
+            this.open = false;
+          },
+          _refresh() {
+            const placement = this.shadow.$("p-placement");
+            if (!placement._refreshPosition) {
+              return;
+            }
+            placement._refreshPosition(this.$(':not([slot="tips"])'));
+          },
+        },
+        ready() {
+          if (this.attr("opened") !== null) {
+            this.open = true;
+          }
+        },
+        attached() {
+          this._refresh();
+        },
+        loaded() {
+          this._refresh();
+        },
+      };
+    };
+  </script>
+</template>

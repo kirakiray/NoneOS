@@ -1,0 +1,87 @@
+<template page>
+  <l-m src="../packages/carousel/carousel.html"></l-m>
+  <style>
+    .con {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      flex-direction: column;
+      color: #fff;
+      /* background-color: rgb(164, 70, 70); */
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      text-align: center;
+      text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    }
+
+    .con div {
+      color: rgba(255, 255, 255, 0);
+      transition: color ease 0.2s;
+    }
+
+    .con[visabled="100"] div,
+    .con[visabled="90"] div,
+    .con[visabled="80"] div {
+      color: #fff;
+    }
+
+    .con[visabled="70"] div,
+    .con[visabled="60"] div,
+    .con[visabled="50"] div {
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .con:nth-child(2n) {
+      color: #fff;
+      /* background-color: rgb(75, 92, 174); */
+    }
+  </style>
+  <div>
+    <!-- <img src="https://source.unsplash.com/random/300×300">
+    <img src="https://source.unsplash.com/random/300×300?v1"> -->
+    <p-carousel
+      active-index="0"
+      main-basis="300px"
+      autoplay="4000"
+      style="height: 200px"
+    >
+      <!-- <div class="con">A</div>
+      <div class="con">B</div>
+      <div class="con">C</div>
+      <div class="con">D</div>
+      <div class="con">E</div>
+      <div class="con">F</div>
+      <div class="con">G</div>
+      <div class="con">H</div>
+      <div class="con">I</div>
+      <div class="con">J</div>
+      <div class="con">K</div>
+      <div class="con">L</div>
+      <div class="con">M</div>
+      <div class="con">N</div> -->
+      <x-fill :value="arr">
+        <div
+          class="con"
+          :style.background-image="`url(https://source.unsplash.com/random/300×300?v${$data % 4})`"
+        >
+          <div style="font-weight: bold; font-size: 20px">{{$data}}</div>
+          <div>Test Image</div>
+        </div>
+      </x-fill>
+    </p-carousel>
+  </div>
+
+  <script>
+    export default {
+      data: {
+        arr: [],
+      },
+      ready() {
+        for (let i = 0; i <= 20; i++) {
+          this.arr.push(i);
+        }
+      },
+    };
+  </script>
+</template>

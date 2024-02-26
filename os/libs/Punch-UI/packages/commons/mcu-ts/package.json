@@ -1,0 +1,11 @@
+{
+  "name": "mcu-ts",
+  "version": "1.0.0",
+  "description": "copy from https://github.com/material-foundation/material-color-utilities/tree/main/typescript",
+  "main": "index.js",
+  "scripts": {
+    "build-ts": "tsc hct/hct.ts --target esnext"
+  },
+  "author": "",
+  "license": "MIT"
+}
