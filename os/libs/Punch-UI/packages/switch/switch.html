@@ -1,0 +1,248 @@
+<template component>
+  <style>
+    :host {
+      display: inline-flex;
+      align-items: center;
+      font-size: 14px;
+    }
+    .container {
+      display: block;
+    }
+    .container.infocus {
+      outline: var(--md-sys-color-primary) solid 2px;
+    }
+
+    .label {
+      font-weight: bold;
+      margin-left: var(--pui-space-x);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    :host(:empty) .label {
+      display: none;
+    }
+
+    input {
+      opacity: 0;
+    }
+
+    .switch {
+      position: relative;
+      display: block;
+      box-sizing: border-box;
+      width: 52px;
+      height: 32px;
+      background-color: var(--md-sys-color-normal-container);
+      transition: background-color 0.3s;
+      border-radius: 34px;
+      cursor: pointer;
+    }
+
+    .border {
+      position: absolute;
+      box-sizing: border-box;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 34px;
+      border: var(--md-sys-color-normal) solid 2px;
+      transition: all ease 0.2s;
+    }
+
+    .slider {
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 8px;
+      bottom: 8px;
+      background-color: var(--md-sys-color-normal);
+      transition: all 0.3s ease;
+      border-radius: 50%;
+      z-index: 2;
+    }
+
+    .mark {
+      position: absolute;
+      left: 0;
+      top: 0;
+      transition: all ease 0.3s;
+    }
+
+    .mark::before,
+    .mark::after {
+      position: absolute;
+      display: block;
+      content: "";
+      transform-origin: 50% 50%;
+      transition: all ease 0.3s;
+    }
+
+    .mark::before {
+      top: 2.5px;
+      left: 7.5px;
+      width: 1px;
+      height: 11px;
+      background-color: var(--md-sys-color-normal-container);
+      transform: rotate(45deg);
+      opacity: 0;
+    }
+
+    .mark::after {
+      top: 4px;
+      left: 3.5px;
+      width: 1px;
+      height: 11px;
+      background-color: var(--md-sys-color-normal-container);
+      transform-origin: 50% 0;
+      transform: rotate(-45deg);
+      opacity: 0;
+    }
+
+    .switch:hover .mark {
+      left: 4px;
+      top: 4px;
+    }
+
+    .switch:hover .slider {
+      height: 24px;
+      width: 24px;
+      left: 4px;
+      bottom: 4px;
+    }
+
+    .switch:hover .mark::before,
+    .switch:hover .mark::after,
+    .switch.checked .mark::before,
+    .switch.checked .mark::after {
+      opacity: 1;
+    }
+
+    .switch.checked .border {
+      background-color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 16px;
+    }
+
+    .switch.checked .slider {
+      height: 24px;
+      width: 24px;
+      left: 4px;
+      bottom: 4px;
+      transform: translateX(20px);
+      background-color: var(--md-sys-color-on-primary);
+    }
+
+    .switch.checked .mark {
+      left: 4px;
+      top: 4px;
+    }
+
+    .switch.checked .mark::before {
+      top: 2.5px;
+      left: 9.5px;
+      height: 10px;
+      background-color: var(--md-sys-color-on-primary-container);
+    }
+    .switch.checked .mark::after {
+      top: 7.5px;
+      left: 3px;
+      height: 5px;
+      background-color: var(--md-sys-color-on-primary-container);
+    }
+
+    :host .switch {
+      transform-origin: 0 0;
+      transform: scale(0.8);
+    }
+    :host .container {
+      width: 41.6px;
+      height: 25.6px;
+    }
+
+    :host([size="large"]) .switch {
+      transform-origin: 0 0;
+      transform: scale(1);
+    }
+    :host([size="large"]) .container {
+      width: auto;
+      height: auto;
+    }
+
+    :host([size="small"]) .switch {
+      transform-origin: 0 0;
+      transform: scale(0.6);
+    }
+    :host([size="small"]) .container {
+      width: 31.2px;
+      height: 19.2px;
+    }
+
+    :host([disabled]) .switch {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  </style>
+
+  <div class="container" class:infocus="infocus">
+    <div class="switch" class:checked="value">
+      <span class="slider">
+        <div class="mark"></div>
+      </span>
+      <div class="border"></div>
+      <input
+        type="checkbox"
+        sync:checked="value"
+        on:focus="infocus = true"
+        on:blur="infocus = false"
+        attr:disabled="disabled"
+      />
+    </div>
+  </div>
+  <div class="label">
+    <slot></slot>
+  </div>
+  <script>
+    export default {
+      tag: "p-switch",
+      attrs: {
+        name: null,
+        size: null,
+        // color: null,
+        disabled: null,
+      },
+      data: {
+        value: false,
+        infocus: false,
+      },
+      watch: {
+        value(val) {
+          this.emit("change");
+        },
+      },
+      proto: {
+        get checked() {
+          return this.value;
+        },
+        set checked(val) {
+          this.value = !!val;
+        },
+        clickSwitch(e) {
+          if (this.disabled !== null) {
+            e.stopImmediatePropagation();
+            return;
+          }
+          this.value = !this.value;
+        },
+      },
+      ready() {
+        this.on("click", (e) => this.clickSwitch(e));
+      },
+      attached() {
+        if (this.attr("checked") !== null) {
+          this.value = true;
+        }
+      },
+    };
+  </script>
+</template>

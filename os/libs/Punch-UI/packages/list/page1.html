@@ -1,0 +1,412 @@
+<template page>
+  <l-m src="../checkbox/checkbox.html"></l-m>
+  <l-m src="../radio/radio.html"></l-m>
+  <l-m src="../radio/radio-group.html"></l-m>
+  <l-m src="../switch/switch.html"></l-m>
+  <style>
+    .case {
+      display: inline-block;
+      padding: 10px;
+      width: 260px;
+      vertical-align: top;
+      --list-bg-color: var(--md-ref-palette-primary98);
+      --list-dark-bg-color: var(--md-ref-palette-normal10);
+    }
+
+    p-list {
+      max-height: 400px;
+    }
+
+    .test-avatar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+    }
+
+    .avatar-pic {
+      width: 50px;
+      height: 50px;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=3174&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+    }
+  </style>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item> Headline {{$data}}</p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          <iconify-icon
+            icon="mdi:user-outline"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          <div slot="prefix" class="test-avatar">{{$data}}</div>
+          Headline {{$data}}
+          <p-checkbox slot="suffix"></p-checkbox>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          <div class="avatar-pic" slot="prefix"></div>
+          Headline {{$data}}
+          <span slot="suffix">{{$data}}+</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item style="--padding-left: 0">
+          <div
+            class="avatar-pic"
+            slot="prefix"
+            style="width: 80px; height: 56px"
+          ></div>
+          Headline {{$data}}
+          <span slot="suffix">{{$data}}+</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          <iconify-icon
+            icon="mdi:user-outline"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          <div slot="prefix" class="test-avatar">{{$data}}</div>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+          <p-checkbox slot="suffix"></p-checkbox>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item>
+          <div class="avatar-pic" slot="prefix"></div>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+          <span slot="suffix">{{$data}}+</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item style="--padding-left: 0">
+          <div
+            class="avatar-pic"
+            slot="prefix"
+            style="width: 80px; height: 56px"
+          ></div>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+          <span slot="suffix">{{$data}}+</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item attr:align-top="$index < 2 ? '' : null">
+          Headline {{$data}}
+          <span secondary
+            >Supporting line text lorem ipsum dolor sit amet, consectetur
+            {{$data}}</span
+          >
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item attr:align-top="$index < 2 ? '' : null">
+          <iconify-icon
+            icon="mdi:user-outline"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+          <span secondary
+            >Supporting line text lorem ipsum dolor sit amet, consectetur
+            {{$data}}</span
+          >
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item attr:align-top="$index < 2 ? '' : null">
+          <div slot="prefix" class="test-avatar">{{$data}}</div>
+          Headline {{$data}}
+          <span secondary
+            >Supporting line text lorem ipsum dolor sit amet, consectetur
+            {{$data}}</span
+          >
+          <p-checkbox slot="suffix"></p-checkbox>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item attr:align-top="$index < 2 ? '' : null">
+          <div class="avatar-pic" slot="prefix"></div>
+          Headline {{$data}}
+          <span secondary
+            >Supporting line text lorem ipsum dolor sit amet, consectetur
+            {{$data}}</span
+          >
+          <span slot="suffix">{{$data}}+</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item
+          attr:align-top="$index < 2 ? '' : null"
+          style="--padding-left: 0"
+        >
+          <div
+            class="avatar-pic"
+            slot="prefix"
+            style="width: 80px; height: 56px"
+          ></div>
+          Headline {{$data}}
+          <span secondary attr:ellipsis="$index + 1"
+            >Supporting line text lorem ipsum dolor sit amet, consectetur
+            {{$data}}</span
+          >
+          <span slot="suffix">{{$data}}+</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item
+          button
+          attr:disabled="$index === 2 ? '' : null"
+          on:click="$host.clickItem($index)"
+        >
+          <iconify-icon
+            icon="mdi:user-outline"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item button="suffix" attr:disabled="$index === 2 ? '' : null">
+          <iconify-icon
+            icon="icon-park:multi-triangular-two"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+          <p-checkbox
+            slot="suffix"
+            attr:disabled="$index === 2 ? '' : null"
+          ></p-checkbox>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <p-radio-group>
+    <div class="case">
+      <p-list>
+        <x-fill :value="arr">
+          <p-list-item button="prefix" attr:disabled="$index === 2 ? '' : null">
+            Headline {{$data}}
+            <span secondary>Supporting text {{$data}}</span>
+            <p-radio
+              slot="prefix"
+              attr:disabled="$index === 2 ? '' : null"
+            ></p-radio>
+          </p-list-item>
+        </x-fill>
+      </p-list>
+    </div>
+  </p-radio-group>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item button="suffix" attr:disabled="$index === 2 ? '' : null">
+          <iconify-icon
+            icon="icon-park:multi-function-knife"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+          <span secondary>Supporting text {{$data}}</span>
+          <!-- <p-checkbox slot="suffix"></p-checkbox> -->
+          <p-switch
+            slot="suffix"
+            attr:disabled="$index === 2 ? '' : null"
+          ></p-switch>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <p-list-item> Headline 1</p-list-item>
+      <p-list-item> Headline 2</p-list-item>
+      <hr />
+      <p-list-item button="suffix" collapse-childs>
+        Headline 3
+        <i collapse-triangle slot="suffix"></i>
+        <p-list slot="childs">
+          <p-list-item> Headline 3-1</p-list-item>
+          <p-list-item collapse-childs>
+            3-2 (click right triangle)
+            <i collapse-triangle slot="suffix"></i>
+            <p-list slot="childs">
+              <p-list-item> Headline 3-2-1</p-list-item>
+              <p-list-item> Headline 3-2-2</p-list-item>
+            </p-list>
+          </p-list-item>
+          <p-list-item> Headline 3-3</p-list-item>
+          <p-list-item> Headline 3-4</p-list-item>
+        </p-list>
+      </p-list-item>
+      <p-list-item> Headline 4</p-list-item>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item button attr:active-item="$index === 1 ? '' : null">
+          <iconify-icon
+            icon="mdi:user-outline"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <div class="case">
+    <p-list>
+      <x-fill :value="arr">
+        <p-list-item button radius attr:active-item="$index === 1 ? '' : null">
+          <iconify-icon
+            icon="mdi:user-outline"
+            slot="prefix"
+            style="font-size: 22px"
+          ></iconify-icon>
+          Headline {{$data}}
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+
+  <script>
+    export default {
+      data: {
+        arr: [],
+      },
+      proto: {
+        clickItem(index) {
+          console.log("click Headline " + (index + 1));
+        },
+      },
+      ready() {
+        for (let i = 1; i < 15; i++) {
+          this.arr.push(i);
+        }
+      },
+    };
+  </script>
+</template>

@@ -1,0 +1,86 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      position: relative;
+      --duration: 0.3s;
+      transition: all ease 0s;
+    }
+
+    :host([hide]) {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .soltter {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .content {
+      padding-top: 1px;
+    }
+  </style>
+  <div class="soltter">
+    <div class="content">
+      <slot></slot>
+    </div>
+  </div>
+  <script>
+    export default {
+      tag: "p-collapse",
+      attrs: {
+        hide: null,
+      },
+      proto: {
+        _refreshHeight(height) {
+          if (this.hide !== null) {
+            this.style.height = "0px";
+            return;
+          }
+          if (height) {
+            this.style.height = height + "px";
+            return;
+          }
+          this.style.height = this.shadow.$(".content").ele.scrollHeight + "px";
+        },
+      },
+      watch: {
+        hide(val) {
+          if (this.__not_first) {
+            this.style["transition-duration"] = "var(--duration)";
+            this.on("transitionend", () => {
+              this.style["transition-duration"] = "";
+            });
+          }
+
+          this._refreshHeight();
+
+          this.__not_first = true;
+        },
+      },
+      attached() {
+        const ro = (this._ro = new ResizeObserver((entries) => {
+          for (let entry of entries) {
+            const cr = entry.contentRect;
+            // console.log("Element:", entry.target);
+            // console.log(`Element size: ${cr.width}px x ${cr.height}px`);
+            // console.log(`Element padding: ${cr.top}px ; ${cr.left}px`);
+            this._refreshHeight(cr.height);
+          }
+        }));
+
+        ro.observe(this.shadow.$(".content").ele);
+      },
+      detached() {
+        if (this._ro) {
+          this._ro.disconnect();
+        }
+      },
+    };
+  </script>
+</template>

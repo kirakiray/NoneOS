@@ -1,0 +1,36 @@
+<template component>
+  <div>
+    <label
+      >isDark
+      <input type="checkbox" sync:checked="isDark.value" />
+    </label>
+  </div>
+  <script>
+    import { isDark } from "../packages/commons/data.js";
+
+    // const darkStyle = $(`<style>
+    // html,body{background-color:var(--md-sys-color-surface);color:var(--md-sys-color-on-surface);}
+    // </style>`);
+
+    export default {
+      data: {
+        isDark: { value: false },
+      },
+      watch: {
+        isDark(isDark) {
+          if (isDark.value) {
+            $("html").classList.add("dark");
+          } else {
+            $("html").classList.remove("dark");
+          }
+        },
+      },
+      attached() {
+        this.isDark = isDark;
+      },
+      detached() {
+        this.isDark = {};
+      },
+    };
+  </script>
+</template>

@@ -1,0 +1,74 @@
+<template component>
+  <l-m src="./list-item.html"></l-m>
+
+  <inject-host>
+    <style>
+      p-list-item > p-list > p-list-item {
+        padding-right: 0;
+      }
+      p-list-item > p-list > p-list-item:last-child {
+        padding-bottom: 0;
+      }
+
+      p-list-item[collapse-childs="open"] > [collapse-triangle] {
+        transform: rotateX(180deg);
+      }
+
+      p-list-item [collapse-triangle]:empty:after {
+        display: block;
+        content: "";
+        position: absolute;
+        left: -10px;
+        top: -13px;
+        width: 20px;
+        height: 20px;
+        /* background-color: rgba(255, 0, 0, 0.344); */
+      }
+    </style>
+  </inject-host>
+
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      background-color: var(--list-bg-color);
+      overflow: auto;
+    }
+
+    ::slotted(hr) {
+      display: block;
+      width: 100%;
+      border-top: transparent solid 0px;
+      border-bottom: var(--md-sys-color-normal) solid 0.5px;
+    }
+  </style>
+  <x-if :value="isDark.value">
+    <style>
+      :host {
+        background-color: var(--list-dark-bg-color);
+      }
+    </style>
+  </x-if>
+  <slot></slot>
+  <script>
+    import { isDark } from "../commons/data.js";
+
+    export default {
+      tag: "p-list",
+      data: {
+        isDark: {},
+      },
+      ready() {
+        this.on("click", (e) => {
+          e.stopPropagation();
+        });
+      },
+      attached() {
+        this.isDark = isDark;
+      },
+      detached() {
+        this.isDark = {};
+      },
+    };
+  </script>
+</template>

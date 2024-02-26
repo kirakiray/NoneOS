@@ -1,0 +1,38 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+      vertical-align: top;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default {
+      tag: "resize-observer",
+      attrs: {
+        time: null,
+      },
+      attached() {
+        const ro = (this._ro = new ResizeObserver((entries) => {
+          clearTimeout(this._timer);
+          this._timer = setTimeout(() => {
+            this.emit("change", {
+              bubbles: false,
+              data: { entries },
+            });
+          }, parseInt(this.time) || 0);
+        }));
+
+        ro.observe(this.ele);
+
+        this._ro = ro;
+      },
+      detached() {
+        clearTimeout(this._timer);
+        if (this._ro) {
+          this._ro.disconnect();
+        }
+      },
+    };
+  </script>
+</template>

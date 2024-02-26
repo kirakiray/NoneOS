@@ -1,15 +1,5 @@
-import { get } from "./core/fs/main.js";
-import { remotes } from "./core/fs/remote/data.js";
-import { storage } from "./core/fs/storage.js";
-
-(async () => {
-  try {
-    // await storage.setItem("haha", "hahahaha");
-  } catch (err) {
-    console.log("hahaerror");
-    console.error(err);
-  }
-})();
+import { get } from "./os/core/fs/local/main.js";
+import { remotes } from "./os/core/fs/remote/data.js";
 
 self.addEventListener("fetch", async (event) => {
   const { request } = event;
@@ -17,8 +7,20 @@ self.addEventListener("fetch", async (event) => {
   const urlObj = new URL(url);
   const { pathname } = urlObj;
 
-  // 属于$的进入虚拟空间获取数据
-  if (/^\/\$/.test(pathname)) {
+  if (
+    pathname === "/" ||
+    pathname === "/index.html" ||
+    pathname === "/main-init.js"
+  ) {
+    event.respondWith(
+      fetch(pathname).catch(async () => {
+        const cache = await caches.open("noneos-bootstrap");
+
+        return cache.match(pathname);
+      })
+    );
+  } else if (/^\/\$/.test(pathname)) {
+    // 属于$的进入虚拟空间获取数据
     event.respondWith(
       (async () => {
         const pathArr = pathname.split("/");
@@ -49,12 +51,27 @@ self.addEventListener("fetch", async (event) => {
             handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
           }
 
-          console.log("sw", request);
-
           const file = await handle.file();
+
+          const headers = {};
+
+          const { pathname } = new URL(request.url);
+
+          [
+            ["js", "application/javascript;charset=utf-8"],
+            ["json", "application/json;charset=utf-8"],
+            ["svg", "image/svg+xml"],
+          ].some(([str, ct]) => {
+            const reg = new RegExp(`\.${str}$`);
+            if (reg.test(pathname)) {
+              headers["Content-Type"] = ct;
+              return true;
+            }
+          });
 
           return new Response(file, {
             status: 200,
+            headers,
           });
         } catch (err) {
           console.error(err);

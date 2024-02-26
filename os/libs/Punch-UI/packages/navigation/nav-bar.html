@@ -1,0 +1,74 @@
+<template component>
+  <l-m src="./nav-item.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 0 var(--pui-space-x);
+      background-color: var(--bar-bg-color, var(--md-ref-palette-primary98));
+      color: var(--md-ref-palette-normal30);
+      box-shadow: var(--contained-shadow);
+      text-align: center;
+    }
+    .container {
+      display: flex;
+      flex-direction: var(--navbar-direction, row);
+    }
+    ::slotted(p-nav-item),
+    ::slotted(a) {
+      flex: 1;
+    }
+  </style>
+  <x-if :value="isDark.value">
+    <style>
+      :host {
+        background-color: var(
+          --bar-dark-bg-color,
+          var(--md-ref-palette-normal20)
+        );
+        color: var(--md-ref-palette-normal80);
+      }
+    </style>
+  </x-if>
+  <div class="container" part="container">
+    <slot></slot>
+  </div>
+  <script>
+    import { isDark } from "../commons/data.js";
+
+    export default {
+      tag: "p-nav-bar",
+      attrs: {
+        activeId: null,
+        autoActive: null,
+      },
+      data: {
+        isDark: {},
+      },
+      watch: {
+        activeId(val) {
+          if (this.autoActive === null) {
+            return;
+          }
+          this[val] && this[val].attr("active-item", "");
+        },
+      },
+      ready() {
+        this.on("click-nav-item", (e) => {
+          if (this.autoActive === null) {
+            return;
+          }
+
+          this.all("[active-item]").forEach((e) => e.attr("active-item", null));
+          $(e.target).attr("active-item", "");
+          this.activeId = String($(e.target).index);
+        });
+      },
+      attached() {
+        this.isDark = isDark;
+      },
+      detached() {
+        this.isDark = {};
+      },
+    };
+  </script>
+</template>

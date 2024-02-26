@@ -1,0 +1,124 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      font-size: 14px;
+    }
+    .main {
+      box-sizing: border-box;
+      padding: calc(var(--pui-space-y) * 6) calc(var(--pui-space-x) * 4);
+      /* border-radius: var(--dialog-border-radius, 30px); */
+      background-color: var(--md-sys-color-on-normal);
+      min-width: var(--dialog-min-width, 320px);
+      min-height: var(--dialog-min-height, 320px);
+    }
+
+    .container {
+      display: contents;
+    }
+
+    .container[anchor="left"] .main,
+    .container[anchor="right"] .main {
+      height: 100%;
+    }
+
+    .container[anchor="top"] .main,
+    .container[anchor="bottom"] .main {
+      width: 100%;
+    }
+
+    .inner {
+      display: block;
+      opacity: 0;
+      transition: opacity ease 0.2s;
+      transition-delay: 0.25s;
+    }
+    .inner.showall {
+      opacity: 1;
+    }
+
+    .container[anchor="left"] {
+      --container-justify-content: flex-start;
+      --container-init-transform: translate(0, -0) scale(0, 1);
+    }
+    .container[anchor="left"] .main {
+      border-radius: 0 var(--dialog-border-radius, 30px)
+        var(--dialog-border-radius, 30px) 0;
+    }
+
+    .container[anchor="left"] p-mask::part(container) {
+      transform-origin: 0 50%;
+    }
+
+    .container[anchor="right"] {
+      --container-justify-content: flex-end;
+      --container-init-transform: translate(0, -0) scale(0, 1);
+    }
+    .container[anchor="right"] .main {
+      border-radius: var(--dialog-border-radius, 30px) 0 0
+        var(--dialog-border-radius, 30px);
+    }
+
+    .container[anchor="right"] p-mask::part(container) {
+      transform-origin: 100% 50%;
+    }
+
+    .container[anchor="top"] {
+      --container-align-items: flex-start;
+      --container-init-transform: translate(0, -0) scale(1, 0);
+    }
+    .container[anchor="top"] .main {
+      border-radius: 0 0 var(--dialog-border-radius, 30px)
+        var(--dialog-border-radius, 30px);
+    }
+
+    .container[anchor="top"] p-mask::part(container) {
+      transform-origin: 50% 0;
+    }
+
+    .container[anchor="bottom"] {
+      --container-align-items: flex-end;
+      --container-init-transform: translate(0, -0) scale(1, 0);
+    }
+    .container[anchor="bottom"] .main {
+      border-radius: var(--dialog-border-radius, 30px)
+        var(--dialog-border-radius, 30px) 0 0;
+    }
+
+    .container[anchor="bottom"] p-mask::part(container) {
+      transform-origin: 50% 100%;
+    }
+  </style>
+  <l-m src="../dialog/mask.html"></l-m>
+
+  <div class="container" attr:anchor="anchor">
+    <p-mask sync:open="open" sync:mask-id="maskId" on:click-mask="clickMask">
+      <div class="main" part="main">
+        <div class="inner" class:showall="open">
+          <slot></slot>
+        </div>
+      </div>
+    </p-mask>
+  </div>
+  <script>
+    export default {
+      tag: "p-drawer",
+      attrs: {
+        anchor: "left",
+        autoClose: null,
+      },
+      data: {
+        open: false,
+        maskId: 1000,
+      },
+      proto: {
+        clickMask() {
+          this.emit("click-mask", { bubbles: false });
+          if (this.autoClose !== null) {
+            this.open = false;
+          }
+        },
+      },
+    };
+  </script>
+</template>

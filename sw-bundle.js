@@ -1,318 +1,739 @@
 (function () {
   'use strict';
 
-  // 替换这个基础库，理论是可以兼容各个环境
-  class NBaseHandle {
-    #root;
-    #relates;
-    constructor(handle, paths, root) {
-      this.#root = root || null;
-      this.#relates = paths || [];
-      Object.defineProperties(this, {
-        _handle: {
-          value: handle,
-        },
+  let allDB = {};
+  const getRandomId = () => Math.random().toString(36).slice(2);
+
+  const getDB = async (dbName = "noneos_fs_defaults") => {
+    if (!allDB[dbName]) {
+      allDB[dbName] = new Promise((resolve) => {
+        // 根据id获取数据库
+        const req = indexedDB.open(dbName);
+
+        req.onsuccess = (e) => {
+          const db = e.target.result;
+
+          db.onclose = () => {
+            allDB[dbName] = null;
+          };
+
+          resolve(db);
+        };
+
+        // 创建时生成仓库
+        req.onupgradeneeded = (e) => {
+          // 为该数据库创建一个对象仓库
+          const db = e.target.result;
+          const mainStore = db.createObjectStore("main", { keyPath: "key" });
+          mainStore.createIndex("parent", "parent", { unique: false });
+          mainStore.createIndex("fileHash", "fileHash", { unique: false }); // 文件hash引用
+
+          // 存储普通文件的表
+          db.createObjectStore("files", { keyPath: "hash" });
+        };
+
+        req.onerror = (event) => {
+          throw {
+            desc: dbName + " creation error",
+            event,
+          };
+        };
       });
     }
 
+    return allDB[dbName];
+  };
+
+  const getData = async ({
+    dbName,
+    storeName = "main",
+    keyName,
+    key,
+    all = false,
+  }) => {
+    const db = await getDB(dbName);
+
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction([storeName], "readonly")
+        .objectStore(storeName);
+
+      let req = store;
+
+      if (keyName) {
+        req = req.index(keyName);
+      }
+
+      if (all) {
+        req = req.getAll(key);
+      } else {
+        req = req.get(key);
+      }
+
+      req.onsuccess = (e) => {
+        resolve(e.target.result);
+      };
+
+      req.onerror = (e) => {
+        reject(e);
+      };
+    });
+  };
+
+  const find = async (
+    { dbName, storeName = "main", keyName, key },
+    callback
+  ) => {
+    const db = await getDB(dbName);
+
+    return new Promise((resolve, reject) => {
+      const store = db
+        .transaction([storeName], "readonly")
+        .objectStore(storeName);
+
+      let req;
+
+      if (keyName) {
+        req = store.index(keyName).openCursor(IDBKeyRange.only(key));
+      } else {
+        req = store.openCursor(IDBKeyRange.only(key));
+      }
+
+      req.onsuccess = async (e) => {
+        let cursor = req.result;
+        if (cursor) {
+          const result = await callback(cursor.value);
+
+          if (result) {
+            resolve(cursor.value);
+            return;
+          }
+
+          cursor.continue(); // 继续下一个匹配的数据
+        } else {
+          resolve(null);
+        }
+      };
+
+      req.onerror = (e) => {
+        reject(e);
+      };
+    });
+  };
+
+  const setData = async ({
+    dbName,
+    storeName = "main",
+    datas,
+    removes,
+  }) => {
+    if (!datas?.length && !removes?.length) {
+      return true;
+    }
+
+    const db = await getDB(dbName);
+
+    return new Promise((resolve, reject) => {
+      let transaction = db.transaction([storeName], "readwrite");
+
+      transaction.oncomplete = (e) => {
+        resolve(true);
+      };
+      transaction.onerror = (e) => {
+        reject(e);
+      };
+
+      const store = transaction.objectStore(storeName);
+      datas && datas.length && datas.forEach((item) => store.put(item));
+      removes && removes.length && removes.forEach((item) => store.delete(item));
+    });
+  };
+
+  const DIR = "directory";
+
+  const calculateHash = async (arrayBuffer) => {
+    const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+
+    const centerId = Math.floor(arrayBuffer.byteLength / 2);
+    return (
+      hashHex +
+      new Uint8Array(arrayBuffer.slice(centerId, centerId + 1))[0].toString(16)
+    );
+  };
+
+  const splitIntoChunks = async (input) => {
+    const CHUNK_SIZE = 512 * 1024; // 512KB
+    // const CHUNK_SIZE = 1024 * 4; // 4kb
+    let arrayBuffer;
+
+    if (typeof input === "string") {
+      arrayBuffer = new TextEncoder().encode(input).buffer;
+    } else if (input instanceof File) {
+      arrayBuffer = await input.arrayBuffer();
+    } else if (input instanceof ArrayBuffer) {
+      arrayBuffer = input;
+    } else {
+      throw new Error(
+        "Input must be a string, File object or ArrayBuffer object"
+      );
+    }
+
+    const chunks = [];
+    for (let i = 0; i < arrayBuffer.byteLength; i += CHUNK_SIZE) {
+      const chunk = arrayBuffer.slice(i, i + CHUNK_SIZE);
+      chunks.push(chunk);
+    }
+
+    return chunks;
+  };
+
+  // 直接写入文件，并返回文件的hash
+  const writeContent = async ({ content, process, handle }) => {
+    const results = await splitIntoChunks(content);
+
+    const tasks = [];
+    let total = results.length;
+    let count = 0;
+
+    await Promise.all(
+      results.map(async (arrayBuffer, index) => {
+        const hash = await calculateHash(arrayBuffer);
+
+        // 判断是否有重复，有重复就不写入了
+        const oldBlock = await getData({
+          storeName: "files",
+          key: hash,
+        });
+
+        if (!oldBlock) {
+          // 不存在历史数据的情况下写入数据
+          await setData({
+            storeName: "files",
+            datas: [
+              {
+                hash,
+                content: arrayBuffer,
+              },
+            ],
+          });
+        }
+
+        tasks.push({
+          hash,
+          index,
+        });
+
+        count++;
+
+        process &&
+          process({
+            hasOld: !!oldBlock,
+            index,
+            total,
+            count,
+          });
+      })
+    );
+
+    // 拿出旧的和新的对比，多余的块就删除,新增的块就写入；
+    const oldKeys = (
+      await getData({
+        keyName: "parent",
+        key: handle.dbkey,
+        all: 1,
+      })
+    ).map((e) => e.key);
+
+    const adds = []; // 需要新添加的块
+    const newHashKey = [];
+
+    tasks.forEach(({ hash, index }) => {
+      const key = `${handle.dbkey}_${index}_${hash}`;
+      newHashKey.push(key);
+
+      if (oldKeys.includes(key)) {
+        return;
+      }
+
+      adds.push({
+        key,
+        index,
+        type: "block",
+        parent: handle.dbkey,
+        fileHash: hash,
+      });
+    });
+
+    const needDelete = [];
+    oldKeys.forEach((key) => !newHashKey.includes(key) && needDelete.push(key));
+
+    if (adds.length || needDelete.length) {
+      await setData({
+        datas: adds,
+        removes: needDelete,
+      });
+
+      setTimeout(() => {
+        clearCache(needDelete.map((key) => key.split("_").slice(-1)[0]));
+      }, 100);
+    }
+  };
+
+  // 清除 files 表上未被使用过的文件块
+  const clearCache = async (hashs) => {
+    if (!hashs || !hashs.length) {
+      return;
+    }
+
+    // 查看仓库内是否有其他模块使用相同的hash block，没有的话就直接从 files 中删除
+    const reNeedDelete = [];
+
+    await Promise.all(
+      hashs.map(async (hash) => {
+        const data = await getData({
+          keyName: "fileHash",
+          key: hash,
+        });
+
+        if (!data) {
+          // 没有被使用，证明可以删除掉了
+          reNeedDelete.push(hash);
+        }
+      })
+    );
+
+    // 没有被使用，证明可以删除掉了
+    await setData({
+      storeName: "files",
+      removes: reNeedDelete,
+    });
+  };
+
+  function mergeArrayBuffers(buffers) {
+    // 计算所有ArrayBuffer的总长度
+    let totalLength = buffers.reduce((total, buf) => total + buf.byteLength, 0);
+
+    // 创建一个新的ArrayBuffer和Uint8Array视图
+    let mergedBuffer = new ArrayBuffer(totalLength);
+    let mergedView = new Uint8Array(mergedBuffer);
+
+    // 将每个ArrayBuffer的内容复制到新的ArrayBuffer中
+    let offset = 0;
+    for (let buf of buffers) {
+      mergedView.set(new Uint8Array(buf), offset);
+      offset += buf.byteLength;
+    }
+
+    return mergedBuffer;
+  }
+
+  const getContent = async ({ handle, ...options }) => {
+    const blocksData = await getData({
+      keyName: "parent",
+      key: handle.dbkey,
+      all: 1,
+    });
+
+    blocksData.sort((a, b) => a.index - b.index);
+
+    const blocks = await Promise.all(
+      blocksData.map(async (item) => {
+        const data = await getData({
+          storeName: "files",
+          key: item.fileHash,
+        });
+
+        return data.content;
+      })
+    );
+
+    switch (options.type) {
+      case "file":
+        const targetData = await getData({
+          key: handle.dbkey,
+        });
+
+        return new File(blocks, handle.name, {
+          type: targetData.fileType,
+          lastModified: targetData.lastModified,
+        });
+      case "text":
+        return blocks.map((buffer) => new TextDecoder().decode(buffer)).join("");
+      case "buffer":
+        return mergeArrayBuffers(blocks);
+    }
+
+    return null;
+  };
+
+  const removeFile = async ({ handle }) => {
+    const blocks = await getData({
+      keyName: "parent",
+      key: handle.dbkey,
+      all: 1,
+    });
+
+    const removes = [handle.dbkey];
+
+    blocks.forEach((item) => {
+      removes.push(item.key);
+    });
+
+    setTimeout(() => {
+      clearCache(blocks.map((item) => item.fileHash));
+    });
+
+    return await setData({
+      removes,
+    });
+  };
+
+  const removeDir = async ({ handle, options }) => {
+    const defaults = {
+      recursive: false,
+      ...options,
+    };
+
+    const blocks = await getData({
+      keyName: "parent",
+      key: handle.dbkey,
+      all: 1,
+    });
+
+    const removes = [handle.dbkey];
+
+    if (!blocks.length) {
+      return await setData({
+        removes,
+      });
+    }
+
+    if (blocks.length && !defaults.recursive) {
+      throw new Error(
+        `The directory contains additional content, please add the recursive option`
+      );
+    }
+
+    let count = 0;
+    const total = blocks.length;
+
+    for await (let item of handle.values()) {
+      options.process &&
+        options.process({ total, count, deleted: false, item, path: item.path });
+      await item.remove({
+        recursive: true,
+        process: ({ path, deleted }) => {
+          options.process &&
+            options.process({
+              total,
+              count,
+              item,
+              deleted,
+              path,
+            });
+        },
+      });
+      count++;
+      options.process &&
+        options.process({ total, count, deleted: true, item, path: item.path });
+    }
+
+    return await setData({
+      removes,
+    });
+  };
+
+  const makesureDBkey = (_this) => {
+    if (!_this.dbkey) {
+      throw new Error(`This ${_this.kind} has been deleted`);
+    }
+  };
+
+  class BaseHandle {
+    #kind = "";
+    #relates = [];
+    #root = null;
+    #dbkey = null;
+    constructor({ kind, paths, root, dbkey }) {
+      this.#kind = kind;
+      this.#relates = paths || [];
+      this.#root = root || null;
+      this.#dbkey = dbkey;
+    }
+
     get kind() {
-      return this._handle?.kind || "directory";
+      return this.#kind;
     }
 
-    async parent() {
-      if (this.#relates.length === 0) {
-        return null;
-      }
-      if (this.#relates.length === 1) {
-        return this.root;
-      }
-
-      return this.root.get(this.relativePaths.slice(0, -1).join("/"));
-    }
-
-    get path() {
-      return this.#relates.join("/");
-    }
-
-    get relativePaths() {
-      return this.#relates.slice();
+    get name() {
+      return this.#relates.slice(-1)[0];
     }
 
     get root() {
       return this.#root || this;
     }
 
-    get name() {
-      return this._handle.name;
+    get path() {
+      return this.#relates.join("/");
     }
 
-    async remove(options) {
-      const defaults = {
-        recursive: false,
-      };
+    get paths() {
+      return this.#relates.slice();
+    }
 
-      Object.assign(defaults, options);
+    get dbkey() {
+      return this.#dbkey;
+    }
 
-      if (this._handle.remove) {
-        await this._handle.remove(defaults);
-      } else {
-        const parent = await this.parent();
-        await parent.removeEntry(this.name, defaults);
+    async parent() {
+      if (this.dbkey === "root") {
+        return null;
       }
 
-      return true;
-    }
+      const parentData = await getData({
+        key: this.dbkey,
+      });
 
-    async move(...args) {
-      const { _handle } = this;
-      if (_handle.move) {
-        switch (args.length) {
-          case 2:
-            await _handle.move(args[0]._handle, args[1]);
-            return true;
-          case 1:
-            if (typeof args[0] === "string") {
-              await _handle.move(args[0]);
-            } else {
-              await _handle.move(args[0]._handle);
-            }
-            return true;
-        }
-      } else {
-        let name, parHandle;
-        switch (args.length) {
-          case 2:
-            parHandle = args[0];
-            name = args[1];
-          case 1:
-            if (typeof args[0] === "string") {
-              name = args[0];
-            } else {
-              parHandle = args[0];
-            }
-        }
+      const paths = this.paths.slice(0, -1);
 
-        if (!parHandle) {
-          // 文件夹重命名
-          parHandle = await this.parent();
-        }
-
-        // 一维化所有文件
-        const files = await flatFiles(this, [name]);
-
-        for (let item of files) {
-          if (item.kind === "file") {
-            const realPar = await parHandle.get(item.parNames.join("/"), {
-              create: "directory",
-            });
-            await item.handle.move(realPar, item.name);
-          } else {
-            await parHandle.get(item.parNames.join("/"), {
-              create: "directory",
-            });
-          }
-        }
-
-        await this.remove({ recursive: true });
-      }
-    }
-  }
-
-  async function flatFiles(parHandle, parNames = []) {
-    const files = [];
-    let isEmpty = true;
-
-    for await (let [name, handle] of parHandle.entries()) {
-      isEmpty = false;
-      if (handle.kind === "file") {
-        files.push({
-          kind: "file",
-          name,
-          handle,
-          parNames,
-        });
-      } else {
-        const subFiles = await flatFiles(handle, [...parNames, name]);
-        files.push(...subFiles);
-      }
-    }
-
-    if (isEmpty) {
-      files.push({
-        kind: "dir",
-        parNames,
+      return new DirHandle({
+        paths,
+        root: paths.length === 1 ? null : this.root,
+        dbkey: parentData.parent,
       });
     }
 
-    return files;
+    async remove(options) {
+      this.#dbkey = null;
+
+      if (this.kind === DIR) {
+        return removeDir({ handle: this, options });
+      }
+
+      return removeFile({ handle: this });
+    }
+
+    async move(...args) {
+      if (args.length === 1) {
+        // 重命名
+        const newName = args[0];
+
+        const data = await getData({
+          key: this.dbkey,
+        });
+
+        // 确认没有重复
+        const existed = await find(
+          {
+            keyName: "parent",
+            key: "root",
+          },
+          (item) => item.name === newName
+        );
+
+        if (existed) {
+          throw new Error(`'${newName}' already exists`);
+        }
+
+        data.name = newName;
+
+        await setData({
+          datas: [data],
+        });
+
+        return null;
+      }
+    }
+
+    async stat() {
+      const data = await getData({ key: this.dbkey });
+
+      return [{}, "createTime", "type", "lastModified"].reduce((obj, name) => {
+        data[name] && (obj[name] = data[name]);
+        return obj;
+      });
+    }
   }
 
-  class NDirHandle extends NBaseHandle {
-    constructor(handle, paths, root) {
-      super(handle, paths, root);
+  const createHandle = (parentHandle, handleData) => {
+    let TargetHandle;
+    switch (handleData.type) {
+      case DIR:
+        TargetHandle = DirHandle;
+        break;
+      case "file":
+        TargetHandle = FileHandle;
+        break;
+    }
+
+    return new TargetHandle({
+      paths: [...parentHandle.paths, handleData.name],
+      root: parentHandle.root,
+      dbkey: handleData.key,
+    });
+  };
+
+  const writingDB = {};
+
+  class DirHandle extends BaseHandle {
+    constructor(options) {
+      super({ ...options, kind: DIR });
     }
 
     async get(name, options) {
+      makesureDBkey(this);
+
       const defaults = {
-        create: null, // "directory" or "file"
+        create: null, // DIR or "file"
+        ...options,
       };
 
-      Object.assign(defaults, options);
+      const names = name.split("/");
+      const namesLen = names.length;
 
-      // 去掉最头部的 "/"
-      name = name.replace(/^\//, "");
+      if (namesLen === 1) {
+        // 已存在就直接返回存在的
+        let result = await find(
+          {
+            key: this.dbkey,
+            keyName: "parent",
+          },
+          (item) => item.name === name
+        );
 
-      const paths = name.split("/");
-      const lastId = paths.length - 1;
-
-      let targetHandle = this._handle;
-      let count = 0;
-
-      for (let name of paths) {
-        if (name === "node_modules") {
-          continue;
-        }
-
-        if (count === lastId) {
-          if (defaults.create) {
-            try {
-              switch (defaults.create) {
-                case "file":
-                  targetHandle = await targetHandle.getFileHandle(name, {
-                    create: true,
-                  });
-                  break;
-                case "directory":
-                  targetHandle = await targetHandle.getDirectoryHandle(name, {
-                    create: true,
-                  });
-                  break;
-              }
-            } catch (err) {
-              throw err;
-            }
-          } else {
-            let lastHandle;
-            try {
-              lastHandle = await targetHandle.getDirectoryHandle(name);
-            } catch (err) {
-              try {
-                lastHandle = await targetHandle.getFileHandle(name);
-              } catch (err2) {
-                throw err2;
-              }
-            }
-
-            targetHandle = lastHandle;
+        if (!result) {
+          if (!defaults.create) {
+            return null;
           }
-          break;
+
+          // When writing files to an uncreated folder at the same time, it will cause the same folder to be created repeatedly.
+          // At this time, the folder is only created for the first time, and the subsequent wait is completed before writing the file.
+          let _res;
+          if (!writingDB[`${this.dbkey}-${name}`]) {
+            writingDB[`${this.dbkey}-${name}`] = new Promise(
+              (resolve) => (_res = resolve)
+            );
+
+            await setData({
+              datas: [
+                (result = {
+                  key: getRandomId(),
+                  parent: this.dbkey,
+                  name,
+                  type: defaults.create === DIR ? DIR : "file",
+                  createTime: Date.now(),
+                }),
+              ],
+            });
+
+            _res(result);
+
+            delete writingDB[`${this.dbkey}-${name}`];
+          } else {
+            result = await writingDB[`${this.dbkey}-${name}`];
+          }
         }
 
-        targetHandle = await targetHandle.getDirectoryHandle(name, {
-          create: !!defaults.create,
+        return createHandle(this, result);
+      }
+
+      let target = this;
+      for (let item, i = 0; i < namesLen - 1; i++) {
+        item = names[i];
+        target = await target.get(item, {
+          create: defaults.create && DIR,
         });
 
-        count++;
+        if (!target) {
+          throw new Error(`"${names.slice(0, i + 1).join("/")}" does not exist`);
+        }
       }
 
-      if (targetHandle.kind === "file") {
-        return new NFileHandle(
-          targetHandle,
-          [...this.relativePaths, ...paths],
-          this.root
-        );
-      } else if (targetHandle.kind === "directory") {
-        return new NDirHandle(
-          targetHandle,
-          [...this.relativePaths, ...paths],
-          this.root
-        );
-      }
-
-      return null;
+      return await target.get(names.slice(-1)[0], defaults);
     }
 
     async *entries() {
-      for await (let [name, handle] of this._handle.entries()) {
-        if (handle.kind === "file") {
-          yield [
-            name,
-            new NFileHandle(handle, [...this.relativePaths, name], this.root),
-          ];
-        } else {
-          yield [
-            name,
-            new NDirHandle(handle, [...this.relativePaths, name], this.root),
-          ];
-        }
+      makesureDBkey(this);
+
+      const datas = await getData({
+        key: this.dbkey,
+        keyName: "parent",
+        all: true,
+      });
+
+      for (let item of datas) {
+        yield [item.name, createHandle(this, item)];
       }
     }
 
     async *keys() {
-      for await (let key of this._handle.keys()) {
-        yield key;
+      for await (let [name] of this.entries()) {
+        yield name;
       }
     }
 
     async *values() {
-      for await (let [name, handle] of this._handle.entries()) {
-        if (handle.kind === "file") {
-          yield new NFileHandle(handle, [...this.relativePaths, name], this.root);
-        } else {
-          yield new NDirHandle(handle, [...this.relativePaths, name], this.root);
-        }
+      for await (let [, handle] of this.entries()) {
+        yield handle;
       }
     }
 
     async removeEntry(name, options) {
-      await this._handle.removeEntry(name, options);
+      makesureDBkey(this);
 
-      return true;
+      const target = await this.get(name);
+
+      if (target) {
+        return target.remove(options);
+      }
     }
   }
 
-  class NFileHandle extends NBaseHandle {
-    constructor(handle, paths, root) {
-      super(handle, paths, root);
+  class FileHandle extends BaseHandle {
+    constructor(options) {
+      super({ ...options, kind: "file" });
     }
 
-    async write(content) {
-      const writable = await this._handle.createWritable();
-      await writable.write(content);
-      await writable.close();
+    async write(content, process) {
+      makesureDBkey(this);
+
+      await writeContent({
+        content,
+        process,
+        handle: this,
+      });
+
+      const data = await getData({
+        key: this.dbkey,
+      });
+
+      data.lastModified = content.lastModified || Date.now();
+      if (content instanceof File) {
+        data.fileType = content.type;
+      }
+
+      await setData({
+        datas: [data],
+      });
+
+      return true;
     }
 
     async read(options) {
+      makesureDBkey(this);
+
       const defaults = {
-        type: "file", // text buffer
+        type: "file",
+        ...options,
       };
 
-      Object.assign(defaults, options);
-
-      const file = await this._handle.getFile();
-
-      if (defaults.type === "file") {
-        return file;
-      }
-
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = () => resolve(reader.result);
-
-        switch (defaults.type) {
-          case "text":
-            reader.readAsText(file);
-            break;
-          case "buffer":
-            reader.readAsArrayBuffer(file);
-            break;
-          case "dataurl":
-            reader.readAsDataURL(file);
-            break;
-          default:
-            reject(new Error(`"${defaults.type}" type is not supported`));
-        }
+      return await getContent({
+        ...defaults,
+        handle: this,
       });
     }
 
@@ -327,19 +748,21 @@
     buffer() {
       return this.read({ type: "buffer" });
     }
-
-    async stat() {
-      const file = await this.read({ type: "file" });
-
-      const result = {};
-
-      ["lastModified", "lastModifiedDate", "name", "size", "type"].forEach(
-        (k) => (result[k] = file[k])
-      );
-
-      return result;
-    }
   }
+
+  const rootHandle = new DirHandle({
+    paths: [""],
+    kind: "directory",
+    dbkey: "root",
+  });
+
+  const get = (path, options) => {
+    if (!path) {
+      return rootHandle;
+    }
+
+    return rootHandle.get(path, options);
+  };
 
   const fsId = Math.random().toString(32).slice(2);
   const filerootChannel = new BroadcastChannel("noneos-fs-channel");
@@ -349,36 +772,6 @@
   // globalThis.remotes = remotes;
 
   console.log("fsId", fsId);
-
-  const badge = (eventName, options) => {
-    return new Promise((resolve, reject) => {
-      const taskId = `${eventName}-${Math.random().toString(32).slice(2)}`;
-
-      filerootChannel.postMessage({
-        type: eventName,
-        ...options,
-        taskId,
-      });
-
-      let timer = setTimeout(() => {
-        reject(`badge timeout`);
-      }, 10000);
-
-      let f = (e) => {
-        const { data } = e;
-
-        if (data.taskId === taskId) {
-          filerootChannel.removeEventListener("message", f);
-          clearTimeout(timer);
-          resolve(data.result);
-          f = null;
-          timer = null;
-        }
-      };
-
-      filerootChannel.addEventListener("message", f);
-    });
-  };
 
   const registerMaps = {};
 
@@ -398,14 +791,6 @@
     }
   });
 
-  const post = (data) => {
-    filerootChannel.postMessage(data);
-  };
-
-  const register = (eventName, func) => {
-    registerMaps[eventName] = func;
-  };
-
   if (typeof document !== "undefined") {
     if (document.querySelector("[data-fsid]")) {
       document.querySelector("[data-fsid]").innerHTML = fsId;
@@ -420,377 +805,26 @@
     });
   }
 
-  class RemoteBaseHandle {
-    #root;
-    #relates;
-    #kind;
-    #badge;
-    constructor(paths, root, badge, kind) {
-      this.#kind = kind;
-      this.#root = root || null;
-      this.#relates = paths || [];
-      this.#badge = badge;
-    }
-
-    get kind() {
-      return this.#kind;
-    }
-
-    get name() {
-      return this._name || this.#relates.slice(-1)[0];
-    }
-
-    get badge() {
-      return this.#badge;
-    }
-
-    async parent() {
-      if (this.#relates.length === 0) {
-        return null;
-      }
-      if (this.#relates.length === 1) {
-        return this.root;
-      }
-
-      return this.root.get(this.relativePaths.slice(0, -1).join("/"));
-    }
-
-    get path() {
-      return this.#relates.join("/");
-    }
-
-    get relativePaths() {
-      return this.#relates.slice();
-    }
-
-    get root() {
-      return this.#root || this;
-    }
-
-    async remove(options) {
-      const par = await this.parent();
-      return par.removeEntry(this.name, options);
-    }
-
-    async move(...args) {
-      debugger;
-    }
-
-    async convery(name, args) {
-      const data = await this.badge({
-        func: "handle-" + name,
-        paths: this.relativePaths,
-        args,
-        self: this,
-      });
-
-      if (data.error) {
-        const error = new Error(data.error.desc);
-        error.code = data.error.code;
-        throw error;
-      }
-
-      return data;
-    }
-  }
-
-  class RemoteDirHandle extends RemoteBaseHandle {
-    constructor({ paths, root, badge, _name }) {
-      super(paths, root, badge, "directory");
-      if (_name) {
-        this._name = _name;
-      }
-    }
-
-    async get(name, options) {
-      const result = await this.convery("get", [name, options]);
-
-      if (result.kind === "file") {
-        return new RemoteFileHandle({
-          paths: [...this.relativePaths, name],
-          root: this.root,
-          badge: this.badge,
-        });
-      }
-
-      return new RemoteDirHandle({
-        paths: [...this.relativePaths, name],
-        root: this.root,
-        badge: this.badge,
-      });
-    }
-
-    async *entries() {
-      const result = await this.convery("entries", []);
-
-      for (let item of result) {
-        if (item.kind === "file") {
-          yield [
-            item.name,
-            new RemoteFileHandle({
-              paths: [...this.relativePaths, item.name],
-              root: this.root,
-              badge: this.badge,
-            }),
-          ];
-        } else {
-          yield [
-            item.name,
-            new RemoteDirHandle({
-              paths: [...this.relativePaths, item.name],
-              root: this.root,
-              badge: this.badge,
-            }),
-          ];
-        }
-      }
-    }
-
-    async *keys() {
-      for await (let [name] of this.entries()) {
-        yield name;
-      }
-    }
-
-    async *values() {
-      for await (let [, handle] of this.entries()) {
-        yield handle;
-      }
-    }
-
-    async removeEntry(name, options) {
-      return await this.convery("remove-entry", [name, options]);
-    }
-  }
-
-  class RemoteFileHandle extends RemoteBaseHandle {
-    constructor({ paths, root, badge, _name }) {
-      super(paths, root, badge, "file");
-      if (_name) {
-        this._name = _name;
-      }
-    }
-
-    async write(content) {
-      return await this.convery("write", [content]);
-    }
-
-    async read(options) {
-      const defaults = {
-        type: "file", // text buffer
-      };
-
-      Object.assign(defaults, options);
-
-      return await this.convery("read", [options]);
-    }
-
-    file() {
-      return this.read({ type: "file" });
-    }
-
-    text() {
-      return this.read({ type: "text" });
-    }
-
-    buffer() {
-      return this.read({ type: "buffer" });
-    }
-
-    async stat() {
-      const file = await this.read({ type: "file" });
-
-      const result = {};
-
-      ["lastModified", "lastModifiedDate", "name", "size", "type"].forEach(
-        (k) => (result[k] = file[k])
-      );
-
-      return result;
-    }
-  }
-
-  const remoteBadge = async (options, itemFsId) => {
-    const { func, name, paths, self, args } = options;
-    const rootname = self.root.name;
-
-    remotes.some((e) => {
-      return e.others.some((item) => {
-        if (item.name === rootname) {
-          return true;
-        }
-      });
-    });
-
-    return await badge(func, {
-      paths,
-      name,
-      rootname: self.root.name,
-      fsId: itemFsId,
-      args,
-    });
-  };
-
-  const getHandle = async (data) => {
-    const targetRootHandle = otherHandles.find(
-      (e) => e.name === data.rootname
-    ).handle;
-
-    return data.paths.length === 0
-      ? targetRootHandle
-      : await targetRootHandle.get(`${data.paths.join("/")}`);
-  };
-
-  const catchError = async (func) => {
-    try {
-      return await func();
-    } catch (err) {
-      return {
-        error: {
-          desc: err.toString(),
-          code: err.code,
-        },
-      };
-    }
-  };
-
-  register("handle-entries", async (data) => {
-    if (data.fsId === fsId) {
-      return catchError(async () => {
-        const handle = await getHandle(data);
-
-        const ens = [];
-        for await (let e of handle.values()) {
-          ens.push({
-            name: e.name,
-            kind: e.kind,
-          });
-        }
-
-        return ens;
-      });
-    }
-  });
-
-  register("handle-get", async (data) => {
-    if (data.fsId === fsId) {
-      return catchError(async () => {
-        const handle = await getHandle(data);
-
-        const result = await handle.get(...data.args);
-
-        return {
-          kind: result.kind,
-        };
-      });
-    }
-  });
-
-  [
-    ["read", "read"],
-    ["write", "write"],
-    ["remove-entry", "removeEntry"],
-  ].forEach(([name, funcName]) => {
-    register(`handle-${name}`, async (data) => {
-      if (data.fsId === fsId) {
-        return catchError(async () => {
-          const handle = await getHandle(data);
-
-          return (await handle[funcName](...data.args)) || null;
-        });
-      }
-    });
-  });
-
-  const addRemotes = (data) => {
-    const targetRemote = remotes.find((e) => e.fsId === data.fsId);
-
-    if (!targetRemote) {
-      remotes.push({
-        fsId: data.fsId,
-        others: data.others.map(
-          (name) =>
-            new RemoteDirHandle({
-              paths: [],
-              _name: name,
-              badge: (options) => remoteBadge(options, data.fsId),
-            })
-        ),
-      });
-    } else {
-      targetRemote.others = data.others.map(
-        (name) =>
-          new RemoteDirHandle({
-            paths: [],
-            _name: name,
-            badge: (options) => remoteBadge(options, data.fsId),
-          })
-      );
-    }
-  };
-
-  // 基础远端数据广播
-  register("init", async (data) => {
-    addRemotes(data);
-
-    post({
-      type: "re-init",
-      fsId,
-      others: otherHandles.map((e) => e.name),
-    });
-  });
-
-  register("re-init", async (data) => {
-    addRemotes(data);
-  });
-
-  register("close", async (data) => {
-    const oldId = remotes.findIndex((e) => e.fsId === data.fsId);
-    if (oldId > -1) {
-      remotes.splice(oldId, 1);
-    }
-  });
-
-  setTimeout(() => {
-    post({
-      type: "init",
-      fsId,
-      others: otherHandles.map((e) => e.name),
-    });
-  });
-
-  globalThis.addEventListener("beforeunload", (event) => {
-    post({
-      type: "close",
-      fsId,
-    });
-  });
-
-  const rootHandlePms = navigator.storage.getDirectory();
-
-  // 获取本地的 file system 数据
-  const get = async (path = "", { handle, create, type } = {}) => {
-    const root = new NDirHandle(handle || (await rootHandlePms));
-    if (!path) {
-      return root;
-    }
-
-    return await root.get(path, {
-      create,
-      type,
-    });
-  };
-
-  const otherHandles = [];
-
   self.addEventListener("fetch", async (event) => {
     const { request } = event;
     const { url } = request;
     const urlObj = new URL(url);
     const { pathname } = urlObj;
 
-    // 属于$的进入虚拟空间获取数据
-    if (/^\/\$/.test(pathname)) {
+    if (
+      pathname === "/" ||
+      pathname === "/index.html" ||
+      pathname === "/main-init.js"
+    ) {
+      event.respondWith(
+        fetch(pathname).catch(async () => {
+          const cache = await caches.open("noneos-bootstrap");
+
+          return cache.match(pathname);
+        })
+      );
+    } else if (/^\/\$/.test(pathname)) {
+      // 属于$的进入虚拟空间获取数据
       event.respondWith(
         (async () => {
           const pathArr = pathname.split("/");
@@ -821,12 +855,27 @@
               handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
             }
 
-            console.log("sw", request);
-
             const file = await handle.file();
+
+            const headers = {};
+
+            const { pathname } = new URL(request.url);
+
+            [
+              ["js", "application/javascript;charset=utf-8"],
+              ["json", "application/json;charset=utf-8"],
+              ["svg", "image/svg+xml"],
+            ].some(([str, ct]) => {
+              const reg = new RegExp(`\.${str}$`);
+              if (reg.test(pathname)) {
+                headers["Content-Type"] = ct;
+                return true;
+              }
+            });
 
             return new Response(file, {
               status: 200,
+              headers,
             });
           } catch (err) {
             console.error(err);
