@@ -81,6 +81,14 @@
   </div>
   <h3>已安装应用</h3>
   <div class="app-list">
+    <x-fill :value="installedApps">
+      <div class="app-item" on:click="$host.clickApp($data)">
+        <div class="app-item-icon">
+          <img attr:src="$data.icon" />
+        </div>
+        <div class="app-item-name">{{$data.name}}</div>
+      </div>
+    </x-fill>
     <div class="app-item">
       <div class="app-item-icon">+</div>
       <div class="app-item-name">添加应用</div>
@@ -88,7 +96,7 @@
     </div>
   </div>
   <script>
-    import { systemApps } from "../../data.js";
+    import { systemApps, installedApps } from "../../data.js";
     import { unzip } from "../../zip/main.js";
 
     export default async ({ load }) => {
@@ -103,6 +111,8 @@
           installedApps: [],
         },
         proto: {
+          async reloadAppList() {
+          },
           async addApp(e) {
             const file = e.target.files[0];
             const appName = file.name.split(".")[0];
@@ -159,9 +169,12 @@
         },
         attached() {
           this.systemApps = systemApps;
+          this.installedApps = installedApps;
+          // this.reloadAppList();
         },
         detached() {
           this.systemApps = [];
+          this.installedApps = [];
         },
       };
     };

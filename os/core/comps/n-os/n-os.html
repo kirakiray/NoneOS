@@ -198,14 +198,18 @@
               data: { path },
             } = e;
 
-            this.currentAppPath = path;
-
             if (!this.using.some((e) => e.path === path)) {
-              const targetData = systemApps.find((item) => item.path === path);
+              const targetData = [...installedApps, ...systemApps].find(
+                (item) => item.path === path
+              );
+              if (!targetData) {
+                return;
+              }
               this.using.push(targetData.toJSON());
               // this.using.push(e.toJSON());
             }
 
+            this.currentAppPath = path;
             this.menuActived = false;
 
             return new Promise((res) => {
