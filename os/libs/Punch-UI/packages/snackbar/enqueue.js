@@ -6,7 +6,7 @@ $("head").push(`<style>
   width:calc(100% - var(--enqueue-container-left, 20px));
   height:calc(100% - var(--enqueue-container-bottom, 20px));
   max-width:600px;
-  z-index:10;
+  z-index:400;
   display:flex;
   box-sizing: border-box;
   flex-direction:column;
@@ -65,7 +65,7 @@ export default async function enqueue(opts) {
   const defaults = {
     content: "",
     buttons: [],
-    time: 300000,
+    time: 3000,
     click: () => {},
     close: () => {},
   };

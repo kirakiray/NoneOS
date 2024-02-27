@@ -508,13 +508,13 @@
     }
 
     async remove(options) {
-      this.#dbkey = null;
-
       if (this.kind === DIR) {
-        return removeDir({ handle: this, options });
+        await removeDir({ handle: this, options });
+      } else {
+        await removeFile({ handle: this });
       }
 
-      return removeFile({ handle: this });
+      this.#dbkey = null;
     }
 
     async move(...args) {

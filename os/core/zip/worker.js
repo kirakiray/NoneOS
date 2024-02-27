@@ -18,44 +18,18 @@ self.onmessage = (e) => {
   }
 };
 
-function unzipFile(file) {
-  return new Promise((resolve) => {
-    let reader = new FileReader();
-    reader.onload = function (e) {
-      let data = e.target.result;
-      JSZip.loadAsync(data).then(function (zip) {
-        const tasks = [];
-        zip.forEach(function (relativePath, zipEntry) {
-          const obj = zip.file(zipEntry.name);
-          const name = zipEntry.name.split("/").slice(-1)[0];
-
-          if (!obj || name === ".DS_Store") {
-            return;
-          }
-          tasks.push(
-            new Promise((res) => {
-              obj.async("blob").then(function (content) {
-                let file = new File([content], name);
-
-                res({ path: zipEntry.name, file });
-              });
-            })
-          );
-        });
-
-        Promise.all(tasks).then((files) => {
-          resolve(files);
-        });
-      });
-    };
-    reader.readAsArrayBuffer(file);
-  });
-}
-
 const unzip = async (data) => {
   const { file } = data;
-
-  const files = await unzipFile(file);
+  let files;
+  try {
+    files = await unzipFile(file);
+  } catch (err) {
+    self.postMessage({
+      id: data.id,
+      error: err.toString(),
+    });
+    return;
+  }
 
   self.postMessage({
     id: data.id,
@@ -79,3 +53,39 @@ const packaged = (data) => {
     zings[data.id] = null;
   }
 };
+
+function unzipFile(file) {
+  return new Promise((resolve, reject) => {
+    let reader = new FileReader();
+    reader.onload = function (e) {
+      let data = e.target.result;
+      JSZip.loadAsync(data)
+        .then(function (zip) {
+          const tasks = [];
+          zip.forEach(function (relativePath, zipEntry) {
+            const obj = zip.file(zipEntry.name);
+            const name = zipEntry.name.split("/").slice(-1)[0];
+
+            if (!obj || name === ".DS_Store") {
+              return;
+            }
+            tasks.push(
+              new Promise((res) => {
+                obj.async("blob").then(function (content) {
+                  let file = new File([content], name);
+
+                  res({ path: zipEntry.name, file });
+                });
+              })
+            );
+          });
+
+          Promise.all(tasks).then((files) => {
+            resolve(files);
+          });
+        })
+        .catch(reject);
+    };
+    reader.readAsArrayBuffer(file);
+  });
+}
