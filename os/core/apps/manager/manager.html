@@ -93,6 +93,8 @@
 
     export default async ({ load }) => {
       const { default: enqueue } = await load("@pui/snackbar/enqueue.js");
+      const { confirm } = await load("@pui/dialog/command.js");
+
       const { get } = await load("../../fs/local/main.js");
 
       return {
@@ -116,7 +118,19 @@
                 return;
               }
 
-              const appHandle = await get(`apps/${appName}`, {
+              let appHandle = await get(`apps/${appName}.napp`, {});
+
+              if (appHandle) {
+                const result = await confirm({
+                  content: `${appName}应用已存在，是否覆盖应用？`,
+                });
+
+                if (result) {
+                  await appHandle.remove({ recursive: true });
+                }
+              }
+
+              appHandle = await get(`apps/${appName}.napp`, {
                 create: "directory",
               });
 
