@@ -30,14 +30,17 @@ export const reloadAppsData = async () => {
 
   const appsHandle = await get("apps");
 
-  for await (let item of appsHandle.values()) {
-    const path = `${location.origin}/$/apps/${item.name}/app-config.js`;
+  if (appsHandle) {
+    for await (let item of appsHandle.values()) {
+      const path = `${location.origin}/$/apps/${item.name}/app-config.js`;
 
-    if (!installedApps.some((e) => e.path === path)) {
-      installedApps.push({
-        name: item.name.split(".")[0],
-        path,
-      });
+      if (!installedApps.some((e) => e.path === path)) {
+        installedApps.push({
+          name: item.name.split(".")[0],
+          path,
+          icon: "/os/core/apps/finder/icons/file.svg",
+        });
+      }
     }
   }
 };

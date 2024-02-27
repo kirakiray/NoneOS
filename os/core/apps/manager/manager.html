@@ -96,7 +96,7 @@
     </div>
   </div>
   <script>
-    import { systemApps, installedApps } from "../../data.js";
+    import { systemApps, installedApps, reloadAppsData } from "../../data.js";
     import { unzip } from "../../zip/main.js";
 
     export default async ({ load }) => {
@@ -111,8 +111,7 @@
           installedApps: [],
         },
         proto: {
-          async reloadAppList() {
-          },
+          async reloadAppList() {},
           async addApp(e) {
             const file = e.target.files[0];
             const appName = file.name.split(".")[0];
@@ -155,6 +154,8 @@
               this.emit("app-installed");
 
               enqueue(`${appName} 安装成功`);
+
+              reloadAppsData();
             } catch (err) {
               enqueue("安装应用失败，请检查文件是否有错误");
             }
