@@ -84,7 +84,7 @@
     <div class="app-item">
       <div class="app-item-icon">+</div>
       <div class="app-item-name">添加应用</div>
-      <input type="file" on:change="addApp" />
+      <input type="file" on:change="addApp" accept=".zip,.napp" />
     </div>
   </div>
   <script>
@@ -93,6 +93,7 @@
 
     export default async ({ load }) => {
       const { default: enqueue } = await load("@pui/snackbar/enqueue.js");
+      const { get } = await load("../../fs/local/main.js");
 
       return {
         data: {
@@ -102,12 +103,34 @@
         proto: {
           async addApp(e) {
             const file = e.target.files[0];
+            const appName = file.name.split(".")[0];
             e.target.value = "";
 
             try {
               const files = await unzip(file);
 
-              debugger;
+              const configFile = files.find((e) => e.path === "app-config.js");
+
+              if (!configFile) {
+                enqueue("你选择的文件不是NoneOS的应用包");
+                return;
+              }
+
+              const appHandle = await get(`apps/${appName}`, {
+                create: "directory",
+              });
+
+              for (let item of files) {
+                const fileHandle = await appHandle.get(`${item.path}`, {
+                  create: "file",
+                });
+
+                await fileHandle.write(item.file);
+              }
+
+              this.emit("app-installed");
+
+              enqueue(`${appName} 安装成功`);
             } catch (err) {
               enqueue("安装应用失败，请检查文件是否有错误");
             }
