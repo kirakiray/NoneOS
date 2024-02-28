@@ -31,7 +31,7 @@
     }
     .apps-mask {
       position: fixed;
-      z-index: 9999;
+      z-index: 200;
       top: 0;
       left: 0;
       width: 100%;
@@ -39,7 +39,7 @@
     }
     .apps-bubble {
       position: absolute;
-      z-index: 10000;
+      z-index: 202;
       left: 60px;
       bottom: 0;
       width: 40vw;
@@ -146,13 +146,18 @@
         proto: {
           async openHandle(event) {
             const {
-              data: { handle, path },
+              data: { handle, path, openWith },
             } = event;
 
             const appName = handle.name;
             let targetAppPath;
             // 用应用打开
-            systemApps.some((appData) => {
+            [...systemApps, ...installedApps].some((appData) => {
+              if (openWith && openWith === appData.name) {
+                targetAppPath = appData.path;
+                return true;
+              }
+
               const { suffixs } = appData;
               if (suffixs) {
                 return suffixs.some((reg) => {
@@ -198,14 +203,18 @@
               data: { path },
             } = e;
 
-            this.currentAppPath = path;
-
             if (!this.using.some((e) => e.path === path)) {
-              const targetData = systemApps.find((item) => item.path === path);
+              const targetData = [...installedApps, ...systemApps].find(
+                (item) => item.path === path
+              );
+              if (!targetData) {
+                return;
+              }
               this.using.push(targetData.toJSON());
               // this.using.push(e.toJSON());
             }
 
+            this.currentAppPath = path;
             this.menuActived = false;
 
             return new Promise((res) => {

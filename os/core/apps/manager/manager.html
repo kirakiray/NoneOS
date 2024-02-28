@@ -13,6 +13,7 @@
       flex-wrap: wrap;
     }
     .app-item {
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -52,6 +53,15 @@
       -webkit-box-orient: vertical;
       height: 2.4em;
     }
+    .app-item input {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
     h3 {
       padding: 0 0 8px 14px;
       margin: 0;
@@ -71,21 +81,85 @@
   </div>
   <h3>已安装应用</h3>
   <div class="app-list">
+    <x-fill :value="installedApps">
+      <div class="app-item" on:click="$host.clickApp($data)">
+        <div class="app-item-icon">
+          <img attr:src="$data.icon" />
+        </div>
+        <div class="app-item-name">{{$data.name}}</div>
+      </div>
+    </x-fill>
     <div class="app-item">
       <div class="app-item-icon">+</div>
       <div class="app-item-name">添加应用</div>
+      <input type="file" on:change="addApp" accept=".zip,.napp" />
     </div>
   </div>
   <script>
-    import { systemApps } from "../../data.js";
+    import { systemApps, installedApps, reloadAppsData } from "../../data.js";
+    import { unzip } from "../../zip/main.js";
 
     export default async ({ load }) => {
+      const { default: enqueue } = await load("@pui/snackbar/enqueue.js");
+      const { confirm } = await load("@pui/dialog/command.js");
+
+      const { get } = await load("../../fs/local/main.js");
+
       return {
         data: {
           systemApps: [],
           installedApps: [],
         },
         proto: {
+          async reloadAppList() {},
+          async addApp(e) {
+            const file = e.target.files[0];
+            const appName = file.name.split(".")[0];
+            e.target.value = "";
+
+            try {
+              const files = await unzip(file);
+
+              const configFile = files.find((e) => e.path === "app-config.js");
+
+              if (!configFile) {
+                enqueue("你选择的文件不是NoneOS的应用包");
+                return;
+              }
+
+              let appHandle = await get(`apps/${appName}.napp`, {});
+
+              if (appHandle) {
+                const result = await confirm({
+                  content: `${appName}应用已存在，是否覆盖应用？`,
+                });
+
+                if (result) {
+                  await appHandle.remove({ recursive: true });
+                }
+              }
+
+              appHandle = await get(`apps/${appName}.napp`, {
+                create: "directory",
+              });
+
+              for (let item of files) {
+                const fileHandle = await appHandle.get(`${item.path}`, {
+                  create: "file",
+                });
+
+                await fileHandle.write(item.file);
+              }
+
+              this.emit("app-installed");
+
+              enqueue(`${appName} 安装成功`);
+
+              reloadAppsData();
+            } catch (err) {
+              enqueue("安装应用失败，请检查文件是否有错误");
+            }
+          },
           clickApp(data) {
             this.emit("click-app", {
               data: {
@@ -96,9 +170,12 @@
         },
         attached() {
           this.systemApps = systemApps;
+          this.installedApps = installedApps;
+          // this.reloadAppList();
         },
         detached() {
           this.systemApps = [];
+          this.installedApps = [];
         },
       };
     };

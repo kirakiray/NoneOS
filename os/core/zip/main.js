@@ -16,7 +16,11 @@ const getTaskId = () => Math.random().toString("16").slice(2);
 const resolver = {};
 
 worker.onmessage = (e) => {
-  resolver[e.data.id](e.data.content);
+  if (e.data.error) {
+    resolver[e.data.id].reject(e.data.error);
+  } else {
+    resolver[e.data.id].resolve(e.data.content);
+  }
   resolver[e.data.id] = null;
 };
 
@@ -29,8 +33,8 @@ export async function unzip(file) {
     file,
   });
 
-  const files = await new Promise((resolve) => {
-    resolver[taskID] = resolve;
+  const files = await new Promise((resolve, reject) => {
+    resolver[taskID] = { resolve, reject };
   });
 
   return files;
