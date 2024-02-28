@@ -146,13 +146,18 @@
         proto: {
           async openHandle(event) {
             const {
-              data: { handle, path },
+              data: { handle, path, openWith },
             } = event;
 
             const appName = handle.name;
             let targetAppPath;
             // 用应用打开
-            systemApps.some((appData) => {
+            [...systemApps, ...installedApps].some((appData) => {
+              if (openWith && openWith === appData.name) {
+                targetAppPath = appData.path;
+                return true;
+              }
+
               const { suffixs } = appData;
               if (suffixs) {
                 return suffixs.some((reg) => {

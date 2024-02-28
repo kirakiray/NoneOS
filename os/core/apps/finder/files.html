@@ -84,6 +84,11 @@
           Open With
           <p-menu>
             <p-menu-item on:click="openWith('newtab')"> New Tab </p-menu-item>
+            <x-fill :value="withList">
+              <p-menu-item on:click="$host.openWith($data.name)">
+                {{$data.name}}
+              </p-menu-item>
+            </x-fill>
           </p-menu>
         </p-menu-item>
       </x-if>
@@ -97,6 +102,8 @@
   </p-menu-bind>
 
   <script>
+    import { installedApps, systemApps } from "../../data.js";
+
     export default async ({ load, query }) => {
       const { get } = await load("../../fs/local/main.js");
       const { confirm } = await load("@pui/dialog/command.js");
@@ -124,6 +131,7 @@
           files: [],
           loading: true,
           selectType: "file",
+          withList: [],
         },
         proto: {
           async openWith(type) {
@@ -138,6 +146,16 @@
               case "newtab":
                 window.open(`${location.origin}/$${targetHandle.path}`);
                 break;
+              default: {
+                const handle = await selfDir.get(this.parent.selectedName);
+
+                this.emit("open-handle", {
+                  data: {
+                    handle,
+                    openWith: type,
+                  },
+                });
+              }
             }
           },
           async renameItem(name) {
@@ -226,6 +244,13 @@
           triggerMenu(e) {
             const { originEvent } = e;
             const target = $(originEvent.target);
+
+            if (target.type === "file") {
+              this.withList = [
+                ...systemApps.toJSON(),
+                ...installedApps.toJSON(),
+              ];
+            }
 
             this.shadow
               .all(`.selected`)
