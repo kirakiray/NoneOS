@@ -1,5 +1,6 @@
 import { get } from "./os/core/fs/local/main.js";
 import { remotes } from "./os/core/fs/remote/data.js";
+import virtual from "./sw/virtual-sw.js";
 
 self.addEventListener("fetch", async (event) => {
   const { request } = event;
@@ -7,7 +8,10 @@ self.addEventListener("fetch", async (event) => {
   const urlObj = new URL(url);
   const { pathname } = urlObj;
 
-  if (
+  if (/^\/v\//.test(pathname)) {
+    // 进入虚拟地址
+    event.respondWith(virtual({ pathname, request }));
+  } else if (
     pathname === "/" ||
     pathname === "/index.html" ||
     pathname === "/main-init.js"

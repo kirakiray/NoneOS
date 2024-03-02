@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>virtual demo</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createApi } from "../core/virtual.js";
+
+      const server = createApi({
+        name: "test",
+        async callback({ request, search, pathname, searchParams, hash }) {
+          console.log(request, search, pathname, searchParams, hash);
+
+          return {
+            body: "ok la haha",
+          };
+        },
+        created() {
+          setTimeout(() => {
+            window.open(`${server.path}/d?a=aaaaa`);
+          }, 1000);
+        },
+      });
+
+      //   setTimeout(() => {
+      //     server.close();
+      //   }, 1000);
+    </script>
+  </body>
+</html>
