@@ -127,7 +127,9 @@
                 return;
               }
 
-              let appHandle = await get(`apps/${appName}.napp`, {});
+              let appHandle = await get(`apps/${appName}.napp`, {}).catch(
+                () => null
+              );
 
               if (appHandle) {
                 const result = await confirm({
