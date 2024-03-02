@@ -1,4 +1,31 @@
-import { flatFiles } from "../fs/system/base.js";
+export async function flatFiles(parHandle, parNames = []) {
+  const files = [];
+  let isEmpty = true;
+
+  for await (let [name, handle] of parHandle.entries()) {
+    isEmpty = false;
+    if (handle.kind === "file") {
+      files.push({
+        kind: "file",
+        name,
+        handle,
+        parNames,
+      });
+    } else {
+      const subFiles = await flatFiles(handle, [...parNames, name]);
+      files.push(...subFiles);
+    }
+  }
+
+  if (isEmpty) {
+    files.push({
+      kind: "dir",
+      parNames,
+    });
+  }
+
+  return files;
+}
 
 let worker;
 const workerPath = import.meta.resolve("./worker.js");

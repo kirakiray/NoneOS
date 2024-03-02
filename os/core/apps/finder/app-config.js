@@ -1,5 +1,4 @@
 export const home = "./files.html";
-// export const home = "./system-handle-files.html";
 
 export const name = "Files";
 

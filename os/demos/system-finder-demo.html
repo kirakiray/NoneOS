@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Finder Demo</title>
+    <script src="../libs/ofa.min.js" debug></script>
+    <!-- <script
+      src="http://127.0.0.1:3348/packages/ofa/main.mjs"
+      type="module"
+    ></script> -->
+    <!-- <script src="http://127.0.0.1:3348/dist/ofa.min.js"></script> -->
+    <l-m src="../libs/Punch-UI/init.js"></l-m>
+    <l-m src="../core/init.js"></l-m>
+    <link rel="stylesheet" href="../libs/Punch-UI/packages/css/public.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #aaa;
+      }
+    </style>
+  </head>
+  <body>
+    <div data-fsid style="position: absolute; left: 0; top: 0">0</div>
+    <div data-remotes style="position: absolute; left: 0; top: 20px">0</div>
+    <o-app
+      src="../core/apps/finder/app-config.js"
+      style="width: 80%; height: 80%; background-color: #fff"
+    ></o-app>
+    <script type="module">
+      // import { get } from "../core/fs/local/main.js";
+      sessionStorage.__handle_use_system = 1;
+
+      const load = lm(import.meta);
+
+      setTimeout(async () => {
+        const { get } = await load("../core/fs/system/main.js");
+
+        const rootDir = await get();
+
+        const handle = await rootDir.get("test_dir1", {
+          create: "directory",
+        });
+        await rootDir.get("test_dir2", {
+          create: "directory",
+        });
+
+        await rootDir.get("test_dir2/subdir1", {
+          create: "directory",
+        });
+
+        const fileHandle = await rootDir.get("test_file1.txt", {
+          create: "file",
+        });
+
+        let test_content = "test";
+
+        for (let i = 0; i < 155; i++) {
+          test_content += " " + i;
+        }
+
+        await fileHandle.write(test_content);
+
+        const content = await fileHandle.text();
+
+        console.log("filehandle", content, fileHandle);
+
+        const fileHandle2 = await rootDir.get(
+          "test_dir2/subdir1/test_file2.txt",
+          {
+            create: "file",
+          }
+        );
+
+        await fileHandle2.write(test_content);
+      }, 500);
+    </script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 import { get } from "./os/core/fs/local/main.js";
-import { remotes } from "./os/core/fs/remote/data.js";
+// import { remotes } from "./os/core/fs/remote/data.js";
 import virtual from "./sw/virtual-sw.js";
 
 self.addEventListener("fetch", async (event) => {
@@ -32,28 +32,28 @@ self.addEventListener("fetch", async (event) => {
         try {
           let handle;
 
-          if (pathArr[1].length > 1) {
-            // 虚拟本地目录
-            let rootname = pathArr[1].replace(/^\$/, "");
-            rootname = decodeURIComponent(rootname);
+          // if (pathArr[1].length > 1) {
+          //   // 虚拟本地目录
+          //   let rootname = pathArr[1].replace(/^\$/, "");
+          //   rootname = decodeURIComponent(rootname);
 
-            let targetHandle;
-            remotes.some((e) => {
-              e.others.some((item) => {
-                if (item.name === rootname) {
-                  targetHandle = item;
-                }
-              });
-            });
+          //   let targetHandle;
+          //   remotes.some((e) => {
+          //     e.others.some((item) => {
+          //       if (item.name === rootname) {
+          //         targetHandle = item;
+          //       }
+          //     });
+          //   });
 
-            if (targetHandle) {
-              handle = await targetHandle.get(
-                decodeURIComponent(pathArr.slice(2).join("/"))
-              );
-            }
-          } else {
-            handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
-          }
+          //   if (targetHandle) {
+          //     handle = await targetHandle.get(
+          //       decodeURIComponent(pathArr.slice(2).join("/"))
+          //     );
+          //   }
+          // } else {
+          handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
+          // }
 
           const file = await handle.file();
 

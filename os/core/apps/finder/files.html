@@ -105,7 +105,13 @@
     import { installedApps, systemApps } from "../../data.js";
 
     export default async ({ load, query }) => {
-      const { get } = await load("../../fs/local/main.js");
+      let get;
+      if (sessionStorage.__handle_use_system) {
+        get = (await load("../../fs/system/main.js")).get;
+      } else {
+        get = (await load("../../fs/local/main.js")).get;
+      }
+
       const { confirm } = await load("@pui/dialog/command.js");
 
       let path = "";
@@ -148,6 +154,8 @@
                 break;
               default: {
                 const handle = await selfDir.get(this.parent.selectedName);
+
+                debugger;
 
                 this.emit("open-handle", {
                   data: {
@@ -231,6 +239,7 @@
               );
               this.parent.selectedName = "";
             } else {
+              debugger;
               this.emit("open-handle", {
                 data: {
                   handle: await selfDir.get(data.name),

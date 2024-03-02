@@ -1,24 +1,4 @@
 import { NDirHandle } from "../system/handle.js";
-import { cast } from "../remote/hardisk.js";
-
-const rootHandlePms = navigator.storage.getDirectory();
-
-export const getLocal = async () => {
-  return new NDirHandle(await rootHandlePms);
-};
-
-// 获取本地的 file system 数据
-export const get = async (path = "", { handle, create, type } = {}) => {
-  const root = new NDirHandle(handle || (await rootHandlePms));
-  if (!path) {
-    return root;
-  }
-
-  return await root.get(path, {
-    create,
-    type,
-  });
-};
 
 export const otherHandles = [];
 
@@ -34,23 +14,20 @@ export const open = async () => {
       handle,
     });
 
-    cast();
-
     return handle;
   }
 
   throw "showDirectoryPicker does not exist";
 };
 
-// 获取所有已经挂载的目录
-export const getAll = async () => {
-  const root = await getLocal();
+export const get = async (path, options) => {
+  const rootHandle = await new NDirHandle(
+    await navigator.storage.getDirectory()
+  );
 
-  return [
-    {
-      name: "Local",
-      handle: root,
-    },
-    ...otherHandles,
-  ];
+  if (!path) {
+    return rootHandle;
+  }
+
+  return rootHandle.get(path, options);
 };

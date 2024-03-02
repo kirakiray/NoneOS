@@ -173,7 +173,13 @@
   <script>
     export default async ({ load }) => {
       const { exploreFolder } = await load("../../zip/main.js");
-      const { get } = await load("../../fs/local/main.js");
+      
+      let get;
+      if (sessionStorage.__handle_use_system) {
+        get = (await load("../../fs/system/main.js")).get;
+      } else {
+        get = (await load("../../fs/local/main.js")).get;
+      }
 
       return {
         data: {
