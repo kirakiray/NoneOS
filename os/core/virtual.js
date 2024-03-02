@@ -32,8 +32,17 @@ export const createApi = ({ callback, name, created }) => {
 
         const urlObj = new URL(request.url);
 
-        if (new RegExp(`^${vpath}`).test(urlObj.pathname)) {
-          const content = await callback({ request });
+        const reg = new RegExp(`^${vpath}`);
+
+        if (reg.test(urlObj.pathname)) {
+          const content = await callback({
+            request,
+            // 修正后的pathname
+            pathname: urlObj.pathname.replace(reg, ""),
+            searchParams: urlObj.searchParams,
+            search: urlObj.search,
+            hash: urlObj.hash,
+          });
 
           post({
             type: "response",

@@ -11,8 +11,8 @@
 
       const server = createApi({
         name: "test",
-        async callback({ request }) {
-          console.log("request:", request);
+        async callback({ request, search, pathname, searchParams, hash }) {
+          console.log(request, search, pathname, searchParams, hash);
 
           return {
             body: "ok la haha",
@@ -20,9 +20,7 @@
         },
         created() {
           setTimeout(() => {
-            window.open(
-              `${server.path}/d_${Math.random().toString(32).slice(3)}`
-            );
+            window.open(`${server.path}/d?a=aaaaa`);
           }, 1000);
         },
       });
