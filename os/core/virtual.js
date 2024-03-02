@@ -20,21 +20,27 @@ export const createApi = ({ callback, name, created }) => {
   navigator.serviceWorker.addEventListener("message", async (event) => {
     const { data } = event;
     switch (data.type) {
-      case "created": {
-        vpath = data.vpath;
-        created && created(vpath);
+      case "created":
+        if (!vpath) {
+          vpath = data.vpath;
+          created && created(vpath);
+        }
         break;
-      }
+
       case "request": {
         const { request, taskId } = data;
 
-        const content = await callback({ request });
+        const urlObj = new URL(request.url);
 
-        post({
-          type: "response",
-          taskId,
-          content,
-        });
+        if (new RegExp(`^${vpath}`).test(urlObj.pathname)) {
+          const content = await callback({ request });
+
+          post({
+            type: "response",
+            taskId,
+            content,
+          });
+        }
         break;
       }
     }
