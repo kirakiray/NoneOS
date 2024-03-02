@@ -7,7 +7,7 @@ export const open = async () => {
   if (window.showDirectoryPicker) {
     const oriHandle = await window.showDirectoryPicker({});
 
-    const handle = new NDirHandle(oriHandle, []);
+    const handle = new NDirHandle(oriHandle, [oriHandle.name]);
 
     otherHandles.push({
       name: handle.name,
@@ -21,9 +21,9 @@ export const open = async () => {
 };
 
 export const get = async (path, options) => {
-  const rootHandle = await new NDirHandle(
-    await navigator.storage.getDirectory()
-  );
+  const rootDir = await navigator.storage.getDirectory();
+
+  const rootHandle = await new NDirHandle(rootDir, [rootDir.name]);
 
   if (!path) {
     return rootHandle;

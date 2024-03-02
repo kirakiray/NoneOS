@@ -474,7 +474,7 @@
     }
 
     get root() {
-      return this.#root || this;
+      return this.#root;
     }
 
     get path() {
@@ -764,47 +764,6 @@
     return rootHandle.get(path, options);
   };
 
-  const fsId = Math.random().toString(32).slice(2);
-  const filerootChannel = new BroadcastChannel("noneos-fs-channel");
-
-  const remotes = [];
-
-  // globalThis.remotes = remotes;
-
-  console.log("fsId", fsId);
-
-  const registerMaps = {};
-
-  filerootChannel.addEventListener("message", async (event) => {
-    const { data } = event;
-
-    // console.log(data);
-    if (registerMaps[data.type]) {
-      const result = await registerMaps[data.type]({ ...data });
-
-      if (result !== undefined) {
-        filerootChannel.postMessage({
-          result,
-          taskId: data.taskId,
-        });
-      }
-    }
-  });
-
-  if (typeof document !== "undefined") {
-    if (document.querySelector("[data-fsid]")) {
-      document.querySelector("[data-fsid]").innerHTML = fsId;
-    }
-
-    filerootChannel.addEventListener("message", (event) => {
-      if (document.querySelector("[data-remotes]")) {
-        document.querySelector("[data-remotes]").innerHTML = JSON.stringify(
-          remotes.map((e) => e.fsId)
-        );
-      }
-    });
-  }
-
   // 所有注册的资源对象
   const sours = new Map();
 
@@ -957,28 +916,28 @@
           try {
             let handle;
 
-            if (pathArr[1].length > 1) {
-              // 虚拟本地目录
-              let rootname = pathArr[1].replace(/^\$/, "");
-              rootname = decodeURIComponent(rootname);
+            // if (pathArr[1].length > 1) {
+            //   // 虚拟本地目录
+            //   let rootname = pathArr[1].replace(/^\$/, "");
+            //   rootname = decodeURIComponent(rootname);
 
-              let targetHandle;
-              remotes.some((e) => {
-                e.others.some((item) => {
-                  if (item.name === rootname) {
-                    targetHandle = item;
-                  }
-                });
-              });
+            //   let targetHandle;
+            //   remotes.some((e) => {
+            //     e.others.some((item) => {
+            //       if (item.name === rootname) {
+            //         targetHandle = item;
+            //       }
+            //     });
+            //   });
 
-              if (targetHandle) {
-                handle = await targetHandle.get(
-                  decodeURIComponent(pathArr.slice(2).join("/"))
-                );
-              }
-            } else {
-              handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
-            }
+            //   if (targetHandle) {
+            //     handle = await targetHandle.get(
+            //       decodeURIComponent(pathArr.slice(2).join("/"))
+            //     );
+            //   }
+            // } else {
+            handle = await get(decodeURIComponent(pathArr.slice(2).join("/")));
+            // }
 
             const file = await handle.file();
 

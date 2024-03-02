@@ -1,31 +1,4 @@
-export async function flatFiles(parHandle, parNames = []) {
-  const files = [];
-  let isEmpty = true;
-
-  for await (let [name, handle] of parHandle.entries()) {
-    isEmpty = false;
-    if (handle.kind === "file") {
-      files.push({
-        kind: "file",
-        name,
-        handle,
-        parNames,
-      });
-    } else {
-      const subFiles = await flatFiles(handle, [...parNames, name]);
-      files.push(...subFiles);
-    }
-  }
-
-  if (isEmpty) {
-    files.push({
-      kind: "dir",
-      parNames,
-    });
-  }
-
-  return files;
-}
+import { flatFiles } from "../util.js";
 
 let worker;
 const workerPath = import.meta.resolve("./worker.js");
@@ -86,7 +59,7 @@ export async function exploreFolder(handler, rootName) {
     worker.postMessage({
       id: taskID,
       path: `${rootName}/${
-        e.parNames.length ? e.parNames.join("/") + "/" : ""
+        e.parentsName.length ? e.parentsName.join("/") + "/" : ""
       }${e.name}`,
       file,
       isEnd: !len,
