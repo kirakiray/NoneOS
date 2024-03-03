@@ -34,7 +34,7 @@ class BaseHandle {
   }
 
   get root() {
-    return this.#root || this;
+    return this.#root;
   }
 
   get path() {

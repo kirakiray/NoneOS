@@ -1,8 +1,118 @@
-import { NBaseHandle } from "./base.js";
+import { flatFiles } from "../../util.js";
+
+// 替换这个基础库，理论是可以兼容各个环境
+export class NBaseHandle {
+  #root = null;
+  #relates;
+  constructor(handle, relates, root) {
+    this._handle = handle;
+    this.#root = root || null;
+    this.#relates = relates;
+  }
+
+  get kind() {
+    return this._handle.kind || "directory";
+  }
+
+  get path() {
+    return this.#relates.join("/");
+  }
+
+  get paths() {
+    return this.#relates.slice();
+  }
+
+  get root() {
+    return this.#root;
+  }
+
+  get name() {
+    return this._handle.name;
+  }
+
+  async parent() {
+    if (this.#relates.length === 1) {
+      return null;
+    }
+
+    return this.root.get(this.#relates.slice(0, -1).join("/"));
+  }
+
+  async remove(options) {
+    const defaults = {
+      recursive: false,
+    };
+
+    Object.assign(defaults, options);
+
+    if (this._handle.remove) {
+      await this._handle.remove(defaults);
+    } else {
+      const parent = await this.parent();
+      await parent.removeEntry(this.name, defaults);
+    }
+
+    return true;
+  }
+
+  async move(...args) {
+    const { _handle } = this;
+    if (_handle.move) {
+      switch (args.length) {
+        case 2:
+          await _handle.move(args[0]._handle, args[1]);
+          return true;
+        case 1:
+          if (typeof args[0] === "string") {
+            await _handle.move(args[0]);
+          } else {
+            await _handle.move(args[0]._handle);
+          }
+          return true;
+      }
+    } else {
+      let name, parHandle;
+      switch (args.length) {
+        case 2:
+          parHandle = args[0];
+          name = args[1];
+        case 1:
+          if (typeof args[0] === "string") {
+            name = args[0];
+          } else {
+            parHandle = args[0];
+          }
+      }
+
+      if (!parHandle) {
+        // 文件夹重命名
+        parHandle = await this.parent();
+      }
+
+      // 一维化所有文件
+      const files = await flatFiles(this, [name]);
+
+      for (let item of files) {
+        if (item.kind === "file") {
+          const realPar = await parHandle.get(item.parentsName.join("/"), {
+            create: "directory",
+          });
+          await item.handle.move(realPar, item.name);
+        } else {
+          await parHandle.get(item.parentsName.join("/"), {
+            create: "directory",
+          });
+        }
+      }
+
+      await this.remove({ recursive: true });
+    }
+  }
+}
 
 export class NDirHandle extends NBaseHandle {
-  constructor(handle, paths, root) {
-    super(handle, paths, root);
+  constructor(handle, relates, root) {
+    super(handle, relates, root);
   }
 
   async get(name, options) {
@@ -71,14 +181,14 @@ export class NDirHandle extends NBaseHandle {
     if (targetHandle.kind === "file") {
       return new NFileHandle(
         targetHandle,
-        [...this.relativePaths, ...paths],
-        this.root
+        [...this.paths, ...paths],
+        this.root || this
       );
     } else if (targetHandle.kind === "directory") {
       return new NDirHandle(
         targetHandle,
-        [...this.relativePaths, ...paths],
-        this.root
+        [...this.paths, ...paths],
+        this.root || this
       );
     }
 
@@ -90,12 +200,12 @@ export class NDirHandle extends NBaseHandle {
       if (handle.kind === "file") {
         yield [
           name,
-          new NFileHandle(handle, [...this.relativePaths, name], this.root),
+          new NFileHandle(handle, [...this.paths, name], this.root || this),
         ];
       } else {
         yield [
           name,
-          new NDirHandle(handle, [...this.relativePaths, name], this.root),
+          new NDirHandle(handle, [...this.paths, name], this.root || this),
         ];
       }
     }
@@ -110,9 +220,9 @@ export class NDirHandle extends NBaseHandle {
   async *values() {
     for await (let [name, handle] of this._handle.entries()) {
       if (handle.kind === "file") {
-        yield new NFileHandle(handle, [...this.relativePaths, name], this.root);
+        yield new NFileHandle(handle, [...this.paths, name], this.root || this);
       } else {
-        yield new NDirHandle(handle, [...this.relativePaths, name], this.root);
+        yield new NDirHandle(handle, [...this.paths, name], this.root || this);
       }
     }
   }
@@ -125,8 +235,8 @@ export class NDirHandle extends NBaseHandle {
 }
 
 export class NFileHandle extends NBaseHandle {
-  constructor(handle, paths, root) {
-    super(handle, paths, root);
+  constructor(handle, relates, root) {
+    super(handle, relates, root);
   }
 
   async write(content) {
@@ -184,12 +294,9 @@ export class NFileHandle extends NBaseHandle {
   async stat() {
     const file = await this.read({ type: "file" });
 
-    const result = {};
-
-    ["lastModified", "lastModifiedDate", "name", "size", "type"].forEach(
-      (k) => (result[k] = file[k])
-    );
-
-    return result;
+    return [{}, "createTime", "type", "lastModified"].reduce((obj, name) => {
+      file[name] && (obj[name] = file[name]);
+      return obj;
+    });
   }
 }

@@ -1,4 +1,4 @@
-import { flatFiles } from "../fs/system/base.js";
+import { flatFiles } from "../util.js";
 
 let worker;
 const workerPath = import.meta.resolve("./worker.js");
@@ -59,7 +59,7 @@ export async function exploreFolder(handler, rootName) {
     worker.postMessage({
       id: taskID,
       path: `${rootName}/${
-        e.parNames.length ? e.parNames.join("/") + "/" : ""
+        e.parentsName.length ? e.parentsName.join("/") + "/" : ""
       }${e.name}`,
       file,
       isEnd: !len,
