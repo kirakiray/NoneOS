@@ -18,7 +18,7 @@
     type: "module",
   });
 
-  await addScript(`${osRoot}/core/init.js`, {
+  await addScript(`${osRoot}/init.js`, {
     type: "module",
   });
 })();
