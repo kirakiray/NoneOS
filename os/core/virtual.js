@@ -39,7 +39,6 @@ export const createApi = ({ callback, name, created }) => {
             request,
             // 修正后的pathname
             pathname: urlObj.pathname.replace(reg, ""),
-            searchParams: urlObj.searchParams,
             search: urlObj.search,
             hash: urlObj.hash,
           });
