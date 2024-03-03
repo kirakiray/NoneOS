@@ -97,7 +97,7 @@
         style="margin-top: auto"
         on:click="menuActived = !menuActived"
       >
-        <img width="34" src="../../apps/manager/icon.svg" />
+        <img width="34" src="../../core/apps/manager/icon.svg" />
       </os-app-item>
     </div>
     <div class="main">
@@ -116,14 +116,14 @@
     <div class="apps-bubble" class:menu-hide="!menuActived">
       <div style="position: relative; width: 100%; height: 500px">
         <o-app
-          src="../../apps/manager/app-config.js"
+          src="../../core/apps/manager/app-config.js"
           on:click-app="clickApp"
         ></o-app>
       </div>
     </div>
   </div>
   <script>
-    import { systemApps, installedApps } from "../../data.js";
+    import { systemApps, installedApps } from "../../core/data.js";
 
     export default async ({ load }) => {
       return {

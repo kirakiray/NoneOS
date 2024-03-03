@@ -12,7 +12,7 @@
     debug: "",
   });
 
-  $("body").push(`<l-m src="${osRoot}/core/comps/n-os/n-os.html"></l-m>`);
+  $("body").push(`<l-m src="${osRoot}/comps/n-os/n-os.html"></l-m>`);
 
   await addScript(`${osRoot}/libs/Punch-UI/init.js`, {
     type: "module",
