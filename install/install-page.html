@@ -61,7 +61,7 @@
       proto: {
         async loadVersion() {
           // online version
-          const onloneData = await fetch("/package.json")
+          const onloneData = await fetch("/package.json?v=" + Math.random())
             .then((e) => e.json())
             .catch(() => null);
 
@@ -109,7 +109,9 @@
 
           this.installingText = "正在下载系统文件...";
 
-          const zipFile = await fetch("../os.zip").then((e) => e.blob());
+          const zipFile = await fetch("../os.zip?v" + +Math.random()).then(
+            (e) => e.blob()
+          );
 
           this.installingText = "正在解压系统文件...";
 
