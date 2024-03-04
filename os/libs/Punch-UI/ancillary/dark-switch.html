@@ -16,15 +16,6 @@
       data: {
         isDark: { value: false },
       },
-      watch: {
-        isDark(isDark) {
-          if (isDark.value) {
-            $("html").classList.add("dark");
-          } else {
-            $("html").classList.remove("dark");
-          }
-        },
-      },
       attached() {
         this.isDark = isDark;
       },
