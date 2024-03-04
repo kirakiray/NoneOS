@@ -11,8 +11,8 @@
 
       const server = createApi({
         name: "test",
-        async callback({ request, search, pathname, searchParams, hash }) {
-          console.log(request, search, pathname, searchParams, hash);
+        async callback({ request, search, pathname, hash }) {
+          console.log(request, search, pathname, hash);
 
           return {
             body: "ok la haha",

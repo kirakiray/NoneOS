@@ -4,10 +4,10 @@ const selfPath = import.meta.url;
 export const systemApps = $.stanz([
   {
     isHome: true,
-    path: new URL("./apps/finder/app-config.js", selfPath).href,
+    path: new URL("../apps/finder/app-config.js", selfPath).href,
   },
   {
-    path: new URL("./apps/editor/app-config.js", selfPath).href,
+    path: new URL("../apps/editor/app-config.js", selfPath).href,
     suffixs: [/\.md$/, /\.txt$/],
   },
 ]);
@@ -38,7 +38,7 @@ export const reloadAppsData = async () => {
         installedApps.push({
           name: item.name.split(".")[0],
           path,
-          icon: "/os/core/apps/finder/icons/file.svg",
+          icon: "/os/apps/finder/icons/file.svg",
         });
       }
     }

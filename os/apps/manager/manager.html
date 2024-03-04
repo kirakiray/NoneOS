@@ -96,14 +96,14 @@
     </div>
   </div>
   <script>
-    import { systemApps, installedApps, reloadAppsData } from "../../data.js";
-    import { unzip } from "../../zip/main.js";
+    import { systemApps, installedApps, reloadAppsData } from "../../core/data.js";
+    import { unzip } from "../../core/zip/main.js";
 
     export default async ({ load }) => {
       const { default: enqueue } = await load("@pui/snackbar/enqueue.js");
       const { confirm } = await load("@pui/dialog/command.js");
 
-      const { get } = await load("../../fs/local/main.js");
+      const { get } = await load("../../core/fs/local/main.js");
 
       return {
         data: {
