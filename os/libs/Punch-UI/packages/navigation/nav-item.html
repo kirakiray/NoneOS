@@ -85,6 +85,10 @@
       max-width: 30px;
       max-height: 20px;
     }
+    :host([disabled]) {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
   <div class="container">
     <div class="icon">
@@ -92,7 +96,9 @@
         <span>
           <slot name="icon"></slot>
         </span>
-        <p-wave></p-wave>
+        <x-if :value="disabled === null">
+          <p-wave></p-wave>
+        </x-if>
       </div>
     </div>
     <slot></slot>
@@ -100,9 +106,16 @@
   <script>
     export default {
       tag: "p-nav-item",
+      attrs: {
+        disabled: null,
+      },
       ready() {
-        this.on("click", () => {
-          this.emit("click-nav-item");
+        this.on("click", (e) => {
+          if (this.disabled === null) {
+            this.emit("click-nav-item");
+          } else {
+            e.stopImmediatePropagation();
+          }
         });
       },
     };
