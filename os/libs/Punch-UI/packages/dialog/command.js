@@ -60,7 +60,7 @@ export async function confirm(opts) {
   await load("./dialog.html");
 
   return appendDialog(`
-<p-dialog fullscreen="540">
+<p-dialog fullscreen="540" style="--dialog-width: 320px">
   <span slot="title">${opts.title || ""}</span>
   ${opts.content}
   <p-button slot="bottom" class="dialog-yes-btn">${opts.yes || "Yes"}</p-button>
