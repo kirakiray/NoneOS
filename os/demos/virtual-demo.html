@@ -9,7 +9,7 @@
     <script type="module">
       import { createApi } from "../core/virtual.js";
 
-      const server = createApi({
+      createApi({
         name: "test",
         async callback({ request, search, pathname, hash }) {
           console.log(request, search, pathname, hash);
@@ -18,16 +18,15 @@
             body: "ok la haha",
           };
         },
-        created() {
-          setTimeout(() => {
-            window.open(`${server.path}/d?a=aaaaa`);
-          }, 1000);
-        },
-      });
+      }).then((server) => {
+        setTimeout(() => {
+          window.open(`${server.path}/d?a=aaaaa`);
+        }, 1000);
 
-      //   setTimeout(() => {
-      //     server.close();
-      //   }, 1000);
+        setTimeout(() => {
+          server.close();
+        }, 2000);
+      });
     </script>
   </body>
 </html>
