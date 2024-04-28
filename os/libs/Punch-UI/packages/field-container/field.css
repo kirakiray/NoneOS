@@ -1,0 +1,148 @@
+:host {
+  position: relative;
+  display: block;
+  vertical-align: top;
+  --main-color: var(--md-sys-color-primary);
+}
+:host([disabled]) .field-container {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.field-container {
+  position: relative;
+  display: flex;
+  min-height: 32px;
+  padding: var(--pui-space-y) calc(var(--pui-space-x) * 1.7);
+  border-radius: var(--pui-border-radius);
+  font-size: 16px;
+  line-height: 1.2em;
+}
+.field-container[size="small"] {
+  min-height: 22px;
+  font-size: 13px;
+}
+.field-container[size="small"] ::slotted(label) {
+  top: calc(var(--pui-space-y) * 2);
+}
+.field-container[size="large"] {
+  min-height: 36px;
+  font-size: 18px;
+}
+.field-container[size="large"] ::slotted(label) {
+  top: calc(var(--pui-space-y) * 3.5);
+}
+.field-container[active] .border {
+  border-color: var(--main-color);
+  border-width: 2px;
+}
+.field-container[active][variant="filled"] .bottom-line::before {
+  width: 100%;
+}
+.field-container[active] ::slotted(label) {
+  color: var(--main-color);
+}
+.field-container[hang-label] ::slotted(label) {
+  top: -6px;
+  font-size: 12px;
+  line-height: 12px;
+}
+.field-container[hang-label][variant="filled"] ::slotted(label) {
+  top: 2px;
+}
+.field-container[hang-label] .prefix-inner {
+  opacity: 1;
+}
+.field-container[variant="filled"] {
+  background-color: rgba(130, 130, 130, 0.2);
+  border-radius: var(--pui-border-radius) var(--pui-border-radius) 0 0;
+}
+.field-container[variant="filled"] .border {
+  border-width: 0;
+}
+.field-container[variant="filled"] .bottom-line {
+  opacity: 1;
+}
+.field-container[variant="filled"] ::slotted(label) {
+  background-color: transparent;
+}
+.field-container[variant="filled"][fix-position] ::slotted(:not(label)) {
+  transition: all ease 0.3s;
+  transform: translate(0, 4px);
+}
+.field-container[variant="filled"][size="small"][fix-position] ::slotted(:not(label)) {
+  transition: all ease 0.3s;
+  transform: translate(0, 6px);
+}
+.field-container ::slotted(label) {
+  padding: 0 calc(var(--pui-space-x) * 0.5);
+  z-index: 2;
+  line-height: 16px;
+  position: absolute;
+  top: calc(var(--pui-space-y) * 3);
+  left: calc(var(--pui-space-x) * 1.5);
+  background-color: var(--md-sys-color-surface);
+  white-space: nowrap;
+  transition: all ease 0.3s;
+  pointer-events: none;
+}
+.field-container .bottom-line {
+  opacity: 0;
+}
+.border {
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  border: var(--md-sys-color-on-normal-container) solid 1px;
+  border-radius: var(--pui-border-radius);
+  pointer-events: none;
+  transition: all ease 0.1s;
+}
+.bottom-line {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  border-bottom: var(--md-sys-color-normal) solid 1px;
+}
+.bottom-line::before {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  content: "";
+  display: block;
+  width: 0%;
+  height: 2px;
+  background-color: var(--main-color);
+  transition: all ease 0.3s;
+}
+.prefix-inner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 2px;
+  opacity: 0;
+  transition: all ease 0.3s;
+}
+.prefix-inner:empty {
+  display: none;
+}
+.main-inner,
+.suffix-inner {
+  display: flex;
+  align-items: center;
+}
+.main-inner {
+  flex: 1;
+}
+.suffix-inner {
+  justify-content: center;
+}
+.helper {
+  position: absolute;
+  bottom: -20px;
+  left: var(--pui-space-x);
+  font-size: 12px;
+}

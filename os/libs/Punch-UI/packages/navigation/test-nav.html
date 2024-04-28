@@ -28,8 +28,8 @@
     <dark-switch></dark-switch>
 
     <div style="padding: 40px">
-      <p-nav-bar auto-active active-id="0" style="width: 320px">
-        <p-nav-item>
+      <p-nav-bar auto-active style="width: 320px">
+        <p-nav-item active-item>
           Home
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
         </p-nav-item>
@@ -53,17 +53,41 @@
         </p-nav-item>
       </p-nav-bar>
       <br />
+
+      <p-nav-bar style="width: 320px">
+        <p-nav-item>
+          Home
+          <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
+        </p-nav-item>
+        <p-nav-item active-item>
+          <iconify-icon
+            icon="fluent:movies-and-tv-16-filled"
+            slot="icon"
+          ></iconify-icon>
+          Movies
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon
+            icon="material-symbols:photo"
+            slot="icon"
+          ></iconify-icon>
+          Photos
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon icon="mingcute:music-fill" slot="icon"></iconify-icon>
+          Musics
+        </p-nav-item>
+      </p-nav-bar>
       <br />
       <p-nav-bar
         auto-active
-        active-id="1"
         style="display: inline-block; --navbar-direction: column"
       >
         <p-nav-item>
           Home
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
         </p-nav-item>
-        <p-nav-item>
+        <p-nav-item active-item>
           <iconify-icon
             icon="fluent:movies-and-tv-16-filled"
             slot="icon"

@@ -1,63 +1,107 @@
 <template component>
-  <link rel="stylesheet" href="./inputer.css" />
-  <style id="default-style">
-    :host {
-      display: none !important;
-    }
-  </style>
+  <l-m src="../field-container/field-container.html"></l-m>
   <style>
-    .prefix {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    :host {
+      display: block;
+      position: relative;
+      vertical-align: top;
+    }
+    input,
+    textarea {
+      display: block;
+      position: absolute;
+      width: calc(100% - 22px);
+      height: 100%;
+      padding: 0 0;
+      margin: 0;
+      border: none;
+      outline: none;
+      background-color: transparent;
+      font-size: inherit;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.2em;
+      /* background-color: rgba(255, 0, 0, 0.367); */
+    }
+    textarea {
+      top: 10px;
+      height: calc(100% - 10px);
+    }
+    .fake-input {
+      display: block;
+      font-family: inherit;
+      width: 100%;
+      opacity: 0;
+      /* color: blue;
+      background-color: rgba(0, 17, 255, 0.367); */
+      padding: 10px 0 0;
+      line-height: 1.2em;
+      overflow: auto;
+      white-space: pre-wrap;
+      pointer-events: none;
+    }
+
+    :host([error]) ::slotted(label),
+    :host([error]) ::slotted([slot="helper"]) {
+      color: var(--md-sys-color-error);
+    }
+
+    :host([error]) p-field-container::part(border) {
+      border-color: var(--md-sys-color-error);
+    }
+
+    :host([error]) p-field-container::part(border) {
+      border-color: var(--md-sys-color-error);
+    }
+    :host([error]) p-field-container::part(bottom-line) {
+      border-color: var(--md-sys-color-error);
+    }
+
+    :host([error]) p-field-container::part(bottom-line)::before {
+      background-color: var(--md-sys-color-error);
+    }
+
+    :host([disabled]) input {
+      cursor: not-allowed;
     }
   </style>
-  <div
-    class="container"
-    attr:type="type"
-    attr:variant="variant"
-    class:disabled="typeof disabled === 'string'"
-    class:error="typeof error === 'string'"
-    class:hasprefix="hasprefix"
-    attr:size="size"
+  <p-field-container
+    :hang-label="infocus || value ? '' : null"
+    :variant="variant"
+    :active="infocus ? '' : null"
+    :size="size"
+    :fix-position="infocus || value ? '' : null"
+    :disabled="disabled"
   >
-    <div class="prefix">
-      <slot name="prefix"></slot>
-    </div>
-    <div class="bottom-line"></div>
-    <x-if
-      :value="typeof multiline === 'string' && (type === null || type === 'text')"
-      on:rendered="afterTextarea"
-    >
-      <textarea
-        class="inputer"
-        sync:value="value"
-        on:input="changeEditor"
-        :css.max-height="editorMaxHeight"
-      >
-      </textarea>
-    </x-if>
-    <x-else>
+    <x-if :value="multiline === null">
       <input
-        attr:type="type === null ? 'text' : type"
-        class="inputer"
+        type="text"
         sync:value="value"
+        on:focus="infocus = true"
+        on:blur="infocus = false"
+        attr:disabled="disabled"
       />
+    </x-if>
+    <x-else on:rendered="renderMulti">
+      <textarea
+        sync:value="value"
+        on:focus="infocus = true"
+        on:blur="infocus = false"
+        attr:disabled="disabled"
+        on:input="changeTextarea"
+      ></textarea>
+      <div
+        class="fake-input"
+        :style.height="rows ? `${rows * 1.2}em` : ''"
+        :style.max-height="maxRows ? `${maxRows * 1.2}em` : ''"
+        :style.min-height="minRows ? `${minRows * 1.2}em` : ''"
+      ></div>
     </x-else>
-    <div>
-      <div class="placeholder" class:not-empty="!!value">
-        <slot></slot>
-      </div>
-      <div class="border"></div>
-      <div class="bottom-line-active"></div>
-    </div>
-    <div class="helper-text">
-      <slot name="helper"></slot>
-    </div>
-    <div class="suffix" class:not-empty="!!value">
-      <slot name="suffix"></slot>
-    </div>
-  </div>
+    <slot name="suffix" slot="suffix"></slot>
+    <slot></slot>
+    <slot name="prefix" slot="prefix"></slot>
+    <slot name="helper" slot="helper"></slot>
+  </p-field-container>
   <script>
     export default {
       tag: "p-text-field",
@@ -67,6 +111,7 @@
         variant: null,
         multiline: null,
         maxRows: null,
+        minRows: null,
         rows: null,
         disabled: null,
         defaultValue: null,
@@ -76,73 +121,38 @@
       },
       data: {
         value: "",
-        hasprefix: false,
+        infocus: false,
       },
       watch: {
+        autofocus(val) {
+          if (val !== null) {
+            setTimeout(() => {
+              this.shadow.$("input,textarea")?.ele.focus();
+            }, 150);
+          }
+        },
         defaultValue(val) {
           if (val) {
             this.value = val;
           }
         },
-        autofocus(val) {
-          if (val !== null) {
-            setTimeout(() => {
-              this.shadow.$("input,textarea")?.ele.focus();
-            }, 50);
-          }
-        },
       },
       proto: {
-        get editorHeight() {
-          if (typeof this.multiline === "string" && this.rows) {
-            return 1.2 * parseInt(this.rows) + "em";
-          }
-
-          return null;
+        renderMulti() {
+          const target = this.shadow.$("textarea");
+          this.changeTextarea({
+            target: { value: this.value },
+          });
         },
-        get editorMaxHeight() {
-          if (typeof this.multiline === "string" && this.maxRows) {
-            return 1.2 * parseInt(this.maxRows) + "em";
-          }
-          return null;
-        },
-        afterTextarea() {
-          if (this.rows) {
-            this.shadow.$("textarea").css.height = `${1.2 * this.rows}em`;
-          }
-        },
-        changeEditor(e) {
-          if (this.rows === null) {
-            let wrapCount = e.target.value.match(/\n/g);
-            wrapCount = wrapCount ? wrapCount.length : 0;
-            if (wrapCount) {
-              console.log(wrapCount);
-              e.target.style.height = 16 * 1.2 * (wrapCount + 1) + "px";
-            } else {
-              // e.target.style.height = "19.2px";
-              e.target.style.height = "";
-            }
-          }
+        changeTextarea(e) {
+          this.shadow.$(".fake-input").text = e.target.value + " ";
         },
         focus() {
-          this.shadow.$("input,textarea") &&
-            this.shadow.$("input,textarea").ele.focus();
+          this.shadow.$("input,textarea")?.ele.focus();
         },
       },
-      ready() {
-        this.shadow.on("slotchange", () => {
-          let hasprefix = false;
-          this.forEach((e) => {
-            if (e.attr("slot") === "prefix") {
-              hasprefix = true;
-            }
-          });
-          this.hasprefix = hasprefix;
-        });
-      },
-      loaded() {
-        this.shadow.$("#default-style").remove();
-      },
+      ready() {},
+      loaded() {},
     };
   </script>
 </template>

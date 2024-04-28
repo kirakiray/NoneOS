@@ -186,13 +186,18 @@
       height: 100%;
       opacity: 0;
     }
+
+    ::slotted(a) {
+      display: contents;
+      color: inherit;
+      text-decoration: none;
+    }
   </style>
   <button
     class="container"
     attr:variant="variant"
     attr:size="size"
     class:disabled="typeof disabled === 'string'"
-    on:click="clickCon"
     part="container"
     attr:disabled="disabled"
     class:icon-btn="typeof icon === 'string'"
@@ -212,6 +217,8 @@
   </button>
   <script>
     import { setMainColor } from "../commons/util.js";
+    import bindClick from "./bind-item-click.js";
+
     export default {
       tag: "p-button",
       attrs: {
@@ -236,11 +243,6 @@
         },
       },
       proto: {
-        clickCon(e) {
-          if (typeof this.disabled === "string") {
-            e.stopImmediatePropagation();
-          }
-        },
         click() {
           this.ele.click();
         },
@@ -249,6 +251,8 @@
         },
       },
       ready() {
+        bindClick(this);
+
         this.on("click", () => {
           const goal = this.$("[button-goal]");
           goal && goal.ele.click();

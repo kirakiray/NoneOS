@@ -83,10 +83,16 @@
       tag: "p-tab",
       attrs: {
         iconPosition: null,
+        activeItem: null,
       },
       proto: {
         get container() {
           return this.shadow.$(".container");
+        },
+      },
+      watch: {
+        activeItem() {
+          this.emit("tab-active-change");
         },
       },
       ready() {

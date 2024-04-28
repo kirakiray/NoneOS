@@ -47,7 +47,7 @@
     <div style="padding: 20px">
       <o-page src="./tab-demo.html" style="width: 320px"></o-page>
       <br /><br />
-      <p-tabs active-id="2">
+      <p-tabs auto-active>
         <p-tab>
           Home
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
@@ -73,8 +73,8 @@
       </p-tabs>
       <br />
       <br />
-      <p-tabs active-id="2">
-        <p-tab>
+      <p-tabs>
+        <p-tab active-item>
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
         </p-tab>
         <p-tab>
@@ -98,18 +98,18 @@
       <p-tabs>
         <p-tab>Home</p-tab>
         <p-tab>Movies</p-tab>
-        <p-tab>Photos</p-tab>
+        <p-tab active-item>Photos</p-tab>
         <p-tab>Musics</p-tab>
       </p-tabs>
       <br />
       <br />
 
-      <p-tabs active-id="2" secondary>
+      <p-tabs secondary>
         <p-tab>
           Home
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
         </p-tab>
-        <p-tab>
+        <p-tab active-item>
           <iconify-icon
             icon="fluent:movies-and-tv-16-filled"
             slot="icon"
@@ -139,13 +139,13 @@
         <p-tab>Home</p-tab>
         <p-tab>Movies</p-tab>
         <p-tab>Photos</p-tab>
-        <p-tab>Musics</p-tab>
+        <p-tab active-item>Musics</p-tab>
       </p-tabs>
 
       <br />
       <br />
-      <p-tabs active-id="2" scroll-buttons style="width: 200px">
-        <p-tab>
+      <p-tabs scroll-buttons style="width: 200px">
+        <p-tab active-item>
           Home
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
         </p-tab>
@@ -192,8 +192,8 @@
       </p-tabs>
       <br /><br />
 
-      <p-tabs active-id="2" scroll-buttons secondary style="width: 300px">
-        <p-tab>
+      <p-tabs scroll-buttons secondary style="width: 300px">
+        <p-tab active-item>
           Home
           <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
         </p-tab>

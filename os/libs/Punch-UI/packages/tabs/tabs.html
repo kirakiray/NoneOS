@@ -23,7 +23,12 @@
       border-bottom: 3px solid var(--md-sys-color-primary);
       border-left: 2px solid transparent;
       border-right: 2px solid transparent;
+      opacity: 0;
       /* transition: left ease 0.3s, width ease 0.3s; */
+    }
+
+    .indicator.has-active {
+      opacity: 1;
     }
 
     :host([secondary]) .indicator {
@@ -91,7 +96,7 @@
   <x-if :value="inited">
     <style>
       .indicator {
-        transition: left ease 0.3s, width ease 0.3s;
+        transition: left ease 0.3s, width ease 0.3s, opacity ease 0.3s;
       }
     </style>
   </x-if>
@@ -107,13 +112,17 @@
     <div class="scroll-btn right" on:click="clickRightSbtn">
       <p-wave></p-wave>
     </div>
-    <div class="indicator" part="indicator"></div>
+    <div
+      class="indicator"
+      part="indicator"
+      class:has-active="activeId !== null"
+    ></div>
   </div>
   <script>
     export default {
       tag: "p-tabs",
       attrs: {
-        activeId: 0, // 激活中的id
+        autoActive: null,
         secondary: null,
         scrollButtons: null,
       },
@@ -121,6 +130,27 @@
         inited: false,
       },
       proto: {
+        // 激活中的项目的index
+        get activeId() {
+          let id = null;
+          this.some((el, index) => {
+            if (el.activeItem !== null) {
+              id = index;
+              return true;
+            }
+          });
+
+          return id;
+        },
+        set activeId(id) {
+          this.forEach((item, index) => {
+            if (id === index) {
+              item.activeItem = "";
+            } else if (item.activeItem !== null) {
+              item.activeItem = null;
+            }
+          });
+        },
         get current() {
           return this[this.activeId];
         },
@@ -170,31 +200,36 @@
           };
         },
         // 修复底部线的定位
-        _fixBottomPosition() {
-          const target = this[this.activeId];
-          // console.log(target.container);
-          if (target && target.container) {
-            const { left, width } = this.getIndicatorPostion(this.activeId);
-
-            // console.log(left, width);
-
-            Object.assign(this.shadow.$(".indicator").style, {
-              left: `${left}px`,
-              width: `${width}px`,
+        _fixActive() {
+          clearTimeout(this._bottom_timer);
+          this._bottom_timer = setTimeout(() => {
+            let activeId = null;
+            const target = this.find((e, i) => {
+              if (e.activeItem !== null) {
+                activeId = i;
+                return true;
+              }
             });
 
-            this.all("[active-item]").forEach((e) =>
-              e.attr("active-item", null)
-            );
+            if (target && target.container) {
+              const { left, width } = this.getIndicatorPostion(activeId);
 
-            target.attr("active-item", "");
-          }
+              Object.assign(this.shadow.$(".indicator").style, {
+                left: `${left}px`,
+                width: `${width}px`,
+              });
+            }
+
+            this.emit("change", {
+              bubbles: false,
+              data: {
+                activeId,
+              },
+            });
+          }, 20);
         },
       },
       watch: {
-        activeId() {
-          this._fixBottomPosition();
-        },
         secondary(val) {
           if (val !== null) {
             this.forEach((e) => {
@@ -222,7 +257,7 @@
               if (!this.inited) {
                 // setTimeout(() => {
                 this.inited = true;
-                this._fixBottomPosition();
+                this._fixActive();
 
                 if (
                   this.shadow.$(".container").clientWidth > this.ele.clientWidth
@@ -250,12 +285,20 @@
         }
       },
       ready() {
+        this.on("tab-active-change", (e) => {
+          e.stopPropagation();
+          this._fixActive();
+        });
+
         this.on("click-tab-item", (e) => {
-          this.activeId = $(e.target).index;
+          if (this.autoActive !== null) {
+            this.activeId = $(e.target).index;
+          }
           e.stopPropagation();
         });
+
         this.on("attach-tab", () => {
-          this._fixBottomPosition();
+          this._fixActive();
         });
       },
     };
