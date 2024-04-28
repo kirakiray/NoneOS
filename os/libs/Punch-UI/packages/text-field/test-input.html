@@ -13,6 +13,11 @@
       *:not(:defined) {
         display: none;
       }
+
+      p-text-field {
+        display: inline-block;
+        width: 200px;
+      }
     </style>
   </head>
   <body>
@@ -32,30 +37,68 @@
       </p-text-field>
       <br />
       <br />
+      <p-text-field variant="filled" size="small">
+        <label>Size Small</label>
+      </p-text-field>
+      <p-text-field variant="filled">
+        <label>Size Normal</label>
+      </p-text-field>
+      <p-text-field variant="filled" size="large">
+        <label>Size Large</label>
+      </p-text-field>
+      <br />
+      <br />
+
       <p-text-field size="small">
         <label>Size Small</label>
       </p-text-field>
-      <p-text-field variant="filled" size="small">
-        <label>Size Small 2</label>
+      <p-text-field>
+        <label>Size Normal</label>
       </p-text-field>
-      <br />
-      <br />
       <p-text-field size="large">
         <label>Size Large</label>
       </p-text-field>
-      <p-text-field variant="filled" size="large">
-        <label>Size Large 2</label>
-      </p-text-field>
       <br />
       <br />
-      <p-text-field multiline max-rows="3">
-        <label>multiline</label>
-      </p-text-field>
-      <p-text-field multiline variant="filled">
+      <p-text-field multiline default-value="I am default val more multiline">
         <label>multiline</label>
       </p-text-field>
       <p-text-field multiline rows="3">
+        <label>multiline rows</label>
+      </p-text-field>
+      <p-text-field multiline min-rows="3" variant="filled">
+        <label>multiline min-rows</label>
+      </p-text-field>
+      <p-text-field multiline max-rows="3">
+        <label>multiline max-rows</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field multiline size="large" default-value="I am default val">
         <label>multiline</label>
+      </p-text-field>
+      <p-text-field multiline size="large" rows="3">
+        <label>multiline rows</label>
+      </p-text-field>
+      <p-text-field multiline size="large" min-rows="3" variant="filled">
+        <label>multiline min-rows</label>
+      </p-text-field>
+      <p-text-field multiline size="large" max-rows="3">
+        <label>multiline max-rows</label>
+      </p-text-field>
+      <br />
+      <br />
+      <p-text-field multiline size="small" default-value="I am default val">
+        <label>multiline</label>
+      </p-text-field>
+      <p-text-field multiline size="small" rows="3">
+        <label>multiline rows</label>
+      </p-text-field>
+      <p-text-field multiline size="small" min-rows="3" variant="filled">
+        <label>multiline min-rows</label>
+      </p-text-field>
+      <p-text-field multiline size="small" max-rows="3">
+        <label>multiline max-rows</label>
       </p-text-field>
       <br />
       <br />
@@ -132,30 +175,6 @@
       <p-text-field type="email" variant="filled">
         <label>email</label>
       </p-text-field>
-      <br />
-      <br />
-      <!-- <p-text-field type="time">
-        <label>Time</label>
-      </p-text-field>
-      <p-text-field type="time" variant="filled">
-        <label>Time</label>
-      </p-text-field>
-      <br />
-      <br />
-      <p-text-field type="date">
-        <label>date</label>
-      </p-text-field>
-      <p-text-field type="date" variant="filled">
-        <label>date</label>
-      </p-text-field>
-      <br />
-      <br />
-      <p-text-field type="datetime-local">
-        <label>datetime-local</label>
-      </p-text-field>
-      <p-text-field type="datetime-local" variant="filled">
-        <label>datetime-local</label>
-      </p-text-field> -->
     </div>
   </body>
 </html>

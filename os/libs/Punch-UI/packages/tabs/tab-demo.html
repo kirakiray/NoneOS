@@ -25,12 +25,12 @@
     }
   </style>
   <div class="container">
-    <p-tabs sync:active-id="activeId">
+    <p-tabs auto-active on:change="activeId = $event.data.activeId">
       <p-tab>
         Home
         <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
       </p-tab>
-      <p-tab>
+      <p-tab active-item>
         <iconify-icon
           icon="fluent:movies-and-tv-16-filled"
           slot="icon"
@@ -46,7 +46,7 @@
         Musics
       </p-tab>
     </p-tabs>
-    <p-tab-panels sync:active-id="activeId" slide>
+    <p-tab-panels :active-id="activeId" slide>
       <div tab-panel>
         <p>A basic example with tab panels 1.</p>
         <p>A basic example with tab panels 1.</p>
@@ -149,6 +149,11 @@
     export default {
       data: {
         activeId: 1,
+      },
+      proto: {
+        // tabsChange(e) {
+        //   this.activeId = e.data.activeId;
+        // },
       },
     };
   </script>

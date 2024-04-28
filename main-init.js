@@ -5,8 +5,9 @@
 
   const osRoot = resp ? "/$/os" : "/os";
 
-  addLink(`${osRoot}/libs/Punch-UI/packages/css/public.css`);
-  addLink(`${osRoot}/core/publics/theme.css`);
+  addLink(`${osRoot}/core/publics/theme.css`, {
+    "pui-theme": "",
+  });
 
   await addScript(`${osRoot}/libs/ofa.min.js`, {
     debug: "",
@@ -41,10 +42,14 @@ navigator.serviceWorker
     console.error(err);
   });
 
-function addLink(href) {
+function addLink(href, options = {}) {
   const link = document.createElement("link");
   link.rel = "stylesheet";
   link.href = href;
+
+  Object.entries(options).forEach(([name, value]) => {
+    link.setAttribute(name, value);
+  });
 
   document.head.appendChild(link);
 }

@@ -85,6 +85,15 @@
       max-width: 30px;
       max-height: 20px;
     }
+    :host([disabled]) {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    ::slotted(a) {
+      color: inherit;
+      text-decoration: none;
+    }
   </style>
   <div class="container">
     <div class="icon">
@@ -92,18 +101,32 @@
         <span>
           <slot name="icon"></slot>
         </span>
-        <p-wave></p-wave>
+        <x-if :value="disabled === null">
+          <p-wave></p-wave>
+        </x-if>
       </div>
     </div>
     <slot></slot>
   </div>
   <script>
+    import bindClick from "../button/bind-item-click.js";
+
     export default {
       tag: "p-nav-item",
+      attrs: {
+        disabled: null,
+        activeItem: null,
+      },
+      watch: {
+        activeItem() {
+          this.emit("nav-item-refresh");
+        },
+      },
       ready() {
-        this.on("click", () => {
-          this.emit("click-nav-item");
-        });
+        bindClick(this, () => this.emit("click-nav-item"));
+      },
+      attached() {
+        this.emit("nav-item-refresh");
       },
     };
   </script>

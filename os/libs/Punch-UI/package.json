@@ -1,8 +1,11 @@
 {
   "name": "punch-ui",
-  "version": "0.1.6",
+  "version": "0.2.0",
   "description": "UI component library based on ofa.js development",
-  "scripts": {},
+  "scripts": {
+    "static": "node scripts/static-server.js"
+  },
+  "type": "module",
   "keywords": [
     "punch ui",
     "ui",
@@ -10,5 +13,9 @@
     "web components"
   ],
   "author": "Yao",
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "koa": "^2.14.1",
+    "koa-static": "^5.0.0"
+  }
 }

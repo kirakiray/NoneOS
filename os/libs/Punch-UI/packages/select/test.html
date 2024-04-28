@@ -13,6 +13,11 @@
       *:not(:defined) {
         display: none;
       }
+
+      p-select {
+        display: inline-block;
+        width: 150px;
+      }
     </style>
   </head>
   <body>
@@ -35,7 +40,58 @@
         <option value="aaa">AAAA</option>
         <option value="bbb">BBBB</option>
       </p-select>
+      <p-select disabled>
+        <label>Selector 1</label>
+        <option value="aaa">AAAA</option>
+        <option value="bbb">BBBB</option>
+      </p-select>
+      <p-select disabled variant="filled">
+        <label>Selector 2</label>
+        <option value="aaa">AAAA</option>
+        <option value="bbb">BBBB</option>
+      </p-select>
+      <p-select disabled default-value="bbb">
+        <label>Selector 1</label>
+        <option value="aaa">AAAA</option>
+        <option value="bbb">BBBB</option>
+      </p-select>
     </div>
+    <br />
+
+    <p-select size="small">
+      <label>Selector 1</label>
+      <option value="aaa">AAAA</option>
+      <option value="bbb">BBBB</option>
+    </p-select>
+    <p-select size="small" variant="filled">
+      <label>Selector 2</label>
+      <option value="aaa">AAAA</option>
+      <option value="bbb">BBBB</option>
+    </p-select>
+    <p-select size="small" default-value="bbb">
+      <label>Selector 1</label>
+      <option value="aaa">AAAA</option>
+      <option value="bbb">BBBB</option>
+    </p-select>
+    <br />
+    <br />
+
+    <p-select size="large">
+      <label>Selector 1</label>
+      <option value="aaa">AAAA</option>
+      <option value="bbb">BBBB</option>
+    </p-select>
+    <p-select size="large" variant="filled">
+      <label>Selector 2</label>
+      <option value="aaa">AAAA</option>
+      <option value="bbb">BBBB</option>
+    </p-select>
+    <p-select size="large" default-value="bbb">
+      <label>Selector 1</label>
+      <option value="aaa">AAAA</option>
+      <option value="bbb">BBBB</option>
+    </p-select>
+    <br />
     <br />
     <div>
       <p-select error>

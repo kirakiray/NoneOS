@@ -1,0 +1,63 @@
+<template component>
+  <link rel="stylesheet" href="./field.css" />
+  <style id="host-style">
+    /* :host {
+      --main-color: var(--md-sys-color-error);
+    } */
+  </style>
+  <!-- <style id="default-style">
+    :host {
+      display: none !important;
+    }
+  </style> -->
+  <div
+    class="field-container"
+    attr:variant="variant"
+    attr:active="active"
+    attr:hang-label="hangLabel"
+    attr:size="size"
+    attr:fix-position="fixPosition"
+  >
+    <div class="prefix-inner">
+      <slot name="prefix"></slot>
+    </div>
+    <div class="main-inner">
+      <slot></slot>
+    </div>
+    <div class="suffix-inner">
+      <slot name="suffix"></slot>
+    </div>
+    <div class="border" part="border"></div>
+    <div class="bottom-line" part="bottom-line"></div>
+  </div>
+  <div class="helper">
+    <slot name="helper"></slot>
+  </div>
+  <script>
+    export default {
+      tag: "p-field-container",
+      attrs: {
+        variant: null,
+        active: null,
+        hangLabel: null,
+        size: null,
+        color: null,
+        fixPosition: null, // variant="filled" 下的位移修正
+        disabled: null,
+      },
+      watch: {
+        color(color) {
+          if (color) {
+            this.shadow.$(
+              "#host-style"
+            ).html = `:host{ --main-color: var(--md-sys-color-${color})}`;
+          }
+        },
+      },
+      proto: {},
+      loaded() {
+        // this.shadow.$("#default-style").remove();
+      },
+    };
+  </script>
+</template>

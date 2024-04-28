@@ -38,18 +38,21 @@
     export default {
       tag: "p-nav-bar",
       attrs: {
-        activeId: null,
         autoActive: null,
       },
       data: {
         isDark: {},
       },
-      watch: {
-        activeId(val) {
+      proto: {
+        set activeId(val) {
           if (this.autoActive === null) {
+            this.forEach((e) => (e.activeItem = null));
             return;
           }
           this[val] && this[val].attr("active-item", "");
+        },
+        get activeId() {
+          return this.findIndex((e) => e.activeItem !== null);
         },
       },
       ready() {
@@ -61,6 +64,20 @@
           this.all("[active-item]").forEach((e) => e.attr("active-item", null));
           $(e.target).attr("active-item", "");
           this.activeId = String($(e.target).index);
+        });
+
+        this.on("nav-item-refresh", (e) => {
+          e.stopPropagation();
+          clearTimeout(this._item_timer);
+          this._item_timer = setTimeout(() => {
+            const { activeId } = this;
+            this.emit("change", {
+              bubbles: false,
+              data: {
+                activeId,
+              },
+            });
+          }, 20);
         });
       },
       attached() {

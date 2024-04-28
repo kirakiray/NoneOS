@@ -34,6 +34,10 @@
       animation: circle-container-indeterminate 1.4s linear infinite;
     }
 
+    .circle-container[variant="indeterminate"] svg {
+      display: block;
+    }
+
     .p-progress-circle[variant="determinate"] {
       transition: var(--progress-animation);
     }
@@ -59,9 +63,11 @@
     @keyframes circle-container-indeterminate {
       0% {
         transform: rotate(0deg);
+        transform-origin: 50% 50%;
       }
       100% {
         transform: rotate(360deg);
+        transform-origin: 50% 50%;
       }
     }
   </style>
@@ -77,7 +83,6 @@
         viewBox="22 22 44 44"
         version="1.1"
         xmlns="http://www.w3.org/2000/svg"
-        style="transform: rotate(-90deg)"
       >
         <circle
           class="p-progress-circle"
@@ -119,8 +124,7 @@
           const r = this.circleR;
           const dasharray = r * 2 * Math.PI;
           this.circleDasharray = dasharray;
-          this.circleDashoffset =
-            dasharray * ((100 - this.value) / 100);
+          this.circleDashoffset = dasharray * ((100 - this.value) / 100);
         },
         checkNumberInRange(num) {
           if (typeof num !== "number") {
