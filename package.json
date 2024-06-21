@@ -1,14 +1,10 @@
 {
   "name": "NoneOS",
-  "version": "1.4.8",
+  "version": "1.6.0",
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static-server": "node scripts/static-server && npm run build-sw",
-    "start": "node scripts/start",
-    "test": "npx playwright test",
-    "build": "node scripts/build.js && npm run build-sw",
-    "build-sw": "rollup sw.js --file sw-bundle.js --format iife"
+    "static": "node scripts/static-server"
   },
   "repository": {
     "type": "git",
@@ -21,16 +17,8 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
-    "@playwright/test": "^1.31.1",
-    "archiver": "^6.0.1",
     "koa": "^2.14.1",
-    "koa-static": "^5.0.0",
-    "open": "^10.0.2",
-    "rollup": "^4.9.6",
-    "shelljs": "^0.8.5"
+    "koa-static": "^5.0.0"
   },
-  "dependencies": {
-    "koa-bodyparser": "^4.4.0",
-    "koa-router": "^12.0.0"
-  }
+  "dependencies": {}
 }
