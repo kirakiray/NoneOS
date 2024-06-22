@@ -1,6 +1,14 @@
 import { getErr } from "./errors.js";
 
 const allDB = {};
+// export const getRandomId = () => Math.random().toString(36).slice(2);
+export function getRandomId(length = 10) {
+  const array = new Uint8Array(length);
+  crypto.getRandomValues(array);
+  return Array.from(array, (byte) => ("0" + byte.toString(32)).slice(-2)).join(
+    ""
+  );
+}
 
 /**
  * 获取目标数据库
@@ -13,14 +21,12 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
       // 根据id获取数据库
       const req = indexedDB.open(dbName);
 
-      req.onsuccess = (e) => {
+      req.onsuccess = async (e) => {
         const db = e.target.result;
 
         db.onclose = () => {
           allDB[dbName] = null;
         };
-
-        // 首先写入一个Local的根目录
 
         resolve(db);
       };
@@ -32,13 +38,22 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
 
         // 文件夹存储数据用的表
         const mainStore = db.createObjectStore("main", { keyPath: "key" });
-        // 文件或文件夹的父id
-        mainStore.createIndex("parent", "parent", { unique: false });
-        // 文件的哈希值数组
-        mainStore.createIndex("hashs", "hashs", { unique: false });
+
+        // 用于搜索制定文件夹下的所有子文件
+        mainStore.createIndex("parent", "parent", {
+          unique: false,
+        });
+
+        // 以父key和name作为索引，用于获取特定文件
+        mainStore.createIndex("parent_and_name", ["parent", "name"], {
+          // 父文件夹下只能有一个同名文件夹或文件
+          unique: true,
+        });
 
         // 存储文件的表
-        db.createObjectStore("files", { keyPath: "hash" });
+        db.createObjectStore("blocks", {
+          keyPath: "hash",
+        });
       };
 
       req.onerror = (event) => {
@@ -51,6 +66,40 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
   }
 
   return allDB[dbName];
+};
+
+/**
+ * 获取指定存储中的索引
+ * @param {Object} options - 配置选项
+ * @param {string} options.storename - 存储名称
+ * @param {string} [options.index] - 索引名称
+ * @param {string} options.dbname - 数据库名称
+ * @returns {IDBRequest} 返回一个 IDBRequest 对象，用于操作存储
+ */
+const getIndex = async ({ storename, index, dbname }) => {
+  const db = await getDB(dbname);
+
+  let req = db.transaction([storename], "readonly").objectStore(storename);
+
+  if (index) {
+    try {
+      req = req.index(index);
+    } catch (err) {
+      reject(
+        getErr(
+          "indexErr",
+          {
+            dbname,
+            storename,
+            key: index,
+          },
+          err
+        )
+      );
+    }
+  }
+
+  return req;
 };
 
 /**
@@ -70,37 +119,60 @@ export const getData = async ({
   all = false,
   key,
 }) => {
-  const db = await getDB(dbname);
+  let req = await getIndex({ storename, index, dbname });
 
   return new Promise((resolve, reject) => {
-    let req = db.transaction([storename], "readonly").objectStore(storename);
-
-    if (index) {
-      try {
-        req = req.index(index);
-      } catch (err) {
-        reject(
-          getErr(
-            "indexErr",
-            {
-              dbname,
-              storename,
-              key: index,
-            },
-            err
-          )
-        );
-      }
-    }
-
     if (all) {
       req = req.getAll(key);
     } else {
       req = req.get(key);
     }
-
     req.onsuccess = (e) => {
       resolve(e.target.result);
+    };
+
+    req.onerror = (e) => {
+      reject(e);
+    };
+  });
+};
+
+/**
+ * 查找数据
+ * @param {Object} options - 配置选项
+ * @param {string} [options.dbname="noneos_fs_defaults"] - 数据库名称
+ * @param {string} [options.storename="main"] - 存储名称
+ * @param {string} [options.index] - 索引名称
+ * @param {Function} options.callback - 用于处理每个游标值的回调函数
+ * @param {string} options.key - 要查找的键
+ * @returns {Promise<Object|null>} 返回一个 Promise，解析为找到的对象或 null
+ */
+export const findData = async ({
+  dbname = "noneos_fs_defaults",
+  storename = "main",
+  index,
+  callback,
+  key,
+}) => {
+  let req = await getIndex({ storename, index, dbname });
+
+  return new Promise((resolve, reject) => {
+    req = req.openCursor(IDBKeyRange.only(key));
+
+    req.onsuccess = async (e) => {
+      let cursor = req.result;
+      if (cursor) {
+        const result = await callback(cursor.value);
+
+        if (result) {
+          resolve(cursor.value);
+          return;
+        }
+
+        cursor.continue();
+      } else {
+        resolve(null);
+      }
     };
 
     req.onerror = (e) => {
@@ -131,17 +203,17 @@ export const setData = async ({
   const db = await getDB(dbname);
 
   return new Promise((resolve, reject) => {
-    let transaction = db.transaction([storename], "readwrite");
+    const transaction = db.transaction([storename], "readwrite");
 
     transaction.oncomplete = (e) => {
       resolve(true);
     };
     transaction.onerror = (e) => {
-      reject(e);
+      reject(getErr("setdataErr", null, e.target.error));
     };
 
     const store = transaction.objectStore(storename);
     datas && datas.length && datas.forEach((item) => store.put(item));
-    removes && removes.length && removes.forEach((item) => store.delete(item));
+    removes && removes.length && removes.forEach((key) => store.delete(key));
   });
 };

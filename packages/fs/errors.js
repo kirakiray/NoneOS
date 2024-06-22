@@ -1,6 +1,7 @@
 export const cn = {
   pathEmpty: "文件路径不能为空",
   indexErr: "在数据库{dbname}的{storename}表中没有找到索引{key}",
+  setdataErr: "设置数据出错",
 };
 
 /**

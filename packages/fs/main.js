@@ -1,5 +1,5 @@
 import { getErr } from "./errors.js";
-import { getData } from "./db.js";
+import { getData, setData, getRandomId } from "./db.js";
 import { DirHandle } from "./handle/dir.js";
 import { FileHandle } from "./handle/file.js";
 
@@ -14,13 +14,36 @@ export const get = async (path) => {
   if (!paths.length) {
     throw getErr("pathEmpty");
   }
-  // 获取根 handle
-  const rootData = await getData({ key: paths[0] });
+
+  // 获取根数据
+  let rootData = await getData({
+    index: "parent_and_name",
+    key: ["root", "local"],
+  });
+
+  if (!rootData) {
+    // 初始化Local目录
+    await setData({
+      datas: [
+        {
+          key: getRandomId(),
+          parent: "root",
+          name: "local",
+        },
+      ],
+    });
+
+    rootData = await getData({
+      index: "parent_and_name",
+      key: ["root", "local"],
+    });
+  }
 
   if (paths.length === 1) {
-    debugger;
-    return new DirHandle();
+    return new DirHandle(rootData.key);
   }
+
+  debugger;
 
   return new DirHandle(path);
 };
