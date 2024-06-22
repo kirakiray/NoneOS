@@ -132,7 +132,7 @@ export const getData = async ({
     };
 
     req.onerror = (e) => {
-      reject(e);
+      reject(getErr("getDataErr", null, e.target.error));
     };
   });
 };
@@ -176,7 +176,7 @@ export const findData = async ({
     };
 
     req.onerror = (e) => {
-      reject(e);
+      reject(getErr("findDataErr", null, e.target.error));
     };
   });
 };
@@ -209,7 +209,7 @@ export const setData = async ({
       resolve(true);
     };
     transaction.onerror = (e) => {
-      reject(getErr("setdataErr", null, e.target.error));
+      reject(getErr("setDataErr", null, e.target.error));
     };
 
     const store = transaction.objectStore(storename);
