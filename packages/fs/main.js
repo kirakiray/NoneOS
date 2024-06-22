@@ -31,7 +31,7 @@ const inited = (async () => {
  * @param {String} path 文件或文件夹的路径
  * @returns {(DirHandle|FileHandle)}
  */
-export const get = async (path) => {
+export const get = async (path, options) => {
   const paths = path.split("/");
 
   if (!paths.length) {
@@ -50,12 +50,17 @@ export const get = async (path) => {
   });
 
   if (!rootData) {
-    debugger;
+    throw getErr("rootNotExist", {
+      rootname: paths[0],
+    });
   }
 
-  if (rootData) {
-    return new DirHandle(rootData.key);
+  const rootHandle = new DirHandle(rootData.key);
+  await rootHandle.refresh();
+
+  if (paths.length === 1) {
+    return rootHandle;
   }
 
-  return new DirHandle(path);
+  return rootHandle.get(paths.slice(1).join("/"), options);
 };

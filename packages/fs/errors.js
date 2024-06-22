@@ -5,6 +5,8 @@ export const cn = {
   findDataErr: "查找数据出错",
   getDataErr: "获取数据出错",
   rootEmpty: "不允许使用 '/' 开头的路径",
+  rootNotExist: "根目录 {rootname} 不存在",
+  pathNotFound: "未找到文件夹:{path}",
 };
 
 /**
