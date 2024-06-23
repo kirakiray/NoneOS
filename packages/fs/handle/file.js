@@ -15,12 +15,6 @@ export class FileHandle extends BaseHandle {
   }
 
   /**
-   * 删除当前文件
-   * @returns {Promise<void>}
-   */
-  async remove() {}
-
-  /**
    * 写入文件数据
    * @returns {Promise<void>}
    */

@@ -1,5 +1,5 @@
 import { BaseHandle, KIND } from "./base.js";
-import { getData, setData, getRandomId } from "../db.js";
+import { getData, setData, findData, getRandomId } from "../db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
 
@@ -16,12 +16,6 @@ export class DirHandle extends BaseHandle {
     super(id);
     this[KIND] = "dir";
   }
-
-  /**
-   * 删除当前文件夹
-   * @returns {Promise<void>}
-   */
-  async remove() {}
 
   /**
    * 获取子文件或目录的handle
@@ -75,21 +69,75 @@ export class DirHandle extends BaseHandle {
       }
     }
 
-    let result = null;
+    return await createHandle(data);
+  }
 
-    if (data) {
-      switch (data.type) {
-        case "dir":
-          result = new DirHandle(data.key);
-          break;
-        case "file":
-          result = new FileHandle(data.key);
-          break;
-      }
+  // async *entries() {
+  //   const datas = await getData({
+  //     key: this.id,
+  //     index: "parent",
+  //     all: true,
+  //   });
 
-      await result.refresh();
+  //   for (let item of datas) {
+  //     yield [item.name, await createHandle(item)];
+  //   }
+  // }
+
+  // async *keys() {
+  //   for await (let [name] of this.entries()) {
+  //     yield name;
+  //   }
+  // }
+
+  // async *values() {
+  //   for await (let [, handle] of this.entries()) {
+  //     yield handle;
+  //   }
+  // }
+}
+
+// function makeRangeIterator(start = 0, end = 10, step = 1) {
+//   let nextIndex = start;
+//   let iterationCount = 0;
+
+//   return {
+//     [Symbol.iterator]() {
+//       return {
+//         next() {
+//           let result;
+//           if (nextIndex < end) {
+//             result = { value: nextIndex, done: false };
+//             nextIndex += step;
+//             iterationCount++;
+//             return result;
+//           }
+//           return { value: Promise.resolve(iterationCount), done: true };
+//         },
+//       };
+//     },
+//   };
+// }
+
+// for await (let e of makeRangeIterator(1, 10, 2)) {
+//   debugger;
+// }
+
+const createHandle = async (data) => {
+  let result = null;
+
+  if (data) {
+    switch (data.type) {
+      case "dir":
+        result = new DirHandle(data.key);
+        break;
+      case "file":
+        result = new FileHandle(data.key);
+        break;
     }
 
-    return result;
+    await result.refresh();
   }
-}
+
+  return result;
+};

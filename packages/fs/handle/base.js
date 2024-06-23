@@ -87,4 +87,10 @@ export class BaseHandle {
 
     this.#path = pathArr.join("/");
   }
+
+  /**
+   * 删除当前文件或文件夹
+   * @returns {Promise<void>}
+   */
+  async remove() {}
 }
