@@ -162,11 +162,17 @@ export const findData = async ({
     req.onsuccess = async (e) => {
       let cursor = req.result;
       if (cursor) {
-        const result = await callback(cursor.value);
+        // 😒 游标在同步线程结束后会自动回收，是伪装成异步代码的同步状态的api
+        // const result = await callback(cursor.value);
+        const result = callback(cursor.value);
 
         if (result) {
-          resolve(cursor.value);
-          return;
+          if (result.advance) {
+            cursor.advance(result.advance);
+          } else {
+            resolve(cursor.value);
+            return;
+          }
         }
 
         cursor.continue();
