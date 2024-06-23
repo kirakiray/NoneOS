@@ -19,16 +19,10 @@ const sub3 = await localRoot.get("subDir3/sub3-1/sbu3-1-1", {
 
 console.log("2 and 3: ", sub2, sub3);
 
-localRoot.forEach(async (e) => {
+await localRoot.forEach((e) => {
   console.log("each: ", e);
 });
 
-debugger;
-
-// await localRoot.forEach((e) => {
-//   console.log("each: ", e);
-// });
-
-// for await (let e of localRoot.entries()) {
-//   console.log("entries: ", e);
-// }
+for await (let e of localRoot.entries()) {
+  console.log("entries: ", e);
+}

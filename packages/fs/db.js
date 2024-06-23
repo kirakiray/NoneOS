@@ -109,6 +109,7 @@ const getIndex = async ({ storename, index, dbname }) => {
  * @param {string} [options.storename="main"] - 存储名称
  * @param {string} options.index - 索引，'key'为索引值（不需要设置默认值为'key'）
  * @param {boolean} [options.all=false] - 是否获取所有数据
+ * @param {string} [options.method='get'] - 索引时使用的方法，'get'或'getAll'或'count'
  * @param {string} options.key - 键
  * @returns {Promise<string>} 返回数据
  */
@@ -117,16 +118,19 @@ export const getData = async ({
   storename = "main",
   index,
   all = false,
+  method = "get",
   key,
 }) => {
   let req = await getIndex({ storename, index, dbname });
 
+  if (!req[method]) {
+    throw getErr("storeNotExistMethod", {
+      method,
+    });
+  }
+
   return new Promise((resolve, reject) => {
-    if (all) {
-      req = req.getAll(key);
-    } else {
-      req = req.get(key);
-    }
+    req = req[method](key);
     req.onsuccess = (e) => {
       resolve(e.target.result);
     };
@@ -159,11 +163,11 @@ export const findData = async ({
   return new Promise((resolve, reject) => {
     req = req.openCursor(IDBKeyRange.only(key));
 
-    req.onsuccess = async (e) => {
+    req.onsuccess = (e) => {
       let cursor = req.result;
       if (cursor) {
         // 😒 游标在同步线程结束后会自动回收，是伪装成异步代码的同步状态的api
-        // const result = await callback(cursor.value);
+        // 所以这里不使用 async function 做 callback 的回调函数
         const result = callback(cursor.value);
 
         if (result) {

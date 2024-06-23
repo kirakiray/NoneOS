@@ -7,6 +7,7 @@ export const cn = {
   rootEmpty: "不允许使用 '/' 开头的路径",
   rootNotExist: "根目录 {rootname} 不存在",
   pathNotFound: "未找到文件夹:{path}",
+  storeNotExistMethod: "store中不存在方法 {method}",
 };
 
 /**

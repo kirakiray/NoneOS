@@ -76,65 +76,36 @@ export class DirHandle extends BaseHandle {
     await findData({
       key: this.id,
       index: "parent",
-      // async callback(e) {
-      //   await callback(await createHandle(e));
-      // },
       callback(e) {
         createHandle(e).then(callback);
       },
     });
   }
 
-  // async *entries() {
-  //   const datas = await getData({
-  //     key: this.id,
-  //     index: "parent",
-  //     all: true,
-  //   });
+  async *entries() {
+    const datas = await getData({
+      key: this.id,
+      index: "parent",
+      method: "getAll",
+    });
 
-  //   for (let item of datas) {
-  //     yield [item.name, await createHandle(item)];
-  //   }
-  // }
+    for (let item of datas) {
+      yield [item.name, await createHandle(item)];
+    }
+  }
 
-  // async *keys() {
-  //   for await (let [name] of this.entries()) {
-  //     yield name;
-  //   }
-  // }
+  async *keys() {
+    for await (let [name] of this.entries()) {
+      yield name;
+    }
+  }
 
-  // async *values() {
-  //   for await (let [, handle] of this.entries()) {
-  //     yield handle;
-  //   }
-  // }
+  async *values() {
+    for await (let [, handle] of this.entries()) {
+      yield handle;
+    }
+  }
 }
-
-// function makeRangeIterator(start = 0, end = 10, step = 1) {
-//   let nextIndex = start;
-//   let iterationCount = 0;
-
-//   return {
-//     [Symbol.iterator]() {
-//       return {
-//         next() {
-//           let result;
-//           if (nextIndex < end) {
-//             result = { value: nextIndex, done: false };
-//             nextIndex += step;
-//             iterationCount++;
-//             return result;
-//           }
-//           return { value: Promise.resolve(iterationCount), done: true };
-//         },
-//       };
-//     },
-//   };
-// }
-
-// for await (let e of makeRangeIterator(1, 10, 2)) {
-//   debugger;
-// }
 
 const createHandle = async (data) => {
   let result = null;
