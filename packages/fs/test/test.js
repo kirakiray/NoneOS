@@ -18,6 +18,10 @@ const sfile = await localRoot.get("subDir2/sfile1.txt", {
   create: "file",
 });
 
+await sfile.write(`I am sfile`);
+
+console.log("sfile", sfile);
+
 const sub3 = await localRoot.get("subDir3/sub3-1/sbu3-1-1", {
   create: "dir",
 });
@@ -39,6 +43,7 @@ const reloadView = async () => {
     ele.innerHTML = `${handle.kind}: ${handle.name}`;
 
     if (handle.kind === "dir") {
+      ele.classList.add("dir");
       const ul = document.createElement("ul");
 
       for await (let item of handle.values()) {

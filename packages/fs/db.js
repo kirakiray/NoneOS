@@ -85,16 +85,14 @@ const getIndex = async ({ storename, index, dbname }) => {
     try {
       req = req.index(index);
     } catch (err) {
-      reject(
-        getErr(
-          "indexErr",
-          {
-            dbname,
-            storename,
-            key: index,
-          },
-          err
-        )
+      throw getErr(
+        "indexErr",
+        {
+          dbname,
+          storename,
+          key: index,
+        },
+        err
       );
     }
   }
