@@ -50,6 +50,11 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
           unique: true,
         });
 
+        // 用于判断文件的块是否有重复出现，如果没有重复出现，在覆盖的时候删除blocks中的对应数据
+        mainStore.createIndex("hash", "hash", {
+          unique: false,
+        });
+
         // 存储文件的表
         db.createObjectStore("blocks", {
           keyPath: "hash",

@@ -30,6 +30,7 @@ export class FileHandle extends BaseHandle {
 
     const hashs = [];
 
+    // 写入块
     await Promise.all(
       chunks.map(async (chunk, index) => {
         const hash = await calculateHash(chunk);
@@ -63,10 +64,20 @@ export class FileHandle extends BaseHandle {
       })
     );
 
+    // 更新文件信息
     const targetData = await getData({
       key: this.id,
     });
 
+    const oldHashs = targetData.hashs || [];
+
+    // 如果old更长，清除多出来的块
+    const needRemoveBlocks = [];
+    for (let i = 0; i < oldHashs.length; i++) {
+      if (i >= hashs.length) {
+        needRemoveBlocks.push(`${this.id}-${i}`);
+      }
+    }
     await setData({
       datas: [
         {
@@ -75,8 +86,38 @@ export class FileHandle extends BaseHandle {
           length: data.length,
           hashs,
         },
+        ...hashs.map((hash, index) => {
+          return {
+            type: "block",
+            key: `${this.id}-${index}`,
+            hash,
+          };
+        }),
       ],
+      removes: needRemoveBlocks,
     });
+
+    if (oldHashs.length) {
+      // 查找并删除多余的块
+      const needRemoves = [];
+      await Promise.all(
+        oldHashs.map(async (key) => {
+          const exited = await getData({
+            index: "hash",
+            key,
+          });
+
+          !exited && needRemoves.push(key);
+        })
+      );
+
+      if (needRemoves.length) {
+        await setData({
+          storename: "blocks",
+          removes: needRemoves,
+        });
+      }
+    }
   }
 
   /**
@@ -176,7 +217,7 @@ const splitIntoChunks = async (input) => {
  * 将分割的块还原回原来的数据
  * @param {ArrayBuffer[]} chunks 分割的块
  * @param {string} type 返回的数据类型，可以是 "arrayBuffer"、"text" 或 "file"
- * @param {array} [fileOptions] 当 type 为 "file" 时，指定文件名
+ * @param {array} [fileOptions] 当 type 为 "file" 时，构造函数的可选参数
  * @returns {ArrayBuffer|string|File} 还原后的数据
  */
 const mergeChunks = (chunks, type, fileOptions) => {
