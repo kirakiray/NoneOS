@@ -1,40 +1,9 @@
+import "./get-local.js";
+import "./get-sub-dir.js";
+import "./get-set-file.js";
 import { get } from "../main.js";
 
 const localRoot = await get("local");
-
-console.log("handle", localRoot);
-
-const subHandle = await localRoot.get("subDir", {
-  create: "dir",
-});
-
-console.log("subHandle", subHandle);
-
-const sub2 = await localRoot.get("subDir2/sub2-1", {
-  create: "dir",
-});
-
-const sfile = await localRoot.get("subDir2/sfile1.txt", {
-  create: "file",
-});
-
-await sfile.write(`I am sfile`);
-
-console.log("sfile", sfile);
-
-const sub3 = await localRoot.get("subDir3/sub3-1/sbu3-1-1", {
-  create: "dir",
-});
-
-console.log("2 and 3: ", sub2, sub3);
-
-// await localRoot.forEach((e) => {
-//   console.log("each: ", e);
-// });
-
-for await (let e of localRoot.entries()) {
-  console.log("entries: ", e);
-}
 
 // 查看文件目录视图
 const reloadView = async () => {
