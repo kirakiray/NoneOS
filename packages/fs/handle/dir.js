@@ -72,15 +72,15 @@ export class DirHandle extends BaseHandle {
     return await createHandle(data);
   }
 
-  async forEach(callback) {
-    await findData({
-      key: this.id,
-      index: "parent",
-      callback(e) {
-        createHandle(e).then(callback);
-      },
-    });
-  }
+  // async forEach(callback) {
+  //   await findData({
+  //     key: this.id,
+  //     index: "parent",
+  //     callback(e) {
+  //       createHandle(e).then(callback);
+  //     },
+  //   });
+  // }
 
   async *entries() {
     const datas = await getData({

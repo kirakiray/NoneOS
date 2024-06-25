@@ -69,6 +69,14 @@ export class BaseHandle {
   }
 
   /**
+   * 删除当前文件或文件夹
+   * @returns {Promise<void>}
+   */
+  async remove() {
+    debugger;
+  }
+
+  /**
    * 刷新当前文件或文件夹的信息（主要更新 path 和 name 的信息）
    * 当 handle 被 move方法执行成功后，需要及时更新信息
    */
@@ -87,10 +95,4 @@ export class BaseHandle {
 
     this.#path = pathArr.join("/");
   }
-
-  /**
-   * 删除当前文件或文件夹
-   * @returns {Promise<void>}
-   */
-  async remove() {}
 }
