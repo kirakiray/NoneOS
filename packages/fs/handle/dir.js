@@ -26,6 +26,15 @@ export class DirHandle extends BaseHandle {
   async get(path, options) {
     const paths = path.split("/");
 
+    if (
+      options &&
+      options.create &&
+      options.create !== "file" &&
+      options.create !== "dir"
+    ) {
+      throw getErr("invalidCreateType");
+    }
+
     let self = this;
 
     if (paths.length > 1) {

@@ -28,9 +28,13 @@ export class FileHandle extends BaseHandle {
 
     const chunks = await splitIntoChunks(data);
 
+    const hashs = [];
+
     await Promise.all(
       chunks.map(async (chunk, index) => {
         const hash = await calculateHash(chunk);
+
+        hashs[index] = hash;
 
         const exited = await getData({
           storename: "blocks",
@@ -49,11 +53,30 @@ export class FileHandle extends BaseHandle {
           });
         }
 
-        if (process) {
-          process({ index, hash, exited });
-        }
+        process &&
+          process({
+            index, // 写入块的序列
+            length: chunks.length, // 写入块的总数
+            hash, // 写入块的哈希值
+            exited, // 写入块是否已经存在
+          });
       })
     );
+
+    const targetData = await getData({
+      key: this.id,
+    });
+
+    await setData({
+      datas: [
+        {
+          ...targetData,
+          lastModified: data?.lastModified || Date.now(),
+          length: data.length,
+          hashs,
+        },
+      ],
+    });
   }
 
   /**
@@ -65,6 +88,31 @@ export class FileHandle extends BaseHandle {
     //   start: 0,
     //   end,
     // };
+
+    const data = await getData({
+      key: this.id,
+    });
+
+    // 重新组合文件
+    const { hashs } = data;
+
+    const chunks = await Promise.all(
+      hashs.map(async (hash, index) => {
+        const { chunk } = await getData({
+          storename: "blocks",
+          key: hash,
+        });
+
+        return chunk;
+      })
+    );
+
+    return mergeChunks(chunks, type, [
+      data.name,
+      {
+        lastModified: data.lastModified,
+      },
+    ]);
   }
 
   /**
@@ -122,6 +170,35 @@ const splitIntoChunks = async (input) => {
   }
 
   return chunks;
+};
+
+/**
+ * 将分割的块还原回原来的数据
+ * @param {ArrayBuffer[]} chunks 分割的块
+ * @param {string} type 返回的数据类型，可以是 "arrayBuffer"、"text" 或 "file"
+ * @param {array} [fileOptions] 当 type 为 "file" 时，指定文件名
+ * @returns {ArrayBuffer|string|File} 还原后的数据
+ */
+const mergeChunks = (chunks, type, fileOptions) => {
+  // 计算总长度
+  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+
+  const mergedArrayBuffer = new Uint8Array(totalLength);
+
+  let offset = 0;
+  chunks.forEach((chunk) => {
+    mergedArrayBuffer.set(new Uint8Array(chunk), offset);
+    offset += chunk.byteLength;
+  });
+
+  // 根据type返回不同类型的数据
+  if (type === "text") {
+    return new TextDecoder().decode(mergedArrayBuffer);
+  } else if (type === "file") {
+    return new File([mergedArrayBuffer.buffer], ...fileOptions);
+  } else {
+    return mergedArrayBuffer.buffer;
+  }
 };
 
 /**

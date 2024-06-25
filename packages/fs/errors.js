@@ -8,6 +8,7 @@ export const cn = {
   rootNotExist: "根目录 {rootname} 不存在",
   pathNotFound: "未找到文件夹:{path}",
   storeNotExistMethod: "store中不存在方法 {method}",
+  invalidCreateType: "create必须等于'file'或'dir'",
 };
 
 /**
