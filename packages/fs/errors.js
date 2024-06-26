@@ -9,6 +9,7 @@ export const cn = {
   pathNotFound: "未找到文件夹:{path}",
   storeNotExistMethod: "store中不存在方法 {method}",
   invalidCreateType: "create必须等于'file'或'dir'",
+  notDeleteRoot: "不能直接删除根节点{name}",
 };
 
 /**

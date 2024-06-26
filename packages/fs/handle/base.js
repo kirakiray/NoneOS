@@ -1,5 +1,9 @@
 export const KIND = Symbol("kind");
-import { getData } from "../db.js";
+export const DELETED = Symbol("deleted");
+import { getData, setData } from "../db.js";
+import { getErr } from "../errors.js";
+import { DirHandle } from "./dir.js";
+import { clearHashs } from "../util.js";
 
 /**
  * 基础的Handle
@@ -57,15 +61,36 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async parent() {
-    debugger;
+    const data = await getData({ key: this.#id });
+
+    if (data.parent === "root") {
+      return null;
+    }
+
+    const parentHandle = new DirHandle(data.parent);
+    await parentHandle.refresh();
+
+    return parentHandle;
   }
 
-  // 移动当前handle
-  // 当只有 name 的时候，表示移动到当前文件夹下重命名
-  // 当带有路径地址时，代表剪切过去
-  async move(path) {
+  /**
+   * 移动当前文件或文件夹
+   * 若 target 为字符串，则表示重命名
+   * @param {(string|DirHandle)} target 移动到目标的文件夹
+   * @param {string} name 移动到目标文件夹下的名称
+   */
+  async move(target, name) {
+    if (typeof target === "string") {
+      name = target;
+      target = await this.parent();
+    }
+
     debugger;
     await this.refresh();
+  }
+
+  async copy(path) {
+    debugger;
   }
 
   /**
@@ -73,7 +98,38 @@ export class BaseHandle {
    * @returns {Promise<void>}
    */
   async remove() {
-    debugger;
+    const data = await getData({ key: this.id });
+
+    if (data.parent === "root") {
+      // root下属于挂载的目录，不允许直接删除
+      throw getErr("notDeleteRoot", {
+        name: this.name,
+      });
+    }
+
+    this[DELETED] = true;
+
+    if (this.kind === "dir") {
+      // 删除子文件和文件夹
+      await this.forEach(async (handle) => {
+        await handle.remove();
+      });
+    }
+
+    const oldHashs = data.hashs || [];
+
+    const removes = [data.key];
+    oldHashs.forEach((e, index) => {
+      removes.push(`${data.key}-${index}`);
+    });
+
+    await setData({
+      removes,
+    });
+
+    if (oldHashs.length) {
+      await clearHashs(oldHashs);
+    }
   }
 
   /**

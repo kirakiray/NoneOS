@@ -1,5 +1,6 @@
 import { BaseHandle, KIND } from "./base.js";
 import { setData, getData } from "../db.js";
+import { clearHashs } from "../util.js";
 
 const CHUNK_SIZE = 1024 * 1024; // 1mb
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -101,25 +102,7 @@ export class FileHandle extends BaseHandle {
     });
 
     if (oldHashs.length) {
-      // 查找并删除多余的块
-      const needRemoves = [];
-      await Promise.all(
-        oldHashs.map(async (key) => {
-          const exited = await getData({
-            index: "hash",
-            key,
-          });
-
-          !exited && needRemoves.push(key);
-        })
-      );
-
-      if (needRemoves.length) {
-        await setData({
-          storename: "blocks",
-          removes: needRemoves,
-        });
-      }
+      await clearHashs(oldHashs);
     }
   }
 

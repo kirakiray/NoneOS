@@ -22,3 +22,25 @@ ok(sub3.path === "local/subDir3/sub3-1/sbu3-1-1", "dir path");
 for await (let e of localRoot.entries()) {
   console.log("entries: ", e);
 }
+
+await get("local/subDir3/sub3-1/sub3-1-2", {
+  create: "dir",
+});
+const file1 = await get("local/subDir3/sub3-1/sub3-1-2/test.txt", {
+  create: "file",
+});
+
+await file1.write("test file1!");
+
+const file2 = await get(
+  "local/subDir3/sub3-1/sub3-1-2/sub3-1-2-1/sub3-1-2-1-1/test.txt",
+  {
+    create: "file",
+  }
+);
+
+await file2.write("test file2!!");
+
+const sub3_1 = await get("local/subDir3/sub3-1");
+
+await sub3_1.remove();
