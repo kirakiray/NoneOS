@@ -145,56 +145,6 @@ export const getData = async ({
 };
 
 /**
- * 查找数据
- * @param {Object} options - 配置选项
- * @param {string} [options.dbname="noneos_fs_defaults"] - 数据库名称
- * @param {string} [options.storename="main"] - 存储名称
- * @param {string} [options.index] - 索引名称
- * @param {Function} options.callback - 用于处理每个游标值的回调函数
- * @param {string} options.key - 要查找的键
- * @returns {Promise<Object|null>} 返回一个 Promise，解析为找到的对象或 null
- */
-// export const findData = async ({
-//   dbname = "noneos_fs_defaults",
-//   storename = "main",
-//   index,
-//   callback,
-//   key,
-// }) => {
-//   let req = await getIndex({ storename, index, dbname });
-
-//   return new Promise((resolve, reject) => {
-//     req = req.openCursor(IDBKeyRange.only(key));
-
-//     req.onsuccess = (e) => {
-//       let cursor = req.result;
-//       if (cursor) {
-//         // 😒 游标在同步线程结束后会自动回收，是伪装成异步代码的同步状态的api
-//         // 所以这里不使用 async function 做 callback 的回调函数
-//         const result = callback(cursor.value);
-
-//         if (result) {
-//           if (result.advance) {
-//             cursor.advance(result.advance);
-//           } else {
-//             resolve(cursor.value);
-//             return;
-//           }
-//         }
-
-//         cursor.continue();
-//       } else {
-//         resolve(null);
-//       }
-//     };
-
-//     req.onerror = (e) => {
-//       reject(getErr("findDataErr", null, e.target.error));
-//     };
-//   });
-// };
-
-/**
  * 设置数据
  * @param {Object} options - 配置选项
  * @param {string} [options.dbname="noneos_fs_defaults"] - 数据库名称
