@@ -4,7 +4,8 @@
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static": "node scripts/static-server"
+    "static": "node scripts/static-server",
+    "test": "npx playwright test"
   },
   "repository": {
     "type": "git",
@@ -17,8 +18,9 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^20.14.9",
     "koa": "^2.14.1",
     "koa-static": "^5.0.0"
-  },
-  "dependencies": {}
+  }
 }
