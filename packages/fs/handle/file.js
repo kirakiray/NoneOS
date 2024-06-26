@@ -28,7 +28,7 @@ export class FileHandle extends BaseHandle {
     //   process: () => {},
     // };
 
-    const process = options?.process;
+    const process = options?.process || (() => {});
 
     const chunks = await splitIntoChunks(data);
 
@@ -58,13 +58,12 @@ export class FileHandle extends BaseHandle {
           });
         }
 
-        process &&
-          process({
-            index, // 写入块的序列
-            length: chunks.length, // 写入块的总数
-            hash, // 写入块的哈希值
-            exited, // 写入块是否已经存在
-          });
+        process({
+          index, // 写入块的序列
+          length: chunks.length, // 写入块的总数
+          hash, // 写入块的哈希值
+          exited, // 写入块是否已经存在
+        });
       })
     );
 
@@ -127,6 +126,7 @@ export class FileHandle extends BaseHandle {
   /**
    * 返回文件数据
    * @param {string} type 读取数据后返回的类型
+   * @param {object} options 读取数据的选项
    * @returns {Promise<(File|String|Buffer)>}
    */
   async read(type, options) {
@@ -210,6 +210,7 @@ export class FileHandle extends BaseHandle {
 
   /**
    * 返回文件数据
+   * @param {object} options 读取数据的选项
    * @returns {Promise<File>}
    */
   file(options) {
@@ -218,6 +219,7 @@ export class FileHandle extends BaseHandle {
 
   /**
    * 返回文件数据
+   * @param {object} options 读取数据的选项
    * @returns {Promise<Text>}
    */
   text(options) {
@@ -226,6 +228,7 @@ export class FileHandle extends BaseHandle {
 
   /**
    * 返回文件数据
+   * @param {object} options 读取数据的选项
    * @returns {Promise<Buffer>}
    */
   buffer(options) {

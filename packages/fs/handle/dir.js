@@ -81,36 +81,69 @@ export class DirHandle extends BaseHandle {
     return await createHandle(data);
   }
 
+  /**
+   * 异步生成器函数，返回子数据的名称。
+   * @async
+   * @generator
+   * @yields {string} 子数据的名称。
+   */
   async *keys() {
-    const datas = await getData({
-      key: this.id,
-      index: "parent",
-      method: "getAll",
-    });
+    const datas = await getChildDatas(this.id);
 
     for (let item of datas) {
       yield item.name;
     }
   }
 
+  /**
+   * 异步生成器函数，返回子数据的名称和对应的句柄。
+   * @async
+   * @generator
+   * @yields {Array} 包含子数据名称和句柄的数组。
+   */
   async *entries() {
-    const datas = await getData({
-      key: this.id,
-      index: "parent",
-      method: "getAll",
-    });
+    const datas = await getChildDatas(this.id);
 
     for (let item of datas) {
       yield [item.name, await createHandle(item)];
     }
   }
 
+  /**
+   * 异步生成器函数，返回子数据的句柄。
+   * @async
+   * @generator
+   * @yields {(DirHandle|FileHandle)} 子数据的句柄。
+   */
   async *values() {
     for await (let [, handle] of this.entries()) {
       yield handle;
     }
   }
+
+  /**
+   * 异步函数，对每个子数据执行回调函数。
+   * @async
+   * @param {Function} callback - 对每个子数据执行的回调函数，接收句柄和索引作为参数。
+   */
+  async forEach(callback) {
+    const datas = await getChildDatas(this.id);
+
+    let index = 0;
+    for (let item of datas) {
+      await callback(await createHandle(item), index);
+      index++;
+    }
+  }
 }
+
+const getChildDatas = async (id) => {
+  return await getData({
+    key: id,
+    index: "parent",
+    method: "getAll",
+  });
+};
 
 const createHandle = async (data) => {
   let result = null;
