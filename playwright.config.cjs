@@ -29,6 +29,7 @@ module.exports = defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+    baseURL: "http://127.0.0.1:5559",
   },
 
   /* Configure projects for major browsers */
@@ -72,7 +73,7 @@ module.exports = defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: "npm run static",
-    url: "http://127.0.0.1:5559",
-    reuseExistingServer: !process.env.CI,
+    // url: "http://127.0.0.1:5559",
+    reuseExistingServer: false,
   },
 });
