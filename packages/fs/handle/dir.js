@@ -81,6 +81,18 @@ export class DirHandle extends BaseHandle {
     return await createHandle(data);
   }
 
+  async *keys() {
+    const datas = await getData({
+      key: this.id,
+      index: "parent",
+      method: "getAll",
+    });
+
+    for (let item of datas) {
+      yield item.name;
+    }
+  }
+
   async *entries() {
     const datas = await getData({
       key: this.id,
@@ -90,12 +102,6 @@ export class DirHandle extends BaseHandle {
 
     for (let item of datas) {
       yield [item.name, await createHandle(item)];
-    }
-  }
-
-  async *keys() {
-    for await (let [name] of this.entries()) {
-      yield name;
     }
   }
 

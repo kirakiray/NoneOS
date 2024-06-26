@@ -160,7 +160,12 @@ export class FileHandle extends BaseHandle {
 
             chunk = data.chunk;
 
-            if (index === startBlockId) {
+            if (startBlockId === endBlockId) {
+              chunk = chunk.slice(
+                options.start - index * CHUNK_SIZE,
+                options.end - index * CHUNK_SIZE
+              );
+            } else if (index === startBlockId) {
               chunk = chunk.slice(
                 -1 * ((startBlockId + 1) * CHUNK_SIZE - options.start)
               );

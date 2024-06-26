@@ -54,9 +54,22 @@ console.log("file: ", await sfile.file());
   ok(text1 === fcontent, "long text");
 
   const text2 = await fullFile.text({
-    start: 1024 * 1024 * 2 - 1,
+    start: 1024 * 1024 - 1,
     end: 1024 * 1024 * 2 + 1,
   });
 
-  ok(text2 === "12", "read range");
+  ok(text2 === `0${mbStr("1")}2`, "read range");
+
+  const rd = Math.random();
+  const rStart = Math.ceil(rd * 1024 * 1024);
+  const rEnd = Math.ceil(rd * 1024 * 1024 * 2);
+
+  const b1 = fcontent.slice(rStart, rEnd);
+
+  const text3 = await fullFile.text({
+    start: rStart,
+    end: rEnd,
+  });
+
+  ok(text3 === b1, "read random range");
 }
