@@ -197,6 +197,9 @@ export class FileHandle extends BaseHandle {
     if (type === "text") {
       return new TextDecoder().decode(mergedArrayBuffer);
     } else if (type === "file") {
+      if (options?.start || options?.end) {
+        return new Blob([mergedArrayBuffer.buffer]);
+      }
       return new File([mergedArrayBuffer.buffer], data.name, {
         lastModified: data.lastModified,
       });
