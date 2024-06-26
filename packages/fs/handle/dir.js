@@ -135,6 +135,16 @@ export class DirHandle extends BaseHandle {
       index++;
     }
   }
+
+  async length() {
+    const data = await getData({
+      key: this.id,
+      index: "parent",
+      method: "count",
+    });
+
+    return data;
+  }
 }
 
 const getChildDatas = async (id) => {

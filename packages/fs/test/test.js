@@ -36,3 +36,7 @@ const reloadView = async () => {
 };
 
 reloadView();
+
+const len = await localRoot.length();
+
+console.log("len: ", len);
