@@ -1,6 +1,10 @@
 import { BaseHandle, KIND } from "./base.js";
 import { setData, getData } from "../db.js";
 
+const CHUNK_SIZE = 1024 * 1024; // 1mb
+// const CHUNK_SIZE = 512 * 1024; // 512KB
+// const CHUNK_SIZE = 1024 * 4; // 4kb
+
 /**
  * 创建文件handle
  * @extends {BaseHandle}
@@ -122,6 +126,7 @@ export class FileHandle extends BaseHandle {
 
   /**
    * 返回文件数据
+   * @param {string} type 读取数据后返回的类型
    * @returns {Promise<(File|String|Buffer)>}
    */
   async read(type, options) {
@@ -137,47 +142,86 @@ export class FileHandle extends BaseHandle {
     // 重新组合文件
     const { hashs } = data;
 
-    const chunks = await Promise.all(
-      hashs.map(async (hash, index) => {
-        const { chunk } = await getData({
-          storename: "blocks",
-          key: hash,
-        });
+    let chunks;
+    if (options && (options.start || options.end)) {
+      // 获取指定范围内的数据
+      let startBlockId = Math.floor(options.start / CHUNK_SIZE);
+      let endBlockId = Math.floor(options.end / CHUNK_SIZE);
 
-        return chunk;
-      })
-    );
+      chunks = await Promise.all(
+        hashs.map(async (hash, index) => {
+          let chunk;
 
-    return mergeChunks(chunks, type, [
-      data.name,
-      {
+          if (index >= startBlockId && index <= endBlockId) {
+            const data = await getData({
+              storename: "blocks",
+              key: hash,
+            });
+
+            chunk = data.chunk;
+
+            if (index === startBlockId) {
+              chunk = chunk.slice(
+                -1 * ((startBlockId + 1) * CHUNK_SIZE - options.start)
+              );
+            } else if (index === endBlockId) {
+              chunk = chunk.slice(0, options.end - endBlockId * CHUNK_SIZE);
+            }
+          }
+
+          return chunk;
+        })
+      );
+      chunks = chunks.filter((e) => !!e);
+    } else {
+      chunks = await Promise.all(
+        hashs.map(async (hash, index) => {
+          const { chunk } = await getData({
+            storename: "blocks",
+            key: hash,
+          });
+
+          return chunk;
+        })
+      );
+    }
+
+    const mergedArrayBuffer = mergeChunks(chunks);
+
+    // 根据type返回不同类型的数据
+    if (type === "text") {
+      return new TextDecoder().decode(mergedArrayBuffer);
+    } else if (type === "file") {
+      return new File([mergedArrayBuffer.buffer], data.name, {
         lastModified: data.lastModified,
-      },
-    ]);
+      });
+    } else {
+      return mergedArrayBuffer.buffer;
+    }
   }
 
   /**
    * 返回文件数据
    * @returns {Promise<File>}
    */
-  file() {
-    return this.read("file");
+  file(options) {
+    return this.read("file", options);
   }
 
   /**
    * 返回文件数据
    * @returns {Promise<Text>}
    */
-  text() {
-    return this.read("text");
+  text(options) {
+    return this.read("text", options);
   }
 
   /**
    * 返回文件数据
    * @returns {Promise<Buffer>}
    */
-  buffer() {
-    return this.read("buffer");
+  buffer(options) {
+    return this.read("buffer", options);
   }
 }
 
@@ -187,7 +231,7 @@ export class FileHandle extends BaseHandle {
  * @returns {array} 分割后的内容
  */
 const splitIntoChunks = async (input) => {
-  const CHUNK_SIZE = 1024 * 1024; // 1mb
+  // const CHUNK_SIZE = 1024 * 1024; // 1mb
   // const CHUNK_SIZE = 512 * 1024; // 512KB
   // const CHUNK_SIZE = 1024 * 4; // 4kb
   let arrayBuffer;
@@ -216,11 +260,9 @@ const splitIntoChunks = async (input) => {
 /**
  * 将分割的块还原回原来的数据
  * @param {ArrayBuffer[]} chunks 分割的块
- * @param {string} type 返回的数据类型，可以是 "arrayBuffer"、"text" 或 "file"
- * @param {array} [fileOptions] 当 type 为 "file" 时，构造函数的可选参数
- * @returns {ArrayBuffer|string|File} 还原后的数据
+ * @returns {ArrayBuffer} 还原后的数据
  */
-const mergeChunks = (chunks, type, fileOptions) => {
+const mergeChunks = (chunks) => {
   // 计算总长度
   const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
 
@@ -232,14 +274,7 @@ const mergeChunks = (chunks, type, fileOptions) => {
     offset += chunk.byteLength;
   });
 
-  // 根据type返回不同类型的数据
-  if (type === "text") {
-    return new TextDecoder().decode(mergedArrayBuffer);
-  } else if (type === "file") {
-    return new File([mergedArrayBuffer.buffer], ...fileOptions);
-  } else {
-    return mergedArrayBuffer.buffer;
-  }
+  return mergedArrayBuffer;
 };
 
 /**

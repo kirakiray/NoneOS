@@ -1,5 +1,5 @@
 import { BaseHandle, KIND } from "./base.js";
-import { getData, setData, findData, getRandomId } from "../db.js";
+import { getData, setData, getRandomId } from "../db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
 
@@ -80,16 +80,6 @@ export class DirHandle extends BaseHandle {
 
     return await createHandle(data);
   }
-
-  // async forEach(callback) {
-  //   await findData({
-  //     key: this.id,
-  //     index: "parent",
-  //     callback(e) {
-  //       createHandle(e).then(callback);
-  //     },
-  //   });
-  // }
 
   async *entries() {
     const datas = await getData({
