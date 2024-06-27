@@ -1,6 +1,6 @@
 import { BaseHandle, KIND } from "./base.js";
 import { setData, getData } from "../db.js";
-import { clearHashs } from "../util.js";
+import { clearHashs, judgeDeleted } from "../util.js";
 
 const CHUNK_SIZE = 1024 * 1024; // 1mb
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -25,6 +25,8 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<void>}
    */
   async write(data, options) {
+    judgeDeleted(this, "write");
+
     // options = {
     //   process: () => {},
     // };
@@ -113,6 +115,8 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<(File|String|Buffer)>}
    */
   async read(type, options) {
+    judgeDeleted(this, "read");
+
     // options = {
     //   start: 0,
     //   end,
@@ -197,6 +201,8 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<File>}
    */
   file(options) {
+    judgeDeleted(this, "file");
+
     return this.read("file", options);
   }
 
@@ -206,6 +212,8 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<Text>}
    */
   text(options) {
+    judgeDeleted(this, "text");
+
     return this.read("text", options);
   }
 
@@ -215,6 +223,8 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<Buffer>}
    */
   buffer(options) {
+    judgeDeleted(this, "buffer");
+
     return this.read("buffer", options);
   }
 }

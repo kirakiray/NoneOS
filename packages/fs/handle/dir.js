@@ -2,6 +2,7 @@ import { BaseHandle, KIND } from "./base.js";
 import { getData, setData, getRandomId } from "../db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
+import { judgeDeleted } from "../util.js";
 
 /**
  * 创建文件夹handle
@@ -24,6 +25,8 @@ export class DirHandle extends BaseHandle {
    * @returns  {Promise<(FileHandle|DirHandle)>}
    */
   async get(path, options) {
+    judgeDeleted(this, "get");
+
     const paths = path.split("/");
 
     if (
@@ -88,6 +91,8 @@ export class DirHandle extends BaseHandle {
    * @yields {string} 子数据的名称。
    */
   async *keys() {
+    judgeDeleted(this, "keys");
+
     const datas = await getChildDatas(this.id);
 
     for (let item of datas) {
@@ -102,6 +107,8 @@ export class DirHandle extends BaseHandle {
    * @yields {Array} 包含子数据名称和句柄的数组。
    */
   async *entries() {
+    judgeDeleted(this, "entries");
+
     const datas = await getChildDatas(this.id);
 
     for (let item of datas) {
@@ -116,6 +123,8 @@ export class DirHandle extends BaseHandle {
    * @yields {(DirHandle|FileHandle)} 子数据的句柄。
    */
   async *values() {
+    judgeDeleted(this, "values");
+
     for await (let [, handle] of this.entries()) {
       yield handle;
     }
@@ -127,6 +136,8 @@ export class DirHandle extends BaseHandle {
    * @param {Function} callback - 对每个子数据执行的回调函数，接收句柄和索引作为参数。
    */
   async forEach(callback) {
+    judgeDeleted(this, "forEach");
+
     const datas = await getChildDatas(this.id);
 
     let index = 0;
@@ -137,6 +148,8 @@ export class DirHandle extends BaseHandle {
   }
 
   async length() {
+    judgeDeleted(this, "length");
+
     const data = await getData({
       key: this.id,
       index: "parent",

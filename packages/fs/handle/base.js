@@ -3,7 +3,7 @@ export const DELETED = Symbol("deleted");
 import { getData, setData } from "../db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
-import { clearHashs } from "../util.js";
+import { clearHashs, judgeDeleted } from "../util.js";
 
 /**
  * 基础的Handle
@@ -29,6 +29,7 @@ export class BaseHandle {
    * @returns {string}
    */
   get path() {
+    judgeDeleted(this, "path");
     return this.#path;
   }
 
@@ -53,6 +54,7 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async root() {
+    judgeDeleted(this, "root");
     debugger;
   }
 
@@ -61,6 +63,8 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async parent() {
+    judgeDeleted(this, "parent");
+
     const data = await getData({ key: this.#id });
 
     if (data.parent === "root") {
@@ -80,6 +84,8 @@ export class BaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async move(target, name) {
+    judgeDeleted(this, "move");
+
     if (typeof target === "string") {
       name = target;
       target = await this.parent();
@@ -98,6 +104,8 @@ export class BaseHandle {
    * @returns {Promise<void>}
    */
   async remove() {
+    judgeDeleted(this, "remove");
+
     const data = await getData({ key: this.id });
 
     if (data.parent === "root") {
@@ -106,8 +114,6 @@ export class BaseHandle {
         name: this.name,
       });
     }
-
-    this[DELETED] = true;
 
     if (this.kind === "dir") {
       // 删除子文件和文件夹
@@ -123,6 +129,8 @@ export class BaseHandle {
       removes.push(`${data.key}-${index}`);
     });
 
+    this[DELETED] = true;
+
     await setData({
       removes,
     });
@@ -137,6 +145,8 @@ export class BaseHandle {
    * 当 handle 被 move方法执行成功后，需要及时更新信息
    */
   async refresh() {
+    judgeDeleted(this, "refresh");
+
     const data = await getData({ key: this.#id });
     this.#name = data.name;
 

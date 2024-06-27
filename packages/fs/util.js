@@ -1,4 +1,6 @@
 import { getData, setData } from "./db.js";
+import { getErr } from "./errors.js";
+import { DELETED } from "./handle/base.js";
 
 /**
  * 判断旧hash是否还被引用，清除不被引用的块
@@ -23,5 +25,17 @@ export const clearHashs = async (oldHashs) => {
       storename: "blocks",
       removes: needRemoves,
     });
+  }
+};
+
+export const judgeDeleted = (handle, name) => {
+  if (handle[DELETED]) {
+    throw getErr(
+      "deleted",
+      {
+        name,
+      },
+      handle
+    );
   }
 };
