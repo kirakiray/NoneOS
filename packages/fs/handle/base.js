@@ -1,5 +1,8 @@
 export const KIND = Symbol("kind");
-import { getData } from "../db.js";
+import { getData, setData } from "../db.js";
+import { getErr } from "../errors.js";
+import { DirHandle } from "./dir.js";
+import { clearHashs, getSelfData } from "../util.js";
 
 /**
  * 基础的Handle
@@ -25,6 +28,7 @@ export class BaseHandle {
    * @returns {string}
    */
   get path() {
+    getSelfData(this, "path");
     return this.#path;
   }
 
@@ -49,7 +53,17 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async root() {
-    debugger;
+    let data = await getSelfData(this, "root");
+
+    while (data.parent !== "root") {
+      data = await getData({ key: data.parent });
+    }
+
+    const handle = await new DirHandle(data.key);
+
+    await handle.refresh();
+
+    return handle;
   }
 
   /**
@@ -57,15 +71,86 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async parent() {
-    debugger;
+    const data = await getSelfData(this, "parent");
+
+    if (data.parent === "root") {
+      return null;
+    }
+
+    const parentHandle = new DirHandle(data.parent);
+    await parentHandle.refresh();
+
+    return parentHandle;
   }
 
-  // 移动当前handle
-  // 当只有 name 的时候，表示移动到当前文件夹下重命名
-  // 当带有路径地址时，代表剪切过去
-  async move(path) {
-    debugger;
+  /**
+   * 移动当前文件或文件夹
+   * 若 target 为字符串，则表示重命名
+   * @param {(string|DirHandle)} target 移动到目标的文件夹
+   * @param {string} name 移动到目标文件夹下的名称
+   */
+  async move(target, name) {
+    [target, name] = await getTargetAndName({ target, name, self: this });
+
+    const selfData = await getSelfData(this, "move");
+    selfData.parent = target.id;
+    selfData.name = name;
+
+    await setData({
+      datas: [selfData],
+    });
+
     await this.refresh();
+  }
+
+  /**
+   * 复制当前文件或文件夹
+   * @param {(string|DirHandle)} target 移动到目标的文件夹
+   * @param {string} name 移动到目标文件夹下的名称
+   */
+  async copy(target, name) {
+    [target, name] = await getTargetAndName({ target, name, self: this });
+
+    let reHandle;
+
+    switch (this.kind) {
+      case "dir":
+        reHandle = await target.get(name, {
+          create: "dir",
+        });
+
+        for await (let [name, subHandle] of this.entries()) {
+          await subHandle.copy(reHandle, name);
+        }
+        break;
+      case "file":
+        reHandle = await target.get(name, {
+          create: "file",
+        });
+
+        // 直接存储hashs数据更高效
+        const selfData = await getSelfData(this, "move");
+        const targetData = await getData({ key: reHandle.id });
+
+        const hashs = (targetData.hashs = selfData.hashs);
+
+        await setData({
+          datas: [
+            targetData,
+            ...hashs.map((hash, index) => {
+              return {
+                key: `${targetData.key}-${index}`,
+                hash,
+                type: "block",
+              };
+            }),
+          ],
+        });
+
+        break;
+    }
+
+    return reHandle;
   }
 
   /**
@@ -73,7 +158,36 @@ export class BaseHandle {
    * @returns {Promise<void>}
    */
   async remove() {
-    debugger;
+    const data = await getSelfData(this, "remove");
+
+    if (data.parent === "root") {
+      // root下属于挂载的目录，不允许直接删除
+      throw getErr("notDeleteRoot", {
+        name: this.name,
+      });
+    }
+
+    if (this.kind === "dir") {
+      // 删除子文件和文件夹
+      await this.forEach(async (handle) => {
+        await handle.remove();
+      });
+    }
+
+    const oldHashs = data.hashs || [];
+
+    const removes = [data.key];
+    oldHashs.forEach((e, index) => {
+      removes.push(`${data.key}-${index}`);
+    });
+
+    await setData({
+      removes,
+    });
+
+    if (oldHashs.length) {
+      await clearHashs(oldHashs);
+    }
   }
 
   /**
@@ -81,7 +195,8 @@ export class BaseHandle {
    * 当 handle 被 move方法执行成功后，需要及时更新信息
    */
   async refresh() {
-    const data = await getData({ key: this.#id });
+    const data = await getSelfData(this, "refresh");
+
     this.#name = data.name;
 
     // 重新从db中获取parent数据并更新path
@@ -96,3 +211,28 @@ export class BaseHandle {
     this.#path = pathArr.join("/");
   }
 }
+
+// 修正 target 和 name 的值
+const getTargetAndName = async ({ target, name, self }) => {
+  if (typeof target === "string") {
+    name = target;
+    target = await self.parent();
+  }
+
+  // 查看是否已经有同名的文件或文件夹
+  let exited = false;
+  for await (let subName of target.keys()) {
+    if (name === subName) {
+      exited = 1;
+      break;
+    }
+  }
+
+  if (exited) {
+    throw getErr("exitedName", {
+      name: `${name}(${target.path}/${name})`,
+    });
+  }
+
+  return [target, name];
+};

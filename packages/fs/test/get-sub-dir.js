@@ -22,3 +22,62 @@ ok(sub3.path === "local/subDir3/sub3-1/sbu3-1-1", "dir path");
 for await (let e of localRoot.entries()) {
   console.log("entries: ", e);
 }
+
+await get("local/subDir3/sub3-1/sub3-1-2", {
+  create: "dir",
+});
+const file1 = await get("local/subDir3/sub3-1/sub3-1-2/test.txt", {
+  create: "file",
+});
+
+await file1.write("test file1!");
+
+const file2 = await get(
+  "local/subDir3/sub3-1/sub3-1-2/sub3-1-2-1/sub3-1-2-1-1/test.txt",
+  {
+    create: "file",
+  }
+);
+
+await file2.write("test file2!!");
+
+await file2.move("test2.txt");
+// .catch((err) => {
+//   console.error(err);
+// });
+
+const sub3_1 = await get("local/subDir3/sub3-1");
+
+await sub3_1.copy("sub3_2");
+// .catch((err) => {
+//   console.error(err);
+// });
+
+await sub3_1.remove();
+
+const reSub3_1 = await get("local/subDir3/sub3-1");
+
+ok(reSub3_1 === null, "remove dir");
+
+const test2Handle = await get(
+  "local/subDir3/sub3_2/sub3-1-2/sub3-1-2-1/sub3-1-2-1-1/test2.txt"
+);
+
+const c2text = await test2Handle.text();
+
+ok("after copy text", c2text === "test file2!!");
+
+const root = await test2Handle.root();
+
+ok(root.name === "local", "root");
+
+const sub3_2 = await get("local/subDir3/sub3_2");
+
+await sub3_2.remove();
+
+const c2text_2 = await test2Handle.text().catch((err) => {
+  console.log(err);
+  ok(true, "catch useless handle");
+});
+
+// debugger;

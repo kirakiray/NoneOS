@@ -62,10 +62,9 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
       };
 
       req.onerror = (event) => {
-        throw {
-          desc: dbName + " creation error",
-          event,
-        };
+        throw new Event(dbName + " creation error", {
+          cause: event.error,
+        });
       };
     });
   }

@@ -1,5 +1,6 @@
 import { BaseHandle, KIND } from "./base.js";
 import { setData, getData } from "../db.js";
+import { clearHashs, getSelfData } from "../util.js";
 
 const CHUNK_SIZE = 1024 * 1024; // 1mb
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -27,6 +28,8 @@ export class FileHandle extends BaseHandle {
     // options = {
     //   process: () => {},
     // };
+
+    const targetData = await getSelfData(this, "write");
 
     const process = options?.process || (() => {});
 
@@ -67,11 +70,6 @@ export class FileHandle extends BaseHandle {
       })
     );
 
-    // 更新文件信息
-    const targetData = await getData({
-      key: this.id,
-    });
-
     const oldHashs = targetData.hashs || [];
 
     // 如果old更长，清除多出来的块
@@ -81,6 +79,8 @@ export class FileHandle extends BaseHandle {
         needRemoveBlocks.push(`${this.id}-${i}`);
       }
     }
+
+    // 更新文件信息
     await setData({
       datas: [
         {
@@ -101,25 +101,7 @@ export class FileHandle extends BaseHandle {
     });
 
     if (oldHashs.length) {
-      // 查找并删除多余的块
-      const needRemoves = [];
-      await Promise.all(
-        oldHashs.map(async (key) => {
-          const exited = await getData({
-            index: "hash",
-            key,
-          });
-
-          !exited && needRemoves.push(key);
-        })
-      );
-
-      if (needRemoves.length) {
-        await setData({
-          storename: "blocks",
-          removes: needRemoves,
-        });
-      }
+      await clearHashs(oldHashs);
     }
   }
 
@@ -135,9 +117,7 @@ export class FileHandle extends BaseHandle {
     //   end,
     // };
 
-    const data = await getData({
-      key: this.id,
-    });
+    const data = await getSelfData(this, "读取数据");
 
     // 重新组合文件
     const { hashs } = data;
