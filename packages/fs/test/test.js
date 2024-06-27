@@ -1,6 +1,7 @@
 import "./get-local.js";
 import "./get-sub-dir.js";
 import "./get-set-file.js";
+
 import { get } from "../main.js";
 
 const localRoot = await get("local");
@@ -35,7 +36,7 @@ const reloadView = async () => {
   filelistEl.append(ele);
 };
 
-reloadView();
+setTimeout(reloadView, 100);
 
 const len = await localRoot.length();
 

@@ -86,25 +86,7 @@ export class BaseHandle {
   async move(target, name) {
     judgeDeleted(this, "move");
 
-    if (typeof target === "string") {
-      name = target;
-      target = await this.parent();
-    }
-
-    // 查看是否已经有同名的文件或文件夹
-    let exited = false;
-    for await (let subName of target.keys()) {
-      if (name === subName) {
-        exited = 1;
-        break;
-      }
-    }
-
-    if (exited) {
-      throw getErr("exitedName", {
-        name,
-      });
-    }
+    [target, name] = await getTargetAndName({ target, name, self: this });
 
     const selfData = await getData({ key: this.id });
     selfData.parent = target.id;
@@ -117,8 +99,56 @@ export class BaseHandle {
     await this.refresh();
   }
 
-  async copy(path) {
-    debugger;
+  /**
+   * 复制当前文件或文件夹
+   * @param {(string|DirHandle)} target 移动到目标的文件夹
+   * @param {string} name 移动到目标文件夹下的名称
+   */
+  async copy(target, name) {
+    judgeDeleted(this, "move");
+
+    [target, name] = await getTargetAndName({ target, name, self: this });
+
+    let reHandle;
+
+    switch (this.kind) {
+      case "dir":
+        reHandle = await target.get(name, {
+          create: "dir",
+        });
+
+        for await (let [name, subHandle] of this.entries()) {
+          await subHandle.copy(reHandle, name);
+        }
+        break;
+      case "file":
+        reHandle = await target.get(name, {
+          create: "file",
+        });
+
+        // 直接存储hashs数据更高效
+        const selfData = await getData({ key: this.id });
+        const targetData = await getData({ key: reHandle.id });
+
+        const hashs = (targetData.hashs = selfData.hashs);
+
+        await setData({
+          datas: [
+            targetData,
+            ...hashs.map((hash, index) => {
+              return {
+                key: `${targetData.key}-${index}`,
+                hash,
+                type: "block",
+              };
+            }),
+          ],
+        });
+
+        break;
+    }
+
+    return reHandle;
   }
 
   /**
@@ -184,3 +214,28 @@ export class BaseHandle {
     this.#path = pathArr.join("/");
   }
 }
+
+// 修正 target 和 name 的值
+const getTargetAndName = async ({ target, name, self }) => {
+  if (typeof target === "string") {
+    name = target;
+    target = await self.parent();
+  }
+
+  // 查看是否已经有同名的文件或文件夹
+  let exited = false;
+  for await (let subName of target.keys()) {
+    if (name === subName) {
+      exited = 1;
+      break;
+    }
+  }
+
+  if (exited) {
+    throw getErr("exitedName", {
+      name: `${name}(${target.path}/${name})`,
+    });
+  }
+
+  return [target, name];
+};

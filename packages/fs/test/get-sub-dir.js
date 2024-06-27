@@ -41,12 +41,36 @@ const file2 = await get(
 
 await file2.write("test file2!!");
 
-await file2.move("test2.txt").catch((err) => {});
+await file2.move("test2.txt");
+// .catch((err) => {
+//   console.error(err);
+// });
 
 const sub3_1 = await get("local/subDir3/sub3-1");
+
+await sub3_1.copy("sub3_2");
+// .catch((err) => {
+//   console.error(err);
+// });
 
 await sub3_1.remove();
 
 const reSub3_1 = await get("local/subDir3/sub3-1");
 
 ok(reSub3_1 === null, "remove dir");
+
+const test2Handle = await get(
+  "local/subDir3/sub3_2/sub3-1-2/sub3-1-2-1/sub3-1-2-1-1/test2.txt"
+);
+
+const c2text = await test2Handle.text();
+
+ok("after copy text", c2text === "test file2!!");
+
+const sub3_2 = await get("local/subDir3/sub3_2");
+
+await sub3_2.remove();
+
+// const c2text_2 = await test2Handle.text();
+
+// debugger;
