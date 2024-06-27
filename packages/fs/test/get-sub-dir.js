@@ -75,6 +75,9 @@ const sub3_2 = await get("local/subDir3/sub3_2");
 
 await sub3_2.remove();
 
-// const c2text_2 = await test2Handle.text();
+const c2text_2 = await test2Handle.text().catch((err) => {
+  console.log(err);
+  ok(true, "catch useless handle");
+});
 
 // debugger;

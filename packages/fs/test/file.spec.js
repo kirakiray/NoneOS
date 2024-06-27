@@ -14,4 +14,5 @@ test("file system test", async ({ page }) => {
   await page.getByText("remove dir ok").click();
   await page.getByText("root ok").click();
   await page.getByText("length ok").click();
+  await page.getByText("catch useless handle ok").click();
 });

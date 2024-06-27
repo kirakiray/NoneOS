@@ -25,11 +25,11 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<void>}
    */
   async write(data, options) {
-    const targetData = await getSelfData(this, "write");
-
     // options = {
     //   process: () => {},
     // };
+
+    const targetData = await getSelfData(this, "write");
 
     const process = options?.process || (() => {});
 
@@ -69,10 +69,6 @@ export class FileHandle extends BaseHandle {
         });
       })
     );
-
-    // const targetData = await getData({
-    //   key: this.id,
-    // });
 
     const oldHashs = targetData.hashs || [];
 
