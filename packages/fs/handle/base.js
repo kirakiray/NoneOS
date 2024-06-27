@@ -91,7 +91,29 @@ export class BaseHandle {
       target = await this.parent();
     }
 
-    debugger;
+    // 查看是否已经有同名的文件或文件夹
+    let exited = false;
+    for await (let subName of target.keys()) {
+      if (name === subName) {
+        exited = 1;
+        break;
+      }
+    }
+
+    if (exited) {
+      throw getErr("exitedName", {
+        name,
+      });
+    }
+
+    const selfData = await getData({ key: this.id });
+    selfData.parent = target.id;
+    selfData.name = name;
+
+    await setData({
+      datas: [selfData],
+    });
+
     await this.refresh();
   }
 

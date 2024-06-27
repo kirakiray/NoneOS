@@ -11,4 +11,5 @@ test("file system test", async ({ page }) => {
   await page.getByText("long text ok").click();
   await page.getByText("read range ok").click();
   await page.getByText("read random range ok").click();
+  await page.getByText("remove dir ok").click();
 });

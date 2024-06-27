@@ -41,6 +41,12 @@ const file2 = await get(
 
 await file2.write("test file2!!");
 
+await file2.move("test2.txt").catch((err) => {});
+
 const sub3_1 = await get("local/subDir3/sub3-1");
 
 await sub3_1.remove();
+
+const reSub3_1 = await get("local/subDir3/sub3-1");
+
+ok(reSub3_1 === null, "remove dir");
