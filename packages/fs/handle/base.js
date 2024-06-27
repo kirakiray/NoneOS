@@ -1,9 +1,8 @@
 export const KIND = Symbol("kind");
-export const DELETED = Symbol("deleted");
 import { getData, setData } from "../db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
-import { clearHashs, judgeDeleted } from "../util.js";
+import { clearHashs, getSelfData } from "../util.js";
 
 /**
  * 基础的Handle
@@ -29,7 +28,7 @@ export class BaseHandle {
    * @returns {string}
    */
   get path() {
-    judgeDeleted(this, "path");
+    getSelfData(this, "path");
     return this.#path;
   }
 
@@ -54,8 +53,17 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async root() {
-    judgeDeleted(this, "root");
-    debugger;
+    let data = await getSelfData(this, "root");
+
+    while (data.parent !== "root") {
+      data = await getData({ key: data.parent });
+    }
+
+    const handle = await new DirHandle(data.key);
+
+    await handle.refresh();
+
+    return handle;
   }
 
   /**
@@ -63,9 +71,7 @@ export class BaseHandle {
    * @returns {Promise<DirHandle>}
    */
   async parent() {
-    judgeDeleted(this, "parent");
-
-    const data = await getData({ key: this.#id });
+    const data = await getSelfData(this, "parent");
 
     if (data.parent === "root") {
       return null;
@@ -84,11 +90,9 @@ export class BaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async move(target, name) {
-    judgeDeleted(this, "move");
-
     [target, name] = await getTargetAndName({ target, name, self: this });
 
-    const selfData = await getData({ key: this.id });
+    const selfData = await getSelfData(this, "move");
     selfData.parent = target.id;
     selfData.name = name;
 
@@ -105,8 +109,6 @@ export class BaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async copy(target, name) {
-    judgeDeleted(this, "move");
-
     [target, name] = await getTargetAndName({ target, name, self: this });
 
     let reHandle;
@@ -127,7 +129,7 @@ export class BaseHandle {
         });
 
         // 直接存储hashs数据更高效
-        const selfData = await getData({ key: this.id });
+        const selfData = await getSelfData(this, "move");
         const targetData = await getData({ key: reHandle.id });
 
         const hashs = (targetData.hashs = selfData.hashs);
@@ -156,9 +158,7 @@ export class BaseHandle {
    * @returns {Promise<void>}
    */
   async remove() {
-    judgeDeleted(this, "remove");
-
-    const data = await getData({ key: this.id });
+    const data = await getSelfData(this, "remove");
 
     if (data.parent === "root") {
       // root下属于挂载的目录，不允许直接删除
@@ -181,8 +181,6 @@ export class BaseHandle {
       removes.push(`${data.key}-${index}`);
     });
 
-    this[DELETED] = true;
-
     await setData({
       removes,
     });
@@ -197,9 +195,8 @@ export class BaseHandle {
    * 当 handle 被 move方法执行成功后，需要及时更新信息
    */
   async refresh() {
-    judgeDeleted(this, "refresh");
+    const data = await getSelfData(this, "refresh");
 
-    const data = await getData({ key: this.#id });
     this.#name = data.name;
 
     // 重新从db中获取parent数据并更新path

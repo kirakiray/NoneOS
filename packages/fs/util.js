@@ -1,6 +1,5 @@
 import { getData, setData } from "./db.js";
 import { getErr } from "./errors.js";
-import { DELETED } from "./handle/base.js";
 
 /**
  * 判断旧hash是否还被引用，清除不被引用的块
@@ -28,14 +27,24 @@ export const clearHashs = async (oldHashs) => {
   }
 };
 
-export const judgeDeleted = (handle, name) => {
-  if (handle[DELETED]) {
+/**
+ * 获取自身在db上的数据，带有判断自身是否被删除的逻辑
+ * @param {(DirHandle|FileHandle)} handle
+ * @param {string} errName 当判断到当前handle已经被删除，报错的时的name
+ * @returns {Object}
+ */
+export const getSelfData = async (handle, errName) => {
+  const data = await getData({ key: handle.id });
+
+  if (!data) {
     throw getErr(
       "deleted",
       {
-        name,
+        name: errName,
       },
       handle
     );
   }
+
+  return data;
 };

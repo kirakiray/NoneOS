@@ -1,6 +1,6 @@
 import { BaseHandle, KIND } from "./base.js";
 import { setData, getData } from "../db.js";
-import { clearHashs, judgeDeleted } from "../util.js";
+import { clearHashs, getSelfData } from "../util.js";
 
 const CHUNK_SIZE = 1024 * 1024; // 1mb
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -25,7 +25,7 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<void>}
    */
   async write(data, options) {
-    judgeDeleted(this, "write");
+    const targetData = await getSelfData(this, "write");
 
     // options = {
     //   process: () => {},
@@ -70,10 +70,9 @@ export class FileHandle extends BaseHandle {
       })
     );
 
-    // 更新文件信息
-    const targetData = await getData({
-      key: this.id,
-    });
+    // const targetData = await getData({
+    //   key: this.id,
+    // });
 
     const oldHashs = targetData.hashs || [];
 
@@ -84,6 +83,8 @@ export class FileHandle extends BaseHandle {
         needRemoveBlocks.push(`${this.id}-${i}`);
       }
     }
+
+    // 更新文件信息
     await setData({
       datas: [
         {
@@ -115,16 +116,12 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<(File|String|Buffer)>}
    */
   async read(type, options) {
-    judgeDeleted(this, "read");
-
     // options = {
     //   start: 0,
     //   end,
     // };
 
-    const data = await getData({
-      key: this.id,
-    });
+    const data = await getSelfData(this, "读取数据");
 
     // 重新组合文件
     const { hashs } = data;
@@ -201,8 +198,6 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<File>}
    */
   file(options) {
-    judgeDeleted(this, "file");
-
     return this.read("file", options);
   }
 
@@ -212,8 +207,6 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<Text>}
    */
   text(options) {
-    judgeDeleted(this, "text");
-
     return this.read("text", options);
   }
 
@@ -223,8 +216,6 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<Buffer>}
    */
   buffer(options) {
-    judgeDeleted(this, "buffer");
-
     return this.read("buffer", options);
   }
 }

@@ -67,6 +67,10 @@ const c2text = await test2Handle.text();
 
 ok("after copy text", c2text === "test file2!!");
 
+const root = await test2Handle.root();
+
+ok(root.name === "local", "root");
+
 const sub3_2 = await get("local/subDir3/sub3_2");
 
 await sub3_2.remove();
