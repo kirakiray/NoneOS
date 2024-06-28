@@ -2,7 +2,7 @@ import { BaseHandle, KIND } from "./base.js";
 import { getData, setData, getRandomId } from "../db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
-import { getSelfData } from "../util.js";
+import { getSelfData } from "./util.js";
 
 /**
  * 创建文件夹handle

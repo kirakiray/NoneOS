@@ -2,7 +2,7 @@ export const KIND = Symbol("kind");
 import { getData, setData } from "../db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
-import { clearHashs, getSelfData } from "../util.js";
+import { clearHashs, getSelfData } from "./util.js";
 
 /**
  * 基础的Handle

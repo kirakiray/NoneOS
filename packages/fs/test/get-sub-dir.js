@@ -65,7 +65,7 @@ const test2Handle = await get(
 
 const c2text = await test2Handle.text();
 
-ok("after copy text", c2text === "test file2!!");
+ok(c2text === "test file2!!", "after copy text");
 
 const root = await test2Handle.root();
 
