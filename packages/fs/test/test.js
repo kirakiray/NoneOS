@@ -25,6 +25,7 @@ const reloadView = async () => {
       ele.append(ul);
     } else {
       ele.classList.add("file");
+      ele.innerHTML = `<a href="/$/${handle.path}" target="_blank">${handle.kind}: ${handle.name}</a>`;
     }
 
     return ele;
