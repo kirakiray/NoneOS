@@ -9,6 +9,7 @@ test("file system test", async ({ page }) => {
   await page.getByText("dir path ok").click();
   await page.getByText("file id ok").click();
   await page.getByText("read file content ok").click();
+  await page.getByText("file lowercase ok").click();
   await page.getByText("long text ok").click();
   await page.getByText("read range ok").click();
   await page.getByText("read random range ok").click();

@@ -48,6 +48,14 @@ console.log("file: ", await sfile.file());
   });
   await fullFile.write(fcontent);
 
+  {
+    const f2 = await get("local/files/sfile2.txt", {
+      create: "file",
+    });
+
+    ok(f2.id === fullFile.id, "file lowercase");
+  }
+
   // 读取完整的数据
   const text1 = await fullFile.text();
 
