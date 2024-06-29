@@ -1,12 +1,4 @@
-// import { get } from "../fs/main.js";
-
-const get = () => {
-  return {
-    text() {
-      return "haha";
-    },
-  };
-};
+import { get } from "../fs/main.js";
 
 const resposeFS = async ({ request }) => {
   const { pathname } = new URL(request.url);

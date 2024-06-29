@@ -1,3 +1,8 @@
+/**
+ * BUG: 😒 在 chrome 下，只更新这个文件的话，service worker 会一直处于 waiting 状态，导致更新不生效
+ * 查明只会在chrome会出现这个问题，调试的时候请主动刷新 service woker
+ */
+
 import resposeFS from "./resp-fs.js";
 
 self.addEventListener("fetch", (event) => {
@@ -18,8 +23,6 @@ self.addEventListener("fetch", (event) => {
       })()
     );
   }
-
-  console.log("pathname9", pathname);
 });
 
 self.addEventListener("install", () => {
