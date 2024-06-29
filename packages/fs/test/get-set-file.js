@@ -43,7 +43,7 @@ console.log("file: ", await sfile.file());
   fcontent += mbStr("2");
   fcontent += mbStr("3");
 
-  const fullFile = await get("local/files/sfile2.txt", {
+  const fullFile = await get("local/files/Sfile2.txt", {
     create: "file",
   });
   await fullFile.write(fcontent);

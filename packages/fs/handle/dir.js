@@ -61,7 +61,7 @@ export class DirHandle extends BaseHandle {
 
     let data = await getData({
       index: "parent_and_name",
-      key: [self.id, subName],
+      key: [self.id, subName.toLowerCase()],
     });
 
     if (options) {
@@ -70,7 +70,8 @@ export class DirHandle extends BaseHandle {
         data = {
           createTime: Date.now(),
           key: getRandomId(),
-          name: subName,
+          realName: subName,
+          name: subName.toLowerCase(),
           parent: self.id,
           type: options.create,
         };

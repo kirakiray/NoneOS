@@ -197,15 +197,15 @@ export class BaseHandle {
   async refresh() {
     const data = await getSelfData(this, "refresh");
 
-    this.#name = data.name;
+    this.#name = data.realName || data.name;
 
     // 重新从db中获取parent数据并更新path
-    const pathArr = [data.name];
+    const pathArr = [data.realName || data.name];
 
     let currentData = data;
     while (currentData.parent !== "root") {
       currentData = await getData({ key: currentData.parent });
-      pathArr.unshift(currentData.name);
+      pathArr.unshift(currentData.realName || currentData.name);
     }
 
     this.#path = pathArr.join("/");
