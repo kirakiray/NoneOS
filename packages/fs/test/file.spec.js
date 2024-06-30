@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("file system test", async ({ page }) => {
+test("file system", async ({ page }) => {
   await page.goto("http://127.0.0.1:5559/packages/fs/test/test-fs.html");
 
   await page.getByText("get local ok").click();
@@ -16,6 +16,5 @@ test("file system test", async ({ page }) => {
   await page.getByText("remove dir ok").click();
   await page.getByText("after copy text ok").click();
   await page.getByText("root ok").click();
-  // await page.getByText("length ok").click();
   await page.getByText("catch useless handle ok").click();
 });
