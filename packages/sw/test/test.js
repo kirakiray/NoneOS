@@ -14,6 +14,8 @@ await handle.write(content);
 // 确保sw完成
 await registration;
 
+ok(true, "registration");
+
 const fetchText = await fetch("/$/local/test_file.txt").then((res) =>
   res.text()
 );
