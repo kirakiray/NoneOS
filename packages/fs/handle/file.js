@@ -183,6 +183,13 @@ export class FileHandle extends BaseHandle {
       return new File([mergedArrayBuffer.buffer], data.name, {
         lastModified: data.lastModified,
       });
+    } else if (type === "base64") {
+      let binary = "";
+      let len = mergedArrayBuffer.byteLength;
+      for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(mergedArrayBuffer[i]);
+      }
+      return `data:application/javascript;base64,${btoa(binary)}`;
     } else {
       return mergedArrayBuffer.buffer;
     }
@@ -213,6 +220,10 @@ export class FileHandle extends BaseHandle {
    */
   buffer(options) {
     return this.read("buffer", options);
+  }
+
+  base64(options) {
+    return this.read("base64", options);
   }
 }
 
