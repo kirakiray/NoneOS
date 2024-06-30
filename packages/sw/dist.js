@@ -1103,6 +1103,7 @@
   });
 
   self.addEventListener("activate", () => {
+    self.clients.claim();
     console.log("NoneOS server activation successful");
   });
 
