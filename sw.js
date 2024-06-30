@@ -1,1 +1,3 @@
-import "./packages/sw/main.js";
+// import "./packages/sw/main.js";
+
+importScripts("./packages/sw/dist.js");

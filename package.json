@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "static": "node scripts/static-server",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "build": "rollup packages/sw/main.js --file packages/sw/dist.js --format iife"
   },
   "repository": {
     "type": "git",
@@ -21,6 +22,7 @@
     "@playwright/test": "^1.45.0",
     "@types/node": "^20.14.9",
     "koa": "^2.14.1",
-    "koa-static": "^5.0.0"
+    "koa-static": "^5.0.0",
+    "rollup": "^4.18.0"
   }
 }

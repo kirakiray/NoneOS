@@ -2,11 +2,11 @@
   try {
     const reg = await navigator.serviceWorker.register(
       // navigator.userAgent.includes("Firefox") ? "sw-bundle.js" : "/sw.js",
-      "/sw.js",
-      {
-        type: "module",
-        scope: "/",
-      }
+      "/sw.js"
+      // {
+      //   type: "module",
+      //   scope: "/",
+      // }
     );
 
     setTimeout(() => {
