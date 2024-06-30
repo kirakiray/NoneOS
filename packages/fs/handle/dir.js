@@ -2,7 +2,7 @@ import { BaseHandle, KIND } from "./base.js";
 import { getData, setData, getRandomId } from "../db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
-import { getSelfData } from "../util.js";
+import { getSelfData } from "./util.js";
 
 /**
  * 创建文件夹handle
@@ -61,7 +61,7 @@ export class DirHandle extends BaseHandle {
 
     let data = await getData({
       index: "parent_and_name",
-      key: [self.id, subName],
+      key: [self.id, subName.toLowerCase()],
     });
 
     if (options) {
@@ -70,7 +70,8 @@ export class DirHandle extends BaseHandle {
         data = {
           createTime: Date.now(),
           key: getRandomId(),
-          name: subName,
+          realName: subName,
+          name: subName.toLowerCase(),
           parent: self.id,
           type: options.create,
         };

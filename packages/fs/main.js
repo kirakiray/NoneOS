@@ -56,9 +56,9 @@ export const get = async (path, options) => {
   }
 
   const rootHandle = new DirHandle(rootData.key);
-  await rootHandle.refresh();
 
   if (paths.length === 1) {
+    await rootHandle.refresh();
     return rootHandle;
   }
 

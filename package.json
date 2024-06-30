@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "static": "node scripts/static-server",
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "build-sw": "rollup packages/sw/main.js --file packages/sw/dist.js --format iife",
+    "build-sw-min": "rollup packages/sw/main.js --file packages/sw/dist.min.js --format iife --plugin terser",
+    "build": "npm run build-sw && npm run build-sw-min"
   },
   "repository": {
     "type": "git",
@@ -19,8 +22,10 @@
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
     "@playwright/test": "^1.45.0",
+    "@rollup/plugin-terser": "^0.4.4",
     "@types/node": "^20.14.9",
     "koa": "^2.14.1",
-    "koa-static": "^5.0.0"
+    "koa-static": "^5.0.0",
+    "rollup": "^4.18.0"
   }
 }

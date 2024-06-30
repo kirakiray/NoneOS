@@ -1,5 +1,5 @@
-import { getData, setData } from "./db.js";
-import { getErr } from "./errors.js";
+import { getData, setData } from "../db.js";
+import { getErr } from "../errors.js";
 
 /**
  * 判断旧hash是否还被引用，清除不被引用的块
@@ -41,6 +41,7 @@ export const getSelfData = async (handle, errName) => {
       "deleted",
       {
         name: errName,
+        path: handle.path,
       },
       handle
     );

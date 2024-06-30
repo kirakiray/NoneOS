@@ -1,5 +1,5 @@
 import { get } from "../main.js";
-import { ok } from "./ok.js";
+import { ok } from "../../test-util/ok.js";
 
 const localRoot = await get("local");
 
@@ -43,10 +43,18 @@ console.log("file: ", await sfile.file());
   fcontent += mbStr("2");
   fcontent += mbStr("3");
 
-  const fullFile = await get("local/files/sfile2.txt", {
+  const fullFile = await get("local/files/Sfile2.txt", {
     create: "file",
   });
   await fullFile.write(fcontent);
+
+  {
+    const f2 = await get("local/files/sfile2.txt", {
+      create: "file",
+    });
+
+    ok(f2.id === fullFile.id, "file lowercase");
+  }
 
   // 读取完整的数据
   const text1 = await fullFile.text();

@@ -1,5 +1,5 @@
 import { get } from "../main.js";
-import { ok } from "./ok.js";
+import { ok } from "../../test-util/ok.js";
 
 const localRoot = await get("local");
 
@@ -65,7 +65,7 @@ const test2Handle = await get(
 
 const c2text = await test2Handle.text();
 
-ok("after copy text", c2text === "test file2!!");
+ok(c2text === "test file2!!", "after copy text");
 
 const root = await test2Handle.root();
 
@@ -75,9 +75,7 @@ const sub3_2 = await get("local/subDir3/sub3_2");
 
 await sub3_2.remove();
 
-const c2text_2 = await test2Handle.text().catch((err) => {
+await test2Handle.text().catch((err) => {
   console.log(err);
   ok(true, "catch useless handle");
 });
-
-// debugger;

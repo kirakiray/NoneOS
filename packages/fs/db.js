@@ -29,6 +29,11 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
         };
 
         resolve(db);
+
+        // setTimeout(() => {
+        //   allDB[dbName] = null;
+        //   db.close();
+        // }, 10000);
       };
 
       // 创建时生成仓库
