@@ -5,6 +5,10 @@ test("fetch file", async ({ page }) => {
 
   await page.getByText("registration ok").click();
 
+  /**
+   * Strange operation in Playwright after service worker registration, 
+   * must refresh twice to take effect
+   */
   await new Promise((res) => setTimeout(res), 500);
 
   await page.evaluate(() => window.location.reload());
