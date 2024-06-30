@@ -16,7 +16,7 @@ self.addEventListener("fetch", (event) => {
           return await resposeFS({ request });
         } catch (err) {
           console.error(err);
-          return new Response(undefined, {
+          return new Response(err.toString(), {
             status: 404,
           });
         }
@@ -27,7 +27,6 @@ self.addEventListener("fetch", (event) => {
 
 self.addEventListener("install", () => {
   self.skipWaiting();
-
   console.log("NoneOS installation successful");
 });
 

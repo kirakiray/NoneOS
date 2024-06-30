@@ -28,7 +28,6 @@ export class BaseHandle {
    * @returns {string}
    */
   get path() {
-    getSelfData(this, "path");
     return this.#path;
   }
 

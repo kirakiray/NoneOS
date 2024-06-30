@@ -10,7 +10,7 @@ export const cn = {
   storeNotExistMethod: "store中不存在方法 {method}",
   invalidCreateType: "create必须等于'file'或'dir'",
   notDeleteRoot: "不能直接删除根节点{name}",
-  deleted: "当前handle已被删除，不能使用{name}",
+  deleted: "当前handle已被删除，不能使用{name}；旧地址为:{path}",
   exitedName: "操作失败，{name}已经存在",
 };
 

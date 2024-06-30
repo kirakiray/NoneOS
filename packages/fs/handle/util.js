@@ -41,6 +41,7 @@ export const getSelfData = async (handle, errName) => {
       "deleted",
       {
         name: errName,
+        path: handle.path,
       },
       handle
     );
