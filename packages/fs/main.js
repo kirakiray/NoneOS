@@ -64,3 +64,33 @@ export const get = async (path, options) => {
 
   return rootHandle.get(paths.slice(1).join("/"), options);
 };
+
+import { OriginDirHandle } from "./op-handle/dir.js";
+
+export const origin = {
+  async get(path, options) {
+    const paths = path.split("/");
+
+    if (!paths.length) {
+      throw getErr("pathEmpty");
+    }
+
+    if (paths[0] === "") {
+      throw getErr("rootEmpty");
+    }
+
+    const opfsRoot = await navigator.storage.getDirectory();
+
+    const localRoot = await opfsRoot.getDirectoryHandle(paths[0], {
+      create: true,
+    });
+
+    const rootHandle = new OriginDirHandle(localRoot);
+
+    if (paths.length === 1) {
+      return rootHandle;
+    }
+
+    return rootHandle.get(paths.slice(1).join("/"), options);
+  },
+};

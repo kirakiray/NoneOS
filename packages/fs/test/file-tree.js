@@ -18,9 +18,20 @@ const ul = document.createElement("ul");
 ul.classList.add("file-list");
 document.body.append(ul);
 
-import { get } from "../main.js";
+import { get, origin } from "../main.js";
 
-const localRoot = await get("local");
+const url = import.meta.url;
+const { hash } = new URL(url);
+
+let localRoot;
+
+// origin模式下，调用 op-handle
+const isOrigin = hash === "#origin";
+if (isOrigin) {
+  localRoot = await origin.get("local");
+} else {
+  localRoot = await get("local");
+}
 
 // 查看文件目录视图
 export const reloadView = async () => {
@@ -33,14 +44,21 @@ export const reloadView = async () => {
       const ul = document.createElement("ul");
 
       for await (let item of handle.values()) {
-        const subEl = await getEl(item);
-        ul.append(subEl);
+        try {
+          const subEl = await getEl(item);
+          ul.append(subEl);
+        } catch (err) {
+          console.log(err, item);
+        }
       }
-
       ele.append(ul);
     } else {
       ele.classList.add("file");
-      ele.innerHTML = `<a href="/$/${handle.path}" target="_blank">${handle.kind}: ${handle.name}</a>`;
+      if (isOrigin) {
+        ele.innerHTML = `${handle.kind}: ${handle.name}`;
+      } else {
+        ele.innerHTML = `<a href="/$/${handle.path}" target="_blank">${handle.kind}: ${handle.name}</a>`;
+      }
     }
 
     return ele;

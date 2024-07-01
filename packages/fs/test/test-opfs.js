@@ -1,12 +1,7 @@
-const opfsRoot = await navigator.storage.getDirectory();
+import { origin } from "../main.js";
+const { get } = origin;
 
-const localRoot = await opfsRoot.getDirectoryHandle("local", {
-  create: true,
-});
-
-import { OriginDirHandle } from "../op-handle/dir.js";
-
-const rootHandle = new OriginDirHandle(localRoot);
+const rootHandle = await get("local");
 
 const f1 = await rootHandle.get("a.txt", {
   create: "file",

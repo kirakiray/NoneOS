@@ -10,7 +10,7 @@ export class OriginFileHandle extends OriginBaseHandle {
    * @param {string} systemHandle -
    */
   constructor(systemHandle, path) {
-    super(FileSystemFileHandle, path);
+    super(systemHandle, path);
   }
 
   /**
