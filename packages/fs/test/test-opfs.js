@@ -3,6 +3,10 @@ const { get } = origin;
 
 const rootHandle = await get("local");
 
+await rootHandle.forEach(async (e) => {
+  console.log("each", e);
+});
+
 const f1 = await rootHandle.get("a.txt", {
   create: "file",
 });
@@ -19,8 +23,8 @@ console.log(content);
 
 const root = await aa2.root();
 
-console.log(root);
+console.log("root", root);
 
-await rootHandle.forEach(async (e) => {
-  console.log(e);
-});
+const parHandle = await aa2.parent();
+
+console.log("parent", parHandle);

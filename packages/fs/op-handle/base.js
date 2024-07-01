@@ -77,7 +77,17 @@ export class OriginBaseHandle {
    * @returns {Promise<OriginDirHandle>}
    */
   async parent() {
-    debugger;
+    const paths = this.#path.split("/");
+
+    const root = await this.root();
+    if (paths.length === 2) {
+      return root;
+    }
+    if (paths.length > 2) {
+      return await root.get(paths.slice(1, -1).join("/"));
+    }
+
+    return null;
   }
 
   /**
