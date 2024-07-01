@@ -45,7 +45,9 @@ export class DirHandle extends BaseHandle {
       // 如果带有 create 参数，则递归创建目录
       for (const memberName of paths.slice(0, -1)) {
         let prevDirHandle = self;
-        self = await self.get(memberName, { create: options?.create && "dir" });
+        self = await self.get(memberName, {
+          create: options?.create ? "dir" : undefined,
+        });
         if (!self) {
           await prevDirHandle.refresh();
 
