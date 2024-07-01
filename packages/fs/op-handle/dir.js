@@ -100,7 +100,11 @@ export class OriginDirHandle extends OriginBaseHandle {
    * @generator
    * @yields {string} 子数据的名称。
    */
-  async *keys() {}
+  async *keys() {
+    for await (let key of this._sh.keys()) {
+      yield key;
+    }
+  }
 
   /**
    * 异步生成器函数，返回子数据的名称和对应的句柄。
@@ -108,7 +112,21 @@ export class OriginDirHandle extends OriginBaseHandle {
    * @generator
    * @yields {Array} 包含子数据名称和句柄的数组。
    */
-  async *entries() {}
+  async *entries() {
+    for await (let item of this._sh.values()) {
+      if (item.kind === "file") {
+        yield [
+          item.name,
+          new OriginFileHandle(item, `${this.path}/${item.name}`),
+        ];
+      } else {
+        yield [
+          item.name,
+          new OriginDirHandle(item, `${this.path}/${item.name}`),
+        ];
+      }
+    }
+  }
 
   /**
    * 异步生成器函数，返回子数据的句柄。
@@ -116,14 +134,28 @@ export class OriginDirHandle extends OriginBaseHandle {
    * @generator
    * @yields {(OriginDirHandle|OriginFileHandle)} 子数据的句柄。
    */
-  async *values() {}
+  async *values() {
+    for await (let item of this._sh.values()) {
+      if (item.kind === "file") {
+        yield new OriginFileHandle(item, `${this.path}/${item.name}`);
+      } else {
+        yield new OriginDirHandle(item, `${this.path}/${item.name}`);
+      }
+    }
+  }
 
   /**
    * 异步函数，对每个子数据执行回调函数。
    * @async
    * @param {Function} callback - 对每个子数据执行的回调函数，接收句柄和索引作为参数。
    */
-  async forEach(callback) {}
+  async forEach(callback) {
+    for await (let item of this.values()) {
+      await callback(item);
+    }
+  }
 
-  async length() {}
+  async length() {
+    return await this._sh.count();
+  }
 }

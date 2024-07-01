@@ -16,4 +16,6 @@ const f1_2 = await rootHandle.get("h1/aa2.txt", {
   create: "file",
 });
 
-debugger;
+await rootHandle.forEach(async (e) => {
+  console.log(e);
+});
