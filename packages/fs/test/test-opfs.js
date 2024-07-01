@@ -13,7 +13,13 @@ const aa2 = await rootHandle.get("h1/aa2.txt", {
 
 await aa2.write("I am aa2.txt");
 
-const content = await aa2.base64();
+const content = await aa2.text();
+
+console.log(content);
+
+const root = await aa2.root();
+
+console.log(root);
 
 await rootHandle.forEach(async (e) => {
   console.log(e);

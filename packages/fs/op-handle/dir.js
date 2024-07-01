@@ -11,8 +11,8 @@ export class OriginDirHandle extends OriginBaseHandle {
    * 创建一个文件句柄实例
    * @param {FileSystemDirectoryHandle} systemHandle
    */
-  constructor(systemHandle, path) {
-    super(systemHandle, path);
+  constructor(systemHandle, path, root) {
+    super(systemHandle, path, root);
   }
 
   /**
@@ -80,13 +80,19 @@ export class OriginDirHandle extends OriginBaseHandle {
     }
 
     if (oriHandle) {
+      const root_fsh = (await this.root())._fsh;
       if (isFile) {
         return new OriginFileHandle(
           oriHandle,
-          `${self.path}/${oriHandle.name}`
+          `${self.path}/${oriHandle.name}`,
+          root_fsh
         );
       } else {
-        return new OriginDirHandle(oriHandle, `${self.path}/${oriHandle.name}`);
+        return new OriginDirHandle(
+          oriHandle,
+          `${self.path}/${oriHandle.name}`,
+          root_fsh
+        );
       }
     }
 
@@ -112,16 +118,18 @@ export class OriginDirHandle extends OriginBaseHandle {
    * @yields {Array} 包含子数据名称和句柄的数组。
    */
   async *entries() {
+    const root_fsh = (await this.root())._fsh;
+
     for await (let item of this._fsh.values()) {
       if (item.kind === "file") {
         yield [
           item.name,
-          new OriginFileHandle(item, `${this.path}/${item.name}`),
+          new OriginFileHandle(item, `${this.path}/${item.name}`, root_fsh),
         ];
       } else {
         yield [
           item.name,
-          new OriginDirHandle(item, `${this.path}/${item.name}`),
+          new OriginDirHandle(item, `${this.path}/${item.name}`, root_fsh),
         ];
       }
     }
@@ -134,11 +142,13 @@ export class OriginDirHandle extends OriginBaseHandle {
    * @yields {(OriginDirHandle|OriginFileHandle)} 子数据的句柄。
    */
   async *values() {
+    const root_fsh = (await this.root())._fsh;
+
     for await (let item of this._fsh.values()) {
       if (item.kind === "file") {
-        yield new OriginFileHandle(item, `${this.path}/${item.name}`);
+        yield new OriginFileHandle(item, `${this.path}/${item.name}`, root_fsh);
       } else {
-        yield new OriginDirHandle(item, `${this.path}/${item.name}`);
+        yield new OriginDirHandle(item, `${this.path}/${item.name}`, root_fsh);
       }
     }
   }

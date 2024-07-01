@@ -7,10 +7,11 @@ const roootId = Math.random().toString(32).slice(2);
  */
 export class OriginBaseHandle {
   #systemHandle;
+  #rootSystemHandle;
   #path;
   #name;
   #kind;
-  constructor(systemHandle, path) {
+  constructor(systemHandle, path, rootSystemHandle) {
     this.#systemHandle = systemHandle;
     this.#name = systemHandle.name;
     this.#kind = systemHandle.kind === "file" ? "file" : "dir";
@@ -18,6 +19,12 @@ export class OriginBaseHandle {
       this.#path = path;
     } else {
       this.#path = systemHandle.name;
+    }
+
+    if (rootSystemHandle) {
+      this.#rootSystemHandle = rootSystemHandle;
+    } else {
+      this.#rootSystemHandle = systemHandle;
     }
   }
 
@@ -61,13 +68,17 @@ export class OriginBaseHandle {
    * 获取根文件夹的handle
    * @returns {Promise<OriginDirHandle>}
    */
-  async root() {}
+  async root() {
+    return new OriginDirHandle(this.#rootSystemHandle);
+  }
 
   /**
    * 获取父文件夹handle
    * @returns {Promise<OriginDirHandle>}
    */
-  async parent() {}
+  async parent() {
+    debugger;
+  }
 
   /**
    * 移动当前文件或文件夹
@@ -75,26 +86,26 @@ export class OriginBaseHandle {
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async move(target, name) {}
+  async move(target, name) {
+    debugger;
+  }
 
   /**
    * 复制当前文件或文件夹
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copy(target, name) {}
+  async copy(target, name) {
+    debugger;
+  }
 
   /**
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove() {}
-
-  /**
-   * 刷新当前文件或文件夹的信息（主要更新 path 和 name 的信息）
-   * 当 handle 被 move方法执行成功后，需要及时更新信息
-   */
-  async refresh() {
+  async remove() {
     debugger;
   }
+
+  async refresh() {}
 }

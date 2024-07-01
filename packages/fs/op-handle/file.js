@@ -9,8 +9,8 @@ export class OriginFileHandle extends OriginBaseHandle {
    * 创建一个文件句柄实例
    * @param {string} systemHandle -
    */
-  constructor(systemHandle, path) {
-    super(systemHandle, path);
+  constructor(systemHandle, path, root) {
+    super(systemHandle, path, root);
   }
 
   /**
