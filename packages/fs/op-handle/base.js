@@ -21,7 +21,7 @@ export class OriginBaseHandle {
     }
   }
 
-  get _sh() {
+  get _fsh() {
     return this.#systemHandle;
   }
 

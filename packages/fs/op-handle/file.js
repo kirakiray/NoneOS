@@ -17,10 +17,10 @@ export class OriginFileHandle extends OriginBaseHandle {
    * 写入文件数据
    * @returns {Promise<void>}
    */
-  async write(data, options) {
-    // options = {
-    //   process: () => {},
-    // };
+  async write(data) {
+    const writer = await this._fsh.createWritable();
+    await writer.write(data);
+    await writer.close();
   }
 
   /**
@@ -29,11 +29,42 @@ export class OriginFileHandle extends OriginBaseHandle {
    * @param {object} options 读取数据的选项
    * @returns {Promise<(File|String|Buffer)>}
    */
-  async read(type, options) {
+  async read(type = "text", options) {
     // options = {
     //   start: 0,
     //   end,
     // };
+
+    let file = await this._fsh.getFile();
+
+    if (options && (options.start || options.end)) {
+      file = file.slice(options.start, options.end);
+    }
+
+    return new Promise((resolve) => {
+      let reader = new FileReader();
+      reader.onload = (event) => {
+        resolve(event.target.result);
+      };
+
+      switch (type) {
+        case "file":
+          reader.onload = null;
+          reader = null;
+          resolve(file);
+          break;
+        case "text":
+          reader.readAsText(file);
+          break;
+        case "base64":
+          reader.readAsDataURL(file);
+          break;
+        case "buffer":
+        default:
+          reader.readAsArrayBuffer(file);
+          break;
+      }
+    });
   }
 
   /**
