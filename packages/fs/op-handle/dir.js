@@ -1,4 +1,4 @@
-import { OriginBaseHandle, KIND } from "./base.js";
+import { OriginBaseHandle } from "./base.js";
 import { OriginFileHandle } from "./file.js";
 import { getErr } from "../errors.js";
 
@@ -13,7 +13,6 @@ export class OriginDirHandle extends OriginBaseHandle {
    */
   constructor(systemHandle, path) {
     super(systemHandle, path);
-    this[KIND] = "dir";
   }
 
   /**

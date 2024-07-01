@@ -1,4 +1,3 @@
-export const KIND = Symbol("kind");
 import { getData, setData } from "../db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
@@ -9,10 +8,12 @@ import { clearHashs, getSelfData } from "./util.js";
  */
 export class BaseHandle {
   #id;
+  #kind;
   #path;
   #name;
-  constructor(id) {
+  constructor(id, kind) {
     this.#id = id;
+    this.#kind = kind;
   }
 
   /**
@@ -44,7 +45,7 @@ export class BaseHandle {
    * @returns {string}
    */
   get kind() {
-    return this[KIND];
+    return this.#kind;
   }
 
   /**

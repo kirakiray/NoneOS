@@ -1,4 +1,3 @@
-export const KIND = Symbol("kind");
 import { getErr } from "../errors.js";
 import { OriginDirHandle } from "./dir.js";
 const roootId = Math.random().toString(32).slice(2);
@@ -10,9 +9,11 @@ export class OriginBaseHandle {
   #systemHandle;
   #path;
   #name;
+  #kind;
   constructor(systemHandle, path) {
     this.#systemHandle = systemHandle;
-    this.#name = this.#systemHandle.name;
+    this.#name = systemHandle.name;
+    this.#kind = systemHandle.kind === "file" ? "file" : "dir";
     if (path) {
       this.#path = path;
     } else {
@@ -53,7 +54,7 @@ export class OriginBaseHandle {
    * @returns {string}
    */
   get kind() {
-    return this[KIND];
+    return this.#kind;
   }
 
   /**

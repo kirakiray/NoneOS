@@ -1,4 +1,4 @@
-import { BaseHandle, KIND } from "./base.js";
+import { BaseHandle } from "./base.js";
 import { setData, getData } from "../db.js";
 import { clearHashs, getSelfData } from "./util.js";
 
@@ -16,8 +16,7 @@ export class FileHandle extends BaseHandle {
    * @param {string} id - 文件句柄的唯一标识符
    */
   constructor(id) {
-    super(id);
-    this[KIND] = "file";
+    super(id, "file");
   }
 
   /**

@@ -1,4 +1,4 @@
-import { OriginBaseHandle, KIND } from "./base.js";
+import { OriginBaseHandle } from "./base.js";
 
 /**
  * 创建文件handle
@@ -11,7 +11,6 @@ export class OriginFileHandle extends OriginBaseHandle {
    */
   constructor(systemHandle, path) {
     super(FileSystemFileHandle, path);
-    this[KIND] = "file";
   }
 
   /**
