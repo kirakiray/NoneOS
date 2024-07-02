@@ -67,6 +67,14 @@ export const get = async (path, options) => {
 
 import { OriginDirHandle } from "./o-handle/dir.js";
 
+const originInited = (async () => {
+  const opfsRoot = await navigator.storage.getDirectory();
+
+  await opfsRoot.getDirectoryHandle("local", {
+    create: true,
+  });
+})();
+
 export const origin = {
   async get(path, options) {
     const paths = path.split("/");
@@ -78,6 +86,8 @@ export const origin = {
     if (paths[0] === "") {
       throw getErr("rootEmpty");
     }
+
+    await originInited;
 
     const opfsRoot = await navigator.storage.getDirectory();
 

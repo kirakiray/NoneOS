@@ -140,6 +140,13 @@ export class OriginBaseHandle {
    * @returns {Promise<void>}
    */
   async remove() {
+    if (this.#path.split("/").length === 1) {
+      // root下属于挂载的目录，不允许直接删除
+      throw getErr("notDeleteRoot", {
+        name: this.name,
+      });
+    }
+
     if (this.#kind === "dir") {
       // 先清空子文件，才能删除自身
       for await (let item of this.values()) {
