@@ -21,3 +21,28 @@ const fetchText = await fetch("/$/local/test_file.txt").then((res) =>
 );
 
 ok(fetchText === content, "fetch file content");
+
+{
+  const content = `
+onmessage = (event)=>{
+  setTimeout(()=>{
+    postMessage('收到了:' + event.data);
+  },500);
+}`;
+
+  const handle = await get("local/test_worker.js", {
+    create: "file",
+  });
+
+  await handle.write(content);
+
+  const worker = new Worker("/$/local/test_worker.js");
+
+  worker.onmessage = (event) => {
+    ok(event.data === "收到了:test", "worker");
+
+    worker.terminate();
+  };
+
+  worker.postMessage("test");
+}

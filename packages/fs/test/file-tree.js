@@ -18,12 +18,23 @@ const ul = document.createElement("ul");
 ul.classList.add("file-list");
 document.body.append(ul);
 
-import { get } from "../main.js";
+import { get, origin } from "../main.js";
 
-const localRoot = await get("local");
+const url = import.meta.url;
+const { hash } = new URL(url);
+// origin模式下，调用 o-handle
+const isOrigin = hash === "#origin";
+
+let localRoot;
+
+if (isOrigin) {
+  localRoot = await origin.get("local");
+} else {
+  localRoot = await get("local");
+}
 
 // 查看文件目录视图
-export const reloadView = async () => {
+export const reloadView = async (targetHandle = localRoot) => {
   const getEl = async (handle) => {
     let ele = document.createElement("li");
     ele.innerHTML = `${handle.kind}: ${handle.name}`;
@@ -33,23 +44,36 @@ export const reloadView = async () => {
       const ul = document.createElement("ul");
 
       for await (let item of handle.values()) {
-        const subEl = await getEl(item);
-        ul.append(subEl);
+        try {
+          if (item.name === "node_modules" || /^\./.test(item.name)) {
+            continue;
+          }
+          const subEl = await getEl(item);
+          ul.append(subEl);
+        } catch (err) {
+          console.log(err, item);
+        }
       }
-
       ele.append(ul);
     } else {
       ele.classList.add("file");
-      ele.innerHTML = `<a href="/$/${handle.path}" target="_blank">${handle.kind}: ${handle.name}</a>`;
+      if (isOrigin) {
+        ele.innerHTML = `${handle.kind}: ${handle.name}`;
+      } else {
+        ele.innerHTML = `<a href="/$/${handle.path}" target="_blank">${handle.kind}: ${handle.name}</a>`;
+      }
     }
 
     return ele;
   };
 
-  const ele = await getEl(localRoot);
+  const ele = await getEl(targetHandle);
 
   const filelistEl = document.querySelector(".file-list");
-  filelistEl.innerHTML = "";
+
+  if (targetHandle === localRoot) {
+    filelistEl.innerHTML = "";
+  }
   filelistEl.append(ele);
 };
 

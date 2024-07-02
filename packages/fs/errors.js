@@ -12,6 +12,9 @@ export const cn = {
   notDeleteRoot: "不能直接删除根节点{name}",
   deleted: "当前handle已被删除，不能使用{name}；旧地址为:{path}",
   exitedName: "操作失败，{name}已经存在",
+  tolowcase: "文件系统对大小写不敏感，{oldName}将会被转为{newName}",
+  writefile: "写入文件内容失败:{path}",
+  noPicker: "当前浏览器不支持文件选择",
 };
 
 /**
@@ -39,4 +42,24 @@ export const getErr = (key, options, error) => {
     errObj = new Error(desc);
   }
   return errObj;
+};
+
+/**
+ * 根据键、选项生成错误描述
+ *
+ * @param {string} key - 错误描述的键。
+ * @param {Object} [options] - 映射相关值的选项对象。
+ * @returns {string} 生成的错误描述。
+ */
+export const getDesc = (key, options) => {
+  let desc = cn[key];
+
+  // 映射相关值
+  if (options) {
+    for (let k in options) {
+      desc = desc.replace(new RegExp(`{${k}}`, "g"), options[k]);
+    }
+  }
+
+  return desc;
 };

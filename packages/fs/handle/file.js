@@ -1,4 +1,4 @@
-import { BaseHandle, KIND } from "./base.js";
+import { BaseHandle } from "./base.js";
 import { setData, getData } from "../db.js";
 import { clearHashs, getSelfData } from "./util.js";
 
@@ -16,8 +16,7 @@ export class FileHandle extends BaseHandle {
    * @param {string} id - 文件句柄的唯一标识符
    */
   constructor(id) {
-    super(id);
-    this[KIND] = "file";
+    super(id, "file");
   }
 
   /**
@@ -183,6 +182,21 @@ export class FileHandle extends BaseHandle {
       return new File([mergedArrayBuffer.buffer], data.name, {
         lastModified: data.lastModified,
       });
+    } else if (type === "base64") {
+      return new Promise((resplve) => {
+        const file = new File([mergedArrayBuffer.buffer], data.name);
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+        reader.readAsDataURL(file);
+      });
+      // let binary = "";
+      // let len = mergedArrayBuffer.byteLength;
+      // for (let i = 0; i < len; i++) {
+      //   binary += String.fromCharCode(mergedArrayBuffer[i]);
+      // }
+      // return `data:application/javascript;base64,${btoa(binary)}`;
     } else {
       return mergedArrayBuffer.buffer;
     }
@@ -213,6 +227,10 @@ export class FileHandle extends BaseHandle {
    */
   buffer(options) {
     return this.read("buffer", options);
+  }
+
+  base64(options) {
+    return this.read("base64", options);
   }
 }
 

@@ -278,17 +278,17 @@
     return data;
   };
 
-  const KIND = Symbol("kind");
-
   /**
    * 基础的Handle
    */
   class BaseHandle {
     #id;
+    #kind;
     #path;
     #name;
-    constructor(id) {
+    constructor(id, kind) {
       this.#id = id;
+      this.#kind = kind;
     }
 
     /**
@@ -320,7 +320,7 @@
      * @returns {string}
      */
     get kind() {
-      return this[KIND];
+      return this.#kind;
     }
 
     /**
@@ -526,8 +526,7 @@
      * @param {string} id - 文件句柄的唯一标识符
      */
     constructor(id) {
-      super(id);
-      this[KIND] = "file";
+      super(id, "file");
     }
 
     /**
@@ -693,6 +692,21 @@
         return new File([mergedArrayBuffer.buffer], data.name, {
           lastModified: data.lastModified,
         });
+      } else if (type === "base64") {
+        return new Promise((resplve) => {
+          const file = new File([mergedArrayBuffer.buffer], data.name);
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve(reader.result);
+          };
+          reader.readAsDataURL(file);
+        });
+        // let binary = "";
+        // let len = mergedArrayBuffer.byteLength;
+        // for (let i = 0; i < len; i++) {
+        //   binary += String.fromCharCode(mergedArrayBuffer[i]);
+        // }
+        // return `data:application/javascript;base64,${btoa(binary)}`;
       } else {
         return mergedArrayBuffer.buffer;
       }
@@ -723,6 +737,10 @@
      */
     buffer(options) {
       return this.read("buffer", options);
+    }
+
+    base64(options) {
+      return this.read("base64", options);
     }
   }
 
@@ -807,8 +825,7 @@
      * @param {string} id - 文件句柄的唯一标识符
      */
     constructor(id) {
-      super(id);
-      this[KIND] = "dir";
+      super(id, "dir");
     }
 
     /**
@@ -838,7 +855,9 @@
         // 如果带有 create 参数，则递归创建目录
         for (const memberName of paths.slice(0, -1)) {
           let prevDirHandle = self;
-          self = await self.get(memberName, { create: options?.create && "dir" });
+          self = await self.get(memberName, {
+            create: options?.create ? "dir" : undefined,
+          });
           if (!self) {
             await prevDirHandle.refresh();
 
@@ -1092,6 +1111,7 @@
   });
 
   self.addEventListener("activate", () => {
+    self.clients.claim();
     console.log("NoneOS server activation successful");
   });
 
