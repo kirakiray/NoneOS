@@ -213,7 +213,7 @@ export class BaseHandle {
 }
 
 // 修正 target 和 name 的值
-const getTargetAndName = async ({ target, name, self }) => {
+export const getTargetAndName = async ({ target, name, self }) => {
   if (typeof target === "string") {
     name = target;
     target = await self.parent();

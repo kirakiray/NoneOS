@@ -65,7 +65,7 @@ export const get = async (path, options) => {
   return rootHandle.get(paths.slice(1).join("/"), options);
 };
 
-import { OriginDirHandle } from "./op-handle/dir.js";
+import { OriginDirHandle } from "./o-handle/dir.js";
 
 export const origin = {
   async get(path, options) {

@@ -1,5 +1,7 @@
 import { getErr } from "../errors.js";
 import { OriginDirHandle } from "./dir.js";
+import { getTargetAndName } from "../handle/base.js";
+
 const roootId = Math.random().toString(32).slice(2);
 
 /**
@@ -106,7 +108,24 @@ export class OriginBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async copy(target, name) {
-    debugger;
+    [target, name] = await getTargetAndName({ target, name, self: this });
+
+    if (this.#kind === "file") {
+      const selfFile = await this.file();
+      const newFile = await target.get(name, { create: "file" });
+      await newFile.write(selfFile);
+      return newFile;
+    } else {
+      const newDir = await target.get(name, {
+        create: "dir",
+      });
+
+      await this.forEach(async (handle) => {
+        await handle.copy(newDir, handle.name);
+      });
+
+      return newDir;
+    }
   }
 
   /**
@@ -114,7 +133,14 @@ export class OriginBaseHandle {
    * @returns {Promise<void>}
    */
   async remove() {
-    debugger;
+    if (this.#kind === "dir") {
+      // 先清空子文件，才能删除自身
+      for await (let item of this.values()) {
+        await item.remove();
+      }
+    }
+
+    await this.#systemHandle.remove();
   }
 
   async refresh() {}
