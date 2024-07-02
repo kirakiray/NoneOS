@@ -1,6 +1,8 @@
 import { OriginBaseHandle } from "./base.js";
 import { OriginFileHandle } from "./file.js";
-import { getErr } from "../errors.js";
+import { getErr, getDesc } from "../errors.js";
+
+const warnedKeys = new Set();
 
 /**
  * 创建文件夹handle
@@ -54,6 +56,21 @@ export class OriginDirHandle extends OriginBaseHandle {
 
     // 最后一级子文件或目录名
     let subName = paths.slice(-1)[0];
+
+    if (/[A-Z]/.test(subName)) {
+      const oldName = subName;
+      subName = subName.toLowerCase();
+
+      if (!warnedKeys.has(subName)) {
+        console.warn(
+          getDesc("tolowcase", {
+            oldName,
+            newName: subName,
+          })
+        );
+        warnedKeys.add(subName);
+      }
+    }
 
     let oriHandle;
     if (options.create) {

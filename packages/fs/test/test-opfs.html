@@ -23,5 +23,22 @@
     const len = await localRoot.length();
 
     console.log("len: ", len);
+
+    // 测试用清空所有opfs的数据
+    // async function deleteAllFiles(directoryHandle) {
+    //   for await (const entry of directoryHandle.values()) {
+    //     if (entry.kind === "file") {
+    //       await directoryHandle.removeEntry(entry.name);
+    //     } else if (entry.kind === "directory") {
+    //       const subDirectoryHandle = await directoryHandle.getDirectoryHandle(
+    //         entry.name
+    //       );
+    //       await deleteAllFiles(subDirectoryHandle);
+    //       await directoryHandle.removeEntry(entry.name);
+    //     }
+    //   }
+    // }
+    // const opfsRoot = await navigator.storage.getDirectory();
+    // await deleteAllFiles(opfsRoot);
   </script>
 </html>

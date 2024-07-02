@@ -56,9 +56,7 @@ console.log("file: ", await sfile.file());
   await fullFile.write(fcontent);
 
   {
-    const f2 = await get("local/files/sfile2.txt", {
-      create: "file",
-    });
+    const f2 = await get("local/files/sfile2.txt");
 
     ok(f2.id === fullFile.id, "file lowercase");
   }
