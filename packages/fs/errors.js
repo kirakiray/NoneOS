@@ -14,6 +14,7 @@ export const cn = {
   exitedName: "操作失败，{name}已经存在",
   tolowcase: "文件系统对大小写不敏感，{oldName}将会被转为{newName}",
   writefile: "写入文件内容失败:{path}",
+  noPicker: "当前浏览器不支持文件选择",
 };
 
 /**

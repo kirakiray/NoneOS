@@ -34,7 +34,7 @@ if (isOrigin) {
 }
 
 // 查看文件目录视图
-export const reloadView = async () => {
+export const reloadView = async (targetHandle = localRoot) => {
   const getEl = async (handle) => {
     let ele = document.createElement("li");
     ele.innerHTML = `${handle.kind}: ${handle.name}`;
@@ -45,6 +45,9 @@ export const reloadView = async () => {
 
       for await (let item of handle.values()) {
         try {
+          if (item.name === "node_modules" || /^\./.test(item.name)) {
+            continue;
+          }
           const subEl = await getEl(item);
           ul.append(subEl);
         } catch (err) {
@@ -64,10 +67,13 @@ export const reloadView = async () => {
     return ele;
   };
 
-  const ele = await getEl(localRoot);
+  const ele = await getEl(targetHandle);
 
   const filelistEl = document.querySelector(".file-list");
-  filelistEl.innerHTML = "";
+
+  if (targetHandle === localRoot) {
+    filelistEl.innerHTML = "";
+  }
   filelistEl.append(ele);
 };
 

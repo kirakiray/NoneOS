@@ -7,14 +7,16 @@
   </head>
   <body>
     test op file system
+    <br />
+    <button id="showPicker">show picker</button>
   </body>
-  <script type="module" src="../test/file-tree.js#origin"></script>
   <script type="module">
+    import { reloadView } from "../test/file-tree.js#origin";
     import "./get-set-file.js?#origin";
     import "./get-sub-dir.js?#origin";
     import "./get-local.js#origin";
 
-    import { origin } from "../main.js";
+    import { origin, showPicker } from "../main.js";
 
     const { get } = origin;
 
@@ -23,6 +25,14 @@
     const len = await localRoot.length();
 
     console.log("len: ", len);
+
+    document.querySelector("#showPicker").onclick = async () => {
+      const handle = await showPicker();
+
+      reloadView(handle);
+
+      console.log("picker handle: ", handle);
+    };
 
     // 测试用清空所有opfs的数据
     // async function deleteAllFiles(directoryHandle) {
