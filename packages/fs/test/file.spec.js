@@ -23,8 +23,13 @@ test("file system", async ({ page }) => {
   await testCases(page);
 });
 
-test("opfs", async ({ page }) => {
+test("opfs", async ({ page, browserName }) => {
   await page.goto("http://127.0.0.1:5559/packages/fs/test/test-opfs.html");
+
+  // safari 下，fileSystemHandle无法写入内容
+  if (browserName === "webkit") {
+    return;
+  }
 
   await testCases(page);
 });

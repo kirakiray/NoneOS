@@ -1,3 +1,4 @@
+import { getErr } from "../errors.js";
 import { OriginBaseHandle } from "./base.js";
 
 /**
@@ -18,9 +19,15 @@ export class OriginFileHandle extends OriginBaseHandle {
    * @returns {Promise<void>}
    */
   async write(data) {
-    const writer = await this._fsh.createWritable();
-    await writer.write(data);
-    await writer.close();
+    try {
+      const writer = await this._fsh.createWritable();
+      await writer.write(data);
+      await writer.close();
+    } catch (err) {
+      const error = getErr("writefile", { path: this.path }, err);
+      console.error(error);
+      throw error;
+    }
   }
 
   /**

@@ -13,6 +13,7 @@ export const cn = {
   deleted: "当前handle已被删除，不能使用{name}；旧地址为:{path}",
   exitedName: "操作失败，{name}已经存在",
   tolowcase: "文件系统对大小写不敏感，{oldName}将会被转为{newName}",
+  writefile: "写入文件内容失败:{path}",
 };
 
 /**
