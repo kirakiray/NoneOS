@@ -22,11 +22,11 @@ import { get, origin } from "../main.js";
 
 const url = import.meta.url;
 const { hash } = new URL(url);
+// origin模式下，调用 o-handle
+const isOrigin = hash === "#origin";
 
 let localRoot;
 
-// origin模式下，调用 o-handle
-const isOrigin = hash === "#origin";
 if (isOrigin) {
   localRoot = await origin.get("local");
 } else {

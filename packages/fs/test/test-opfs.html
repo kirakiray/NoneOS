@@ -9,5 +9,19 @@
     test op file system
   </body>
   <script type="module" src="../test/file-tree.js#origin"></script>
-  <script type="module" src="./test-opfs.js"></script>
+  <script type="module">
+    import "./get-set-file.js?#origin";
+    import "./get-sub-dir.js?#origin";
+    import "./get-local.js#origin";
+
+    import { origin } from "../main.js";
+
+    const { get } = origin;
+
+    const localRoot = await get("local");
+
+    const len = await localRoot.length();
+
+    console.log("len: ", len);
+  </script>
 </html>

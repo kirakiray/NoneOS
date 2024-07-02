@@ -165,6 +165,11 @@ export class OriginDirHandle extends OriginBaseHandle {
   }
 
   async length() {
-    return await this._fsh.count();
+    let count = 0;
+    for await (let key of this.keys()) {
+      count++;
+    }
+
+    return count;
   }
 }

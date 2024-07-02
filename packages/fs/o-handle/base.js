@@ -39,7 +39,7 @@ export class OriginBaseHandle {
    * @returns {string}
    */
   get id() {
-    return `${roootId}-${this.name}`;
+    return `${roootId}-${this.name}`.toLocaleLowerCase();
   }
 
   /**
