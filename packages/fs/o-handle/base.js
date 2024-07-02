@@ -99,7 +99,14 @@ export class OriginBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async move(target, name) {
-    debugger;
+    const newTarget = await this.copy(target, name);
+    await this.remove();
+
+    // 移动过去后，要更新信息
+    this.#systemHandle = newTarget.#systemHandle;
+    this.#path = newTarget.#path;
+    this.#name = newTarget.#name;
+    this.#rootSystemHandle = newTarget.#rootSystemHandle;
   }
 
   /**
@@ -140,8 +147,16 @@ export class OriginBaseHandle {
       }
     }
 
-    await this.#systemHandle.remove();
+    if (this.#systemHandle.remove) {
+      await this.#systemHandle.remove();
+    } else {
+      // in firefox
+      const parent = await this.parent();
+      await parent.#systemHandle.removeEntry(this.name);
+    }
   }
 
-  async refresh() {}
+  async refresh() {
+    // Invalid method, compatible with handle
+  }
 }
