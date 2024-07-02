@@ -693,12 +693,20 @@
           lastModified: data.lastModified,
         });
       } else if (type === "base64") {
-        let binary = "";
-        let len = mergedArrayBuffer.byteLength;
-        for (let i = 0; i < len; i++) {
-          binary += String.fromCharCode(mergedArrayBuffer[i]);
-        }
-        return `data:application/javascript;base64,${btoa(binary)}`;
+        return new Promise((resplve) => {
+          const file = new File([mergedArrayBuffer.buffer], data.name);
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve(reader.result);
+          };
+          reader.readAsDataURL(file);
+        });
+        // let binary = "";
+        // let len = mergedArrayBuffer.byteLength;
+        // for (let i = 0; i < len; i++) {
+        //   binary += String.fromCharCode(mergedArrayBuffer[i]);
+        // }
+        // return `data:application/javascript;base64,${btoa(binary)}`;
       } else {
         return mergedArrayBuffer.buffer;
       }

@@ -1,4 +1,4 @@
-import { get } from "../fs/main.js";
+import get from "../fs/get.js";
 
 const resposeFS = async ({ request }) => {
   const { pathname } = new URL(request.url);
