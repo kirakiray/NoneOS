@@ -1,0 +1,34 @@
+<template component>
+  <link rel="stylesheet" href="./public.css" />
+  <style>
+    :host {
+      display: block;
+      height: 320px;
+      /* height: 100%; */
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      --space-y: 16px;
+      margin: var(--space-y) 4px;
+      width: 60px;
+      border-radius: 30px;
+      height: calc(100% - calc(var(--space-y) * 2));
+      transition: all ease 0.3s;
+    }
+
+    .container:hover {
+      --space-y: 4px;
+    }
+  </style>
+  <div class="container frosted-glass"></div>
+  <script>
+    export default async () => {
+      return {
+        tag: "os-bar",
+      };
+    };
+  </script>
+</template>
