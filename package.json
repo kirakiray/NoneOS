@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
-    "@playwright/test": "^1.45.0",
+    "@playwright/test": "^1.45.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/node": "^20.14.9",
     "koa": "^2.14.1",

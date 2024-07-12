@@ -5,11 +5,11 @@ test("fetch file", async ({ page }) => {
 
   await page.getByText("registration ok").click();
 
-  await new Promise((res) => setTimeout(res), 500);
+  await new Promise((res) => setTimeout(res), 200);
 
   await page.evaluate(() => window.location.reload());
 
-  await new Promise((res) => setTimeout(res), 500);
+  await new Promise((res) => setTimeout(res), 200);
 
   await page.getByText("fetch file content ok").click();
 });

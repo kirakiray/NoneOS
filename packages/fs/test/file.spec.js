@@ -15,7 +15,7 @@ test("file system", async ({ page }) => {
   await page.getByText("read random range ok").click();
   await page.getByText("remove dir ok").click();
   await page.getByText("after copy text ok").click();
-  await page.getByText("root ok").click();
+  await page.getByText("root name ok").click();
   await page.getByText("catch useless handle ok").click();
   await page.getByText("repeat file ok").click();
   await page.getByText("remove root ok").click();
@@ -43,7 +43,7 @@ test("opfs", async ({ page, browserName }) => {
   await page.getByText("read random range ok").click();
   await page.getByText("remove dir ok").click();
   await page.getByText("after copy text ok").click();
-  await page.getByText("root ok").click();
+  await page.getByText("root name ok").click();
   await page.getByText("catch useless handle ok").click();
   await page.getByText("repeat file ok").click();
   await page.getByText("remove root ok").click();
