@@ -234,5 +234,12 @@ export const getTargetAndName = async ({ target, name, self }) => {
     });
   }
 
+  if (target.path.includes(self.name)) {
+    throw getErr("notMoveToChild", {
+      targetPath: target.path,
+      path: self.path,
+    });
+  }
+
   return [target, name];
 };

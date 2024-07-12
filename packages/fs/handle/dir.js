@@ -83,6 +83,15 @@ export class DirHandle extends BaseHandle {
       }
     }
 
+    if (options && options.create && options.create !== data.type) {
+      // 如果带有 create 参数，且数据类型与 create 参数不一致，抛出错误
+      throw getErr("targetAnotherType", {
+        path: self.path + "/" + subName,
+        exitedType: data.type,
+        targetType: options.create,
+      });
+    }
+
     return await createHandle(data);
   }
 
