@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carousel test</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.6/dist/ofa.min.js"
+      debug
+    ></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+
+      .con {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        background-color: rgb(164, 70, 70);
+      }
+      .con:nth-child(2n) {
+        color: #fff;
+        background-color: rgb(75, 92, 174);
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/debug-container.html"></l-m>
+    <l-m src="./carousel.html"></l-m>
+    <p-debug-container>
+      <p-carousel
+        active-index="0"
+        main-basis="300px"
+        autoplay="4000"
+        style="height: 200px"
+      >
+        <div class="con">A</div>
+        <div class="con">B</div>
+        <div class="con">C</div>
+        <div class="con">D</div>
+        <div class="con">E</div>
+        <div class="con">F</div>
+        <div class="con">G</div>
+        <div class="con">H</div>
+        <div class="con">I</div>
+        <div class="con">J</div>
+        <div class="con">K</div>
+        <div class="con">L</div>
+        <div class="con">M</div>
+        <div class="con">N</div>
+      </p-carousel>
+
+      <!-- <script>
+      setTimeout(() => {
+        $("p-carousel").render(1.9);
+      }, 100);
+    </script> -->
+      <br />
+
+      <p-carousel active-index="0" main-basis="60%" style="height: 200px">
+        <div class="con">A</div>
+        <div class="con">B</div>
+        <div class="con">C</div>
+        <div class="con">D</div>
+        <div class="con">E</div>
+        <div class="con">F</div>
+        <div class="con">G</div>
+        <div class="con">H</div>
+        <div class="con">I</div>
+        <div class="con">J</div>
+        <div class="con">K</div>
+        <div class="con">L</div>
+        <div class="con">M</div>
+        <div class="con">N</div>
+      </p-carousel>
+    </p-debug-container>
+  </body>
+</html>

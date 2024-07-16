@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Radio</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.6/dist/ofa.min.js"
+      debug
+    ></script>
+    <!-- <script
+      src="http://127.0.0.1:5513/packages/ofa/main.mjs"
+      type="module"
+    ></script> -->
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      *:not(:defined) {
+        display: none;
+      }
+      div {
+        padding: 24px;
+      }
+
+      #test p-radio {
+        border: #aaa solid 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/dark-switch.html"></l-m>
+    <l-m src="../../ancillary/comp-shower.html"></l-m>
+    <l-m src="../../ancillary/dark-switch.html"></l-m>
+    <l-m src="./radio-group.html"></l-m>
+    <l-m src="./radio.html"></l-m>
+    <dark-switch></dark-switch>
+    <div>
+      <p-radio>OK1?</p-radio>
+      <p-radio checked>OK2?</p-radio>
+      <p-radio disabled>OK1-dis</p-radio>
+      <p-radio checked disabled>OK2-dis</p-radio>
+    </div>
+    <div>
+      <p-radio size="small">size small</p-radio>
+      <p-radio>size normal</p-radio>
+      <p-radio size="large">size large</p-radio>
+      <p-radio size="small" checked>size small</p-radio>
+      <p-radio checked>size normal</p-radio>
+      <p-radio size="large" checked>size large</p-radio>
+    </div>
+
+    <div id="test">
+      <p-radio-group name="test1">
+        <p-radio value="female">Female</p-radio>
+        <p-radio value="male" checked placement="top">Male</p-radio>
+        <p-radio value="other" placement="bottom">Other</p-radio>
+        <p-radio placement="end">Other 2</p-radio>
+      </p-radio-group>
+      <div id="log"></div>
+    </div>
+    <script type="module">
+      // $("p-radio-group").watch(() => {
+      //   $("#log").text = $("p-radio-group").value;
+      // });
+      $("[name='test1']").on("change", () => {
+        $("#log").text = $("p-radio-group").value;
+      });
+    </script>
+
+    <div style="display: flex; flex-direction: column; align-items: flex-start">
+      <p-radio-group name="test2">
+        <p-radio value="female">Female</p-radio>
+        <p-radio value="male">Male</p-radio>
+        <p-radio value="other" checked>Other</p-radio>
+        <p-radio value="other2">Other 2</p-radio>
+      </p-radio-group>
+      <div id="log2"></div>
+      <script>
+        $("[name='test2']").on("change", () => {
+          $("#log2").text = $("[name='test2']").value;
+        });
+      </script>
+    </div>
+  </body>
+</html>

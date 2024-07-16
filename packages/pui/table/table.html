@@ -1,0 +1,184 @@
+<template component>
+  <l-m src="./table-row.html"></l-m>
+  <l-m src="./table-cell.html"></l-m>
+  <inject-host>
+    <style>
+      p-table-row:last-child {
+        border-bottom: none;
+      }
+      p-table-row:not([head]):hover p-table-cell::part(fake-block) {
+        background-color: rgba(128, 128, 128, 0.05);
+      }
+    </style>
+  </inject-host>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      color: var(--md-sys-color-on-normal-container);
+      border-radius: var(--pui-border-radius);
+      box-shadow: var(--contained-shadow);
+      background-color: var(--md-sys-color-on-normal);
+      font-size: 14px;
+    }
+  </style>
+  <div class="container">
+    <slot></slot>
+  </div>
+  <script>
+    import "../commons/init.js";
+    
+    export default {
+      tag: "p-table",
+      data: {},
+      proto: {
+        refreshSlefStyle() {
+          clearTimeout(this.__refreshStyleTimer);
+          this.__refreshStyleTimer = setTimeout(() => {
+            // const headRow = this.$("p-table-row[head]");
+            const headRow = this.$("p-table-row");
+            let styleStr = "";
+            const cellLength = headRow.length;
+            const { width } = this;
+            // reload width
+            const cellWidth = width / cellLength;
+
+            console.log(cellWidth);
+
+            styleStr += `p-table[data-table-id="${this._tableId}"] p-table-cell{flex:1 1 ${cellWidth}px;}`;
+
+            headRow.forEach((e, index) => {
+              let colStyle = "";
+
+              if (e.align) {
+                let jc = "";
+
+                switch (e.align) {
+                  case "center":
+                    jc = "center";
+                    break;
+                  case "right":
+                    jc = "flex-end";
+                    break;
+                  case "left":
+                    jc = "flex-start";
+                    break;
+                }
+
+                colStyle += `text-align:${e.align};justify-content:${jc};`;
+              }
+
+              if (e.colWidth !== null) {
+                colStyle += `flex:0 0 ${fixPx(e.colWidth)};`;
+              }
+
+              if (e.grow !== null) {
+                colStyle += `flex-grow:${e.grow};`;
+              }
+
+              if (e.shrink !== null) {
+                colStyle += `flex-shrink:${e.shrink};`;
+              }
+
+              if (e.minWidth !== null) {
+                colStyle += `min-width:${fixPx(e.minWidth)};`;
+              }
+              if (e.maxWidth !== null) {
+                colStyle += `max-width:${fixPx(e.maxWidth)};`;
+              }
+
+              const isStickyLeft = e.stickyLeft !== null;
+              const isStickyRight = e.stickyRight !== null;
+
+              if (isStickyLeft || isStickyRight) {
+                colStyle += "position:sticky;z-index:2;";
+
+                let isSetShadow = false;
+                if (isStickyLeft && isStickyRight) {
+                  colStyle += "box-shadow: 0px 0 4px rgba(128,128,128,.2);";
+                  isSetShadow = true;
+                }
+
+                if (isStickyLeft) {
+                  colStyle += "left:0;";
+                  if (!isSetShadow) {
+                    colStyle += "box-shadow: 1px 0 2px rgba(128,128,128,.2);";
+                  }
+                }
+
+                if (isStickyRight) {
+                  colStyle += "right:0;";
+                  if (!isSetShadow) {
+                    colStyle += "box-shadow: -1px 0 2px rgba(128,128,128,.2);";
+                  }
+                }
+              }
+
+              if (colStyle) {
+                styleStr += `p-table[data-table-id="${
+                  this._tableId
+                }"] p-table-cell:nth-child(${index + 1}){${colStyle}}`;
+              }
+            });
+
+            this.__currentStyle.html = styleStr;
+
+            setTimeout(() => {
+              // Calculate row width
+              let rowWidth = 0;
+              this.$("p-table-row").forEach((e) => {
+                rowWidth += e.width;
+              });
+
+              this.__currentStyle.html += `p-table[data-table-id="${this._tableId}"] {--table-row-width:${rowWidth}px;}`;
+            }, 50);
+          }, 100);
+        },
+      },
+      ready() {
+        const tid = (this._tableId = Math.random().toString(32).slice(2));
+        this.attr("data-table-id", tid);
+
+        this.on("change-cell-prop", () => {
+          this.refreshSlefStyle();
+        });
+      },
+      attached() {
+        const currentStyle = $(`<style table-id="${this._tableId}"></style>`);
+        this.__currentStyle = currentStyle;
+        const par = this.root.$("head") || this.root;
+        par.push(currentStyle);
+
+        window.addEventListener(
+          "resize",
+          (this._resizeFun = (e) => {
+            this.refreshSlefStyle();
+          })
+        );
+      },
+      detached() {
+        clearTimeout(this.__refreshStyleTimer);
+        this.__currentStyle.remove();
+
+        window.removeEventListener("resize", this._resizeFun);
+      },
+      loaded() {
+        this.refreshSlefStyle();
+      },
+    };
+
+    const fixPx = (val) => {
+      if (/\d$/.test(val)) {
+        return val + "px";
+      }
+      return val;
+    };
+  </script>
+</template>

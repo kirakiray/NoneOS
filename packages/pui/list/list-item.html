@@ -1,0 +1,272 @@
+<template component>
+  <l-m src="../wave/wave.html"></l-m>
+  <l-m src="../collapse/collapse.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      font-size: 14px;
+      color: var(--md-sys-color-on-normal-container);
+      --wave-color: var(--md-ref-palette-translucent-primary60);
+      /* border-bottom: red solid 1px; */
+    }
+    .container {
+      position: relative;
+      display: flex;
+      background-color: transparent;
+
+      padding: var(--item-padding-top, calc(var(--pui-space-y) * 2))
+        var(--item-padding-right, calc(var(--pui-space-x) * 2))
+        var(--item-padding-bottom, calc(var(--pui-space-y) * 2))
+        var(--item-padding-left, calc(var(--pui-space-x) * 2));
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.2em;
+    }
+
+    :host([radius]),
+    :host([radius]) .container {
+      border-radius: 30px;
+    }
+
+    .avatar,
+    .suffix {
+      display: flex;
+      align-items: center;
+    }
+
+    .suffix {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+    }
+
+    ::slotted([secondary]) {
+      display: block;
+      margin-top: calc(var(--pui-space-y) / 2);
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+    }
+
+    ::slotted([ellipsis]) {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    ::slotted([ellipsis="1"]) {
+      -webkit-line-clamp: 1;
+    }
+    ::slotted([ellipsis="2"]) {
+      -webkit-line-clamp: 2;
+    }
+    ::slotted([ellipsis="3"]) {
+      -webkit-line-clamp: 3;
+    }
+    ::slotted([ellipsis="4"]) {
+      -webkit-line-clamp: 4;
+    }
+
+    ::slotted([slot="prefix"]) {
+      margin-right: calc(var(--pui-space-x) * 2);
+    }
+
+    :host([button]) .container {
+      cursor: pointer;
+    }
+
+    @media (hover: hover) {
+      :host([button]) .container:hover {
+        background-color: rgba(128, 128, 128, 0.1);
+      }
+    }
+
+    :host([button][disabled]) {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    :host([button][disabled]) .fake-mask {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    :host([align-top]) .avatar {
+      align-items: flex-start;
+    }
+
+    :host([align-top]) .suffix {
+      align-items: flex-start;
+      margin: calc(var(--pui-space-y) / 2) 0;
+    }
+
+    ::slotted([collapse-triangle]) {
+      cursor: pointer;
+      transition: all ease 0.2s;
+    }
+
+    ::slotted([collapse-triangle]:empty) {
+      position: relative;
+      border-top: 5px solid var(--md-sys-color-normal);
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+    }
+
+    :host([active-item]) {
+      background-color: var(--md-ref-palette-translucent-primary50);
+    }
+
+    .fake-button {
+      position: absolute;
+      bottom: 0;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .infocus {
+      background-color: var(--md-sys-color-primary-container);
+    }
+  </style>
+  <div class="container" class:infocus="infocus" part="container">
+    <div class="avatar">
+      <slot name="prefix"></slot>
+    </div>
+    <div class="content" part="content">
+      <slot></slot>
+    </div>
+    <div class="suffix">
+      <slot name="suffix"></slot>
+    </div>
+    <div class="fake-mask"></div>
+    <x-if :value="button !== null && disabled === null">
+      <p-wave style="z-index: 2"></p-wave>
+    </x-if>
+  </div>
+
+  <x-if :value="button !== null">
+    <button
+      class="fake-button"
+      attr:disabled="disabled"
+      on:focus="focusFakeBtn"
+      on:blur="blurFakeBtn"
+      part="fake-button"
+    ></button>
+  </x-if>
+
+  <div>
+    <x-if :value="collapseChilds !== null">
+      <p-collapse :hide="collapseChilds === 'open' ? null : ''">
+        <slot name="childs"></slot>
+      </p-collapse>
+    </x-if>
+    <x-else>
+      <slot name="childs"></slot>
+    </x-else>
+  </div>
+  <script>
+    import "../commons/init.js";
+    import bindClick from "../button/bind-item-click.js";
+
+    export default {
+      tag: "p-list-item",
+      attrs: {
+        button: null,
+        disabled: null,
+        alignTop: null,
+        collapseChilds: null,
+        activeItem: null,
+      },
+      data: {
+        infocus: false,
+      },
+      proto: {
+        focus() {
+          if (this.shadow.$(".fake-button")) {
+            this.shadow.$(".fake-button").ele.focus();
+          }
+        },
+        focusFakeBtn() {
+          this.infocus = true;
+
+          document.addEventListener(
+            "keydown",
+            (this._pressFunc = (e) => {
+              const list = this.parents.filter((e) => e.tag === "p-list")[0];
+              const targets = list.all("p-list-item");
+              const selfIndex = targets.findIndex((e) => e === this);
+              let target;
+
+              if (e.key === "ArrowUp") {
+                target = targets[selfIndex - 1];
+              } else if (e.key === "ArrowDown") {
+                target = targets[selfIndex + 1];
+              }
+
+              if (target && target.focus) {
+                target.focus();
+              }
+            })
+          );
+        },
+        blurFakeBtn() {
+          this.infocus = false;
+          document.removeEventListener("keydown", this._pressFunc);
+          this._pressFunc = null;
+        },
+        clickTriangle(e) {
+          e.stopImmediatePropagation();
+
+          this.emit("click-container", {
+            bubbles: false,
+          });
+
+          if (this.collapseChilds !== null) {
+            if (this.collapseChilds === "open") {
+              this.collapseChilds = "";
+            } else {
+              this.collapseChilds = "open";
+            }
+            return;
+          }
+        },
+        clickItem(e) {
+          if (this.disabled !== null) {
+            e.stopImmediatePropagation();
+            return;
+          }
+
+          if (e.target.attributes.hasOwnProperty("collapse-triangle")) {
+            this.clickTriangle(e);
+            return;
+          }
+
+          if (this.button === "suffix") {
+            this.$("[slot='suffix']").ele.click();
+          } else if (this.button === "prefix") {
+            this.$("[slot='prefix']").ele.click();
+          }
+        },
+      },
+      ready() {
+        bindClick(this);
+
+        this.on("click", (e) => this.clickItem(e));
+      },
+      detached() {
+        if (this._pressFunc) {
+          document.removeEventListener("keydown", this._pressFunc);
+          this._pressFunc = null;
+        }
+      },
+    };
+  </script>
+</template>

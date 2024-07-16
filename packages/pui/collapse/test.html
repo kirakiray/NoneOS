@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>collapse test</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.6/dist/ofa.min.js"
+      debug
+    ></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./collapse.html"></l-m>
+
+    <p-collapse>
+      <div style="background-color: rgba(255, 0, 0, 0.1)">
+        <p>Build fast, responsive sites with Bootstrap</p>
+        <p>
+          Powerful, extensible, and feature-packed frontend toolkit. Build and
+          customize with Sass, utilize prebuilt grid system and components, and
+          bring projects to life with powerful JavaScript plugins.
+        </p>
+      </div>
+    </p-collapse>
+
+    <button>toggle p-collapse</button>
+
+    <script>
+      $("button").on("click", () => {
+        if ($("p-collapse").hide === null) {
+          $("p-collapse").hide = "";
+        } else {
+          $("p-collapse").hide = null;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>button group</title>
+    <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.6/dist/ofa.js"
+      debug
+    ></script>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+      div {
+        padding: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./button-group.html"></l-m>
+    <l-m src="../../ancillary/comp-shower.html"></l-m>
+    <l-m src="../../ancillary/debug-container.html"></l-m>
+
+    <p-debug-container>
+      <comp-shower>
+        <template>
+          <p-button-group>
+            <p-button>First</p-button>
+            <p-button>Second</p-button>
+            <p-button>Third</p-button>
+            <p-button>Four</p-button>
+          </p-button-group>
+        </template>
+        <label>
+          disabled:
+          <select name="disabled">
+            <option>null</option>
+            <option value="">Empty</option>
+          </select>
+        </label>
+        <label>
+          size:
+          <select name="size">
+            <option>default</option>
+            <option>small</option>
+            <option>large</option>
+          </select>
+        </label>
+        <label>
+          color:
+          <select name="color">
+            <option>primary</option>
+            <option>error</option>
+            <option>normal</option>
+          </select>
+        </label>
+        <label>
+          variant:
+          <select name="variant">
+            <option>contained</option>
+            <option>tonal</option>
+            <option>outlined</option>
+            <option>text</option>
+          </select>
+        </label>
+      </comp-shower>
+
+      <br />
+
+      <p-button-group>
+        <p-button variant="tonal">
+          <iconify-icon icon="charm:tick" slot="prefix"></iconify-icon>
+
+          First
+        </p-button>
+        <p-button variant="outlined">Second</p-button>
+        <p-button variant="outlined">Third</p-button>
+        <p-button variant="outlined">Four</p-button>
+      </p-button-group>
+    </p-debug-container>
+  </body>
+</html>
