@@ -121,7 +121,7 @@ export class FileHandle extends BaseHandle {
     // 重新组合文件
     const { hashs } = data;
 
-    let chunks;
+    let chunks = [];
     if (options && (options.start || options.end)) {
       // 获取指定范围内的数据
       let startBlockId = Math.floor(options.start / CHUNK_SIZE);
@@ -158,16 +158,18 @@ export class FileHandle extends BaseHandle {
       );
       chunks = chunks.filter((e) => !!e);
     } else {
-      chunks = await Promise.all(
-        hashs.map(async (hash, index) => {
-          const { chunk } = await getData({
-            storename: "blocks",
-            key: hash,
-          });
+      if (hashs) {
+        chunks = await Promise.all(
+          hashs.map(async (hash, index) => {
+            const { chunk } = await getData({
+              storename: "blocks",
+              key: hash,
+            });
 
-          return chunk;
-        })
-      );
+            return chunk;
+          })
+        );
+      }
     }
 
     const mergedArrayBuffer = mergeChunks(chunks);

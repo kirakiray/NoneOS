@@ -16,7 +16,7 @@ self.addEventListener("fetch", (event) => {
           return await resposeFS({ request });
         } catch (err) {
           console.error(err);
-          return new Response(err.toString(), {
+          return new Response(err.stack || err.toString(), {
             status: 404,
           });
         }

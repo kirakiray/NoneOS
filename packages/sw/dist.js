@@ -15,6 +15,12 @@
     notDeleteRoot: "不能直接删除根节点{name}",
     deleted: "当前handle已被删除，不能使用{name}；旧地址为:{path}",
     exitedName: "操作失败，{name}已经存在",
+    tolowcase: "文件系统对大小写不敏感，{oldName}将会被转为{newName}",
+    writefile: "写入文件内容失败:{path}",
+    noPicker: "当前浏览器不支持文件选择",
+    targetAnotherType:
+      "{path} 已经是一个'{exitedType}'，不能创建为'{targetType}'",
+    notMoveToChild: "{targetPath} 是 {path} 的子目录，不能移动到自己的子目录",
   };
 
   /**
@@ -509,6 +515,13 @@
       });
     }
 
+    if (target.path.includes(self.name)) {
+      throw getErr("notMoveToChild", {
+        targetPath: target.path,
+        path: self.path,
+      });
+    }
+
     return [target, name];
   };
 
@@ -631,7 +644,7 @@
       // 重新组合文件
       const { hashs } = data;
 
-      let chunks;
+      let chunks = [];
       if (options && (options.start || options.end)) {
         // 获取指定范围内的数据
         let startBlockId = Math.floor(options.start / CHUNK_SIZE);
@@ -668,16 +681,18 @@
         );
         chunks = chunks.filter((e) => !!e);
       } else {
-        chunks = await Promise.all(
-          hashs.map(async (hash, index) => {
-            const { chunk } = await getData({
-              storename: "blocks",
-              key: hash,
-            });
+        if (hashs) {
+          chunks = await Promise.all(
+            hashs.map(async (hash, index) => {
+              const { chunk } = await getData({
+                storename: "blocks",
+                key: hash,
+              });
 
-            return chunk;
-          })
-        );
+              return chunk;
+            })
+          );
+        }
       }
 
       const mergedArrayBuffer = mergeChunks(chunks);
@@ -894,6 +909,15 @@
         }
       }
 
+      if (options && options.create && options.create !== data.type) {
+        // 如果带有 create 参数，且数据类型与 create 参数不一致，抛出错误
+        throw getErr("targetAnotherType", {
+          path: self.path + "/" + subName,
+          exitedType: data.type,
+          targetType: options.create,
+        });
+      }
+
       return await createHandle(data);
     }
 
@@ -1096,7 +1120,7 @@
             return await resposeFS({ request });
           } catch (err) {
             console.error(err);
-            return new Response(err.toString(), {
+            return new Response(err.stack || err.toString(), {
               status: 404,
             });
           }
