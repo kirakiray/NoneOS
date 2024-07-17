@@ -1,9 +1,11 @@
 <template component>
   <link rel="stylesheet" href="./public.css" />
+  <l-m src="./comps/apps-icon.html"></l-m>
   <style>
     :host {
       display: block;
       height: 320px;
+      /* padding: 16px 0; */
       /* height: 100%; */
     }
 
@@ -11,6 +13,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
       --space-y: 16px;
       margin: var(--space-y) 4px;
       width: 60px;
@@ -22,12 +25,30 @@
     .container:hover {
       --space-y: 4px;
     }
+
+    .btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 50px;
+      height: 50px;
+      border-radius: 26px;
+      background-color: rgba(255, 255, 255, 0.4);
+      cursor: pointer;
+    }
   </style>
-  <div class="container frosted-glass"></div>
+  <div class="container frosted-glass">
+    <div class="btn" on:click="showAppList = !showAppList">
+      <n-apps-icon attr:active="!!showAppList"></n-apps-icon>
+    </div>
+  </div>
   <script>
     export default async () => {
       return {
         tag: "os-bar",
+        data: {
+          showAppList: false,
+        },
       };
     };
   </script>

@@ -6,7 +6,7 @@
       display: block;
       width: 100%;
       height: 100%;
-      background-image: url(../libs/default-bg.jpg);
+      background-image: url(../others/default-bg.jpg);
       background-size: cover;
       background-position: center;
       background-repeat: no-repeat;
@@ -30,9 +30,16 @@
     <div class="main"></div>
   </div>
   <script>
+    import "/packages/pui/init.js";
+
+    const barApps = [];
+
     export default async () => {
       return {
         tag: "none-os",
+        data: {
+          barApps: [],
+        },
         async attached() {
           $("body").push(
             `<style>html,body{margin:0;padding:0;height:100%;}</style>`

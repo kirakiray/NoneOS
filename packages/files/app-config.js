@@ -14,3 +14,7 @@ export const pageAnime = {
     transform: "translate(-30px, 0)",
   },
 };
+
+export const onHandle = async (e) => {
+  console.log("onHandle: ", e);
+};
