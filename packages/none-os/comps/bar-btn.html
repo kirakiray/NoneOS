@@ -1,0 +1,63 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      /* background-color: rgba(255, 0, 0, 0.251); */
+    }
+    .container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+    }
+    :host :hover {
+    }
+    .icon {
+      max-width: 40px;
+      max-height: 40px;
+      width: 100%;
+      /* background-color: blue; */
+    }
+
+    .bottom-line {
+      position: absolute;
+      bottom: 6px;
+      /* width: 16px; */
+      height: 3px;
+      /* background-color: var(--md-sys-color-primary); */
+      border-radius: 2px;
+      transition: all ease 0.3s;
+    }
+
+    .bottom-line[status="background"] {
+      width: 8px;
+      background-color: var(--md-sys-color-normal);
+    }
+
+    .container:hover .bottom-line[status="background"] {
+      width: 12px;
+    }
+
+    .bottom-line[status="running"] {
+      width: 16px;
+      background-color: var(--md-sys-color-primary);
+    }
+  </style>
+  <div class="container">
+    <img class="icon" attr:src="icon" />
+    <div class="bottom-line" attr:status="status"></div>
+  </div>
+  <script>
+    export default {
+      tag: "n-bar-btn",
+      data: {
+        icon: null,
+        name: "",
+        status: null,
+      },
+    };
+  </script>
+</template>
