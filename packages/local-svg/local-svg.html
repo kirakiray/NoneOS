@@ -1,0 +1,30 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+    ::slotted(svg) {
+      display: block;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-local-svg",
+        attrs: {
+          name: null,
+        },
+        watch: {
+          async name(name) {
+            const content = await load(`./icons/${name}.svg`).then((e) =>
+              e.text()
+            );
+
+            this.html = content;
+          },
+        },
+      };
+    };
+  </script>
+</template>
