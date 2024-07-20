@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./os-bar.html"></l-m>
+  <l-m src="./comps/app-frame/app-frame.html"></l-m>
   <link rel="stylesheet" href="./public.css" />
   <style>
     :host {
@@ -22,15 +23,20 @@
       display: flex;
     }
     .main {
+      position: relative;
       flex: 1;
       /* background-color: red; */
     }
   </style>
   <div class="container">
     <div class="bar">
-      <os-bar></os-bar>
+      <os-bar on:click-app="clickApp"></os-bar>
     </div>
-    <div class="main"></div>
+    <div class="main">
+      <n-app-frame>
+        <div>asdasd</div>
+      </n-app-frame>
+    </div>
   </div>
   <script>
     import "/packages/pui/init.js";
@@ -42,6 +48,11 @@
         tag: "none-os",
         data: {
           barApps: [],
+        },
+        proto: {
+          clickApp({ data }) {
+            console.log("click app: ", data);
+          },
         },
         async attached() {
           $("body").push(

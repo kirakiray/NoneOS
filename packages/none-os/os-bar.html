@@ -57,6 +57,7 @@
         :icon="$data.icon"
         :name="$data.name"
         :status="$data.status"
+        on:click="$host.clickApp($data,$index)"
       ></n-bar-btn>
     </x-fill>
     <n-bar-time></n-bar-time>
@@ -87,6 +88,17 @@
               icon: "/packages/files/icon.svg",
             },
           ],
+        },
+        proto: {
+          clickApp(data, index) {
+            this.emit("click-app", {
+              data: {
+                app: data,
+                index,
+              },
+              bubbles: false,
+            });
+          },
         },
       };
     };
