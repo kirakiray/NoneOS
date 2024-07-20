@@ -2,12 +2,14 @@
   <link rel="stylesheet" href="./public.css" />
   <l-m src="./comps/apps-icon.html"></l-m>
   <l-m src="./comps/bar-btn.html"></l-m>
+  <l-m src="./comps/bar-time.html"></l-m>
   <style>
     :host {
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100%;
+      user-select: none;
     }
 
     .container {
@@ -30,6 +32,9 @@
     .container > * {
       margin: 4px;
     }
+    .container > *:last-child {
+      margin-bottom: 8px;
+    }
 
     .btn {
       display: flex;
@@ -42,6 +47,7 @@
       cursor: pointer;
     }
   </style>
+
   <div class="container frosted-glass">
     <div class="btn" on:click="showAppList = !showAppList">
       <n-apps-icon attr:active="!!showAppList"></n-apps-icon>
@@ -53,6 +59,7 @@
         :status="$data.status"
       ></n-bar-btn>
     </x-fill>
+    <n-bar-time></n-bar-time>
   </div>
   <script>
     export default async () => {

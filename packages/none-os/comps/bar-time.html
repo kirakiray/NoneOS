@@ -1,0 +1,53 @@
+<template component>
+  <style>
+    :host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 8px 0 16px 0;
+      width: 50px;
+      height: 30px;
+      border-radius: 20px;
+      font-size: 12px;
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+    .mark {
+      animation: mark-anime linear 2s infinite;
+    }
+
+    @keyframes mark-anime {
+      0%,
+      100% {
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+    }
+  </style>
+  <div>{{hour}}<span class="mark">:</span>{{mini}}</div>
+  <script>
+    export default {
+      tag: "n-bar-time",
+      data: {
+        hour: "--",
+        mini: "--",
+      },
+      proto: {
+        refreshTime() {
+          this.hour = new Date().getHours();
+          this.mini = new Date().getMinutes();
+        },
+      },
+      attached() {
+        this.refreshTime();
+        this._timer = setInterval(() => {
+          this.refreshTime();
+        }, 1000);
+      },
+      detached() {
+        clearInterval(this._timer);
+      },
+    };
+  </script>
+</template>
