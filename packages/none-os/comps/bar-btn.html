@@ -13,8 +13,6 @@
       height: 50px;
       cursor: pointer;
     }
-    :host :hover {
-    }
     .icon {
       max-width: 40px;
       max-height: 40px;
@@ -26,6 +24,7 @@
       position: absolute;
       bottom: 6px;
       /* width: 16px; */
+      width: 0;
       height: 3px;
       /* background-color: var(--md-sys-color-primary); */
       border-radius: 2px;
@@ -37,8 +36,9 @@
       background-color: var(--md-sys-color-normal);
     }
 
-    .container:hover .bottom-line[status="background"] {
+    .container:hover .bottom-line:not([status="running"]) {
       width: 12px;
+      background-color: var(--md-sys-color-normal);
     }
 
     .bottom-line[status="running"] {
