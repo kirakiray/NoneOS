@@ -243,9 +243,10 @@
         // 设置初始值
         const rect = this.parent.ele.getBoundingClientRect();
 
+        // 初始值带一点偏差，不至于叠在一块
         Object.assign(this, {
-          appTop: rect.height * 0.25,
-          appLeft: rect.width * 0.25,
+          appTop: rect.height * 0.25 - 20 + Math.ceil(Math.random() * 40),
+          appLeft: rect.width * 0.25 - 20 + Math.ceil(Math.random() * 40),
           appWidth: rect.width * 0.5,
           appHeight: rect.height * 0.5,
         });
