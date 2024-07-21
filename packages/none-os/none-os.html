@@ -20,7 +20,9 @@
     }
 
     .bar {
+      position: relative;
       display: flex;
+      z-index: 200000;
     }
     .main {
       position: relative;
@@ -30,28 +32,71 @@
   </style>
   <div class="container">
     <div class="bar">
-      <os-bar on:click-app="clickApp"></os-bar>
+      <os-bar :apps="barApps" on:click-app="clickApp"></os-bar>
     </div>
-    <div class="main">
-      <n-app-frame>
+    <div class="main" on:app-change="appChange">
+      <!-- <n-app-frame>
         <div>asdasd</div>
-      </n-app-frame>
+      </n-app-frame> -->
     </div>
   </div>
   <script>
     import "/packages/pui/init.js";
 
-    const barApps = [];
-
     export default async () => {
       return {
         tag: "none-os",
         data: {
-          barApps: [],
+          barApps: [
+            {
+              name: "Files",
+              icon: "/packages/files/icon.svg",
+              url: "/packages/files/app-config.js",
+              // status: "running",
+            },
+            {
+              name: "Files2",
+              icon: "/packages/files/icon.svg",
+              url: "/packages/files/app-config.js",
+              // status: "background",
+            },
+          ],
         },
         proto: {
           clickApp({ data }) {
-            console.log("click app: ", data);
+            // this.barApps[data.index].status = "running";
+            data.app.status = "running";
+
+            const exitedApp = this.shadow.$(
+              ".main [data-appid='" + data.app.xid + "']"
+            );
+
+            if (exitedApp) {
+              exitedApp.focusApp();
+              if (exitedApp.appStatus === "min") {
+                exitedApp.appStatus = exitedApp._oldAppStatus || "normal";
+              }
+            } else {
+              this.shadow.$(".main").push(`
+              <n-app-frame data-appid="${data.app.xid}">
+                <o-app src="${data.app.url}"></o-app>
+              </n-app-frame>
+              `);
+            }
+          },
+          appChange(e) {
+            const { data } = e;
+
+            const targetData = this.barApps.find((e) => e.xid === data.appid);
+
+            switch (data.type) {
+              case "min":
+                targetData.status = "background";
+                break;
+              case "close":
+                targetData.status = undefined;
+                break;
+            }
           },
         },
         async attached() {

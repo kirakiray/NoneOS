@@ -1,11 +1,20 @@
 <template component>
   <link rel="stylesheet" href="../../public.css" />
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       position: absolute;
+      z-index: 1;
     }
 
+    :host([focus]) {
+      z-index: 2;
+    }
+
+    .hide {
+      display: none !important;
+    }
     .container {
       display: flex;
       flex-direction: column;
@@ -36,9 +45,10 @@
       cursor: pointer;
     }
 
-    .top-btn:hover {
-      background-color: var(--md-ref-palette-translucent-normal60);
+    .top-btn n-local-icon {
+      color: black;
     }
+
     .app-main {
       position: relative;
       flex: 1;
@@ -52,32 +62,98 @@
     :host(.in-anime) {
       transition: all ease 0.2s;
     }
+
+    :host([app-status="close"]) {
+      transform-origin: 50% 0;
+      transform: scale(0.8);
+      opacity: 0;
+    }
+  </style>
+  <style>
+    :host([app-status="normal"]) {
+      opacity: 1;
+      transform-origin: 0 50%;
+      transform: translate(0, 0);
+    }
+    :host([app-status="min"]) {
+      opacity: 0;
+      transform-origin: 0 50%;
+      transform: translate(-50px, 0) scale(0.5);
+    }
+    :host([app-status="max"]) {
+      opacity: 1;
+      transform: translate(0, 0);
+      width: 100% !important;
+      height: 100% !important;
+      left: 0 !important;
+      top: 0 !important;
+    }
   </style>
   <div class="container frosted-glass">
     <div class="app-top">
-      <div class="top-main">
+      <div
+        class="top-main"
+        on:dblclick="appStatus !== 'max' ? changeState('max') : changeState('normal')"
+      >
         <div class="title">我是标题</div>
       </div>
       <div class="top-btn">
-        <n-local-icon name="min"></n-local-icon>
+        <p-button
+          size="small"
+          color="normal"
+          icon
+          variant="text"
+          on:click="changeState('min')"
+        >
+          <n-local-icon name="min"></n-local-icon>
+        </p-button>
+      </div>
+      <div class="top-btn" class:hide="appStatus !== 'max'">
+        <p-button
+          size="small"
+          color="normal"
+          icon
+          variant="text"
+          on:click="changeState('normal')"
+        >
+          <n-local-icon name="multi"></n-local-icon>
+        </p-button>
+      </div>
+      <div class="top-btn" class:hide="appStatus === 'max'">
+        <p-button
+          size="small"
+          color="normal"
+          icon
+          variant="text"
+          on:click="changeState('max')"
+        >
+          <n-local-icon name="max"></n-local-icon>
+        </p-button>
       </div>
       <div class="top-btn">
-        <n-local-icon name="multi"></n-local-icon>
-      </div>
-      <div class="top-btn">
-        <n-local-icon name="max"></n-local-icon>
-      </div>
-      <div class="top-btn">
-        <n-local-icon name="close"></n-local-icon>
+        <p-button
+          size="small"
+          color="normal"
+          icon
+          variant="text"
+          on:click="changeState('close')"
+        >
+          <n-local-icon name="close"></n-local-icon>
+        </p-button>
       </div>
     </div>
     <div class="app-main">
       <slot></slot>
     </div>
   </div>
+
   <script>
     export default {
       tag: "n-app-frame",
+      attrs: {
+        focus: null,
+        appStatus: "min", // min normal max
+      },
       data: {
         appTop: 0,
         appLeft: 0,
@@ -85,6 +161,13 @@
         appHeight: 300,
       },
       watch: {
+        appStatus(status) {
+          this.style.transition = "all ease 0.25s";
+          clearTimeout(this._transtimer);
+          this._transtimer = setTimeout(() => {
+            this.style.transition = "";
+          }, 300);
+        },
         ["appTop,appLeft,appWidth,appHeight"]([top, left, width, height]) {
           Object.assign(this.style, {
             top: `${top}px`,
@@ -94,7 +177,59 @@
           });
         },
       },
+      proto: {
+        // 改变状态（显示、隐藏、最大化、最小化）
+        changeState(type) {
+          this._oldAppStatus = this.appStatus;
+          
+          switch (type) {
+            case "min":
+            case "close":
+            case "max":
+            case "normal":
+              this.appStatus = type;
+          }
+
+          this.emit("app-change", {
+            data: {
+              type,
+              appid: this.ele.dataset.appid,
+            },
+          });
+
+          if (type === "close") {
+            setTimeout(() => {
+              this.remove();
+            }, 200);
+          }
+        },
+        // 聚焦当前的app
+        focusApp() {
+          // 将同级的app focus 去除，并自身聚焦
+          this.siblings &&
+            this.siblings.forEach((e) => {
+              if (e.tag === "n-app-frame") {
+                e.focus = null;
+              }
+            });
+
+          this.focus = "";
+        },
+      },
+      ready() {
+        this.on("mousedown", () => {
+          if (this.focus === null) {
+            this.focusApp();
+          }
+        });
+      },
       attached() {
+        setTimeout(() => {
+          this.appStatus = "normal";
+        }, 50);
+
+        this.focusApp();
+
         const topEle = this.shadow.$(".app-top");
 
         // 设置初始值
@@ -113,6 +248,14 @@
         {
           // 拖动逻辑
           topEle.on("mousedown", (e) => {
+            if (this._oldClear) {
+              this._oldClear();
+            }
+
+            if (this.appStatus === "max") {
+              return;
+            }
+
             startX = e.clientX;
             startY = e.clientY;
 
@@ -121,50 +264,52 @@
             const parentRect = this.parent.ele.getBoundingClientRect();
             const selfRect = this.ele.getBoundingClientRect();
 
-            const clearBind = (e) => {
-              const { clientX, clientY } = e;
+            const clearBind = (this._oldClear = (e) => {
+              if (e) {
+                const { clientX, clientY } = e;
 
-              const diffX = clientX - startX;
-              const diffY = clientY - startY;
+                const diffX = clientX - startX;
+                const diffY = clientY - startY;
 
-              let newAppTop = appTop + diffY;
-              let newAppLeft = appLeft + diffX;
+                let newAppTop = appTop + diffY;
+                let newAppLeft = appLeft + diffX;
 
-              let needAnime = false; // 主动修正定位时，需要添加动画
+                let needAnime = false; // 主动修正定位时，需要添加动画
 
-              if (newAppTop < -20) {
-                newAppTop = 0;
-                needAnime = 1;
-              } else if (newAppTop > parentRect.height - 80) {
-                newAppTop = parentRect.height - 80;
-                needAnime = 1;
+                if (newAppTop < -20) {
+                  newAppTop = 0;
+                  needAnime = 1;
+                } else if (newAppTop > parentRect.height - 80) {
+                  newAppTop = parentRect.height - 80;
+                  needAnime = 1;
+                }
+
+                if (newAppLeft + 80 > parentRect.width) {
+                  newAppLeft = parentRect.width - 80;
+                  needAnime = 1;
+                } else if (newAppLeft + selfRect.width < 120) {
+                  newAppLeft = -1 * selfRect.width + 120;
+                  needAnime = 1;
+                }
+
+                if (needAnime) {
+                  this.classList.add("in-anime");
+
+                  setTimeout(() => {
+                    this.classList.remove("in-anime");
+                  }, 300);
+                }
+
+                Object.assign(this, {
+                  appLeft: newAppLeft,
+                  appTop: newAppTop,
+                });
               }
-
-              if (newAppLeft + 80 > parentRect.width) {
-                newAppLeft = parentRect.width - 80;
-                needAnime = 1;
-              } else if (newAppLeft + selfRect.width < 120) {
-                newAppLeft = -1 * selfRect.width + 120;
-                needAnime = 1;
-              }
-
-              if (needAnime) {
-                this.classList.add("in-anime");
-
-                setTimeout(() => {
-                  this.classList.remove("in-anime");
-                }, 300);
-              }
-
-              Object.assign(this, {
-                appLeft: newAppLeft,
-                appTop: newAppTop,
-              });
 
               $("body").off("mousemove", moveFunc);
               $("body").off("mouseup", upFunc);
               $("body").off("mouseleave", leaveFunc);
-            };
+            });
 
             $("body").on(
               "mousemove",
