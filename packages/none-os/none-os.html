@@ -32,7 +32,11 @@
   </style>
   <div class="container">
     <div class="bar">
-      <os-bar :apps="barApps" on:click-app="clickApp"></os-bar>
+      <os-bar
+        :apps="barApps"
+        on:click-app="clickApp"
+        attr:fullmode="hasMaxApp"
+      ></os-bar>
     </div>
     <div class="main" on:app-change="appChange">
       <!-- <n-app-frame>
@@ -61,10 +65,10 @@
               // status: "background",
             },
           ],
+          hasMaxApp: false, // 是否存在最大化的应用
         },
         proto: {
           clickApp({ data }) {
-            // this.barApps[data.index].status = "running";
             data.app.status = "running";
 
             const exitedApp = this.shadow.$(
@@ -72,17 +76,29 @@
             );
 
             if (exitedApp) {
+              // 直接修正对应的应用
               exitedApp.focusApp();
               if (exitedApp.appStatus === "min") {
-                exitedApp.appStatus = exitedApp._oldAppStatus || "normal";
+                if (exitedApp._oldAppStatus === "max") {
+                  exitedApp.appStatus = "max";
+                } else {
+                  exitedApp.appStatus = "normal";
+                }
               }
             } else {
+              // 添加这个应用到容器内
               this.shadow.$(".main").push(`
               <n-app-frame data-appid="${data.app.xid}">
                 <o-app src="${data.app.url}"></o-app>
               </n-app-frame>
               `);
             }
+
+            this.refreshBarMode();
+          },
+          refreshBarMode() {
+            const apps = this.shadow.all(".main n-app-frame");
+            this.hasMaxApp = apps.some((e) => e.appStatus === "max");
           },
           appChange(e) {
             const { data } = e;
@@ -97,6 +113,8 @@
                 targetData.status = undefined;
                 break;
             }
+
+            this.refreshBarMode();
           },
         },
         async attached() {

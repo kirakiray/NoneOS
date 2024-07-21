@@ -17,21 +17,29 @@
       justify-content: center;
       align-items: center;
       flex-direction: column;
-      /* --space-y: 16px; */
-      /* margin: var(--space-y) 4px; */
+      box-sizing: border-box;
       width: 60px;
       border-radius: 30px;
       padding: 4px 0;
-      /* height: calc(100% - calc(var(--space-y) * 2)); */
       transition: all ease 0.3s;
+    }
+
+    :host([fullmode]) .container {
+      border-radius: 0;
+    }
+
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      transition: all ease 0.25s;
     }
 
     .container:hover {
       /* --space-y: 4px; */
     }
-    .container > * {
-      margin: 4px;
-    }
+
     .container > *:last-child {
       margin-bottom: 8px;
     }
@@ -48,29 +56,53 @@
     }
   </style>
 
+  <style>
+    .app-container {
+      height: data(defaultHeight);
+    }
+
+    :host([fullmode]) .app-container {
+      height: calc(100vh - 108px);
+    }
+  </style>
+
   <div class="container frosted-glass">
-    <div class="btn" on:click="showAppList = !showAppList">
+    <div
+      class="btn"
+      on:click="showAppList = !showAppList"
+      style="margin-bottom: 4px"
+    >
       <n-apps-icon attr:active="!!showAppList"></n-apps-icon>
     </div>
-    <x-fill :value="apps">
-      <n-bar-btn
-        :icon="$data.icon"
-        :name="$data.name"
-        :status="$data.status"
-        on:click="$host.clickApp($data,$index)"
-      ></n-bar-btn>
-    </x-fill>
+    <div class="app-container">
+      <div class="app-inner-container">
+        <x-fill :value="apps">
+          <n-bar-btn
+            :icon="$data.icon"
+            :name="$data.name"
+            :status="$data.status"
+            on:click="$host.clickApp($data,$index)"
+          ></n-bar-btn>
+        </x-fill>
+      </div>
+    </div>
     <n-bar-time></n-bar-time>
   </div>
   <script>
     export default async () => {
       return {
         tag: "os-bar",
+        attrs: {
+          fullmode: null, // 是否占用整个屏幕的边缘
+        },
         data: {
           showAppList: false,
           apps: [],
         },
         proto: {
+          get defaultHeight() {
+            return this.apps.length * 50 + "px";
+          },
           clickApp(data, index) {
             this.emit("click-app", {
               data: {

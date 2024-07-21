@@ -15,6 +15,7 @@
     .hide {
       display: none !important;
     }
+
     .container {
       display: flex;
       flex-direction: column;
@@ -46,7 +47,7 @@
     }
 
     .top-btn n-local-icon {
-      color: black;
+      color: var(--md-sys-color-on-surface);
     }
 
     .app-main {
@@ -87,6 +88,9 @@
       height: 100% !important;
       left: 0 !important;
       top: 0 !important;
+    }
+    :host([app-status="max"]) .container {
+      border-radius: 0;
     }
   </style>
   <div class="container frosted-glass">
@@ -162,6 +166,10 @@
       },
       watch: {
         appStatus(status) {
+          if (!this._first_status) {
+            this._first_status = 1;
+            return;
+          }
           this.style.transition = "all ease 0.25s";
           clearTimeout(this._transtimer);
           this._transtimer = setTimeout(() => {
@@ -181,7 +189,7 @@
         // 改变状态（显示、隐藏、最大化、最小化）
         changeState(type) {
           this._oldAppStatus = this.appStatus;
-          
+
           switch (type) {
             case "min":
             case "close":
