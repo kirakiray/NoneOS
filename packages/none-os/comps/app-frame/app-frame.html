@@ -99,7 +99,9 @@
         class="top-main"
         on:dblclick="appStatus !== 'max' ? changeState('max') : changeState('normal')"
       >
-        <div class="title">我是标题</div>
+        <div class="title">
+          <slot name="top"></slot>
+        </div>
       </div>
       <div class="top-btn">
         <p-button
