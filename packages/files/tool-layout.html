@@ -1,0 +1,56 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/button/button-group.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+    .top {
+      display: flex;
+      padding: 4px;
+      height: 40px;
+    }
+    .main {
+      flex: 1;
+    }
+
+    n-local-icon {
+      display: block;
+      font-size: 18px;
+    }
+
+    .search-input {
+      margin: 0 8px 0 auto;
+      width: 200px;
+    }
+  </style>
+  <div class="top">
+    <p-button-group variant="outlined">
+      <p-button size="small">
+        <n-local-icon name="cut"></n-local-icon>
+      </p-button>
+      <p-button size="small">
+        <n-local-icon name="copy"></n-local-icon
+      ></p-button>
+      <p-button size="small">
+        <n-local-icon name="paste"></n-local-icon
+      ></p-button>
+      <p-button size="small">
+        <n-local-icon name="rename"></n-local-icon
+      ></p-button>
+    </p-button-group>
+
+    <p-text-field size="small" class="search-input" placeholder="搜索文件">
+      <n-local-icon name="search" slot="prefix"></n-local-icon>
+    </p-text-field>
+  </div>
+  <div class="main">
+    <slot></slot>
+  </div>
+  <script>
+    export const parent = "./outer-layout.html";
+  </script>
+</template>
