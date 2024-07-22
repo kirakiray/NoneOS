@@ -31,7 +31,7 @@ html {
   --pui-main-hover-color: var(--md-ref-palette-translucent-primary60);
 }
 
-html[pui-theme] {
+html {
   color: var(--md-sys-color-on-surface);
   background-color: var(--md-sys-color-surface);
 }

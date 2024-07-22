@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="/packages/pui/provider/provider.html"></l-m>
   <l-m src="./os-bar.html"></l-m>
   <l-m src="./comps/app-frame/app-frame.html"></l-m>
   <link rel="stylesheet" href="./public.css" />
@@ -30,20 +31,42 @@
       /* background-color: red; */
     }
   </style>
-  <div class="container">
-    <div class="bar">
-      <os-bar
-        :apps="barApps"
-        on:click-app="clickApp"
-        attr:fullmode="hasMaxApp"
-      ></os-bar>
-    </div>
-    <div class="main" on:app-change="appChange">
-      <!-- <n-app-frame>
+
+  <x-if :value="theme === 'dark' ">
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+        --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+        --barbtn-bg: rgba(100, 100, 100, 0.4);
+      }
+    </style>
+  </x-if>
+  <x-else>
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+        --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+        --barbtn-bg: rgba(255, 255, 255, 0.4);
+      }
+    </style>
+  </x-else>
+
+  <p-provider :theme="theme">
+    <div class="container">
+      <div class="bar">
+        <os-bar
+          :apps="barApps"
+          on:click-app="clickApp"
+          attr:fullmode="hasMaxApp"
+        ></os-bar>
+      </div>
+      <div class="main" on:app-change="appChange">
+        <!-- <n-app-frame>
         <div>asdasd</div>
       </n-app-frame> -->
+      </div>
     </div>
-  </div>
+  </p-provider>
   <script>
     import "/packages/pui/init.js";
 
@@ -51,6 +74,7 @@
       return {
         tag: "none-os",
         data: {
+          theme: "light",
           barApps: [
             {
               name: "Files",

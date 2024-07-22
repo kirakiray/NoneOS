@@ -7,6 +7,7 @@
     :host {
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
     .top {
       display: flex;
@@ -14,7 +15,13 @@
       height: 40px;
     }
     .main {
+      display: flex;
+      flex-direction: column;
       flex: 1;
+    }
+
+    p-button-group {
+      margin-right: 8px;
     }
 
     n-local-icon {
@@ -26,29 +33,50 @@
       margin: 0 8px 0 auto;
       width: 200px;
     }
+    .address {
+      display: flex;
+      align-items: center;
+      height: 30px;
+      font-size: 14px;
+    }
   </style>
   <div class="top">
+    <p-button-group variant="outlined">
+      <p-button size="small">
+        <n-local-icon name="back"></n-local-icon>
+      </p-button>
+      <p-button size="small">
+        <n-local-icon name="forward"></n-local-icon>
+      </p-button>
+    </p-button-group>
     <p-button-group variant="outlined">
       <p-button size="small">
         <n-local-icon name="cut"></n-local-icon>
       </p-button>
       <p-button size="small">
-        <n-local-icon name="copy"></n-local-icon
-      ></p-button>
+        <n-local-icon name="copy"></n-local-icon>
+      </p-button>
       <p-button size="small">
-        <n-local-icon name="paste"></n-local-icon
-      ></p-button>
+        <n-local-icon name="paste"></n-local-icon>
+      </p-button>
       <p-button size="small">
-        <n-local-icon name="rename"></n-local-icon
-      ></p-button>
+        <n-local-icon name="rename"></n-local-icon>
+      </p-button>
     </p-button-group>
 
-    <p-text-field size="small" class="search-input" placeholder="搜索文件">
+    <p-text-field
+      size="small"
+      class="search-input"
+      placeholder="在当前文件夹搜索"
+    >
       <n-local-icon name="search" slot="prefix"></n-local-icon>
     </p-text-field>
   </div>
   <div class="main">
-    <slot></slot>
+    <div style="position: relative; flex: 1">
+      <slot></slot>
+    </div>
+    <div class="address">address / a / b / c</div>
   </div>
   <script>
     export const parent = "./outer-layout.html";

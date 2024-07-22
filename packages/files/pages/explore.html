@@ -1,5 +1,16 @@
 <template page>
-  <div>Explore Page</div>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+
+    .container {
+      height: 100%;
+      overflow: auto;
+    }
+  </style>
+  <div class="container">Explore Page</div>
   <script>
     export const parent = "../tool-layout.html";
   </script>

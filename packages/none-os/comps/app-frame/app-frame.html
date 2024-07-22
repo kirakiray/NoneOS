@@ -153,6 +153,8 @@
     </div>
   </div>
 
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
+
   <script>
     export default {
       tag: "n-app-frame",
@@ -165,8 +167,12 @@
         appLeft: 0,
         appWidth: 300,
         appHeight: 300,
+        theme: "",
       },
       watch: {
+        theme() {
+          console.log("theme:", this.theme);
+        },
         appStatus(status) {
           if (!this._first_status) {
             this._first_status = 1;
@@ -247,10 +253,10 @@
 
         // 初始值带一点偏差，不至于叠在一块
         Object.assign(this, {
-          appTop: rect.height * 0.25 - 20 + Math.ceil(Math.random() * 40),
-          appLeft: rect.width * 0.25 - 20 + Math.ceil(Math.random() * 40),
-          appWidth: rect.width * 0.5,
-          appHeight: rect.height * 0.5,
+          appTop: rect.height * 0.1 - 20 + Math.ceil(Math.random() * 40),
+          appLeft: rect.width * 0.1 - 20 + Math.ceil(Math.random() * 40),
+          appWidth: rect.width * 0.8,
+          appHeight: rect.height * 0.8,
         });
 
         let startX, startY;

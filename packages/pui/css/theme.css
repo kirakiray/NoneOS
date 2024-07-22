@@ -1,5 +1,4 @@
 html,
-html[pui-theme="light"],
 .theme-light-mode {
   --pui-theme: light;
   --md-sys-color-primary: var(--md-ref-palette-primary40);
@@ -22,7 +21,6 @@ html[pui-theme="light"],
   --md-sys-color-on-surface: var(--md-ref-palette-normal10);
 }
 
-html[pui-theme="dark"],
 .theme-dark-mode {
   --pui-theme: dark;
   --md-sys-color-primary: var(--md-ref-palette-primary80);

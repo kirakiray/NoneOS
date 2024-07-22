@@ -3,6 +3,7 @@
   <l-m src="./comps/apps-icon.html"></l-m>
   <l-m src="./comps/bar-btn.html"></l-m>
   <l-m src="./comps/bar-time.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -51,7 +52,7 @@
       width: 50px;
       height: 50px;
       border-radius: 26px;
-      background-color: rgba(255, 255, 255, 0.4);
+      background-color: var(--barbtn-bg);
       cursor: pointer;
     }
   </style>
@@ -62,7 +63,7 @@
     }
 
     :host([fullmode]) .app-container {
-      height: calc(100vh - 108px);
+      height: calc(100vh - 153px);
     }
   </style>
 
@@ -87,8 +88,13 @@
       </div>
     </div>
     <n-bar-time></n-bar-time>
+    <div>
+      <p-switch sync:value="darkMode"></p-switch>
+    </div>
   </div>
   <script>
+    import "/packages/pui/commons/init.js";
+
     export default async () => {
       return {
         tag: "os-bar",
@@ -98,6 +104,7 @@
         data: {
           showAppList: false,
           apps: [],
+          darkMode: !!localStorage.__darkmode,
         },
         proto: {
           get defaultHeight() {
@@ -111,6 +118,18 @@
               },
               bubbles: false,
             });
+          },
+        },
+        watch: {
+          darkMode(bool) {
+            console.log("dark mode: ", bool);
+
+            localStorage.__darkmode = bool ? "1" : "";
+
+            clearTimeout(this._darkTimer);
+            this._darkTimer = setTimeout(() => {
+              this.host.theme = this.darkMode ? "dark" : "light";
+            }, 100);
           },
         },
       };
