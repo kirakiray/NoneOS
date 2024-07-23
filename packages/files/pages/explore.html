@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="../comps/handle-block.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
   <style>
     :host {
@@ -23,7 +24,9 @@
   <div class="container">
     <n-file-list :files="files"></n-file-list>
   </div>
-  <div class="address">{{path}}</div>
+  <div class="address">
+    <n-handle-block :name="path" :kind="'dir'"></n-handle-block>
+  </div>
   <script>
     export const parent = "../tool-layout.html";
 

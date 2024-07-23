@@ -1,5 +1,12 @@
 <template component>
-  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="./handle-block.html"></l-m>
+
+  <style>
+    .file-item:nth-child(2n) {
+      background-color: var(data(sqColor));
+    }
+  </style>
+
   <style>
     :host {
       display: block;
@@ -14,47 +21,38 @@
       display: flex;
       align-items: center;
       /* flex-direction: column; */
-      margin: 4px 0;
+      margin: 0 4px;
+      padding: 2px 4px;
       height: 30px;
       text-align: center;
+      border-radius: 4px;
     }
 
-    .icon {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 2px;
-    }
-
-    .icon svg {
-      width: 20px;
-      height: 20px;
-    }
-
-    .name {
-      font-size: 14px;
+    .file-item:hover {
+      background-color: var(--md-ref-palette-translucent-primary60);
     }
   </style>
   <div class="container">
     <x-fill :value="files">
       <div class="file-item">
-        <div class="icon">
-          <x-if :value="$data.kind === 'dir'">
-            <n-local-icon name="list-folder"></n-local-icon>
-          </x-if>
-          <x-else>
-            <n-local-icon name="list-file" style="width: 30px"></n-local-icon>
-          </x-else>
-        </div>
-        <div class="name">{{$data.name}}</div>
+        <n-handle-block :name="$data.name" :kind="$data.kind"></n-handle-block>
       </div>
     </x-fill>
   </div>
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export default {
       tag: "n-file-list",
       data: {
         files: [],
+        theme: null,
+      },
+      proto: {
+        get sqColor() {
+          return this.theme === "dark"
+            ? "--md-ref-palette-normal10"
+            : "--md-ref-palette-normal95";
+        },
       },
     };
   </script>
