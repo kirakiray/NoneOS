@@ -1,6 +1,5 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
-  <l-m src="../comps/handle-block.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
   <style>
     :host {
@@ -13,19 +12,22 @@
       flex: 1;
       overflow: auto;
     }
-
-    .address {
-      display: flex;
-      align-items: center;
-      height: 30px;
-      font-size: 14px;
-    }
   </style>
   <div class="container">
     <n-file-list :files="files"></n-file-list>
-  </div>
-  <div class="address">
-    <n-handle-block :name="path" :kind="'dir'"></n-handle-block>
+    <x-if :value="files.length === 0 && !loading">
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 60px;
+          font-size: 14px;
+        "
+      >
+        这是一个空文件夹
+      </div>
+    </x-if>
   </div>
   <script>
     export const parent = "../tool-layout.html";
@@ -37,6 +39,7 @@
         data: {
           path: query.path || "local",
           files: [],
+          loading: true,
         },
         proto: {
           // 刷新文件信息
@@ -55,10 +58,19 @@
                   : "",
               });
             });
+
+            this.loading = false;
           },
         },
         ready() {
           this.refreshFiles();
+        },
+        attached() {
+          this.emit("go-page", {
+            data: {
+              path: this.path,
+            },
+          });
         },
       };
     };

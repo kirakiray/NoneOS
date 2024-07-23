@@ -16,6 +16,9 @@
       display: flex;
       flex-direction: column;
     }
+    .head {
+      font-weight: bold;
+    }
 
     .file-item {
       display: flex;
@@ -24,18 +27,39 @@
       margin: 0 4px;
       padding: 2px 4px;
       height: 30px;
-      text-align: center;
+      text-align: left;
       border-radius: 4px;
+      font-size: 14px;
     }
 
     .file-item:hover {
       background-color: var(--md-ref-palette-translucent-primary60);
     }
+
+    .file-item-cell {
+      flex: 1;
+    }
   </style>
   <div class="container">
+    <div class="file-item head">
+      <div class="file-item-cell">
+        <div style="padding-left: 20px">名称</div>
+      </div>
+      <div class="file-item-cell">修改时间</div>
+      <div class="file-item-cell">创建时间</div>
+      <div class="file-item-cell">类型</div>
+    </div>
     <x-fill :value="files">
-      <div class="file-item">
-        <n-handle-block :name="$data.name" :kind="$data.kind"></n-handle-block>
+      <div class="file-item" on:dblclick="$host.open($data)">
+        <div class="file-item-cell">
+          <n-handle-block
+            :name="$data.name"
+            :kind="$data.kind"
+          ></n-handle-block>
+        </div>
+        <div class="file-item-cell">{{$data.lastModified}}</div>
+        <div class="file-item-cell">{{$data.createTime}}</div>
+        <div class="file-item-cell">{{$host.getKind($data.kind)}}</div>
       </div>
     </x-fill>
   </div>
@@ -48,10 +72,23 @@
         theme: null,
       },
       proto: {
+        async open(data) {
+          if (data.kind === "dir") {
+            this.host.goto(`./explore.html?path=${data.path}`);
+          }
+        },
         get sqColor() {
           return this.theme === "dark"
             ? "--md-ref-palette-normal10"
             : "--md-ref-palette-normal95";
+        },
+        getKind(kind) {
+          switch (kind) {
+            case "dir":
+              return "文件夹";
+            case "file":
+              return "文件";
+          }
         },
       },
     };

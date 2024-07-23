@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/button/button-group.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="./comps/handle-block.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -34,13 +35,20 @@
       margin: 0 8px 0 auto;
       width: 200px;
     }
+
+    .address {
+      display: flex;
+      align-items: center;
+      height: 30px;
+      font-size: 14px;
+    }
   </style>
   <div class="top">
     <p-button-group variant="outlined">
-      <p-button size="small">
+      <p-button size="small" on:click="appBack">
         <n-local-icon name="back"></n-local-icon>
       </p-button>
-      <p-button size="small">
+      <p-button size="small" on:click="appForward">
         <n-local-icon name="forward"></n-local-icon>
       </p-button>
     </p-button-group>
@@ -72,7 +80,69 @@
       <slot></slot>
     </div>
   </div>
+
+  <div class="address">
+    <n-handle-block :name="path" :kind="'dir'"></n-handle-block>
+  </div>
   <script>
     export const parent = "./outer-layout.html";
+
+    export default {
+      data: {
+        path: "",
+        fowardAddress: [], // 向前递进的路径
+      },
+      proto: {
+        appBack() {
+          // 后退前记录地址路径
+          this.app.back();
+        },
+        appForward() {
+          // 前进
+          const nextPath = this.fowardAddress.shift();
+          this._is_forward = 1;
+          if (nextPath) {
+            this.app.current.goto(`./explore.html?path=${nextPath}`);
+          }
+        },
+      },
+      ready() {
+        this.on("go-page", (e) => {
+          e.stopPropagation();
+          this.path = e.data.path;
+        });
+      },
+      attached() {
+        let routerChangeFunc;
+        const { app } = this;
+
+        app.on(
+          "router-change",
+          (routerChangeFunc = (e) => {
+            const { name, delta, historys } = e.data;
+            if (name === "goto" || name === "replace") {
+              if (this._is_forward) {
+                this._is_forward = null;
+                return;
+              }
+              this.fowardAddress = []; // 清空前进路径
+            } else if (name === "back") {
+              this.fowardAddress.unshift(
+                ...historys.map((e) => {
+                  return new URL(e.src).searchParams.get("path");
+                })
+              );
+            }
+          })
+        );
+
+        this._offFunc = () => {
+          app.off("router-change", routerChangeFunc);
+        };
+      },
+      detached() {
+        this._offFunc && this._offFunc();
+      },
+    };
   </script>
 </template>
