@@ -1,0 +1,61 @@
+<template component>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .file-item {
+      display: flex;
+      align-items: center;
+      /* flex-direction: column; */
+      margin: 4px 0;
+      height: 30px;
+      text-align: center;
+    }
+
+    .icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 2px;
+    }
+
+    .icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .name {
+      font-size: 14px;
+    }
+  </style>
+  <div class="container">
+    <x-fill :value="files">
+      <div class="file-item">
+        <div class="icon">
+          <x-if :value="$data.kind === 'dir'">
+            <n-local-icon name="list-folder"></n-local-icon>
+          </x-if>
+          <x-else>
+            <n-local-icon name="list-file" style="width: 30px"></n-local-icon>
+          </x-else>
+        </div>
+        <div class="name">{{$data.name}}</div>
+      </div>
+    </x-fill>
+  </div>
+  <script>
+    export default {
+      tag: "n-file-list",
+      data: {
+        files: [],
+      },
+    };
+  </script>
+</template>

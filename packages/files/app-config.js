@@ -1,4 +1,4 @@
-export const home = "./pages/explore.html";
+export const home = "./pages/explore.html?path=local";
 
 export const pageAnime = {
   current: {

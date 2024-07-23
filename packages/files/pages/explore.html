@@ -1,17 +1,63 @@
 <template page>
+  <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="../comps/file-list.html"></l-m>
   <style>
     :host {
-      display: block;
+      display: flex;
+      flex-direction: column;
       height: 100%;
     }
 
     .container {
-      height: 100%;
+      flex: 1;
       overflow: auto;
     }
+
+    .address {
+      display: flex;
+      align-items: center;
+      height: 30px;
+      font-size: 14px;
+    }
   </style>
-  <div class="container">Explore Page</div>
+  <div class="container">
+    <n-file-list :files="files"></n-file-list>
+  </div>
+  <div class="address">{{path}}</div>
   <script>
     export const parent = "../tool-layout.html";
+
+    export default async ({ load, query }) => {
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        data: {
+          path: query.path || "local",
+          files: [],
+        },
+        proto: {
+          // 刷新文件信息
+          async refreshFiles() {
+            const handle = await get(query.path);
+
+            await handle.forEach((item) => {
+              this.files.push({
+                id: item.id,
+                kind: item.kind,
+                name: item.name,
+                path: item.path,
+                createTime: new Date(item.createTime).toLocaleString(),
+                lastModified: item.lastModified
+                  ? new Date(item.lastModified).toLocaleString()
+                  : "",
+              });
+            });
+          },
+        },
+        ready() {
+          this.refreshFiles();
+        },
+      };
+    };
   </script>
 </template>

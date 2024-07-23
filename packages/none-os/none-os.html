@@ -93,10 +93,11 @@
         },
         proto: {
           clickApp({ data }) {
-            data.app.status = "running";
+            const targetApp = data.app;
+            targetApp.status = "running";
 
             const exitedApp = this.shadow.$(
-              ".main [data-appid='" + data.app.xid + "']"
+              ".main [data-appid='" + targetApp.xid + "']"
             );
 
             if (exitedApp) {
@@ -112,8 +113,8 @@
             } else {
               // 添加这个应用到容器内
               this.shadow.$(".main").push(`
-              <n-app-frame data-appid="${data.app.xid}">
-                <o-app src="${data.app.url}"></o-app>
+              <n-app-frame data-appid="${targetApp.xid}">
+                <o-app src="${targetApp.url}"></o-app>
               </n-app-frame>
               `);
             }
@@ -145,6 +146,13 @@
           $("body").push(
             `<style>html,body{margin:0;padding:0;height:100%;}</style>`
           );
+
+          setTimeout(() => {
+            // 测试代码
+            this.clickApp({
+              data: { app: this.barApps[0] },
+            });
+          }, 100);
         },
       };
     };

@@ -8,6 +8,7 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      user-select: none;
     }
     .top {
       display: flex;
@@ -32,12 +33,6 @@
     .search-input {
       margin: 0 8px 0 auto;
       width: 200px;
-    }
-    .address {
-      display: flex;
-      align-items: center;
-      height: 30px;
-      font-size: 14px;
     }
   </style>
   <div class="top">
@@ -76,7 +71,6 @@
     <div style="position: relative; flex: 1">
       <slot></slot>
     </div>
-    <div class="address">address / a / b / c</div>
   </div>
   <script>
     export const parent = "./outer-layout.html";

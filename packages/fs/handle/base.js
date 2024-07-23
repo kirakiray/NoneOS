@@ -11,6 +11,8 @@ export class BaseHandle {
   #kind;
   #path;
   #name;
+  #createTime;
+  #lastModified;
   constructor(id, kind) {
     this.#id = id;
     this.#kind = kind;
@@ -46,6 +48,14 @@ export class BaseHandle {
    */
   get kind() {
     return this.#kind;
+  }
+
+  get createTime() {
+    return this.#createTime;
+  }
+
+  get lastModified() {
+    return this.#lastModified || null;
   }
 
   /**
@@ -196,6 +206,9 @@ export class BaseHandle {
    */
   async refresh() {
     const data = await getSelfData(this, "refresh");
+
+    this.#createTime = data.createTime;
+    this.#lastModified = data.lastModified;
 
     this.#name = data.realName || data.name;
 
