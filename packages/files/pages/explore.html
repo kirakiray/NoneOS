@@ -9,11 +9,27 @@
     }
 
     .container {
+      position: relative;
       flex: 1;
       overflow: auto;
     }
+
+    .container > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .other-area {
+      z-index: 1;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
   </style>
   <div class="container">
+    <div class="other-area" on:click="clickOther"></div>
     <n-file-list :files="files"></n-file-list>
     <x-if :value="files.length === 0 && !loading">
       <div
@@ -43,12 +59,20 @@
           loading: true,
         },
         proto: {
+          clickOther() {
+            // 清空选择
+            this.shadow.$("n-file-list").selectItem({});
+          },
           // 刷新文件信息
           async refreshFiles() {
+            this.loading = true;
+
             const handle = await get(query.path);
 
+            const files = [];
+
             await handle.forEach(async (item) => {
-              this.files.push({
+              files.push({
                 size: formatBytes(await item.size()),
                 id: item.id,
                 kind: item.kind,
@@ -61,6 +85,7 @@
               });
             });
 
+            this.files = files;
             this.loading = false;
           },
         },
