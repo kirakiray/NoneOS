@@ -43,7 +43,31 @@
     .small-cell {
       flex: 1 1 100px;
     }
+
+    .file-item.selected {
+      background-color: var(--md-ref-palette-translucent-primary60);
+      outline: var(--md-sys-color-primary) solid 0.5px;
+      border-radius: 0;
+      z-index: 1;
+    }
+
+    .file-item.selected + .file-item.selected {
+      border-top: none;
+    }
+
+    .cut-icon,
+    .copy-icon {
+      display: flex;
+      /* width: 20px; */
+      width: 0;
+      align-items: center;
+      justify-content: center;
+      color: var(--md-sys-color-primary);
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
   </style>
+
   <div class="container">
     <div class="file-item head">
       <div class="file-item-cell">
@@ -54,12 +78,19 @@
       <div class="file-item-cell small-cell">类型</div>
     </div>
     <x-fill :value="files">
-      <div class="file-item" on:dblclick="$host.open($data)">
+      <div
+        class="file-item"
+        on:dblclick="$host.open($data)"
+        on:click="$host.selectItem($data)"
+        class:selected="!!$data.selected"
+        attr:data-path="$data.path"
+      >
         <div class="file-item-cell">
-          <n-handle-block
-            :name="$data.name"
-            :kind="$data.kind"
-          ></n-handle-block>
+          <n-handle-block :kind="$data.kind">
+            <n-local-icon class="cut-icon" name="cut"></n-local-icon>
+            {{$data.name}}
+            <n-local-icon class="copy-icon" name="copy"></n-local-icon>
+          </n-handle-block>
         </div>
         <div class="file-item-cell">{{$data.lastModified}}</div>
         <div class="file-item-cell small-cell">{{$data.size || '--'}}</div>
@@ -70,14 +101,56 @@
     </x-fill>
   </div>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
+  <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
+  <style id="clipboard-style"></style>
+
   <script>
     export default {
       tag: "n-file-list",
       data: {
         files: [],
         theme: null,
+        clipboard: {},
+      },
+      watch: {
+        clipboard(clipboard) {
+          if (!clipboard?.type) {
+            this.shadow.$("#clipboard-style").html = "";
+            return;
+          }
+
+          let styleContent = "";
+
+          if (clipboard.type === "cut") {
+            clipboard.sources.forEach((e) => {
+              styleContent += `
+              .file-item[data-path="${e}"]{
+                opacity:.6;
+              }
+              .file-item[data-path="${e}"] .cut-icon{
+                width:20px;
+              }
+            `;
+            });
+          } else if (clipboard.type === "copy") {
+            clipboard.sources.forEach((e) => {
+              styleContent += `
+              .file-item[data-path="${e}"] .copy-icon{
+                width:20px;
+              }
+            `;
+            });
+          }
+
+          this.shadow.$("#clipboard-style").html = styleContent;
+        },
       },
       proto: {
+        get selecteds() {
+          return this.files.filter((e) => {
+            return e.selected;
+          });
+        },
         async open(data) {
           if (data.kind === "dir") {
             this.host.goto(`./explore.html?path=${data.path}`);
@@ -87,6 +160,28 @@
           return this.theme === "dark"
             ? "--md-ref-palette-normal10"
             : "--md-ref-palette-normal95";
+        },
+
+        async selectItem(data) {
+          this.files.forEach((e) => {
+            if (e === data) {
+              return;
+            }
+
+            // 去除其他选中的元素
+            if (e.selected) {
+              e.selected = null;
+            }
+          });
+
+          data.selected = data.selected ? null : 1;
+
+          this.emit("select-files", {
+            data: {
+              selecteds: this.selecteds,
+            },
+            composed: true,
+          });
         },
         getKind(kind) {
           switch (kind) {

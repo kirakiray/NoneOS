@@ -51,22 +51,24 @@
     </style>
   </x-else>
 
-  <p-provider :theme="theme">
-    <div class="container">
-      <div class="bar">
-        <os-bar
-          :apps="barApps"
-          on:click-app="clickApp"
-          attr:fullmode="hasMaxApp"
-        ></os-bar>
-      </div>
-      <div class="main" on:app-change="appChange">
-        <!-- <n-app-frame>
+  <o-provider name="clipboard" type="none">
+    <p-provider :theme="theme">
+      <div class="container">
+        <div class="bar">
+          <os-bar
+            :apps="barApps"
+            on:click-app="clickApp"
+            attr:fullmode="hasMaxApp"
+          ></os-bar>
+        </div>
+        <div class="main" on:app-change="appChange">
+          <!-- <n-app-frame>
         <div>asdasd</div>
       </n-app-frame> -->
+        </div>
       </div>
-    </div>
-  </p-provider>
+    </p-provider>
+  </o-provider>
   <script>
     import "/packages/pui/init.js";
 

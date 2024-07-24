@@ -9,7 +9,6 @@
       display: flex;
       flex-direction: column;
       height: 100%;
-      user-select: none;
     }
     .top {
       display: flex;
@@ -42,6 +41,23 @@
       height: 32px;
       font-size: 14px;
     }
+
+    .clipboard-area {
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      height: 40px;
+      font-size: 14px;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
+    .clipboard-area.hide {
+      opacity: 0;
+      height: 0;
+      transition: all ease 0.01s;
+    }
   </style>
   <div class="top">
     <p-button-group variant="outlined">
@@ -61,17 +77,28 @@
       </p-button>
     </p-button-group>
     <p-button-group variant="outlined">
-      <p-button size="small">
+      <p-button
+        size="small"
+        attr:disabled="!selecteds.length"
+        on:click="clickCut"
+      >
         <n-local-icon name="cut"></n-local-icon>
       </p-button>
-      <p-button size="small">
+      <p-button
+        size="small"
+        attr:disabled="!selecteds.length"
+        on:click="clickCopy"
+      >
         <n-local-icon name="copy"></n-local-icon>
       </p-button>
-      <p-button size="small">
+      <p-button size="small" attr:disabled="!clipboard?.sources?.length">
         <n-local-icon name="paste"></n-local-icon>
       </p-button>
-      <p-button size="small">
+      <p-button size="small" attr:disabled="selecteds.length !== 1">
         <n-local-icon name="rename"></n-local-icon>
+      </p-button>
+      <p-button size="small" attr:disabled="selecteds.length !== 1">
+        <n-local-icon name="delete"></n-local-icon>
       </p-button>
     </p-button-group>
     <p-button-group variant="outlined">
@@ -91,10 +118,21 @@
       <n-local-icon name="search" slot="prefix"></n-local-icon>
     </p-text-field>
   </div>
-  <div class="main">
+  <div class="main" on:select-files="selectFiles">
     <div style="position: relative; flex: 1">
       <slot></slot>
     </div>
+  </div>
+
+  <div class="clipboard-area" class:hide="!clipboard?.sources?.length">
+    {{clipboardText}}
+    <p-button
+      size="small"
+      on:click="cProvider.desc = null"
+      style="margin: 0 8px"
+    >
+      点击取消操作
+    </p-button>
   </div>
 
   <div class="address">
@@ -103,6 +141,9 @@
       on:click-address="clickAddress"
     ></n-bottom-address>
   </div>
+
+  <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
+
   <script>
     export const parent = "./outer-layout.html";
 
@@ -110,8 +151,42 @@
       data: {
         path: "",
         fowardAddress: [], // 向前递进的路径
+        selecteds: [],
+        clipboard: {
+          // 等待中的操作
+          type: "copy", // cut 或 copy
+          sources: [], // 源地址
+        },
       },
       proto: {
+        get clipboardText() {
+          switch (this?.clipboard?.type) {
+            case "copy":
+              return `复制 ${this.clipboard.sources.join(",")}`;
+            case "cut":
+              return `剪切 ${this.clipboard.sources.join(",")}`;
+          }
+        },
+        get cProvider() {
+          return this.shadow.$('[name="clipboard"]').provider;
+        },
+        clickCopy(e) {
+          this.cProvider.desc = {
+            type: "copy",
+            sources: [...this.selecteds],
+          };
+        },
+        clickCut(e) {
+          this.cProvider.desc = {
+            type: "cut",
+            sources: [...this.selecteds],
+          };
+        },
+        clickPaste(e) {},
+        selectFiles(e) {
+          e.stopPropagation();
+          this.selecteds = e.data.selecteds.map((e) => e.path);
+        },
         appBack() {
           // 后退前记录地址路径
           this.app.back();
@@ -135,6 +210,7 @@
       ready() {
         this.on("go-page", (e) => {
           e.stopPropagation();
+          this.selecteds = [];
           this.path = e.data.path;
         });
       },

@@ -15,6 +15,8 @@
     }
 
     .name {
+      display: flex;
+      align-items: center;
       font-size: 14px;
     }
   </style>
@@ -26,13 +28,14 @@
       <img src="../sources/list-file.svg" />
     </x-else>
   </div>
-  <div class="name">{{name}}</div>
+  <div class="name">
+    <slot></slot>
+  </div>
   <script>
     export default {
       tag: "n-handle-block",
       data: {
         view: "",
-        name: "",
         kind: "",
       },
     };

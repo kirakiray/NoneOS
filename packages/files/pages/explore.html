@@ -29,6 +29,7 @@
       </div>
     </x-if>
   </div>
+
   <script>
     export const parent = "../tool-layout.html";
 
@@ -87,7 +88,7 @@
         bytes /= 1024;
         i++;
       }
-      
+
       return `${bytes.toFixed(2)} ${units[i]}`;
     }
   </script>
