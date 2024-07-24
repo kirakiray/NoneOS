@@ -46,8 +46,9 @@
           async refreshFiles() {
             const handle = await get(query.path);
 
-            await handle.forEach((item) => {
+            await handle.forEach(async (item) => {
               this.files.push({
+                size: formatBytes(await item.size()),
                 id: item.id,
                 kind: item.kind,
                 name: item.name,
@@ -74,5 +75,20 @@
         },
       };
     };
+
+    function formatBytes(bytes) {
+      if (!bytes) {
+        return bytes;
+      }
+
+      const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+      let i = 0;
+      while (bytes >= 1024 && i < units.length - 1) {
+        bytes /= 1024;
+        i++;
+      }
+      
+      return `${bytes.toFixed(2)} ${units[i]}`;
+    }
   </script>
 </template>

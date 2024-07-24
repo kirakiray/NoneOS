@@ -36,6 +36,8 @@ export class FileHandle extends BaseHandle {
 
     const hashs = [];
 
+    const size = data.length || data.size || 0;
+
     // 写入块
     await Promise.all(
       chunks.map(async (chunk, index) => {
@@ -85,8 +87,8 @@ export class FileHandle extends BaseHandle {
         {
           ...targetData,
           lastModified: data?.lastModified || Date.now(),
-          length: data.length,
           hashs,
+          size,
         },
         ...hashs.map((hash, index) => {
           return {

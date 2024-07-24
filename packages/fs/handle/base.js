@@ -223,6 +223,14 @@ export class BaseHandle {
 
     this.#path = pathArr.join("/");
   }
+
+  async size() {
+    const data = await getSelfData(this, "size");
+
+    if (data.type === "file") {
+      return data.size;
+    }
+  }
 }
 
 // 修正 target 和 name 的值

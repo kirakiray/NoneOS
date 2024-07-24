@@ -37,11 +37,11 @@
     }
 
     .file-item-cell {
-      flex: 1;
+      flex: 10 1 150px;
     }
 
-    .type-cell {
-      flex: 0 0 200px;
+    .small-cell {
+      flex: 1 1 100px;
     }
   </style>
   <div class="container">
@@ -50,8 +50,8 @@
         <div style="padding-left: 20px">名称</div>
       </div>
       <div class="file-item-cell">修改时间</div>
-      <!-- <div class="file-item-cell">创建时间</div> -->
-      <div class="file-item-cell type-cell">类型</div>
+      <div class="file-item-cell small-cell">文件大小</div>
+      <div class="file-item-cell small-cell">类型</div>
     </div>
     <x-fill :value="files">
       <div class="file-item" on:dblclick="$host.open($data)">
@@ -62,8 +62,8 @@
           ></n-handle-block>
         </div>
         <div class="file-item-cell">{{$data.lastModified}}</div>
-        <!-- <div class="file-item-cell">{{$data.createTime}}</div> -->
-        <div class="file-item-cell type-cell">
+        <div class="file-item-cell small-cell">{{$data.size || '--'}}</div>
+        <div class="file-item-cell small-cell">
           {{$host.getKind($data.kind)}}
         </div>
       </div>
