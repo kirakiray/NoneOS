@@ -154,6 +154,8 @@
         async open(data) {
           if (data.kind === "dir") {
             this.host.goto(`./explore.html?path=${data.path}`);
+          } else {
+            window.open(`/$/${data.path}`);
           }
         },
         get sqColor() {
