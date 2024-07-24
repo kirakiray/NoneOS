@@ -1,6 +1,6 @@
 import { BaseHandle } from "./base.js";
 import { setData, getData } from "../db.js";
-import { clearHashs, getSelfData } from "./util.js";
+import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
 const CHUNK_SIZE = 1024 * 1024; // 1mb
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -102,6 +102,8 @@ export class FileHandle extends BaseHandle {
     if (oldHashs.length) {
       await clearHashs(oldHashs);
     }
+
+    await updateParentsModified(targetData.parent);
   }
 
   /**

@@ -45,10 +45,18 @@
   </style>
   <div class="top">
     <p-button-group variant="outlined">
-      <p-button size="small" on:click="appBack">
+      <p-button
+        size="small"
+        on:click="appBack"
+        attr:disabled="app.routers.length <= 1"
+      >
         <n-local-icon name="back"></n-local-icon>
       </p-button>
-      <p-button size="small" on:click="appForward">
+      <p-button
+        size="small"
+        on:click="appForward"
+        attr:disabled="!fowardAddress.length"
+      >
         <n-local-icon name="forward"></n-local-icon>
       </p-button>
     </p-button-group>
