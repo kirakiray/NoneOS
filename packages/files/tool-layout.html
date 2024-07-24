@@ -3,7 +3,7 @@
   <l-m src="/packages/pui/button/button-group.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
-  <l-m src="./comps/handle-block.html"></l-m>
+  <l-m src="./comps/bottom-address.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -39,7 +39,7 @@
     .address {
       display: flex;
       align-items: center;
-      height: 30px;
+      height: 32px;
       font-size: 14px;
     }
   </style>
@@ -74,6 +74,14 @@
         <n-local-icon name="rename"></n-local-icon>
       </p-button>
     </p-button-group>
+    <p-button-group variant="outlined">
+      <p-button size="small">
+        <n-local-icon name="import"></n-local-icon>
+      </p-button>
+      <p-button size="small">
+        <n-local-icon name="export"></n-local-icon>
+      </p-button>
+    </p-button-group>
 
     <p-text-field
       size="small"
@@ -90,7 +98,10 @@
   </div>
 
   <div class="address">
-    <n-handle-block :name="path" :kind="'dir'"></n-handle-block>
+    <n-bottom-address
+      :path="path"
+      on:click-address="clickAddress"
+    ></n-bottom-address>
   </div>
   <script>
     export const parent = "./outer-layout.html";
@@ -112,6 +123,13 @@
           if (nextPath) {
             this.app.current.goto(`./explore.html?path=${nextPath}`);
           }
+        },
+        clickAddress(e) {
+          const {
+            data: { newPath },
+          } = e;
+
+          this.app.current.goto(`./explore.html?path=${newPath}`);
         },
       },
       ready() {

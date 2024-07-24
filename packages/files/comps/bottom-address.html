@@ -1,0 +1,69 @@
+<template component>
+  <l-m src="./handle-block.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+    }
+    .block {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .mark {
+      margin: 0 8px;
+      width: 0;
+      height: 0;
+      border-top: transparent solid 5px;
+      border-bottom: transparent solid 5px;
+      border-left: var(--md-sys-color-normal) solid 5px;
+    }
+    .block:last-child {
+      cursor: default;
+    }
+    .block:last-child .mark {
+      display: none;
+    }
+  </style>
+  <div class="container">
+    <x-fill :value="pathArr">
+      <div class="block" on:click="$host.clickBlock($index)">
+        <n-handle-block :name="$data" :kind="'dir'"></n-handle-block>
+        <div class="mark"></div>
+      </div>
+    </x-fill>
+  </div>
+  <script>
+    export default {
+      tag: "n-bottom-address",
+      data: {
+        path: "",
+      },
+      proto: {
+        get pathArr() {
+          const { path } = this;
+
+          return path.split("/");
+        },
+        clickBlock(index) {
+          const isLasted = this.pathArr.length - 1 === index;
+          if (isLasted) {
+            return;
+          }
+
+          const paths = this.pathArr.slice(0, index + 1);
+          const newPath = paths.join("/");
+
+          this.emit("click-address", {
+            bubbles: false,
+            data: {
+              newPath,
+            },
+          });
+        },
+      },
+    };
+  </script>
+</template>
