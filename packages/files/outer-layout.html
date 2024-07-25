@@ -27,6 +27,11 @@
       flex: 1;
     }
 
+    p-list-item[active-item] {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
     .left n-local-icon[slot="prefix"] {
       display: block;
       font-size: 18px;
@@ -39,8 +44,8 @@
         <x-fill :value="roots">
           <p-list-item
             button
-            attr:active-item="$data.name === $host.selectedRootName"
-            on:click="$host.selectedRootName = $data.name"
+            attr:active-item="$data.path === $host.selectedRootName"
+            on:click="$host.clickTab($data)"
           >
             <n-local-icon
               slot="prefix"
@@ -62,17 +67,50 @@
           roots: [
             {
               name: "Local",
+              path: "local",
             },
             {
               name: "Apps",
+              path: "apps",
               icon: "apps",
             },
             {
               name: "System",
+              path: "system",
               icon: "safe",
             },
           ],
-          selectedRootName: "Local",
+          selectedRootName: "local",
+        },
+        proto: {
+          clickTab(data) {
+            if (data.path === this.selectedRootName) {
+              return;
+            }
+            this.selectedRootName = data.path;
+            this.app.current.goto(`./explore.html?path=${data.path}`);
+          },
+        },
+        attached() {
+          let f;
+          // 路由切换时，激活左侧的状态
+          this.app.on(
+            "router-change",
+            (f = () => {
+              const currentPath = this.app.current.path;
+
+              const rootName = currentPath.split("/")[0];
+
+              this.selectedRootName = rootName;
+            })
+          );
+
+          this._offFunc = () => {
+            this.app.off("router-change", f);
+          };
+        },
+        detached() {
+          this._offFunc && this._offFunc();
         },
       };
     };

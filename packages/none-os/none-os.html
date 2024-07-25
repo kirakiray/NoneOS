@@ -71,8 +71,12 @@
   </o-provider>
   <script>
     import "/packages/pui/init.js";
+    import { createRoot } from "../fs/get.js";
 
     export default async () => {
+      await createRoot("apps");
+      await createRoot("system");
+
       return {
         tag: "none-os",
         data: {
