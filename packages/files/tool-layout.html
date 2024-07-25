@@ -114,10 +114,10 @@
       </p-button>
     </p-button-group>
     <p-button-group variant="outlined">
-      <p-button size="small">
+      <p-button size="small" attr:disabled="!selecteds.length">
         <n-local-icon name="import"></n-local-icon>
       </p-button>
-      <p-button size="small">
+      <p-button size="small" attr:disabled="!selecteds.length">
         <n-local-icon name="export"></n-local-icon>
       </p-button>
     </p-button-group>
@@ -126,6 +126,7 @@
       size="small"
       class="search-input"
       placeholder="在当前文件夹搜索"
+      sync:value="search"
     >
       <n-local-icon name="search" slot="prefix"></n-local-icon>
     </p-text-field>
@@ -176,6 +177,12 @@
             // sources: [], // 源地址
           },
           needRename: null,
+          search: "",
+        },
+        watch: {
+          search(text) {
+            this[0].search = text;
+          },
         },
         proto: {
           get clipboardText() {
@@ -272,6 +279,7 @@
             this.selecteds = [];
             this.path = e.data.path;
             this.needRename = null;
+            this.search = "";
           });
         },
         attached() {

@@ -2,12 +2,6 @@
   <l-m src="./handle-block.html"></l-m>
 
   <style>
-    .file-item:nth-child(2n) {
-      background-color: var(data(sqColor));
-    }
-  </style>
-
-  <style>
     :host {
       display: block;
     }
@@ -18,9 +12,12 @@
     }
     .head {
       font-weight: bold;
+      border-bottom: var(--md-ref-palette-translucent-normal60) solid 1px;
     }
 
     .file-item {
+      position: relative;
+      z-index: 1;
       display: flex;
       align-items: center;
       /* flex-direction: column; */
@@ -28,8 +25,10 @@
       padding: 2px 4px;
       height: 30px;
       text-align: left;
-      border-radius: 4px;
+      /* border-radius: 4px; */
       font-size: 14px;
+      overflow: hidden;
+      transition: height ease 0.2s;
     }
 
     .file-item:hover {
@@ -66,6 +65,33 @@
       overflow: hidden;
       transition: all ease 0.3s;
     }
+
+    .file-item.hide {
+      height: 0px;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    /* .file-item:nth-child(2n) {
+      background-color: var(--s-bg);
+    } */
+
+    .stripe-bg {
+      position: absolute;
+      z-index: 0;
+      left: 4px;
+      top: 0;
+      width: calc(100% - 8px);
+      height: 100%;
+      background: linear-gradient(to bottom, transparent 34px, var(--s-bg) 0);
+      background-size: 34px 68px;
+    }
+  </style>
+
+  <style>
+    .container {
+      --s-bg: var(data(sqColor));
+    }
   </style>
 
   <div class="container">
@@ -77,46 +103,54 @@
       <div class="file-item-cell small-cell">文件大小</div>
       <div class="file-item-cell small-cell">类型</div>
     </div>
-    <x-fill :value="files">
-      <div
-        class="file-item"
-        on:dblclick="$host.open($data)"
-        on:click="$host.selectItem($data)"
-        class:selected="!!$data.selected"
-        attr:data-path="$data.path"
-      >
-        <div class="file-item-cell">
-          <n-handle-block
-            :kind="$data.kind"
-            :name="$data.name"
-            :rename-mode="$host.needRename === $data.path"
-            :file-path="$data.path"
-          >
-            <n-local-icon
-              class="cut-icon"
-              name="cut"
-              slot="surfix"
-            ></n-local-icon>
-            <n-local-icon
-              class="copy-icon"
-              name="copy"
-              slot="prefix"
-            ></n-local-icon>
-          </n-handle-block>
+    <div style="position: relative">
+      <div class="stripe-bg"></div>
+      <x-fill :value="files">
+        <div
+          class="file-item"
+          on:dblclick="$host.open($data)"
+          on:click="$host.selectItem($data)"
+          class:selected="!!$data.selected"
+          attr:data-path="$data.path"
+          class:hide="$data.hide"
+        >
+          <div class="file-item-cell">
+            <n-handle-block
+              :kind="$data.kind"
+              :name="$data.name"
+              :rename-mode="$host.needRename === $data.path"
+              :file-path="$data.path"
+            >
+              <n-local-icon
+                class="cut-icon"
+                name="cut"
+                slot="surfix"
+              ></n-local-icon>
+              <n-local-icon
+                class="copy-icon"
+                name="copy"
+                slot="prefix"
+              ></n-local-icon>
+            </n-handle-block>
+          </div>
+          <div class="file-item-cell">{{$data.lastModified}}</div>
+          <div class="file-item-cell small-cell">{{$data.size || '--'}}</div>
+          <div class="file-item-cell small-cell">
+            {{$host.getKind($data.kind)}}
+          </div>
         </div>
-        <div class="file-item-cell">{{$data.lastModified}}</div>
-        <div class="file-item-cell small-cell">{{$data.size || '--'}}</div>
-        <div class="file-item-cell small-cell">
-          {{$host.getKind($data.kind)}}
-        </div>
-      </div>
-    </x-fill>
+      </x-fill>
+    </div>
   </div>
+  <x-if :value="noMatch">
+    <div style="text-align: center; font-size: 14px">
+      没有匹配的文件或文件夹
+    </div>
+  </x-if>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
   <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>
   <style id="clipboard-style"></style>
-
   <script>
     export default {
       tag: "n-file-list",
@@ -125,8 +159,29 @@
         theme: null,
         clipboard: {},
         needRename: null, // 需要重命名的文件
+        search: "",
+        noMatch: false,
       },
       watch: {
+        search() {
+          if (!this.files.length) {
+            return;
+          }
+
+          clearTimeout(this._search_timer);
+          this._search_timer = setTimeout(() => {
+            let exited = false;
+            const text = this.search;
+            this.files.forEach((e) => {
+              e.hide = !e.name.includes(text);
+              if (!e.hide) {
+                exited = true;
+              }
+            });
+            // 所有都隐藏，就显示空
+            this.noMatch = !exited;
+          }, 100);
+        },
         clipboard(clipboard) {
           if (!clipboard?.type) {
             this.shadow.$("#clipboard-style").html = "";

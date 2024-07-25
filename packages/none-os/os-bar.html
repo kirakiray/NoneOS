@@ -118,8 +118,6 @@
         },
         watch: {
           darkMode(bool) {
-            console.log("dark mode: ", bool);
-
             localStorage.__darkmode = bool ? "1" : "";
 
             clearTimeout(this._darkTimer);

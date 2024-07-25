@@ -30,7 +30,11 @@
   </style>
   <div class="container">
     <div class="other-area" on:click="clickOther"></div>
-    <n-file-list :files="files" on:rename-file="renameFile"></n-file-list>
+    <n-file-list
+      :files="files"
+      on:rename-file="renameFile"
+      :search="search"
+    ></n-file-list>
     <x-if :value="files.length === 0 && !loading">
       <div
         style="
@@ -57,6 +61,7 @@
           path: query.path || "local",
           files: [],
           loading: true,
+          search: "",
         },
         proto: {
           async renameFile(e) {
