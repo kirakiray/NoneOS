@@ -28,7 +28,7 @@
       /* border-radius: 4px; */
       font-size: 14px;
       overflow: hidden;
-      transition: height ease 0.2s;
+      transition: height ease 0.2s, opacity ease 0.2s;
     }
 
     .file-item:hover {
@@ -70,6 +70,7 @@
       height: 0px;
       padding-top: 0;
       padding-bottom: 0;
+      opacity: 0;
     }
 
     /* .file-item:nth-child(2n) {
@@ -171,9 +172,9 @@
           clearTimeout(this._search_timer);
           this._search_timer = setTimeout(() => {
             let exited = false;
-            const text = this.search;
+            const text = this.search.toLowerCase();
             this.files.forEach((e) => {
-              e.hide = !e.name.includes(text);
+              e.hide = !e.name.toLowerCase().includes(text);
               if (!e.hide) {
                 exited = true;
               }
