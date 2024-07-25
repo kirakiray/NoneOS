@@ -44,6 +44,8 @@ export const getErr = (key, options, error) => {
   } else {
     errObj = new Error(desc);
   }
+  errObj.code = key;
+
   return errObj;
 };
 
