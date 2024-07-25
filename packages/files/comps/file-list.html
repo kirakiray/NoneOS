@@ -86,10 +86,22 @@
         attr:data-path="$data.path"
       >
         <div class="file-item-cell">
-          <n-handle-block :kind="$data.kind">
-            <n-local-icon class="cut-icon" name="cut"></n-local-icon>
-            {{$data.name}}
-            <n-local-icon class="copy-icon" name="copy"></n-local-icon>
+          <n-handle-block
+            :kind="$data.kind"
+            :name="$data.name"
+            :rename-mode="$host.needRename === $data.path"
+            :file-path="$data.path"
+          >
+            <n-local-icon
+              class="cut-icon"
+              name="cut"
+              slot="surfix"
+            ></n-local-icon>
+            <n-local-icon
+              class="copy-icon"
+              name="copy"
+              slot="prefix"
+            ></n-local-icon>
           </n-handle-block>
         </div>
         <div class="file-item-cell">{{$data.lastModified}}</div>
@@ -102,6 +114,7 @@
   </div>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
+  <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>
   <style id="clipboard-style"></style>
 
   <script>
@@ -111,6 +124,7 @@
         files: [],
         theme: null,
         clipboard: {},
+        needRename: null, // 需要重命名的文件
       },
       watch: {
         clipboard(clipboard) {

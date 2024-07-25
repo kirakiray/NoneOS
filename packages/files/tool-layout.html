@@ -98,7 +98,11 @@
       >
         <n-local-icon name="paste"></n-local-icon>
       </p-button>
-      <p-button size="small" attr:disabled="selecteds.length !== 1">
+      <p-button
+        size="small"
+        attr:disabled="selecteds.length !== 1"
+        on:click="clickRename"
+      >
         <n-local-icon name="rename"></n-local-icon>
       </p-button>
       <p-button
@@ -128,7 +132,9 @@
   </div>
   <div class="main" on:select-files="selectFiles">
     <div style="position: relative; flex: 1">
-      <slot></slot>
+      <o-provider name="rename-file" :need-rename="needRename">
+        <slot></slot>
+      </o-provider>
     </div>
   </div>
 
@@ -169,6 +175,7 @@
             // type: "copy", // cut 或 copy
             // sources: [], // 源地址
           },
+          needRename: null,
         },
         proto: {
           get clipboardText() {
@@ -193,6 +200,9 @@
               type: "cut",
               sources: [...this.selecteds],
             };
+          },
+          clickRename() {
+            this.needRename = this.selecteds[0];
           },
           async clickPaste(e) {
             const { sources, type } = this.clipboard;
@@ -258,9 +268,10 @@
         },
         ready() {
           this.on("go-page", (e) => {
-            e.stopPropagation();
+            // e.stopPropagation();
             this.selecteds = [];
             this.path = e.data.path;
+            this.needRename = null;
           });
         },
         attached() {

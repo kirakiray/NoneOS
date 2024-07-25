@@ -104,7 +104,8 @@ export class BaseHandle {
 
     const selfData = await getSelfData(this, "move");
     selfData.parent = target.id;
-    selfData.name = name;
+    selfData.name = name.toLowerCase();
+    selfData.realName = name;
 
     await setData({
       datas: [selfData],

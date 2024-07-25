@@ -19,6 +19,10 @@
       align-items: center;
       font-size: 14px;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
   <div class="icon">
     <x-if :value="kind === 'dir'">
@@ -29,7 +33,15 @@
     </x-else>
   </div>
   <div class="name">
-    <slot></slot>
+    <slot name="surfix"></slot>
+    <div class:hide="renameMode">{{name}}</div>
+    <input
+      type="text"
+      :value="name"
+      class:hide="!renameMode"
+      on:blur="renameItem"
+    />
+    <slot name="prefix"></slot>
   </div>
   <script>
     export default {
@@ -37,6 +49,35 @@
       data: {
         view: "",
         kind: "",
+        name: "",
+        filePath: null,
+        renameMode: false,
+      },
+      watch: {
+        renameMode(bool) {
+          if (bool) {
+            setTimeout(() => {
+              if (this.renameMode) {
+                this.shadow.$("input").ele.focus();
+              }
+            }, 100);
+          }
+        },
+      },
+      proto: {
+        renameItem(e) {
+          const { value } = e.target;
+          if (this.name !== value) {
+            // 重命名的冒泡
+            this.emit("rename-file", {
+              data: {
+                targetPath: this.filePath,
+                newName: value,
+              },
+              composed: true,
+            });
+          }
+        },
       },
     };
   </script>

@@ -30,7 +30,7 @@
   <div class="container">
     <x-fill :value="pathArr">
       <div class="block" on:click="$host.clickBlock($index)">
-        <n-handle-block :kind="'dir'">{{$data}}</n-handle-block>
+        <n-handle-block :kind="'dir'" :name="$data"></n-handle-block>
         <div class="mark"></div>
       </div>
     </x-fill>

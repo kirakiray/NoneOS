@@ -80,7 +80,7 @@
               icon: "safe",
             },
           ],
-          selectedRootName: "local",
+          selectedRootName: null,
         },
         proto: {
           clickTab(data) {
@@ -91,26 +91,13 @@
             this.app.current.goto(`./explore.html?path=${data.path}`);
           },
         },
-        attached() {
-          let f;
-          // 路由切换时，激活左侧的状态
-          this.app.on(
-            "router-change",
-            (f = () => {
-              const currentPath = this.app.current.path;
+        ready() {
+          this.on("go-page", (e) => {
+            e.stopPropagation();
 
-              const rootName = currentPath.split("/")[0];
-
-              this.selectedRootName = rootName;
-            })
-          );
-
-          this._offFunc = () => {
-            this.app.off("router-change", f);
-          };
-        },
-        detached() {
-          this._offFunc && this._offFunc();
+            const rootName = e.data.path.split("/")[0];
+            this.selectedRootName = rootName;
+          });
         },
       };
     };

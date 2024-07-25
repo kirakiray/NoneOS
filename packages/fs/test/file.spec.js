@@ -21,6 +21,7 @@ test("file system", async ({ page }) => {
   await page.getByText("remove root ok").click();
   await page.getByText("move to child ok").click();
   await page.getByText("moveTo file ok").click();
+  await page.getByText("rename dir ok").click();
 });
 
 test("opfs", async ({ page, browserName }) => {
@@ -50,4 +51,5 @@ test("opfs", async ({ page, browserName }) => {
   await page.getByText("remove root ok").click();
   await page.getByText("move to child ok").click();
   await page.getByText("moveTo file ok").click();
+  await page.getByText("rename dir ok").click();
 });

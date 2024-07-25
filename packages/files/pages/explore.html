@@ -30,7 +30,7 @@
   </style>
   <div class="container">
     <div class="other-area" on:click="clickOther"></div>
-    <n-file-list :files="files"></n-file-list>
+    <n-file-list :files="files" on:rename-file="renameFile"></n-file-list>
     <x-if :value="files.length === 0 && !loading">
       <div
         style="
@@ -59,6 +59,18 @@
           loading: true,
         },
         proto: {
+          async renameFile(e) {
+            e.stopPropagation();
+
+            const {
+              data: { targetPath, newName },
+            } = e;
+
+            const handle = await get(targetPath);
+            await handle.moveTo(newName);
+
+            this.refreshFiles();
+          },
           clickOther() {
             // 清空选择
             this.shadow.$("n-file-list").selectItem({});
