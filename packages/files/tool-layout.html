@@ -208,12 +208,12 @@
             switch (type) {
               case "copy":
                 for (let handle of handles) {
-                  await handle.copy(targetHandle, handle.name);
+                  await handle.copyTo(targetHandle);
                 }
                 break;
               case "cut":
                 for (let handle of handles) {
-                  await handle.move(targetHandle);
+                  await handle.moveTo(targetHandle);
                 }
             }
 

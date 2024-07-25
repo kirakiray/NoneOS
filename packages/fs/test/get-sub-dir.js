@@ -100,23 +100,25 @@ await test2Handle
     ok(true, "catch useless handle");
   });
 
-// {
-//   // 剪切文件夹后，确保能再次访问
-//   const mFile = await get("local/testmove/file.txt", {
-//     create: "file",
-//   });
+{
+  // 剪切文件夹后，确保能再次访问
+  const mFile = await get("local/testmove/file.txt", {
+    create: "file",
+  });
 
-//   await mFile.write("test move dir");
+  await mFile.write("test move dir");
 
-//   const move2Dir = await get("local/testmove2", {
-//     create: "dir",
-//   });
+  const move2Dir = await get("local/testmove2", {
+    create: "dir",
+  });
 
-//   debugger;
+  const m1 = await get("local/testmove");
 
-//   const m1 = await get("local/testmove");
+  await m1.moveTo(move2Dir);
 
-//   debugger;
+  const mFile_2 = await get("local/testmove2/testmove/file.txt");
 
-//   await m1.move(move2Dir);
-// }
+  ok((await mFile_2.text()) === "test move dir", "moveTo file");
+
+  await move2Dir.remove();
+}
