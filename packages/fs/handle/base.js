@@ -99,7 +99,7 @@ export class BaseHandle {
    * @param {(string|DirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async move(target, name) {
+  async moveTo(target, name) {
     [target, name] = await getTargetAndName({ target, name, self: this });
 
     const selfData = await getSelfData(this, "move");
@@ -118,7 +118,7 @@ export class BaseHandle {
    * @param {(string|DirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copy(target, name) {
+  async copyTo(target, name) {
     [target, name] = await getTargetAndName({ target, name, self: this });
 
     let reHandle;
@@ -130,7 +130,7 @@ export class BaseHandle {
         });
 
         for await (let [name, subHandle] of this.entries()) {
-          await subHandle.copy(reHandle, name);
+          await subHandle.copyTo(reHandle, name);
         }
         break;
       case "file":
@@ -242,6 +242,10 @@ export const getTargetAndName = async ({ target, name, self }) => {
     target = await self.parent();
   }
 
+  if (!name) {
+    name = self.name;
+  }
+
   // 查看是否已经有同名的文件或文件夹
   let exited = false;
   for await (let subName of target.keys()) {
@@ -257,7 +261,7 @@ export const getTargetAndName = async ({ target, name, self }) => {
     });
   }
 
-  if (target.path.includes(self.name)) {
+  if (isSubdirectory(target.path, self.path)) {
     throw getErr("notMoveToChild", {
       targetPath: target.path,
       path: self.path,
@@ -266,3 +270,12 @@ export const getTargetAndName = async ({ target, name, self }) => {
 
   return [target, name];
 };
+
+function isSubdirectory(child, parent) {
+  if (child === parent) {
+    return false;
+  }
+  const parentTokens = parent.split("/").filter((i) => i.length);
+  const childTokens = child.split("/").filter((i) => i.length);
+  return parentTokens.every((t, i) => childTokens[i] === t);
+}

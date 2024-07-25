@@ -56,14 +56,14 @@ const file2 = await get(
 
 await file2.write("test file2!!");
 
-await file2.move("test2.txt");
+await file2.moveTo("test2.txt");
 // .catch((err) => {
 //   console.error(err);
 // });
 
 const sub3_1 = await get("local/subDir3/sub3-1");
 
-await sub3_1.copy("sub3_2");
+await sub3_1.copyTo("sub3_2");
 // .catch((err) => {
 //   console.error(err);
 // });
@@ -99,3 +99,24 @@ await test2Handle
     console.log(err);
     ok(true, "catch useless handle");
   });
+
+// {
+//   // 剪切文件夹后，确保能再次访问
+//   const mFile = await get("local/testmove/file.txt", {
+//     create: "file",
+//   });
+
+//   await mFile.write("test move dir");
+
+//   const move2Dir = await get("local/testmove2", {
+//     create: "dir",
+//   });
+
+//   debugger;
+
+//   const m1 = await get("local/testmove");
+
+//   debugger;
+
+//   await m1.move(move2Dir);
+// }

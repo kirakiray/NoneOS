@@ -45,7 +45,7 @@ await testCopyDir.write("aaa");
 const t1 = await get("local/t1");
 const t2 = await get("local/t1/t2");
 
-t1.copy(t2)
+t1.copyTo(t2)
   .then(() => {
     ok(false, "move to child");
   })
