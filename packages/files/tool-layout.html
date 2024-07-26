@@ -268,6 +268,10 @@
             this.app.back();
           },
           appForward() {
+            if (!this.fowardAddress.length) {
+              console.warn("cannot foward");
+              return;
+            }
             // 前进
             const nextPath = this.fowardAddress.shift();
             this._is_forward = 1;
@@ -284,6 +288,8 @@
           },
         },
         ready() {
+          this.attr("tool-layout", "");
+
           this.on("go-page", (e) => {
             // e.stopPropagation();
             this.selecteds = [];

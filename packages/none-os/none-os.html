@@ -98,6 +98,9 @@
           hasMaxApp: false, // 是否存在最大化的应用
         },
         proto: {
+          get currentAppFrame() {
+            return this.shadow.$("n-app-frame[focus]");
+          },
           clickApp({ data }) {
             const targetApp = data.app;
             targetApp.status = "running";
@@ -147,11 +150,94 @@
 
             this.refreshBarMode();
           },
+          async initHistory() {
+            const bindHistory = () => {
+              let f;
+              window.addEventListener(
+                "popstate",
+                (f = (event) => {
+                  const { state } = event;
+
+                  if (state.routerType === "backward") {
+                    console.log("app backward");
+                    this.currentAppFrame
+                      .$("o-app")
+                      .emit("backward", { bubbles: false });
+                    history.forward(); // 还原
+                  } else if (state.routerType === "forward") {
+                    console.log("app forward");
+                    history.back(); // 还原
+                    this.currentAppFrame
+                      .$("o-app")
+                      .emit("forward", { bubbles: false });
+                  }
+                })
+              );
+
+              this._offState = () => {
+                window.removeEventListener("popstate", f);
+              };
+            };
+
+            if (history.state && history.state.routerType === "current") {
+              // 处于当前态就直接注册事件
+              bindHistory();
+              return;
+            }
+
+            // 先修正为返回状态
+            history.replaceState(
+              {
+                routerType: "backward",
+              },
+              "None OS back state",
+              "/#backward"
+            );
+
+            await new Promise((res) => setTimeout(res, 50));
+
+            // 添加当前页状态
+            history.pushState(
+              {
+                routerType: "current",
+              },
+              "None OS",
+              "/"
+            );
+
+            await new Promise((res) => setTimeout(res, 50));
+
+            // 添加前进态
+            history.pushState(
+              {
+                routerType: "forward",
+              },
+              "None OS forward state",
+              "/#forward"
+            );
+
+            await new Promise((res) => setTimeout(res, 50));
+
+            // 返回到正常的当前态
+            history.back();
+
+            bindHistory();
+          },
         },
         async attached() {
           $("body").push(
             `<style>html,body{margin:0;padding:0;height:100%;}</style>`
           );
+
+          if (history.state && history.state.routerType === "current") {
+            // 处于当前态就直接注册事件
+            this.initHistory();
+          } else {
+            // 使用事件注册历史，才能不会被系统修正历史
+            $("html").one("mousedown", () => {
+              this.initHistory();
+            });
+          }
 
           setTimeout(() => {
             // 测试代码
@@ -159,6 +245,9 @@
               data: { app: this.barApps[0] },
             });
           }, 100);
+        },
+        detached() {
+          this._offState && this._offState();
         },
       };
     };
