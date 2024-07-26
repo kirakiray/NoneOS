@@ -6,6 +6,69 @@
     :host {
       position: absolute;
       z-index: 1;
+      overflow: hidden;
+    }
+
+    [border-area],
+    [border-point] {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      /* background-color: red; */
+      z-index: 2;
+    }
+
+    [border-area="top"],
+    [border-area="bottom"] {
+      width: 100%;
+      cursor: ns-resize;
+    }
+
+    [border-area="left"],
+    [border-area="right"] {
+      height: 100%;
+      cursor: ew-resize;
+    }
+
+    [border-area="top"],
+    [border-area="left"] {
+      left: 0;
+      top: 0;
+    }
+
+    [border-area="bottom"],
+    [border-area="right"] {
+      right: 0;
+      bottom: 0;
+    }
+
+    [border-point] {
+      z-index: 3;
+      /* background-color: blue; */
+    }
+
+    [border-point="top-left"] {
+      left: 0;
+      top: 0;
+      cursor: nwse-resize;
+    }
+
+    [border-point="top-right"] {
+      right: 0;
+      top: 0;
+      cursor: nesw-resize;
+    }
+
+    [border-point="bottom-left"] {
+      left: 0;
+      bottom: 0;
+      cursor: nesw-resize;
+    }
+
+    [border-point="bottom-right"] {
+      right: 0;
+      bottom: 0;
+      cursor: nwse-resize;
     }
 
     :host([focus]) {
@@ -68,6 +131,11 @@
       transform-origin: 50% 0;
       transform: scale(0.8);
       opacity: 0;
+    }
+
+    :host([app-status="max"]) [border-point],
+    :host([app-status="max"]) [border-area] {
+      display: none;
     }
   </style>
   <style>
@@ -155,6 +223,17 @@
 
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
 
+  <div on:mousedown="borderMouseDown">
+    <div border-area="top" resize-top="1"></div>
+    <div border-area="bottom" resize-bottom="1"></div>
+    <div border-area="left" resize-left="1"></div>
+    <div border-area="right" resize-right="1"></div>
+    <div border-point="top-left" resize-top="1" resize-left="1"></div>
+    <div border-point="top-right" resize-top="1" resize-right="1"></div>
+    <div border-point="bottom-left" resize-bottom="1" resize-left="1"></div>
+    <div border-point="bottom-right" resize-bottom="1" resize-right="1"></div>
+  </div>
+
   <script>
     export default {
       tag: "n-app-frame",
@@ -191,6 +270,87 @@
         },
       },
       proto: {
+        borderMouseDown(e) {
+          if (this.__oldResize) {
+            this.__oldResize();
+          }
+
+          const resizeTop = !!e.target.getAttribute("resize-top");
+          const resizeLeft = !!e.target.getAttribute("resize-left");
+          const resizeBottom = !!e.target.getAttribute("resize-bottom");
+          const resizeRight = !!e.target.getAttribute("resize-right");
+
+          let startX = e.clientX,
+            startY = e.clientY;
+
+          let moveFunc, leaveFunc, upFunc;
+
+          // 获取初始定位和尺寸数据
+          const startTop = this.appTop;
+          const startLeft = this.appLeft;
+          const startWidth = this.appWidth;
+          const startHeight = this.appHeight;
+
+          // 修改后的定位数据
+          let reTop = startTop;
+          let reLeft = startLeft;
+          let reWidth = startWidth;
+          let reHeight = startHeight;
+
+          $("body").on(
+            "mousemove",
+            (moveFunc = (e) => {
+              const diffX = e.clientX - startX;
+              const diffY = e.clientY - startY;
+
+              if (resizeTop) {
+                reTop = startTop + diffY;
+                reHeight = startHeight - diffY;
+              }
+
+              if (resizeLeft) {
+                reLeft = startLeft + diffX;
+                reWidth = startWidth - diffX;
+              }
+
+              if (resizeBottom) {
+                reHeight = startHeight + diffY;
+              }
+
+              if (resizeRight) {
+                reWidth = startWidth + diffX;
+              }
+
+              Object.assign(this.style, {
+                top: `${reTop}px`,
+                left: `${reLeft}px`,
+                width: `${reWidth}px`,
+                height: `${reHeight}px`,
+              });
+
+              // console.log("diffX: ", diffX);
+              // console.log("diffY: ", diffY);
+            })
+          );
+
+          const mouseEnd = (this.__oldResize = () => {
+            // 设置最终尺寸和定位数据
+            Object.assign(this, {
+              appTop: reTop,
+              appLeft: reLeft,
+              appWidth: reWidth,
+              appHeight: reHeight,
+            });
+
+            $("body").off("mousemove", moveFunc);
+            $("body").off("mouseup", mouseEnd);
+            $("body").off("mouseleave", mouseEnd);
+            this.__oldResize = null;
+          });
+
+          $("body").on("mouseup", mouseEnd);
+          $("body").on("mouseleave", mouseEnd);
+        },
         // 改变状态（显示、隐藏、最大化、最小化）
         changeState(type) {
           this._oldAppStatus = this.appStatus;
