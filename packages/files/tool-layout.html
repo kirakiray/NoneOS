@@ -114,7 +114,14 @@
       </p-button>
     </p-button-group>
     <p-button-group variant="outlined">
-      <p-button size="small" attr:disabled="!selecteds.length">
+      <p-button
+        size="small"
+        on:click="clickReload"
+        attr:disabled="!!selecteds.length"
+      >
+        <n-local-icon name="reload"></n-local-icon>
+      </p-button>
+      <p-button size="small" attr:disabled="!!selecteds.length">
         <n-local-icon name="import"></n-local-icon>
       </p-button>
       <p-button size="small" attr:disabled="!selecteds.length">
@@ -133,7 +140,7 @@
   </div>
   <div class="main" on:select-files="selectFiles">
     <div style="position: relative; flex: 1">
-      <o-provider name="rename-file" :need-rename="needRename">
+      <o-provider name="rename-file" sync:need-rename="needRename">
         <slot></slot>
       </o-provider>
     </div>
@@ -195,6 +202,9 @@
           },
           get cProvider() {
             return this.shadow.$('[name="clipboard"]').provider;
+          },
+          clickReload() {
+            this.app.current.refreshFiles();
           },
           clickCopy(e) {
             this.cProvider.desc = {

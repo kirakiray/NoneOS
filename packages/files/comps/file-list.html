@@ -106,7 +106,7 @@
     </div>
     <div style="position: relative">
       <div class="stripe-bg"></div>
-      <x-fill :value="files">
+      <x-fill :value="files" fill-key="path">
         <div
           class="file-item"
           on:dblclick="$host.open($data)"

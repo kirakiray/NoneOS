@@ -71,6 +71,10 @@
               data: { targetPath, newName },
             } = e;
 
+            if (!targetPath) {
+              return;
+            }
+
             const handle = await get(targetPath);
             await handle.moveTo(newName);
 

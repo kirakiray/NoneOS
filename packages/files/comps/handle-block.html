@@ -76,6 +76,9 @@
               },
               composed: true,
             });
+          } else {
+            const renameProvider = this.getProvider("rename-file");
+            renameProvider.needRename = null;
           }
         },
       },
