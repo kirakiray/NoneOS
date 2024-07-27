@@ -161,13 +161,13 @@
                   const { state } = event;
 
                   if (state.routerType === "backward") {
-                    console.log("app backward");
+                    // console.log("app backward");
                     this.currentAppFrame
                       .$("o-app")
                       .emit("backward", { bubbles: false });
                     history.forward(); // 还原
                   } else if (state.routerType === "forward") {
-                    console.log("app forward");
+                    // console.log("app forward");
                     history.back(); // 还原
                     this.currentAppFrame
                       .$("o-app")

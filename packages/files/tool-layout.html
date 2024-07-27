@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="./comps/bottom-address.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -42,7 +43,7 @@
       font-size: 14px;
     }
 
-    .clipboard-area {
+    .bottom-area {
       display: flex;
       align-items: center;
       padding-left: 8px;
@@ -53,10 +54,12 @@
       overflow: hidden;
       transition: all ease 0.3s;
     }
-    .clipboard-area.hide {
+    .bottom-area.hide {
       opacity: 0;
       height: 0;
-      transition: all ease 0.01s;
+    }
+    .bottom-area.hide.delay {
+      transition-delay: 1s;
     }
   </style>
   <div class="top">
@@ -121,9 +124,21 @@
       >
         <n-local-icon name="reload"></n-local-icon>
       </p-button>
-      <p-button size="small" attr:disabled="!!selecteds.length">
+      <p-button
+        size="small"
+        on:click="clickImport"
+        attr:disabled="!!selecteds.length"
+      >
         <n-local-icon name="import"></n-local-icon>
       </p-button>
+      <div style="position: absolute; width: 0; height: 0; overflow: hidden">
+        <input
+          type="file"
+          webkitdirectory
+          id="imInputer"
+          on:change="importFiles"
+        />
+      </div>
       <p-button size="small" attr:disabled="!selecteds.length">
         <n-local-icon name="export"></n-local-icon>
       </p-button>
@@ -146,16 +161,33 @@
     </div>
   </div>
 
-  <div class="clipboard-area" class:hide="!clipboard?.sources?.length">
-    {{clipboardText}}，点击
-    <n-local-icon name="paste"></n-local-icon> 进行粘贴。
-    <p-button
-      size="small"
-      on:click="cProvider.desc = null"
-      style="margin: 0 8px"
-    >
-      点击取消操作
-    </p-button>
+  <div class="bottom-area delay" class:hide="!clipboard?.sources?.length">
+    <x-if :value="clipboard?.sources?.length">
+      {{clipboardText}}，点击
+      <n-local-icon name="paste"></n-local-icon> 进行粘贴。
+      <p-button
+        size="small"
+        on:click="cProvider.desc = null"
+        style="margin: 0 8px"
+      >
+        点击取消操作
+      </p-button>
+    </x-if>
+    <x-else-if :value="clipboard === 0"> 粘贴完成 </x-else-if>
+    <x-else> 操作取消 </x-else>
+  </div>
+
+  <div class="bottom-area" class:hide="!importingLen">
+    <x-if :value="importingLen > importedLen">
+      导入文件中
+      <p-progress
+        :value="importedLen / importingLen * 100"
+        type="circle"
+        style="--circle-size: 20; margin: 0 8px"
+      ></p-progress>
+      {{importedLen}} / {{importingLen}}
+    </x-if>
+    <x-else> 导入完成 </x-else>
   </div>
 
   <div class="address">
@@ -172,6 +204,9 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { default: fileFilter } = await load(
+        "/packages/fs/util/file-filter.js"
+      );
 
       return {
         data: {
@@ -185,6 +220,9 @@
           },
           needRename: null,
           search: "",
+          // 正在导入中的数据
+          importingLen: 0, // 导入中的数量
+          importedLen: 0, // 导入成功的数量
         },
         watch: {
           search(text) {
@@ -192,6 +230,34 @@
           },
         },
         proto: {
+          clickImport() {
+            this.shadow.$("#imInputer").ele.click();
+          },
+          async importFiles(e) {
+            const files = await fileFilter(e.target.files);
+
+            // 写入文件
+            const nowHandle = await get(this.path);
+
+            this.importingLen = files.length;
+            this.importedLen = 0;
+
+            for (let file of files) {
+              const handle = await nowHandle.get(file.webkitRelativePath, {
+                create: "file",
+              });
+
+              await handle.write(file);
+              this.importedLen++;
+            }
+
+            this.app.current.refreshFiles();
+
+            setTimeout(() => {
+              this.importingLen = 0;
+              this.importedLen = 0;
+            }, 1000);
+          },
           get clipboardText() {
             switch (this?.clipboard?.type) {
               case "copy":
@@ -201,7 +267,7 @@
             }
           },
           get cProvider() {
-            return this.shadow.$('[name="clipboard"]').provider;
+            return this.getProvider("clipboard");
           },
           clickReload() {
             this.app.current.refreshFiles();
@@ -244,7 +310,7 @@
                 }
             }
 
-            this.cProvider.desc = null;
+            this.cProvider.desc = 0;
 
             this.app.current.refreshFiles();
           },
