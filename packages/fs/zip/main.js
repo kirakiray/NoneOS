@@ -39,7 +39,7 @@ export async function unzip(file) {
 }
 
 // 导入文件夹压缩包数据
-export async function exploreFolder(handler, rootName) {
+export async function handleToZip(handler, rootName) {
   const taskID = getTaskId();
 
   const files = await flatFiles(handler);

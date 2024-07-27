@@ -206,7 +206,7 @@
   <script>
     export const parent = "./outer-layout.html";
 
-    import { exploreFolder } from "../fs/zip/main.js";
+    import { handleToZip } from "../fs/zip/main.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
@@ -239,13 +239,22 @@
           async clickExport() {
             const handler = await get(this.selecteds[0]);
 
-            const zipFile = await exploreFolder(handler, handler.name);
-            const url = URL.createObjectURL(zipFile);
+            let resultFile;
+            let download;
+            if (handler.kind === "dir") {
+              resultFile = await handleToZip(handler, handler.name);
+              download = `${handler.name}.zip`;
+            } else {
+              resultFile = await handler.file();
+              download = handler.name;
+            }
+
+            const url = URL.createObjectURL(resultFile);
 
             // 模拟下载文件
             const linkEl = document.createElement("a");
             linkEl.href = url;
-            linkEl.download = `${handler.name}.zip`;
+            linkEl.download = download;
             linkEl.click();
 
             setTimeout(() => {
