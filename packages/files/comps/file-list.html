@@ -10,10 +10,6 @@
       display: flex;
       flex-direction: column;
     }
-    .head {
-      font-weight: bold;
-      border-bottom: var(--md-ref-palette-translucent-normal60) solid 1px;
-    }
 
     .file-item {
       position: relative;
@@ -29,6 +25,15 @@
       font-size: 14px;
       overflow: hidden;
       transition: height ease 0.2s, opacity ease 0.2s;
+    }
+
+    .head {
+      position: sticky;
+      top: 0;
+      font-weight: bold;
+      z-index: 2;
+      border-bottom: var(--md-ref-palette-translucent-normal60) solid 1px;
+      background-color: var(--md-sys-color-surface);
     }
 
     .file-item:hover {
@@ -73,10 +78,6 @@
       opacity: 0;
     }
 
-    /* .file-item:nth-child(2n) {
-      background-color: var(--s-bg);
-    } */
-
     .stripe-bg {
       position: absolute;
       z-index: 0;
@@ -104,7 +105,7 @@
       <div class="file-item-cell small-cell">文件大小</div>
       <div class="file-item-cell small-cell">类型</div>
     </div>
-    <div style="position: relative">
+    <div style="position: relative; margin-top: 0.5px">
       <div class="stripe-bg"></div>
       <x-fill :value="files" fill-key="id">
         <div

@@ -11,16 +11,15 @@
     .container {
       position: relative;
       flex: 1;
-      overflow: auto;
+      display: flex;
+      flex-direction: column;
     }
 
     .container > * {
-      position: relative;
       z-index: 2;
     }
 
-    .other-area {
-      z-index: 1;
+    .abs-over {
       position: absolute;
       left: 0;
       top: 0;
@@ -29,12 +28,18 @@
     }
   </style>
   <div class="container">
-    <div class="other-area" on:click="clickOther"></div>
-    <n-file-list
-      :files="files"
-      on:rename-file="renameFile"
-      :search="search"
-    ></n-file-list>
+    <div class="abs-over" style="flex: 1; overflow: auto">
+      <div
+        class="other-area abs-over"
+        on:click="clickOther"
+        style="z-index: 1"
+      ></div>
+      <n-file-list
+        :files="files"
+        on:rename-file="renameFile"
+        :search="search"
+      ></n-file-list>
+    </div>
     <x-if :value="files.length === 0 && !loading">
       <div
         style="
