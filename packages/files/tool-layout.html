@@ -54,6 +54,7 @@
       overflow: hidden;
       transition: all ease 0.3s;
     }
+
     .bottom-area.hide {
       opacity: 0;
       height: 0;
@@ -126,16 +127,29 @@
       </p-button>
       <p-button
         size="small"
-        on:click="clickImport"
+        on:click="shadow.$(`#imFileInputer`).ele.click()"
         attr:disabled="!!selecteds.length"
       >
-        <n-local-icon name="import"></n-local-icon>
+        <n-local-icon name="import-file"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        on:click="shadow.$(`#imDirInputer`).ele.click()"
+        attr:disabled="!!selecteds.length"
+      >
+        <n-local-icon name="import-dir"></n-local-icon>
       </p-button>
       <div style="position: absolute; width: 0; height: 0; overflow: hidden">
         <input
           type="file"
           webkitdirectory
-          id="imInputer"
+          id="imDirInputer"
+          on:change="importFiles"
+        />
+        <input
+          type="file"
+          multiple
+          id="imFileInputer"
           on:change="importFiles"
         />
       </div>
@@ -210,9 +224,6 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { default: fileFilter } = await load(
-        "/packages/fs/util/file-filter.js"
-      );
 
       return {
         data: {
@@ -261,9 +272,6 @@
               URL.revokeObjectURL(url);
             }, 1000);
           },
-          clickImport() {
-            this.shadow.$("#imInputer").ele.click();
-          },
           async importFiles(e) {
             const files = await fileFilter(e.target.files);
 
@@ -274,9 +282,12 @@
             this.importedLen = 0;
 
             for (let file of files) {
-              const handle = await nowHandle.get(file.webkitRelativePath, {
-                create: "file",
-              });
+              const handle = await nowHandle.get(
+                file.webkitRelativePath || file.name,
+                {
+                  create: "file",
+                }
+              );
 
               await handle.write(file);
               this.importedLen++;
@@ -428,5 +439,23 @@
         },
       };
     };
+
+    async function fileFilter(files) {
+      const reFiles = Array.from(files).filter((e) => {
+        const { webkitRelativePath } = e;
+
+        if (!webkitRelativePath) {
+          return true;
+        }
+
+        const paths = webkitRelativePath.split("/");
+
+        return !paths.some((e) => {
+          return e === "node_modules" || /^\./.test(e);
+        });
+      });
+
+      return reFiles;
+    }
   </script>
 </template>
