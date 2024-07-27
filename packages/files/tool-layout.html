@@ -139,7 +139,11 @@
           on:change="importFiles"
         />
       </div>
-      <p-button size="small" attr:disabled="!selecteds.length">
+      <p-button
+        size="small"
+        on:click="clickExport"
+        attr:disabled="!selecteds.length"
+      >
         <n-local-icon name="export"></n-local-icon>
       </p-button>
     </p-button-group>
@@ -202,6 +206,8 @@
   <script>
     export const parent = "./outer-layout.html";
 
+    import { exploreFolder } from "../fs/zip/main.js";
+
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { default: fileFilter } = await load(
@@ -230,6 +236,22 @@
           },
         },
         proto: {
+          async clickExport() {
+            const handler = await get(this.selecteds[0]);
+
+            const zipFile = await exploreFolder(handler, handler.name);
+            const url = URL.createObjectURL(zipFile);
+
+            // 模拟下载文件
+            const linkEl = document.createElement("a");
+            linkEl.href = url;
+            linkEl.download = `${handler.name}.zip`;
+            linkEl.click();
+
+            setTimeout(() => {
+              URL.revokeObjectURL(url);
+            }, 1000);
+          },
           clickImport() {
             this.shadow.$("#imInputer").ele.click();
           },
