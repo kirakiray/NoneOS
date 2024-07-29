@@ -89,27 +89,14 @@
               name: "Files",
               icon: "/packages/files/icon.svg",
               url: "/packages/files/app-config.js",
-              // status: "running",
-            },
-            {
-              name: "Files2",
-              icon: "/packages/files/icon.svg",
-              url: "/packages/files/app-config.js",
               // status: "background",
             },
-            // {
-            //   name: "TestApp",
-            //   icon: "/packages/testapp/icon.svg",
-            //   appType: "frame",
-            //   url: "/packages/testapp/index.html",
-            // },
-            // {
-            //   name: "Files",
-            //   icon: "/packages/files/icon.svg",
-            //   appType: "frame",
-            //   url: "/packages/testapp/index.html",
-            //   // status: "running",
-            // },
+            {
+              name: "Setting",
+              icon: "/packages/setting/icon.svg",
+              url: "/packages/setting/app-config.js",
+              // status: "running",
+            },
           ],
           hasMaxApp: false, // 是否存在最大化的应用
         },
@@ -137,21 +124,6 @@
               }
             } else {
               if (targetApp.appType === "frame") {
-                // 添加这个应用到容器内
-                // const iframeEl = document.createElement("iframe");
-                // iframeEl.src = targetApp.url;
-
-                // iframeEl.onload = () => {
-                //   iframeEl.contentWindow.onbeforeunload = function (e) {
-                //     debugger;
-                //   };
-                // };
-
-                // const appFrame = $(
-                //   `<n-app-frame data-appid="${targetApp.xid}"></n-app-frame>`
-                // );
-                // appFrame.push(iframeEl);
-                // this.shadow.$(".main").push(appFrame);
                 console.log("暂时不支持 frame 模式");
               } else {
                 // 添加这个应用到容器内
@@ -274,12 +246,12 @@
             });
           }
 
-          // setTimeout(() => {
-          //   // 测试代码
-          //   this.clickApp({
-          //     data: { app: this.barApps[0] },
-          //   });
-          // }, 100);
+          setTimeout(() => {
+            // 测试代码
+            this.clickApp({
+              data: { app: this.barApps[1] },
+            });
+          }, 100);
         },
         detached() {
           this._offState && this._offState();
