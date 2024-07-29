@@ -137,6 +137,12 @@
     :host([app-status="max"]) [border-area] {
       display: none;
     }
+
+    ::slotted(iframe),
+    ::slotted(object) {
+      display: block;
+      border: none;
+    }
   </style>
   <style>
     :host([app-status="normal"]) {

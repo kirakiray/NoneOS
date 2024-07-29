@@ -39,6 +39,7 @@
         on:rename-file="renameFile"
         :search="search"
       ></n-file-list>
+      <div style="height: 1px"></div>
     </div>
     <x-if :value="files.length === 0 && !loading">
       <div

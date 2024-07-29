@@ -14,6 +14,7 @@
       background-repeat: no-repeat;
       -webkit-user-select: none;
       user-select: none;
+      overflow: hidden;
     }
 
     .container {
@@ -96,6 +97,19 @@
               url: "/packages/files/app-config.js",
               // status: "background",
             },
+            // {
+            //   name: "TestApp",
+            //   icon: "/packages/testapp/icon.svg",
+            //   appType: "frame",
+            //   url: "/packages/testapp/index.html",
+            // },
+            // {
+            //   name: "Files",
+            //   icon: "/packages/files/icon.svg",
+            //   appType: "frame",
+            //   url: "/packages/testapp/index.html",
+            //   // status: "running",
+            // },
           ],
           hasMaxApp: false, // 是否存在最大化的应用
         },
@@ -122,12 +136,31 @@
                 }
               }
             } else {
-              // 添加这个应用到容器内
-              this.shadow.$(".main").push(`
-              <n-app-frame data-appid="${targetApp.xid}">
-                <o-app src="${targetApp.url}"></o-app>
-              </n-app-frame>
-              `);
+              if (targetApp.appType === "frame") {
+                // 添加这个应用到容器内
+                // const iframeEl = document.createElement("iframe");
+                // iframeEl.src = targetApp.url;
+
+                // iframeEl.onload = () => {
+                //   iframeEl.contentWindow.onbeforeunload = function (e) {
+                //     debugger;
+                //   };
+                // };
+
+                // const appFrame = $(
+                //   `<n-app-frame data-appid="${targetApp.xid}"></n-app-frame>`
+                // );
+                // appFrame.push(iframeEl);
+                // this.shadow.$(".main").push(appFrame);
+                console.log("暂时不支持 frame 模式");
+              } else {
+                // 添加这个应用到容器内
+                this.shadow.$(".main").push(`
+                  <n-app-frame data-appid="${targetApp.xid}">
+                    <o-app src="${targetApp.url}"></o-app>
+                  </n-app-frame>
+                `);
+              }
             }
 
             this.refreshBarMode();
@@ -160,18 +193,18 @@
                 (f = (event) => {
                   const { state } = event;
 
+                  const targetAppEl = this?.currentAppFrame?.$("o-app");
+
                   if (state.routerType === "backward") {
-                    // console.log("app backward");
-                    this.currentAppFrame
-                      .$("o-app")
-                      .emit("backward", { bubbles: false });
+                    console.log("app backward");
                     history.forward(); // 还原
+                    targetAppEl &&
+                      targetAppEl.emit("backward", { bubbles: false });
                   } else if (state.routerType === "forward") {
-                    // console.log("app forward");
+                    console.log("app forward");
                     history.back(); // 还原
-                    this.currentAppFrame
-                      .$("o-app")
-                      .emit("forward", { bubbles: false });
+                    targetAppEl &&
+                      targetAppEl.emit("forward", { bubbles: false });
                   }
                 })
               );
@@ -241,12 +274,12 @@
             });
           }
 
-          setTimeout(() => {
-            // 测试代码
-            this.clickApp({
-              data: { app: this.barApps[0] },
-            });
-          }, 100);
+          // setTimeout(() => {
+          //   // 测试代码
+          //   this.clickApp({
+          //     data: { app: this.barApps[0] },
+          //   });
+          // }, 100);
         },
         detached() {
           this._offState && this._offState();
