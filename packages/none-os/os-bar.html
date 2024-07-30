@@ -59,7 +59,7 @@
     }
 
     :host([fullmode]) .app-container {
-      height: calc(100vh - 153px);
+      height: calc(100vh - 108px);
     }
   </style>
 
@@ -84,9 +84,6 @@
       </div>
     </div>
     <n-bar-time></n-bar-time>
-    <div>
-      <p-switch sync:value="darkMode"></p-switch>
-    </div>
   </div>
   <script>
     import "/packages/pui/commons/init.js";
@@ -100,7 +97,6 @@
         data: {
           showAppList: false,
           apps: [],
-          darkMode: !!localStorage.__darkmode,
         },
         proto: {
           get defaultHeight() {
@@ -114,16 +110,6 @@
               },
               bubbles: false,
             });
-          },
-        },
-        watch: {
-          darkMode(bool) {
-            localStorage.__darkmode = bool ? "1" : "";
-
-            clearTimeout(this._darkTimer);
-            this._darkTimer = setTimeout(() => {
-              this.host.theme = this.darkMode ? "dark" : "light";
-            }, 100);
           },
         },
       };

@@ -1,15 +1,93 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    .container {
+      height: 100%;
+      padding: 0 16px;
+    }
+
+    h5 {
+      margin: 8px 0;
+      padding: 0;
+    }
+
+    .list {
+      display: flex;
+      flex-wrap: wrap;
+      container-type: inline-size;
+    }
+
+    p-list-item {
+      flex: 1 1 300px;
+      box-sizing: border-box;
+      border: var(--md-sys-color-primary) solid 0.5px;
+    }
+
+    @container (width > 600px) {
+      p-list-item {
+        max-width: 50%;
+      }
+    }
+
+    n-local-icon[name="moon"],
+    n-local-icon[name="sun"] {
+      display: block;
+      font-size: 20px;
+      margin-right: 8px;
+      color: rgb(255, 208, 0);
+      transition: all ease 0.3s;
+    }
+
+    n-local-icon.hide {
+      font-size: 0px;
+      margin-right: 0;
+    }
   </style>
-  <div>system页面</div>
+  <div class="container">
+    <h5>系统外观</h5>
+    <div class="list">
+      <p-list-item button="suffix" radius>
+        <n-local-icon
+          name="moon"
+          slot="prefix"
+          class:hide="!darkMode"
+        ></n-local-icon>
+        <n-local-icon
+          name="sun"
+          slot="prefix"
+          class:hide="darkMode"
+        ></n-local-icon>
+        黑夜模式
+        <div style="color: var(--md-sys-color-normal); font-size: 12px">
+          点击切换到{{darkMode ? '白天' : '黑夜'}}模式
+        </div>
+        <p-switch slot="suffix" sync:value="darkMode"></p-switch>
+      </p-list-item>
+    </div>
+  </div>
   <script>
     export const parent = "../outer.html";
     export default async ({ load }) => {
       return {
-        data: {},
+        data: {
+          darkMode: !!localStorage.__darkmode,
+        },
+        watch: {
+          darkMode(bool) {
+            localStorage.__darkmode = bool ? "1" : "";
+
+            clearTimeout(this._darkTimer);
+            this._darkTimer = setTimeout(() => {
+              this.host.theme = this.darkMode ? "dark" : "light";
+            }, 100);
+          },
+        },
       };
     };
   </script>
