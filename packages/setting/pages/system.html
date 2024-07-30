@@ -25,6 +25,8 @@
 
     p-list-item {
       flex: 1 1 300px;
+      height: 52px;
+      margin: 0 8px 8px 0;
       box-sizing: border-box;
       border: var(--md-sys-color-primary) solid 0.5px;
     }
@@ -63,12 +65,13 @@
           slot="prefix"
           class:hide="darkMode"
         ></n-local-icon>
-        黑夜模式
+        深色模式
         <div style="color: var(--md-sys-color-normal); font-size: 12px">
-          点击切换到{{darkMode ? '白天' : '黑夜'}}模式
+          点击切换到{{darkMode ? '浅色' : '深色'}}模式
         </div>
         <p-switch slot="suffix" sync:value="darkMode"></p-switch>
       </p-list-item>
+      <p-list-item radius> 程序坞方向 </p-list-item>
     </div>
   </div>
   <script>

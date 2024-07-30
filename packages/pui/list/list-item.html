@@ -4,21 +4,14 @@
   <style>
     :host {
       position: relative;
-      display: block;
+      display: flex;
+      padding: calc(var(--pui-space-y) * 2) calc(var(--pui-space-x) * 2);
       font-size: 14px;
       color: var(--md-sys-color-on-normal-container);
       --wave-color: var(--md-ref-palette-translucent-primary60);
-      /* border-bottom: red solid 1px; */
-    }
-    .container {
-      position: relative;
-      display: flex;
       background-color: transparent;
-
-      padding: var(--item-padding-top, calc(var(--pui-space-y) * 2))
-        var(--item-padding-right, calc(var(--pui-space-x) * 2))
-        var(--item-padding-bottom, calc(var(--pui-space-y) * 2))
-        var(--item-padding-left, calc(var(--pui-space-x) * 2));
+      overflow: hidden;
+      /* border-bottom: red solid 1px; */
     }
     .content {
       flex: 1;
@@ -28,8 +21,7 @@
       line-height: 1.2em;
     }
 
-    :host([radius]),
-    :host([radius]) .container {
+    :host([radius]) {
       border-radius: 30px;
     }
 
@@ -76,12 +68,12 @@
       margin-right: calc(var(--pui-space-x) * 2);
     }
 
-    :host([button]) .container {
+    :host([button]) {
       cursor: pointer;
     }
 
     @media (hover: hover) {
-      :host([button]) .container:hover {
+      :host([button]) :hover {
         background-color: rgba(128, 128, 128, 0.1);
       }
     }
@@ -132,25 +124,23 @@
       opacity: 0;
     }
 
-    .infocus {
+    :host([infocus]) {
       background-color: var(--md-sys-color-primary-container);
     }
   </style>
-  <div class="container" class:infocus="infocus" part="container">
-    <div class="avatar">
-      <slot name="prefix"></slot>
-    </div>
-    <div class="content" part="content">
-      <slot></slot>
-    </div>
-    <div class="suffix">
-      <slot name="suffix"></slot>
-    </div>
-    <div class="fake-mask"></div>
-    <x-if :value="button !== null && disabled === null">
-      <p-wave style="z-index: 2"></p-wave>
-    </x-if>
+  <div class="avatar">
+    <slot name="prefix"></slot>
   </div>
+  <div class="content" part="content">
+    <slot></slot>
+  </div>
+  <div class="suffix">
+    <slot name="suffix"></slot>
+  </div>
+  <div class="fake-mask"></div>
+  <x-if :value="button !== null && disabled === null">
+    <p-wave style="z-index: 2"></p-wave>
+  </x-if>
 
   <x-if :value="button !== null">
     <button
@@ -184,9 +174,7 @@
         alignTop: null,
         collapseChilds: null,
         activeItem: null,
-      },
-      data: {
-        infocus: false,
+        infocus: null,
       },
       proto: {
         focus() {
@@ -195,7 +183,7 @@
           }
         },
         focusFakeBtn() {
-          this.infocus = true;
+          this.infocus = 1;
 
           document.addEventListener(
             "keydown",
@@ -218,7 +206,7 @@
           );
         },
         blurFakeBtn() {
-          this.infocus = false;
+          this.infocus = null;
           document.removeEventListener("keydown", this._pressFunc);
           this._pressFunc = null;
         },
