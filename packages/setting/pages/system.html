@@ -1,0 +1,16 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>system页面</div>
+  <script>
+    export const parent = "../outer.html";
+    export default async ({ load }) => {
+      return {
+        data: {},
+      };
+    };
+  </script>
+</template>

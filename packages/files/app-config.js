@@ -24,7 +24,8 @@ export function ready() {
     this.back();
   });
   this.on("forward", () => {
-    // this.back();
-    this.$("[tool-layout]").appForward();
+    this.forward();
   });
 }
+
+export const allowForward = true;
