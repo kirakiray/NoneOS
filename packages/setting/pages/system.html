@@ -10,49 +10,65 @@
     .container {
       height: 100%;
       padding: 0 16px;
+      container-type: inline-size;
     }
 
     h5 {
-      margin: 8px 0;
+      margin: 16px 0 8px;
       padding: 0;
     }
 
     .list {
-      display: flex;
-      flex-wrap: wrap;
-      container-type: inline-size;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 48%);
+      row-gap: 8px;
+      column-gap: 8px;
     }
 
     p-list-item {
-      flex: 1 1 300px;
       height: 52px;
-      margin: 0 8px 8px 0;
       box-sizing: border-box;
       border: var(--md-sys-color-primary) solid 0.5px;
     }
 
-    @container (width > 600px) {
-      p-list-item {
-        max-width: 50%;
+    p-list-item n-local-icon {
+      display: block;
+      font-size: 20px;
+      margin-right: 8px;
+      transition: all ease 0.3s;
+    }
+
+    p-list-item n-local-icon.hide {
+      font-size: 0px;
+      margin-right: 0;
+    }
+
+    @container (width < 600px) {
+      .list {
+        grid-template-columns: repeat(auto-fill, 100%);
       }
     }
 
     n-local-icon[name="moon"],
     n-local-icon[name="sun"] {
-      display: block;
-      font-size: 20px;
-      margin-right: 8px;
       color: rgb(255, 208, 0);
-      transition: all ease 0.3s;
     }
 
-    n-local-icon.hide {
-      font-size: 0px;
-      margin-right: 0;
+    .item-tips {
+      color: var(--md-sys-color-normal);
+      font-size: 12px;
     }
   </style>
   <div class="container">
-    <h5>系统外观</h5>
+    <h5>系统</h5>
+    <div class="list">
+      <p-list-item radius>
+        <n-local-icon name="lang" slot="prefix"></n-local-icon>
+        系统语言
+        <div class="item-tips">准备中...</div>
+      </p-list-item>
+    </div>
+    <h5>外观</h5>
     <div class="list">
       <p-list-item button="suffix" radius>
         <n-local-icon
@@ -66,12 +82,20 @@
           class:hide="darkMode"
         ></n-local-icon>
         深色模式
-        <div style="color: var(--md-sys-color-normal); font-size: 12px">
+        <div class="item-tips">
           点击切换到{{darkMode ? '浅色' : '深色'}}模式
         </div>
         <p-switch slot="suffix" sync:value="darkMode"></p-switch>
       </p-list-item>
-      <p-list-item radius> 程序坞方向 </p-list-item>
+      <p-list-item radius>
+        <n-local-icon
+          name="toolbar-left"
+          slot="prefix"
+          style="font-size: 26px"
+        ></n-local-icon>
+        程序坞方向
+        <div class="item-tips">准备中...</div>
+      </p-list-item>
     </div>
   </div>
   <script>
