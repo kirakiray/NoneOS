@@ -2,7 +2,45 @@
   <style>
     :host {
       display: block;
+      color: #fff;
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100%;
     }
   </style>
-  <div>I am Apps</div>
+  <div class="container">
+    <!-- <div style="background-color: red; width: 300px; height: 300px">
+      test block
+    </div> -->
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          apps: [
+            {
+              name: "Files",
+              icon: {
+                url: "/packages/files/icon.svg",
+              },
+              url: "/packages/files/app-config.js",
+              // status: "background",
+            },
+            {
+              name: "Setting",
+              icon: {
+                url: "/packages/setting/icon.svg",
+              },
+              url: "/packages/setting/app-config.js",
+            },
+          ],
+        },
+      };
+    };
+  </script>
 </template>

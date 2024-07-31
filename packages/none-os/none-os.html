@@ -256,10 +256,6 @@
           },
         },
         async attached() {
-          $("body").push(
-            `<style>html,body{margin:0;padding:0;height:100%;}</style>`
-          );
-
           if (history.state && history.state.routerType === "current") {
             // 处于当前态就直接注册事件
             this.initHistory();

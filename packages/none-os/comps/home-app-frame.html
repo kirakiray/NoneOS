@@ -25,21 +25,35 @@
       pointer-events: auto;
     }
 
-    /* .mask,
     .main {
       position: absolute;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-    } */
+      opacity: 0;
+      transform: scale3d(1.1, 1.1, 0.8);
+      transition: all ease 0.3s;
+    }
+
+    .container.show .main {
+      transform: scale3d(1, 1, 1);
+      opacity: 1;
+    }
+
+    ::slotted(o-app) {
+      display: block;
+      height: 100%;
+    }
   </style>
   <div
     class="container"
     class:show="showHomeApp"
     on:click="showHomeApp = false"
   >
-    <slot></slot>
+    <div class="main">
+      <slot></slot>
+    </div>
   </div>
 
   <script>
