@@ -64,7 +64,6 @@
             :home-app="homeApp"
             sync:show-home-app="showHomeApp"
             on:click-app="clickApp"
-            on:click-home-app="clickHomeApp"
             attr:fullmode="hasMaxApp"
           ></os-bar>
         </div>
@@ -147,9 +146,6 @@
           },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
-          },
-          clickHomeApp({ data }) {
-            console.log("homeapp: ", data);
           },
           clickApp({ data }) {
             const targetApp = data.app;

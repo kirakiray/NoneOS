@@ -74,11 +74,14 @@
         <n-local-icon name="version" slot="prefix"></n-local-icon>
         系统版本
         <div class="item-tips">{{osVersion}}</div>
-        <x-if :value="onlineVersion === osVersion">
-          <div slot="suffix">已经是最新版</div>
+        <x-if :value="updateing">
+          <div slot="suffix">{{updateing}}</div>
         </x-if>
+        <x-else-if :value="onlineVersion === osVersion">
+          <div slot="suffix">已经是最新版</div>
+        </x-else-if>
         <x-else>
-          <p-button size="small" slot="suffix">
+          <p-button size="small" slot="suffix" on:click="updateSystem">
             更新到 {{onlineVersion}}
           </p-button>
         </x-else>
@@ -130,8 +133,10 @@
   </div>
   <script>
     export const parent = "../outer.html";
+
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { installOS } = await load("/packages/none-os/util.js");
 
       return {
         data: {
@@ -139,6 +144,7 @@
           darkMode: !!localStorage.__darkmode,
           osVersion: "Loading",
           onlineVersion: "",
+          updateing: "",
         },
         watch: {
           darkMode(bool) {
@@ -150,24 +156,35 @@
             }, 100);
           },
         },
-        proto: {},
-        async ready() {
-          const pgFile = await get("packages/package.json");
+        proto: {
+          async updateSystem() {
+            await installOS(({ count, length }) => {
+              this.updateing = `更新中 ${count}/${length}`;
+            });
+            await this.refreshVersion();
+            this.updateing = "";
+          },
+          async refreshVersion() {
+            const pgFile = await get("packages/package.json");
 
-          if (pgFile) {
-            let data = await pgFile.text();
-            data = JSON.parse(data);
+            if (pgFile) {
+              let data = await pgFile.text();
+              data = JSON.parse(data);
 
-            this.osVersion = data.version;
-          }
+              this.osVersion = data.version;
+            }
 
-          const data = await fetch("/package.json")
-            .then((e) => e.json())
-            .catch(() => null);
+            const data = await fetch("/package.json")
+              .then((e) => e.json())
+              .catch(() => null);
 
-          if (data) {
-            this.onlineVersion = data.version;
-          }
+            if (data) {
+              this.onlineVersion = data.version;
+            }
+          },
+        },
+        ready() {
+          this.refreshVersion();
         },
       };
     };
