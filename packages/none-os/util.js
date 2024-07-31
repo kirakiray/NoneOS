@@ -18,7 +18,7 @@ export const installOS = async (callback) => {
     await fileHandle.write(file);
     count++;
 
-    if (length) {
+    if (callback) {
       await callback({ count, length });
     }
   }
