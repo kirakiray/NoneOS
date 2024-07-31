@@ -47,6 +47,8 @@
     } else {
       errObj = new Error(desc);
     }
+    errObj.code = key;
+
     return errObj;
   };
 
@@ -285,6 +287,32 @@
   };
 
   /**
+   * 更新所有父层的修改时间
+   * @param {string} id 目标handle的id
+   */
+  const updateParentsModified = async (id) => {
+    const parents = [];
+    const time = Date.now();
+
+    let key = id;
+
+    while (key) {
+      const targeData = await getData({ key });
+      if (!targeData) {
+        break;
+      }
+
+      targeData.lastModified = time;
+      parents.push(targeData);
+      key = targeData.parent;
+    }
+
+    await setData({
+      datas: parents,
+    });
+  };
+
+  /**
    * 基础的Handle
    */
   class BaseHandle {
@@ -292,6 +320,8 @@
     #kind;
     #path;
     #name;
+    #createTime;
+    #lastModified;
     constructor(id, kind) {
       this.#id = id;
       this.#kind = kind;
@@ -327,6 +357,14 @@
      */
     get kind() {
       return this.#kind;
+    }
+
+    get createTime() {
+      return this.#createTime;
+    }
+
+    get lastModified() {
+      return this.#lastModified || null;
     }
 
     /**
@@ -370,12 +408,13 @@
      * @param {(string|DirHandle)} target 移动到目标的文件夹
      * @param {string} name 移动到目标文件夹下的名称
      */
-    async move(target, name) {
+    async moveTo(target, name) {
       [target, name] = await getTargetAndName({ target, name, self: this });
 
       const selfData = await getSelfData(this, "move");
       selfData.parent = target.id;
-      selfData.name = name;
+      selfData.name = name.toLowerCase();
+      selfData.realName = name;
 
       await setData({
         datas: [selfData],
@@ -389,7 +428,7 @@
      * @param {(string|DirHandle)} target 移动到目标的文件夹
      * @param {string} name 移动到目标文件夹下的名称
      */
-    async copy(target, name) {
+    async copyTo(target, name) {
       [target, name] = await getTargetAndName({ target, name, self: this });
 
       let reHandle;
@@ -401,7 +440,7 @@
           });
 
           for await (let [name, subHandle] of this.entries()) {
-            await subHandle.copy(reHandle, name);
+            await subHandle.copyTo(reHandle, name);
           }
           break;
         case "file":
@@ -417,7 +456,7 @@
 
           await setData({
             datas: [
-              targetData,
+              { ...selfData, ...targetData },
               ...hashs.map((hash, index) => {
                 return {
                   key: `${targetData.key}-${index}`,
@@ -430,6 +469,8 @@
 
           break;
       }
+
+      await updateParentsModified(target.id);
 
       return reHandle;
     }
@@ -478,6 +519,9 @@
     async refresh() {
       const data = await getSelfData(this, "refresh");
 
+      this.#createTime = data.createTime;
+      this.#lastModified = data.lastModified;
+
       this.#name = data.realName || data.name;
 
       // 重新从db中获取parent数据并更新path
@@ -491,6 +535,14 @@
 
       this.#path = pathArr.join("/");
     }
+
+    async size() {
+      const data = await getSelfData(this, "size");
+
+      if (data.type === "file") {
+        return data.size;
+      }
+    }
   }
 
   // 修正 target 和 name 的值
@@ -498,6 +550,10 @@
     if (typeof target === "string") {
       name = target;
       target = await self.parent();
+    }
+
+    if (!name) {
+      name = self.name;
     }
 
     // 查看是否已经有同名的文件或文件夹
@@ -515,7 +571,7 @@
       });
     }
 
-    if (target.path.includes(self.name)) {
+    if (isSubdirectory(target.path, self.path)) {
       throw getErr("notMoveToChild", {
         targetPath: target.path,
         path: self.path,
@@ -524,6 +580,15 @@
 
     return [target, name];
   };
+
+  function isSubdirectory(child, parent) {
+    if (child === parent) {
+      return false;
+    }
+    const parentTokens = parent.split("/").filter((i) => i.length);
+    const childTokens = child.split("/").filter((i) => i.length);
+    return parentTokens.every((t, i) => childTokens[i] === t);
+  }
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb
   // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -558,6 +623,8 @@
       const chunks = await splitIntoChunks(data);
 
       const hashs = [];
+
+      const size = data.length || data.size || 0;
 
       // 写入块
       await Promise.all(
@@ -608,8 +675,8 @@
           {
             ...targetData,
             lastModified: data?.lastModified || Date.now(),
-            length: data.length,
             hashs,
+            size,
           },
           ...hashs.map((hash, index) => {
             return {
@@ -625,6 +692,8 @@
       if (oldHashs.length) {
         await clearHashs(oldHashs);
       }
+
+      await updateParentsModified(targetData.parent);
     }
 
     /**
@@ -893,9 +962,12 @@
 
       if (options) {
         if (options.create && !data) {
+          const nowTime = Date.now();
+
           // 当不存在数据，且create有值时，根据值进行创建
           data = {
-            createTime: Date.now(),
+            createTime: nowTime,
+            lastModified: nowTime,
             key: getRandomId(),
             realName: subName,
             name: subName.toLowerCase(),
@@ -906,6 +978,8 @@
           await setData({
             datas: [data],
           });
+
+          await updateParentsModified(self.id);
         }
       }
 
@@ -1024,27 +1098,31 @@
     return result;
   };
 
-  // 初始化Local
-  const inited = (async () => {
-    // 获取根数据
-    const localData = await getData({
+  // 创建root空间
+  const createRoot = async (name) => {
+    const targetRootData = await getData({
       index: "parent_and_name",
-      key: ["root", "local"],
+      key: ["root", name],
     });
 
-    if (!localData) {
+    if (!targetRootData) {
       // 初始化Local目录
       await setData({
         datas: [
           {
             key: getRandomId(),
             parent: "root",
-            name: "local",
+            name,
             createTime: Date.now(),
           },
         ],
       });
     }
+  };
+
+  // 初始化Local
+  const inited = (async () => {
+    await createRoot("local");
   })();
 
   /**
