@@ -7,7 +7,7 @@ import resposeFS from "./resp-fs.js";
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  const { pathname } = new URL(request.url);
+  const { pathname, origin } = new URL(request.url);
 
   if (/^\/\$/.test(pathname)) {
     event.respondWith(
@@ -19,6 +19,22 @@ self.addEventListener("fetch", (event) => {
           return new Response(err.stack || err.toString(), {
             status: 404,
           });
+        }
+      })()
+    );
+  } else if (/^\/packages\//.test(pathname)) {
+    event.respondWith(
+      (async () => {
+        try {
+          // 转发代理本地packages文件
+          return await resposeFS({
+            request: {
+              url: `${origin}/$${pathname}`,
+            },
+          });
+        } catch (err) {
+          // 本地请求失败，则请求线上
+          return fetch(request.url);
         }
       })()
     );

@@ -1169,11 +1169,23 @@
 
     const path = pathname.replace(/^\/\$\//, "");
 
-    console.log("path:", path);
+    // console.log("path:", path);
     const handle = await get(path);
-    const content = await handle.text();
+    let content = await handle.file();
 
     const headers = {};
+
+    const prefix = path.split(".").pop();
+
+    switch (prefix) {
+      case "js":
+      case "mjs":
+        headers["Content-Type"] = "application/javascript; charset=utf-8";
+        break;
+      case "svg":
+        headers["Content-Type"] = "image/svg+xml; charset=utf-8";
+        break;
+    }
 
     return new Response(content, {
       status: 200,
@@ -1189,7 +1201,7 @@
 
   self.addEventListener("fetch", (event) => {
     const { request } = event;
-    const { pathname } = new URL(request.url);
+    const { pathname, origin } = new URL(request.url);
 
     if (/^\/\$/.test(pathname)) {
       event.respondWith(
@@ -1201,6 +1213,22 @@
             return new Response(err.stack || err.toString(), {
               status: 404,
             });
+          }
+        })()
+      );
+    } else if (/^\/packages\//.test(pathname)) {
+      event.respondWith(
+        (async () => {
+          try {
+            // 转发代理本地packages文件
+            return await resposeFS({
+              request: {
+                url: `${origin}/$${pathname}`,
+              },
+            });
+          } catch (err) {
+            // 本地请求失败，则请求线上
+            return fetch(request.url);
           }
         })()
       );
