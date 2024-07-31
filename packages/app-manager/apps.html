@@ -28,17 +28,32 @@
     }
 
     .main {
+      position: relative;
       display: flex;
+      flex-wrap: wrap;
       /* justify-content: center; */
       padding: 0 80px;
     }
 
     .app-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       margin: 24px;
-      padding: 16px;
+      width: 120px;
       border-radius: 32px;
       cursor: pointer;
       transition: all ease 0.2s;
+      overflow: hidden;
+    }
+
+    .app-block.hide {
+      width: 0;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      opacity: 0;
     }
 
     .app-block:hover {
@@ -59,12 +74,21 @@
       margin-top: 8px;
       text-align: center;
     }
+
+    .empty-content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      text-align: center;
+    }
   </style>
   <p-provider theme="dark">
     <div class="container">
       <div class="top">
         <p-text-field
           placeholder="搜索应用"
+          sync:value="searchText"
           on:click="$event.stopPropagation()"
         >
           <n-local-icon
@@ -76,13 +100,22 @@
       </div>
       <div class="main">
         <x-fill :value="apps">
-          <div class="app-block" on:click="$host.clickApp($data)">
+          <div
+            class="app-block"
+            class:hide="$data.hide"
+            on:click="$host.clickApp($data)"
+          >
             <div class="icon">
               <img attr:src="$data.icon.url" />
             </div>
             <div class="app-name">{{$data.name}}</div>
           </div>
         </x-fill>
+        <x-if :value="isEmpty">
+          <div class="empty-content">
+            没有符合搜索条件应用
+          </div>
+        </x-if>
       </div>
     </div>
   </p-provider>
@@ -108,6 +141,33 @@
               // status: "running",
             },
           ],
+          searchText: "as",
+          isEmpty: false,
+        },
+        watch: {
+          searchText(text) {
+            if (!text) {
+              this.isEmpty = false;
+              this.apps.forEach((e) => (e.hide = null));
+              return;
+            }
+
+            let isEmpty = true;
+
+            text = text.toLowerCase();
+
+            this.apps.forEach((e) => {
+              if (e.name.toLowerCase().includes(text)) {
+                e.hide = null;
+                isEmpty = false;
+              } else {
+                // 不符合的隐藏
+                e.hide = true;
+              }
+            });
+
+            this.isEmpty = isEmpty;
+          },
         },
         proto: {
           clickApp(data) {
