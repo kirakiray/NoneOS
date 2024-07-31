@@ -1,6 +1,5 @@
 <template component>
   <link rel="stylesheet" href="./public.css" />
-  <l-m src="./comps/apps-icon.html"></l-m>
   <l-m src="./comps/bar-btn.html"></l-m>
   <l-m src="./comps/bar-time.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
@@ -66,16 +65,17 @@
   <div class="container frosted-glass">
     <div
       class="btn"
-      on:click="showAppList = !showAppList"
+      on:click="clickHomeApp"
+      id="homeapp-btn"
       style="margin-bottom: 4px"
     >
-      <n-apps-icon attr:active="!!showAppList"></n-apps-icon>
+      <!-- <n-apps-icon attr:active="!!showHomeApp"></n-apps-icon> -->
     </div>
     <div class="app-container">
       <div class="app-inner-container">
         <x-fill :value="apps">
           <n-bar-btn
-            :icon="$data.icon"
+            :icon="$data.icon.url"
             :name="$data.name"
             :status="$data.status"
             on:click="$host.clickApp($data,$index)"
@@ -88,19 +88,45 @@
   <script>
     import "/packages/pui/commons/init.js";
 
-    export default async () => {
+    export default async ({ load }) => {
       return {
         tag: "os-bar",
         attrs: {
           fullmode: null, // 是否占用整个屏幕的边缘
         },
         data: {
-          showAppList: false,
+          showHomeApp: false,
           apps: [],
+          homeApp: {},
+        },
+        watch: {
+          showHomeApp(bool) {
+            this.shadow
+              ?.$("#homeapp-btn n-apps-icon")
+              ?.attr("active", bool ? "" : null);
+          },
+          async homeApp(appData) {
+            if (appData) {
+              await load(appData.icon.url);
+
+              this.shadow.$("#homeapp-btn").push(`<n-apps-icon></n-apps-icon>`);
+            }
+          },
         },
         proto: {
           get defaultHeight() {
             return this.apps.length * 50 + "px";
+          },
+          clickHomeApp() {
+            const opened = (this.showHomeApp = !this.showHomeApp);
+
+            this.emit("click-home-app", {
+              data: {
+                app: this.homeApp,
+                opened,
+              },
+              bubbles: false,
+            });
           },
           clickApp(data, index) {
             this.emit("click-app", {
@@ -110,6 +136,8 @@
               },
               bubbles: false,
             });
+
+            this.showHomeApp = false;
           },
         },
       };

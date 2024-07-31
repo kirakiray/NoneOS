@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/provider/provider.html"></l-m>
   <l-m src="./os-bar.html"></l-m>
   <l-m src="./comps/app-frame/app-frame.html"></l-m>
+  <l-m src="./comps/home-app-frame.html"></l-m>
   <link rel="stylesheet" href="./public.css" />
   <style>
     :host {
@@ -60,7 +61,10 @@
         <div class="bar">
           <os-bar
             :apps="barApps"
+            :home-app="homeApp"
+            sync:show-home-app="showHomeApp"
             on:click-app="clickApp"
+            on:click-home-app="clickHomeApp"
             attr:fullmode="hasMaxApp"
           ></os-bar>
         </div>
@@ -69,6 +73,9 @@
         <div>asdasd</div>
       </n-app-frame> -->
         </div>
+        <n-home-app-frame sync:show-home-app="showHomeApp">
+          <o-app :src="homeApp.url"></o-app>
+        </n-home-app-frame>
       </div>
     </p-provider>
   </o-provider>
@@ -83,17 +90,31 @@
       return {
         tag: "none-os",
         data: {
+          showHomeApp: true,
           theme: "light",
+          homeApp: {
+            url: "/packages/app-manager/app-config.js",
+            icon: {
+              component: true,
+              url: "/packages/app-manager/comps/apps-icon.html",
+              name: "n-apps-icon",
+            },
+            name: "App Manager",
+          },
           barApps: [
             {
               name: "Files",
-              icon: "/packages/files/icon.svg",
+              icon: {
+                url: "/packages/files/icon.svg",
+              },
               url: "/packages/files/app-config.js",
               // status: "background",
             },
             {
               name: "Setting",
-              icon: "/packages/setting/icon.svg",
+              icon: {
+                url: "/packages/setting/icon.svg",
+              },
               url: "/packages/setting/app-config.js",
               // status: "running",
             },
@@ -103,6 +124,9 @@
         proto: {
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
+          },
+          clickHomeApp({ data }) {
+            console.log("homeapp: ", data);
           },
           clickApp({ data }) {
             const targetApp = data.app;
@@ -246,12 +270,12 @@
             });
           }
 
-          setTimeout(() => {
-            // 测试代码
-            this.clickApp({
-              data: { app: this.barApps[1] },
-            });
-          }, 100);
+          // setTimeout(() => {
+          //   // 测试代码
+          //   this.clickApp({
+          //     data: { app: this.barApps[1] },
+          //   });
+          // }, 100);
         },
         detached() {
           this._offState && this._offState();

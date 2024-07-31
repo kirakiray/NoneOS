@@ -1,5 +1,5 @@
 import { get as _get, origin } from "../main.js";
-import { ok } from "../../test-util/ok.js";
+import { ok } from "./ok.js";
 
 const url = import.meta.url;
 const { hash } = new URL(url);

@@ -1,4 +1,5 @@
 .frosted-glass {
+  -webkit-backdrop-filter: blur(10px);
   background: var(--frosted-glass-bg);
   backdrop-filter: blur(10px);
   border-radius: 8px;
