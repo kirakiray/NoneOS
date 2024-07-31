@@ -220,7 +220,7 @@
   <script>
     export const parent = "./outer-layout.html";
 
-    import { handleToZip } from "../fs/zip/main.js";
+    import { handleToZip } from "./util.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
@@ -252,7 +252,7 @@
             let resultFile;
             let download;
             if (handler.kind === "dir") {
-              resultFile = await handleToZip(handler, handler.name);
+              resultFile = await handleToZip(handler);
               download = `${handler.name}.zip`;
             } else {
               resultFile = await handler.file();

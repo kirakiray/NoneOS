@@ -82,10 +82,11 @@
   <script>
     import "/packages/pui/init.js";
     import { createRoot } from "../fs/get.js";
+    import { installOS } from "./util.js";
 
     export default async () => {
       await createRoot("apps");
-      await createRoot("system");
+      await createRoot("packages");
 
       return {
         tag: "none-os",
@@ -287,6 +288,8 @@
               this.initHistory();
             });
           }
+
+          await installOS();
 
           // setTimeout(() => {
           //   // 测试代码

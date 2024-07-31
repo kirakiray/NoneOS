@@ -25,74 +25,39 @@ worker.onmessage = (e) => {
 export async function unzip(file) {
   const taskID = getTaskId();
 
+  const files = new Promise((resolve, reject) => {
+    resolver[taskID] = { resolve, reject };
+  });
+
   worker.postMessage({
     taskType: "unzip",
     id: taskID,
     file,
   });
 
-  const files = await new Promise((resolve, reject) => {
-    resolver[taskID] = { resolve, reject };
-  });
-
   return files;
 }
 
-// 导入文件夹压缩包数据
-export async function handleToZip(handler, rootName) {
+export function zips(files) {
   const taskID = getTaskId();
-
-  const files = await flatFiles(handler);
-  let len = files.length;
 
   const reobj = new Promise((resolve, reject) => {
     resolver[taskID] = { resolve, reject };
   });
 
-  for (let e of files) {
-    const { handle } = e;
-    len--;
+  let len = files.length;
 
-    const file = await handle.file();
+  for (let e of files) {
+    const { file, path } = e;
+    len--;
 
     worker.postMessage({
       id: taskID,
-      path: `${rootName}/${
-        e.parentsName.length ? e.parentsName.join("/") + "/" : ""
-      }${e.name}`,
+      path,
       file,
       isEnd: !len,
     });
   }
 
   return reobj;
-}
-
-export async function flatFiles(parHandle, parentsName = []) {
-  const files = [];
-  let isEmpty = true;
-
-  for await (let [name, handle] of parHandle.entries()) {
-    isEmpty = false;
-    if (handle.kind === "file") {
-      files.push({
-        kind: "file",
-        name,
-        handle,
-        parentsName,
-      });
-    } else {
-      const subFiles = await flatFiles(handle, [...parentsName, name]);
-      files.push(...subFiles);
-    }
-  }
-
-  if (isEmpty) {
-    files.push({
-      kind: "dir",
-      parentsName,
-    });
-  }
-
-  return files;
 }

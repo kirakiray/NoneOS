@@ -65,6 +65,11 @@
     <div class="list">
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
+        系统版本
+        <div class="item-tips">{{osVersion}}</div>
+      </p-list-item>
+      <p-list-item radius>
+        <n-local-icon name="lang" slot="prefix"></n-local-icon>
         系统语言
         <div class="item-tips">en 正在准备中...</div>
         <p-select
@@ -115,6 +120,7 @@
         data: {
           lang: "cn",
           darkMode: !!localStorage.__darkmode,
+          osVersion: "Loading",
         },
         watch: {
           darkMode(bool) {
