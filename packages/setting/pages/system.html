@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <style>
@@ -50,6 +51,12 @@
       }
     }
 
+    @container (width > 900px) {
+      .list {
+        grid-template-columns: repeat(auto-fill, 33%);
+      }
+    }
+
     n-local-icon[name="moon"],
     n-local-icon[name="sun"] {
       color: rgb(255, 208, 0);
@@ -64,9 +71,17 @@
     <h5>系统</h5>
     <div class="list">
       <p-list-item radius>
-        <n-local-icon name="lang" slot="prefix"></n-local-icon>
+        <n-local-icon name="version" slot="prefix"></n-local-icon>
         系统版本
         <div class="item-tips">{{osVersion}}</div>
+        <x-if :value="onlineVersion === osVersion">
+          <div slot="suffix">已经是最新版</div>
+        </x-if>
+        <x-else>
+          <p-button size="small" slot="suffix">
+            更新到 {{onlineVersion}}
+          </p-button>
+        </x-else>
       </p-list-item>
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
@@ -116,11 +131,14 @@
   <script>
     export const parent = "../outer.html";
     export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
       return {
         data: {
           lang: "cn",
           darkMode: !!localStorage.__darkmode,
           osVersion: "Loading",
+          onlineVersion: "",
         },
         watch: {
           darkMode(bool) {
@@ -131,6 +149,25 @@
               this.host.theme = this.darkMode ? "dark" : "light";
             }, 100);
           },
+        },
+        proto: {},
+        async ready() {
+          const pgFile = await get("packages/package.json");
+
+          if (pgFile) {
+            let data = await pgFile.text();
+            data = JSON.parse(data);
+
+            this.osVersion = data.version;
+          }
+
+          const data = await fetch("/package.json")
+            .then((e) => e.json())
+            .catch(() => null);
+
+          if (data) {
+            this.onlineVersion = data.version;
+          }
         },
       };
     };
