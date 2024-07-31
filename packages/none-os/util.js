@@ -1,9 +1,19 @@
 import { unzip } from "../zip/main.js";
+import { get } from "../fs/main.js";
 
-// 安装系统
+// 安装系统依赖文件
 export const installOS = async () => {
   const zipFile = await fetch("/packages.zip").then((e) => e.blob());
   const files = await unzip(zipFile);
 
-  console.log("files: ", files);
+  const packagesHandle = await get("packages");
+
+  for (let { path, file } of files) {
+    const fileHandle = await packagesHandle.get(path, {
+      create: "file",
+    });
+    await fileHandle.write(file);
+  }
+
+  return true;
 };

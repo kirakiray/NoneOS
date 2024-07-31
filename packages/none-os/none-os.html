@@ -81,7 +81,7 @@
   </o-provider>
   <script>
     import "/packages/pui/init.js";
-    import { createRoot } from "../fs/get.js";
+    import get, { createRoot } from "../fs/get.js";
     import { installOS } from "./util.js";
 
     export default async () => {
@@ -288,8 +288,12 @@
               this.initHistory();
             });
           }
+          const pgFile = await get("packages/package.json");
 
-          await installOS();
+          if (!pgFile) {
+            // 确保安装
+            await installOS();
+          }
 
           // setTimeout(() => {
           //   // 测试代码

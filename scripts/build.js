@@ -8,11 +8,10 @@ import path from "path";
   let packagejson = await fs.readFile("./package.json");
   packagejson = JSON.parse(packagejson);
 
-  packagejson.name = "noneos";
-
   await fs.writeFile(
     "./packages/package.json",
     JSON.stringify({
+      name: "NoneOS",
       version: packagejson.version,
     }),
     "utf-8"
