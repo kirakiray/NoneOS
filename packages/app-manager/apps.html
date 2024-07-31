@@ -39,8 +39,10 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      padding-top: 8px;
       margin: 24px;
       width: 120px;
+      height: 132px;
       border-radius: 32px;
       cursor: pointer;
       transition: all ease 0.2s;
@@ -112,9 +114,7 @@
           </div>
         </x-fill>
         <x-if :value="isEmpty">
-          <div class="empty-content">
-            没有符合搜索条件应用
-          </div>
+          <div class="empty-content">没有符合搜索条件应用</div>
         </x-if>
       </div>
     </div>
@@ -141,7 +141,7 @@
               // status: "running",
             },
           ],
-          searchText: "as",
+          searchText: "",
           isEmpty: false,
         },
         watch: {
