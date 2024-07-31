@@ -91,12 +91,12 @@
         tag: "none-os",
         data: {
           showHomeApp: true,
-          theme: "light",
+          theme: !!localStorage.__darkmode ? "dark" : "light",
           homeApp: {
             url: "/packages/app-manager/app-config.js",
             icon: {
               component: true,
-              url: "/packages/app-manager/comps/apps-icon.html",
+              url: "/packages/app-manager/apps-icon.html",
               name: "n-apps-icon",
             },
             name: "App Manager",

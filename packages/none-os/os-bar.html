@@ -68,9 +68,7 @@
       on:click="clickHomeApp"
       id="homeapp-btn"
       style="margin-bottom: 4px"
-    >
-      <!-- <n-apps-icon attr:active="!!showHomeApp"></n-apps-icon> -->
-    </div>
+    ></div>
     <div class="app-container">
       <div class="app-inner-container">
         <x-fill :value="apps">
@@ -109,7 +107,9 @@
             if (appData) {
               await load(appData.icon.url);
 
-              this.shadow.$("#homeapp-btn").push(`<n-apps-icon></n-apps-icon>`);
+              const compName = appData.icon.name;
+
+              this.shadow.$("#homeapp-btn").push(`<${compName}></${compName}>`);
             }
           },
         },
