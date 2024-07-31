@@ -1,4 +1,7 @@
 <template page>
+  <l-m src="/packages/pui/provider/provider.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <style>
     :host {
       display: block;
@@ -7,17 +10,82 @@
     }
     .container {
       display: flex;
-      justify-content: center;
-      align-items: center;
+      /* justify-content: center;
+      align-items: center; */
       flex-direction: column;
       height: 100%;
     }
+
+    .top {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 160px;
+    }
+
+    .top p-text-field {
+      width: 300px;
+    }
+
+    .main {
+      display: flex;
+      /* justify-content: center; */
+      padding: 0 80px;
+    }
+
+    .app-block {
+      margin: 24px;
+      padding: 16px;
+      border-radius: 32px;
+      cursor: pointer;
+      transition: all ease 0.2s;
+    }
+
+    .app-block:hover {
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+
+    .app-block .icon {
+      width: 80px;
+      height: 80px;
+    }
+
+    .app-block .icon img {
+      width: 100%;
+      max-width: 80px;
+      max-height: 80px;
+    }
+    .app-name {
+      margin-top: 8px;
+      text-align: center;
+    }
   </style>
-  <div class="container">
-    <!-- <div style="background-color: red; width: 300px; height: 300px">
-      test block
-    </div> -->
-  </div>
+  <p-provider theme="dark">
+    <div class="container">
+      <div class="top">
+        <p-text-field
+          placeholder="搜索应用"
+          on:click="$event.stopPropagation()"
+        >
+          <n-local-icon
+            name="search"
+            slot="prefix"
+            style="display: block; margin-right: 4px; font-size: 24px"
+          ></n-local-icon>
+        </p-text-field>
+      </div>
+      <div class="main">
+        <x-fill :value="apps">
+          <div class="app-block" on:click="$host.clickApp($data)">
+            <div class="icon">
+              <img attr:src="$data.icon.url" />
+            </div>
+            <div class="app-name">{{$data.name}}</div>
+          </div>
+        </x-fill>
+      </div>
+    </div>
+  </p-provider>
   <script>
     export default async ({ load }) => {
       return {
@@ -37,8 +105,20 @@
                 url: "/packages/setting/icon.svg",
               },
               url: "/packages/setting/app-config.js",
+              // status: "running",
             },
           ],
+        },
+        proto: {
+          clickApp(data) {
+            this.emit("click-app", {
+              data: {
+                name: data.name,
+                icon: data.icon,
+                url: data.url,
+              },
+            });
+          },
         },
       };
     };

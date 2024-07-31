@@ -70,11 +70,11 @@
         </div>
         <div class="main" on:app-change="appChange">
           <!-- <n-app-frame>
-        <div>asdasd</div>
-      </n-app-frame> -->
+            <div>asdasd</div>
+          </n-app-frame> -->
         </div>
         <n-home-app-frame sync:show-home-app="showHomeApp">
-          <o-app :src="homeApp.url"></o-app>
+          <o-app :src="homeApp.url" on:click-app="runApp"></o-app>
         </n-home-app-frame>
       </div>
     </p-provider>
@@ -90,7 +90,7 @@
       return {
         tag: "none-os",
         data: {
-          showHomeApp: true,
+          showHomeApp: false,
           theme: !!localStorage.__darkmode ? "dark" : "light",
           homeApp: {
             url: "/packages/app-manager/app-config.js",
@@ -102,26 +102,48 @@
             name: "App Manager",
           },
           barApps: [
-            {
-              name: "Files",
-              icon: {
-                url: "/packages/files/icon.svg",
-              },
-              url: "/packages/files/app-config.js",
-              // status: "background",
-            },
-            {
-              name: "Setting",
-              icon: {
-                url: "/packages/setting/icon.svg",
-              },
-              url: "/packages/setting/app-config.js",
-              // status: "running",
-            },
+            // {
+            //   name: "Files",
+            //   icon: {
+            //     url: "/packages/files/icon.svg",
+            //   },
+            //   url: "/packages/files/app-config.js",
+            //   // status: "background",
+            // },
+            // {
+            //   name: "Setting",
+            //   icon: {
+            //     url: "/packages/setting/icon.svg",
+            //   },
+            //   url: "/packages/setting/app-config.js",
+            //   // status: "running",
+            // },
           ],
           hasMaxApp: false, // 是否存在最大化的应用
         },
         proto: {
+          runApp(e) {
+            const { data } = e;
+
+            let targetData = this.barApps.find((e) => e.name === data.name);
+
+            if (!targetData) {
+              this.barApps.push({
+                name: data.name,
+                icon: {
+                  url: data.icon.url,
+                },
+                url: data.url,
+                // status: "background"  "running"
+              });
+
+              targetData = this.barApps.find((e) => e.name === data.name);
+            }
+
+            this.clickApp({
+              data: { app: targetData },
+            });
+          },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
           },

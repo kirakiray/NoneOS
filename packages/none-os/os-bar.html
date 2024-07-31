@@ -50,15 +50,21 @@
       background-color: var(--barbtn-bg);
       cursor: pointer;
     }
-  </style>
 
-  <style>
     .app-container {
-      height: data(defaultHeight);
+      height: var(--defaultHeight);
+      max-height: calc(100vh - 108px);
+      overflow: auto;
     }
 
     :host([fullmode]) .app-container {
       height: calc(100vh - 108px);
+    }
+  </style>
+
+  <style>
+    .app-container {
+      --defaultHeight: data(defaultHeight);
     }
   </style>
 
