@@ -6,7 +6,7 @@ const resposeFS = async ({ request }) => {
   const path = pathname.replace(/^\/\$\//, "");
 
   // console.log("path:", path);
-  const handle = await get(path);
+  const handle = await get(decodeURIComponent(path));
   let content = await handle.file();
 
   const headers = {};

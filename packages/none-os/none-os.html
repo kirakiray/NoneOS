@@ -286,7 +286,7 @@
           }
           const pgFile = await get("packages/package.json");
 
-          if (!pgFile) {
+          if (!pgFile && !localStorage["__use-online"]) {
             // 确保安装
             await installOS();
           }

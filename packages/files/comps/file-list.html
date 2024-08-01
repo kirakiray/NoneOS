@@ -41,7 +41,9 @@
     }
 
     .file-item-cell {
+      position: relative;
       flex: 10 1 150px;
+      height: 30px;
     }
 
     .small-cell {
@@ -122,6 +124,14 @@
               :name="$data.name"
               :rename-mode="$host.needRename === $data.path"
               :file-path="$data.path"
+              style="
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+              "
             >
               <n-local-icon
                 class="cut-icon"
@@ -224,9 +234,11 @@
         },
         async open(data) {
           if (data.kind === "dir") {
-            this.host.goto(`./explore.html?path=${data.path}`);
+            this.host.goto(
+              `./explore.html?path=${encodeURIComponent(data.path)}`
+            );
           } else {
-            window.open(`/$/${data.path}`);
+            window.open(`/$/${encodeURIComponent(data.path)}`);
           }
         },
         get sqColor() {

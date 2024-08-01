@@ -94,7 +94,7 @@
           async refreshFiles() {
             this.loading = true;
 
-            const handle = await get(query.path);
+            const handle = await get(decodeURIComponent(query.path));
 
             const files = [];
 

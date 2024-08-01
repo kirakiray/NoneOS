@@ -1170,7 +1170,7 @@
     const path = pathname.replace(/^\/\$\//, "");
 
     // console.log("path:", path);
-    const handle = await get(path);
+    const handle = await get(decodeURIComponent(path));
     let content = await handle.file();
 
     const headers = {};
@@ -1199,39 +1199,60 @@
    */
 
 
+  const cacheResponse = async (path) => {
+    const cache = await caches.open("noneos-default-cache");
+    let resp = await cache.match(path);
+
+    if (resp) {
+      return resp.clone();
+    }
+
+    resp = await fetch(path);
+
+    if (resp.status === 200) {
+      cache.put(path, resp.clone());
+    }
+
+    return resp;
+  };
+
   self.addEventListener("fetch", (event) => {
     const { request } = event;
     const { pathname, origin } = new URL(request.url);
 
-    if (/^\/\$/.test(pathname)) {
-      event.respondWith(
-        (async () => {
-          try {
-            return await resposeFS({ request });
-          } catch (err) {
-            console.error(err);
-            return new Response(err.stack || err.toString(), {
-              status: 404,
-            });
-          }
-        })()
-      );
-    } else if (/^\/packages\//.test(pathname)) {
-      event.respondWith(
-        (async () => {
-          try {
-            // 转发代理本地packages文件
-            return await resposeFS({
-              request: {
-                url: `${origin}/$${pathname}`,
-              },
-            });
-          } catch (err) {
-            // 本地请求失败，则请求线上
-            return fetch(request.url);
-          }
-        })()
-      );
+    if (location.origin === origin) {
+      if (pathname === "/" || pathname === "/index.html") {
+        event.respondWith(cacheResponse(pathname));
+      } else if (/^\/\$/.test(pathname)) {
+        event.respondWith(
+          (async () => {
+            try {
+              return await resposeFS({ request });
+            } catch (err) {
+              console.error(err);
+              return new Response(err.stack || err.toString(), {
+                status: 404,
+              });
+            }
+          })()
+        );
+      } else if (/^\/packages\//.test(pathname)) {
+        event.respondWith(
+          (async () => {
+            try {
+              // 转发代理本地packages文件
+              return await resposeFS({
+                request: {
+                  url: `${origin}/$${pathname}`,
+                },
+              });
+            } catch (err) {
+              // 本地请求失败，则请求线上
+              return fetch(request.url);
+            }
+          })()
+        );
+      }
     }
   });
 

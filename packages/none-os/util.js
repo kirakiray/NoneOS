@@ -3,6 +3,7 @@ import { get } from "../fs/main.js";
 
 // 安装系统依赖文件
 export const installOS = async (callback) => {
+  // 缓存 packages
   const zipFile = await fetch("/packages.zip").then((e) => e.blob());
   const files = await unzip(zipFile);
 

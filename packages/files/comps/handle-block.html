@@ -15,9 +15,17 @@
     }
 
     .name {
+      position: relative;
       display: flex;
       align-items: center;
+      flex: 1;
       font-size: 14px;
+    }
+
+    .name-content {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
 
     .hide {
@@ -33,15 +41,21 @@
     </x-else>
   </div>
   <div class="name">
-    <slot name="surfix"></slot>
-    <div class:hide="renameMode">{{name}}</div>
+    <div style="flex-shrink: 0">
+      <slot name="surfix"></slot>
+    </div>
+    <div class:hide="renameMode" class="name-content" attr:title="name">
+      {{name}}
+    </div>
     <input
       type="text"
       :value="name"
       class:hide="!renameMode"
       on:blur="renameItem"
     />
-    <slot name="prefix"></slot>
+    <div style="flex-shrink: 0">
+      <slot name="prefix"></slot>
+    </div>
   </div>
   <script>
     export default {
