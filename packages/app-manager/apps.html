@@ -102,7 +102,7 @@
         </p-text-field>
       </div>
       <div class="main">
-        <x-fill :value="apps">
+        <x-fill :value="apps" fill-key="url">
           <div
             class="app-block"
             class:hide="$data.hide"
@@ -129,6 +129,7 @@
 
       return {
         data: {
+          _defaultApps: [],
           apps: [
             // {
             //   name: "文件管理",
@@ -185,19 +186,17 @@
             for await (let handle of appHandle.values()) {
               const data = await getAppBase(`/$/${handle.path}`);
 
-              if (!this.apps.find((e) => e.url === data.url)) {
-                apps.push(data);
-              }
+              data.__not_default = 1; // 标识不是默认应用
+
+              apps.push(data);
             }
 
-            apps.length && this.apps.push(...apps);
-
-            console.log(this.apps.toJSON());
+            this.apps = [...this._defaultApps, ...apps];
           },
         },
         async ready() {
           // 获取默认应用信息
-          this.apps = await Promise.all(defaultApps.map(getAppBase));
+          this._defaultApps = await Promise.all(defaultApps.map(getAppBase));
 
           this.refreshApps();
         },

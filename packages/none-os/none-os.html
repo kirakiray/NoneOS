@@ -45,10 +45,10 @@
   </x-else>
 
   <p-provider sync:theme="theme">
-    <x-if :value="installed">
+    <x-if :value="step === 2">
       <none-os-core></none-os-core>
     </x-if>
-    <x-else>
+    <x-else-if :value="step === 1">
       <div class="installing-container">
         <div
           class="frosted-glass"
@@ -70,7 +70,7 @@
           <p-progress :value="installVal" style="width: 200px"></p-progress>
         </div>
       </div>
-    </x-else>
+    </x-else-if>
   </p-provider>
   <script>
     export default async ({ load }) => {
@@ -85,7 +85,7 @@
           installVal: 0,
           version: "",
           theme: !!localStorage.__darkmode ? "dark" : "light",
-          installed: false,
+          step: 0,
           installOK: false,
         },
         async ready() {
@@ -101,8 +101,9 @@
             (pgFile && !localStorage.__installing)
           ) {
             // 添加安装
-            this.installed = true;
+            this.step = 2;
           } else {
+            this.step = 1;
             // 确保安装
             await installOS(({ count, length }) => {
               this.installVal = (count / length) * 100;
