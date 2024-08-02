@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>重装系统</title>
+    <script src="../packages/ofa.js"></script>
+  </head>
+  <body>
+    <div>当前系统版本：<span id="version"></span></div>
+    <div id="install-info"></div>
+    <button id="re-install">点击重装系统</button>
+    <script type="module">
+      import { get } from "../packages/fs/main.js";
+      import { installOS } from "../packages/none-os/util.js";
+
+      const pbHandle = await get("packages/package.json");
+
+      const data = JSON.parse(await pbHandle.text());
+
+      $("#version").text = data.version;
+
+      $("#re-install").on("click", async () => {
+        $("#re-install").attr("disabled", "");
+
+        await installOS((e) => {
+          $("#install-info").text = `安装中 ${e.count} / ${e.length}`;
+        }, `/packages.zip?v=${Math.random()}`);
+
+        $("#install-info").text = "";
+        $("#re-install").attr("disabled", null);
+      });
+    </script>
+  </body>
+</html>
