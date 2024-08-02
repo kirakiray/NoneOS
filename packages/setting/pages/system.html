@@ -80,11 +80,11 @@
         <x-else-if :value="onlineVersion === osVersion">
           <div slot="suffix">已经是最新版</div>
         </x-else-if>
-        <x-else>
+        <x-else-if :value="onlineVersion">
           <p-button size="small" slot="suffix" on:click="updateSystem">
             更新到 {{onlineVersion}}
           </p-button>
-        </x-else>
+        </x-else-if>
       </p-list-item>
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
