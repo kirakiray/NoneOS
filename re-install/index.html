@@ -14,11 +14,15 @@
       import { get } from "../packages/fs/main.js";
       import { installOS } from "../packages/none-os/util.js";
 
-      const pbHandle = await get("packages/package.json");
+      const pbHandle = await get("packages/package.json").catch(() => null);
 
-      const data = JSON.parse(await pbHandle.text());
+      if (!pbHandle) {
+        $("#re-install").text = "本地没有安装系统";
+      } else {
+        const data = JSON.parse(await pbHandle.text());
 
-      $("#version").text = data.version;
+        $("#version").text = data.version;
+      }
 
       $("#re-install").on("click", async () => {
         $("#re-install").attr("disabled", "");
@@ -29,6 +33,12 @@
 
         $("#install-info").text = "";
         $("#re-install").attr("disabled", null);
+
+        const registrations = await navigator.serviceWorker.getRegistrations();
+
+        for (let registration of registrations) {
+          await registration.unregister();
+        }
       });
     </script>
   </body>

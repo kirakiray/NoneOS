@@ -238,7 +238,7 @@
               `./explore.html?path=${encodeURIComponent(data.path)}`
             );
           } else {
-            window.open(`/$/${encodeURIComponent(data.path)}`);
+            window.open(`/$/${encodeURI(data.path)}`);
           }
         },
         get sqColor() {

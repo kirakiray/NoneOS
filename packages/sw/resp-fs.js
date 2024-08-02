@@ -1,4 +1,5 @@
 import get from "../fs/get.js";
+import { getContentType } from "./util.js";
 
 const resposeFS = async ({ request }) => {
   const { pathname } = new URL(request.url);
@@ -13,15 +14,7 @@ const resposeFS = async ({ request }) => {
 
   const prefix = path.split(".").pop();
 
-  switch (prefix) {
-    case "js":
-    case "mjs":
-      headers["Content-Type"] = "application/javascript; charset=utf-8";
-      break;
-    case "svg":
-      headers["Content-Type"] = "image/svg+xml; charset=utf-8";
-      break;
-  }
+  headers["Content-Type"] = getContentType(prefix);
 
   return new Response(content, {
     status: 200,

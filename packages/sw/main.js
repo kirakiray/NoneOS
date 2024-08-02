@@ -4,23 +4,7 @@
  */
 
 import resposeFS from "./resp-fs.js";
-
-const cacheResponse = async (path) => {
-  const cache = await caches.open("noneos-default-cache");
-  let resp = await cache.match(path);
-
-  if (resp) {
-    return resp.clone();
-  }
-
-  resp = await fetch(path);
-
-  if (resp.status === 200) {
-    cache.put(path, resp.clone());
-  }
-
-  return resp;
-};
+import { cacheResponse } from "./util.js";
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
