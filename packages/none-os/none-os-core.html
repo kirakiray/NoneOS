@@ -1,0 +1,267 @@
+<template component>
+  <l-m src="./os-bar.html"></l-m>
+  <l-m src="./comps/app-frame/app-frame.html"></l-m>
+  <l-m src="./comps/home-app-frame.html"></l-m>
+  <link rel="stylesheet" href="./public.css" />
+  <style>
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    .container {
+      display: flex;
+      /* flex-direction: column; */
+      height: 100%;
+    }
+
+    .bar {
+      position: relative;
+      display: flex;
+      z-index: 200000;
+    }
+    .main {
+      position: relative;
+      flex: 1;
+      /* background-color: red; */
+    }
+  </style>
+
+  <o-provider name="clipboard" type="none">
+    <div class="container">
+      <div class="bar">
+        <os-bar
+          :apps="barApps"
+          :home-app="homeApp"
+          sync:show-home-app="showHomeApp"
+          on:click-app="clickApp"
+          attr:fullmode="hasMaxApp"
+        ></os-bar>
+      </div>
+      <div class="main" on:app-change="appChange">
+        <!-- <n-app-frame>
+              <div>asdasd</div>
+            </n-app-frame> -->
+      </div>
+      <n-home-app-frame sync:show-home-app="showHomeApp">
+        <o-app :src="homeApp.url" on:click-app="runApp"></o-app>
+      </n-home-app-frame>
+    </div>
+  </o-provider>
+  <script>
+    import "/packages/pui/init.js";
+    import get, { createRoot } from "../fs/get.js";
+
+    export default async () => {
+      await createRoot("apps");
+      await createRoot("packages");
+
+      return {
+        tag: "none-os-core",
+        data: {
+          showHomeApp: false,
+          homeApp: {
+            url: "/packages/app-manager/app-config.js",
+            icon: {
+              component: true,
+              url: "/packages/app-manager/apps-icon.html",
+              name: "n-apps-icon",
+            },
+            name: "App Manager",
+          },
+          barApps: [
+            // {
+            //   name: "Files",
+            //   icon: {
+            //     url: "/packages/files/icon.svg",
+            //   },
+            //   url: "/packages/files/app-config.js",
+            //   // status: "background",
+            // },
+            // {
+            //   name: "Setting",
+            //   icon: {
+            //     url: "/packages/setting/icon.svg",
+            //   },
+            //   url: "/packages/setting/app-config.js",
+            //   // status: "running",
+            // },
+          ],
+          hasMaxApp: false, // 是否存在最大化的应用
+        },
+        proto: {
+          runApp(e) {
+            const { data } = e;
+
+            let targetData = this.barApps.find((e) => e.name === data.name);
+
+            if (!targetData) {
+              this.barApps.push({
+                name: data.name,
+                icon: {
+                  url: data.icon.url,
+                },
+                url: data.url,
+                // status: "background"  "running"
+              });
+
+              targetData = this.barApps.find((e) => e.name === data.name);
+            }
+
+            this.clickApp({
+              data: { app: targetData },
+            });
+          },
+          get currentAppFrame() {
+            return this.shadow.$("n-app-frame[focus]");
+          },
+          clickApp({ data }) {
+            const targetApp = data.app;
+            targetApp.status = "running";
+
+            const exitedApp = this.shadow.$(
+              ".main [data-appid='" + targetApp.xid + "']"
+            );
+
+            if (exitedApp) {
+              // 直接修正对应的应用
+              exitedApp.focusApp();
+              if (exitedApp.appStatus === "min") {
+                if (exitedApp._oldAppStatus === "max") {
+                  exitedApp.appStatus = "max";
+                } else {
+                  exitedApp.appStatus = "normal";
+                }
+              }
+            } else {
+              if (targetApp.appType === "frame") {
+                console.log("暂时不支持 frame 模式");
+              } else {
+                // 添加这个应用到容器内
+                this.shadow.$(".main").push(`
+                    <n-app-frame data-appid="${targetApp.xid}">
+                      <o-app src="${targetApp.url}"></o-app>
+                    </n-app-frame>
+                  `);
+              }
+            }
+
+            this.refreshBarMode();
+          },
+          refreshBarMode() {
+            const apps = this.shadow.all(".main n-app-frame");
+            this.hasMaxApp = apps.some((e) => e.appStatus === "max");
+          },
+          appChange(e) {
+            const { data } = e;
+
+            const targetData = this.barApps.find((e) => e.xid === data.appid);
+
+            switch (data.type) {
+              case "min":
+                targetData.status = "background";
+                break;
+              case "close":
+                targetData.status = undefined;
+                break;
+            }
+
+            this.refreshBarMode();
+          },
+          async initHistory() {
+            const bindHistory = () => {
+              let f;
+              window.addEventListener(
+                "popstate",
+                (f = (event) => {
+                  const { state } = event;
+
+                  const currentAppFrame = this?.currentAppFrame;
+
+                  if (state.routerType === "backward") {
+                    // console.log("app backward");
+                    history.forward(); // 还原
+                    currentAppFrame.back();
+                  } else if (state.routerType === "forward") {
+                    // console.log("app forward");
+                    history.back(); // 还原
+                    currentAppFrame.forward();
+                  }
+                })
+              );
+
+              this._offState = () => {
+                window.removeEventListener("popstate", f);
+              };
+            };
+
+            if (history.state && history.state.routerType === "current") {
+              // 处于当前态就直接注册事件
+              bindHistory();
+              return;
+            }
+
+            // 先修正为返回状态
+            history.replaceState(
+              {
+                routerType: "backward",
+              },
+              "None OS back state",
+              "/#backward"
+            );
+
+            await new Promise((res) => setTimeout(res, 50));
+
+            // 添加当前页状态
+            history.pushState(
+              {
+                routerType: "current",
+              },
+              "None OS",
+              "/"
+            );
+
+            await new Promise((res) => setTimeout(res, 50));
+
+            // 添加前进态
+            history.pushState(
+              {
+                routerType: "forward",
+              },
+              "None OS forward state",
+              "/#forward"
+            );
+
+            await new Promise((res) => setTimeout(res, 50));
+
+            // 返回到正常的当前态
+            history.back();
+
+            bindHistory();
+          },
+        },
+        async attached() {
+          if (history.state && history.state.routerType === "current") {
+            // 处于当前态就直接注册事件
+            this.initHistory();
+          } else {
+            // 使用事件注册历史，才能不会被系统修正历史
+            $("html").one("mousedown", () => {
+              this.initHistory();
+            });
+          }
+          // setTimeout(() => {
+          //   // 测试代码
+          //   this.clickApp({
+          //     data: { app: this.barApps[1] },
+          //   });
+          // }, 100);
+        },
+        detached() {
+          this._offState && this._offState();
+        },
+      };
+    };
+  </script>
+</template>

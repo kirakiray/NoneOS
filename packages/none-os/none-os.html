@@ -1,8 +1,7 @@
 <template component>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
-  <l-m src="./os-bar.html"></l-m>
-  <l-m src="./comps/app-frame/app-frame.html"></l-m>
-  <l-m src="./comps/home-app-frame.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="./none-os-core.html"></l-m>
   <link rel="stylesheet" href="./public.css" />
   <style>
     :host {
@@ -17,26 +16,16 @@
       user-select: none;
       overflow: hidden;
     }
-
-    .container {
+    .installing-container {
       display: flex;
-      /* flex-direction: column; */
+      align-items: center;
+      justify-content: center;
+      width: 100%;
       height: 100%;
-    }
-
-    .bar {
-      position: relative;
-      display: flex;
-      z-index: 200000;
-    }
-    .main {
-      position: relative;
-      flex: 1;
-      /* background-color: red; */
     }
   </style>
 
-  <x-if :value="theme === 'dark' ">
+  <x-if :value="theme === 'dark'">
     <style>
       :host {
         --frosted-glass-bg: rgba(50, 50, 50, 0.7);
@@ -55,249 +44,76 @@
     </style>
   </x-else>
 
-  <o-provider name="clipboard" type="none">
-    <p-provider :theme="theme">
-      <div class="container">
-        <div class="bar">
-          <os-bar
-            :apps="barApps"
-            :home-app="homeApp"
-            sync:show-home-app="showHomeApp"
-            on:click-app="clickApp"
-            attr:fullmode="hasMaxApp"
-          ></os-bar>
+  <p-provider sync:theme="theme">
+    <x-if :value="installed">
+      <none-os-core></none-os-core>
+    </x-if>
+    <x-else>
+      <div class="installing-container">
+        <div
+          class="frosted-glass"
+          style="padding: 16px 24px; text-align: center"
+        >
+          <div
+            style="
+              font-size: 24px;
+              font-weight: bold;
+              color: var(--md-sys-color-primary);
+            "
+          >
+            None OS
+            <span style="font-size: 12px">{{version}}</span>
+          </div>
+          <div style="margin: 0 0 8px; font-size: 14px">
+            {{installOK ? '安装完成' : '安装中...'}}
+          </div>
+          <p-progress :value="installVal" style="width: 200px"></p-progress>
         </div>
-        <div class="main" on:app-change="appChange">
-          <!-- <n-app-frame>
-            <div>asdasd</div>
-          </n-app-frame> -->
-        </div>
-        <n-home-app-frame sync:show-home-app="showHomeApp">
-          <o-app :src="homeApp.url" on:click-app="runApp"></o-app>
-        </n-home-app-frame>
       </div>
-    </p-provider>
-  </o-provider>
+    </x-else>
+  </p-provider>
   <script>
-    import "/packages/pui/init.js";
-    import get, { createRoot } from "../fs/get.js";
-    import { installOS } from "./util.js";
-
-    export default async () => {
-      await createRoot("apps");
-      await createRoot("packages");
+    export default async ({ load }) => {
+      const { default: get } = await load("../fs/get.js");
+      const { installOS } = await load("./util.js");
 
       return {
         tag: "none-os",
         data: {
-          showHomeApp: false,
+          count: 0,
+          len: 0,
+          installVal: 0,
+          version: "",
           theme: !!localStorage.__darkmode ? "dark" : "light",
-          homeApp: {
-            url: "/packages/app-manager/app-config.js",
-            icon: {
-              component: true,
-              url: "/packages/app-manager/apps-icon.html",
-              name: "n-apps-icon",
-            },
-            name: "App Manager",
-          },
-          barApps: [
-            // {
-            //   name: "Files",
-            //   icon: {
-            //     url: "/packages/files/icon.svg",
-            //   },
-            //   url: "/packages/files/app-config.js",
-            //   // status: "background",
-            // },
-            // {
-            //   name: "Setting",
-            //   icon: {
-            //     url: "/packages/setting/icon.svg",
-            //   },
-            //   url: "/packages/setting/app-config.js",
-            //   // status: "running",
-            // },
-          ],
-          hasMaxApp: false, // 是否存在最大化的应用
+          installed: false,
+          installOK: false,
         },
-        proto: {
-          runApp(e) {
-            const { data } = e;
+        async ready() {
+          const pgjson = await fetch("/package.json").then((e) => e.json());
 
-            let targetData = this.barApps.find((e) => e.name === data.name);
+          this.version = pgjson.version;
 
-            if (!targetData) {
-              this.barApps.push({
-                name: data.name,
-                icon: {
-                  url: data.icon.url,
-                },
-                url: data.url,
-                // status: "background"  "running"
-              });
-
-              targetData = this.barApps.find((e) => e.name === data.name);
-            }
-
-            this.clickApp({
-              data: { app: targetData },
-            });
-          },
-          get currentAppFrame() {
-            return this.shadow.$("n-app-frame[focus]");
-          },
-          clickApp({ data }) {
-            const targetApp = data.app;
-            targetApp.status = "running";
-
-            const exitedApp = this.shadow.$(
-              ".main [data-appid='" + targetApp.xid + "']"
-            );
-
-            if (exitedApp) {
-              // 直接修正对应的应用
-              exitedApp.focusApp();
-              if (exitedApp.appStatus === "min") {
-                if (exitedApp._oldAppStatus === "max") {
-                  exitedApp.appStatus = "max";
-                } else {
-                  exitedApp.appStatus = "normal";
-                }
-              }
-            } else {
-              if (targetApp.appType === "frame") {
-                console.log("暂时不支持 frame 模式");
-              } else {
-                // 添加这个应用到容器内
-                this.shadow.$(".main").push(`
-                  <n-app-frame data-appid="${targetApp.xid}">
-                    <o-app src="${targetApp.url}"></o-app>
-                  </n-app-frame>
-                `);
-              }
-            }
-
-            this.refreshBarMode();
-          },
-          refreshBarMode() {
-            const apps = this.shadow.all(".main n-app-frame");
-            this.hasMaxApp = apps.some((e) => e.appStatus === "max");
-          },
-          appChange(e) {
-            const { data } = e;
-
-            const targetData = this.barApps.find((e) => e.xid === data.appid);
-
-            switch (data.type) {
-              case "min":
-                targetData.status = "background";
-                break;
-              case "close":
-                targetData.status = undefined;
-                break;
-            }
-
-            this.refreshBarMode();
-          },
-          async initHistory() {
-            const bindHistory = () => {
-              let f;
-              window.addEventListener(
-                "popstate",
-                (f = (event) => {
-                  const { state } = event;
-
-                  const currentAppFrame = this?.currentAppFrame;
-
-                  if (state.routerType === "backward") {
-                    // console.log("app backward");
-                    history.forward(); // 还原
-                    currentAppFrame.back();
-                  } else if (state.routerType === "forward") {
-                    // console.log("app forward");
-                    history.back(); // 还原
-                    currentAppFrame.forward();
-                  }
-                })
-              );
-
-              this._offState = () => {
-                window.removeEventListener("popstate", f);
-              };
-            };
-
-            if (history.state && history.state.routerType === "current") {
-              // 处于当前态就直接注册事件
-              bindHistory();
-              return;
-            }
-
-            // 先修正为返回状态
-            history.replaceState(
-              {
-                routerType: "backward",
-              },
-              "None OS back state",
-              "/#backward"
-            );
-
-            await new Promise((res) => setTimeout(res, 50));
-
-            // 添加当前页状态
-            history.pushState(
-              {
-                routerType: "current",
-              },
-              "None OS",
-              "/"
-            );
-
-            await new Promise((res) => setTimeout(res, 50));
-
-            // 添加前进态
-            history.pushState(
-              {
-                routerType: "forward",
-              },
-              "None OS forward state",
-              "/#forward"
-            );
-
-            await new Promise((res) => setTimeout(res, 50));
-
-            // 返回到正常的当前态
-            history.back();
-
-            bindHistory();
-          },
-        },
-        async attached() {
-          if (history.state && history.state.routerType === "current") {
-            // 处于当前态就直接注册事件
-            this.initHistory();
-          } else {
-            // 使用事件注册历史，才能不会被系统修正历史
-            $("html").one("mousedown", () => {
-              this.initHistory();
-            });
-          }
+          // 判断本地是否安装
           const pgFile = await get("packages/package.json");
 
-          if (!pgFile && !localStorage["__use-online"]) {
+          if (
+            localStorage["__use-online"] ||
+            (pgFile && !localStorage.__installing)
+          ) {
+            // 添加安装
+            this.installed = true;
+          } else {
             // 确保安装
-            await installOS();
-          }
+            await installOS(({ count, length }) => {
+              this.installVal = (count / length) * 100;
+            });
 
-          // setTimeout(() => {
-          //   // 测试代码
-          //   this.clickApp({
-          //     data: { app: this.barApps[1] },
-          //   });
-          // }, 100);
-        },
-        detached() {
-          this._offState && this._offState();
+            this.installOK = true;
+
+            setTimeout(() => {
+              location.reload(true);
+            }, 1500);
+          }
         },
       };
     };

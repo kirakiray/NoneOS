@@ -150,6 +150,11 @@
           darkMode(bool) {
             localStorage.__darkmode = bool ? "1" : "";
 
+            const provider = this.getProvider("pui");
+            if (provider) {
+              provider.theme = bool ? "dark" : "light";
+            }
+
             clearTimeout(this._darkTimer);
             this._darkTimer = setTimeout(() => {
               this.host.theme = this.darkMode ? "dark" : "light";
