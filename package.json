@@ -8,7 +8,7 @@
     "test": "npx playwright test",
     "build-sw": "rollup packages/sw/main.js --file packages/sw/dist.js --format iife",
     "build-sw-min": "rollup packages/sw/main.js --file packages/sw/dist.min.js --format iife --plugin terser",
-    "build": "npm run build-sw && npm run build-sw-min && node scripts/build.js",
+    "bu": "npm run build-sw && npm run build-sw-min && node scripts/build.js",
     "update": "node scripts/update.js"
   },
   "repository": {
