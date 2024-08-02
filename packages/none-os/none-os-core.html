@@ -51,11 +51,9 @@
   </o-provider>
   <script>
     import "/packages/pui/init.js";
-    import get, { createRoot } from "../fs/get.js";
+    // import get, { createRoot } from "../fs/get.js";
 
     export default async () => {
-      await createRoot("apps");
-      await createRoot("packages");
 
       return {
         tag: "none-os-core",
