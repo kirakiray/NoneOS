@@ -208,18 +208,16 @@
                 (f = (event) => {
                   const { state } = event;
 
-                  const targetAppEl = this?.currentAppFrame?.$("o-app");
+                  const currentAppFrame = this?.currentAppFrame;
 
                   if (state.routerType === "backward") {
-                    console.log("app backward");
+                    // console.log("app backward");
+                    currentAppFrame.back();
                     history.forward(); // 还原
-                    targetAppEl &&
-                      targetAppEl.emit("backward", { bubbles: false });
                   } else if (state.routerType === "forward") {
-                    console.log("app forward");
+                    // console.log("app forward");
+                    currentAppFrame.forward();
                     history.back(); // 还原
-                    targetAppEl &&
-                      targetAppEl.emit("forward", { bubbles: false });
                   }
                 })
               );

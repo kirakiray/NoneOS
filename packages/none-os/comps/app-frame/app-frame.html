@@ -276,6 +276,12 @@
         },
       },
       proto: {
+        forward() {
+          this.$("o-app").forward();
+        },
+        back() {
+          this.$("o-app").back();
+        },
         borderMouseDown(e) {
           if (this.__oldResize) {
             this.__oldResize();

@@ -19,13 +19,4 @@ export const onHandle = async (e) => {
   console.log("onHandle: ", e);
 };
 
-export function ready() {
-  this.on("backward", () => {
-    this.back();
-  });
-  this.on("forward", () => {
-    this.forward();
-  });
-}
-
 export const allowForward = true;
