@@ -89,9 +89,13 @@
           installOK: false,
         },
         async ready() {
-          const pgjson = await fetch("/package.json").then((e) => e.json());
+          const pgjson = await fetch("/package.json")
+            .then((e) => e.json())
+            .catch(() => null);
 
-          this.version = pgjson.version;
+          if (pgjson) {
+            this.version = pgjson.version;
+          }
 
           // 判断本地是否安装
           const pgFile = await get("packages/package.json");
