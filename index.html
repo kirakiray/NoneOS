@@ -4,9 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoneOS</title>
+    <script src="/packages/ofa.js"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
+    <link rel="stylesheet" href="/packages/others/colors.css" />
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
   </head>
   <body>
-    NoneOS 重构中...
-    <script src="./packages/sw/register.js"></script>
+    <l-m src="./packages/none-os/none-os.html"></l-m>
+    <none-os></none-os>
+    <script src="./packages/sw/register.js" type="module"></script>
   </body>
 </html>

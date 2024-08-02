@@ -1,6 +1,6 @@
 import "../../fs/test/file-tree.js";
 import { get } from "../../fs/main.js";
-import { ok } from "../../test-util/ok.js";
+import { ok } from "./ok.js";
 import { registration } from "../register.js";
 
 const handle = await get("local/test_file.txt", {

@@ -1,0 +1,234 @@
+<template page>
+  <l-m src="/packages/pui/provider/provider.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      color: #fff;
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      /* justify-content: center;
+      align-items: center; */
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .top {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 160px;
+    }
+
+    .top p-text-field {
+      width: 300px;
+    }
+
+    .main {
+      position: relative;
+      display: flex;
+      flex-wrap: wrap;
+      /* justify-content: center; */
+      padding: 0 80px;
+    }
+
+    .app-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 8px;
+      margin: 24px;
+      width: 120px;
+      height: 132px;
+      border-radius: 32px;
+      cursor: pointer;
+      transition: all ease 0.2s;
+      overflow: hidden;
+    }
+
+    .app-block.hide {
+      width: 0;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      opacity: 0;
+    }
+
+    .app-block:hover {
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+
+    .app-block .icon {
+      width: 80px;
+      height: 80px;
+    }
+
+    .app-block .icon img {
+      width: 100%;
+      max-width: 80px;
+      max-height: 80px;
+    }
+    .app-name {
+      width: 80px;
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .empty-content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      text-align: center;
+    }
+  </style>
+  <p-provider theme="dark">
+    <div class="container">
+      <div class="top">
+        <p-text-field
+          placeholder="搜索应用"
+          sync:value="searchText"
+          on:click="$event.stopPropagation()"
+        >
+          <n-local-icon
+            name="search"
+            slot="prefix"
+            style="display: block; margin-right: 4px; font-size: 24px"
+          ></n-local-icon>
+        </p-text-field>
+      </div>
+      <div class="main">
+        <x-fill :value="apps" fill-key="url">
+          <div
+            class="app-block"
+            class:hide="$data.hide"
+            on:click="$host.clickApp($data)"
+          >
+            <div class="icon">
+              <img attr:src="$data.icon.url" />
+            </div>
+            <div class="app-name">{{$data.name}}</div>
+          </div>
+        </x-fill>
+        <x-if :value="isEmpty">
+          <div class="empty-content">没有符合搜索条件应用</div>
+        </x-if>
+      </div>
+    </div>
+  </p-provider>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
+      // 默认应用
+      const defaultApps = ["/packages/files", "/packages/setting"];
+
+      return {
+        data: {
+          _defaultApps: [],
+          apps: [
+            // {
+            //   name: "文件管理",
+            //   icon: {
+            //     url: "/packages/files/icon.svg",
+            //   },
+            //   url: "/packages/files/app-config.js",
+            //   // status: "background",
+            //   // status: "running",
+            // },
+          ],
+          searchText: "",
+          isEmpty: false,
+        },
+        watch: {
+          searchText(text) {
+            if (!text) {
+              this.isEmpty = false;
+              this.apps.forEach((e) => (e.hide = null));
+              return;
+            }
+
+            let isEmpty = true;
+
+            text = text.toLowerCase();
+
+            this.apps.forEach((e) => {
+              if (e.name.toLowerCase().includes(text)) {
+                e.hide = null;
+                isEmpty = false;
+              } else {
+                // 不符合的隐藏
+                e.hide = true;
+              }
+            });
+
+            this.isEmpty = isEmpty;
+          },
+        },
+        proto: {
+          clickApp(data) {
+            this.emit("click-app", {
+              data: {
+                name: data.name,
+                icon: data.icon,
+                url: data.url,
+              },
+            });
+          },
+          async refreshApps() {
+            const appHandle = await get("apps");
+
+            const apps = [];
+            for await (let handle of appHandle.values()) {
+              const data = await getAppBase(`/$/${handle.path}`);
+
+              data.__not_default = 1; // 标识不是默认应用
+
+              apps.push(data);
+            }
+
+            this.apps = [...this._defaultApps, ...apps];
+          },
+        },
+        async ready() {
+          // 获取默认应用信息
+          this._defaultApps = await Promise.all(defaultApps.map(getAppBase));
+
+          this.refreshApps();
+        },
+      };
+    };
+
+    // 获取应用的配置数据
+    const getAppBase = async (path) => {
+      const appJsonPath = `${path}/app.json`;
+      const configData = await fetch(appJsonPath).then((e) => e.json());
+
+      const icon = getRelatePath(appJsonPath, configData.icon);
+      let configUrl;
+
+      if (configData.config) {
+        configUrl = getRelatePath(appJsonPath, configData.config);
+      }
+
+      return {
+        name: configData.name,
+        icon: {
+          url: icon,
+        },
+        url: configUrl || `${path}/app-config.js`,
+      };
+    };
+
+    // 获取相对路径
+    function getRelatePath(basePath, relativePath) {
+      const baseUrl = new URL(basePath, window.location.href);
+      const resolvedUrl = new URL(relativePath, baseUrl);
+      return resolvedUrl.pathname;
+    }
+  </script>
+</template>

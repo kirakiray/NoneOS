@@ -1,5 +1,5 @@
 import { get as _get, origin } from "../main.js";
-import { ok } from "../../test-util/ok.js";
+import { ok } from "./ok.js";
 
 const url = import.meta.url;
 const { hash } = new URL(url);
@@ -56,14 +56,14 @@ const file2 = await get(
 
 await file2.write("test file2!!");
 
-await file2.move("test2.txt");
+await file2.moveTo("test2.txt");
 // .catch((err) => {
 //   console.error(err);
 // });
 
 const sub3_1 = await get("local/subDir3/sub3-1");
 
-await sub3_1.copy("sub3_2");
+await sub3_1.copyTo("sub3_2");
 // .catch((err) => {
 //   console.error(err);
 // });
@@ -84,7 +84,7 @@ ok(c2text === "test file2!!", "after copy text");
 
 const root = await test2Handle.root();
 
-ok(root.name === "local", "root");
+ok(root.name === "local", "root name");
 
 const sub3_2 = await get("local/subDir3/sub3_2");
 

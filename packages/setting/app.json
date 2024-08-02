@@ -1,0 +1,5 @@
+{
+  "name": "设置",
+  "icon": "icon.svg",
+  "config": "app-config.js"
+}

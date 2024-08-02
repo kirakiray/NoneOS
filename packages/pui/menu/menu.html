@@ -1,0 +1,161 @@
+<template component>
+  <l-m src="./item.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: inline-block;
+      font-size: 14px;
+      vertical-align: top;
+      border-radius: var(--pui-border-radius);
+      background-color: var(--pui-bg-light, var(--md-ref-palette-primary98));
+      box-shadow: var(--contained-shadow);
+      transition: opacity ease 0.1s;
+      --triangle-color: #5f6368;
+    }
+
+    :host([visibility="hidden"]) {
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: var(--pui-space-y) 0;
+      transition: padding ease 0.2s;
+    }
+
+    ::slotted(hr) {
+      display: block;
+      width: 100%;
+      margin: var(--pui-space-y) 0;
+      border: none;
+      border-top: var(--md-ref-palette-normal90) solid 1px;
+      transition: margin ease 0.2s;
+    }
+
+    :host([visibility="hidden"]) .container {
+      padding-top: 0;
+      padding-bottom: 0;
+      transition: opacity ease 0.2s;
+    }
+
+    .safearea {
+      display: block;
+      position: absolute;
+      left: -20px;
+      top: -20px;
+      width: calc(100% + 40px);
+      height: calc(100% + 40px);
+      background: transparent;
+      z-index: 0;
+    }
+  </style>
+  <inject-host>
+    <style>
+      p-menu p-menu-item::part(container) {
+        transition: line-height ease 0.2s, padding ease 0.2s;
+      }
+      p-menu[visibility="hidden"] p-menu-item {
+        line-height: 0px !important;
+      }
+      p-menu[visibility="hidden"] p-menu-item::part(container) {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+      }
+
+      p-menu[visibility="hidden"] p-menu-item::part(fake-button) {
+        /* Remove focus when hidden */
+        display: none !important;
+      }
+
+      p-menu [slot="prefix"] {
+        transition: all ease 0.2s;
+      }
+
+      p-menu p-menu-item img[slot="prefix"] {
+        opacity: 1;
+        transition: opacity ease 0.5s;
+      }
+
+      p-menu[visibility="hidden"] p-menu-item img[slot="prefix"] {
+        opacity: 0;
+      }
+      p-menu[visibility="hidden"] {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      p-menu[visibility="hidden"] [slot="prefix"] {
+        font-size: 0px;
+        line-height: 0;
+      }
+
+      p-menu[visibility="hidden"] hr {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+        border-width: 0;
+        opacity: 0;
+      }
+    </style>
+  </inject-host>
+
+  <x-if :value="isChild">
+    <style>
+      :host {
+        position: absolute;
+        left: 100%;
+        top: 0;
+        margin: 0 !important;
+        white-space: nowrap;
+      }
+    </style>
+  </x-if>
+
+  <x-if :value="theme === 'dark'">
+    <style>
+      :host {
+        background-color: var(--pui-bg-dark, var(--md-ref-palette-normal10));
+      }
+      ::slotted(hr) {
+        border-top: var(--md-ref-palette-normal30) solid 1px;
+      }
+    </style>
+  </x-if>
+  <x-else>
+    <style>
+      .container {
+        --wave-color: rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </x-else>
+  <style init-style>
+    :host {
+      display: none;
+    }
+  </style>
+  <div class="container" part="container">
+    <slot></slot>
+    <x-if :value="isChild">
+      <div class="safearea"></div>
+    </x-if>
+  </div>
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
+  <script>
+    import "../commons/init.js";
+
+    export default {
+      tag: "p-menu",
+      attrs: {
+        visibility: null,
+      },
+      data: {
+        theme: "light",
+        isChild: false,
+      },
+      loaded() {
+        this.shadow.$("[init-style]").remove();
+      },
+    };
+  </script>
+</template>

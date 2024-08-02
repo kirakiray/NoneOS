@@ -1,0 +1,115 @@
+<template component>
+  <l-m src="../wave/wave.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      padding: 0 calc(var(--pui-space-x) * 3);
+      --wave-color: var(--md-ref-palette-translucent-primary60);
+      white-space: nowrap;
+      transition: all ease 0.3s;
+    }
+    .container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: calc(var(--pui-space-y) * 2) 0;
+    }
+    @media (hover: hover) {
+      :host(:hover) {
+        background-color: var(--md-ref-palette-translucent-normal60);
+      }
+    }
+
+    .icon {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      transition: color ease 0.2s;
+    }
+
+    :host([active-item]) {
+      color: var(--md-sys-color-primary);
+    }
+
+    :host([icon-position="start"]) .container {
+      flex-direction: row;
+    }
+
+    :host([icon-position="start"]) .icon {
+      margin-right: var(--pui-space-x);
+    }
+
+    :host([icon-position="bottom"]) .container {
+      flex-direction: column-reverse;
+    }
+
+    :host([icon-position="end"]) .container {
+      flex-direction: row-reverse;
+    }
+    :host([icon-position="end"]) .icon {
+      margin-left: var(--pui-space-x);
+    }
+
+    ::slotted(p-badge) {
+      margin-left: calc(var(--pui-space-x) * 0.5);
+    }
+    ::slotted(p-badge[slot="icon"]) {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin-left: 0;
+      transform: translate(50%, -50%);
+    }
+
+    ::slotted(img[not-active-icon]),
+    ::slotted(img[active-icon]) {
+      height: 20px;
+    }
+  </style>
+
+  <div class="container" part="container">
+    <div class="icon">
+      <slot name="icon"></slot>
+    </div>
+    <div style="display: flex; align-items: center">
+      <slot></slot>
+    </div>
+  </div>
+  <p-wave></p-wave>
+  <script>
+    export default {
+      tag: "p-tab",
+      attrs: {
+        iconPosition: null,
+        activeItem: null,
+      },
+      proto: {
+        get container() {
+          return this.shadow.$(".container");
+        },
+      },
+      watch: {
+        activeItem() {
+          this.emit("tab-active-change");
+        },
+      },
+      ready() {
+        this.on("click", () => {
+          this.emit("click-tab-item");
+        });
+      },
+      attached() {
+        this.emit("attach-tab");
+      },
+    };
+  </script>
+</template>

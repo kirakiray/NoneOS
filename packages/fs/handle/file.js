@@ -1,6 +1,6 @@
 import { BaseHandle } from "./base.js";
 import { setData, getData } from "../db.js";
-import { clearHashs, getSelfData } from "./util.js";
+import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
 const CHUNK_SIZE = 1024 * 1024; // 1mb
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -35,6 +35,8 @@ export class FileHandle extends BaseHandle {
     const chunks = await splitIntoChunks(data);
 
     const hashs = [];
+
+    const size = data.length || data.size || 0;
 
     // 写入块
     await Promise.all(
@@ -85,8 +87,8 @@ export class FileHandle extends BaseHandle {
         {
           ...targetData,
           lastModified: data?.lastModified || Date.now(),
-          length: data.length,
           hashs,
+          size,
         },
         ...hashs.map((hash, index) => {
           return {
@@ -102,6 +104,8 @@ export class FileHandle extends BaseHandle {
     if (oldHashs.length) {
       await clearHashs(oldHashs);
     }
+
+    await updateParentsModified(targetData.parent);
   }
 
   /**
@@ -121,7 +125,7 @@ export class FileHandle extends BaseHandle {
     // 重新组合文件
     const { hashs } = data;
 
-    let chunks;
+    let chunks = [];
     if (options && (options.start || options.end)) {
       // 获取指定范围内的数据
       let startBlockId = Math.floor(options.start / CHUNK_SIZE);
@@ -158,16 +162,18 @@ export class FileHandle extends BaseHandle {
       );
       chunks = chunks.filter((e) => !!e);
     } else {
-      chunks = await Promise.all(
-        hashs.map(async (hash, index) => {
-          const { chunk } = await getData({
-            storename: "blocks",
-            key: hash,
-          });
+      if (hashs) {
+        chunks = await Promise.all(
+          hashs.map(async (hash, index) => {
+            const { chunk } = await getData({
+              storename: "blocks",
+              key: hash,
+            });
 
-          return chunk;
-        })
-      );
+            return chunk;
+          })
+        );
+      }
     }
 
     const mergedArrayBuffer = mergeChunks(chunks);

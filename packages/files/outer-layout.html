@@ -1,0 +1,103 @@
+<template page>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+      background-color: var(--md-sys-color-surface);
+    }
+    .container {
+      display: flex;
+      height: 100%;
+    }
+    .left {
+      box-sizing: border-box;
+      padding: 2px 8px 8px 0;
+      width: 250px;
+    }
+    .left p-list-item {
+      margin: 2px 0;
+      border-radius: 0 20px 20px 0;
+      overflow: hidden;
+    }
+    .main {
+      flex: 1;
+    }
+
+    p-list-item[active-item] {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    .left n-local-icon[slot="prefix"] {
+      display: block;
+      font-size: 18px;
+      margin-right: 8px;
+    }
+  </style>
+  <div class="container">
+    <div class="left">
+      <p-list>
+        <x-fill :value="roots">
+          <p-list-item
+            button
+            attr:active-item="$data.path === $host.selectedRootName"
+            on:click="$host.clickTab($data)"
+          >
+            <n-local-icon
+              slot="prefix"
+              attr:name="$data.icon || 'folder'"
+            ></n-local-icon>
+            {{$data.name}}
+          </p-list-item>
+        </x-fill>
+      </p-list>
+    </div>
+    <div class="main">
+      <slot></slot>
+    </div>
+  </div>
+  <script>
+    export default () => {
+      return {
+        data: {
+          roots: [
+            {
+              name: "虚拟空间",
+              path: "local",
+            },
+            {
+              name: "应用",
+              path: "apps",
+              icon: "apps",
+            },
+            {
+              name: "依赖包",
+              path: "packages",
+              icon: "safe",
+            },
+          ],
+          selectedRootName: null,
+        },
+        proto: {
+          clickTab(data) {
+            if (data.path === this.selectedRootName) {
+              return;
+            }
+            this.selectedRootName = data.path;
+            this.app.current.goto(`./explore.html?path=${data.path}`);
+          },
+        },
+        ready() {
+          this.on("go-page", (e) => {
+            e.stopPropagation();
+
+            const rootName = e.data.path.split("/")[0];
+            this.selectedRootName = rootName;
+          });
+        },
+      };
+    };
+  </script>
+</template>

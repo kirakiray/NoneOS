@@ -1,0 +1,28 @@
+<template component>
+  <link rel="stylesheet" href="../css/theme.css" />
+  <style>
+    :host {
+      display: contents;
+    }
+    o-provider {
+      color: var(--md-sys-color-on-surface);
+      background-color: var(--md-sys-color-surface);
+    }
+  </style>
+  <o-provider
+    name="pui"
+    sync:theme="theme"
+    class:theme-dark-mode="theme === 'dark'"
+    class:theme-light-mode="theme === 'light'"
+  >
+    <slot></slot>
+  </o-provider>
+  <script>
+    export default {
+      tag: "p-provider",
+      attrs: {
+        theme: "light",
+      },
+    };
+  </script>
+</template>

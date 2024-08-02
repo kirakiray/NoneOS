@@ -3,27 +3,31 @@ import { getData, setData, getRandomId } from "./db.js";
 import { DirHandle } from "./handle/dir.js";
 import { FileHandle } from "./handle/file.js";
 
-// 初始化Local
-const inited = (async () => {
-  // 获取根数据
-  const localData = await getData({
+// 创建root空间
+export const createRoot = async (name) => {
+  const targetRootData = await getData({
     index: "parent_and_name",
-    key: ["root", "local"],
+    key: ["root", name],
   });
 
-  if (!localData) {
+  if (!targetRootData) {
     // 初始化Local目录
     await setData({
       datas: [
         {
           key: getRandomId(),
           parent: "root",
-          name: "local",
+          name,
           createTime: Date.now(),
         },
       ],
     });
   }
+};
+
+// 初始化Local
+const inited = (async () => {
+  await createRoot("local");
 })();
 
 /**

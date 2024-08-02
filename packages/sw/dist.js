@@ -15,6 +15,12 @@
     notDeleteRoot: "不能直接删除根节点{name}",
     deleted: "当前handle已被删除，不能使用{name}；旧地址为:{path}",
     exitedName: "操作失败，{name}已经存在",
+    tolowcase: "文件系统对大小写不敏感，{oldName}将会被转为{newName}",
+    writefile: "写入文件内容失败:{path}",
+    noPicker: "当前浏览器不支持文件选择",
+    targetAnotherType:
+      "{path} 已经是一个'{exitedType}'，不能创建为'{targetType}'",
+    notMoveToChild: "{targetPath} 是 {path} 的子目录，不能移动到自己的子目录",
   };
 
   /**
@@ -41,6 +47,8 @@
     } else {
       errObj = new Error(desc);
     }
+    errObj.code = key;
+
     return errObj;
   };
 
@@ -279,6 +287,32 @@
   };
 
   /**
+   * 更新所有父层的修改时间
+   * @param {string} id 目标handle的id
+   */
+  const updateParentsModified = async (id) => {
+    const parents = [];
+    const time = Date.now();
+
+    let key = id;
+
+    while (key) {
+      const targeData = await getData({ key });
+      if (!targeData) {
+        break;
+      }
+
+      targeData.lastModified = time;
+      parents.push(targeData);
+      key = targeData.parent;
+    }
+
+    await setData({
+      datas: parents,
+    });
+  };
+
+  /**
    * 基础的Handle
    */
   class BaseHandle {
@@ -286,6 +320,8 @@
     #kind;
     #path;
     #name;
+    #createTime;
+    #lastModified;
     constructor(id, kind) {
       this.#id = id;
       this.#kind = kind;
@@ -321,6 +357,14 @@
      */
     get kind() {
       return this.#kind;
+    }
+
+    get createTime() {
+      return this.#createTime;
+    }
+
+    get lastModified() {
+      return this.#lastModified || null;
     }
 
     /**
@@ -364,12 +408,13 @@
      * @param {(string|DirHandle)} target 移动到目标的文件夹
      * @param {string} name 移动到目标文件夹下的名称
      */
-    async move(target, name) {
+    async moveTo(target, name) {
       [target, name] = await getTargetAndName({ target, name, self: this });
 
       const selfData = await getSelfData(this, "move");
       selfData.parent = target.id;
-      selfData.name = name;
+      selfData.name = name.toLowerCase();
+      selfData.realName = name;
 
       await setData({
         datas: [selfData],
@@ -383,7 +428,7 @@
      * @param {(string|DirHandle)} target 移动到目标的文件夹
      * @param {string} name 移动到目标文件夹下的名称
      */
-    async copy(target, name) {
+    async copyTo(target, name) {
       [target, name] = await getTargetAndName({ target, name, self: this });
 
       let reHandle;
@@ -395,7 +440,7 @@
           });
 
           for await (let [name, subHandle] of this.entries()) {
-            await subHandle.copy(reHandle, name);
+            await subHandle.copyTo(reHandle, name);
           }
           break;
         case "file":
@@ -411,7 +456,7 @@
 
           await setData({
             datas: [
-              targetData,
+              { ...selfData, ...targetData },
               ...hashs.map((hash, index) => {
                 return {
                   key: `${targetData.key}-${index}`,
@@ -424,6 +469,8 @@
 
           break;
       }
+
+      await updateParentsModified(target.id);
 
       return reHandle;
     }
@@ -472,6 +519,9 @@
     async refresh() {
       const data = await getSelfData(this, "refresh");
 
+      this.#createTime = data.createTime;
+      this.#lastModified = data.lastModified;
+
       this.#name = data.realName || data.name;
 
       // 重新从db中获取parent数据并更新path
@@ -485,6 +535,14 @@
 
       this.#path = pathArr.join("/");
     }
+
+    async size() {
+      const data = await getSelfData(this, "size");
+
+      if (data.type === "file") {
+        return data.size;
+      }
+    }
   }
 
   // 修正 target 和 name 的值
@@ -492,6 +550,10 @@
     if (typeof target === "string") {
       name = target;
       target = await self.parent();
+    }
+
+    if (!name) {
+      name = self.name;
     }
 
     // 查看是否已经有同名的文件或文件夹
@@ -509,8 +571,24 @@
       });
     }
 
+    if (isSubdirectory(target.path, self.path)) {
+      throw getErr("notMoveToChild", {
+        targetPath: target.path,
+        path: self.path,
+      });
+    }
+
     return [target, name];
   };
+
+  function isSubdirectory(child, parent) {
+    if (child === parent) {
+      return false;
+    }
+    const parentTokens = parent.split("/").filter((i) => i.length);
+    const childTokens = child.split("/").filter((i) => i.length);
+    return parentTokens.every((t, i) => childTokens[i] === t);
+  }
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb
   // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -545,6 +623,8 @@
       const chunks = await splitIntoChunks(data);
 
       const hashs = [];
+
+      const size = data.length || data.size || 0;
 
       // 写入块
       await Promise.all(
@@ -595,8 +675,8 @@
           {
             ...targetData,
             lastModified: data?.lastModified || Date.now(),
-            length: data.length,
             hashs,
+            size,
           },
           ...hashs.map((hash, index) => {
             return {
@@ -612,6 +692,8 @@
       if (oldHashs.length) {
         await clearHashs(oldHashs);
       }
+
+      await updateParentsModified(targetData.parent);
     }
 
     /**
@@ -631,7 +713,7 @@
       // 重新组合文件
       const { hashs } = data;
 
-      let chunks;
+      let chunks = [];
       if (options && (options.start || options.end)) {
         // 获取指定范围内的数据
         let startBlockId = Math.floor(options.start / CHUNK_SIZE);
@@ -668,16 +750,18 @@
         );
         chunks = chunks.filter((e) => !!e);
       } else {
-        chunks = await Promise.all(
-          hashs.map(async (hash, index) => {
-            const { chunk } = await getData({
-              storename: "blocks",
-              key: hash,
-            });
+        if (hashs) {
+          chunks = await Promise.all(
+            hashs.map(async (hash, index) => {
+              const { chunk } = await getData({
+                storename: "blocks",
+                key: hash,
+              });
 
-            return chunk;
-          })
-        );
+              return chunk;
+            })
+          );
+        }
       }
 
       const mergedArrayBuffer = mergeChunks(chunks);
@@ -878,9 +962,12 @@
 
       if (options) {
         if (options.create && !data) {
+          const nowTime = Date.now();
+
           // 当不存在数据，且create有值时，根据值进行创建
           data = {
-            createTime: Date.now(),
+            createTime: nowTime,
+            lastModified: nowTime,
             key: getRandomId(),
             realName: subName,
             name: subName.toLowerCase(),
@@ -891,7 +978,18 @@
           await setData({
             datas: [data],
           });
+
+          await updateParentsModified(self.id);
         }
+      }
+
+      if (options && options.create && options.create !== data.type) {
+        // 如果带有 create 参数，且数据类型与 create 参数不一致，抛出错误
+        throw getErr("targetAnotherType", {
+          path: self.path + "/" + subName,
+          exitedType: data.type,
+          targetType: options.create,
+        });
       }
 
       return await createHandle(data);
@@ -1000,27 +1098,31 @@
     return result;
   };
 
-  // 初始化Local
-  const inited = (async () => {
-    // 获取根数据
-    const localData = await getData({
+  // 创建root空间
+  const createRoot = async (name) => {
+    const targetRootData = await getData({
       index: "parent_and_name",
-      key: ["root", "local"],
+      key: ["root", name],
     });
 
-    if (!localData) {
+    if (!targetRootData) {
       // 初始化Local目录
       await setData({
         datas: [
           {
             key: getRandomId(),
             parent: "root",
-            name: "local",
+            name,
             createTime: Date.now(),
           },
         ],
       });
     }
+  };
+
+  // 初始化Local
+  const inited = (async () => {
+    await createRoot("local");
   })();
 
   /**
@@ -1062,16 +1164,107 @@
     return rootHandle.get(paths.slice(1).join("/"), options);
   };
 
+  const cacheResponse = async (path) => {
+    const cache = await caches.open("noneos-default-cache");
+    let resp = await cache.match(path);
+
+    if (resp) {
+      return resp.clone();
+    }
+
+    resp = await fetch(path);
+
+    if (resp.status === 200) {
+      cache.put(path, resp.clone());
+    }
+
+    return resp;
+  };
+
+  const getContentType = (prefix) => {
+    switch (prefix) {
+      case "html":
+      case "htm":
+      case "txt":
+      case "md":
+        return "text/plain; charset=utf-8";
+      case "js":
+      case "mjs":
+        return "application/javascript; charset=utf-8";
+      case "json":
+        return "application/json; charset=utf-8";
+      case "css":
+        return "text/css; charset=utf-8";
+      case "xml":
+        return "application/xml; charset=utf-8";
+      case "svg":
+        return "image/svg+xml; charset=utf-8";
+      case "csv":
+        return "text/csv; charset=utf-8";
+      case "ics":
+        return "text/calendar; charset=utf-8";
+      case "pdf":
+        return "application/pdf; charset=utf-8";
+      case "doc":
+      case "docx":
+        return "application/msword; charset=utf-8";
+      case "xls":
+      case "xlsx":
+        return "application/vnd.ms-excel; charset=utf-8";
+      case "ppt":
+      case "pptx":
+        return "application/vnd.ms-powerpoint; charset=utf-8";
+      case "zip":
+        return "application/zip; charset=utf-8";
+      case "gz":
+        return "application/gzip; charset=utf-8";
+      case "tar":
+        return "application/x-tar; charset=utf-8";
+      case "jpg":
+      case "jpeg":
+        return "image/jpeg";
+      case "png":
+        return "image/png";
+      case "gif":
+        return "image/gif";
+      case "bmp":
+        return "image/bmp";
+      case "ico":
+        return "image/x-icon";
+      case "webp":
+        return "image/webp";
+      case "bmp":
+        return "image/bmp";
+      case "mp3":
+        return "audio/mpeg";
+      case "wav":
+        return "audio/wav";
+      case "mp4":
+      case "m4v":
+        return "video/mp4";
+      case "mov":
+        return "video/quicktime";
+      case "avi":
+        return "video/x-msvideo";
+      default:
+        return "application/octet-stream";
+    }
+  };
+
   const resposeFS = async ({ request }) => {
     const { pathname } = new URL(request.url);
 
     const path = pathname.replace(/^\/\$\//, "");
 
-    console.log("path:", path);
-    const handle = await get(path);
-    const content = await handle.text();
+    // console.log("path:", path);
+    const handle = await get(decodeURIComponent(path));
+    let content = await handle.file();
 
     const headers = {};
+
+    const prefix = path.split(".").pop();
+
+    headers["Content-Type"] = getContentType(prefix);
 
     return new Response(content, {
       status: 200,
@@ -1087,21 +1280,41 @@
 
   self.addEventListener("fetch", (event) => {
     const { request } = event;
-    const { pathname } = new URL(request.url);
+    const { pathname, origin } = new URL(request.url);
 
-    if (/^\/\$/.test(pathname)) {
-      event.respondWith(
-        (async () => {
-          try {
-            return await resposeFS({ request });
-          } catch (err) {
-            console.error(err);
-            return new Response(err.toString(), {
-              status: 404,
-            });
-          }
-        })()
-      );
+    if (location.origin === origin) {
+      if (pathname === "/" || pathname === "/index.html") {
+        event.respondWith(cacheResponse(pathname));
+      } else if (/^\/\$/.test(pathname)) {
+        event.respondWith(
+          (async () => {
+            try {
+              return await resposeFS({ request });
+            } catch (err) {
+              console.error(err);
+              return new Response(err.stack || err.toString(), {
+                status: 404,
+              });
+            }
+          })()
+        );
+      } else if (/^\/packages\//.test(pathname)) {
+        event.respondWith(
+          (async () => {
+            try {
+              // 转发代理本地packages文件
+              return await resposeFS({
+                request: {
+                  url: `${origin}/$${pathname}`,
+                },
+              });
+            } catch (err) {
+              // 本地请求失败，则请求线上
+              return fetch(request.url);
+            }
+          })()
+        );
+      }
     }
   });
 

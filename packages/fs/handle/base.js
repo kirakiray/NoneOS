@@ -1,7 +1,7 @@
 import { getData, setData } from "../db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
-import { clearHashs, getSelfData } from "./util.js";
+import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
 /**
  * 基础的Handle
@@ -11,6 +11,8 @@ export class BaseHandle {
   #kind;
   #path;
   #name;
+  #createTime;
+  #lastModified;
   constructor(id, kind) {
     this.#id = id;
     this.#kind = kind;
@@ -46,6 +48,14 @@ export class BaseHandle {
    */
   get kind() {
     return this.#kind;
+  }
+
+  get createTime() {
+    return this.#createTime;
+  }
+
+  get lastModified() {
+    return this.#lastModified || null;
   }
 
   /**
@@ -89,12 +99,13 @@ export class BaseHandle {
    * @param {(string|DirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async move(target, name) {
+  async moveTo(target, name) {
     [target, name] = await getTargetAndName({ target, name, self: this });
 
     const selfData = await getSelfData(this, "move");
     selfData.parent = target.id;
-    selfData.name = name;
+    selfData.name = name.toLowerCase();
+    selfData.realName = name;
 
     await setData({
       datas: [selfData],
@@ -108,7 +119,7 @@ export class BaseHandle {
    * @param {(string|DirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copy(target, name) {
+  async copyTo(target, name) {
     [target, name] = await getTargetAndName({ target, name, self: this });
 
     let reHandle;
@@ -120,7 +131,7 @@ export class BaseHandle {
         });
 
         for await (let [name, subHandle] of this.entries()) {
-          await subHandle.copy(reHandle, name);
+          await subHandle.copyTo(reHandle, name);
         }
         break;
       case "file":
@@ -136,7 +147,7 @@ export class BaseHandle {
 
         await setData({
           datas: [
-            targetData,
+            { ...selfData, ...targetData },
             ...hashs.map((hash, index) => {
               return {
                 key: `${targetData.key}-${index}`,
@@ -149,6 +160,8 @@ export class BaseHandle {
 
         break;
     }
+
+    await updateParentsModified(target.id);
 
     return reHandle;
   }
@@ -197,6 +210,9 @@ export class BaseHandle {
   async refresh() {
     const data = await getSelfData(this, "refresh");
 
+    this.#createTime = data.createTime;
+    this.#lastModified = data.lastModified;
+
     this.#name = data.realName || data.name;
 
     // 重新从db中获取parent数据并更新path
@@ -210,6 +226,14 @@ export class BaseHandle {
 
     this.#path = pathArr.join("/");
   }
+
+  async size() {
+    const data = await getSelfData(this, "size");
+
+    if (data.type === "file") {
+      return data.size;
+    }
+  }
 }
 
 // 修正 target 和 name 的值
@@ -217,6 +241,10 @@ export const getTargetAndName = async ({ target, name, self }) => {
   if (typeof target === "string") {
     name = target;
     target = await self.parent();
+  }
+
+  if (!name) {
+    name = self.name;
   }
 
   // 查看是否已经有同名的文件或文件夹
@@ -234,5 +262,21 @@ export const getTargetAndName = async ({ target, name, self }) => {
     });
   }
 
+  if (isSubdirectory(target.path, self.path)) {
+    throw getErr("notMoveToChild", {
+      targetPath: target.path,
+      path: self.path,
+    });
+  }
+
   return [target, name];
 };
+
+function isSubdirectory(child, parent) {
+  if (child === parent) {
+    return false;
+  }
+  const parentTokens = parent.split("/").filter((i) => i.length);
+  const childTokens = child.split("/").filter((i) => i.length);
+  return parentTokens.every((t, i) => childTokens[i] === t);
+}

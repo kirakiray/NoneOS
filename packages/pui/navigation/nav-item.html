@@ -1,0 +1,143 @@
+<template component>
+  <l-m src="../wave/wave.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      cursor: pointer;
+      --wave-color: var(--md-ref-palette-translucent-primary50);
+      font-size: 12px;
+      line-height: 1.2em;
+    }
+    :host([active-item]) {
+      color: var(--md-sys-color-on-normal-container);
+      font-weight: 500;
+    }
+    .container {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: calc(var(--pui-space-y) * 2) 0 calc(var(--pui-space-y) * 3);
+    }
+    .icon {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-width: 58px;
+      /* width: 80px; */
+      font-size: 22px;
+      margin-bottom: calc(var(--pui-space-y) * 1);
+    }
+    .decorate {
+      position: relative;
+      padding: var(--pui-space-y) 0;
+      border-radius: 30px;
+      transition: all ease 0.3s;
+    }
+
+    .decorate span {
+      position: relative;
+      z-index: 1;
+    }
+
+    .decorate:before {
+      display: block;
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 30px;
+      background-color: var(--md-sys-color-normal-container);
+      z-index: 0;
+      opacity: 0;
+      transition: all ease 0.3s;
+    }
+
+    :host([active-item]) .decorate {
+      opacity: 1;
+      padding: var(--pui-space-y) calc(var(--pui-space-x) * 3);
+    }
+
+    :host([active-item]) .decorate:before {
+      opacity: 1;
+    }
+
+    @media (hover: hover) {
+      :host(:hover) .decorate {
+        opacity: 1;
+        padding: var(--pui-space-y) calc(var(--pui-space-x) * 3);
+      }
+
+      :host(:hover) .decorate:before {
+        opacity: 1;
+      }
+    }
+
+    :host([active-item]) .decorate:before {
+      background-color: var(--md-sys-color-primary-container);
+    }
+    ::slotted(p-badge) {
+      margin-left: calc(var(--pui-space-x) * 0.5);
+    }
+    ::slotted(p-badge[slot="icon"]) {
+      position: absolute;
+      right: 0;
+      top: 0;
+      margin-left: 0;
+      transform: translate(50%, -50%);
+    }
+    ::slotted(img[slot="icon"]) {
+      max-width: 30px;
+      max-height: 20px;
+    }
+    :host([disabled]) {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    ::slotted(a) {
+      color: inherit;
+      text-decoration: none;
+    }
+  </style>
+  <div class="container">
+    <div class="icon">
+      <div class="decorate">
+        <span>
+          <slot name="icon"></slot>
+        </span>
+        <x-if :value="disabled === null">
+          <p-wave></p-wave>
+        </x-if>
+      </div>
+    </div>
+    <slot></slot>
+  </div>
+  <script>
+    import "../commons/init.js";
+    import bindClick from "../button/bind-item-click.js";
+
+    export default {
+      tag: "p-nav-item",
+      attrs: {
+        disabled: null,
+        activeItem: null,
+      },
+      watch: {
+        activeItem() {
+          this.emit("nav-item-refresh");
+        },
+      },
+      ready() {
+        bindClick(this, () => this.emit("click-nav-item"));
+      },
+      attached() {
+        this.emit("nav-item-refresh");
+      },
+    };
+  </script>
+</template>

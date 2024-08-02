@@ -1,0 +1,416 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/button/button-group.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="./comps/bottom-address.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .top {
+      display: flex;
+      padding: 4px;
+      height: 40px;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    p-button-group {
+      margin-right: 8px;
+    }
+
+    n-local-icon {
+      display: block;
+      font-size: 18px;
+    }
+
+    .search-input {
+      margin: 0 8px 0 auto;
+      width: 200px;
+    }
+
+    .address {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      font-size: 14px;
+    }
+
+    .bottom-area {
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      height: 40px;
+      font-size: 14px;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
+
+    .bottom-area.hide {
+      opacity: 0;
+      height: 0;
+    }
+    .bottom-area.hide.delay {
+      transition-delay: 1s;
+    }
+  </style>
+  <div class="top">
+    <p-button-group variant="outlined">
+      <p-button
+        size="small"
+        on:click="app.back()"
+        attr:disabled="app.routers.length <= 1"
+      >
+        <n-local-icon name="back"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        on:click="app.forward()"
+        attr:disabled="!app?._forwards?.length"
+      >
+        <n-local-icon name="forward"></n-local-icon>
+      </p-button>
+    </p-button-group>
+    <p-button-group variant="outlined">
+      <p-button
+        size="small"
+        attr:disabled="isPackages || !selecteds.length"
+        on:click="clickCut"
+      >
+        <n-local-icon name="cut"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        attr:disabled="!selecteds.length"
+        on:click="clickCopy"
+      >
+        <n-local-icon name="copy"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        attr:disabled="isPackages || !clipboard?.sources?.length"
+        on:click="clickPaste"
+      >
+        <n-local-icon name="paste"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        attr:disabled="isPackages || selecteds.length !== 1"
+        on:click="clickRename"
+      >
+        <n-local-icon name="rename"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        attr:disabled="isPackages || selecteds.length !== 1"
+        on:click="clickRemove"
+      >
+        <n-local-icon name="delete"></n-local-icon>
+      </p-button>
+    </p-button-group>
+    <p-button-group variant="outlined">
+      <p-button
+        size="small"
+        on:click="clickReload"
+        attr:disabled="!!selecteds.length"
+      >
+        <n-local-icon name="reload"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        on:click="shadow.$(`#imFileInputer`).ele.click()"
+        attr:disabled="isPackages || !!selecteds.length"
+      >
+        <n-local-icon name="import-file"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        on:click="shadow.$(`#imDirInputer`).ele.click()"
+        attr:disabled="isPackages || !!selecteds.length"
+      >
+        <n-local-icon name="import-dir"></n-local-icon>
+      </p-button>
+      <div style="position: absolute; width: 0; height: 0; overflow: hidden">
+        <input
+          type="file"
+          webkitdirectory
+          id="imDirInputer"
+          on:change="importFiles"
+        />
+        <input
+          type="file"
+          multiple
+          id="imFileInputer"
+          on:change="importFiles"
+        />
+      </div>
+      <p-button
+        size="small"
+        on:click="clickExport"
+        attr:disabled="!selecteds.length"
+      >
+        <n-local-icon name="export"></n-local-icon>
+      </p-button>
+    </p-button-group>
+
+    <p-text-field
+      size="small"
+      class="search-input"
+      placeholder="在当前文件夹搜索"
+      sync:value="search"
+    >
+      <n-local-icon name="search" slot="prefix"></n-local-icon>
+    </p-text-field>
+  </div>
+  <div class="main" on:select-files="selectFiles">
+    <div style="position: relative; flex: 1">
+      <o-provider name="rename-file" sync:need-rename="needRename">
+        <slot></slot>
+      </o-provider>
+    </div>
+  </div>
+
+  <div class="bottom-area delay" class:hide="!clipboard?.sources?.length">
+    <x-if :value="clipboard?.sources?.length">
+      {{clipboardText}}，点击
+      <n-local-icon name="paste"></n-local-icon> 进行粘贴。
+      <p-button
+        size="small"
+        on:click="cProvider.desc = null"
+        style="margin: 0 8px"
+      >
+        点击取消操作
+      </p-button>
+    </x-if>
+    <x-else-if :value="clipboard === 0"> 粘贴完成 </x-else-if>
+    <x-else> 操作取消 </x-else>
+  </div>
+
+  <div class="bottom-area" class:hide="!importingLen">
+    <x-if :value="importingLen > importedLen">
+      导入文件中
+      <p-progress
+        :value="importedLen / importingLen * 100"
+        type="circle"
+        style="--circle-size: 20; margin: 0 8px"
+      ></p-progress>
+      {{importedLen}} / {{importingLen}}
+    </x-if>
+    <x-else> 导入完成 </x-else>
+  </div>
+
+  <div class="address">
+    <n-bottom-address
+      :path="path"
+      on:click-address="clickAddress"
+    ></n-bottom-address>
+  </div>
+
+  <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
+
+  <script>
+    export const parent = "./outer-layout.html";
+
+    import { handleToZip } from "./util.js";
+
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        data: {
+          path: "",
+          selecteds: [],
+          clipboard: {
+            // 等待中的操作
+            // type: "copy", // cut 或 copy
+            // sources: [], // 源地址
+          },
+          needRename: null,
+          search: "",
+          // 正在导入中的数据
+          importingLen: 0, // 导入中的数量
+          importedLen: 0, // 导入成功的数量
+        },
+        watch: {
+          search(text) {
+            this[0].search = text;
+          },
+        },
+        proto: {
+          get isPackages() {
+            return !!/^packages/.test(this.path);
+          },
+          async clickExport() {
+            const handler = await get(this.selecteds[0]);
+
+            let resultFile;
+            let download;
+            if (handler.kind === "dir") {
+              resultFile = await handleToZip(handler);
+              download = `${handler.name}.zip`;
+            } else {
+              resultFile = await handler.file();
+              download = handler.name;
+            }
+
+            const url = URL.createObjectURL(resultFile);
+
+            // 模拟下载文件
+            const linkEl = document.createElement("a");
+            linkEl.href = url;
+            linkEl.download = download;
+            linkEl.click();
+
+            setTimeout(() => {
+              URL.revokeObjectURL(url);
+            }, 1000);
+          },
+          async importFiles(e) {
+            const files = await fileFilter(e.target.files);
+
+            // 写入文件
+            const nowHandle = await get(this.path);
+
+            this.importingLen = files.length;
+            this.importedLen = 0;
+
+            for (let file of files) {
+              const handle = await nowHandle.get(
+                file.webkitRelativePath || file.name,
+                {
+                  create: "file",
+                }
+              );
+
+              await handle.write(file);
+              this.importedLen++;
+            }
+
+            this.app.current.refreshFiles();
+
+            setTimeout(() => {
+              this.importingLen = 0;
+              this.importedLen = 0;
+            }, 1000);
+          },
+          get clipboardText() {
+            switch (this?.clipboard?.type) {
+              case "copy":
+                return `复制 ${this.clipboard.sources.join(",")}`;
+              case "cut":
+                return `剪切 ${this.clipboard.sources.join(",")}`;
+            }
+          },
+          get cProvider() {
+            return this.getProvider("clipboard");
+          },
+          clickReload() {
+            this.app.current.refreshFiles();
+          },
+          clickCopy(e) {
+            this.cProvider.desc = {
+              type: "copy",
+              sources: [...this.selecteds],
+            };
+          },
+          clickCut(e) {
+            this.cProvider.desc = {
+              type: "cut",
+              sources: [...this.selecteds],
+            };
+          },
+          clickRename() {
+            this.needRename = this.selecteds[0];
+          },
+          async clickPaste(e) {
+            const { sources, type } = this.clipboard;
+
+            const handles = await Promise.all(
+              sources.map(async (path) => {
+                return await get(path);
+              })
+            );
+
+            const targetHandle = await get(this.path);
+
+            switch (type) {
+              case "copy":
+                for (let handle of handles) {
+                  await handle.copyTo(targetHandle);
+                }
+                break;
+              case "cut":
+                for (let handle of handles) {
+                  await handle.moveTo(targetHandle);
+                }
+            }
+
+            this.cProvider.desc = 0;
+
+            this.app.current.refreshFiles();
+          },
+          async clickRemove() {
+            const handles = await Promise.all(
+              this.selecteds.map(async (path) => {
+                const handle = await get(path);
+
+                await handle.remove();
+              })
+            );
+
+            this.app.current.refreshFiles();
+          },
+          selectFiles(e) {
+            e.stopPropagation();
+            this.selecteds = e.data.selecteds.map((e) => e.path);
+          },
+          clickAddress(e) {
+            const {
+              data: { newPath },
+            } = e;
+
+            this.app.current.goto(`./explore.html?path=${newPath}`);
+          },
+        },
+        ready() {
+          this.attr("tool-layout", "");
+
+          this.on("go-page", (e) => {
+            // e.stopPropagation();
+            this.selecteds = [];
+            this.path = e.data.path;
+            this.needRename = null;
+            this.search = "";
+          });
+        },
+      };
+    };
+
+    async function fileFilter(files) {
+      const reFiles = Array.from(files).filter((e) => {
+        const { webkitRelativePath } = e;
+
+        if (!webkitRelativePath) {
+          return true;
+        }
+
+        const paths = webkitRelativePath.split("/");
+
+        return !paths.some((e) => {
+          return e === "node_modules" || /^\./.test(e);
+        });
+      });
+
+      return reFiles;
+    }
+  </script>
+</template>

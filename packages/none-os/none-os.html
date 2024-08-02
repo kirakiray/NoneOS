@@ -1,0 +1,126 @@
+<template component>
+  <l-m src="/packages/pui/provider/provider.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="./none-os-core.html"></l-m>
+  <link rel="stylesheet" href="./public.css" />
+  <style>
+    :host {
+      display: block;
+      width: 100%;
+      height: 100%;
+      background-image: url(../others/default-bg.jpg);
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      -webkit-user-select: none;
+      user-select: none;
+      overflow: hidden;
+    }
+    .installing-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+
+  <x-if :value="theme === 'dark'">
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+        --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+        --barbtn-bg: rgba(100, 100, 100, 0.4);
+      }
+    </style>
+  </x-if>
+  <x-else>
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+        --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+        --barbtn-bg: rgba(255, 255, 255, 0.4);
+      }
+    </style>
+  </x-else>
+
+  <p-provider sync:theme="theme">
+    <x-if :value="step === 2">
+      <none-os-core></none-os-core>
+    </x-if>
+    <x-else-if :value="step === 1">
+      <div class="installing-container">
+        <div
+          class="frosted-glass"
+          style="padding: 16px 24px; text-align: center"
+        >
+          <div
+            style="
+              font-size: 24px;
+              font-weight: bold;
+              color: var(--md-sys-color-primary);
+            "
+          >
+            None OS
+            <span style="font-size: 12px">{{version}}</span>
+          </div>
+          <div style="margin: 0 0 8px; font-size: 14px">
+            {{installOK ? '安装完成' : '安装中...'}}
+          </div>
+          <p-progress :value="installVal" style="width: 200px"></p-progress>
+        </div>
+      </div>
+    </x-else-if>
+  </p-provider>
+  <script>
+    export default async ({ load }) => {
+      const { default: get } = await load("../fs/get.js");
+      const { installOS } = await load("./util.js");
+
+      return {
+        tag: "none-os",
+        data: {
+          count: 0,
+          len: 0,
+          installVal: 0,
+          version: "",
+          theme: !!localStorage.__darkmode ? "dark" : "light",
+          step: 0,
+          installOK: false,
+        },
+        async ready() {
+          const pgjson = await fetch("/package.json")
+            .then((e) => e.json())
+            .catch(() => null);
+
+          if (pgjson) {
+            this.version = pgjson.version;
+          }
+
+          // 判断本地是否安装
+          const pgFile = await get("packages/package.json");
+
+          if (
+            localStorage["__use-online"] ||
+            (pgFile && !localStorage.__installing)
+          ) {
+            // 添加安装
+            this.step = 2;
+          } else {
+            this.step = 1;
+            // 确保安装
+            await installOS(({ count, length }) => {
+              this.installVal = (count / length) * 100;
+            });
+
+            this.installOK = true;
+
+            setTimeout(() => {
+              location.reload(true);
+            }, 1500);
+          }
+        },
+      };
+    };
+  </script>
+</template>

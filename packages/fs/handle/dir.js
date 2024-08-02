@@ -2,7 +2,7 @@ import { BaseHandle } from "./base.js";
 import { getData, setData, getRandomId } from "../db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
-import { getSelfData } from "./util.js";
+import { getSelfData, updateParentsModified } from "./util.js";
 
 /**
  * 创建文件夹handle
@@ -67,9 +67,12 @@ export class DirHandle extends BaseHandle {
 
     if (options) {
       if (options.create && !data) {
+        const nowTime = Date.now();
+
         // 当不存在数据，且create有值时，根据值进行创建
         data = {
-          createTime: Date.now(),
+          createTime: nowTime,
+          lastModified: nowTime,
           key: getRandomId(),
           realName: subName,
           name: subName.toLowerCase(),
@@ -80,7 +83,18 @@ export class DirHandle extends BaseHandle {
         await setData({
           datas: [data],
         });
+
+        await updateParentsModified(self.id);
       }
+    }
+
+    if (options && options.create && options.create !== data.type) {
+      // 如果带有 create 参数，且数据类型与 create 参数不一致，抛出错误
+      throw getErr("targetAnotherType", {
+        path: self.path + "/" + subName,
+        exitedType: data.type,
+        targetType: options.create,
+      });
     }
 
     return await createHandle(data);

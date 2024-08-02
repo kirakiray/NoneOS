@@ -49,3 +49,29 @@ export const getSelfData = async (handle, errName) => {
 
   return data;
 };
+
+/**
+ * 更新所有父层的修改时间
+ * @param {string} id 目标handle的id
+ */
+export const updateParentsModified = async (id) => {
+  const parents = [];
+  const time = Date.now();
+
+  let key = id;
+
+  while (key) {
+    const targeData = await getData({ key });
+    if (!targeData) {
+      break;
+    }
+
+    targeData.lastModified = time;
+    parents.push(targeData);
+    key = targeData.parent;
+  }
+
+  await setData({
+    datas: parents,
+  });
+};

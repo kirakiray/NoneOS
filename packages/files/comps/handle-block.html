@@ -1,0 +1,101 @@
+<template component>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+    }
+
+    img {
+      display: block;
+      height: 20px;
+    }
+
+    .icon {
+      margin-right: 4px;
+    }
+
+    .name {
+      position: relative;
+      display: flex;
+      align-items: center;
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .name-content {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .hide {
+      display: none !important;
+    }
+  </style>
+  <div class="icon">
+    <x-if :value="kind === 'dir'">
+      <img src="../sources/list-folder.svg" />
+    </x-if>
+    <x-else>
+      <img src="../sources/list-file.svg" />
+    </x-else>
+  </div>
+  <div class="name">
+    <div style="flex-shrink: 0">
+      <slot name="surfix"></slot>
+    </div>
+    <div class:hide="renameMode" class="name-content" attr:title="name">
+      {{name}}
+    </div>
+    <input
+      type="text"
+      :value="name"
+      class:hide="!renameMode"
+      on:blur="renameItem"
+    />
+    <div style="flex-shrink: 0">
+      <slot name="prefix"></slot>
+    </div>
+  </div>
+  <script>
+    export default {
+      tag: "n-handle-block",
+      data: {
+        view: "",
+        kind: "",
+        name: "",
+        filePath: null,
+        renameMode: false,
+      },
+      watch: {
+        renameMode(bool) {
+          if (bool) {
+            setTimeout(() => {
+              if (this.renameMode) {
+                this.shadow.$("input").ele.focus();
+              }
+            }, 100);
+          }
+        },
+      },
+      proto: {
+        renameItem(e) {
+          const { value } = e.target;
+          if (this.name !== value) {
+            // 重命名的冒泡
+            this.emit("rename-file", {
+              data: {
+                targetPath: this.filePath,
+                newName: value,
+              },
+              composed: true,
+            });
+          } else {
+            const renameProvider = this.getProvider("rename-file");
+            renameProvider.needRename = null;
+          }
+        },
+      },
+    };
+  </script>
+</template>

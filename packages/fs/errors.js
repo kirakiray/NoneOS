@@ -15,6 +15,9 @@ export const cn = {
   tolowcase: "文件系统对大小写不敏感，{oldName}将会被转为{newName}",
   writefile: "写入文件内容失败:{path}",
   noPicker: "当前浏览器不支持文件选择",
+  targetAnotherType:
+    "{path} 已经是一个'{exitedType}'，不能创建为'{targetType}'",
+  notMoveToChild: "{targetPath} 是 {path} 的子目录，不能移动到自己的子目录",
 };
 
 /**
@@ -41,6 +44,8 @@ export const getErr = (key, options, error) => {
   } else {
     errObj = new Error(desc);
   }
+  errObj.code = key;
+
   return errObj;
 };
 
