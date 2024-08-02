@@ -10,6 +10,8 @@
     <div>当前系统版本：<span id="version"></span></div>
     <div id="install-info"></div>
     <button id="re-install">点击重装系统</button>
+    <button id="remove-os">删除系统</button>
+
     <script type="module">
       import { get } from "../packages/fs/main.js";
       import { installOS } from "../packages/none-os/util.js";
@@ -17,7 +19,7 @@
       const pbHandle = await get("packages/package.json").catch(() => null);
 
       if (!pbHandle) {
-        $("#re-install").text = "本地没有安装系统";
+        $("#install-info").text = "本地没有安装系统";
       } else {
         const data = JSON.parse(await pbHandle.text());
 
@@ -25,20 +27,37 @@
       }
 
       $("#re-install").on("click", async () => {
-        $("#re-install").attr("disabled", "");
+        $.all("[button]").forEach((e) => e.attr("disabled", ""));
 
         await installOS((e) => {
           $("#install-info").text = `安装中 ${e.count} / ${e.length}`;
         }, `/packages.zip?v=${Math.random()}`);
 
         $("#install-info").text = "";
-        $("#re-install").attr("disabled", null);
+        $.all("[button]").forEach((e) => e.attr("disabled", null));
 
         const registrations = await navigator.serviceWorker.getRegistrations();
 
         for (let registration of registrations) {
           await registration.unregister();
         }
+      });
+
+      $("#remove-os").on("click", async () => {
+        $.all("[button]").forEach((e) => e.attr("disabled", ""));
+
+        const pgHandle = await get("packages");
+
+        for await (let handle of pgHandle.values()) {
+          await handle.remove();
+        }
+
+        $("#install-info").text = "删除成功";
+        setTimeout(() => {
+          $("#install-info").text = "";
+        }, 1000);
+
+        $.all("[button]").forEach((e) => e.attr("disabled", null));
       });
     </script>
   </body>
