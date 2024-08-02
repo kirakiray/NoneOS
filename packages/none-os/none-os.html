@@ -74,8 +74,11 @@
   </p-provider>
   <script>
     export default async ({ load }) => {
-      const { default: get } = await load("../fs/get.js");
+      const { default: get, createRoot } = await load("../fs/get.js");
       const { installOS } = await load("./util.js");
+
+      await createRoot("apps");
+      await createRoot("packages");
 
       return {
         tag: "none-os",
