@@ -122,25 +122,26 @@
   </p-provider>
   <script>
     export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
+      // 获取应用的配置数据
+      const getAppConfig = async (path) => {};
+
+      // 默认应用
+      const defaultApps = ["/packages/files", "/packages/setting"];
+
       return {
         data: {
           apps: [
-            {
-              name: "文件管理",
-              icon: {
-                url: "/packages/files/icon.svg",
-              },
-              url: "/packages/files/app-config.js",
-              // status: "background",
-            },
-            {
-              name: "设置",
-              icon: {
-                url: "/packages/setting/icon.svg",
-              },
-              url: "/packages/setting/app-config.js",
-              // status: "running",
-            },
+            // {
+            //   name: "文件管理",
+            //   icon: {
+            //     url: "/packages/files/icon.svg",
+            //   },
+            //   url: "/packages/files/app-config.js",
+            //   // status: "background",
+            //   // status: "running",
+            // },
           ],
           searchText: "",
           isEmpty: false,
@@ -180,11 +181,52 @@
               },
             });
           },
-          loadApps() {
-            
+          async refreshApps() {
+            const appHandle = await get("apps");
+
+            for await (let e of appHandle.values()) {
+              const handle = await e.get("app.json");
+              if (handle) {
+                let data = await handle.text();
+                data && (data = JSON.parse(data));
+
+                console.log(data);
+              }
+            }
           },
+        },
+        async ready() {
+          // 获取默认应用信息
+          const apps = await Promise.all(
+            defaultApps.map(async (path) => {
+              const appJsonPath = `${path}/app.json`;
+              const configData = await fetch(appJsonPath).then((e) => e.json());
+
+              const icon = getRelatePath(appJsonPath, configData.icon);
+
+              return {
+                name: configData.name,
+                icon: {
+                  url: icon,
+                },
+                url: `${path}/app-config.js`,
+                // status: "background",
+              };
+            })
+          );
+
+          this.apps = apps;
+
+          this.refreshApps();
         },
       };
     };
+
+    // 获取相对路径
+    function getRelatePath(basePath, relativePath) {
+      const baseUrl = new URL(basePath, window.location.href);
+      const resolvedUrl = new URL(relativePath, baseUrl);
+      return resolvedUrl.pathname;
+    }
   </script>
 </template>
