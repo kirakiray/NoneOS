@@ -124,9 +124,6 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
 
-      // 获取应用的配置数据
-      const getAppConfig = async (path) => {};
-
       // 默认应用
       const defaultApps = ["/packages/files", "/packages/setting"];
 
@@ -189,36 +186,37 @@
               if (handle) {
                 let data = await handle.text();
                 data && (data = JSON.parse(data));
-
-                console.log(data);
               }
             }
           },
         },
         async ready() {
           // 获取默认应用信息
-          const apps = await Promise.all(
-            defaultApps.map(async (path) => {
-              const appJsonPath = `${path}/app.json`;
-              const configData = await fetch(appJsonPath).then((e) => e.json());
-
-              const icon = getRelatePath(appJsonPath, configData.icon);
-
-              return {
-                name: configData.name,
-                icon: {
-                  url: icon,
-                },
-                url: `${path}/app-config.js`,
-                // status: "background",
-              };
-            })
-          );
-
-          this.apps = apps;
+          this.apps = await Promise.all(defaultApps.map(getAppBase));
 
           this.refreshApps();
         },
+      };
+    };
+
+    // 获取应用的配置数据
+    const getAppBase = async (path) => {
+      const appJsonPath = `${path}/app.json`;
+      const configData = await fetch(appJsonPath).then((e) => e.json());
+
+      const icon = getRelatePath(appJsonPath, configData.icon);
+      let configUrl;
+
+      if (configData.config) {
+        configUrl = getRelatePath(appJsonPath, configData.config);
+      }
+
+      return {
+        name: configData.name,
+        icon: {
+          url: icon,
+        },
+        url: configUrl || `${path}/app-config.js`,
       };
     };
 

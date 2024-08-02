@@ -1,4 +1,5 @@
 {
   "name": "Files",
-  "icon": "icon.svg"
+  "icon": "icon.svg",
+  "config": "app-config.js"
 }
