@@ -1,4 +1,0 @@
-#!/bin/bash
-# npm run build
-npx playwright test
-npm run build
