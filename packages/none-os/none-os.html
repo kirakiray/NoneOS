@@ -212,12 +212,12 @@
 
                   if (state.routerType === "backward") {
                     // console.log("app backward");
-                    currentAppFrame.back();
                     history.forward(); // 还原
+                    currentAppFrame.back();
                   } else if (state.routerType === "forward") {
                     // console.log("app forward");
-                    currentAppFrame.forward();
                     history.back(); // 还原
+                    currentAppFrame.forward();
                   }
                 })
               );
