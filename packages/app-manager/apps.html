@@ -181,13 +181,18 @@
           async refreshApps() {
             const appHandle = await get("apps");
 
-            for await (let e of appHandle.values()) {
-              const handle = await e.get("app.json");
-              if (handle) {
-                let data = await handle.text();
-                data && (data = JSON.parse(data));
+            const apps = [];
+            for await (let handle of appHandle.values()) {
+              const data = await getAppBase(`/$/${handle.path}`);
+
+              if (!this.apps.find((e) => e.url === data.url)) {
+                apps.push(data);
               }
             }
+
+            apps.length && this.apps.push(...apps);
+
+            console.log(this.apps.toJSON());
           },
         },
         async ready() {
