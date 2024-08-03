@@ -1,28 +1,17 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
   <style>
     :host {
       display: block;
       height: 100%;
       background-color: var(--md-sys-color-surface);
     }
-    .container {
-      display: flex;
-      height: 100%;
-    }
-    .left {
-      box-sizing: border-box;
-      padding: 2px 8px 8px 0;
-      width: 250px;
-    }
-    .left p-list-item {
+    
+    p-list-item {
       margin: 2px 0;
       border-radius: 0 20px 20px 0;
       overflow: hidden;
-    }
-    .main {
-      flex: 1;
-      margin-left: 16px;
     }
 
     p-list-item[active-item] {
@@ -30,32 +19,28 @@
       color: var(--md-sys-color-on-primary);
     }
 
-    .left img[slot="prefix"] {
+    img[slot="prefix"] {
       display: block;
       font-size: 18px;
       margin-right: 8px;
       height: 24px;
     }
   </style>
-  <div class="container">
-    <div class="left">
-      <p-list>
-        <x-fill :value="roots">
-          <p-list-item
-            button
-            attr:active-item="$data.path === $host.currentPath"
-            on:click="$host.clickTab($data)"
-          >
-            <img attr:src="$data.icon" slot="prefix" />
-            {{$data.name}}
-          </p-list-item>
-        </x-fill>
-      </p-list>
-    </div>
-    <div class="main">
-      <slot></slot>
-    </div>
-  </div>
+  <n-horsp-pannel>
+    <p-list slot="left">
+      <x-fill :value="roots">
+        <p-list-item
+          button
+          attr:active-item="$data.path === $host.currentPath"
+          on:click="$host.clickTab($data)"
+        >
+          <img attr:src="$data.icon" slot="prefix" />
+          {{$data.name}}
+        </p-list-item>
+      </x-fill>
+    </p-list>
+    <slot></slot>
+  </n-horsp-pannel>
   <script>
     export default () => {
       return {

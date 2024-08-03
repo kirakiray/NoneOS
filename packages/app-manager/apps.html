@@ -14,6 +14,7 @@
       align-items: center; */
       flex-direction: column;
       height: 100%;
+      container-type: inline-size;
     }
 
     .top {
@@ -33,6 +34,7 @@
       flex-wrap: wrap;
       /* justify-content: center; */
       padding: 0 80px;
+      --block-size: 80px;
     }
 
     .app-block {
@@ -63,17 +65,17 @@
     }
 
     .app-block .icon {
-      width: 80px;
-      height: 80px;
+      width: var(--block-size);
+      height: var(--block-size);
     }
 
     .app-block .icon img {
       width: 100%;
-      max-width: 80px;
-      max-height: 80px;
+      max-width: var(--block-size);
+      max-height: var(--block-size);
     }
     .app-name {
-      width: 80px;
+      width: var(--block-size);
       margin-top: 8px;
       text-align: center;
     }
@@ -84,6 +86,20 @@
       top: 0;
       width: 100%;
       text-align: center;
+    }
+
+    @container (width < 600px) {
+      .app-block {
+        padding-top: 8px;
+        margin: 8px;
+        width: 60px;
+        height: 80px;
+        border-radius: 12px;
+      }
+      .main {
+        padding: 0 40px;
+        --block-size: 40px;
+      }
     }
   </style>
   <p-provider theme="dark">
