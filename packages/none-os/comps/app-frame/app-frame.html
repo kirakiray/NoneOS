@@ -145,14 +145,17 @@
     }
   </style>
   <style>
-    :host([app-status="normal"]) {
-      opacity: 1;
+    :host {
       transform-origin: 0 50%;
       transform: translate(0, 0);
     }
+    :host([app-status="normal"]) {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+    :host,
     :host([app-status="min"]) {
       opacity: 0;
-      transform-origin: 0 50%;
       transform: translate(-50px, 0) scale(0.5);
     }
     :host([app-status="max"]) {
@@ -245,7 +248,8 @@
       tag: "n-app-frame",
       attrs: {
         focus: null,
-        appStatus: "min", // min normal max
+        defaultAppStatus: "normal", // 初始的app状态 // normal max
+        appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
       },
       data: {
         appTop: 0,
@@ -256,10 +260,17 @@
       },
       watch: {
         appStatus(status) {
-          if (!this._first_status) {
+          // 第一次设置状态，保证是左侧展开的动画
+          if (!this._first_status && status === "min") {
             this._first_status = 1;
+
+            setTimeout(() => {
+              this.changeState(this.defaultAppStatus);
+            }, 50);
             return;
           }
+
+          // this._first_status = 1;
           this.style.transition = "all ease 0.25s";
           clearTimeout(this._transtimer);
           this._transtimer = setTimeout(() => {
@@ -409,10 +420,6 @@
         });
       },
       attached() {
-        setTimeout(() => {
-          this.appStatus = "normal";
-        }, 50);
-
         this.focusApp();
 
         const topEle = this.shadow.$(".app-top");

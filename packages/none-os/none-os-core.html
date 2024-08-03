@@ -136,8 +136,11 @@
                 console.log("暂时不支持 frame 模式");
               } else {
                 // 添加这个应用到容器内
+                // 小屏幕下，直接全屏
                 this.shadow.$(".main").push(`
-                    <n-app-frame data-appid="${targetApp.xid}">
+                    <n-app-frame data-appid="${targetApp.xid}" ${
+                  window.innerWidth > 600 ? "" : 'default-app-status="max"'
+                }>
                       <o-app src="${targetApp.url}"></o-app>
                     </n-app-frame>
                   `);
