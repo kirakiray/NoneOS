@@ -54,7 +54,6 @@
     // import get, { createRoot } from "../fs/get.js";
 
     export default async () => {
-
       return {
         tag: "none-os-core",
         data: {
@@ -249,12 +248,16 @@
               this.initHistory();
             });
           }
-          // setTimeout(() => {
-          //   // 测试代码
-          //   this.clickApp({
-          //     data: { app: this.barApps[1] },
-          //   });
-          // }, 100);
+          setTimeout(() => {
+            // 测试代码
+            this.runApp({
+              data: {
+                name: "文件管理",
+                icon: { url: "/packages/files/icon.svg" },
+                url: "/packages/files/app-config.js",
+              },
+            });
+          }, 100);
         },
         detached() {
           this._offState && this._offState();
