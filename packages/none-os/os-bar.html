@@ -91,6 +91,7 @@
   </div>
   <script>
     import "/packages/pui/commons/init.js";
+    import { createUser } from "./user/create-user.js";
 
     export default async ({ load }) => {
       return {
@@ -145,6 +146,11 @@
 
             this.showHomeApp = false;
           },
+        },
+        async attached() {
+          const user = await createUser();
+
+          console.log(user);
         },
       };
     };
