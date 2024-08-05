@@ -1,13 +1,11 @@
-import { initUserPair } from "./util.js";
+const pairData = await initUserPair();
 
 export async function createUser() {
-  const pairData = await initUserPair();
-
   console.log("pairData: ", pairData);
 }
 
 export const getUserInfo = async () => {
-  const { signPublic, encryPublic, id } = await initUserPair();
+  const { signPublic, encryPublic, id } = pairData;
 
   return {
     userID: id,
@@ -17,3 +15,90 @@ export const getUserInfo = async () => {
     encryPublic,
   };
 };
+
+import {
+  generateSignKeyPair,
+  generateEncryKeyPair,
+  base64ToArrayBuffer,
+  getHash,
+  getPairString,
+} from "./util.js";
+
+// 获取签名和加密用的CryptoKey
+async function initUserPair() {
+  let signPair, encryPair;
+  let signPublic, encryPublic;
+
+  if (!localStorage.__signPair) {
+    signPair = await generateSignKeyPair();
+    const signPairObj = await getPairString(signPair);
+    encryPair = await generateEncryKeyPair();
+    const encryPairObj = await getPairString(encryPair);
+
+    signPublic = signPairObj.public;
+    encryPublic = encryPairObj.public;
+
+    localStorage.__signPair = JSON.stringify(signPairObj);
+    localStorage.__encryPair = JSON.stringify(encryPairObj);
+  } else {
+    const signPairObj = JSON.parse(localStorage.__signPair);
+    const encryPairObj = JSON.parse(localStorage.__encryPair);
+
+    signPublic = signPairObj.public;
+    encryPublic = encryPairObj.public;
+
+    signPair = {
+      privateKey: await crypto.subtle.importKey(
+        "pkcs8", // 导入的密钥类型，这里是私钥
+        base64ToArrayBuffer(signPairObj.private),
+        {
+          name: "RSA-PSS",
+          hash: "SHA-256",
+        },
+        true,
+        ["sign"]
+      ),
+      publicKey: await crypto.subtle.importKey(
+        "spki", // 导入的密钥类型，这里是公钥
+        base64ToArrayBuffer(signPairObj.public),
+        {
+          name: "RSA-PSS",
+          hash: "SHA-256",
+        },
+        true,
+        ["verify"] // 只需要加密权限
+      ),
+    };
+
+    encryPair = {
+      privateKey: await crypto.subtle.importKey(
+        "pkcs8", // 导入的密钥类型，这里是私钥
+        base64ToArrayBuffer(encryPairObj.private),
+        {
+          name: "RSA-OAEP",
+          hash: "SHA-256",
+        },
+        true,
+        ["decrypt"]
+      ),
+      publicKey: await crypto.subtle.importKey(
+        "spki", // 导入的密钥类型，这里是公钥
+        base64ToArrayBuffer(encryPairObj.public),
+        {
+          name: "RSA-OAEP",
+          hash: "SHA-256",
+        },
+        true,
+        ["encrypt"] // 只需要加密权限
+      ),
+    };
+  }
+
+  return {
+    signPair,
+    encryPair,
+    signPublic,
+    encryPublic,
+    id: await getHash(signPublic),
+  };
+}
