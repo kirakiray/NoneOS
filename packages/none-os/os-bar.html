@@ -91,7 +91,7 @@
   </div>
   <script>
     import "/packages/pui/commons/init.js";
-    import { createUser } from "./user/create-user.js";
+    import { createUser } from "./user/main.js";
 
     export default async ({ load }) => {
       return {
@@ -148,9 +148,8 @@
           },
         },
         async attached() {
-          const user = await createUser();
-
-          console.log(user);
+          // const user = await createUser();
+          // console.log(user);
         },
       };
     };

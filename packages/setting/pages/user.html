@@ -1,17 +1,75 @@
 <template page>
+  <l-m src="/packages/pui/table/table.html"></l-m>
   <style>
     :host {
       display: block;
+      overflow: auto;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding-top: 16px;
+      height: 100%;
+    }
+
+    .avatar {
+      border-radius: 51px;
+      width: 100px;
+      height: 100px;
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+
+    .row-val {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      word-break: break-all;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
     }
   </style>
-  <div>
-    正在准备中...
+  <div class="container">
+    <div class="avatar"></div>
+    <p-table style="width: 80%; margin-top: 32px">
+      <p-table-row>
+        <p-table-cell col-width="120">用户名</p-table-cell>
+        <p-table-cell>{{userName}}</p-table-cell>
+      </p-table-row>
+      <p-table-row>
+        <p-table-cell col-width="120">用户ID</p-table-cell>
+        <p-table-cell>{{userID}}</p-table-cell>
+      </p-table-row>
+      <p-table-row>
+        <p-table-cell col-width="120">签名公钥</p-table-cell>
+        <p-table-cell>
+          <div class="row-val" attr:title="signPublic">{{signPublic}}</div>
+        </p-table-cell>
+      </p-table-row>
+      <p-table-row>
+        <p-table-cell col-width="120">加密公钥</p-table-cell>
+        <p-table-cell>
+          <div class="row-val" attr:title="encryPublic">{{encryPublic}}</div>
+        </p-table-cell>
+      </p-table-row>
+    </p-table>
   </div>
   <script>
+    import { getUserInfo } from "/packages/none-os/user/main.js";
     export const parent = "../outer.html";
+
     export default async ({ load }) => {
+      const data = await getUserInfo();
+
       return {
-        data: {},
+        data: {
+          userID: data.userID,
+          userName: data.userName || data.backupUserName,
+          signPublic: data.signPublic,
+          encryPublic: data.encryPublic,
+        },
       };
     };
   </script>
