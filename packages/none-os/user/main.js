@@ -22,9 +22,28 @@ import {
   base64ToArrayBuffer,
   getHash,
   getPairString,
+  arrayBufferToBase64,
 } from "./util.js";
 
-// 获取签名和加密用的CryptoKey
+// 给数据进行签名
+export async function sign(message) {
+  let data;
+  const encoder = new TextEncoder();
+  data = encoder.encode(message);
+
+  const arrayData = await crypto.subtle.sign(
+    {
+      name: "RSA-PSS",
+      saltLength: 32,
+    },
+    pairData.signPair.privateKey,
+    data
+  );
+
+  return arrayBufferToBase64(arrayData);
+}
+
+// 初始化并获取签名和加密用的CryptoKey
 async function initUserPair() {
   let signPair, encryPair;
   let signPublic, encryPublic;

@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -30,17 +31,46 @@
       -webkit-box-orient: vertical;
       -webkit-line-clamp: 2;
     }
+
+    .hide {
+      visibility: hidden !important;
+    }
   </style>
   <div class="container">
     <!-- <div class="avatar"></div> -->
     <p-table style="width: 80%; margin-top: 32px">
       <p-table-row>
         <p-table-cell col-width="120">用户名</p-table-cell>
-        <p-table-cell>{{userName}}</p-table-cell>
+        <p-table-cell>
+          <x-if :value="renameMode">
+            <input
+              id="renameInputer"
+              type="text"
+              sync:value="userName"
+              autofocus
+              on:change="renameEnd"
+              on:blur="renameMode = false"
+            />
+          </x-if>
+          <x-else>
+            <div>{{userName}}</div>
+          </x-else>
+
+          <p-button
+            icon
+            size="small"
+            variant="text"
+            on:click="renameMode = true"
+            class:hide="renameMode"
+            style="margin-left: 8px"
+          >
+            <n-local-icon name="edit"></n-local-icon>
+          </p-button>
+        </p-table-cell>
       </p-table-row>
       <p-table-row>
         <p-table-cell col-width="120">用户ID</p-table-cell>
-        <p-table-cell>{{userID}}</p-table-cell>
+        <p-table-cell> {{userID}} </p-table-cell>
       </p-table-row>
       <p-table-row>
         <p-table-cell col-width="120">签名公钥</p-table-cell>
@@ -54,10 +84,16 @@
           <div class="row-val" attr:title="encryPublic">{{encryPublic}}</div>
         </p-table-cell>
       </p-table-row>
+      <p-table-row>
+        <p-table-cell col-width="120">签名</p-table-cell>
+        <p-table-cell>
+          <div class="row-val" attr:title="encryPublic">{{signStr}}</div>
+        </p-table-cell>
+      </p-table-row>
     </p-table>
   </div>
   <script>
-    import { getUserInfo } from "/packages/none-os/user/main.js";
+    import { getUserInfo, sign } from "/packages/none-os/user/main.js";
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
@@ -69,6 +105,35 @@
           userName: data.userName || data.backupUserName,
           signPublic: data.signPublic,
           encryPublic: data.encryPublic,
+          renameMode: false,
+          signStr: "",
+        },
+        watch: {
+          renameMode(bool) {
+            if (bool) {
+              setTimeout(() => {
+                this.shadow.$("#renameInputer") &&
+                  this.shadow.$("#renameInputer").ele.focus();
+              }, 100);
+            }
+          },
+          async userName() {
+            // 修正签名
+            this.signStr = await sign(
+              JSON.stringify([
+                ["userID", this.userID],
+                ["userName", this.userName],
+                ["signPublic", this.signPublic],
+                ["encryPublic", this.encryPublic],
+              ])
+            );
+          },
+        },
+        proto: {
+          renameEnd(e) {
+            this.renameMode = false;
+            localStorage.__username = this.userName;
+          },
         },
       };
     };

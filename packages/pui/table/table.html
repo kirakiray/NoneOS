@@ -34,7 +34,7 @@
   </div>
   <script>
     import "../commons/init.js";
-    
+
     export default {
       tag: "p-table",
       data: {},
@@ -49,8 +49,6 @@
             const { width } = this;
             // reload width
             const cellWidth = width / cellLength;
-
-            console.log(cellWidth);
 
             styleStr += `p-table[data-table-id="${this._tableId}"] p-table-cell{flex:1 1 ${cellWidth}px;}`;
 
