@@ -10,10 +10,15 @@
     .container {
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding-top: 16px;
+      /* justify-content: center;
+      align-items: center; */
+      padding-left: 16px;
       height: 100%;
+    }
+
+    h5 {
+      padding: 16px 0 8px;
+      margin: 0;
     }
 
     .avatar {
@@ -35,10 +40,18 @@
     .hide {
       visibility: hidden !important;
     }
+
+    .server-line {
+      padding: 4px 8px;
+      margin: 0 16px 0 0;
+      border: #aaa solid 1px;
+      border-radius: 8px;
+    }
   </style>
   <div class="container">
+    <h5>用户信息</h5>
     <!-- <div class="avatar"></div> -->
-    <p-table style="width: 80%; margin-top: 32px">
+    <p-table style="margin-right: 16px">
       <p-table-row>
         <p-table-cell col-width="120">用户名</p-table-cell>
         <p-table-cell>
@@ -90,12 +103,23 @@
         </p-table-cell>
       </p-table-row>
     </p-table>
+
+    <h5>服务器地址</h5>
+    <x-fill :value="servers">
+      <div class="server-line">
+        <div>{{$data.id}}</div>
+        <span style="color: #aaa">{{$data.serverUrl}}</span>
+        <button on:click="$host.connectServer($data)">连接服务器</button>
+      </div>
+    </x-fill>
   </div>
   <script>
     import {
       getUserInfo,
       getUserInfoSign,
     } from "/packages/none-os/user/main.js";
+
+    import { servers } from "/packages/none-os/user/connect.js";
 
     export const parent = "../outer.html";
 
@@ -110,6 +134,8 @@
           encryPublic: data.encryPublic,
           renameMode: false,
           signStr: "",
+          // 可连接的服务器
+          servers: [],
         },
         watch: {
           renameMode(bool) {
@@ -130,6 +156,21 @@
             this.renameMode = false;
             localStorage.__username = this.userName;
           },
+          refreshServer() {
+            this.servers = servers.map((e) => {
+              return {
+                id: e.id,
+                serverUrl: e.serverUrl,
+                _server: e,
+              };
+            });
+          },
+          connectServer(data) {
+            debugger;
+          },
+        },
+        attached() {
+          this.refreshServer();
         },
       };
     };
