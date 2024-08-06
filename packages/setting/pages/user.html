@@ -92,7 +92,11 @@
     </p-table>
   </div>
   <script>
-    import { getUserInfo, sign } from "/packages/none-os/user/main.js";
+    import {
+      getUserInfo,
+      getUserInfoSign,
+    } from "/packages/none-os/user/main.js";
+
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
@@ -118,14 +122,7 @@
           },
           async userName() {
             // 修正签名
-            this.signStr = await sign(
-              JSON.stringify([
-                ["userID", this.userID],
-                ["userName", this.userName],
-                ["signPublic", this.signPublic],
-                ["encryPublic", this.encryPublic],
-              ])
-            );
+            this.signStr = await getUserInfoSign();
           },
         },
         proto: {

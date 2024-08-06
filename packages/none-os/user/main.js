@@ -1,8 +1,13 @@
-const pairData = await initUserPair();
+import {
+  generateSignKeyPair,
+  generateEncryKeyPair,
+  base64ToArrayBuffer,
+  getHash,
+  getPairString,
+  arrayBufferToBase64,
+} from "./util.js";
 
-export async function createUser() {
-  console.log("pairData: ", pairData);
-}
+const pairData = await initUserPair();
 
 export const getUserInfo = async () => {
   const { signPublic, encryPublic, id } = pairData;
@@ -16,14 +21,19 @@ export const getUserInfo = async () => {
   };
 };
 
-import {
-  generateSignKeyPair,
-  generateEncryKeyPair,
-  base64ToArrayBuffer,
-  getHash,
-  getPairString,
-  arrayBufferToBase64,
-} from "./util.js";
+// 获取用户信息的签名
+export const getUserInfoSign = async () => {
+  const data = await getUserInfo();
+
+  return await sign(
+    JSON.stringify([
+      ["userID", data.userID],
+      ["userName", data.userName],
+      ["signPublic", data.signPublic],
+      ["encryPublic", data.encryPublic],
+    ])
+  );
+};
 
 // 给数据进行签名
 export async function sign(message) {
