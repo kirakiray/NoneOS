@@ -107,9 +107,12 @@
     <h5>服务器地址</h5>
     <x-fill :value="servers">
       <div class="server-line">
-        <div>{{$data.id}}</div>
-        <span style="color: #aaa">{{$data.serverUrl}}</span>
-        <button on:click="$host.connectServer($data)">连接服务器</button>
+        <div>Name: {{$data.serverName}}</div>
+        <div>Status: {{$data.status}}</div>
+        <div style="color: #aaa">ServerUrl: {{$data.serverUrl}}</div>
+        <x-if :value="$data.status === 'disconnected'">
+          <button on:click="$data._server.connect()">连接服务器</button>
+        </x-if>
       </div>
     </x-fill>
   </div>
@@ -119,7 +122,7 @@
       getUserInfoSign,
     } from "/packages/none-os/user/main.js";
 
-    import { servers } from "/packages/none-os/user/connect.js";
+    import { getServers } from "/packages/none-os/user/connect.js";
 
     export const parent = "../outer.html";
 
@@ -157,16 +160,27 @@
             localStorage.__username = this.userName;
           },
           refreshServer() {
-            this.servers = servers.map((e) => {
+            this.servers = getServers().map((connector) => {
+              connector.onchange = () => {
+                const target = this.servers.find((e) => e.id === connector.id);
+
+                if (target) {
+                  target.serverName = connector.serverName;
+                  target.status = connector.status;
+                }
+              };
+
+              // 立刻连接
+              connector.connect();
+
               return {
-                id: e.id,
-                serverUrl: e.serverUrl,
-                _server: e,
+                id: connector.id,
+                serverName: "Loading",
+                serverUrl: connector.serverUrl,
+                _server: connector,
+                status: connector.status,
               };
             });
-          },
-          connectServer(data) {
-            debugger;
           },
         },
         attached() {
