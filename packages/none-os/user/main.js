@@ -21,6 +21,25 @@ export const getUserInfo = async () => {
   };
 };
 
+// 获取包含签名的用户数据
+export const getUserCardData = async () => {
+  const data = await getUserInfo();
+
+  const userData = [
+    ["userID", data.userID],
+    ["userName", data.userName],
+    ["signPublic", data.signPublic],
+    ["encryPublic", data.encryPublic],
+  ];
+
+  const signData = await sign(JSON.stringify(userData));
+
+  return {
+    data: userData,
+    sign: signData,
+  };
+};
+
 // 获取用户信息的签名
 export const getUserInfoSign = async () => {
   const data = await getUserInfo();
