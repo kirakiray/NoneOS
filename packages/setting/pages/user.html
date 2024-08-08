@@ -207,8 +207,15 @@
                 console.log("message: ", data);
               };
 
+              let count = 0;
+
               connector.onclose = () => {
                 setTimeout(() => {
+                  count++;
+                  if (count > 3) {
+                    count = 0;
+                    return;
+                  }
                   // 一秒后重新尝试连接
                   connector.connect();
                 }, 1000);
