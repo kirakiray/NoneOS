@@ -8,7 +8,7 @@ const serverList = ["http://localhost:5569/user"];
 class Connector {
   #status = "disconnected";
   #serverUrl;
-  onchangestatus = null;
+  onchange = null;
   #id = Math.random().toString(32).slice(2);
   constructor(serverUrl) {
     // super();
@@ -17,63 +17,45 @@ class Connector {
 
   // 进行连接
   async connect() {
-    const body = await getUserCardData();
-
     this.#status = "connecting";
+    this.onchange && this.onchange();
 
-    try {
-      const data = await fetch(this.#serverUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json;charset=utf-8",
-        },
-        body: JSON.stringify(body),
-      }).then((e) => {
-        return e.json();
-      });
-
-      console.log("data", data);
-
-      this.serverName = data.serverName;
-      this.serverVersion = data.serverVersion;
-
-      this.initsse(data.sse);
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async initsse(sseLink) {
     if (this.__sse) {
       this.__sse.close();
     }
 
-    this.#status = "connected";
-    if (this.onchange) {
-      this.onchange();
-    }
+    const body = await getUserCardData();
 
     // 创建一个 EventSource 对象，连接到 SSE 端点
     const eventSource = (this.__sse = new EventSource(
-      new URL(this.serverUrl).origin + sseLink
+      `${this.serverUrl}/${encodeURIComponent(JSON.stringify(body))}`
     ));
 
     // 监听消息事件
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      console.log("Received message:", data);
+
+      if (data.__type === "init") {
+        this.#status = "connected";
+        this.serverName = data.serverName;
+        this.serverVersion = data.serverVersion;
+        this.onchange && this.onchange();
+        return;
+      }
+
+      if (this.onmessage) {
+        this.onmessage(data);
+      }
     };
 
     // 监听错误事件
-    eventSource.onerror = (error) => {
-      console.error("Error occurred:", error);
+    eventSource.onerror = (e) => {
+      console.error("Error occurred:", e);
       // 在这里处理错误
       eventSource.close();
 
       this.#status = "closed";
-      if (this.onchange) {
-        this.onchange();
-      }
+      this.onchange && this.onchange();
     };
 
     // 监听连接关闭事件
@@ -81,12 +63,30 @@ class Connector {
       console.log("Connection closed", this);
 
       this.#status = "closed";
-      if (this.onchange) {
-        this.onchange();
-      }
+      this.onchange && this.onchange();
     };
-  }
 
+    // try {
+    //   const data = await fetch(this.#serverUrl, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json;charset=utf-8",
+    //     },
+    //     body: JSON.stringify(body),
+    //   }).then((e) => {
+    //     return e.json();
+    //   });
+
+    //   console.log("data", data);
+
+    //   this.serverName = data.serverName;
+    //   this.serverVersion = data.serverVersion;
+
+    //   this.initsse(data.sse);
+    // } catch (err) {
+    //   console.error(err);
+    // }
+  }
   // 关闭链接
   close() {}
 
