@@ -34,20 +34,25 @@ class Connector {
 
       console.log("data", data);
 
-      this.initsse(data.sse);
-
       this.serverName = data.serverName;
       this.serverVersion = data.serverVersion;
 
-      if (this.onchange) {
-        this.onchange();
-      }
+      this.initsse(data.sse);
     } catch (err) {
       console.error(err);
     }
   }
 
   async initsse(sseLink) {
+    if (this.__sse) {
+      this.__sse.close();
+    }
+
+    this.#status = "connected";
+    if (this.onchange) {
+      this.onchange();
+    }
+
     // 创建一个 EventSource 对象，连接到 SSE 端点
     const eventSource = (this.__sse = new EventSource(
       new URL(this.serverUrl).origin + sseLink
@@ -63,12 +68,22 @@ class Connector {
     eventSource.onerror = (error) => {
       console.error("Error occurred:", error);
       // 在这里处理错误
+      eventSource.close();
+
+      this.#status = "closed";
+      if (this.onchange) {
+        this.onchange();
+      }
     };
 
     // 监听连接关闭事件
     eventSource.onclose = () => {
       console.log("Connection closed", this);
-      // 在这里处理连接关闭
+
+      this.#status = "closed";
+      if (this.onchange) {
+        this.onchange();
+      }
     };
   }
 
