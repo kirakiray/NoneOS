@@ -101,8 +101,11 @@
     <h5>服务器地址</h5>
     <x-fill :value="servers">
       <div class="server-line">
-        <div style="display: flex">
+        <div style="display: flex; align-items: center">
           Name: {{$data.serverName}}
+          <div style="margin-left: 16px; font-size: 12px">
+            version: {{$data.serverVersion}}
+          </div>
           <div style="margin-left: auto; font-size: 12px">
             能否被其他用户可见:
             <select disabled>
@@ -116,11 +119,32 @@
         <x-if
           :value="$data.status === 'disconnected' || $data.status === 'closed'"
         >
-          <button on:click="$data._server.connect()">连接服务器</button>
+          <button on:click="$data._server.connect()">重新连接服务器</button>
+        </x-if>
+        <x-if :value="$data.status === 'connected'">
+          <div>
+            <x-fill name="user-block" :value="$data.users"></x-fill>
+          </div>
         </x-if>
       </div>
     </x-fill>
   </div>
+
+  <style>
+    .user-block {
+      padding: 16px;
+      margin: 8px;
+      border: #aaa solid 1px;
+      border-radius: 8px;
+    }
+  </style>
+
+  <template name="user-block">
+    <div class="user-block">
+      <div>用户名：{{$data.userName}}</div>
+      <div style="font-size: 12px">用户ID：{{$data.userID}}</div>
+    </div>
+  </template>
   <script>
     import { getUserInfo } from "/packages/none-os/user/main.js";
 
@@ -162,13 +186,32 @@
                 const target = this.servers.find((e) => e.id === connector.id);
 
                 if (target) {
+                  target.serverVersion = connector.serverVersion;
                   target.serverName = connector.serverName;
                   target.status = connector.status;
                 }
               };
 
+              connector.onupdate = () => {
+                const target = this.servers.find((e) => e.id === connector.id);
+
+                if (target) {
+                  target.serverVersion = connector.serverVersion;
+                  target.serverName = connector.serverName;
+                  target.status = connector.status;
+                  target.users = connector.users;
+                }
+              };
+
               connector.onmessage = (data) => {
                 console.log("message: ", data);
+              };
+
+              connector.onclose = () => {
+                setTimeout(() => {
+                  // 一秒后重新尝试连接
+                  connector.connect();
+                }, 1000);
               };
 
               // 立刻连接
@@ -177,6 +220,7 @@
               return {
                 id: connector.id,
                 serverName: "Loading",
+                serverVersion: null,
                 serverUrl: connector.serverUrl,
                 _server: connector,
                 status: connector.status,

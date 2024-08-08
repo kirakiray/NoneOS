@@ -27,7 +27,7 @@ export const getUserCardData = async () => {
 
   const userData = [
     ["userID", data.userID],
-    ["userName", data.userName],
+    ["userName", data.userName || data.backupUserName],
     ["signPublic", data.signPublic],
     ["encryPublic", data.encryPublic],
     ["time", Date.now()], // 签发时间
