@@ -9,6 +9,8 @@ class Connector {
   #status = "disconnected";
   #serverUrl;
   onchange = null;
+  onclose = null;
+  users = [];
   #id = Math.random().toString(32).slice(2);
   constructor(serverUrl) {
     // super();
@@ -17,8 +19,7 @@ class Connector {
 
   // 进行连接
   async connect() {
-    this.#status = "connecting";
-    this.onchange && this.onchange();
+    this._emitchange("connecting");
 
     if (this.__sse) {
       this.__sse.close();
@@ -35,12 +36,28 @@ class Connector {
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
-      if (data.__type === "init") {
-        this.#status = "connected";
-        this.serverName = data.serverName;
-        this.serverVersion = data.serverVersion;
-        this.onchange && this.onchange();
-        return;
+      if (data.__type) {
+        switch (data.__type) {
+          case "init":
+            this.serverName = data.serverName;
+            this.serverVersion = data.serverVersion;
+
+            this._emitchange("connected");
+            break;
+          case "update-user":
+            this.users = data.users.map((e) => {
+              return {
+                userName: e.data.find((e) => e[0] === "userName")[1],
+                userID: e.data.find((e) => e[0] === "userID")[1],
+              };
+            });
+            this.onupdate && this.onupdate();
+            break;
+
+          default:
+            console.log(data);
+            return;
+        }
       }
 
       if (this.onmessage) {
@@ -54,39 +71,26 @@ class Connector {
       // 在这里处理错误
       eventSource.close();
 
-      this.#status = "closed";
-      this.onchange && this.onchange();
+      this._emitchange("closed");
     };
 
     // 监听连接关闭事件
     eventSource.onclose = () => {
       console.log("Connection closed", this);
 
-      this.#status = "closed";
-      this.onchange && this.onchange();
+      this._emitchange("closed");
     };
-
-    // try {
-    //   const data = await fetch(this.#serverUrl, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json;charset=utf-8",
-    //     },
-    //     body: JSON.stringify(body),
-    //   }).then((e) => {
-    //     return e.json();
-    //   });
-
-    //   console.log("data", data);
-
-    //   this.serverName = data.serverName;
-    //   this.serverVersion = data.serverVersion;
-
-    //   this.initsse(data.sse);
-    // } catch (err) {
-    //   console.error(err);
-    // }
   }
+
+  _emitchange(status) {
+    this.#status = status;
+    this.onchange && this.onchange();
+
+    if (status === "closed") {
+      this.onclose && this.onclose();
+    }
+  }
+
   // 关闭链接
   close() {}
 
