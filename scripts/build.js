@@ -24,6 +24,7 @@ import path from "path";
 
 async function zipDirectory(source, out) {
   const archive = archiver("zip", { zlib: { level: 9 } });
+
   const stream = createWriteStream(out);
 
   return new Promise((resolve, reject) => {

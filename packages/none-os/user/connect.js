@@ -1,5 +1,5 @@
 import { getUserCardData } from "./main.js";
-import { verifyMessage } from "./util.js";
+import { User } from "./public-user.js";
 
 // 可访问服务器列表
 const serverList = ["http://localhost:5569/user"];
@@ -33,7 +33,7 @@ class Connector {
     ));
 
     // 监听消息事件
-    eventSource.onmessage = (event) => {
+    eventSource.onmessage = async (event) => {
       const data = JSON.parse(event.data);
 
       if (data.__type) {
@@ -45,12 +45,26 @@ class Connector {
             this._emitchange("connected");
             break;
           case "update-user":
-            this.users = data.users.map((e) => {
-              return {
-                userName: e.data.find((e) => e[0] === "userName")[1],
-                userID: e.data.find((e) => e[0] === "userID")[1],
-              };
-            });
+            const users = [];
+
+            await Promise.all(
+              data.users.map(async (e) => {
+                const user = new User(e.data, e.sign);
+
+                const result = await user.verify();
+
+                if (result) {
+                  users.push({
+                    userName: user.name,
+                    userID: user.id,
+                  });
+                } else {
+                  console.error("这个服务器带有未验证的用户");
+                }
+              })
+            );
+
+            this.users = users;
             this.onupdate && this.onupdate();
             break;
 
