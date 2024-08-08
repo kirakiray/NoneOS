@@ -30,6 +30,7 @@ export const getUserCardData = async () => {
     ["userName", data.userName],
     ["signPublic", data.signPublic],
     ["encryPublic", data.encryPublic],
+    ["time", Date.now()], // 签发时间
   ];
 
   const signData = await sign(JSON.stringify(userData));
@@ -38,20 +39,6 @@ export const getUserCardData = async () => {
     data: userData,
     sign: signData,
   };
-};
-
-// 获取用户信息的签名
-export const getUserInfoSign = async () => {
-  const data = await getUserInfo();
-
-  return await sign(
-    JSON.stringify([
-      ["userID", data.userID],
-      ["userName", data.userName],
-      ["signPublic", data.signPublic],
-      ["encryPublic", data.encryPublic],
-    ])
-  );
 };
 
 // 给数据进行签名

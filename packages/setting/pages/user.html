@@ -96,31 +96,33 @@
           <div class="row-val" attr:title="encryPublic">{{encryPublic}}</div>
         </p-table-cell>
       </p-table-row>
-      <p-table-row>
-        <p-table-cell col-width="120">签名</p-table-cell>
-        <p-table-cell>
-          <div class="row-val" attr:title="encryPublic">{{signStr}}</div>
-        </p-table-cell>
-      </p-table-row>
     </p-table>
 
     <h5>服务器地址</h5>
     <x-fill :value="servers">
       <div class="server-line">
-        <div>Name: {{$data.serverName}}</div>
+        <div style="display: flex">
+          Name: {{$data.serverName}}
+          <div style="margin-left: auto; font-size: 12px">
+            能否被其他用户可见:
+            <select disabled>
+              <option value="1">可见</option>
+              <option value="0">不可见</option>
+            </select>
+          </div>
+        </div>
         <div>Status: {{$data.status}}</div>
         <div style="color: #aaa">ServerUrl: {{$data.serverUrl}}</div>
-        <x-if :value="$data.status === 'disconnected'">
+        <x-if
+          :value="$data.status === 'disconnected' || $data.status === 'closed'"
+        >
           <button on:click="$data._server.connect()">连接服务器</button>
         </x-if>
       </div>
     </x-fill>
   </div>
   <script>
-    import {
-      getUserInfo,
-      getUserInfoSign,
-    } from "/packages/none-os/user/main.js";
+    import { getUserInfo } from "/packages/none-os/user/main.js";
 
     import { getServers } from "/packages/none-os/user/connect.js";
 
@@ -136,7 +138,6 @@
           signPublic: data.signPublic,
           encryPublic: data.encryPublic,
           renameMode: false,
-          signStr: "",
           // 可连接的服务器
           servers: [],
         },
@@ -148,10 +149,6 @@
                   this.shadow.$("#renameInputer").ele.focus();
               }, 100);
             }
-          },
-          async userName() {
-            // 修正签名
-            this.signStr = await getUserInfoSign();
           },
         },
         proto: {
@@ -168,6 +165,10 @@
                   target.serverName = connector.serverName;
                   target.status = connector.status;
                 }
+              };
+
+              connector.onmessage = (data) => {
+                console.log("message: ", data);
               };
 
               // 立刻连接
