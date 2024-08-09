@@ -1,5 +1,5 @@
 import { getUserCardData } from "./main.js";
-import { User } from "./public-user.js";
+import { ClientUser } from "./client-user.js";
 
 // 可访问服务器列表
 const serverList = ["http://localhost:5569/user"];
@@ -49,14 +49,18 @@ class Connector {
 
             await Promise.all(
               data.users.map(async (e) => {
-                const user = new User(e.data, e.sign);
+                const user = new ClientUser(e.data, e.sign);
 
                 const result = await user.verify();
 
                 if (result) {
+                  // 初始化完成后添加到队列
+                  await user.init();
+
                   users.push({
                     userName: user.name,
                     userID: user.id,
+                    _user: user,
                   });
                 } else {
                   console.error("这个服务器带有未验证的用户");
