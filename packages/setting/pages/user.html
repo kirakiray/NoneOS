@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="../comps/server-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -39,13 +40,6 @@
 
     .hide {
       visibility: hidden !important;
-    }
-
-    .server-line {
-      padding: 4px 8px;
-      margin: 0 16px 0 0;
-      border: #aaa solid 1px;
-      border-radius: 8px;
     }
   </style>
   <div class="container">
@@ -99,52 +93,8 @@
     </p-table>
 
     <h5>服务器地址</h5>
-    <x-fill :value="servers">
-      <div class="server-line">
-        <div style="display: flex; align-items: center">
-          Name: {{$data.serverName}}
-          <div style="margin-left: 16px; font-size: 12px">
-            version: {{$data.serverVersion}}
-          </div>
-          <div style="margin-left: auto; font-size: 12px">
-            能否被其他用户可见:
-            <select disabled>
-              <option value="1">可见</option>
-              <option value="0">不可见</option>
-            </select>
-          </div>
-        </div>
-        <div>Status: {{$data.status}}</div>
-        <div style="color: #aaa">ServerUrl: {{$data.serverUrl}}</div>
-        <x-if
-          :value="$data.status === 'disconnected' || $data.status === 'closed'"
-        >
-          <button on:click="$data._server.connect()">重新连接服务器</button>
-        </x-if>
-        <x-if :value="$data.status === 'connected'">
-          <div>
-            <x-fill name="user-block" :value="$data.users"></x-fill>
-          </div>
-        </x-if>
-      </div>
-    </x-fill>
+    <setting-server-list :servers="servers"></setting-server-list>
   </div>
-
-  <style>
-    .user-block {
-      padding: 16px;
-      margin: 8px;
-      border: #aaa solid 1px;
-      border-radius: 8px;
-    }
-  </style>
-
-  <template name="user-block">
-    <div class="user-block">
-      <div>用户名：{{$data.userName}}</div>
-      <div style="font-size: 12px">用户ID：{{$data.userID}}</div>
-    </div>
-  </template>
   <script>
     import { getUserInfo } from "/packages/none-os/user/main.js";
 
@@ -176,11 +126,20 @@
           },
         },
         proto: {
+          async linkUser(item) {
+            console.log(item);
+          },
           renameEnd(e) {
             this.renameMode = false;
             localStorage.__username = this.userName;
           },
           refreshServer() {
+            if (this.servers.length) {
+              // 清除旧的数据
+              debugger;
+            }
+
+            // 刷新服务器
             this.servers = getServers().map((connector) => {
               connector.onchange = () => {
                 const target = this.servers.find((e) => e.id === connector.id);
@@ -212,7 +171,7 @@
               connector.onclose = () => {
                 setTimeout(() => {
                   count++;
-                  if (count > 3) {
+                  if (count > 5) {
                     count = 0;
                     return;
                   }

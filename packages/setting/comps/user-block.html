@@ -1,0 +1,43 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    .user-block {
+      padding: 16px;
+      margin: 8px;
+      border: #aaa solid 1px;
+      border-radius: 8px;
+    }
+  </style>
+  <div class="user-block">
+    <div>用户名：{{userName}}</div>
+    <div style="font-size: 12px">用户ID：{{userid}}</div>
+    <button on:click="linkUser">连接用户</button>
+  </div>
+
+  <script>
+    import { getUserInfo } from "/packages/none-os/user/main.js";
+
+    export default {
+      tag: "setting-user-block",
+      data: {
+        userName: "",
+        userid: "",
+        _clientUser: null,
+      },
+      proto: {
+        linkUser() {
+          debugger;
+        },
+      },
+      async attached() {
+        const udata = await getUserInfo();
+        if (this.userid === udata.userID) {
+          // 隐藏自己
+          this.style.display = "none";
+        }
+      },
+    };
+  </script>
+</template>
