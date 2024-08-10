@@ -70,8 +70,10 @@
       },
       proto: {
         // 连接用户
-        linkUser(item) {
-          debugger;
+        async linkUser(item) {
+          const client = item._clients[0];
+
+          client.connect(); // 尝试连接用户
         },
         // 刷新用户列表
         async refreshUsers() {

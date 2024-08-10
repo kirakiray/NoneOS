@@ -39,12 +39,15 @@ class Connector {
       if (data.__type) {
         switch (data.__type) {
           case "init":
+            // 初始化用户和服务器信息
             this.serverName = data.serverName;
             this.serverVersion = data.serverVersion;
+            this.apiID = data.apiID;
 
             this._emitchange("connected");
             break;
           case "update-user":
+            // 代理服务器中用户数量信息发生了变化
             const users = [];
 
             await Promise.all(
@@ -70,6 +73,19 @@ class Connector {
 
             this.users = users;
             this.onchange && this.onchange();
+            break;
+
+          case "connect":
+            // 用户之间尝试进行握手操作
+            const fromUser = this.users.find(
+              (e) => e.userID === data.fromUserID
+            );
+
+            if (fromUser) {
+              // 初始化 connect
+              fromUser._user._initConnect(data.data);
+            }
+
             break;
 
           default:
