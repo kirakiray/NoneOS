@@ -92,10 +92,10 @@ class Connector {
             console.log(data);
             return;
         }
-      }
-
-      if (this.onmessage) {
-        this.onmessage(data);
+      } else {
+        if (this.onmessage) {
+          this.onmessage(data);
+        }
       }
     };
 

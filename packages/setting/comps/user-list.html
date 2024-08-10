@@ -60,8 +60,6 @@
     import { getServers } from "/packages/none-os/user/connect.js";
     import { getUserInfo } from "/packages/none-os/user/main.js";
 
-    const udata = await getUserInfo();
-
     export default {
       tag: "setting-user-list",
       data: {
@@ -77,14 +75,16 @@
         },
         // 刷新用户列表
         async refreshUsers() {
+          const udata = await getUserInfo();
+
           const users = [];
           this.servers.forEach((connector) => {
             if (connector.status === "connected" && connector.users.length) {
               connector.users.forEach((user) => {
                 const { userID, userName } = user;
 
-                if(userID === udata.userID){
-                    return;
+                if (userID === udata.userID) {
+                  return;
                 }
 
                 // 已存在的账户数据
@@ -104,6 +104,7 @@
               });
             }
           });
+
           this.users = users;
         },
         // 通过服务器获取可连接的用户

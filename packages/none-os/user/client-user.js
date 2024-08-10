@@ -28,8 +28,8 @@ export class ClientUser extends User {
   }
 
   // 连接用户
-  async connect(data) {
-    const result = await fetch(this.postUrl, {
+  connect(data) {
+    fetch(this.postUrl, {
       method: "POST",
       body: JSON.stringify({
         agent: {
@@ -40,8 +40,6 @@ export class ClientUser extends User {
         },
       }),
     });
-
-    // console.log("post result: ", result);
   }
 
   // 初始化通道
