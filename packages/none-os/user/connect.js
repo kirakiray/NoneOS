@@ -55,7 +55,7 @@ class Connector {
 
                 if (result) {
                   // 初始化完成后添加到队列
-                  await user.init();
+                  await user.init(this);
 
                   users.push({
                     userName: user.name,
@@ -69,7 +69,7 @@ class Connector {
             );
 
             this.users = users;
-            this.onupdate && this.onupdate();
+            this.onchange && this.onchange();
             break;
 
           default:

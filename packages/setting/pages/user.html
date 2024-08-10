@@ -1,7 +1,8 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
-  <l-m src="../comps/server-list.html"></l-m>
+  <!-- <l-m src="../comps/server-list.html"></l-m> -->
+  <l-m src="../comps/user-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -92,13 +93,10 @@
       </p-table-row>
     </p-table>
 
-    <h5>服务器地址</h5>
-    <setting-server-list :servers="servers"></setting-server-list>
+    <setting-user-list></setting-user-list>
   </div>
   <script>
     import { getUserInfo } from "/packages/none-os/user/main.js";
-
-    import { getServers } from "/packages/none-os/user/connect.js";
 
     export const parent = "../outer.html";
 
@@ -133,69 +131,6 @@
             this.renameMode = false;
             localStorage.__username = this.userName;
           },
-          refreshServer() {
-            if (this.servers.length) {
-              // 清除旧的数据
-              debugger;
-            }
-
-            // 刷新服务器
-            this.servers = getServers().map((connector) => {
-              connector.onchange = () => {
-                const target = this.servers.find((e) => e.id === connector.id);
-
-                if (target) {
-                  target.serverVersion = connector.serverVersion;
-                  target.serverName = connector.serverName;
-                  target.status = connector.status;
-                }
-              };
-
-              connector.onupdate = () => {
-                const target = this.servers.find((e) => e.id === connector.id);
-
-                if (target) {
-                  target.serverVersion = connector.serverVersion;
-                  target.serverName = connector.serverName;
-                  target.status = connector.status;
-                  target.users = connector.users;
-                }
-              };
-
-              connector.onmessage = (data) => {
-                console.log("message: ", data);
-              };
-
-              let count = 0;
-
-              connector.onclose = () => {
-                setTimeout(() => {
-                  count++;
-                  if (count > 5) {
-                    count = 0;
-                    return;
-                  }
-                  // 一秒后重新尝试连接
-                  connector.connect();
-                }, 1000);
-              };
-
-              // 立刻连接
-              connector.connect();
-
-              return {
-                id: connector.id,
-                serverName: "Loading",
-                serverVersion: null,
-                serverUrl: connector.serverUrl,
-                _server: connector,
-                status: connector.status,
-              };
-            });
-          },
-        },
-        attached() {
-          this.refreshServer();
         },
       };
     };

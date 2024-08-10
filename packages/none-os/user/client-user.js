@@ -22,5 +22,6 @@ export class ClientUser extends User {
 
   async close() {
     debugger;
+    this._server = null;
   }
 }
