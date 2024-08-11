@@ -1,17 +1,48 @@
 import { User } from "./public-user.js";
 
 export class ClientUser extends User {
-  #status = "disconnected";
+  #state = "disconnected";
   #rtcConnection = null;
   #channels = {};
+  onstatechange = null;
   constructor(...args) {
     super(...args);
+  }
+
+  // 初始化通道
+  async init(server) {
+    this._server = server;
 
     // 建立rtc实例
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
 
+    rtcPC.onconnectionstatechange = (event) => {
+      console.log("onconnectionstatechange", rtcPC.connectionState, event);
+      this.#state = rtcPC.connectionState;
+
+      this.onstatechange &&
+        this.onstatechange({
+          ...event,
+          target: this,
+          currentTarget: this,
+        });
+
+      if (this._server) {
+        this._server.onuserstatechange &&
+          this._server.onuserstatechange({
+            ...event,
+            target: this,
+            currentTarget: this,
+          });
+      }
+    };
+
     rtcPC.ondatachannel = (event) => {
       const { channel } = event;
+
+      channel.addEventListener("close", () => {
+        delete this.#channels[channel.label];
+      });
 
       this.#channels[channel.label] = channel;
 
@@ -37,12 +68,16 @@ export class ClientUser extends User {
 
   // 给对面用户端发送数据
   async post(data) {
-    if (this.#status === "disconnected") {
+    if (this.#state === "disconnected") {
       console.warn("target user disconnected");
       return;
     }
 
     debugger;
+  }
+
+  get state() {
+    return this.#state;
   }
 
   // 开始初始化信息
@@ -79,21 +114,27 @@ export class ClientUser extends User {
   }
 
   // 创建新的信道
-  _createChannel(channelName = "initChannel") {
+  _createChannel(channelName = "channel-" + Math.random().slice(3)) {
     const rtcPC = this.#rtcConnection;
 
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    targetChannel.onmessage = (e) => {
-      console.log("rtcPC get message => ", e.data);
-    };
+    // targetChannel.onmessage = (e) => {
+    //   console.log("rtcPC get message => ", e.data);
+    // };
+
+    targetChannel.addEventListener("close", () => {
+      delete this.#channels[channelName];
+    });
 
     this.#channels[channelName] = targetChannel;
 
     setTimeout(() => {
       targetChannel.send(" 你收到了吗？");
     }, 1000);
+
+    return targetChannel;
   }
 
   // 连接用户
@@ -101,7 +142,7 @@ export class ClientUser extends User {
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    this._createChannel();
+    this._createChannel("initChannel");
 
     const offer = await rtcPC.createOffer();
 
@@ -125,11 +166,6 @@ export class ClientUser extends User {
         },
       }),
     });
-  }
-
-  // 初始化通道
-  async init(server) {
-    this._server = server;
   }
 
   async close() {

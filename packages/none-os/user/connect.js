@@ -11,6 +11,7 @@ class Connector {
   onchange = null;
   onclose = null;
   users = [];
+  clients = new Map();
   #id = Math.random().toString(32).slice(2);
   constructor(serverUrl) {
     // super();
@@ -52,24 +53,40 @@ class Connector {
 
             await Promise.all(
               result.users.map(async (e) => {
-                const user = new ClientUser(e.data, e.sign);
+                const cUser = new ClientUser(e.data, e.sign);
 
-                const result = await user.verify();
+                const result = await cUser.verify();
 
+                if (!result) {
+                  console.error("不应该存在验证不通过的用户");
+                  return;
+                }
+
+                // 验证通过后，并且本地没有相应的client，才进行初始化
                 if (result) {
-                  // 初始化完成后添加到队列
-                  await user.init(this);
-
                   users.push({
-                    userName: user.name,
-                    userID: user.id,
-                    _user: user,
+                    userName: cUser.name,
+                    userID: cUser.id,
                   });
+
+                  if (!this.clients.has(cUser.id)) {
+                    await cUser.init(this);
+                    this.clients.set(cUser.id, cUser);
+                  }
                 } else {
                   console.error("这个服务器带有未验证的用户");
                 }
               })
             );
+
+            this.clients.forEach((item) => {
+              const exited = users.some((e) => e.userID === item.id);
+
+              if (!exited) {
+                // 不存在的就清除
+                this.clients.delete(item.id);
+              }
+            });
 
             this.users = users;
             this.onchange && this.onchange();
@@ -77,13 +94,11 @@ class Connector {
 
           case "connect":
             // 用户之间尝试进行握手操作
-            const fromUser = this.users.find(
-              (e) => e.userID === result.fromUserID
-            );
+            const targetUserClent = this.clients.get(result.fromUserID);
 
-            if (fromUser) {
+            if (targetUserClent) {
               // 初始化 connect
-              fromUser._user._agentConnect(result.data);
+              targetUserClent._agentConnect(result.data);
             }
 
             break;

@@ -30,7 +30,12 @@
   <div>
     <x-fill :value="users">
       <div class="user-block">
-        <div>{{$data.userName}}</div>
+        <div>Name: {{$data.userName}}</div>
+        <div style="word-break: break-all; font-size: 12px; line-height: 1.2em">
+          {{$data.userID}}
+        </div>
+        <div style="font-size: 12px">servers: {{$data._servers}}</div>
+        <div>{{$host.getState($data)}}</div>
         <div><button on:click="$host.linkUser($data)">连接用户</button></div>
       </div>
     </x-fill>
@@ -67,51 +72,80 @@
         users: [], // 可连接用户
       },
       proto: {
+        // 获取用户的状态
+        getState(item) {
+          const targetClient = this.findClientUser(item);
+
+          return targetClient.state;
+        },
         // 连接用户
         async linkUser(item) {
-          const client = item._clients[0];
+          const targetClient = this.findClientUser(item);
 
-          client.connect(); // 尝试连接用户
+          targetClient.connect();
+        },
+        findClientUser(item) {
+          // 拿第一个服务器的对应user
+          const targetServer = this.servers.find(
+            (e) => e.id === item._servers[0]
+          );
+
+          if (targetServer) {
+            const targetClient = targetServer._connector.clients.get(
+              item.userID
+            );
+
+            return targetClient;
+          }
         },
         // 刷新用户列表
         async refreshUsers() {
-          const udata = await getUserInfo();
+          const selfUserInfo = await getUserInfo();
 
-          const users = [];
+          const reUsers = new Map();
+
           this.servers.forEach((connector) => {
             if (connector.status === "connected" && connector.users.length) {
               connector.users.forEach((user) => {
                 const { userID, userName } = user;
 
-                if (userID === udata.userID) {
+                if (userID === selfUserInfo.userID) {
                   return;
                 }
 
-                // 已存在的账户数据
-                let targetUser = user.find((e) => e.id === userID);
+                const exitedUser = reUsers.get(userID);
 
-                if (!targetUser) {
-                  targetUser = {
+                if (exitedUser) {
+                  exitedUser._servers.push(connector.id);
+                } else {
+                  reUsers.set(userID, {
                     userID,
                     userName,
-                    _clients: [], // 控制器
-                  };
-
-                  users.push(targetUser);
+                    _servers: [connector.id],
+                  });
                 }
-
-                targetUser._clients.push(user._user);
               });
             }
           });
 
-          this.users = users;
+          this.users = Array.from(reUsers.values());
         },
         // 通过服务器获取可连接的用户
         async refreshServer() {
           const sers = await getServers();
 
           sers.forEach(async (connector) => {
+            connector.onuserstatechange = (e) => {
+              // 修正用户状态
+              const { target: clientUser } = e;
+
+              this.users.forEach((item) => {
+                if (item.userID === clientUser.id) {
+                  item.state = clientUser.state;
+                }
+              });
+            };
+
             connector.onchange = () => {
               // 更新服务器状态
               const target = this.servers.find((e) => e.id === connector.id);
