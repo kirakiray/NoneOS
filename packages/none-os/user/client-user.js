@@ -3,28 +3,39 @@ import { User } from "./public-user.js";
 export class ClientUser extends User {
   #status = "disconnected";
   #rtcConnection = null;
-  #channels = [];
+  #channels = {};
   constructor(...args) {
     super(...args);
 
     // 建立rtc实例
-    // this.#rtcConnection = new RTCPeerConnection();
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
 
     rtcPC.ondatachannel = (event) => {
-      console.log("ondatachannel: ", event);
+      const { channel } = event;
+
+      this.#channels[channel.label] = channel;
+
+      channel.onmessage = (e) => {
+        console.log(channel.label, " get message => ", e.data);
+      };
     };
 
-    // const p1Channel = rtcPC.createDataChannel("publicChannel");
+    rtcPC.addEventListener("icecandidate", (event) => {
+      const { candidate } = event;
 
-    // p1Channel.onmessage = (e) => {
-    //   console.log("rtcPC get message => ", e.data);
-    // };
+      if (candidate) {
+        // 传递 icecandidate
+        this._serverAgentPost({
+          step: "set-candidate",
+          candidate,
+        });
 
-    // p1Channel.send("init channel");
+        console.log("candidate: ", candidate);
+      }
+    });
   }
 
-  // 发送数据给服务端
+  // 给对面用户端发送数据
   async post(data) {
     if (this.#status === "disconnected") {
       console.warn("target user disconnected");
@@ -42,83 +53,64 @@ export class ClientUser extends User {
 
     switch (step) {
       case "set-remote":
-        debugger;
         rtcPC.setRemoteDescription(data.offer);
 
-        if (data.candidates) {
-          data.candidates.forEach((e) => {});
-          debugger;
-        }
-
         const anwserOffter = await rtcPC.createAnswer();
+        rtcPC.setLocalDescription(anwserOffter);
+
+        console.log("set remote offer ", data.offer);
+
         this._serverAgentPost({
           step: "answer-remote",
           anwser: anwserOffter,
         });
         break;
+      case "set-candidate":
+        const iceObj = new RTCIceCandidate(data.candidate);
+
+        rtcPC.addIceCandidate(iceObj);
+        console.log("set candidate ", iceObj);
+        break;
       case "answer-remote":
         rtcPC.setRemoteDescription(data.anwser);
-        debugger;
+        console.log("set remote answer ", data.anwser);
         break;
     }
   }
 
-  // 添加传输的信道
-  _createChannel(channelName = "publicChannel") {
+  // 创建新的信道
+  _createChannel(channelName = "initChannel") {
     const rtcPC = this.#rtcConnection;
 
-    return new Promise((resolve) => {
-      let iceFunc, targetChannel;
-      const candidates = [];
-      rtcPC.addEventListener(
-        "icecandidate",
-        (iceFunc = (event) => {
-          const { candidate } = event;
+    // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
+    const targetChannel = rtcPC.createDataChannel(channelName);
 
-          if (!candidate) {
-            rtcPC.removeEventListener("icecandidate", iceFunc);
+    targetChannel.onmessage = (e) => {
+      console.log("rtcPC get message => ", e.data);
+    };
 
-            resolve({
-              candidates,
-              channel: targetChannel,
-            });
-            return;
-          }
+    this.#channels[channelName] = targetChannel;
 
-          candidates.push(candidate.candidate);
-
-          console.log(candidate);
-        })
-      );
-
-      targetChannel = rtcPC.createDataChannel(channelName);
-
-      targetChannel.onmessage = (e) => {
-        console.log("rtcPC get message => ", e.data);
-      };
-    });
+    setTimeout(() => {
+      targetChannel.send(" 你收到了吗？");
+    }, 1000);
   }
 
   // 连接用户
   async connect(data) {
     const rtcPC = this.#rtcConnection;
 
-    // 必须先创建信道听，后createOffer才能获取到candidate
-    const cPms = this._createChannel();
+    // 必须在createOffer前创建信道，否则不会产生ice数据
+    this._createChannel();
 
     const offer = await rtcPC.createOffer();
 
     // 设置给自身
     rtcPC.setLocalDescription(offer);
 
-    const { candidates, channel } = await cPms;
-
-    this.#channels.push(channel);
-
     this._serverAgentPost({
       step: "set-remote",
       offer,
-      candidates,
     });
   }
 
