@@ -34,15 +34,15 @@ class Connector {
 
     // 监听消息事件
     eventSource.onmessage = async (event) => {
-      const data = JSON.parse(event.data);
+      const result = JSON.parse(event.data);
 
-      if (data.__type) {
-        switch (data.__type) {
+      if (result.__type) {
+        switch (result.__type) {
           case "init":
             // 初始化用户和服务器信息
-            this.serverName = data.serverName;
-            this.serverVersion = data.serverVersion;
-            this.apiID = data.apiID;
+            this.serverName = result.serverName;
+            this.serverVersion = result.serverVersion;
+            this.apiID = result.apiID;
 
             this._emitchange("connected");
             break;
@@ -51,7 +51,7 @@ class Connector {
             const users = [];
 
             await Promise.all(
-              data.users.map(async (e) => {
+              result.users.map(async (e) => {
                 const user = new ClientUser(e.data, e.sign);
 
                 const result = await user.verify();
@@ -78,23 +78,23 @@ class Connector {
           case "connect":
             // 用户之间尝试进行握手操作
             const fromUser = this.users.find(
-              (e) => e.userID === data.fromUserID
+              (e) => e.userID === result.fromUserID
             );
 
             if (fromUser) {
               // 初始化 connect
-              fromUser._user._initConnect(data.data);
+              fromUser._user._agentConnect(result.data);
             }
 
             break;
 
           default:
-            console.log(data);
+            console.log(result);
             return;
         }
       } else {
         if (this.onmessage) {
-          this.onmessage(data);
+          this.onmessage(result);
         }
       }
     };
