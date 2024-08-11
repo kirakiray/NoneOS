@@ -35,8 +35,19 @@
           {{$data.userID}}
         </div>
         <div style="font-size: 12px">servers: {{$data._servers}}</div>
-        <div>{{$host.getState($data)}}</div>
-        <div><button on:click="$host.linkUser($data)">连接用户</button></div>
+        <div>{{$data.state}}</div>
+        <x-if
+          :value="!($data.state === 'connected' || $data.state === 'connecting')"
+        >
+          <div>
+            <button
+              on:click="$host.linkUser($data)"
+              attr:disabled="$data.state === 'connecting'"
+            >
+              连接用户
+            </button>
+          </div>
+        </x-if>
       </div>
     </x-fill>
   </div>
@@ -72,16 +83,9 @@
         users: [], // 可连接用户
       },
       proto: {
-        // 获取用户的状态
-        getState(item) {
-          const targetClient = this.findClientUser(item);
-
-          return targetClient.state;
-        },
         // 连接用户
         async linkUser(item) {
           const targetClient = this.findClientUser(item);
-
           targetClient.connect();
         },
         findClientUser(item) {
@@ -97,6 +101,16 @@
 
             return targetClient;
           }
+        },
+        // 更新用户信息
+        refreshUsersInfo() {
+          this.users.forEach((item) => {
+            const targetClient = this.findClientUser(item);
+
+            if (targetClient) {
+              item.state = targetClient.state;
+            }
+          });
         },
         // 刷新用户列表
         async refreshUsers() {
@@ -121,6 +135,7 @@
                   reUsers.set(userID, {
                     userID,
                     userName,
+                    state: "not-init",
                     _servers: [connector.id],
                   });
                 }
@@ -129,21 +144,17 @@
           });
 
           this.users = Array.from(reUsers.values());
+
+          this.refreshUsersInfo();
         },
         // 通过服务器获取可连接的用户
-        async refreshServer() {
+        async initServer() {
           const sers = await getServers();
 
           sers.forEach(async (connector) => {
             connector.onuserstatechange = (e) => {
               // 修正用户状态
-              const { target: clientUser } = e;
-
-              this.users.forEach((item) => {
-                if (item.userID === clientUser.id) {
-                  item.state = clientUser.state;
-                }
-              });
+              this.refreshUsersInfo();
             };
 
             connector.onchange = () => {
@@ -179,7 +190,7 @@
         },
       },
       attached() {
-        this.refreshServer();
+        this.initServer();
       },
     };
   </script>
