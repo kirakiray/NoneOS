@@ -40,6 +40,6 @@ export async function saveUser(options = {}) {
 }
 
 // 读取用户信息
-export async function getUser(options) {
+export async function getUser(options = {}) {
   debugger;
 }
