@@ -10,6 +10,7 @@ class Connector {
   #status = "disconnected";
   #serverUrl;
   #serverID;
+  #apiID;
   onchange = null;
   onclose = null;
   users = [];
@@ -17,6 +18,53 @@ class Connector {
   constructor(serverUrl) {
     // super();
     this.#serverUrl = serverUrl;
+  }
+
+  get apiID() {
+    return this.#apiID;
+  }
+
+  // 提交并查找用户，成功的话返回用户实例
+  async checkUser(userID) {
+    const exitedUser = this.clients.get(userID);
+
+    if (exitedUser) {
+      return exitedUser;
+    }
+
+    const result = await fetch(
+      `${new URL(this.serverUrl).origin}${this.#apiID}`,
+      {
+        method: "POST",
+        body: JSON.stringify({
+          get: {
+            userID,
+          },
+        }),
+      }
+    ).then((e) => e.json());
+
+    if (!result.error) {
+      // 查找到用户
+      const cUser = new ClientUser(result.data.user, result.data.sign);
+
+      if (cUser.id === userID && (await cUser.verify())) {
+        const { host } = new URL(this.#serverUrl);
+
+        // 实时更新
+        await saveUser({
+          source: host,
+          data: cUser.data,
+          dataSignature: cUser.dataSignature,
+        });
+
+        await cUser.init(this);
+
+        this.clients.set(cUser.id, cUser);
+
+        return cUser;
+      }
+    }
   }
 
   // 进行连接
@@ -45,74 +93,32 @@ class Connector {
             this.serverName = result.serverName;
             this.serverVersion = result.serverVersion;
             this.#serverID = result.serverID;
-            this.apiID = result.apiID;
+            this.#apiID = result.apiID;
 
             this._emitchange("connected");
             break;
-          case "update-user":
-            // 代理服务器中用户数量信息发生了变化
-            const users = [];
 
-            const { host } = new URL(this.#serverUrl);
-
-            await Promise.all(
-              result.users.map(async (e) => {
-                const cUser = new ClientUser(e.data, e.sign);
-
-                const result = await cUser.verify();
-
-                if (!result) {
-                  console.error("不应该存在验证不通过的用户");
-                  return;
-                }
-
-                // 验证通过后，并且本地没有相应的client，才进行初始化
-                if (result) {
-                  users.push({
-                    userName: cUser.name,
-                    userID: cUser.id,
-                  });
-
-                  if (!this.clients.has(cUser.id)) {
-                    await cUser.init(this);
-                    this.clients.set(cUser.id, cUser);
-
-                    await saveUser({
-                      source: host,
-                      data: cUser.data,
-                      dataSignature: cUser.dataSignature,
-                    });
-                  }
-                } else {
-                  console.error("这个服务器带有未验证的用户");
-                }
-              })
-            );
-
-            this.clients.forEach((item) => {
-              const exited = users.some((e) => e.userID === item.id);
-
-              if (!exited) {
-                // 不存在的就清除
-                this.clients.delete(item.id);
-              }
-            });
-
-            this.users = users;
-            this.onchange && this.onchange();
-            break;
-
-          case "connect":
+          case "agent-connect":
             // 用户之间尝试进行握手操作
-            const targetUserClent = this.clients.get(result.fromUserID);
+            let targetUserClient = this.clients.get(result.fromUserID);
 
-            if (targetUserClent) {
-              // 初始化 connect
-              targetUserClent._agentConnect(result.data);
+            if (!targetUserClient) {
+              targetUserClient = new ClientUser(
+                result.fromUser.data,
+                result.fromUser.sign
+              );
+
+              await targetUserClient.init(this);
+
+              if (targetUserClient.id === result.fromUserID) {
+                this.clients.set(result.fromUserID, targetUserClient);
+              }
             }
 
-            break;
+            // 初始化 connect
+            targetUserClient._agentConnect(result.data);
 
+            break;
           default:
             console.log(result);
             return;

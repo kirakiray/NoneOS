@@ -47,6 +47,7 @@
     import { get } from "/packages/fs/main.js";
     import { User } from "/packages/none-os/user/public-user.js";
     import { getUserInfo } from "/packages/none-os/user/main.js";
+    import { getServers } from "/packages/none-os/user/connect.js";
 
     export default {
       tag: "setting-user-list",
@@ -56,7 +57,15 @@
       },
       proto: {
         async linkUser(item) {
-          debugger;
+          const sers = await getServers();
+
+          // 直接拿第一个来测试
+          const clientUser = await sers[0].checkUser(item.userID);
+
+          if (clientUser) {
+            // 存在用户的情况下进行连接
+            clientUser.connect();
+          }
         },
         async refreshUserList() {
           const selfUserInfo = await getUserInfo();
@@ -70,6 +79,11 @@
 
           this.users = lists
             .map((e) => {
+              if (selfUserInfo.userID === e.id) {
+                // 过滤自身的令牌
+                return;
+              }
+
               return {
                 userID: e.id,
                 userName: e.name,

@@ -64,10 +64,10 @@
           const sers = await getServers();
 
           sers.forEach(async (connector) => {
-            connector.onuserstatechange = (e) => {
-              // 修正用户状态
-              this.refreshUsersInfo();
-            };
+            // connector.onuserstatechange = (e) => {
+            //   // 修正用户状态
+            //   this.refreshUsersInfo();
+            // };
 
             connector.onchange = () => {
               // 更新服务器状态
