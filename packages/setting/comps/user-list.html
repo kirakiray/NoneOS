@@ -3,11 +3,115 @@
     :host {
       display: block;
     }
+
+    .user-block {
+      display: inline-block;
+      width: 200px;
+      padding: 8px;
+      margin: 0 4px;
+      border-radius: 8px;
+      border: #80a32f solid 1px;
+    }
   </style>
-  <div>Userlist</div>
+
+  <div>
+    <x-fill :value="users">
+      <div class="user-block">
+        <div>用户名: {{$data.userName}}</div>
+        <div
+          style="
+            word-break: break-all;
+            font-size: 12px;
+            line-height: 1.2em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          "
+        >
+          用户ID: {{$data.userID}}
+        </div>
+        <div style="font-size: 12px">更新时间：{{$data.time}}</div>
+        <div>
+          <button
+            on:click="$host.linkUser($data)"
+            attr:disabled="$data.state === 'connecting'"
+          >
+            连接用户
+          </button>
+        </div>
+      </div>
+    </x-fill>
+  </div>
+
   <script>
+    import { get } from "/packages/fs/main.js";
+    import { User } from "/packages/none-os/user/public-user.js";
+    import { getUserInfo } from "/packages/none-os/user/main.js";
+
     export default {
       tag: "setting-user-list",
+      data: {
+        // 用户列表
+        users: [],
+      },
+      proto: {
+        async linkUser(item) {
+          debugger;
+        },
+        async refreshUserList() {
+          const selfUserInfo = await getUserInfo();
+
+          const parDirs = await get("local/system/usercards");
+
+          // 去重得到用户数据
+          let lists = await getCards(parDirs);
+          lists = new Map(lists);
+          lists = Array.from(lists.values());
+
+          this.users = lists
+            .map((e) => {
+              return {
+                userID: e.id,
+                userName: e.name,
+                time: new Date(e.get("time")).toLocaleString(),
+                _user: e,
+              };
+            })
+            .filter((e) => !!e);
+        },
+      },
+      ready() {
+        this.refreshUserList();
+      },
+    };
+
+    const getCards = async (parDirs) => {
+      const lists = [];
+
+      for await (let handle of parDirs.values()) {
+        if (handle.kind === "dir") {
+          const subList = await getCards(handle);
+          lists.push(...subList);
+        } else {
+          try {
+            let item = await handle.text();
+            item = JSON.parse(item);
+
+            const user = new User(item.data, item.sign);
+
+            // 通过验证后才加入
+            const result = await user.verify();
+
+            if (result) {
+              lists.push([user.id, user]);
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }
+
+      return lists;
     };
   </script>
 </template>

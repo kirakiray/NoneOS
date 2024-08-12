@@ -10,15 +10,6 @@
       margin: 0;
     }
 
-    .user-block {
-      display: inline-block;
-      width: 200px;
-      padding: 8px;
-      margin: 0 4px;
-      border-radius: 8px;
-      border: #80a32f solid 1px;
-    }
-
     [data-status="disconnect"] {
       color: var(--md-sys-color-error);
     }
@@ -60,7 +51,6 @@
   </div>
   <script>
     import { getServers } from "/packages/none-os/user/connect.js";
-    import { getUserInfo } from "/packages/none-os/user/main.js";
 
     export default {
       tag: "setting-connector",

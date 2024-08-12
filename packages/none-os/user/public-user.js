@@ -16,6 +16,10 @@ export class User {
     return this.#data.find((e) => e[0] === "userName")[1];
   }
 
+  get(name) {
+    return this.#data.find((e) => e[0] === name)[1];
+  }
+
   get data() {
     return this.#data;
   }
