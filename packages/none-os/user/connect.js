@@ -1,5 +1,6 @@
 import { getUserCardData } from "./main.js";
 import { ClientUser } from "./client-user.js";
+import { saveUser } from "./usercard.js";
 
 // 可访问服务器列表
 const serverList = ["http://localhost:5569/user"];
@@ -8,11 +9,11 @@ const serverList = ["http://localhost:5569/user"];
 class Connector {
   #status = "disconnected";
   #serverUrl;
+  #serverID;
   onchange = null;
   onclose = null;
   users = [];
   clients = new Map();
-  #id = Math.random().toString(32).slice(2);
   constructor(serverUrl) {
     // super();
     this.#serverUrl = serverUrl;
@@ -43,6 +44,7 @@ class Connector {
             // 初始化用户和服务器信息
             this.serverName = result.serverName;
             this.serverVersion = result.serverVersion;
+            this.#serverID = result.serverID;
             this.apiID = result.apiID;
 
             this._emitchange("connected");
@@ -50,6 +52,8 @@ class Connector {
           case "update-user":
             // 代理服务器中用户数量信息发生了变化
             const users = [];
+
+            const { host } = new URL(this.#serverUrl);
 
             await Promise.all(
               result.users.map(async (e) => {
@@ -72,6 +76,12 @@ class Connector {
                   if (!this.clients.has(cUser.id)) {
                     await cUser.init(this);
                     this.clients.set(cUser.id, cUser);
+
+                    await saveUser({
+                      source: host,
+                      data: cUser.data,
+                      dataSignature: cUser.dataSignature,
+                    });
                   }
                 } else {
                   console.error("这个服务器带有未验证的用户");
@@ -151,8 +161,8 @@ class Connector {
     return this.#serverUrl;
   }
 
-  get id() {
-    return this.#id;
+  get serverID() {
+    return this.#serverID;
   }
 }
 const servers = serverList.map((url) => {

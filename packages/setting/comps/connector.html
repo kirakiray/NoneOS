@@ -1,0 +1,118 @@
+<template component>
+  <l-m src="./user-list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    h5 {
+      padding: 16px 0 8px;
+      margin: 0;
+    }
+
+    .user-block {
+      display: inline-block;
+      width: 200px;
+      padding: 8px;
+      margin: 0 4px;
+      border-radius: 8px;
+      border: #80a32f solid 1px;
+    }
+
+    [data-status="disconnect"] {
+      color: var(--md-sys-color-error);
+    }
+
+    [data-status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+  <h5>用户列表</h5>
+  <setting-user-list></setting-user-list>
+  <h5>服务器 (以后会隐藏)</h5>
+  <div>
+    <x-fill :value="servers">
+      <div
+        style="
+          border: #aaa solid 1px;
+          padding: 8px;
+          margin: 0px 16px 8px 0;
+          border-radius: 4px;
+        "
+      >
+        <div>
+          {{$data.serverName}} -
+          <span style="color: #aaa">{{$data.serverVersion}}</span>
+        </div>
+        <div attr:data-status="$data.status">
+          {{$data.status}} -
+          <span style="color: #737373; font-size: 12px">
+            {{$data.serverID}}
+          </span>
+          -
+          <span style="color: #737373; font-size: 12px">
+            {{$data.serverUrl}}
+          </span>
+        </div>
+        <div>在线的用户: {{$data.users.map(e=>e.userName)}}</div>
+      </div>
+    </x-fill>
+  </div>
+  <script>
+    import { getServers } from "/packages/none-os/user/connect.js";
+    import { getUserInfo } from "/packages/none-os/user/main.js";
+
+    export default {
+      tag: "setting-connector",
+      data: {
+        servers: [], // 可连接的服务器
+        users: [], // 可连接用户
+      },
+      proto: {
+        // 通过服务器获取可连接的用户
+        async initServer() {
+          const sers = await getServers();
+
+          sers.forEach(async (connector) => {
+            connector.onuserstatechange = (e) => {
+              // 修正用户状态
+              this.refreshUsersInfo();
+            };
+
+            connector.onchange = () => {
+              // 更新服务器状态
+              const target = this.servers.find((e) => e.id === connector.id);
+
+              if (target) {
+                target.serverVersion = connector.serverVersion;
+                target.serverName = connector.serverName;
+                target.serverID = connector.serverID;
+                target.serverUrl = connector.serverUrl;
+                target.status = connector.status;
+                target.users = connector.users;
+              }
+            };
+
+            connector.onmessage = (data) => {
+              console.log("message: ", data);
+            };
+
+            this.servers.push({
+              id: connector.id,
+              serverName: "Loading",
+              serverVersion: null,
+              status: connector.status,
+              users: [],
+              _connector: connector,
+            });
+
+            connector.connect();
+          });
+        },
+      },
+      attached() {
+        this.initServer();
+      },
+    };
+  </script>
+</template>
