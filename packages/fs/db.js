@@ -171,23 +171,6 @@ export const setData = async ({
     return true;
   }
 
-  if (datas) {
-    datas.forEach((item) => {
-      if (!item.parent) {
-        return;
-      }
-
-      const result = writingMap.get(`${item.parent}-${item.name}`);
-
-      if (result) {
-        const saveingItem = result;
-
-        // 合并到原数据上，防止目录数据重复
-        Object.assign(item, saveingItem);
-      }
-    });
-  }
-
   const db = await getDB(dbname);
 
   return new Promise((resolve, reject) => {
@@ -212,9 +195,19 @@ export const setData = async ({
     datas &&
       datas.forEach((item) => {
         if (item.parent) {
-          // 写入过程中，缓存写入文件的信息，防止文件夹重复写入
-          writingMap.set(`${item.parent}-${item.name}`, item);
+          const result = writingMap.get(`${item.parent}-${item.name}`);
+
+          if (result) {
+            const saveingItem = result;
+
+            // 合并到原数据上，防止目录数据重复
+            Object.assign(item, saveingItem);
+          } else {
+            // 写入过程中，缓存写入文件的信息，防止文件夹重复写入
+            writingMap.set(`${item.parent}-${item.name}`, item);
+          }
         }
+
         store.put(item);
       });
     removes && removes.length && removes.forEach((key) => store.delete(key));
