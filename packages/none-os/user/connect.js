@@ -37,7 +37,7 @@ class Connector {
       {
         method: "POST",
         body: JSON.stringify({
-          get: {
+          getUser: {
             userID,
           },
         }),

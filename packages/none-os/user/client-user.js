@@ -61,13 +61,13 @@ export class ClientUser extends User {
           candidate,
         });
 
-        console.log("candidate: ", candidate);
+        // console.log("candidate: ", candidate);
       }
     });
   }
 
   // 给对面用户端发送数据
-  async post(data) {
+  async send(data) {
     if (this.#state === "disconnected") {
       console.warn("target user disconnected");
       return;
@@ -93,7 +93,7 @@ export class ClientUser extends User {
         const anwserOffter = await rtcPC.createAnswer();
         rtcPC.setLocalDescription(anwserOffter);
 
-        console.log("set remote offer ", data.offer);
+        // console.log("set remote offer ", data.offer);
 
         this._serverAgentPost({
           step: "answer-remote",
@@ -104,11 +104,11 @@ export class ClientUser extends User {
         const iceObj = new RTCIceCandidate(data.candidate);
 
         rtcPC.addIceCandidate(iceObj);
-        console.log("set candidate ", iceObj);
+        // console.log("set candidate ", iceObj);
         break;
       case "answer-remote":
         rtcPC.setRemoteDescription(data.anwser);
-        console.log("set remote answer ", data.anwser);
+        // console.log("set remote answer ", data.anwser);
         break;
     }
   }
@@ -138,7 +138,11 @@ export class ClientUser extends User {
   }
 
   // 连接用户
-  async connect(data) {
+  async connect() {
+    if (this.#state === "connected" || this.#state === "connecting") {
+      return;
+    }
+
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据

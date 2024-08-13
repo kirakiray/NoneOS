@@ -45,7 +45,9 @@
             {{$data.serverUrl}}
           </span>
         </div>
-        <div>在线的用户: {{$data.users.map(e=>e.userName)}}</div>
+        <div>
+          <button on:click="$host.getRecommends">获取推荐用户</button>
+        </div>
       </div>
     </x-fill>
   </div>
@@ -59,6 +61,7 @@
         users: [], // 可连接用户
       },
       proto: {
+        async getRecommends() {},
         // 通过服务器获取可连接的用户
         async initServer() {
           const sers = await getServers();

@@ -52,8 +52,8 @@
     export default {
       tag: "setting-user-list",
       data: {
-        // 用户列表
-        users: [],
+        users: [], // 用户列表
+        connectedUser: [], // 已经连接的用户
       },
       proto: {
         async linkUser(item) {
