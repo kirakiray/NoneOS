@@ -202,9 +202,10 @@
             for await (let handle of appHandle.values()) {
               const data = await getAppBase(`/$/${handle.path}`);
 
-              data.__not_default = 1; // 标识不是默认应用
-
-              apps.push(data);
+              if (data) {
+                data.__not_default = 1; // 标识不是默认应用
+                apps.push(data);
+              }
             }
 
             this.apps = [...this._defaultApps, ...apps];
@@ -221,23 +222,27 @@
 
     // 获取应用的配置数据
     const getAppBase = async (path) => {
-      const appJsonPath = `${path}/app.json`;
-      const configData = await fetch(appJsonPath).then((e) => e.json());
+      try {
+        const appJsonPath = `${path}/app.json`;
+        const configData = await fetch(appJsonPath).then((e) => e.json());
 
-      const icon = getRelatePath(appJsonPath, configData.icon);
-      let configUrl;
+        const icon = getRelatePath(appJsonPath, configData.icon);
+        let configUrl;
 
-      if (configData.config) {
-        configUrl = getRelatePath(appJsonPath, configData.config);
+        if (configData.config) {
+          configUrl = getRelatePath(appJsonPath, configData.config);
+        }
+
+        return {
+          name: configData.name,
+          icon: {
+            url: icon,
+          },
+          url: configUrl || `${path}/app-config.js`,
+        };
+      } catch (err) {
+        console.error(err);
       }
-
-      return {
-        name: configData.name,
-        icon: {
-          url: icon,
-        },
-        url: configUrl || `${path}/app-config.js`,
-      };
     };
 
     // 获取相对路径
