@@ -17,6 +17,11 @@
     [data-status="connected"] {
       color: var(--md-sys-color-success);
     }
+
+    .logs-content {
+      font-size: 12px;
+      word-break: break-all;
+    }
   </style>
   <h5>用户列表</h5>
   <setting-user-list></setting-user-list>
@@ -47,6 +52,10 @@
         </div>
         <div>
           <button on:click="$host.getRecommends">获取推荐用户</button>
+        </div>
+        <div>
+          <div>log:</div>
+          <div class="logs-content">{{$data.logs}}</div>
         </div>
       </div>
     </x-fill>
@@ -86,9 +95,9 @@
               }
             };
 
-            connector.onmessage = (data) => {
-              console.log("message: ", data);
-            };
+            // connector.onmessage = (data) => {
+            //   console.log("message: ", data);
+            // };
 
             this.servers.push({
               id: connector.id,
@@ -97,7 +106,16 @@
               status: connector.status,
               users: [],
               _connector: connector,
+              logs: [], // 打印的信息
             });
+
+            connector._ontake = (data) => {
+              const target = this.servers.find((e) => e.id === connector.id);
+
+              if (target) {
+                target.logs.push(data);
+              }
+            };
 
             connector.connect();
           });

@@ -86,6 +86,8 @@ class Connector {
     eventSource.onmessage = async (event) => {
       const result = JSON.parse(event.data);
 
+      this._ontake && this._ontake(result);
+
       if (result.__type) {
         switch (result.__type) {
           case "init":

@@ -5,17 +5,23 @@
   <l-m src="../comps/connector.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
       overflow: auto;
+      height: 100%;
     }
 
     .container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(100% - 16px);
+      height: 100%;
       display: flex;
       flex-direction: column;
       /* justify-content: center;
       align-items: center; */
       padding-left: 16px;
-      height: 100%;
     }
 
     h5 {

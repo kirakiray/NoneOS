@@ -48,6 +48,12 @@ export class ClientUser extends User {
 
       channel.onmessage = (e) => {
         console.log(channel.label, " get message => ", e.data);
+
+        this.onmessage &&
+          this.onmessage({
+            channel,
+            data: e.data,
+          });
       };
     };
 
@@ -120,9 +126,13 @@ export class ClientUser extends User {
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    // targetChannel.onmessage = (e) => {
-    //   console.log("rtcPC get message => ", e.data);
-    // };
+    targetChannel.onmessage = (e) => {
+      this.onmessage &&
+        this.onmessage({
+          channel: targetChannel,
+          data: e.data,
+        });
+    };
 
     targetChannel.addEventListener("close", () => {
       delete this.#channels[channelName];
