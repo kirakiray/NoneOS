@@ -48,7 +48,6 @@
     import { User } from "/packages/none-os/user/public-user.js";
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";
     import { getServers } from "/packages/none-os/user/connect.js";
-    import { getUser } from "/packages/none-os/user/usercard.js";
 
     export default {
       tag: "setting-user-list",
@@ -68,7 +67,6 @@
             clientUser.connect();
           }
         },
-        // 刷新用户列表数据
         async refreshUserList() {
           const selfUserInfo = await getSelfUserInfo();
 

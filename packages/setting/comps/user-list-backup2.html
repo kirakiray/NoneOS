@@ -74,7 +74,7 @@
   </div>
   <script>
     import { getServers } from "/packages/none-os/user/connect.js";
-    import { getUserInfo } from "/packages/none-os/user/main.js";
+    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
 
     export default {
       tag: "setting-user-list",
@@ -114,7 +114,7 @@
         },
         // 刷新用户列表
         async refreshUsers() {
-          const selfUserInfo = await getUserInfo();
+          const selfUserInfo = await getSelfUserInfo();
 
           const reUsers = new Map();
 

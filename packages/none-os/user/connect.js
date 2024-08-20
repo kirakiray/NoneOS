@@ -1,4 +1,4 @@
-import { getUserCardData } from "./main.js";
+import { getSelfUserCardData } from "./main.js";
 import { ClientUser } from "./client-user.js";
 import { saveUser } from "./usercard.js";
 
@@ -75,7 +75,7 @@ class Connector {
       this.__sse.close();
     }
 
-    const body = await getUserCardData();
+    const body = await getSelfUserCardData();
 
     // 创建一个 EventSource 对象，连接到 SSE 端点
     const eventSource = (this.__sse = new EventSource(

@@ -9,7 +9,7 @@ import {
 
 const pairData = await initUserPair();
 
-export const getUserInfo = async () => {
+export const getSelfUserInfo = async () => {
   const { signPublic, encryPublic, id } = pairData;
 
   return {
@@ -22,8 +22,8 @@ export const getUserInfo = async () => {
 };
 
 // 获取包含签名的用户数据
-export const getUserCardData = async () => {
-  const data = await getUserInfo();
+export const getSelfUserCardData = async () => {
+  const data = await getSelfUserInfo();
 
   const userData = [
     ["userID", data.userID],

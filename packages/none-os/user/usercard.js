@@ -1,5 +1,4 @@
-// 用户将用户信息保存到本地
-
+// 用户将用户卡片信息保存到本地，和获取本地的用户卡片数据
 import { User } from "./public-user.js";
 import get from "/packages/fs/get.js";
 
