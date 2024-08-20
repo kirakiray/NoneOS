@@ -19,7 +19,14 @@ export class ClientUser extends User {
   // 发送数据给对面
   send(data) {
     const channel = this.#channels["initChannel"];
-    channel.send(data);
+    if (!channel) {
+      this.#state = this.#rtcConnection.connectionState;
+      emitEvent("user-state-change", {
+        originTarget: this,
+      });
+    } else {
+      channel.send(data);
+    }
   }
 
   // 连接用户
@@ -77,18 +84,10 @@ export class ClientUser extends User {
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
 
     rtcPC.onconnectionstatechange = (event) => {
-      //   console.log("onconnectionstatechange", rtcPC.connectionState, event);
       this.#state = rtcPC.connectionState;
-
-      //   this.onstatechange &&
-      //     this.onstatechange({
-      //       target: this,
-      //       currentTarget: this,
-      //     });
 
       emitEvent("user-state-change", {
         originTarget: this,
-        originEvent: event,
       });
     };
 
