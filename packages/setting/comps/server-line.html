@@ -1,0 +1,63 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .logs-content {
+      font-size: 12px;
+      max-height: 300px;
+      /* word-break: break-all; */
+      overflow-y: auto;
+      user-select: text;
+    }
+  </style>
+  <div
+    style="
+      border: #aaa solid 1px;
+      padding: 8px;
+      margin: 0px 16px 8px 0;
+      border-radius: 4px;
+    "
+  >
+    <div>
+      {{item.serverName}} -
+      <span style="color: #aaa">{{item.serverVersion}}</span>
+    </div>
+    <div attr:data-status="item.status">
+      {{item.status}} -
+      <span style="color: #737373; font-size: 12px"> {{item.serverID}} </span>
+      -
+      <span style="color: #737373; font-size: 12px"> {{item.serverUrl}} </span>
+    </div>
+    <div>
+      <button on:click="getRecommends">获取推荐用户</button>
+    </div>
+    <div>
+      <div>打印信息（开发人员用，以后会隐藏）:</div>
+      <div class="logs-content">
+        <x-fill :value="item.logs" name="log-line"></x-fill>
+      </div>
+    </div>
+  </div>
+
+  <template name="log-line">
+    <div style="border: #aaa solid 1px; padding: 4px; margin: 4px">
+      {{$data}}
+    </div>
+  </template>
+
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "connector-server-line",
+        data: {
+          item: {},
+        },
+        proto: {
+          getRecommends() {},
+        },
+      };
+    };
+  </script>
+</template>
