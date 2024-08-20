@@ -48,28 +48,20 @@
     import { User } from "/packages/none-os/user/public-user.js";
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";
     import { getUserCard } from "/packages/none-os/user/usercard.js";
-    import { getServers, linkUser } from "/packages/none-os/user/server.js";
+    import { linkUser, bind } from "/packages/none-os/user/link/main.js";
 
     export default {
       tag: "setting-user-list",
       data: {
+        connectedUsers: [], // 已经建立连接的用户
         users: [], // 用户列表
         connectedUser: [], // 已经连接的用户
+        _removes: [], // 时候取消绑定的函数
       },
       proto: {
         async linkUser(item) {
-          const sers = getServers();
-
-          // 通过第一个直接开始连接
-          const result = await linkUser(
-            item._user.data,
-            item._user.dataSignature
-          );
-
-          if (result instanceof Error) {
-            debugger;
-            return;
-          }
+          // 连接用户
+          linkUser(item._user.data, item._user.dataSignature);
         },
         // 刷新用户列表数据
         async refreshUserList() {
@@ -97,6 +89,30 @@
       },
       ready() {
         this.refreshUserList();
+      },
+      attached() {
+        this._removes.push(
+          // 用户状态改动
+          bind("user-state-change", (e) => {
+            const { originTarget } = e;
+
+            switch (originTarget.state) {
+              case "connecting":
+                break;
+              case "connected":
+                break;
+              case "disconnected":
+                break;
+              case "failed":
+                break;
+            }
+
+            console.log("state-change", originTarget, originTarget.state);
+          })
+        );
+      },
+      detached() {
+        this._removes.forEach((func) => func());
       },
     };
   </script>
