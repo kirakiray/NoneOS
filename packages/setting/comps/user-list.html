@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="./connected-user.html"></l-m>
   <style>
     :host {
       display: block;
@@ -12,9 +13,20 @@
       border-radius: 8px;
       border: #80a32f solid 1px;
     }
+    h5 {
+      margin: 12px 0 4px;
+    }
   </style>
 
-  <div>
+  <h5>已连接用户</h5>
+  <div style="display: flex; flex-wrap: wrap">
+    <x-fill :value="connectedUsers">
+      <setting-user-block :item="$data"></setting-user-block>
+    </x-fill>
+  </div>
+
+  <h5>已获得的用户卡片</h5>
+  <div style="display: flex; flex-wrap: wrap">
     <x-fill :value="users">
       <div class="user-block">
         <div>用户名: {{$data.userName}}</div>
@@ -55,7 +67,6 @@
       data: {
         connectedUsers: [], // 已经建立连接的用户
         users: [], // 用户列表
-        connectedUser: [], // 已经连接的用户
         _removes: [], // 时候取消绑定的函数
       },
       proto: {
@@ -64,7 +75,7 @@
           linkUser(item._user.data, item._user.dataSignature);
         },
         // 刷新用户列表数据
-        async refreshUserList() {
+        async refreshUserCardList() {
           const selfUserInfo = await getSelfUserInfo();
 
           // 去重得到用户数据
@@ -74,6 +85,11 @@
             .map((e) => {
               if (selfUserInfo.userID === e.id) {
                 // 过滤自身的令牌
+                return;
+              }
+
+              if (this.connectedUsers.find((item) => item.userID === e.id)) {
+                // 过滤connected列表
                 return;
               }
 
@@ -88,26 +104,36 @@
         },
       },
       ready() {
-        this.refreshUserList();
+        this.refreshUserCardList();
       },
       attached() {
         this._removes.push(
           // 用户状态改动
           bind("user-state-change", (e) => {
-            const { originTarget } = e;
+            const { originTarget: targetUser } = e;
 
-            switch (originTarget.state) {
-              case "connecting":
-                break;
-              case "connected":
-                break;
-              case "disconnected":
-                break;
-              case "failed":
-                break;
+            const targetIndex = this.connectedUsers.findIndex(
+              (e) => e.userID === targetUser.id
+            );
+            let targetItem = this.connectedUsers[targetIndex];
+
+            if (!targetItem) {
+              this.connectedUsers.push({
+                userID: targetUser.id,
+                _user: targetUser,
+              });
+
+              targetItem = this.connectedUsers.find(
+                (e) => e.userID === targetUser.id
+              );
             }
 
-            console.log("state-change", originTarget, originTarget.state);
+            // 更新状态
+            targetItem.state = targetUser.state;
+
+            console.log("state-change", targetUser, targetUser.state);
+
+            this.refreshUserCardList();
           })
         );
       },

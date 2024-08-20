@@ -18,7 +18,8 @@ export class ClientUser extends User {
 
   // 发送数据给对面
   send(data) {
-    debugger;
+    const channel = this.#channels["initChannel"];
+    channel.send(data);
   }
 
   // 连接用户
@@ -64,9 +65,9 @@ export class ClientUser extends User {
 
     this.#channels[channelName] = targetChannel;
 
-    targetChannel.onopen = () => {
-      targetChannel.send(" 你收到了吗？");
-    };
+    // targetChannel.onopen = () => {
+    //   targetChannel.send(" 你收到了吗？");
+    // };
 
     return targetChannel;
   }
