@@ -1,6 +1,6 @@
 import { getSelfUserCardData } from "./main.js";
 import { ClientUser } from "./client-user.js";
-import { saveUser } from "./usercard.js";
+import { saveUserCard } from "./usercard.js";
 
 // 可访问服务器列表
 const serverList = ["http://localhost:5569/user"];
@@ -52,7 +52,7 @@ class Connector {
         const { host } = new URL(this.#serverUrl);
 
         // 实时更新
-        await saveUser({
+        await saveUserCard({
           source: host,
           data: cUser.data,
           dataSignature: cUser.dataSignature,
@@ -173,6 +173,7 @@ class Connector {
     return this.#serverID;
   }
 }
+
 const servers = serverList.map((url) => {
   return new Connector(url);
 });

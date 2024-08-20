@@ -47,8 +47,8 @@
     import { get } from "/packages/fs/main.js";
     import { User } from "/packages/none-os/user/public-user.js";
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";
-    import { getServers } from "/packages/none-os/user/connect.js";
-    import { getUser } from "/packages/none-os/user/usercard.js";
+    import { getUserCard } from "/packages/none-os/user/usercard.js";
+    import { getServers, linkUser } from "/packages/none-os/user/server.js";
 
     export default {
       tag: "setting-user-list",
@@ -58,26 +58,25 @@
       },
       proto: {
         async linkUser(item) {
-          const sers = await getServers();
+          const sers = getServers();
 
-          // 直接拿第一个来测试
-          const clientUser = await sers[0].checkUser(item.userID);
+          // 通过第一个直接开始连接
+          const result = await linkUser(
+            item._user.data,
+            item._user.dataSignature
+          );
 
-          if (clientUser) {
-            // 存在用户的情况下进行连接
-            clientUser.connect();
+          if (result instanceof Error) {
+            debugger;
+            return;
           }
         },
         // 刷新用户列表数据
         async refreshUserList() {
           const selfUserInfo = await getSelfUserInfo();
 
-          const parDirs = await get("local/system/usercards");
-
           // 去重得到用户数据
-          let lists = await getCards(parDirs);
-          lists = new Map(lists);
-          lists = Array.from(lists.values());
+          const lists = await getUserCard();
 
           this.users = lists
             .map((e) => {
@@ -99,35 +98,6 @@
       ready() {
         this.refreshUserList();
       },
-    };
-
-    const getCards = async (parDirs) => {
-      const lists = [];
-
-      for await (let handle of parDirs.values()) {
-        if (handle.kind === "dir") {
-          const subList = await getCards(handle);
-          lists.push(...subList);
-        } else {
-          try {
-            let item = await handle.text();
-            item = JSON.parse(item);
-
-            const user = new User(item.data, item.sign);
-
-            // 通过验证后才加入
-            const result = await user.verify();
-
-            if (result) {
-              lists.push([user.id, user]);
-            }
-          } catch (err) {
-            console.error(err);
-          }
-        }
-      }
-
-      return lists;
     };
   </script>
 </template>

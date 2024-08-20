@@ -3,7 +3,7 @@ import { User } from "./public-user.js";
 import get from "/packages/fs/get.js";
 
 // 保存用户信息
-export async function saveUser(options = {}) {
+export async function saveUserCard(options = {}) {
   const { dataSignature, data, source } = options;
 
   if (!source.trim()) {
@@ -39,6 +39,42 @@ export async function saveUser(options = {}) {
 }
 
 // 读取用户信息
-export async function getUser(options = {}) {
-  debugger;
+export async function getUserCard(options = {}) {
+  const parDirs = await get("local/system/usercards");
+
+  let lists = await getCards(parDirs);
+  // 去重得到用户数据
+  lists = new Map(lists);
+  lists = Array.from(lists.values());
+
+  return lists;
 }
+
+const getCards = async (parDirs) => {
+  const lists = [];
+
+  for await (let handle of parDirs.values()) {
+    if (handle.kind === "dir") {
+      const subList = await getCards(handle);
+      lists.push(...subList);
+    } else {
+      try {
+        let item = await handle.text();
+        item = JSON.parse(item);
+
+        const user = new User(item.data, item.sign);
+
+        // 通过验证后才加入
+        const result = await user.verify();
+
+        if (result) {
+          lists.push([user.id, user]);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  return lists;
+};
