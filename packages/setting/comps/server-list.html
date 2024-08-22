@@ -31,7 +31,12 @@
               color: var(--md-sys-color-primary);
             "
           ></n-local-icon>
-          {{$data.name}}
+          <div>
+            {{$data.name}} -
+            <span style="font-size: 12px; color: var(--md-sys-color-normal)"
+              >{{$data.version}}</span
+            >
+          </div>
           <span secondary>{{$data.serverUrl}}</span>
           <span slot="suffix" attr:data-status="$data.status">
             {{$data.status}}
