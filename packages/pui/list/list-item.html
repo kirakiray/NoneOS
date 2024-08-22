@@ -4,8 +4,7 @@
   <style>
     :host {
       position: relative;
-      display: flex;
-      padding: calc(var(--pui-space-y) * 2) calc(var(--pui-space-x) * 2);
+      display: block;
       font-size: 14px;
       color: var(--md-sys-color-on-normal-container);
       --wave-color: var(--md-ref-palette-translucent-primary60);
@@ -13,16 +12,19 @@
       overflow: hidden;
       /* border-bottom: red solid 1px; */
     }
+
+    .main {
+      display: flex;
+      position: relative;
+      padding: calc(var(--pui-space-y) * 2) calc(var(--pui-space-x) * 2);
+    }
+
     .content {
       flex: 1;
       display: flex;
       flex-direction: column;
       justify-content: center;
       line-height: 1.2em;
-    }
-
-    :host([radius]) {
-      border-radius: 30px;
     }
 
     .avatar,
@@ -73,7 +75,7 @@
     }
 
     @media (hover: hover) {
-      :host([button]) :hover {
+      :host([button]) .main:hover {
         background-color: rgba(128, 128, 128, 0.1);
       }
     }
@@ -113,7 +115,7 @@
       border-right: 5px solid transparent;
     }
 
-    :host([active-item]) {
+    :host([active-item]) .main {
       background-color: var(--md-ref-palette-translucent-primary50);
     }
 
@@ -128,19 +130,21 @@
       background-color: var(--md-sys-color-primary-container);
     }
   </style>
-  <div class="avatar">
-    <slot name="prefix"></slot>
+  <div class="main" part="main">
+    <div class="avatar">
+      <slot name="prefix"></slot>
+    </div>
+    <div class="content" part="content">
+      <slot></slot>
+    </div>
+    <div class="suffix">
+      <slot name="suffix"></slot>
+    </div>
+    <div class="fake-mask"></div>
+    <x-if :value="button !== null && disabled === null">
+      <p-wave style="z-index: 2"></p-wave>
+    </x-if>
   </div>
-  <div class="content" part="content">
-    <slot></slot>
-  </div>
-  <div class="suffix">
-    <slot name="suffix"></slot>
-  </div>
-  <div class="fake-mask"></div>
-  <x-if :value="button !== null && disabled === null">
-    <p-wave style="z-index: 2"></p-wave>
-  </x-if>
 
   <x-if :value="button !== null">
     <button

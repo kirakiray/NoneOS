@@ -1,0 +1,80 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+
+  <style>
+    h5 {
+      margin: 16px 0 4px;
+    }
+    [data-status] {
+      color: var(--md-sys-color-error);
+    }
+    [data-status="connecting"] {
+      color: var(--md-sys-color-normal);
+    }
+    [data-status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+  <h5>握手服务器列表</h5>
+  <div>
+    <p-list style="width: 500px">
+      <x-fill :value="sers" fill-key="serverUrl">
+        <p-list-item>
+          <n-local-icon
+            name="server"
+            slot="prefix"
+            style="
+              display: block;
+              margin-right: 8px;
+              font-size: 24px;
+              color: var(--md-sys-color-primary);
+            "
+          ></n-local-icon>
+          {{$data.name}}
+          <span secondary>{{$data.serverUrl}}</span>
+          <span slot="suffix" attr:data-status="$data.status">
+            {{$data.status}}
+          </span>
+        </p-list-item>
+      </x-fill>
+    </p-list>
+  </div>
+  <script>
+    import { getServers, bind } from "/packages/none-os/user/connect/main.js";
+
+    export default async () => {
+      return {
+        tag: "setting-server-list",
+        data: {
+          sers: [],
+        },
+        proto: {
+          async reloadServers() {
+            const servers = getServers();
+
+            this.sers = servers.map((e) => {
+              return {
+                name: e.serverName,
+                version: e.serverVersion,
+                status: e.status,
+                serverUrl: e.serverUrl,
+                _server: e,
+              };
+            });
+          },
+        },
+        ready() {
+          this.reloadServers();
+        },
+        attached() {
+          bind("server-state-change", (e) => {
+            const { originTarget } = e;
+
+            this.reloadServers();
+          });
+        },
+      };
+    };
+  </script>
+</template>

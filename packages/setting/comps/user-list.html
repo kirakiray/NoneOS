@@ -14,7 +14,7 @@
       border: #80a32f solid 1px;
     }
     h5 {
-      margin: 12px 0 4px;
+      margin: 16px 0 4px;
     }
   </style>
 
@@ -46,9 +46,9 @@
         <div>
           <button
             on:click="$host.linkUser($data)"
-            attr:disabled="$data.state === 'connecting'"
+            attr:disabled="$data.inConnected"
           >
-            连接用户
+            {{$data.inConnected ? '已在已连接列表' : '连接用户'}}
           </button>
         </div>
       </div>
@@ -88,16 +88,15 @@
                 return;
               }
 
-              if (this.connectedUsers.find((item) => item.userID === e.id)) {
-                // 过滤connected列表
-                return;
-              }
-
               return {
                 userID: e.id,
                 userName: e.name,
                 time: new Date(e.get("time")).toLocaleString(),
                 _user: e,
+                state: e.state,
+                inConnected: this.connectedUsers.find(
+                  (item) => item.userID === e.id
+                ),
               };
             })
             .filter((e) => !!e);

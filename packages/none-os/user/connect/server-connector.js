@@ -1,6 +1,6 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
-import { serverList, clients } from "./public.js";
+import { serverList, clients, emitEvent } from "./public.js";
 
 // 和服务器进行相连的实例
 export class ServerConnector {
@@ -92,6 +92,10 @@ export class ServerConnector {
   _emitchange(status) {
     this.#status = status;
     this.onchange && this.onchange();
+
+    emitEvent("server-state-change", {
+      originTarget: this,
+    });
 
     if (status === "closed") {
       this.onclose && this.onclose();

@@ -44,6 +44,9 @@
           this.__refreshStyleTimer = setTimeout(() => {
             // const headRow = this.$("p-table-row[head]");
             const headRow = this.$("p-table-row");
+            if (!headRow) {
+              return;
+            }
             let styleStr = "";
             const cellLength = headRow.length;
             const { width } = this;
@@ -73,8 +76,8 @@
                 colStyle += `text-align:${e.align};justify-content:${jc};`;
               }
 
-              if (e.colWidth !== null) {
-                colStyle += `flex:0 0 ${fixPx(e.colWidth)};`;
+              if (e.basis !== null) {
+                colStyle += `flex:0 0 ${fixPx(e.basis)};`;
               }
 
               if (e.grow !== null) {
@@ -137,7 +140,7 @@
 
               this.__currentStyle.html += `p-table[data-table-id="${this._tableId}"] {--table-row-width:${rowWidth}px;}`;
             }, 50);
-          }, 100);
+          }, 30);
         },
       },
       ready() {

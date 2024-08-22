@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="../comps/user-list.html"></l-m>
+  <l-m src="../comps/server-list.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -53,7 +54,7 @@
     <!-- <div class="avatar"></div> -->
     <p-table style="margin-right: 16px">
       <p-table-row>
-        <p-table-cell col-width="120">用户名</p-table-cell>
+        <p-table-cell basis="120">用户名</p-table-cell>
         <p-table-cell>
           <x-if :value="renameMode">
             <input
@@ -81,23 +82,24 @@
         </p-table-cell>
       </p-table-row>
       <p-table-row>
-        <p-table-cell col-width="120">用户ID</p-table-cell>
+        <p-table-cell>用户ID</p-table-cell>
         <p-table-cell> {{userID}} </p-table-cell>
       </p-table-row>
       <p-table-row>
-        <p-table-cell col-width="120">签名公钥</p-table-cell>
+        <p-table-cell>签名公钥</p-table-cell>
         <p-table-cell>
           <div class="row-val" attr:title="signPublic">{{signPublic}}</div>
         </p-table-cell>
       </p-table-row>
       <p-table-row>
-        <p-table-cell col-width="120">加密公钥</p-table-cell>
+        <p-table-cell>加密公钥</p-table-cell>
         <p-table-cell>
           <div class="row-val" attr:title="encryPublic">{{encryPublic}}</div>
         </p-table-cell>
       </p-table-row>
     </p-table>
     <setting-user-list></setting-user-list>
+    <setting-server-list></setting-server-list>
   </div>
   <script>
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";
