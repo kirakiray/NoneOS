@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
 
   <style>
@@ -20,7 +21,11 @@
   <div>
     <p-list style="width: 500px">
       <x-fill :value="sers" fill-key="serverUrl">
-        <p-list-item>
+        <p-list-item
+          button
+          attr:active-item="$host.selectedServer === $data.serverUrl"
+          on:click="$host.selectedServer = $data.serverUrl"
+        >
           <n-local-icon
             name="server"
             slot="prefix"
@@ -33,9 +38,9 @@
           ></n-local-icon>
           <div>
             {{$data.name}} -
-            <span style="font-size: 12px; color: var(--md-sys-color-normal)"
-              >{{$data.version}}</span
-            >
+            <span style="font-size: 12px; color: var(--md-sys-color-normal)">
+              {{$data.version}} - delay:{{$data.delayTime}}ms
+            </span>
           </div>
           <span secondary>{{$data.serverUrl}}</span>
           <span slot="suffix" attr:data-status="$data.status">
@@ -43,18 +48,48 @@
           </span>
         </p-list-item>
       </x-fill>
+      <p-list-item>
+        <p-text-field
+          size="small"
+          sync:value="newSerUrl"
+          style="margin-right: 24px"
+          placeholder="填写新握手服务器地址"
+        >
+        </p-text-field>
+        <p-button
+          slot="suffix"
+          size="small"
+          on:click="clickAddServer"
+          attr:disabled="!newSerUrl"
+        >
+          添加服务器
+        </p-button>
+      </p-list-item>
     </p-list>
   </div>
   <script>
     import { getServers, bind } from "/packages/none-os/user/connect/main.js";
+    import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
       return {
         tag: "setting-server-list",
         data: {
-          sers: [],
+          sers: [], // 已存在的服务器
+          selectedServer: "", // 选择中的服务器
+          newSerUrl: "", // 添加新服务器的地址
         },
         proto: {
+          clickAddServer() {
+            const newUrl = this.newSerUrl;
+
+            if (!validateURL(newUrl)) {
+              enqueue({ content: "输入的握手服务器地址有误", color: "error" });
+              return;
+            }
+
+            this.newSerUrl = "";
+          },
           async reloadServers() {
             const servers = getServers();
 
@@ -65,21 +100,44 @@
                 status: e.status,
                 serverUrl: e.serverUrl,
                 _server: e,
+                delayTime: e.delayTime,
               };
             });
           },
         },
         ready() {
+          window.aaa = this;
           this.reloadServers();
         },
         attached() {
-          bind("server-state-change", (e) => {
-            const { originTarget } = e;
+          const cancels = (this._cancels = []);
 
-            this.reloadServers();
-          });
+          cancels.push(
+            bind("server-state-change", (e) => {
+              const { originTarget } = e;
+
+              this.reloadServers();
+            })
+          );
+
+          cancels.push(
+            bind("server-ping", (e) => {
+              const { originTarget } = e;
+
+              this.reloadServers();
+            })
+          );
+        },
+        detached() {
+          this._cancels && this._cancels.forEach((f) => f());
         },
       };
     };
+
+    function validateURL(url) {
+      const regex =
+        /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+      return regex.test(url);
+    }
   </script>
 </template>

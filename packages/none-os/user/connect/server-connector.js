@@ -8,6 +8,7 @@ export class ServerConnector {
   #status = "disconnected";
   #apiID;
   #serverID;
+  #delayTime = 0;
   constructor(serverUrl) {
     this.#serverUrl = serverUrl;
     this.init();
@@ -39,6 +40,8 @@ export class ServerConnector {
 
             this._emitchange("connected");
 
+            this.ping();
+
             break;
 
           case "agent-connect":
@@ -60,14 +63,15 @@ export class ServerConnector {
             targetUserClient._agentConnect(result.data);
 
             break;
+          case "pong":
+            debugger;
+            break;
           default:
             console.log(result);
             return;
         }
-      } else {
-        if (this.onmessage) {
-          this.onmessage(result);
-        }
+      } else if (this.onmessage) {
+        this.onmessage(result);
       }
     };
 
@@ -86,6 +90,21 @@ export class ServerConnector {
 
       this._emitchange("closed");
     };
+
+    this.check(); // 点火自检机制
+  }
+
+  // 自检机制
+  async check() {
+    clearTimeout(this._checkTimer);
+
+    this._checkTimer = setTimeout(() => {
+      if (this.#status === "connected") {
+        this.ping();
+      }
+
+      this.check();
+    }, 30000);
   }
 
   // 改变状态
@@ -112,6 +131,22 @@ export class ServerConnector {
     });
   }
 
+  // 测试延迟
+  async ping() {
+    const startTime = Date.now();
+    const result = await this._post({
+      ping: Date.now(),
+    }).then((e) => e.json());
+
+    if (result.pong) {
+      this.#delayTime = Date.now() - startTime;
+    }
+
+    emitEvent("server-ping", {
+      originTarget: this,
+    });
+  }
+
   // 获取推荐用户
   async getRecommend() {
     debugger;
@@ -127,6 +162,10 @@ export class ServerConnector {
 
   get serverID() {
     return this.#serverID;
+  }
+
+  get delayTime() {
+    return this.#delayTime;
   }
 }
 
