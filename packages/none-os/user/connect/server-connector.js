@@ -18,6 +18,10 @@ export class ServerConnector {
   async init() {
     const selfCardData = await getSelfUserCardData();
 
+    if (this.__sse) {
+      this.__sse.close();
+    }
+
     // 创建一个 EventSource 对象，连接到 SSE 端点
     const eventSource = (this.__sse = new EventSource(
       `${this.#serverUrl}/${encodeURIComponent(JSON.stringify(selfCardData))}`
@@ -77,9 +81,11 @@ export class ServerConnector {
 
     // 监听错误事件
     eventSource.onerror = (e) => {
-      console.error("Server Error occurred:", e);
+      console.error(e);
       // 在这里处理错误
       eventSource.close();
+
+      this.#delayTime = 0;
 
       this._emitchange("closed");
     };
@@ -87,6 +93,7 @@ export class ServerConnector {
     // 监听连接关闭事件
     eventSource.onclose = () => {
       console.log("Server Connection closed", this);
+      this.#delayTime = 0;
 
       this._emitchange("closed");
     };
@@ -98,13 +105,18 @@ export class ServerConnector {
   async check() {
     clearTimeout(this._checkTimer);
 
+    console.log("satus:", this.#status);
+
     this._checkTimer = setTimeout(() => {
-      if (this.#status === "connected") {
+      if (this.#status === "closed") {
+        // 重新初始化
+        this.init();
+      } else if (this.#status === "connected") {
         this.ping();
       }
 
       this.check();
-    }, 30000);
+    }, 10000);
   }
 
   // 改变状态
