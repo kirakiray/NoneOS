@@ -1,6 +1,6 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
-import { serverList, clients, emitEvent } from "./public.js";
+import { clients, emitEvent } from "./public.js";
 
 // 和服务器进行相连的实例
 export class ServerConnector {
@@ -105,8 +105,6 @@ export class ServerConnector {
   async check() {
     clearTimeout(this._checkTimer);
 
-    console.log("satus:", this.#status);
-
     this._checkTimer = setTimeout(() => {
       if (this.#status === "closed") {
         // 重新初始化
@@ -180,8 +178,3 @@ export class ServerConnector {
     return this.#delayTime;
   }
 }
-
-// 已有的服务器
-export const connectors = serverList.map((e) => {
-  return new ServerConnector(e);
-});

@@ -1,6 +1,5 @@
 import { User } from "../public-user.js";
-import { emitEvent } from "./public.js";
-import { connectors } from "./server-connector.js";
+import { emitEvent, connectors } from "./public.js";
 
 export class ClientUser extends User {
   #rtcConnection;

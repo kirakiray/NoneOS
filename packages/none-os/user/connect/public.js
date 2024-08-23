@@ -16,11 +16,8 @@ export const emitEvent = (name, options) => {
   target.dispatchEvent(event);
 };
 
-// 可访问服务器列表
-export const serverList = [
-  "http://localhost:5569/user",
-  "https://tutous.com:55691/user",
-];
-
 // 已连接的用户
 export const clients = new Map();
+
+// 已有的服务器
+export const connectors = [];
