@@ -25,6 +25,7 @@ export const linkUser = async (data, dataSignature) => {
 export const defaultServerList = [
   "http://localhost:5569/user",
   // "https://tutous.com:55691/user",
+  // "http://192.168.50.97:5569/user",
 ];
 
 const getSavedServer = () => {
@@ -49,11 +50,39 @@ export const getServers = () => {
 export const addServer = (url) => {
   const servers = getSavedServer();
 
+  const cid = connectors.findIndex((e) => e.serverUrl === url);
+
+  if (cid > -1) {
+    return "repeat";
+  }
+
   servers.push(url);
 
   localStorage.setItem("__handshake_servers", JSON.stringify(servers));
 
   connectors.push(new ServerConnector(url));
+
+  emitEvent("server-list-change");
+
+  return true;
+};
+
+export const deleteServer = (url) => {
+  const servers = getSavedServer();
+
+  const id = servers.findIndex((e) => e === url);
+
+  if (id > -1) {
+    servers.splice(id, 1);
+  }
+
+  const cid = connectors.findIndex((e) => e.serverUrl === url);
+
+  if (cid > -1) {
+    connectors.splice(cid, 1);
+  }
+
+  localStorage.setItem("__handshake_servers", JSON.stringify(servers));
 
   emitEvent("server-list-change");
 };

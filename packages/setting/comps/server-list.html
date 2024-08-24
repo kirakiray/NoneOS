@@ -23,6 +23,7 @@
       size="small"
       attr:disabled="!selectedServer"
       style="margin-left: auto"
+      on:click="clickDeleteServer"
     >
       删除选中的服务器
     </p-button>
@@ -85,6 +86,7 @@
       getServers,
       bind,
       addServer,
+      deleteServer,
     } from "/packages/none-os/user/connect/main.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
@@ -97,6 +99,9 @@
           newSerUrl: "", // 添加新服务器的地址
         },
         proto: {
+          clickDeleteServer() {
+            deleteServer(this.selectedServer);
+          },
           clickAddServer() {
             const newUrl = this.newSerUrl;
 
@@ -107,7 +112,16 @@
 
             this.newSerUrl = "";
 
-            addServer(newUrl);
+            const result = addServer(newUrl);
+
+            switch (result) {
+              case "repeat":
+                enqueue({
+                  content: `'${newUrl}' 已存在`,
+                  color: "error",
+                });
+                break;
+            }
           },
           async reloadServers() {
             const servers = getServers();
@@ -128,23 +142,21 @@
           this.reloadServers();
         },
         attached() {
-          const cancels = (this._cancels = []);
-
-          cancels.push(
+          this._cancels = [
+            bind("server-list-change", (e) => {
+              this.reloadServers();
+            }),
             bind("server-state-change", (e) => {
               const { originTarget } = e;
 
-              this.reloadServers();
-            }),
-            bind("server-list-change", (e) => {
               this.reloadServers();
             }),
             bind("server-ping", (e) => {
               const { originTarget } = e;
 
               this.reloadServers();
-            })
-          );
+            }),
+          ];
         },
         detached() {
           this._cancels && this._cancels.forEach((f) => f());
