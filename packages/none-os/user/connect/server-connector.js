@@ -97,24 +97,6 @@ export class ServerConnector {
 
       this._emitchange("closed");
     };
-
-    this.check(); // 点火自检机制
-  }
-
-  // 自检机制
-  async check() {
-    clearTimeout(this._checkTimer);
-
-    this._checkTimer = setTimeout(() => {
-      if (this.#status === "closed") {
-        // 重新初始化
-        this.init();
-      } else if (this.#status === "connected") {
-        this.ping();
-      }
-
-      this.check();
-    }, 10000);
   }
 
   // 改变状态

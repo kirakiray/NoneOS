@@ -17,9 +17,18 @@
       color: var(--md-sys-color-success);
     }
   </style>
-  <h5>握手服务器列表</h5>
+  <h5 style="display: flex; max-width: 700px; padding-right: 24px">
+    握手服务器列表
+    <p-button
+      size="small"
+      attr:disabled="!selectedServer"
+      style="margin-left: auto"
+    >
+      删除选中的服务器
+    </p-button>
+  </h5>
   <div>
-    <p-list style="width: 500px">
+    <p-list style="max-width: 700px; padding-right: 16px">
       <x-fill :value="sers" fill-key="serverUrl">
         <p-list-item
           button
@@ -39,7 +48,10 @@
           <div>
             {{$data.name}} -
             <span style="font-size: 12px; color: var(--md-sys-color-normal)">
-              {{$data.version}} - delay:{{$data.delayTime}}ms
+              {{$data.version}}
+              <x-if :value="$data.delayTime">
+                - delay:{{$data.delayTime}}ms
+              </x-if>
             </span>
           </div>
           <span secondary>{{$data.serverUrl}}</span>
@@ -54,6 +66,7 @@
           sync:value="newSerUrl"
           style="margin-right: 24px"
           placeholder="填写新握手服务器地址"
+          on:focus="selectedServer = ''"
         >
         </p-text-field>
         <p-button
@@ -68,7 +81,11 @@
     </p-list>
   </div>
   <script>
-    import { getServers, bind } from "/packages/none-os/user/connect/main.js";
+    import {
+      getServers,
+      bind,
+      addServer,
+    } from "/packages/none-os/user/connect/main.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
@@ -89,6 +106,8 @@
             }
 
             this.newSerUrl = "";
+
+            addServer(newUrl);
           },
           async reloadServers() {
             const servers = getServers();
@@ -106,7 +125,6 @@
           },
         },
         ready() {
-          window.aaa = this;
           this.reloadServers();
         },
         attached() {
@@ -117,10 +135,10 @@
               const { originTarget } = e;
 
               this.reloadServers();
-            })
-          );
-
-          cancels.push(
+            }),
+            bind("server-list-change", (e) => {
+              this.reloadServers();
+            }),
             bind("server-ping", (e) => {
               const { originTarget } = e;
 
