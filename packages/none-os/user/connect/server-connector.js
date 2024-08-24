@@ -1,6 +1,7 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
 import { clients, emitEvent } from "./public.js";
+import { saveUserCard } from "../usercard.js";
 
 // 和服务器进行相连的实例
 export class ServerConnector {
@@ -141,7 +142,27 @@ export class ServerConnector {
 
   // 获取推荐用户
   async getRecommend() {
-    debugger;
+    const result = await this._post({
+      recommends: 1,
+    }).then((e) => e.json());
+
+    if (result.ok) {
+      // 保存到本地
+      await Promise.all(
+        result.data.map(async (e) => {
+          saveUserCard({
+            dataSignature: e.sign,
+            data: e.data,
+            // source: this.serverUrl,
+            source: new URL(this.serverUrl).host,
+          });
+        })
+      );
+
+      emitEvent("recommend-users-change");
+
+      return result.data;
+    }
   }
 
   get status() {

@@ -27,6 +27,9 @@
     >
       删除选中的服务器
     </p-button>
+    <p-button size="small" style="margin-left: 8px" on:click="getRecommend"
+      >获取推荐用户</p-button
+    >
   </h5>
   <div>
     <p-list style="max-width: 700px; padding-right: 16px">
@@ -97,8 +100,23 @@
           sers: [], // 已存在的服务器
           selectedServer: "", // 选择中的服务器
           newSerUrl: "", // 添加新服务器的地址
+          getRing: false,
         },
         proto: {
+          async getRecommend() {
+            const sers = getServers();
+
+            await Promise.all(
+              sers.map(async (connector) => {
+                return connector.getRecommend();
+              })
+            );
+
+            enqueue({
+              color: "success",
+              content: "更新推荐用户成功",
+            });
+          },
           clickDeleteServer() {
             deleteServer(this.selectedServer);
           },

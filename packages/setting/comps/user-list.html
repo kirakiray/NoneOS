@@ -131,6 +131,9 @@
             targetItem.state = targetUser.state;
 
             this.refreshUserCardList();
+          }),
+          bind("recommend-users-change", (e) => {
+            this.refreshUserCardList();
           })
         );
       },

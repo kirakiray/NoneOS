@@ -51,6 +51,10 @@ export async function getUserCard(options = {}) {
 }
 
 const getCards = async (parDirs) => {
+  if (!parDirs) {
+    return [];
+  }
+
   const lists = [];
 
   for await (let handle of parDirs.values()) {
