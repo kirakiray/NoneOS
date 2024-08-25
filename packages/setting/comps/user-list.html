@@ -23,6 +23,22 @@
     <x-fill :value="connectedUsers">
       <setting-user-block :item="$data"></setting-user-block>
     </x-fill>
+    <x-if :value="!connectedUsers.length">
+      <div
+        style="
+          width: 100%;
+          max-width: 300px;
+          height: 40px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 12px;
+          color: #7b7b7b;
+        "
+      >
+        没有连接的用户
+      </div>
+    </x-if>
   </div>
 
   <h5>已获得的用户卡片</h5>
@@ -44,12 +60,13 @@
         </div>
         <div style="font-size: 12px">更新时间：{{$data.time}}</div>
         <div>
-          <button
+          <p-button
+            size="mini"
             on:click="$host.linkUser($data)"
             attr:disabled="$data.inConnected"
           >
             {{$data.inConnected ? '已在已连接列表' : '连接用户'}}
-          </button>
+          </p-button>
         </div>
       </div>
     </x-fill>
@@ -78,9 +95,12 @@
             item._user.dataSignature
           );
 
+          let uname = item._user.data.find((e) => e[0] === "userName") || "";
+          uname && (uname = ` "${uname[1]}" `);
+
           if (!result) {
             enqueue({
-              content: "连接用户失败，该用户未在任何握手服务器上在线",
+              content: `连接${uname}用户失败，该用户未在任何握手服务器上在线`,
               color: "error",
             });
           }

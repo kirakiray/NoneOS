@@ -3,6 +3,7 @@
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="../comps/user-list.html"></l-m>
   <l-m src="../comps/server-list.html"></l-m>
+  <l-m src="../comps/certs.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -99,7 +100,8 @@
       </p-table-row>
     </p-table>
     <setting-user-list></setting-user-list>
-    <setting-server-list></setting-server-list>
+    <setting-server-list style="margin-top: 8px"></setting-server-list>
+    <setting-certs></setting-certs>
   </div>
   <script>
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";

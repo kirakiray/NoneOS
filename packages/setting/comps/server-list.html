@@ -20,16 +20,16 @@
   <h5 style="display: flex; max-width: 700px; padding-right: 24px">
     握手服务器列表
     <p-button
-      size="small"
+      size="mini"
       attr:disabled="!selectedServer"
       style="margin-left: auto"
       on:click="clickDeleteServer"
     >
       删除选中的服务器
     </p-button>
-    <p-button size="small" style="margin-left: 8px" on:click="getRecommend"
-      >获取推荐用户</p-button
-    >
+    <p-button size="mini" style="margin-left: 8px" on:click="getRecommend">
+      获取推荐用户
+    </p-button>
   </h5>
   <div>
     <p-list style="max-width: 700px; padding-right: 16px">

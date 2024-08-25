@@ -1,0 +1,21 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    h5 {
+      margin: 16px 0 4px;
+    }
+  </style>
+  <h5>已获取的证书</h5>
+  <div></div>
+  <h5>已授权的证书</h5>
+  <div></div>
+  <script>
+    export default async () => {
+      return {
+        tag: "setting-certs",
+      };
+    };
+  </script>
+</template>
