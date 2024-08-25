@@ -133,9 +133,14 @@
             this.refreshUserCardList();
           }),
           bind("recommend-users-change", (e) => {
-            this.refreshUserCardList();
+            clearTimeout(recommendTimer);
+            recommendTimer = setTimeout(() => {
+              this.refreshUserCardList();
+            }, 300);
           })
         );
+
+        let recommendTimer;
       },
       detached() {
         this._removes.forEach((func) => func());

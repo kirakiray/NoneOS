@@ -40,7 +40,9 @@ export async function saveUserCard(options = {}) {
 
 // 读取用户信息
 export async function getUserCard(options = {}) {
-  const parDirs = await get("local/system/usercards");
+  const parDirs = await get("local/system/usercards", {
+    create: "dir",
+  });
 
   let lists = await getCards(parDirs);
   // 去重得到用户数据
