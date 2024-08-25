@@ -14,7 +14,16 @@ const resposeFS = async ({ request }) => {
 
   const prefix = path.split(".").pop();
 
-  headers["Content-Type"] = getContentType(prefix);
+  if (
+    /^\/\$\/apps\//.test(pathname) &&
+    prefix === "html" &&
+    handle.name === "index.html"
+  ) {
+    // apps目录放权
+    headers["Content-Type"] = "text/html; charset=utf-8";
+  } else {
+    headers["Content-Type"] = getContentType(prefix);
+  }
 
   return new Response(content, {
     status: 200,
