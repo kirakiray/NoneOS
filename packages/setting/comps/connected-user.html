@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -15,11 +16,17 @@
   <div>用户名：{{item._user.name}}</div>
   <div>连接状态：{{item.state}}</div>
   <div class:hide="item.state !== 'connected'">
-    <textarea sync:value="msg"></textarea>
-    <button on:click="sendMsg" attr:disabled="!msg">send</button>
+    <p-text-field
+      multiline
+      sync:value="msg"
+      placeholder="尝试输入数据"
+    ></p-text-field>
+    <p-button on:click="sendMsg" attr:disabled="!msg" size="mini">
+      send
+    </p-button>
   </div>
   <div class:hide="item.state === 'connected'">
-    <button on:click="reLinkUser">重新连接</button>
+    <p-button on:click="reLinkUser" size="mini">重新连接</p-button>
   </div>
   <x-fill :value="receiveds">
     <div>{{$data.username}} : {{$data.msg}}</div>
