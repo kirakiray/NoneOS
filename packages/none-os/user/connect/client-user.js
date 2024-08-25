@@ -160,13 +160,30 @@ export class ClientUser extends User {
 
   // 通过服务器转发内容
   async _serverAgentPost(data) {
-    // TODO: 直接先通过第一个server 进行传递数据，后期需要添加查询服务器进行连接
-    const result = await connectors[0]._post({
-      agent: {
-        targetId: this.id,
-        data,
-      },
-    });
+    // 先根据延迟进行排序
+    const sers = connectors
+      .filter((e) => e.status === "connected")
+      .sort((a, b) => {
+        return a.delayTime - b.delayTime;
+      });
+
+    // 逐个服务器尝试连接用户
+    let result;
+    for (let ser of sers) {
+      result = await ser
+        ._post({
+          agent: {
+            targetId: this.id,
+            data,
+          },
+        })
+        .then((e) => e.json())
+        .catch(() => null);
+
+      if (result && result.ok) {
+        break;
+      }
+    }
 
     return result;
   }

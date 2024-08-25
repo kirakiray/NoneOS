@@ -3,13 +3,15 @@ import { getSelfUserCardData } from "../main.js";
 import { clients, emitEvent } from "./public.js";
 import { saveUserCard } from "../usercard.js";
 
+const badDelayTime = 0;
+
 // 和服务器进行相连的实例
 export class ServerConnector {
   #serverUrl = null;
   #status = "disconnected";
   #apiID;
   #serverID;
-  #delayTime = 0;
+  #delayTime = badDelayTime;
   constructor(serverUrl) {
     this.#serverUrl = serverUrl;
     this.init();
@@ -86,7 +88,7 @@ export class ServerConnector {
       // 在这里处理错误
       eventSource.close();
 
-      this.#delayTime = 0;
+      this.#delayTime = badDelayTime;
 
       this._emitchange("closed");
     };
@@ -94,7 +96,7 @@ export class ServerConnector {
     // 监听连接关闭事件
     eventSource.onclose = () => {
       console.log("Server Connection closed", this);
-      this.#delayTime = 0;
+      this.#delayTime = badDelayTime;
 
       this._emitchange("closed");
     };
