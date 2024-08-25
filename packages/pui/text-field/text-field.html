@@ -68,7 +68,7 @@
     }
   </style>
   <p-field-container
-    :hang-label="infocus || value ? '' : null"
+    :hang-label="(hanglabel !== null ? '1' : null) || (infocus || value ? '' : null)"
     :variant="variant"
     :active="infocus ? '' : null"
     :size="size"
@@ -110,10 +110,11 @@
   </p-field-container>
   <script>
     import "../commons/init.js";
-    
+
     export default {
       tag: "p-text-field",
       attrs: {
+        hanglabel: null,
         name: null,
         error: null,
         variant: null,

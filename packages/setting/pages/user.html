@@ -1,17 +1,148 @@
 <template page>
+  <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="../comps/user-list.html"></l-m>
+  <l-m src="../comps/server-list.html"></l-m>
+  <l-m src="../comps/certs.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
+      overflow: auto;
+      height: 100%;
+    }
+
+    .container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: calc(100% - 16px);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      /* justify-content: center;
+      align-items: center; */
+      padding-left: 16px;
+    }
+
+    h5 {
+      padding: 16px 0 8px;
+      margin: 0;
+    }
+
+    .avatar {
+      border-radius: 51px;
+      width: 100px;
+      height: 100px;
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+
+    .row-val {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      word-break: break-all;
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .hide {
+      visibility: hidden !important;
     }
   </style>
-  <div>
-    正在准备中...
+  <div class="container">
+    <h5>用户信息</h5>
+    <!-- <div class="avatar"></div> -->
+    <p-table style="margin-right: 16px">
+      <p-table-row>
+        <p-table-cell basis="120">用户名</p-table-cell>
+        <p-table-cell>
+          <x-if :value="renameMode">
+            <input
+              id="renameInputer"
+              type="text"
+              sync:value="userName"
+              on:change="renameEnd"
+              on:blur="renameMode = false"
+            />
+          </x-if>
+          <x-else>
+            <div>{{userName}}</div>
+          </x-else>
+
+          <p-button
+            icon
+            size="small"
+            variant="text"
+            on:click="renameMode = true"
+            class:hide="renameMode"
+            style="margin-left: 8px"
+          >
+            <n-local-icon name="edit"></n-local-icon>
+          </p-button>
+        </p-table-cell>
+      </p-table-row>
+      <p-table-row>
+        <p-table-cell>用户ID</p-table-cell>
+        <p-table-cell> {{userID}} </p-table-cell>
+      </p-table-row>
+      <p-table-row>
+        <p-table-cell>签名公钥</p-table-cell>
+        <p-table-cell>
+          <div class="row-val" attr:title="signPublic">{{signPublic}}</div>
+        </p-table-cell>
+      </p-table-row>
+      <p-table-row>
+        <p-table-cell>加密公钥</p-table-cell>
+        <p-table-cell>
+          <div class="row-val" attr:title="encryPublic">{{encryPublic}}</div>
+        </p-table-cell>
+      </p-table-row>
+    </p-table>
+    <setting-user-list></setting-user-list>
+    <setting-server-list style="margin-top: 8px"></setting-server-list>
+    <!-- <setting-certs></setting-certs> -->
   </div>
   <script>
+    import {
+      getSelfUserInfo,
+      renameUser,
+    } from "/packages/none-os/user/main.js";
+
     export const parent = "../outer.html";
+
     export default async ({ load }) => {
+      const selfData = await getSelfUserInfo();
+
       return {
-        data: {},
+        data: {
+          userID: selfData.userID,
+          userName: selfData.userName || selfData.backupUserName,
+          signPublic: selfData.signPublic,
+          encryPublic: selfData.encryPublic,
+          renameMode: false,
+          // 可连接的服务器
+          servers: [],
+        },
+        watch: {
+          renameMode(bool) {
+            if (bool) {
+              setTimeout(() => {
+                this.shadow.$("#renameInputer") &&
+                  this.shadow.$("#renameInputer").ele.focus();
+              }, 100);
+            }
+          },
+        },
+        proto: {
+          async linkUser(item) {
+            console.log(item);
+          },
+          renameEnd(e) {
+            this.renameMode = false;
+            renameUser(this.userName);
+          },
+        },
       };
     };
   </script>

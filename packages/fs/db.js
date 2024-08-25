@@ -148,6 +148,10 @@ export const getData = async ({
   });
 };
 
+// 写入中的记录器
+// 确保同时写入目录时，id不一致的问题
+const writingMap = new Map();
+
 /**
  * 设置数据
  * @param {Object} options - 配置选项
@@ -173,6 +177,14 @@ export const setData = async ({
     const transaction = db.transaction([storename], "readwrite");
 
     transaction.oncomplete = (e) => {
+      // 写入完成后，清除临时缓存的数据
+      datas &&
+        datas.forEach((item) => {
+          if (item.parent) {
+            writingMap.delete(`${item.parent}-${item.name}`);
+          }
+        });
+
       resolve(true);
     };
     transaction.onerror = (e) => {
@@ -180,7 +192,24 @@ export const setData = async ({
     };
 
     const store = transaction.objectStore(storename);
-    datas && datas.length && datas.forEach((item) => store.put(item));
+    datas &&
+      datas.forEach((item) => {
+        if (item.parent) {
+          const result = writingMap.get(`${item.parent}-${item.name}`);
+
+          if (result) {
+            const saveingItem = result;
+
+            // 合并到原数据上，防止目录数据重复
+            Object.assign(item, saveingItem);
+          } else {
+            // 写入过程中，缓存写入文件的信息，防止文件夹重复写入
+            writingMap.set(`${item.parent}-${item.name}`, item);
+          }
+        }
+
+        store.put(item);
+      });
     removes && removes.length && removes.forEach((key) => store.delete(key));
   });
 };

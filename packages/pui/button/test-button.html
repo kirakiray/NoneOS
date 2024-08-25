@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Button</title>
     <script
-      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.6/dist/ofa.min.js"
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.13/dist/ofa.min.js"
       debug
     ></script>
     <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
@@ -16,7 +16,7 @@
         margin: 0;
         padding: 0;
       }
-      
+
       *:not(:defined) {
         display: none;
       }
@@ -148,6 +148,13 @@
           ></iconify-icon>
           Delete
         </p-button>
+        <p-button size="mini">
+          <iconify-icon
+            icon="material-symbols:delete-outline"
+            slot="prefix"
+          ></iconify-icon>
+          Delete
+        </p-button>
       </div>
       <div>
         <p-button>
@@ -165,6 +172,13 @@
           Send
         </p-button>
         <p-button size="large">
+          <iconify-icon
+            icon="material-symbols:send-outline"
+            slot="suffix"
+          ></iconify-icon>
+          Send
+        </p-button>
+        <p-button size="mini">
           <iconify-icon
             icon="material-symbols:send-outline"
             slot="suffix"

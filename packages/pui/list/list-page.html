@@ -87,7 +87,7 @@
   <div class="case">
     <p-list>
       <x-fill :value="arr">
-        <p-list-item style="--padding-left: 0">
+        <p-list-item>
           <div
             class="avatar-pic"
             slot="prefix"
@@ -156,7 +156,7 @@
   <div class="case">
     <p-list>
       <x-fill :value="arr">
-        <p-list-item style="--padding-left: 0">
+        <p-list-item>
           <div
             class="avatar-pic"
             slot="prefix"
@@ -238,10 +238,7 @@
   <div class="case">
     <p-list>
       <x-fill :value="arr">
-        <p-list-item
-          attr:align-top="$index < 2 ? '' : null"
-          style="--padding-left: 0"
-        >
+        <p-list-item attr:align-top="$index < 2 ? '' : null">
           <div
             class="avatar-pic"
             slot="prefix"
@@ -378,6 +375,11 @@
   </div>
 
   <div class="case">
+    <style>
+      p-list-item[radius] {
+        border-radius: 30px;
+      }
+    </style>
     <p-list>
       <x-fill :value="arr">
         <p-list-item button radius attr:active-item="$index === 1 ? '' : null">

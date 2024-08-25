@@ -1,0 +1,191 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+
+  <style>
+    h5 {
+      margin: 16px 0 4px;
+    }
+    [data-status] {
+      color: var(--md-sys-color-error);
+    }
+    [data-status="connecting"] {
+      color: var(--md-sys-color-normal);
+    }
+    [data-status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+  <h5 style="display: flex; max-width: 700px; padding-right: 24px">
+    握手服务器列表
+    <p-button
+      size="mini"
+      attr:disabled="!selectedServer"
+      style="margin-left: auto"
+      on:click="clickDeleteServer"
+    >
+      删除选中的服务器
+    </p-button>
+    <p-button size="mini" style="margin-left: 8px" on:click="getRecommend">
+      获取推荐用户
+    </p-button>
+  </h5>
+  <div>
+    <p-list style="max-width: 700px; padding-right: 16px">
+      <x-fill :value="sers" fill-key="serverUrl">
+        <p-list-item
+          button
+          attr:active-item="$host.selectedServer === $data.serverUrl"
+          on:click="$host.selectedServer = $data.serverUrl"
+        >
+          <n-local-icon
+            name="server"
+            slot="prefix"
+            style="
+              display: block;
+              margin-right: 8px;
+              font-size: 24px;
+              color: var(--md-sys-color-primary);
+            "
+          ></n-local-icon>
+          <div>
+            {{$data.name}} -
+            <span style="font-size: 12px; color: var(--md-sys-color-normal)">
+              {{$data.version}}
+              <x-if :value="$data.delayTime">
+                - delay:{{$data.delayTime}}ms
+              </x-if>
+            </span>
+          </div>
+          <span secondary>{{$data.serverUrl}}</span>
+          <span slot="suffix" attr:data-status="$data.status">
+            {{$data.status}}
+          </span>
+        </p-list-item>
+      </x-fill>
+      <p-list-item>
+        <p-text-field
+          size="small"
+          sync:value="newSerUrl"
+          style="margin-right: 24px"
+          placeholder="填写新握手服务器地址"
+          on:focus="selectedServer = ''"
+        >
+        </p-text-field>
+        <p-button
+          slot="suffix"
+          size="small"
+          on:click="clickAddServer"
+          attr:disabled="!newSerUrl"
+        >
+          添加服务器
+        </p-button>
+      </p-list-item>
+    </p-list>
+  </div>
+  <script>
+    import {
+      getServers,
+      bind,
+      addServer,
+      deleteServer,
+    } from "/packages/none-os/user/connect/main.js";
+    import { enqueue } from "/packages/pui/snackbar/enqueue.js";
+
+    export default async () => {
+      return {
+        tag: "setting-server-list",
+        data: {
+          sers: [], // 已存在的服务器
+          selectedServer: "", // 选择中的服务器
+          newSerUrl: "", // 添加新服务器的地址
+          getRing: false,
+        },
+        proto: {
+          async getRecommend() {
+            const sers = getServers();
+
+            await Promise.all(
+              sers.map(async (connector) => {
+                return connector.getRecommend();
+              })
+            );
+
+            enqueue({
+              color: "success",
+              content: "更新推荐用户成功",
+            });
+          },
+          clickDeleteServer() {
+            deleteServer(this.selectedServer);
+          },
+          clickAddServer() {
+            const newUrl = this.newSerUrl;
+
+            if (!validateURL(newUrl)) {
+              enqueue({ content: "输入的握手服务器地址有误", color: "error" });
+              return;
+            }
+
+            this.newSerUrl = "";
+
+            const result = addServer(newUrl);
+
+            switch (result) {
+              case "repeat":
+                enqueue({
+                  content: `'${newUrl}' 已存在`,
+                  color: "error",
+                });
+                break;
+            }
+          },
+          async reloadServers() {
+            const servers = getServers();
+
+            this.sers = servers.map((e) => {
+              return {
+                name: e.serverName,
+                version: e.serverVersion,
+                status: e.status,
+                serverUrl: e.serverUrl,
+                _server: e,
+                delayTime: e.delayTime,
+              };
+            });
+          },
+        },
+        ready() {
+          this.reloadServers();
+        },
+        attached() {
+          this._cancels = [
+            bind("server-list-change", (e) => {
+              this.reloadServers();
+            }),
+            bind("server-state-change", (e) => {
+              const { originTarget } = e;
+
+              this.reloadServers();
+            }),
+            bind("server-ping", (e) => {
+              const { originTarget } = e;
+
+              this.reloadServers();
+            }),
+          ];
+        },
+        detached() {
+          this._cancels && this._cancels.forEach((f) => f());
+        },
+      };
+    };
+
+    function validateURL(url) {
+      const regex =
+        /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+      return regex.test(url);
+    }
+  </script>
+</template>

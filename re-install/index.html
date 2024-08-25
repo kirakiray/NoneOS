@@ -12,6 +12,11 @@
     <button id="re-install">点击重装系统</button>
     <button id="remove-os">删除系统</button>
 
+    <br /><br /><br />
+    <br /><br /><br />
+    <br /><br /><br />
+    <button id="deleteAllDb">删除所有db</button>
+
     <script type="module">
       import { get } from "../packages/fs/main.js";
       import { installOS } from "../packages/none-os/util.js";
@@ -58,6 +63,18 @@
         }, 1000);
 
         $.all("[button]").forEach((e) => e.attr("disabled", null));
+      });
+
+      $("#deleteAllDb").on("click", () => {
+        var request = indexedDB.deleteDatabase("noneos_fs_defaults");
+
+        request.onsuccess = function (event) {
+          console.log("成功删除数据库");
+        };
+
+        request.onerror = function (event) {
+          console.log("删除数据库失败");
+        };
       });
     </script>
   </body>

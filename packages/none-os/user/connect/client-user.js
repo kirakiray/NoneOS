@@ -1,0 +1,193 @@
+import { User } from "../public-user.js";
+import { emitEvent, connectors } from "./public.js";
+
+export class ClientUser extends User {
+  #rtcConnection;
+  #state = "disconnected";
+  #channels = {};
+  onstatechange = null;
+  constructor(...args) {
+    super(...args);
+    this._init();
+  }
+
+  get state() {
+    return this.#state;
+  }
+
+  // 发送数据给对面
+  send(data) {
+    const channel = this.#channels["initChannel"];
+    if (!channel) {
+      this.#state = this.#rtcConnection.connectionState;
+      emitEvent("user-state-change", {
+        originTarget: this,
+      });
+    } else {
+      channel.send(data);
+    }
+  }
+
+  // 连接用户
+  async connect() {
+    if (this.#state === "connected" || this.#state === "connecting") {
+      return;
+    }
+
+    const rtcPC = this.#rtcConnection;
+
+    // 必须在createOffer前创建信道，否则不会产生ice数据
+    this._createChannel("initChannel");
+
+    const offer = await rtcPC.createOffer();
+
+    // 设置给自身
+    rtcPC.setLocalDescription(offer);
+
+    const result = await this._serverAgentPost({
+      step: "set-remote",
+      offer,
+    });
+
+    return result;
+  }
+
+  // 创建新的信道
+  _createChannel(channelName = "channel-" + Math.random().slice(3)) {
+    const rtcPC = this.#rtcConnection;
+
+    // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
+    const targetChannel = rtcPC.createDataChannel(channelName);
+
+    targetChannel.onmessage = (e) => {
+      this.onmessage &&
+        this.onmessage({
+          channel: targetChannel,
+          data: e.data,
+        });
+    };
+
+    targetChannel.addEventListener("close", () => {
+      delete this.#channels[channelName];
+    });
+
+    this.#channels[channelName] = targetChannel;
+
+    // targetChannel.onopen = () => {
+    //   targetChannel.send(" 你收到了吗？");
+    // };
+
+    return targetChannel;
+  }
+
+  _init() {
+    // 建立rtc实例
+    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
+
+    rtcPC.onconnectionstatechange = (event) => {
+      this.#state = rtcPC.connectionState;
+
+      emitEvent("user-state-change", {
+        originTarget: this,
+      });
+    };
+
+    rtcPC.ondatachannel = (event) => {
+      const { channel } = event;
+
+      channel.addEventListener("close", () => {
+        delete this.#channels[channel.label];
+      });
+
+      this.#channels[channel.label] = channel;
+
+      channel.onmessage = (e) => {
+        console.log(channel.label, " get message => ", e.data);
+
+        this.onmessage &&
+          this.onmessage({
+            channel,
+            data: e.data,
+          });
+      };
+    };
+
+    rtcPC.addEventListener("icecandidate", (event) => {
+      const { candidate } = event;
+
+      if (candidate) {
+        // 传递 icecandidate
+        this._serverAgentPost({
+          step: "set-candidate",
+          candidate,
+        });
+
+        // console.log("candidate: ", candidate);
+      }
+    });
+  }
+
+  // 通过代理转发的初始化信息
+  async _agentConnect(data) {
+    const rtcPC = this.#rtcConnection;
+
+    const { step } = data;
+
+    switch (step) {
+      case "set-remote":
+        rtcPC.setRemoteDescription(data.offer);
+
+        const anwserOffter = await rtcPC.createAnswer();
+        rtcPC.setLocalDescription(anwserOffter);
+
+        // console.log("set remote offer ", data.offer);
+
+        this._serverAgentPost({
+          step: "answer-remote",
+          anwser: anwserOffter,
+        });
+        break;
+      case "set-candidate":
+        const iceObj = new RTCIceCandidate(data.candidate);
+
+        rtcPC.addIceCandidate(iceObj);
+        // console.log("set candidate ", iceObj);
+        break;
+      case "answer-remote":
+        rtcPC.setRemoteDescription(data.anwser);
+        // console.log("set remote answer ", data.anwser);
+        break;
+    }
+  }
+
+  // 通过服务器转发内容
+  async _serverAgentPost(data) {
+    // 先根据延迟进行排序
+    const sers = connectors
+      .filter((e) => e.status === "connected")
+      .sort((a, b) => {
+        return a.delayTime - b.delayTime;
+      });
+
+    // 逐个服务器尝试连接用户
+    let result;
+
+    for (let ser of sers) {
+      result = await ser
+        ._post({
+          agent: {
+            targetId: this.id,
+            data,
+          },
+        })
+        .then((e) => e.json())
+        .catch(() => null);
+
+      if (result && result.ok) {
+        break;
+      }
+    }
+
+    return result;
+  }
+}

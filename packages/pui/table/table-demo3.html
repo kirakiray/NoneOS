@@ -7,13 +7,13 @@
   <div>
     <p-table step="0.5" style="height: 300px">
       <p-table-row head sticky>
-        <p-table-cell col-width="50">
+        <p-table-cell basis="50">
           <p-checkbox
             on:change="changeCheckbox($event,'title')"
             id="titleCheckbox"
           ></p-checkbox>
         </p-table-cell>
-        <p-table-cell col-width="150"
+        <p-table-cell basis="150"
           >Name
           <p-button
             icon
@@ -44,7 +44,7 @@
         </p-table-cell>
         <p-table-cell min-width="100">Level</p-table-cell>
         <p-table-cell min-width="200" align="center">Address</p-table-cell>
-        <p-table-cell align="center" col-width="100" sticky-right
+        <p-table-cell align="center" basis="100" sticky-right
           >Operate</p-table-cell
         >
       </p-table-row>

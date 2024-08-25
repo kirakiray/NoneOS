@@ -1,0 +1,181 @@
+<template component>
+  <l-m src="./connected-user.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .user-block {
+      display: inline-block;
+      width: 200px;
+      padding: 8px;
+      margin: 0 4px 4px 0;
+      border-radius: 8px;
+      border: #80a32f solid 1px;
+    }
+    h5 {
+      margin: 16px 0 4px;
+    }
+  </style>
+
+  <h5>已连接用户</h5>
+  <div style="display: flex; flex-wrap: wrap">
+    <x-fill :value="connectedUsers">
+      <setting-user-block :item="$data"></setting-user-block>
+    </x-fill>
+    <x-if :value="!connectedUsers.length">
+      <div
+        style="
+          width: 100%;
+          max-width: 300px;
+          height: 40px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          font-size: 12px;
+          color: #7b7b7b;
+        "
+      >
+        没有连接的用户
+      </div>
+    </x-if>
+  </div>
+
+  <h5>已获得的用户卡片</h5>
+  <div style="display: flex; flex-wrap: wrap">
+    <x-fill :value="users">
+      <div class="user-block">
+        <div>用户名: {{$data.userName}}</div>
+        <div
+          style="
+            word-break: break-all;
+            font-size: 12px;
+            line-height: 1.2em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          "
+        >
+          用户ID: {{$data.userID}}
+        </div>
+        <div style="font-size: 12px">更新时间：{{$data.time}}</div>
+        <div>
+          <p-button
+            size="mini"
+            on:click="$host.linkUser($data)"
+            attr:disabled="$data.inConnected"
+          >
+            {{$data.inConnected ? '已在已连接列表' : '连接用户'}}
+          </p-button>
+        </div>
+      </div>
+    </x-fill>
+  </div>
+
+  <script>
+    import { get } from "/packages/fs/main.js";
+    import { User } from "/packages/none-os/user/public-user.js";
+    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
+    import { getUserCard } from "/packages/none-os/user/usercard.js";
+    import { linkUser, bind } from "/packages/none-os/user/connect/main.js";
+    import enqueue from "/packages/pui/snackbar/enqueue.js";
+
+    export default {
+      tag: "setting-user-list",
+      data: {
+        connectedUsers: [], // 已经建立连接的用户
+        users: [], // 用户列表
+        _removes: [], // 时候取消绑定的函数
+      },
+      proto: {
+        async linkUser(item) {
+          // 连接用户
+          const result = await linkUser(
+            item._user.data,
+            item._user.dataSignature
+          );
+
+          let uname = item._user.data.find((e) => e[0] === "userName") || "";
+          uname && (uname = ` "${uname[1]}" `);
+
+          if (!result) {
+            enqueue({
+              content: `连接${uname}用户失败，该用户未在任何握手服务器上在线`,
+              color: "error",
+            });
+          }
+        },
+        // 刷新用户列表数据
+        async refreshUserCardList() {
+          const selfUserInfo = await getSelfUserInfo();
+
+          // 去重得到用户数据
+          const lists = await getUserCard();
+
+          this.users = lists
+            .map((e) => {
+              if (selfUserInfo.userID === e.id) {
+                // 过滤自身的令牌
+                return;
+              }
+
+              return {
+                userID: e.id,
+                userName: e.name,
+                time: new Date(e.get("time")).toLocaleString(),
+                _user: e,
+                state: e.state,
+                inConnected: this.connectedUsers.find(
+                  (item) => item.userID === e.id
+                ),
+              };
+            })
+            .filter((e) => !!e);
+        },
+      },
+      ready() {
+        this.refreshUserCardList();
+      },
+      attached() {
+        this._removes.push(
+          // 用户状态改动
+          bind("user-state-change", (e) => {
+            const { originTarget: targetUser } = e;
+
+            const targetIndex = this.connectedUsers.findIndex(
+              (e) => e.userID === targetUser.id
+            );
+            let targetItem = this.connectedUsers[targetIndex];
+
+            if (!targetItem) {
+              this.connectedUsers.push({
+                userID: targetUser.id,
+                _user: targetUser,
+              });
+
+              targetItem = this.connectedUsers.find(
+                (e) => e.userID === targetUser.id
+              );
+            }
+
+            // 更新状态
+            targetItem.state = targetUser.state;
+
+            this.refreshUserCardList();
+          }),
+          bind("recommend-users-change", (e) => {
+            clearTimeout(recommendTimer);
+            recommendTimer = setTimeout(() => {
+              this.refreshUserCardList();
+            }, 300);
+          })
+        );
+
+        let recommendTimer;
+      },
+      detached() {
+        this._removes.forEach((func) => func());
+      },
+    };
+  </script>
+</template>
