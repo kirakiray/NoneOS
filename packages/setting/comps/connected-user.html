@@ -19,7 +19,7 @@
     <button on:click="sendMsg" attr:disabled="!msg">send</button>
   </div>
   <div class:hide="item.state === 'connected'">
-    <button>重新连接</button>
+    <button on:click="reLinkUser">重新连接</button>
   </div>
   <x-fill :value="receiveds">
     <div>{{$data.username}} : {{$data.msg}}</div>
@@ -34,6 +34,9 @@
           msg: "",
         },
         proto: {
+          reLinkUser() {
+            this.item._user.connect();
+          },
           sendMsg() {
             const { msg } = this;
             this.msg = "";
