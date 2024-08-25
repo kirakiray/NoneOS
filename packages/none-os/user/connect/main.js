@@ -13,7 +13,11 @@ export const linkUser = async (data, dataSignature) => {
   if (!targetCUser) {
     targetCUser = new ClientUser(data, dataSignature);
 
-    targetCUser.connect();
+    const result = await targetCUser.connect();
+
+    if (result.error) {
+      return false;
+    }
 
     clients.set(targetCUser.id, targetCUser);
   }

@@ -44,10 +44,12 @@ export class ClientUser extends User {
     // 设置给自身
     rtcPC.setLocalDescription(offer);
 
-    this._serverAgentPost({
+    const result = await this._serverAgentPost({
       step: "set-remote",
       offer,
     });
+
+    return result;
   }
 
   // 创建新的信道
@@ -169,6 +171,7 @@ export class ClientUser extends User {
 
     // 逐个服务器尝试连接用户
     let result;
+
     for (let ser of sers) {
       result = await ser
         ._post({

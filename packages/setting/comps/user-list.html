@@ -61,6 +61,7 @@
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";
     import { getUserCard } from "/packages/none-os/user/usercard.js";
     import { linkUser, bind } from "/packages/none-os/user/connect/main.js";
+    import enqueue from "/packages/pui/snackbar/enqueue.js";
 
     export default {
       tag: "setting-user-list",
@@ -72,7 +73,17 @@
       proto: {
         async linkUser(item) {
           // 连接用户
-          linkUser(item._user.data, item._user.dataSignature);
+          const result = await linkUser(
+            item._user.data,
+            item._user.dataSignature
+          );
+
+          if (!result) {
+            enqueue({
+              content: "连接用户失败，该用户未在任何握手服务器上在线",
+              color: "error",
+            });
+          }
         },
         // 刷新用户列表数据
         async refreshUserCardList() {
