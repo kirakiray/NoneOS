@@ -7,14 +7,57 @@ import {
   arrayBufferToBase64,
 } from "./util.js";
 
+import get from "../../fs/get.js";
+
+// 从本地文件获取用户数据
+const getUserDataFromHandle = async () => {
+  let userData = await get("local/system/user/data", {
+    create: "file",
+  });
+
+  userData = await userData.text();
+
+  if (userData) {
+    userData = JSON.parse(userData);
+  }
+
+  return userData || null;
+};
+
+// 从本地保存用户数据
+const saveUserDataFromHandle = async (key, value) => {
+  let data;
+  if (key instanceof Object) {
+    data = key;
+  } else if (key === "name" && value) {
+    data = await getUserDataFromHandle();
+    data[key] = value;
+  } else {
+    throw new Error("Data non-compliance");
+  }
+
+  const userFileHandle = await get("local/system/user/data", {
+    create: "file",
+  });
+
+  await userFileHandle.write(JSON.stringify(data));
+};
+
+// 用户重命名
+export const renameUser = (newName) => {
+  return saveUserDataFromHandle("name", newName);
+};
+
 const pairData = await initUserPair();
 
 export const getSelfUserInfo = async () => {
   const { signPublic, encryPublic, id } = pairData;
 
+  const localUserData = await getUserDataFromHandle();
+
   return {
     userID: id,
-    userName: localStorage.__username,
+    userName: localUserData?.name,
     backupUserName: `user-${id.slice(29, 35)}`,
     signPublic,
     encryPublic,
@@ -64,7 +107,9 @@ async function initUserPair() {
   let signPair, encryPair;
   let signPublic, encryPublic;
 
-  if (!localStorage.__signPair) {
+  const localUserData = await getUserDataFromHandle();
+
+  if (!localUserData) {
     signPair = await generateSignKeyPair();
     const signPairObj = await getPairString(signPair);
     encryPair = await generateEncryKeyPair();
@@ -73,11 +118,12 @@ async function initUserPair() {
     signPublic = signPairObj.public;
     encryPublic = encryPairObj.public;
 
-    localStorage.__signPair = JSON.stringify(signPairObj);
-    localStorage.__encryPair = JSON.stringify(encryPairObj);
+    await saveUserDataFromHandle({
+      signPairObj,
+      encryPairObj,
+    });
   } else {
-    const signPairObj = JSON.parse(localStorage.__signPair);
-    const encryPairObj = JSON.parse(localStorage.__encryPair);
+    const { signPairObj, encryPairObj } = localUserData;
 
     signPublic = signPairObj.public;
     encryPublic = encryPairObj.public;

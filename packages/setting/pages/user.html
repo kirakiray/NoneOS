@@ -104,7 +104,10 @@
     <setting-certs></setting-certs>
   </div>
   <script>
-    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
+    import {
+      getSelfUserInfo,
+      renameUser,
+    } from "/packages/none-os/user/main.js";
 
     export const parent = "../outer.html";
 
@@ -137,7 +140,7 @@
           },
           renameEnd(e) {
             this.renameMode = false;
-            localStorage.__username = this.userName;
+            renameUser(this.userName);
           },
         },
       };

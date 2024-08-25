@@ -12,9 +12,19 @@
   <h5>已授权的证书</h5>
   <div></div>
   <script>
+    import { get } from "/packages/fs/main.js";
+
     export default async () => {
+      // 目标目录
+      const certsDir = await get(`local/system/certs`, {
+        create: "dir",
+      });
+
       return {
         tag: "setting-certs",
+        data: {},
+        proto: {},
+        async ready() {},
       };
     };
   </script>
