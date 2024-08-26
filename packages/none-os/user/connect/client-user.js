@@ -34,6 +34,9 @@ export class ClientUser extends User {
       return;
     }
 
+    // 连接前先查看是否有服务器可用，没有可用服务器就别发了
+    await this._getServer();
+
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
@@ -182,7 +185,7 @@ export class ClientUser extends User {
         .then((e) => e.json())
         .catch(() => null);
 
-      if (!sResult) {
+      if (!sResult || !sResult.user) {
         continue;
       }
 
@@ -200,6 +203,11 @@ export class ClientUser extends User {
 
       return ser;
     }
+
+    const err = new Error("User not found on server");
+    err.code = "userNotFound";
+
+    throw err;
   }
 
   // 通过服务器转发内容

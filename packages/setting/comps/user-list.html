@@ -93,17 +93,23 @@
           const result = await linkUser(
             item._user.data,
             item._user.dataSignature
-          );
+          ).catch((err) => {
+            if (err.code === "userNotFound") {
+              let uname =
+                item._user.data.find((e) => e[0] === "userName") || "";
+              uname && (uname = ` "${uname[1]}" `);
 
-          let uname = item._user.data.find((e) => e[0] === "userName") || "";
-          uname && (uname = ` "${uname[1]}" `);
-
-          if (!result) {
-            enqueue({
-              content: `连接${uname}用户失败，该用户未在任何握手服务器上在线`,
-              color: "error",
-            });
-          }
+              enqueue({
+                content: `连接${uname}用户失败，该用户未在任何握手服务器上在线`,
+                color: "error",
+              });
+            } else {
+              enqueue({
+                content: err.toString(),
+                color: "error",
+              });
+            }
+          });
         },
         // 刷新用户列表数据
         async refreshUserCardList() {
