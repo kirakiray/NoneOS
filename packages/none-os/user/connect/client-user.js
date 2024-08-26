@@ -160,8 +160,12 @@ export class ClientUser extends User {
     }
   }
 
-  // 通过服务器转发内容
-  async _serverAgentPost(data) {
+  // 查找最好的服务器进行发送
+  async _getServer() {
+    if (this._bestServer) {
+      // 直接返回已设置的最好的服务器
+      return this._bestServer;
+    }
     // 先根据延迟进行排序
     const sers = connectors
       .filter((e) => e.status === "connected")
@@ -169,25 +173,47 @@ export class ClientUser extends User {
         return a.delayTime - b.delayTime;
       });
 
-    // 逐个服务器尝试连接用户
-    let result;
-
     for (let ser of sers) {
-      result = await ser
+      // 查找用户是否存在
+      const sResult = await ser
         ._post({
-          agent: {
-            targetId: this.id,
-            data,
-          },
+          search: this.id,
         })
         .then((e) => e.json())
         .catch(() => null);
 
-      if (result && result.ok) {
-        break;
+      if (!sResult) {
+        continue;
       }
-    }
 
-    return result;
+      if (sResult.ok && sResult.user) {
+        // 验证用户信息是否正确
+        const user = new User(sResult.user.data, sResult.user.sign);
+
+        if (user.id !== this.id || !(await user.verify())) {
+          // 不符合规定都直接劝退
+          continue;
+        }
+      }
+
+      this._bestServer = ser;
+
+      return ser;
+    }
+  }
+
+  // 通过服务器转发内容
+  async _serverAgentPost(data) {
+    const ser = await this._getServer();
+
+    return await ser
+      ._post({
+        agent: {
+          targetId: this.id,
+          data,
+        },
+      })
+      .then((e) => e.json())
+      .catch(() => null);
   }
 }

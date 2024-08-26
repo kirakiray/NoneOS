@@ -27,7 +27,7 @@ export const linkUser = async (data, dataSignature) => {
 
 // 可访问服务器列表
 export const defaultServerList = [
-  // "http://localhost:5569/user",
+  "http://localhost:5569/user",
   // "https://tutous.com:55691/user",
   // "http://192.168.50.97:5569/user",
 ];
