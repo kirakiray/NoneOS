@@ -153,11 +153,18 @@
             const provider = this.getProvider("pui");
             if (provider) {
               provider.theme = bool ? "dark" : "light";
+              if (bool) {
+                $("html").classList.add("theme-dark-mode");
+              } else {
+                $("html").classList.remove("theme-dark-mode");
+              }
             }
 
             clearTimeout(this._darkTimer);
             this._darkTimer = setTimeout(() => {
-              this.host.theme = this.darkMode ? "dark" : "light";
+              if (this.host) {
+                this.host.theme = this.darkMode ? "dark" : "light";
+              }
             }, 100);
           },
         },

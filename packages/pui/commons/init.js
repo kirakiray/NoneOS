@@ -1,4 +1,5 @@
 if (!$.getRootProvider("pui")) {
+  debugger
   $("body").push(`
     <o-root-provider name="pui" theme="light"></o-root-provider>
   `);
