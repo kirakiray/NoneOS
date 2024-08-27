@@ -142,7 +142,7 @@
       return {
         data: {
           lang: "cn",
-          // darkMode: !!localStorage.__darkmode,
+          darkMode: false,
           osVersion: "Loading",
           onlineVersion: "",
           updateing: "",
@@ -150,17 +150,14 @@
         },
         watch: {
           theme(theme) {
-            console.log("theme:", theme);
+            this.darkMode = theme === "dark";
           },
-        },
-        proto: {
-          get darkMode() {
-            return this.theme === "dark";
-          },
-          set darkMode(bool) {
+          darkMode(bool) {
             const puiRoot = $.getRootProvider("pui");
             puiRoot.theme = bool ? "dark" : "light";
           },
+        },
+        proto: {
           async updateSystem() {
             await installOS(({ count, length }) => {
               this.updateing = `更新中 ${count}/${length}`;
