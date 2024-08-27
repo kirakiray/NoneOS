@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>重装系统</title>
-    <script src="../packages/ofa.js"></script>
+    <script src="../packages/ofa/ofa.js"></script>
   </head>
   <body>
     <div>当前系统版本：<span id="version"></span></div>
@@ -56,6 +56,10 @@
         for await (let handle of pgHandle.values()) {
           await handle.remove();
         }
+
+        const cache = await caches.open("noneos-default-cache");
+
+        await cache.delete("/");
 
         $("#install-info").text = "删除成功";
         setTimeout(() => {

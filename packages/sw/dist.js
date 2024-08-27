@@ -1331,7 +1331,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Setting App</title>
-    <script src="/packages/ofa.js" debug></script>
+    <script src="/packages/ofa/ofa.js" debug></script>
+    <script src="/packages/ofa/router.min.js" debug></script>
     <script src="/packages/pui/init.js" type="module"></script>
     <style>
       html,
@@ -1347,7 +1348,9 @@
     </style>
   </head>
   <body>
-    <o-app src="./app-config.js"></o-app>
+    <o-router fix-body>
+      <o-app src="./app-config.js"></o-app>
+    </o-router>
     <o-root-provider name="pui" theme="dark"></o-root-provider>
     <o-root-provider name="clipboard" type="no"></o-root-provider>
   </body>
