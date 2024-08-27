@@ -131,6 +131,7 @@
       </p-list-item>
     </div>
   </div>
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export const parent = "../outer.html";
 
@@ -141,34 +142,25 @@
       return {
         data: {
           lang: "cn",
-          darkMode: !!localStorage.__darkmode,
+          // darkMode: !!localStorage.__darkmode,
           osVersion: "Loading",
           onlineVersion: "",
           updateing: "",
+          theme: "",
         },
         watch: {
-          darkMode(bool) {
-            localStorage.__darkmode = bool ? "1" : "";
-
-            const provider = this.getProvider("pui");
-            if (provider) {
-              provider.theme = bool ? "dark" : "light";
-              if (bool) {
-                $("html").classList.add("theme-dark-mode");
-              } else {
-                $("html").classList.remove("theme-dark-mode");
-              }
-            }
-
-            clearTimeout(this._darkTimer);
-            this._darkTimer = setTimeout(() => {
-              if (this.host) {
-                this.host.theme = this.darkMode ? "dark" : "light";
-              }
-            }, 100);
+          theme(theme) {
+            console.log("theme:", theme);
           },
         },
         proto: {
+          get darkMode() {
+            return this.theme === "dark";
+          },
+          set darkMode(bool) {
+            const puiRoot = $.getRootProvider("pui");
+            puiRoot.theme = bool ? "dark" : "light";
+          },
           async updateSystem() {
             await installOS(({ count, length }) => {
               this.updateing = `更新中 ${count}/${length}`;
