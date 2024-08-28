@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
       width: 300px;
       padding: 8px;
@@ -25,16 +26,16 @@
   <div>用户名：{{item._user.name}}</div>
   <div>连接状态：{{item.state}}</div>
   <div class:hide="item.state !== 'connected'">
-    <p-text-field
-      multiline
-      sync:value="msg"
-      placeholder="尝试输入数据"
-    ></p-text-field>
-    <div>
-      <p-button on:click="sendMsg" attr:disabled="!msg" size="mini">
-        send
-      </p-button>
-
+    <div style="display: flex; margin-top: 8px">
+      <p-text-field
+        multiline
+        sync:value="msg"
+        placeholder="输入文本"
+        style="flex: 1; margin-right: 8px"
+      ></p-text-field>
+      <p-button on:click="sendMsg" attr:disabled="!msg"> send </p-button>
+    </div>
+    <div style="position: absolute; right: 4px; top: 4px">
       <p-button size="mini" on:click="showAuthDialog = true">
         给他证书
       </p-button>
@@ -44,7 +45,26 @@
     <p-button on:click="reLinkUser" size="mini">重新连接</p-button>
   </div>
   <x-fill :value="receiveds">
-    <div>{{$data.username}} : {{$data.msg}}</div>
+    <div
+      style="
+        padding: 8px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 12px;
+        background-color: var(--md-ref-palette-translucent-normal60);
+      "
+    >
+      <x-if :value="$data.msg">
+        <div>{{$data.username}} : {{$data.msg}}</div>
+      </x-if>
+      <x-else-if :value="$data.cert">
+        <div>"{{$data.username}}" 给你发来一张证书，是否接受？</div>
+        <div style="margin-top: 4px">
+          <p-button size="mini">接受</p-button>
+          <p-button size="mini" variant="text">不接受</p-button>
+        </div>
+      </x-else-if>
+    </div>
   </x-fill>
 
   <p-dialog :open="showAuthDialog" on:click-mask="showAuthDialog = false">
@@ -135,12 +155,24 @@
             // 保存到本地
             await saveCert(cert);
 
+            // 发送数据
+            this.user.send(
+              JSON.stringify({
+                cert,
+              })
+            );
+
             this.showAuthDialog = false;
 
             // 刷新通屏下的 certs 组件
             this.host.root
               .all("setting-certs")
               .forEach((e) => e?.refreshCert());
+
+            this.receiveds.push({
+              username: "我",
+              msg: `给 "${this.user.name}" 发送了一张证书`,
+            });
           },
           reLinkUser() {
             this.item._user.connect();
@@ -150,7 +182,11 @@
             this.msg = "";
 
             // 发送数据
-            this.user.send(msg);
+            this.user.send(
+              JSON.stringify({
+                msg,
+              })
+            );
 
             this.receiveds.push({
               username: "我",
@@ -163,10 +199,20 @@
         },
         attached() {
           this.user.onmessage = (e) => {
-            this.receiveds.push({
-              username: this.user.name,
-              msg: e.data,
-            });
+            const data = JSON.parse(e.data);
+
+            if (data.msg) {
+              this.receiveds.push({
+                username: this.user.name,
+                msg: data.msg,
+              });
+            } else if (data.cert) {
+              // 判断是否要添加证书
+              this.receiveds.push({
+                username: this.user.name,
+                cert: data.cert,
+              });
+            }
           };
         },
         detached() {
