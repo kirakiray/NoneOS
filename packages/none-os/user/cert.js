@@ -52,6 +52,7 @@ export const getCerts = async () => {
         data.data.forEach(([k, v]) => {
           obj[k] = v;
         });
+        obj.id = item.name;
         certs.push(obj);
       }
     } catch (err) {
@@ -59,5 +60,24 @@ export const getCerts = async () => {
     }
   }
 
+  certs.sort((a, b) => {
+    return b.creation - a.creation;
+  });
+
   return certs;
+};
+
+// 删除指定id的证书
+export const deleteCerts = async (ids) => {
+  const certsDir = await getCertsDir();
+
+  await Promise.all(
+    ids.map(async (id) => {
+      const file = await certsDir.get(id);
+
+      if (file) {
+        await file.remove();
+      }
+    })
+  );
 };

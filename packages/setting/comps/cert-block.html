@@ -22,8 +22,9 @@
     <div class="card-line">
       授权给: <n-user-text :userid="item.authTo"></n-user-text>
     </div>
-    <div class="card-line">权限: {{item.permission}}</div>
-    <div>到期时间:{{time}}</div>
+    <div class="card-line">证书类型: {{perStr}}证书</div>
+    <div>到期时间:{{expireTime}}</div>
+    <div>创建时间:{{createTime}}</div>
   </div>
   <script>
     export default async () => {
@@ -33,8 +34,20 @@
           item: {},
         },
         proto: {
-          get time() {
+          get perStr() {
+            if (this.item.permission === "fully") {
+              return "完全权限";
+            }
+            return this.item.permission;
+          },
+          get expireTime() {
+            if (this.item.expire === "indefinite") {
+              return "永久";
+            }
             return new Date(this.item.expire).toLocaleString();
+          },
+          get createTime() {
+            return new Date(this.item.creation).toLocaleString();
           },
         },
       };
