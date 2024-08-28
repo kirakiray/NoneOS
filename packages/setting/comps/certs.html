@@ -61,7 +61,7 @@
             const now = Date.now();
 
             allCerts.forEach((e) => {
-              if (now < e.expire) {
+              if (now < e.expire || e.expire === "never") {
                 certs.push(e);
                 return;
               }

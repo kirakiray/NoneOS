@@ -41,8 +41,8 @@
             return this.item.permission;
           },
           get expireTime() {
-            if (this.item.expire === "indefinite") {
-              return "永久";
+            if (this.item.expire === "never") {
+              return "永不过期";
             }
             return new Date(this.item.expire).toLocaleString();
           },

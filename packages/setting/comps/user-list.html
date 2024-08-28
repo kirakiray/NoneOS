@@ -105,7 +105,7 @@
         <option value="test">1秒</option>
         <option value="hour">1小时</option>
         <option value="day">1天</option>
-        <option value="indefinite">永久</option>
+        <option value="never">永久</option>
       </p-select>
     </div>
     <div class="line" style="margin-top: 16px">
@@ -155,8 +155,8 @@
             case "day":
               expire = Date.now() + 3600 * 1000 * 24;
               break;
-            case "indefinite":
-              expire = "indefinite";
+            case "never":
+              expire = "never";
               break;
             case "test":
               expire = Date.now() + 1000;
