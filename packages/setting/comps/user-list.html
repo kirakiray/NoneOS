@@ -19,15 +19,6 @@
     h5 {
       margin: 16px 0 4px;
     }
-    .line {
-      margin: 8px 0;
-    }
-
-    .tips {
-      padding: 8px 0;
-      font-size: 12px;
-      color: #d6d622;
-    }
   </style>
 
   <h5>已连接用户</h5>
@@ -79,52 +70,17 @@
           >
             {{$data.inConnected ? '已在已连接列表' : '连接用户'}}
           </p-button>
-          <p-button size="mini" on:click="$host.clickAuth($data)">
-            给他证书
-          </p-button>
         </div>
       </div>
     </x-fill>
   </div>
 
-  <p-dialog :open="showAuthDialog" on:click-mask="showAuthDialog = false">
-    <div slot="title">授权用户</div>
-    <div class="line">
-      <p-select sync:value="dialogData.permission">
-        <label>选择授权类型</label>
-        <option value="fully">完整权限证书</option>
-        <option value="recommend" disabled>推荐证书</option>
-      </p-select>
-      <div class="tips">
-        完整授权：让对面用户完全可访问自身设备的权限，用于自己的设备之间的授权。
-      </div>
-    </div>
-    <div class="line">
-      <p-select sync:value="dialogData.expire">
-        <label>证书的有效时间</label>
-        <option value="test">1秒</option>
-        <option value="hour">1小时</option>
-        <option value="day">1天</option>
-        <option value="never">永久</option>
-      </p-select>
-    </div>
-    <div class="line" style="margin-top: 16px">
-      <p-button
-        on:click="authUser"
-        attr:disabled="!(dialogData.expire && dialogData.permission)"
-      >
-        授权
-      </p-button>
-    </div>
-  </p-dialog>
-
   <script>
     import { get } from "/packages/fs/main.js";
     import { User } from "/packages/none-os/user/public-user.js";
-    import { getSelfUserInfo, sign } from "/packages/none-os/user/main.js";
+    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
     import { getUserCard } from "/packages/none-os/user/usercard.js";
     import { linkUser, bind } from "/packages/none-os/user/connect/main.js";
-    import { saveCert } from "/packages/none-os/user/cert.js";
     import enqueue from "/packages/pui/snackbar/enqueue.js";
 
     export default {
@@ -134,58 +90,8 @@
         users: [], // 用户列表
         _removes: [], // 时候取消绑定的函数
         showAuthDialog: false, // 显示授权的弹窗
-        dialogData: {
-          userID: "",
-          userName: "",
-          permission: "fully",
-          expire: "",
-        },
       },
       proto: {
-        // 授权用户证书
-        async authUser() {
-          const selfData = await getSelfUserInfo();
-
-          let expire = this.dialogData.expire;
-
-          switch (expire) {
-            case "hour":
-              expire = Date.now() + 3600 * 1000;
-              break;
-            case "day":
-              expire = Date.now() + 3600 * 1000 * 24;
-              break;
-            case "never":
-              expire = "never";
-              break;
-            case "test":
-              expire = Date.now() + 1000;
-              break;
-          }
-
-          // 给用户签发证书
-          const data = [
-            ["issuer", selfData.userID],
-            ["authTo", this.dialogData.userID],
-            ["permission", this.dialogData.permission],
-            ["signPublic", selfData.signPublic],
-            ["creation", Date.now()],
-            ["expire", expire],
-          ];
-
-          const cert = {
-            data,
-            sign: await sign(data),
-          };
-
-          // 保存到本地
-          await saveCert(cert);
-
-          this.showAuthDialog = false;
-
-          // 刷新通屏下的 certs 组件
-          this.root.all("setting-certs").forEach((e) => e?.refreshCert());
-        },
         async linkUser(item) {
           // 连接用户
           const result = await linkUser(
@@ -208,11 +114,6 @@
               });
             }
           });
-        },
-        async clickAuth(item) {
-          this.showAuthDialog = true;
-          this.dialogData.userID = item.userID;
-          this.dialogData.userName = item.userName;
         },
         // 刷新用户列表数据
         async refreshUserCardList() {

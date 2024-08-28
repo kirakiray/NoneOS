@@ -6,10 +6,6 @@ import get from "/packages/fs/get.js";
 export async function saveUserCard(options = {}) {
   const { dataSignature, data, source } = options;
 
-  if (!source.trim()) {
-    throw "no source";
-  }
-
   const userObj = new User(data, dataSignature);
 
   const result = await userObj.verify();
@@ -21,12 +17,9 @@ export async function saveUserCard(options = {}) {
   }
 
   // 写入到对应域名的卡片文件夹
-  const userFile = await get(
-    `local/system/usercards/${source}/${userObj.id}.ucard`,
-    {
-      create: "file",
-    }
-  );
+  const userFile = await get(`local/system/usercards/${userObj.id}.ucard`, {
+    create: "file",
+  });
 
   await userFile.write(
     JSON.stringify({

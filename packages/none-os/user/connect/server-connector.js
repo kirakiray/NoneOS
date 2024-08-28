@@ -155,7 +155,6 @@ export class ServerConnector {
           saveUserCard({
             dataSignature: e.sign,
             data: e.data,
-            // source: this.serverUrl,
             source: new URL(this.serverUrl).host,
           });
         })

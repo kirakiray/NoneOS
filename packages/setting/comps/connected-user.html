@@ -12,6 +12,15 @@
     .hide {
       display: none !important;
     }
+    .line {
+      margin: 8px 0;
+    }
+
+    .tips {
+      padding: 8px 0;
+      font-size: 12px;
+      color: #d6d622;
+    }
   </style>
   <div>用户名：{{item._user.name}}</div>
   <div>连接状态：{{item.state}}</div>
@@ -21,9 +30,15 @@
       sync:value="msg"
       placeholder="尝试输入数据"
     ></p-text-field>
-    <p-button on:click="sendMsg" attr:disabled="!msg" size="mini">
-      send
-    </p-button>
+    <div>
+      <p-button on:click="sendMsg" attr:disabled="!msg" size="mini">
+        send
+      </p-button>
+
+      <p-button size="mini" on:click="showAuthDialog = true">
+        给他证书
+      </p-button>
+    </div>
   </div>
   <div class:hide="item.state === 'connected'">
     <p-button on:click="reLinkUser" size="mini">重新连接</p-button>
@@ -31,7 +46,42 @@
   <x-fill :value="receiveds">
     <div>{{$data.username}} : {{$data.msg}}</div>
   </x-fill>
+
+  <p-dialog :open="showAuthDialog" on:click-mask="showAuthDialog = false">
+    <div slot="title">授权用户</div>
+    <div class="line">
+      <p-select sync:value="dialogData.permission">
+        <label>选择授权类型</label>
+        <option value="fully">完整权限证书</option>
+        <option value="recommend" disabled>推荐证书</option>
+      </p-select>
+      <div class="tips">
+        完整授权：让对面用户完全可访问自身设备的权限，用于自己的设备之间的授权。
+      </div>
+    </div>
+    <div class="line">
+      <p-select sync:value="dialogData.expire">
+        <label>证书的有效时间</label>
+        <option value="test">1秒</option>
+        <option value="hour">1小时</option>
+        <option value="day">1天</option>
+        <option value="never">永久</option>
+      </p-select>
+    </div>
+    <div class="line" style="margin-top: 16px">
+      <p-button
+        on:click="authUser"
+        attr:disabled="!(dialogData.expire && dialogData.permission)"
+      >
+        授权
+      </p-button>
+    </div>
+  </p-dialog>
+
   <script>
+    import { getSelfUserInfo, sign } from "/packages/none-os/user/main.js";
+    import { saveCert } from "/packages/none-os/user/cert.js";
+
     export default async ({ load }) => {
       return {
         tag: "setting-user-block",
@@ -39,8 +89,59 @@
           item: {},
           receiveds: [],
           msg: "",
+          showAuthDialog: false,
+          dialogData: {
+            permission: "fully",
+            expire: "",
+          },
         },
         proto: {
+          // 授权用户证书
+          async authUser() {
+            const selfData = await getSelfUserInfo();
+
+            let expire = this.dialogData.expire;
+
+            switch (expire) {
+              case "hour":
+                expire = Date.now() + 3600 * 1000;
+                break;
+              case "day":
+                expire = Date.now() + 3600 * 1000 * 24;
+                break;
+              case "never":
+                expire = "never";
+                break;
+              case "test":
+                expire = Date.now() + 1000;
+                break;
+            }
+
+            // 给用户签发证书
+            const data = [
+              ["issuer", selfData.userID],
+              ["authTo", this.item.userID],
+              ["permission", this.dialogData.permission],
+              ["signPublic", selfData.signPublic],
+              ["creation", Date.now()],
+              ["expire", expire],
+            ];
+
+            const cert = {
+              data,
+              sign: await sign(data),
+            };
+
+            // 保存到本地
+            await saveCert(cert);
+
+            this.showAuthDialog = false;
+
+            // 刷新通屏下的 certs 组件
+            this.host.root
+              .all("setting-certs")
+              .forEach((e) => e?.refreshCert());
+          },
           reLinkUser() {
             this.item._user.connect();
           },
