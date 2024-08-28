@@ -50,7 +50,7 @@ export function base64ToArrayBuffer(base64String) {
 export const getHash = async (data) => {
   const digest = await crypto.subtle.digest(
     "SHA-256",
-    stringToArrayBuffer(data)
+    dataToArrayBuffer(data).buffer
   );
 
   return u8ToHex(new Uint8Array(digest));
@@ -62,9 +62,12 @@ function u8ToHex(u8) {
     .join("");
 }
 
-export function stringToArrayBuffer(str) {
+export function dataToArrayBuffer(str) {
+  if (str instanceof Object) {
+    str = JSON.stringify(str);
+  }
   const encoder = new TextEncoder();
-  return encoder.encode(str).buffer;
+  return encoder.encode(str);
 }
 
 export const getPairString = async (signPair) => {
@@ -89,8 +92,7 @@ export const getSignPublic = () => {
 
 // 验证信息
 export async function verifyMessage(message, signature, publicKey) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(message);
+  const data = dataToArrayBuffer(message);
 
   const realPublicKey = await crypto.subtle.importKey(
     "spki", // 导入的密钥类型，这里是公钥
@@ -113,3 +115,16 @@ export async function verifyMessage(message, signature, publicKey) {
     data
   );
 }
+
+// 验证签名对象
+export const verifyObject = (obj) => {
+  const { data, sign: signData } = obj;
+
+  const dataMap = new Map(data);
+
+  return verifyMessage(
+    JSON.stringify(data),
+    signData,
+    dataMap.get("signPublic")
+  );
+};

@@ -1,0 +1,34 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+    }
+  </style>
+  {{realText}}
+  <script>
+    export default async ({ load }) => {
+      const { getUserCard } = await load("/packages/none-os/user/usercard.js");
+
+      const userDatas = await getUserCard();
+
+      // 备份用户映射名
+      const users = new Map();
+
+      userDatas.forEach((e) => {
+        users.set(e.id, e.name);
+      });
+
+      return {
+        tag: "n-user-text",
+        data: {
+          userid: "",
+        },
+        proto: {
+          get realText() {
+            return users.get(this.userid) || this.userid;
+          },
+        },
+      };
+    };
+  </script>
+</template>

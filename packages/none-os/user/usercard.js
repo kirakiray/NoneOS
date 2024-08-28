@@ -20,7 +20,7 @@ export async function saveUserCard(options = {}) {
     throw err;
   }
 
-  // 写入到哪步文件
+  // 写入到对应域名的卡片文件夹
   const userFile = await get(
     `local/system/usercards/${source}/${userObj.id}.ucard`,
     {

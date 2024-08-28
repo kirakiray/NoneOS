@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="./cert-block.html"></l-m>
   <style>
     :host {
       display: block;
@@ -6,25 +7,37 @@
     h5 {
       margin: 16px 0 4px;
     }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    setting-cert-block {
+      margin: 0 8px 8px 0;
+    }
   </style>
-  <h5>已获取的证书</h5>
-  <div></div>
-  <h5>已颁发的证书</h5>
-  <div></div>
+  <h5>证书列表</h5>
+  <div class="container">
+    <x-fill :value="certs">
+      <setting-cert-block :item="$data"></setting-cert-block>
+    </x-fill>
+  </div>
   <script>
-    import { get } from "/packages/fs/main.js";
+    import { getCerts } from "/packages/none-os/user/cert.js";
 
     export default async () => {
-      // 目标目录
-      const certsDir = await get(`local/system/certs`, {
-        create: "dir",
-      });
-
       return {
         tag: "setting-certs",
-        data: {},
-        proto: {},
-        async ready() {},
+        data: {
+          certs: [],
+        },
+        proto: {
+          async refreshCert() {
+            this.certs = await getCerts();
+          },
+        },
+        async ready() {
+          this.refreshCert();
+        },
       };
     };
   </script>

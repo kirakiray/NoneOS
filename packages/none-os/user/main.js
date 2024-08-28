@@ -5,6 +5,7 @@ import {
   getHash,
   getPairString,
   arrayBufferToBase64,
+  dataToArrayBuffer,
 } from "./util.js";
 
 import get from "../../fs/get.js";
@@ -50,6 +51,7 @@ export const renameUser = (newName) => {
 
 const pairData = await initUserPair();
 
+// 获取自己的用户数据
 export const getSelfUserInfo = async () => {
   const { signPublic, encryPublic, id } = pairData;
 
@@ -64,7 +66,7 @@ export const getSelfUserInfo = async () => {
   };
 };
 
-// 获取包含签名的用户数据
+// 获取包含签名的自身用户数据
 export const getSelfUserCardData = async () => {
   const data = await getSelfUserInfo();
 
@@ -76,7 +78,7 @@ export const getSelfUserCardData = async () => {
     ["time", Date.now()], // 签发时间
   ];
 
-  const signData = await sign(JSON.stringify(userData));
+  const signData = await sign(userData);
 
   return {
     data: userData,
@@ -86,9 +88,7 @@ export const getSelfUserCardData = async () => {
 
 // 给数据进行签名
 export async function sign(message) {
-  let data;
-  const encoder = new TextEncoder();
-  data = encoder.encode(message);
+  let data = dataToArrayBuffer(message);
 
   const arrayData = await crypto.subtle.sign(
     {
@@ -102,7 +102,7 @@ export async function sign(message) {
   return arrayBufferToBase64(arrayData);
 }
 
-// 初始化并获取签名和加密用的CryptoKey
+// 初始化并获取自己的签名和加密用的CryptoKey
 async function initUserPair() {
   let signPair, encryPair;
   let signPublic, encryPublic;
