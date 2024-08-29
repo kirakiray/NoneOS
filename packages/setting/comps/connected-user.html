@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./cert-block.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -39,6 +40,10 @@
       <p-button size="mini" on:click="showAuthDialog = true">
         给他证书
       </p-button>
+      <br />
+      <p-button size="mini" on:click="showSyncDialig = true">
+        获取证书
+      </p-button>
     </div>
   </div>
   <div class:hide="item.state === 'connected'">
@@ -71,12 +76,12 @@
     <div slot="title">授权用户</div>
     <div class="line">
       <p-select sync:value="dialogData.permission">
-        <label>选择授权类型</label>
+        <label>授权类型</label>
         <option value="fully">完整权限证书</option>
         <option value="recommend" disabled>推荐证书</option>
       </p-select>
       <div class="tips">
-        完整授权：让对面用户完全可访问自身设备的权限，用于自己的设备之间的授权。
+        完整授权：让对面用户可完全访问当前设备的权限，用于自己的设备之间的授权。
       </div>
     </div>
     <div class="line">
@@ -89,6 +94,7 @@
       </p-select>
     </div>
     <div class="line" style="margin-top: 16px">
+      <div slot="title">选择证书备份到本地的</div>
       <p-button
         on:click="authUser"
         attr:disabled="!(dialogData.expire && dialogData.permission)"
@@ -98,9 +104,42 @@
     </div>
   </p-dialog>
 
+  <p-dialog :open="showSyncDialig" on:click-mask="showSyncDialig = false">
+    <div slot="title">获取证书</div>
+    <div
+      style="
+        display: flex;
+        flex-wrap: wrap;
+        max-width: calc(80vw - 100px);
+        max-height: calc(80vh - 100px);
+        overflow-y: auto;
+      "
+    >
+      <x-fill :value="relateCerts">
+        <setting-cert-block
+          :item="$data"
+          style="margin: 4px"
+        ></setting-cert-block>
+      </x-fill>
+      <x-if :value="!relateCerts.length">
+        <div
+          style="
+            min-height: 60px;
+            line-height: 60px;
+            color: #aaa;
+            font-size: 12px;
+            text-align: center;
+          "
+        >
+          没有相关证书
+        </div>
+      </x-if>
+    </div>
+  </p-dialog>
+
   <script>
     import { getSelfUserInfo, sign } from "/packages/none-os/user/main.js";
-    import { saveCert } from "/packages/none-os/user/cert.js";
+    import { saveCert, getCerts } from "/packages/none-os/user/cert.js";
 
     export default async ({ load }) => {
       return {
@@ -109,11 +148,13 @@
           item: {},
           receiveds: [],
           msg: "",
-          showAuthDialog: false,
+          showAuthDialog: false, // 授权证书的弹窗
+          showSyncDialig: false, // 同步证书的弹窗
           dialogData: {
             permission: "fully",
             expire: "",
           },
+          relateCerts: [], // 对面的证书
         },
         proto: {
           // 授权用户证书
@@ -177,6 +218,32 @@
           reLinkUser() {
             this.item._user.connect();
           },
+          // 发送本地相关证书给对面
+          async sendCerts() {
+            const selfData = await getSelfUserInfo();
+            const certs = await getCerts();
+
+            // 只发送相关的证书
+            const syncCerts = certs
+              .filter((e) => {
+                let idOK =
+                  e.issuer === selfData.userID || e.authTo === selfData.userID;
+
+                if (!idOK) {
+                  return false;
+                }
+
+                return idOK;
+              })
+              .map((e) => e._origin);
+
+            this.user.send(
+              JSON.stringify({
+                syncCerts,
+              })
+            );
+          },
+          // 发送信息
           sendMsg() {
             const { msg } = this;
             this.msg = "";
@@ -198,7 +265,7 @@
           },
         },
         attached() {
-          this.user.onmessage = (e) => {
+          this.user.onmessage = async (e) => {
             const data = JSON.parse(e.data);
 
             if (data.msg) {
@@ -212,8 +279,16 @@
                 username: this.user.name,
                 cert: data.cert,
               });
+            } else if (data.syncCerts) {
+              // 设置对方和我相关的证书
+              this.relateCerts = await getCerts(data.syncCerts);
             }
           };
+
+          setTimeout(() => {
+            // TODO: 延迟发送证书，应该改成建立成功后发送
+            this.sendCerts();
+          }, 500);
         },
         detached() {
           this.user.onmessage = null;

@@ -18,7 +18,15 @@
   <h5>证书列表</h5>
   <div class="container">
     <x-fill :value="certs">
-      <setting-cert-block :item="$data"></setting-cert-block>
+      <setting-cert-block :item="$data">
+        <p-button
+          size="mini"
+          slot="right-btn"
+          on:click="$host.deleteItem($data)"
+        >
+          删除
+        </p-button>
+      </setting-cert-block>
     </x-fill>
   </div>
   <x-if :value="expireds.length">
@@ -35,7 +43,15 @@
     </h5>
     <div class="container" style="opacity: 0.7">
       <x-fill :value="expireds">
-        <setting-cert-block :item="$data"></setting-cert-block>
+        <setting-cert-block :item="$data">
+          <p-button
+            size="mini"
+            slot="right-btn"
+            on:click="$host.deleteItem($data)"
+          >
+            删除
+          </p-button>
+        </setting-cert-block>
       </x-fill>
     </div>
   </x-if>
@@ -72,12 +88,22 @@
             this.certs = certs;
             this.expireds = expireds;
           },
+          async deleteItem(data) {
+            await deleteCerts([data.id]);
+
+            enqueue({
+              color: "success",
+              content: "删除证书成功",
+            });
+
+            this.refreshCert();
+          },
           // 删除过期证书
           async deleteExps() {
             await deleteCerts(this.expireds.map((e) => e.id));
 
             enqueue({
-              color: "error",
+              color: "success",
               content: "删除过期证书成功",
             });
 

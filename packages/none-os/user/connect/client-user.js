@@ -105,8 +105,6 @@ export class ClientUser extends User {
       this.#channels[channel.label] = channel;
 
       channel.onmessage = (e) => {
-        console.log(channel.label, " get message => ", e.data);
-
         this.onmessage &&
           this.onmessage({
             channel,

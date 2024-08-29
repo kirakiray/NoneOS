@@ -24,15 +24,20 @@ export const saveCert = async (certData) => {
 };
 
 // 获取本地证书
-export const getCerts = async () => {
+export const getCerts = async (certsData) => {
   const certsDir = await getCertsDir();
 
   const certs = [];
 
-  for await (let item of certsDir.values()) {
+  for await (let item of certsData || certsDir.values()) {
     try {
-      const content = await item.text();
-      const data = JSON.parse(content);
+      let data;
+      if (item.text) {
+        const content = await item.text();
+        data = JSON.parse(content);
+      } else {
+        data = item;
+      }
 
       const result = await verifyObject(data);
 
