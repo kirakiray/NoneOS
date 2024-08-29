@@ -18,6 +18,3 @@ export const emitEvent = (name, options) => {
 
 // 已连接的用户
 export const clients = new Map();
-
-// 已有的服务器
-export const connectors = [];

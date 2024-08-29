@@ -121,8 +121,6 @@
           signPublic: selfData.signPublic,
           encryPublic: selfData.encryPublic,
           renameMode: false,
-          // 可连接的服务器
-          servers: [],
         },
         watch: {
           renameMode(bool) {
@@ -135,9 +133,6 @@
           },
         },
         proto: {
-          async linkUser(item) {
-            console.log(item);
-          },
           renameEnd(e) {
             this.renameMode = false;
             renameUser(this.userName);

@@ -1,5 +1,6 @@
 import { User } from "../public-user.js";
-import { emitEvent, connectors } from "./public.js";
+import { emitEvent } from "./public.js";
+import { servers } from "./servers.js";
 
 export class ClientUser extends User {
   #rtcConnection;
@@ -165,8 +166,10 @@ export class ClientUser extends User {
       // 直接返回已设置的最好的服务器
       return this._bestServer;
     }
+
     // 先根据延迟进行排序
-    const sers = connectors
+    const sers = servers
+      .map((e) => e._server)
       .filter((e) => e.status === "connected")
       .sort((a, b) => {
         return a.delayTime - b.delayTime;

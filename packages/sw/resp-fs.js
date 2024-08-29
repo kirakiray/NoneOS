@@ -59,8 +59,6 @@ const resposeApp = async ({ pathname, path }) => {
     appconfig = await fetch(`/${parentPath}/app.json`).then((e) => e.json());
   }
 
-  console.log("appconfig: ", appconfig);
-
   return new Response(
     `<!DOCTYPE html>
 <html lang="en">

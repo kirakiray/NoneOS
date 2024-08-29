@@ -86,11 +86,10 @@
   </div>
   <script>
     import {
-      getServers,
-      bind,
       addServer,
       deleteServer,
-    } from "/packages/none-os/user/connect/main.js";
+      servers,
+    } from "/packages/none-os/user/connect/servers.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
@@ -104,18 +103,17 @@
         },
         proto: {
           async getRecommend() {
-            const sers = getServers();
-
-            await Promise.all(
-              sers.map(async (connector) => {
-                return connector.getRecommend();
-              })
-            );
-
-            enqueue({
-              color: "success",
-              content: "更新推荐用户成功",
-            });
+            // const sers = getServers();
+            // await Promise.all(
+            //   sers.map(async (connector) => {
+            //     return connector.getRecommend();
+            //   })
+            // );
+            // enqueue({
+            //   color: "success",
+            //   content: "更新推荐用户成功",
+            // });
+            debugger;
           },
           clickDeleteServer() {
             deleteServer(this.selectedServer);
@@ -141,43 +139,12 @@
                 break;
             }
           },
-          async reloadServers() {
-            const servers = getServers();
-
-            this.sers = servers.map((e) => {
-              return {
-                name: e.serverName,
-                version: e.serverVersion,
-                status: e.status,
-                serverUrl: e.serverUrl,
-                _server: e,
-                delayTime: e.delayTime,
-              };
-            });
-          },
-        },
-        ready() {
-          this.reloadServers();
         },
         attached() {
-          this._cancels = [
-            bind("server-list-change", (e) => {
-              this.reloadServers();
-            }),
-            bind("server-state-change", (e) => {
-              const { originTarget } = e;
-
-              this.reloadServers();
-            }),
-            bind("server-ping", (e) => {
-              const { originTarget } = e;
-
-              this.reloadServers();
-            }),
-          ];
+          this.sers = servers;
         },
         detached() {
-          this._cancels && this._cancels.forEach((f) => f());
+          this.sers = [];
         },
       };
     };

@@ -160,8 +160,6 @@ export class ServerConnector {
         })
       );
 
-      emitEvent("recommend-users-change");
-
       return result.data;
     }
   }
