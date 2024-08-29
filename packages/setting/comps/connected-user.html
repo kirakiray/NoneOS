@@ -109,10 +109,15 @@
       "
     >
       <x-fill :value="relateCerts">
-        <setting-cert-block
-          :item="$data"
-          style="margin: 4px"
-        ></setting-cert-block>
+        <setting-cert-block :item="$data" style="margin: 4px">
+          <p-button
+            slot="right-btn"
+            size="mini"
+            on:click="$host.saveRelateItemCert($data)"
+          >
+            保存
+          </p-button>
+        </setting-cert-block>
       </x-fill>
       <x-if :value="!relateCerts.length">
         <div
@@ -133,6 +138,7 @@
   <script>
     import { getSelfUserInfo, sign } from "/packages/none-os/user/main.js";
     import { saveCert, getCerts } from "/packages/none-os/user/cert.js";
+    import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async ({ load }) => {
       return {
@@ -150,6 +156,18 @@
           relateCerts: [], // 对面的证书
         },
         proto: {
+          // 保存对方的证书
+          async saveRelateItemCert(data) {
+            const { _origin } = data;
+            if (_origin) {
+              await saveCert(_origin);
+
+              enqueue({
+                color: "success",
+                content: "保存证书成功",
+              });
+            }
+          },
           // 授权用户证书
           async authUser() {
             const selfData = await getSelfUserInfo();
@@ -215,18 +233,26 @@
           async sendCerts() {
             const selfData = await getSelfUserInfo();
             const certs = await getCerts();
+            const now = Date.now();
 
             // 只发送相关的证书
             const syncCerts = certs
               .filter((e) => {
-                let idOK =
-                  e.issuer === selfData.userID || e.authTo === selfData.userID;
-
-                if (!idOK) {
+                if (
+                  !(
+                    e.issuer === selfData.userID || e.authTo === selfData.userID
+                  )
+                ) {
+                  // 不相关不返回
                   return false;
                 }
 
-                return idOK;
+                // 超时的不返回
+                if (e.expire < now) {
+                  return false;
+                }
+
+                return true;
               })
               .map((e) => e._origin);
 
@@ -257,7 +283,7 @@
             return this.item._user;
           },
         },
-        attached() {
+        ready() {
           this.user.onmessage = async (e) => {
             const data = JSON.parse(e.data);
 
@@ -271,9 +297,9 @@
               this.relateCerts = await getCerts(data.syncCerts);
             }
           };
-
+        },
+        attached() {
           setTimeout(() => {
-            // TODO: 延迟发送证书，应该改成建立成功后发送
             this.sendCerts();
           }, 500);
         },

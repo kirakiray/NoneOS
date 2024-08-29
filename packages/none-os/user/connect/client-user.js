@@ -16,15 +16,13 @@ export class ClientUser extends User {
   }
 
   // 发送数据给对面
-  send(data) {
-    const channel = this.#channels["initChannel"];
-    if (!channel) {
-      this.#state = this.#rtcConnection.connectionState;
-      emitEvent("user-state-change", {
-        originTarget: this,
-      });
-    } else {
+  async send(data) {
+    const channel = await this.#channels["initChannel"];
+
+    if (channel) {
       channel.send(data);
+    } else {
+      console.log("no-channel");
     }
   }
 
@@ -62,6 +60,12 @@ export class ClientUser extends User {
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
+    this.#channels[channelName] = new Promise((resolve, reject) => {
+      targetChannel.onopen = () => {
+        resolve(targetChannel);
+      };
+    });
+
     targetChannel.onmessage = (e) => {
       this.onmessage &&
         this.onmessage({
@@ -73,12 +77,6 @@ export class ClientUser extends User {
     targetChannel.addEventListener("close", () => {
       delete this.#channels[channelName];
     });
-
-    this.#channels[channelName] = targetChannel;
-
-    // targetChannel.onopen = () => {
-    //   targetChannel.send(" 你收到了吗？");
-    // };
 
     return targetChannel;
   }
@@ -102,7 +100,7 @@ export class ClientUser extends User {
         delete this.#channels[channel.label];
       });
 
-      this.#channels[channel.label] = channel;
+      this.#channels[channel.label] = Promise.resolve(channel);
 
       channel.onmessage = (e) => {
         this.onmessage &&
