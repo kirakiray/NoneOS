@@ -62,13 +62,6 @@
       <x-if :value="$data.msg">
         <div>{{$data.username}} : {{$data.msg}}</div>
       </x-if>
-      <x-else-if :value="$data.cert">
-        <div>"{{$data.username}}" 给你发来一张证书，是否接受？</div>
-        <div style="margin-top: 4px">
-          <p-button size="mini">接受</p-button>
-          <p-button size="mini" variant="text">不接受</p-button>
-        </div>
-      </x-else-if>
     </div>
   </x-fill>
 
@@ -199,7 +192,7 @@
             // 发送数据
             this.user.send(
               JSON.stringify({
-                cert,
+                msg: "给你发送了一张证书",
               })
             );
 
@@ -272,12 +265,6 @@
               this.receiveds.push({
                 username: this.user.name,
                 msg: data.msg,
-              });
-            } else if (data.cert) {
-              // 判断是否要添加证书
-              this.receiveds.push({
-                username: this.user.name,
-                cert: data.cert,
               });
             } else if (data.syncCerts) {
               // 设置对方和我相关的证书
