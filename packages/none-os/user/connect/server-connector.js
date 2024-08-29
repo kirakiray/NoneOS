@@ -1,7 +1,6 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
 import { clients, emitEvent } from "./public.js";
-import { saveUserCard } from "../usercard.js";
 
 const badDelayTime = 0;
 
@@ -149,17 +148,6 @@ export class ServerConnector {
     }).then((e) => e.json());
 
     if (result.ok) {
-      // 保存到本地
-      await Promise.all(
-        result.data.map(async (e) => {
-          saveUserCard({
-            dataSignature: e.sign,
-            data: e.data,
-            source: new URL(this.serverUrl).host,
-          });
-        })
-      );
-
       return result.data;
     }
   }

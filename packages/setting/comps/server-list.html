@@ -1,7 +1,11 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/checkbox/checkbox.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="./usercard-block.html"></l-m>
 
   <style>
     h5 {
@@ -84,12 +88,49 @@
       </p-list-item>
     </p-list>
   </div>
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title">添加用户卡片</div>
+    <div
+      style="
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 80vw;
+        max-height: calc(70vh - 100px);
+        overflow-y: auto;
+      "
+    >
+      <x-fill :value="recommends">
+        <setting-usercard-block
+          :item="$data"
+          on:click="$data.checked = !$data.checked"
+          style="cursor: pointer"
+        >
+          <p-checkbox
+            sync:checked="$data.checked"
+            on:click="$event.stopPropagation()"
+          ></p-checkbox>
+        </setting-usercard-block>
+      </x-fill>
+    </div>
+    <div style="margin-top: 8px">
+      <p-button
+        attr:disabled="!recommends.some(e=>e.checked)"
+        on:click="confirmUsercard"
+      >
+        确认添加
+      </p-button>
+    </div>
+  </p-dialog>
   <script>
     import {
       addServer,
       deleteServer,
       servers,
     } from "/packages/none-os/user/connect/servers.js";
+    import { saveUserCard } from "/packages/none-os/user/usercard.js";
+
+    import { User } from "/packages/none-os/user/public-user.js";
+
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
@@ -100,20 +141,53 @@
           selectedServer: "", // 选择中的服务器
           newSerUrl: "", // 添加新服务器的地址
           getRing: false,
+          showDialog: false,
+          recommends: [],
         },
         proto: {
+          async confirmUsercard() {
+            await Promise.all(
+              this.recommends
+                .filter((e) => e.checked)
+                .map(async (e) => {
+                  await saveUserCard(e._user);
+                })
+            );
+
+            enqueue({
+              content: "添加卡片成功",
+              color: "success",
+            });
+
+            this.showDialog = false;
+
+            // 尝试刷新卡片列表
+            this.root.all("setting-user-list").forEach((e) => {
+              e.refreshUserCardList && e.refreshUserCardList();
+            });
+          },
           async getRecommend() {
-            // const sers = getServers();
-            // await Promise.all(
-            //   sers.map(async (connector) => {
-            //     return connector.getRecommend();
-            //   })
-            // );
-            // enqueue({
-            //   color: "success",
-            //   content: "更新推荐用户成功",
-            // });
-            debugger;
+            this.showDialog = true;
+
+            this.recommends = [];
+
+            const sets = new Set(); // 防止id重复的
+
+            servers.forEach(async (e) => {
+              const result = await e._server.getRecommend();
+
+              const users = result.map((e) => {
+                const user = new User(e.data, e.sign);
+
+                !sets.has(user.id) &&
+                  this.recommends.push({
+                    _user: user,
+                    checked: false,
+                  });
+
+                sets.add(user.id);
+              });
+            });
           },
           clickDeleteServer() {
             deleteServer(this.selectedServer);

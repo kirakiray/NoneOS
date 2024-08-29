@@ -56,12 +56,20 @@ bind("server-ping", reloadServers);
 
 // 添加服务器
 export const addServer = (url) => {
+  if (validateURL(val)) {
+    const err = new Error(`Server address added`);
+    err.code = "repeat";
+    throw err;
+  }
+
   const saveds = getSavedServer();
 
   const cid = servers.findIndex((e) => e._server.serverUrl === url);
 
   if (cid > -1) {
-    return "repeat";
+    const err = new Error(`Server address added`);
+    err.code = "repeat";
+    throw err;
   }
 
   saveds.push(url);
@@ -77,6 +85,12 @@ export const addServer = (url) => {
 
   return true;
 };
+
+function validateURL(url) {
+  const regex =
+    /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+  return regex.test(url);
+}
 
 // 删除服务器
 export const deleteServer = (url) => {

@@ -2,19 +2,10 @@
   <l-m src="./connected-user.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
-  <!-- <l-m src="/packages/pui/text-field/text-field.html"></l-m> -->
+  <l-m src="./usercard-block.html"></l-m>
   <style>
     :host {
       display: block;
-    }
-
-    .user-block {
-      display: inline-block;
-      width: 200px;
-      padding: 8px;
-      margin: 0 4px 4px 0;
-      border-radius: 8px;
-      border: #80a32f solid 1px;
     }
     h5 {
       margin: 16px 0 4px;
@@ -47,31 +38,15 @@
   <h5>已获得的用户卡片</h5>
   <div style="display: flex; flex-wrap: wrap">
     <x-fill :value="users">
-      <div class="user-block">
-        <div>用户名: {{$data.userName}}</div>
-        <div
-          style="
-            word-break: break-all;
-            font-size: 12px;
-            line-height: 1.2em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-          "
+      <setting-usercard-block :item="$data">
+        <p-button
+          size="mini"
+          on:click="$host.linkUser($data)"
+          attr:disabled="$host.isConnected($data)"
         >
-          用户ID: {{$data.userID}}
-        </div>
-        <div style="font-size: 12px">更新时间：{{$data.time}}</div>
-        <div>
-          <p-button
-            size="mini"
-            on:click="$host.linkUser($data)"
-            attr:disabled="$data.inConnected"
-          >
-            {{$data.inConnected ? '已在已连接列表' : '连接用户'}}
-          </p-button>
-        </div>
-      </div>
+          {{$host.isConnected($data) ? '已在已连接列表' : '连接用户'}}
+        </p-button>
+      </setting-usercard-block>
     </x-fill>
   </div>
 
@@ -116,6 +91,11 @@
             }
           });
         },
+        isConnected(data) {
+          return this.connectedUsers.find(
+            (item) => item.userID === data.userID
+          );
+        },
         // 刷新用户列表数据
         async refreshUserCardList() {
           const selfData = await getSelfUserInfo();
@@ -132,13 +112,7 @@
 
               return {
                 userID: e.id,
-                userName: e.name,
-                time: new Date(e.get("time")).toLocaleString(),
                 _user: e,
-                state: e.state,
-                inConnected: this.connectedUsers.find(
-                  (item) => item.userID === e.id
-                ),
               };
             })
             .filter((e) => !!e);
