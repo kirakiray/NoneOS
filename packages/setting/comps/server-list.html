@@ -128,9 +128,8 @@
       servers,
     } from "/packages/none-os/user/connect/servers.js";
     import { saveUserCard } from "/packages/none-os/user/usercard.js";
-
+    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
     import { User } from "/packages/none-os/user/public-user.js";
-
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
@@ -167,6 +166,8 @@
             });
           },
           async getRecommend() {
+            const selfData = await getSelfUserInfo();
+
             this.showDialog = true;
 
             this.recommends = [];
@@ -176,8 +177,13 @@
             servers.forEach(async (e) => {
               const result = await e._server.getRecommend();
 
-              const users = result.map((e) => {
+              result.forEach((e) => {
                 const user = new User(e.data, e.sign);
+
+                // 过滤自身的卡片
+                if (selfData.userID === user.id) {
+                  return;
+                }
 
                 !sets.has(user.id) &&
                   this.recommends.push({
