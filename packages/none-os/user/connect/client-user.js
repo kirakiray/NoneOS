@@ -39,7 +39,15 @@ export class ClientUser extends User {
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    this._createChannel("initChannel");
+    const channel = this._createChannel("initChannel");
+
+    channel.onclose = () => {
+      this.#state = "closed";
+
+      emitEvent("user-state-change", {
+        originTarget: this,
+      });
+    };
 
     const offer = await rtcPC.createOffer();
 
@@ -98,7 +106,15 @@ export class ClientUser extends User {
       const { channel } = event;
 
       channel.addEventListener("close", () => {
+        console.log("close: ", channel);
         delete this.#channels[channel.label];
+        if (channel.label === "initChannel") {
+          this.#state = "closed";
+
+          emitEvent("user-state-change", {
+            originTarget: this,
+          });
+        }
       });
 
       this.#channels[channel.label] = Promise.resolve(channel);
