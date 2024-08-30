@@ -57,7 +57,7 @@ export const getCerts = async (certsData) => {
         data.data.forEach(([k, v]) => {
           obj[k] = v;
         });
-        obj.id = item.name;
+        obj.id = item.name || (await getHash(data));
         certs.push(obj);
       }
     } catch (err) {

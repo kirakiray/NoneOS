@@ -114,8 +114,9 @@
             slot="right-btn"
             size="mini"
             on:click="$host.saveRelateItemCert($data)"
+            attr:disabled="$data.owned"
           >
-            保存
+            {{$data.owned ? '已保存' : '保存'}}
           </p-button>
         </setting-cert-block>
       </x-fill>
@@ -161,6 +162,8 @@
             const { _origin } = data;
             if (_origin) {
               await saveCert(_origin);
+
+              data.owned = true; // 标记保存
 
               enqueue({
                 color: "success",
@@ -213,6 +216,9 @@
                 msg: "给你发送了一张证书",
               })
             );
+
+            // 发送实际证书数据
+            this.sendCerts();
 
             this.showAuthDialog = false;
 
@@ -293,8 +299,15 @@
                 msg: data.msg,
               });
             } else if (data.syncCerts) {
+              const localCerts = await getCerts();
+
               // 设置对方和我相关的证书
-              this.relateCerts = await getCerts(data.syncCerts);
+              this.relateCerts = (await getCerts(data.syncCerts)).map((e) => {
+                return {
+                  ...e,
+                  owned: localCerts.some((item) => item.id === e.id),
+                };
+              });
             }
           };
         },
