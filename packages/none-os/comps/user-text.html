@@ -8,7 +8,9 @@
   <script>
     export default async ({ load }) => {
       const { getUserCard } = await load("/packages/none-os/user/usercard.js");
+      const { getSelfUserInfo } = await load("/packages/none-os/user/main.js");
 
+      const selfData = await getSelfUserInfo();
       const userDatas = await getUserCard();
 
       // 备份用户映射名
@@ -25,6 +27,9 @@
         },
         proto: {
           get realText() {
+            if (this.userid === selfData.userID) {
+              return `${selfData.userName}(我)`;
+            }
             return users.get(this.userid) || this.userid;
           },
         },
