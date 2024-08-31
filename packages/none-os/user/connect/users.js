@@ -22,6 +22,24 @@ export const connectUser = async (userId) => {
   clients.set(user.id, user);
 };
 
+let pingTimer;
+// 定时测延迟
+const pingConnected = () => {
+  clearTimeout(pingTimer);
+  connecteds.forEach(async (e) => {
+    if (e._user.state === "connected") {
+      const delayTime = await e._user.ping();
+      e.delayTime = delayTime;
+    }
+  });
+
+  pingTimer = setTimeout(() => {
+    pingConnected();
+  }, 10000);
+};
+
+pingConnected();
+
 // 用户状态信息变化修正
 bind("user-state-change", (e) => {
   const { originTarget: targetUser } = e;
@@ -34,9 +52,15 @@ bind("user-state-change", (e) => {
       userID: targetUser.id,
       userName: targetUser.name,
       _user: targetUser,
+      delayTime: "-",
     });
 
     targetItem = connecteds.find((e) => e.userID === targetUser.id);
+
+    // 第一次更新延迟
+    targetUser.ping().then((time) => {
+      targetItem.delayTime = time;
+    });
   }
 
   // 更新状态

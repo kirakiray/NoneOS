@@ -26,6 +26,8 @@ export class ClientUser extends User {
   // 重新初始化主要信道
   _reInitChannel() {
     if (!this.#channels[INITCHANNEL]) {
+      clearTimeout(this.__ping_timer);
+
       this.#channels[INITCHANNEL] = new Promise((resolve) => {
         this.__init_channel_resolve = (channel) => {
           delete this.__init_channel_resolve;
@@ -96,19 +98,33 @@ export class ClientUser extends User {
   }
 
   // 测试延迟
-  async ping() {
-    const pingTime = Date.now();
-    this.__pingFunc = () => {
-      this.__pingFunc = null;
-      const delayTime = Date.now() - pingTime;
-      console.log("delayTime", delayTime);
-    };
-    this.send("__ping");
+  ping(loopDelayTime) {
+    return new Promise((resolve) => {
+      clearTimeout(this.__ping_timer);
+      const pingTime = Date.now();
+      this.__pingFunc = () => {
+        this.__pingFunc = null;
+        const delayTime = Date.now() - pingTime;
+
+        resolve(delayTime);
+
+        if (loopDelayTime) {
+          this.__ping_timer = setTimeout(
+            () => {
+              this.ping(loopDelayTime);
+            },
+            loopDelayTime === true ? 10000 : loopDelayTime
+          );
+        }
+      };
+      this.send("__ping");
+    });
   }
 
   _onmsg(e, targetChannel) {
     if (e.data === "__ping") {
       // 直接返回pong
+      this.send("__pong");
       return;
     } else if (e.data === "__pong") {
       this.__pingFunc && this.__pingFunc();

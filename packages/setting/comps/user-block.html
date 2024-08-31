@@ -25,7 +25,8 @@
     }
   </style>
   <div>用户名：{{item._user.name}}</div>
-  <div>连接状态：{{item.state}}</div>
+  <div style="font-size: 14px">连接状态：{{item.state}}</div>
+  <div style="font-size: 12px; color: #aaa">延迟:{{item.delayTime}}ms</div>
   <div class:hide="item.state !== 'connected'">
     <div style="display: flex; margin-top: 8px">
       <p-text-field
