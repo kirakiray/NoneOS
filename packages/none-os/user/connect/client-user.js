@@ -2,10 +2,13 @@ import { User } from "../public-user.js";
 import { emitEvent } from "./public.js";
 import { servers } from "./servers.js";
 
+const INITCHANNEL = "initChannel";
+
 export class ClientUser extends User {
   #rtcConnection;
   #state = "disconnected";
   #channels = {};
+  #delayTime = 0;
   onstatechange = null;
   constructor(...args) {
     super(...args);
@@ -16,9 +19,111 @@ export class ClientUser extends User {
     return this.#state;
   }
 
+  get delayTime() {
+    return this.#delayTime;
+  }
+
+  // 重新初始化主要信道
+  _reInitChannel() {
+    if (!this.#channels[INITCHANNEL]) {
+      this.#channels[INITCHANNEL] = new Promise((resolve) => {
+        this.__init_channel_resolve = (channel) => {
+          delete this.__init_channel_resolve;
+
+          channel.addEventListener("close", () => {
+            this.#state = "closed";
+
+            emitEvent("user-state-change", {
+              originTarget: this,
+            });
+
+            delete this.#channels[INITCHANNEL];
+
+            this._reInitChannel();
+          });
+
+          resolve(channel);
+        };
+      });
+    }
+  }
+
+  _init() {
+    this._reInitChannel();
+
+    // 建立rtc实例
+    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
+
+    rtcPC.onconnectionstatechange = (event) => {
+      this.#state = rtcPC.connectionState;
+
+      console.log("rtcPC.connectionState: ", rtcPC.connectionState);
+
+      emitEvent("user-state-change", {
+        originTarget: this,
+      });
+    };
+
+    rtcPC.ondatachannel = (event) => {
+      const { channel } = event;
+
+      if (channel.label === INITCHANNEL) {
+        this.__init_channel_resolve(channel);
+      } else {
+        channel.addEventListener("close", () => {
+          delete this.#channels[channel.label];
+        });
+
+        this.#channels[channel.label] = Promise.resolve(channel);
+      }
+
+      channel.onmessage = (e) => this._onmsg(e, channel);
+    };
+
+    rtcPC.addEventListener("icecandidate", (event) => {
+      const { candidate } = event;
+
+      if (candidate) {
+        // 传递 icecandidate
+        this._serverAgentPost({
+          step: "set-candidate",
+          candidate,
+        });
+
+        // console.log("candidate: ", candidate);
+      }
+    });
+  }
+
+  // 测试延迟
+  async ping() {
+    const pingTime = Date.now();
+    this.__pingFunc = () => {
+      this.__pingFunc = null;
+      const delayTime = Date.now() - pingTime;
+      console.log("delayTime", delayTime);
+    };
+    this.send("__ping");
+  }
+
+  _onmsg(e, targetChannel) {
+    if (e.data === "__ping") {
+      // 直接返回pong
+      return;
+    } else if (e.data === "__pong") {
+      this.__pingFunc && this.__pingFunc();
+      return;
+    }
+    this.onmessage &&
+      this.onmessage({
+        channel: targetChannel,
+        data: e.data,
+      });
+  }
+
   // 发送数据给对面
   async send(data) {
-    const channel = await this.#channels["initChannel"];
+    const channel = await this.#channels[INITCHANNEL];
 
     if (channel) {
       channel.send(data);
@@ -39,14 +144,10 @@ export class ClientUser extends User {
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    const channel = this._createChannel("initChannel");
+    const channel = this._createChannel(INITCHANNEL);
 
-    channel.onclose = () => {
-      this.#state = "closed";
-
-      emitEvent("user-state-change", {
-        originTarget: this,
-      });
+    channel.onopen = () => {
+      this.__init_channel_resolve(channel);
     };
 
     const offer = await rtcPC.createOffer();
@@ -69,78 +170,21 @@ export class ClientUser extends User {
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    this.#channels[channelName] = new Promise((resolve, reject) => {
-      targetChannel.onopen = () => {
-        resolve(targetChannel);
-      };
-    });
+    if (channelName !== INITCHANNEL) {
+      this.#channels[channelName] = new Promise((resolve, reject) => {
+        targetChannel.onopen = () => {
+          resolve(targetChannel);
+        };
+      });
 
-    targetChannel.onmessage = (e) => {
-      this.onmessage &&
-        this.onmessage({
-          channel: targetChannel,
-          data: e.data,
-        });
-    };
+      targetChannel.addEventListener("close", () => {
+        delete this.#channels[channelName];
+      });
+    }
 
-    targetChannel.addEventListener("close", () => {
-      delete this.#channels[channelName];
-    });
+    targetChannel.onmessage = (e) => this._onmsg(e, targetChannel);
 
     return targetChannel;
-  }
-
-  _init() {
-    // 建立rtc实例
-    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
-
-    rtcPC.onconnectionstatechange = (event) => {
-      this.#state = rtcPC.connectionState;
-
-      emitEvent("user-state-change", {
-        originTarget: this,
-      });
-    };
-
-    rtcPC.ondatachannel = (event) => {
-      const { channel } = event;
-
-      channel.addEventListener("close", () => {
-        console.log("close: ", channel);
-        delete this.#channels[channel.label];
-        if (channel.label === "initChannel") {
-          this.#state = "closed";
-
-          emitEvent("user-state-change", {
-            originTarget: this,
-          });
-        }
-      });
-
-      this.#channels[channel.label] = Promise.resolve(channel);
-
-      channel.onmessage = (e) => {
-        this.onmessage &&
-          this.onmessage({
-            channel,
-            data: e.data,
-          });
-      };
-    };
-
-    rtcPC.addEventListener("icecandidate", (event) => {
-      const { candidate } = event;
-
-      if (candidate) {
-        // 传递 icecandidate
-        this._serverAgentPost({
-          step: "set-candidate",
-          candidate,
-        });
-
-        // console.log("candidate: ", candidate);
-      }
-    });
   }
 
   // 通过代理转发的初始化信息
