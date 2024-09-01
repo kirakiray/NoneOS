@@ -232,6 +232,8 @@
     function validateURL(url) {
       const regex =
         /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+
+      // const regex = /https?:\/\/\S+/;
       return regex.test(url);
     }
   </script>

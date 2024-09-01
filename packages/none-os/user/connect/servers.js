@@ -56,9 +56,9 @@ bind("server-ping", reloadServers);
 
 // 添加服务器
 export const addServer = (url) => {
-  if (validateURL(val)) {
-    const err = new Error(`Server address added`);
-    err.code = "repeat";
+  if (!validateURL(url)) {
+    const err = new Error(`Url Format Error`);
+    err.code = "formatError";
     throw err;
   }
 
