@@ -1,4 +1,4 @@
-//! ofa.js - v4.5.10 https://github.com/kirakiray/ofa.js  (c) 2018-2024 YAO
+//! ofa.js - v4.5.15 https://github.com/kirakiray/ofa.js  (c) 2018-2024 YAO
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -109,14 +109,14 @@
   const getRandomId = () => Math.random().toString(32).slice(2);
 
   const objectToString = Object.prototype.toString;
-  const getType$1 = (value) =>
+  const getType = (value) =>
     objectToString
       .call(value)
       .toLowerCase()
       .replace(/(\[object )|(])/g, "");
 
   const isObject = (obj) => {
-    const type = getType$1(obj);
+    const type = getType(obj);
     return type === "array" || type === "object";
   };
 
@@ -261,7 +261,7 @@
     return false;
   }
 
-  const isFunction = (val) => getType$1(val).includes("function");
+  const isFunction = (val) => getType(val).includes("function");
 
   const hyphenToUpperCase = (str) =>
     str.replace(/-([a-z])/g, (match, p1) => {
@@ -2240,7 +2240,7 @@ try{
       return new XhearCSS(this);
     },
     set css(d) {
-      if (getType$1(d) == "string") {
+      if (getType(d) == "string") {
         this.ele.style = d;
         return;
       }
@@ -2262,7 +2262,7 @@ try{
   };
 
   function $(expr) {
-    if (getType$1(expr) === "string" && !/<.+>/.test(expr)) {
+    if (getType(expr) === "string" && !/<.+>/.test(expr)) {
       const ele = document.querySelector(expr);
 
       return eleX(ele);
@@ -2538,7 +2538,7 @@ try{
                 } else if (oldVal !== val) {
                   let reval = val;
 
-                  const valType = getType$1(val);
+                  const valType = getType(val);
 
                   if (valType === "number" && oldVal === String(val)) {
                     // Setting the number will cause an infinite loop
@@ -2663,13 +2663,13 @@ try{
     return true;
   }
 
-  function deepCopyData(obj, tag = "") {
+  function deepCopyData(obj, tag = "", keyName) {
     if (obj instanceof Set || obj instanceof Map) {
       throw getErr("xhear_regster_data_noset", { tag });
     }
 
     if (obj instanceof Function) {
-      throw getErr("xhear_regster_data_nofunc", { tag });
+      throw getErr("xhear_regster_data_nofunc", { tag, key: keyName });
     }
 
     if (typeof obj !== "object" || obj === null) {
@@ -2680,7 +2680,12 @@ try{
 
     for (let key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        copy[key] = deepCopyData(obj[key], tag);
+        if (/^_/.test(key)) {
+          // 直接赋值私有属性
+          copy[key] = obj[key];
+        } else {
+          copy[key] = deepCopyData(obj[key], tag, key);
+        }
       }
     }
 
@@ -2993,7 +2998,8 @@ try{
 
         this.__rendered = false;
 
-        revokeAll(this._fake);
+        // revokeAll(this._fake);
+        this._fake?.childNodes?.forEach((el) => revokeAll(el));
         this._fake.innerHTML = "";
 
         this.emit("clear", {
@@ -3007,6 +3013,7 @@ try{
 
         this._bindend = true;
         const fake = (this._fake = new FakeNode(this.tag));
+        fake.__revokes = this.ele.__revokes;
         this.before(fake);
         fake.init();
         this.remove();
@@ -3335,8 +3342,13 @@ try{
         if (this._bindend) {
           return;
         }
+
         this._bindend = true;
         const fake = (this._fake = new FakeNode("x-fill"));
+
+        // 搬动 revokes
+        fake.__revokes = this.ele.__revokes;
+
         this.before(fake);
         fake.init();
         this.remove();
@@ -3366,9 +3378,18 @@ try{
 
     const itemData = new Stanz({
       $data,
-      $ele,
+      // $ele,
       $host,
       $index,
+    });
+
+    // tips: 如果$ele被设置为item的子属性，$ele内出现自定义组件，进一步导致改动冒泡，会出现xfill内元素不停渲染的死循环
+    Object.defineProperties(itemData, {
+      $ele: {
+        get() {
+          return $ele;
+        },
+      },
     });
 
     render({
@@ -3762,7 +3783,7 @@ try{
       return eleX(expr);
     }
 
-    const type = getType$1(expr);
+    const type = getType(expr);
 
     switch (type) {
       case "object":
@@ -6112,9 +6133,14 @@ ${scriptContent}`;
   };
 
   $("html").on("update-consumer", (e) => {
-    const { name, consumer } = e.data;
+    const { name, consumer, method } = e.data;
 
     const targetRootProvider = rootProviders[name];
+
+    if (method === "getProvider") {
+      e.data.callback(targetRootProvider);
+      return;
+    }
 
     if (targetRootProvider) {
       targetRootProvider[CONSUMERS].add(consumer);
@@ -6517,7 +6543,7 @@ ${scriptContent}`;
     },
   });
 
-  const version = "ofa.js@4.5.10";
+  const version = "ofa.js@4.5.15";
   $.version = version.replace("ofa.js@", "");
 
   if (document.currentScript) {

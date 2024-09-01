@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="./cert-block.html"></l-m>
   <style>
     :host {
       display: block;
@@ -6,25 +7,112 @@
     h5 {
       margin: 16px 0 4px;
     }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    setting-cert-block {
+      margin: 0 8px 8px 0;
+    }
   </style>
-  <h5>已获取的证书</h5>
-  <div></div>
-  <h5>已授权的证书</h5>
-  <div></div>
+  <h5>证书列表</h5>
+  <div class="container">
+    <x-fill :value="certs">
+      <setting-cert-block :item="$data">
+        <p-button
+          size="mini"
+          slot="right-btn"
+          on:click="$host.deleteItem($data)"
+        >
+          删除
+        </p-button>
+      </setting-cert-block>
+    </x-fill>
+  </div>
+  <x-if :value="expireds.length">
+    <h5>
+      已过期证书
+      <p-button
+        size="mini"
+        variant="text"
+        on:click="deleteExps"
+        style="margin-left: 16px"
+      >
+        删除所有过期证书
+      </p-button>
+    </h5>
+    <div class="container" style="opacity: 0.7">
+      <x-fill :value="expireds">
+        <setting-cert-block :item="$data">
+          <p-button
+            size="mini"
+            slot="right-btn"
+            on:click="$host.deleteItem($data)"
+          >
+            删除
+          </p-button>
+        </setting-cert-block>
+      </x-fill>
+    </div>
+  </x-if>
+
   <script>
-    import { get } from "/packages/fs/main.js";
+    import { getCerts, deleteCerts } from "/packages/none-os/user/cert.js";
+    import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
-      // 目标目录
-      const certsDir = await get(`local/system/certs`, {
-        create: "dir",
-      });
-
       return {
         tag: "setting-certs",
-        data: {},
-        proto: {},
-        async ready() {},
+        data: {
+          certs: [], // 当前证书
+          expireds: [], // 过期证书
+        },
+        proto: {
+          async refreshCert() {
+            const allCerts = await getCerts();
+
+            const certs = [];
+            const expireds = [];
+
+            const now = Date.now();
+
+            allCerts.forEach((e) => {
+              if (now < e.expire || e.expire === "never") {
+                certs.push(e);
+                return;
+              }
+
+              expireds.push(e);
+            });
+
+            this.certs = certs;
+            this.expireds = expireds;
+          },
+          async deleteItem(data) {
+            await deleteCerts([data.id]);
+
+            enqueue({
+              color: "success",
+              content: "删除证书成功",
+            });
+
+            this.refreshCert();
+          },
+          // 删除过期证书
+          async deleteExps() {
+            await deleteCerts(this.expireds.map((e) => e.id));
+
+            enqueue({
+              color: "success",
+              content: "删除过期证书成功",
+            });
+
+            this.refreshCert();
+          },
+        },
+        async ready() {
+          this.refreshCert();
+        },
       };
     };
   </script>

@@ -1,7 +1,7 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
 import { clients, emitEvent } from "./public.js";
-import { saveUserCard } from "../usercard.js";
+import { getUserCard } from "../usercard.js";
 
 const badDelayTime = 0;
 
@@ -69,9 +69,6 @@ export class ServerConnector {
             // 初始化 connect
             targetUserClient._agentConnect(result.data);
 
-            break;
-          case "pong":
-            debugger;
             break;
           default:
             console.log(result);
@@ -149,20 +146,6 @@ export class ServerConnector {
     }).then((e) => e.json());
 
     if (result.ok) {
-      // 保存到本地
-      await Promise.all(
-        result.data.map(async (e) => {
-          saveUserCard({
-            dataSignature: e.sign,
-            data: e.data,
-            // source: this.serverUrl,
-            source: new URL(this.serverUrl).host,
-          });
-        })
-      );
-
-      emitEvent("recommend-users-change");
-
       return result.data;
     }
   }

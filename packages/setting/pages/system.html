@@ -131,6 +131,7 @@
       </p-list-item>
     </div>
   </div>
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export const parent = "../outer.html";
 
@@ -141,24 +142,19 @@
       return {
         data: {
           lang: "cn",
-          darkMode: !!localStorage.__darkmode,
+          darkMode: false,
           osVersion: "Loading",
           onlineVersion: "",
           updateing: "",
+          theme: "",
         },
         watch: {
+          theme(theme) {
+            this.darkMode = theme === "dark";
+          },
           darkMode(bool) {
-            localStorage.__darkmode = bool ? "1" : "";
-
-            const provider = this.getProvider("pui");
-            if (provider) {
-              provider.theme = bool ? "dark" : "light";
-            }
-
-            clearTimeout(this._darkTimer);
-            this._darkTimer = setTimeout(() => {
-              this.host.theme = this.darkMode ? "dark" : "light";
-            }, 100);
+            const puiRoot = $.getRootProvider("pui");
+            puiRoot.theme = bool ? "dark" : "light";
           },
         },
         proto: {

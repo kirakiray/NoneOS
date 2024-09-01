@@ -44,34 +44,30 @@
     </style>
   </x-else>
 
-  <p-provider sync:theme="theme">
-    <x-if :value="step === 2">
-      <none-os-core></none-os-core>
-    </x-if>
-    <x-else-if :value="step === 1">
-      <div class="installing-container">
+  <x-if :value="step === 2">
+    <none-os-core></none-os-core>
+  </x-if>
+  <x-else-if :value="step === 1">
+    <div class="installing-container">
+      <div class="frosted-glass" style="padding: 16px 24px; text-align: center">
         <div
-          class="frosted-glass"
-          style="padding: 16px 24px; text-align: center"
+          style="
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--md-sys-color-primary);
+          "
         >
-          <div
-            style="
-              font-size: 24px;
-              font-weight: bold;
-              color: var(--md-sys-color-primary);
-            "
-          >
-            None OS
-            <span style="font-size: 12px">{{version}}</span>
-          </div>
-          <div style="margin: 0 0 8px; font-size: 14px">
-            {{installOK ? '安装完成' : '安装中...'}}
-          </div>
-          <p-progress :value="installVal" style="width: 200px"></p-progress>
+          None OS
+          <span style="font-size: 12px">{{version}}</span>
         </div>
+        <div style="margin: 0 0 8px; font-size: 14px">
+          {{installOK ? '安装完成' : '安装中...'}}
+        </div>
+        <p-progress :value="installVal" style="width: 200px"></p-progress>
       </div>
-    </x-else-if>
-  </p-provider>
+    </div>
+  </x-else-if>
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export default async ({ load }) => {
       const { default: get, createRoot } = await load("../fs/get.js");
@@ -87,7 +83,7 @@
           len: 0,
           installVal: 0,
           version: "",
-          theme: !!localStorage.__darkmode ? "dark" : "light",
+          theme: "light",
           step: 0,
           installOK: false,
         },

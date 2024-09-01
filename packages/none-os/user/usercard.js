@@ -6,10 +6,6 @@ import get from "/packages/fs/get.js";
 export async function saveUserCard(options = {}) {
   const { dataSignature, data, source } = options;
 
-  if (!source.trim()) {
-    throw "no source";
-  }
-
   const userObj = new User(data, dataSignature);
 
   const result = await userObj.verify();
@@ -20,13 +16,10 @@ export async function saveUserCard(options = {}) {
     throw err;
   }
 
-  // 写入到哪步文件
-  const userFile = await get(
-    `local/system/usercards/${source}/${userObj.id}.ucard`,
-    {
-      create: "file",
-    }
-  );
+  // 写入到对应域名的卡片文件夹
+  const userFile = await get(`local/system/usercards/${userObj.id}.ucard`, {
+    create: "file",
+  });
 
   await userFile.write(
     JSON.stringify({
@@ -37,6 +30,25 @@ export async function saveUserCard(options = {}) {
 
   return true;
 }
+
+// 删除用户卡片
+export const deleteUserCard = async (userID) => {
+  const parDirs = await get("local/system/usercards", {
+    create: "dir",
+  });
+
+  const cardFile = await parDirs.get(`${userID}.ucard`);
+
+  if (!cardFile) {
+    const err = new Error(`No corresponding user card found`);
+    err.code = "notFoundCard";
+    throw err;
+  }
+
+  await cardFile.remove();
+
+  return true;
+};
 
 // 读取用户信息
 export async function getUserCard(options = {}) {

@@ -1,7 +1,11 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/checkbox/checkbox.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="./usercard-block.html"></l-m>
 
   <style>
     h5 {
@@ -27,8 +31,22 @@
     >
       删除选中的服务器
     </p-button>
-    <p-button size="mini" style="margin-left: 8px" on:click="getRecommend">
+    <p-button
+      size="mini"
+      style="margin-left: 8px"
+      attr:disabled="!sers.length"
+      on:click="getRecommend"
+    >
       获取推荐用户
+    </p-button>
+    <p-button
+      size="mini"
+      variant="text"
+      on:click="pingAll"
+      attr:disabled="!sers.length"
+      style="margin-left: 8px"
+    >
+      测试握手服务器延迟
     </p-button>
   </h5>
   <div>
@@ -84,13 +102,48 @@
       </p-list-item>
     </p-list>
   </div>
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title">添加用户卡片</div>
+    <div
+      style="
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 80vw;
+        max-height: calc(70vh - 100px);
+        overflow-y: auto;
+      "
+    >
+      <x-fill :value="recommends">
+        <setting-usercard-block
+          :item="$data"
+          on:click="$data.checked = !$data.checked"
+          style="cursor: pointer"
+        >
+          <p-checkbox
+            sync:checked="$data.checked"
+            on:click="$event.stopPropagation()"
+          ></p-checkbox>
+        </setting-usercard-block>
+      </x-fill>
+    </div>
+    <div style="margin-top: 8px">
+      <p-button
+        attr:disabled="!recommends.some(e=>e.checked)"
+        on:click="confirmUsercard"
+      >
+        确认添加
+      </p-button>
+    </div>
+  </p-dialog>
   <script>
     import {
-      getServers,
-      bind,
       addServer,
       deleteServer,
-    } from "/packages/none-os/user/connect/main.js";
+      servers,
+    } from "/packages/none-os/user/connect/servers.js";
+    import { saveUserCard } from "/packages/none-os/user/usercard.js";
+    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
+    import { User } from "/packages/none-os/user/public-user.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async () => {
@@ -101,24 +154,71 @@
           selectedServer: "", // 选择中的服务器
           newSerUrl: "", // 添加新服务器的地址
           getRing: false,
+          showDialog: false,
+          recommends: [],
         },
         proto: {
-          async getRecommend() {
-            const sers = getServers();
-
+          async pingAll() {
+            this.sers.forEach((e) => {
+              if (e._server.status === "connected") {
+                e._server.ping();
+              }
+            });
+          },
+          async confirmUsercard() {
             await Promise.all(
-              sers.map(async (connector) => {
-                return connector.getRecommend();
-              })
+              this.recommends
+                .filter((e) => e.checked)
+                .map(async (e) => {
+                  await saveUserCard(e._user);
+                })
             );
 
             enqueue({
+              content: "添加卡片成功",
               color: "success",
-              content: "更新推荐用户成功",
+            });
+
+            this.showDialog = false;
+
+            // 尝试刷新卡片列表
+            this.root.all("setting-user-list").forEach((e) => {
+              e.refreshUserCardList && e.refreshUserCardList();
+            });
+          },
+          async getRecommend() {
+            const selfData = await getSelfUserInfo();
+
+            this.showDialog = true;
+
+            this.recommends = [];
+
+            const sets = new Set(); // 防止id重复的
+
+            servers.forEach(async (e) => {
+              const result = await e._server.getRecommend();
+
+              result.forEach((e) => {
+                const user = new User(e.data, e.sign);
+
+                // 过滤自身的卡片
+                if (selfData.userID === user.id) {
+                  return;
+                }
+
+                !sets.has(user.id) &&
+                  this.recommends.push({
+                    _user: user,
+                    checked: false,
+                  });
+
+                sets.add(user.id);
+              });
             });
           },
           clickDeleteServer() {
             deleteServer(this.selectedServer);
+            this.selectedServer = "";
           },
           clickAddServer() {
             const newUrl = this.newSerUrl;
@@ -141,43 +241,12 @@
                 break;
             }
           },
-          async reloadServers() {
-            const servers = getServers();
-
-            this.sers = servers.map((e) => {
-              return {
-                name: e.serverName,
-                version: e.serverVersion,
-                status: e.status,
-                serverUrl: e.serverUrl,
-                _server: e,
-                delayTime: e.delayTime,
-              };
-            });
-          },
-        },
-        ready() {
-          this.reloadServers();
         },
         attached() {
-          this._cancels = [
-            bind("server-list-change", (e) => {
-              this.reloadServers();
-            }),
-            bind("server-state-change", (e) => {
-              const { originTarget } = e;
-
-              this.reloadServers();
-            }),
-            bind("server-ping", (e) => {
-              const { originTarget } = e;
-
-              this.reloadServers();
-            }),
-          ];
+          this.sers = servers;
         },
         detached() {
-          this._cancels && this._cancels.forEach((f) => f());
+          this.sers = [];
         },
       };
     };
@@ -185,6 +254,8 @@
     function validateURL(url) {
       const regex =
         /^(?:http(s)?:\/\/)?[\w.-]+(?:\.[\w\.-]+)+[\w\-\._~:/?#[\]@!\$&'\*\+,;=.]+$/;
+
+      // const regex = /https?:\/\/\S+/;
       return regex.test(url);
     }
   </script>

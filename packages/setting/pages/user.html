@@ -101,7 +101,7 @@
     </p-table>
     <setting-user-list></setting-user-list>
     <setting-server-list style="margin-top: 8px"></setting-server-list>
-    <!-- <setting-certs></setting-certs> -->
+    <setting-certs></setting-certs>
   </div>
   <script>
     import {
@@ -121,8 +121,6 @@
           signPublic: selfData.signPublic,
           encryPublic: selfData.encryPublic,
           renameMode: false,
-          // 可连接的服务器
-          servers: [],
         },
         watch: {
           renameMode(bool) {
@@ -135,9 +133,6 @@
           },
         },
         proto: {
-          async linkUser(item) {
-            console.log(item);
-          },
           renameEnd(e) {
             this.renameMode = false;
             renameUser(this.userName);

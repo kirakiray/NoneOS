@@ -1,10 +1,14 @@
 import { User } from "../public-user.js";
-import { emitEvent, connectors } from "./public.js";
+import { emitEvent } from "./public.js";
+import { servers } from "./servers.js";
+
+const INITCHANNEL = "initChannel";
 
 export class ClientUser extends User {
   #rtcConnection;
   #state = "disconnected";
   #channels = {};
+  #delayTime = 0;
   onstatechange = null;
   constructor(...args) {
     super(...args);
@@ -15,16 +19,130 @@ export class ClientUser extends User {
     return this.#state;
   }
 
-  // 发送数据给对面
-  send(data) {
-    const channel = this.#channels["initChannel"];
-    if (!channel) {
-      this.#state = this.#rtcConnection.connectionState;
+  get delayTime() {
+    return this.#delayTime;
+  }
+
+  // 重新初始化主要信道
+  _reInitChannel() {
+    if (!this.#channels[INITCHANNEL]) {
+      clearTimeout(this.__ping_timer);
+
+      this.#channels[INITCHANNEL] = new Promise((resolve) => {
+        this.__init_channel_resolve = (channel) => {
+          delete this.__init_channel_resolve;
+
+          channel.addEventListener("close", () => {
+            this.#state = "closed";
+
+            emitEvent("user-state-change", {
+              originTarget: this,
+            });
+
+            delete this.#channels[INITCHANNEL];
+
+            this._reInitChannel();
+          });
+
+          resolve(channel);
+        };
+      });
+    }
+  }
+
+  _init() {
+    this._reInitChannel();
+
+    // 建立rtc实例
+    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
+
+    rtcPC.onconnectionstatechange = (event) => {
+      this.#state = rtcPC.connectionState;
+
       emitEvent("user-state-change", {
         originTarget: this,
       });
-    } else {
+    };
+
+    rtcPC.ondatachannel = (event) => {
+      const { channel } = event;
+
+      if (channel.label === INITCHANNEL) {
+        this.__init_channel_resolve(channel);
+      } else {
+        channel.addEventListener("close", () => {
+          delete this.#channels[channel.label];
+        });
+
+        this.#channels[channel.label] = Promise.resolve(channel);
+      }
+
+      channel.onmessage = (e) => this._onmsg(e, channel);
+    };
+
+    rtcPC.addEventListener("icecandidate", (event) => {
+      const { candidate } = event;
+
+      if (candidate) {
+        // 传递 icecandidate
+        this._serverAgentPost({
+          step: "set-candidate",
+          candidate,
+        });
+
+        // console.log("candidate: ", candidate);
+      }
+    });
+  }
+
+  // 测试延迟
+  ping(loopDelayTime) {
+    return new Promise((resolve) => {
+      clearTimeout(this.__ping_timer);
+      const pingTime = Date.now();
+      this.__pingFunc = () => {
+        this.__pingFunc = null;
+        const delayTime = Date.now() - pingTime;
+
+        resolve(delayTime);
+
+        if (loopDelayTime) {
+          this.__ping_timer = setTimeout(
+            () => {
+              this.ping(loopDelayTime);
+            },
+            loopDelayTime === true ? 10000 : loopDelayTime
+          );
+        }
+      };
+      this.send("__ping");
+    });
+  }
+
+  _onmsg(e, targetChannel) {
+    if (e.data === "__ping") {
+      // 直接返回pong
+      this.send("__pong");
+      return;
+    } else if (e.data === "__pong") {
+      this.__pingFunc && this.__pingFunc();
+      return;
+    }
+    this.onmessage &&
+      this.onmessage({
+        channel: targetChannel,
+        data: e.data,
+      });
+  }
+
+  // 发送数据给对面
+  async send(data) {
+    const channel = await this.#channels[INITCHANNEL];
+
+    if (channel) {
       channel.send(data);
+    } else {
+      console.log("no-channel");
     }
   }
 
@@ -34,10 +152,17 @@ export class ClientUser extends User {
       return;
     }
 
+    // 连接前先查看是否有服务器可用，没有可用服务器就别发了
+    await this._getServer();
+
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    this._createChannel("initChannel");
+    const channel = this._createChannel(INITCHANNEL);
+
+    channel.onopen = () => {
+      this.__init_channel_resolve(channel);
+    };
 
     const offer = await rtcPC.createOffer();
 
@@ -59,72 +184,21 @@ export class ClientUser extends User {
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    targetChannel.onmessage = (e) => {
-      this.onmessage &&
-        this.onmessage({
-          channel: targetChannel,
-          data: e.data,
-        });
-    };
+    if (channelName !== INITCHANNEL) {
+      this.#channels[channelName] = new Promise((resolve, reject) => {
+        targetChannel.onopen = () => {
+          resolve(targetChannel);
+        };
+      });
 
-    targetChannel.addEventListener("close", () => {
-      delete this.#channels[channelName];
-    });
+      targetChannel.addEventListener("close", () => {
+        delete this.#channels[channelName];
+      });
+    }
 
-    this.#channels[channelName] = targetChannel;
-
-    // targetChannel.onopen = () => {
-    //   targetChannel.send(" 你收到了吗？");
-    // };
+    targetChannel.onmessage = (e) => this._onmsg(e, targetChannel);
 
     return targetChannel;
-  }
-
-  _init() {
-    // 建立rtc实例
-    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
-
-    rtcPC.onconnectionstatechange = (event) => {
-      this.#state = rtcPC.connectionState;
-
-      emitEvent("user-state-change", {
-        originTarget: this,
-      });
-    };
-
-    rtcPC.ondatachannel = (event) => {
-      const { channel } = event;
-
-      channel.addEventListener("close", () => {
-        delete this.#channels[channel.label];
-      });
-
-      this.#channels[channel.label] = channel;
-
-      channel.onmessage = (e) => {
-        console.log(channel.label, " get message => ", e.data);
-
-        this.onmessage &&
-          this.onmessage({
-            channel,
-            data: e.data,
-          });
-      };
-    };
-
-    rtcPC.addEventListener("icecandidate", (event) => {
-      const { candidate } = event;
-
-      if (candidate) {
-        // 传递 icecandidate
-        this._serverAgentPost({
-          step: "set-candidate",
-          candidate,
-        });
-
-        // console.log("candidate: ", candidate);
-      }
-    });
   }
 
   // 通过代理转发的初始化信息
@@ -160,34 +234,67 @@ export class ClientUser extends User {
     }
   }
 
-  // 通过服务器转发内容
-  async _serverAgentPost(data) {
+  // 查找最好的服务器进行发送
+  async _getServer() {
+    if (this._bestServer) {
+      // 直接返回已设置的最好的服务器
+      return this._bestServer;
+    }
+
     // 先根据延迟进行排序
-    const sers = connectors
+    const sers = servers
+      .map((e) => e._server)
       .filter((e) => e.status === "connected")
       .sort((a, b) => {
         return a.delayTime - b.delayTime;
       });
 
-    // 逐个服务器尝试连接用户
-    let result;
-
     for (let ser of sers) {
-      result = await ser
+      // 查找用户是否存在
+      const sResult = await ser
         ._post({
-          agent: {
-            targetId: this.id,
-            data,
-          },
+          search: this.id,
         })
         .then((e) => e.json())
         .catch(() => null);
 
-      if (result && result.ok) {
-        break;
+      if (!sResult || !sResult.user) {
+        continue;
       }
+
+      if (sResult.ok && sResult.user) {
+        // 验证用户信息是否正确
+        const user = new User(sResult.user.data, sResult.user.sign);
+
+        if (user.id !== this.id || !(await user.verify())) {
+          // 不符合规定都直接劝退
+          continue;
+        }
+      }
+
+      this._bestServer = ser;
+
+      return ser;
     }
 
-    return result;
+    const err = new Error("User not found on server");
+    err.code = "userNotFound";
+
+    throw err;
+  }
+
+  // 通过服务器转发内容
+  async _serverAgentPost(data) {
+    const ser = await this._getServer();
+
+    return await ser
+      ._post({
+        agent: {
+          targetId: this.id,
+          data,
+        },
+      })
+      .then((e) => e.json())
+      .catch(() => null);
   }
 }
