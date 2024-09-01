@@ -31,8 +31,22 @@
     >
       删除选中的服务器
     </p-button>
-    <p-button size="mini" style="margin-left: 8px" on:click="getRecommend">
+    <p-button
+      size="mini"
+      style="margin-left: 8px"
+      attr:disabled="!sers.length"
+      on:click="getRecommend"
+    >
       获取推荐用户
+    </p-button>
+    <p-button
+      size="mini"
+      variant="text"
+      on:click="pingAll"
+      attr:disabled="!sers.length"
+      style="margin-left: 8px"
+    >
+      测试握手服务器延迟
     </p-button>
   </h5>
   <div>
@@ -144,6 +158,13 @@
           recommends: [],
         },
         proto: {
+          async pingAll() {
+            this.sers.forEach((e) => {
+              if (e._server.status === "connected") {
+                e._server.ping();
+              }
+            });
+          },
           async confirmUsercard() {
             await Promise.all(
               this.recommends
@@ -197,6 +218,7 @@
           },
           clickDeleteServer() {
             deleteServer(this.selectedServer);
+            this.selectedServer = "";
           },
           clickAddServer() {
             const newUrl = this.newSerUrl;

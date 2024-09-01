@@ -123,7 +123,7 @@ const checkServer = async () => {
       // 重新初始化
       item.init();
     } else if (item.status === "connected") {
-      item.ping();
+      // item.ping();
     }
   });
 
