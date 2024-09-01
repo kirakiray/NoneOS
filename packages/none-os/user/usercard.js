@@ -31,6 +31,25 @@ export async function saveUserCard(options = {}) {
   return true;
 }
 
+// 删除用户卡片
+export const deleteUserCard = async (userID) => {
+  const parDirs = await get("local/system/usercards", {
+    create: "dir",
+  });
+
+  const cardFile = await parDirs.get(`${userID}.ucard`);
+
+  if (!cardFile) {
+    const err = new Error(`No corresponding user card found`);
+    err.code = "notFoundCard";
+    throw err;
+  }
+
+  await cardFile.remove();
+
+  return true;
+};
+
 // 读取用户信息
 export async function getUserCard(options = {}) {
   const parDirs = await get("local/system/usercards", {

@@ -1,6 +1,7 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
 import { clients, emitEvent } from "./public.js";
+import { getUserCard } from "../usercard.js";
 
 const badDelayTime = 0;
 
@@ -68,9 +69,6 @@ export class ServerConnector {
             // 初始化 connect
             targetUserClient._agentConnect(result.data);
 
-            break;
-          case "pong":
-            debugger;
             break;
           default:
             console.log(result);

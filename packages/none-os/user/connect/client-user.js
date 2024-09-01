@@ -59,8 +59,6 @@ export class ClientUser extends User {
     rtcPC.onconnectionstatechange = (event) => {
       this.#state = rtcPC.connectionState;
 
-      console.log("rtcPC.connectionState: ", rtcPC.connectionState);
-
       emitEvent("user-state-change", {
         originTarget: this,
       });

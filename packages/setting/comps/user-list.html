@@ -39,13 +39,24 @@
   <div style="display: flex; flex-wrap: wrap">
     <x-fill :value="users">
       <setting-usercard-block :item="$data">
-        <p-button
-          size="mini"
-          on:click="$host.linkUser($data)"
-          attr:disabled="$host.isConnected($data)"
-        >
-          {{$host.isConnected($data) ? '已在已连接列表' : '连接用户'}}
-        </p-button>
+        <div style="display: flex; margin-top: 8px">
+          <p-button
+            size="mini"
+            on:click="$host.linkUser($data)"
+            attr:disabled="$host.isConnected($data)"
+          >
+            {{$host.isConnected($data) ? '已在已连接列表' : '连接用户'}}
+          </p-button>
+
+          <p-button
+            color="error"
+            size="mini"
+            on:click="$host.deleteCard($data)"
+            style="margin-left: auto"
+          >
+            删除卡片
+          </p-button>
+        </div>
       </setting-usercard-block>
     </x-fill>
   </div>
@@ -54,7 +65,10 @@
     import { get } from "/packages/fs/main.js";
     import { User } from "/packages/none-os/user/public-user.js";
     import { getSelfUserInfo } from "/packages/none-os/user/main.js";
-    import { getUserCard } from "/packages/none-os/user/usercard.js";
+    import {
+      getUserCard,
+      deleteUserCard,
+    } from "/packages/none-os/user/usercard.js";
     import enqueue from "/packages/pui/snackbar/enqueue.js";
 
     import {
@@ -71,6 +85,16 @@
         showAuthDialog: false, // 显示授权的弹窗
       },
       proto: {
+        async deleteCard(data) {
+          await deleteUserCard(data.userID);
+
+          enqueue({
+            color: "success",
+            content: `删除用户'${data._user.name}'卡片成功`,
+          });
+
+          this.refreshUserCardList();
+        },
         async linkUser(item) {
           // 连接指定id用户
           connectUser(item.userID).catch((err) => {
