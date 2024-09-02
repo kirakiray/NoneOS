@@ -1,9 +1,10 @@
 import { ClientUser } from "./client-user.js";
 import { getSelfUserCardData } from "../main.js";
 import { clients, emitEvent } from "./public.js";
-import { getUserCard } from "../usercard.js";
 
 const badDelayTime = 0;
+
+const sessionID = Math.random().toString(32).slice(2);
 
 // 和服务器进行相连的实例
 export class ServerConnector {
@@ -27,7 +28,12 @@ export class ServerConnector {
 
     // 创建一个 EventSource 对象，连接到 SSE 端点
     const eventSource = (this.__sse = new EventSource(
-      `${this.#serverUrl}/${encodeURIComponent(JSON.stringify(selfCardData))}`
+      `${this.#serverUrl}/${encodeURIComponent(
+        JSON.stringify({
+          ...selfCardData,
+          sessionID,
+        })
+      )}`
     ));
 
     // 监听消息事件
