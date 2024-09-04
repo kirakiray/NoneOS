@@ -13,6 +13,7 @@ export class ServerConnector {
   #apiID;
   #serverID;
   #delayTime = badDelayTime;
+  #initingPms = null;
   constructor(serverUrl) {
     this.#serverUrl = serverUrl;
     this.init();
@@ -20,89 +21,105 @@ export class ServerConnector {
 
   // 连接服务器的初始化操作
   async init() {
-    const selfCardData = await getSelfUserCardData();
-
-    if (this.__sse) {
-      this.__sse.close();
+    if (this.#initingPms) {
+      return await this.#initingPms;
     }
 
-    // 创建一个 EventSource 对象，连接到 SSE 端点
-    const eventSource = (this.__sse = new EventSource(
-      `${this.#serverUrl}/${encodeURIComponent(
-        JSON.stringify({
-          ...selfCardData,
-          sessionID,
-        })
-      )}`
-    ));
+    return (this.#initingPms = new Promise(async (resolve, reject) => {
+      const selfCardData = await getSelfUserCardData();
 
-    // 监听消息事件
-    eventSource.onmessage = async (event) => {
-      const result = JSON.parse(event.data);
-
-      this._ontake && this._ontake(result);
-
-      if (result.__type) {
-        switch (result.__type) {
-          case "init":
-            // 初始化用户和服务器信息
-            this.serverName = result.serverName;
-            this.serverVersion = result.serverVersion;
-            this.#serverID = result.serverID;
-            this.#apiID = result.apiID;
-
-            this._emitchange("connected");
-
-            this.ping();
-
-            break;
-
-          case "agent-connect":
-            // 用户之间尝试进行握手操作
-            let targetUserClient = clients.get(result.fromUserID);
-
-            if (!targetUserClient) {
-              targetUserClient = new ClientUser(
-                result.fromUser.data,
-                result.fromUser.sign
-              );
-
-              if (targetUserClient.id === result.fromUserID) {
-                clients.set(result.fromUserID, targetUserClient);
-              }
-            }
-
-            // 初始化 connect
-            targetUserClient._agentConnect(result.data);
-
-            break;
-          default:
-            console.log(result);
-            return;
-        }
-      } else if (this.onmessage) {
-        this.onmessage(result);
+      if (this.__sse) {
+        this.__sse.close();
       }
-    };
 
-    // 监听错误事件
-    eventSource.onerror = (e) => {
-      console.error(e);
-      // 在这里处理错误
-      eventSource.close();
+      // 创建一个 EventSource 对象，连接到 SSE 端点
+      const eventSource = (this.__sse = new EventSource(
+        `${this.#serverUrl}/${encodeURIComponent(
+          JSON.stringify({
+            ...selfCardData,
+            sessionID,
+          })
+        )}`
+      ));
 
-      this.#delayTime = badDelayTime;
+      // 监听消息事件
+      eventSource.onmessage = async (event) => {
+        const result = JSON.parse(event.data);
 
-      this._emitchange("closed");
-    };
+        this._ontake && this._ontake(result);
 
-    // 监听连接关闭事件
-    eventSource.onclose = () => {
-      console.log("Server Connection closed", this);
-      this.#delayTime = badDelayTime;
+        if (result.__type) {
+          switch (result.__type) {
+            case "init":
+              // 初始化用户和服务器信息
+              this.serverName = result.serverName;
+              this.serverVersion = result.serverVersion;
+              this.#serverID = result.serverID;
+              this.#apiID = result.apiID;
 
-      this._emitchange("closed");
-    };
+              this._emitchange("connected");
+
+              this.ping();
+
+              this.#initingPms = null;
+
+              resolve(eventSource);
+
+              break;
+
+            case "agent-connect":
+              // 用户之间尝试进行握手操作
+              let targetUserClient = clients.get(result.fromUserID);
+
+              if (!targetUserClient) {
+                targetUserClient = new ClientUser(
+                  result.fromUser.data,
+                  result.fromUser.sign
+                );
+
+                if (targetUserClient.id === result.fromUserID) {
+                  clients.set(result.fromUserID, targetUserClient);
+                }
+              }
+
+              // 初始化 connect
+              targetUserClient._agentConnect(result.data);
+
+              break;
+            default:
+              console.log(result);
+              return;
+          }
+        } else if (this.onmessage) {
+          this.onmessage(result);
+        }
+      };
+
+      // 监听错误事件
+      eventSource.onerror = (e) => {
+        this.#initingPms = null;
+        reject();
+
+        console.error(e);
+        // 在这里处理错误
+        eventSource.close();
+
+        this.#delayTime = badDelayTime;
+
+        this._emitchange("closed");
+      };
+
+      // 监听连接关闭事件
+      eventSource.onclose = () => {
+        this.#initingPms = null;
+        reject();
+
+        console.log("Server Connection closed", this);
+        this.#delayTime = badDelayTime;
+
+        this._emitchange("closed");
+      };
+    }));
   }
 
   // 改变状态
@@ -121,6 +138,10 @@ export class ServerConnector {
 
   // 提交数据
   async _post(data) {
+    if (this.#status === "closed") {
+      await this.init();
+    }
+
     const postUrl = new URL(this.#serverUrl).origin + this.#apiID;
 
     return fetch(postUrl, {
