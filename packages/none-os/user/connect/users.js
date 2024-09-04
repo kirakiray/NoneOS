@@ -35,7 +35,7 @@ const pingConnected = () => {
 
   pingTimer = setTimeout(() => {
     pingConnected();
-  }, 10000);
+  }, 5000);
 };
 
 pingConnected();
