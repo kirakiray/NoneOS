@@ -59,6 +59,8 @@ export class ClientUser extends User {
     rtcPC.onconnectionstatechange = (event) => {
       this.#state = rtcPC.connectionState;
 
+      console.log("onconnectionstatechange: ", rtcPC.connectionState);
+
       emitEvent("user-state-change", {
         originTarget: this,
       });
@@ -66,6 +68,8 @@ export class ClientUser extends User {
 
     rtcPC.ondatachannel = (event) => {
       const { channel } = event;
+
+      console.log("ondatachannel: ", channel);
 
       if (channel.label === INITCHANNEL) {
         this.__init_channel_resolve(channel);
@@ -204,6 +208,8 @@ export class ClientUser extends User {
   // 通过代理转发的初始化信息
   async _agentConnect(data) {
     const rtcPC = this.#rtcConnection;
+
+    console.log("_agentConnect", data);
 
     const { step } = data;
 

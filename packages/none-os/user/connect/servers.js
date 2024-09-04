@@ -113,23 +113,23 @@ export const deleteServer = (url) => {
 };
 
 // 定时更新机制
-let checkTimer;
-const checkServer = async () => {
-  clearTimeout(checkTimer);
-  servers.forEach((e) => {
-    const item = e._server;
+// let checkTimer;
+// const checkServer = async () => {
+//   clearTimeout(checkTimer);
+//   servers.forEach((e) => {
+//     const item = e._server;
 
-    if (item.status === "closed") {
-      // 重新初始化
-      item.init();
-    } else if (item.status === "connected") {
-      // item.ping();
-    }
-  });
+//     if (item.status === "closed") {
+//       // 重新初始化
+//       item.init();
+//     } else if (item.status === "connected") {
+//       // item.ping();
+//     }
+//   });
 
-  checkTimer = setTimeout(() => {
-    checkServer();
-  }, 10000);
-};
+//   checkTimer = setTimeout(() => {
+//     checkServer();
+//   }, 10000);
+// };
 
-checkServer(); // 点火
+// checkServer(); // 点火
