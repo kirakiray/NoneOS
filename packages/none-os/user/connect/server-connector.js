@@ -152,17 +152,24 @@ export class ServerConnector {
 
   // 测试延迟
   async ping() {
-    const startTime = Date.now();
-    const result = await this._post({
-      ping: Date.now(),
-    }).then((e) => e.json());
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        // 延迟测试更准确
+        const startTime = Date.now();
+        const result = await this._post({
+          ping: Date.now(),
+        }).then((e) => e.json());
 
-    if (result.pong) {
-      this.#delayTime = Date.now() - startTime;
-    }
+        if (result.pong) {
+          this.#delayTime = Date.now() - startTime;
+        }
 
-    emitEvent("server-ping", {
-      originTarget: this,
+        resolve(this.#delayTime);
+
+        emitEvent("server-ping", {
+          originTarget: this,
+        });
+      }, 50);
     });
   }
 
