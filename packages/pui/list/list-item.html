@@ -157,16 +157,14 @@
     ></button>
   </x-if>
 
-  <div>
-    <x-if :value="collapseChilds !== null">
-      <p-collapse :hide="collapseChilds === 'open' ? null : ''">
-        <slot name="childs"></slot>
-      </p-collapse>
-    </x-if>
-    <x-else>
+  <x-if :value="collapseChilds !== null">
+    <p-collapse :hide="collapseChilds === 'open' ? null : ''">
       <slot name="childs"></slot>
-    </x-else>
-  </div>
+    </p-collapse>
+  </x-if>
+  <x-else>
+    <slot name="childs"></slot>
+  </x-else>
   <script>
     import "../commons/init.js";
     import bindClick from "../button/bind-item-click.js";

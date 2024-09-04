@@ -34,11 +34,11 @@
   <n-horsp-pannel>
     <div slot="left">
       <p-list>
-        <p-list-item collapse-childs="open">
-          <span style="font-size: 13px; font-weight: 600">本地内容</span>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">当前空间</span>
           <i collapse-triangle slot="suffix"></i>
           <p-list slot="childs">
-            <x-fill :value="roots">
+            <x-fill :value="locals">
               <p-list-item
                 button
                 attr:active-item="$data.path === $host.selectedRootName"
@@ -47,10 +47,36 @@
                 <n-local-icon
                   slot="prefix"
                   attr:name="$data.icon || 'folder'"
+                  style="padding-left: 8px"
                 ></n-local-icon>
                 {{$data.name}}
               </p-list-item>
             </x-fill>
+          </p-list>
+        </p-list-item>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">其他设备</span>
+          <i collapse-triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <x-fill :value="remotes">
+              <p-list-item
+                button
+                attr:active-item="$data.path === $host.selectedRootName"
+                on:click="$host.clickTab($data)"
+              >
+                <n-local-icon
+                  slot="prefix"
+                  attr:name="$data.icon || 'folder'"
+                  style="padding-left: 8px"
+                ></n-local-icon>
+                {{$data.name}}
+              </p-list-item>
+            </x-fill>
+            <x-if :value="!remotes.length">
+              <p-list-item>
+                <div style="text-align: center; color: #7d7d7d">无</div>
+              </p-list-item>
+            </x-if>
           </p-list>
         </p-list-item>
       </p-list>
@@ -58,10 +84,12 @@
     <slot></slot>
   </n-horsp-pannel>
   <script>
+    import { getRemotes } from "/packages/fs/main.js";
+
     export default () => {
       return {
         data: {
-          roots: [
+          locals: [
             {
               name: "虚拟空间",
               path: "local",
@@ -78,6 +106,7 @@
             },
           ],
           selectedRootName: null,
+          remotes: [], // 远端设备
         },
         proto: {
           clickTab(data) {
@@ -88,13 +117,15 @@
             this.app.current.goto(`./explore.html?path=${data.path}`);
           },
         },
-        ready() {
+        async ready() {
           this.on("go-page", (e) => {
             e.stopPropagation();
 
             const rootName = e.data.path.split("/")[0];
             this.selectedRootName = rootName;
           });
+
+          this.remotes = await getRemotes();
         },
       };
     };
