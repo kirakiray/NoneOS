@@ -160,9 +160,7 @@
         proto: {
           async pingAll() {
             this.sers.forEach((e) => {
-              if (e._server.status === "connected") {
-                e._server.ping();
-              }
+              e._server.ping();
             });
           },
           async confirmUsercard() {
