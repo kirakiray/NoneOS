@@ -18,7 +18,16 @@ export const getRemotes = async () => {
 
       return {
         name: card?.name,
-        path: "$-remote-" + certData.issuer,
+        paths: [
+          {
+            name: "虚拟空间",
+            path: `$remote:${certData.issuer}:local`,
+          },
+          {
+            name: "应用",
+            path: `$remote:${certData.issuer}:apps`,
+          },
+        ],
       };
     });
 };

@@ -9,13 +9,13 @@
       background-color: var(--md-sys-color-surface);
     }
 
-    p-list-item {
+    p-list-item::part(main) {
       margin: 2px 0;
       border-radius: 0 20px 20px 0;
       overflow: hidden;
     }
 
-    p-list-item[active-item] {
+    p-list-item[active-item]::part(main) {
       background-color: var(--md-sys-color-primary);
       color: var(--md-sys-color-on-primary);
     }
@@ -38,20 +38,7 @@
           <span style="font-size: 13px; font-weight: 600">当前空间</span>
           <i collapse-triangle slot="suffix"></i>
           <p-list slot="childs">
-            <x-fill :value="locals">
-              <p-list-item
-                button
-                attr:active-item="$data.path === $host.selectedRootName"
-                on:click="$host.clickTab($data)"
-              >
-                <n-local-icon
-                  slot="prefix"
-                  attr:name="$data.icon || 'folder'"
-                  style="padding-left: 8px"
-                ></n-local-icon>
-                {{$data.name}}
-              </p-list-item>
-            </x-fill>
+            <x-fill :value="locals" name="path-item"> </x-fill>
           </p-list>
         </p-list-item>
         <p-list-item collapse-childs="open" button="suffix">
@@ -59,17 +46,17 @@
           <i collapse-triangle slot="suffix"></i>
           <p-list slot="childs">
             <x-fill :value="remotes">
-              <p-list-item
-                button
-                attr:active-item="$data.path === $host.selectedRootName"
-                on:click="$host.clickTab($data)"
-              >
+              <p-list-item collapse-childs="open" button="suffix">
                 <n-local-icon
                   slot="prefix"
-                  attr:name="$data.icon || 'folder'"
+                  name="user"
                   style="padding-left: 8px"
                 ></n-local-icon>
                 {{$data.name}}
+                <i collapse-triangle slot="suffix"></i>
+                <p-list slot="childs" style="--padding-left: 16px">
+                  <x-fill :value="$data.paths" name="path-item"></x-fill>
+                </p-list>
               </p-list-item>
             </x-fill>
             <x-if :value="!remotes.length">
@@ -83,6 +70,22 @@
     </div>
     <slot></slot>
   </n-horsp-pannel>
+
+  <template name="path-item">
+    <p-list-item
+      button
+      attr:active-item="$data.path === $host.selectedRootName"
+      on:click="$host.clickTab($data)"
+    >
+      <n-local-icon
+        slot="prefix"
+        attr:name="$data.icon || 'folder'"
+        style="padding-left: var(--padding-left, 8px)"
+      ></n-local-icon>
+      {{$data.name}}
+    </p-list-item>
+  </template>
+
   <script>
     import { getRemotes } from "/packages/fs/main.js";
 
