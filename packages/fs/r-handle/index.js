@@ -2,6 +2,7 @@ import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "/packages/user/main.js";
 import { getUserCard } from "/packages/user/usercard.js";
 import { RemoteDirHandle } from "./dir.js";
+import { connectUser } from "/packages/connect/users.js";
 
 // 获取可远端的根目录
 export const getRemotes = async () => {
@@ -19,6 +20,7 @@ export const getRemotes = async () => {
 
       return {
         name: card?.name,
+        userid: card?.id,
         paths: [
           {
             name: "虚拟空间",
@@ -33,12 +35,23 @@ export const getRemotes = async () => {
     });
 };
 
-export const get = (path) => {
+export const get = async (path) => {
   const pathArr = path.split("/");
   const rootInfo = pathArr[0].split(":");
+  const userid = rootInfo[1];
+  const rootPath = rootInfo[2];
 
-  const rootHandle = new RemoteDirHandle(path, async () => {
-    debugger;
+  const user = await connectUser(userid);
+
+  user.onmessage = (e) => {
+    console.log("msg", e);
+  };
+
+  const rootHandle = new RemoteDirHandle(rootPath, async (options) => {
+    await user.send({
+      type: "fs",
+      ...options,
+    });
   });
 
   if (pathArr.length === 1) {

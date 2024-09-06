@@ -34,7 +34,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
    * @generator
    * @yields {(OriginDirHandle|OriginFileHandle)} 子数据的句柄。
    */
-  async *values() {}
+  async *values() {
+    const result = await this._bridge({
+      method: "values",
+      path: this.path,
+    });
+
+    return result;
+  }
 
   /**
    * 异步函数，对每个子数据执行回调函数。

@@ -292,7 +292,7 @@
         },
         ready() {
           this.user.onmessage = async (e) => {
-            const data = JSON.parse(e.data);
+            const { data } = e;
 
             if (data.msg) {
               this.receiveds.push({

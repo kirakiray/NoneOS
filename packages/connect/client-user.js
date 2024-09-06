@@ -25,23 +25,26 @@ export class ClientUser extends User {
 
   // 重新初始化主要信道
   _reInitChannel() {
-    if (!this.#channels[INITCHANNEL]) {
+    if (!this.__init_channel_resolve) {
       clearTimeout(this.__ping_timer);
 
       this.#channels[INITCHANNEL] = new Promise((resolve) => {
         this.__init_channel_resolve = (channel) => {
           delete this.__init_channel_resolve;
 
-          channel.addEventListener("close", () => {
-            this.#state = "closed";
+          channel.addEventListener("close", async () => {
+            const initChannel = await this.#channels[INITCHANNEL];
+            if (channel === initChannel) {
+              this.#state = "closed";
 
-            emitEvent("user-state-change", {
-              originTarget: this,
-            });
+              console.log("init close:", channel);
 
-            delete this.#channels[INITCHANNEL];
+              emitEvent("user-state-change", {
+                originTarget: this,
+              });
 
-            this._reInitChannel();
+              this._reInitChannel();
+            }
           });
 
           resolve(channel);
@@ -66,16 +69,25 @@ export class ClientUser extends User {
       });
     };
 
-    rtcPC.ondatachannel = (event) => {
+    rtcPC.ondatachannel = async (event) => {
       const { channel } = event;
 
       console.log("ondatachannel: ", channel);
 
       if (channel.label === INITCHANNEL) {
+        const exitedInitChannel = this.#channels[INITCHANNEL];
+        if (!this.__init_channel_resolve) {
+          // 关闭旧的通道
+          // exitedInitChannel.close();
+          debugger;
+        }
         this.__init_channel_resolve(channel);
       } else {
-        channel.addEventListener("close", () => {
-          delete this.#channels[channel.label];
+        channel.addEventListener("close", async (e) => {
+          const cachedChannel = await this.#channels[channel.label];
+          if (cachedChannel === channel) {
+            delete this.#channels[channel.label];
+          }
         });
 
         this.#channels[channel.label] = Promise.resolve(channel);
@@ -132,10 +144,17 @@ export class ClientUser extends User {
       this.__pingFunc && this.__pingFunc();
       return;
     }
+
+    let data = e.data;
+
+    if (typeof data === "string") {
+      data = JSON.parse(data);
+    }
+
     this.onmessage &&
       this.onmessage({
         channel: targetChannel,
-        data: e.data,
+        data,
       });
   }
 
@@ -144,7 +163,11 @@ export class ClientUser extends User {
     const channel = await this.#channels[INITCHANNEL];
 
     if (channel) {
-      channel.send(data);
+      let sdata = data;
+      if (data instanceof Object) {
+        sdata = JSON.stringify(data);
+      }
+      channel.send(sdata);
     } else {
       console.log("no-channel");
     }
@@ -200,7 +223,9 @@ export class ClientUser extends User {
       });
     }
 
-    targetChannel.onmessage = (e) => this._onmsg(e, targetChannel);
+    targetChannel.onmessage = (e) => {
+      this._onmsg(e, targetChannel);
+    };
 
     return targetChannel;
   }

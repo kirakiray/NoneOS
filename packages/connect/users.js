@@ -20,6 +20,8 @@ export const connectUser = async (userId) => {
   await user.connect();
 
   clients.set(user.id, user);
+
+  return user;
 };
 
 let pingTimer;
