@@ -1,4 +1,4 @@
-import { getUserCard } from "../usercard.js";
+import { getUserCard } from "../user/usercard.js";
 import { ClientUser } from "./client-user.js";
 import { bind, clients } from "./public.js";
 

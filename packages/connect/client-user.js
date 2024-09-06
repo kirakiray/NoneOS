@@ -1,4 +1,4 @@
-import { User } from "../public-user.js";
+import { User } from "../user/public-user.js";
 import { emitEvent } from "./public.js";
 import { servers } from "./servers.js";
 

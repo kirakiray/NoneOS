@@ -1,5 +1,5 @@
 import { ClientUser } from "./client-user.js";
-import { getSelfUserCardData } from "../main.js";
+import { getSelfUserCardData } from "../user/main.js";
 import { clients, emitEvent } from "./public.js";
 
 const badDelayTime = 0;

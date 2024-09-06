@@ -65,16 +65,9 @@
     import { get } from "/packages/fs/main.js";
     import { User } from "/packages/user/public-user.js";
     import { getSelfUserInfo } from "/packages/user/main.js";
-    import {
-      getUserCard,
-      deleteUserCard,
-    } from "/packages/user/usercard.js";
+    import { getUserCard, deleteUserCard } from "/packages/user/usercard.js";
     import enqueue from "/packages/pui/snackbar/enqueue.js";
-
-    import {
-      connecteds,
-      connectUser,
-    } from "/packages/user/connect/users.js";
+    import { connecteds, connectUser } from "/packages/connect/users.js";
 
     export default {
       tag: "setting-user-list",
