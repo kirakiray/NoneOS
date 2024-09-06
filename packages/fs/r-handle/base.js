@@ -1,5 +1,5 @@
 import { getErr } from "../errors.js";
-import { getTargetAndName } from "../handle/base.js";
+import { getTargetAndName } from "../public.js";
 
 /**
  * 基础的Handle
@@ -8,9 +8,7 @@ export class RemoteBaseHandle {
   #path;
   #name;
   #kind;
-  constructor(path) {
-    debugger;
-  }
+  constructor(path) {}
   /**
    * 获取当前handle的唯一id
    * @returns {string}

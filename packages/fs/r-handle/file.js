@@ -7,11 +7,9 @@ import { RemoteBaseHandle } from "./base.js";
  */
 export class RemoteFileHandle extends RemoteBaseHandle {
   /**
-   * 创建一个文件句柄实例
-   * @param {string} systemHandle -
    */
-  constructor(systemHandle, path, root) {
-    super(systemHandle, path, root);
+  constructor() {
+    super();
   }
 
   /**

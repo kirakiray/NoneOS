@@ -1,4 +1,4 @@
-import get from "/packages/fs/get.js";
+import get from "/packages/fs/handle/get.js";
 import { getHash, verifyObject } from "./util.js";
 
 // 目标目录

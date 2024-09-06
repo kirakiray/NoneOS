@@ -8,7 +8,7 @@ import {
   dataToArrayBuffer,
 } from "./util.js";
 
-import get from "../../fs/get.js";
+import get from "../../fs/handle/get.js";
 
 // 从本地文件获取用户数据
 const getUserDataFromHandle = async () => {

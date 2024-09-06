@@ -1,7 +1,7 @@
-import { getErr } from "./errors.js";
+import { getErr } from "../errors.js";
 import { getData, setData, getRandomId } from "./db.js";
-import { DirHandle } from "./handle/dir.js";
-import { FileHandle } from "./handle/file.js";
+import { DirHandle } from "./dir.js";
+import { FileHandle } from "./file.js";
 
 // 创建root空间
 export const createRoot = async (name) => {
