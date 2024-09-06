@@ -1,6 +1,6 @@
-import { OriginDirHandle } from "./o-handle/dir.js";
-import { OriginFileHandle } from "./o-handle/file.js";
-import { getErr } from "./errors.js";
+import { OriginDirHandle } from "./dir.js";
+import { OriginFileHandle } from "./file.js";
+import { getErr } from "../errors.js";
 
 const originInited = (async () => {
   const opfsRoot = await navigator.storage.getDirectory();

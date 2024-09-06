@@ -1,8 +1,8 @@
 import { RemoteBaseHandle } from "./base.js";
 
 export class RemoteDirHandle extends RemoteBaseHandle {
-  constructor() {
-    super();
+  constructor(bridgeFunc) {
+    super(bridgeFunc);
   }
   /**
    * 获取子文件或目录的handle

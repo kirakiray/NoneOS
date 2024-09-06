@@ -8,8 +8,8 @@ import { RemoteBaseHandle } from "./base.js";
 export class RemoteFileHandle extends RemoteBaseHandle {
   /**
    */
-  constructor() {
-    super();
+  constructor(bridgeFunc) {
+    super(bridgeFunc);
   }
 
   /**

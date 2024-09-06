@@ -35,7 +35,7 @@ const inited = (async () => {
  * @param {String} path 文件或文件夹的路径
  * @returns {(DirHandle|FileHandle)}
  */
-const get = async (path, options) => {
+export const get = async (path, options) => {
   const paths = path.split("/");
 
   if (!paths.length) {
@@ -68,5 +68,3 @@ const get = async (path, options) => {
 
   return rootHandle.get(paths.slice(1).join("/"), options);
 };
-
-export default get;

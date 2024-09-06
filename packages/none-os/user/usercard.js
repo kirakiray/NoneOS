@@ -1,6 +1,6 @@
 // 用户将用户卡片信息保存到本地，和获取本地的用户卡片数据
 import { User } from "./public-user.js";
-import get from "/packages/fs/handle/get.js";
+import { get } from "/packages/fs/handle/index.js";
 
 // 保存用户信息
 export async function saveUserCard(options = {}) {

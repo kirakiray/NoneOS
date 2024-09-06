@@ -8,7 +8,10 @@ export class RemoteBaseHandle {
   #path;
   #name;
   #kind;
-  constructor(path) {}
+  _bridge = null;
+  constructor(bridgeFunc) {
+    this._bridge = bridgeFunc;
+  }
   /**
    * 获取当前handle的唯一id
    * @returns {string}
