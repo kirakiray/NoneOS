@@ -1,6 +1,6 @@
-import { get as dbGet, createRoot } from "./handle/index.js";
+import { get as dbGet } from "./handle/index.js";
 import { get as originGet, showPicker } from "./o-handle/index.js";
-import { RemoteDirHandle } from "./r-handle/dir.js";
+import { get as remoteGet } from "./r-handle/index.js";
 
 export const origin = {
   get: originGet,
@@ -10,7 +10,7 @@ export const origin = {
 // 根据首个地址，选取特定的
 export const get = async (path, options) => {
   if (/^\$remote:/.test(path)) {
-    return new RemoteDirHandle(async () => {});
+    return remoteGet(path);
   }
 
   return dbGet(path, options);

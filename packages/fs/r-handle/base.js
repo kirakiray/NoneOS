@@ -9,7 +9,8 @@ export class RemoteBaseHandle {
   #name;
   #kind;
   _bridge = null;
-  constructor(bridgeFunc) {
+  constructor(path, bridgeFunc) {
+    this.#path = path;
     this._bridge = bridgeFunc;
   }
   /**

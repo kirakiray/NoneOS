@@ -1,6 +1,7 @@
-import { getCerts } from "/packages/none-os/user/cert.js";
-import { getSelfUserInfo } from "/packages/none-os/user/main.js";
-import { getUserCard } from "/packages/none-os/user/usercard.js";
+import { getCerts } from "/packages/user/cert.js";
+import { getSelfUserInfo } from "/packages/user/main.js";
+import { getUserCard } from "/packages/user/usercard.js";
+import { RemoteDirHandle } from "./dir.js";
 
 // 获取可远端的根目录
 export const getRemotes = async () => {
@@ -30,4 +31,19 @@ export const getRemotes = async () => {
         ],
       };
     });
+};
+
+export const get = (path) => {
+  const pathArr = path.split("/");
+  const rootInfo = pathArr[0].split(":");
+
+  const rootHandle = new RemoteDirHandle(path, async () => {
+    debugger;
+  });
+
+  if (pathArr.length === 1) {
+    return rootHandle;
+  }
+
+  debugger;
 };
