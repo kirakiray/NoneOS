@@ -23,39 +23,7 @@ export class ClientUser extends User {
     return this.#delayTime;
   }
 
-  // 重新初始化主要信道
-  // _reInitChannel() {
-  //   if (!this.__init_channel_resolve) {
-  //     clearTimeout(this.__ping_timer);
-
-  //     this.#channels[STARTCHANNEL] = new Promise((resolve) => {
-  //       this.__init_channel_resolve = (channel) => {
-  //         delete this.__init_channel_resolve;
-
-  //         channel.addEventListener("close", async () => {
-  //           const initChannel = await this.#channels[STARTCHANNEL];
-  //           if (channel === initChannel) {
-  //             this.#state = "closed";
-
-  //             console.log("init close:", channel);
-
-  //             emitEvent("user-state-change", {
-  //               originTarget: this,
-  //             });
-
-  //             this._reInitChannel();
-  //           }
-  //         });
-
-  //         resolve(channel);
-  //       };
-  //     });
-  //   }
-  // }
-
   _init() {
-    // this._reInitChannel();
-
     // 建立rtc实例
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
 
@@ -69,7 +37,7 @@ export class ClientUser extends User {
       });
     };
 
-    rtcPC.ondatachannel = async (event) => {
+    rtcPC.ondatachannel = (event) => {
       const { channel } = event;
 
       this._initChannel(channel);
@@ -94,26 +62,30 @@ export class ClientUser extends User {
 
   // 测试延迟
   ping(loopDelayTime) {
-    return new Promise((resolve) => {
-      clearTimeout(this.__ping_timer);
-      const pingTime = Date.now();
-      this.__pingFunc = () => {
-        this.__pingFunc = null;
-        const delayTime = Date.now() - pingTime;
+    if (this.#state === "connected") {
+      return new Promise((resolve) => {
+        clearTimeout(this.__ping_timer);
+        const pingTime = Date.now();
+        this.__pingFunc = () => {
+          this.__pingFunc = null;
+          const delayTime = Date.now() - pingTime;
 
-        resolve(delayTime);
+          resolve(delayTime);
 
-        if (loopDelayTime) {
-          this.__ping_timer = setTimeout(
-            () => {
-              this.ping(loopDelayTime);
-            },
-            loopDelayTime === true ? 10000 : loopDelayTime
-          );
-        }
-      };
-      this.send("__ping");
-    });
+          if (loopDelayTime) {
+            this.__ping_timer = setTimeout(
+              () => {
+                this.ping(loopDelayTime);
+              },
+              loopDelayTime === true ? 10000 : loopDelayTime
+            );
+          }
+        };
+        this.send("__ping");
+      });
+    }
+
+    return Promise.resolve("-");
   }
 
   _onmsg(e, targetChannel) {
@@ -141,17 +113,13 @@ export class ClientUser extends User {
 
   // 发送数据给对面
   async send(data, channelName = STARTCHANNEL) {
-    const channel = await this.#channels[channelName];
+    const channel = await this._getChannel(channelName);
 
-    if (channel) {
-      let sdata = data;
-      if (data instanceof Object) {
-        sdata = JSON.stringify(data);
-      }
-      channel.send(sdata);
-    } else {
-      console.log("no-channel");
+    let sdata = data;
+    if (data instanceof Object) {
+      sdata = JSON.stringify(data);
     }
+    channel.send(sdata);
   }
 
   // 连接用户
@@ -166,7 +134,7 @@ export class ClientUser extends User {
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    this._getChannel(STARTCHANNEL);
+    this._getChannel();
 
     const offer = await rtcPC.createOffer();
 
@@ -186,37 +154,53 @@ export class ClientUser extends User {
     const channelName = channel.label;
 
     if (this.#channels[channelName]) {
+      debugger;
       this.#channels[channelName].then((oldChannel) => {
         oldChannel.close();
       });
     }
 
-    this.#channels[channelName] = new Promise((resolve, reject) => {
-      channel.onopen = () => {
-        resolve(channel);
-      };
-    });
-
     channel.addEventListener("close", async () => {
+      if (channelName === STARTCHANNEL) {
+        debugger;
+      }
+
       const cachedChannel = await this.#channels[channel.label];
       if (cachedChannel === channel) {
+        debugger;
         delete this.#channels[channel.label];
       }
     });
 
-    channel.onmessage = (e) => {
+    channel.addEventListener("message", (e) => {
       this._onmsg(e, channel);
-    };
+    });
+
+    return (this.#channels[channelName] = new Promise((resolve, reject) => {
+      channel.onopen = () => {
+        resolve(channel);
+      };
+
+      channel.onerror = (e) => {
+        reject(e);
+      };
+    }));
   }
 
   // 创建新的信道
-  _getChannel(channelName = "channel-" + Math.random().slice(3)) {
+  async _getChannel(
+    channelName = "channel-" + Math.random().toString(26).slice(3)
+  ) {
+    if (this.#channels[channelName]) {
+      return this.#channels[channelName];
+    }
+
     const rtcPC = this.#rtcConnection;
 
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    this._initChannel(targetChannel);
+    await this._initChannel(targetChannel);
 
     return targetChannel;
   }
@@ -236,8 +220,6 @@ export class ClientUser extends User {
         const anwserOffter = await rtcPC.createAnswer();
         rtcPC.setLocalDescription(anwserOffter);
 
-        // console.log("set remote offer ", data.offer);
-
         this._serverAgentPost({
           step: "answer-remote",
           anwser: anwserOffter,
@@ -247,11 +229,9 @@ export class ClientUser extends User {
         const iceObj = new RTCIceCandidate(data.candidate);
 
         rtcPC.addIceCandidate(iceObj);
-        // console.log("set candidate ", iceObj);
         break;
       case "answer-remote":
         rtcPC.setRemoteDescription(data.anwser);
-        // console.log("set remote answer ", data.anwser);
         break;
     }
   }

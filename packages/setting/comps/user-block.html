@@ -47,7 +47,7 @@
       </p-button>
     </div>
   </div>
-  <div class:hide="item.state === 'connected'">
+  <div class:hide="item.state === 'connected' || item.state === 'connecting'">
     <p-button on:click="reLinkUser" size="mini">重新连接</p-button>
   </div>
   <x-fill :value="receiveds">
