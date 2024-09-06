@@ -2,7 +2,7 @@ import { User } from "../user/public-user.js";
 import { emitEvent } from "./public.js";
 import { servers } from "./servers.js";
 
-const INITCHANNEL = "initChannel";
+const STARTCHANNEL = "startChannel";
 
 export class ClientUser extends User {
   #rtcConnection;
@@ -24,37 +24,37 @@ export class ClientUser extends User {
   }
 
   // 重新初始化主要信道
-  _reInitChannel() {
-    if (!this.__init_channel_resolve) {
-      clearTimeout(this.__ping_timer);
+  // _reInitChannel() {
+  //   if (!this.__init_channel_resolve) {
+  //     clearTimeout(this.__ping_timer);
 
-      this.#channels[INITCHANNEL] = new Promise((resolve) => {
-        this.__init_channel_resolve = (channel) => {
-          delete this.__init_channel_resolve;
+  //     this.#channels[STARTCHANNEL] = new Promise((resolve) => {
+  //       this.__init_channel_resolve = (channel) => {
+  //         delete this.__init_channel_resolve;
 
-          channel.addEventListener("close", async () => {
-            const initChannel = await this.#channels[INITCHANNEL];
-            if (channel === initChannel) {
-              this.#state = "closed";
+  //         channel.addEventListener("close", async () => {
+  //           const initChannel = await this.#channels[STARTCHANNEL];
+  //           if (channel === initChannel) {
+  //             this.#state = "closed";
 
-              console.log("init close:", channel);
+  //             console.log("init close:", channel);
 
-              emitEvent("user-state-change", {
-                originTarget: this,
-              });
+  //             emitEvent("user-state-change", {
+  //               originTarget: this,
+  //             });
 
-              this._reInitChannel();
-            }
-          });
+  //             this._reInitChannel();
+  //           }
+  //         });
 
-          resolve(channel);
-        };
-      });
-    }
-  }
+  //         resolve(channel);
+  //       };
+  //     });
+  //   }
+  // }
 
   _init() {
-    this._reInitChannel();
+    // this._reInitChannel();
 
     // 建立rtc实例
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
@@ -72,28 +72,9 @@ export class ClientUser extends User {
     rtcPC.ondatachannel = async (event) => {
       const { channel } = event;
 
+      this._initChannel(channel);
+
       console.log("ondatachannel: ", channel);
-
-      if (channel.label === INITCHANNEL) {
-        const exitedInitChannel = this.#channels[INITCHANNEL];
-        if (!this.__init_channel_resolve) {
-          // 关闭旧的通道
-          // exitedInitChannel.close();
-          debugger;
-        }
-        this.__init_channel_resolve(channel);
-      } else {
-        channel.addEventListener("close", async (e) => {
-          const cachedChannel = await this.#channels[channel.label];
-          if (cachedChannel === channel) {
-            delete this.#channels[channel.label];
-          }
-        });
-
-        this.#channels[channel.label] = Promise.resolve(channel);
-      }
-
-      channel.onmessage = (e) => this._onmsg(e, channel);
     };
 
     rtcPC.addEventListener("icecandidate", (event) => {
@@ -159,8 +140,8 @@ export class ClientUser extends User {
   }
 
   // 发送数据给对面
-  async send(data) {
-    const channel = await this.#channels[INITCHANNEL];
+  async send(data, channelName = STARTCHANNEL) {
+    const channel = await this.#channels[channelName];
 
     if (channel) {
       let sdata = data;
@@ -185,11 +166,7 @@ export class ClientUser extends User {
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    const channel = this._createChannel(INITCHANNEL);
-
-    channel.onopen = () => {
-      this.__init_channel_resolve(channel);
-    };
+    this._getChannel(STARTCHANNEL);
 
     const offer = await rtcPC.createOffer();
 
@@ -204,28 +181,42 @@ export class ClientUser extends User {
     return result;
   }
 
+  // 统一的初始化信道的方法
+  _initChannel(channel) {
+    const channelName = channel.label;
+
+    if (this.#channels[channelName]) {
+      this.#channels[channelName].then((oldChannel) => {
+        oldChannel.close();
+      });
+    }
+
+    this.#channels[channelName] = new Promise((resolve, reject) => {
+      channel.onopen = () => {
+        resolve(channel);
+      };
+    });
+
+    channel.addEventListener("close", async () => {
+      const cachedChannel = await this.#channels[channel.label];
+      if (cachedChannel === channel) {
+        delete this.#channels[channel.label];
+      }
+    });
+
+    channel.onmessage = (e) => {
+      this._onmsg(e, channel);
+    };
+  }
+
   // 创建新的信道
-  _createChannel(channelName = "channel-" + Math.random().slice(3)) {
+  _getChannel(channelName = "channel-" + Math.random().slice(3)) {
     const rtcPC = this.#rtcConnection;
 
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    if (channelName !== INITCHANNEL) {
-      this.#channels[channelName] = new Promise((resolve, reject) => {
-        targetChannel.onopen = () => {
-          resolve(targetChannel);
-        };
-      });
-
-      targetChannel.addEventListener("close", () => {
-        delete this.#channels[channelName];
-      });
-    }
-
-    targetChannel.onmessage = (e) => {
-      this._onmsg(e, targetChannel);
-    };
+    this._initChannel(targetChannel);
 
     return targetChannel;
   }
