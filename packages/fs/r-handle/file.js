@@ -9,7 +9,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
   /**
    */
   constructor(path, bridgeFunc) {
-    super(path, bridgeFunc);
+    super(path, bridgeFunc, "file");
   }
 
   /**

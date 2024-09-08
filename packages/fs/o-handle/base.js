@@ -166,4 +166,14 @@ export class OriginBaseHandle {
   async refresh() {
     // Invalid method, compatible with handle
   }
+
+  toJSON() {
+    const data = {};
+    ["createTime", "id", "kind", "lastModified", "name", "path"].forEach(
+      (key) => {
+        data[key] = this[key];
+      }
+    );
+    return data;
+  }
 }

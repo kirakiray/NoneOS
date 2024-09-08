@@ -1,6 +1,7 @@
 import { User } from "../user/public-user.js";
 import { emitEvent } from "./public.js";
 import { servers } from "./servers.js";
+import { bridge, reponseData } from "../fs/r-handle/bridge.js";
 
 const STARTCHANNEL = "startChannel";
 
@@ -104,7 +105,7 @@ export class ClientUser extends User {
     return Promise.resolve("-");
   }
 
-  _onmsg(e, targetChannel) {
+  async _onmsg(e, targetChannel) {
     let { data } = e;
 
     if (data === "__ping") {
@@ -120,15 +121,24 @@ export class ClientUser extends User {
       const result = JSON.parse(data);
 
       if (result.data) {
-        data = result.data;
+        this.onmessage &&
+          this.onmessage({
+            channel: targetChannel,
+            data: result.data,
+          });
+      } else if (result.fs) {
+        const { options, bid } = result.fs;
+        const opts = await bridge(options);
+        this._send({
+          responseFs: {
+            bid,
+            ...opts,
+          },
+        });
+      } else if (result.responseFs) {
+        reponseData(result.responseFs, this);
       }
     }
-
-    this.onmessage &&
-      this.onmessage({
-        channel: targetChannel,
-        data,
-      });
   }
 
   // 发送数据给对面
@@ -142,6 +152,9 @@ export class ClientUser extends User {
   }
 
   async _send(data, channelName = STARTCHANNEL) {
+    if (isPlainObject(data)) {
+      data = JSON.stringify(data);
+    }
     (await this._getChannel(channelName)).send(data);
   }
 
@@ -332,4 +345,8 @@ export class ClientUser extends User {
       .then((e) => e.json())
       .catch(() => null);
   }
+}
+
+function isPlainObject(obj) {
+  return Object.prototype.toString.call(obj) === "[object Object]";
 }

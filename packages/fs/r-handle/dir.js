@@ -1,8 +1,24 @@
 import { RemoteBaseHandle } from "./base.js";
+import { RemoteFileHandle } from "./file.js";
+
+export const createHandle = async (item, _this) => {
+  let handle;
+  const prefixStr = _this.path.split(":").slice(0, 2).join(":");
+
+  if (item.kind === "file") {
+    handle = new RemoteFileHandle(`${prefixStr}:${item.path}`, _this._bridge);
+  } else {
+    handle = new RemoteDirHandle(`${prefixStr}:${item.path}`, _this._bridge);
+  }
+
+  handle._init(item);
+
+  return handle;
+};
 
 export class RemoteDirHandle extends RemoteBaseHandle {
   constructor(path, bridgeFunc) {
-    super(path, bridgeFunc);
+    super(path, bridgeFunc, "dir");
   }
   /**
    * 获取子文件或目录的handle
@@ -10,7 +26,15 @@ export class RemoteDirHandle extends RemoteBaseHandle {
    * @param {Object} options - 获取选项的选项
    * @returns  {Promise<(OriginFileHandle|OriginDirHandle)>}
    */
-  async get() {}
+  async get(...args) {
+    const item = await this._bridge({
+      method: "get",
+      path: this._path,
+      args,
+    });
+
+    return createHandle(item, this);
+  }
 
   /**
    * 异步生成器函数，返回子数据的名称。
@@ -37,8 +61,26 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   async *values() {
     const result = await this._bridge({
       method: "values",
-      path: this.path,
+      path: this._path,
     });
+
+    for (let item of result) {
+      let handle;
+      const prefixStr = this.path.split(":").slice(0, 2).join(":");
+
+      if (item.kind === "file") {
+        handle = new RemoteFileHandle(
+          `${prefixStr}:${item.path}`,
+          this._bridge
+        );
+      } else {
+        handle = new RemoteDirHandle(`${prefixStr}:${item.path}`, this._bridge);
+      }
+
+      handle._init(item);
+
+      yield handle;
+    }
 
     return result;
   }

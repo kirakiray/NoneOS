@@ -1,23 +1,36 @@
-import { getErr } from "../errors.js";
-import { getTargetAndName } from "../public.js";
-
 /**
  * 基础的Handle
  */
 export class RemoteBaseHandle {
-  #path;
-  #name;
+  #path; // 显式路径
+  _path; // 远程的真实路径
   #kind;
   _bridge = null;
-  constructor(path, bridgeFunc) {
+  #data;
+  constructor(path, bridgeFunc, kind) {
+    this.#kind = kind;
     this.#path = path;
     this._bridge = bridgeFunc;
+
+    const pathArr = path.split("/");
+    const rootInfo = pathArr[0].split(":");
+    // const userid = rootInfo[1];
+    const rootName = rootInfo[2];
+
+    this._path = [rootName, ...pathArr.slice(1)].join("/");
   }
+
+  _init(data) {
+    this.#data = data;
+  }
+
   /**
    * 获取当前handle的唯一id
    * @returns {string}
    */
-  get id() {}
+  get id() {
+    return this.#data.id;
+  }
 
   /**
    * 获取当前handle的路径
@@ -32,7 +45,7 @@ export class RemoteBaseHandle {
    * @returns {string}
    */
   get name() {
-    return this.#name;
+    return this.#data.name;
   }
 
   /**
@@ -78,5 +91,14 @@ export class RemoteBaseHandle {
 
   async refresh() {
     // Invalid method, compatible with handle
+  }
+
+  async size() {
+    const result = await this._bridge({
+      method: "size",
+      path: this._path,
+    });
+
+    return result;
   }
 }

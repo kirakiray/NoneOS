@@ -235,4 +235,14 @@ export class BaseHandle {
       return data.size;
     }
   }
+
+  toJSON() {
+    const data = {};
+    ["createTime", "id", "kind", "lastModified", "name", "path"].forEach(
+      (key) => {
+        data[key] = this[key];
+      }
+    );
+    return data;
+  }
 }
