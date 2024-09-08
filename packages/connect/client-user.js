@@ -97,7 +97,7 @@ export class ClientUser extends User {
             );
           }
         };
-        this.send("__ping");
+        this._send("__ping");
       });
     }
 
@@ -107,16 +107,20 @@ export class ClientUser extends User {
   _onmsg(e, targetChannel) {
     let { data } = e;
 
-    if (typeof data === "string") {
-      data = JSON.parse(data).data;
+    if (data === "__ping") {
+      // 直接返回pong
+      this._send("__pong");
+      return;
+    } else if (data === "__pong") {
+      this.__pingFunc && this.__pingFunc();
+      return;
+    }
 
-      if (data === "__ping") {
-        // 直接返回pong
-        this.send("__pong");
-        return;
-      } else if (data === "__pong") {
-        this.__pingFunc && this.__pingFunc();
-        return;
+    if (typeof data === "string") {
+      const result = JSON.parse(data);
+
+      if (result.data) {
+        data = result.data;
       }
     }
 
@@ -129,13 +133,18 @@ export class ClientUser extends User {
 
   // 发送数据给对面
   async send(data, channelName = STARTCHANNEL) {
-    const channel = await this._getChannel(channelName);
-
-    channel.send(
+    this._send(
       JSON.stringify({
         data,
-      })
+      }),
+      (channelName = STARTCHANNEL)
     );
+  }
+
+  async _send(data, channelName = STARTCHANNEL) {
+    const channel = await this._getChannel(channelName);
+
+    channel.send(data);
   }
 
   // 连接用户
