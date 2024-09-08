@@ -65,21 +65,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     });
 
     for (let item of result) {
-      let handle;
-      const prefixStr = this.path.split(":").slice(0, 2).join(":");
-
-      if (item.kind === "file") {
-        handle = new RemoteFileHandle(
-          `${prefixStr}:${item.path}`,
-          this._bridge
-        );
-      } else {
-        handle = new RemoteDirHandle(`${prefixStr}:${item.path}`, this._bridge);
-      }
-
-      handle._init(item);
-
-      yield handle;
+      yield await createHandle(item, this);
     }
 
     return result;
