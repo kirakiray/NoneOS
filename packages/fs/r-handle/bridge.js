@@ -17,17 +17,16 @@ export const bridge = async (options) => {
       error: err.toString(),
     };
   }
+
   const result = await handle[method](...args);
   const valueType = getType(result);
 
   let returnValue = result;
 
-  if (result instanceof BaseHandle) {
-    returnValue = result.toJSON();
-  } else if (valueType === "AsyncGenerator") {
+  if (valueType === "AsyncGenerator") {
     returnValue = [];
     for await (let e of result) {
-      returnValue.push(e.toJSON());
+      returnValue.push(e);
     }
   } else {
     console.log("unknow method", method, result);
