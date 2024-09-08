@@ -212,11 +212,7 @@
             await saveCert(cert);
 
             // 发送数据
-            this.user.send(
-              JSON.stringify({
-                msg: "给你发送了一张证书",
-              })
-            );
+            this.user.send({ msg: "给你发送了一张证书" });
 
             // 发送实际证书数据
             this.sendCerts();
@@ -263,11 +259,7 @@
               })
               .map((e) => e._origin);
 
-            this.user.send(
-              JSON.stringify({
-                syncCerts,
-              })
-            );
+            this.user.send({ syncCerts });
           },
           // 发送信息
           sendMsg() {
@@ -275,11 +267,9 @@
             this.msg = "";
 
             // 发送数据
-            this.user.send(
-              JSON.stringify({
-                msg,
-              })
-            );
+            this.user.send({
+              msg,
+            });
 
             this.receiveds.push({
               username: "我",

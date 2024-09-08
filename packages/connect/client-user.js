@@ -105,19 +105,19 @@ export class ClientUser extends User {
   }
 
   _onmsg(e, targetChannel) {
-    if (e.data === "__ping") {
-      // 直接返回pong
-      this.send("__pong");
-      return;
-    } else if (e.data === "__pong") {
-      this.__pingFunc && this.__pingFunc();
-      return;
-    }
-
-    let data = e.data;
+    let { data } = e;
 
     if (typeof data === "string") {
-      data = JSON.parse(data);
+      data = JSON.parse(data).data;
+
+      if (data === "__ping") {
+        // 直接返回pong
+        this.send("__pong");
+        return;
+      } else if (data === "__pong") {
+        this.__pingFunc && this.__pingFunc();
+        return;
+      }
     }
 
     this.onmessage &&
@@ -131,11 +131,11 @@ export class ClientUser extends User {
   async send(data, channelName = STARTCHANNEL) {
     const channel = await this._getChannel(channelName);
 
-    let sdata = data;
-    if (data instanceof Object) {
-      sdata = JSON.stringify(data);
-    }
-    channel.send(sdata);
+    channel.send(
+      JSON.stringify({
+        data,
+      })
+    );
   }
 
   // 连接用户
