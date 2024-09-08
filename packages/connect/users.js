@@ -28,12 +28,6 @@ let pingTimer;
 // 定时测延迟
 const pingConnected = () => {
   clearTimeout(pingTimer);
-  connecteds.forEach(async (e) => {
-    if (e._user.state === "connected") {
-      const delayTime = await e._user.ping();
-      e.delayTime = delayTime;
-    }
-  });
 
   pingTimer = setTimeout(() => {
     pingConnected();
@@ -41,6 +35,15 @@ const pingConnected = () => {
 };
 
 pingConnected();
+
+bind("user-delay-change", (e) => {
+  connecteds.forEach(async (e) => {
+    if (e._user.state === "connected") {
+      const delayTime = await e._user.ping();
+      e.delayTime = delayTime;
+    }
+  });
+});
 
 // 用户状态信息变化修正
 bind("user-state-change", (e) => {

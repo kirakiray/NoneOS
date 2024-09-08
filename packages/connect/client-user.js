@@ -142,9 +142,7 @@ export class ClientUser extends User {
   }
 
   async _send(data, channelName = STARTCHANNEL) {
-    const channel = await this._getChannel(channelName);
-
-    channel.send(data);
+    (await this._getChannel(channelName)).send(data);
   }
 
   // 连接用户
@@ -209,6 +207,12 @@ export class ClientUser extends User {
     return (this.#channels[channelName] = new Promise((resolve, reject) => {
       channel.onopen = () => {
         resolve(channel);
+
+        this.ping().then(() => {
+          emitEvent("user-delay-change", {
+            originTarget: this,
+          });
+        });
       };
 
       channel.onerror = (e) => {
