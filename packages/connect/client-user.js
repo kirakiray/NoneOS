@@ -23,11 +23,25 @@ export class ClientUser extends User {
     return this.#delayTime;
   }
 
+  // 初始化rtc
   _init() {
-    // 建立rtc实例
-    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
+    let rtcPC = this.#rtcConnection;
 
-    rtcPC.onconnectionstatechange = (event) => {
+    if (
+      rtcPC &&
+      (rtcPC.connectionState === "connected" ||
+        rtcPC.connectionState === "connecting")
+    ) {
+      rtcPC.onconnectionstatechange = null;
+      rtcPC.ondatachannel = null;
+      rtcPC.onicecandidate = null;
+      rtcPC.close();
+    }
+
+    // 建立rtc实例
+    rtcPC = this.#rtcConnection = new RTCPeerConnection();
+
+    rtcPC.onconnectionstatechange = () => {
       this.#state = rtcPC.connectionState;
 
       console.log("onconnectionstatechange: ", rtcPC.connectionState);
@@ -45,7 +59,7 @@ export class ClientUser extends User {
       console.log("ondatachannel: ", channel);
     };
 
-    rtcPC.addEventListener("icecandidate", (event) => {
+    rtcPC.onicecandidate = (event) => {
       const { candidate } = event;
 
       if (candidate) {
@@ -57,7 +71,9 @@ export class ClientUser extends User {
 
         // console.log("candidate: ", candidate);
       }
-    });
+    };
+
+    return rtcPC;
   }
 
   // 测试延迟
@@ -134,7 +150,7 @@ export class ClientUser extends User {
     const rtcPC = this.#rtcConnection;
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
-    this._getChannel();
+    this._getChannel(STARTCHANNEL);
 
     const offer = await rtcPC.createOffer();
 
@@ -154,20 +170,25 @@ export class ClientUser extends User {
     const channelName = channel.label;
 
     if (this.#channels[channelName]) {
-      debugger;
       this.#channels[channelName].then((oldChannel) => {
         oldChannel.close();
       });
     }
 
     channel.addEventListener("close", async () => {
+      console.log("channel close: ", channel.label, channel);
+
       if (channelName === STARTCHANNEL) {
-        debugger;
+        this.#state = "closed";
+
+        // 修正连接状态
+        emitEvent("user-state-change", {
+          originTarget: this,
+        });
       }
 
       const cachedChannel = await this.#channels[channel.label];
       if (cachedChannel === channel) {
-        debugger;
         delete this.#channels[channel.label];
       }
     });
@@ -207,18 +228,17 @@ export class ClientUser extends User {
 
   // 通过代理转发的初始化信息
   async _agentConnect(data) {
-    const rtcPC = this.#rtcConnection;
-
     console.log("_agentConnect", data);
 
     const { step } = data;
 
     switch (step) {
       case "set-remote":
-        rtcPC.setRemoteDescription(data.offer);
+        this._init();
+        this.#rtcConnection.setRemoteDescription(data.offer);
 
-        const anwserOffter = await rtcPC.createAnswer();
-        rtcPC.setLocalDescription(anwserOffter);
+        const anwserOffter = await this.#rtcConnection.createAnswer();
+        this.#rtcConnection.setLocalDescription(anwserOffter);
 
         this._serverAgentPost({
           step: "answer-remote",
@@ -228,10 +248,10 @@ export class ClientUser extends User {
       case "set-candidate":
         const iceObj = new RTCIceCandidate(data.candidate);
 
-        rtcPC.addIceCandidate(iceObj);
+        this.#rtcConnection.addIceCandidate(iceObj);
         break;
       case "answer-remote":
-        rtcPC.setRemoteDescription(data.anwser);
+        this.#rtcConnection.setRemoteDescription(data.anwser);
         break;
     }
   }
