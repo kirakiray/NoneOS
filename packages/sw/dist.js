@@ -1343,10 +1343,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <title>${appconfig.name}</title>
     <link rel="shortcut icon" href="${appconfig.icon}">
+    <link rel="apple-touch-icon" href="${appconfig.icon}" />
     <script src="/packages/ofa/ofa.js"${isdebug ? " debug" : ""}></script>
     <script src="/packages/ofa/router.min.js"></script>
     <script src="/packages/pui/init.js" type="module"></script>
