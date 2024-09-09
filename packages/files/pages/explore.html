@@ -103,27 +103,33 @@
 
             if (handle instanceof Error) {
               this.errorStr = handle.toString();
+              this.loading = false;
               return;
             }
 
-            const files = [];
+            try {
+              const files = [];
 
-            await handle.forEach(async (item) => {
-              files.push({
-                size: formatBytes(await item.size()),
-                id: item.id,
-                kind: item.kind,
-                name: item.name,
-                path: item.path,
-                createTime: new Date(item.createTime).toLocaleString(),
-                lastModified: item.lastModified
-                  ? new Date(item.lastModified).toLocaleString()
-                  : "",
+              await handle.forEach(async (item) => {
+                files.push({
+                  size: formatBytes(await item.size()),
+                  id: item.id,
+                  kind: item.kind,
+                  name: item.name,
+                  path: item.path,
+                  createTime: new Date(item.createTime).toLocaleString(),
+                  lastModified: item.lastModified
+                    ? new Date(item.lastModified).toLocaleString()
+                    : "",
+                });
               });
-            });
 
-            this.files = files;
-            this.loading = false;
+              this.files = files;
+              this.loading = false;
+            } catch (err) {
+              this.errorStr = err.toString();
+              return;
+            }
           },
         },
         ready() {
