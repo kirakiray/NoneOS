@@ -7,6 +7,10 @@ export const connecteds = $.stanz([]);
 
 // 连接用户
 export const connectUser = async (userId) => {
+  if (clients.get(userId)) {
+    return clients.get(userId);
+  }
+
   const cards = await getUserCard();
 
   const targetUser = cards.find((e) => e.id === userId);

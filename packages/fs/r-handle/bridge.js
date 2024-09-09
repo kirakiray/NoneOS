@@ -65,7 +65,7 @@ const promiseSaver = new Map();
 export const handleBridge = async (options, userid) => {
   const bid = getId();
 
-  const user = await getUser(userid);
+  const user = await connectUser(userid);
 
   user._send({
     fs: {

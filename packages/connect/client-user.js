@@ -155,7 +155,19 @@ export class ClientUser extends User {
     if (isPlainObject(data)) {
       data = JSON.stringify(data);
     }
-    (await this._getChannel(channelName)).send(data);
+
+    if (this.#state === "closed") {
+      // 重新连接
+      await this.connect();
+    }
+
+    const targetChannel = await this._getChannel(channelName);
+
+    if (this.#state === "closed") {
+      debugger;
+    }
+
+    targetChannel.send(data);
   }
 
   // 连接用户
@@ -247,7 +259,7 @@ export class ClientUser extends User {
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    await this._initChannel(targetChannel);
+    this._initChannel(targetChannel);
 
     return targetChannel;
   }
