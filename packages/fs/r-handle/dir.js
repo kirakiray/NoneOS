@@ -42,7 +42,16 @@ export class RemoteDirHandle extends RemoteBaseHandle {
    * @generator
    * @yields {string} 子数据的名称。
    */
-  async *keys() {}
+  async *keys() {
+    const result = await this._bridge({
+      method: "keys",
+      path: this._path,
+    });
+
+    for (let key of result) {
+      yield key;
+    }
+  }
 
   /**
    * 异步生成器函数，返回子数据的名称和对应的句柄。
@@ -50,7 +59,16 @@ export class RemoteDirHandle extends RemoteBaseHandle {
    * @generator
    * @yields {Array} 包含子数据名称和句柄的数组。
    */
-  async *entries() {}
+  async *entries() {
+    const result = await this._bridge({
+      method: "entries",
+      path: this._path,
+    });
+
+    for (let [key, item] of result) {
+      yield [key, await createHandle(item, this)];
+    }
+  }
 
   /**
    * 异步生成器函数，返回子数据的句柄。
@@ -67,8 +85,6 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     for (let item of result) {
       yield await createHandle(item, this);
     }
-
-    return result;
   }
 
   /**
