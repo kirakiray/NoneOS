@@ -29,7 +29,7 @@ export const bridge = async (options) => {
       returnValue.push(e);
     }
   } else {
-    console.log("unknow method", method, result);
+    console.log(`method "${method}": `, result);
   }
 
   return {

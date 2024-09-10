@@ -110,7 +110,8 @@ export class ClientUser extends $.Stanz {
     // 连接前先查看是否有服务器可用，没有可用服务器就别发了
     await this._getServer();
 
-    const rtcPC = this.#rtcConnection || this._init();
+    // const rtcPC = this.#rtcConnection || this._init();
+    const rtcPC = this._init();
 
     // 必须在createOffer前创建信道，否则不会产生ice数据
     this._getChannel(STARTCHANNEL);
@@ -145,7 +146,9 @@ export class ClientUser extends $.Stanz {
     if (this.state === "closed") {
       // 重新连接
       await this.connect();
+      // debugger;
     }
+
     await this.watchUntil(() => this.state === "connected");
 
     const targetChannel = await this._getChannel(channelName);
@@ -221,9 +224,13 @@ export class ClientUser extends $.Stanz {
 
     if (this.#channels[channelName]) {
       this.#channels[channelName].then((oldChannel) => {
+        // oldChannel.removeEventListener("message", msgFunc);
+        oldChannel.onmessage = null;
         oldChannel.close();
       });
     }
+
+    channel.onmessage = (e) => this._onmsg(e, channel);
 
     channel.addEventListener("close", async () => {
       console.log("channel close: ", channel.label, channel);
@@ -237,10 +244,6 @@ export class ClientUser extends $.Stanz {
 
         delete this.#channels[channel.label];
       }
-    });
-
-    channel.addEventListener("message", (e) => {
-      this._onmsg(e, channel);
     });
 
     return (this.#channels[channelName] = new Promise((resolve, reject) => {
@@ -269,9 +272,7 @@ export class ClientUser extends $.Stanz {
     // 监听后立刻创建通道，否则createOffer再创建就会导致上面的ice监听失效
     const targetChannel = rtcPC.createDataChannel(channelName);
 
-    this._bindChannel(targetChannel);
-
-    return targetChannel;
+    return this._bindChannel(targetChannel);
   }
 
   async _onmsg(e, targetChannel) {
