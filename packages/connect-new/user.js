@@ -146,10 +146,9 @@ export class ClientUser extends $.Stanz {
       // 重新连接
       await this.connect();
     }
+    await this.watchUntil(() => this.state === "connected");
 
     const targetChannel = await this._getChannel(channelName);
-
-    await this.watchUntil(() => this.state === "connected");
 
     targetChannel.send(data);
   }
@@ -229,12 +228,13 @@ export class ClientUser extends $.Stanz {
     channel.addEventListener("close", async () => {
       console.log("channel close: ", channel.label, channel);
 
-      if (channelName === STARTCHANNEL) {
-        this.state = "closed";
-      }
-
       const cachedChannel = await this.#channels[channel.label];
+
       if (cachedChannel === channel) {
+        if (channelName === STARTCHANNEL) {
+          this.state = "closed";
+        }
+
         delete this.#channels[channel.label];
       }
     });
