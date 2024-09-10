@@ -68,9 +68,9 @@
             "
           ></n-local-icon>
           <div>
-            {{$data.name}} -
+            {{$data.serverName}} -
             <span style="font-size: 12px; color: var(--md-sys-color-normal)">
-              {{$data.version}}
+              {{$data.serverVersion}}
               <x-if :value="$data.delayTime">
                 - delay:{{$data.delayTime}}ms
               </x-if>
@@ -136,16 +136,24 @@
     </div>
   </p-dialog>
   <script>
+    // import {
+    //   addServer,
+    //   deleteServer,
+    //   servers,
+    // } from "/packages/connect/servers.js";
+
     import {
+      servers,
       addServer,
       deleteServer,
-      servers,
-    } from "/packages/connect/servers.js";
+    } from "/packages/connect-new/server.js";
 
     import { saveUserCard } from "/packages/user/usercard.js";
     import { getSelfUserInfo } from "/packages/user/main.js";
     import { User } from "/packages/user/public-user.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
+
+    window.servers = servers;
 
     export default async () => {
       return {
@@ -160,8 +168,8 @@
         },
         proto: {
           async pingAll() {
-            this.sers.forEach((e) => {
-              e._server.ping();
+            this.sers.forEach((ser) => {
+              ser.ping();
             });
           },
           async confirmUsercard() {
@@ -194,8 +202,8 @@
 
             const sets = new Set(); // 防止id重复的
 
-            servers.forEach(async (e) => {
-              const result = await e._server.getRecommend();
+            servers.forEach(async (ser) => {
+              const result = await ser.getRecommend();
 
               result.forEach((e) => {
                 const user = new User(e.data, e.sign);

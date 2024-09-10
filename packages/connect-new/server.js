@@ -1,27 +1,43 @@
-import { ClientUser } from "./client-user.js";
+import { get } from "../fs/main.js";
+import { clients } from "./user.js";
 import { getSelfUserCardData } from "../user/main.js";
-import { clients, emitEvent } from "./public.js";
 
-const badDelayTime = 0;
+export const servers = $.stanz([]); // 当前存在的服务器
 
-const sessionID = Math.random().toString(32).slice(2);
+// 添加服务器
+export const addServer = (serverUrl) => {
+  const connector = new ServerConnector({
+    serverUrl,
+  });
 
-// 和服务器进行相连的实例
-export class ServerConnector {
-  #serverUrl = null;
-  #status = "disconnected";
-  #apiID;
-  #serverID;
-  #delayTime = badDelayTime;
-  #initingPms = null;
-  constructor(serverUrl) {
-    this.#serverUrl = serverUrl;
+  servers.push(connector);
+};
+
+// 删除对应地址的服务器
+export const deleteServer = (url) => {
+  debugger;
+};
+
+const BADTIME = 0; // 无延迟的时间值
+const sessionID = Math.random().toString(32).slice(2); // 临时id
+
+// 服务器连接器
+class ServerConnector extends $.Stanz {
+  #apiID; // post请求的接口ID
+  #initingPms = null; // 初始化的 promise 对象
+  constructor(data) {
+    super({
+      serverUrl: "", // 服务器地址
+      status: "", // 当前服务器的状态
+      serverID: "", //  服务器ID
+      delayTime: "", // 服务器的延迟时间
+      ...data,
+    });
+
     this.init();
   }
 
-  // 连接服务器的初始化操作
   async init() {
-    return;
     if (this.#initingPms) {
       return await this.#initingPms;
     }
@@ -35,7 +51,7 @@ export class ServerConnector {
 
       // 创建一个 EventSource 对象，连接到 SSE 端点
       const eventSource = (this.__sse = new EventSource(
-        `${this.#serverUrl}/${encodeURIComponent(
+        `${this.serverUrl}/${encodeURIComponent(
           JSON.stringify({
             ...selfCardData,
             sessionID,
@@ -55,17 +71,16 @@ export class ServerConnector {
               // 初始化用户和服务器信息
               this.serverName = result.serverName;
               this.serverVersion = result.serverVersion;
-              this.#serverID = result.serverID;
+              this.serverID = result.serverID;
               this.#apiID = result.apiID;
 
-              this._emitchange("connected");
+              this.status = "connected";
 
               this.ping();
 
               this.#initingPms = null;
 
               resolve(eventSource);
-
               break;
 
             case "agent-connect":
@@ -105,9 +120,9 @@ export class ServerConnector {
         // 在这里处理错误
         eventSource.close();
 
-        this.#delayTime = badDelayTime;
+        this.delayTime = BADTIME;
 
-        this._emitchange("closed");
+        this.status = "closed";
       };
 
       // 监听连接关闭事件
@@ -116,34 +131,20 @@ export class ServerConnector {
         reject();
 
         console.log("Server Connection closed", this);
-        this.#delayTime = badDelayTime;
+        this.delayTime = BADTIME;
 
-        this._emitchange("closed");
+        this.status = "closed";
       };
     }));
   }
 
-  // 改变状态
-  _emitchange(status) {
-    this.#status = status;
-    this.onchange && this.onchange();
-
-    emitEvent("server-state-change", {
-      originTarget: this,
-    });
-
-    if (status === "closed") {
-      this.onclose && this.onclose();
-    }
-  }
-
   // 提交数据
   async _post(data) {
-    if (this.#status === "closed") {
+    if (this.status === "closed") {
       await this.init();
     }
 
-    const postUrl = new URL(this.#serverUrl).origin + this.#apiID;
+    const postUrl = new URL(this.serverUrl).origin + this.#apiID;
 
     return fetch(postUrl, {
       method: "POST",
@@ -162,14 +163,10 @@ export class ServerConnector {
         }).then((e) => e.json());
 
         if (result.pong) {
-          this.#delayTime = Date.now() - startTime;
+          this.delayTime = Date.now() - startTime;
         }
 
-        resolve(this.#delayTime);
-
-        emitEvent("server-ping", {
-          originTarget: this,
-        });
+        resolve(this.delayTime);
       }, 50);
     });
   }
@@ -185,19 +182,13 @@ export class ServerConnector {
     }
   }
 
-  get status() {
-    return this.#status;
+  // TODO: 临时需要删除
+  get _server() {
+    return this;
   }
+}
 
-  get serverUrl() {
-    return this.#serverUrl;
-  }
-
-  get serverID() {
-    return this.#serverID;
-  }
-
-  get delayTime() {
-    return this.#delayTime;
-  }
+// 初始化
+if (!servers.length) {
+  addServer("http://localhost:5569/user");
 }
