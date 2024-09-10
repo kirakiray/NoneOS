@@ -1,6 +1,6 @@
-import { get } from "../fs/main.js";
 import { users, ClientUser } from "./user.js";
 import { getSelfUserCardData } from "../user/main.js";
+import { get } from "../fs/handle/index.js";
 
 export const servers = $.stanz([]); // 当前存在的服务器
 

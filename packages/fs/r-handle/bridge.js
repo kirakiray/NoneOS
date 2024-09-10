@@ -1,5 +1,5 @@
-// import { connectUser } from "/packages/connect/users.js";
 import { get } from "../handle/index.js";
+import { connectUser } from "/packages/connect-new/user.js";
 import { BaseHandle } from "../handle/base.js";
 
 // 中转所有远程的内容
@@ -44,19 +44,6 @@ const getType = (result) => {
   return Object.prototype.toString
     .call(result)
     .replace(/^\[object (.*)\]$/, "$1");
-};
-
-const tempUsers = new Map();
-const getUser = (userid) => {
-  if (tempUsers.get(userid)) {
-    return tempUsers.get(userid);
-  }
-
-  const targetUser = connectUser(userid);
-
-  tempUsers.set(userid, targetUser);
-
-  return targetUser;
 };
 
 const promiseSaver = new Map();

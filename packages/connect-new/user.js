@@ -1,6 +1,7 @@
 import { getUserCard } from "../user/usercard.js";
 import { User } from "../user/public-user.js";
 import { servers } from "./server.js";
+import { bridge, reponseData } from "../fs/r-handle/bridge.js";
 
 export const users = $.stanz([]);
 
@@ -21,6 +22,8 @@ export const connectUser = async (userId) => {
   const client = new ClientUser(targetUser);
 
   await client.connect();
+
+  return client;
 };
 
 const STARTCHANNEL = "startChannel";
@@ -146,9 +149,7 @@ export class ClientUser extends $.Stanz {
 
     const targetChannel = await this._getChannel(channelName);
 
-    if (this.state === "closed") {
-      debugger;
-    }
+    await this.watchUntil(() => this.state === "connected");
 
     targetChannel.send(data);
   }
