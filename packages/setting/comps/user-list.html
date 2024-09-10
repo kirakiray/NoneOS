@@ -15,7 +15,7 @@
   <h5>已连接用户</h5>
   <div style="display: flex; flex-wrap: wrap">
     <x-fill :value="connectedUsers">
-      <setting-user-block :item="$data"></setting-user-block>
+      <setting-user-block :client="$data"></setting-user-block>
     </x-fill>
     <x-if :value="!connectedUsers.length">
       <div
@@ -67,7 +67,11 @@
     import { getSelfUserInfo } from "/packages/user/main.js";
     import { getUserCard, deleteUserCard } from "/packages/user/usercard.js";
     import enqueue from "/packages/pui/snackbar/enqueue.js";
-    import { connecteds, connectUser } from "/packages/connect/users.js";
+    // import { connecteds, connectUser } from "/packages/connect/users.js";
+    import {
+      users as connecteds,
+      connectUser,
+    } from "/packages/connect-new/user.js";
 
     export default {
       tag: "setting-user-list",

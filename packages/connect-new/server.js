@@ -1,5 +1,5 @@
 import { get } from "../fs/main.js";
-import { clients } from "./user.js";
+import { users, ClientUser } from "./user.js";
 import { getSelfUserCardData } from "../user/main.js";
 
 export const servers = $.stanz([]); // 当前存在的服务器
@@ -44,6 +44,7 @@ class ServerConnector extends $.Stanz {
   #initingPms = null; // 初始化的 promise 对象
   constructor(data) {
     super({
+      serverName: "",
       serverUrl: "", // 服务器地址
       status: "", // 当前服务器的状态
       serverID: "", //  服务器ID
@@ -102,17 +103,15 @@ class ServerConnector extends $.Stanz {
 
             case "agent-connect":
               // 用户之间尝试进行握手操作
-              let targetUserClient = clients.get(result.fromUserID);
+              let targetUserClient = users.find(
+                (e) => e.id === result.fromUserID
+              );
 
               if (!targetUserClient) {
-                targetUserClient = new ClientUser(
-                  result.fromUser.data,
-                  result.fromUser.sign
-                );
-
-                if (targetUserClient.id === result.fromUserID) {
-                  clients.set(result.fromUserID, targetUserClient);
-                }
+                targetUserClient = new ClientUser({
+                  data: result.fromUser.data,
+                  dataSignature: result.fromUser.sign,
+                });
               }
 
               // 初始化 connect
