@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -50,11 +51,16 @@
       ></n-file-list>
       <div style="height: 1px"></div>
     </div>
-    <x-if :value="files.length === 0 && !loading">
-      <div class="center-box">这是一个空文件夹</div>
+    <x-if :value="loading">
+      <div class="center-box">
+        <p-progress type="circle"></p-progress>
+      </div>
     </x-if>
     <x-else-if :value="errorStr">
       <div class="center-box">{{errorStr}}</div>
+    </x-else-if>
+    <x-else-if :value="files.length === 0 && !loading">
+      <div class="center-box">这是一个空文件夹</div>
     </x-else-if>
   </div>
 
