@@ -1,5 +1,5 @@
 import { get } from "../handle/index.js";
-import { connectUser } from "/packages/connect-new/user.js";
+import { connectUser } from "/packages/connect/user.js";
 import { BaseHandle } from "../handle/base.js";
 
 // 中转所有远程的内容
