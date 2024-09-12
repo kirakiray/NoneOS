@@ -2,6 +2,9 @@ import { RemoteBaseHandle } from "./base.js";
 import { RemoteFileHandle } from "./file.js";
 
 export const createHandle = async (item, _this) => {
+  if (!item) {
+    return item;
+  }
   let handle;
   const prefixStr = _this.path.split(":").slice(0, 2).join(":");
 
