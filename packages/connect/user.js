@@ -74,7 +74,7 @@ export class ClientUser extends $.Stanz {
         this.state = state;
       }
 
-      console.log("onconnectionstatechange: ", state);
+      // console.log("onconnectionstatechange: ", state);
     };
 
     rtcPC.ondatachannel = (event) => {
@@ -82,7 +82,7 @@ export class ClientUser extends $.Stanz {
 
       this._bindChannel(channel);
 
-      console.log("ondatachannel: ", channel);
+      // console.log("ondatachannel: ", channel);
     };
 
     rtcPC.onicecandidate = (event) => {
@@ -188,7 +188,7 @@ export class ClientUser extends $.Stanz {
 
   // 通过代理转发的初始化信息
   async _agentConnect(data) {
-    console.log("_agentConnect", data);
+    // console.log("_agentConnect", data);
 
     let rtcPC = this.#rtcConnection || this._init();
 

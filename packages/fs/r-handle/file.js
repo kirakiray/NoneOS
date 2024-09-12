@@ -16,7 +16,9 @@ export class RemoteFileHandle extends RemoteBaseHandle {
    * 写入文件数据
    * @returns {Promise<void>}
    */
-  async write(data) {}
+  async write(data) {
+    debugger;
+  }
 
   /**
    * 返回文件数据
@@ -24,7 +26,14 @@ export class RemoteFileHandle extends RemoteBaseHandle {
    * @param {object} options 读取数据的选项
    * @returns {Promise<(File|String|Buffer)>}
    */
-  async read(type = "text", options) {}
+  async read(type = "text", options) {
+    const result = await this._bridge({
+      method: "read",
+      path: this._path,
+    });
+
+    debugger;
+  }
 
   /**
    * 返回文件数据

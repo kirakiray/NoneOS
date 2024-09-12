@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test remote file</title>
+    <script src="/packages/ofa/ofa.js" debug></script>
+    <style>
+      html {
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { get } from "/packages/fs/main.js";
+
+      setTimeout(async () => {
+        const handle = await get(
+          `$remote:336982aa552c3737d6f9bdcdeaaa93adcf8887a6b7cb3e64815afaf46d6e8348:local/system/servers`
+        );
+
+        const t = await handle.text();
+
+        debugger;
+
+        // for await (let e of handle.keys()) {
+        //   console.log(e);
+        // }
+
+        // const len = await handle.length();
+        // console.log(len, handle);
+      }, 500);
+    </script>
+  </body>
+</html>
