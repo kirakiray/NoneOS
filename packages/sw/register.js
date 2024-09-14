@@ -1,27 +1,30 @@
-let swText = await fetch("/sw.js").then((res) => res.text());
+// let swText = await fetch("/sw.js").then((res) => res.text());
 
-// 去除swText中的js备注代码
-swText = swText.replace(/(\/\*[\s\S]*?\*\/)|(\/\/[\s\S]*?\n)/g, "");
+// // 去除swText中的js备注代码
+// swText = swText.replace(/(\/\*[\s\S]*?\*\/)|(\/\/[\s\S]*?\n)/g, "");
 
-let options = {};
-// 根据内容注册sw
-if (swText.includes("import ")) {
-  options = {
-    type: "module",
-  };
-}
+// let options = {};
+// // 根据内容注册sw
+// if (swText.includes("import ")) {
+//   options = {
+//     type: "module",
+//   };
+// }
 
-const registration = navigator.serviceWorker.register("/sw.js", options);
+// const registration = navigator.serviceWorker.register("/sw.js", options);
+const registration = navigator.serviceWorker.register("/sw.js");
 
-try {
-  const reg = await registration;
+setTimeout(async () => {
+  try {
+    const reg = await registration;
 
-  setTimeout(() => {
-    // 定时更新
-    reg.update();
-  }, 60 * 60 * 1000);
-} catch (err) {
-  console.error(err);
-}
+    setTimeout(() => {
+      // 定时更新
+      reg.update();
+    }, 60 * 60 * 1000);
+  } catch (err) {
+    console.error(err);
+  }
+}, 100);
 
 export { registration };

@@ -4,10 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>write test worker</title>
+    <script src="/packages/ofa/ofa.js"></script>
   </head>
   <body>
     write test worker
+    <h5>sw state: <span id="swstate">-</span></h5>
   </body>
-  <script type="module" src="../register.js"></script>
+  <!-- <script type="module" src="../register.js"></script> -->
+
+  <script type="module">
+    import { registration } from "../register.js";
+
+    const reg = await registration;
+
+    let f;
+    setInterval(
+      (f = () => {
+        $("#swstate").text = reg.active.state;
+      }),
+      500
+    );
+    f();
+  </script>
   <script type="module" src="./test.js"></script>
 </html>

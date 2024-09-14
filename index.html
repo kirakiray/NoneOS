@@ -23,8 +23,21 @@
     </style>
   </head>
   <body>
+    <script type="module">
+      const registration = navigator.serviceWorker.register("/sw.js");
+
+      try {
+        const reg = await registration;
+
+        setTimeout(() => {
+          // 定时更新
+          reg.update();
+        }, 60 * 60 * 1000);
+      } catch (err) {
+        console.error(err);
+      }
+    </script>
     <l-m src="./packages/none-os/none-os.html"></l-m>
     <none-os></none-os>
-    <script src="./packages/sw/register.js" type="module"></script>
   </body>
 </html>
