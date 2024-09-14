@@ -243,7 +243,23 @@ export class FileHandle extends BaseHandle {
   }
 
   // 从块从拆分文件，给远端用的
-  async _getBlock(hash) {
+  async _getBlock(hash, index) {
+    if (index !== undefined) {
+      // 有块index的情况下，读取对应块并校验看是否合格
+      const chunk = await this.buffer({
+        start: index * 64 * 1024,
+        end: (index + 1) * 64 * 1024,
+      });
+
+      const realHash = await calculateHash(chunk);
+
+      if (realHash === hash) {
+        return chunk;
+      }
+
+      // 如果hash都不满足，重新查找并返回
+    }
+
     const file = await this.file();
 
     const hashMap = new Map();

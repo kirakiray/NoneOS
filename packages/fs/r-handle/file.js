@@ -37,11 +37,11 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     if (result instanceof Array && result[0] === "__bridge_file") {
       // 从远端获取响应的数据
       const chunks = await Promise.all(
-        result.slice(1).map(async (hash) => {
+        result.slice(1).map(async (hash, index) => {
           const chunk = await this._bridge({
             method: "_getBlock",
             path: this._path,
-            args: [hash],
+            args: [hash, index],
           });
 
           // 确认数据的hash正确
