@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test op file system</title>
+    <script src="/packages/ofa/ofa.js"></script>
   </head>
   <body>
     test op file system
@@ -18,7 +19,9 @@
     import "./normal-bug.js#origin";
     import "./move.js#origin";
 
-    import { origin, showPicker } from "../main.js";
+    import { origin } from "../main.js";
+
+    const { showPicker } = origin;
 
     const { get } = origin;
 

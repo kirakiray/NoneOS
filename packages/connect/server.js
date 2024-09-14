@@ -205,16 +205,16 @@ class ServerConnector extends $.Stanz {
   try {
     if (data) {
       data = JSON.parse(data);
-    }
 
-    data.forEach((e) => {
-      servers.push(
-        new ServerConnector({
-          serverUrl: e.serverUrl,
-          serverName: e.serverName,
-        })
-      );
-    });
+      data.forEach((e) => {
+        servers.push(
+          new ServerConnector({
+            serverUrl: e.serverUrl,
+            serverName: e.serverName,
+          })
+        );
+      });
+    }
   } catch (err) {
     console.error(err);
   }

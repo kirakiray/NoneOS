@@ -1,5 +1,7 @@
 import { getErr } from "../errors.js";
+import { getCache, saveCache } from "./cache-util.js";
 import { RemoteBaseHandle } from "./base.js";
+import { calculateHash, mergeChunks } from "../handle/util.js";
 
 /**
  * 创建文件handle
@@ -32,7 +34,35 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       path: this._path,
     });
 
-    debugger;
+    if (result instanceof Array && result[0] === "__bridge_file") {
+      // 从远端获取响应的数据
+      const chunks = await Promise.all(
+        result.slice(1).map(async (hash) => {
+          const chunk = await this._bridge({
+            method: "_getBlock",
+            path: this._path,
+            args: [hash],
+          });
+
+          // 确认数据的hash正确
+          const chunkHash = await calculateHash(chunk);
+
+          // 确保哈希一致后进行组装
+          if (chunkHash === hash) {
+            return chunk;
+          }
+
+          console.error("chunk hash error");
+          debugger;
+        })
+      );
+
+      const buf = mergeChunks(chunks);
+
+      return new File(buf, this.name);
+    }
+
+    return result;
   }
 
   /**

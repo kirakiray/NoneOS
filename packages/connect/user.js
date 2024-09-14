@@ -1,7 +1,7 @@
 import { getUserCard } from "../user/usercard.js";
 import { User } from "../user/public-user.js";
 import { servers } from "./server.js";
-import { bridge, reponseData } from "../fs/r-handle/bridge.js";
+import { reponseBridge } from "../fs/r-handle/bridge.js";
 
 export const users = $.stanz([]);
 
@@ -146,7 +146,11 @@ export class ClientUser extends $.Stanz {
     if (this.state === "closed") {
       // 重新连接
       await this.connect();
-      // debugger;
+    }
+
+    if (data.length > 64 * 1024) {
+      // 超过 64kb 需要拆包
+      debugger;
     }
 
     await this.watchUntil(() => this.state === "connected");
@@ -287,8 +291,9 @@ export class ClientUser extends $.Stanz {
       return;
     }
 
+    let result = data;
     if (typeof data === "string") {
-      const result = JSON.parse(data);
+      result = JSON.parse(data);
 
       if (result.data) {
         this._onmessage &&
@@ -296,19 +301,41 @@ export class ClientUser extends $.Stanz {
             channel: targetChannel,
             data: result.data,
           });
-      } else if (result.fs) {
-        const { options, bid } = result.fs;
-        const opts = await bridge(options);
-        this._send({
-          responseFs: {
-            bid,
-            ...opts,
-          },
-        });
-      } else if (result.responseFs) {
-        reponseData(result.responseFs, this);
+
+        return;
       }
     }
+
+    reponseBridge(result, (data) => {
+      this._send(data);
+    });
+
+    // if (typeof data === "string") {
+    //   const result = JSON.parse(data);
+
+    //   if (result.fs) {
+    //     const { options, bid } = result.fs;
+
+    //     const opts = await bridge(options);
+
+    //     if (opts.direct) {
+    //       this._send(opts.value);
+    //     } else {
+    //       this._send({
+    //         responseFs: {
+    //           bid,
+    //           ...opts,
+    //         },
+    //       });
+    //     }
+    //   } else if (result.responseFs) {
+    //     reponseBridge(result.responseFs, this);
+    //   } else {
+    //     debugger;
+    //   }
+    // } else {
+    //   debugger;
+    // }
   }
 
   // 查找最好的服务器进行发送
