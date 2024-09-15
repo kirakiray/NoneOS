@@ -39,36 +39,66 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       args: [options],
     });
 
-    if (result instanceof Array && result[0] === "__bridge_file") {
-      // 从远端获取响应的数据
-      const chunks = await Promise.all(
-        result.slice(1).map(async (hash, index) => {
-          const cacheData = await getCache(hash);
+    // 桥接数据主要信息
+    const bridgeData = result[0];
 
-          if (cacheData) {
-            return cacheData;
-          }
+    if (result instanceof Array && bridgeData.bridgefile) {
+      const hashs = result.slice(1); // 真正的哈希值数组
+      let buffer;
+      if (options && (options.start || options.end)) {
+        // 获取范围内的数据
+        const remote_chunk_length = 64 * 1024; // remote 的传送块大小
 
-          const chunk = await this._bridge({
-            method: "_getBlock",
-            path: this._path,
-            args: [hash, index],
+        const startBlockId = Math.floor(options.start / remote_chunk_length); // 开始的块id
+        const endBlockId = Math.floor(options.end / remote_chunk_length); // 结束的块id
+
+        const currentHashs = []; // 符合条件的哈希值块
+
+        for (let i = startBlockId; i <= endBlockId; i++) {
+          currentHashs.push({
+            hash: hashs[i],
+            index: i,
           });
+        }
 
-          // 确认数据的hash正确
-          const chunkHash = await calculateHash(chunk);
+        const chunks = await Promise.all(
+          currentHashs.map(async ({ hash, index }) => {
+            const chunk = await getChunkByHash(hash, index, this);
+            let reChunk = chunk;
 
-          // 确保哈希一致后进行组装
-          if (chunkHash === hash) {
-            saveCache(hash, chunk);
-            return chunk;
-          }
+            const start_position = index * remote_chunk_length; // 当前块的开始位置
+            const end_position = (index + 1) * remote_chunk_length; // 当前块的结束位置
 
-          console.error("chunk hash error");
-        })
-      );
+            // 精准截取对应块的内容
+            if (end_position > options.end) {
+              // 尾段内容
+              reChunk = reChunk.slice(
+                0,
+                remote_chunk_length - (end_position - options.end)
+              );
+            }
 
-      const buffer = mergeChunks(chunks);
+            if (start_position < options.start) {
+              // 首段内容
+              reChunk = reChunk.slice(options.start - start_position);
+            }
+
+            return reChunk;
+          })
+        );
+
+        buffer = mergeChunks(chunks);
+      } else {
+        // 获取完整的文件数据
+        // 从远端获取响应的数据
+        const chunks = await Promise.all(
+          hashs.map(async (hash, index) => {
+            return getChunkByHash(hash, index, this);
+          })
+        );
+
+        buffer = mergeChunks(chunks);
+      }
 
       return readBufferByType({
         buffer,
@@ -114,3 +144,28 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     return this.read("base64", options);
   }
 }
+
+const getChunkByHash = async (hash, index, _this) => {
+  const cacheData = await getCache(hash);
+
+  if (cacheData) {
+    return cacheData;
+  }
+
+  const chunk = await _this._bridge({
+    method: "_getBlock",
+    path: _this._path,
+    args: [hash, index],
+  });
+
+  // 确认数据的hash正确
+  const chunkHash = await calculateHash(chunk);
+
+  // 确保哈希一致后进行组装
+  if (chunkHash === hash) {
+    saveCache(hash, chunk);
+    return chunk;
+  }
+
+  console.error("chunk hash error");
+};

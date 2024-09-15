@@ -238,7 +238,13 @@ export class FileHandle extends BaseHandle {
       })
     );
 
-    return ["__bridge_file", ...hashs];
+    return [
+      {
+        bridgefile: 1,
+        size: await this.size(),
+      },
+      ...hashs,
+    ];
   }
 
   // 给远端用，根据id或分块哈希sh获取分块数据
