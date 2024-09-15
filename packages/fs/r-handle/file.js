@@ -1,7 +1,11 @@
 import { getErr } from "../errors.js";
 import { getCache, saveCache } from "./cache-util.js";
 import { RemoteBaseHandle } from "./base.js";
-import { calculateHash, mergeChunks } from "../handle/util.js";
+import {
+  calculateHash,
+  mergeChunks,
+  readBufferByType,
+} from "../handle/util.js";
 
 /**
  * 创建文件handle
@@ -38,6 +42,12 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       // 从远端获取响应的数据
       const chunks = await Promise.all(
         result.slice(1).map(async (hash, index) => {
+          const cacheData = await getCache(hash);
+
+          if (cacheData) {
+            return cacheData;
+          }
+
           const chunk = await this._bridge({
             method: "_getBlock",
             path: this._path,
@@ -49,20 +59,29 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
           // 确保哈希一致后进行组装
           if (chunkHash === hash) {
+            saveCache(hash, chunk);
             return chunk;
           }
 
           console.error("chunk hash error");
-          debugger;
         })
       );
 
-      const buf = mergeChunks(chunks);
+      const buffer = mergeChunks(chunks);
 
-      return new File(buf, this.name);
+      // TODO: 继续
+
+      return readBufferByType({
+        buffer,
+        type,
+        data: { name: this.name },
+        options,
+      });
     }
 
-    return result;
+    debugger;
+
+    return null;
   }
 
   /**

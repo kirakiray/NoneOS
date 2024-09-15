@@ -14,7 +14,12 @@ servers.watchTick(async () => {
     };
   });
 
-  serverFile.write(JSON.stringify(datas));
+  // 内容不一致就保存
+  const text = await serverFile.text();
+
+  if (text !== JSON.stringify(datas)) {
+    serverFile.write(JSON.stringify(datas));
+  }
 }, 300);
 
 // 添加服务器
