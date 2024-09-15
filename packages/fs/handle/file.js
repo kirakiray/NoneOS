@@ -185,7 +185,12 @@ export class FileHandle extends BaseHandle {
 
     const buffer = mergeChunks(chunks);
 
-    return readBufferByType({ buffer, type, data, options });
+    return readBufferByType({
+      buffer,
+      type,
+      data,
+      isChunk: options?.start || options?.end,
+    });
   }
 
   /**
@@ -222,7 +227,8 @@ export class FileHandle extends BaseHandle {
   // 给远端用，获取分块数据
   async _getHashMap(options) {
     // 获取指定的块内容
-    const result = await this.buffer(options);
+    // const result = await this.buffer(options);
+    const result = await this.buffer();
 
     const datas = await splitIntoChunks(result, 64 * 1024);
 
@@ -231,8 +237,6 @@ export class FileHandle extends BaseHandle {
         return await calculateHash(chunk);
       })
     );
-
-    debugger;
 
     return ["__bridge_file", ...hashs];
   }

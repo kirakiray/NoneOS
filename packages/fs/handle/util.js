@@ -148,19 +148,19 @@ export const calculateHash = async (arrayBuffer) => {
   );
 };
 
-export const readBufferByType = ({ buffer, type, data, options }) => {
+export const readBufferByType = ({ buffer, type, data, isChunk }) => {
   // 根据type返回不同类型的数据
   if (type === "text") {
     return new TextDecoder().decode(buffer);
   } else if (type === "file") {
-    if (options?.start || options?.end) {
+    if (isChunk) {
       return new Blob([buffer.buffer]);
     }
     return new File([buffer.buffer], data.name, {
       lastModified: data.lastModified,
     });
   } else if (type === "base64") {
-    return new Promise((resplve) => {
+    return new Promise((resolve) => {
       const file = new File([buffer.buffer], data.name);
       const reader = new FileReader();
       reader.onload = () => {

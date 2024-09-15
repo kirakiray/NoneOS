@@ -33,12 +33,6 @@ export class RemoteFileHandle extends RemoteBaseHandle {
    * @returns {Promise<(File|String|Buffer)>}
    */
   async read(type = "text", options) {
-    // const result = await this._bridge({
-    //   method: "read",
-    //   path: this._path,
-    //   readOptions: options,
-    // });
-
     const result = await this._bridge({
       method: "_getHashMap",
       path: this._path,
@@ -76,13 +70,11 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
       const buffer = mergeChunks(chunks);
 
-      // TODO: 继续
-
       return readBufferByType({
         buffer,
         type,
         data: { name: this.name },
-        options,
+        isChunk: options?.start || options?.end,
       });
     }
 
