@@ -134,6 +134,7 @@
               this.loading = false;
             } catch (err) {
               this.errorStr = err.toString();
+              this.loading = false;
               return;
             }
           },
