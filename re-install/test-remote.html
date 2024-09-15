@@ -22,7 +22,10 @@
           //   `$remote:336982aa552c3737d6f9bdcdeaaa93adcf8887a6b7cb3e64815afaf46d6e8348:local/system/servers`
         );
 
-        const t = await handle.text();
+        const t = await handle.text({
+          start: 0,
+          end: 100,
+        });
 
         console.log("handle text: ", t);
 

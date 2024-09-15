@@ -29,17 +29,6 @@ const bridge = async (options, send) => {
     for await (let e of result) {
       returnValue.push(e);
     }
-  } else if (valueType === "ArrayBuffer" && method !== "_getBlock") {
-    const datas = await splitIntoChunks(result, 64 * 1024);
-
-    const hashs = await Promise.all(
-      datas.map(async (chunk) => {
-        return await calculateHash(chunk);
-      })
-    );
-
-    // 打上标记
-    returnValue = ["__bridge_file", ...hashs];
   } else {
     console.log(`method "${method}": `, result, valueType);
   }
@@ -123,6 +112,11 @@ export const reponseBridge = async (result, send) => {
     if (bdResult.method === "_getBlock") {
       const hex = hexToArr(bid);
 
+      if (!bdResult.value) {
+        send(null);
+        return;
+      }
+
       // 加上返回的BID
       const newBuffer = prependToArrayBuffer(
         bdResult.value,
@@ -142,7 +136,7 @@ export const reponseBridge = async (result, send) => {
   } else if (result.responseFs) {
     const data = result.responseFs;
     const resolver = promiseSaver.get(data.bid);
-    resolver.resolve(data);
+    resolver && resolver.resolve(data);
   } else {
     // 未处理数据
     console.warn("Unprocessed suspicious data", result);

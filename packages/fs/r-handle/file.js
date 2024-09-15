@@ -33,9 +33,16 @@ export class RemoteFileHandle extends RemoteBaseHandle {
    * @returns {Promise<(File|String|Buffer)>}
    */
   async read(type = "text", options) {
+    // const result = await this._bridge({
+    //   method: "read",
+    //   path: this._path,
+    //   readOptions: options,
+    // });
+
     const result = await this._bridge({
-      method: "read",
+      method: "_getHashMap",
       path: this._path,
+      args: [options],
     });
 
     if (result instanceof Array && result[0] === "__bridge_file") {

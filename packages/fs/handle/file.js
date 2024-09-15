@@ -186,29 +186,6 @@ export class FileHandle extends BaseHandle {
     const buffer = mergeChunks(chunks);
 
     return readBufferByType({ buffer, type, data, options });
-
-    // // 根据type返回不同类型的数据
-    // if (type === "text") {
-    //   return new TextDecoder().decode(buffer);
-    // } else if (type === "file") {
-    //   if (options?.start || options?.end) {
-    //     return new Blob([buffer.buffer]);
-    //   }
-    //   return new File([buffer.buffer], data.name, {
-    //     lastModified: data.lastModified,
-    //   });
-    // } else if (type === "base64") {
-    //   return new Promise((resplve) => {
-    //     const file = new File([buffer.buffer], data.name);
-    //     const reader = new FileReader();
-    //     reader.onload = () => {
-    //       resolve(reader.result);
-    //     };
-    //     reader.readAsDataURL(file);
-    //   });
-    // } else {
-    //   return buffer.buffer;
-    // }
   }
 
   /**
@@ -242,7 +219,25 @@ export class FileHandle extends BaseHandle {
     return this.read("base64", options);
   }
 
-  // 从块从拆分文件，给远端用的
+  // 给远端用，获取分块数据
+  async _getHashMap(options) {
+    // 获取指定的块内容
+    const result = await this.buffer(options);
+
+    const datas = await splitIntoChunks(result, 64 * 1024);
+
+    const hashs = await Promise.all(
+      datas.map(async (chunk) => {
+        return await calculateHash(chunk);
+      })
+    );
+
+    debugger;
+
+    return ["__bridge_file", ...hashs];
+  }
+
+  // 给远端用，根据id或分块哈希sh获取分块数据
   async _getBlock(hash, index) {
     if (index !== undefined) {
       // 有块index的情况下，读取对应块并校验看是否合格

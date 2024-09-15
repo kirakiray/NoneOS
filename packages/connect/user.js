@@ -148,7 +148,7 @@ export class ClientUser extends $.Stanz {
       await this.connect();
     }
 
-    if (data.length > 64 * 1024) {
+    if (data && data.length > 64 * 1024) {
       // 超过 64kb 需要拆包
       debugger;
     }
@@ -294,6 +294,16 @@ export class ClientUser extends $.Stanz {
     let result = data;
     if (typeof data === "string") {
       result = JSON.parse(data);
+
+      if (!result) {
+        this._onmessage &&
+          this._onmessage({
+            channel: targetChannel,
+            data: result,
+          });
+
+        return;
+      }
 
       if (result.data) {
         this._onmessage &&
