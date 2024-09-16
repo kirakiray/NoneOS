@@ -1,3 +1,5 @@
+import { createHandle } from "./dir.js";
+
 /**
  * 基础的Handle
  */
@@ -60,7 +62,14 @@ export class RemoteBaseHandle {
    * 获取根文件夹的handle
    * @returns {Promise<OriginDirHandle>}
    */
-  async root() {}
+  async root() {
+    const result = await this._bridge({
+      method: "root",
+      path: this._path,
+    });
+
+    return await createHandle(result, this);
+  }
 
   /**
    * 获取父文件夹handle

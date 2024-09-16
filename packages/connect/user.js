@@ -2,6 +2,8 @@ import { getUserCard } from "../user/usercard.js";
 import { User } from "../user/public-user.js";
 import { servers } from "./server.js";
 import { reponseBridge } from "../fs/r-handle/bridge.js";
+import { getCerts } from "/packages/user/cert.js";
+import { getSelfUserInfo } from "../user/main.js";
 
 export const users = $.stanz([]);
 
@@ -279,6 +281,79 @@ export class ClientUser extends $.Stanz {
     return this._bindChannel(targetChannel);
   }
 
+  // 获取有效的证书
+  async getCerts() {
+    const certs = await getCerts();
+    const selfUserInfo = await getSelfUserInfo();
+
+    const targetCerts = []; // 符合目标的证书
+
+    certs.forEach((cert) => {
+      if (cert.issuer === this.id && cert.authTo === selfUserInfo.userID) {
+        // 获取对面授权给自己的证书
+        if (cert.expire === "never" || cert.expire > Date.now()) {
+          // 有效证书判断权限
+          targetCerts.push(cert);
+        }
+      }
+    });
+
+    return targetCerts;
+  }
+
+  // 查看对方是否有响应的权限
+  async getPermissions() {
+    const { __cachePermit } = this;
+    if (__cachePermit) {
+      const now = Date.now();
+      let read = __cachePermit.readExpire > now,
+        write = __cachePermit.writeExpire > now;
+
+      if (read || write) {
+        return {
+          read,
+          write,
+        };
+      }
+
+      // 如果过期的话，重新往下走刷新证书权限
+    }
+
+    // 读取和写入权限的超时时间
+    let readExpire = 0,
+      writeExpire = 0;
+
+    // 根据有效证书判断权限
+    const certs = await this.getCerts();
+
+    certs.forEach((cert) => {
+      if (cert.permission === "fully") {
+        const currentRead = cert.expire === "never" ? Infinity : cert.expire;
+        const currentWrite = cert.expire === "never" ? Infinity : cert.expire;
+
+        // 获取最有效的权限
+        if (currentRead > readExpire) {
+          readExpire = currentRead;
+        }
+        if (currentWrite > writeExpire) {
+          writeExpire = currentWrite;
+        }
+      }
+    });
+
+    this.__cachePermit = {
+      readExpire,
+      writeExpire,
+    };
+
+    const now = Date.now();
+
+    return {
+      read: readExpire > now,
+      write: writeExpire > now,
+    };
+  }
+
   async _onmsg(e, targetChannel) {
     let { data } = e;
 
@@ -316,36 +391,18 @@ export class ClientUser extends $.Stanz {
       }
     }
 
+    // 在有权限的情况下，才能响应桥接方法
+    const permit = await this.getPermissions();
+
+    if (!permit.read && !permit.write) {
+      // 这个用户没有权限登录
+      this.send("permission denied");
+      return;
+    }
+
     reponseBridge(result, (data) => {
       this._send(data);
     });
-
-    // if (typeof data === "string") {
-    //   const result = JSON.parse(data);
-
-    //   if (result.fs) {
-    //     const { options, bid } = result.fs;
-
-    //     const opts = await bridge(options);
-
-    //     if (opts.direct) {
-    //       this._send(opts.value);
-    //     } else {
-    //       this._send({
-    //         responseFs: {
-    //           bid,
-    //           ...opts,
-    //         },
-    //       });
-    //     }
-    //   } else if (result.responseFs) {
-    //     reponseBridge(result.responseFs, this);
-    //   } else {
-    //     debugger;
-    //   }
-    // } else {
-    //   debugger;
-    // }
   }
 
   // 查找最好的服务器进行发送

@@ -18,15 +18,22 @@
 
       const run = async () => {
         const handle = await get(
-          `$remote:336982aa552c3737d6f9bdcdeaaa93adcf8887a6b7cb3e64815afaf46d6e8348:local/index.html`
-          //   `$remote:336982aa552c3737d6f9bdcdeaaa93adcf8887a6b7cb3e64815afaf46d6e8348:local/system/servers`
+          // `$remote:336982aa552c3737d6f9bdcdeaaa93adcf8887a6b7cb3e64815afaf46d6e8348:local/index.html`
+          `$remote:336982aa552c3737d6f9bdcdeaaa93adcf8887a6b7cb3e64815afaf46d6e8348:local/system/servers`
         );
+
+        // const root = await handle.root();
+        // console.log("root: ", root, await root.length());
+
+        // const par = await handle.parent();
+
+        // console.log("size: ", await par.length());
 
         // const t1 = await handle.text();
         // console.log("t1 text: ", t1);
 
         const t2 = await handle.text({
-          start: 100,
+          start: 0,
           // end: 64 * 1024 * 2 + 6, // 占了三块
           // end: 64 * 1024 + 6,
           end: 1000,
