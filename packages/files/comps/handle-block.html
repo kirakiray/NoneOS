@@ -36,6 +36,9 @@
     <x-if :value="kind === 'dir'">
       <img src="../sources/list-folder.svg" />
     </x-if>
+    <x-else-if :value="kind === 'user'">
+      <img src="../sources/list-user.svg" />
+    </x-else-if>
     <x-else>
       <img src="../sources/list-file.svg" />
     </x-else>
