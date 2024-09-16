@@ -52,11 +52,24 @@ export const deleteUserCard = async (userID) => {
 
 // 读取用户信息
 export async function getUserCard(options = {}) {
-  const parDirs = await get("local/system/usercards", {
+  const cardsDirHandle = await get("local/system/usercards", {
     create: "dir",
   });
 
-  let lists = await getCards(parDirs);
+  if (options.id) {
+    // debugger;
+    const targetHandle = await cardsDirHandle.get(`${options.id}.ucard`);
+
+    if (targetHandle) {
+      let item = await targetHandle.text();
+      item = JSON.parse(item);
+      return new User(item.data, item.sign);
+    }
+
+    return null;
+  }
+
+  let lists = await getCards(cardsDirHandle);
   // 去重得到用户数据
   lists = new Map(lists);
   lists = Array.from(lists.values());
@@ -64,6 +77,7 @@ export async function getUserCard(options = {}) {
   return lists;
 }
 
+// 递归获取卡片
 const getCards = async (parDirs) => {
   if (!parDirs) {
     return [];
