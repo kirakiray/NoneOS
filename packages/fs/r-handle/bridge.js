@@ -80,7 +80,7 @@ export const handleBridge = async (options, userid) => {
         resolve(data);
         clear();
       },
-      reject() {
+      reject(data) {
         reject(data);
         clear();
       },
@@ -91,7 +91,7 @@ export const handleBridge = async (options, userid) => {
 };
 
 // 响应远端的数据
-export const reponseBridge = async (result, send) => {
+export const reponseBridge = async (result, permissions, send) => {
   if (result instanceof ArrayBuffer) {
     // 拿出前八个数字，判断是否符合bid
     const bid = arrToHex(Array.from(new Uint8Array(result.slice(0, 8))));
@@ -107,7 +107,18 @@ export const reponseBridge = async (result, send) => {
     // file system 方法转发内容
     const { options, bid } = result.fs;
 
-    const bdResult = await bridge(options);
+    // 返回的主体内容
+    let bdResult;
+
+    // 判断权限
+    if (!permissions.read && !permissions.write) {
+      // 这个用户没有权限登录
+      bdResult = {
+        error: "permission denied",
+      };
+    } else {
+      bdResult = await bridge(options);
+    }
 
     if (bdResult.method === "_getBlock") {
       const hex = hexToArr(bid);
@@ -136,7 +147,11 @@ export const reponseBridge = async (result, send) => {
   } else if (result.responseFs) {
     const data = result.responseFs;
     const resolver = promiseSaver.get(data.bid);
-    resolver && resolver.resolve(data);
+    if (data.error) {
+      resolver && resolver.reject(new Error(data.error));
+    } else {
+      resolver && resolver.resolve(data);
+    }
   } else {
     // 未处理数据
     console.warn("Unprocessed suspicious data", result);
