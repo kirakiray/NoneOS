@@ -75,7 +75,14 @@ export class RemoteBaseHandle {
    * 获取父文件夹handle
    * @returns {Promise<OriginDirHandle>}
    */
-  async parent() {}
+  async parent() {
+    const result = await this._bridge({
+      method: "parent",
+      path: this._path,
+    });
+
+    return await createHandle(result, this);
+  }
 
   /**
    * 移动当前文件或文件夹
@@ -83,20 +90,26 @@ export class RemoteBaseHandle {
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async moveTo(target, name) {}
+  async moveTo(target, name) {
+    debugger;
+  }
 
   /**
    * 复制当前文件或文件夹
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copyTo(target, name) {}
+  async copyTo(target, name) {
+    debugger;
+  }
 
   /**
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove() {}
+  async remove() {
+    debugger;
+  }
 
   async refresh() {
     // Invalid method, compatible with handle
