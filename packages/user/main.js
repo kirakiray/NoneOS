@@ -75,11 +75,11 @@ export const getSelfUserCardData = async () => {
     ["time", Date.now()], // 签发时间
   ];
 
-  const signData = await sign(userData);
+  const signStr = await sign(userData);
 
   return {
     data: userData,
-    sign: signData,
+    sign: signStr,
   };
 };
 

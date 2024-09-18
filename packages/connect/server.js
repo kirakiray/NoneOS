@@ -1,5 +1,5 @@
 import { users, ClientUser } from "./user.js";
-import { getSelfUserCardData } from "../user/main.js";
+import { getSelfUserCardData, sign } from "../user/main.js";
 import { get } from "../fs/handle/index.js";
 
 export const servers = $.stanz([]); // 当前存在的服务器
@@ -72,12 +72,15 @@ class ServerConnector extends $.Stanz {
         this.__sse.close();
       }
 
+      const serverSign = await sign(this.serverUrl);
+
       // 创建一个 EventSource 对象，连接到 SSE 端点
       const eventSource = (this.__sse = new EventSource(
         `${this.serverUrl}/${encodeURIComponent(
           JSON.stringify({
             ...selfCardData,
             sessionID,
+            serverSign,
           })
         )}`
       ));
