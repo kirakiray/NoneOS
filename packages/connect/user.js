@@ -289,22 +289,15 @@ export class ClientUser extends $.Stanz {
     const targetCerts = []; // 符合目标的证书
 
     certs.forEach((cert) => {
-      if (cert.expire < Date.now()) {
+      if ((cert.expire !== "never") & (cert.expire < Date.now())) {
         // 过期的拜拜
         return;
       }
 
-      if (
-        cert.issuer === this.id ||
-        // cert.authTo === this.id ||
-        // cert.issuer === selfUserInfo.userID ||
-        cert.authTo === selfUserInfo.userID
-      ) {
-        // 获取对面授权给自己的证书
-        if (cert.expire === "never") {
-          // 有效证书判断权限
-          targetCerts.push(cert);
-        }
+      // 本机用户授权给远程的用户
+      if (cert.authTo === this.id || cert.issuer === selfUserInfo.userID) {
+        // 有效证书判断权限
+        targetCerts.push(cert);
       }
     });
 
@@ -337,7 +330,7 @@ export class ClientUser extends $.Stanz {
     const certs = await this.getCerts();
 
     certs.forEach((cert) => {
-      // 确认是对面授权给我的
+      // 确认是我授权给对面的
       if (cert.permission === "fully") {
         const currentRead = cert.expire === "never" ? Infinity : cert.expire;
         const currentWrite = cert.expire === "never" ? Infinity : cert.expire;

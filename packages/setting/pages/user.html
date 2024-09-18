@@ -92,22 +92,13 @@
           <div class="row-val" attr:title="signPublic">{{signPublic}}</div>
         </p-table-cell>
       </p-table-row>
-      <p-table-row>
-        <p-table-cell>加密公钥</p-table-cell>
-        <p-table-cell>
-          <div class="row-val" attr:title="encryPublic">{{encryPublic}}</div>
-        </p-table-cell>
-      </p-table-row>
     </p-table>
     <setting-user-list></setting-user-list>
     <setting-server-list style="margin-top: 8px"></setting-server-list>
     <setting-certs></setting-certs>
   </div>
   <script>
-    import {
-      getSelfUserInfo,
-      renameUser,
-    } from "/packages/user/main.js";
+    import { getSelfUserInfo, renameUser } from "/packages/user/main.js";
 
     export const parent = "../outer.html";
 
@@ -119,7 +110,6 @@
           userID: selfData.userID,
           userName: selfData.userName || selfData.backupUserName,
           signPublic: selfData.signPublic,
-          encryPublic: selfData.encryPublic,
           renameMode: false,
         },
         watch: {

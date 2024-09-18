@@ -1,6 +1,5 @@
 import {
   generateSignKeyPair,
-  generateEncryKeyPair,
   getHash,
   pairToString,
   stringToPair,
@@ -53,7 +52,7 @@ const pairData = await initUserPair();
 
 // 获取自己的用户数据
 export const getSelfUserInfo = async () => {
-  const { signPublic, encryPublic, id } = pairData;
+  const { signPublic, id } = pairData;
 
   const localUserData = await getUserDataFromHandle();
 
@@ -62,7 +61,6 @@ export const getSelfUserInfo = async () => {
     userName: localUserData?.name,
     backupUserName: `user-${id.slice(29, 35)}`,
     signPublic,
-    encryPublic,
   };
 };
 
@@ -74,7 +72,6 @@ export const getSelfUserCardData = async () => {
     ["userID", data.userID],
     ["userName", data.userName || data.backupUserName],
     ["signPublic", data.signPublic],
-    ["encryPublic", data.encryPublic],
     ["time", Date.now()], // 签发时间
   ];
 
@@ -104,39 +101,31 @@ export async function sign(message) {
 
 // 初始化并获取自己的签名和加密用的CryptoKey
 async function initUserPair() {
-  let signPair, encryPair;
-  let signPublic, encryPublic;
+  let signPair;
+  let signPublic;
 
   const localUserData = await getUserDataFromHandle();
 
   if (!localUserData) {
     signPair = await generateSignKeyPair();
     const signPairObj = await pairToString(signPair);
-    encryPair = await generateEncryKeyPair();
-    const encryPairObj = await pairToString(encryPair);
 
     signPublic = signPairObj.public;
-    encryPublic = encryPairObj.public;
 
     await saveUserDataFromHandle({
-      signPairObj,
-      encryPairObj,
+      signPair: signPairObj,
     });
   } else {
-    const { signPairObj, encryPairObj } = localUserData;
+    const { signPair: signPairObj } = localUserData;
 
     signPublic = signPairObj.public;
-    encryPublic = encryPairObj.public;
 
-    signPair = await stringToPair("sign", signPairObj);
-    encryPair = await stringToPair("encry", encryPairObj);
+    signPair = await stringToPair(signPairObj);
   }
 
   return {
     signPair,
-    encryPair,
     signPublic,
-    encryPublic,
     id: await getHash(signPublic),
   };
 }

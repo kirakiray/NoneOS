@@ -88,7 +88,7 @@ export const pairToString = async (signPair) => {
 };
 
 // 字符串转为cypto对象
-export const stringToPair = async (type, pair) => {
+export const stringToPair = async (pair, type = "sign") => {
   return {
     privateKey: await crypto.subtle.importKey(
       "pkcs8", // 导入的密钥类型，这里是私钥
@@ -111,10 +111,6 @@ export const stringToPair = async (type, pair) => {
       type === "sign" ? ["verify"] : ["encrypt"]
     ),
   };
-};
-
-export const getSignPublic = () => {
-  const signObj = JSON.parse();
 };
 
 // 验证信息
