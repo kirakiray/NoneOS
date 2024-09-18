@@ -417,50 +417,50 @@ export class ClientUser extends $.Stanz {
       return this._bestServer;
     }
 
-    // 先根据延迟进行排序
-    const sers = (
-      await Promise.all(
-        servers.map(async (e) => {
-          await e.ping();
-          return e;
-        })
-      )
-    ).sort((a, b) => {
-      return a.delayTime - b.delayTime;
-    });
+    return (this._bestServer = new Promise(async (resolve, reject) => {
+      // 先根据延迟进行排序
+      const sers = (
+        await Promise.all(
+          servers.map(async (e) => {
+            await e.ping();
+            return e;
+          })
+        )
+      ).sort((a, b) => {
+        return a.delayTime - b.delayTime;
+      });
 
-    for (let ser of sers) {
-      // 查找用户是否存在
-      const sResult = await ser
-        ._post({
-          search: this.id,
-        })
-        .then((e) => e.json())
-        .catch(() => null);
+      for (let ser of sers) {
+        // 查找用户是否存在
+        const sResult = await ser
+          ._post({
+            search: this.id,
+          })
+          .then((e) => e.json())
+          .catch(() => null);
 
-      if (!sResult || !sResult.user) {
-        continue;
-      }
-
-      if (sResult.ok && sResult.user) {
-        // 验证用户信息是否正确
-        const user = new User(sResult.user.data, sResult.user.sign);
-
-        if (user.id !== this.id || !(await user.verify())) {
-          // 不符合规定都直接劝退
+        if (!sResult || !sResult.user) {
           continue;
         }
+
+        if (sResult.ok && sResult.user) {
+          // 验证用户信息是否正确
+          const user = new User(sResult.user.data, sResult.user.sign);
+
+          if (user.id !== this.id || !(await user.verify())) {
+            // 不符合规定都直接劝退
+            continue;
+          }
+        }
+
+        resolve(ser);
       }
 
-      this._bestServer = ser;
+      const err = new Error("User not found on server");
+      err.code = "userNotFound";
 
-      return ser;
-    }
-
-    const err = new Error("User not found on server");
-    err.code = "userNotFound";
-
-    throw err;
+      reject(err);
+    }));
   }
 
   // 通过服务器转发内容
