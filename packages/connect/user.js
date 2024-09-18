@@ -418,11 +418,16 @@ export class ClientUser extends $.Stanz {
     }
 
     // 先根据延迟进行排序
-    const sers = servers
-      .filter((e) => e.status === "connected")
-      .sort((a, b) => {
-        return a.delayTime - b.delayTime;
-      });
+    const sers = (
+      await Promise.all(
+        servers.map(async (e) => {
+          await e.ping();
+          return e;
+        })
+      )
+    ).sort((a, b) => {
+      return a.delayTime - b.delayTime;
+    });
 
     for (let ser of sers) {
       // 查找用户是否存在

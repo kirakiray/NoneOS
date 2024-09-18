@@ -40,7 +40,7 @@ export const deleteServer = (url) => {
   }
 };
 
-const BADTIME = 0; // 无延迟的时间值
+const BADTIME = 999999; // 无延迟的时间值
 const sessionID = Math.random().toString(32).slice(2); // 临时id
 
 // 服务器连接器
