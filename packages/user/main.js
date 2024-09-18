@@ -1,9 +1,9 @@
 import {
   generateSignKeyPair,
   generateEncryKeyPair,
-  base64ToArrayBuffer,
   getHash,
-  getPairString,
+  pairToString,
+  stringToPair,
   arrayBufferToBase64,
   dataToArrayBuffer,
 } from "./util.js";
@@ -111,9 +111,9 @@ async function initUserPair() {
 
   if (!localUserData) {
     signPair = await generateSignKeyPair();
-    const signPairObj = await getPairString(signPair);
+    const signPairObj = await pairToString(signPair);
     encryPair = await generateEncryKeyPair();
-    const encryPairObj = await getPairString(encryPair);
+    const encryPairObj = await pairToString(encryPair);
 
     signPublic = signPairObj.public;
     encryPublic = encryPairObj.public;
@@ -128,51 +128,8 @@ async function initUserPair() {
     signPublic = signPairObj.public;
     encryPublic = encryPairObj.public;
 
-    signPair = {
-      privateKey: await crypto.subtle.importKey(
-        "pkcs8", // 导入的密钥类型，这里是私钥
-        base64ToArrayBuffer(signPairObj.private),
-        {
-          name: "RSA-PSS",
-          hash: "SHA-256",
-        },
-        true,
-        ["sign"]
-      ),
-      publicKey: await crypto.subtle.importKey(
-        "spki", // 导入的密钥类型，这里是公钥
-        base64ToArrayBuffer(signPairObj.public),
-        {
-          name: "RSA-PSS",
-          hash: "SHA-256",
-        },
-        true,
-        ["verify"] // 只需要加密权限
-      ),
-    };
-
-    encryPair = {
-      privateKey: await crypto.subtle.importKey(
-        "pkcs8", // 导入的密钥类型，这里是私钥
-        base64ToArrayBuffer(encryPairObj.private),
-        {
-          name: "RSA-OAEP",
-          hash: "SHA-256",
-        },
-        true,
-        ["decrypt"]
-      ),
-      publicKey: await crypto.subtle.importKey(
-        "spki", // 导入的密钥类型，这里是公钥
-        base64ToArrayBuffer(encryPairObj.public),
-        {
-          name: "RSA-OAEP",
-          hash: "SHA-256",
-        },
-        true,
-        ["encrypt"] // 只需要加密权限
-      ),
-    };
+    signPair = await stringToPair("sign", signPairObj);
+    encryPair = await stringToPair("encry", encryPairObj);
   }
 
   return {
