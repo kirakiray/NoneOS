@@ -413,19 +413,19 @@
     );
   };
 
-  const readBufferByType = ({ buffer, type, data, options }) => {
+  const readBufferByType = ({ buffer, type, data, isChunk }) => {
     // 根据type返回不同类型的数据
     if (type === "text") {
       return new TextDecoder().decode(buffer);
     } else if (type === "file") {
-      if (options?.start || options?.end) {
+      if (isChunk) {
         return new Blob([buffer.buffer]);
       }
       return new File([buffer.buffer], data.name, {
         lastModified: data.lastModified,
       });
     } else if (type === "base64") {
-      return new Promise((resplve) => {
+      return new Promise((resolve) => {
         const file = new File([buffer.buffer], data.name);
         const reader = new FileReader();
         reader.onload = () => {
@@ -898,30 +898,12 @@
 
       const buffer = mergeChunks(chunks);
 
-      return readBufferByType({ buffer, type, data, options });
-
-      // // 根据type返回不同类型的数据
-      // if (type === "text") {
-      //   return new TextDecoder().decode(buffer);
-      // } else if (type === "file") {
-      //   if (options?.start || options?.end) {
-      //     return new Blob([buffer.buffer]);
-      //   }
-      //   return new File([buffer.buffer], data.name, {
-      //     lastModified: data.lastModified,
-      //   });
-      // } else if (type === "base64") {
-      //   return new Promise((resplve) => {
-      //     const file = new File([buffer.buffer], data.name);
-      //     const reader = new FileReader();
-      //     reader.onload = () => {
-      //       resolve(reader.result);
-      //     };
-      //     reader.readAsDataURL(file);
-      //   });
-      // } else {
-      //   return buffer.buffer;
-      // }
+      return readBufferByType({
+        buffer,
+        type,
+        data,
+        isChunk: options?.start || options?.end,
+      });
     }
 
     /**
@@ -955,8 +937,47 @@
       return this.read("base64", options);
     }
 
-    // 从块从拆分文件，给远端用的
-    async _getBlock(hash) {
+    // 给远端用，获取分块数据
+    async _getHashMap(options) {
+      // 获取指定的块内容
+      // const result = await this.buffer(options);
+      const result = await this.buffer();
+
+      const datas = await splitIntoChunks(result, 64 * 1024);
+
+      const hashs = await Promise.all(
+        datas.map(async (chunk) => {
+          return await calculateHash(chunk);
+        })
+      );
+
+      return [
+        {
+          bridgefile: 1,
+          size: await this.size(),
+        },
+        ...hashs,
+      ];
+    }
+
+    // 给远端用，根据id或分块哈希sh获取分块数据
+    async _getBlock(hash, index) {
+      if (index !== undefined) {
+        // 有块index的情况下，读取对应块并校验看是否合格
+        const chunk = await this.buffer({
+          start: index * 64 * 1024,
+          end: (index + 1) * 64 * 1024,
+        });
+
+        const realHash = await calculateHash(chunk);
+
+        if (realHash === hash) {
+          return chunk;
+        }
+
+        // 如果hash都不满足，重新查找并返回
+      }
+
       const file = await this.file();
 
       const hashMap = new Map();

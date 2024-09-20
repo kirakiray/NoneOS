@@ -10,15 +10,30 @@ export const getRemotes = async () => {
   const selfUserInfo = await getSelfUserInfo();
   const userCards = await getUserCard();
 
-  // 授权给自己的所有权证书
-  return certs
-    .filter((e) => {
-      return e.permission === "fully" && e.authTo === selfUserInfo.userID;
-    })
-    .map((certData) => {
+  const remotes = [];
+
+  // 授权给自己的所有权的非过期证书
+  certs.forEach((certData) => {
+    // 过期的不要
+    if (certData.expire !== "never" && Date.now() > certData.expire) {
+      return;
+    }
+
+    // 不是授权给我的不要
+    if (certData.authTo !== selfUserInfo.userID) {
+      return;
+    }
+
+    if (certData.permission === "fully") {
       const card = userCards.find((user) => user.id === certData.issuer);
 
-      return {
+      // 确保没有重复
+      if (remotes.find((e) => e.userid === certData.issuer)) {
+        return;
+      }
+
+      // 转换对象
+      remotes.push({
         name: card?.name,
         userid: card?.id,
         paths: [
@@ -31,8 +46,11 @@ export const getRemotes = async () => {
             path: `$remote:${certData.issuer}:apps`,
           },
         ],
-      };
-    });
+      });
+    }
+  });
+
+  return remotes;
 };
 
 export const get = async (path) => {
