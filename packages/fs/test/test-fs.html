@@ -10,19 +10,15 @@
     test file system
   </body>
   <script type="module">
+    import { get } from "../main.js";
+    const { initGet } = await import("./init.js");
+    initGet(get);
+
     import "./file-tree.js";
     import "./get-local.js";
     import "./get-sub-dir.js";
     import "./get-set-file.js";
     import "./normal-bug.js";
     import "./move.js";
-
-    import { get } from "../main.js";
-
-    const localRoot = await get("local");
-
-    const len = await localRoot.length();
-
-    console.log("len: ", len);
   </script>
 </html>

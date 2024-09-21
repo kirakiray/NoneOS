@@ -123,4 +123,8 @@ export class RemoteBaseHandle {
 
     return result;
   }
+
+  get _mark() {
+    return "remote";
+  }
 }

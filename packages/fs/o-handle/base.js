@@ -176,4 +176,8 @@ export class OriginBaseHandle {
     );
     return data;
   }
+
+  get _mark() {
+    return "origin";
+  }
 }
