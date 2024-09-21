@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test task</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test task
+  </body>
+  <script type="module">
+    import { flatHandle } from "../util.js";
+    import { get } from "../main.js";
+
+    const localHandle = await get("local");
+
+    // 获取扁平的数据
+    const flatDatas = await flatHandle(localHandle);
+
+    console.log("flatDatas: ", flatDatas);
+  </script>
+</html>

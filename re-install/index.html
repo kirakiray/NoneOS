@@ -68,7 +68,8 @@
 
         $.all("[button]").forEach((e) => e.attr("disabled", null));
       });
-
+    </script>
+    <script>
       $("#deleteAllDb").on("click", () => {
         var request = indexedDB.deleteDatabase("noneos_fs_defaults");
 
