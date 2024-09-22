@@ -1,5 +1,5 @@
 import "../../fs/test/file-tree.js";
-import { get } from "../../fs/main.js";
+import { get } from "../../fs/handle/index.js";
 import { ok } from "./ok.js";
 import { registration } from "../register.js";
 

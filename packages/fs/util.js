@@ -3,9 +3,6 @@
 // 进行中的任务
 const tasks = [];
 
-//
-export const copy = async () => {};
-
 // 获取目标文件或文件夹的任务树状信息
 export const flatHandle = async (handle) => {
   const arr = [];
