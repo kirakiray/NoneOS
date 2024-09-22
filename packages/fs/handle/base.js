@@ -2,7 +2,8 @@ import { getData, setData } from "./db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
-import { getTargetAndName } from "../public.js";
+import { fixTargetAndName } from "../public.js";
+import { copyTo } from "../public.js";
 
 /**
  * 基础的Handle
@@ -101,7 +102,7 @@ export class BaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    [target, name] = await getTargetAndName({ target, name, self: this });
+    [target, name] = await fixTargetAndName({ target, name, self: this });
 
     const selfData = await getSelfData(this, "move");
     selfData.parent = target.id;
@@ -121,7 +122,12 @@ export class BaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async copyTo(target, name) {
-    [target, name] = await getTargetAndName({ target, name, self: this });
+    [target, name] = await fixTargetAndName({ target, name, self: this });
+
+    if (!(target instanceof BaseHandle)) {
+      const result = await copyTo(this, target, name);
+      return result;
+    }
 
     let reHandle;
 

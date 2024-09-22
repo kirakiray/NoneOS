@@ -1,6 +1,6 @@
 import { getErr } from "../errors.js";
 import { OriginDirHandle } from "./dir.js";
-import { copyTo, moveTo } from "../public.js";
+import { copyTo } from "../public.js";
 
 const roootId = Math.random().toString(32).slice(2);
 
@@ -99,7 +99,8 @@ export class OriginBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    const newTarget = await moveTo(this, target, name);
+    const newTarget = await copyTo(this, target, name);
+    await this.remove();
 
     // 移动过去后，要更新信息
     this.#systemHandle = newTarget.#systemHandle;
@@ -113,7 +114,7 @@ export class OriginBaseHandle {
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copyTo(target, name) {
+  copyTo(target, name) {
     return copyTo(this, target, name);
   }
 

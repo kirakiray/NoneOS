@@ -1,20 +1,7 @@
 import { getErr } from "./errors.js";
 
 /**
- * 目标handle到另一个目录
- * @param {handle} source 源文件/目录
- * @param {handle} target 目标文件/目录
- * @param {string} name 移动过去后的命名
- * @param {function} callback 移动过程中的callback
- */
-export const moveTo = async (source, target, name, callback) => {
-  const newTarget = await copyTo(source, target, name, callback);
-  await source.remove();
-
-  return newTarget;
-};
-
-/**
+ * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
  * 复制目标到另一个目标
  * @param {handle} source 源文件/目录
  * @param {handle} target 目标文件/目录
@@ -22,7 +9,7 @@ export const moveTo = async (source, target, name, callback) => {
  * @param {function} callback 复制过程中的callback
  */
 export const copyTo = async (source, target, name, callback) => {
-  [target, name] = await getTargetAndName({ target, name, self: source });
+  [target, name] = await fixTargetAndName({ target, name, self: source });
 
   if (source.kind === "file") {
     const selfFile = await source.file();
@@ -43,7 +30,7 @@ export const copyTo = async (source, target, name, callback) => {
 };
 
 // 修正 target 和 name 的值
-export const getTargetAndName = async ({ target, name, self }) => {
+export const fixTargetAndName = async ({ target, name, self }) => {
   if (typeof target === "string") {
     name = target;
     target = await self.parent();
