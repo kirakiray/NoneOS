@@ -1,11 +1,7 @@
 import { getErr } from "../errors.js";
 import { getCache, saveCache } from "./cache-util.js";
 import { RemoteBaseHandle } from "./base.js";
-import {
-  calculateHash,
-  mergeChunks,
-  readBufferByType,
-} from "../handle/util.js";
+import { calculateHash, mergeChunks, readBufferByType } from "../util.js";
 
 /**
  * 创建文件handle

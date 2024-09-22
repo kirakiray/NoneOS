@@ -1,17 +1,14 @@
 import { BaseHandle } from "./base.js";
 import { setData, getData } from "./db.js";
+import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
+
 import {
-  clearHashs,
-  getSelfData,
-  updateParentsModified,
   CHUNK_SIZE,
-} from "./util.js";
-import {
   splitIntoChunks,
   mergeChunks,
   calculateHash,
   readBufferByType,
-} from "./util.js";
+} from "../util.js";
 
 /**
  * 创建文件handle
@@ -235,7 +232,6 @@ export class FileHandle extends BaseHandle {
   // 给远端用，获取分块数据
   async _getHashMap(options) {
     // 获取指定的块内容
-    // const result = await this.buffer(options);
     const result = await this.buffer();
 
     const datas = await splitIntoChunks(result, 64 * 1024);

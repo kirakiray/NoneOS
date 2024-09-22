@@ -79,3 +79,8 @@ function isSubdirectory(child, parent) {
   const childTokens = child.split("/").filter((i) => i.length);
   return parentTokens.every((t, i) => childTokens[i] === t);
 }
+
+export class PublicBaseHandle {
+  constructor() {}
+  
+}

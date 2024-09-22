@@ -2,8 +2,7 @@ import { getData, setData } from "./db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
-import { fixTargetAndName } from "../public.js";
-import { copyTo } from "../public.js";
+import { fixTargetAndName, copyTo } from "../public.js";
 
 /**
  * 基础的Handle
