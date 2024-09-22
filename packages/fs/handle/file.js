@@ -30,14 +30,8 @@ export class FileHandle extends BaseHandle {
    * 写入文件数据
    * @returns {Promise<void>}
    */
-  async write(data, options) {
-    // options = {
-    //   process: () => {},
-    // };
-
+  async write(data, callback) {
     const targetData = await getSelfData(this, "write");
-
-    const process = options?.process || (() => {});
 
     const chunks = await splitIntoChunks(data);
 
@@ -57,6 +51,20 @@ export class FileHandle extends BaseHandle {
           key: hash,
         });
 
+        const chunkData = {
+          index, // 写入块的序列
+          length: chunks.length, // 写入块的总数
+          hash, // 写入块的哈希值
+          exited, // 写入块是否已经存在
+        };
+
+        callback &&
+          callback({
+            type: "write-file-start",
+            path: this.path,
+            ...chunkData,
+          });
+
         if (!exited) {
           await setData({
             storename: "blocks",
@@ -69,12 +77,12 @@ export class FileHandle extends BaseHandle {
           });
         }
 
-        process({
-          index, // 写入块的序列
-          length: chunks.length, // 写入块的总数
-          hash, // 写入块的哈希值
-          exited, // 写入块是否已经存在
-        });
+        callback &&
+          callback({
+            type: "write-file-end",
+            path: this.path,
+            ...chunkData,
+          });
       })
     );
 

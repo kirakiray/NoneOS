@@ -121,12 +121,11 @@ export class BaseHandle {
    * @param {(string|DirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copyTo(target, name) {
+  async copyTo(target, name, callback) {
     [target, name] = await fixTargetAndName({ target, name, self: this });
 
     if (!(target instanceof BaseHandle)) {
-      const result = await copyTo(this, target, name);
-      return result;
+      return copyTo({ source: this, target, name, callback });
     }
 
     let reHandle;

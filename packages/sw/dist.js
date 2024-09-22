@@ -438,8 +438,43 @@
     }
   };
 
+  /**
+   * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
+   * 复制目标到另一个目标
+   * @param {handle} source 源文件/目录
+   * @param {handle} target 目标文件/目录
+   * @param {string} name 复制过去后的命名
+   * @param {function} callback 复制过程中的callback
+   */
+  const copyTo = async ({ source, target, name, callback }) => {
+    [target, name] = await fixTargetAndName({ target, name, self: source });
+
+    if (source.kind === "file") {
+      const selfFile = await source.file();
+      const newFile = await target.get(name, { create: "file" });
+      await newFile.write(selfFile, callback);
+
+      return newFile;
+    } else if (source.kind === "dir") {
+      const newDir = await target.get(name, {
+        create: "dir",
+      });
+
+      await source.forEach(async (handle) => {
+        await copyTo({
+          source: handle,
+          target: newDir,
+          name: handle.name,
+          callback,
+        });
+      });
+
+      return newDir;
+    }
+  };
+
   // 修正 target 和 name 的值
-  const getTargetAndName = async ({ target, name, self }) => {
+  const fixTargetAndName = async ({ target, name, self }) => {
     if (typeof target === "string") {
       name = target;
       target = await self.parent();
@@ -580,7 +615,7 @@
      * @param {string} name 移动到目标文件夹下的名称
      */
     async moveTo(target, name) {
-      [target, name] = await getTargetAndName({ target, name, self: this });
+      [target, name] = await fixTargetAndName({ target, name, self: this });
 
       const selfData = await getSelfData(this, "move");
       selfData.parent = target.id;
@@ -599,8 +634,12 @@
      * @param {(string|DirHandle)} target 移动到目标的文件夹
      * @param {string} name 移动到目标文件夹下的名称
      */
-    async copyTo(target, name) {
-      [target, name] = await getTargetAndName({ target, name, self: this });
+    async copyTo(target, name, callback) {
+      [target, name] = await fixTargetAndName({ target, name, self: this });
+
+      if (!(target instanceof BaseHandle)) {
+        return copyTo({ source: this, target, name, callback });
+      }
 
       let reHandle;
 
@@ -747,14 +786,8 @@
      * 写入文件数据
      * @returns {Promise<void>}
      */
-    async write(data, options) {
-      // options = {
-      //   process: () => {},
-      // };
-
+    async write(data, callback) {
       const targetData = await getSelfData(this, "write");
-
-      const process = options?.process || (() => {});
 
       const chunks = await splitIntoChunks(data);
 
@@ -774,6 +807,20 @@
             key: hash,
           });
 
+          const chunkData = {
+            index, // 写入块的序列
+            length: chunks.length, // 写入块的总数
+            hash, // 写入块的哈希值
+            exited, // 写入块是否已经存在
+          };
+
+          callback &&
+            callback({
+              type: "write-file-start",
+              path: this.path,
+              ...chunkData,
+            });
+
           if (!exited) {
             await setData({
               storename: "blocks",
@@ -786,12 +833,12 @@
             });
           }
 
-          process({
-            index, // 写入块的序列
-            length: chunks.length, // 写入块的总数
-            hash, // 写入块的哈希值
-            exited, // 写入块是否已经存在
-          });
+          callback &&
+            callback({
+              type: "write-file-end",
+              path: this.path,
+              ...chunkData,
+            });
         })
       );
 

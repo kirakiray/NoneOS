@@ -18,11 +18,28 @@ export class OriginFileHandle extends OriginBaseHandle {
    * 写入文件数据
    * @returns {Promise<void>}
    */
-  async write(data) {
+  async write(data, callback) {
     try {
       const writer = await this._fsh.createWritable();
+
+      callback &&
+        callback({
+          type: "write-file-start",
+          path: this.path,
+          index: 0, // 写入块的序列
+          length: 1, // 写入块的总数
+        });
+
       await writer.write(data);
       await writer.close();
+
+      callback &&
+        callback({
+          type: "write-file-end",
+          path: this.path,
+          index: 0, // 写入块的序列
+          length: 1, // 写入块的总数
+        });
     } catch (err) {
       const error = getErr("writefile", { path: this.path }, err);
       console.error(error);

@@ -69,10 +69,10 @@
 
     // 拷贝到原生handle
     {
-      const tHandle = await originGet("origin-task-test");
+      const orignHandle = await originGet("origin-task-test");
 
       {
-        const oldDir = await tHandle.get("task-test");
+        const oldDir = await orignHandle.get("task-test");
         if (oldDir) {
           await oldDir.remove();
         }
@@ -80,7 +80,28 @@
 
       const taskDir = await get("local/task-test");
 
-      const result = await taskDir.copyTo(tHandle);
+      const result = await taskDir.copyTo(orignHandle, undefined, (e) => {
+        console.log(e);
+      });
+
+      console.log(result);
+    }
+
+    {
+      // 反过来复制回去
+      const orignTaskHandle = await originGet("origin-task-test/task-test");
+
+      // 删除旧的
+      const oldTaskDir = await get("local/task-test");
+      await oldTaskDir.remove();
+
+      const result = await orignTaskHandle.copyTo(
+        await get("local"),
+        undefined,
+        (e) => {
+          console.log(e);
+        }
+      );
 
       console.log(result);
     }

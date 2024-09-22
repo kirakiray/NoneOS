@@ -8,13 +8,14 @@ import { getErr } from "./errors.js";
  * @param {string} name 复制过去后的命名
  * @param {function} callback 复制过程中的callback
  */
-export const copyTo = async (source, target, name, callback) => {
+export const copyTo = async ({ source, target, name, callback }) => {
   [target, name] = await fixTargetAndName({ target, name, self: source });
 
   if (source.kind === "file") {
     const selfFile = await source.file();
     const newFile = await target.get(name, { create: "file" });
-    await newFile.write(selfFile);
+    await newFile.write(selfFile, callback);
+
     return newFile;
   } else if (source.kind === "dir") {
     const newDir = await target.get(name, {
@@ -22,7 +23,12 @@ export const copyTo = async (source, target, name, callback) => {
     });
 
     await source.forEach(async (handle) => {
-      await handle.copyTo(newDir, handle.name);
+      await copyTo({
+        source: handle,
+        target: newDir,
+        name: handle.name,
+        callback,
+      });
     });
 
     return newDir;

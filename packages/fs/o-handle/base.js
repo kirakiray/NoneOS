@@ -99,7 +99,12 @@ export class OriginBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    const newTarget = await copyTo(this, target, name);
+    const newTarget = await copyTo({
+      source: this,
+      target,
+      name,
+    });
+
     await this.remove();
 
     // 移动过去后，要更新信息
@@ -114,8 +119,8 @@ export class OriginBaseHandle {
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  copyTo(target, name) {
-    return copyTo(this, target, name);
+  copyTo(target, name, callback) {
+    return copyTo({ source: this, target, name, callback });
   }
 
   /**
