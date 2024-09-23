@@ -87,7 +87,7 @@
       const result = await taskDir.copyTo(orignHandle, undefined, (e) => {
         $("#ocount").text = ocount;
         ocount++;
-        console.log(e);
+        // console.log(e);
       });
 
       console.log(result);
@@ -109,7 +109,7 @@
         await get("local"),
         undefined,
         (e) => {
-          console.log(e);
+          // console.log(e);
           $("#dbcount").text = dbcount;
           dbcount++;
         }

@@ -84,11 +84,13 @@ export class PublicBaseHandle {
   constructor() {}
 
   // 给远端用，获取分块数据
-  async _getHashMap(options) {
+  async _getHashMap(options = {}) {
+    const chunkSize = options.size || 64 * 1024;
+
     // 获取指定的块内容
     const result = await this.buffer();
 
-    const datas = await splitIntoChunks(result, 64 * 1024);
+    const datas = await splitIntoChunks(result, chunkSize);
 
     const hashs = await Promise.all(
       datas.map(async (chunk) => {

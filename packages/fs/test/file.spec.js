@@ -55,7 +55,9 @@ test("opfs", async ({ page, browserName }) => {
 });
 
 test("copy process", async ({ page, browserName }) => {
-  await page.goto("http://127.0.0.1:5559/packages/fs/test/test-task.html");
+  await page.goto(
+    "http://127.0.0.1:5559/packages/fs/test/test-copy-process.html"
+  );
 
   // safari 下，fileSystemHandle无法写入内容
   if (browserName === "webkit") {
