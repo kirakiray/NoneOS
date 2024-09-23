@@ -8,6 +8,9 @@
   </head>
   <body>
     test task
+
+    <div>originCount: <span id="ocount">-</span></div>
+    <div>dbCount: <span id="dbcount">-</span></div>
   </body>
   <script type="module">
     import { flatHandle } from "../util.js";
@@ -69,6 +72,7 @@
 
     // 拷贝到原生handle
     {
+      let ocount = 0;
       const orignHandle = await originGet("origin-task-test");
 
       {
@@ -81,10 +85,14 @@
       const taskDir = await get("local/task-test");
 
       const result = await taskDir.copyTo(orignHandle, undefined, (e) => {
+        $("#ocount").text = ocount;
+        ocount++;
         console.log(e);
       });
 
       console.log(result);
+
+      $("#ocount").text = ocount;
     }
 
     {
@@ -95,13 +103,19 @@
       const oldTaskDir = await get("local/task-test");
       await oldTaskDir.remove();
 
+      let dbcount = 0;
+
       const result = await orignTaskHandle.copyTo(
         await get("local"),
         undefined,
         (e) => {
           console.log(e);
+          $("#dbcount").text = dbcount;
+          dbcount++;
         }
       );
+
+      $("#dbcount").text = dbcount;
 
       console.log(result);
     }
