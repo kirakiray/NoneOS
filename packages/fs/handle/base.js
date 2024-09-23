@@ -2,12 +2,12 @@ import { getData, setData } from "./db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
-import { fixTargetAndName, copyTo } from "../public.js";
+import { fixTargetAndName, copyTo, PublicBaseHandle } from "../public.js";
 
 /**
  * 基础的Handle
  */
-export class BaseHandle {
+export class BaseHandle extends PublicBaseHandle {
   #id;
   #kind;
   #path;
@@ -15,6 +15,7 @@ export class BaseHandle {
   #createTime;
   #lastModified;
   constructor(id, kind) {
+    super();
     this.#id = id;
     this.#kind = kind;
   }

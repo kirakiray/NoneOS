@@ -1,19 +1,20 @@
 import { getErr } from "../errors.js";
 import { OriginDirHandle } from "./dir.js";
-import { copyTo } from "../public.js";
+import { copyTo, PublicBaseHandle } from "../public.js";
 
 const roootId = Math.random().toString(32).slice(2);
 
 /**
  * 基础的Handle
  */
-export class OriginBaseHandle {
+export class OriginBaseHandle extends PublicBaseHandle {
   #systemHandle;
   #rootSystemHandle;
   #path;
   #name;
   #kind;
   constructor(systemHandle, path, rootSystemHandle) {
+    super();
     this.#systemHandle = systemHandle;
     this.#name = systemHandle.name;
     this.#kind = systemHandle.kind === "file" ? "file" : "dir";
