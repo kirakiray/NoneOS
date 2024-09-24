@@ -149,7 +149,7 @@ const getChunkByHash = async (hash, index, _this) => {
   }
 
   const chunk = await _this._bridge({
-    method: "_getBlock",
+    method: "_getChunk",
     path: _this._path,
     args: [hash, index],
   });

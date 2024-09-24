@@ -156,6 +156,10 @@ export class OriginBaseHandle extends PublicBaseHandle {
     // Invalid method, compatible with handle
   }
 
+  async size() {
+    return (await this.file()).size;
+  }
+
   toJSON() {
     const data = {};
     ["createTime", "id", "kind", "lastModified", "name", "path"].forEach(

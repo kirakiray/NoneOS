@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test task</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test task
+
+    <div>originCount: <span id="ocount">-</span></div>
+    <div>dbCount: <span id="dbcount">-</span></div>
+  </body>
+  <script type="module">
+    import { get } from "../main.js";
+    import { get as originGet } from "../o-handle/index.js";
+    import { copyTo } from "../task.js";
+
+    // 获取指定大小的随机文本(1mb)
+    const getBigText = (size = 1) => {
+      let text = "";
+
+      for (let i = 0; i < size; i++) {
+        text += Math.random()
+          .toString(32)
+          .slice(2, 10)
+          .repeat(128 * 1024);
+      }
+
+      return text;
+    };
+
+    const initTestFile = async () => {
+      console.log("写入 file1 开始");
+
+      // 先创建一个大文件
+      const bigFile1 = await originGet("task-test/bigfile1.txt", {
+        create: "file",
+      });
+
+      // 写入10mb
+      await bigFile1.write(getBigText(50));
+
+      console.log("写入 file1 结束");
+      console.log("写入 file2 开始");
+
+      const bigFile2 = await originGet("task-test/b2/bigfile2.txt", {
+        create: "file",
+      });
+
+      // 写入2mb
+      await bigFile2.write(getBigText(50));
+
+      console.log("写入 file2 结束");
+    };
+
+    {
+      // 如果确保初始化
+      const t1 = await originGet("task-test/bigfile1.txt").catch(() => null);
+      if (!t1) {
+        await initTestFile();
+      }
+    }
+
+    {
+      const ohandle = await originGet("task-test");
+
+      const chandle = await get("local/test-copy-task", {
+        create: "dir",
+      });
+
+      // copyTask测试
+      const result = await copyTo({
+        source: ohandle,
+        target: chandle,
+        async confirm(files) {
+          console.log("files: ", files);
+          return true;
+        },
+        async progress(e) {
+          console.log("progress: ", e);
+        },
+      });
+
+      console.log("end: ", result);
+    }
+  </script>
+</html>

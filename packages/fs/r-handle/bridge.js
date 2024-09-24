@@ -119,7 +119,7 @@ export const reponseBridge = async (result, permissions, send) => {
       bdResult = await bridge(options);
     }
 
-    if (bdResult.method === "_getBlock") {
+    if (bdResult.method === "_getChunk") {
       const hex = hexToArr(bid);
 
       if (!bdResult.value) {

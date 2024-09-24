@@ -34,7 +34,7 @@ export class FileHandle extends BaseHandle {
 
     const hashs = [];
 
-    const size = data.length || data.size || 0;
+    const size = data.length || data.size || data.byteLength || 0;
 
     // 写入块
     await Promise.all(
@@ -227,61 +227,5 @@ export class FileHandle extends BaseHandle {
 
   base64(options) {
     return this.read("base64", options);
-  }
-
-  // 给远端用，获取分块数据
-  async _getHashMap(options) {
-    // 获取指定的块内容
-    const result = await this.buffer();
-
-    const datas = await splitIntoChunks(result, 64 * 1024);
-
-    const hashs = await Promise.all(
-      datas.map(async (chunk) => {
-        return await calculateHash(chunk);
-      })
-    );
-
-    return [
-      {
-        bridgefile: 1,
-        size: await this.size(),
-      },
-      ...hashs,
-    ];
-  }
-
-  // 给远端用，根据id或分块哈希sh获取分块数据
-  async _getBlock(hash, index) {
-    if (index !== undefined) {
-      // 有块index的情况下，读取对应块并校验看是否合格
-      const chunk = await this.buffer({
-        start: index * 64 * 1024,
-        end: (index + 1) * 64 * 1024,
-      });
-
-      const realHash = await calculateHash(chunk);
-
-      if (realHash === hash) {
-        return chunk;
-      }
-
-      // 如果hash都不满足，重新查找并返回
-    }
-
-    const file = await this.file();
-
-    const hashMap = new Map();
-
-    const chunks = await splitIntoChunks(file, 64 * 1024);
-
-    await Promise.all(
-      chunks.map(async (chunk) => {
-        const hash = await calculateHash(chunk);
-        hashMap.set(hash, chunk);
-      })
-    );
-
-    return hashMap.get(hash);
   }
 }
