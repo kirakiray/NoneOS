@@ -122,7 +122,7 @@ export class FileHandle extends BaseHandle {
 
   // 写入数据流
   async createWritable() {
-    return new DBFSWritableFileStream(this.id);
+    return new DBFSWritableFileStream(this.id, this.path);
   }
 
   /**
@@ -241,10 +241,10 @@ class DBFSWritableFileStream {
   #cache = new ArrayBuffer(); // 给内存缓冲区用的变量，1mb大小
   #hashs = []; // 写入块的哈希值
   #size = 0;
-  constructor(id) {
+  #path;
+  constructor(id, path) {
     this.#fileID = id;
-
-    console.log(id);
+    this.#path = path;
   }
 
   // 写入流数据
@@ -285,6 +285,19 @@ class DBFSWritableFileStream {
       key: hash,
     });
 
+    const chunkData = {
+      path: this.#path,
+      index: this.#hashs.length, // 写入块的序列
+      hash, // 写入块的哈希值
+      exited, // 写入块是否已经存在
+    };
+
+    if (this.onbeforewrite) {
+      this.onbeforewrite({
+        type: "onbeforewrite",
+        ...chunkData,
+      });
+    }
     // 写入到硬盘
     if (!exited) {
       await setData({
@@ -298,6 +311,13 @@ class DBFSWritableFileStream {
       });
     }
 
+    if (this.onwrite) {
+      this.onwrite({
+        type: "onwrite",
+        ...chunkData,
+      });
+    }
+
     return hash;
   }
 
@@ -308,9 +328,10 @@ class DBFSWritableFileStream {
     if (!targetData) {
       // 文件不在就直接弃用
       await this.abort();
+      return;
     }
 
-    // 写入最后一点内容
+    // 写入最后一缓存的内容
     if (this.#cache.byteLength > 0) {
       const hash = await this._writeChunk(this.#cache);
       this.#hashs.push(hash);
@@ -326,7 +347,7 @@ class DBFSWritableFileStream {
       const needRemoveBlocks = [];
       for (let i = 0; i < oldHashs.length; i++) {
         if (i >= hashs.length) {
-          needRemoveBlocks.push(`${this.id}-${i}`);
+          needRemoveBlocks.push(`${this.#fileID}-${i}`);
         }
       }
 
@@ -359,9 +380,15 @@ class DBFSWritableFileStream {
   }
 
   // 放弃存储的内容
-  async abort() {}
+  async abort() {
+    // 清除缓存
+    if (this.#hashs) {
+      await clearHashs(this.#hashs);
+    }
+  }
 }
 
+// 合并buffer数据的方法
 function mergeArrayBuffers(buffer1, buffer2) {
   // 计算新 ArrayBuffer 的总长度
   const totalLength = buffer1.byteLength + buffer2.byteLength;

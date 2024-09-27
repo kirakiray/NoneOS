@@ -23,10 +23,18 @@
     });
 
     const writer = await file.createWritable();
+
+    writer.onbeforewrite = (e) => {
+      console.log("onbeforewrite: ", e);
+    };
+
+    writer.onwrite = (e) => {
+      console.log("onwrite: ", e);
+    };
     // const writer2 = await file2.createWritable();
 
-    await writer.write("1".repeat(1024));
-    await writer.write("2".repeat(1024 * 1024));
+    await writer.write("1a".repeat(1024 * 512));
+    await writer.write("2b".repeat(1024 * 512));
 
     await writer.close();
 
@@ -34,7 +42,7 @@
 
     console.log(
       "contentOK: ",
-      "1".repeat(1024) + "2".repeat(1024 * 1024) === content
+      "1a".repeat(1024 * 512) + "2b".repeat(1024 * 512) === content
     );
   </script>
 </html>
