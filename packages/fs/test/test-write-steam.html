@@ -18,6 +18,11 @@
     const file = await get("local/test-steam/file1.txt", {
       create: "file",
     });
+
+    // await file.write("1ab".repeat(1024 * 1024 + 1), (e) => {
+    //   console.log(e);
+    // });
+
     const file2 = await originGet("local/test-steam/file1.txt", {
       create: "file",
     });
@@ -31,7 +36,6 @@
     writer.onwrite = (e) => {
       console.log("onwrite: ", e);
     };
-    // const writer2 = await file2.createWritable();
 
     await writer.write("1a".repeat(1024 * 512));
     await writer.write("2b".repeat(1024 * 512));

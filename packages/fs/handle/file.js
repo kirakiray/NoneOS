@@ -28,100 +28,36 @@ export class FileHandle extends BaseHandle {
    * @returns {Promise<void>}
    */
   async write(data, callback) {
-    const targetData = await getSelfData(this, "write");
-
-    const chunks = await splitIntoChunks(data);
-
-    const hashs = [];
+    const writer = await this.createWritable();
 
     const size = data.length || data.size || data.byteLength || 0;
 
-    // 写入块
-    await Promise.all(
-      chunks.map(async (chunk, index) => {
-        const hash = await calculateHash(chunk);
+    const length = Math.ceil(size / CHUNK_SIZE);
 
-        hashs[index] = hash;
-
-        const exited = await getData({
-          storename: "blocks",
-          key: hash,
+    writer.onbeforewrite = (e) => {
+      callback &&
+        callback({
+          ...e,
+          length,
+          type: "write-file-start",
         });
+    };
 
-        const chunkData = {
-          index, // 写入块的序列
-          length: chunks.length, // 写入块的总数
-          hash, // 写入块的哈希值
-          exited, // 写入块是否已经存在
-        };
+    writer.onwrite = (e) => {
+      callback &&
+        callback({
+          ...e,
+          length,
+          type: "write-file-end",
+        });
+    };
 
-        callback &&
-          callback({
-            type: "write-file-start",
-            path: this.path,
-            ...chunkData,
-          });
-
-        if (!exited) {
-          await setData({
-            storename: "blocks",
-            datas: [
-              {
-                hash,
-                chunk,
-              },
-            ],
-          });
-        }
-
-        callback &&
-          callback({
-            type: "write-file-end",
-            path: this.path,
-            ...chunkData,
-          });
-      })
-    );
-
-    const oldHashs = targetData.hashs || [];
-
-    // 如果old更长，清除多出来的块
-    const needRemoveBlocks = [];
-    for (let i = 0; i < oldHashs.length; i++) {
-      if (i >= hashs.length) {
-        needRemoveBlocks.push(`${this.id}-${i}`);
-      }
-    }
-
-    // 更新文件信息
-    await setData({
-      datas: [
-        {
-          ...targetData,
-          lastModified: data?.lastModified || Date.now(),
-          hashs,
-          size,
-        },
-        ...hashs.map((hash, index) => {
-          return {
-            type: "block",
-            key: `${this.id}-${index}`,
-            hash,
-          };
-        }),
-      ],
-      removes: needRemoveBlocks,
-    });
-
-    if (oldHashs.length) {
-      await clearHashs(oldHashs);
-    }
-
-    await updateParentsModified(targetData.parent);
+    await writer.write(data);
+    await writer.close();
   }
 
   // 写入数据流
-  async createWritable() {
+  createWritable() {
     return new DBFSWritableFileStream(this.id, this.path);
   }
 

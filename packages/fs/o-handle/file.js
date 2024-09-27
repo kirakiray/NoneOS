@@ -22,8 +22,6 @@ export class OriginFileHandle extends OriginBaseHandle {
     try {
       const writer = await this._fsh.createWritable();
 
-      debugger
-
       callback &&
         callback({
           type: "write-file-start",
@@ -49,7 +47,7 @@ export class OriginFileHandle extends OriginBaseHandle {
     }
   }
 
-  async createWritable() {
+  createWritable() {
     return this._fsh.createWritable();
   }
 
