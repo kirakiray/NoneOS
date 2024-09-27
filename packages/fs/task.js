@@ -1,4 +1,5 @@
 import { flatHandle } from "./util.js";
+import { getErr } from "./errors.js";
 
 // 进行中的任务
 const tasks = [];
@@ -84,7 +85,7 @@ export const copyTo = async ({
 
       progress &&
         progress({
-          type: "write-start",
+          type: "before-write",
           hash,
           index: i,
           path: item.path,
@@ -111,11 +112,47 @@ export const copyTo = async ({
     }
   }
 
+  const needClearItem = []; // 需要被清除的哈希
+
   // 复制完成后，将块重新进行组装
   for (let item of files) {
     const path = item.path.replace(`${source.path}/`, "");
     const fileHandle = await target.get(`${name}/${path}`, { create: "file" });
 
-    debugger;
+    const writer = fileHandle.createWritable();
+
+    for (let hash of item.hashs) {
+      const handle = await cacheDir.get(hash);
+      if (!handle) {
+        const err = get("notFoundChunk", {
+          path,
+          hash,
+        });
+        console.error(err);
+        await writer.abort();
+        break;
+      }
+      const data = await handle.buffer();
+      await writer.write(data);
+    }
+
+    needClearItem.push(item);
+
+    await writer.close();
+  }
+
+  // 清除缓存
+  for (let item of needClearItem) {
+    for (let hash of item.hashs) {
+      const handle = await cacheDir.get(hash);
+
+      if (handle) {
+        await handle.remove();
+      }
+    }
+  }
+  // 如果没有缓存块，就可以删除对应的目录
+  if (!(await cacheDir.length())) {
+    await cacheDir.remove();
   }
 };

@@ -75,10 +75,16 @@
         source: ohandle,
         target: chandle,
         async confirm(files) {
+          // 询问是否复制
           console.log("files: ", files);
-          return true;
+          return new Promise((res) => {
+            setTimeout(() => {
+              res(true);
+            }, 500);
+          });
         },
         async progress(e) {
+          // 复制过程
           console.log("progress: ", e);
         },
       });
