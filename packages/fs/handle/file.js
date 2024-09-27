@@ -120,6 +120,11 @@ export class FileHandle extends BaseHandle {
     await updateParentsModified(targetData.parent);
   }
 
+  // 写入数据流
+  async createWritable() {
+    return new DBFSWritableFileStream(this.id);
+  }
+
   /**
    * 返回文件数据
    * @param {string} type 读取数据后返回的类型
@@ -228,4 +233,150 @@ export class FileHandle extends BaseHandle {
   base64(options) {
     return this.read("base64", options);
   }
+}
+
+// 虚拟文件系统的文件流
+class DBFSWritableFileStream {
+  #fileID; // 目标文件id
+  #cache = new ArrayBuffer(); // 给内存缓冲区用的变量，1mb大小
+  #hashs = []; // 写入块的哈希值
+  #size = 0;
+  constructor(id) {
+    this.#fileID = id;
+
+    console.log(id);
+  }
+
+  // 写入流数据
+  async write(input) {
+    let arrayBuffer;
+
+    if (typeof input === "string") {
+      arrayBuffer = new TextEncoder().encode(input).buffer;
+    } else if (input instanceof File) {
+      arrayBuffer = await input.arrayBuffer();
+    } else if (input instanceof ArrayBuffer) {
+      arrayBuffer = input;
+    }
+
+    this.#size += arrayBuffer.byteLength;
+
+    // 写入缓存区
+    this.#cache = mergeArrayBuffers(this.#cache, arrayBuffer);
+
+    // 根据缓冲区写入到硬盘
+    while (this.#cache.byteLength > CHUNK_SIZE) {
+      // 取出前1mb的数据
+      const targetChunk = this.#cache.slice(0, CHUNK_SIZE);
+      this.#cache = this.#cache.slice(CHUNK_SIZE);
+
+      const hash = await this._writeChunk(targetChunk);
+      this.#hashs.push(hash);
+    }
+  }
+
+  // 写入真正的内容
+  async _writeChunk(chunk) {
+    const hash = await calculateHash(chunk);
+
+    // 查看是否有缓存
+    const exited = await getData({
+      storename: "blocks",
+      key: hash,
+    });
+
+    // 写入到硬盘
+    if (!exited) {
+      await setData({
+        storename: "blocks",
+        datas: [
+          {
+            hash,
+            chunk,
+          },
+        ],
+      });
+    }
+
+    return hash;
+  }
+
+  // 确认写入到对应的位置
+  async close() {
+    const targetData = await getSelfData({ id: this.#fileID }, "write");
+
+    if (!targetData) {
+      // 文件不在就直接弃用
+      await this.abort();
+    }
+
+    // 写入最后一点内容
+    if (this.#cache.byteLength > 0) {
+      const hash = await this._writeChunk(this.#cache);
+      this.#hashs.push(hash);
+    }
+
+    {
+      // 写入对应路径的文件
+      const oldHashs = targetData.hashs || [];
+      const hashs = this.#hashs;
+      const size = this.#size;
+
+      // 如果old更长，清除多出来的块
+      const needRemoveBlocks = [];
+      for (let i = 0; i < oldHashs.length; i++) {
+        if (i >= hashs.length) {
+          needRemoveBlocks.push(`${this.id}-${i}`);
+        }
+      }
+
+      // 更新文件信息
+      await setData({
+        datas: [
+          {
+            ...targetData,
+            lastModified: Date.now(),
+            hashs,
+            size,
+          },
+          ...hashs.map((hash, index) => {
+            return {
+              type: "block",
+              key: `${this.#fileID}-${index}`,
+              hash,
+            };
+          }),
+        ],
+        removes: needRemoveBlocks,
+      });
+
+      if (oldHashs.length) {
+        await clearHashs(oldHashs);
+      }
+
+      await updateParentsModified(targetData.parent);
+    }
+  }
+
+  // 放弃存储的内容
+  async abort() {}
+}
+
+function mergeArrayBuffers(buffer1, buffer2) {
+  // 计算新 ArrayBuffer 的总长度
+  const totalLength = buffer1.byteLength + buffer2.byteLength;
+
+  // 创建一个新的 ArrayBuffer
+  const mergedBuffer = new ArrayBuffer(totalLength);
+
+  // 创建一个 Uint8Array 以便操作新的 ArrayBuffer
+  const uint8Array = new Uint8Array(mergedBuffer);
+
+  // 复制第一个 ArrayBuffer 的数据
+  uint8Array.set(new Uint8Array(buffer1), 0);
+
+  // 复制第二个 ArrayBuffer 的数据
+  uint8Array.set(new Uint8Array(buffer2), buffer1.byteLength);
+
+  return mergedBuffer;
 }

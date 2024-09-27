@@ -9,8 +9,13 @@ export const copyTo = async ({
   target,
   confirm,
   progress,
+  name,
   chunkSize = 1024 * 1024, // 分块的大小
 }) => {
+  if (!name) {
+    name = source.name;
+  }
+
   // 先扁平化所有文件
   const files = await flatHandle(source);
 
@@ -39,7 +44,7 @@ export const copyTo = async ({
   );
 
   // 建立一个复制专用的文件夹
-  const cacheDir = await target.get(`${source.name}.fs_task_cache`, {
+  const cacheDir = await target.get(`${name}.fs_task_cache`, {
     create: "dir",
   });
 
@@ -107,5 +112,10 @@ export const copyTo = async ({
   }
 
   // 复制完成后，将块重新进行组装
-  debugger;
+  for (let item of files) {
+    const path = item.path.replace(`${source.path}/`, "");
+    const fileHandle = await target.get(`${name}/${path}`, { create: "file" });
+
+    debugger;
+  }
 };
