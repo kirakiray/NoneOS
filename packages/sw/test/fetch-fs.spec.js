@@ -9,7 +9,5 @@ test("fetch file", async ({ page }) => {
 
   await page.evaluate(() => window.location.reload());
 
-  await new Promise((res) => setTimeout(res), 200);
-
   await page.getByText("fetch file content ok").click();
 });

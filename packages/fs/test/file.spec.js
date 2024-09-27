@@ -76,3 +76,17 @@ test("write stream", async ({ page, browserName }) => {
 
   await page.getByText("file stream: true").click();
 });
+
+test("write copy task", async ({ page, browserName }) => {
+  await page.goto("http://127.0.0.1:5559/packages/fs/test/test-task.html");
+
+  // safari 下，fileSystemHandle无法写入内容
+  if (browserName === "webkit") {
+    test.skip(true, "safari fileSystemHandle No write permission");
+    return;
+  }
+
+  await page.getByText("bigfile1: true").click();
+  await page.getByText("bigfile2: true").click();
+  await page.getByText("dbCount: 20").click();
+});
