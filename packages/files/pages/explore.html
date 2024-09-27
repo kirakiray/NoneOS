@@ -135,6 +135,7 @@
               this.errorStr = "";
             } catch (err) {
               this.errorStr = err.toString();
+              console.error(err);
               this.loading = false;
               return;
             }

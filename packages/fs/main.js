@@ -13,5 +13,9 @@ export const get = async (path, options) => {
     return remoteGet(path);
   }
 
+  if (/^\$origin:/.test(path)) {
+    return originGet(path);
+  }
+
   return dbGet(path, options);
 };

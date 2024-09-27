@@ -35,7 +35,7 @@
       console.log("写入 file1 开始");
 
       // 先创建一个大文件
-      const bigFile1 = await originGet("task-test/bigfile1.txt", {
+      const bigFile1 = await originGet("local/task-test/bigfile1.txt", {
         create: "file",
       });
 
@@ -45,7 +45,7 @@
       console.log("写入 file1 结束");
       console.log("写入 file2 开始");
 
-      const bigFile2 = await originGet("task-test/b2/bigfile2.txt", {
+      const bigFile2 = await originGet("local/task-test/b2/bigfile2.txt", {
         create: "file",
       });
 
@@ -57,14 +57,21 @@
 
     {
       // 如果确保初始化
-      const t1 = await originGet("task-test/bigfile1.txt").catch(() => null);
+      const t1 = await originGet("local/task-test/bigfile1.txt").catch(
+        () => null
+      );
       if (!t1) {
         await initTestFile();
       }
     }
 
     {
-      const ohandle = await originGet("task-test");
+      const ohandle = await originGet("local/task-test");
+
+      // const par = await ohandle.parent();
+      // let len = await par.length();
+
+      // debugger;
 
       const chandle = await get("local/test-copy-task", {
         create: "dir",
@@ -94,13 +101,17 @@
       });
 
       $("#bigfile1").text =
-        (await originGet("task-test/bigfile1.txt").then((e) => e.text())) ===
+        (await originGet("local/task-test/bigfile1.txt").then((e) =>
+          e.text()
+        )) ===
         (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
           e.text()
         ));
 
       $("#bigfile2").text =
-        (await originGet("task-test/b2/bigfile2.txt").then((e) => e.text())) ===
+        (await originGet("local/task-test/b2/bigfile2.txt").then((e) =>
+          e.text()
+        )) ===
         (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
           e.text()
         ));

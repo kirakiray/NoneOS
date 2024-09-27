@@ -17,6 +17,13 @@ const originInited = (async () => {
  * @returns {(OriginDirHandle|OriginFileHandle)}
  */
 export const get = async (path, options) => {
+  const originPath = path;
+
+  if (/^\$origin/.test(path)) {
+    const arr = path.split(":");
+    path = arr[1];
+  }
+
   const paths = path.split("/");
 
   if (!paths.length) {
@@ -35,7 +42,7 @@ export const get = async (path, options) => {
     create: true,
   });
 
-  const rootHandle = new OriginDirHandle(localRoot);
+  const rootHandle = new OriginDirHandle(localRoot, originPath.split("/")[0]);
 
   if (paths.length === 1) {
     return rootHandle;

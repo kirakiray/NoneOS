@@ -157,7 +157,10 @@ export class OriginBaseHandle extends PublicBaseHandle {
   }
 
   async size() {
-    return (await this.file()).size;
+    if (this.kind === "file") {
+      const file = await this.file();
+      return file.size;
+    }
   }
 
   toJSON() {

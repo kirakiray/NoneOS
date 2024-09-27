@@ -49,6 +49,18 @@ export const copyTo = async ({
     create: "dir",
   });
 
+  // 备份文件数据
+  const taskFile = await cacheDir.get("task.json", {
+    create: "file",
+  });
+
+  await taskFile.write(
+    JSON.stringify({
+      type: "copyTo",
+      files,
+    })
+  );
+
   // 将块复制到缓存文件夹
   for (let item of files) {
     const { hashs } = item;
@@ -152,7 +164,9 @@ export const copyTo = async ({
     }
   }
   // 如果没有缓存块，就可以删除对应的目录
-  if (!(await cacheDir.length())) {
+  const len = await cacheDir.length();
+  if (len === 1) {
+    // 只剩下task.json 文件
     await cacheDir.remove();
   }
 };
