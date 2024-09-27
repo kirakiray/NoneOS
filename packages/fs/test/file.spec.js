@@ -68,3 +68,11 @@ test("copy process", async ({ page, browserName }) => {
   await page.getByText("originCount: 4").click();
   await page.getByText("dbCount: 200").click();
 });
+
+test("write stream", async ({ page, browserName }) => {
+  await page.goto(
+    "http://127.0.0.1:5559/packages/fs/test/test-write-stream.html"
+  );
+
+  await page.getByText("file stream: true").click();
+});

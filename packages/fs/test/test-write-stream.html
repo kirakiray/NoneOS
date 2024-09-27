@@ -8,6 +8,7 @@
   </head>
   <body>
     test file system
+    <div>file stream: -</div>
   </body>
   <script type="module">
     import { get as dbGet } from "../handle/index.js";
@@ -23,9 +24,9 @@
     //   console.log(e);
     // });
 
-    const file2 = await originGet("local/test-steam/file1.txt", {
-      create: "file",
-    });
+    // const file2 = await originGet("local/test-steam/file1.txt", {
+    //   create: "file",
+    // });
 
     const writer = await file.createWritable();
 
@@ -48,5 +49,9 @@
       "contentOK: ",
       "1a".repeat(1024 * 512) + "2b".repeat(1024 * 512) === content
     );
+
+    $("div").text = `file stream: ${
+      "1a".repeat(1024 * 512) + "2b".repeat(1024 * 512) === content
+    }`;
   </script>
 </html>
