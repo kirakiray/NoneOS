@@ -2,7 +2,21 @@ import { flatHandle } from "./util.js";
 import { getErr } from "./errors.js";
 
 // 用于监听任务进度
-export const listener = new EventTarget();
+const listener = new EventTarget();
+
+export const on = (name, func) => {
+  listener.addEventListener(name, func);
+};
+
+export const off = (name, func) => {
+  listener.removeEventListener(name, func);
+};
+
+const emit = (name, data) => {
+  const event = new Event(name);
+  event.data = data;
+  listener.dispatchEvent(event);
+};
 
 // 通过进度的模式，将文件从源拷贝到目标
 export const copyTo = async ({
@@ -74,6 +88,14 @@ export const copyTo = async ({
       // 确认没有缓存
       const cacheChunk = await cacheDir.get(hash);
 
+      const eventOptions = {
+        hash,
+        index: i,
+        path: item.path,
+        total: totalChunkSize,
+        count,
+      };
+
       if (cacheChunk) {
         // 已经存在的不用再拷贝
         const size = await cacheChunk.size();
@@ -85,16 +107,20 @@ export const copyTo = async ({
 
           // 已经写入成功的就不折腾了
           count++;
+
           progress &&
             progress({
               type: "writed",
-              hash,
-              index: i,
-              path: item.path,
-              total: totalChunkSize,
+              ...eventOptions,
               count,
               exited: 1, // 已经存在的块
             });
+
+          emit("writed", {
+            ...eventOptions,
+            count,
+            exited: 1, // 已经存在的块
+          });
           continue;
         }
       }
@@ -105,13 +131,12 @@ export const copyTo = async ({
       progress &&
         progress({
           type: "before-write",
-          hash,
-          index: i,
-          path: item.path,
-          total: totalChunkSize,
-          count,
-          exited: 1, // 已经存在的块
+          ...eventOptions,
         });
+
+      emit("before-write", {
+        ...eventOptions,
+      });
 
       // 写入块
       const chunkFile = await cacheDir.get(hash, { create: "file" });
@@ -126,12 +151,14 @@ export const copyTo = async ({
       progress &&
         progress({
           type: "writed",
-          hash,
-          index: i,
-          path: item.path,
-          total: totalChunkSize,
+          ...eventOptions,
           count,
         });
+
+      emit("writed", {
+        ...eventOptions,
+        count,
+      });
     }
   }
 

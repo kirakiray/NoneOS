@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -66,6 +67,11 @@
       border: var(--md-sys-color-on-normal-container) solid 1px;
     }
 
+    .block.actived {
+      background-color: var(--md-sys-color-primary);
+      border-color: var(--md-sys-color-primary);
+    }
+
     .file-line {
       margin-bottom: 4px;
     }
@@ -78,21 +84,55 @@
   <div class="container" class:show="show">
     <div class="mask" on:click="show = false"></div>
     <div class="main">
-      <div>{{taskTypeDesc}}</div>
-      <div class="file-container"></div>
+      <x-if :value="isTask">
+        <div style="display: flex; align-items: center">
+          <x-if :value="completed"> 复制完成 </x-if>
+          <x-else> {{taskTypeDesc}} ({{percentTage}}%) </x-else>
+          <x-if :value="paused">
+            <p-button
+              size="mini"
+              style="margin-left: 20px"
+              on:click="continueTask"
+            >
+              继续任务
+            </p-button>
+          </x-if>
+        </div>
+        <div class="file-container"></div>
+      </x-if>
+      <x-else>
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+          "
+        >
+          目标不是任务目录
+        </div>
+      </x-else>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { on, off, copyTo } = await load("/packages/fs/task.js");
 
       return {
         tag: "task-viewer",
         data: {
+          isTask: false, // 目标是不是任务目录
           show: false, // 是否显示
           path: "", // 任务目录路径
           loading: false, // 是否加载中
           taskType: "", // 任务类型
+          percentTaKge: 0,
+          total: 0, // 总块数
+          cached: 0, // 已经缓存的数量
+          _originData: null, // 任务上的缓存数据
+          paused: true, // 当前是否正在暂停任务中
+          completed: false, // 任务是否已经完成
         },
         watch: {
           show(show) {
@@ -102,10 +142,30 @@
           },
         },
         proto: {
+          // 继续任务
+          async continueTask() {
+            if (this.taskType === "copyTo") {
+              const source = await get(this._originData.from);
+              const target = await get(this._originData.to);
+
+              await copyTo({
+                source,
+                target,
+                debugTime: 50,
+              });
+
+              this.emit("task-complete", {
+                composed: true,
+              });
+            }
+          },
+          get percentTage() {
+            return Math.ceil((this.cached / this.total) * 100);
+          },
           get taskTypeDesc() {
             switch (this.taskType) {
               case "copyTo":
-                return `复制任务被中断`;
+                return `复制任务`;
             }
           },
           // 修正缓存中的文件进度
@@ -116,7 +176,13 @@
               const size = await handle.size();
 
               if (size) {
-                debugger;
+                // 设置缓存成功
+                const blockEl = this.shadow.$(`.block[data-hash="${name}"]`);
+
+                if (blockEl) {
+                  this.cached++;
+                  blockEl.classList.add("actived");
+                }
               }
             }
           },
@@ -124,7 +190,16 @@
           async init() {
             this.loading = true;
 
-            const taskHandle = await get(`${this.path}/task.json`);
+            let taskHandle;
+
+            try {
+              taskHandle = await get(`${this.path}/task.json`);
+            } catch (err) {
+              this.isTask = false;
+              return;
+            }
+
+            this.isTask = true;
 
             if (taskHandle) {
               // 读取任务信息
@@ -134,8 +209,9 @@
               // 生成文件组
               this.taskType = taskData.type;
 
-              // 由于生成块可能会非常多，所以不采用渲染模板，而是直接生成dom
+              this._originData = taskData;
 
+              // 由于生成块可能会非常多，所以不采用渲染模板，而是直接生成dom
               const conEl = $("<div></div>");
 
               // 生成块
@@ -153,6 +229,9 @@
                   );
                 });
 
+                // 统计块总数
+                this.total += fileData.hashs.length;
+
                 conEl.push(fileLine);
               });
 
@@ -166,9 +245,42 @@
           },
         },
         attached() {
-          //   this.init();
+          on(
+            "writed",
+            (this._wfunc = (event) => {
+              if (!this._originData) {
+                return;
+              }
+              const { data } = event;
+
+              const targetFile = this._originData.files.find(
+                (e) => e.path === data.path
+              );
+
+              if (targetFile) {
+                const { hash } = data;
+
+                this.paused = false; // 复制任务正在进行中
+
+                // 添加进度
+                const blockEl = this.shadow.$(`.block[data-hash="${hash}"]`);
+
+                if (blockEl && !blockEl.classList.contains("actived")) {
+                  // 递增缓存进度
+                  this.cached++;
+                  blockEl.classList.add("actived");
+                }
+
+                if (this.cached === this.total) {
+                  this.completed = true;
+                }
+              }
+            })
+          );
         },
-        detached() {},
+        detached() {
+          off("writed", this._wfunc);
+        },
       };
     };
   </script>

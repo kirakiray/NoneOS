@@ -181,7 +181,10 @@
   </div>
 
   <div class="bottom-area delay" class:hide="!clipboard?.sources?.length">
-    <x-if :value="clipboard?.sources?.length">
+    <x-if :value="taskPercentage > 0 && taskPercentage < 100">
+      正在粘贴中，进度 {{taskPercentage}}%
+    </x-if>
+    <x-else-if :value="clipboard?.sources?.length">
       {{clipboardText}}，点击
       <n-local-icon name="paste"></n-local-icon> 进行粘贴。
       <p-button
@@ -191,7 +194,7 @@
       >
         点击取消操作
       </p-button>
-    </x-if>
+    </x-else-if>
     <x-else-if :value="clipboard === 0"> 粘贴完成 </x-else-if>
     <x-else> 操作取消 </x-else>
   </div>
@@ -242,6 +245,8 @@
           importingLen: 0, // 导入中的数量
           importedLen: 0, // 导入成功的数量
           hasTask: false, // 选中的文件包含task目录
+          taskType: "",
+          taskPercentage: 0, // 任务进度数据
         },
         watch: {
           search(text) {
@@ -351,18 +356,21 @@
                   if (handle._mark === "db" && targetHandle._mark === "db") {
                     await handle.copyTo(targetHandle);
                   } else {
+                    this.taskType = "copyTo";
                     await copyTo({
                       source: handle,
                       target: targetHandle,
-                      debugTime: 50,
+                      debugTime: 500,
                       confirm: async (info) => {
                         setTimeout(() => {
                           this.app.current.refreshFiles();
-                        }, 200);
+                        }, 100);
                         return true;
                       },
-                      progress(e) {
-                        console.log("progress: ", e);
+                      progress: (e) => {
+                        this.taskPercentage = Math.ceil(
+                          (e.count / e.total) * 100
+                        );
                       },
                     });
                   }

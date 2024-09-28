@@ -93,7 +93,7 @@
       proto: {
         get realName() {
           if (/\.fs_task_cache$/.test(this.name)) {
-            return this.name.replace(/\.fs_task_cache$/, "") + `(任务被中断)`;
+            return this.name.replace(/\.fs_task_cache$/, "");
           }
           return this.name;
         },
