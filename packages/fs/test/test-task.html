@@ -40,7 +40,7 @@
       });
 
       // 写入10mb
-      await bigFile1.write(getBigText(5));
+      await bigFile1.write(getBigText(100));
 
       console.log("写入 file1 结束");
       console.log("写入 file2 开始");
@@ -68,11 +68,6 @@
     {
       const ohandle = await originGet("local/task-test");
 
-      // const par = await ohandle.parent();
-      // let len = await par.length();
-
-      // debugger;
-
       const chandle = await get("local/test-copy-task", {
         create: "dir",
       });
@@ -83,6 +78,7 @@
       const result = await copyTo({
         source: ohandle,
         target: chandle,
+        debugTime: 100,
         async confirm(files) {
           // 询问是否复制
           console.log("files: ", files);

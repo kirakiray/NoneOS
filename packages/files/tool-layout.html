@@ -84,28 +84,28 @@
     <p-button-group variant="outlined">
       <p-button
         size="small"
-        attr:disabled="isPackages || !selecteds.length"
+        attr:disabled="isPackages || !selecteds.length || hasTask"
         on:click="clickCut"
       >
         <n-local-icon name="cut"></n-local-icon>
       </p-button>
       <p-button
         size="small"
-        attr:disabled="!selecteds.length"
+        attr:disabled="!selecteds.length || hasTask"
         on:click="clickCopy"
       >
         <n-local-icon name="copy"></n-local-icon>
       </p-button>
       <p-button
         size="small"
-        attr:disabled="isPackages || !clipboard?.sources?.length"
+        attr:disabled="isPackages || !clipboard?.sources?.length || hasTask"
         on:click="clickPaste"
       >
         <n-local-icon name="paste"></n-local-icon>
       </p-button>
       <p-button
         size="small"
-        attr:disabled="isPackages || selecteds.length !== 1"
+        attr:disabled="isPackages || selecteds.length !== 1 || hasTask"
         on:click="clickRename"
       >
         <n-local-icon name="rename"></n-local-icon>
@@ -157,7 +157,7 @@
       <p-button
         size="small"
         on:click="clickExport"
-        attr:disabled="!selecteds.length"
+        attr:disabled="!selecteds.length || hasTask"
       >
         <n-local-icon name="export"></n-local-icon>
       </p-button>
@@ -222,6 +222,7 @@
     export const parent = "./outer-layout.html";
 
     import { handleToZip } from "./util.js";
+    import { copyTo } from "/packages/fs/task.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
@@ -240,6 +241,7 @@
           // 正在导入中的数据
           importingLen: 0, // 导入中的数量
           importedLen: 0, // 导入成功的数量
+          hasTask: false, // 选中的文件包含task目录
         },
         watch: {
           search(text) {
@@ -346,7 +348,24 @@
             switch (type) {
               case "copy":
                 for (let handle of handles) {
-                  await handle.copyTo(targetHandle);
+                  if (handle._mark === "db" && targetHandle._mark === "db") {
+                    await handle.copyTo(targetHandle);
+                  } else {
+                    await copyTo({
+                      source: handle,
+                      target: targetHandle,
+                      debugTime: 50,
+                      confirm: async (info) => {
+                        setTimeout(() => {
+                          this.app.current.refreshFiles();
+                        }, 200);
+                        return true;
+                      },
+                      progress(e) {
+                        console.log("progress: ", e);
+                      },
+                    });
+                  }
                 }
                 break;
               case "cut":
@@ -373,6 +392,12 @@
           selectFiles(e) {
             e.stopPropagation();
             this.selecteds = e.data.selecteds.map((e) => e.path);
+
+            const hasTaskDir = e.data.selecteds.find((e) =>
+              /\.fs_task_cache$/.test(e.name)
+            );
+
+            this.hasTask = !!hasTaskDir;
           },
           clickAddress(e) {
             const {

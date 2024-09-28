@@ -1,8 +1,8 @@
 import { flatHandle } from "./util.js";
 import { getErr } from "./errors.js";
 
-// 进行中的任务
-const tasks = [];
+// 用于监听任务进度
+export const listener = new EventTarget();
 
 // 通过进度的模式，将文件从源拷贝到目标
 export const copyTo = async ({
@@ -12,6 +12,7 @@ export const copyTo = async ({
   progress,
   name,
   chunkSize = 1024 * 1024, // 分块的大小
+  debugTime = 0, // 调试用的延迟时间
 }) => {
   if (!name) {
     name = source.name;
@@ -58,6 +59,8 @@ export const copyTo = async ({
     JSON.stringify({
       type: "copyTo",
       files,
+      from: source.path,
+      to: target.path,
     })
   );
 
@@ -76,7 +79,11 @@ export const copyTo = async ({
         const size = await cacheChunk.size();
 
         if (size) {
-          // 写入成功的就不折腾了
+          if (debugTime) {
+            await new Promise((res) => setTimeout(res, debugTime));
+          }
+
+          // 已经写入成功的就不折腾了
           count++;
           progress &&
             progress({
@@ -109,6 +116,10 @@ export const copyTo = async ({
       // 写入块
       const chunkFile = await cacheDir.get(hash, { create: "file" });
       await chunkFile.write(chunk);
+
+      if (debugTime) {
+        await new Promise((res) => setTimeout(res, debugTime));
+      }
 
       count++; // 写入成功后递增
 
