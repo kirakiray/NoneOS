@@ -4,6 +4,7 @@ import { servers } from "./server.js";
 import { reponseBridge } from "../fs/r-handle/bridge.js";
 import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "../user/main.js";
+import { calculateHash } from "../fs/util.js";
 
 export const users = $.stanz([]);
 
@@ -150,14 +151,44 @@ export class ClientUser extends $.Stanz {
       await this.connect();
     }
 
-    if (data && data.length > 64 * 1024) {
-      // 超过 64kb 需要拆包
-      debugger;
+    if (!data) {
+      return;
     }
 
     await this.watchUntil(() => this.state === "connected");
-
     const targetChannel = await this._getChannel(channelName);
+
+    if (data.length > 64 * 1024) {
+      // 先将大文件哈希数据发送，再将文件内容发送
+      const splitData = [];
+      const chunksInfo = {
+        splitData,
+      };
+
+      // 超过 64kb 需要拆包
+      const chunks = await Promise.all(
+        splitStringBy50KB(data).map(async (content) => {
+          const hash = await calculateHash(content);
+          splitData.push(hash);
+          return {
+            chunkData: {
+              hash,
+              content,
+            },
+          };
+        })
+      );
+
+      targetChannel.send(JSON.stringify(chunksInfo));
+
+      setTimeout(() => {
+        chunks.forEach((e) => {
+          targetChannel.send(JSON.stringify(e));
+        });
+      }, 100);
+
+      return;
+    }
 
     targetChannel.send(data);
   }
@@ -384,6 +415,42 @@ export class ClientUser extends $.Stanz {
         return;
       }
 
+      if (result.splitData) {
+        // 暂时保存分块信息
+        const splits = this._splits || (this._splits = []);
+        splits.push({
+          count: result.splitData.length, // 成功缓存的数量
+          hashs: result.splitData,
+          datas: [],
+        });
+        return;
+      }
+
+      if (result.chunkData) {
+        const { chunkData } = result;
+        // 重新组装分块信息
+        const splits = this._splits || (this._splits = []);
+
+        // 查找到对应的组
+        const groupData = splits.find((item) =>
+          item.hashs.includes(chunkData.hash)
+        );
+
+        // 替换掉原来的组的位置
+        const id = groupData.hashs.indexOf(chunkData.hash);
+
+        groupData.datas[id] = chunkData.content;
+
+        groupData.count--;
+
+        if (groupData.count > 0) {
+          return;
+        }
+
+        // 当不等于0时，组装往下走
+        result = JSON.parse(groupData.datas.join(""));
+      }
+
       if (result.data) {
         this._onmessage &&
           this._onmessage({
@@ -486,4 +553,13 @@ export class ClientUser extends $.Stanz {
 
 function isPlainObject(obj) {
   return Object.prototype.toString.call(obj) === "[object Object]";
+}
+
+function splitStringBy50KB(str) {
+  const chunkSize = 50 * 1024; // 50KB
+  let chunks = [];
+  for (let i = 0; i < str.length; i += chunkSize) {
+    chunks.push(str.slice(i, i + chunkSize));
+  }
+  return chunks;
 }

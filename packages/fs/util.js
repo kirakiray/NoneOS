@@ -92,6 +92,11 @@ export const mergeChunks = (chunks) => {
  * @returns {string} 文件的哈希值
  */
 export const calculateHash = async (arrayBuffer) => {
+  if (typeof arrayBuffer == "string") {
+    const encoder = new TextEncoder();
+    arrayBuffer = encoder.encode(arrayBuffer);
+  }
+
   const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray
