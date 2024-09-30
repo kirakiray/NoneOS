@@ -5,6 +5,7 @@ import { reponseBridge } from "../fs/r-handle/bridge.js";
 import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "../user/main.js";
 import { calculateHash } from "../fs/util.js";
+import { CHUNK_REMOTE_SIZE } from "../fs/util.js";
 
 export const users = $.stanz([]);
 
@@ -158,7 +159,7 @@ export class ClientUser extends $.Stanz {
     await this.watchUntil(() => this.state === "connected");
     const targetChannel = await this._getChannel(channelName);
 
-    if (data.length > 64 * 1024) {
+    if (data.length > CHUNK_REMOTE_SIZE) {
       // 先将大文件哈希数据发送，再将文件内容发送
       const splitData = [];
       const chunksInfo = {

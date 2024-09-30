@@ -1,5 +1,6 @@
 import { getErr } from "./errors.js";
 import { splitIntoChunks, calculateHash } from "./util.js";
+import { CHUNK_REMOTE_SIZE } from "./util.js";
 
 /**
  * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
@@ -87,7 +88,7 @@ export class PublicBaseHandle {
   // 给远端用，获取分块数据
   async _getHashMap(options) {
     options = options || {};
-    const chunkSize = options.size || 64 * 1024;
+    const chunkSize = options.size || CHUNK_REMOTE_SIZE;
 
     // 获取指定的块内容
     const result = await this.buffer();
@@ -112,7 +113,7 @@ export class PublicBaseHandle {
   // 给远端用，根据id或分块哈希sh获取分块数据
   async _getChunk(hash, index, size) {
     if (!size) {
-      size = 64 * 1024;
+      size = CHUNK_REMOTE_SIZE;
     }
 
     if (index !== undefined) {

@@ -1,5 +1,6 @@
 import { flatHandle } from "./util.js";
 import { getErr } from "./errors.js";
+import { CHUNK_SIZE, CHUNK_REMOTE_SIZE } from "./util.js";
 
 // 用于监听任务进度
 const listener = new EventTarget();
@@ -35,9 +36,9 @@ export const copyTo = async ({
   // 修正块的大小
   if (!chunkSize) {
     if (source._mark === "remote") {
-      chunkSize = 64 * 1024;
+      chunkSize = CHUNK_REMOTE_SIZE;
     } else {
-      chunkSize = 1024 * 1024;
+      chunkSize = CHUNK_SIZE;
     }
   }
 
@@ -78,14 +79,16 @@ export const copyTo = async ({
     create: "file",
   });
 
-  await taskFile.write(
-    JSON.stringify({
-      type: "copyTo",
-      files,
-      from: source.path,
-      to: target.path,
-    })
-  );
+  const taskFileData = {
+    type: "copyTo",
+    step: "copy",
+    files,
+    from: source.path,
+    to: target.path,
+  };
+
+  // 保存步骤
+  await taskFile.write(JSON.stringify(taskFileData));
 
   // 将块复制到缓存文件夹
   for (let item of files) {
@@ -167,6 +170,10 @@ export const copyTo = async ({
     }
   }
 
+  // 记录到组装步骤
+  taskFileData.step == "merge";
+  await taskFile.write(JSON.stringify(taskFileData));
+
   const needClearItem = []; // 需要被清除的哈希
 
   const writeFile = async (fileHandle, item) => {
@@ -210,6 +217,10 @@ export const copyTo = async ({
     }
   }
 
+  // 记录到清除步骤
+  taskFileData.step == "clear";
+  await taskFile.write(JSON.stringify(taskFileData));
+
   // 清除缓存
   for (let item of needClearItem) {
     for (let hash of item.hashs) {
@@ -220,6 +231,7 @@ export const copyTo = async ({
       }
     }
   }
+
   // 如果没有缓存块，就可以删除对应的目录
   const len = await cacheDir.length();
   if (len === 1) {

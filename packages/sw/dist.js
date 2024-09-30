@@ -344,7 +344,9 @@
 
   // 获取目标文件或文件夹的任务树状信息
 
-  const CHUNK_SIZE = 1024 * 1024; // 1mb
+  const CHUNK_REMOTE_SIZE = 64 * 1024; // 64kb // 远程复制的块大小
+
+  const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
   // const CHUNK_SIZE = 1024 * 4; // 4kb
 
@@ -403,6 +405,11 @@
    * @returns {string} 文件的哈希值
    */
   const calculateHash = async (arrayBuffer) => {
+    if (typeof arrayBuffer == "string") {
+      const encoder = new TextEncoder();
+      arrayBuffer = encoder.encode(arrayBuffer);
+    }
+
     const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray
@@ -525,8 +532,9 @@
     constructor() {}
 
     // 给远端用，获取分块数据
-    async _getHashMap(options = {}) {
-      const chunkSize = options.size || 64 * 1024;
+    async _getHashMap(options) {
+      options = options || {};
+      const chunkSize = options.size || CHUNK_REMOTE_SIZE;
 
       // 获取指定的块内容
       const result = await this.buffer();
@@ -551,7 +559,7 @@
     // 给远端用，根据id或分块哈希sh获取分块数据
     async _getChunk(hash, index, size) {
       if (!size) {
-        size = 64 * 1024;
+        size = CHUNK_REMOTE_SIZE;
       }
 
       if (index !== undefined) {
@@ -887,7 +895,7 @@
     }
 
     // 写入数据流
-    createWritable() {
+    async createWritable() {
       return new DBFSWritableFileStream(this.id, this.path);
     }
 

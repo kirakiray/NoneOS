@@ -2,6 +2,7 @@ import { getErr } from "../errors.js";
 import { getCache, saveCache } from "./cache-util.js";
 import { RemoteBaseHandle } from "./base.js";
 import { calculateHash, mergeChunks, readBufferByType } from "../util.js";
+import { CHUNK_REMOTE_SIZE } from "../util.js";
 
 /**
  * 创建文件handle
@@ -43,7 +44,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       let buffer;
       if (options && (options.start || options.end)) {
         // 获取范围内的数据
-        const remote_chunk_length = 64 * 1024; // remote 的传送块大小
+        const remote_chunk_length = CHUNK_REMOTE_SIZE; // remote 的传送块大小
 
         const startBlockId = Math.floor(options.start / remote_chunk_length); // 开始的块id
         const endBlockId = Math.floor(options.end / remote_chunk_length); // 结束的块id
