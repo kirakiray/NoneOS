@@ -85,7 +85,8 @@ export class PublicBaseHandle {
   constructor() {}
 
   // 给远端用，获取分块数据
-  async _getHashMap(options = {}) {
+  async _getHashMap(options) {
+    options = options || {};
     const chunkSize = options.size || 64 * 1024;
 
     // 获取指定的块内容

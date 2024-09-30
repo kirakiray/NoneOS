@@ -358,9 +358,9 @@
                   } else {
                     this.taskType = "copyTo";
                     await copyTo({
+                      debugTime: 200,
                       source: handle,
                       target: targetHandle,
-                      debugTime: 500,
                       confirm: async (info) => {
                         setTimeout(() => {
                           this.app.current.refreshFiles();

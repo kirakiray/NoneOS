@@ -115,6 +115,10 @@ export class RemoteBaseHandle {
     // Invalid method, compatible with handle
   }
 
+  get _mark() {
+    return "remote";
+  }
+
   async size() {
     const result = await this._bridge({
       method: "size",
@@ -124,7 +128,24 @@ export class RemoteBaseHandle {
     return result;
   }
 
-  get _mark() {
-    return "remote";
+  async _getHashMap(options) {
+    const result = await this._bridge({
+      method: "_getHashMap",
+      path: this._path,
+      args: [options],
+    });
+
+    return result;
+  }
+
+  // 给远端用，根据id或分块哈希sh获取分块数据
+  async _getChunk(hash, index, size) {
+    const result = await this._bridge({
+      method: "_getChunk",
+      path: this._path,
+      args: [hash, index, size],
+    });
+
+    return result;
   }
 }

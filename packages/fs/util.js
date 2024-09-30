@@ -1,5 +1,9 @@
 // 获取目标文件或文件夹的任务树状信息
 export const flatHandle = async (handle) => {
+  if (handle.kind === "file") {
+    return [await getFileData(handle)];
+  }
+
   const arr = [];
 
   for await (let subHandle of handle.values()) {
@@ -7,22 +11,26 @@ export const flatHandle = async (handle) => {
       const subs = await flatHandle(subHandle);
       arr.push(...subs);
     } else {
-      const data = {
-        size: await subHandle.size(),
-        path: subHandle.path,
-      };
-
-      Object.defineProperty(data, "handle", {
-        get() {
-          return subHandle;
-        },
-      });
-
-      arr.push(data);
+      arr.push(await getFileData(subHandle));
     }
   }
 
   return arr;
+};
+
+const getFileData = async (handle) => {
+  const data = {
+    size: await handle.size(),
+    path: handle.path,
+  };
+
+  Object.defineProperty(data, "handle", {
+    get() {
+      return handle;
+    },
+  });
+
+  return data;
 };
 
 export const CHUNK_SIZE = 1024 * 1024; // 1mb

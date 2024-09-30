@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test remote copy</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test remote fs
+    <script type="module">
+      import { get } from "../main.js";
+      import { getRemotes } from "/packages/fs/r-handle/index.js";
+
+      const remotes = await getRemotes();
+
+      if (remotes.length) {
+        const path = remotes[0].paths[0].path;
+
+        const localHandle = await get(path);
+
+        const htmlHandle = await localHandle.get("index.html");
+
+        const text = await htmlHandle.text();
+
+        debugger;
+      }
+    </script>
+  </body>
+</html>

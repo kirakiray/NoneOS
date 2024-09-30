@@ -25,11 +25,20 @@ export const copyTo = async ({
   confirm,
   progress,
   name,
-  chunkSize = 1024 * 1024, // 分块的大小
+  chunkSize, // 分块的大小
   debugTime = 0, // 调试用的延迟时间
 }) => {
   if (!name) {
     name = source.name;
+  }
+
+  // 修正块的大小
+  if (!chunkSize) {
+    if (source._mark === "remote") {
+      chunkSize = 64 * 1024;
+    } else {
+      chunkSize = 1024 * 1024;
+    }
   }
 
   // 先扁平化所有文件
@@ -101,10 +110,6 @@ export const copyTo = async ({
         const size = await cacheChunk.size();
 
         if (size) {
-          if (debugTime) {
-            await new Promise((res) => setTimeout(res, debugTime));
-          }
-
           // 已经写入成功的就不折腾了
           count++;
 
@@ -164,18 +169,14 @@ export const copyTo = async ({
 
   const needClearItem = []; // 需要被清除的哈希
 
-  // 复制完成后，将块重新进行组装
-  for (let item of files) {
-    const path = item.path.replace(`${source.path}/`, "");
-    const fileHandle = await target.get(`${name}/${path}`, { create: "file" });
-
+  const writeFile = async (fileHandle, item) => {
     const writer = fileHandle.createWritable();
 
     for (let hash of item.hashs) {
       const handle = await cacheDir.get(hash);
       if (!handle) {
         const err = get("notFoundChunk", {
-          path,
+          path: item.path,
           hash,
         });
         console.error(err);
@@ -189,6 +190,24 @@ export const copyTo = async ({
     needClearItem.push(item);
 
     await writer.close();
+  };
+
+  // 复制完成后，将块重新进行组装
+  if (source.kind === "file") {
+    // 文件拼接
+    const fileHandle = await target.get(name, { create: "file" });
+
+    await writeFile(fileHandle, files[0]);
+  } else {
+    // 文件夹内的拼接
+    for (let item of files) {
+      const path = item.path.replace(`${source.path}/`, "");
+      const fileHandle = await target.get(`${name}/${path}`, {
+        create: "file",
+      });
+
+      await writeFile(fileHandle, item);
+    }
   }
 
   // 清除缓存
