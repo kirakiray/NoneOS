@@ -57,7 +57,7 @@ export class FileHandle extends BaseHandle {
   }
 
   // 写入数据流
-  createWritable() {
+  async createWritable() {
     return new DBFSWritableFileStream(this.id, this.path);
   }
 

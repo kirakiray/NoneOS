@@ -47,7 +47,7 @@ export class OriginFileHandle extends OriginBaseHandle {
     }
   }
 
-  createWritable() {
+  async createWritable() {
     return this._fsh.createWritable();
   }
 

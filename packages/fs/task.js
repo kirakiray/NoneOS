@@ -170,7 +170,7 @@ export const copyTo = async ({
   const needClearItem = []; // 需要被清除的哈希
 
   const writeFile = async (fileHandle, item) => {
-    const writer = fileHandle.createWritable();
+    const writer = await fileHandle.createWritable();
 
     for (let hash of item.hashs) {
       const handle = await cacheDir.get(hash);

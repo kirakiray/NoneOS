@@ -1,6 +1,7 @@
 import Koa from "koa";
 import serve from "koa-static";
 import path from "path";
+import HandShakeServer from "noneos-handshake";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const home = serve(path.normalize(__dirname + "/../"));
@@ -28,3 +29,8 @@ export default {
   server: _server,
   home: path.normalize(__dirname + "/../"),
 };
+
+const server = new HandShakeServer({
+  name: "local-test-server",
+  port: 5569,
+});

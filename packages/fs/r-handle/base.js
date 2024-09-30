@@ -1,4 +1,5 @@
 import { createHandle } from "./dir.js";
+import { copyTo } from "../public.js";
 
 /**
  * 基础的Handle
@@ -91,6 +92,7 @@ export class RemoteBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
+    // throw new Error(`Please use the copyTo operation before deleting.`);
     debugger;
   }
 
@@ -101,6 +103,7 @@ export class RemoteBaseHandle {
    */
   async copyTo(target, name) {
     debugger;
+    // throw new Error(`Please use the copyTo operation before deleting.`);
   }
 
   /**
