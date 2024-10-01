@@ -35,6 +35,14 @@ export class RemoteBaseHandle {
     return this.#data.id;
   }
 
+  get lastModified() {
+    return this.#data.lastModified;
+  }
+
+  get createTime() {
+    return this.#data.createTime;
+  }
+
   /**
    * 获取当前handle的路径
    * @returns {string}
