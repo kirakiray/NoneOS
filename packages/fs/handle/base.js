@@ -176,7 +176,7 @@ export class BaseHandle extends PublicBaseHandle {
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove() {
+  async remove(callback) {
     const data = await getSelfData(this, "remove");
 
     if (data.parent === "root") {
@@ -189,7 +189,7 @@ export class BaseHandle extends PublicBaseHandle {
     if (this.kind === "dir") {
       // 删除子文件和文件夹
       await this.forEach(async (handle) => {
-        await handle.remove();
+        await handle.remove(callback);
       });
     }
 
@@ -206,6 +206,13 @@ export class BaseHandle extends PublicBaseHandle {
 
     if (oldHashs.length) {
       await clearHashs(oldHashs);
+    }
+
+    if (callback) {
+      callback({
+        type: "remove",
+        path: this.path,
+      });
     }
   }
 

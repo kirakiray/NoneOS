@@ -74,7 +74,7 @@
   --md-ref-palette-translucent-normal50: rgba(119, 119, 119, 0.2);
 }
 
-
+/*
 .theme-dark-mode {
   --pui-theme: dark;
   --md-sys-color-primary: var(--md-ref-palette-primary80);
@@ -95,4 +95,4 @@
   --md-sys-color-on-normal-container: var(--md-ref-palette-normal90);
   --md-sys-color-surface: var(--md-ref-palette-normal6);
   --md-sys-color-on-surface: var(--md-ref-palette-normal90);
-}
+} */

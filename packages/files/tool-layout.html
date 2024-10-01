@@ -56,6 +56,11 @@
       transition: all ease 0.3s;
     }
 
+    .bottom-area.error-mode {
+      color: var(--md-sys-color-on-error-container);
+      background-color: var(--md-sys-color-error-container);
+    }
+
     .bottom-area.hide {
       opacity: 0;
       height: 0;
@@ -199,6 +204,11 @@
     <x-else> 操作取消 </x-else>
   </div>
 
+  <div class="bottom-area delay error-mode" class:hide="!showDelete">
+    <x-if :value="deletingData.total == 0"> 删除完成 </x-if>
+    <x-else> 正在删除，已删除 {{deletedPercentage}}</x-else>
+  </div>
+
   <div class="bottom-area" class:hide="!importingLen">
     <x-if :value="importingLen > importedLen">
       导入文件中
@@ -229,6 +239,7 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { flatHandle } = await load("/packages/fs/util.js");
 
       return {
         data: {
@@ -247,6 +258,11 @@
           hasTask: false, // 选中的文件包含task目录
           taskType: "",
           taskPercentage: 0, // 任务进度数据
+          showDelete: false,
+          deletingData: {
+            count: 0, // 已经删除的数量
+            total: 0, // 总共文件
+          },
         },
         watch: {
           search(text) {
@@ -254,6 +270,13 @@
           },
         },
         proto: {
+          get deletedPercentage() {
+            return (
+              Math.ceil(
+                (this.deletingData.count / this.deletingData.total) * 100
+              ) + "%"
+            );
+          },
           get isPackages() {
             return !!/^packages/.test(this.path);
           },
@@ -391,7 +414,18 @@
               this.selecteds.map(async (path) => {
                 const handle = await get(path);
 
-                await handle.remove();
+                const files = await flatHandle(handle);
+                this.deletingData.total = files.length + 1; // 总共需要删除的文件数
+                this.showDelete = true;
+
+                let count = 0;
+                await handle.remove((e) => {
+                  count++;
+                  this.deletingData.count = count;
+                });
+
+                this.deletingData.total = 0;
+                this.showDelete = false;
               })
             );
 

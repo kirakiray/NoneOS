@@ -39,7 +39,7 @@
       position: relative;
       z-index: 2;
       width: 80%;
-      min-height: 30%;
+      min-height: 100px;
       max-height: 90%;
       overflow-y: auto;
       box-sizing: border-box;
@@ -109,7 +109,7 @@
             height: 100px;
           "
         >
-          目标不是任务目录
+          任务已经损坏。
         </div>
       </x-else>
     </div>
@@ -122,7 +122,6 @@
       return {
         tag: "task-viewer",
         data: {
-          isTask: false, // 目标是不是任务目录
           show: false, // 是否显示
           path: "", // 任务目录路径
           loading: false, // 是否加载中
@@ -133,6 +132,8 @@
           _originData: null, // 任务上的缓存数据
           paused: true, // 当前是否正在暂停任务中
           completed: false, // 任务是否已经完成
+          isTask: false, // 目标是不是任务目录
+          // noTaskData: false, // 是否没有任务
         },
         watch: {
           show(show) {
@@ -194,6 +195,12 @@
 
             try {
               taskHandle = await get(`${this.path}/task.json`);
+
+              if (!taskHandle) {
+                // this.noTaskData = true;
+                this.isTask = false;
+                return;
+              }
             } catch (err) {
               this.isTask = false;
               return;
