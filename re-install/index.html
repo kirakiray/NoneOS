@@ -15,7 +15,7 @@
     <br /><br /><br />
     <br /><br /><br />
     <br /><br /><br />
-    <button id="deleteAllDb">删除所有db</button>
+    <button id="deleteAllDb">彻底清除系统和虚拟系统内的所有文件</button>
 
     <script type="module">
       import { get } from "../packages/fs/main.js";
@@ -70,19 +70,39 @@
     </script>
     <script>
       $("#deleteAllDb").on("click", () => {
+        const result = confirm("将会彻底清除虚拟系统内的文件，请确认？");
+
+        if (!result) {
+          return;
+        }
+
         var request = indexedDB.deleteDatabase("noneos_fs_defaults");
 
         request.onsuccess = function (event) {
           console.log("成功删除数据库");
+          alert("数据库清除成功!");
         };
 
         request.onerror = function (event) {
           console.log("删除数据库失败");
         };
 
-        caches.open("noneos-default-cache").then((cache) => {
-          return cache.delete("/");
-        });
+        caches
+          .open("noneos-default-cache")
+          .then((cache) => {
+            return cache.delete("/");
+          })
+          .then((e) => {
+            alert("首页缓存清除成功，请重新启动浏览器。");
+          });
+
+        if ("serviceWorker" in navigator) {
+          navigator.serviceWorker.getRegistrations().then((registrations) => {
+            registrations.forEach((registration) => {
+              registration.unregister();
+            });
+          });
+        }
       });
     </script>
   </body>
