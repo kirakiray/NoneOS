@@ -35,7 +35,7 @@ export const copyTo = async ({
 
   // 修正块的大小
   if (!chunkSize) {
-    if (source._mark === "remote") {
+    if (source._mark === "remote" || target._mark === "remote") {
       chunkSize = CHUNK_REMOTE_SIZE;
     } else {
       chunkSize = CHUNK_SIZE;

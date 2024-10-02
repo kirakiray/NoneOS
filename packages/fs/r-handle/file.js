@@ -17,10 +17,20 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
   /**
    * 写入文件数据
+   * 最大只能写入 REMOTE_CHUNK_SIZE 大小的数据
    * @returns {Promise<void>}
    */
   async write(data) {
     debugger;
+    // const result = await this._bridge({
+    //   method: "write",
+    //   path: this._path,
+    //   args: [data],
+    // });
+
+    // debugger;
+
+    // return result;
   }
 
   /**

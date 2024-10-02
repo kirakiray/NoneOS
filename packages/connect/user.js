@@ -143,13 +143,13 @@ export class ClientUser extends $.Stanz {
     );
   }
   async _send(data, channelName = STARTCHANNEL) {
-    if (isPlainObject(data)) {
-      data = JSON.stringify(data);
-    }
-
     if (this.state === "closed") {
       // 重新连接
       await this.connect();
+    }
+
+    if (isPlainObject(data)) {
+      data = JSON.stringify(data);
     }
 
     if (!data) {

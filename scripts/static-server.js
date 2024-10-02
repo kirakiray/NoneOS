@@ -33,4 +33,5 @@ export default {
 const server = new HandShakeServer({
   name: "local-test-server",
   port: 5569,
+  allows: ["http://localhost:5569"],
 });

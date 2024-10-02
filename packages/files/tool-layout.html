@@ -386,6 +386,7 @@
                       target: targetHandle,
                       confirm: async (info) => {
                         setTimeout(() => {
+                          // 刷新页面
                           this.app.current.refreshFiles();
                         }, 100);
                         return true;

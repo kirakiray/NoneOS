@@ -72,7 +72,8 @@ class ServerConnector extends $.Stanz {
         this.__sse.close();
       }
 
-      const serverSign = await sign(this.serverUrl);
+      // const serverSign = await sign(this.serverUrl);
+      const serverSign = await sign(new URL(this.serverUrl).origin);
 
       // 创建一个 EventSource 对象，连接到 SSE 端点
       const eventSource = (this.__sse = new EventSource(

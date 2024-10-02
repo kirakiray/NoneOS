@@ -229,7 +229,11 @@
             this.selectedServer = "";
           },
           clickAddServer() {
-            const newUrl = this.newSerUrl;
+            let newUrl = this.newSerUrl;
+
+            if (newUrl === "yaotest") {
+              newUrl = "https://tutous.com:55691/user";
+            }
 
             if (!validateURL(newUrl)) {
               enqueue({ content: "输入的握手服务器地址有误", color: "error" });
