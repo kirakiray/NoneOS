@@ -21,7 +21,14 @@
       color: var(--md-sys-color-success);
     }
   </style>
-  <h5 style="display: flex; max-width: 700px; padding-right: 24px">
+  <h5
+    style="
+      display: flex;
+      flex-wrap: wrap;
+      max-width: 700px;
+      padding-right: 24px;
+    "
+  >
     握手服务器列表
     <p-button
       size="mini"
@@ -68,9 +75,9 @@
             "
           ></n-local-icon>
           <div>
-            {{$data.name}} -
+            {{$data.serverName}} -
             <span style="font-size: 12px; color: var(--md-sys-color-normal)">
-              {{$data.version}}
+              {{$data.serverVersion}}
               <x-if :value="$data.delayTime">
                 - delay:{{$data.delayTime}}ms
               </x-if>
@@ -137,14 +144,17 @@
   </p-dialog>
   <script>
     import {
+      servers,
       addServer,
       deleteServer,
-      servers,
-    } from "/packages/none-os/user/connect/servers.js";
-    import { saveUserCard } from "/packages/none-os/user/usercard.js";
-    import { getSelfUserInfo } from "/packages/none-os/user/main.js";
-    import { User } from "/packages/none-os/user/public-user.js";
+    } from "/packages/connect/server.js";
+
+    import { saveUserCard } from "/packages/user/usercard.js";
+    import { getSelfUserInfo } from "/packages/user/main.js";
+    import { User } from "/packages/user/public-user.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
+
+    window.servers = servers;
 
     export default async () => {
       return {
@@ -159,8 +169,8 @@
         },
         proto: {
           async pingAll() {
-            this.sers.forEach((e) => {
-              e._server.ping();
+            this.sers.forEach((ser) => {
+              ser.ping();
             });
           },
           async confirmUsercard() {
@@ -193,8 +203,8 @@
 
             const sets = new Set(); // 防止id重复的
 
-            servers.forEach(async (e) => {
-              const result = await e._server.getRecommend();
+            servers.forEach(async (ser) => {
+              const result = await ser.getRecommend();
 
               result.forEach((e) => {
                 const user = new User(e.data, e.sign);
@@ -219,7 +229,11 @@
             this.selectedServer = "";
           },
           clickAddServer() {
-            const newUrl = this.newSerUrl;
+            let newUrl = this.newSerUrl;
+
+            if (newUrl === "yaotest") {
+              newUrl = "https://tutous.com:55691/user";
+            }
 
             if (!validateURL(newUrl)) {
               enqueue({ content: "输入的握手服务器地址有误", color: "error" });

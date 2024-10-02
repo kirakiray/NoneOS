@@ -25,6 +25,8 @@
   <body>
     <l-m src="./packages/none-os/none-os.html"></l-m>
     <none-os></none-os>
-    <script src="./packages/sw/register.js" type="module"></script>
+    <script>
+      navigator.serviceWorker.register("/sw.js");
+    </script>
   </body>
 </html>

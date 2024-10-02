@@ -1,5 +1,5 @@
 import { BaseHandle } from "./base.js";
-import { getData, setData, getRandomId } from "../db.js";
+import { getData, setData, getRandomId } from "./db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
 import { getSelfData, updateParentsModified } from "./util.js";

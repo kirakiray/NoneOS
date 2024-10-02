@@ -1,10 +1,14 @@
 import { BaseHandle } from "./base.js";
-import { setData, getData } from "../db.js";
+import { setData, getData } from "./db.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
-const CHUNK_SIZE = 1024 * 1024; // 1mb
-// const CHUNK_SIZE = 512 * 1024; // 512KB
-// const CHUNK_SIZE = 1024 * 4; // 4kb
+import {
+  CHUNK_SIZE,
+  splitIntoChunks,
+  mergeChunks,
+  calculateHash,
+  readBufferByType,
+} from "../util.js";
 
 /**
  * 创建文件handle
@@ -23,89 +27,38 @@ export class FileHandle extends BaseHandle {
    * 写入文件数据
    * @returns {Promise<void>}
    */
-  async write(data, options) {
-    // options = {
-    //   process: () => {},
-    // };
+  async write(data, callback) {
+    const writer = await this.createWritable();
 
-    const targetData = await getSelfData(this, "write");
+    const size = data.length || data.size || data.byteLength || 0;
 
-    const process = options?.process || (() => {});
+    const length = Math.ceil(size / CHUNK_SIZE);
 
-    const chunks = await splitIntoChunks(data);
-
-    const hashs = [];
-
-    const size = data.length || data.size || 0;
-
-    // 写入块
-    await Promise.all(
-      chunks.map(async (chunk, index) => {
-        const hash = await calculateHash(chunk);
-
-        hashs[index] = hash;
-
-        const exited = await getData({
-          storename: "blocks",
-          key: hash,
+    writer.onbeforewrite = (e) => {
+      callback &&
+        callback({
+          ...e,
+          length,
+          type: "write-file-start",
         });
+    };
 
-        if (!exited) {
-          await setData({
-            storename: "blocks",
-            datas: [
-              {
-                hash,
-                chunk,
-              },
-            ],
-          });
-        }
-
-        process({
-          index, // 写入块的序列
-          length: chunks.length, // 写入块的总数
-          hash, // 写入块的哈希值
-          exited, // 写入块是否已经存在
+    writer.onwrite = (e) => {
+      callback &&
+        callback({
+          ...e,
+          length,
+          type: "write-file-end",
         });
-      })
-    );
+    };
 
-    const oldHashs = targetData.hashs || [];
+    await writer.write(data);
+    await writer.close();
+  }
 
-    // 如果old更长，清除多出来的块
-    const needRemoveBlocks = [];
-    for (let i = 0; i < oldHashs.length; i++) {
-      if (i >= hashs.length) {
-        needRemoveBlocks.push(`${this.id}-${i}`);
-      }
-    }
-
-    // 更新文件信息
-    await setData({
-      datas: [
-        {
-          ...targetData,
-          lastModified: data?.lastModified || Date.now(),
-          hashs,
-          size,
-        },
-        ...hashs.map((hash, index) => {
-          return {
-            type: "block",
-            key: `${this.id}-${index}`,
-            hash,
-          };
-        }),
-      ],
-      removes: needRemoveBlocks,
-    });
-
-    if (oldHashs.length) {
-      await clearHashs(oldHashs);
-    }
-
-    await updateParentsModified(targetData.parent);
+  // 写入数据流
+  async createWritable() {
+    return new DBFSWritableFileStream(this.id, this.path);
   }
 
   /**
@@ -176,36 +129,14 @@ export class FileHandle extends BaseHandle {
       }
     }
 
-    const mergedArrayBuffer = mergeChunks(chunks);
+    const buffer = mergeChunks(chunks);
 
-    // 根据type返回不同类型的数据
-    if (type === "text") {
-      return new TextDecoder().decode(mergedArrayBuffer);
-    } else if (type === "file") {
-      if (options?.start || options?.end) {
-        return new Blob([mergedArrayBuffer.buffer]);
-      }
-      return new File([mergedArrayBuffer.buffer], data.name, {
-        lastModified: data.lastModified,
-      });
-    } else if (type === "base64") {
-      return new Promise((resplve) => {
-        const file = new File([mergedArrayBuffer.buffer], data.name);
-        const reader = new FileReader();
-        reader.onload = () => {
-          resolve(reader.result);
-        };
-        reader.readAsDataURL(file);
-      });
-      // let binary = "";
-      // let len = mergedArrayBuffer.byteLength;
-      // for (let i = 0; i < len; i++) {
-      //   binary += String.fromCharCode(mergedArrayBuffer[i]);
-      // }
-      // return `data:application/javascript;base64,${btoa(binary)}`;
-    } else {
-      return mergedArrayBuffer.buffer;
-    }
+    return readBufferByType({
+      buffer,
+      type,
+      data,
+      isChunk: options?.start || options?.end,
+    });
   }
 
   /**
@@ -240,73 +171,175 @@ export class FileHandle extends BaseHandle {
   }
 }
 
-/**
- * 将输入的内容分割成多段，以1mb为一个块
- * @param {(string|file|arrayBuffer)} input 写入的内容
- * @returns {array} 分割后的内容
- */
-const splitIntoChunks = async (input) => {
-  // const CHUNK_SIZE = 1024 * 1024; // 1mb
-  // const CHUNK_SIZE = 512 * 1024; // 512KB
-  // const CHUNK_SIZE = 1024 * 4; // 4kb
-  let arrayBuffer;
-
-  if (typeof input === "string") {
-    arrayBuffer = new TextEncoder().encode(input).buffer;
-  } else if (input instanceof File) {
-    arrayBuffer = await input.arrayBuffer();
-  } else if (input instanceof ArrayBuffer) {
-    arrayBuffer = input;
-  } else {
-    throw new Error(
-      "Input must be a string, File object or ArrayBuffer object"
-    );
+// 虚拟文件系统的文件流
+class DBFSWritableFileStream {
+  #fileID; // 目标文件id
+  #cache = new ArrayBuffer(); // 给内存缓冲区用的变量，1mb大小
+  #hashs = []; // 写入块的哈希值
+  #size = 0;
+  #path;
+  constructor(id, path) {
+    this.#fileID = id;
+    this.#path = path;
   }
 
-  const chunks = [];
-  for (let i = 0; i < arrayBuffer.byteLength; i += CHUNK_SIZE) {
-    const chunk = arrayBuffer.slice(i, i + CHUNK_SIZE);
-    chunks.push(chunk);
+  // 写入流数据
+  async write(input) {
+    let arrayBuffer;
+
+    if (typeof input === "string") {
+      arrayBuffer = new TextEncoder().encode(input).buffer;
+    } else if (input instanceof File) {
+      arrayBuffer = await input.arrayBuffer();
+    } else if (input instanceof ArrayBuffer) {
+      arrayBuffer = input;
+    }
+
+    this.#size += arrayBuffer.byteLength;
+
+    // 写入缓存区
+    this.#cache = mergeArrayBuffers(this.#cache, arrayBuffer);
+
+    // 根据缓冲区写入到硬盘
+    while (this.#cache.byteLength > CHUNK_SIZE) {
+      // 取出前1mb的数据
+      const targetChunk = this.#cache.slice(0, CHUNK_SIZE);
+      this.#cache = this.#cache.slice(CHUNK_SIZE);
+
+      const hash = await this._writeChunk(targetChunk);
+      this.#hashs.push(hash);
+    }
   }
 
-  return chunks;
-};
+  // 写入真正的内容
+  async _writeChunk(chunk) {
+    const hash = await calculateHash(chunk);
 
-/**
- * 将分割的块还原回原来的数据
- * @param {ArrayBuffer[]} chunks 分割的块
- * @returns {ArrayBuffer} 还原后的数据
- */
-const mergeChunks = (chunks) => {
-  // 计算总长度
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
+    // 查看是否有缓存
+    const exited = await getData({
+      storename: "blocks",
+      key: hash,
+    });
 
-  const mergedArrayBuffer = new Uint8Array(totalLength);
+    const chunkData = {
+      path: this.#path,
+      index: this.#hashs.length, // 写入块的序列
+      hash, // 写入块的哈希值
+      exited, // 写入块是否已经存在
+    };
 
-  let offset = 0;
-  chunks.forEach((chunk) => {
-    mergedArrayBuffer.set(new Uint8Array(chunk), offset);
-    offset += chunk.byteLength;
-  });
+    if (this.onbeforewrite) {
+      this.onbeforewrite({
+        type: "onbeforewrite",
+        ...chunkData,
+      });
+    }
+    // 写入到硬盘
+    if (!exited) {
+      await setData({
+        storename: "blocks",
+        datas: [
+          {
+            hash,
+            chunk,
+          },
+        ],
+      });
+    }
 
-  return mergedArrayBuffer;
-};
+    if (this.onwrite) {
+      this.onwrite({
+        type: "onwrite",
+        ...chunkData,
+      });
+    }
 
-/**
- * 获取文件的哈希值
- * @param {arrayBuffer} arrayBuffer 文件的内容
- * @returns {string} 文件的哈希值
- */
-const calculateHash = async (arrayBuffer) => {
-  const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+    return hash;
+  }
 
-  const centerId = Math.floor(arrayBuffer.byteLength / 2);
-  return (
-    hashHex +
-    new Uint8Array(arrayBuffer.slice(centerId, centerId + 1))[0].toString(16)
-  );
-};
+  // 确认写入到对应的位置
+  async close() {
+    const targetData = await getSelfData({ id: this.#fileID }, "write");
+
+    if (!targetData) {
+      // 文件不在就直接弃用
+      await this.abort();
+      return;
+    }
+
+    // 写入最后一缓存的内容
+    if (this.#cache.byteLength > 0) {
+      const hash = await this._writeChunk(this.#cache);
+      this.#hashs.push(hash);
+    }
+
+    {
+      // 写入对应路径的文件
+      const oldHashs = targetData.hashs || [];
+      const hashs = this.#hashs;
+      const size = this.#size;
+
+      // 如果old更长，清除多出来的块
+      const needRemoveBlocks = [];
+      for (let i = 0; i < oldHashs.length; i++) {
+        if (i >= hashs.length) {
+          needRemoveBlocks.push(`${this.#fileID}-${i}`);
+        }
+      }
+
+      // 更新文件信息
+      await setData({
+        datas: [
+          {
+            ...targetData,
+            lastModified: Date.now(),
+            hashs,
+            size,
+          },
+          ...hashs.map((hash, index) => {
+            return {
+              type: "block",
+              key: `${this.#fileID}-${index}`,
+              hash,
+            };
+          }),
+        ],
+        removes: needRemoveBlocks,
+      });
+
+      if (oldHashs.length) {
+        await clearHashs(oldHashs);
+      }
+
+      await updateParentsModified(targetData.parent);
+    }
+  }
+
+  // 放弃存储的内容
+  async abort() {
+    // 清除缓存
+    if (this.#hashs) {
+      await clearHashs(this.#hashs);
+    }
+  }
+}
+
+// 合并buffer数据的方法
+function mergeArrayBuffers(buffer1, buffer2) {
+  // 计算新 ArrayBuffer 的总长度
+  const totalLength = buffer1.byteLength + buffer2.byteLength;
+
+  // 创建一个新的 ArrayBuffer
+  const mergedBuffer = new ArrayBuffer(totalLength);
+
+  // 创建一个 Uint8Array 以便操作新的 ArrayBuffer
+  const uint8Array = new Uint8Array(mergedBuffer);
+
+  // 复制第一个 ArrayBuffer 的数据
+  uint8Array.set(new Uint8Array(buffer1), 0);
+
+  // 复制第二个 ArrayBuffer 的数据
+  uint8Array.set(new Uint8Array(buffer2), buffer1.byteLength);
+
+  return mergedBuffer;
+}

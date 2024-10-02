@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test task</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test task
+
+    <div>originCount: <span id="ocount">-</span></div>
+    <div>dbCount: <span id="dbcount">-</span></div>
+  </body>
+  <script type="module">
+    import { flatHandle } from "../util.js";
+    import { get } from "../main.js";
+    import { get as originGet } from "../o-handle/index.js";
+
+    const localHandle = await get("local");
+
+    // // 获取扁平的数据
+    // const flatDatas = await flatHandle(localHandle);
+
+    // console.log("flatDatas: ", flatDatas);
+
+    // 获取指定大小的随机文本(1mb)
+    const getBigText = (size = 1) => {
+      let text = "";
+
+      for (let i = 0; i < size; i++) {
+        text += Math.random()
+          .toString(32)
+          .slice(2, 10)
+          .repeat(128 * 1024);
+      }
+
+      return text;
+    };
+
+    const initTestFile = async () => {
+      console.log("写入 file1 开始");
+
+      // 先创建一个大文件
+      const bigFile1 = await get("local/task-test/bigfile1.txt", {
+        create: "file",
+      });
+
+      // 写入10mb
+      await bigFile1.write(getBigText(5));
+
+      console.log("写入 file1 结束");
+      console.log("写入 file2 开始");
+
+      const bigFile2 = await get("local/task-test/b2/bigfile2.txt", {
+        create: "file",
+      });
+
+      // 写入2mb
+      await bigFile2.write(getBigText(5));
+
+      console.log("写入 file2 结束");
+    };
+
+    {
+      // // 如果确保初始化
+      // const t1 = await get("local/task-test/bigfile1.txt").catch(() => null);
+      // if (!t1) {
+      //   await initTestFile();
+      // }
+
+      await initTestFile();
+    }
+
+    // 拷贝到原生handle
+    {
+      let ocount = 0;
+      const orignHandle = await originGet("origin-task-test");
+
+      {
+        const oldDir = await orignHandle.get("task-test");
+        if (oldDir) {
+          await oldDir.remove();
+        }
+      }
+
+      const taskDir = await get("local/task-test");
+
+      const result = await taskDir.copyTo(orignHandle, undefined, (e) => {
+        $("#ocount").text = ocount;
+        ocount++;
+        // console.log(e);
+      });
+
+      console.log(result);
+
+      $("#ocount").text = ocount;
+    }
+
+    {
+      // 反过来复制回去
+      const orignTaskHandle = await originGet("origin-task-test/task-test");
+
+      // 删除旧的
+      const oldTaskDir = await get("local/task-test");
+      await oldTaskDir.remove();
+
+      let dbcount = 0;
+
+      const result = await orignTaskHandle.copyTo(
+        await get("local"),
+        undefined,
+        (e) => {
+          // console.log(e);
+          $("#dbcount").text = dbcount;
+          dbcount++;
+        }
+      );
+
+      $("#dbcount").text = dbcount;
+
+      console.log(result);
+    }
+  </script>
+</html>

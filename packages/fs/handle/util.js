@@ -1,4 +1,4 @@
-import { getData, setData } from "../db.js";
+import { getData, setData } from "./db.js";
 import { getErr } from "../errors.js";
 
 /**

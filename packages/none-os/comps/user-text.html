@@ -7,8 +7,8 @@
   {{realText}}
   <script>
     export default async ({ load }) => {
-      const { getUserCard } = await load("/packages/none-os/user/usercard.js");
-      const { getSelfUserInfo } = await load("/packages/none-os/user/main.js");
+      const { getUserCard } = await load("/packages/user/usercard.js");
+      const { getSelfUserInfo } = await load("/packages/user/main.js");
 
       const selfData = await getSelfUserInfo();
       const userDatas = await getUserCard();

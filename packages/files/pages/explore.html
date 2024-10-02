@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -26,6 +27,15 @@
       width: 100%;
       height: 100%;
     }
+
+    .center-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      padding: 60px 16px;
+      color: #7b7b7b;
+    }
   </style>
   <div class="container">
     <div class="abs-over" style="flex: 1; overflow: auto">
@@ -41,19 +51,17 @@
       ></n-file-list>
       <div style="height: 1px"></div>
     </div>
-    <x-if :value="files.length === 0 && !loading">
-      <div
-        style="
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          height: 120px;
-          font-size: 14px;
-        "
-      >
-        这是一个空文件夹
+    <x-if :value="loading">
+      <div class="center-box">
+        <p-progress type="circle"></p-progress>
       </div>
     </x-if>
+    <x-else-if :value="errorStr">
+      <div class="center-box">{{errorStr}}</div>
+    </x-else-if>
+    <x-else-if :value="files.length === 0 && !loading">
+      <div class="center-box">这是一个空文件夹</div>
+    </x-else-if>
   </div>
 
   <script>
@@ -68,6 +76,7 @@
           files: [],
           loading: true,
           search: "",
+          errorStr: null, // 报错
         },
         proto: {
           async renameFile(e) {
@@ -94,26 +103,42 @@
           async refreshFiles() {
             this.loading = true;
 
-            const handle = await get(decodeURIComponent(query.path));
+            const handle = await get(decodeURIComponent(query.path)).catch(
+              (err) => err
+            );
 
-            const files = [];
+            if (handle instanceof Error) {
+              this.errorStr = handle.toString();
+              this.loading = false;
+              return;
+            }
 
-            await handle.forEach(async (item) => {
-              files.push({
-                size: formatBytes(await item.size()),
-                id: item.id,
-                kind: item.kind,
-                name: item.name,
-                path: item.path,
-                createTime: new Date(item.createTime).toLocaleString(),
-                lastModified: item.lastModified
-                  ? new Date(item.lastModified).toLocaleString()
-                  : "",
+            try {
+              const files = [];
+
+              await handle.forEach(async (item) => {
+                files.push({
+                  size: formatBytes(await item.size()),
+                  id: item.id,
+                  kind: item.kind,
+                  name: item.name,
+                  path: item.path,
+                  createTime: new Date(item.createTime).toLocaleString(),
+                  lastModified: item.lastModified
+                    ? new Date(item.lastModified).toLocaleString()
+                    : "",
+                });
               });
-            });
 
-            this.files = files;
-            this.loading = false;
+              this.files = files;
+              this.loading = false;
+              this.errorStr = "";
+            } catch (err) {
+              this.errorStr = err.toString();
+              console.error(err);
+              this.loading = false;
+              return;
+            }
           },
         },
         ready() {
@@ -124,6 +149,10 @@
             data: {
               path: this.path,
             },
+          });
+
+          this.on("task-complete", () => {
+            this.refreshFiles();
           });
         },
       };

@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./handle-block.html"></l-m>
+  <l-m src="./task-viewer.html"></l-m>
 
   <style>
     :host {
@@ -103,7 +104,7 @@
       <div class="file-item-cell">
         <div style="padding-left: 20px">名称</div>
       </div>
-      <div class="file-item-cell">修改时间</div>
+      <div class="file-item-cell" style="flex-grow: 0">修改时间</div>
       <div class="file-item-cell small-cell">文件大小</div>
       <div class="file-item-cell small-cell">类型</div>
     </div>
@@ -128,8 +129,8 @@
                 position: absolute;
                 left: 0;
                 top: 0;
-                width: 100%;
                 height: 100%;
+                width: 100%;
                 overflow: auto;
               "
             >
@@ -145,7 +146,9 @@
               ></n-local-icon>
             </n-handle-block>
           </div>
-          <div class="file-item-cell">{{$data.lastModified}}</div>
+          <div class="file-item-cell" style="flex-grow: 0">
+            {{$data.lastModified}}
+          </div>
           <div class="file-item-cell small-cell">{{$data.size || '--'}}</div>
           <div class="file-item-cell small-cell">
             {{$host.getKind($data.kind)}}
@@ -163,6 +166,7 @@
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
   <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>
   <style id="clipboard-style"></style>
+  <task-viewer :path="taskPath" sync:show="showTaskViewer"></task-viewer>
   <script>
     export default {
       tag: "n-file-list",
@@ -171,8 +175,10 @@
         theme: null,
         clipboard: {},
         needRename: null, // 需要重命名的文件
-        search: "",
-        noMatch: false,
+        search: "", // 搜索内容
+        noMatch: false, // 没有搜索到结果为true
+        taskPath: "", // 进行中的文件任务地址
+        showTaskViewer: false,
       },
       watch: {
         search() {
@@ -233,7 +239,11 @@
           });
         },
         async open(data) {
-          if (data.kind === "dir") {
+          if (/\.fs_task_cache$/.test(data.name)) {
+            // 确认是任务进度
+            this.taskPath = data.path;
+            this.showTaskViewer = true;
+          } else if (data.kind === "dir") {
             this.host.goto(
               `./explore.html?path=${encodeURIComponent(data.path)}`
             );

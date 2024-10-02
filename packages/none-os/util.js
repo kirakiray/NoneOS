@@ -1,5 +1,5 @@
 import { unzip } from "../zip/main.js";
-import { get } from "../fs/main.js";
+import { get } from "../fs/handle/index.js";
 
 // 安装系统依赖文件
 export const installOS = async (callback, packagesUrl = "/packages.zip") => {

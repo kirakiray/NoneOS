@@ -56,6 +56,11 @@
       transition: all ease 0.3s;
     }
 
+    .bottom-area.error-mode {
+      color: var(--md-sys-color-on-error-container);
+      background-color: var(--md-sys-color-error-container);
+    }
+
     .bottom-area.hide {
       opacity: 0;
       height: 0;
@@ -84,28 +89,28 @@
     <p-button-group variant="outlined">
       <p-button
         size="small"
-        attr:disabled="isPackages || !selecteds.length"
+        attr:disabled="isPackages || !selecteds.length || hasTask"
         on:click="clickCut"
       >
         <n-local-icon name="cut"></n-local-icon>
       </p-button>
       <p-button
         size="small"
-        attr:disabled="!selecteds.length"
+        attr:disabled="!selecteds.length || hasTask"
         on:click="clickCopy"
       >
         <n-local-icon name="copy"></n-local-icon>
       </p-button>
       <p-button
         size="small"
-        attr:disabled="isPackages || !clipboard?.sources?.length"
+        attr:disabled="isPackages || !clipboard?.sources?.length || hasTask"
         on:click="clickPaste"
       >
         <n-local-icon name="paste"></n-local-icon>
       </p-button>
       <p-button
         size="small"
-        attr:disabled="isPackages || selecteds.length !== 1"
+        attr:disabled="isPackages || selecteds.length !== 1 || hasTask"
         on:click="clickRename"
       >
         <n-local-icon name="rename"></n-local-icon>
@@ -157,7 +162,7 @@
       <p-button
         size="small"
         on:click="clickExport"
-        attr:disabled="!selecteds.length"
+        attr:disabled="!selecteds.length || hasTask"
       >
         <n-local-icon name="export"></n-local-icon>
       </p-button>
@@ -181,7 +186,10 @@
   </div>
 
   <div class="bottom-area delay" class:hide="!clipboard?.sources?.length">
-    <x-if :value="clipboard?.sources?.length">
+    <x-if :value="taskPercentage > 0 && taskPercentage < 100">
+      正在粘贴中，进度 {{taskPercentage}}%
+    </x-if>
+    <x-else-if :value="clipboard?.sources?.length">
       {{clipboardText}}，点击
       <n-local-icon name="paste"></n-local-icon> 进行粘贴。
       <p-button
@@ -191,9 +199,14 @@
       >
         点击取消操作
       </p-button>
-    </x-if>
+    </x-else-if>
     <x-else-if :value="clipboard === 0"> 粘贴完成 </x-else-if>
     <x-else> 操作取消 </x-else>
+  </div>
+
+  <div class="bottom-area delay error-mode" class:hide="!showDelete">
+    <x-if :value="deletingData.total == 0"> 删除完成 </x-if>
+    <x-else> 正在删除，已删除 {{deletedPercentage}}</x-else>
   </div>
 
   <div class="bottom-area" class:hide="!importingLen">
@@ -222,9 +235,11 @@
     export const parent = "./outer-layout.html";
 
     import { handleToZip } from "./util.js";
+    import { copyTo } from "/packages/fs/task.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { flatHandle } = await load("/packages/fs/util.js");
 
       return {
         data: {
@@ -240,6 +255,14 @@
           // 正在导入中的数据
           importingLen: 0, // 导入中的数量
           importedLen: 0, // 导入成功的数量
+          hasTask: false, // 选中的文件包含task目录
+          taskType: "",
+          taskPercentage: 0, // 任务进度数据
+          showDelete: false,
+          deletingData: {
+            count: 0, // 已经删除的数量
+            total: 0, // 总共文件
+          },
         },
         watch: {
           search(text) {
@@ -247,6 +270,13 @@
           },
         },
         proto: {
+          get deletedPercentage() {
+            return (
+              Math.ceil(
+                (this.deletingData.count / this.deletingData.total) * 100
+              ) + "%"
+            );
+          },
           get isPackages() {
             return !!/^packages/.test(this.path);
           },
@@ -346,7 +376,28 @@
             switch (type) {
               case "copy":
                 for (let handle of handles) {
-                  await handle.copyTo(targetHandle);
+                  if (handle._mark === "db" && targetHandle._mark === "db") {
+                    await handle.copyTo(targetHandle);
+                  } else {
+                    this.taskType = "copyTo";
+                    await copyTo({
+                      // debugTime: 200,
+                      source: handle,
+                      target: targetHandle,
+                      confirm: async (info) => {
+                        setTimeout(() => {
+                          // 刷新页面
+                          this.app.current.refreshFiles();
+                        }, 100);
+                        return true;
+                      },
+                      progress: (e) => {
+                        this.taskPercentage = Math.ceil(
+                          (e.count / e.total) * 100
+                        );
+                      },
+                    });
+                  }
                 }
                 break;
               case "cut":
@@ -364,7 +415,18 @@
               this.selecteds.map(async (path) => {
                 const handle = await get(path);
 
-                await handle.remove();
+                const files = await flatHandle(handle);
+                this.deletingData.total = files.length + 1; // 总共需要删除的文件数
+                this.showDelete = true;
+
+                let count = 0;
+                await handle.remove((e) => {
+                  count++;
+                  this.deletingData.count = count;
+                });
+
+                this.deletingData.total = 0;
+                this.showDelete = false;
               })
             );
 
@@ -373,6 +435,12 @@
           selectFiles(e) {
             e.stopPropagation();
             this.selecteds = e.data.selecteds.map((e) => e.path);
+
+            const hasTaskDir = e.data.selecteds.find((e) =>
+              /\.fs_task_cache$/.test(e.name)
+            );
+
+            this.hasTask = !!hasTaskDir;
           },
           clickAddress(e) {
             const {

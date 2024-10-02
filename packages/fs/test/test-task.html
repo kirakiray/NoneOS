@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test task</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test task
+    <div>dbCount: <span id="dbcount">-</span></div>
+    <div>bigfile1: <span id="bigfile1">-</span></div>
+    <div>bigfile2: <span id="bigfile2">-</span></div>
+  </body>
+  <script type="module">
+    import { get } from "../main.js";
+    import { get as originGet } from "../o-handle/index.js";
+    import { copyTo } from "../task.js";
+
+    // 获取指定大小的随机文本(1mb)
+    const getBigText = (size = 1) => {
+      let text = "";
+
+      for (let i = 0; i < size; i++) {
+        text += Math.random()
+          .toString(32)
+          .slice(2, 10)
+          .repeat(128 * 1024);
+      }
+
+      return text;
+    };
+
+    const initTestFile = async () => {
+      console.log("写入 file1 开始");
+
+      // 先创建一个大文件
+      const bigFile1 = await originGet("local/task-test/bigfile1.txt", {
+        create: "file",
+      });
+
+      // 写入10mb
+      await bigFile1.write(getBigText(10));
+
+      console.log("写入 file1 结束");
+      console.log("写入 file2 开始");
+
+      const bigFile2 = await originGet("local/task-test/b2/bigfile2.txt", {
+        create: "file",
+      });
+
+      // 写入2mb
+      await bigFile2.write(getBigText(5));
+
+      console.log("写入 file2 结束");
+    };
+
+    {
+      // // 如果确保初始化
+      // const t1 = await originGet("local/task-test/bigfile1.txt").catch(
+      //   () => null
+      // );
+      // if (!t1) {
+      //   await initTestFile();
+      // }
+
+      await initTestFile();
+    }
+
+    {
+      const ohandle = await originGet("local/task-test");
+
+      const chandle = await get("local/test-copy-task", {
+        create: "dir",
+      });
+
+      let count = 0;
+
+      // copyTask测试
+      const result = await copyTo({
+        source: ohandle,
+        target: chandle,
+        debugTime: 100,
+        async confirm(files) {
+          // 询问是否复制
+          console.log("files: ", files);
+          return new Promise((res) => {
+            setTimeout(() => {
+              res(true);
+            }, 500);
+          });
+        },
+        async progress(e) {
+          // 复制过程
+          console.log("progress: ", e);
+          count++;
+          $("#dbcount").text = count;
+        },
+      });
+
+      $("#bigfile1").text =
+        (await originGet("local/task-test/bigfile1.txt").then((e) =>
+          e.text()
+        )) ===
+        (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
+          e.text()
+        ));
+
+      $("#bigfile2").text =
+        (await originGet("local/task-test/b2/bigfile2.txt").then((e) =>
+          e.text()
+        )) ===
+        (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
+          e.text()
+        ));
+
+      console.log("end: ", result);
+    }
+  </script>
+</html>

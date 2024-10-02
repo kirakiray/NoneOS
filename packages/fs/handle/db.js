@@ -1,4 +1,4 @@
-import { getErr } from "./errors.js";
+import { getErr } from "../errors.js";
 
 const allDB = {};
 // export const getRandomId = () => Math.random().toString(36).slice(2);

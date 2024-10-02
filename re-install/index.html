@@ -58,7 +58,6 @@
         }
 
         const cache = await caches.open("noneos-default-cache");
-
         await cache.delete("/");
 
         $("#install-info").text = "删除成功";
@@ -68,7 +67,8 @@
 
         $.all("[button]").forEach((e) => e.attr("disabled", null));
       });
-
+    </script>
+    <script>
       $("#deleteAllDb").on("click", () => {
         var request = indexedDB.deleteDatabase("noneos_fs_defaults");
 
@@ -79,6 +79,10 @@
         request.onerror = function (event) {
           console.log("删除数据库失败");
         };
+
+        caches.open("noneos-default-cache").then((cache) => {
+          return cache.delete("/");
+        });
       });
     </script>
   </body>

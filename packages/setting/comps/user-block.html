@@ -24,10 +24,10 @@
       color: #d6d622;
     }
   </style>
-  <div>用户名：{{item._user.name}}</div>
-  <div style="font-size: 14px">连接状态：{{item.state}}</div>
-  <div style="font-size: 12px; color: #aaa">延迟:{{item.delayTime}}ms</div>
-  <div class:hide="item.state !== 'connected'">
+  <div>用户名：{{client.name}}</div>
+  <div style="font-size: 14px">连接状态：{{client.state}}</div>
+  <div style="font-size: 12px; color: #aaa">延迟:{{client.delayTime}}ms</div>
+  <div class:hide="client.state !== 'connected'">
     <div style="display: flex; margin-top: 8px">
       <p-text-field
         multiline
@@ -47,7 +47,9 @@
       </p-button>
     </div>
   </div>
-  <div class:hide="item.state === 'connected'">
+  <div
+    class:hide="client.state === 'connected' || client.state === 'connecting'"
+  >
     <p-button on:click="reLinkUser" size="mini">重新连接</p-button>
   </div>
   <x-fill :value="receiveds">
@@ -138,15 +140,15 @@
   </p-dialog>
 
   <script>
-    import { getSelfUserInfo, sign } from "/packages/none-os/user/main.js";
-    import { saveCert, getCerts } from "/packages/none-os/user/cert.js";
+    import { getSelfUserInfo, sign } from "/packages/user/main.js";
+    import { saveCert, getCerts } from "/packages/user/cert.js";
     import { enqueue } from "/packages/pui/snackbar/enqueue.js";
 
     export default async ({ load }) => {
       return {
         tag: "setting-user-block",
         data: {
-          item: {},
+          client: {},
           receiveds: [],
           msg: "",
           showAuthDialog: false, // 授权证书的弹窗
@@ -196,7 +198,7 @@
             // 给用户签发证书
             const data = [
               ["issuer", selfData.userID],
-              ["authTo", this.item.userID],
+              ["authTo", this.client.id],
               ["permission", this.dialogData.permission],
               ["signPublic", selfData.signPublic],
               ["creation", Date.now()],
@@ -212,11 +214,7 @@
             await saveCert(cert);
 
             // 发送数据
-            this.user.send(
-              JSON.stringify({
-                msg: "给你发送了一张证书",
-              })
-            );
+            this.client.send({ msg: "给你发送了一张证书" });
 
             // 发送实际证书数据
             this.sendCerts();
@@ -230,11 +228,11 @@
 
             this.receiveds.push({
               username: "我",
-              msg: `给 "${this.user.name}" 发送了一张证书`,
+              msg: `给 "${this.client.name}" 发送了一张证书`,
             });
           },
           reLinkUser() {
-            this.item._user.connect();
+            this.client.connect();
           },
           // 发送本地相关证书给对面
           async sendCerts() {
@@ -263,11 +261,7 @@
               })
               .map((e) => e._origin);
 
-            this.user.send(
-              JSON.stringify({
-                syncCerts,
-              })
-            );
+            this.client.send({ syncCerts });
           },
           // 发送信息
           sendMsg() {
@@ -275,28 +269,23 @@
             this.msg = "";
 
             // 发送数据
-            this.user.send(
-              JSON.stringify({
-                msg,
-              })
-            );
+            this.client.send({
+              msg,
+            });
 
             this.receiveds.push({
               username: "我",
               msg,
             });
           },
-          get user() {
-            return this.item._user;
-          },
         },
         ready() {
-          this.user.onmessage = async (e) => {
-            const data = JSON.parse(e.data);
+          this.client._onmessage = async (e) => {
+            const { data } = e;
 
             if (data.msg) {
               this.receiveds.push({
-                username: this.user.name,
+                username: this.client.name,
                 msg: data.msg,
               });
             } else if (data.syncCerts) {
@@ -318,7 +307,8 @@
           }, 500);
         },
         detached() {
-          this.user.onmessage = null;
+          this.client._onmessage = null;
+          // this.user.onmessage = null;
         },
       };
     };

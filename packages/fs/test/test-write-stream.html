@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test file system</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test file system
+    <div>file stream: -</div>
+  </body>
+  <script type="module">
+    import { get as dbGet } from "../handle/index.js";
+    import { get as originGet } from "../o-handle/index.js";
+
+    const get = dbGet;
+
+    const file = await get("local/test-steam/file1.txt", {
+      create: "file",
+    });
+
+    // await file.write("1ab".repeat(1024 * 1024 + 1), (e) => {
+    //   console.log(e);
+    // });
+
+    // const file2 = await originGet("local/test-steam/file1.txt", {
+    //   create: "file",
+    // });
+
+    const writer = await file.createWritable();
+
+    writer.onbeforewrite = (e) => {
+      console.log("onbeforewrite: ", e);
+    };
+
+    writer.onwrite = (e) => {
+      console.log("onwrite: ", e);
+    };
+
+    await writer.write("1a".repeat(1024 * 512));
+    await writer.write("2b".repeat(1024 * 512));
+
+    await writer.close();
+
+    const content = await file.text();
+
+    console.log(
+      "contentOK: ",
+      "1a".repeat(1024 * 512) + "2b".repeat(1024 * 512) === content
+    );
+
+    $("div").text = `file stream: ${
+      "1a".repeat(1024 * 512) + "2b".repeat(1024 * 512) === content
+    }`;
+  </script>
+</html>

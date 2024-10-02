@@ -1,4 +1,4 @@
-import get from "../fs/get.js";
+import { get } from "../fs/handle/index.js";
 import { getContentType } from "./util.js";
 
 const resposeFS = async ({ request }) => {

@@ -70,7 +70,7 @@
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export default async ({ load }) => {
-      const { default: get, createRoot } = await load("../fs/get.js");
+      const { get, createRoot } = await load("../fs/handle/index.js");
       const { installOS } = await load("./util.js");
 
       await createRoot("apps");

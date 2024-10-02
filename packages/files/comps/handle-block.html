@@ -33,9 +33,15 @@
     }
   </style>
   <div class="icon">
-    <x-if :value="kind === 'dir'">
-      <img src="../sources/list-folder.svg" />
+    <x-if :value="kind === 'user'">
+      <img src="../sources/list-user.svg" />
     </x-if>
+    <x-else-if :value="isTask">
+      <img src="../sources/list-task.svg" />
+    </x-else-if>
+    <x-else-if :value="kind === 'dir'">
+      <img src="../sources/list-folder.svg" />
+    </x-else-if>
     <x-else>
       <img src="../sources/list-file.svg" />
     </x-else>
@@ -45,7 +51,7 @@
       <slot name="surfix"></slot>
     </div>
     <div class:hide="renameMode" class="name-content" attr:title="name">
-      {{name}}
+      {{realName}}
     </div>
     <input
       type="text"
@@ -66,6 +72,7 @@
         name: "",
         filePath: null,
         renameMode: false,
+        isTask: null, // 确认是任务目录
       },
       watch: {
         renameMode(bool) {
@@ -77,8 +84,19 @@
             }, 100);
           }
         },
+        name(name) {
+          if (/\.fs_task_cache$/.test(name)) {
+            this.isTask = true;
+          }
+        },
       },
       proto: {
+        get realName() {
+          if (/\.fs_task_cache$/.test(this.name)) {
+            return this.name.replace(/\.fs_task_cache$/, "");
+          }
+          return this.name;
+        },
         renameItem(e) {
           const { value } = e.target;
           if (this.name !== value) {

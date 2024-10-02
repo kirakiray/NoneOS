@@ -1,9 +1,21 @@
-import get from "./get.js";
-import { get as originGet } from "./origin.js";
-export { showPicker } from "./origin.js";
+import { get as dbGet } from "./handle/index.js";
+import { get as originGet, showPicker } from "./o-handle/index.js";
+import { get as remoteGet } from "./r-handle/index.js";
 
-const origin = {
+export const origin = {
   get: originGet,
+  showPicker,
 };
 
-export { get, origin };
+// 根据首个地址，选取特定的
+export const get = async (path, options) => {
+  if (/^\$remote:/.test(path)) {
+    return remoteGet(path);
+  }
+
+  if (/^\$origin:/.test(path)) {
+    return originGet(path);
+  }
+
+  return dbGet(path, options);
+};

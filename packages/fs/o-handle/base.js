@@ -1,19 +1,20 @@
 import { getErr } from "../errors.js";
 import { OriginDirHandle } from "./dir.js";
-import { getTargetAndName } from "../handle/base.js";
+import { copyTo, PublicBaseHandle } from "../public.js";
 
 const roootId = Math.random().toString(32).slice(2);
 
 /**
  * 基础的Handle
  */
-export class OriginBaseHandle {
+export class OriginBaseHandle extends PublicBaseHandle {
   #systemHandle;
   #rootSystemHandle;
   #path;
   #name;
   #kind;
   constructor(systemHandle, path, rootSystemHandle) {
+    super();
     this.#systemHandle = systemHandle;
     this.#name = systemHandle.name;
     this.#kind = systemHandle.kind === "file" ? "file" : "dir";
@@ -99,7 +100,12 @@ export class OriginBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    const newTarget = await this.copyTo(target, name);
+    const newTarget = await copyTo({
+      source: this,
+      target,
+      name,
+    });
+
     await this.remove();
 
     // 移动过去后，要更新信息
@@ -114,25 +120,8 @@ export class OriginBaseHandle {
    * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copyTo(target, name) {
-    [target, name] = await getTargetAndName({ target, name, self: this });
-
-    if (this.#kind === "file") {
-      const selfFile = await this.file();
-      const newFile = await target.get(name, { create: "file" });
-      await newFile.write(selfFile);
-      return newFile;
-    } else {
-      const newDir = await target.get(name, {
-        create: "dir",
-      });
-
-      await this.forEach(async (handle) => {
-        await handle.copyTo(newDir, handle.name);
-      });
-
-      return newDir;
-    }
+  copyTo(target, name, callback) {
+    return copyTo({ source: this, target, name, callback });
   }
 
   /**
@@ -165,5 +154,26 @@ export class OriginBaseHandle {
 
   async refresh() {
     // Invalid method, compatible with handle
+  }
+
+  async size() {
+    if (this.kind === "file") {
+      const file = await this.file();
+      return file.size;
+    }
+  }
+
+  toJSON() {
+    const data = {};
+    ["createTime", "id", "kind", "lastModified", "name", "path"].forEach(
+      (key) => {
+        data[key] = this[key];
+      }
+    );
+    return data;
+  }
+
+  get _mark() {
+    return "origin";
   }
 }

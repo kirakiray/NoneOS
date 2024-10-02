@@ -1,14 +1,9 @@
-import { get as _get, origin } from "../main.js";
+import { finalGet } from "./init.js";
 import { ok } from "./ok.js";
 
-const url = import.meta.url;
-const { hash } = new URL(url);
-// origin模式下，调用 o-handle
-const isOrigin = hash === "#origin";
+(async () => {
+  const get = await finalGet;
 
-const get = isOrigin ? origin.get : _get;
-
-{
   // 剪切文件夹后，确保能再次访问
   const mFile = await get("local/testmove/file.txt", {
     create: "file",
@@ -36,4 +31,4 @@ const get = isOrigin ? origin.get : _get;
   ok(mFile_3.id === move2Dir.id, "rename dir");
 
   await move2Dir.remove();
-}
+})();

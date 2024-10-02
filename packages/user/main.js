@@ -1,14 +1,13 @@
 import {
   generateSignKeyPair,
-  generateEncryKeyPair,
-  base64ToArrayBuffer,
   getHash,
-  getPairString,
+  pairToString,
+  stringToPair,
   arrayBufferToBase64,
   dataToArrayBuffer,
 } from "./util.js";
 
-import get from "../../fs/get.js";
+import { get } from "/packages/fs/handle/index.js";
 
 // 从本地文件获取用户数据
 const getUserDataFromHandle = async () => {
@@ -53,7 +52,7 @@ const pairData = await initUserPair();
 
 // 获取自己的用户数据
 export const getSelfUserInfo = async () => {
-  const { signPublic, encryPublic, id } = pairData;
+  const { signPublic, id } = pairData;
 
   const localUserData = await getUserDataFromHandle();
 
@@ -62,7 +61,6 @@ export const getSelfUserInfo = async () => {
     userName: localUserData?.name,
     backupUserName: `user-${id.slice(29, 35)}`,
     signPublic,
-    encryPublic,
   };
 };
 
@@ -74,15 +72,14 @@ export const getSelfUserCardData = async () => {
     ["userID", data.userID],
     ["userName", data.userName || data.backupUserName],
     ["signPublic", data.signPublic],
-    ["encryPublic", data.encryPublic],
     ["time", Date.now()], // 签发时间
   ];
 
-  const signData = await sign(userData);
+  const signStr = await sign(userData);
 
   return {
     data: userData,
-    sign: signData,
+    sign: signStr,
   };
 };
 
@@ -104,82 +101,31 @@ export async function sign(message) {
 
 // 初始化并获取自己的签名和加密用的CryptoKey
 async function initUserPair() {
-  let signPair, encryPair;
-  let signPublic, encryPublic;
+  let signPair;
+  let signPublic;
 
   const localUserData = await getUserDataFromHandle();
 
   if (!localUserData) {
     signPair = await generateSignKeyPair();
-    const signPairObj = await getPairString(signPair);
-    encryPair = await generateEncryKeyPair();
-    const encryPairObj = await getPairString(encryPair);
+    const signPairObj = await pairToString(signPair);
 
     signPublic = signPairObj.public;
-    encryPublic = encryPairObj.public;
 
     await saveUserDataFromHandle({
-      signPairObj,
-      encryPairObj,
+      signPair: signPairObj,
     });
   } else {
-    const { signPairObj, encryPairObj } = localUserData;
+    const { signPairObj } = localUserData;
 
     signPublic = signPairObj.public;
-    encryPublic = encryPairObj.public;
 
-    signPair = {
-      privateKey: await crypto.subtle.importKey(
-        "pkcs8", // 导入的密钥类型，这里是私钥
-        base64ToArrayBuffer(signPairObj.private),
-        {
-          name: "RSA-PSS",
-          hash: "SHA-256",
-        },
-        true,
-        ["sign"]
-      ),
-      publicKey: await crypto.subtle.importKey(
-        "spki", // 导入的密钥类型，这里是公钥
-        base64ToArrayBuffer(signPairObj.public),
-        {
-          name: "RSA-PSS",
-          hash: "SHA-256",
-        },
-        true,
-        ["verify"] // 只需要加密权限
-      ),
-    };
-
-    encryPair = {
-      privateKey: await crypto.subtle.importKey(
-        "pkcs8", // 导入的密钥类型，这里是私钥
-        base64ToArrayBuffer(encryPairObj.private),
-        {
-          name: "RSA-OAEP",
-          hash: "SHA-256",
-        },
-        true,
-        ["decrypt"]
-      ),
-      publicKey: await crypto.subtle.importKey(
-        "spki", // 导入的密钥类型，这里是公钥
-        base64ToArrayBuffer(encryPairObj.public),
-        {
-          name: "RSA-OAEP",
-          hash: "SHA-256",
-        },
-        true,
-        ["encrypt"] // 只需要加密权限
-      ),
-    };
+    signPair = await stringToPair(signPairObj);
   }
 
   return {
     signPair,
-    encryPair,
     signPublic,
-    encryPublic,
     id: await getHash(signPublic),
   };
 }

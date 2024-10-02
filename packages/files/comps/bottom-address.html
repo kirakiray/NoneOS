@@ -26,44 +26,94 @@
     .block:last-child .mark {
       display: none;
     }
+
+    .remote-root {
+      cursor: default;
+    }
   </style>
   <div class="container">
-    <x-fill :value="pathArr">
-      <div class="block" on:click="$host.clickBlock($index)">
-        <n-handle-block :kind="'dir'" :name="$data"></n-handle-block>
+    <x-fill :value="pathArr" fill-key="path">
+      <div
+        class="block"
+        on:click="$host.clickBlock($index,$data)"
+        attr:title="$data.path"
+        class:remote-root="$data.remoteRoot"
+      >
+        <n-handle-block :kind="$data.kind" :name="$data.name"></n-handle-block>
         <div class="mark"></div>
       </div>
     </x-fill>
   </div>
   <script>
-    export default {
-      tag: "n-bottom-address",
-      data: {
-        path: "",
-      },
-      proto: {
-        get pathArr() {
-          const { path } = this;
-
-          return path.split("/");
+    export default async ({ load }) => {
+      return {
+        tag: "n-bottom-address",
+        data: {
+          path: "",
+          pathArr: [],
         },
-        clickBlock(index) {
-          const isLasted = this.pathArr.length - 1 === index;
-          if (isLasted) {
-            return;
-          }
+        watch: {
+          async path(path) {
+            let pathStr = "";
 
-          const paths = this.pathArr.slice(0, index + 1);
-          const newPath = paths.join("/");
+            const arr = path.split("/").map((e) => {
+              pathStr += `${e}/`;
 
-          this.emit("click-address", {
-            bubbles: false,
-            data: {
-              newPath,
-            },
-          });
+              return {
+                kind: "dir",
+                name: e,
+                path: pathStr.replace(/\/$/, ""),
+              };
+            });
+
+            if (/^\$remote/.test(arr[0].name)) {
+              // 修正内容
+              const [mark, userId, rootName] = arr[0].name.split(":");
+
+              // 修正内容
+              arr[0].name = rootName;
+
+              const userName = await this.getRemoteUserName(userId);
+
+              // 添加远程的前置用户标识
+              arr.unshift({
+                name: userName || "remote",
+                kind: "user",
+                path: "$remote",
+                userId,
+                remoteRoot: 1,
+              });
+            }
+
+            this.pathArr = arr;
+          },
         },
-      },
+        proto: {
+          async getRemoteUserName(userId) {
+            // 按需加载这个模块
+            const { getUserCard } = await load("/packages/user/usercard.js");
+
+            const targetUser = await getUserCard({
+              id: userId,
+            });
+
+            return targetUser.name;
+          },
+          clickBlock(index, data) {
+            const isLasted = this.pathArr.length - 1 === index;
+            if (isLasted || data.remoteRoot) {
+              return;
+            }
+
+            this.emit("click-address", {
+              bubbles: false,
+              data: {
+                newPath: data.path,
+              },
+            });
+          },
+        },
+      };
     };
   </script>
 </template>

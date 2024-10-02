@@ -1,12 +1,13 @@
-import { getData, setData } from "../db.js";
+import { getData, setData } from "./db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
+import { fixTargetAndName, copyTo, PublicBaseHandle } from "../public.js";
 
 /**
  * 基础的Handle
  */
-export class BaseHandle {
+export class BaseHandle extends PublicBaseHandle {
   #id;
   #kind;
   #path;
@@ -14,6 +15,7 @@ export class BaseHandle {
   #createTime;
   #lastModified;
   constructor(id, kind) {
+    super();
     this.#id = id;
     this.#kind = kind;
   }
@@ -100,7 +102,7 @@ export class BaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    [target, name] = await getTargetAndName({ target, name, self: this });
+    [target, name] = await fixTargetAndName({ target, name, self: this });
 
     const selfData = await getSelfData(this, "move");
     selfData.parent = target.id;
@@ -119,8 +121,12 @@ export class BaseHandle {
    * @param {(string|DirHandle)} target 移动到目标的文件夹
    * @param {string} name 移动到目标文件夹下的名称
    */
-  async copyTo(target, name) {
-    [target, name] = await getTargetAndName({ target, name, self: this });
+  async copyTo(target, name, callback) {
+    [target, name] = await fixTargetAndName({ target, name, self: this });
+
+    if (!(target instanceof BaseHandle)) {
+      return copyTo({ source: this, target, name, callback });
+    }
 
     let reHandle;
 
@@ -170,7 +176,7 @@ export class BaseHandle {
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove() {
+  async remove(callback) {
     const data = await getSelfData(this, "remove");
 
     if (data.parent === "root") {
@@ -183,7 +189,7 @@ export class BaseHandle {
     if (this.kind === "dir") {
       // 删除子文件和文件夹
       await this.forEach(async (handle) => {
-        await handle.remove();
+        await handle.remove(callback);
       });
     }
 
@@ -200,6 +206,13 @@ export class BaseHandle {
 
     if (oldHashs.length) {
       await clearHashs(oldHashs);
+    }
+
+    if (callback) {
+      callback({
+        type: "remove",
+        path: this.path,
+      });
     }
   }
 
@@ -234,49 +247,18 @@ export class BaseHandle {
       return data.size;
     }
   }
-}
 
-// 修正 target 和 name 的值
-export const getTargetAndName = async ({ target, name, self }) => {
-  if (typeof target === "string") {
-    name = target;
-    target = await self.parent();
+  toJSON() {
+    const data = {};
+    ["createTime", "id", "kind", "lastModified", "name", "path"].forEach(
+      (key) => {
+        data[key] = this[key];
+      }
+    );
+    return data;
   }
 
-  if (!name) {
-    name = self.name;
+  get _mark() {
+    return "db";
   }
-
-  // 查看是否已经有同名的文件或文件夹
-  let exited = false;
-  for await (let subName of target.keys()) {
-    if (name === subName) {
-      exited = 1;
-      break;
-    }
-  }
-
-  if (exited) {
-    throw getErr("exitedName", {
-      name: `${name}(${target.path}/${name})`,
-    });
-  }
-
-  if (isSubdirectory(target.path, self.path)) {
-    throw getErr("notMoveToChild", {
-      targetPath: target.path,
-      path: self.path,
-    });
-  }
-
-  return [target, name];
-};
-
-function isSubdirectory(child, parent) {
-  if (child === parent) {
-    return false;
-  }
-  const parentTokens = parent.split("/").filter((i) => i.length);
-  const childTokens = child.split("/").filter((i) => i.length);
-  return parentTokens.every((t, i) => childTokens[i] === t);
 }

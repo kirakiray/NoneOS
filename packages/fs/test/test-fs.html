@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test file system</title>
+    <script src="/packages/ofa/ofa.js"></script>
   </head>
   <body>
     test file system
   </body>
   <script type="module">
+    import { get } from "../main.js";
+    import { initGet } from "./init.js";
+
     import "./file-tree.js";
     import "./get-local.js";
     import "./get-sub-dir.js";
@@ -16,12 +20,6 @@
     import "./normal-bug.js";
     import "./move.js";
 
-    import { get } from "../main.js";
-
-    const localRoot = await get("local");
-
-    const len = await localRoot.length();
-
-    console.log("len: ", len);
+    initGet(get);
   </script>
 </html>

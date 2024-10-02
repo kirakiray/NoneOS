@@ -1,0 +1,294 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(116, 116, 116, 0.079);
+      opacity: 0;
+      transition: all ease 0.3s;
+      pointer-events: none;
+    }
+
+    .container.show {
+      transform: translate(0, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .mask {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    .main {
+      position: relative;
+      z-index: 2;
+      width: 80%;
+      min-height: 100px;
+      max-height: 90%;
+      overflow-y: auto;
+      box-sizing: border-box;
+      padding: 16px;
+      background-color: var(--md-sys-color-normal-container);
+      transform: translate(0, 30px);
+      transition: all ease 0.3s;
+      border-radius: 8px;
+    }
+
+    .container.show .main {
+      transform: translate(0, 0);
+    }
+
+    .file-line .blocks {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .block {
+      width: 10px;
+      height: 10px;
+      margin: 1px;
+      border-radius: 2px;
+      border: var(--md-sys-color-on-normal-container) solid 1px;
+    }
+
+    .block.actived {
+      background-color: var(--md-sys-color-primary);
+      border-color: var(--md-sys-color-primary);
+    }
+
+    .file-line {
+      margin-bottom: 4px;
+    }
+
+    .file-name {
+      font-size: 12px;
+      font-weight: bold;
+    }
+  </style>
+  <div class="container" class:show="show">
+    <div class="mask" on:click="show = false"></div>
+    <div class="main">
+      <x-if :value="isTask">
+        <div style="display: flex; align-items: center">
+          <x-if :value="completed"> 复制完成 </x-if>
+          <x-else> {{taskTypeDesc}} ({{percentTage}}%) </x-else>
+          <x-if :value="paused">
+            <p-button
+              size="mini"
+              style="margin-left: 20px"
+              on:click="continueTask"
+            >
+              继续任务
+            </p-button>
+          </x-if>
+        </div>
+        <div class="file-container"></div>
+      </x-if>
+      <x-else>
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+          "
+        >
+          任务已经损坏。
+        </div>
+      </x-else>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { on, off, copyTo } = await load("/packages/fs/task.js");
+
+      return {
+        tag: "task-viewer",
+        data: {
+          show: false, // 是否显示
+          path: "", // 任务目录路径
+          loading: false, // 是否加载中
+          taskType: "", // 任务类型
+          percentTaKge: 0,
+          total: 0, // 总块数
+          cached: 0, // 已经缓存的数量
+          _originData: null, // 任务上的缓存数据
+          paused: true, // 当前是否正在暂停任务中
+          completed: false, // 任务是否已经完成
+          isTask: false, // 目标是不是任务目录
+          // noTaskData: false, // 是否没有任务
+        },
+        watch: {
+          show(show) {
+            if (show) {
+              this.init();
+            }
+          },
+        },
+        proto: {
+          // 继续任务
+          async continueTask() {
+            if (this.taskType === "copyTo") {
+              const source = await get(this._originData.from);
+              const target = await get(this._originData.to);
+
+              await copyTo({
+                source,
+                target,
+                // debugTime: 100,
+              });
+
+              this.emit("task-complete", {
+                composed: true,
+              });
+            }
+          },
+          get percentTage() {
+            return Math.ceil((this.cached / this.total) * 100);
+          },
+          get taskTypeDesc() {
+            switch (this.taskType) {
+              case "copyTo":
+                return `复制任务`;
+            }
+          },
+          // 修正缓存中的文件进度
+          async checkCached() {
+            const cacheDir = await get(this.path);
+
+            for await (let [name, handle] of cacheDir.entries()) {
+              const size = await handle.size();
+
+              if (size) {
+                // 设置缓存成功
+                const blockEl = this.shadow.$(`.block[data-hash="${name}"]`);
+
+                if (blockEl) {
+                  this.cached++;
+                  blockEl.classList.add("actived");
+                }
+              }
+            }
+          },
+          // 初始化进度
+          async init() {
+            this.loading = true;
+
+            let taskHandle;
+
+            try {
+              taskHandle = await get(`${this.path}/task.json`);
+
+              if (!taskHandle) {
+                // this.noTaskData = true;
+                this.isTask = false;
+                return;
+              }
+            } catch (err) {
+              this.isTask = false;
+              return;
+            }
+
+            this.isTask = true;
+
+            if (taskHandle) {
+              // 读取任务信息
+              let taskData = await taskHandle.text();
+              taskData = JSON.parse(taskData);
+
+              // 生成文件组
+              this.taskType = taskData.type;
+
+              this._originData = taskData;
+
+              // 由于生成块可能会非常多，所以不采用渲染模板，而是直接生成dom
+              const conEl = $("<div></div>");
+
+              // 生成块
+              taskData.files.forEach((fileData) => {
+                const fileLine = $(`<div class="file-line">
+                    <div class="file-name">${fileData.path}</div>
+                    <div class='blocks'></div>
+                </div>`);
+
+                const blocksEl = fileLine.$(".blocks");
+
+                fileData.hashs.forEach((hash) => {
+                  blocksEl.push(
+                    `<div class="block" data-hash="${hash}" title="${hash}"></div>`
+                  );
+                });
+
+                // 统计块总数
+                this.total += fileData.hashs.length;
+
+                conEl.push(fileLine);
+              });
+
+              this.shadow.$(".file-container").html = "";
+              this.shadow.$(".file-container").push(conEl);
+            }
+
+            this.loading = false;
+
+            this.checkCached();
+          },
+        },
+        attached() {
+          on(
+            "writed",
+            (this._wfunc = (event) => {
+              if (!this._originData) {
+                return;
+              }
+              const { data } = event;
+
+              const targetFile = this._originData.files.find(
+                (e) => e.path === data.path
+              );
+
+              if (targetFile) {
+                const { hash } = data;
+
+                this.paused = false; // 复制任务正在进行中
+
+                // 添加进度
+                const blockEl = this.shadow.$(`.block[data-hash="${hash}"]`);
+
+                if (blockEl && !blockEl.classList.contains("actived")) {
+                  // 递增缓存进度
+                  this.cached++;
+                  blockEl.classList.add("actived");
+                }
+
+                if (this.cached === this.total) {
+                  this.completed = true;
+                }
+              }
+            })
+          );
+        },
+        detached() {
+          off("writed", this._wfunc);
+        },
+      };
+    };
+  </script>
+</template>

@@ -70,7 +70,8 @@ export function dataToArrayBuffer(str) {
   return encoder.encode(str);
 }
 
-export const getPairString = async (signPair) => {
+// 将crypto对象转为字符串
+export const pairToString = async (signPair) => {
   const signPublicArray = await crypto.subtle.exportKey(
     "spki",
     signPair.publicKey
@@ -86,8 +87,30 @@ export const getPairString = async (signPair) => {
   };
 };
 
-export const getSignPublic = () => {
-  const signObj = JSON.parse();
+// 字符串转为cypto对象
+export const stringToPair = async (pair, type = "sign") => {
+  return {
+    privateKey: await crypto.subtle.importKey(
+      "pkcs8", // 导入的密钥类型，这里是私钥
+      base64ToArrayBuffer(pair.private),
+      {
+        name: type === "sign" ? "RSA-PSS" : "RSA-OAEP",
+        hash: "SHA-256",
+      },
+      true,
+      type === "sign" ? ["sign"] : ["decrypt"]
+    ),
+    publicKey: await crypto.subtle.importKey(
+      "spki", // 导入的密钥类型，这里是公钥
+      base64ToArrayBuffer(pair.public),
+      {
+        name: type === "sign" ? "RSA-PSS" : "RSA-OAEP",
+        hash: "SHA-256",
+      },
+      true,
+      type === "sign" ? ["verify"] : ["encrypt"]
+    ),
+  };
 };
 
 // 验证信息

@@ -9,13 +9,13 @@
       background-color: var(--md-sys-color-surface);
     }
 
-    p-list-item {
+    p-list-item::part(main) {
       margin: 2px 0;
       border-radius: 0 20px 20px 0;
       overflow: hidden;
     }
 
-    p-list-item[active-item] {
+    p-list-item[active-item]::part(main) {
       background-color: var(--md-sys-color-primary);
       color: var(--md-sys-color-on-primary);
     }
@@ -25,30 +25,74 @@
       font-size: 18px;
       margin-right: 8px;
     }
+
+    h5 {
+      margin: 0;
+      padding: 4px 8px;
+    }
   </style>
   <n-horsp-pannel>
-    <p-list slot="left">
-      <x-fill :value="roots">
-        <p-list-item
-          button
-          attr:active-item="$data.path === $host.selectedRootName"
-          on:click="$host.clickTab($data)"
-        >
-          <n-local-icon
-            slot="prefix"
-            attr:name="$data.icon || 'folder'"
-          ></n-local-icon>
-          {{$data.name}}
+    <div slot="left">
+      <p-list>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">当前空间</span>
+          <i collapse-triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <x-fill :value="locals" name="path-item"> </x-fill>
+          </p-list>
         </p-list-item>
-      </x-fill>
-    </p-list>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">其他设备</span>
+          <i collapse-triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <x-fill :value="remotes">
+              <p-list-item collapse-childs="open" button="suffix">
+                <n-local-icon
+                  slot="prefix"
+                  name="user"
+                  style="padding-left: 8px"
+                ></n-local-icon>
+                {{$data.name}}
+                <i collapse-triangle slot="suffix"></i>
+                <p-list slot="childs" style="--padding-left: 16px">
+                  <x-fill :value="$data.paths" name="path-item"></x-fill>
+                </p-list>
+              </p-list-item>
+            </x-fill>
+            <x-if :value="!remotes.length">
+              <p-list-item>
+                <div style="text-align: center; color: #7d7d7d">无</div>
+              </p-list-item>
+            </x-if>
+          </p-list>
+        </p-list-item>
+      </p-list>
+    </div>
     <slot></slot>
   </n-horsp-pannel>
+
+  <template name="path-item">
+    <p-list-item
+      button
+      attr:active-item="$data.path === $host.selectedRootName"
+      on:click="$host.clickTab($data)"
+    >
+      <n-local-icon
+        slot="prefix"
+        attr:name="$data.icon || 'folder'"
+        style="padding-left: var(--padding-left, 8px)"
+      ></n-local-icon>
+      {{$data.name}}
+    </p-list-item>
+  </template>
+
   <script>
+    import { getRemotes } from "/packages/fs/r-handle/index.js";
+
     export default () => {
       return {
         data: {
-          roots: [
+          locals: [
             {
               name: "虚拟空间",
               path: "local",
@@ -63,8 +107,13 @@
               path: "packages",
               icon: "safe",
             },
+            {
+              name: "高速盘(test)",
+              path: "$origin:local",
+            },
           ],
           selectedRootName: null,
+          remotes: [], // 远端设备
         },
         proto: {
           clickTab(data) {
@@ -75,13 +124,15 @@
             this.app.current.goto(`./explore.html?path=${data.path}`);
           },
         },
-        ready() {
+        async ready() {
           this.on("go-page", (e) => {
             e.stopPropagation();
 
             const rootName = e.data.path.split("/")[0];
             this.selectedRootName = rootName;
           });
+
+          this.remotes = await getRemotes();
         },
       };
     };
