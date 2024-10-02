@@ -344,7 +344,7 @@
 
   // 获取目标文件或文件夹的任务树状信息
 
-  const CHUNK_REMOTE_SIZE = 64 * 1024; // 64kb // 远程复制的块大小
+  const CHUNK_REMOTE_SIZE = 192 * 1024; // 64kb // 远程复制的块大小
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -768,7 +768,7 @@
      * 删除当前文件或文件夹
      * @returns {Promise<void>}
      */
-    async remove() {
+    async remove(callback) {
       const data = await getSelfData(this, "remove");
 
       if (data.parent === "root") {
@@ -781,7 +781,7 @@
       if (this.kind === "dir") {
         // 删除子文件和文件夹
         await this.forEach(async (handle) => {
-          await handle.remove();
+          await handle.remove(callback);
         });
       }
 
@@ -798,6 +798,13 @@
 
       if (oldHashs.length) {
         await clearHashs(oldHashs);
+      }
+
+      if (callback) {
+        callback({
+          type: "remove",
+          path: this.path,
+        });
       }
     }
 
