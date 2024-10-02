@@ -66,7 +66,7 @@ test("copy process", async ({ page, browserName }) => {
   }
 
   await page.getByText("originCount: 4").click();
-  await page.getByText("dbCount: 200").click();
+  await page.getByText("dbCount: 20").click();
 });
 
 test("write stream", async ({ page, browserName }) => {
@@ -88,5 +88,5 @@ test("write copy task", async ({ page, browserName }) => {
 
   await page.getByText("bigfile1: true").click();
   await page.getByText("bigfile2: true").click();
-  await page.getByText("dbCount: 20").click();
+  await page.getByText("dbCount: 30").click();
 });

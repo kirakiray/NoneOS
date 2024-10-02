@@ -40,7 +40,7 @@
       });
 
       // 写入10mb
-      await bigFile1.write(getBigText(100));
+      await bigFile1.write(getBigText(10));
 
       console.log("写入 file1 结束");
       console.log("写入 file2 开始");
@@ -56,13 +56,15 @@
     };
 
     {
-      // 如果确保初始化
-      const t1 = await originGet("local/task-test/bigfile1.txt").catch(
-        () => null
-      );
-      if (!t1) {
-        await initTestFile();
-      }
+      // // 如果确保初始化
+      // const t1 = await originGet("local/task-test/bigfile1.txt").catch(
+      //   () => null
+      // );
+      // if (!t1) {
+      //   await initTestFile();
+      // }
+
+      await initTestFile();
     }
 
     {

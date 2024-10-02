@@ -116,7 +116,7 @@ async function initUserPair() {
       signPair: signPairObj,
     });
   } else {
-    const { signPair: signPairObj } = localUserData;
+    const { signPairObj } = localUserData;
 
     signPublic = signPairObj.public;
 
