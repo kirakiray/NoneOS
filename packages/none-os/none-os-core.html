@@ -285,6 +285,7 @@
           this.shadow.on("router-change", (e) => {
             this.saveAppsState();
           });
+          this.shadow.on("app-close", () => this.saveAppsState());
         },
         async attached() {
           if (history.state && history.state.routerType === "current") {

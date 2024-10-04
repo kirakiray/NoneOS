@@ -394,6 +394,7 @@
           });
 
           if (type === "close") {
+            this.emit("app-close");
             setTimeout(() => {
               this.remove();
             }, 200);
