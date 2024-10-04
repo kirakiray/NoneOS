@@ -35,7 +35,7 @@
           :apps="barApps"
           :home-app="homeApp"
           sync:show-home-app="showHomeApp"
-          on:click-app="clickApp"
+          on:click-app="clickBarApp"
           attr:fullmode="hasMaxApp"
         ></os-bar>
       </div>
@@ -66,6 +66,7 @@
             },
             name: "App Manager",
           },
+          // 应用栏上的应用状态数据
           barApps: [
             // {
             //   name: "Files",
@@ -105,14 +106,14 @@
               targetData = this.barApps.find((e) => e.name === data.name);
             }
 
-            this.clickApp({
+            this.clickBarApp({
               data: { app: targetData },
             });
           },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
           },
-          clickApp({ data }) {
+          clickBarApp({ data }) {
             const targetApp = data.app;
             targetApp.status = "running";
 
@@ -135,14 +136,20 @@
                 console.log("暂时不支持 frame 模式");
               } else {
                 // 添加这个应用到容器内
-                // 小屏幕下，直接全屏
-                this.shadow.$(".main").push(`
-                    <n-app-frame data-appid="${targetApp.xid}" ${
-                  window.innerWidth > 600 ? "" : 'default-app-status="max"'
-                }>
+                const frameEl = $(`<n-app-frame data-appid="${targetApp.xid}">
                       <o-app src="${targetApp.url}"></o-app>
-                    </n-app-frame>
-                  `);
+                    </n-app-frame>`);
+
+                frameEl._appData = data.app.toJSON();
+
+                // 小屏幕下，直接全屏
+                if (window.innerWidth <= 600) {
+                  frameEl.attr("default-app-status", "max");
+                }
+
+                this.shadow.$(".main").push(frameEl);
+
+                this.saveAppsState();
               }
             }
 
@@ -152,6 +159,7 @@
             const apps = this.shadow.all(".main n-app-frame");
             this.hasMaxApp = apps.some((e) => e.appStatus === "max");
           },
+          // 应用最大化最小化的改动
           appChange(e) {
             const { data } = e;
 
@@ -239,6 +247,44 @@
 
             bindHistory();
           },
+          // 保存所有应用的路由数据
+          saveAppsState() {
+            clearTimeout(this._routerTimer);
+            this._routerTimer = setTimeout(() => {
+              // 遍历所有应用，并保留路由数据
+              const appRouters = this.shadow
+                .all(`n-app-frame`)
+                .map((frameEl) => {
+                  const app = frameEl.$("o-app");
+
+                  return {
+                    routers: app.routers,
+                    appData: frameEl._appData,
+                  };
+                });
+
+              sessionStorage._app_routers = JSON.stringify(appRouters);
+            }, 300);
+          },
+          // 加载应用路由
+          loadAppsState() {
+            const appRouters = JSON.parse(sessionStorage._app_routers || "[]");
+
+            if (appRouters.length) {
+              console.log("appRouters", appRouters);
+            }
+
+            appRouters.forEach((e) => {
+              this.runApp({
+                data: e.appData,
+              });
+            });
+          },
+        },
+        ready() {
+          this.shadow.on("router-change", (e) => {
+            this.saveAppsState();
+          });
         },
         async attached() {
           if (history.state && history.state.routerType === "current") {
@@ -250,8 +296,11 @@
               this.initHistory();
             });
           }
-          // setTimeout(() => {
+
+          this.loadAppsState();
+
           //   // testcode
+          // setTimeout(() => {
           //   this.runApp({
           //     data: {
           //       name: "设置",
