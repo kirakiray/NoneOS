@@ -75,15 +75,7 @@
             //   },
             //   url: "/packages/files/app-config.js",
             //   // status: "background",
-            // },
-            // {
-            //   name: "Setting",
-            //   icon: {
-            //     url: "/packages/setting/icon.svg",
-            //   },
-            //   url: "/packages/setting/app-config.js",
-            //   // status: "running",
-            // },
+            // }
           ],
           hasMaxApp: false, // 是否存在最大化的应用
         },
@@ -271,11 +263,22 @@
                 .map((appFrame) => {
                   const app = appFrame.$("o-app");
 
+                  const appData = appFrame._appData;
+
+                  let targetBarApp = this.barApps.find(
+                    (e) => e.name === appData.name
+                  );
+
                   return {
                     routers: app.routers,
-                    appData: appFrame._appData,
+                    appData: {
+                      ...appData,
+                      status: targetBarApp?.status,
+                    },
                   };
                 });
+
+              console.log("appRouters: ", appRouters);
 
               sessionStorage._app_routers = JSON.stringify(appRouters);
             }, 300);

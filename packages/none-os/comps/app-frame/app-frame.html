@@ -248,8 +248,9 @@
       tag: "n-app-frame",
       attrs: {
         focus: null,
-        defaultAppStatus: "normal", // 初始的app状态 // normal max
-        appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
+        // defaultAppStatus: "normal", // 初始的app状态 // normal max
+        // appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
+        appStatus: "normal",
       },
       data: {
         appTop: 0,
@@ -261,14 +262,14 @@
       watch: {
         appStatus(status) {
           // 第一次设置状态，保证是左侧展开的动画
-          if (!this._first_status && status === "min") {
-            this._first_status = 1;
+          // if (!this._first_status && status === "min") {
+          //   this._first_status = 1;
 
-            setTimeout(() => {
-              this.changeState(this.defaultAppStatus);
-            }, 50);
-            return;
-          }
+          //   setTimeout(() => {
+          //     this.changeState(this.defaultAppStatus);
+          //   }, 50);
+          //   return;
+          // }
 
           // this._first_status = 1;
           this.style.transition = "all ease 0.25s";
