@@ -30,19 +30,25 @@
       transition: all ease 0.3s;
     }
 
-    .bottom-line[status="background"] {
+    .bottom-line[status="min"] {
       width: 8px;
       height: 3px;
       background-color: var(--md-sys-color-normal);
     }
 
-    .container:hover .bottom-line:not([status="running"]) {
+    .container:hover .bottom-line[status="min"] {
       width: 12px;
       background-color: var(--md-sys-color-normal);
     }
 
-    .bottom-line[status="running"] {
-      width: 16px;
+    .bottom-line[status="normal"] {
+      width: 12px;
+      height: 3px;
+      background-color: var(--md-sys-color-primary);
+    }
+
+    .bottom-line[status="max"] {
+      width: 18px;
       height: 3px;
       background-color: var(--md-sys-color-primary);
     }
@@ -58,6 +64,7 @@
         icon: null,
         name: "",
         status: null,
+        focus: null,
       },
     };
   </script>

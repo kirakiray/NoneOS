@@ -182,7 +182,7 @@
       },
       watch: {
         search() {
-          if (!this.files.length) {
+          if (!this.files || !this.files.length) {
             return;
           }
 

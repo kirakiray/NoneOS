@@ -250,7 +250,7 @@
         focus: null,
         // defaultAppStatus: "normal", // 初始的app状态 // normal max
         // appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
-        appStatus: "normal",
+        appStatus: "",
       },
       data: {
         appTop: 0,
@@ -390,16 +390,9 @@
           this.emit("app-change", {
             data: {
               type,
-              appid: this.ele.dataset.appid,
+              appindex: this.appindex,
             },
           });
-
-          if (type === "close") {
-            this.emit("app-close");
-            setTimeout(() => {
-              this.remove();
-            }, 200);
-          }
         },
         // 聚焦当前的app
         focusApp() {
@@ -411,7 +404,14 @@
               }
             });
 
-          this.focus = "";
+          this.focus = 1;
+
+          this.emit("app-change", {
+            data: {
+              type: "focus",
+              appindex: this.appindex,
+            },
+          });
         },
       },
       ready() {
@@ -422,8 +422,6 @@
         });
       },
       attached() {
-        this.focusApp();
-
         const topEle = this.shadow.$(".app-top");
 
         // 设置初始值

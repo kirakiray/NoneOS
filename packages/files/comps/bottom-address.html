@@ -56,6 +56,10 @@
           async path(path) {
             let pathStr = "";
 
+            if (!path) {
+              return;
+            }
+
             const arr = path.split("/").map((e) => {
               pathStr += `${e}/`;
 

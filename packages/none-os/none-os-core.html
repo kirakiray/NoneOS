@@ -40,9 +40,15 @@
         ></os-bar>
       </div>
       <div class="main" on:app-change="appChange">
-        <!-- <n-app-frame>
-              <div>asdasd</div>
-            </n-app-frame> -->
+        <x-fill :value="barApps" fill-key="url">
+          <n-app-frame
+            sync:app-status="$data.status"
+            :appindex="$index"
+            sync:focus="$data.focus"
+          >
+            <o-app attr:src="$data.url"></o-app>
+          </n-app-frame>
+        </x-fill>
       </div>
       <n-home-app-frame sync:show-home-app="showHomeApp">
         <o-app :src="homeApp.url" on:click-app="runApp"></o-app>
@@ -75,6 +81,7 @@
             //   },
             //   url: "/packages/files/app-config.js",
             //   // status: "background",
+            //   focus: false
             // }
           ],
           hasMaxApp: false, // 是否存在最大化的应用
@@ -87,24 +94,28 @@
 
             if (!targetBarApp) {
               this.barApps.push({
-                name: data.name,
+                name: data.name, // 应用名
                 icon: {
                   url: data.icon.url,
                 },
-                url: data.url,
-                // status: "background"  "running"
+                url: data.url, // app config 资源地址
+                status: "normal", // 运行状态
+                focus: null, // 是否聚焦
               });
 
               targetBarApp = this.barApps.find((e) => e.name === data.name);
             }
 
-            const appFrame = this.clickBarApp({
-              data: { app: targetBarApp },
+            // 修复焦点
+            this.barApps.forEach((e) => {
+              if (e === targetBarApp) {
+                e.focus = 1;
+              } else {
+                e.focus = null;
+              }
             });
 
-            return {
-              appFrame,
-            };
+            this.saveAppsState();
           },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
@@ -112,54 +123,26 @@
           // 点击应用栏应用
           clickBarApp({ data }) {
             const targetBarApp = data.app;
-            targetBarApp.status = "running"; // 点击后就直接修正为运行中
 
-            const exitedAppFrame = this.shadow.$(
-              ".main [data-appid='" + targetBarApp.xid + "']"
-            );
-
-            let reData; // 返回的内容
-
-            if (exitedAppFrame) {
-              // 直接修正对应的应用
-              exitedAppFrame.focusApp();
-              if (exitedAppFrame.appStatus === "min") {
-                if (exitedAppFrame._oldAppStatus === "max") {
-                  exitedAppFrame.appStatus = "max";
-                } else {
-                  exitedAppFrame.appStatus = "normal";
-                }
-              }
-
-              reData = exitedAppFrame;
-            } else {
-              if (targetBarApp.appType === "frame") {
-                console.log("暂时不支持 frame 模式");
+            if (targetBarApp.status === "min") {
+              if (window.innerWidth <= 600) {
+                targetBarApp.status = "max";
               } else {
-                // 添加这个应用到容器内
-                const appFrame =
-                  $(`<n-app-frame data-appid="${targetBarApp.xid}">
-                      <o-app src="${targetBarApp.url}"></o-app>
-                    </n-app-frame>`);
-
-                appFrame._appData = data.app.toJSON();
-
-                reData = appFrame;
-
-                // 小屏幕下，直接全屏
-                if (window.innerWidth <= 600) {
-                  appFrame.attr("default-app-status", "max");
-                }
-
-                this.shadow.$(".main").push(appFrame);
-
-                this.saveAppsState();
+                targetBarApp.status = "normal";
               }
             }
 
-            this.refreshBarMode();
+            // 修复焦点
+            this.barApps.forEach((e) => {
+              if (e === targetBarApp) {
+                e.focus = 1;
+              } else {
+                e.focus = null;
+              }
+            });
 
-            return reData;
+            this.refreshBarMode();
+            this.saveAppsState();
           },
           refreshBarMode() {
             const apps = this.shadow.all(".main n-app-frame");
@@ -169,18 +152,14 @@
           appChange(e) {
             const { data } = e;
 
-            const targetData = this.barApps.find((e) => e.xid === data.appid);
-
-            switch (data.type) {
-              case "min":
-                targetData.status = "background";
-                break;
-              case "close":
-                targetData.status = undefined;
-                break;
+            if (data.type === "close" && data.appindex > -1) {
+              setTimeout(() => {
+                this.barApps.splice(data.appindex, 1);
+              }, 200);
             }
 
             this.refreshBarMode();
+            this.saveAppsState();
           },
           async initHistory() {
             const bindHistory = () => {
@@ -257,50 +236,51 @@
           saveAppsState() {
             clearTimeout(this._routerTimer);
             this._routerTimer = setTimeout(() => {
-              // 遍历所有应用，并保留路由数据
-              const appRouters = this.shadow
-                .all(`n-app-frame`)
-                .map((appFrame) => {
-                  const app = appFrame.$("o-app");
-
-                  const appData = appFrame._appData;
-
-                  let targetBarApp = this.barApps.find(
-                    (e) => e.name === appData.name
-                  );
+              sessionStorage._bar_apps = JSON.stringify(
+                this.barApps.map((e) => {
+                  const targetApp = this.shadow.$(`o-app[src="${e.url}"]`);
 
                   return {
-                    routers: app.routers,
-                    appData: {
-                      ...appData,
-                      status: targetBarApp?.status,
-                    },
+                    ...e,
+                    routers: targetApp.routers,
                   };
-                });
+                })
+              );
 
-              console.log("appRouters: ", appRouters);
-
-              sessionStorage._app_routers = JSON.stringify(appRouters);
+              console.log(
+                "sessionStorage._bar_apps: ",
+                JSON.parse(sessionStorage._bar_apps)
+              );
             }, 300);
           },
           // 加载应用路由
           loadAppsState() {
-            const appRouters = JSON.parse(sessionStorage._app_routers || "[]");
+            const appRouters = JSON.parse(sessionStorage._bar_apps || "[]");
 
-            appRouters.forEach((e) => {
-              const { appFrame } = this.runApp({
-                data: e.appData,
-              });
-
-              appFrame.$("o-app").routers = e.routers;
+            this.barApps = appRouters.map((e) => {
+              const obj = { ...e };
+              delete obj.routers;
+              return obj;
             });
+
+            setTimeout(() => {
+              this.refreshBarMode();
+
+              // 还原应用路由
+              appRouters.forEach((e) => {
+                const targeApp = this.shadow.$(`o-app[src="${e.url}"]`);
+
+                if (targeApp) {
+                  targeApp.routers = e.routers;
+                }
+              });
+            }, 0);
           },
         },
         ready() {
           this.shadow.on("router-change", (e) => {
             this.saveAppsState();
           });
-          this.shadow.on("app-close", () => this.saveAppsState());
         },
         async attached() {
           if (history.state && history.state.routerType === "current") {
@@ -314,17 +294,6 @@
           }
 
           this.loadAppsState();
-
-          //   // testcode
-          // setTimeout(() => {
-          //   this.runApp({
-          //     data: {
-          //       name: "设置",
-          //       icon: { url: "/packages/setting/icon.svg" },
-          //       url: "/packages/setting/app-config.js",
-          //     },
-          //   });
-          // }, 100);
         },
         detached() {
           this._offState && this._offState();
