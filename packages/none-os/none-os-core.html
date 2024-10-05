@@ -91,9 +91,9 @@
           runApp(e) {
             const { data } = e;
 
-            let targetData = this.barApps.find((e) => e.name === data.name);
+            let targetBarApp = this.barApps.find((e) => e.name === data.name);
 
-            if (!targetData) {
+            if (!targetBarApp) {
               this.barApps.push({
                 name: data.name,
                 icon: {
@@ -103,57 +103,71 @@
                 // status: "background"  "running"
               });
 
-              targetData = this.barApps.find((e) => e.name === data.name);
+              targetBarApp = this.barApps.find((e) => e.name === data.name);
             }
 
-            this.clickBarApp({
-              data: { app: targetData },
+            const appFrame = this.clickBarApp({
+              data: { app: targetBarApp },
             });
+
+            return {
+              appFrame,
+            };
           },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
           },
+          // 点击应用栏应用
           clickBarApp({ data }) {
-            const targetApp = data.app;
-            targetApp.status = "running";
+            const targetBarApp = data.app;
+            targetBarApp.status = "running"; // 点击后就直接修正为运行中
 
-            const exitedApp = this.shadow.$(
-              ".main [data-appid='" + targetApp.xid + "']"
+            const exitedAppFrame = this.shadow.$(
+              ".main [data-appid='" + targetBarApp.xid + "']"
             );
 
-            if (exitedApp) {
+            let reData; // 返回的内容
+
+            if (exitedAppFrame) {
               // 直接修正对应的应用
-              exitedApp.focusApp();
-              if (exitedApp.appStatus === "min") {
-                if (exitedApp._oldAppStatus === "max") {
-                  exitedApp.appStatus = "max";
+              exitedAppFrame.focusApp();
+              if (exitedAppFrame.appStatus === "min") {
+                if (exitedAppFrame._oldAppStatus === "max") {
+                  exitedAppFrame.appStatus = "max";
                 } else {
-                  exitedApp.appStatus = "normal";
+                  exitedAppFrame.appStatus = "normal";
                 }
               }
+
+              reData = exitedAppFrame;
             } else {
-              if (targetApp.appType === "frame") {
+              if (targetBarApp.appType === "frame") {
                 console.log("暂时不支持 frame 模式");
               } else {
                 // 添加这个应用到容器内
-                const frameEl = $(`<n-app-frame data-appid="${targetApp.xid}">
-                      <o-app src="${targetApp.url}"></o-app>
+                const appFrame =
+                  $(`<n-app-frame data-appid="${targetBarApp.xid}">
+                      <o-app src="${targetBarApp.url}"></o-app>
                     </n-app-frame>`);
 
-                frameEl._appData = data.app.toJSON();
+                appFrame._appData = data.app.toJSON();
+
+                reData = appFrame;
 
                 // 小屏幕下，直接全屏
                 if (window.innerWidth <= 600) {
-                  frameEl.attr("default-app-status", "max");
+                  appFrame.attr("default-app-status", "max");
                 }
 
-                this.shadow.$(".main").push(frameEl);
+                this.shadow.$(".main").push(appFrame);
 
                 this.saveAppsState();
               }
             }
 
             this.refreshBarMode();
+
+            return reData;
           },
           refreshBarMode() {
             const apps = this.shadow.all(".main n-app-frame");
@@ -254,12 +268,12 @@
               // 遍历所有应用，并保留路由数据
               const appRouters = this.shadow
                 .all(`n-app-frame`)
-                .map((frameEl) => {
-                  const app = frameEl.$("o-app");
+                .map((appFrame) => {
+                  const app = appFrame.$("o-app");
 
                   return {
                     routers: app.routers,
-                    appData: frameEl._appData,
+                    appData: appFrame._appData,
                   };
                 });
 
@@ -270,14 +284,12 @@
           loadAppsState() {
             const appRouters = JSON.parse(sessionStorage._app_routers || "[]");
 
-            if (appRouters.length) {
-              console.log("appRouters", appRouters);
-            }
-
             appRouters.forEach((e) => {
-              this.runApp({
+              const { appFrame } = this.runApp({
                 data: e.appData,
               });
+
+              appFrame.$("o-app").routers = e.routers;
             });
           },
         },
