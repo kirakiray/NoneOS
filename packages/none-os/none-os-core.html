@@ -45,6 +45,10 @@
             sync:app-status="$data.status"
             :appindex="$index"
             sync:focus="$data.focus"
+            sync:app-top="$data.appTop"
+            sync:app-left="$data.appLeft"
+            sync:app-width="$data.appWidth"
+            sync:app-height="$data.appHeight"
           >
             <o-app attr:src="$data.url"></o-app>
           </n-app-frame>
@@ -73,26 +77,18 @@
             name: "App Manager",
           },
           // 应用栏上的应用状态数据
-          barApps: [
-            // {
-            //   name: "Files",
-            //   icon: {
-            //     url: "/packages/files/icon.svg",
-            //   },
-            //   url: "/packages/files/app-config.js",
-            //   // status: "background",
-            //   focus: false
-            // }
-          ],
+          barApps: [],
           hasMaxApp: false, // 是否存在最大化的应用
         },
         proto: {
+          // 运行app，一般情况下，是通过app-manager来运行的
           runApp(e) {
             const { data } = e;
 
             let targetBarApp = this.barApps.find((e) => e.name === data.name);
 
             if (!targetBarApp) {
+              // 应用栏上的单个应用数据结构
               this.barApps.push({
                 name: data.name, // 应用名
                 icon: {
@@ -101,6 +97,11 @@
                 url: data.url, // app config 资源地址
                 status: "normal", // 运行状态
                 focus: null, // 是否聚焦
+                // 窗口的定位信息，初始数值如下
+                appTop: (window.innerHeight - 200) / 2,
+                appLeft: 0,
+                appWidth: 200,
+                appHeight: 200,
               });
 
               targetBarApp = this.barApps.find((e) => e.name === data.name);
@@ -116,6 +117,8 @@
             });
 
             this.saveAppsState();
+
+            return targetBarApp;
           },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
@@ -130,6 +133,8 @@
               } else {
                 targetBarApp.status = "normal";
               }
+            } else if (targetBarApp.status === "close") {
+              targetBarApp.status = "normal";
             }
 
             // 修复焦点
@@ -246,12 +251,7 @@
                   };
                 })
               );
-
-              console.log(
-                "sessionStorage._bar_apps: ",
-                JSON.parse(sessionStorage._bar_apps)
-              );
-            }, 300);
+            }, 200);
           },
           // 加载应用路由
           loadAppsState() {
