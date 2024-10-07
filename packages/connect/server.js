@@ -169,6 +169,8 @@ class ServerConnector extends $.Stanz {
       await this.init();
     }
 
+    await this.#initingPms;
+
     const postUrl = new URL(this.serverUrl).origin + this.#apiID;
 
     return fetch(postUrl, {
