@@ -428,6 +428,7 @@ export class ClientUser extends $.Stanz {
       }
 
       if (result.chunkData) {
+        // 通过已知的分块信息，重新组合数据
         const { chunkData } = result;
         // 重新组装分块信息
         const splits = this._splits || (this._splits = []);
@@ -448,8 +449,11 @@ export class ClientUser extends $.Stanz {
           return;
         }
 
-        // 当不等于0时，组装往下走
+        // 当不等于0时，组装成完整的数据，往后面继续
         result = JSON.parse(groupData.datas.join(""));
+
+        // 清除在 splits 上的缓存数据
+        splits.splice(splits.indexOf(groupData), 1);
       }
 
       if (result.data) {
