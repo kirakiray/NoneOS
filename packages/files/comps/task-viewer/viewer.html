@@ -61,6 +61,7 @@
     }
 
     .block {
+      box-sizing: border-box;
       width: 10px;
       height: 10px;
       margin: 1px;
@@ -87,12 +88,17 @@
     <div class="main">
       <x-if :value="isTask">
         <div style="display: flex; align-items: center">
-          <x-if :value="completed"> 复制完成 </x-if>
+          <x-if :value="completed"> {{taskName}}已完成 </x-if>
+          <x-else-if :value="clearCacheData.total > 0">
+            {{taskName}}完成，正在清除缓存中 ({{clearPercentage}}%)
+          </x-else-if>
           <x-else>
-            {{stepName}}
-            <span>
-              <x-if :value="total > 0"> ({{percentTage}}%) </x-if>
-            </span>
+            <div>
+              {{taskName}}
+              <span>
+                <x-if :value="total > 0"> ({{percentTage}}%) </x-if>
+              </span>
+            </div>
           </x-else>
           <x-if :value="paused">
             <p-button
@@ -104,14 +110,19 @@
             </p-button>
           </x-if>
         </div>
-        <div class="file-container">
-          <x-fill :value="files">
-            <task-viewer-line
-              :filedata="$data"
-              :cachepath="$host.path"
-            ></task-viewer-line>
-          </x-fill>
-        </div>
+        <x-if :value="completed">
+          {{path}} 的任务已经完成，请关闭当前窗口。
+        </x-if>
+        <x-else>
+          <div class="file-container">
+            <x-fill :value="files">
+              <task-viewer-line
+                :filedata="$data"
+                :cachepath="$host.path"
+              ></task-viewer-line>
+            </x-fill>
+          </div>
+        </x-else>
       </x-if>
       <x-else>
         <div
@@ -141,17 +152,20 @@
           show: false, // 是否显示
           loading: false, // 是否加载中
           taskType: "", // 任务类型
-          stepName: "", // 执行中的任务名 // 复制块进行中、文件合并中、缓存删除中
           total: 0, // 总块数
           totalCached: 0, // 已经缓存的数量
           _originData: null, // 任务上的缓存数据
           paused: true, // 当前是否正在暂停任务中
-          completed: false, // 任务是否已经完成
           isTask: false, // 目标是不是任务目录
           // noTaskData: false, // 是否没有任务
-
           // 文件数据
           files: [],
+          // 在清除缓存中的时候 total 会大于0
+          clearCacheData: {
+            removed: 0, // 已经清除的缓存文件个数
+            total: 0, // 需要清除的文件总数
+          },
+          completed: false, // 任务是否已经完成
         },
         watch: {
           show(show) {
@@ -161,10 +175,22 @@
           },
         },
         proto: {
+          get taskName() {
+            if (this.taskType === "copyTo") {
+              return "复制文件";
+            }
+
+            return "";
+          },
           get percentTage() {
             return Math.ceil((this.totalCached / this.total) * 100);
           },
 
+          get clearPercentage() {
+            return Math.ceil(
+              (this.clearCacheData.removed / this.clearCacheData.total) * 100
+            );
+          },
           // 继续任务
           async continueTask() {
             if (this.taskType === "copyTo") {
@@ -174,11 +200,7 @@
               await copyTo({
                 source,
                 target,
-                // debugTime: 100,
-              });
-
-              this.emit("task-complete", {
-                composed: true,
+                // debugTime: 1000,
               });
             }
           },
@@ -211,12 +233,6 @@
               // 生成文件组
               this.taskType = taskData.type;
 
-              switch (this.taskType) {
-                case "copyTo":
-                  this.stepName = "复制中";
-                  break;
-              }
-
               this._originData = taskData;
 
               this.files = taskData.files;
@@ -239,6 +255,23 @@
 
                 this.paused = false;
               }
+            }),
+            on("clear-cache", (e) => {
+              const { data } = e;
+              if (this.path === data.cachePath) {
+                // 清除当前文件夹
+                this.clearCacheData.removed = data.removed;
+                this.clearCacheData.total = data.total;
+              }
+            }),
+            on("task-complete", (e) => {
+              this.emit("task-complete", {
+                composed: true,
+              });
+
+              this.completed = true;
+
+              this.show = false;
             }),
           ];
         },

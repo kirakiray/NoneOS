@@ -151,7 +151,8 @@
             },
           });
 
-          this.on("task-complete", () => {
+          this.on("task-complete", (e) => {
+            e.stopPropagation();
             this.refreshFiles();
           });
         },

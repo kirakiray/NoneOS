@@ -49,6 +49,15 @@ export const copyTo = async ({
   // 先扁平化所有文件
   const files = await flatHandle(source);
 
+  // 添加目标地址
+  {
+    const targetPath = target.path;
+    const sourcePath = source.path;
+    files.forEach((e) => {
+      e.to = `${targetPath}/${name}${e.path.replace(sourcePath, "")}`;
+    });
+  }
+
   if (confirm) {
     const result = await confirm(files);
 
@@ -112,6 +121,32 @@ export const copyTo = async ({
 
   // 将块复制到缓存文件夹
   for (let item of files) {
+    // 查看是否已经合并，已合并就不操作
+    const file = await target
+      .get(`${name}${item.path.replace(source.path, "")}`)
+      .catch(() => null);
+
+    const size = file ? await file.size() : 0;
+
+    if (size) {
+      count += item.hashs.length;
+
+      emitEvent("writed", {
+        path: item.path,
+        total: totalLength,
+        totalCached: count, // 整个项目缓存的块数量
+        currentCached: item.hashs.length, // 当前文件缓存的块数量
+        currentLength: item.hashs.length, // 当前文件的总块数
+        exited: 1, // 已经存在的块
+      });
+
+      emitEvent("merged", {
+        item,
+      });
+
+      continue;
+    }
+
     // 复制块文件
     await copyChunk({
       item,
@@ -128,15 +163,21 @@ export const copyTo = async ({
       },
     });
 
+    emitEvent("before-merge", {
+      item,
+    });
+
     // 合并块文件
     await mergeChunk({
       item,
       cacheDir,
-      emitEvent,
-      debugTime,
       source,
       target,
       name,
+    });
+
+    emitEvent("merged", {
+      item,
     });
   }
 
@@ -144,35 +185,34 @@ export const copyTo = async ({
   // taskFileData.step == "clear";
   // await taskFile.write(JSON.stringify(taskFileData));
 
-  // 清除缓存
-  for (let item of needClearItem) {
-    for (let hash of item.hashs) {
-      const handle = await cacheDir.get(hash);
+  const cacheLen = await cacheDir.length();
 
-      if (handle) {
-        await handle.remove();
-      }
+  let removedCount = 0;
+
+  for await (let handle of cacheDir.values()) {
+    // 确保先不要删除任务主文件
+    if (handle.name === "task.json") {
+      continue;
     }
+
+    await handle.remove();
+    removedCount++;
+
+    emitEvent("clear-cache", {
+      removed: removedCount,
+      total: cacheLen,
+    });
   }
 
-  // 如果没有缓存块，就可以删除对应的目录
-  const len = await cacheDir.length();
-  if (len === 1) {
-    // 只剩下task.json 文件
-    await cacheDir.remove();
-  }
+  // 最后清除任务文件夹自身
+  await cacheDir.remove();
+
+  // 触发完成事件
+  emitEvent("task-complete");
 };
 
 // 合并块文件
-const mergeChunk = async ({
-  item,
-  cacheDir,
-  emitEvent,
-  debugTime,
-  source,
-  target,
-  name,
-}) => {
+const mergeChunk = async ({ item, cacheDir, source, target, name }) => {
   let fileHandle;
   if (source.kind === "file") {
     // 文件拼接
@@ -191,7 +231,7 @@ const mergeChunk = async ({
   // 用自带的合并文件方法
   const result = await fileHandle._mergeChunk(item.hashs, relateRootPath);
 
-  debugger;
+  return result;
 };
 
 // 拷贝块文件
