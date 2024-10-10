@@ -150,11 +150,6 @@
               path: this.path,
             },
           });
-
-          this.on("task-complete", (e) => {
-            e.stopPropagation();
-            this.refreshFiles();
-          });
         },
       };
     };

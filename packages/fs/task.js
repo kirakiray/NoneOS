@@ -29,6 +29,7 @@ export const copyTo = async ({
   target,
   confirm,
   progress,
+  prepare,
   name,
   chunkSize, // 分块的大小
   debugTime = 0, // 调试用的延迟时间
@@ -87,12 +88,18 @@ export const copyTo = async ({
     create: "dir",
   });
 
+  const cachePath = cacheDir.path;
+
   // 备份文件数据
   const taskFile = await cacheDir.get("task.json", {
     create: "file",
   });
 
-  const cachePath = cacheDir.path;
+  if (prepare) {
+    await prepare({
+      path: cachePath,
+    });
+  }
 
   // 内部用的事件触发器，会项 progress 和 全局触发对应的事件
   const emitEvent = (name, data) => {
@@ -118,6 +125,8 @@ export const copyTo = async ({
 
   // 保存步骤
   await taskFile.write(JSON.stringify(taskFileData));
+
+  const mergingTasks = []; // 合并中的任务
 
   // 将块复制到缓存文件夹
   for (let item of files) {
@@ -168,22 +177,23 @@ export const copyTo = async ({
     });
 
     // 合并块文件
-    await mergeChunk({
-      item,
-      cacheDir,
-      source,
-      target,
-      name,
-    });
-
-    emitEvent("merged", {
-      item,
-    });
+    mergingTasks.push(
+      mergeChunk({
+        item,
+        cacheDir,
+        source,
+        target,
+        name,
+      }).then(() => {
+        emitEvent("merged", {
+          item,
+        });
+      })
+    );
   }
 
-  // 记录到清除步骤
-  // taskFileData.step == "clear";
-  // await taskFile.write(JSON.stringify(taskFileData));
+  // 等待合并结束
+  await Promise.all(mergingTasks);
 
   const cacheLen = await cacheDir.length();
 
@@ -208,7 +218,9 @@ export const copyTo = async ({
   await cacheDir.remove();
 
   // 触发完成事件
-  emitEvent("task-complete");
+  emitEvent("task-complete", {
+    path: cachePath,
+  });
 };
 
 // 合并块文件

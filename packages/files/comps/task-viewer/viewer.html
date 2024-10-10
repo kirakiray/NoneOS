@@ -200,7 +200,7 @@
               await copyTo({
                 source,
                 target,
-                // debugTime: 1000,
+                // debugTime: 100,
               });
             }
           },
@@ -265,9 +265,16 @@
               }
             }),
             on("task-complete", (e) => {
-              this.emit("task-complete", {
-                composed: true,
-              });
+              const { data } = e;
+
+              if (this.path === data.path) {
+                this.emit("task-complete", {
+                  composed: true,
+                  data: {
+                    path: data.path,
+                  },
+                });
+              }
 
               this.completed = true;
 

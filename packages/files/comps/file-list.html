@@ -1,6 +1,5 @@
 <template component>
   <l-m src="./handle-block.html"></l-m>
-  <l-m src="./task-viewer/viewer.html"></l-m>
 
   <style>
     :host {
@@ -166,7 +165,6 @@
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
   <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>
   <style id="clipboard-style"></style>
-  <task-viewer :path="taskPath" sync:show="showTaskViewer"></task-viewer>
   <script>
     export default {
       tag: "n-file-list",
@@ -177,8 +175,6 @@
         needRename: null, // 需要重命名的文件
         search: "", // 搜索内容
         noMatch: false, // 没有搜索到结果为true
-        taskPath: "", // 进行中的文件任务地址
-        showTaskViewer: false,
       },
       watch: {
         search() {
@@ -201,6 +197,7 @@
           }, 100);
         },
         clipboard(clipboard) {
+          // 让图标出现剪贴板的样式，保证页面跳转后也能出现标识
           if (!clipboard?.type) {
             this.shadow.$("#clipboard-style").html = "";
             return;
@@ -241,8 +238,14 @@
         async open(data) {
           if (/\.fs_task_cache$/.test(data.name)) {
             // 确认是任务进度
-            this.taskPath = data.path;
-            this.showTaskViewer = true;
+
+            this.emit("open-task", {
+              composed: true,
+              data: {
+                name: data.name,
+                path: data.path,
+              },
+            });
           } else if (data.kind === "dir") {
             this.host.goto(
               `./explore.html?path=${encodeURIComponent(data.path)}`
