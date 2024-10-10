@@ -594,6 +594,38 @@
 
       return hashMap.get(hash);
     }
+
+    // 根据哈希值，从缓存目录获取块数据，再合并成一个完整的文件
+    async _mergeChunk(hashs, cacheDirPath) {
+      const cacheDir = await (await this.root()).get(cacheDirPath);
+
+      if (!cacheDir) {
+        throw new Error("没有找到缓冲目录");
+      }
+
+      const writer = await this.createWritable();
+
+      for (let hash of hashs) {
+        const handle = await cacheDir.get(hash);
+        if (!handle) {
+          const err = get("notFoundChunk", {
+            path: item.path,
+            hash,
+          });
+          console.error(err);
+          await writer.abort();
+          throw err;
+        }
+
+        const data = await handle.buffer();
+        await writer.write(data);
+      }
+
+      // 没有报错
+      await writer.close();
+
+      return true;
+    }
   }
 
   /**
@@ -1420,7 +1452,7 @@
    * @param {String} path 文件或文件夹的路径
    * @returns {(DirHandle|FileHandle)}
    */
-  const get = async (path, options) => {
+  const get$1 = async (path, options) => {
     const paths = path.split("/");
 
     if (!paths.length) {
@@ -1558,7 +1590,7 @@
     }
 
     // console.log("path:", path);
-    const handle = await get(path);
+    const handle = await get$1(path);
     let content = await handle.file();
 
     const headers = {};
@@ -1593,7 +1625,7 @@
     const isdebug = pathArr.slice(-1)[0] === "appdebug";
 
     try {
-      appconfig = await get(`${parentPath}/app.json`);
+      appconfig = await get$1(`${parentPath}/app.json`);
       appconfig = JSON.parse(await appconfig.text());
     } catch (err) {
       appconfig = await fetch(`/${parentPath}/app.json`).then((e) => e.json());

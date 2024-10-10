@@ -125,6 +125,16 @@
           },
         },
         async ready() {
+          const isSafari =
+            navigator.userAgent.includes("Safari") &&
+            !navigator.userAgent.includes("Chrome");
+          if (isSafari) {
+            // safari不允许写入本地盘
+            this.locals = this.locals.filter((e) => {
+              return !/^\$origin/.test(e.path);
+            });
+          }
+
           this.on("go-page", (e) => {
             e.stopPropagation();
 
