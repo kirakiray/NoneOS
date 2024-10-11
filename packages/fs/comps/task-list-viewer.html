@@ -6,7 +6,14 @@
   </style>
   <l-m src="./task-viewer/viewer.html"></l-m>
   <x-fill :value="tasks">
-    <task-viewer sync:show="$data.showViewer" :path="$data.path"> </task-viewer>
+    <task-viewer
+      sync:show="$data.showViewer"
+      :path="$data.path"
+      :total-cached="$data.totalCached"
+      :total="$data.total"
+      :completed="$data.completed"
+    >
+    </task-viewer>
   </x-fill>
   <script>
     export default async ({ load }) => {

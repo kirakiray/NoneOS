@@ -32,7 +32,7 @@ export const copyTo = async ({
   prepare,
   name,
   chunkSize, // 分块的大小
-  debugTime = 0, // 调试用的延迟时间
+  debugTime, // 调试用的延迟时间
 }) => {
   if (!name) {
     name = source.name;

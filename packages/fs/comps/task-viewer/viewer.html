@@ -92,16 +92,16 @@
           <x-else-if :value="clearCacheData.total > 0">
             {{taskName}}完成，正在清除缓存中 ({{clearPercentage}}%)
           </x-else-if>
-          <x-else>
+          <x-else-if :value="!paused">
             <div>
               {{taskName}}
               <span>
                 <x-if :value="total > 0"> ({{percentTage}}%) </x-if>
               </span>
             </div>
-          </x-else>
+          </x-else-if>
           <x-if :value="paused">
-            (暂停中)
+            {{taskName}} (暂停中)
             <p-button
               size="mini"
               style="margin-left: 20px"
@@ -168,13 +168,13 @@
           },
           completed: false, // 任务是否已经完成
         },
-        watch: {
-          show(show) {
-            if (show) {
-              this.init();
-            }
-          },
-        },
+        // watch: {
+        //   show(show) {
+        //     if (show) {
+        //       this.init();
+        //     }
+        //   },
+        // },
         proto: {
           get taskName() {
             if (this.taskType === "copyTo") {
@@ -249,11 +249,6 @@
               const { data } = e;
 
               if (this.path === data.cachePath) {
-                const { totalCached, total } = data;
-
-                this.total = total;
-                this.totalCached = totalCached;
-
                 this.paused = false;
               }
             }),
@@ -276,11 +271,10 @@
                   },
                 });
               }
-
-              this.completed = true;
-              this.show = false;
             }),
           ];
+
+          this.init();
         },
         detached() {
           if (this._cancels) {

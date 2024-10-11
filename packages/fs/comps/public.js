@@ -10,10 +10,13 @@ export const tasks = $.stanz([
   //   showViewer: false // 是否显示查看器
   //   path: '', // 任务目录的地址
   //   completed: false // 任务是否已经完成
+  //   total: 1, // 总共需要缓存的块数
+  //   totalCached: 0, // 已经缓存的块数
   // },
 ]);
 
 on("prepare", (e) => {
+  // 有新任务加入
   const { data } = e;
 
   openTask({
@@ -21,7 +24,22 @@ on("prepare", (e) => {
   });
 });
 
+on("writed", (e) => {
+  // 更新写入进度
+  const { data } = e;
+
+  const item = tasks.find((e) => e.path === data.cachePath);
+
+  if (item) {
+    const { totalCached, total } = data;
+
+    item.totalCached = totalCached;
+    item.total = total;
+  }
+});
+
 on("task-complete", (e) => {
+  // 任务完成
   const { data } = e;
 
   const target = tasks.find((e) => {
@@ -30,6 +48,7 @@ on("task-complete", (e) => {
 
   if (target) {
     target.completed = true;
+    target.showViewer = false;
 
     // 延迟删除
     setTimeout(() => {
@@ -39,8 +58,6 @@ on("task-complete", (e) => {
       }
     }, 2000);
   }
-
-  
 });
 
 // 添加任务
@@ -66,6 +83,8 @@ export const openTask = async (data) => {
     from: taskData.from.replace(/.+\/(.+)$/, "$1"),
     to: taskData.to.replace(/.+\/(.+)$/, "$1"),
     showViewer: false,
+    total: 1,
+    totalCached: 0,
   });
 
   setTimeout(() => {

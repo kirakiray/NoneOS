@@ -1,10 +1,12 @@
 <template component>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: block;
     }
 
     .task-block {
+      position: relative;
       display: flex;
       align-items: center;
       margin: 4px 0;
@@ -22,8 +24,11 @@
     }
 
     .task-block p-progress {
-      margin-right: 6px;
-      --circle-size: 18;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: calc(100% - 16px);
+      --line-size: 2px;
     }
 
     .task-block n-local-icon {
@@ -59,6 +64,8 @@
           <span class="file-block">{{$data.to}}</span>
         </div>
       </x-else>
+
+      <p-progress :value="$host.getPercentTage($data)"></p-progress>
     </div>
   </x-fill>
 
@@ -80,6 +87,11 @@
             //   completed: false // 任务是否已经完成
             // },
           ],
+        },
+        proto: {
+          getPercentTage(item) {
+            return Math.ceil((item.totalCached / item.total) * 100);
+          },
         },
         attached() {
           this.tasks = tasks;
