@@ -134,8 +134,7 @@ export const copyTo = async ({
 
   const mergingTasks = []; // 合并中的任务
 
-  // 将块复制到缓存文件夹
-  for (let item of files) {
+  const runItem = async (item) => {
     // 查看是否已经合并，已合并就不操作
     const file = await target
       .get(`${name}${item.path.replace(source.path, "")}`)
@@ -159,7 +158,7 @@ export const copyTo = async ({
         item,
       });
 
-      continue;
+      return;
     }
 
     // 复制块文件
@@ -196,7 +195,19 @@ export const copyTo = async ({
         });
       })
     );
-  }
+  };
+
+  // 将块复制到缓存文件夹
+  // for (let item of files) {
+  //   await runItem(item);
+  // }
+
+   // 将块复制到缓存文件夹（并行）
+  await Promise.all(
+    files.map(async (item) => {
+      await runItem(item);
+    })
+  );
 
   // 等待合并结束
   await Promise.all(mergingTasks);
