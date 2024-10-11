@@ -45,6 +45,7 @@
     .task-block {
       display: flex;
       align-items: center;
+      margin: 4px 0;
       padding: 8px 8px;
       font-size: 12px;
       line-height: 1.2em;
@@ -63,8 +64,13 @@
       --circle-size: 18;
     }
 
+    .task-block n-local-icon {
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+    }
+
     .task-block .file-block {
-      margin: 0 4px;
+      margin: 0 2px;
       color: var(--md-sys-color-primary);
     }
   </style>
@@ -113,11 +119,19 @@
               <span class="file-block">{{$data.to}}</span>)
             </x-if>
             <x-else>
-              <p-progress type="circle"></p-progress>
-              正在将
-              <span class="file-block">{{$data.from}}</span>
-              {{$data.type === 'copyTo' ? '复制到' : ''}}
-              <span class="file-block">{{$data.to}}</span>
+              <n-local-icon name="copy"></n-local-icon>
+              <div
+                style="
+                  margin-left: 4px;
+                  display: flex;
+                  align-items: center;
+                  flex-wrap: wrap;
+                "
+              >
+                <span class="file-block">{{$data.from}}</span>
+                {{$data.type === 'copyTo' ? '复制到' : ''}}
+                <span class="file-block">{{$data.to}}</span>
+              </div>
             </x-else>
           </div>
         </x-fill>
