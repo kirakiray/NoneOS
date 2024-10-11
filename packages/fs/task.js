@@ -95,12 +95,6 @@ export const copyTo = async ({
     create: "file",
   });
 
-  if (prepare) {
-    await prepare({
-      path: cachePath,
-    });
-  }
-
   // 内部用的事件触发器，会项 progress 和 全局触发对应的事件
   const emitEvent = (name, data) => {
     progress &&
@@ -115,6 +109,18 @@ export const copyTo = async ({
       ...data,
     });
   };
+
+  if (prepare) {
+    await prepare({
+      path: cachePath,
+    });
+
+    emitEvent("prepare", {
+      path: cachePath,
+      source,
+      target,
+    });
+  }
 
   const taskFileData = {
     type: "copyTo",

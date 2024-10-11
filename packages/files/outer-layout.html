@@ -2,7 +2,9 @@
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
-  <l-m src="/packages/files/comps/task-viewer/viewer.html"></l-m>
+  <!-- <l-m src="/packages/fs/comps/task-viewer/viewer.html"></l-m> -->
+  <l-m src="/packages/fs/comps/task-list.html"></l-m>
+  <l-m src="/packages/fs/comps/task-list-viewer.html"></l-m>
   <style>
     :host {
       display: block;
@@ -40,38 +42,6 @@
 
     .left-bottom {
       margin-top: auto;
-    }
-
-    .task-block {
-      display: flex;
-      align-items: center;
-      margin: 4px 0;
-      padding: 8px 8px;
-      font-size: 12px;
-      line-height: 1.2em;
-      word-break: break-all;
-      cursor: pointer;
-      background-color: var(--md-sys-color-on-normal);
-      border-radius: 0 20px 20px 0;
-    }
-
-    .task-block:hover {
-      background-color: var(--md-ref-palette-translucent-primary60);
-    }
-
-    .task-block p-progress {
-      margin-right: 6px;
-      --circle-size: 18;
-    }
-
-    .task-block n-local-icon {
-      color: var(--md-sys-color-primary);
-      font-size: 18px;
-    }
-
-    .task-block .file-block {
-      margin: 0 2px;
-      color: var(--md-sys-color-primary);
     }
   </style>
   <n-horsp-pannel>
@@ -111,30 +81,7 @@
         </p-list-item>
       </p-list>
       <div class="left-bottom">
-        <x-fill :value="tasks">
-          <div class="task-block" on:click="$data.showViewer = true">
-            <x-if :value="$data.completed">
-              复制成功 (<span class="file-block">{{$data.from}}</span>
-              {{$data.type === 'copyTo' ? '复制到' : ''}}
-              <span class="file-block">{{$data.to}}</span>)
-            </x-if>
-            <x-else>
-              <n-local-icon name="copy"></n-local-icon>
-              <div
-                style="
-                  margin-left: 4px;
-                  display: flex;
-                  align-items: center;
-                  flex-wrap: wrap;
-                "
-              >
-                <span class="file-block">{{$data.from}}</span>
-                {{$data.type === 'copyTo' ? '复制到' : ''}}
-                <span class="file-block">{{$data.to}}</span>
-              </div>
-            </x-else>
-          </div>
-        </x-fill>
+        <n-task-list></n-task-list>
       </div>
     </div>
     <slot></slot>
@@ -155,13 +102,12 @@
     </p-list-item>
   </template>
 
-  <x-fill :value="tasks">
-    <task-viewer sync:show="$data.showViewer" :path="$data.path"> </task-viewer>
-  </x-fill>
+  <n-task-list-viewer></n-task-list-viewer>
 
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";
     import { copyTo } from "/packages/fs/task.js";
+    import { openTask } from "/packages/fs/comps/public.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
@@ -190,18 +136,6 @@
           ],
           selectedRootName: null,
           remotes: [], // 远端设备
-          // 进行的任务
-          tasks: [
-            // {
-            //   type: "copyTo",
-            //   from: "AAA",
-            //   to: "bbb",
-            //   paused: false // 是否暂停中
-            //   showViewer: false // 是否显示查看器
-            //   path: '', // 任务目录的地址
-            //   completed: false // 任务是否已经完成
-            // },
-          ],
         },
         proto: {
           clickTab(data) {
@@ -210,20 +144,6 @@
             }
             this.selectedRootName = data.path;
             this.app.current.goto(`./explore.html?path=${data.path}`);
-          },
-          // 打开查看器
-          showViewer(path, delayTime) {
-            const exitedItem = this.tasks.find((e) => e.path === path);
-
-            if (exitedItem) {
-              if (delayTime) {
-                setTimeout(() => {
-                  exitedItem.showViewer = true;
-                }, delayTime);
-              } else {
-                exitedItem.showViewer = true;
-              }
-            }
           },
         },
         async ready() {
@@ -250,82 +170,27 @@
             if (data.type === "copyTo") {
               const { source, target } = data;
 
-              await copyTo({
-                // debugTime: 200,
+              copyTo({
                 source,
                 target,
                 prepare: async (e) => {
-                  this.tasks.push({
-                    type: data.type,
-                    paused: false,
-                    path: e.path,
-                    from: source.name,
-                    to: target.name,
-                    showViewer: false,
-                  });
-
-                  this.showViewer(e.path, 300);
-
                   // 添加延迟并刷新粘贴中的页面
                   await new Promise((res) => setTimeout(res, 150));
                   this.app.current.refreshFiles();
-
                   await new Promise((res) => setTimeout(res, 150));
-                },
-                progress: (e) => {
-                  this.taskPercentage = Math.ceil((e.count / e.total) * 100);
                 },
               });
             }
           });
 
           this.on("task-complete", async (e) => {
-            const { data } = e;
-
-            const target = this.tasks.find((e) => {
-              return e.path === data.path;
-            });
-
             this.app.current.refreshFiles();
-
-            if (target) {
-              target.completed = 1;
-              setTimeout(() => {
-                const index = this.tasks.findIndex((e) => e === target);
-                if (index > -1) {
-                  this.tasks.splice(index, 1);
-                }
-              }, 2000);
-            }
           });
 
+          // 双击任务目录后触发的事件
           this.on("open-task", async (e) => {
             e.stopPropagation();
-
-            const { data } = e;
-
-            const handle = await get(`${data.path}/task.json`);
-            let taskData = await handle.text();
-            if (taskData) {
-              taskData = JSON.parse(taskData);
-            }
-
-            // 查看是否已经存在
-            const exitedItem = this.tasks.find((e) => e.path === data.path);
-
-            if (!exitedItem) {
-              this.tasks.push({
-                type: taskData.type,
-                paused: true,
-                path: data.path,
-                from: taskData.from.replace(/.+\/(.+)$/, "$1"),
-                to: taskData.to.replace(/.+\/(.+)$/, "$1"),
-                showViewer: false,
-              });
-              this.showViewer(data.path, 100);
-            } else {
-              this.showViewer(data.path);
-            }
+            await openTask(e.data);
           });
 
           this.remotes = await getRemotes();
