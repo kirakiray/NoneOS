@@ -50,18 +50,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       ],
     });
 
-    debugger;
-
-    // debugger;
-    // const result = await this._bridge({
-    //   method: "write",
-    //   path: this._path,
-    //   args: [data],
-    // });
-
-    // debugger;
-
-    // return result;
+    return result;
   }
 
   /**
@@ -79,64 +68,18 @@ export class RemoteFileHandle extends RemoteBaseHandle {
         {
           size: CHUNK_REMOTE_SIZE,
           returnHashs: true, // 返回哈希数组
+          options,
         },
       ],
     });
 
-    let buffer;
+    const chunks = await Promise.all(
+      hashs.map(async (hash) => {
+        return getCache(hash);
+      })
+    );
 
-    if (options && (options.start || options.end)) {
-      // 获取范围内的数据
-      const remote_chunk_length = CHUNK_REMOTE_SIZE; // remote 的传送块大小
-
-      const startBlockId = Math.floor(options.start / remote_chunk_length); // 开始的块id
-      const endBlockId = Math.floor(options.end / remote_chunk_length); // 结束的块id
-
-      const currentHashs = []; // 符合条件的哈希值块
-
-      for (let i = startBlockId; i <= endBlockId; i++) {
-        currentHashs.push({
-          hash: hashs[i],
-          index: i,
-        });
-      }
-
-      const chunks = await Promise.all(
-        currentHashs.map(async ({ hash, index }) => {
-          const chunk = await getCache(hash);
-          let reChunk = chunk;
-
-          const start_position = index * remote_chunk_length; // 当前块的开始位置
-          const end_position = (index + 1) * remote_chunk_length; // 当前块的结束位置
-
-          // 精准截取对应块的内容
-          if (end_position > options.end) {
-            // 尾段内容
-            reChunk = reChunk.slice(
-              0,
-              remote_chunk_length - (end_position - options.end)
-            );
-          }
-
-          if (start_position < options.start) {
-            // 首段内容
-            reChunk = reChunk.slice(options.start - start_position);
-          }
-
-          return reChunk;
-        })
-      );
-
-      buffer = mergeChunks(chunks);
-    } else {
-      const chunks = await Promise.all(
-        hashs.map(async (hash) => {
-          return getCache(hash);
-        })
-      );
-
-      buffer = mergeChunks(chunks);
-    }
+    const buffer = mergeChunks(chunks);
 
     return readBufferByType({
       buffer,

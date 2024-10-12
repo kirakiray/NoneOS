@@ -2,7 +2,7 @@ import { get } from "../handle/index.js";
 import { connectUser } from "/packages/connect/user.js";
 
 // 中转所有远程的内容
-const bridge = async (options, send) => {
+const bridge = async (options) => {
   const { method, path, args = [] } = options;
 
   let handle;

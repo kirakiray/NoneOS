@@ -1,4 +1,4 @@
-import { flatHandle } from "./util.js";
+import { calculateHash, flatHandle } from "./util.js";
 import { getErr } from "./errors.js";
 import { CHUNK_SIZE, CHUNK_REMOTE_SIZE } from "./util.js";
 
@@ -73,13 +73,13 @@ export const copyTo = async ({
   // 先计算目标的所有的文件，并计算所有块数据，并按照指定块大小计算hash
   await Promise.all(
     files.map(async (e) => {
-      const result = await e.handle._getHashMap({
+      const result = await e.handle._getHashs({
         size: chunkSize,
       });
 
-      totalLength += result.length - 1;
+      totalLength += result.length;
 
-      e.hashs = result.slice(1);
+      e.hashs = result;
     })
   );
 
@@ -212,23 +212,26 @@ export const copyTo = async ({
   // 等待合并结束
   await Promise.all(mergingTasks);
 
-  const cacheLen = await cacheDir.length();
+  // 开始清除缓存
+  if (cacheDir._mark !== "remote") {
+    const cacheLen = await cacheDir.length();
 
-  let removedCount = 0;
+    let removedCount = 0;
 
-  for await (let handle of cacheDir.values()) {
-    // 确保先不要删除任务主文件
-    if (handle.name === "task.json") {
-      continue;
+    for await (let handle of cacheDir.values()) {
+      // 确保先不要删除任务主文件
+      if (handle.name === "task.json") {
+        continue;
+      }
+
+      await handle.remove();
+      removedCount++;
+
+      emitEvent("clear-cache", {
+        removed: removedCount,
+        total: cacheLen,
+      });
     }
-
-    await handle.remove();
-    removedCount++;
-
-    emitEvent("clear-cache", {
-      removed: removedCount,
-      total: cacheLen,
-    });
   }
 
   // 最后清除任务文件夹自身
@@ -315,7 +318,18 @@ const copyChunk = async ({
     }
 
     // 获取块数据
-    const chunk = await item.handle._getChunk(hash, i, chunkSize);
+    const chunk = await item.handle.buffer({
+      start: i * chunkSize,
+      end: (i + 1) * chunkSize,
+    });
+
+    const reHash = await calculateHash(chunk);
+    // 确认哈希值是否一致
+    if (reHash !== hash) {
+      // 请重新尝试
+      debugger;
+      continue;
+    }
 
     emitEvent("before-write", {
       ...eventOptions,

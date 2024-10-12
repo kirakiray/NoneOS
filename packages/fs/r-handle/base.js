@@ -118,8 +118,14 @@ export class RemoteBaseHandle {
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove() {
-    debugger;
+  async remove(...args) {
+    const result = await this._bridge({
+      method: "remove",
+      path: this._path,
+      args,
+    });
+
+    return result;
   }
 
   async refresh() {
@@ -134,6 +140,26 @@ export class RemoteBaseHandle {
     const result = await this._bridge({
       method: "size",
       path: this._path,
+    });
+
+    return result;
+  }
+
+  async _getHashs(...args) {
+    const result = await this._bridge({
+      method: "_getHashs",
+      path: this._path,
+      args,
+    });
+
+    return result;
+  }
+
+  async _mergeChunk(...args) {
+    const result = await this._bridge({
+      method: "_mergeChunk",
+      path: this._path,
+      args,
     });
 
     return result;

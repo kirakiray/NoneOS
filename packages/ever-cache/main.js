@@ -29,10 +29,16 @@ export class EverCache {
   }
 
   async getItem(key) {
-    return commonTask(this, (store) => store.get(key), "readonly").then((e) => {
-      const { result } = e.target;
-      return result ? result.value : null;
-    });
+    try {
+      return commonTask(this, (store) => store.get(key), "readonly").then(
+        (e) => {
+          const { result } = e.target;
+          return result ? result.value : null;
+        }
+      );
+    } catch (err) {
+      debugger;
+    }
   }
 
   async removeItem(key) {
