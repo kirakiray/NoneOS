@@ -1,4 +1,5 @@
 import * as util from "./util.js";
+export { saveCache } from "./util.js";
 import { users, connectUser } from "/packages/connect/user.js";
 
 // 根据key获取值

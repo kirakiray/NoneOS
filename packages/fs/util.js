@@ -53,6 +53,8 @@ export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
     arrayBuffer = await input.arrayBuffer();
   } else if (input instanceof ArrayBuffer) {
     arrayBuffer = input;
+  } else if (input instanceof Uint8Array) {
+    arrayBuffer = input.buffer;
   } else {
     throw new Error(
       "Input must be a string, File object or ArrayBuffer object"

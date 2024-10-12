@@ -64,13 +64,13 @@ export const handleBridge = async (options, userid) => {
 
   // 从远端获取到返回的数据
   const result = await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`Get request timeout: ${options.path}`));
-      clear();
-    }, 10000);
+    // const timer = setTimeout(() => {
+    //   reject(new Error(`Get request timeout: ${options.path}`));
+    //   clear();
+    // }, 10000);
 
     const clear = () => {
-      clearTimeout(timer);
+      // clearTimeout(timer);
       promiseSaver.delete(bid);
     };
 
@@ -102,8 +102,8 @@ export const reponseBridge = async (result, permissions, send) => {
   //       value: result.slice(8),
   //     });
   //   }
-  // } else 
-  
+  // } else
+
   if (result.fs) {
     // file system 方法转发内容
     const { options, bid } = result.fs;
@@ -121,30 +121,13 @@ export const reponseBridge = async (result, permissions, send) => {
       bdResult = await bridge(options);
     }
 
-    if (bdResult.method === "_getChunk") {
-      const hex = hexToArr(bid);
-
-      if (!bdResult.value) {
-        send(null);
-        return;
-      }
-
-      // 加上返回的BID
-      const newBuffer = prependToArrayBuffer(
-        bdResult.value,
-        new Uint8Array(hex)
-      );
-
-      send(newBuffer);
-    } else {
-      // 转发函数后的返回值
-      send({
-        responseFs: {
-          bid,
-          ...bdResult,
-        },
-      });
-    }
+    // 转发函数后的返回值
+    send({
+      responseFs: {
+        bid,
+        ...bdResult,
+      },
+    });
   } else if (result.responseFs) {
     const data = result.responseFs;
     const resolver = promiseSaver.get(data.bid);

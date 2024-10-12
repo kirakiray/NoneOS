@@ -344,8 +344,6 @@
 
   // 获取目标文件或文件夹的任务树状信息
 
-  const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
-
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
   // const CHUNK_SIZE = 1024 * 4; // 4kb
@@ -364,6 +362,8 @@
       arrayBuffer = await input.arrayBuffer();
     } else if (input instanceof ArrayBuffer) {
       arrayBuffer = input;
+    } else if (input instanceof Uint8Array) {
+      arrayBuffer = input.buffer;
     } else {
       throw new Error(
         "Input must be a string, File object or ArrayBuffer object"
@@ -721,7 +721,7 @@
   class PublicBaseHandle {
     constructor() {}
 
-    // 按照需求将文件保存到缓存池中
+    // 按照需求将文件保存到缓存池中，方便远端获取
     async _saveCache(options) {
       const chunkSize = options.size;
 
@@ -748,69 +748,74 @@
       return true;
     }
 
-    // 给远端用，获取分块数据
-    async _getHashMap(options) {
-      options = options || {};
-      const chunkSize = options.size || CHUNK_REMOTE_SIZE;
-
-      // 获取指定的块内容
-      const result = await this.buffer();
-
-      const datas = await splitIntoChunks(result, chunkSize);
-
-      const hashs = await Promise.all(
-        datas.map(async (chunk) => {
-          return await calculateHash(chunk);
-        })
-      );
-
-      return [
-        {
-          bridgefile: 1,
-          size: await this.size(),
-        },
-        ...hashs,
-      ];
+    // 从缓冲池进行组装文件并写入
+    async _writeByCache(options) {
+      debugger;
     }
 
-    // 给远端用，根据id或分块哈希sh获取分块数据
-    async _getChunk(hash, index, size) {
-      if (!size) {
-        size = CHUNK_REMOTE_SIZE;
-      }
+    // // 给远端用，获取分块数据
+    // async _getHashMap(options) {
+    //   options = options || {};
+    //   const chunkSize = options.size || CHUNK_REMOTE_SIZE;
 
-      if (index !== undefined) {
-        // 有块index的情况下，读取对应块并校验看是否合格
-        const chunk = await this.buffer({
-          start: index * size,
-          end: (index + 1) * size,
-        });
+    //   // 获取指定的块内容
+    //   const result = await this.buffer();
 
-        const realHash = await calculateHash(chunk);
+    //   const datas = await splitIntoChunks(result, chunkSize);
 
-        if (realHash === hash) {
-          return chunk;
-        }
+    //   const hashs = await Promise.all(
+    //     datas.map(async (chunk) => {
+    //       return await calculateHash(chunk);
+    //     })
+    //   );
 
-        // 如果hash都不满足，重新查找并返回
-        debugger;
-      }
+    //   return [
+    //     {
+    //       bridgefile: 1,
+    //       size: await this.size(),
+    //     },
+    //     ...hashs,
+    //   ];
+    // }
 
-      const file = await this.file();
+    // // 给远端用，根据id或分块哈希获取分块数据
+    // async _getChunk(hash, index, size) {
+    //   if (!size) {
+    //     size = CHUNK_REMOTE_SIZE;
+    //   }
 
-      const hashMap = new Map();
+    //   if (index !== undefined) {
+    //     // 有块index的情况下，读取对应块并校验看是否合格
+    //     const chunk = await this.buffer({
+    //       start: index * size,
+    //       end: (index + 1) * size,
+    //     });
 
-      const chunks = await splitIntoChunks(file, size);
+    //     const realHash = await calculateHash(chunk);
 
-      await Promise.all(
-        chunks.map(async (chunk) => {
-          const hash = await calculateHash(chunk);
-          hashMap.set(hash, chunk);
-        })
-      );
+    //     if (realHash === hash) {
+    //       return chunk;
+    //     }
 
-      return hashMap.get(hash);
-    }
+    //     // 如果hash都不满足，重新查找并返回
+    //     debugger;
+    //   }
+
+    //   const file = await this.file();
+
+    //   const hashMap = new Map();
+
+    //   const chunks = await splitIntoChunks(file, size);
+
+    //   await Promise.all(
+    //     chunks.map(async (chunk) => {
+    //       const hash = await calculateHash(chunk);
+    //       hashMap.set(hash, chunk);
+    //     })
+    //   );
+
+    //   return hashMap.get(hash);
+    // }
 
     // 根据哈希值，从缓存目录获取块数据，再合并成一个完整的文件
     async _mergeChunk(hashs, cacheDirPath) {

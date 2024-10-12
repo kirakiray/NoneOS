@@ -1,7 +1,13 @@
 import { getErr } from "../errors.js";
+import { saveCache } from "../cache/util.js";
 import { getCache } from "../cache/main.js";
 import { RemoteBaseHandle } from "./base.js";
-import { calculateHash, mergeChunks, readBufferByType } from "../util.js";
+import {
+  calculateHash,
+  mergeChunks,
+  readBufferByType,
+  splitIntoChunks,
+} from "../util.js";
 import { CHUNK_REMOTE_SIZE } from "../util.js";
 
 /**
@@ -21,6 +27,29 @@ export class RemoteFileHandle extends RemoteBaseHandle {
    * @returns {Promise<void>}
    */
   async write(data) {
+    // 将数据缓冲到缓存池，等待远端获取
+    const chunks = await splitIntoChunks(data);
+
+    const hashs = [];
+    await Promise.all(
+      chunks.map(async (chunk, i) => {
+        const hash = await calculateHash(chunk);
+        hashs[i] = hash;
+        await saveCache(hash, chunk);
+      })
+    );
+
+    // 推送给对方进行组装
+    const result = await this._bridge({
+      method: "_writeByCache",
+      path: this._path,
+      args: [
+        {
+          hashs,
+        },
+      ],
+    });
+
     debugger;
 
     // debugger;

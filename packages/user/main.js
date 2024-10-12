@@ -48,11 +48,16 @@ export const renameUser = (newName) => {
   return saveUserDataFromHandle("name", newName);
 };
 
-const pairData = await initUserPair();
+// let pairData = await initUserPair();
+let pairData;
 
 // 获取自己的用户数据
 export const getSelfUserInfo = async () => {
-  const { signPublic, id } = pairData;
+  if (!pairData) {
+    pairData = initUserPair();
+  }
+
+  const { signPublic, id } = await pairData;
 
   const localUserData = await getUserDataFromHandle();
 
@@ -92,7 +97,9 @@ export async function sign(message) {
       name: "RSA-PSS",
       saltLength: 32,
     },
-    pairData.signPair.privateKey,
+    (
+      await pairData
+    ).signPair.privateKey,
     data
   );
 
