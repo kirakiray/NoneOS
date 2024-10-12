@@ -170,21 +170,15 @@ export class RemoteBaseHandle {
       args,
     });
 
-    const root = await this.root();
-
     // 修正写入的字段
     result.forEach((e) => {
+      const oriPath = e.path;
+      e.path = oriPath.replace(this._path + "/", "");
+
       Object.defineProperty(e, "handle", {
         get: async () => {
           // 修正路径
-          const pathArr = e.path.split("/");
-
-          if (pathArr[0] === root.name) {
-            const handle = await root.get(pathArr.slice(1).join("/"));
-            return handle;
-          }
-
-          throw new Error(`root path error`);
+          return this.get(e.path);
         },
       });
     });

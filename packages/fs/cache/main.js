@@ -12,7 +12,8 @@ export const getCache = async (key) => {
   }
 
   // 从第一个用户上获取数据
-  await users[0]._send({
+  //   await users[0]._send({
+  users[0]._send({
     type: "getCache",
     hashs: [key],
   });

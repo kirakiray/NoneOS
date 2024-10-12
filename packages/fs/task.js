@@ -164,7 +164,7 @@ export const copyTo = async ({
     // }
 
     // 复制块文件
-    await copyChunk({
+    await copyChunks({
       item,
       cacheDir,
       totalLength,
@@ -199,17 +199,19 @@ export const copyTo = async ({
     );
   };
 
-  // 将块复制到缓存文件夹
-  // for (let item of files) {
-  //   await runItem(item);
-  // }
-
-  // 将块复制到缓存文件夹（并行）
-  await Promise.all(
-    files.map(async (item) => {
+  if (files.length > 5) {
+    // 将块复制到缓存文件夹
+    for (let item of files) {
       await runItem(item);
-    })
-  );
+    }
+  } else {
+    // 将块复制到缓存文件夹（并行）
+    await Promise.all(
+      files.map(async (item) => {
+        await runItem(item);
+      })
+    );
+  }
 
   // 等待合并结束
   await Promise.all(mergingTasks);
@@ -269,7 +271,7 @@ const mergeChunk = async ({ item, cacheDir, source, target, name }) => {
 };
 
 // 拷贝块文件
-const copyChunk = async ({
+const copyChunks = async ({
   item,
   cacheDir,
   totalLength,
@@ -330,6 +332,9 @@ const copyChunk = async ({
     const reHash = await calculateHash(chunk);
     // 确认哈希值是否一致
     if (reHash !== hash) {
+      emitEvent("copy-chunk-error", {
+        hash,
+      });
       // 请重新尝试
       debugger;
       continue;
