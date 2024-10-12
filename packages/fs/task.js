@@ -1,4 +1,4 @@
-import { calculateHash, flatHandle } from "./util.js";
+import { calculateHash } from "./util.js";
 import { getErr } from "./errors.js";
 import { CHUNK_SIZE, CHUNK_REMOTE_SIZE } from "./util.js";
 
@@ -48,7 +48,7 @@ export const copyTo = async ({
   }
 
   // 先扁平化所有文件
-  const files = await flatHandle(source);
+  const files = await source.flat();
 
   // 添加目标地址
   {
@@ -73,7 +73,9 @@ export const copyTo = async ({
   // 先计算目标的所有的文件，并计算所有块数据，并按照指定块大小计算hash
   await Promise.all(
     files.map(async (e) => {
-      const result = await e.handle._getHashs({
+      const result = await (
+        await e.handle
+      )._getHashs({
         size: chunkSize,
       });
 
@@ -318,7 +320,9 @@ const copyChunk = async ({
     }
 
     // 获取块数据
-    const chunk = await item.handle.buffer({
+    const chunk = await (
+      await item.handle
+    ).buffer({
       start: i * chunkSize,
       end: (i + 1) * chunkSize,
     });

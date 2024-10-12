@@ -91,19 +91,6 @@ export const handleBridge = async (options, userid) => {
 
 // 响应远端的数据
 export const reponseBridge = async (result, permissions, send) => {
-  // if (result instanceof ArrayBuffer) {
-  //   // 拿出前八个数字，判断是否符合bid
-  //   const bid = arrToHex(Array.from(new Uint8Array(result.slice(0, 8))));
-
-  //   const resolver = promiseSaver.get(bid);
-
-  //   if (resolver) {
-  //     resolver.resolve({
-  //       value: result.slice(8),
-  //     });
-  //   }
-  // } else
-
   if (result.fs) {
     // file system 方法转发内容
     const { options, bid } = result.fs;

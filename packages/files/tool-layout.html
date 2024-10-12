@@ -233,7 +233,6 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { flatHandle } = await load("/packages/fs/util.js");
 
       return {
         data: {
@@ -404,7 +403,7 @@
               this.selecteds.map(async (path) => {
                 const handle = await get(path);
 
-                const files = await flatHandle(handle);
+                const files = await handle.flat();
                 this.deletingData.total = files.length + 1; // 总共需要删除的文件数
                 this.showDelete = true;
 

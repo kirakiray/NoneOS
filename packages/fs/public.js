@@ -1,5 +1,5 @@
 import { getErr } from "./errors.js";
-import { splitIntoChunks, calculateHash } from "./util.js";
+import { splitIntoChunks, calculateHash, flatHandle } from "./util.js";
 import { CHUNK_REMOTE_SIZE } from "./util.js";
 import { getCache, saveCache } from "./cache/main.js";
 
@@ -85,6 +85,12 @@ function isSubdirectory(child, parent) {
 
 export class PublicBaseHandle {
   constructor() {}
+
+  // 扁平化文件数据
+  async flat() {
+    return flatHandle(this);
+  }
+
   // 按照需求将文件保存到缓存池中，方便远端获取
   async _saveCache(arg) {
     const chunkSize = arg.size;

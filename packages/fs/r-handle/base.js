@@ -100,8 +100,7 @@ export class RemoteBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    // throw new Error(`Please use the copyTo operation before deleting.`);
-    debugger;
+    throw new Error(`Please use the copyTo operation before deleting.`);
   }
 
   /**
@@ -110,8 +109,7 @@ export class RemoteBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async copyTo(target, name) {
-    debugger;
-    // throw new Error(`Please use the copyTo operation before deleting.`);
+    throw new Error(`Please use the copyTo operation before deleting.`);
   }
 
   /**
@@ -160,6 +158,35 @@ export class RemoteBaseHandle {
       method: "_mergeChunk",
       path: this._path,
       args,
+    });
+
+    return result;
+  }
+
+  async flat(...args) {
+    const result = await this._bridge({
+      method: "flat",
+      path: this._path,
+      args,
+    });
+
+    const root = await this.root();
+
+    // 修正写入的字段
+    result.forEach((e) => {
+      Object.defineProperty(e, "handle", {
+        get: async () => {
+          // 修正路径
+          const pathArr = e.path.split("/");
+
+          if (pathArr[0] === root.name) {
+            const handle = await root.get(pathArr.slice(1).join("/"));
+            return handle;
+          }
+
+          throw new Error(`root path error`);
+        },
+      });
     });
 
     return result;

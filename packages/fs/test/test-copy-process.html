@@ -13,16 +13,10 @@
     <div>dbCount: <span id="dbcount">-</span></div>
   </body>
   <script type="module">
-    import { flatHandle } from "../util.js";
     import { get } from "../main.js";
     import { get as originGet } from "../o-handle/index.js";
 
     const localHandle = await get("local");
-
-    // // 获取扁平的数据
-    // const flatDatas = await flatHandle(localHandle);
-
-    // console.log("flatDatas: ", flatDatas);
 
     // 获取指定大小的随机文本(1mb)
     const getBigText = (size = 1) => {
