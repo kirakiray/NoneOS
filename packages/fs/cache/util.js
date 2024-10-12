@@ -14,10 +14,37 @@ export const getCache = async (key) => {
   return result;
 };
 
+const hands = {};
+const resolver = {};
+
 // 缓存块
 export const saveCache = (key, chunk) => {
   storage.setItem(key, chunk);
   storage.setItem(`${key}-time`, Date.now());
+
+  if (hands[key]) {
+    // 返回握手数据
+    resolver[key](chunk);
+    delete hands[key];
+    delete resolver[key];
+  }
+};
+
+// 获取握手器，当save对应hash时，及时返回数据
+export const handCache = async (hash) => {
+  const result = await getCache(hash);
+
+  if (result) {
+    return result;
+  }
+
+  const pms =
+    hands[hash] ||
+    (hands[hash] = new Promise((resolve) => {
+      resolver[hash] = resolve;
+    }));
+
+  return pms;
 };
 
 // 清除超时缓存
@@ -29,12 +56,13 @@ const clearCache = async () => {
         // 清除超过5分钟的内容
         const realKey = key.replace("-time", "");
         storage.removeItem(realKey);
+        storage.removeItem(key);
       }
     }
   }
 
   // 定时清除缓存
-  setTimeout(clearCache, 2 * 60 * 1000);
+  setTimeout(clearCache, 1 * 60 * 1000);
 };
 
 clearCache();

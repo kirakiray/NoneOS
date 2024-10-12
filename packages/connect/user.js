@@ -6,6 +6,7 @@ import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "../user/main.js";
 import { calculateHash } from "../fs/util.js";
 import { CHUNK_REMOTE_SIZE } from "../fs/util.js";
+import { getCache, saveCache } from "../fs/cache/util.js";
 
 export const users = $.stanz([]);
 
@@ -456,6 +457,17 @@ export class ClientUser extends $.Stanz {
         splits.splice(splits.indexOf(groupData), 1);
       }
 
+      if (result.type === "getCache") {
+        result.hashs.forEach(async (hash) => {
+          const cache = await getCache(hash);
+
+          if (cache) {
+            this._send(cache);
+          }
+        });
+        return;
+      }
+
       if (result.data) {
         this._onmessage &&
           this._onmessage({
@@ -465,6 +477,12 @@ export class ClientUser extends $.Stanz {
 
         return;
       }
+    } else if (result instanceof ArrayBuffer) {
+      const hash = await calculateHash(result);
+
+      // 缓存文件
+      await saveCache(hash, result);
+      return;
     }
 
     // 在有权限的情况下，才能响应桥接方法

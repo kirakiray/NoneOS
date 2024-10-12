@@ -70,7 +70,7 @@ export const copyTo = async ({
   let totalLength = 0; // 块的数量
   let count = 0;
 
-  // 先计算目标的所有的文件，并计算所有块数据，切块按照 1mb 的大小获取hash
+  // 先计算目标的所有的文件，并计算所有块数据，并按照指定块大小计算hash
   await Promise.all(
     files.map(async (e) => {
       const result = await e.handle._getHashMap({
@@ -136,7 +136,7 @@ export const copyTo = async ({
 
   const runItem = async (item) => {
     // // 查看是否已经合并，已合并就不操作
-    // const file = await target 
+    // const file = await target
     //   .get(`${name}${item.path.replace(source.path, "")}`)
     //   .catch(() => null);
 

@@ -1,6 +1,7 @@
 import { getErr } from "./errors.js";
 import { splitIntoChunks, calculateHash } from "./util.js";
 import { CHUNK_REMOTE_SIZE } from "./util.js";
+import { saveCache } from "./cache/util.js";
 
 /**
  * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
@@ -84,6 +85,33 @@ function isSubdirectory(child, parent) {
 
 export class PublicBaseHandle {
   constructor() {}
+
+  // 按照需求将文件保存到缓存池中
+  async _saveCache(options) {
+    const chunkSize = options.size;
+
+    // 获取指定的块内容
+    const result = await this.buffer();
+    const datas = await splitIntoChunks(result, chunkSize);
+
+    const hashs = [];
+
+    await Promise.all(
+      datas.map(async (chunk, i) => {
+        const hash = await calculateHash(chunk);
+
+        hashs[i] = hash;
+
+        await saveCache(hash, chunk);
+      })
+    );
+
+    if (options.returnHashs) {
+      return hashs;
+    }
+
+    return true;
+  }
 
   // 给远端用，获取分块数据
   async _getHashMap(options) {

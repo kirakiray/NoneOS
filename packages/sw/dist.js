@@ -448,6 +448,196 @@
     }
   };
 
+  const SName = Symbol("storage-name");
+  const IDB = Symbol("idb");
+
+  class EverCache {
+    constructor(id = "public") {
+      // this[SName] = id;
+      this[SName] = "main";
+
+      this[IDB] = new Promise((resolve) => {
+        let req = indexedDB.open(`ever-cache-${id}`);
+
+        req.onsuccess = (e) => {
+          resolve(e.target.result);
+        };
+
+        req.onupgradeneeded = (e) => {
+          // e.target.result.createObjectStore(id, { keyPath: "key" });
+          e.target.result.createObjectStore("main", { keyPath: "key" });
+        };
+      });
+
+      return new Proxy(this, handle);
+    }
+
+    async setItem(key, value) {
+      return commonTask(this, (store) => store.put({ key, value })).then(
+        () => true
+      );
+    }
+
+    async getItem(key) {
+      return commonTask(this, (store) => store.get(key), "readonly").then((e) => {
+        const { result } = e.target;
+        return result ? result.value : null;
+      });
+    }
+
+    async removeItem(key) {
+      return commonTask(this, (store) => store.delete(key)).then(() => true);
+    }
+
+    async clear() {
+      return commonTask(this, (store) => store.clear()).then(() => true);
+    }
+
+    async key(index) {
+      return commonTask(this, (store) => store.getAllKeys()).then(
+        (e) => e.target.result[index]
+      );
+    }
+
+    get length() {
+      return commonTask(this, (store) => store.count()).then(
+        (e) => e.target.result
+      );
+    }
+
+    entries() {
+      return {
+        [Symbol.asyncIterator]: () => {
+          let resolve;
+          let cursorPms;
+          const resetPms = () => {
+            cursorPms = new Promise((res) => (resolve = res));
+          };
+          resetPms();
+
+          commonTask(
+            this,
+            (store) => store.openCursor(),
+            "readonly",
+            (e) => resolve(e.target.result)
+          );
+
+          return {
+            async next() {
+              const cursor = await cursorPms;
+              if (!cursor) {
+                return {
+                  done: true,
+                };
+              }
+              resetPms();
+              const { key, value } = cursor.value;
+              cursor.continue();
+
+              return { value: [key, value], done: false };
+            },
+          };
+        },
+      };
+    }
+
+    async *keys() {
+      for await (let [key, value] of this.entries()) {
+        yield key;
+      }
+    }
+
+    async *values() {
+      for await (let [key, value] of this.entries()) {
+        yield value;
+      }
+    }
+  }
+
+  const exitedKeys = new Set(Object.getOwnPropertyNames(EverCache.prototype));
+
+  const handle = {
+    get(target, key, receiver) {
+      if (exitedKeys.has(key) || typeof key === "symbol") {
+        return Reflect.get(target, key, receiver);
+      }
+
+      return target.getItem(key);
+    },
+    set(target, key, value) {
+      return target.setItem(key, value);
+    },
+    deleteProperty(target, key) {
+      return target.removeItem(key);
+    },
+  };
+
+  const commonTask = async (_this, afterStore, mode = "readwrite", succeed) => {
+    const db = await _this[IDB];
+
+    return new Promise((resolve, reject) => {
+      const req = afterStore(
+        db.transaction([_this[SName]], mode).objectStore(_this[SName])
+      );
+
+      req.onsuccess = (e) => {
+        if (succeed) {
+          const result = succeed(e);
+          if (result) {
+            resolve(result);
+          }
+
+          return;
+        }
+
+        resolve(e);
+      };
+      req.onerror = (e) => {
+        reject(e);
+      };
+    });
+  };
+
+  new EverCache();
+
+  const storage = new EverCache("remote-file-cache");
+
+  const hands = {};
+  const resolver = {};
+
+  // 缓存块
+  const saveCache = (key, chunk) => {
+    storage.setItem(key, chunk);
+    storage.setItem(`${key}-time`, Date.now());
+
+    if (hands[key]) {
+      // 返回握手数据
+      resolver[key](chunk);
+      delete hands[key];
+      delete resolver[key];
+    }
+  };
+
+  // 清除超时缓存
+  const clearCache = async () => {
+    const now = Date.now();
+    for await (let [key, value] of storage.entries()) {
+      if (/-time$/.test(key)) {
+        if (now - value > 5 * 60 * 1000) {
+          // 清除超过5分钟的内容
+          const realKey = key.replace("-time", "");
+          storage.removeItem(realKey);
+          storage.removeItem(key);
+        }
+      }
+    }
+
+    // 定时清除缓存
+    setTimeout(clearCache, 1 * 60 * 1000);
+  };
+
+  clearCache();
+
   /**
    * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
    * 复制目标到另一个目标
@@ -530,6 +720,33 @@
 
   class PublicBaseHandle {
     constructor() {}
+
+    // 按照需求将文件保存到缓存池中
+    async _saveCache(options) {
+      const chunkSize = options.size;
+
+      // 获取指定的块内容
+      const result = await this.buffer();
+      const datas = await splitIntoChunks(result, chunkSize);
+
+      const hashs = [];
+
+      await Promise.all(
+        datas.map(async (chunk, i) => {
+          const hash = await calculateHash(chunk);
+
+          hashs[i] = hash;
+
+          await saveCache(hash, chunk);
+        })
+      );
+
+      if (options.returnHashs) {
+        return hashs;
+      }
+
+      return true;
+    }
 
     // 给远端用，获取分块数据
     async _getHashMap(options) {
