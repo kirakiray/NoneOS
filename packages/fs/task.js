@@ -135,31 +135,31 @@ export const copyTo = async ({
   const mergingTasks = []; // 合并中的任务
 
   const runItem = async (item) => {
-    // 查看是否已经合并，已合并就不操作
-    const file = await target
-      .get(`${name}${item.path.replace(source.path, "")}`)
-      .catch(() => null);
+    // // 查看是否已经合并，已合并就不操作
+    // const file = await target 
+    //   .get(`${name}${item.path.replace(source.path, "")}`)
+    //   .catch(() => null);
 
-    const size = file ? await file.size() : 0;
+    // const size = file ? await file.size() : 0;
 
-    if (size) {
-      count += item.hashs.length;
+    // if (size) {
+    //   count += item.hashs.length;
 
-      emitEvent("writed", {
-        path: item.path,
-        total: totalLength,
-        totalCached: count, // 整个项目缓存的块数量
-        currentCached: item.hashs.length, // 当前文件缓存的块数量
-        currentLength: item.hashs.length, // 当前文件的总块数
-        exited: 1, // 已经存在的块
-      });
+    //   emitEvent("writed", {
+    //     path: item.path,
+    //     total: totalLength,
+    //     totalCached: count, // 整个项目缓存的块数量
+    //     currentCached: item.hashs.length, // 当前文件缓存的块数量
+    //     currentLength: item.hashs.length, // 当前文件的总块数
+    //     exited: 1, // 已经存在的块
+    //   });
 
-      emitEvent("merged", {
-        item,
-      });
+    //   emitEvent("merged", {
+    //     item,
+    //   });
 
-      return;
-    }
+    //   return;
+    // }
 
     // 复制块文件
     await copyChunk({
@@ -202,7 +202,7 @@ export const copyTo = async ({
   //   await runItem(item);
   // }
 
-   // 将块复制到缓存文件夹（并行）
+  // 将块复制到缓存文件夹（并行）
   await Promise.all(
     files.map(async (item) => {
       await runItem(item);

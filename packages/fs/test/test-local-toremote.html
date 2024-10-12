@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test remote copy</title>
+    <script src="/packages/ofa/ofa.js"></script>
+  </head>
+  <body>
+    test remote fs
+    <script type="module">
+      import { get } from "../main.js";
+      import { getRemotes } from "/packages/fs/r-handle/index.js";
+
+      // 获取指定大小的随机文本(1mb)
+      const getBigText = (size = 1) => {
+        let text = "";
+
+        for (let i = 0; i < size; i++) {
+          text += Math.random()
+            .toString(32)
+            .slice(2, 10)
+            .repeat(128 * 1024);
+        }
+
+        return text;
+      };
+
+      const remotes = await getRemotes();
+
+      if (remotes.length) {
+        const path = remotes[0].paths[0].path;
+
+        const localHandle = await get(path);
+
+        const htmlHandle = await localHandle.get("index.html");
+
+        const text = await htmlHandle.text();
+
+        // 获取大文件
+        console.log(htmlHandle.path, "⬇️", text);
+
+        // 写入文件
+        const testTxt = await localHandle.get("remote-test.txt", {
+          create: "file",
+        });
+
+        {
+          // 尝试写入 arraybufer 数据
+          const bufData = "haha".repeat(100);
+
+          const encoder = new TextEncoder();
+          const data = encoder.encode(bufData);
+
+          await testTxt.write(data);
+        }
+        // await testTxt.write(getBigText());
+
+        debugger;
+      }
+    </script>
+  </body>
+</html>

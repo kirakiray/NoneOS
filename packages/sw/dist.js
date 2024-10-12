@@ -344,7 +344,7 @@
 
   // 获取目标文件或文件夹的任务树状信息
 
-  const CHUNK_REMOTE_SIZE = 192 * 1024; // 64kb // 远程复制的块大小
+  const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
