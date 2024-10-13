@@ -182,11 +182,21 @@ export class RemoteBaseHandle {
       pathArr[0] = rootName;
       e.path = pathArr.join("/");
 
-      Object.defineProperty(e, "handle", {
-        get: async () => {
-          return this.get(relatePath);
-        },
-      });
+      if (this.kind == "file") {
+        // 执行flat的handle就是file的话，一定是当前文件
+
+        Object.defineProperty(e, "handle", {
+          get: async () => {
+            return this;
+          },
+        });
+      } else {
+        Object.defineProperty(e, "handle", {
+          get: async () => {
+            return this.get(relatePath);
+          },
+        });
+      }
     });
 
     return result;
