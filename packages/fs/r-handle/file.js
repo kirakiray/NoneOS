@@ -1,6 +1,6 @@
 import { getErr } from "../errors.js";
 import { saveCache } from "../cache/util.js";
-import { getCache } from "../cache/main.js";
+import { fetchCache } from "../cache/main.js";
 import { RemoteBaseHandle } from "./base.js";
 import {
   calculateHash,
@@ -75,7 +75,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
     const chunks = await Promise.all(
       hashs.map(async (hash) => {
-        return getCache(hash);
+        return fetchCache(hash);
       })
     );
 

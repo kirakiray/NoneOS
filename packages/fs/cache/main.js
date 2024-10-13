@@ -4,7 +4,7 @@ import { users, connectUser } from "/packages/connect/user.js";
 
 // 根据key获取值
 // 先在本地获取，本地获取不到的情况下，从远端获取
-export const getCache = async (key) => {
+export const fetchCache = async (key, userid) => {
   const result = await util.getCache(key);
 
   if (result) {

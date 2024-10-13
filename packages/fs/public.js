@@ -1,7 +1,7 @@
 import { getErr } from "./errors.js";
 import { splitIntoChunks, calculateHash, flatHandle } from "./util.js";
 import { CHUNK_REMOTE_SIZE } from "./util.js";
-import { getCache, saveCache } from "./cache/main.js";
+import { fetchCache, saveCache } from "./cache/main.js";
 
 /**
  * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
@@ -125,7 +125,7 @@ export class PublicBaseHandle {
 
     const chunks = await Promise.all(
       hashs.map(async (hash) => {
-        return getCache(hash);
+        return fetchCache(hash);
       })
     );
 
