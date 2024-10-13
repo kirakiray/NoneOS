@@ -1,4 +1,4 @@
-(function () {
+(function (user_js) {
   'use strict';
 
   const cn = {
@@ -343,6 +343,41 @@
   };
 
   // 获取目标文件或文件夹的任务树状信息
+  const flatHandle = async (handle) => {
+    if (handle.kind === "file") {
+      return [await getFileData(handle)];
+    }
+
+    const arr = [];
+
+    for await (let subHandle of handle.values()) {
+      if (subHandle.kind === "dir") {
+        const subs = await flatHandle(subHandle);
+        arr.push(...subs);
+      } else {
+        arr.push(await getFileData(subHandle));
+      }
+    }
+
+    return arr;
+  };
+
+  const getFileData = async (handle) => {
+    const data = {
+      size: await handle.size(),
+      path: handle.path,
+    };
+
+    Object.defineProperty(data, "handle", {
+      get() {
+        return handle;
+      },
+    });
+
+    return data;
+  };
+
+  const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -479,10 +514,16 @@
     }
 
     async getItem(key) {
-      return commonTask(this, (store) => store.get(key), "readonly").then((e) => {
-        const { result } = e.target;
-        return result ? result.value : null;
-      });
+      try {
+        return commonTask(this, (store) => store.get(key), "readonly").then(
+          (e) => {
+            const { result } = e.target;
+            return result ? result.value : null;
+          }
+        );
+      } catch (err) {
+        debugger;
+      }
     }
 
     async removeItem(key) {
@@ -602,6 +643,18 @@
 
   const storage = new EverCache("remote-file-cache");
 
+  // 重新获取块
+  const getCache = async (key) => {
+    const result = await storage.getItem(key);
+
+    if (result) {
+      // 重置时间
+      storage.setItem(`${key}-time`, Date.now());
+    }
+
+    return result;
+  };
+
   const hands = {};
   const resolver = {};
 
@@ -616,6 +669,23 @@
       delete hands[key];
       delete resolver[key];
     }
+  };
+
+  // 获取握手器，当save对应hash时，及时返回数据
+  const handCache = async (hash) => {
+    const result = await getCache(hash);
+
+    if (result) {
+      return result;
+    }
+
+    const pms =
+      hands[hash] ||
+      (hands[hash] = new Promise((resolve) => {
+        resolver[hash] = resolve;
+      }));
+
+    return pms;
   };
 
   // 清除超时缓存
@@ -637,6 +707,40 @@
   };
 
   clearCache();
+
+  // 根据key获取值
+  // 先在本地获取，本地获取不到的情况下，从远端获取
+  const fetchCache = async (key, userid) => {
+    const result = await getCache(key);
+
+    if (result) {
+      return result;
+    }
+
+    return new Promise((resolve) => {
+      let timer;
+      let f = () => {
+        // 重新发送数据
+        user_js.users[0]._send({
+          type: "getCache",
+          hashs: [key],
+        });
+
+        timer = setTimeout(() => {
+          // 4秒内还没搞定，重新发起请求
+          f();
+        }, 4000);
+      };
+
+      handCache(key).then((data) => {
+        clearTimeout(timer);
+        f = null;
+        resolve(data);
+      });
+
+      f();
+    });
+  };
 
   /**
    * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
@@ -721,12 +825,18 @@
   class PublicBaseHandle {
     constructor() {}
 
+    // 扁平化文件数据
+    async flat() {
+      return flatHandle(this);
+    }
+
     // 按照需求将文件保存到缓存池中，方便远端获取
-    async _saveCache(options) {
-      const chunkSize = options.size;
+    async _saveCache(arg) {
+      const chunkSize = arg.size;
+      const { options, returnHashs } = arg;
 
       // 获取指定的块内容
-      const result = await this.buffer();
+      const result = await this.buffer(options);
       const datas = await splitIntoChunks(result, chunkSize);
 
       const hashs = [];
@@ -741,7 +851,7 @@
         })
       );
 
-      if (options.returnHashs) {
+      if (returnHashs) {
         return hashs;
       }
 
@@ -750,72 +860,43 @@
 
     // 从缓冲池进行组装文件并写入
     async _writeByCache(options) {
-      debugger;
+      const { hashs } = options;
+
+      const chunks = await Promise.all(
+        hashs.map(async (hash) => {
+          return fetchCache(hash);
+        })
+      );
+
+      // 写入文件
+      const writer = await this.createWritable();
+
+      for (let chunk of chunks) {
+        await writer.write(chunk);
+      }
+
+      writer.close();
+
+      return true;
     }
 
-    // // 给远端用，获取分块数据
-    // async _getHashMap(options) {
-    //   options = options || {};
-    //   const chunkSize = options.size || CHUNK_REMOTE_SIZE;
+    async _getHashs(options) {
+      options = options || {};
+      const chunkSize = options.size || CHUNK_REMOTE_SIZE;
 
-    //   // 获取指定的块内容
-    //   const result = await this.buffer();
+      // 获取指定的块内容
+      const result = await this.buffer();
 
-    //   const datas = await splitIntoChunks(result, chunkSize);
+      const datas = await splitIntoChunks(result, chunkSize);
 
-    //   const hashs = await Promise.all(
-    //     datas.map(async (chunk) => {
-    //       return await calculateHash(chunk);
-    //     })
-    //   );
+      const hashs = await Promise.all(
+        datas.map(async (chunk) => {
+          return await calculateHash(chunk);
+        })
+      );
 
-    //   return [
-    //     {
-    //       bridgefile: 1,
-    //       size: await this.size(),
-    //     },
-    //     ...hashs,
-    //   ];
-    // }
-
-    // // 给远端用，根据id或分块哈希获取分块数据
-    // async _getChunk(hash, index, size) {
-    //   if (!size) {
-    //     size = CHUNK_REMOTE_SIZE;
-    //   }
-
-    //   if (index !== undefined) {
-    //     // 有块index的情况下，读取对应块并校验看是否合格
-    //     const chunk = await this.buffer({
-    //       start: index * size,
-    //       end: (index + 1) * size,
-    //     });
-
-    //     const realHash = await calculateHash(chunk);
-
-    //     if (realHash === hash) {
-    //       return chunk;
-    //     }
-
-    //     // 如果hash都不满足，重新查找并返回
-    //     debugger;
-    //   }
-
-    //   const file = await this.file();
-
-    //   const hashMap = new Map();
-
-    //   const chunks = await splitIntoChunks(file, size);
-
-    //   await Promise.all(
-    //     chunks.map(async (chunk) => {
-    //       const hash = await calculateHash(chunk);
-    //       hashMap.set(hash, chunk);
-    //     })
-    //   );
-
-    //   return hashMap.get(hash);
-    // }
+      return hashs;
+    }
 
     // 根据哈希值，从缓存目录获取块数据，再合并成一个完整的文件
     async _mergeChunk(hashs, cacheDirPath) {
@@ -1954,4 +2035,4 @@
     console.log("NoneOS server activation successful");
   });
 
-})();
+})(user_js);
