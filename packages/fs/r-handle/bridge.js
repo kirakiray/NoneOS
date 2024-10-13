@@ -29,7 +29,7 @@ const bridge = async (options) => {
       returnValue.push(e);
     }
   } else {
-    console.log(`method "${method}": `, result, valueType);
+    // console.log(`method "${method}": `, result, valueType);
   }
 
   return {
@@ -129,27 +129,4 @@ export const reponseBridge = async (result, permissions, send) => {
   }
 };
 
-const getId = () =>
-  arrToHex(Array.from({ length: 8 }, () => Math.floor(Math.random() * 256)));
-
-function arrToHex(arr) {
-  return arr.map((e) => e.toString(16).padStart(2, "0")).join("");
-}
-
-function hexToArr(hexString) {
-  const result = [];
-  for (let i = 0; i < hexString.length; i += 2) {
-    const hexPair = hexString.slice(i, i + 2);
-    const decimal = parseInt(hexPair, 16);
-    result.push(decimal);
-  }
-  return result;
-}
-
-function prependToArrayBuffer(buffer, data) {
-  const newBuffer = new ArrayBuffer(buffer.byteLength + data.byteLength);
-  const newView = new Uint8Array(newBuffer);
-  newView.set(data, 0);
-  newView.set(new Uint8Array(buffer), data.byteLength);
-  return newBuffer;
-}
+const getId = () => Math.random().toString(32).slice(2);

@@ -11,13 +11,27 @@ export const getCache = async (key) => {
     return result;
   }
 
-  // 从第一个用户上获取数据
-  //   await users[0]._send({
-  users[0]._send({
-    type: "getCache",
-    hashs: [key],
-  });
+  return new Promise((resolve) => {
+    let timer;
+    let f = () => {
+      // 重新发送数据
+      users[0]._send({
+        type: "getCache",
+        hashs: [key],
+      });
 
-  // 等待获取数据
-  return util.handCache(key);
+      timer = setTimeout(() => {
+        // 4秒内还没搞定，重新发起请求
+        f();
+      }, 4000);
+    };
+
+    util.handCache(key).then((data) => {
+      clearTimeout(timer);
+      f = null;
+      resolve(data);
+    });
+
+    f();
+  });
 };
