@@ -800,8 +800,17 @@
     return new Promise((resolve) => {
       let timer;
       let f = () => {
-        // 重新发送数据
-        user_js.users[0]._send({
+        let targetUsr;
+
+        if (userid) {
+          user_js.users.find((e) => e.id === userid);
+        } else {
+          // 向所有用户广播查找
+          debugger;
+        }
+
+        // 重新发送缓存请求
+        targetUsr._send({
           type: "getCache",
           hashs: [key],
         });
@@ -862,9 +871,11 @@
     async _writeByCache(options) {
       const { hashs } = options;
 
+      const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
+
       const chunks = await Promise.all(
         hashs.map(async (hash) => {
-          return fetchCache(hash);
+          return fetchCache(hash, userId);
         })
       );
 
