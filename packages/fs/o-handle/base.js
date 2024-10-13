@@ -1,6 +1,7 @@
 import { getErr } from "../errors.js";
 import { OriginDirHandle } from "./dir.js";
-import { copyTo, PublicBaseHandle } from "../public.js";
+import { copyTo } from "../public.js";
+import { PublicBaseHandle } from "../base-handle.js";
 
 const roootId = Math.random().toString(32).slice(2);
 

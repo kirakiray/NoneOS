@@ -2,7 +2,8 @@ import { getData, setData } from "./db.js";
 import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
-import { fixTargetAndName, copyTo, PublicBaseHandle } from "../public.js";
+import { fixTargetAndName, copyTo } from "../public.js";
+import { PublicBaseHandle } from "../base-handle.js";
 
 /**
  * 基础的Handle
