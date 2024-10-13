@@ -170,15 +170,21 @@ export class RemoteBaseHandle {
       args,
     });
 
+    // 带有remote根的路径
+    const rootName = this.path.split("/")[0];
+
     // 修正写入的字段
     result.forEach((e) => {
-      const oriPath = e.path;
-      e.path = oriPath.replace(this._path + "/", "");
+      const relatePath = e.path.replace(this._path + "/", "");
+
+      // 修正根路径
+      const pathArr = e.path.split("/");
+      pathArr[0] = rootName;
+      e.path = pathArr.join("/");
 
       Object.defineProperty(e, "handle", {
         get: async () => {
-          // 修正路径
-          return this.get(e.path);
+          return this.get(relatePath);
         },
       });
     });
