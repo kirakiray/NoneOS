@@ -42,9 +42,11 @@ export class PublicBaseHandle {
   async _writeByCache(options) {
     const { hashs } = options;
 
+    const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
+
     const chunks = await Promise.all(
       hashs.map(async (hash) => {
-        return fetchCache(hash);
+        return fetchCache(hash, userId);
       })
     );
 

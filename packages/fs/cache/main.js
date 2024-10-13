@@ -14,8 +14,17 @@ export const fetchCache = async (key, userid) => {
   return new Promise((resolve) => {
     let timer;
     let f = () => {
-      // 重新发送数据
-      users[0]._send({
+      let targetUsr;
+
+      if (userid) {
+        users.find((e) => e.id === userid);
+      } else {
+        // 向所有用户广播查找
+        debugger;
+      }
+
+      // 重新发送缓存请求
+      targetUsr._send({
         type: "getCache",
         hashs: [key],
       });
