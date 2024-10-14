@@ -6,6 +6,7 @@ import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "../user/main.js";
 import { calculateHash } from "../fs/util.js";
 import { CHUNK_REMOTE_SIZE } from "../fs/util.js";
+import { getCache, saveCache } from "../fs/cache/util.js";
 
 export const users = $.stanz([]);
 
@@ -428,6 +429,7 @@ export class ClientUser extends $.Stanz {
       }
 
       if (result.chunkData) {
+        // 通过已知的分块信息，重新组合数据
         const { chunkData } = result;
         // 重新组装分块信息
         const splits = this._splits || (this._splits = []);
@@ -448,8 +450,22 @@ export class ClientUser extends $.Stanz {
           return;
         }
 
-        // 当不等于0时，组装往下走
+        // 当不等于0时，组装成完整的数据，往后面继续
         result = JSON.parse(groupData.datas.join(""));
+
+        // 清除在 splits 上的缓存数据
+        splits.splice(splits.indexOf(groupData), 1);
+      }
+
+      if (result.type === "getCache") {
+        result.hashs.forEach(async (hash) => {
+          const cache = await getCache(hash);
+
+          if (cache) {
+            this._send(cache);
+          }
+        });
+        return;
       }
 
       if (result.data) {
@@ -461,6 +477,12 @@ export class ClientUser extends $.Stanz {
 
         return;
       }
+    } else if (result instanceof ArrayBuffer) {
+      const hash = await calculateHash(result);
+
+      // 缓存文件
+      await saveCache(hash, result);
+      return;
     }
 
     // 在有权限的情况下，才能响应桥接方法

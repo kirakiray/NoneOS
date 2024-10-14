@@ -1,0 +1,105 @@
+<template component>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .task-block {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 4px 0;
+      padding: 8px 8px;
+      font-size: 12px;
+      line-height: 1.2em;
+      word-break: break-all;
+      cursor: pointer;
+      background-color: var(--md-sys-color-on-normal);
+      border-radius: 0 20px 20px 0;
+    }
+
+    .task-block:hover {
+      background-color: var(--md-ref-palette-translucent-primary60);
+    }
+
+    .task-block p-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: calc(100% - 16px);
+      --line-size: 2px;
+    }
+
+    .task-block n-local-icon {
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+    }
+
+    .task-block .file-block {
+      margin: 0 2px;
+      color: var(--md-sys-color-primary);
+    }
+  </style>
+
+  <x-fill :value="tasks">
+    <div class="task-block" on:click="$data.showViewer = true">
+      <x-if :value="$data.completed">
+        复制成功 (<span class="file-block">{{$data.from}}</span>
+        {{$data.type === 'copyTo' ? '复制到' : ''}}
+        <span class="file-block">{{$data.to}}</span>)
+      </x-if>
+      <x-else>
+        <n-local-icon name="copy"></n-local-icon>
+        <div
+          style="
+            margin-left: 4px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+          "
+        >
+          <span class="file-block">{{$data.from}}</span>
+          {{$data.type === 'copyTo' ? '复制到' : ''}}
+          <span class="file-block">{{$data.to}}</span>
+        </div>
+      </x-else>
+
+      <p-progress :value="$host.getPercentTage($data)"></p-progress>
+    </div>
+  </x-fill>
+
+  <script>
+    export default async ({ load }) => {
+      const { tasks } = await load("./public.js");
+
+      return {
+        tag: "n-task-list",
+        data: {
+          tasks: [
+            // {
+            //   type: "copyTo",
+            //   from: "AAA",
+            //   to: "bbb",
+            //   paused: false // 是否暂停中
+            //   showViewer: false // 是否显示查看器
+            //   path: '', // 任务目录的地址
+            //   completed: false // 任务是否已经完成
+            // },
+          ],
+        },
+        proto: {
+          getPercentTage(item) {
+            return Math.ceil((item.totalCached / item.total) * 100);
+          },
+        },
+        attached() {
+          this.tasks = tasks;
+        },
+        detached() {
+          this.tasks = [];
+        },
+      };
+    };
+  </script>
+</template>

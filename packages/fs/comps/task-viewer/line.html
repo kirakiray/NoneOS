@@ -1,0 +1,195 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      border-bottom: #aaa solid 1px;
+    }
+    .pathname {
+      display: flex;
+      align-items: center;
+      word-break: break-all;
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 1.2em;
+      padding: 8px 4px;
+      cursor: pointer;
+    }
+
+    .pathname:hover {
+      background-color: rgba(128, 128, 128, 0.2);
+    }
+
+    .blocks {
+      display: flex;
+      flex-wrap: wrap;
+      transition: all ease 0.3s;
+    }
+
+    .block {
+      width: 10px;
+      /* height: 10px; */
+      /* margin: 1px; */
+      border-radius: 2px;
+      border: var(--md-sys-color-on-normal-container) solid 1px;
+      border-top-width: 0;
+      border-bottom-width: 0;
+      height: 0;
+      margin: 0 1px;
+      opacity: 0;
+      transition: height ease 0.3s, margin ease 0.3s, border ease 0.3s,
+        opacity ease 0.3s;
+    }
+
+    .block.actived {
+      background-color: var(--md-sys-color-primary);
+      border-color: var(--md-sys-color-primary);
+    }
+
+    .blocks.show {
+      padding: 4px 0;
+    }
+
+    .blocks.show .block {
+      height: 10px;
+      margin: 1px;
+      border: var(--md-sys-color-on-normal-container) solid 1px;
+      opacity: 1;
+    }
+    .sq-mark {
+      border-right: #eee solid 5px;
+      border-top: transparent solid 5px;
+      border-bottom: transparent solid 5px;
+      transition: all ease 0.3s;
+    }
+
+    .sq-mark.showblock {
+      transform: rotate(-90deg);
+    }
+  </style>
+  <div class="pathname" on:click="showBlocks = !showBlocks">
+    <div style="margin-right: auto">
+      {{pathname}}
+
+      <x-if :value="percentTage < 100"> (已复制:{{percentTage}}%) </x-if>
+      <x-else-if :value="!merged && percentTage >= 100">
+        (正在合并文件)
+      </x-else-if>
+      <x-else>
+        <span style="color: var(--md-sys-color-success)"> 复制完成 </span>
+      </x-else>
+    </div>
+    <div class="sq-mark" class:showblock="showBlocks"></div>
+  </div>
+  <div class="blocks" class:show="showBlocks"></div>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { on, copyTo } = await load("/packages/fs/task.js");
+
+      return {
+        tag: "task-viewer-line",
+        data: {
+          // 主体的文件信息
+          filedata: {
+            hashs: [],
+            path: "",
+            to: "",
+            size: "",
+          },
+          cachepath: "", // 缓存文件所在的目录
+          cached: 0, // 已经缓存的个数
+          total: 0, // 一共多少个
+          showBlocks: true, // 是否展示块
+          merged: false, // 文件是否已经合并
+        },
+        proto: {
+          get pathname() {
+            return this.filedata.to;
+          },
+          get percentTage() {
+            return Math.ceil((this.cached / this.total) * 100);
+          },
+          // 修正缓存中的文件进度
+          async checkCached() {
+            const cacheDir = await get(this.cachepath);
+
+            this.cached = 0;
+
+            await Promise.all(
+              this.filedata.hashs.map(async (hash) => {
+                const handle = await cacheDir.get(hash);
+
+                if (handle) {
+                  const size = await handle.size();
+
+                  if (size) {
+                    // 设置缓存成功
+                    const blockEl = this.shadow.$(
+                      `.block[data-hash="${hash}"]`
+                    );
+
+                    if (blockEl) {
+                      this.cached++;
+                      blockEl.classList.add("actived");
+                    }
+                  }
+                }
+              })
+            );
+          },
+        },
+        watch: {
+          filedata(data) {
+            if (!data) {
+              return;
+            }
+            
+            // 由于生成块可能会非常多，所以不采用渲染模板，而是直接生成dom
+            const blocksEl = this.shadow.$(".blocks");
+
+            data.hashs.forEach((hash) => {
+              blocksEl.push(
+                `<div class="block" data-hash="${hash}" title="${hash}"></div>`
+              );
+            });
+
+            this.total = this.filedata.hashs.length;
+
+            this.checkCached();
+          },
+        },
+        attached() {
+          this._cancels = [
+            on("writed", (e) => {
+              const { data } = e;
+
+              if (this.filedata.path === data.path) {
+                // 属于当前文件的更改
+                const targets = this.shadow.all(`[data-hash="${data.hash}"]`);
+
+                targets.forEach((e) => {
+                  e.classList.add("actived");
+                });
+
+                this.cached = data.currentCached;
+              }
+            }),
+            on("merged", (e) => {
+              const { data } = e;
+
+              if (this.filedata.to === data.item.to) {
+                this.merged = 1;
+              }
+            }),
+          ];
+        },
+        detached() {
+          if (this._cancels) {
+            this._cancels.forEach((f) => f());
+            this._cancels.length = 0;
+          }
+        },
+      };
+    };
+  </script>
+</template>

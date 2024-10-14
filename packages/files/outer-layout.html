@@ -2,6 +2,9 @@
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
+  <!-- <l-m src="/packages/fs/comps/task-viewer/viewer.html"></l-m> -->
+  <l-m src="/packages/fs/comps/task-list.html"></l-m>
+  <l-m src="/packages/fs/comps/task-list-viewer.html"></l-m>
   <style>
     :host {
       display: block;
@@ -30,9 +33,19 @@
       margin: 0;
       padding: 4px 8px;
     }
+
+    .left-con {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .left-bottom {
+      margin-top: auto;
+    }
   </style>
   <n-horsp-pannel>
-    <div slot="left">
+    <div slot="left" class="left-con">
       <p-list>
         <p-list-item collapse-childs="open" button="suffix">
           <span style="font-size: 13px; font-weight: 600">当前空间</span>
@@ -67,6 +80,9 @@
           </p-list>
         </p-list-item>
       </p-list>
+      <div class="left-bottom">
+        <n-task-list></n-task-list>
+      </div>
     </div>
     <slot></slot>
   </n-horsp-pannel>
@@ -86,10 +102,16 @@
     </p-list-item>
   </template>
 
+  <n-task-list-viewer></n-task-list-viewer>
+
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";
+    import { copyTo } from "/packages/fs/task.js";
+    import { openTask } from "/packages/fs/comps/public.js";
 
-    export default () => {
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
       return {
         data: {
           locals: [
@@ -125,11 +147,51 @@
           },
         },
         async ready() {
+          const isSafari =
+            navigator.userAgent.includes("Safari") &&
+            !navigator.userAgent.includes("Chrome");
+          if (isSafari) {
+            // safari不允许写入本地盘
+            this.locals = this.locals.filter((e) => {
+              return !/^\$origin/.test(e.path);
+            });
+          }
+
           this.on("go-page", (e) => {
             e.stopPropagation();
 
             const rootName = e.data.path.split("/")[0];
             this.selectedRootName = rootName;
+          });
+
+          this.on("run-task", async (e) => {
+            const { data } = e;
+
+            if (data.type === "copyTo") {
+              const { source, target } = data;
+
+              // 直接执行拷贝动作
+              copyTo({
+                source,
+                target,
+                prepare: async (e) => {
+                  // 添加延迟并刷新粘贴中的页面
+                  await new Promise((res) => setTimeout(res, 150));
+                  this.app.current.refreshFiles();
+                  await new Promise((res) => setTimeout(res, 150));
+                },
+              });
+            }
+          });
+
+          this.on("task-complete", async (e) => {
+            this.app.current.refreshFiles();
+          });
+
+          // 双击任务目录后触发的事件
+          this.on("open-task", async (e) => {
+            e.stopPropagation();
+            await openTask(e.data);
           });
 
           this.remotes = await getRemotes();

@@ -4,7 +4,14 @@ import { get } from "../fs/handle/index.js";
 
 export const servers = $.stanz([]); // 当前存在的服务器
 
-const serverFile = await get("local/system/servers", { create: "file" });
+let serverFilePms;
+const getServerFile = async () => {
+  if (serverFilePms) {
+    return await serverFilePms;
+  }
+  serverFilePms = get("local/system/servers", { create: "file" });
+  return await serverFilePms;
+};
 
 servers.watchTick(async () => {
   const datas = servers.map((e) => {
@@ -13,6 +20,8 @@ servers.watchTick(async () => {
       serverUrl: e.serverUrl,
     };
   });
+
+  const serverFile = await getServerFile();
 
   // 内容不一致就保存
   const text = await serverFile.text();
@@ -169,6 +178,8 @@ class ServerConnector extends $.Stanz {
       await this.init();
     }
 
+    await this.#initingPms;
+
     const postUrl = new URL(this.serverUrl).origin + this.#apiID;
 
     return fetch(postUrl, {
@@ -208,28 +219,31 @@ class ServerConnector extends $.Stanz {
   }
 }
 
-{
-  // 读取缓存的数据
-  let data = await serverFile.text();
-  try {
-    if (data) {
-      data = JSON.parse(data);
+setTimeout(() => {
+  // 初始化服务器操作
+  getServerFile().then(async (serverFile) => {
+    // 读取缓存的数据
+    let data = await serverFile.text();
+    try {
+      if (data) {
+        data = JSON.parse(data);
 
-      data.forEach((e) => {
-        servers.push(
-          new ServerConnector({
-            serverUrl: e.serverUrl,
-            serverName: e.serverName,
-          })
-        );
-      });
+        data.forEach((e) => {
+          servers.push(
+            new ServerConnector({
+              serverUrl: e.serverUrl,
+              serverName: e.serverName,
+            })
+          );
+        });
+      }
+    } catch (err) {
+      console.error(err);
     }
-  } catch (err) {
-    console.error(err);
-  }
 
-  if (!servers.length && location.host.includes("localhost")) {
-    // 添加测试服务器
-    addServer("http://localhost:5569/user");
-  }
-}
+    if (!servers.length && location.host.includes("localhost")) {
+      // 添加测试服务器
+      addServer("http://localhost:5569/user");
+    }
+  });
+});

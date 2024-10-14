@@ -35,14 +35,24 @@
           :apps="barApps"
           :home-app="homeApp"
           sync:show-home-app="showHomeApp"
-          on:click-app="clickApp"
+          on:click-app="clickBarApp"
           attr:fullmode="hasMaxApp"
         ></os-bar>
       </div>
       <div class="main" on:app-change="appChange">
-        <!-- <n-app-frame>
-              <div>asdasd</div>
-            </n-app-frame> -->
+        <x-fill :value="barApps" fill-key="url">
+          <n-app-frame
+            sync:app-status="$data.status"
+            :appindex="$index"
+            sync:focus="$data.focus"
+            sync:app-top="$data.appTop"
+            sync:app-left="$data.appLeft"
+            sync:app-width="$data.appWidth"
+            sync:app-height="$data.appHeight"
+          >
+            <o-app attr:src="$data.url"></o-app>
+          </n-app-frame>
+        </x-fill>
       </div>
       <n-home-app-frame sync:show-home-app="showHomeApp">
         <o-app :src="homeApp.url" on:click-app="runApp"></o-app>
@@ -66,107 +76,95 @@
             },
             name: "App Manager",
           },
-          barApps: [
-            // {
-            //   name: "Files",
-            //   icon: {
-            //     url: "/packages/files/icon.svg",
-            //   },
-            //   url: "/packages/files/app-config.js",
-            //   // status: "background",
-            // },
-            // {
-            //   name: "Setting",
-            //   icon: {
-            //     url: "/packages/setting/icon.svg",
-            //   },
-            //   url: "/packages/setting/app-config.js",
-            //   // status: "running",
-            // },
-          ],
+          // 应用栏上的应用状态数据
+          barApps: [],
           hasMaxApp: false, // 是否存在最大化的应用
         },
         proto: {
+          // 运行app，一般情况下，是通过app-manager来运行的
           runApp(e) {
             const { data } = e;
 
-            let targetData = this.barApps.find((e) => e.name === data.name);
+            let targetBarApp = this.barApps.find((e) => e.name === data.name);
 
-            if (!targetData) {
+            if (!targetBarApp) {
+              // 应用栏上的单个应用数据结构
               this.barApps.push({
-                name: data.name,
+                name: data.name, // 应用名
                 icon: {
                   url: data.icon.url,
                 },
-                url: data.url,
-                // status: "background"  "running"
+                url: data.url, // app config 资源地址
+                status: "normal", // 运行状态
+                focus: null, // 是否聚焦
+                // 窗口的定位信息，初始数值如下
+                appTop: (window.innerHeight - 200) / 2,
+                appLeft: 0,
+                appWidth: 200,
+                appHeight: 200,
               });
 
-              targetData = this.barApps.find((e) => e.name === data.name);
+              targetBarApp = this.barApps.find((e) => e.name === data.name);
             }
 
-            this.clickApp({
-              data: { app: targetData },
+            // 修复焦点
+            this.barApps.forEach((e) => {
+              if (e === targetBarApp) {
+                e.focus = 1;
+              } else {
+                e.focus = null;
+              }
             });
+
+            this.saveAppsState();
+
+            return targetBarApp;
           },
           get currentAppFrame() {
             return this.shadow.$("n-app-frame[focus]");
           },
-          clickApp({ data }) {
-            const targetApp = data.app;
-            targetApp.status = "running";
+          // 点击应用栏应用
+          clickBarApp({ data }) {
+            const targetBarApp = data.app;
 
-            const exitedApp = this.shadow.$(
-              ".main [data-appid='" + targetApp.xid + "']"
-            );
-
-            if (exitedApp) {
-              // 直接修正对应的应用
-              exitedApp.focusApp();
-              if (exitedApp.appStatus === "min") {
-                if (exitedApp._oldAppStatus === "max") {
-                  exitedApp.appStatus = "max";
-                } else {
-                  exitedApp.appStatus = "normal";
-                }
-              }
-            } else {
-              if (targetApp.appType === "frame") {
-                console.log("暂时不支持 frame 模式");
+            if (targetBarApp.status === "min") {
+              if (window.innerWidth <= 600) {
+                targetBarApp.status = "max";
               } else {
-                // 添加这个应用到容器内
-                // 小屏幕下，直接全屏
-                this.shadow.$(".main").push(`
-                    <n-app-frame data-appid="${targetApp.xid}" ${
-                  window.innerWidth > 600 ? "" : 'default-app-status="max"'
-                }>
-                      <o-app src="${targetApp.url}"></o-app>
-                    </n-app-frame>
-                  `);
+                targetBarApp.status = "normal";
               }
+            } else if (targetBarApp.status === "close") {
+              targetBarApp.status = "normal";
             }
 
+            // 修复焦点
+            this.barApps.forEach((e) => {
+              if (e === targetBarApp) {
+                e.focus = 1;
+              } else {
+                e.focus = null;
+              }
+            });
+
             this.refreshBarMode();
+            this.saveAppsState();
           },
           refreshBarMode() {
             const apps = this.shadow.all(".main n-app-frame");
             this.hasMaxApp = apps.some((e) => e.appStatus === "max");
           },
+          // 应用最大化最小化的改动
           appChange(e) {
             const { data } = e;
 
-            const targetData = this.barApps.find((e) => e.xid === data.appid);
-
-            switch (data.type) {
-              case "min":
-                targetData.status = "background";
-                break;
-              case "close":
-                targetData.status = undefined;
-                break;
+            if (data.type === "close" && data.appindex > -1) {
+              setTimeout(() => {
+                this.barApps.splice(data.appindex, 1);
+              }, 200);
             }
 
             this.refreshBarMode();
+            this.saveAppsState();
           },
           async initHistory() {
             const bindHistory = () => {
@@ -239,6 +237,50 @@
 
             bindHistory();
           },
+          // 保存所有应用的路由数据
+          saveAppsState() {
+            clearTimeout(this._routerTimer);
+            this._routerTimer = setTimeout(() => {
+              sessionStorage._bar_apps = JSON.stringify(
+                this.barApps.map((e) => {
+                  const targetApp = this.shadow.$(`o-app[src="${e.url}"]`);
+
+                  return {
+                    ...e,
+                    routers: targetApp.routers,
+                  };
+                })
+              );
+            }, 200);
+          },
+          // 加载应用路由
+          loadAppsState() {
+            const appRouters = JSON.parse(sessionStorage._bar_apps || "[]");
+
+            this.barApps = appRouters.map((e) => {
+              const obj = { ...e };
+              delete obj.routers;
+              return obj;
+            });
+
+            setTimeout(() => {
+              this.refreshBarMode();
+
+              // 还原应用路由
+              appRouters.forEach((e) => {
+                const targeApp = this.shadow.$(`o-app[src="${e.url}"]`);
+
+                if (targeApp) {
+                  targeApp.routers = e.routers;
+                }
+              });
+            }, 0);
+          },
+        },
+        ready() {
+          this.shadow.on("router-change", (e) => {
+            this.saveAppsState();
+          });
         },
         async attached() {
           if (history.state && history.state.routerType === "current") {
@@ -250,16 +292,8 @@
               this.initHistory();
             });
           }
-          // setTimeout(() => {
-          //   // testcode
-          //   this.runApp({
-          //     data: {
-          //       name: "设置",
-          //       icon: { url: "/packages/setting/icon.svg" },
-          //       url: "/packages/setting/app-config.js",
-          //     },
-          //   });
-          // }, 100);
+
+          this.loadAppsState();
         },
         detached() {
           this._offState && this._offState();

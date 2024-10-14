@@ -63,7 +63,7 @@ test("copy process", async ({ page, browserName }) => {
   if (browserName === "webkit") {
     test.skip(true, "safari fileSystemHandle No write permission");
     return;
-  }
+  } 
 
   await page.getByText("originCount: 4").click();
   await page.getByText("dbCount: 20").click();
@@ -88,5 +88,5 @@ test("write copy task", async ({ page, browserName }) => {
 
   await page.getByText("bigfile1: true").click();
   await page.getByText("bigfile2: true").click();
-  await page.getByText("dbCount: 30").click();
+  await page.getByText("dbCount: 50").click();
 });

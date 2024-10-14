@@ -35,7 +35,10 @@
 
         const htmlHandle = await localHandle.get("index.html");
 
-        const text = await htmlHandle.text();
+        const text = await htmlHandle.text({
+          start: 10,
+          end: 100,
+        });
 
         // 获取大文件
         console.log(htmlHandle.path, "⬇️", text);
@@ -45,10 +48,16 @@
           create: "file",
         });
 
-        // await testTxt.write("haha".repeat());
-        await testTxt.write(getBigText());
+        {
+          // 尝试写入 arraybufer 数据
+          const bufData = "haha".repeat(100);
 
-        debugger;
+          const encoder = new TextEncoder();
+          const data = encoder.encode(bufData);
+
+          await testTxt.write(data);
+        }
+        // await testTxt.write(getBigText());
       }
     </script>
   </body>

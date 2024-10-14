@@ -13,8 +13,13 @@
     }
     .top {
       display: flex;
+      flex-wrap: wrap;
       padding: 4px;
-      height: 40px;
+      min-height: 40px;
+    }
+    .top > * {
+      margin-top: 4px;
+      margin-bottom: 4px;
     }
     .main {
       display: flex;
@@ -68,9 +73,15 @@
     .bottom-area.hide.delay {
       transition-delay: 1s;
     }
+
+    @media screen and (max-width: 600px) {
+      .hide-in-mobile {
+        display: none;
+      }
+    }
   </style>
   <div class="top">
-    <p-button-group variant="outlined">
+    <p-button-group variant="outlined" class="hide-in-mobile">
       <p-button
         size="small"
         on:click="app.back()"
@@ -185,11 +196,8 @@
     </div>
   </div>
 
-  <div class="bottom-area delay" class:hide="!clipboard?.sources?.length">
-    <x-if :value="taskPercentage > 0 && taskPercentage < 100">
-      正在粘贴中，进度 {{taskPercentage}}%
-    </x-if>
-    <x-else-if :value="clipboard?.sources?.length">
+  <div class="bottom-area" class:hide="!clipboard?.sources?.length">
+    <x-if :value="clipboard?.sources?.length">
       {{clipboardText}}，点击
       <n-local-icon name="paste"></n-local-icon> 进行粘贴。
       <p-button
@@ -199,9 +207,7 @@
       >
         点击取消操作
       </p-button>
-    </x-else-if>
-    <x-else-if :value="clipboard === 0"> 粘贴完成 </x-else-if>
-    <x-else> 操作取消 </x-else>
+    </x-if>
   </div>
 
   <div class="bottom-area delay error-mode" class:hide="!showDelete">
@@ -235,11 +241,9 @@
     export const parent = "./outer-layout.html";
 
     import { handleToZip } from "./util.js";
-    import { copyTo } from "/packages/fs/task.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { flatHandle } = await load("/packages/fs/util.js");
 
       return {
         data: {
@@ -256,8 +260,7 @@
           importingLen: 0, // 导入中的数量
           importedLen: 0, // 导入成功的数量
           hasTask: false, // 选中的文件包含task目录
-          taskType: "",
-          taskPercentage: 0, // 任务进度数据
+          // taskPercentage: 0, // 任务进度数据
           showDelete: false,
           deletingData: {
             count: 0, // 已经删除的数量
@@ -334,11 +337,17 @@
             }, 1000);
           },
           get clipboardText() {
-            switch (this?.clipboard?.type) {
-              case "copy":
-                return `复制 ${this.clipboard.sources.join(",")}`;
-              case "cut":
-                return `剪切 ${this.clipboard.sources.join(",")}`;
+            if (this?.clipboard?.sources) {
+              const sources = this.clipboard.sources
+                .map((e) => e.replace(/.+\/(.+)$/, "$1"))
+                .join(",");
+
+              switch (this?.clipboard?.type) {
+                case "copy":
+                  return `复制 ${sources}`;
+                case "cut":
+                  return `剪切 ${sources}`;
+              }
             }
           },
           get cProvider() {
@@ -379,22 +388,12 @@
                   if (handle._mark === "db" && targetHandle._mark === "db") {
                     await handle.copyTo(targetHandle);
                   } else {
-                    this.taskType = "copyTo";
-                    await copyTo({
-                      // debugTime: 200,
-                      source: handle,
-                      target: targetHandle,
-                      confirm: async (info) => {
-                        setTimeout(() => {
-                          // 刷新页面
-                          this.app.current.refreshFiles();
-                        }, 100);
-                        return true;
-                      },
-                      progress: (e) => {
-                        this.taskPercentage = Math.ceil(
-                          (e.count / e.total) * 100
-                        );
+                    this.emit("run-task", {
+                      composed: true,
+                      data: {
+                        type: "copyTo",
+                        source: handle,
+                        target: targetHandle,
                       },
                     });
                   }
@@ -415,7 +414,7 @@
               this.selecteds.map(async (path) => {
                 const handle = await get(path);
 
-                const files = await flatHandle(handle);
+                const files = await handle.flat();
                 this.deletingData.total = files.length + 1; // 总共需要删除的文件数
                 this.showDelete = true;
 
@@ -454,7 +453,6 @@
           this.attr("tool-layout", "");
 
           this.on("go-page", (e) => {
-            // e.stopPropagation();
             this.selecteds = [];
             this.path = e.data.path;
             this.needRename = null;

@@ -150,6 +150,10 @@
         },
         watch: {
           theme(theme) {
+            if (theme === null) {
+              return;
+            }
+
             this.darkMode = theme === "dark";
           },
           darkMode(bool) {

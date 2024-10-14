@@ -100,8 +100,7 @@ export class RemoteBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async moveTo(target, name) {
-    // throw new Error(`Please use the copyTo operation before deleting.`);
-    debugger;
+    throw new Error(`Please use the copyTo operation before deleting.`);
   }
 
   /**
@@ -110,16 +109,21 @@ export class RemoteBaseHandle {
    * @param {string} name 移动到目标文件夹下的名称
    */
   async copyTo(target, name) {
-    debugger;
-    // throw new Error(`Please use the copyTo operation before deleting.`);
+    throw new Error(`Please use the copyTo operation before deleting.`);
   }
 
   /**
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove() {
-    debugger;
+  async remove(...args) {
+    const result = await this._bridge({
+      method: "remove",
+      path: this._path,
+      args,
+    });
+
+    return result;
   }
 
   async refresh() {
@@ -139,22 +143,60 @@ export class RemoteBaseHandle {
     return result;
   }
 
-  async _getHashMap(options) {
+  async _getHashs(...args) {
     const result = await this._bridge({
-      method: "_getHashMap",
+      method: "_getHashs",
       path: this._path,
-      args: [options],
+      args,
     });
 
     return result;
   }
 
-  // 给远端用，根据id或分块哈希sh获取分块数据
-  async _getChunk(hash, index, size) {
+  async _mergeChunk(...args) {
     const result = await this._bridge({
-      method: "_getChunk",
+      method: "_mergeChunk",
       path: this._path,
-      args: [hash, index, size],
+      args,
+    });
+
+    return result;
+  }
+
+  async flat(...args) {
+    const result = await this._bridge({
+      method: "flat",
+      path: this._path,
+      args,
+    });
+
+    // 带有remote根的路径
+    const rootName = this.path.split("/")[0];
+
+    // 修正写入的字段
+    result.forEach((e) => {
+      const relatePath = e.path.replace(this._path + "/", "");
+
+      // 修正根路径
+      const pathArr = e.path.split("/");
+      pathArr[0] = rootName;
+      e.path = pathArr.join("/");
+
+      if (this.kind == "file") {
+        // 执行flat的handle就是file的话，一定是当前文件
+
+        Object.defineProperty(e, "handle", {
+          get: async () => {
+            return this;
+          },
+        });
+      } else {
+        Object.defineProperty(e, "handle", {
+          get: async () => {
+            return this.get(relatePath);
+          },
+        });
+      }
     });
 
     return result;

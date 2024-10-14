@@ -248,28 +248,19 @@
       tag: "n-app-frame",
       attrs: {
         focus: null,
-        defaultAppStatus: "normal", // 初始的app状态 // normal max
-        appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
+        // defaultAppStatus: "normal", // 初始的app状态 // normal max
+        // appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
+        appStatus: "",
       },
       data: {
         appTop: 0,
         appLeft: 0,
-        appWidth: 300,
-        appHeight: 300,
+        appWidth: 200,
+        appHeight: 200,
         theme: "",
       },
       watch: {
         appStatus(status) {
-          // 第一次设置状态，保证是左侧展开的动画
-          if (!this._first_status && status === "min") {
-            this._first_status = 1;
-
-            setTimeout(() => {
-              this.changeState(this.defaultAppStatus);
-            }, 50);
-            return;
-          }
-
           // this._first_status = 1;
           this.style.transition = "all ease 0.25s";
           clearTimeout(this._transtimer);
@@ -369,6 +360,13 @@
             $("body").off("mouseup", mouseEnd);
             $("body").off("mouseleave", mouseEnd);
             this.__oldResize = null;
+
+            this.emit("app-change", {
+              data: {
+                type: "offset",
+                appindex: this.appindex,
+              },
+            });
           });
 
           $("body").on("mouseup", mouseEnd);
@@ -389,15 +387,9 @@
           this.emit("app-change", {
             data: {
               type,
-              appid: this.ele.dataset.appid,
+              appindex: this.appindex,
             },
           });
-
-          if (type === "close") {
-            setTimeout(() => {
-              this.remove();
-            }, 200);
-          }
         },
         // 聚焦当前的app
         focusApp() {
@@ -409,7 +401,14 @@
               }
             });
 
-          this.focus = "";
+          this.focus = 1;
+
+          this.emit("app-change", {
+            data: {
+              type: "focus",
+              appindex: this.appindex,
+            },
+          });
         },
       },
       ready() {
@@ -420,20 +419,19 @@
         });
       },
       attached() {
-        this.focusApp();
-
         const topEle = this.shadow.$(".app-top");
 
         // 设置初始值
         const rect = this.parent.ele.getBoundingClientRect();
 
-        // 初始值带一点偏差，不至于叠在一块
-        Object.assign(this, {
-          appTop: rect.height * 0.1 - 20 + Math.ceil(Math.random() * 40),
-          appLeft: rect.width * 0.1 - 20 + Math.ceil(Math.random() * 40),
-          appWidth: rect.width * 0.8,
-          appHeight: rect.height * 0.8,
-        });
+        if (this.appHeight === 200 && this.appWidth === 200) {
+          Object.assign(this, {
+            appTop: rect.height * 0.1 - 20 + Math.ceil(Math.random() * 40),
+            appLeft: rect.width * 0.1 - 20 + Math.ceil(Math.random() * 40),
+            appWidth: rect.width * 0.8,
+            appHeight: rect.height * 0.8,
+          });
+        }
 
         let startX, startY;
         let moveFunc, upFunc, leaveFunc;
@@ -502,6 +500,13 @@
               $("body").off("mousemove", moveFunc);
               $("body").off("mouseup", upFunc);
               $("body").off("mouseleave", leaveFunc);
+
+              this.emit("app-change", {
+                data: {
+                  type: "offset",
+                  appindex: this.appindex,
+                },
+              });
             });
 
             $("body").on(

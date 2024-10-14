@@ -33,7 +33,7 @@ const getFileData = async (handle) => {
   return data;
 };
 
-export const CHUNK_REMOTE_SIZE = 192 * 1024; // 64kb // 远程复制的块大小
+export const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
 
 export const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -53,6 +53,8 @@ export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
     arrayBuffer = await input.arrayBuffer();
   } else if (input instanceof ArrayBuffer) {
     arrayBuffer = input;
+  } else if (input instanceof Uint8Array) {
+    arrayBuffer = input.buffer;
   } else {
     throw new Error(
       "Input must be a string, File object or ArrayBuffer object"

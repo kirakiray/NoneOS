@@ -1,0 +1,46 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  <l-m src="./task-viewer/viewer.html"></l-m>
+  <x-fill :value="tasks">
+    <task-viewer
+      sync:show="$data.showViewer"
+      :path="$data.path"
+      :total-cached="$data.totalCached"
+      :total="$data.total"
+      :completed="$data.completed"
+    >
+    </task-viewer>
+  </x-fill>
+  <script>
+    export default async ({ load }) => {
+      const { tasks } = await load("./public.js");
+
+      return {
+        tag: "n-task-list-viewer",
+        data: {
+          tasks: [
+            // {
+            //   type: "copyTo",
+            //   from: "AAA",
+            //   to: "bbb",
+            //   paused: false // 是否暂停中
+            //   showViewer: false // 是否显示查看器
+            //   path: '', // 任务目录的地址
+            //   completed: false // 任务是否已经完成
+            // },
+          ],
+        },
+        attached() {
+          this.tasks = tasks;
+        },
+        detached() {
+          this.tasks = [];
+        },
+      };
+    };
+  </script>
+</template>

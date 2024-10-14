@@ -1,4 +1,4 @@
-(function () {
+(function (user_js) {
   'use strict';
 
   const cn = {
@@ -342,9 +342,122 @@
     });
   };
 
-  // 获取目标文件或文件夹的任务树状信息
+  /**
+   * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
+   * 复制目标到另一个目标
+   * @param {handle} source 源文件/目录
+   * @param {handle} target 目标文件/目录
+   * @param {string} name 复制过去后的命名
+   * @param {function} callback 复制过程中的callback
+   */
+  const copyTo = async ({ source, target, name, callback }) => {
+    [target, name] = await fixTargetAndName({ target, name, self: source });
 
-  const CHUNK_REMOTE_SIZE = 192 * 1024; // 64kb // 远程复制的块大小
+    if (source.kind === "file") {
+      const selfFile = await source.file();
+      const newFile = await target.get(name, { create: "file" });
+      await newFile.write(selfFile, callback);
+
+      return newFile;
+    } else if (source.kind === "dir") {
+      const newDir = await target.get(name, {
+        create: "dir",
+      });
+
+      await source.forEach(async (handle) => {
+        await copyTo({
+          source: handle,
+          target: newDir,
+          name: handle.name,
+          callback,
+        });
+      });
+
+      return newDir;
+    }
+  };
+
+  // 修正 target 和 name 的值
+  const fixTargetAndName = async ({ target, name, self }) => {
+    if (typeof target === "string") {
+      name = target;
+      target = await self.parent();
+    }
+
+    if (!name) {
+      name = self.name;
+    }
+
+    // 查看是否已经有同名的文件或文件夹
+    let exited = false;
+    for await (let subName of target.keys()) {
+      if (name === subName) {
+        exited = 1;
+        break;
+      }
+    }
+
+    if (exited) {
+      throw getErr("exitedName", {
+        name: `${name}(${target.path}/${name})`,
+      });
+    }
+
+    if (isSubdirectory(target.path, self.path)) {
+      throw getErr("notMoveToChild", {
+        targetPath: target.path,
+        path: self.path,
+      });
+    }
+
+    return [target, name];
+  };
+
+  function isSubdirectory(child, parent) {
+    if (child === parent) {
+      return false;
+    }
+    const parentTokens = parent.split("/").filter((i) => i.length);
+    const childTokens = child.split("/").filter((i) => i.length);
+    return parentTokens.every((t, i) => childTokens[i] === t);
+  }
+
+  // 获取目标文件或文件夹的任务树状信息
+  const flatHandle = async (handle) => {
+    if (handle.kind === "file") {
+      return [await getFileData(handle)];
+    }
+
+    const arr = [];
+
+    for await (let subHandle of handle.values()) {
+      if (subHandle.kind === "dir") {
+        const subs = await flatHandle(subHandle);
+        arr.push(...subs);
+      } else {
+        arr.push(await getFileData(subHandle));
+      }
+    }
+
+    return arr;
+  };
+
+  const getFileData = async (handle) => {
+    const data = {
+      size: await handle.size(),
+      path: handle.path,
+    };
+
+    Object.defineProperty(data, "handle", {
+      get() {
+        return handle;
+      },
+    });
+
+    return data;
+  };
+
+  const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -364,6 +477,8 @@
       arrayBuffer = await input.arrayBuffer();
     } else if (input instanceof ArrayBuffer) {
       arrayBuffer = input;
+    } else if (input instanceof Uint8Array) {
+      arrayBuffer = input.buffer;
     } else {
       throw new Error(
         "Input must be a string, File object or ArrayBuffer object"
@@ -448,91 +563,335 @@
     }
   };
 
-  /**
-   * 物理拷贝文件/文件夹的方法，兼容所有类型的handle
-   * 复制目标到另一个目标
-   * @param {handle} source 源文件/目录
-   * @param {handle} target 目标文件/目录
-   * @param {string} name 复制过去后的命名
-   * @param {function} callback 复制过程中的callback
-   */
-  const copyTo = async ({ source, target, name, callback }) => {
-    [target, name] = await fixTargetAndName({ target, name, self: source });
+  const SName = Symbol("storage-name");
+  const IDB = Symbol("idb");
 
-    if (source.kind === "file") {
-      const selfFile = await source.file();
-      const newFile = await target.get(name, { create: "file" });
-      await newFile.write(selfFile, callback);
+  class EverCache {
+    constructor(id = "public") {
+      // this[SName] = id;
+      this[SName] = "main";
 
-      return newFile;
-    } else if (source.kind === "dir") {
-      const newDir = await target.get(name, {
-        create: "dir",
+      this[IDB] = new Promise((resolve) => {
+        let req = indexedDB.open(`ever-cache-${id}`);
+
+        req.onsuccess = (e) => {
+          resolve(e.target.result);
+        };
+
+        req.onupgradeneeded = (e) => {
+          // e.target.result.createObjectStore(id, { keyPath: "key" });
+          e.target.result.createObjectStore("main", { keyPath: "key" });
+        };
       });
 
-      await source.forEach(async (handle) => {
-        await copyTo({
-          source: handle,
-          target: newDir,
-          name: handle.name,
-          callback,
-        });
-      });
-
-      return newDir;
-    }
-  };
-
-  // 修正 target 和 name 的值
-  const fixTargetAndName = async ({ target, name, self }) => {
-    if (typeof target === "string") {
-      name = target;
-      target = await self.parent();
+      return new Proxy(this, handle);
     }
 
-    if (!name) {
-      name = self.name;
+    async setItem(key, value) {
+      return commonTask(this, (store) => store.put({ key, value })).then(
+        () => true
+      );
     }
 
-    // 查看是否已经有同名的文件或文件夹
-    let exited = false;
-    for await (let subName of target.keys()) {
-      if (name === subName) {
-        exited = 1;
-        break;
+    async getItem(key) {
+      try {
+        return commonTask(this, (store) => store.get(key), "readonly").then(
+          (e) => {
+            const { result } = e.target;
+            return result ? result.value : null;
+          }
+        );
+      } catch (err) {
+        debugger;
       }
     }
 
-    if (exited) {
-      throw getErr("exitedName", {
-        name: `${name}(${target.path}/${name})`,
-      });
+    async removeItem(key) {
+      return commonTask(this, (store) => store.delete(key)).then(() => true);
     }
 
-    if (isSubdirectory(target.path, self.path)) {
-      throw getErr("notMoveToChild", {
-        targetPath: target.path,
-        path: self.path,
-      });
+    async clear() {
+      return commonTask(this, (store) => store.clear()).then(() => true);
     }
 
-    return [target, name];
+    async key(index) {
+      return commonTask(this, (store) => store.getAllKeys()).then(
+        (e) => e.target.result[index]
+      );
+    }
+
+    get length() {
+      return commonTask(this, (store) => store.count()).then(
+        (e) => e.target.result
+      );
+    }
+
+    entries() {
+      return {
+        [Symbol.asyncIterator]: () => {
+          let resolve;
+          let cursorPms;
+          const resetPms = () => {
+            cursorPms = new Promise((res) => (resolve = res));
+          };
+          resetPms();
+
+          commonTask(
+            this,
+            (store) => store.openCursor(),
+            "readonly",
+            (e) => resolve(e.target.result)
+          );
+
+          return {
+            async next() {
+              const cursor = await cursorPms;
+              if (!cursor) {
+                return {
+                  done: true,
+                };
+              }
+              resetPms();
+              const { key, value } = cursor.value;
+              cursor.continue();
+
+              return { value: [key, value], done: false };
+            },
+          };
+        },
+      };
+    }
+
+    async *keys() {
+      for await (let [key, value] of this.entries()) {
+        yield key;
+      }
+    }
+
+    async *values() {
+      for await (let [key, value] of this.entries()) {
+        yield value;
+      }
+    }
+  }
+
+  const exitedKeys = new Set(Object.getOwnPropertyNames(EverCache.prototype));
+
+  const handle = {
+    get(target, key, receiver) {
+      if (exitedKeys.has(key) || typeof key === "symbol") {
+        return Reflect.get(target, key, receiver);
+      }
+
+      return target.getItem(key);
+    },
+    set(target, key, value) {
+      return target.setItem(key, value);
+    },
+    deleteProperty(target, key) {
+      return target.removeItem(key);
+    },
   };
 
-  function isSubdirectory(child, parent) {
-    if (child === parent) {
-      return false;
+  const commonTask = async (_this, afterStore, mode = "readwrite", succeed) => {
+    const db = await _this[IDB];
+
+    return new Promise((resolve, reject) => {
+      const req = afterStore(
+        db.transaction([_this[SName]], mode).objectStore(_this[SName])
+      );
+
+      req.onsuccess = (e) => {
+        if (succeed) {
+          const result = succeed(e);
+          if (result) {
+            resolve(result);
+          }
+
+          return;
+        }
+
+        resolve(e);
+      };
+      req.onerror = (e) => {
+        reject(e);
+      };
+    });
+  };
+
+  new EverCache();
+
+  const storage = new EverCache("remote-file-cache");
+
+  // 重新获取块
+  const getCache = async (key) => {
+    const result = await storage.getItem(key);
+
+    if (result) {
+      // 重置时间
+      storage.setItem(`${key}-time`, Date.now());
     }
-    const parentTokens = parent.split("/").filter((i) => i.length);
-    const childTokens = child.split("/").filter((i) => i.length);
-    return parentTokens.every((t, i) => childTokens[i] === t);
-  }
+
+    return result;
+  };
+
+  const hands = {};
+  const resolver = {};
+
+  // 缓存块
+  const saveCache = (key, chunk) => {
+    storage.setItem(key, chunk);
+    storage.setItem(`${key}-time`, Date.now());
+
+    if (hands[key]) {
+      // 返回握手数据
+      resolver[key](chunk);
+      delete hands[key];
+      delete resolver[key];
+    }
+  };
+
+  // 获取握手器，当save对应hash时，及时返回数据
+  const handCache = async (hash) => {
+    const result = await getCache(hash);
+
+    if (result) {
+      return result;
+    }
+
+    const pms =
+      hands[hash] ||
+      (hands[hash] = new Promise((resolve) => {
+        resolver[hash] = resolve;
+      }));
+
+    return pms;
+  };
+
+  // 清除超时缓存
+  const clearCache = async () => {
+    const now = Date.now();
+    for await (let [key, value] of storage.entries()) {
+      if (/-time$/.test(key)) {
+        if (now - value > 5 * 60 * 1000) {
+          // 清除超过5分钟的内容
+          const realKey = key.replace("-time", "");
+          storage.removeItem(realKey);
+          storage.removeItem(key);
+        }
+      }
+    }
+
+    // 定时清除缓存
+    setTimeout(clearCache, 1 * 60 * 1000);
+  };
+
+  clearCache();
+
+  // 根据key获取值
+  // 先在本地获取，本地获取不到的情况下，从远端获取
+  const fetchCache = async (key, userid) => {
+    const result = await getCache(key);
+
+    if (result) {
+      return result;
+    }
+
+    return new Promise((resolve) => {
+      let timer;
+      let f = () => {
+        let targetUsr;
+
+        if (userid) {
+          user_js.users.find((e) => e.id === userid);
+        } else {
+          // 向所有用户广播查找
+          debugger;
+        }
+
+        // 重新发送缓存请求
+        targetUsr._send({
+          type: "getCache",
+          hashs: [key],
+        });
+
+        timer = setTimeout(() => {
+          // 4秒内还没搞定，重新发起请求
+          f();
+        }, 4000);
+      };
+
+      handCache(key).then((data) => {
+        clearTimeout(timer);
+        f = null;
+        resolve(data);
+      });
+
+      f();
+    });
+  };
 
   class PublicBaseHandle {
     constructor() {}
 
-    // 给远端用，获取分块数据
-    async _getHashMap(options) {
+    // 扁平化文件数据
+    async flat() {
+      return flatHandle(this);
+    }
+
+    // 按照需求将文件保存到缓存池中，方便远端获取
+    async _saveCache(arg) {
+      const chunkSize = arg.size;
+      const { options, returnHashs } = arg;
+
+      // 获取指定的块内容
+      const result = await this.buffer(options);
+      const datas = await splitIntoChunks(result, chunkSize);
+
+      const hashs = [];
+
+      await Promise.all(
+        datas.map(async (chunk, i) => {
+          const hash = await calculateHash(chunk);
+
+          hashs[i] = hash;
+
+          await saveCache(hash, chunk);
+        })
+      );
+
+      if (returnHashs) {
+        return hashs;
+      }
+
+      return true;
+    }
+
+    // 从缓冲池进行组装文件并写入
+    async _writeByCache(options) {
+      const { hashs } = options;
+
+      const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
+
+      const chunks = await Promise.all(
+        hashs.map(async (hash) => {
+          return fetchCache(hash, userId);
+        })
+      );
+
+      // 写入文件
+      const writer = await this.createWritable();
+
+      for (let chunk of chunks) {
+        await writer.write(chunk);
+      }
+
+      writer.close();
+
+      return true;
+    }
+
+    async _getHashs(options) {
       options = options || {};
       const chunkSize = options.size || CHUNK_REMOTE_SIZE;
 
@@ -547,52 +906,39 @@
         })
       );
 
-      return [
-        {
-          bridgefile: 1,
-          size: await this.size(),
-        },
-        ...hashs,
-      ];
+      return hashs;
     }
 
-    // 给远端用，根据id或分块哈希sh获取分块数据
-    async _getChunk(hash, index, size) {
-      if (!size) {
-        size = CHUNK_REMOTE_SIZE;
+    // 根据哈希值，从缓存目录获取块数据，再合并成一个完整的文件
+    async _mergeChunk(hashs, cacheDirPath) {
+      const cacheDir = await (await this.root()).get(cacheDirPath);
+
+      if (!cacheDir) {
+        throw new Error("没有找到缓冲目录");
       }
 
-      if (index !== undefined) {
-        // 有块index的情况下，读取对应块并校验看是否合格
-        const chunk = await this.buffer({
-          start: index * size,
-          end: (index + 1) * size,
-        });
+      const writer = await this.createWritable();
 
-        const realHash = await calculateHash(chunk);
-
-        if (realHash === hash) {
-          return chunk;
+      for (let hash of hashs) {
+        const handle = await cacheDir.get(hash);
+        if (!handle) {
+          const err = get("notFoundChunk", {
+            path: item.path,
+            hash,
+          });
+          console.error(err);
+          await writer.abort();
+          throw err;
         }
 
-        // 如果hash都不满足，重新查找并返回
-        debugger;
+        const data = await handle.buffer();
+        await writer.write(data);
       }
 
-      const file = await this.file();
+      // 没有报错
+      await writer.close();
 
-      const hashMap = new Map();
-
-      const chunks = await splitIntoChunks(file, size);
-
-      await Promise.all(
-        chunks.map(async (chunk) => {
-          const hash = await calculateHash(chunk);
-          hashMap.set(hash, chunk);
-        })
-      );
-
-      return hashMap.get(hash);
+      return true;
     }
   }
 
@@ -1420,7 +1766,7 @@
    * @param {String} path 文件或文件夹的路径
    * @returns {(DirHandle|FileHandle)}
    */
-  const get = async (path, options) => {
+  const get$1 = async (path, options) => {
     const paths = path.split("/");
 
     if (!paths.length) {
@@ -1558,7 +1904,7 @@
     }
 
     // console.log("path:", path);
-    const handle = await get(path);
+    const handle = await get$1(path);
     let content = await handle.file();
 
     const headers = {};
@@ -1593,7 +1939,7 @@
     const isdebug = pathArr.slice(-1)[0] === "appdebug";
 
     try {
-      appconfig = await get(`${parentPath}/app.json`);
+      appconfig = await get$1(`${parentPath}/app.json`);
       appconfig = JSON.parse(await appconfig.text());
     } catch (err) {
       appconfig = await fetch(`/${parentPath}/app.json`).then((e) => e.json());
@@ -1700,4 +2046,4 @@
     console.log("NoneOS server activation successful");
   });
 
-})();
+})({});

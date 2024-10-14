@@ -2,7 +2,7 @@ import { get } from "../handle/index.js";
 import { connectUser } from "/packages/connect/user.js";
 
 // 中转所有远程的内容
-const bridge = async (options, send) => {
+const bridge = async (options) => {
   const { method, path, args = [] } = options;
 
   let handle;
@@ -29,7 +29,7 @@ const bridge = async (options, send) => {
       returnValue.push(e);
     }
   } else {
-    console.log(`method "${method}": `, result, valueType);
+    // console.log(`method "${method}": `, result, valueType);
   }
 
   return {
@@ -64,13 +64,13 @@ export const handleBridge = async (options, userid) => {
 
   // 从远端获取到返回的数据
   const result = await new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error(`Get request timeout: ${options.path}`));
-      clear();
-    }, 10000);
+    // const timer = setTimeout(() => {
+    //   reject(new Error(`Get request timeout: ${options.path}`));
+    //   clear();
+    // }, 10000);
 
     const clear = () => {
-      clearTimeout(timer);
+      // clearTimeout(timer);
       promiseSaver.delete(bid);
     };
 
@@ -91,18 +91,7 @@ export const handleBridge = async (options, userid) => {
 
 // 响应远端的数据
 export const reponseBridge = async (result, permissions, send) => {
-  if (result instanceof ArrayBuffer) {
-    // 拿出前八个数字，判断是否符合bid
-    const bid = arrToHex(Array.from(new Uint8Array(result.slice(0, 8))));
-
-    const resolver = promiseSaver.get(bid);
-
-    if (resolver) {
-      resolver.resolve({
-        value: result.slice(8),
-      });
-    }
-  } else if (result.fs) {
+  if (result.fs) {
     // file system 方法转发内容
     const { options, bid } = result.fs;
 
@@ -119,30 +108,13 @@ export const reponseBridge = async (result, permissions, send) => {
       bdResult = await bridge(options);
     }
 
-    if (bdResult.method === "_getChunk") {
-      const hex = hexToArr(bid);
-
-      if (!bdResult.value) {
-        send(null);
-        return;
-      }
-
-      // 加上返回的BID
-      const newBuffer = prependToArrayBuffer(
-        bdResult.value,
-        new Uint8Array(hex)
-      );
-
-      send(newBuffer);
-    } else {
-      // 转发函数后的返回值
-      send({
-        responseFs: {
-          bid,
-          ...bdResult,
-        },
-      });
-    }
+    // 转发函数后的返回值
+    send({
+      responseFs: {
+        bid,
+        ...bdResult,
+      },
+    });
   } else if (result.responseFs) {
     const data = result.responseFs;
     const resolver = promiseSaver.get(data.bid);
@@ -157,27 +129,4 @@ export const reponseBridge = async (result, permissions, send) => {
   }
 };
 
-const getId = () =>
-  arrToHex(Array.from({ length: 8 }, () => Math.floor(Math.random() * 256)));
-
-function arrToHex(arr) {
-  return arr.map((e) => e.toString(16).padStart(2, "0")).join("");
-}
-
-function hexToArr(hexString) {
-  const result = [];
-  for (let i = 0; i < hexString.length; i += 2) {
-    const hexPair = hexString.slice(i, i + 2);
-    const decimal = parseInt(hexPair, 16);
-    result.push(decimal);
-  }
-  return result;
-}
-
-function prependToArrayBuffer(buffer, data) {
-  const newBuffer = new ArrayBuffer(buffer.byteLength + data.byteLength);
-  const newView = new Uint8Array(newBuffer);
-  newView.set(data, 0);
-  newView.set(new Uint8Array(buffer), data.byteLength);
-  return newBuffer;
-}
+const getId = () => Math.random().toString(32).slice(2);

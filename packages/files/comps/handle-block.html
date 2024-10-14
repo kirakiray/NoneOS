@@ -93,7 +93,7 @@
       proto: {
         get realName() {
           if (/\.fs_task_cache$/.test(this.name)) {
-            return this.name.replace(/\.fs_task_cache$/, "");
+            return this.name.replace(/\.fs_task_cache$/, "").replace(/^\./, "");
           }
           return this.name;
         },
