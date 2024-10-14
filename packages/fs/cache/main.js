@@ -17,10 +17,15 @@ export const fetchCache = async (key, userid) => {
       let targetUsr;
 
       if (userid) {
-        users.find((e) => e.id === userid);
+        targetUsr = users.find((e) => e.id === userid);
       } else {
         // 向所有用户广播查找
         debugger;
+      }
+
+      if (!targetUsr) {
+        alert("查找不到用户");
+        return;
       }
 
       // 重新发送缓存请求
