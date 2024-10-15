@@ -20,12 +20,16 @@
       box-sizing: border-box;
       width: 60px;
       border-radius: 30px;
-      padding: 4px 0;
+      /* padding: 4px 0; */
       transition: all ease 0.3s;
     }
 
-    :host([fullmode]) .container {
+    /* :host([fullmode]) .container {
       border-radius: 0;
+    } */
+
+    #homeapp-btn {
+      margin: 4px;
     }
 
     .app-container {
@@ -36,8 +40,9 @@
       transition: all ease 0.25s;
     }
 
-    .container > *:last-child {
-      margin-bottom: 8px;
+    .app-inner-container {
+      display: flex;
+      flex-direction: column;
     }
 
     .btn {
@@ -52,29 +57,25 @@
     }
 
     .app-container {
-      height: var(--defaultHeight);
       max-height: calc(100vh - 108px);
+      max-width: calc(100vw - 116px);
       overflow: auto;
-    }
-
-    :host([fullmode]) .app-container {
-      height: calc(100vh - 108px);
     }
   </style>
 
   <style>
-    .app-container {
-      --defaultHeight: data(defaultHeight);
+    /* 切换方向 */
+    .container[bar-dir="bottom"] {
+      flex-direction: row;
+      width: auto;
+    }
+    .container[bar-dir="bottom"] .app-inner-container {
+      flex-direction: row;
     }
   </style>
 
-  <div class="container frosted-glass">
-    <div
-      class="btn"
-      on:click="clickHomeApp"
-      id="homeapp-btn"
-      style="margin-bottom: 4px"
-    ></div>
+  <div class="container frosted-glass" attr:bar-dir="configs.barDirection">
+    <div class="btn" on:click="clickHomeApp" id="homeapp-btn"></div>
     <div class="app-container">
       <div class="app-inner-container">
         <x-fill :value="apps">
@@ -87,12 +88,14 @@
         </x-fill>
       </div>
     </div>
-    <n-bar-time></n-bar-time>
+    <n-bar-time style="margin: 12px 4px"></n-bar-time>
   </div>
   <script>
     import "/packages/pui/commons/init.js";
 
     export default async ({ load }) => {
+      const { configs } = await load("/packages/none-os/configs.js");
+
       return {
         tag: "os-bar",
         attrs: {
@@ -102,6 +105,7 @@
           showHomeApp: false,
           apps: [],
           homeApp: {},
+          configs: {}, // 系统配置数据
         },
         watch: {
           showHomeApp(bool) {
@@ -120,9 +124,6 @@
           },
         },
         proto: {
-          get defaultHeight() {
-            return this.apps.length * 50 + "px";
-          },
           clickHomeApp() {
             const opened = (this.showHomeApp = !this.showHomeApp);
 
@@ -146,7 +147,12 @@
             this.showHomeApp = false;
           },
         },
-        async attached() {},
+        async attached() {
+          this.configs = configs;
+        },
+        async detached() {
+          this.configs = {};
+        },
       };
     };
   </script>
