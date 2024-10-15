@@ -57,28 +57,17 @@
     }
 
     .app-container {
-      /* height: var(--defaultHeight); */
       max-height: calc(100vh - 108px);
+      max-width: calc(100vw - 116px);
       overflow: auto;
     }
-
-    /* :host([fullmode]) .app-container {
-      height: calc(100vh - 108px);
-    } */
   </style>
-
-  <!-- <style>
-    .app-container {
-      --defaultHeight: data(defaultHeight);
-    }
-  </style> -->
 
   <style>
     /* 切换方向 */
     .container[bar-dir="bottom"] {
       flex-direction: row;
       width: auto;
-      /* padding: 0 4px; */
     }
     .container[bar-dir="bottom"] .app-inner-container {
       flex-direction: row;
@@ -135,9 +124,6 @@
           },
         },
         proto: {
-          // get defaultHeight() {
-          //   return this.apps.length * 50 + "px";
-          // },
           clickHomeApp() {
             const opened = (this.showHomeApp = !this.showHomeApp);
 

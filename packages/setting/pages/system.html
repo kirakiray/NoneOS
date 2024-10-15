@@ -100,6 +100,14 @@
           <option value="en">English</option>
         </p-select>
       </p-list-item>
+      <p-list-item radius>
+        <n-local-icon name="version" slot="prefix"></n-local-icon>
+        重启系统
+        <div class="item-tips">点击后，重新启动虚拟系统</div>
+        <p-button slot="suffix" size="small" on:click="reloadSystem">
+          重启
+        </p-button>
+      </p-list-item>
     </div>
     <h5>外观</h5>
     <div class="list">
@@ -176,6 +184,9 @@
           },
         },
         proto: {
+          async reloadSystem() {
+            location.reload();
+          },
           async changeDir(e) {
             // 改变程序坞的方向
             const dir = $(e.target).value;
