@@ -127,7 +127,15 @@
           style="font-size: 26px"
         ></n-local-icon>
         程序坞方向
-        <div class="item-tips">准备中...</div>
+        <p-select
+          slot="suffix"
+          size="small"
+          :value="bardir"
+          on:change="changeDir"
+        >
+          <option value="left">左侧</option>
+          <option value="bottom">下方</option>
+        </p-select>
       </p-list-item>
     </div>
   </div>
@@ -139,6 +147,10 @@
       const { get } = await load("/packages/fs/main.js");
       const { installOS } = await load("/packages/none-os/util.js");
 
+      const { configs } = await load("/packages/none-os/configs.js");
+
+      console.log(configs);
+
       return {
         data: {
           lang: "cn",
@@ -147,6 +159,7 @@
           onlineVersion: "",
           updateing: "",
           theme: "",
+          bardir: configs.barDirection, // 程序坞的方向
         },
         watch: {
           theme(theme) {
@@ -160,8 +173,16 @@
             const puiRoot = $.getRootProvider("pui");
             puiRoot.theme = bool ? "dark" : "light";
           },
+          bardir(val) {
+            configs.barDirection = val;
+          },
         },
         proto: {
+          async changeDir(e) {
+            // 改变程序坞的方向
+            const dir = $(e.target).value;
+            this.bardir = dir;
+          },
           async updateSystem() {
             await installOS(({ count, length }) => {
               this.updateing = `更新中 ${count}/${length}`;

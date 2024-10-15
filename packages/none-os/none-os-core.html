@@ -27,9 +27,17 @@
       /* background-color: red; */
     }
   </style>
+  <style>
+    .container[bar-dir="bottom"] {
+      flex-direction: column-reverse;
+    }
+    .container[bar-dir="bottom"] .bar {
+      justify-content: center;
+    }
+  </style>
 
   <o-provider name="clipboard" type="none">
-    <div class="container">
+    <div class="container" attr:bar-dir="configs.barDirection">
       <div class="bar">
         <os-bar
           :apps="barApps"
@@ -62,7 +70,9 @@
   <script>
     import "/packages/pui/init.js";
 
-    export default async () => {
+    export default async ({ load }) => {
+      const { configs } = await load("/packages/none-os/configs.js");
+
       return {
         tag: "none-os-core",
         data: {
@@ -79,6 +89,7 @@
           // 应用栏上的应用状态数据
           barApps: [],
           hasMaxApp: false, // 是否存在最大化的应用
+          configs: {},
         },
         proto: {
           // 运行app，一般情况下，是通过app-manager来运行的
@@ -293,10 +304,14 @@
             });
           }
 
+          this.configs = configs;
+
           this.loadAppsState();
         },
         detached() {
           this._offState && this._offState();
+
+          this.configs = {};
         },
       };
     };
