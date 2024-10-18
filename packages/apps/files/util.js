@@ -1,4 +1,4 @@
-import { zips } from "../zip/main.js";
+import { zips } from "/packages/zip/main.js";
 
 // 导入文件夹压缩包数据
 export async function handleToZip(handler) {

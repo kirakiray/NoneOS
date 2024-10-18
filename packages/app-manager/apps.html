@@ -141,7 +141,11 @@
       const { get } = await load("/packages/fs/main.js");
 
       // 默认应用
-      const defaultApps = ["/packages/files", "/packages/setting"];
+      const defaultApps = [
+        "/packages/apps/files",
+        "/packages/apps/setting",
+        "/packages/apps/link",
+      ];
 
       return {
         data: {
