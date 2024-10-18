@@ -25,6 +25,10 @@
       margin-right: 8px;
       height: 24px;
     }
+    .title {
+      padding: 16px 0;
+      font-weight: bold;
+    }
   </style>
   <n-horsp-pannel>
     <p-list slot="left">
@@ -39,7 +43,14 @@
         </p-list-item>
       </x-fill>
     </p-list>
-    <slot></slot>
+    <div>
+      <div class="title">
+        <x-fill :value="titles" fill-key="name">
+          <div>{{$data.name}}</div>
+        </x-fill>
+      </div>
+      <slot></slot>
+    </div>
   </n-horsp-pannel>
   <script>
     export default () => {
@@ -51,6 +62,16 @@
               path: "home",
               icon: "/packages/apps/setting/sources/user.svg",
             },
+            {
+              name: "服务器",
+              path: "server",
+              icon: "/packages/apps/link/sources/server.svg",
+            },
+          ],
+          titles: [
+            // {
+            //   name: "标题",
+            // },
           ],
           selectedRootName: null,
         },
@@ -72,6 +93,12 @@
               return "";
             }
           },
+        },
+        ready() {
+          this.on("update-title", (e) => {
+            e.stopPropagation();
+            this.titles = e.data.titles;
+          });
         },
       };
     };

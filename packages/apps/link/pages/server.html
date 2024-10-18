@@ -1,0 +1,180 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .server-block {
+      position: relative;
+      margin: 0 8px 8px 0;
+      padding: 8px;
+      min-width: 300px;
+      border: #47a1fb solid 1px;
+      word-break: break-all;
+      border-radius: 6px;
+    }
+
+    .block-line {
+      display: flex;
+      align-items: center;
+    }
+
+    .block-line-key {
+      font-weight: bold;
+      font-size: 14px;
+      width: 100px;
+    }
+
+    .block-line-value {
+      flex: 1;
+    }
+
+    [status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+    [status="close"],
+    [status="error"] {
+      color: var(--md-sys-color-error);
+    }
+
+    p-button + p-button {
+      margin-left: 8px;
+    }
+  </style>
+  <div class="container">
+    <x-fill :value="servers" fill-key="serverUrl">
+      <div class="server-block">
+        <div class="block-line">
+          <div class="block-line-key">服务器名称</div>
+          <div class="block-line-value">{{$data.serverName}}</div>
+        </div>
+        <div class="block-line">
+          <div class="block-line-key">服务器版本</div>
+          <div class="block-line-value">{{$data.serverVersion}}</div>
+        </div>
+        <div class="block-line">
+          <div class="block-line-key">延迟</div>
+          <div class="block-line-value">{{$data.delayTime}}ms</div>
+
+          <p-button size="mini" variant="text" on:click="$host.ping($data)">
+            测试延迟
+          </p-button>
+        </div>
+        <div class="block-line">
+          <div class="block-line-key">连接状态</div>
+          <div class="block-line-value" attr:status="$data.status">
+            {{$data.status}}
+          </div>
+        </div>
+        <div class="block-line">
+          <div class="block-line-key">服务器地址</div>
+          <div
+            class="block-line-value"
+            style="user-select: text; font-size: 14px"
+          >
+            {{$data.serverUrl}}
+          </div>
+        </div>
+        <div
+          class="block-line"
+          style="margin-top: 4px; justify-content: flex-end"
+        >
+          <p-button size="mini"> 查看打印日志 </p-button>
+          <p-button
+            color="error"
+            size="mini"
+            variant="text"
+            on:click="$host.deleteServer($data)"
+            style="position: absolute; right: 8px; top: 12px"
+          >
+            删除
+          </p-button>
+        </div>
+      </div>
+    </x-fill>
+  </div>
+
+  <div style="display: flex; margin: 16px 8px 0 0">
+    <p-text-field
+      size="small"
+      placeholder="填写握手服务器地址"
+      sync:value="newServer"
+      style="flex: 1; margin-right: 16px"
+    ></p-text-field>
+    <p-button size="small" on:click="addServer">添加服务器</p-button>
+  </div>
+  <script>
+    export const parent = "../outer.html";
+
+    export default async ({ load }) => {
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+
+      const { servers, addServer, removeServer } = await load(
+        "/packages/core/server-connect/main.js"
+      );
+
+      return {
+        data: {
+          servers: [],
+          newServer: "",
+        },
+        proto: {
+          ping(item) {
+            item.ping();
+          },
+          async deleteServer(item) {
+            const result = await confirm({
+              title: "删除服务器",
+              content: `确认要从本地删除 ${item.serverName}(${item.serverUrl}) 吗？`,
+              yes: "确认删除",
+              cancel: "取消",
+            });
+
+            if (result) {
+              await removeServer(item.serverUrl);
+            }
+          },
+          async addServer() {
+            const result = await addServer(this.newServer);
+
+            // 如果返回内容是Error，代表出错，弹窗提示
+            if (result instanceof Error) {
+              enqueue({
+                color: "error",
+                content: result.toString(),
+              });
+              return;
+            }
+
+            this.newServer = "";
+          },
+        },
+        attached() {
+          this.servers = servers;
+          console.log(servers);
+
+          this.emit("update-title", {
+            composed: true,
+            data: {
+              titles: [
+                {
+                  name: "服务器",
+                },
+              ],
+            },
+          });
+        },
+        detached() {
+          this.servers = [];
+        },
+      };
+    };
+  </script>
+</template>

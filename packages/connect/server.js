@@ -81,7 +81,6 @@ class ServerConnector extends $.Stanz {
         this.__sse.close();
       }
 
-      // const serverSign = await sign(this.serverUrl);
       const serverSign = await sign(new URL(this.serverUrl).origin);
 
       // 创建一个 EventSource 对象，连接到 SSE 端点
@@ -219,31 +218,31 @@ class ServerConnector extends $.Stanz {
   }
 }
 
-setTimeout(() => {
-  // 初始化服务器操作
-  getServerFile().then(async (serverFile) => {
-    // 读取缓存的数据
-    let data = await serverFile.text();
-    try {
-      if (data) {
-        data = JSON.parse(data);
+// setTimeout(() => {
+//   // 初始化服务器操作
+//   getServerFile().then(async (serverFile) => {
+//     // 读取缓存的数据
+//     let data = await serverFile.text();
+//     try {
+//       if (data) {
+//         data = JSON.parse(data);
 
-        data.forEach((e) => {
-          servers.push(
-            new ServerConnector({
-              serverUrl: e.serverUrl,
-              serverName: e.serverName,
-            })
-          );
-        });
-      }
-    } catch (err) {
-      console.error(err);
-    }
+//         data.forEach((e) => {
+//           servers.push(
+//             new ServerConnector({
+//               serverUrl: e.serverUrl,
+//               serverName: e.serverName,
+//             })
+//           );
+//         });
+//       }
+//     } catch (err) {
+//       console.error(err);
+//     }
 
-    if (!servers.length && location.host.includes("localhost")) {
-      // 添加测试服务器
-      addServer("http://localhost:5569/user");
-    }
-  });
-});
+//     if (!servers.length && location.host.includes("localhost")) {
+//       // 添加测试服务器
+//       addServer("http://localhost:5569/user");
+//     }
+//   });
+// });
