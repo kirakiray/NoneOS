@@ -1,0 +1,101 @@
+<template page>
+  <l-m src="../comps/log-block.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .log-block {
+      display: block;
+      border: rgb(37, 110, 47) solid 1px;
+      padding: 4px;
+      border-radius: 4px;
+      margin: 8px 8px 0 0;
+    }
+    .log-time {
+      font-size: 12px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  </style>
+  <div style="color: var(--md-sys-color-normal)">服务器地址: {{serverUrl}}</div>
+  <div>历史日志:</div>
+  <div class="container">
+    <x-fill :value="logs" fill-key="time">
+      <div class="log-block">
+        <div class="log-time">时间: {{$data.time}}</div>
+        <div class="log-content">
+          <n-log-block attr:str="$data._data"></n-log-block>
+        </div>
+      </div>
+    </x-fill>
+  </div>
+  <script>
+    export const parent = "../outer.html";
+
+    export default async ({ load, query }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+      const serverUrl = decodeURIComponent(query.url);
+
+      return {
+        data: {
+          serverUrl,
+          logs: [], // 所有需要打印的信息
+        },
+        proto: {
+          async loadLogs() {
+            const urlObj = new URL(serverUrl);
+
+            // 打印目录名
+            const sname =
+              urlObj.host.split(":").join("--") +
+              urlObj.pathname.split("/").join("--");
+
+            const dirHandle = await get(`local/caches/server/${sname}`);
+
+            const logs = [];
+
+            if (dirHandle) {
+              for await (let item of dirHandle.values()) {
+                const _time = parseInt(item.name.replace(".json", ""));
+                const time = new Date(_time);
+
+                logs.push({
+                  time: time.toLocaleString(),
+                  _time,
+                  _data: await item.text(),
+                });
+              }
+
+              logs.sort((a, b) => {
+                return b._time - a._time;
+              });
+
+              this.logs = logs;
+
+              console.log(logs);
+            }
+          },
+        },
+        attached() {
+          this.emit("update-title", {
+            composed: true,
+            data: {
+              titles: [
+                {
+                  name: "服务器",
+                },
+                {
+                  name: "历史日志",
+                },
+              ],
+            },
+          });
+
+          this.loadLogs();
+        },
+      };
+    };
+  </script>
+</template>

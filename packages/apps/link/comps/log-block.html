@@ -1,0 +1,91 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      user-select: text;
+    }
+
+    .data-block {
+      display: block;
+      font-size: 12px;
+    }
+
+    .data-line {
+      display: flex;
+      padding-left: 1em;
+    }
+
+    .data-key {
+      color: #8f8f8f;
+    }
+
+    .mark-el {
+      color: #e3e3e3;
+      font-size: 12px;
+    }
+
+    :host {
+      --color-str: #7dd2f7;
+      --color-num: #9480f7;
+    }
+  </style>
+  <div class="main"></div>
+  <script>
+    export default {
+      tag: "n-log-block",
+      attrs: {
+        str: "", // json字符串
+      },
+      proto: {
+        get jsonData() {
+          return JSON.parse(this.str);
+        },
+      },
+      attached() {
+        const el = createEl(this.jsonData);
+
+        this.shadow.$(".main").push(el);
+      },
+    };
+
+    const createEl = (obj) => {
+      let el = $(`<div class="data-block"></div>`);
+
+      Object.entries(obj).forEach(([key, val]) => {
+        const line = $(`<div class="data-line">
+            <div class="data-key">${key}</div>
+            <span style="color:var(--md-sys-color-on-normal-container);"> : </span>
+            <div class="data-val">${getValEl(val)}</div>
+        </div>`);
+
+        el.push(line);
+      });
+
+      if (Array.isArray(obj)) {
+        el = `<div>
+                <span class="mark-el">[</span>
+                ${el.ele.outerHTML}
+                <span class="mark-el">]</span>
+              </div>`;
+      } else {
+        el = `<div>
+                <span class="mark-el">{</span>
+                ${el.ele.outerHTML}
+                <span class="mark-el">}</span>
+              </div>`;
+      }
+
+      return el;
+    };
+    const getValEl = (val) => {
+      if (val instanceof Number) {
+        return `<span style="color:var(--color-num)">${val}</span>`;
+      } else if (typeof val === "string") {
+        return `<span style="color:var(--color-str)">'${val}'</span>`;
+      } else if (val instanceof Object) {
+        return createEl(val).ele.outerHTML;
+      }
+      return `<span style="">'${val}'</span>`;
+    };
+  </script>
+</template>

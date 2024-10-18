@@ -116,6 +116,10 @@
             try {
               const files = [];
 
+              if(!handle){
+                debugger
+              }
+
               await handle.forEach(async (item) => {
                 files.push({
                   size: formatBytes(await item.size()),

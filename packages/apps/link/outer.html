@@ -26,8 +26,16 @@
       height: 24px;
     }
     .title {
-      padding: 16px 0;
+      display: flex;
+      padding: 16px 0 8px;
       font-weight: bold;
+    }
+
+    .title-block + .title-block::before {
+      display: inline-block;
+      content: "▶";
+      margin: 0 8px;
+      transform: scale(0.5, 1);
     }
   </style>
   <n-horsp-pannel>
@@ -35,7 +43,7 @@
       <x-fill :value="roots">
         <p-list-item
           button
-          attr:active-item="$data.path === $host.currentPath"
+          attr:active-item="$host.isActive($data)"
           on:click="$host.clickTab($data)"
         >
           <img attr:src="$data.icon" slot="prefix" />
@@ -43,13 +51,26 @@
         </p-list-item>
       </x-fill>
     </p-list>
-    <div>
+    <div style="display: flex; flex-direction: column; height: 100%">
       <div class="title">
         <x-fill :value="titles" fill-key="name">
-          <div>{{$data.name}}</div>
+          <div class="title-block">{{$data.name}}</div>
         </x-fill>
       </div>
-      <slot></slot>
+      <div style="flex: 1; position: relative">
+        <div
+          style="
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+          "
+        >
+          <slot></slot>
+        </div>
+      </div>
     </div>
   </n-horsp-pannel>
   <script>
@@ -76,6 +97,9 @@
           selectedRootName: null,
         },
         proto: {
+          isActive(item) {
+            return new RegExp(item.path).test(this.currentPath);
+          },
           clickTab(data) {
             if (data.path === this.selectedRootName) {
               return;

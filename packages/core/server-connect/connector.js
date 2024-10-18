@@ -1,4 +1,14 @@
 import { getSelfUserCardData, sign } from "/packages/user/main.js";
+import { get } from "/packages/fs/handle/index.js";
+
+// 存放服务端的目录
+const serverCacheDir = (async () => {
+  const fileHandle = await get("local/caches/server", {
+    create: "dir",
+  });
+
+  return fileHandle;
+})();
 
 const BADTIME = "-"; // 测不到延迟时间
 const sessionID = Math.random().toString(32).slice(2); // 临时id
@@ -49,11 +59,35 @@ export class ServerConnector extends $.Stanz {
         )}`
       ));
 
+      const cacheDir = serverCacheDir.then((dir) => {
+        const urlObj = new URL(this.serverUrl);
+
+        // 打印目录名
+        const sname =
+          urlObj.host.split(":").join("--") +
+          urlObj.pathname.split("/").join("--");
+
+        return dir.get(sname, {
+          create: "dir",
+        });
+      });
+
       eventSource.onmessage = (event) => {
         const result = JSON.parse(event.data);
 
+        // 保存打印的信息
+        cacheDir
+          .then((dir) => {
+            return dir.get(`${Date.now()}.json`, {
+              create: "file",
+            });
+          })
+          .then((fileHandle) => {
+            return fileHandle.write(JSON.stringify(result));
+          });
+
+        // 更新服务器信息
         if (result.__type === "init") {
-          // 更新服务器信息
           this.serverName = result.serverName;
           this.serverVersion = result.serverVersion;
           this.serverID = result.serverID;
@@ -73,7 +107,7 @@ export class ServerConnector extends $.Stanz {
 
       // 监听连接关闭事件
       const closeSource = (eventSource.onclose = () => {
-        if (this.#sse === this) {
+        if (this.#sse === eventSource) {
           this.#initingPms = null;
           reject();
           this.delayTime = BADTIME;
@@ -85,6 +119,7 @@ export class ServerConnector extends $.Stanz {
       // 监听错误事件
       eventSource.onerror = (e) => {
         console.error(e);
+        eventSource.close();
         // 在这里处理错误
         closeSource();
       };

@@ -39,7 +39,7 @@
     [status="connected"] {
       color: var(--md-sys-color-success);
     }
-    [status="close"],
+    [status="closed"],
     [status="error"] {
       color: var(--md-sys-color-error);
     }
@@ -86,7 +86,9 @@
           class="block-line"
           style="margin-top: 4px; justify-content: flex-end"
         >
-          <p-button size="mini"> 查看打印日志 </p-button>
+          <p-button size="mini" on:click="$host.gotoLog($data)">
+            查看历史日志
+          </p-button>
           <p-button
             color="error"
             size="mini"
@@ -126,6 +128,11 @@
           newServer: "",
         },
         proto: {
+          async gotoLog(item) {
+            this.goto(
+              `./server-log.html?url=${encodeURIComponent(item.serverUrl)}`
+            );
+          },
           ping(item) {
             item.ping();
           },
