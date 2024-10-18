@@ -1,10 +1,86 @@
 <template page>
-  <div>I am home</div>
+  <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding-top: 16px;
+    }
+  </style>
+  <p-table style="margin-right: 16px">
+    <p-table-row>
+      <p-table-cell basis="120">用户名</p-table-cell>
+      <p-table-cell>
+        <x-if :value="renameMode">
+          <input
+            id="renameInputer"
+            type="text"
+            sync:value="userName"
+            on:change="renameEnd"
+            on:blur="renameMode = false"
+          />
+        </x-if>
+        <x-else>
+          <div>{{userName}}</div>
+        </x-else>
+
+        <p-button
+          icon
+          size="small"
+          variant="text"
+          on:click="renameMode = true"
+          class:hide="renameMode"
+          style="margin-left: 8px"
+        >
+          <n-local-icon name="edit"></n-local-icon>
+        </p-button>
+      </p-table-cell>
+    </p-table-row>
+    <p-table-row>
+      <p-table-cell>用户ID</p-table-cell>
+      <p-table-cell> {{userID}} </p-table-cell>
+    </p-table-row>
+    <p-table-row>
+      <p-table-cell>签名公钥</p-table-cell>
+      <p-table-cell>
+        <div class="row-val" attr:title="signPublic">{{signPublic}}</div>
+      </p-table-cell>
+    </p-table-row>
+  </p-table>
   <script>
     export const parent = "../outer.html";
 
-    export default {
-      data: {},
+    export default async ({ load }) => {
+      const { getSelfUserInfo, renameUser } = await load(
+        "/packages/user/main.js"
+      );
+
+      const selfData = await getSelfUserInfo();
+
+      return {
+        data: {
+          userID: selfData.userID,
+          userName: selfData.userName || selfData.backupUserName,
+          signPublic: selfData.signPublic,
+          renameMode: false,
+        },
+        watch: {
+          renameMode(bool) {
+            if (bool) {
+              setTimeout(() => {
+                this.shadow.$("#renameInputer") &&
+                  this.shadow.$("#renameInputer").ele.focus();
+              }, 100);
+            }
+          },
+        },
+        proto: {
+          renameEnd(e) {
+            this.renameMode = false;
+            renameUser(this.userName);
+          },
+        },
+      };
     };
   </script>
 </template>
