@@ -3,6 +3,7 @@ import { getData, setData, getRandomId } from "./db.js";
 import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
 import { getSelfData, updateParentsModified } from "./util.js";
+import { isValidPath } from "../util.js";
 
 /**
  * 创建文件夹handle
@@ -24,6 +25,13 @@ export class DirHandle extends BaseHandle {
    * @returns  {Promise<(FileHandle|DirHandle)>}
    */
   async get(path, options) {
+    // 确保路径正确
+    if (!isValidPath(path)) {
+      throw getErr("pathInvalid", {
+        path,
+      });
+    }
+
     await getSelfData(this, "get");
 
     const paths = path.split("/");

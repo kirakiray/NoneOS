@@ -138,3 +138,9 @@ export const readBufferByType = ({ buffer, type, data, isChunk }) => {
     return buffer.buffer;
   }
 };
+
+const invalidChars = /[<>:"\\|?*\x00-\x1F]/;
+export function isValidPath(path) {
+  // 定义不允许出现的特殊字符
+  return !invalidChars.test(path);
+}

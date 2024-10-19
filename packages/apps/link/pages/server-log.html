@@ -1,5 +1,6 @@
 <template page>
   <l-m src="../comps/log-block.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: block;
@@ -19,10 +20,28 @@
       flex-wrap: wrap;
     }
   </style>
-  <div style="color: var(--md-sys-color-normal)">服务器地址: {{serverUrl}}</div>
-  <div>历史日志:</div>
+  <div>服务器地址: {{serverUrl}}</div>
+
+  <div style="display: flex; margin: 4px 0">
+    历史日志:
+    <div style="margin: 0 16px 0 auto">
+      操作：
+      <p-button size="mini" on:click="loadLogs">刷新</p-button>
+      <p-button size="mini" color="error" on:click="deleteAll">
+        删除所有日志
+      </p-button>
+    </div>
+  </div>
   <div class="container">
-    <x-fill :value="logs" fill-key="time">
+    <x-if :value="loading">
+      <p-progress color="success" type="circle"></p-progress>
+    </x-if>
+    <x-if :value="!loading && !logs.length">
+      <div style="width: 200px; color: #7e7e7e; text-align: center">
+        没有日志
+      </div>
+    </x-if>
+    <x-fill :value="logs" fill-key="_time">
       <div class="log-block">
         <div class="log-time">时间: {{$data.time}}</div>
         <div class="log-content">
@@ -34,7 +53,12 @@
   <script>
     export const parent = "../outer.html";
 
+    import moment from "/packages/libs/moment/moment.min.js";
+    import "/packages/libs/moment/zh-cn.js";
+    moment.locale("zh-cn");
+
     export default async ({ load, query }) => {
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
       const { get } = await load("/packages/fs/handle/index.js");
       const serverUrl = decodeURIComponent(query.url);
 
@@ -42,9 +66,24 @@
         data: {
           serverUrl,
           logs: [], // 所有需要打印的信息
+          loading: false,
         },
         proto: {
-          async loadLogs() {
+          async deleteAll() {
+            const result = await confirm({
+              title: "删除日志",
+              content: "确认删除所有日志吗？",
+            });
+
+            if (result) {
+              const dirHandle = await get(`local/caches/server/${this.sname}`);
+
+              await dirHandle.remove();
+
+              this.loadLogs();
+            }
+          },
+          get sname() {
             const urlObj = new URL(serverUrl);
 
             // 打印目录名
@@ -52,17 +91,28 @@
               urlObj.host.split(":").join("--") +
               urlObj.pathname.split("/").join("--");
 
-            const dirHandle = await get(`local/caches/server/${sname}`);
+            return sname;
+          },
+          // 刷新时间
+          refreshTime() {
+            this.logs.forEach((e) => {
+              const { _time } = e;
+              e.time = moment(_time).fromNow();
+            });
+          },
+          async loadLogs() {
+            this.loading = true;
+
+            const dirHandle = await get(`local/caches/server/${this.sname}`);
 
             const logs = [];
 
             if (dirHandle) {
               for await (let item of dirHandle.values()) {
                 const _time = parseInt(item.name.replace(".json", ""));
-                const time = new Date(_time);
 
                 logs.push({
-                  time: time.toLocaleString(),
+                  time: _time,
                   _time,
                   _data: await item.text(),
                 });
@@ -71,11 +121,12 @@
               logs.sort((a, b) => {
                 return b._time - a._time;
               });
-
-              this.logs = logs;
-
-              console.log(logs);
             }
+
+            this.logs = logs;
+            this.refreshTime();
+            console.log(logs);
+            this.loading = false;
           },
         },
         attached() {
@@ -94,6 +145,13 @@
           });
 
           this.loadLogs();
+
+          this._timer = setInterval(() => {
+            this.refreshTime();
+          }, 5000);
+        },
+        detached() {
+          clearInterval(this._timer);
         },
       };
     };

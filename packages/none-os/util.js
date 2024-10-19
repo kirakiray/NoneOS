@@ -1,4 +1,4 @@
-import { unzip } from "../zip/main.js";
+import { unzip } from "../libs/zip/main.js";
 import { get } from "../fs/handle/index.js";
 
 // 安装系统依赖文件
