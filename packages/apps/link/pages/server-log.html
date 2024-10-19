@@ -1,23 +1,21 @@
 <template page>
-  <l-m src="../comps/log-block.html"></l-m>
+  <!-- <l-m src="../comps/log-block.html"></l-m> -->
+  <l-m src="../comps/server-log-block.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: block;
     }
-    .log-block {
-      display: block;
-      border: rgb(37, 110, 47) solid 1px;
-      padding: 4px;
-      border-radius: 4px;
-      margin: 8px 8px 0 0;
-    }
-    .log-time {
-      font-size: 12px;
-    }
     .container {
       display: flex;
       flex-wrap: wrap;
+    }
+    .group_title {
+      font-size: 12px;
+      color: #7e7e7e;
+    }
+    .group {
+      margin-top: 8px;
     }
   </style>
   <div>服务器地址: {{serverUrl}}</div>
@@ -36,20 +34,57 @@
     <x-if :value="loading">
       <p-progress color="success" type="circle"></p-progress>
     </x-if>
-    <x-if :value="!loading && !logs.length">
+    <x-if :value="!loading && isEmpty">
       <div style="width: 200px; color: #7e7e7e; text-align: center">
         没有日志
       </div>
     </x-if>
-    <x-fill :value="logs" fill-key="_time">
-      <div class="log-block">
-        <div class="log-time">时间: {{$data.time}}</div>
-        <div class="log-content">
-          <n-log-block attr:str="$data._data"></n-log-block>
-        </div>
-      </div>
-    </x-fill>
   </div>
+
+  <x-if :value="groupData.withinFiveMinutes.length">
+    <div class="group">
+      <span class="group_title"> 五分钟内:</span>
+      <div class="container">
+        <x-fill :value="groupData.withinFiveMinutes">
+          <server-log-block :item="$data"></server-log-block>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <x-if :value="groupData.withinOneHour.length">
+    <div class="group">
+      <span class="group_title"> 一小时内:</span>
+      <div class="container">
+        <x-fill :value="groupData.withinOneHour">
+          <server-log-block :item="$data"></server-log-block>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <x-if :value="groupData.withinOneDay.length">
+    <div class="group">
+      <span class="group_title"> 今天:</span>
+      <div class="container">
+        <x-fill :value="groupData.withinOneDay">
+          <server-log-block :item="$data"></server-log-block>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <x-if :value="groupData.moreThanOneDay.length">
+    <div class="group">
+      <span class="group_title"> 一天前:</span>
+      <div class="container">
+        <x-fill :value="groupData.moreThanOneDay">
+          <server-log-block :item="$data"></server-log-block>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
   <script>
     export const parent = "../outer.html";
 
@@ -65,8 +100,15 @@
       return {
         data: {
           serverUrl,
-          logs: [], // 所有需要打印的信息
           loading: false,
+          isEmpty: false,
+          // 分组数据
+          groupData: {
+            withinFiveMinutes: [], // 五分钟内的数据
+            withinOneHour: [], // 一个小时内的数据
+            withinOneDay: [], // 一天内的数据
+            moreThanOneDay: [], // 一天外的数据
+          },
         },
         proto: {
           async deleteAll() {
@@ -93,13 +135,6 @@
 
             return sname;
           },
-          // 刷新时间
-          refreshTime() {
-            this.logs.forEach((e) => {
-              const { _time } = e;
-              e.time = moment(_time).fromNow();
-            });
-          },
           async loadLogs() {
             this.loading = true;
 
@@ -112,7 +147,7 @@
                 const _time = parseInt(item.name.replace(".json", ""));
 
                 logs.push({
-                  time: _time,
+                  time: moment(_time).fromNow(),
                   _time,
                   _data: await item.text(),
                 });
@@ -123,10 +158,24 @@
               });
             }
 
-            this.logs = logs;
-            this.refreshTime();
-            console.log(logs);
             this.loading = false;
+
+            if (!logs.length) {
+              // 空数据
+              this.isEmpty = true;
+              this.groupData = {
+                withinFiveMinutes: [], // 五分钟内的数据
+                withinOneHour: [], // 一个小时内的数据
+                withinOneDay: [], // 一天内的数据
+                moreThanOneDay: [], // 一天外的数据
+              };
+              return;
+            }
+
+            this.isEmpty = false;
+            const gdata = (this.groupData = groupByTime(logs));
+
+            console.log(gdata);
           },
         },
         attached() {
@@ -146,14 +195,45 @@
 
           this.loadLogs();
 
-          this._timer = setInterval(() => {
-            this.refreshTime();
-          }, 5000);
+          // this._timer = setInterval(() => {
+          //   this.refreshTime();
+          // }, 5000);
         },
         detached() {
-          clearInterval(this._timer);
+          // clearInterval(this._timer);
         },
       };
     };
+
+    // 给数据分组
+    function groupByTime(arr) {
+      const now = new Date();
+      const fiveMinutes = 5 * 60 * 1000;
+      const oneHour = 60 * 60 * 1000;
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      const groups = {
+        withinFiveMinutes: [],
+        withinOneHour: [],
+        withinOneDay: [],
+        moreThanOneDay: [],
+      };
+
+      arr.forEach((item) => {
+        const timeDiff = now - new Date(item._time);
+
+        if (timeDiff <= fiveMinutes) {
+          groups.withinFiveMinutes.push(item);
+        } else if (timeDiff <= oneHour) {
+          groups.withinOneHour.push(item);
+        } else if (timeDiff <= oneDay) {
+          groups.withinOneDay.push(item);
+        } else {
+          groups.moreThanOneDay.push(item);
+        }
+      });
+
+      return groups;
+    }
   </script>
 </template>

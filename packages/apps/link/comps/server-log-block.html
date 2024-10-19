@@ -1,0 +1,43 @@
+<template component>
+  <l-m src="./log-block.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .log-block {
+      display: block;
+      border: rgb(37, 110, 47) solid 1px;
+      padding: 4px;
+      border-radius: 4px;
+      margin: 8px 8px 0 0;
+    }
+
+    .log-time {
+      font-size: 12px;
+    }
+  </style>
+  <div class="log-block">
+    <div class="log-time" attr:title="time">时间: {{item.time}}</div>
+    <div class="log-content">
+      <n-log-block :str="item._data"></n-log-block>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "server-log-block",
+        data: {
+          item: {
+            _data: "{}",
+          },
+        },
+        proto: {
+          get time() {
+            return new Date(this.item._time).toLocaleString();
+          },
+        },
+      };
+    };
+  </script>
+</template>

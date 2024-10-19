@@ -31,21 +31,31 @@
   </style>
   <div class="main"></div>
   <script>
-
     export default {
       tag: "n-log-block",
       attrs: {
         str: "", // json字符串
       },
-      proto: {
-        get jsonData() {
-          return JSON.parse(this.str);
+      watch: {
+        str(str) {
+          setTimeout(() => {
+            const { jsonData } = this;
+            if (jsonData) {
+              const el = createEl(jsonData);
+              this.shadow.$(".main").html = "";
+              this.shadow.$(".main").push(el);
+            }
+          });
         },
       },
-      attached() {
-        const el = createEl(this.jsonData);
-
-        this.shadow.$(".main").push(el);
+      proto: {
+        get jsonData() {
+          try {
+            return JSON.parse(this.str);
+          } catch (err) {
+            return {};
+          }
+        },
       },
     };
 
