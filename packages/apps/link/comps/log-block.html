@@ -13,19 +13,22 @@
     .data-line {
       display: flex;
       padding-left: 1em;
+      line-height: 1.2em;
     }
 
     .data-key {
-      color: #8f8f8f;
+      color: #bababa;
     }
 
     .mark-el {
+      display: inline-flex;
+      margin: 0 2px;
       color: #e3e3e3;
       font-size: 12px;
     }
 
     :host {
-      --color-str: #1d6f92;
+      --color-str: #1b9bd2;
       --color-num: #9480f7;
     }
   </style>
@@ -62,23 +65,32 @@
     const createEl = (obj) => {
       let el = $(`<div class="data-block"></div>`);
 
-      Object.entries(obj).forEach(([key, val]) => {
-        const line = $(`<div class="data-line">
-            <div class="data-key">${key}</div>
-            <span style="color:var(--md-sys-color-on-normal-container);"> : </span>
-            <div class="data-val">${getValEl(val)}</div>
-        </div>`);
-
-        el.push(line);
-      });
-
       if (Array.isArray(obj)) {
+        Object.entries(obj).forEach(([key, val]) => {
+          const line = $(`<div class="data-line">
+              <div class="data-val">${getValEl(val)}</div>
+              <span class="mark-el" style="align-items: flex-end;">,</span>
+          </div>`);
+
+          el.push(line);
+        });
+
         el = `<div>
                 <span class="mark-el">[</span>
                 ${el.ele.outerHTML}
                 <span class="mark-el">]</span>
               </div>`;
       } else {
+        Object.entries(obj).forEach(([key, val]) => {
+          const line = $(`<div class="data-line">
+              <div class="data-key">${key}</div>
+              <span class="mark-el"> : </span>
+              <div class="data-val">${getValEl(val)}</div>
+          </div>`);
+
+          el.push(line);
+        });
+
         el = `<div>
                 <span class="mark-el">{</span>
                 ${el.ele.outerHTML}
@@ -89,14 +101,14 @@
       return el;
     };
     const getValEl = (val) => {
-      if (val instanceof Number) {
+      if (typeof val === "number") {
         return `<span style="color:var(--color-num)">${val}</span>`;
       } else if (typeof val === "string") {
         return `<span style="color:var(--color-str)">'${val}'</span>`;
       } else if (val instanceof Object) {
-        return createEl(val).ele.outerHTML;
+        return createEl(val);
       }
-      return `<span style="">'${val}'</span>`;
+      return `<span style="color:#ddd">'${val}'</span>`;
     };
   </script>
 </template>

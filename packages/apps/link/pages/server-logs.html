@@ -15,13 +15,32 @@
       color: #7e7e7e;
     }
     .group {
-      margin-top: 8px;
+      margin-top: 16px;
     }
   </style>
-  <div>服务器地址: {{serverUrl}}</div>
+  <div>
+    服务器地址:
+    <span
+      style="
+        color: var(--md-sys-color-normal);
+        user-select: text;
+        font-size: 14px;
+      "
+      >{{serverUrl}}</span
+    >
+  </div>
 
-  <div style="display: flex; margin: 4px 0">
+  <div style="display: flex; margin: 4px 0; align-items: center">
     历史日志:
+
+    <x-if :value="loading">
+      <p-progress
+        color="success"
+        type="circle"
+        style="--circle-size: 20; margin-left: 8px"
+      ></p-progress>
+    </x-if>
+
     <div style="margin: 0 16px 0 auto">
       操作：
       <p-button size="mini" on:click="loadLogs">刷新</p-button>
@@ -31,9 +50,6 @@
     </div>
   </div>
   <div class="container">
-    <x-if :value="loading">
-      <p-progress color="success" type="circle"></p-progress>
-    </x-if>
     <x-if :value="!loading && isEmpty">
       <div style="width: 200px; color: #7e7e7e; text-align: center">
         没有日志
@@ -84,6 +100,8 @@
       </div>
     </div>
   </x-if>
+
+  <div style="height: 32px"></div>
 
   <script>
     export const parent = "../outer.html";

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test log block</title>
+    <script src="/packages/ofa/ofa.js"></script>
+    <style>
+      html {
+        background-color: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../log-block.html"></l-m>
+    <div style="padding: 30px">
+      <n-log-block></n-log-block>
+    </div>
+    <script>
+      const data = {
+        a: 1,
+        b: "I am b",
+        c: {
+          c1: "c1",
+          sub2: {
+            sub21: "sub21",
+          },
+          arr: [1, 2, "33", { val: 44 }, { val: "55" }],
+        },
+      };
+
+      $("n-log-block").str = JSON.stringify(data);
+    </script>
+  </body>
+</html>
