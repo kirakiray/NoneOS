@@ -4,7 +4,6 @@
   <style>
     :host {
       display: block;
-      padding-top: 16px;
     }
   </style>
   <p-table style="margin-right: 16px">
@@ -79,6 +78,18 @@
             this.renameMode = false;
             renameUser(this.userName);
           },
+        },
+        attached() {
+          this.emit("update-title", {
+            composed: true,
+            data: {
+              titles: [
+                {
+                  name: "首页",
+                },
+              ],
+            },
+          });
         },
       };
     };

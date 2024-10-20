@@ -81,7 +81,7 @@
 
   <x-if :value="groupData.withinOneDay.length">
     <div class="group">
-      <span class="group_title"> 今天:</span>
+      <span class="group_title"> 24小时内:</span>
       <div class="container">
         <x-fill :value="groupData.withinOneDay">
           <server-log-block :item="$data"></server-log-block>
@@ -164,11 +164,18 @@
               for await (let item of dirHandle.values()) {
                 const _time = parseInt(item.name.replace(".json", ""));
 
-                logs.push({
-                  time: moment(_time).fromNow(),
-                  _time,
-                  _data: await item.text(),
-                });
+                const _data = await item.text();
+
+                if (_data) {
+                  logs.push({
+                    time: moment(_time).fromNow(),
+                    _time,
+                    _data,
+                  });
+                } else {
+                  // 损坏的删除
+                  item.remove();
+                }
               }
 
               logs.sort((a, b) => {

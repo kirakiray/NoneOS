@@ -159,7 +159,7 @@ export class ServerConnector extends $.Stanz {
   // 给服务器发送数据
   async _post(data) {
     if (!this.#initingPms) {
-      this.init();
+      await this.init();
     }
 
     await this.#initingPms;

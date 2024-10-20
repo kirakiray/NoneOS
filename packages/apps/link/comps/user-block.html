@@ -1,0 +1,81 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      max-width: 320px;
+      display: block;
+      border: green solid 1px;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    .line {
+      display: flex;
+      align-items: center;
+    }
+    .line-key {
+      font-size: 14px;
+      font-weight: bold;
+      color: #7a7a7a;
+      margin-right: 8px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    [status="disconnected"] {
+      color: var(--md-sys-color-error);
+    }
+    [status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+  <div>
+    <div class="line">
+      <div class="line-key">用户名</div>
+      <div class="line-val">{{item.userName}}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">用户ID</div>
+      <div class="line-val">{{item.userId}}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">签名时间</div>
+      <div class="line-val" attr:title="signTime">{{momentTime}}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">连接状态</div>
+      <div class="line-val" attr:status="item.status">{{item.status}}</div>
+    </div>
+    <x-if :value="item.status === 'disconnected'">
+      <div>
+        <p-button size="mini">连接用户</p-button>
+      </div>
+    </x-if>
+  </div>
+  <script>
+    import moment from "/packages/libs/moment/moment.min.js";
+    import "/packages/libs/moment/zh-cn.js";
+    moment.locale("zh-cn");
+
+    export default async ({ load }) => {
+      return {
+        tag: "n-user-block",
+        data: {
+          item: {},
+        },
+        proto: {
+          get signTime() {
+            return new Date(this.item.time).toLocaleString();
+          },
+          get momentTime() {
+            return moment(this.item.time).fromNow();
+          },
+        },
+      };
+    };
+  </script>
+</template>
