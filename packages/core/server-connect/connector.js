@@ -131,6 +131,7 @@ export class ServerConnector extends $.Stanz {
 
   // 当服务器推送过来的时候，触发的函数
   async _onServerMsg(result) {
+    console.log("server msg: ", result);
     switch (result.__type) {
       case "agent-connect":
         // 转发用户数据

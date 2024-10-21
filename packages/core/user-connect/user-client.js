@@ -1,6 +1,7 @@
 import { User } from "/packages/user/public-user.js";
 import { getSelfUserInfo } from "/packages/user/main.js";
 import { servers } from "../main.js";
+import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
 
 const STARTCHANNEL = "startChannel";
 
@@ -20,6 +21,7 @@ export class UserClient extends $.Stanz {
        * set-remote: 接收到了远方的 offer 并设置到本地
        */
       state: "disconnected",
+      delayTime: "-", // 延迟时间
     });
 
     const { data, sign } = opt;
@@ -34,11 +36,6 @@ export class UserClient extends $.Stanz {
 
   async verify() {
     return await this.#user.verify();
-  }
-
-  _onmsg(e, channel) {
-    // channel 响应数据
-    debugger;
   }
 
   // 统一的初始化信道的方法
@@ -56,6 +53,9 @@ export class UserClient extends $.Stanz {
         if (!this.#channels.size) {
           // 没有通道的时候，代表已经关闭
           this.state = "closed";
+
+          // 清空rtc连接
+          this.#rtcConnection = null;
         }
       }
     };
@@ -63,6 +63,9 @@ export class UserClient extends $.Stanz {
     channel.onopen = () => {
       if (this.#channels.size >= 1) {
         this.state = "connected";
+
+        // 初次测试延迟
+        this.ping();
       }
     };
 
@@ -142,13 +145,15 @@ export class UserClient extends $.Stanz {
 
   // 连接这个用户
   async connect() {
-    if (this.state === "connected" || this.state === "connecting") {
+    if (this.state !== "disconnected" && this.state !== "closed") {
+      // 只允许未连接的情况下进行通信
       return;
     }
 
     this.state = "connecting";
 
-    const rtcPC = this.initRTC(); // 开始初始化
+    // const rtcPC = this.#rtcConnection || this.initRTC(); // 开始初始化
+    const rtcPC = this.initRTC(); // 重新开始初始化更有效率
 
     await this._getChannel(STARTCHANNEL); // 必须先创建channel ，不然不会触发 ice 事件
 
@@ -167,9 +172,71 @@ export class UserClient extends $.Stanz {
     return true;
   }
 
+  _onmsg(e, channel) {
+    // channel 响应数据
+    const { data } = e;
+
+    if (data === "__ping") {
+      // 返回测试延迟的字段
+      this.send("__pong");
+      return;
+    } else if (data === "__pong") {
+      if (this.__pingResolve) {
+        this.__pingResolve();
+      }
+      return;
+    }
+
+    debugger;
+  }
+
   // 向对面发送数据
   async send(data) {
-    debugger;
+    if (this.state !== "connected") {
+      throw new Error("The user is not connected yet, and data cannot be sent");
+    }
+
+    if (isPlainObject(data)) {
+      data = JSON.stringify(data);
+    }
+
+    // TODO: 获取第一个通道进行发送，后期应该分担到多个通道上
+    const channel = this.#channels.get(STARTCHANNEL);
+
+    if (data.length > CHUNK_REMOTE_SIZE) {
+      throw new Error(
+        `The data sent cannot be larger than ${CHUNK_REMOTE_SIZE / 1024}kb`
+      );
+    }
+
+    channel.send(data);
+  }
+
+  // 测试延迟时间
+  async ping() {
+    if (this._pinging) {
+      return this._pinging;
+    }
+
+    this.delayTime = "-";
+
+    return (this._pinging = new Promise((resolve) => {
+      setTimeout(async () => {
+        const pingTime = Date.now();
+
+        this.send("__ping");
+
+        // 等待返回的函数
+        this.__pingResolve = () => {
+          // 更新延迟时间
+          this.delayTime = Date.now() - pingTime + "ms";
+
+          // 清空临时对象
+          this.__pingResolve = null;
+          this._pinging = null;
+        };
+      }, 50);
+    }));
   }
 
   // 通过服务器转发内容
@@ -283,4 +350,8 @@ export class UserClient extends $.Stanz {
         break;
     }
   }
+}
+
+function isPlainObject(obj) {
+  return Object.prototype.toString.call(obj) === "[object Object]";
 }
