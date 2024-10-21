@@ -1,9 +1,11 @@
 <template component>
   <l-m src="./log-block.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+
   <style>
     :host {
       display: block;
-      max-width: 320px;
+      min-width: 300px;
     }
 
     .log-block {
@@ -21,8 +23,11 @@
   <div class="log-block">
     <div class="log-line" attr:title="time">时间: {{item.time}}</div>
     <div class="log-line" attr:title="time">类型: {{logType}}</div>
+    <p-button on:click="showAll = showAll ? null : 1" size="mini">
+      {{showAll ? '折叠内容' : '显示所有'}}
+    </p-button>
     <div class="log-content">
-      <n-log-block :str="item._data"></n-log-block>
+      <n-log-block :str="item._data" :show-all="showAll"></n-log-block>
     </div>
   </div>
   <script>
@@ -33,6 +38,7 @@
           item: {
             _data: "{}",
           },
+          showAll: null,
         },
         proto: {
           get logType() {
@@ -41,7 +47,7 @@
               // return data.__type;
               switch (data.__type) {
                 case "init":
-                  return "服务区数据初始化";
+                  return "服务初始化";
                 case "agent-connect":
                   return "转发数据";
               }
