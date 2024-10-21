@@ -61,7 +61,12 @@
     <x-else>
       <div class="line">
         <div class="line-key">延迟时间</div>
-        <div class="line-val">{{item.delayTime}}</div>
+        <div class="line-val">
+          <span style="display: inline-block; width: 60px">
+            {{item.delayTime}}
+          </span>
+          <p-button on:click="item.ping()" size="mini"> 测试延迟 </p-button>
+        </div>
       </div>
     </x-else>
   </div>
