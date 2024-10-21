@@ -5,6 +5,8 @@
       display: block;
     }
     .title {
+      display: flex;
+      align-items: center;
       font-size: 14px;
       font-weight: bold;
     }
@@ -16,7 +18,17 @@
       margin: 8px 8px 0px 0;
     }
   </style>
-  <div class="title">在线用户</div>
+  <div class="title">
+    <!-- 在线用户 -->
+    推荐用户
+    <p-button
+      on:click="updateOnlineUser"
+      style="margin: 0 16px 0 32px"
+      size="mini"
+    >
+      刷新用户
+    </p-button>
+  </div>
   <div class="container">
     <x-fill :value="users">
       <n-user-block :item="$data"></n-user-block>
@@ -27,11 +39,17 @@
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
-      const { users } = await load("/packages/core/user/main.js");
+      const { users } = await load("/packages/core/user-connect/main.js");
+      const { updateOnlineUser } = await load("/packages/core/user-connect/main.js");
 
       return {
         data: {
           users: [], // 所有用户
+        },
+        proto: {
+          updateOnlineUser() {
+            updateOnlineUser();
+          },
         },
         attached() {
           this.users = users;

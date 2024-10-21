@@ -1,5 +1,7 @@
 import { getSelfUserCardData, sign } from "/packages/user/main.js";
 import { get } from "/packages/fs/handle/index.js";
+import { User } from "/packages/user/public-user.js";
+import { users } from "../main.js";
 
 // 存放服务端的目录
 const serverCacheDir = (async () => {
@@ -128,28 +130,61 @@ export class ServerConnector extends $.Stanz {
 
   // 当服务器推送过来的时候，触发的函数
   async _onServerMsg(result) {
-    debugger;
+    switch (result.__type) {
+      case "agent-connect":
+        // 转发用户数据
+        const { fromUser, data } = result;
+
+        // 验证数据的正确性
+        const client = new User(fromUser.data, fromUser.sign);
+
+        if (await client.verify()) {
+          // 查看是否在队列，在队列的话直接转发内容
+          let targetClient = users.find((e) => e.userId === client.id);
+
+          if (!targetClient) {
+            // TODO: 如果不在用户队列，则需要先添加
+            debugger;
+          }
+
+          targetClient._onServerAgent(data);
+        } else {
+          // TODO: 验证用户失败，需要调整
+          debugger;
+        }
+
+        break;
+    }
   }
 
   // 测试延迟
   async ping() {
+    if (this._pinging) {
+      return this._pinging;
+    }
+
     this.delayTime = BADTIME;
-    clearTimeout(this.__pingTimer);
-    return new Promise((resolve) => {
-      this.__pingTimer = setTimeout(async () => {
-        // 延迟测试更准确
-        const startTime = Date.now();
-        const result = await this._post({
-          ping: Date.now(),
-        }).then((e) => e.json());
+    return (this._pinging = new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        try {
+          // 延迟测试更准确
+          const startTime = Date.now();
+          const result = await this._post({
+            ping: Date.now(),
+          }).then((e) => e.json());
 
-        if (result.pong) {
-          this.delayTime = Date.now() - startTime;
+          if (result.pong) {
+            this.delayTime = Date.now() - startTime;
+          }
+
+          this._pinging = null;
+          resolve(this.delayTime);
+        } catch (err) {
+          this._pinging = null;
+          reject(err);
         }
-
-        resolve(this.delayTime);
       }, 50);
-    });
+    }));
   }
 
   get serverPostUrl() {

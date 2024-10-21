@@ -1,8 +1,9 @@
-import { servers } from "../server-connect/main.js";
-import { UserClient } from "./user.js";
+import { servers, users } from "../main.js";
+import { UserClient } from "./user-client.js";
 import { getSelfUserInfo } from "/packages/user/main.js";
+import "../server-connect/main.js";
 
-export const users = $.stanz([]); // 所有的用户
+export { users };
 
 // 更新在线用户
 export const updateOnlineUser = async () => {
@@ -19,6 +20,11 @@ export const updateOnlineUser = async () => {
     if (result.ok) {
       const { data } = result;
 
+      if (data.length > 10) {
+        // TODO: 推荐大于10个需要报警
+        debugger;
+      }
+
       data.forEach(async (userData) => {
         const client = new UserClient(userData);
         const isVerify = await client.verify();
@@ -28,16 +34,21 @@ export const updateOnlineUser = async () => {
           return;
         }
 
+        // 如果已经存在，则不添加
+        if (users.some((user) => user.userId === client.userId)) {
+          return;
+        }
+
         if (isVerify) {
           // 确认没被擅改过的用户数据
           users.push(client);
         } else {
-          // 擅改过的用户进行警报
+          // TODO: 擅改过的用户进行警报
           debugger;
         }
       });
     } else {
-      // 服务器返回数据不成功的警报
+      // TODO: 服务器返回数据不成功的警报
       debugger;
     }
   });

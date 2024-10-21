@@ -1,8 +1,8 @@
 import { get } from "/packages/fs/handle/index.js";
 import { ServerConnector } from "./connector.js";
+import { servers } from "../main.js";
 
-// 所有存放的服务器
-export const servers = $.stanz([]);
+export { servers };
 
 setTimeout(async () => {
   const serverFile = await getServerFile();

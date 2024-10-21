@@ -26,10 +26,10 @@
       overflow: hidden;
     }
 
-    [status="disconnected"] {
+    [state="disconnected"] {
       color: var(--md-sys-color-error);
     }
-    [status="connected"] {
+    [state="connected"] {
       color: var(--md-sys-color-success);
     }
   </style>
@@ -48,11 +48,13 @@
     </div>
     <div class="line">
       <div class="line-key">连接状态</div>
-      <div class="line-val" attr:status="item.status">{{item.status}}</div>
+      <div class="line-val" attr:state="item.state">{{item.state}}</div>
     </div>
-    <x-if :value="item.status === 'disconnected'">
+    <x-if :value="item.state === 'disconnected'">
       <div>
-        <p-button size="mini">连接用户</p-button>
+        <p-button size="mini" on:click="connect" attr:disabled="connecting">
+          {{connecting ? '连接中...' : '连接用户'}}
+        </p-button>
       </div>
     </x-if>
   </div>
@@ -66,8 +68,14 @@
         tag: "n-user-block",
         data: {
           item: {},
+          connecting: false,
         },
         proto: {
+          async connect() {
+            this.connecting = true;
+            await this.item.connect();
+            this.connecting = false;
+          },
           get signTime() {
             return new Date(this.item.time).toLocaleString();
           },
