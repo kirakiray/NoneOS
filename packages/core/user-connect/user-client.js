@@ -6,7 +6,7 @@ const STARTCHANNEL = "startChannel";
 
 export class UserClient extends $.Stanz {
   #rtcConnection; // 主体rtc连接对象
-  #channels = {}; // 存放channel 的对象
+  #channels = new Map(); // 存放channel 的对象
   #user; // 用户数据
   constructor(opt) {
     super({
@@ -16,6 +16,8 @@ export class UserClient extends $.Stanz {
        * connecting: 正在连接中
        * connected: 已经连接
        * closed: 已经关闭
+       * send-remote: 向对方发送了 offer
+       * set-remote: 接收到了远方的 offer 并设置到本地
        */
       state: "disconnected",
     });
@@ -43,28 +45,32 @@ export class UserClient extends $.Stanz {
   _bindChannel(channel) {
     channel.onmessage = (e) => this._onmsg(e, channel);
 
-    channel.addEventListener("close", async () => {
+    channel.onclose = async () => {
       console.log("channel close: ", channel.label, channel);
 
-      const cachedChannel = await this.#channels[channel.label];
+      const cachedChannel = await this.#channels.get(channel.label);
 
       if (cachedChannel === channel) {
-        delete this.#channels[channel.label];
+        this.#channels.delete(channel.label);
 
-        if (!Object.entries(this.#channels).length) {
+        if (!this.#channels.size) {
           // 没有通道的时候，代表已经关闭
           this.state = "closed";
         }
       }
-    });
+    };
 
     channel.onopen = () => {
-      debugger;
+      if (this.#channels.size >= 1) {
+        this.state = "connected";
+      }
     };
 
-    channel.onerror = (e) => {
-      debugger;
-    };
+    // channel.onerror = (e) => {
+    //   debugger;
+    // };
+
+    this.#channels.set(channel.label, channel);
 
     return channel;
   }
@@ -73,8 +79,8 @@ export class UserClient extends $.Stanz {
   async _getChannel(
     channelName = "channel-" + Math.random().toString(26).slice(3)
   ) {
-    if (this.#channels[channelName]) {
-      return this.#channels[channelName];
+    if (this.#channels.get(channelName)) {
+      return this.#channels.get(channelName);
     }
 
     const rtcPC = this.#rtcConnection;
@@ -85,18 +91,23 @@ export class UserClient extends $.Stanz {
     return this._bindChannel(targetChannel);
   }
 
-  init() {
+  initRTC() {
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
 
-    // rtcPC.onopen = () => {
-    //   debugger;
-    // };
+    // RTC对象的事件
+    // icecandidate：当找到新的 ICE 候选者时触发。
+    // datachannel：当一个新的数据通道被创建时触发。
+    // iceconnectionstatechange：当 ICE 连接状态改变时触发。
+    // icegatheringstatechange：当 ICE 收集状态改变时触发。
+    // signalingstatechange：当信令状态改变时触发。
+    // negotiationneeded：当需要重新协商连接时触发。
+    // track：当一个新的媒体轨道被添加到连接时触发。
 
     rtcPC.ondatachannel = (event) => {
       const { channel } = event;
 
-      debugger;
-      // console.log("ondatachannel: ", channel);
+      // 通过设置 remote 后触发的添加channel事件
+      this._bindChannel(channel);
     };
 
     rtcPC.onicecandidate = (event) => {
@@ -108,17 +119,22 @@ export class UserClient extends $.Stanz {
           step: "set-candidate",
           candidate,
         });
-
-        console.log("candidate: ", candidate);
       }
     };
 
-    // rtcPC.onerror = () => {
-    //   debugger;
+    // rtcPC.oniceconnectionstatechange = (event) => {
+    //   // TODO： 当 ICE 连接状态改变时触发。状态可能包括 new、checking、connected、completed、failed、disconnected 和 closed。
+    //   // debugger;
     // };
 
-    // rtcPC.onclose = () => {
-    //   debugger;
+    // rtcPC.onicegatheringstatechange = (event) => {
+    //   // TODO: 当 ICE 收集状态改变时触发。状态可能包括 new、gathering 和 complete。
+    //   // debugger;
+    // };
+
+    // rtcPC.onnegotiationneeded = (event) => {
+    //   // TODO: 当需要重新协商连接时触发
+    //   // debugger;
     // };
 
     return rtcPC;
@@ -132,9 +148,9 @@ export class UserClient extends $.Stanz {
 
     this.state = "connecting";
 
-    const rtcPC = this.init(); // 开始初始化
+    const rtcPC = this.initRTC(); // 开始初始化
 
-    const channel = await this._getChannel(STARTCHANNEL);
+    await this._getChannel(STARTCHANNEL); // 必须先创建channel ，不然不会触发 ice 事件
 
     const offer = await rtcPC.createOffer();
 
@@ -146,8 +162,16 @@ export class UserClient extends $.Stanz {
       offer,
     });
 
+    this.state = "send-remote";
+
     return true;
   }
+
+  // 向对面发送数据
+  async send(data) {
+    debugger;
+  }
+
   // 通过服务器转发内容
   async _serverAgentPost(data) {
     const ser = await this._getServer();
@@ -221,26 +245,40 @@ export class UserClient extends $.Stanz {
   }
 
   // 通过服务端转发到用户
-  _onServerAgent(data) {
+  async _onServerAgent(data) {
     let rtcPC = this.#rtcConnection;
 
     if (!rtcPC) {
-      rtcPC = this.init();
+      rtcPC = this.initRTC();
     }
 
     console.log("server agent : ", data);
 
     switch (data.step) {
+      case "set-remote":
+        this.state = "set-remote";
+
+        rtcPC.setRemoteDescription(data.offer);
+        const anwserOffter = await rtcPC.createAnswer();
+        rtcPC.setLocalDescription(anwserOffter);
+
+        // 将answer转发回去
+        this._serverAgentPost({
+          step: "answer-remote",
+          anwser: anwserOffter,
+        });
+        break;
+
       case "set-candidate":
         // 添加到本地信号
         const iceObj = new RTCIceCandidate(data.candidate);
         rtcPC.addIceCandidate(iceObj);
         break;
-
-      case "set-remote":
-        debugger;
+      case "answer-remote":
+        rtcPC.setRemoteDescription(data.anwser);
         break;
       default:
+        // TODO: 不明状态
         debugger;
         break;
     }

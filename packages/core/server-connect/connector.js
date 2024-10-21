@@ -1,6 +1,7 @@
 import { getSelfUserCardData, sign } from "/packages/user/main.js";
 import { get } from "/packages/fs/handle/index.js";
 import { User } from "/packages/user/public-user.js";
+import { UserClient } from "../user-connect/user-client.js";
 import { users } from "../main.js";
 
 // 存放服务端的目录
@@ -144,7 +145,8 @@ export class ServerConnector extends $.Stanz {
 
           if (!targetClient) {
             // TODO: 如果不在用户队列，则需要先添加
-            debugger;
+            targetClient = new UserClient(fromUser);
+            users.push(targetClient);
           }
 
           targetClient._onServerAgent(data);

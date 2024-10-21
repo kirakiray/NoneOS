@@ -26,7 +26,8 @@
       overflow: hidden;
     }
 
-    [state="disconnected"] {
+    [state="disconnected"],
+    [state="closed"] {
       color: var(--md-sys-color-error);
     }
     [state="connected"] {
@@ -50,13 +51,19 @@
       <div class="line-key">连接状态</div>
       <div class="line-val" attr:state="item.state">{{item.state}}</div>
     </div>
-    <x-if :value="item.state === 'disconnected'">
+    <x-if :value="item.state === 'disconnected' || item.state === 'closed'">
       <div>
         <p-button size="mini" on:click="connect" attr:disabled="connecting">
           {{connecting ? '连接中...' : '连接用户'}}
         </p-button>
       </div>
     </x-if>
+    <x-else>
+      <div class="line">
+        <div class="line-key">延迟时间</div>
+        <div class="line-val">{{item.delayTime}}</div>
+      </div>
+    </x-else>
   </div>
   <script>
     import moment from "/packages/libs/moment/moment.min.js";
