@@ -33,6 +33,12 @@
   <div style="display: flex; margin: 4px 0; align-items: center">
     历史日志:
 
+    <x-if :value="logSize">
+      <span style="display: inline-block; margin-left: 8px; font-size: 14px">
+        {{logSize}} 条
+      </span>
+    </x-if>
+
     <x-if :value="loading">
       <p-progress
         color="success"
@@ -127,6 +133,7 @@
             withinOneDay: [], // 一天内的数据
             moreThanOneDay: [], // 一天外的数据
           },
+          logSize: 0, // 记录的条数
         },
         proto: {
           async deleteAll() {
@@ -184,6 +191,7 @@
             }
 
             this.loading = false;
+            this.logSize = logs.length;
 
             if (!logs.length) {
               // 空数据

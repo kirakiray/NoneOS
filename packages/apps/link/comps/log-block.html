@@ -3,35 +3,25 @@
     :host {
       display: block;
       user-select: text;
-    }
-
-    .data-block {
-      display: block;
       font-size: 12px;
-      word-break: break-all;
-    }
-
-    .data-line {
-      display: flex;
-      padding-left: 1em;
       line-height: 1.2em;
+      overflow: auto;
     }
 
-    .data-key {
-      flex-shrink: 0;
-      color: #bababa;
+    .string {
+      color: #ee9264;
     }
-
-    .mark-el {
-      display: inline-flex;
-      margin: 0 2px;
-      color: #e3e3e3;
-      font-size: 12px;
+    .number {
+      color: #9480f7;
     }
-
-    :host {
-      --color-str: #1b9bd2;
-      --color-num: #9480f7;
+    .boolean {
+      color: #cdedd2;
+    }
+    .null {
+      color: #a7a7a7;
+    }
+    .key {
+      color: #f3ce4a;
     }
   </style>
   <div class="main"></div>
@@ -65,52 +55,42 @@
     };
 
     const createEl = (obj) => {
-      let el = $(`<div class="data-block"></div>`);
-
-      if (Array.isArray(obj)) {
-        Object.entries(obj).forEach(([key, val]) => {
-          const line = $(`<div class="data-line">
-              <div class="data-val">${getValEl(val)}</div>
-              <span class="mark-el" style="align-items: flex-end;">,</span>
-          </div>`);
-
-          el.push(line);
-        });
-
-        el = `<div>
-                <span class="mark-el">[</span>
-                ${el.ele.outerHTML}
-                <span class="mark-el">]</span>
-              </div>`;
-      } else {
-        Object.entries(obj).forEach(([key, val]) => {
-          const line = $(`<div class="data-line">
-              <div class="data-key">${key}</div>
-              <span class="mark-el"> : </span>
-              <div class="data-val">${getValEl(val)}</div>
-          </div>`);
-
-          el.push(line);
-        });
-
-        el = `<div>
-                <span class="mark-el">{</span>
-                ${el.ele.outerHTML}
-                <span class="mark-el">}</span>
-              </div>`;
-      }
-
-      return el;
+      return formatAndHighlightJSON(JSON.stringify(obj));
     };
-    const getValEl = (val) => {
-      if (typeof val === "number") {
-        return `<span style="color:var(--color-num)">${val}</span>`;
-      } else if (typeof val === "string") {
-        return `<span style="color:var(--color-str)">'${val}'</span>`;
-      } else if (val instanceof Object) {
-        return createEl(val);
+
+    function syntaxHighlight(json) {
+      if (typeof json !== "string") {
+        json = JSON.stringify(json, undefined, 2);
       }
-      return `<span style="color:#ddd">'${val}'</span>`;
-    };
+      json = json
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+      return json.replace(
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|\b-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?\b)/g,
+        function (match) {
+          var cls = "number";
+          if (/^"/.test(match)) {
+            if (/:$/.test(match)) {
+              cls = "key";
+            } else {
+              cls = "string";
+            }
+          } else if (/true|false/.test(match)) {
+            cls = "boolean";
+          } else if (/null/.test(match)) {
+            cls = "null";
+          }
+          return '<span class="' + cls + '">' + match + "</span>";
+        }
+      );
+    }
+
+    function formatAndHighlightJSON(jsonString) {
+      const jsonObj = JSON.parse(jsonString);
+      const formattedJSON = JSON.stringify(jsonObj, null, 2); // 格式化 JSON 字符串
+      const highlightedJSON = syntaxHighlight(formattedJSON);
+      return `<pre>${highlightedJSON}</pre>`;
+    }
   </script>
 </template>
