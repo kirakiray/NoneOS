@@ -74,6 +74,7 @@
   </div>
   <div style="font-size: 14px; margin-top: 16px">
     <b> 日志记录：</b>
+    <x-if :value="logs.length"> <span> {{logs.length}}条 </span> </x-if>
     <p-button size="mini" on:click="loadLogs" style="margin-left: 16px">
       刷新
     </p-button>

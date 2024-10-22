@@ -19,6 +19,47 @@ const saveLog = async (serverUrl, data) => {
   await handle.write(data);
 };
 
+const MAX_SERVER_LOG_COUNT = 200; // 单个服务器缓存日志最大数目
+const KEEP_SERVER_LOG_COUNT = MAX_SERVER_LOG_COUNT / 2; // 单个服务器删除日志到这个数目
+{
+  let clearFun;
+  // 定时清除日志
+  setInterval(
+    (clearFun = async () => {
+      const serversDir = await get(`local/caches/server`);
+
+      if (!serversDir) {
+        return;
+      }
+
+      for await (let serverHandle of serversDir.values()) {
+        const len = await serverHandle.length();
+
+        if (len > MAX_SERVER_LOG_COUNT) {
+          // 超过指定数量，就删除到指定数量一半就行
+          const items = [];
+          await serverHandle.forEach(async (item) => items.push(item));
+
+          // 排序
+          items.sort((a, b) => a.createTime - b.createTime);
+
+          for (
+            let i = 0, targetLen = len - KEEP_SERVER_LOG_COUNT;
+            i < targetLen;
+            i++
+          ) {
+            const targetItem = items[i];
+            await targetItem.remove();
+          }
+        }
+      }
+    }),
+    60 * 1000
+  );
+
+  clearFun();
+}
+
 const BADTIME = "-"; // 测不到延迟时间
 const sessionID = Math.random().toString(32).slice(2); // 临时id
 
