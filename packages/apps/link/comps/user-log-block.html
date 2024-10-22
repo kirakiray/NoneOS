@@ -1,0 +1,83 @@
+<template component>
+  <l-m src="./log-block.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+      min-width: 300px;
+    }
+
+    .log-block {
+      display: block;
+      border: rgb(37, 37, 110) solid 1px;
+      padding: 8px;
+      border-radius: 4px;
+      margin: 8px 8px 0 0;
+    }
+
+    .log-line {
+      font-size: 12px;
+    }
+    .log-content {
+      position: relative;
+    }
+
+    .log-content p-button {
+      position: absolute;
+      right: 0;
+      top: -26px;
+    }
+  </style>
+  <div class="log-block">
+    <div class="log-line" attr:title="time">时间: {{momentTime}}</div>
+    <div class="log-line" attr:title="time">类型: {{logType}}</div>
+    <div class="log-content">
+      <p-button on:click="showAll = showAll ? null : 1" size="mini">
+        {{showAll ? '折叠内容' : '显示所有'}}
+      </p-button>
+      <n-log-block :str="item._data" :show-all="showAll"></n-log-block>
+    </div>
+  </div>
+  <script>
+    import moment from "/packages/libs/moment/moment.min.js";
+    import "/packages/libs/moment/zh-cn.js";
+    moment.locale("zh-cn");
+
+    export default async ({ load }) => {
+      return {
+        tag: "user-log-block",
+        data: {
+          item: {
+            _data: "{}",
+          },
+          showAll: null,
+        },
+        proto: {
+          get momentTime() {
+            return moment(this.item.time).fromNow();
+          },
+          get logType() {
+            try {
+              //   const data = JSON.parse(this.item._data);
+              // return data.__type;
+              //   switch (data.__type) {
+              //     case "init":
+              //       return "服务初始化";
+              //     case "agent-connect":
+              //       return "转发数据";
+              //   }
+              return "haha";
+            } catch (err) {
+              // TODO: 转化出错处理
+              return "文件损坏";
+            }
+          },
+          get time() {
+            return new Date(this.item.time).toLocaleString();
+          },
+        },
+      };
+    };
+  </script>
+</template>

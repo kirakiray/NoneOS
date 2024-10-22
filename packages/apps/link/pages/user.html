@@ -40,16 +40,17 @@
 
     export default async ({ load }) => {
       const { users } = await load("/packages/core/user-connect/main.js");
-      const { updateOnlineUser } = await load("/packages/core/user-connect/main.js");
+      const { updateOnlineUser } = await load(
+        "/packages/core/user-connect/main.js"
+      );
 
       return {
         data: {
           users: [], // 所有用户
         },
         proto: {
-          updateOnlineUser() {
-            updateOnlineUser();
-          },
+          // 更新在线用户
+          updateOnlineUser: () => updateOnlineUser(),
         },
         attached() {
           this.users = users;

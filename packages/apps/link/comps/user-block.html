@@ -38,6 +38,7 @@
     <div class="line">
       <div class="line-key">用户名</div>
       <div class="line-val">{{item.userName}}</div>
+      <p-button on:click="viewLog" size="mini">查看日志</p-button>
     </div>
     <div class="line">
       <div class="line-key">用户ID</div>
@@ -83,6 +84,11 @@
           connecting: false,
         },
         proto: {
+          async viewLog() {
+            this.app.current.goto(
+              `user-logs.html?id=${this.item.userId}&name=${this.item.userName}`
+            );
+          },
           async connect() {
             this.connecting = true;
             await this.item.connect();

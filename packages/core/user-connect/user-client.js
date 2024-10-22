@@ -1,9 +1,26 @@
 import { User } from "/packages/user/public-user.js";
-import { getSelfUserInfo } from "/packages/user/main.js";
+import { get } from "/packages/fs/handle/index.js";
 import { servers } from "../main.js";
 import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
 
 const STARTCHANNEL = "startChannel";
+
+// 获取存放日志的文件
+const saveLog = async (userId, data) => {
+  const fileHandle = await get(
+    `local/caches/users/${userId}/${Date.now()}.json`,
+    {
+      create: "file",
+    }
+  );
+
+  await fileHandle.write(
+    JSON.stringify({
+      time: Date.now(),
+      _data: data,
+    })
+  );
+};
 
 export class UserClient extends $.Stanz {
   #rtcConnection; // 主体rtc连接对象
@@ -174,7 +191,7 @@ export class UserClient extends $.Stanz {
 
   _onmsg(e, channel) {
     // channel 响应数据
-    const { data } = e;
+    let { data } = e;
 
     if (data === "__ping") {
       // 返回测试延迟的字段
@@ -187,7 +204,16 @@ export class UserClient extends $.Stanz {
       return;
     }
 
-    debugger;
+    if (typeof data === "string") {
+      // 保存日志
+      saveLog(this.userId, data);
+
+      // 转换数据
+      data = JSON.parse(data);
+    } else {
+      // TODO: 处理二进制数据
+      debugger;
+    }
   }
 
   // 向对面发送数据
