@@ -10,10 +10,9 @@
 
     .log-block {
       display: block;
-      border: rgb(37, 37, 110) solid 1px;
+      border: rgb(45, 45, 205) solid 1px;
       padding: 8px;
       border-radius: 4px;
-      margin: 8px 8px 0 0;
     }
 
     .log-line {
@@ -59,15 +58,15 @@
           },
           get logType() {
             try {
-              //   const data = JSON.parse(this.item._data);
-              // return data.__type;
-              //   switch (data.__type) {
-              //     case "init":
-              //       return "服务初始化";
-              //     case "agent-connect":
-              //       return "转发数据";
-              //   }
-              return "haha";
+              const data = JSON.parse(this.item._data);
+              switch (data.type) {
+                case "msg":
+                  return "测试信息";
+                default:
+                  // TODO: 为止类型处理
+                  console.log("unknow: ", data);
+                  return "不明";
+              }
             } catch (err) {
               // TODO: 转化出错处理
               return "文件损坏";

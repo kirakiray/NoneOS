@@ -72,10 +72,36 @@
       发送
     </p-button>
   </div>
+  <div style="font-size: 14px; margin-top: 16px">
+    <b> 日志记录：</b>
+    <p-button size="mini" on:click="loadLogs" style="margin-left: 16px">
+      刷新
+    </p-button>
+    <p-button
+      size="mini"
+      on:click="deleteAll"
+      style="margin-left: 8px"
+      color="error"
+    >
+      删除所有日志
+    </p-button>
+  </div>
   <div class="logs">
-    <x-fill :value="logs">
+    <x-fill :value="logs" fill-key="$data.time">
       <user-log-block :item="$data"></user-log-block>
     </x-fill>
+    <x-if :value="!logs.length">
+      <div
+        style="
+          color: #898989;
+          font-size: 12px;
+          line-height: 40px;
+          padding-left: 30px;
+        "
+      >
+        没有日志
+      </div>
+    </x-if>
   </div>
   <script>
     export const parent = "../outer.html";
@@ -84,6 +110,7 @@
     export default async ({ load, query }) => {
       const { users } = await load("/packages/core/main.js");
       const { get } = await load("/packages/fs/handle/index.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
 
       return {
         data: {
@@ -95,6 +122,26 @@
           logs: [], // 所有用户日志
         },
         proto: {
+          async deleteAll() {
+            const result = await confirm({
+              content: `确认删除${query.name}的所有日志？`,
+            });
+
+            if (result) {
+              const dirHandle = await get(`local/caches/users/${query.id}`);
+
+              if (dirHandle) {
+                await dirHandle.remove();
+              }
+
+              enqueue({
+                content: `${query.name}的日志删除成功`,
+                color: "success",
+              });
+
+              this.loadLogs();
+            }
+          },
           async connect() {
             if (this._user) {
               this._user.connect();
@@ -128,6 +175,11 @@
                 debugger;
               }
             }
+
+            // 怕序
+            logs.sort((a, b) => {
+              return b.time - a.time;
+            });
 
             this.logs = logs;
           },
