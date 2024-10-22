@@ -23,7 +23,7 @@ const saveLog = async (userId, data) => {
 };
 
 const MAX_USER_LOG_COUNT = 200; // 单个用户缓存日志最大数目
-const KEEP_SERVER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日志到这个数目
+const KEEP_USER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日志到这个数目
 {
   let clearFun;
   // 定时清除日志
@@ -47,7 +47,7 @@ const KEEP_SERVER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日�
           items.sort((a, b) => a.createTime - b.createTime);
 
           for (
-            let i = 0, targetLen = len - KEEP_SERVER_LOG_COUNT;
+            let i = 0, targetLen = len - KEEP_USER_LOG_COUNT;
             i < targetLen;
             i++
           ) {
