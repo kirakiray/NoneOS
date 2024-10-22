@@ -57,7 +57,7 @@ const KEEP_SERVER_LOG_COUNT = MAX_SERVER_LOG_COUNT / 2; // 单个服务器删除
     60 * 1000
   );
 
-  clearFun();
+  setTimeout(clearFun, 1000);
 }
 
 const BADTIME = "-"; // 测不到延迟时间

@@ -22,6 +22,47 @@ const saveLog = async (userId, data) => {
   );
 };
 
+const MAX_USER_LOG_COUNT = 200; // 单个用户缓存日志最大数目
+const KEEP_SERVER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日志到这个数目
+{
+  let clearFun;
+  // 定时清除日志
+  setInterval(
+    (clearFun = async () => {
+      const usersDir = await get(`local/caches/users`);
+
+      if (!usersDir) {
+        return;
+      }
+
+      for await (let userHandle of usersDir.values()) {
+        const len = await userHandle.length();
+
+        if (len > MAX_USER_LOG_COUNT) {
+          // 超过指定数量，就删除到指定数量一半就行
+          const items = [];
+          await userHandle.forEach(async (item) => items.push(item));
+
+          // 排序
+          items.sort((a, b) => a.createTime - b.createTime);
+
+          for (
+            let i = 0, targetLen = len - KEEP_SERVER_LOG_COUNT;
+            i < targetLen;
+            i++
+          ) {
+            const targetItem = items[i];
+            await targetItem.remove();
+          }
+        }
+      }
+    }),
+    60 * 1000
+  );
+
+  setTimeout(clearFun, 1000);
+}
+
 export class UserClient extends $.Stanz {
   #rtcConnection; // 主体rtc连接对象
   #channels = new Map(); // 存放channel 的对象
