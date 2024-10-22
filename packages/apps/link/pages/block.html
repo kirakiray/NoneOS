@@ -1,0 +1,28 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>数据块</div>
+  <script>
+    export const parent = "../outer.html";
+
+    export default async ({ load }) => {
+      return {
+        attached() {
+          this.emit("update-title", {
+            composed: true,
+            data: {
+              titles: [
+                {
+                  name: "数据块",
+                },
+              ],
+            },
+          });
+        },
+      };
+    };
+  </script>
+</template>
