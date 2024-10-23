@@ -1,15 +1,110 @@
 <template page>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    h4 {
+      margin: 0;
+      padding: 8px 0;
+      font-size: 14px;
+    }
+
+    .container {
+      padding: 16px;
+      max-width: 400px;
+      border: #7b7b7b solid 1px;
+      border-radius: 8px;
+    }
+
+    .field-ele + .field-ele {
+      margin-top: 16px;
+    }
   </style>
-  <div>证书哈哈</div>
+  <h4>本地证书</h4>
+  <h4>授权证书</h4>
+  <div class="container">
+    <p-text-field class="field-ele" sync:value="authTo">
+      <label>授权给</label>
+    </p-text-field>
+    <p-select sync:value="type" class="field-ele">
+      <label>类型</label>
+      <option value="fully">完全授权</option>
+      <option value="read" disabled>只读</option>
+      <option value="recommend" disabled>推荐</option>
+      <option value="follow" disabled>关注</option>
+      <option value="custom" disabled>自定义类型</option>
+    </p-select>
+    <!-- <p-text-field class="field-ele">
+      <label>自定义类型</label>
+    </p-text-field> -->
+    <p-select sync:value="expireTime" class="field-ele">
+      <label>到期时间</label>
+      <option value="1second">1秒后</option>
+      <option value="1hour">1小时后</option>
+      <option value="1day">1天后</option>
+      <option value="1week">1周后</option>
+      <option value="forever">永久</option>
+    </p-select>
+    <!-- <p-text-field multiline disabled class="field-ele">
+      <label>附加内容</label>
+    </p-text-field> -->
+    <div class="field-ele">
+      <p-button
+        attr:disabled="!authTo || !type || !expireTime"
+        on:click="submit"
+      >
+        确认授权
+      </p-button>
+    </div>
+  </div>
   <script>
     export const parent = "../outer.html";
+    import { get } from "/packages/fs/handle/index.js";
+    import { sign, signData } from "/packages/util/sign.js";
 
     export default async () => {
       return {
+        data: {
+          authTo: "", // 授权给谁
+          type: "", // 授权类型
+          expireTime: "1hour", // 到期时间
+        },
+        proto: {
+          // 提交生成用户证书
+          async submit() {
+            let expire = Date.now();
+
+            switch (this.expireTime) {
+              case "1second":
+                expire += 1000;
+                break;
+              case "1hour":
+                expire += 60 * 60 * 1000;
+                break;
+              case "1day":
+                expire += 60 * 60 * 1000 * 24;
+                break;
+              case "1week":
+                expire += 60 * 60 * 1000 * 24 * 7;
+                break;
+              case "forever":
+                expire = "never";
+                break;
+            }
+
+            const data = await signData({
+              expire,
+              permission: "fully",
+              authTo: this.authTo,
+            });
+
+            console.log("signature: ", data);
+          },
+        },
         attached() {
           this.emit("update-title", {
             composed: true,
