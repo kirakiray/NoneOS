@@ -1,4 +1,4 @@
-// 获取本地密钥的方法
+// 获取本地密钥的相关模块
 import { get } from "/packages/fs/handle/index.js";
 import {
   generateSignKeyPair,

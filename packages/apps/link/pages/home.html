@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="../comps/copy-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,12 +38,16 @@
     </p-table-row>
     <p-table-row>
       <p-table-cell>用户ID</p-table-cell>
-      <p-table-cell> {{userID}} </p-table-cell>
+      <p-table-cell>
+        <n-copy-span style="max-width: 300px">{{userID}} </n-copy-span>
+      </p-table-cell>
     </p-table-row>
     <p-table-row>
       <p-table-cell>签名公钥</p-table-cell>
       <p-table-cell>
-        <div class="row-val" attr:title="signPublic">{{signPublic}}</div>
+        <div class="row-val" attr:title="signPublic">
+          <n-copy-span style="max-width: 300px">{{signPublic}} </n-copy-span>
+        </div>
       </p-table-cell>
     </p-table-row>
   </p-table>
@@ -50,17 +55,13 @@
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
-      const { getSelfUserInfo, renameUser } = await load(
-        "/packages/user/main.js"
-      );
-
-      const selfData = await getSelfUserInfo();
+      const { getId, getPublic } = await load("/packages/util/pair.js");
 
       return {
         data: {
-          userID: selfData.userID,
-          userName: selfData.userName || selfData.backupUserName,
-          signPublic: selfData.signPublic,
+          userName: "(Null)",
+          userID: await getId(),
+          signPublic: await getPublic(),
           renameMode: false,
         },
         watch: {
