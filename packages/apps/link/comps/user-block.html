@@ -1,8 +1,10 @@
 <template component>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./copy-span.html"></l-m>
   <style>
     :host {
       max-width: 320px;
+      min-width: 300px;
       display: block;
       border: green solid 1px;
       padding: 8px;
@@ -42,7 +44,9 @@
     </div>
     <div class="line">
       <div class="line-key">用户ID</div>
-      <div class="line-val">{{item.userId}}</div>
+      <div class="line-val">
+        <n-copy-span>{{item.userId}}</n-copy-span>
+      </div>
     </div>
     <div class="line">
       <div class="line-key">签名时间</div>
