@@ -56,10 +56,13 @@
 
     export default async ({ load }) => {
       const { getId, getPublic } = await load("/packages/util/pair.js");
+      const { getInfo, setInfo } = await load("/packages/util/user.js");
+
+      const selfUserInfo = await getInfo();
 
       return {
         data: {
-          userName: "(Null)",
+          userName: selfUserInfo.userName,
           userID: await getId(),
           signPublic: await getPublic(),
           renameMode: false,
@@ -77,7 +80,10 @@
         proto: {
           renameEnd(e) {
             this.renameMode = false;
-            renameUser(this.userName);
+
+            setInfo({
+              userName: this.userName,
+            });
           },
         },
         attached() {

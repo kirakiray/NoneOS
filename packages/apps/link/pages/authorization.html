@@ -65,6 +65,7 @@
     export const parent = "../outer.html";
     import { get } from "/packages/fs/handle/index.js";
     import { sign, signData } from "/packages/util/sign.js";
+    import { getHash } from "/packages/user/util.js";
 
     export default async () => {
       return {
@@ -101,6 +102,14 @@
               permission: "fully",
               authTo: this.authTo,
             });
+
+            const certsHandle = await get("local/system/user/certs", {
+              create: "dir",
+            });
+
+            const fileHash = await getHash(data);
+
+            debugger;
 
             console.log("signature: ", data);
           },
