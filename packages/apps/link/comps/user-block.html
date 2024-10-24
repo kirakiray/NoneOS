@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="./copy-span.html"></l-m>
+  <l-m src="./moment-span.html"></l-m>
   <style>
     :host {
       max-width: 320px;
@@ -50,7 +51,9 @@
     </div>
     <div class="line">
       <div class="line-key">签名时间</div>
-      <div class="line-val" attr:title="signTime">{{momentTime}}</div>
+      <div class="line-val">
+        <n-moment-span :time="item.time"></n-moment-span>
+      </div>
     </div>
     <div class="line">
       <div class="line-key">连接状态</div>
@@ -76,10 +79,6 @@
     </x-else>
   </div>
   <script>
-    import moment from "/packages/libs/moment/moment.min.js";
-    import "/packages/libs/moment/zh-cn.js";
-    moment.locale("zh-cn");
-
     export default async ({ load }) => {
       return {
         tag: "n-user-block",
@@ -97,12 +96,6 @@
             this.connecting = true;
             await this.item.connect();
             this.connecting = false;
-          },
-          get signTime() {
-            return new Date(this.item.time).toLocaleString();
-          },
-          get momentTime() {
-            return moment(this.item.time).fromNow();
           },
         },
       };

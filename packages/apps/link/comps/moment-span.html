@@ -27,7 +27,12 @@
             const { time } = this;
 
             if (/\D/.test(time)) {
-              return time;
+              if (time === "never") {
+                this.momentTime = "不会过期";
+                return;
+              }
+              this.momentTime = time;
+              return;
             }
 
             this.momentTime = moment(this.time).fromNow();

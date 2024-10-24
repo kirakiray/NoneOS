@@ -59,7 +59,9 @@
   </div>
   <div class="line">
     <div class="line-key">{{getName('expire')}}</div>
-    <div class="line-val">{{certData.expire}}</div>
+    <div class="line-val">
+      <n-moment-span :time="certData.expire"></n-moment-span>
+    </div>
   </div>
 
   <script>

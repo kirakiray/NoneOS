@@ -111,10 +111,6 @@
   <script>
     export const parent = "../outer.html";
 
-    import moment from "/packages/libs/moment/moment.min.js";
-    import "/packages/libs/moment/zh-cn.js";
-    moment.locale("zh-cn");
-
     export default async ({ load, query }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
       const { get } = await load("/packages/fs/handle/index.js");
@@ -168,14 +164,13 @@
 
             if (dirHandle) {
               for await (let item of dirHandle.values()) {
-                const _time = parseInt(item.name.replace(".json", ""));
+                const time = parseInt(item.name.replace(".json", ""));
 
                 const _data = await item.text();
 
                 if (_data) {
                   logs.push({
-                    time: moment(_time).fromNow(),
-                    _time,
+                    time,
                     _data,
                   });
                 } else {
@@ -185,7 +180,7 @@
               }
 
               logs.sort((a, b) => {
-                return b._time - a._time;
+                return b.time - a.time;
               });
             }
 
@@ -226,14 +221,8 @@
           });
 
           this.loadLogs();
-
-          // this._timer = setInterval(() => {
-          //   this.refreshTime();
-          // }, 5000);
         },
-        detached() {
-          // clearInterval(this._timer);
-        },
+        detached() {},
       };
     };
 
@@ -252,7 +241,7 @@
       };
 
       arr.forEach((item) => {
-        const timeDiff = now - new Date(item._time);
+        const timeDiff = now - new Date(item.time);
 
         if (timeDiff <= fiveMinutes) {
           groups.withinFiveMinutes.push(item);
