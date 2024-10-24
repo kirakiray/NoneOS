@@ -1,0 +1,61 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      padding: 4px;
+      border-radius: 8px;
+      border: #aaa solid 1px;
+      word-break: break-all;
+    }
+
+    .line {
+      display: flex;
+      align-items: center;
+    }
+    .line-key {
+      font-size: 14px;
+      font-weight: bold;
+      color: #7a7a7a;
+      margin-right: 8px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  </style>
+  <x-fill :value="item">
+    <div class="line">
+      <div class="line-key">{{$host.getName($data[0])}}</div>
+      <div class="line-val">{{$data[1]}}</div>
+    </div>
+  </x-fill>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-cert-block",
+        data: {
+          item: {},
+          certData: {}, // 主体卡片数据
+        },
+        watch: {
+          item(item) {
+            this.certData = Object.fromEntries(new Map(item));
+          },
+        },
+        proto: {
+          getName(key) {
+            switch (key) {
+              case "issuer":
+                return "证书颁发者";
+            }
+
+            return key;
+          },
+        },
+      };
+    };
+  </script>
+</template>
