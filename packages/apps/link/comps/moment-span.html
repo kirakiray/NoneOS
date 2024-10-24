@@ -19,6 +19,13 @@
         },
         watch: {
           time(time) {
+            this.refreshMoment();
+          },
+        },
+        proto: {
+          refreshMoment() {
+            const { time } = this;
+
             if (/\D/.test(time)) {
               return time;
             }
@@ -26,6 +33,22 @@
             this.momentTime = moment(this.time).fromNow();
             this.attr("title", new Date(this.time).toLocaleString());
           },
+        },
+        attached() {
+          const refresh = () => {
+            this._timer = setTimeout(() => {
+              this.refreshMoment();
+              refresh();
+            }, 10000);
+          };
+
+          // 一小时内的需要刷新
+          if ((Date.now() - this.time) / 1000 / 3600 < 1) {
+            refresh();
+          }
+        },
+        detached() {
+          clearTimeout(this._timer);
         },
       };
     };
