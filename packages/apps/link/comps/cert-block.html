@@ -1,10 +1,12 @@
 <template component>
+  <l-m src="./moment-span.html"></l-m>
   <style>
     :host {
       display: block;
-      padding: 4px;
+      padding: 8px;
       border-radius: 8px;
-      border: #aaa solid 1px;
+      max-width: 320px;
+      border: #963a7e solid 1px;
       word-break: break-all;
     }
 
@@ -26,12 +28,40 @@
       overflow: hidden;
     }
   </style>
-  <x-fill :value="item">
+  <!-- <x-fill :value="item">
     <div class="line">
       <div class="line-key">{{$host.getName($data[0])}}</div>
       <div class="line-val">{{$data[1]}}</div>
     </div>
-  </x-fill>
+  </x-fill> -->
+
+  <div class="line">
+    <div class="line-key">{{getName('issuer')}}</div>
+    <div class="line-val">{{certData.issuer}}</div>
+  </div>
+  <div class="line">
+    <div class="line-key">{{getName('authTo')}}</div>
+    <div class="line-val">{{certData.authTo}}</div>
+  </div>
+  <div class="line">
+    <div class="line-key">{{getName('permission')}}</div>
+    <div class="line-val">{{certData.permission}}</div>
+  </div>
+  <div class="line">
+    <div class="line-key">{{getName('signPublic')}}</div>
+    <div class="line-val">{{certData.signPublic}}</div>
+  </div>
+  <div class="line">
+    <div class="line-key">{{getName('creation')}}</div>
+    <div class="line-val">
+      <n-moment-span :time="certData.creation"></n-moment-span>
+    </div>
+  </div>
+  <div class="line">
+    <div class="line-key">{{getName('expire')}}</div>
+    <div class="line-val">{{certData.expire}}</div>
+  </div>
+
   <script>
     export default async ({ load }) => {
       return {
@@ -50,6 +80,16 @@
             switch (key) {
               case "issuer":
                 return "证书颁发者";
+              case "authTo":
+                return "授权给";
+              case "permission":
+                return "权限";
+              case "signPublic":
+                return "公钥";
+              case "creation":
+                return "创建时间";
+              case "expire":
+                return "过期时间";
             }
 
             return key;

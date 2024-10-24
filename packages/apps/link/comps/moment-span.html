@@ -1,0 +1,33 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  {{momentTime}}
+  <script>
+    import moment from "/packages/libs/moment/moment.min.js";
+    import "/packages/libs/moment/zh-cn.js";
+    moment.locale("zh-cn");
+
+    export default async ({ load }) => {
+      return {
+        tag: "n-moment-span",
+        data: {
+          time: "",
+          momentTime: "",
+        },
+        watch: {
+          time(time) {
+            if (/\D/.test(time)) {
+              return time;
+            }
+
+            this.momentTime = moment(this.time).fromNow();
+            this.attr("title", new Date(this.time).toLocaleString());
+          },
+        },
+      };
+    };
+  </script>
+</template>
