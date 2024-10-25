@@ -61,14 +61,25 @@
     <div class="line-key">{{getName('expire')}}</div>
     <div class="line-val">
       <n-moment-span :time="certData.expire"></n-moment-span>
+      {{isExpire}}
     </div>
+  </div>
+
+  <div>
+    <p-button size="mini" color="error" on:click="deleteCert">
+      删除证书
+    </p-button>
   </div>
 
   <script>
     export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+
       return {
         tag: "n-cert-block",
         data: {
+          fid: "", // 寄宿的文件名
           item: {},
           certData: {}, // 主体卡片数据
         },
@@ -78,6 +89,35 @@
           },
         },
         proto: {
+          // 删除证书
+          async deleteCert() {
+            const result = await confirm({
+              title: "删除证书",
+              content: `确认删除证书？`,
+            });
+
+            if (!result) {
+              return;
+            }
+
+            const certsDir = await get("local/system/user/certs");
+
+            const targetHandle = await certsDir.get(this.fid);
+
+            targetHandle && targetHandle.remove();
+
+            this.emit("delete-end", {
+              bubbles: false,
+            });
+          },
+          get isExpire() {
+            const expire = new Map(this.item).get("expire");
+
+            if (!/\D/.test(expire) && Date.now() > expire) {
+              return `(已过期)`;
+            }
+            return "";
+          },
           getName(key) {
             switch (key) {
               case "issuer":

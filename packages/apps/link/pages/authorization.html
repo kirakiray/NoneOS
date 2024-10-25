@@ -25,7 +25,11 @@
   <h4>本地证书</h4>
   <div class="container">
     <x-fill :value="certs">
-      <n-cert-block :item="$data"></n-cert-block>
+      <n-cert-block
+        :item="$data.data"
+        :fid="$data.fid"
+        on:delete-end="$host.loadCerts()"
+      ></n-cert-block>
     </x-fill>
   </div>
 
@@ -60,7 +64,10 @@
 
                 if (result) {
                   // 添加到列表
-                  certs.push(item.data);
+                  certs.push({
+                    fid: certHandle.name,
+                    data: item.data,
+                  });
                 } else {
                   // TODO: 异常证书处理
                   debugger;
