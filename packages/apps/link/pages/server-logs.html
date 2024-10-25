@@ -138,7 +138,7 @@
             });
 
             if (result) {
-              const dirHandle = await get(`local/caches/server/${this.sname}`);
+              const dirHandle = await get(`local/caches/server-logs/${this.sname}`);
 
               await dirHandle.remove();
 
@@ -158,7 +158,7 @@
           async loadLogs() {
             this.loading = true;
 
-            const dirHandle = await get(`local/caches/server/${this.sname}`);
+            const dirHandle = await get(`local/caches/server-logs/${this.sname}`);
 
             const logs = [];
 

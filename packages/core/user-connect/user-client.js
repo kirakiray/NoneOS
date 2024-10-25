@@ -8,7 +8,7 @@ const STARTCHANNEL = "startChannel";
 // 获取存放日志的文件
 const saveLog = async (userId, data) => {
   const fileHandle = await get(
-    `local/caches/users/${userId}/${Date.now()}.json`,
+    `local/caches/user-logs/${userId}/${Date.now()}.json`,
     {
       create: "file",
     }
@@ -29,7 +29,7 @@ const KEEP_USER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日志�
   // 定时清除日志
   setInterval(
     (clearFun = async () => {
-      const usersDir = await get(`local/caches/users`);
+      const usersDir = await get(`local/caches/user-logs`);
 
       if (!usersDir) {
         return;

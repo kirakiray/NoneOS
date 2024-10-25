@@ -13,7 +13,7 @@ const saveLog = async (serverUrl, data) => {
   const sname =
     urlObj.host.split(":").join("--") + urlObj.pathname.split("/").join("--");
 
-  const handle = await get(`local/caches/server/${sname}/${Date.now()}.json`, {
+  const handle = await get(`local/caches/server-logs/${sname}/${Date.now()}.json`, {
     create: "file",
   });
 
@@ -27,7 +27,7 @@ const KEEP_SERVER_LOG_COUNT = MAX_SERVER_LOG_COUNT / 2; // 单个服务器删除
   // 定时清除日志
   setInterval(
     (clearFun = async () => {
-      const serversDir = await get(`local/caches/server`);
+      const serversDir = await get(`local/caches/server-logs`);
 
       if (!serversDir) {
         return;

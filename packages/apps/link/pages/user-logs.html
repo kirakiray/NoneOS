@@ -133,7 +133,7 @@
             });
 
             if (result) {
-              const dirHandle = await get(`local/caches/users/${query.id}`);
+              const dirHandle = await get(`local/caches/user-logs/${query.id}`);
 
               if (dirHandle) {
                 await dirHandle.remove();
@@ -164,7 +164,7 @@
           },
           // 加载历史记录
           async loadLogs() {
-            const dirHandle = await get(`local/caches/users/${query.id}`, {
+            const dirHandle = await get(`local/caches/user-logs/${query.id}`, {
               create: "dir",
             });
 
