@@ -6,7 +6,7 @@
       display: block;
       padding: 8px;
       border-radius: 8px;
-      max-width: 300px;
+      max-width: 280px;
       border: #963a7e solid 1px;
       word-break: break-all;
     }
@@ -29,12 +29,6 @@
       overflow: hidden;
     }
   </style>
-  <!-- <x-fill :value="item">
-    <div class="line">
-      <div class="line-key">{{$host.getName($data[0])}}</div>
-      <div class="line-val">{{$data[1]}}</div>
-    </div>
-  </x-fill> -->
 
   <div class="line">
     <div class="line-key">{{getName('issuer')}}</div>
@@ -66,7 +60,7 @@
     <div class="line-key">{{getName('expire')}}</div>
     <div class="line-val">
       <n-moment-span :time="certData.expire"></n-moment-span>
-      {{isExpire}}
+      <span style="color: var(--md-sys-color-error)"> {{isExpire}} </span>
     </div>
   </div>
 
