@@ -1,4 +1,3 @@
-// import { getSelfUserCardData, sign } from "/packages/user/main.js";
 import { getSelfUserCard } from "../base/user.js";
 import { sign } from "../base/sign.js";
 import { get } from "/packages/fs/handle/index.js";

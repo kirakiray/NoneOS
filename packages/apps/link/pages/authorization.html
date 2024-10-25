@@ -34,6 +34,7 @@
   <script>
     export const parent = "../outer.html";
     import { get } from "/packages/fs/handle/index.js";
+    import { verify } from "/packages/core/base/verify.js";
 
     export default async () => {
       return {
@@ -54,10 +55,16 @@
                 let item = await certHandle.text();
                 item = await JSON.parse(item);
 
-                // TODO: 验证数据是否正确
+                // 验证数据是否正确
+                const result = await verify(item);
 
-                // 添加到列表
-                certs.push(item.data);
+                if (result) {
+                  // 添加到列表
+                  certs.push(item.data);
+                } else {
+                  // TODO: 异常证书处理
+                  debugger;
+                }
               }
 
               this.certs = certs;

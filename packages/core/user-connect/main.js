@@ -1,7 +1,6 @@
 import { servers, users } from "../main.js";
 import { UserClient } from "./user-client.js";
 import { getId } from "../base/pair.js";
-import "../server-connect/main.js";
 
 export { users };
 
