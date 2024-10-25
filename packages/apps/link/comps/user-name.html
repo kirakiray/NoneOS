@@ -5,27 +5,43 @@
     }
   </style>
   {{realName}}
+  <x-if :value="selfUserId == userid">
+    <span style="color: var(--md-sys-color-primary)"> (我) </span>
+  </x-if>
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/handle/index.js");
+      const { getId } = await load("/packages/core/base/pair.js");
+      const { getInfo } = await load("/packages/core/base/user.js");
+
+      const selfUserId = await getId();
+      const selfInfo = await getInfo();
 
       return {
         tag: "n-user-name",
         data: {
           userid: "", // 用户id
           realName: "aa", // 实际显示的名字字符串
+          selfUserId, // 当前用户自身的id
         },
         watch: {
           async userid(userid) {
+            this.realName = userid;
+            this.attr("title", userid);
+
+            if (selfUserId === userid) {
+              this.realName = selfInfo.userName;
+              return;
+            }
+
             const cardHandle = await get(`local/caches/cards/${userid}`);
 
             if (cardHandle) {
-              let data = await cardHandle.text();
-              data = JSON.parse(data);
-              debugger;
-            }
+              let card = await cardHandle.text();
+              card = JSON.parse(card);
 
-            this.realName = userid;
+              this.realName = new Map(card.data).get("userName");
+            }
           },
         },
       };
