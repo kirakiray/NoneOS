@@ -1,4 +1,4 @@
-import { EverCache } from "../../ever-cache/main.js";
+import { EverCache } from "../../libs/ever-cache/main.js";
 
 const storage = new EverCache("remote-file-cache");
 
