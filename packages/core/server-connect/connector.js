@@ -1,4 +1,6 @@
-import { getSelfUserCardData, sign } from "/packages/user/main.js";
+// import { getSelfUserCardData, sign } from "/packages/user/main.js";
+import { getSelfUserCard } from "../base/user.js";
+import { sign } from "../base/sign.js";
 import { get } from "/packages/fs/handle/index.js";
 import { User } from "/packages/user/public-user.js";
 import { UserClient } from "../user-connect/user-client.js";
@@ -86,7 +88,7 @@ export class ServerConnector extends $.Stanz {
       return await this.#initingPms;
     }
 
-    const selfCardData = await getSelfUserCardData();
+    const selfCardData = await getSelfUserCard();
 
     this.status = "connecting"; // 设置连接中
 

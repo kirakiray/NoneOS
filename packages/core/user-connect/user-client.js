@@ -88,7 +88,7 @@ export class UserClient extends $.Stanz {
     Object.assign(this, {
       userId: user.id,
       userName: user.name,
-      time: user.get("time"),
+      time: user.get("time") || user.get("creation"),
     });
   }
 

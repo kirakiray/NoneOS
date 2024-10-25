@@ -1,13 +1,13 @@
 import { servers, users } from "../main.js";
 import { UserClient } from "./user-client.js";
-import { getSelfUserInfo } from "/packages/user/main.js";
+import { getId } from "../base/pair.js";
 import "../server-connect/main.js";
 
 export { users };
 
 // 更新在线用户
 export const updateOnlineUser = async () => {
-  const selfUserInfo = await getSelfUserInfo();
+  const selfUserId = await getId();
 
   // 通过服务器获取在线用户
   servers.forEach(async (server) => {
@@ -30,7 +30,7 @@ export const updateOnlineUser = async () => {
         const isVerify = await client.verify();
 
         // 过滤自己的卡片
-        if (selfUserInfo.userID === client.userId) {
+        if (selfUserId === client.userId) {
           return;
         }
 

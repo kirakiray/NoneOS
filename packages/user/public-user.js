@@ -17,7 +17,8 @@ export class User {
   }
 
   get(name) {
-    return this.#data.find((e) => e[0] === name)[1];
+    const target = this.#data.find((e) => e[0] === name);
+    return target ? target[1] : null;
   }
 
   get data() {

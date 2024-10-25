@@ -55,8 +55,8 @@
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
-      const { getId, getPublic } = await load("/packages/util/pair.js");
-      const { getInfo, setInfo } = await load("/packages/util/user.js");
+      const { getId, getPublic } = await load("/packages/core/base/pair.js");
+      const { getInfo, setInfo } = await load("/packages/core/base/user.js");
 
       const selfUserInfo = await getInfo();
 

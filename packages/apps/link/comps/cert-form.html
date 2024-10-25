@@ -52,7 +52,7 @@
   </div>
   <script>
     import { get } from "/packages/fs/handle/index.js";
-    import { sign, signData } from "/packages/util/sign.js";
+    import { signData } from "/packages/core/base/sign.js";
     import { getHash } from "/packages/user/util.js";
 
     export default async ({ load }) => {
@@ -88,11 +88,11 @@
                 break;
             }
 
-            const data = await signData({
-              expire,
-              permission: "fully",
-              authTo: this.authTo,
-            });
+            const data = await signData([
+              ["authTo", this.authTo],
+              ["expire", expire],
+              ["permission", "fully"],
+            ]);
 
             const certsHandle = await get("local/system/user/certs", {
               create: "dir",

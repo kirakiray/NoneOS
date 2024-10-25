@@ -1,6 +1,7 @@
 // 本地用户的相关模块
 import { get } from "/packages/fs/handle/index.js";
 import { getId } from "./pair.js";
+import { signData } from "./sign.js";
 
 /**
  * 获取用户信息
@@ -45,4 +46,17 @@ export const setInfo = async (data) => {
   await handle.write(JSON.stringify(userInfo));
 
   return true;
+};
+
+/**
+ * 获取自己用户卡片数据
+ */
+export const getSelfUserCard = async () => {
+  const userInfo = await getInfo();
+  const userId = await getId();
+
+  return await signData([
+    ["userName", userInfo.userName],
+    ["userID", userId],
+  ]);
 };

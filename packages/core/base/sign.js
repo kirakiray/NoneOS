@@ -34,19 +34,17 @@ export const sign = async (message) => {
  * @returns Object 封装好的数据和签名的对象
  */
 export const signData = async (options) => {
-  //   options = {
-  //     authTo: ""
-  //     expire: "never", // 过期时间
-  //     permission: "", // 权限类型
-  //   };
+  // options = [
+  //   ["authTo", authTo],
+  //   ["expire", expire],
+  //   ["permission", permission],
+  // ];
 
   const publicSignStr = await getPublic();
 
   // 签名数据
   const data = [
-    ["authTo", options.authTo],
-    ["expire", options.expire],
-    ["permission", options.permission],
+    ...options,
     ["issuer", await getHash(publicSignStr)],
     ["signPublic", publicSignStr],
     ["creation", Date.now()],
