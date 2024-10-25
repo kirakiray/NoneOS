@@ -10,8 +10,8 @@
     }
 
     h4 {
-      margin: 0;
-      padding: 8px 0;
+      margin: 16px 0 0;
+      padding: 4px 0;
       font-size: 14px;
     }
     .container {
@@ -27,6 +27,7 @@
     <x-fill :value="certs">
       <n-cert-block
         :item="$data.data"
+        :sign="$data.sign"
         :fid="$data.fid"
         on:delete-end="$host.loadCerts()"
       ></n-cert-block>
@@ -35,18 +36,82 @@
 
   <h4>授权证书</h4>
   <n-cert-form></n-cert-form>
+
+  <h4>手动导入证书</h4>
+  <p-text-field
+    style="max-width: 400px; word-break: break-all"
+    multiline
+    max-rows="8"
+    sync:value="icertVal"
+    placeholder="请填入证书内容"
+  ></p-text-field>
+  <p-button
+    style="margin-top: 8px"
+    attr:disabled="!icertVal"
+    on:click="importCert"
+  >
+    确认导入
+  </p-button>
+
   <script>
     export const parent = "../outer.html";
     import { get } from "/packages/fs/handle/index.js";
     import { verify } from "/packages/core/base/verify.js";
 
-    export default async () => {
+    export default async ({ load }) => {
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { getHash } = await load("/packages/user/util.js");
+
       return {
         data: {
           certs: [],
           loading: false,
+          icertVal: "", // 要导入的内容
         },
         proto: {
+          // 手动导入证书
+          async importCert() {
+            let val = this.icertVal;
+            try {
+              val = JSON.parse(val);
+            } catch (err) {
+              console.error(err);
+              enqueue({
+                content: err.toString(),
+                color: "error",
+              });
+              return;
+            }
+
+            // 获取指纹
+            const hash = await getHash(val.data);
+
+            const exitedHandle = await get(`local/system/user/certs/${hash}`, {
+              create: "file",
+            });
+
+            const oldText = await exitedHandle.text();
+
+            if (oldText === this.icertVal) {
+              enqueue({
+                content: "证书已经存在",
+              });
+              this.icertVal = "";
+              return;
+            }
+
+            // 写入内容
+            await exitedHandle.write(this.icertVal);
+
+            this.icertVal = "";
+
+            this.loadCerts();
+
+            enqueue({
+              content: "导入成功",
+              color: "success",
+            });
+          },
           async loadCerts() {
             this.loading = true;
 
@@ -57,6 +122,9 @@
 
               for await (let certHandle of handle.values()) {
                 let item = await certHandle.text();
+                if (!item) {
+                  continue;
+                }
                 item = await JSON.parse(item);
 
                 // 验证数据是否正确
@@ -67,6 +135,7 @@
                   certs.push({
                     fid: certHandle.name,
                     data: item.data,
+                    sign: item.sign,
                   });
                 } else {
                   // TODO: 异常证书处理

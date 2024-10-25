@@ -1,12 +1,15 @@
 import { servers, users } from "../main.js";
 import { UserClient } from "./user-client.js";
 import { getId } from "../base/pair.js";
+import { get } from "/packages/fs/handle/index.js";
 
 export { users };
 
 // 更新在线用户
 export const updateOnlineUser = async () => {
   const selfUserId = await getId();
+
+  const cacheCardsDir = await get(`local/caches/cards`, { create: "dir" });
 
   // 通过服务器获取在线用户
   servers.forEach(async (server) => {
@@ -20,6 +23,8 @@ export const updateOnlineUser = async () => {
       const { data } = result;
 
       if (data.length > 10) {
+        data.splice(10); // 去掉10个后的，防止推送过多的用户卡片
+
         // TODO: 推荐大于10个需要报警
         debugger;
       }
@@ -32,6 +37,18 @@ export const updateOnlineUser = async () => {
         if (selfUserId === client.userId) {
           return;
         }
+
+        // 存放到缓存区
+        cacheCardsDir
+          .get(client.userId, {
+            create: "file",
+          })
+          .then((handle) => {
+            return handle.write(JSON.stringify(userData));
+          })
+          .then(() => {
+            console.log(`写入${client.userId}卡片完成`);
+          });
 
         // 如果已经存在，则不添加
         if (users.some((user) => user.userId === client.userId)) {

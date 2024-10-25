@@ -1,0 +1,34 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  {{realName}}
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+
+      return {
+        tag: "n-user-name",
+        data: {
+          userid: "", // 用户id
+          realName: "aa", // 实际显示的名字字符串
+        },
+        watch: {
+          async userid(userid) {
+            const cardHandle = await get(`local/caches/cards/${userid}`);
+
+            if (cardHandle) {
+              let data = await cardHandle.text();
+              data = JSON.parse(data);
+              debugger;
+            }
+
+            this.realName = userid;
+          },
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./moment-span.html"></l-m>
+  <l-m src="./user-name.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,11 +38,15 @@
 
   <div class="line">
     <div class="line-key">{{getName('issuer')}}</div>
-    <div class="line-val">{{certData.issuer}}</div>
+    <div class="line-val">
+      <n-user-name :userid="certData.issuer"></n-user-name>
+    </div>
   </div>
   <div class="line">
     <div class="line-key">{{getName('authTo')}}</div>
-    <div class="line-val">{{certData.authTo}}</div>
+    <div class="line-val">
+      <n-user-name :userid="certData.authTo"></n-user-name>
+    </div>
   </div>
   <div class="line">
     <div class="line-key">{{getName('permission')}}</div>
@@ -69,6 +74,14 @@
     <p-button size="mini" color="error" on:click="deleteCert">
       删除证书
     </p-button>
+
+    <p-button
+      size="mini"
+      attr:color="isClickCopy ? 'success' : 'primary'"
+      on:click="clickCopy"
+    >
+      {{isClickCopy ? '复制成功' : '复制证书'}}
+    </p-button>
   </div>
 
   <script>
@@ -81,7 +94,9 @@
         data: {
           fid: "", // 寄宿的文件名
           item: {},
+          sign: "", // 指纹
           certData: {}, // 主体卡片数据
+          isClickCopy: false,
         },
         watch: {
           item(item) {
@@ -89,6 +104,23 @@
           },
         },
         proto: {
+          // 复制证书
+          async clickCopy() {
+            this.isClickCopy = 1;
+
+            // 要导出的数据对象
+            const expData = {
+              data: this.item.toJSON(),
+              sign: this.sign,
+            };
+
+            navigator.clipboard.writeText(JSON.stringify(expData));
+
+            clearTimeout(this._ctimer);
+            this._ctimer = setTimeout(() => {
+              this.isClickCopy = false;
+            }, 1500);
+          },
           // 删除证书
           async deleteCert() {
             const result = await confirm({

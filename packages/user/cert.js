@@ -34,6 +34,9 @@ export const getCerts = async (certsData) => {
       let data;
       if (item.text) {
         const content = await item.text();
+        if (!content) {
+          continue;
+        }
         data = JSON.parse(content);
       } else {
         data = item;
