@@ -8,16 +8,21 @@ setTimeout(async () => {
   const serverFile = await getServerFile();
 
   let data = await serverFile.text();
-  data = JSON.parse(data);
+  if (data) {
+    data = JSON.parse(data);
 
-  data.forEach((serverInfo) => {
-    const connector = new ServerConnector(serverInfo);
-    servers.push(connector);
-  });
+    data.forEach((serverInfo) => {
+      const connector = new ServerConnector(serverInfo);
+      servers.push(connector);
+    });
+  }
 
   if (!servers.length && location.host.includes("localhost")) {
     // 添加测试服务器
-    addServer("http://localhost:5569/user");
+    const connector = new ServerConnector({
+      serverUrl: "http://localhost:5569/user",
+    });
+    servers.push(connector);
   }
 }, 100);
 

@@ -28,7 +28,9 @@ async function initUserPair() {
 
 // 从本地文件获取用户数据
 const getUserDataFromHandle = async () => {
-  const pairHandle = await get("local/system/user/pair");
+  const pairHandle = await get("local/system/user/pair", {
+    create: "file",
+  });
 
   if (!pairHandle) {
     return null;

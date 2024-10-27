@@ -29,7 +29,9 @@ const KEEP_USER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日志�
   // 定时清除日志
   setInterval(
     (clearFun = async () => {
-      const usersDir = await get(`local/caches/user-logs`);
+      const usersDir = await get(`local/caches/user-logs`, {
+        create: "dir",
+      });
 
       if (!usersDir) {
         return;

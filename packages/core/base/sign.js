@@ -16,16 +16,17 @@ export const sign = async (message) => {
 
   const pair = await getPair();
 
-  const arrayData = await crypto.subtle.sign(
+  // 使用私钥进行签名
+  const signature = await crypto.subtle.sign(
     {
-      name: "RSA-PSS",
-      saltLength: 32,
+      name: "ECDSA",
+      hash: { name: "SHA-256" },
     },
     pair.privateKey,
     data
   );
 
-  return arrayBufferToBase64(arrayData);
+  return arrayBufferToBase64(signature);
 };
 
 /**
