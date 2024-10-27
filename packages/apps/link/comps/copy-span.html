@@ -64,7 +64,7 @@
         clickCopy() {
           this.ok = true;
 
-          navigator.clipboard.writeText(this.text);
+          navigator.clipboard.writeText(this.text.trim());
 
           clearTimeout(this._timer);
           this._timer = setTimeout(() => {

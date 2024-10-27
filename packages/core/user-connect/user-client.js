@@ -1,6 +1,6 @@
 import { User } from "/packages/user/public-user.js";
 import { get } from "/packages/fs/handle/index.js";
-import { servers } from "../main.js";
+import { servers, emit, userMiddleware } from "../main.js";
 import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
 
 const STARTCHANNEL = "startChannel";
@@ -100,7 +100,7 @@ export class UserClient extends $.Stanz {
 
   // 统一的初始化信道的方法
   _bindChannel(channel) {
-    channel.onmessage = (e) => this._onmsg(e, channel);
+    channel.onmessage = (e) => this.#onmsg(e, channel);
 
     channel.onclose = async () => {
       console.log("channel close: ", channel.label, channel);
@@ -116,6 +116,11 @@ export class UserClient extends $.Stanz {
 
           // 清空rtc连接
           this.#rtcConnection = null;
+
+          // 用户关闭事件
+          emit("user-closed", {
+            target: this,
+          });
         }
       }
     };
@@ -123,6 +128,10 @@ export class UserClient extends $.Stanz {
     channel.onopen = () => {
       if (this.#channels.size >= 1) {
         this.state = "connected";
+
+        emit("user-connected", {
+          target: this,
+        });
 
         // 初次测试延迟
         this.ping();
@@ -232,7 +241,8 @@ export class UserClient extends $.Stanz {
     return true;
   }
 
-  _onmsg(e, channel) {
+  // 接收到对面用户发过来的数据
+  #onmsg(e, channel) {
     // channel 响应数据
     let { data } = e;
 
@@ -253,6 +263,18 @@ export class UserClient extends $.Stanz {
 
       // 转换数据
       data = JSON.parse(data);
+
+      // 根据类型执行操作
+      switch (data.type) {
+        case "msg":
+          console.log(data.value);
+          break;
+        default:
+          const midFunc = userMiddleware.get(data.type);
+          if (midFunc) {
+            midFunc(data, this, channel);
+          }
+      }
     } else {
       // TODO: 处理二进制数据
       debugger;

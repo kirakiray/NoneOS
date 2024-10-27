@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./moment-span.html"></l-m>
+  <l-m src="./copy-span.html"></l-m>
   <l-m src="./user-name.html"></l-m>
   <style>
     :host {
@@ -48,7 +49,9 @@
   </div>
   <div class="line">
     <div class="line-key">{{getName('signPublic')}}</div>
-    <div class="line-val">{{certData.signPublic}}</div>
+    <div class="line-val">
+      <n-copy-span>{{certData.signPublic}}</n-copy-span>
+    </div>
   </div>
   <div class="line">
     <div class="line-key">{{getName('creation')}}</div>
@@ -87,6 +90,7 @@
         tag: "n-cert-block",
         data: {
           fid: "", // 寄宿的文件名
+          iscache: null, // 在缓存目录中
           item: {},
           sign: "", // 指纹
           certData: {}, // 主体卡片数据
@@ -126,7 +130,9 @@
               return;
             }
 
-            const certsDir = await get("local/system/user/certs");
+            const certsDir = this.iscache
+              ? await get("local/caches/certs")
+              : await get("local/system/user/certs");
 
             const targetHandle = await certsDir.get(this.fid);
 

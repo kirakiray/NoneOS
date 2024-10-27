@@ -29,6 +29,7 @@
         :item="$data.data"
         :sign="$data.sign"
         :fid="$data.fid"
+        :iscache="$data.iscache"
         on:delete-end="$host.loadCerts()"
       ></n-cert-block>
     </x-fill>
@@ -115,36 +116,22 @@
           async loadCerts() {
             this.loading = true;
 
-            const handle = await get("local/system/user/certs");
+            // 获取所有证书
+            const certs = await getCerts(await get("local/system/user/certs"));
 
-            if (handle) {
-              const certs = [];
-
-              for await (let certHandle of handle.values()) {
-                let item = await certHandle.text();
-                if (!item) {
-                  continue;
-                }
-                item = await JSON.parse(item);
-
-                // 验证数据是否正确
-                const result = await verify(item);
-
-                if (result) {
-                  // 添加到列表
-                  certs.push({
-                    fid: certHandle.name,
-                    data: item.data,
-                    sign: item.sign,
-                  });
-                } else {
-                  // TODO: 异常证书处理
-                  debugger;
-                }
-              }
-
-              this.certs = certs;
+            const c2 = await getCerts(await get("local/caches/certs"));
+            if (c2.length) {
+              certs.push(
+                ...c2.map((e) => {
+                  return {
+                    ...e,
+                    iscache: 1, // 标识缓存文件
+                  };
+                })
+              );
             }
+
+            this.certs = certs;
 
             this.loading = false;
           },
@@ -164,6 +151,40 @@
           this.loadCerts();
         },
       };
+    };
+
+    // 从目录上获取签名文件
+    const getCerts = async (certsDirHandle) => {
+      if (!certsDirHandle) {
+        return [];
+      }
+
+      const certs = [];
+
+      for await (let certHandle of certsDirHandle.values()) {
+        let item = await certHandle.text();
+        if (!item) {
+          continue;
+        }
+        item = await JSON.parse(item);
+
+        // 验证数据是否正确
+        const result = await verify(item);
+
+        if (result) {
+          // 添加到列表
+          certs.push({
+            fid: certHandle.name,
+            data: item.data,
+            sign: item.sign,
+          });
+        } else {
+          // TODO: 异常证书处理
+          debugger;
+        }
+      }
+
+      return certs;
     };
   </script>
 </template>
