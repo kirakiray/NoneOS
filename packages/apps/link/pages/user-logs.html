@@ -172,11 +172,16 @@
 
             for await (let item of dirHandle.values()) {
               let data = await item.text();
+              if (!data) {
+                // 删除空文件
+                item.remove();
+                continue;
+              }
               try {
                 data = JSON.parse(data);
                 logs.push(data);
               } catch (err) {
-                // TODO: 删掉文件
+                // TODO: 错误代码
                 debugger;
               }
             }

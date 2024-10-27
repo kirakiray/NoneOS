@@ -2,8 +2,10 @@
   <l-m src="./moment-span.html"></l-m>
   <l-m src="./copy-span.html"></l-m>
   <l-m src="./user-name.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
       padding: 8px;
       border-radius: 8px;
@@ -81,6 +83,24 @@
     </p-button>
   </div>
 
+  <p-button
+    size="small"
+    attr:color="iscache ? 'normal' : 'primary'"
+    icon
+    on:click="clickFavory"
+    style="position: absolute; right: 12px; top: 12px"
+  >
+    <x-if :value="iscache">
+      <n-local-icon
+        name="favory-outline"
+        style="font-size: 18px"
+      ></n-local-icon>
+    </x-if>
+    <x-else>
+      <n-local-icon name="favory" style="font-size: 18px"></n-local-icon>
+    </x-else>
+  </p-button>
+
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/handle/index.js");
@@ -90,7 +110,7 @@
         tag: "n-cert-block",
         data: {
           fid: "", // 寄宿的文件名
-          iscache: null, // 在缓存目录中
+          iscache: false, // 在缓存目录中
           item: {},
           sign: "", // 指纹
           certData: {}, // 主体卡片数据
@@ -102,6 +122,46 @@
           },
         },
         proto: {
+          // 点击了收藏
+          async clickFavory() {
+            this.iscache = !this.iscache;
+
+            if (this.iscache) {
+              const userCertDir = await get("local/system/user/certs");
+              const cacheCertDir = await get("local/caches/certs");
+
+              // 移除个人文件夹内
+              const targetFileHandle = await userCertDir.get(this.fid);
+              if (targetFileHandle) {
+                await targetFileHandle.remove();
+              }
+
+              // 并写到缓存文件夹内
+              const fileHandle = await cacheCertDir.get(this.fid, {
+                create: "file",
+              });
+              await fileHandle.write(
+                JSON.stringify({
+                  data: this.item.toJSON(),
+                  sign: this.sign,
+                })
+              );
+            } else {
+              // 写入到个人文件夹内
+              const certDir = await get("local/system/user/certs");
+
+              const fileHandle = await certDir.get(this.fid, {
+                create: "file",
+              });
+
+              await fileHandle.write(
+                JSON.stringify({
+                  data: this.item.toJSON(),
+                  sign: this.sign,
+                })
+              );
+            }
+          },
           // 复制证书
           async clickCopy() {
             this.isClickCopy = 1;

@@ -29,7 +29,16 @@
         :item="$data.data"
         :sign="$data.sign"
         :fid="$data.fid"
-        :iscache="$data.iscache"
+        :iscache="false"
+        on:delete-end="$host.loadCerts()"
+      ></n-cert-block>
+    </x-fill>
+    <x-fill :value="cacheCerts">
+      <n-cert-block
+        :item="$data.data"
+        :sign="$data.sign"
+        :fid="$data.fid"
+        :iscache="true"
         on:delete-end="$host.loadCerts()"
       ></n-cert-block>
     </x-fill>
@@ -65,7 +74,8 @@
 
       return {
         data: {
-          certs: [],
+          certs: [], // 个人收藏的证书
+          cacheCerts: [],
           loading: false,
           icertVal: "", // 要导入的内容
         },
@@ -117,21 +127,12 @@
             this.loading = true;
 
             // 获取所有证书
-            const certs = await getCerts(await get("local/system/user/certs"));
-
-            const c2 = await getCerts(await get("local/caches/certs"));
-            if (c2.length) {
-              certs.push(
-                ...c2.map((e) => {
-                  return {
-                    ...e,
-                    iscache: 1, // 标识缓存文件
-                  };
-                })
-              );
-            }
-
-            this.certs = certs;
+            this.certs = await getCerts(await get("local/system/user/certs"));
+            const cacheCerts = await getCerts(await get("local/caches/certs"));
+            this.cacheCerts = cacheCerts.filter((e) => {
+              // 过滤已收藏的证书
+              return !this.certs.some((item) => item.fid === e.fid);
+            });
 
             this.loading = false;
           },
