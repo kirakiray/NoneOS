@@ -25,17 +25,17 @@ export async function verifyMessage(message, signature, publicKey) {
     "spki", // 导入的密钥类型，这里是公钥
     base64ToArrayBuffer(publicKey),
     {
-      name: "RSA-PSS",
-      hash: "SHA-256",
+      name: "ECDSA",
+      namedCurve: "P-256",
     },
     true,
-    ["verify"] // 只需要加密权限
+    ["verify"] // 只需要验证权限
   );
 
   return await crypto.subtle.verify(
     {
-      name: "RSA-PSS",
-      saltLength: 32,
+      name: "ECDSA",
+      hash: { name: "SHA-256" },
     },
     realPublicKey,
     base64ToArrayBuffer(signature),
