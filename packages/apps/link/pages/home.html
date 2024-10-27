@@ -6,51 +6,69 @@
     :host {
       display: block;
     }
-  </style>
-  <p-table>
-    <p-table-row>
-      <p-table-cell basis="120">用户名</p-table-cell>
-      <p-table-cell>
-        <x-if :value="renameMode">
-          <input
-            id="renameInputer"
-            type="text"
-            sync:value="userName"
-            on:change="renameEnd"
-            on:blur="renameMode = false"
-          />
-        </x-if>
-        <x-else>
-          <div>{{userName}}</div>
-        </x-else>
 
-        <p-button
-          icon
-          size="small"
-          variant="text"
-          on:click="renameMode = true"
-          class:hide="renameMode"
-          style="margin-left: 8px"
-        >
-          <n-local-icon name="edit"></n-local-icon>
-        </p-button>
-      </p-table-cell>
-    </p-table-row>
-    <p-table-row>
-      <p-table-cell>用户ID</p-table-cell>
-      <p-table-cell>
-        <n-copy-span style="max-width: 320px">{{userID}} </n-copy-span>
-      </p-table-cell>
-    </p-table-row>
-    <p-table-row>
-      <p-table-cell>签名公钥</p-table-cell>
-      <p-table-cell>
-        <div class="row-val" attr:title="signPublic">
-          <n-copy-span style="max-width: 320px">{{signPublic}} </n-copy-span>
-        </div>
-      </p-table-cell>
-    </p-table-row>
-  </p-table>
+    .line {
+      display: flex;
+      align-items: center;
+    }
+    .line-key {
+      font-size: 14px;
+      font-weight: bold;
+      color: #7a7a7a;
+      margin-right: 8px;
+      width: 80px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  </style>
+
+  <div class="line">
+    <div class="line-key">用户名</div>
+    <div class="line-val" style="display: flex">
+      <x-if :value="renameMode">
+        <input
+          id="renameInputer"
+          type="text"
+          sync:value="userName"
+          on:change="renameEnd"
+          on:blur="renameMode = false"
+        />
+      </x-if>
+      <x-else>
+        <div>{{userName}}</div>
+      </x-else>
+
+      <p-button
+        icon
+        size="small"
+        variant="text"
+        on:click="renameMode = true"
+        class:hide="renameMode"
+        style="margin-left: 8px"
+      >
+        <n-local-icon name="edit"></n-local-icon>
+      </p-button>
+    </div>
+  </div>
+  <div class="line">
+    <div class="line-key">用户ID</div>
+    <div class="line-val">
+      <n-copy-span>{{userID}} </n-copy-span>
+    </div>
+  </div>
+  <div class="line">
+    <div class="line-key">签名公钥</div>
+    <div class="line-val">
+      <div class="row-val" attr:title="signPublic">
+        <n-copy-span>{{signPublic}} </n-copy-span>
+      </div>
+    </div>
+  </div>
   <script>
     export const parent = "../outer.html";
 
