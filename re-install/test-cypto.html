@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      async function testSignatureSpeed1(strings) {
+        const subtle = window.crypto.subtle;
+
+        // 生成密钥对
+        const keyPair = await subtle.generateKey(
+          {
+            name: "RSASSA-PKCS1-v1_5",
+            modulusLength: 2048,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: { name: "SHA-256" },
+          },
+          true,
+          ["sign", "verify"]
+        );
+
+        // 签名和验证
+        let totalSignTime = 0;
+        let totalVerifyTime = 0;
+
+        for (const str of strings) {
+          const data = new TextEncoder().encode(str);
+
+          // 签名
+          const startSign = performance.now();
+          const signature = await subtle.sign(
+            "RSASSA-PKCS1-v1_5",
+            keyPair.privateKey,
+            data
+          );
+          const endSign = performance.now();
+          totalSignTime += endSign - startSign;
+
+          // 验证签名
+          const startVerify = performance.now();
+          const isValid = await subtle.verify(
+            "RSASSA-PKCS1-v1_5",
+            keyPair.publicKey,
+            signature,
+            data
+          );
+          const endVerify = performance.now();
+          totalVerifyTime += endVerify - startVerify;
+
+          if (!isValid) {
+            console.error(`签名验证失败: ${str}`);
+          }
+        }
+
+        console.log("PKCS1-v1_5");
+        console.log(`总签名时间: ${totalSignTime} 毫秒`);
+        console.log(`总验证时间: ${totalVerifyTime} 毫秒`);
+        console.log(`平均签名时间: ${totalSignTime / strings.length} 毫秒`);
+        console.log(`平均验证时间: ${totalVerifyTime / strings.length} 毫秒`);
+      }
+    </script>
+    <script>
+      async function testSignatureSpeed2(strings) {
+        const subtle = window.crypto.subtle;
+
+        // 生成密钥对
+        const keyPair = await subtle.generateKey(
+          {
+            name: "ECDSA",
+            namedCurve: "P-256", // secp256r1
+          },
+          true,
+          ["sign", "verify"]
+        );
+
+        // 签名和验证
+        let totalSignTime = 0;
+        let totalVerifyTime = 0;
+
+        for (const str of strings) {
+          const data = new TextEncoder().encode(str);
+
+          // 签名
+          const startSign = performance.now();
+          const signature = await subtle.sign(
+            {
+              name: "ECDSA",
+              hash: { name: "SHA-256" },
+            },
+            keyPair.privateKey,
+            data
+          );
+          const endSign = performance.now();
+          totalSignTime += endSign - startSign;
+
+          // 验证签名
+          const startVerify = performance.now();
+          const isValid = await subtle.verify(
+            {
+              name: "ECDSA",
+              hash: { name: "SHA-256" },
+            },
+            keyPair.publicKey,
+            signature,
+            data
+          );
+          const endVerify = performance.now();
+          totalVerifyTime += endVerify - startVerify;
+
+          if (!isValid) {
+            console.error(`签名验证失败: ${str}`);
+          }
+        }
+
+        console.log("P256");
+        console.log(`总签名时间: ${totalSignTime} 毫秒`);
+        console.log(`总验证时间: ${totalVerifyTime} 毫秒`);
+        console.log(`平均签名时间: ${totalSignTime / strings.length} 毫秒`);
+        console.log(`平均验证时间: ${totalVerifyTime / strings.length} 毫秒`);
+      }
+    </script>
+    <script>
+      async function testSignatureSpeed3(strings) {
+        const subtle = window.crypto.subtle;
+
+        // 生成密钥对
+        const keyPair = await subtle.generateKey(
+          {
+            name: "RSA-PSS",
+            modulusLength: 2048,
+            publicExponent: new Uint8Array([1, 0, 1]),
+            hash: { name: "SHA-256" },
+          },
+          true,
+          ["sign", "verify"]
+        );
+
+        // 签名和验证
+        let totalSignTime = 0;
+        let totalVerifyTime = 0;
+
+        for (const str of strings) {
+          const data = new TextEncoder().encode(str);
+
+          // 签名
+          const startSign = performance.now();
+          const signature = await subtle.sign(
+            {
+              name: "RSA-PSS",
+              saltLength: 32,
+            },
+            keyPair.privateKey,
+            data
+          );
+          const endSign = performance.now();
+          totalSignTime += endSign - startSign;
+
+          // 验证签名
+          const startVerify = performance.now();
+          const isValid = await subtle.verify(
+            {
+              name: "RSA-PSS",
+              saltLength: 32,
+            },
+            keyPair.publicKey,
+            signature,
+            data
+          );
+          const endVerify = performance.now();
+          totalVerifyTime += endVerify - startVerify;
+
+          if (!isValid) {
+            console.error(`签名验证失败: ${str}`);
+          }
+        }
+
+        console.log("RSA-PSS");
+        console.log(`总签名时间: ${totalSignTime} 毫秒`);
+        console.log(`总验证时间: ${totalVerifyTime} 毫秒`);
+        console.log(`平均签名时间: ${totalSignTime / strings.length} 毫秒`);
+        console.log(`平均验证时间: ${totalVerifyTime / strings.length} 毫秒`);
+      }
+    </script>
+    <script type="module">
+      import * as secp from "https://cdn.jsdelivr.net/npm/@noble/secp256k1/index.js";
+
+      async function testSignatureSpeed4(strings) {
+        // 生成密钥对
+        const privateKey = secp.utils.randomPrivateKey();
+        const publicKey = secp.getPublicKey(privateKey);
+
+        // 签名和验证
+        let totalSignTime = 0;
+        let totalVerifyTime = 0;
+
+        for (const str of strings) {
+          const data = new TextEncoder().encode(str);
+          const msgHash = new Uint8Array(
+            await crypto.subtle.digest("SHA-256", data)
+          );
+
+          // 签名
+          const startSign = performance.now();
+          const signature = await secp.signAsync(msgHash, privateKey);
+          const endSign = performance.now();
+          totalSignTime += endSign - startSign;
+
+          // 验证签名
+          const startVerify = performance.now();
+          const isValid = secp.verify(signature, msgHash, publicKey);
+          const endVerify = performance.now();
+          totalVerifyTime += endVerify - startVerify;
+
+          if (!isValid) {
+            console.error(`签名验证失败: ${str}`);
+          }
+        }
+
+        console.log("secp256k1");
+        console.log(`总签名时间: ${totalSignTime} 毫秒`);
+        console.log(`总验证时间: ${totalVerifyTime} 毫秒`);
+        console.log(`平均签名时间: ${totalSignTime / strings.length} 毫秒`);
+        console.log(`平均验证时间: ${totalVerifyTime / strings.length} 毫秒`);
+      }
+
+      window.testSignatureSpeed4 = testSignatureSpeed4;
+    </script>
+    <script>
+      async function generateRandomStrings(count, length) {
+        const strings = [];
+        for (let i = 0; i < count; i++) {
+          const randomString = Array.from(
+            crypto.getRandomValues(new Uint8Array(length))
+          )
+            .map((byte) => String.fromCharCode(33 + (byte % 94)))
+            .join("");
+          strings.push(randomString);
+        }
+        return strings;
+      }
+
+      // 生成一千对随机字符串
+      generateRandomStrings(1000, 32).then(async (strings) => {
+        await testSignatureSpeed1(strings);
+        await testSignatureSpeed3(strings);
+        await testSignatureSpeed2(strings);
+        await testSignatureSpeed4(strings);
+      });
+    </script>
+  </body>
+</html>
