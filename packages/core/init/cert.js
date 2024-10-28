@@ -16,17 +16,10 @@ import { getHash } from "/packages/user/util.js";
   });
 }
 
-// 接收到获取证书的请求
-userMiddleware.set("get-certs", async (midData, client) => {
-  const {
-    exists, // 对面用户已存在的证书
-    search, // 对面查找的证书
-  } = midData;
-
-  // 获取所有证书
-  const certsDir = await get("local/system/user/certs");
-  if (!certsDir || !(await certsDir.length())) {
-    return;
+// 从目录中获取证书
+const getCerts = async (certsDir, client) => {
+  if (!certsDir) {
+    return [];
   }
 
   const relateCerts = [];
@@ -45,20 +38,55 @@ userMiddleware.set("get-certs", async (midData, client) => {
 
     const info = new Map(data.data);
 
+    // 去除过期的
+    const expire = info.get("expire");
+    if (
+      expire !== "never" &&
+      typeof expire === "number" &&
+      Date.now() > expire
+    ) {
+      // 已经过期了
+      continue;
+    }
+
     if (
       info.get("authTo") === client.userId ||
       info.get("issuer") === client.userId
     ) {
+      // 和当前用户实例有关
       relateCerts.push(data);
     }
   }
 
-  // TODO: 根据条件进行过滤
+  return relateCerts;
+};
 
+// 接收到获取证书的请求
+userMiddleware.set("get-certs", async (midData, client) => {
+  const {
+    exists, // 对面用户已存在的证书
+    search, // 对面查找的证书
+  } = midData;
+
+  // 获取所有证书
+  const certsDir = await get("local/system/user/certs");
+  const cacheCertsDir = await get("local/caches/certs");
+
+  const relateCerts = [
+    ...(await getCerts(certsDir, client)),
+    ...(await getCerts(cacheCertsDir, client)),
+  ];
+
+  // TODO: 根据条件进行过滤
   if (relateCerts.length) {
+    // 去除重复的证书
+    const mdata = new Map();
+    relateCerts.forEach((e) => mdata.set(e.sign, e));
+    const certs = Array.from(mdata.values());
+
     client.send({
       type: "obtain-certs",
-      certs: relateCerts,
+      certs,
     });
   }
 });
