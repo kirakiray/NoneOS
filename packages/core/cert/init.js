@@ -64,7 +64,10 @@ userMiddleware.set("obtain-certs", async (midData, client) => {
       return;
     }
 
-    const hash = await getHash(cert);
+    const hash = await getHash({
+      data: cert.data,
+      sign: cert.sign,
+    });
 
     // 写入文件
     const fileHandle = await certsCacheDir.get(hash, {
