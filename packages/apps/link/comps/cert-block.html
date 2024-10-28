@@ -102,6 +102,8 @@
   </p-button>
 
   <script>
+    import { getHash } from "/packages/user/util.js";
+
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/handle/index.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
@@ -109,7 +111,6 @@
       return {
         tag: "n-cert-block",
         data: {
-          fid: "", // 寄宿的文件名
           iscache: false, // 在缓存目录中
           item: {},
           sign: "", // 指纹
@@ -122,6 +123,16 @@
           },
         },
         proto: {
+          get fid() {
+            return (async () => {
+              const fid = await getHash({
+                data: this.item,
+                sign: this.sign,
+              });
+
+              return fid;
+            })();
+          },
           // 点击了收藏
           async clickFavory() {
             if (!this.iscache) {
@@ -131,13 +142,13 @@
               });
 
               // 移除个人文件夹内
-              const targetFileHandle = await userCertDir.get(this.fid);
+              const targetFileHandle = await userCertDir.get(await this.fid);
               if (targetFileHandle) {
                 await targetFileHandle.remove();
               }
 
               // 并写到缓存文件夹内
-              const fileHandle = await cacheCertDir.get(this.fid, {
+              const fileHandle = await cacheCertDir.get(await this.fid, {
                 create: "file",
               });
               await fileHandle.write(
@@ -150,7 +161,7 @@
               // 写入到个人文件夹内
               const certDir = await get("local/system/user/certs");
 
-              const fileHandle = await certDir.get(this.fid, {
+              const fileHandle = await certDir.get(await this.fid, {
                 create: "file",
               });
 
@@ -196,7 +207,7 @@
               ? await get("local/caches/certs")
               : await get("local/system/user/certs");
 
-            const targetHandle = await certsDir.get(this.fid);
+            const targetHandle = await certsDir.get(await this.fid);
 
             targetHandle && targetHandle.remove();
 

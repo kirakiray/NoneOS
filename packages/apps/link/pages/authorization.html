@@ -24,21 +24,24 @@
   </style>
   <h4>本地证书</h4>
   <div class="container">
+    <x-if :value="!certs.length  ">
+      <div
+        style="
+          min-width: 80px;
+          text-align: center;
+          line-height: 50px;
+          font-size: 14px;
+          color: #767676;
+        "
+      >
+        空
+      </div>
+    </x-if>
     <x-fill :value="certs">
       <n-cert-block
         :item="$data.data"
         :sign="$data.sign"
-        :fid="$data.fid"
-        :iscache="false"
-        on:delete-end="$host.loadCerts()"
-      ></n-cert-block>
-    </x-fill>
-    <x-fill :value="cacheCerts">
-      <n-cert-block
-        :item="$data.data"
-        :sign="$data.sign"
-        :fid="$data.fid"
-        :iscache="true"
+        :iscache="$data.iscache"
         on:delete-end="$host.loadCerts()"
       ></n-cert-block>
     </x-fill>
@@ -71,11 +74,11 @@
     export default async ({ load }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
       const { getHash } = await load("/packages/user/util.js");
+      const { getAllCerts } = await load("/packages/core/cert/main.js");
 
       return {
         data: {
-          certs: [], // 个人收藏的证书
-          cacheCerts: [],
+          certs: [], // 所有证书
           loading: false,
           icertVal: "", // 要导入的内容
         },
@@ -126,12 +129,17 @@
           async loadCerts() {
             this.loading = true;
 
-            // 获取所有证书
-            this.certs = await getCerts(await get("local/system/user/certs"));
-            const cacheCerts = await getCerts(await get("local/caches/certs"));
-            this.cacheCerts = cacheCerts.filter((e) => {
-              // 过滤已收藏的证书
-              return !this.certs.some((item) => item.fid === e.fid);
+            const certs = await getAllCerts();
+            this.certs = certs.filter((e) => {
+              if (
+                e.iscache &&
+                certs.some((item) => !item.iscache && item.sign === e.sign)
+              ) {
+                // 如果是缓存中的证书，并且已经存在了非缓存的版本，则去除缓存的版本
+                return false;
+              }
+
+              return true;
             });
 
             this.loading = false;
@@ -152,40 +160,6 @@
           this.loadCerts();
         },
       };
-    };
-
-    // 从目录上获取签名文件
-    const getCerts = async (certsDirHandle) => {
-      if (!certsDirHandle) {
-        return [];
-      }
-
-      const certs = [];
-
-      for await (let certHandle of certsDirHandle.values()) {
-        let item = await certHandle.text();
-        if (!item) {
-          continue;
-        }
-        item = await JSON.parse(item);
-
-        // 验证数据是否正确
-        const result = await verify(item);
-
-        if (result) {
-          // 添加到列表
-          certs.push({
-            fid: certHandle.name,
-            data: item.data,
-            sign: item.sign,
-          });
-        } else {
-          // TODO: 异常证书处理
-          debugger;
-        }
-      }
-
-      return certs;
     };
   </script>
 </template>
