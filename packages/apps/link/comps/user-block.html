@@ -4,6 +4,7 @@
   <l-m src="./moment-span.html"></l-m>
   <style>
     :host {
+      position: relative;
       max-width: 320px;
       min-width: 300px;
       display: block;
@@ -86,15 +87,62 @@
       <p-button on:click="viewLog" size="mini">查看日志</p-button>
     </div>
   </div>
+  <p-button
+    size="mini"
+    attr:color="!iskeep ? 'normal' : 'primary'"
+    icon
+    on:click="clickFavory"
+    style="position: absolute; right: 8px; top: 8px"
+  >
+    <x-if :value="!iskeep">
+      <n-local-icon
+        name="favory-outline"
+        style="font-size: 12px"
+      ></n-local-icon>
+    </x-if>
+    <x-else>
+      <n-local-icon name="favory" style="font-size: 12px"></n-local-icon>
+    </x-else>
+  </p-button>
+
   <script>
     export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+
       return {
         tag: "n-user-block",
         data: {
           item: {},
           connecting: false,
+          iskeep: false, // 是否收藏到用户文件夹内
         },
         proto: {
+          async clickFavory() {
+            this.iskeep = !this.iskeep;
+
+            const cardsDir = await get("local/system/user/cards", {
+              create: "dir",
+            });
+
+            const { userData, user } = this.item;
+
+            if (this.iskeep) {
+              // 保存到用户文件夹内
+              const fileHandle = await cardsDir.get(userData.userID, {
+                create: "file",
+              });
+
+              await fileHandle.write(JSON.stringify(user));
+            } else {
+              // 移出用户文件夹
+              const fileHandle = await cardsDir.get(userData.userID);
+
+              if (fileHandle) {
+                // 删除收藏
+                await fileHandle.remove();
+              }
+            }
+          },
           async viewLog() {
             this.app.current.goto(
               `user-logs.html?id=${this.item.userId}&name=${this.item.userName}`
@@ -109,6 +157,20 @@
             }
             this.connecting = false;
           },
+        },
+        async attached() {
+          const { userData } = this.item;
+
+          // 查看是否在缓存文件夹内
+          const targetFile = await get(
+            `local/system/user/cards/${userData.userID}`
+          ).catch(() => null);
+
+          if (targetFile) {
+            // 在收藏文件夹内，则标记为收藏
+            const size = await targetFile.size();
+            this.iskeep = !!size;
+          }
         },
       };
     };

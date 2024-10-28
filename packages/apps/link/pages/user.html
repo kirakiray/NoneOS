@@ -34,9 +34,6 @@
       <n-user-block :item="$data"></n-user-block>
     </x-fill>
   </div>
-  <x-fill :value="cacheUsers">
-    <n-user-block :item="$data"></n-user-block>
-  </x-fill>
 
   <script>
     export const parent = "../outer.html";
@@ -50,7 +47,6 @@
       return {
         data: {
           users: [], // 所有用户
-          cacheUsers: [], // 缓存文件中的卡片数据
         },
         proto: {
           // 更新在线用户
@@ -69,10 +65,6 @@
               ],
             },
           });
-
-          const cacheUsers = await getCacheUsers();
-          console.log(cacheUsers[0]);
-          this.cacheUsers = cacheUsers;
         },
         detached() {
           this.users = [];

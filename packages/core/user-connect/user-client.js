@@ -244,6 +244,14 @@ export class UserClient extends $.Stanz {
     return true;
   }
 
+  get userData() {
+    return Object.fromEntries(this.#user.data);
+  }
+
+  get user() {
+    return { ...this.#user };
+  }
+
   // 接收到对面用户发过来的数据
   #onmsg(e, channel) {
     // channel 响应数据

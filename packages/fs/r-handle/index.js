@@ -1,6 +1,6 @@
 import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "/packages/user/main.js";
-import { getUserCard } from "/packages/user/usercard.js";
+// import { getUserCard } from "/packages/user/usercard.js";
 import { RemoteDirHandle } from "./dir.js";
 import { handleBridge } from "./bridge.js";
 
@@ -8,7 +8,7 @@ import { handleBridge } from "./bridge.js";
 export const getRemotes = async () => {
   const certs = await getCerts();
   const selfUserInfo = await getSelfUserInfo();
-  const userCards = await getUserCard();
+  const userCards = [];
 
   const remotes = [];
 

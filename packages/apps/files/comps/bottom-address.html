@@ -95,13 +95,15 @@
         proto: {
           async getRemoteUserName(userId) {
             // 按需加载这个模块
-            const { getUserCard } = await load("/packages/user/usercard.js");
+            // const { getUserCard } = await load("/packages/user/usercard.js");
 
-            const targetUser = await getUserCard({
-              id: userId,
-            });
+            // const targetUser = await getUserCard({
+            //   id: userId,
+            // });
 
-            return targetUser.name;
+            // return targetUser.name;
+
+            return "";
           },
           clickBlock(index, data) {
             const isLasted = this.pathArr.length - 1 === index;

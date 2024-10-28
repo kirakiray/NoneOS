@@ -6,6 +6,28 @@ import { verify } from "../base/verify.js";
 
 export { users };
 
+(async () => {
+  // 加载收藏中的用户
+  const cardsDir = await get("local/system/user/cards");
+
+  if (!cardsDir) {
+    return;
+  }
+
+  cardsDir.forEach(async (handle) => {
+    let data = await handle.text();
+    if (data) {
+      data = JSON.parse(data);
+
+      const client = new UserClient(data);
+
+      if (await client.verify()) {
+        users.push(client);
+      }
+    }
+  });
+})();
+
 // 更新在线用户
 export const updateOnlineUser = async () => {
   const selfUserId = await getId();
@@ -98,7 +120,7 @@ export const getCacheUsers = async () => {
       continue;
     }
 
-    users.push(data);
+    users.push(new UserClient(data));
   }
 
   return users;
