@@ -73,8 +73,9 @@
 
     export default async ({ load }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
-      const { getHash } = await load("/packages/user/util.js");
-      const { getAllCerts } = await load("/packages/core/cert/main.js");
+      const { getAllCerts, importCert } = await load(
+        "/packages/core/cert/main.js"
+      );
 
       return {
         data: {
@@ -97,37 +98,32 @@
               return;
             }
 
-            // 获取指纹
-            const hash = await getHash({
-              data: val.data,
-              sign: val.sign,
-            });
+            const result = await importCert(val);
 
-            const exitedHandle = await get(`local/system/user/certs/${hash}`, {
-              create: "file",
-            });
-
-            const oldText = await exitedHandle.text();
-
-            if (oldText === this.icertVal) {
+            if (result instanceof Error) {
               enqueue({
-                content: "证书已经存在",
+                color: "error",
+                content: result.toString(),
               });
-              this.icertVal = "";
               return;
             }
 
-            // 写入内容
-            await exitedHandle.write(this.icertVal);
+            if (result.code === "already") {
+              enqueue({
+                content: "证书已经存在",
+              });
+              return;
+            }
 
-            this.icertVal = "";
-
-            this.loadCerts();
-
-            enqueue({
-              content: "导入成功",
-              color: "success",
-            });
+            if (result.code == "ok") {
+              // 导入成功，重载内容
+              this.icertVal = "";
+              this.loadCerts();
+              enqueue({
+                content: "导入成功",
+                color: "success",
+              });
+            }
           },
           async loadCerts() {
             this.loading = true;

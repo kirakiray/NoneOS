@@ -1,6 +1,7 @@
 // 和证书相关的方法
 import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
+import { getHash } from "/packages/user/util.js";
 
 /**
  * 获取所有证书
@@ -71,4 +72,48 @@ const getCerts = async (certsDir, userId, filterExpired) => {
   }
 
   return relateCerts;
+};
+
+/**
+ * 将证书导入到本地
+ * @param {Object} certItem 证书对象
+ * @param {boolean} toCache 是否放到缓存
+ */
+export const importCert = async (certItem, toCache = false) => {
+  const reItem = {
+    data: certItem.data,
+    sign: certItem.sign,
+  };
+
+  // 验证证书正确性
+  const result = await verify(reItem).catch(() => false);
+  if (!result) {
+    const err = new Error(`Certificate verification failed`);
+    err.code = "cert-failed";
+    return err;
+  }
+
+  const itemStr = JSON.stringify(reItem);
+
+  // 获取指纹
+  const hash = await getHash(itemStr);
+
+  const exitedHandle = await get(`local/system/user/certs/${hash}`, {
+    create: "file",
+  });
+
+  const oldText = await exitedHandle.text();
+
+  if (oldText === itemStr) {
+    return {
+      code: "already",
+    };
+  }
+
+  // 写入内容
+  await exitedHandle.write(itemStr);
+
+  return {
+    code: "ok",
+  };
 };
