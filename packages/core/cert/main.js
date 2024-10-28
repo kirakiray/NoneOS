@@ -12,12 +12,15 @@ export const getAllCerts = async ({ userId, filterExpired = 1 } = {}) => {
   const certsDir = await get("local/system/user/certs");
   const cacheCertsDir = await get("local/caches/certs");
 
-  const relateCerts = [
-    ...(await getCerts(certsDir, userId, filterExpired)),
-    ...(await getCerts(cacheCertsDir, userId, filterExpired)).map((e) => {
-      return { ...e, iscache: 1 };
-    }),
-  ];
+  const relateCerts = await getCerts(certsDir, userId, filterExpired);
+  const cacheCerts = await getCerts(cacheCertsDir, userId, filterExpired);
+
+  // 去重复
+  cacheCerts.forEach((e) => {
+    if (!relateCerts.some((item) => item.sign === e.sign)) {
+      relateCerts.push(e);
+    }
+  });
 
   return relateCerts;
 };

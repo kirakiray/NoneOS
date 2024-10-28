@@ -89,12 +89,12 @@
 
   <p-button
     size="small"
-    attr:color="iscache ? 'normal' : 'primary'"
+    attr:color="!iskeep ? 'normal' : 'primary'"
     icon
     on:click="clickFavory"
     style="position: absolute; right: 12px; top: 12px"
   >
-    <x-if :value="iscache">
+    <x-if :value="!iskeep">
       <n-local-icon
         name="favory-outline"
         style="font-size: 18px"
@@ -115,7 +115,7 @@
       return {
         tag: "n-cert-block",
         data: {
-          iscache: false, // 在缓存目录中
+          iskeep: false, // 是否收藏了
           item: {},
           sign: "", // 指纹
           certData: {}, // 主体卡片数据
@@ -142,45 +142,32 @@
           },
           // 点击了收藏
           async clickFavory() {
-            if (!this.iscache) {
-              const userCertDir = await get("local/system/user/certs");
-              const cacheCertDir = await get("local/caches/certs", {
-                create: "dir",
-              });
+            this.iskeep = !this.iskeep;
+            const fid = await this.fid;
 
-              // 移除个人文件夹内
-              const targetFileHandle = await userCertDir.get(await this.fid);
-              if (targetFileHandle) {
-                await targetFileHandle.remove();
-              }
+            if (this.iskeep) {
+              // 收藏到自身文件夹上
+              const fileHandle = await get(`local/caches/certs/${fid}`).catch(
+                () => null
+              );
 
-              // 并写到缓存文件夹内
-              const fileHandle = await cacheCertDir.get(await this.fid, {
-                create: "file",
-              });
-              await fileHandle.write(
-                JSON.stringify({
-                  data: this.item.toJSON(),
-                  sign: this.sign,
+              await fileHandle.moveTo(
+                await get("local/system/user/certs", {
+                  create: "dir",
                 })
               );
             } else {
-              // 写入到个人文件夹内
-              const certDir = await get("local/system/user/certs");
+              // 取消收藏
+              const fileHandle = await get(
+                `local/system/user/certs/${fid}`
+              ).catch(() => null);
 
-              const fileHandle = await certDir.get(await this.fid, {
-                create: "file",
-              });
-
-              await fileHandle.write(
-                JSON.stringify({
-                  data: this.item.toJSON(),
-                  sign: this.sign,
+              await fileHandle.moveTo(
+                await get("local/caches/certs", {
+                  create: "dir",
                 })
               );
             }
-
-            this.iscache = !this.iscache;
           },
           // 复制证书
           async clickCopy() {
@@ -210,39 +197,19 @@
               return;
             }
 
-            const certsDir = this.iscache
-              ? await get("local/caches/certs")
-              : await get("local/system/user/certs");
+            const fid = await this.fid;
 
-            const targetHandle = await certsDir.get(await this.fid);
-
-            if (targetHandle) {
-              targetHandle.remove();
-            } else {
-              // TODO: 能走到这一步，代表写入文件的哪个步骤出错
-              debugger;
-
-              // 正式命名有误，遍历搜索
-              const selfDataString = JSON.stringify({
-                data: this.item,
-                sign: this.sign,
-              });
-
-              for await (let item of certsDir.values()) {
-                let data = await item.text();
-                data = JSON.parse(data);
-
-                if (
-                  selfDataString ===
-                  JSON.stringify({
-                    data: data.data,
-                    sign: data.sign,
-                  })
-                ) {
-                  // 删除字符串一样的内容
-                  await item.remove();
-                }
-              }
+            const keepFile = await get(`local/system/user/certs/${fid}`).catch(
+              () => null
+            );
+            if (keepFile) {
+              await keepFile.remove();
+            }
+            const cacheFile = await get(`local/caches/certs/${fid}`).catch(
+              () => null
+            );
+            if (cacheFile) {
+              await cacheFile.remove();
             }
 
             this.emit("delete-end", {
@@ -275,6 +242,17 @@
 
             return key;
           },
+        },
+        async attached() {
+          const certsDir = await get(`local/system/user/certs`);
+
+          if (certsDir) {
+            const targetHandle = await certsDir.get(await this.fid);
+            if (targetHandle) {
+              // 初始化查看是否在收藏证书内
+              this.iskeep = !!(await targetHandle.size());
+            }
+          }
         },
       };
     };

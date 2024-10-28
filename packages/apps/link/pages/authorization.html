@@ -41,7 +41,6 @@
       <n-cert-block
         :item="$data.data"
         :sign="$data.sign"
-        :iscache="$data.iscache"
         on:delete-end="$host.loadCerts()"
       ></n-cert-block>
     </x-fill>
@@ -128,20 +127,8 @@
           async loadCerts() {
             this.loading = true;
 
-            const certs = await getAllCerts({
+            this.certs = await getAllCerts({
               filterExpired: false,
-            });
-
-            this.certs = certs.filter((e) => {
-              if (
-                e.iscache &&
-                certs.some((item) => !item.iscache && item.sign === e.sign)
-              ) {
-                // 如果是缓存中的证书，并且已经存在了非缓存的版本，则去除缓存的版本
-                return false;
-              }
-
-              return true;
             });
 
             this.loading = false;
