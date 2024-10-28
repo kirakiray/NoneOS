@@ -1,7 +1,7 @@
 import { getSelfUserCard } from "../base/user.js";
 import { sign } from "../base/sign.js";
+import { verify } from "../base/verify.js";
 import { get } from "/packages/fs/handle/index.js";
-import { User } from "/packages/user/public-user.js";
 import { UserClient } from "../user-connect/user-client.js";
 import { users } from "../main.js";
 
@@ -171,11 +171,11 @@ export class ServerConnector extends $.Stanz {
         const { fromUser, data } = result;
 
         // 验证数据的正确性
-        const client = new User(fromUser.data, fromUser.sign);
+        if (await verify(fromUser)) {
+          const userData = Object.fromEntries(fromUser.data);
 
-        if (await client.verify()) {
           // 查看是否在队列，在队列的话直接转发内容
-          let targetClient = users.find((e) => e.userId === client.id);
+          let targetClient = users.find((e) => e.userId === userData.userID);
 
           if (!targetClient) {
             // TODO: 如果不在用户队列，则需要先添加

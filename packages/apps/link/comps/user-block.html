@@ -102,7 +102,11 @@
           },
           async connect() {
             this.connecting = true;
-            await this.item.connect();
+            if (this.item.connect) {
+              await this.item.connect();
+            } else {
+              debugger;
+            }
             this.connecting = false;
           },
         },

@@ -1,7 +1,7 @@
-import { User } from "/packages/user/public-user.js";
 import { get } from "/packages/fs/handle/index.js";
 import { servers, emit, userMiddleware } from "../main.js";
 import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
+import { verify } from "../base/verify.js";
 
 const STARTCHANNEL = "startChannel";
 
@@ -68,7 +68,7 @@ const KEEP_USER_LOG_COUNT = MAX_USER_LOG_COUNT / 2; // 单个用户删除日志�
 export class UserClient extends $.Stanz {
   #rtcConnection; // 主体rtc连接对象
   #channels = new Map(); // 存放channel 的对象
-  #user; // 用户数据
+  #user; // 用户数据和签名
   constructor(opt) {
     super({
       /**
@@ -85,17 +85,20 @@ export class UserClient extends $.Stanz {
     });
 
     const { data, sign } = opt;
-    const user = (this.#user = new User(data, sign));
+
+    const userData = Object.fromEntries(data);
+
+    this.#user = { data, sign };
 
     Object.assign(this, {
-      userId: user.id,
-      userName: user.name,
-      time: user.get("time") || user.get("creation"),
+      userId: userData.userID,
+      userName: userData.userName,
+      time: userData.creation,
     });
   }
 
   async verify() {
-    return await this.#user.verify();
+    return verify(this.#user);
   }
 
   // 统一的初始化信道的方法
@@ -384,9 +387,16 @@ export class UserClient extends $.Stanz {
 
         if (sResult.ok && sResult.user) {
           // 验证用户信息是否正确
-          const user = new User(sResult.user.data, sResult.user.sign);
+          const verResult = await verify(sResult.user);
 
-          if (user.id !== this.userId || !(await user.verify())) {
+          if (!verResult) {
+            // 验证不通过
+            continue;
+          }
+
+          const userData = Object.fromEntries(sResult.user.data);
+
+          if (userData.userID !== this.userId) {
             // 不符合规定都直接劝退
             continue;
           }

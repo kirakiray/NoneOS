@@ -34,25 +34,29 @@
       <n-user-block :item="$data"></n-user-block>
     </x-fill>
   </div>
+  <x-fill :value="cacheUsers">
+    <n-user-block :item="$data"></n-user-block>
+  </x-fill>
 
   <script>
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
       const { users } = await load("/packages/core/user-connect/main.js");
-      const { updateOnlineUser } = await load(
+      const { updateOnlineUser, getCacheUsers } = await load(
         "/packages/core/user-connect/main.js"
       );
 
       return {
         data: {
           users: [], // 所有用户
+          cacheUsers: [], // 缓存文件中的卡片数据
         },
         proto: {
           // 更新在线用户
           updateOnlineUser: () => updateOnlineUser(),
         },
-        attached() {
+        async attached() {
           this.users = users;
 
           this.emit("update-title", {
@@ -65,6 +69,10 @@
               ],
             },
           });
+
+          const cacheUsers = await getCacheUsers();
+          console.log(cacheUsers[0]);
+          this.cacheUsers = cacheUsers;
         },
         detached() {
           this.users = [];

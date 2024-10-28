@@ -2,6 +2,7 @@ import { servers, users } from "../main.js";
 import { UserClient } from "./user-client.js";
 import { getId } from "../base/pair.js";
 import { get } from "/packages/fs/handle/index.js";
+import { verify } from "../base/verify.js";
 
 export { users };
 
@@ -77,3 +78,28 @@ servers.watchTick(() => {
     updateOnlineUser();
   }
 });
+
+/**
+ * 获取缓存中的用户卡片数据
+ */
+export const getCacheUsers = async () => {
+  const cards = await get("local/caches/cards", { create: "dir" });
+
+  const users = [];
+
+  for await (let item of cards.values()) {
+    let data = await item.text();
+    data = JSON.parse(data);
+
+    const result = await verify(data);
+
+    if (!result) {
+      // TODO: 错误用户卡片报错处理
+      continue;
+    }
+
+    users.push(data);
+  }
+
+  return users;
+};
