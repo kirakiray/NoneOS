@@ -6,14 +6,14 @@ import { verify } from "../base/verify.js";
  * 获取所有证书
  * @param {string} userId 只获取目标用户id的证书
  */
-export const getAllCerts = async ({ userId } = {}) => {
+export const getAllCerts = async ({ userId, filterExpired = 1 } = {}) => {
   // 获取所有证书
   const certsDir = await get("local/system/user/certs");
   const cacheCertsDir = await get("local/caches/certs");
 
   const relateCerts = [
-    ...(await getCerts(certsDir, userId)),
-    ...(await getCerts(cacheCertsDir, userId)).map((e) => {
+    ...(await getCerts(certsDir, userId, filterExpired)),
+    ...(await getCerts(cacheCertsDir, userId, filterExpired)).map((e) => {
       return { ...e, iscache: 1 };
     }),
   ];
@@ -22,7 +22,7 @@ export const getAllCerts = async ({ userId } = {}) => {
 };
 
 // 从目录中获取证书
-const getCerts = async (certsDir, userId) => {
+const getCerts = async (certsDir, userId, filterExpired) => {
   if (!certsDir) {
     return [];
   }
@@ -53,6 +53,7 @@ const getCerts = async (certsDir, userId) => {
     if (
       expire !== "never" &&
       typeof expire === "number" &&
+      filterExpired &&
       Date.now() > expire
     ) {
       // 已经过期了

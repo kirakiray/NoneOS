@@ -68,6 +68,10 @@
       <span style="color: var(--md-sys-color-error)"> {{isExpire}} </span>
     </div>
   </div>
+  <div class="line">
+    <div class="line-key">卡片ID</div>
+    <div class="line-val">{{certID}}</div>
+  </div>
 
   <div>
     <p-button size="mini" color="error" on:click="deleteCert">
@@ -116,10 +120,13 @@
           sign: "", // 指纹
           certData: {}, // 主体卡片数据
           isClickCopy: false,
+          certID: "", // 卡片哈希id
         },
         watch: {
           item(item) {
             this.certData = Object.fromEntries(new Map(item));
+
+            this.fid.then((certID) => (this.certID = certID));
           },
         },
         proto: {
@@ -209,7 +216,34 @@
 
             const targetHandle = await certsDir.get(await this.fid);
 
-            targetHandle && targetHandle.remove();
+            if (targetHandle) {
+              targetHandle.remove();
+            } else {
+              // TODO: 能走到这一步，代表写入文件的哪个步骤出错
+              debugger;
+
+              // 正式命名有误，遍历搜索
+              const selfDataString = JSON.stringify({
+                data: this.item,
+                sign: this.sign,
+              });
+
+              for await (let item of certsDir.values()) {
+                let data = await item.text();
+                data = JSON.parse(data);
+
+                if (
+                  selfDataString ===
+                  JSON.stringify({
+                    data: data.data,
+                    sign: data.sign,
+                  })
+                ) {
+                  // 删除字符串一样的内容
+                  await item.remove();
+                }
+              }
+            }
 
             this.emit("delete-end", {
               bubbles: false,

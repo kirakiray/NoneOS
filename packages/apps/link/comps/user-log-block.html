@@ -58,6 +58,10 @@
               switch (data.type) {
                 case "msg":
                   return "测试信息";
+                case "get-certs":
+                  return "请求对方证书";
+                case "obtain-certs":
+                  return "缓存对方给的证书";
                 default:
                   // TODO: 为止类型处理
                   console.log("unknow: ", data);

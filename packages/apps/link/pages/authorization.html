@@ -98,7 +98,10 @@
             }
 
             // 获取指纹
-            const hash = await getHash(val.data);
+            const hash = await getHash({
+              data: val.data,
+              sign: val.sign,
+            });
 
             const exitedHandle = await get(`local/system/user/certs/${hash}`, {
               create: "file",
@@ -129,7 +132,10 @@
           async loadCerts() {
             this.loading = true;
 
-            const certs = await getAllCerts();
+            const certs = await getAllCerts({
+              filterExpired: false,
+            });
+
             this.certs = certs.filter((e) => {
               if (
                 e.iscache &&
