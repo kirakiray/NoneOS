@@ -41,7 +41,6 @@
     <div class="line">
       <div class="line-key">用户名</div>
       <div class="line-val">{{item.userName}}</div>
-      <p-button on:click="viewLog" size="mini">查看日志</p-button>
     </div>
     <div class="line">
       <div class="line-key">用户ID</div>
@@ -59,24 +58,33 @@
       <div class="line-key">连接状态</div>
       <div class="line-val" attr:state="item.state">{{item.state}}</div>
     </div>
-    <x-if :value="item.state === 'disconnected' || item.state === 'closed'">
-      <div>
-        <p-button size="mini" on:click="connect" attr:disabled="connecting">
-          {{connecting ? '连接中...' : '连接用户'}}
+    <div class="line">
+      <div class="line-key">延迟时间</div>
+      <div class="line-val">
+        <span style="display: inline-block; width: 60px">
+          {{item.delayTime}}
+        </span>
+        <p-button
+          on:click="item.ping()"
+          size="mini"
+          attr:disabled="item.state === 'disconnected' || item.state === 'closed'"
+        >
+          测试延迟
         </p-button>
       </div>
-    </x-if>
-    <x-else>
-      <div class="line">
-        <div class="line-key">延迟时间</div>
-        <div class="line-val">
-          <span style="display: inline-block; width: 60px">
-            {{item.delayTime}}
-          </span>
-          <p-button on:click="item.ping()" size="mini"> 测试延迟 </p-button>
-        </div>
-      </div>
-    </x-else>
+    </div>
+    <div>
+      <p-button
+        size="mini"
+        on:click="connect"
+        size="mini"
+        attr:disabled="!(item.state === 'disconnected' || item.state === 'closed')"
+      >
+        {{connecting ? '连接中...' : '连接用户'}}
+      </p-button>
+
+      <p-button on:click="viewLog" size="mini">查看日志</p-button>
+    </div>
   </div>
   <script>
     export default async ({ load }) => {
