@@ -140,7 +140,9 @@ export class ServerConnector extends $.Stanz {
       };
 
       // 监听连接关闭事件
-      const closeSource = (eventSource.onclose = () => {
+      // eventSource 没有 close 事件
+      // const closeSource = (eventSource.onclose = () => {
+      const closeSource = (this._onclose = () => {
         if (this.#sse === eventSource) {
           this.#initingPms = null;
           reject();
@@ -237,5 +239,13 @@ export class ServerConnector extends $.Stanz {
       method: "POST",
       body: JSON.stringify(data),
     });
+  }
+
+  // 断开连接
+  async close() {
+    if (this.#sse) {
+      this.#sse.close();
+      this._onclose();
+    }
   }
 }

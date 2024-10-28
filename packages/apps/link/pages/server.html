@@ -72,6 +72,14 @@
           <div class="block-line-value" attr:status="$data.status">
             {{$data.status}}
           </div>
+          <x-if :value="$data.status === 'connected'">
+            <p-button color="error" size="mini" on:click="$data.close()">
+              断开连接
+            </p-button>
+          </x-if>
+          <x-else-if :value="$data.status === 'closed'">
+            <p-button size="mini" on:click="$data.init()"> 重新连接 </p-button>
+          </x-else-if>
         </div>
         <div class="block-line">
           <div class="block-line-key">服务器地址</div>
