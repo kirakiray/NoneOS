@@ -124,11 +124,11 @@
         proto: {
           // 点击了收藏
           async clickFavory() {
-            this.iscache = !this.iscache;
-
-            if (this.iscache) {
+            if (!this.iscache) {
               const userCertDir = await get("local/system/user/certs");
-              const cacheCertDir = await get("local/caches/certs");
+              const cacheCertDir = await get("local/caches/certs", {
+                create: "dir",
+              });
 
               // 移除个人文件夹内
               const targetFileHandle = await userCertDir.get(this.fid);
@@ -161,6 +161,8 @@
                 })
               );
             }
+
+            this.iscache = !this.iscache;
           },
           // 复制证书
           async clickCopy() {
