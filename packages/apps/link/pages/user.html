@@ -40,7 +40,7 @@
 
     export default async ({ load }) => {
       const { users } = await load("/packages/core/user-connect/main.js");
-      const { updateOnlineUser, getCacheUsers } = await load(
+      const { updateOnlineUser } = await load(
         "/packages/core/user-connect/main.js"
       );
 

@@ -102,9 +102,10 @@ servers.watchTick(() => {
 });
 
 /**
- * 获取缓存中的用户卡片数据
+ * 根据参数，获取用户卡片信息
+ * @param {Object} param0 获取用户的参数
  */
-export const getCacheUsers = async () => {
+export const getUser = async ({ userId }) => {
   const cards = await get("local/caches/cards", { create: "dir" });
 
   const users = [];
@@ -120,7 +121,15 @@ export const getCacheUsers = async () => {
       continue;
     }
 
-    users.push(new UserClient(data));
+    if (userId) {
+      const userData = new Map(data.data);
+
+      if (userId && userData.get("userID") !== userId) {
+        continue;
+      }
+    }
+
+    users.push(data);
   }
 
   return users;

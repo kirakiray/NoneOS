@@ -1,5 +1,5 @@
 import { get } from "../handle/index.js";
-import { connectUser } from "/packages/connect/user.js";
+// import { connectUser } from "/packages/connect/user.js";
 
 // 中转所有远程的内容
 const bridge = async (options) => {
@@ -52,25 +52,21 @@ const promiseSaver = new Map();
 export const handleBridge = async (options, userid) => {
   const bid = getId();
 
-  const user = await connectUser(userid);
+  // const user = await connectUser(userid);
 
   // 将 remoteHandle的运行方法和参数发送到远端
-  user._send({
-    fs: {
-      options,
-      bid,
-    },
-  });
+  // user._send({
+  //   fs: {
+  //     options,
+  //     bid,
+  //   },
+  // });
+
+  debugger;
 
   // 从远端获取到返回的数据
   const result = await new Promise((resolve, reject) => {
-    // const timer = setTimeout(() => {
-    //   reject(new Error(`Get request timeout: ${options.path}`));
-    //   clear();
-    // }, 10000);
-
     const clear = () => {
-      // clearTimeout(timer);
       promiseSaver.delete(bid);
     };
 
