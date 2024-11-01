@@ -39,12 +39,16 @@ export class RemoteBaseHandle {
     return this.#path.split(":").slice(-1)[0];
   }
 
-  async size() {
+  async size(...args) {
     if (this.kind === "dir") {
       return;
     }
 
-    return 100;
+    return this.bridge({
+      method: "size",
+      path: this.path,
+      args,
+    });
   }
 
   async root() {

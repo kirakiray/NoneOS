@@ -9,25 +9,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     return "dir";
   }
 
-  async get(name) {
-    debugger;
-  }
-
-  /**
-   * 异步生成器函数，返回子数据的句柄。
-   * @async
-   * @generator
-   * @yields {(OriginDirHandle|OriginFileHandle)} 子数据的句柄。
-   */
-  async *values() {
-    const result = await this.bridge({
-      method: "values",
+  async get(...args) {
+    const target = await this.bridge({
+      method: "get",
       path: this.path,
+      args,
     });
 
-    for await (let item of result) {
-      yield item;
-    }
+    return target;
   }
 
   /**
@@ -41,3 +30,18 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     }
   }
 }
+
+// 转发 generator 相关方法
+["keys", "values", "entries"].forEach((name) => {
+  RemoteDirHandle.prototype[name] = async function* (...args) {
+    const result = await this.bridge({
+      method: name,
+      path: this.path,
+      args,
+    });
+
+    for await (let item of result) {
+      yield item;
+    }
+  };
+});

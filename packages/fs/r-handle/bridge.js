@@ -2,7 +2,7 @@ import { get } from "../handle/index.js";
 import { users } from "/packages/core/user-connect/main.js";
 import { userMiddleware } from "../../core/main.js";
 import { RemoteDirHandle } from "./dir.js";
-import { RemoteHandleFile } from "./file.js";
+import { RemoteFileHandle } from "./file.js";
 
 // 暂存器
 const pmSaver = new Map();
@@ -57,41 +57,28 @@ export const bridge = async (options) => {
     if (result._AsyncGenerator) {
       return arrayToAsyncGenerator(
         result.value.map((e) => {
-          const { __handle, kind, ...info } = e;
-          if (__handle) {
-            if (kind === "dir") {
-              return new RemoteDirHandle({
-                path: `${options.path}/${e.name}`,
-                bridge,
-                info,
-              });
-            } else {
-              debugger;
-            }
-          }
-
-          return e;
+          return dataToHandle(e, options.path);
         })
       );
     }
 
-    return result.value;
+    return dataToHandle(result.value, options.path);
   }
 };
 
 // 中转响应文件
 userMiddleware.set("fs-bridge", async (data, client) => {
   const { options } = data;
-  const { method, path, bid } = options;
+  const { method, path, bid, args } = options;
 
   try {
     const targetHandle = await get(path);
 
-    const result = await targetHandle[method]();
+    const result = await targetHandle[method](...args);
 
     // 返回的对象
     const reObj = {
-      value: result,
+      //   value: result,
     };
 
     if (isAsyncGenerator(result)) {
@@ -99,19 +86,10 @@ userMiddleware.set("fs-bridge", async (data, client) => {
       reObj.value = [];
       reObj._AsyncGenerator = 1;
       for await (let item of result) {
-        if (item._mark === "db" || item._mark === "item") {
-          // 转化 file handle 数据
-          reObj.value.push({
-            __handle: 1,
-            name: item.name,
-            kind: item.kind,
-            createTime: item.createTime,
-            lastModified: item.lastModified,
-          });
-        } else {
-          reObj.value.push(item);
-        }
+        reObj.value.push(handleToData(item));
       }
+    } else {
+      reObj.value = handleToData(result);
     }
 
     client.send({
@@ -135,15 +113,70 @@ userMiddleware.set("fs-bridge", async (data, client) => {
   }
 });
 
+// 将本地的handle实例转化为远端的handle对象数据
+const handleToData = (item) => {
+  if (Array.isArray(item)) {
+    return item.map(handleToData);
+  }
+
+  if (item && (item._mark === "db" || item._mark === "remote")) {
+    return {
+      __handle: 1,
+      //   name: item.name,
+      kind: item.kind,
+      path: item.path,
+      createTime: item.createTime,
+      lastModified: item.lastModified,
+    };
+  }
+
+  return item;
+};
+
+// 将远端的handle对象数据转化为本地的handle实例
+const dataToHandle = (item, parentPath) => {
+  if (Array.isArray(item)) {
+    return item.map(handleToData);
+  }
+
+  if (!(item instanceof Object)) {
+    return item;
+  }
+
+  const { __handle, kind, ...info } = item;
+  if (__handle) {
+    const path = `${parentPath.split("/")[0]}/${item.path
+      .split("/")
+      .slice(1)
+      .join("/")}`;
+
+    if (kind === "dir") {
+      return new RemoteDirHandle({
+        path,
+        bridge,
+        info,
+      });
+    } else {
+      return new RemoteFileHandle({
+        path,
+        bridge,
+        info,
+      });
+    }
+  }
+
+  return item;
+};
+
 // 响应文件请求
 userMiddleware.set("fs-bridge-response", async (data, client) => {
   const { options } = data;
-  const { result, bid } = options;
+  const { result, bid, error } = options;
 
   const { resolve, reject } = pmSaver.get(bid);
 
-  if (result.error) {
-    reject(new Error(result.error));
+  if (error) {
+    reject(new Error(error));
     return;
   }
 

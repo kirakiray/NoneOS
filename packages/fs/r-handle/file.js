@@ -1,6 +1,6 @@
 import { RemoteBaseHandle } from "./base.js";
 
-export class RemoteHandleFile extends RemoteBaseHandle {
+export class RemoteFileHandle extends RemoteBaseHandle {
   constructor(options) {
     super(options);
   }
