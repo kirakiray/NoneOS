@@ -2,6 +2,7 @@ import { get } from "/packages/fs/handle/index.js";
 import { servers, emit, userMiddleware } from "../main.js";
 import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
 import { verify } from "../base/verify.js";
+import { inited } from "../server-connect/main.js";
 
 const STARTCHANNEL = "startChannel";
 
@@ -284,6 +285,9 @@ export class UserClient extends $.Stanz {
           const midFunc = userMiddleware.get(data.type);
           if (midFunc) {
             midFunc(data, this, channel);
+          } else {
+            // TODO: 没有没发现的处理中间件
+            debugger;
           }
       }
     } else {
@@ -366,6 +370,9 @@ export class UserClient extends $.Stanz {
       // 直接返回已设置的最好的服务器
       return this._bestServer;
     }
+
+    // 必须等待服务器初始化，不然没有服务器可以查询
+    await inited;
 
     return (this._bestServer = new Promise(async (resolve, reject) => {
       // 先根据延迟进行排序

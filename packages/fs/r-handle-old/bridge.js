@@ -50,7 +50,7 @@ const promiseSaver = new Map();
 
 // 处理转发的数据
 export const handleBridge = async (options, userid) => {
-  const bid = getId();
+  const bid = getRamdId();
 
   // const user = await connectUser(userid);
 
@@ -125,4 +125,4 @@ export const reponseBridge = async (result, permissions, send) => {
   }
 };
 
-const getId = () => Math.random().toString(32).slice(2);
+const getRamdId = () => Math.random().toString(32).slice(2);

@@ -4,28 +4,6 @@ import { servers } from "../main.js";
 
 export { servers };
 
-setTimeout(async () => {
-  const serverFile = await getServerFile();
-
-  let data = await serverFile.text();
-  if (data) {
-    data = JSON.parse(data);
-
-    data.forEach((serverInfo) => {
-      const connector = new ServerConnector(serverInfo);
-      servers.push(connector);
-    });
-  }
-
-  if (!servers.length && location.host.includes("localhost")) {
-    // 添加测试服务器
-    const connector = new ServerConnector({
-      serverUrl: "http://localhost:5569/user",
-    });
-    servers.push(connector);
-  }
-}, 100);
-
 export const removeServer = async (serverUrl) => {
   const index = servers.findIndex((e) => e.serverUrl === serverUrl);
 
@@ -90,4 +68,27 @@ const getServerFile = (() => {
     serverFilePms = get("local/system/servers", { create: "file" });
     return await serverFilePms;
   };
+})();
+
+// 初始化载入服务器列表
+export const inited = (async () => {
+  const serverFile = await getServerFile();
+
+  let data = await serverFile.text();
+  if (data) {
+    data = JSON.parse(data);
+
+    data.forEach((serverInfo) => {
+      const connector = new ServerConnector(serverInfo);
+      servers.push(connector);
+    });
+  }
+
+  if (!servers.length && location.host.includes("localhost")) {
+    // 添加测试服务器
+    const connector = new ServerConnector({
+      serverUrl: "http://localhost:5569/user",
+    });
+    servers.push(connector);
+  }
 })();
