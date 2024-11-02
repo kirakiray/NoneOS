@@ -118,10 +118,12 @@ export class FileHandle extends BaseHandle {
       if (hashs) {
         chunks = await Promise.all(
           hashs.map(async (hash, index) => {
-            const { chunk } = await getData({
+            const result = await getData({
               storename: "blocks",
               key: hash,
             });
+
+            const { chunk } = result;
 
             return chunk;
           })

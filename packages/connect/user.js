@@ -6,7 +6,7 @@ import { getCerts } from "/packages/user/cert.js";
 import { getSelfUserInfo } from "../user/main.js";
 import { calculateHash } from "../fs/util.js";
 import { CHUNK_REMOTE_SIZE } from "../fs/util.js";
-import { getCache, saveCache } from "../fs/cache/util.js";
+// import { getCache, saveCache } from "../fs/cache/util.js";
 
 export const users = $.stanz([]);
 

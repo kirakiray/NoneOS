@@ -6,7 +6,7 @@ import { verify } from "../base/verify.js";
 
 export { users };
 
-(async () => {
+export const inited = (async () => {
   // 加载收藏中的用户
   const cardsDir = await get("local/system/user/cards");
 
@@ -14,18 +14,20 @@ export { users };
     return;
   }
 
-  cardsDir.forEach(async (handle) => {
-    let data = await handle.text();
-    if (data) {
-      data = JSON.parse(data);
+  await Promise.all(
+    cardsDir.map(async (handle) => {
+      let data = await handle.text();
+      if (data) {
+        data = JSON.parse(data);
 
-      const client = new UserClient(data);
+        const client = new UserClient(data);
 
-      if (await client.verify()) {
-        users.push(client);
+        if (await client.verify()) {
+          users.push(client);
+        }
       }
-    }
-  });
+    })
+  );
 })();
 
 // 更新在线用户

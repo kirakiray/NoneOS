@@ -3,6 +3,8 @@ import { users } from "/packages/core/user-connect/main.js";
 import { userMiddleware } from "../../core/main.js";
 import { RemoteDirHandle } from "./dir.js";
 import { RemoteFileHandle } from "./file.js";
+import { saveData, getData } from "../../core/block/main.js";
+import { CHUNK_REMOTE_SIZE } from "../util.js";
 
 // 暂存器
 const pmSaver = new Map();
@@ -74,40 +76,60 @@ userMiddleware.set("fs-bridge", async (data, client) => {
   try {
     const targetHandle = await get(path);
 
-    const result = await targetHandle[method](...args);
+    // 实际运行后要返回的值
+    const reValue = await targetHandle[method](...args);
 
     // 返回的对象
-    const reObj = {
-      //   value: result,
-    };
+    const result = {};
 
-    if (isAsyncGenerator(result)) {
+    if (isAsyncGenerator(reValue)) {
       // 转化内部数据
-      reObj.value = [];
-      reObj._AsyncGenerator = 1;
-      for await (let item of result) {
-        reObj.value.push(handleToData(item));
+      result.value = [];
+      result._AsyncGenerator = 1;
+      for await (let item of reValue) {
+        result.value.push(handleToData(item));
       }
     } else {
-      reObj.value = handleToData(result);
+      result.value = handleToData(reValue);
     }
 
-    client.send({
+    let sendData = JSON.stringify({
       type: "fs-bridge-response",
       options: {
-        ...options,
         bid,
-        result: reObj,
+        result,
       },
     });
-  } catch (err) {
-    debugger;
 
+    // 提前转换对象
+    if (sendData.length > CHUNK_REMOTE_SIZE) {
+      // 存到数据库
+      const hashs = await saveData({
+        data: sendData,
+      });
+
+      // 通知对方通过block方式获取数据
+      client.send({
+        type: "fs-bridge-response",
+        options: {
+          bid,
+          // 数据太大了，让对面用块的方式获取
+          block: {
+            hashs,
+          },
+        },
+      });
+      return;
+    }
+
+    client.send(sendData);
+  } catch (err) {
+    console.error(err);
     client.send({
       type: "fs-bridge-response",
       options: {
         bid,
-        error: err.toString(),
+        error: err.stack || err.toString(),
       },
     });
   }
@@ -171,7 +193,23 @@ const dataToHandle = (item, parentPath) => {
 // 响应文件请求
 userMiddleware.set("fs-bridge-response", async (data, client) => {
   const { options } = data;
-  const { result, bid, error } = options;
+  const { bid, error, block } = options;
+
+  let result = options.result;
+
+  if (block) {
+    // block代表原来发送的数据太大了，需要从远端通过分块发送过来再进行组装
+    const { hashs } = block;
+
+    const data = await getData({
+      hashs,
+      userId: client.userId, // 从指定用户上获取数据
+    });
+
+    result = { value: data };
+
+    debugger;
+  }
 
   const { resolve, reject } = pmSaver.get(bid);
 

@@ -9,11 +9,17 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     return "file";
   }
 
-  async read() {
-    debugger;
+  async read(...args) {
+    const result = await this.bridge({
+      method: "read",
+      path: this.path,
+      args,
+    });
+
+    return result;
   }
 
-  async write() {
+  async write(data) {
     debugger;
   }
 

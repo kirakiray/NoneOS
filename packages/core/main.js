@@ -25,3 +25,8 @@ export const on = (name, func) => {
 
 // 用户数据操作用的中间件
 export const userMiddleware = new Map();
+
+// 等待中的块数据
+// export const waitingBlocks = $.stanz({});
+export const waitingBlocks = {};
+export const waitingBlocksResolver = {};

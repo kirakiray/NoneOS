@@ -1,4 +1,4 @@
-(function (user_js) {
+(function () {
   'use strict';
 
   const cn = {
@@ -22,6 +22,7 @@
       "{path} 已经是一个'{exitedType}'，不能创建为'{targetType}'",
     notMoveToChild: "{targetPath} 是 {path} 的子目录，不能移动到自己的子目录",
     notFoundChunk: "{path}文件没有找到对应的块文件:{hash}",
+    pathInvalid: "路径不能包含特殊字符 {path}",
   };
 
   /**
@@ -457,42 +458,7 @@
     return data;
   };
 
-  const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
-
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
-  // const CHUNK_SIZE = 512 * 1024; // 512KB
-  // const CHUNK_SIZE = 1024 * 4; // 4kb
-
-  /**
-   * 将输入的内容分割成多段，以1mb为一个块
-   * @param {(string|file|arrayBuffer)} input 写入的内容
-   * @returns {array} 分割后的内容
-   */
-  const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
-    let arrayBuffer;
-
-    if (typeof input === "string") {
-      arrayBuffer = new TextEncoder().encode(input).buffer;
-    } else if (input instanceof File) {
-      arrayBuffer = await input.arrayBuffer();
-    } else if (input instanceof ArrayBuffer) {
-      arrayBuffer = input;
-    } else if (input instanceof Uint8Array) {
-      arrayBuffer = input.buffer;
-    } else {
-      throw new Error(
-        "Input must be a string, File object or ArrayBuffer object"
-      );
-    }
-
-    const chunks = [];
-    for (let i = 0; i < arrayBuffer.byteLength; i += csize) {
-      const chunk = arrayBuffer.slice(i, i + csize);
-      chunks.push(chunk);
-    }
-
-    return chunks;
-  };
 
   /**
    * 将分割的块还原回原来的数据
@@ -525,17 +491,16 @@
       arrayBuffer = encoder.encode(arrayBuffer);
     }
 
+    // 使用 SHA-256 哈希算法
     const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+
+    // 将 ArrayBuffer 转换成十六进制字符串
     const hashArray = Array.from(new Uint8Array(hashBuffer));
     const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
+      .map((byte) => byte.toString(16).padStart(2, "0"))
       .join("");
 
-    const centerId = Math.floor(arrayBuffer.byteLength / 2);
-    return (
-      hashHex +
-      new Uint8Array(arrayBuffer.slice(centerId, centerId + 1))[0].toString(16)
-    );
+    return hashHex;
   };
 
   const readBufferByType = ({ buffer, type, data, isChunk }) => {
@@ -563,278 +528,14 @@
     }
   };
 
-  const SName = Symbol("storage-name");
-  const IDB = Symbol("idb");
-
-  class EverCache {
-    constructor(id = "public") {
-      // this[SName] = id;
-      this[SName] = "main";
-
-      this[IDB] = new Promise((resolve) => {
-        let req = indexedDB.open(`ever-cache-${id}`);
-
-        req.onsuccess = (e) => {
-          resolve(e.target.result);
-        };
-
-        req.onupgradeneeded = (e) => {
-          // e.target.result.createObjectStore(id, { keyPath: "key" });
-          e.target.result.createObjectStore("main", { keyPath: "key" });
-        };
-      });
-
-      return new Proxy(this, handle);
-    }
-
-    async setItem(key, value) {
-      return commonTask(this, (store) => store.put({ key, value })).then(
-        () => true
-      );
-    }
-
-    async getItem(key) {
-      try {
-        return commonTask(this, (store) => store.get(key), "readonly").then(
-          (e) => {
-            const { result } = e.target;
-            return result ? result.value : null;
-          }
-        );
-      } catch (err) {
-        debugger;
-      }
-    }
-
-    async removeItem(key) {
-      return commonTask(this, (store) => store.delete(key)).then(() => true);
-    }
-
-    async clear() {
-      return commonTask(this, (store) => store.clear()).then(() => true);
-    }
-
-    async key(index) {
-      return commonTask(this, (store) => store.getAllKeys()).then(
-        (e) => e.target.result[index]
-      );
-    }
-
-    get length() {
-      return commonTask(this, (store) => store.count()).then(
-        (e) => e.target.result
-      );
-    }
-
-    entries() {
-      return {
-        [Symbol.asyncIterator]: () => {
-          let resolve;
-          let cursorPms;
-          const resetPms = () => {
-            cursorPms = new Promise((res) => (resolve = res));
-          };
-          resetPms();
-
-          commonTask(
-            this,
-            (store) => store.openCursor(),
-            "readonly",
-            (e) => resolve(e.target.result)
-          );
-
-          return {
-            async next() {
-              const cursor = await cursorPms;
-              if (!cursor) {
-                return {
-                  done: true,
-                };
-              }
-              resetPms();
-              const { key, value } = cursor.value;
-              cursor.continue();
-
-              return { value: [key, value], done: false };
-            },
-          };
-        },
-      };
-    }
-
-    async *keys() {
-      for await (let [key, value] of this.entries()) {
-        yield key;
-      }
-    }
-
-    async *values() {
-      for await (let [key, value] of this.entries()) {
-        yield value;
-      }
-    }
+  const invalidChars = /[<>:"\\|?*\x00-\x1F]/;
+  function isValidPath(path) {
+    // 定义不允许出现的特殊字符
+    return !invalidChars.test(path);
   }
 
-  const exitedKeys = new Set(Object.getOwnPropertyNames(EverCache.prototype));
-
-  const handle = {
-    get(target, key, receiver) {
-      if (exitedKeys.has(key) || typeof key === "symbol") {
-        return Reflect.get(target, key, receiver);
-      }
-
-      return target.getItem(key);
-    },
-    set(target, key, value) {
-      return target.setItem(key, value);
-    },
-    deleteProperty(target, key) {
-      return target.removeItem(key);
-    },
-  };
-
-  const commonTask = async (_this, afterStore, mode = "readwrite", succeed) => {
-    const db = await _this[IDB];
-
-    return new Promise((resolve, reject) => {
-      const req = afterStore(
-        db.transaction([_this[SName]], mode).objectStore(_this[SName])
-      );
-
-      req.onsuccess = (e) => {
-        if (succeed) {
-          const result = succeed(e);
-          if (result) {
-            resolve(result);
-          }
-
-          return;
-        }
-
-        resolve(e);
-      };
-      req.onerror = (e) => {
-        reject(e);
-      };
-    });
-  };
-
-  new EverCache();
-
-  const storage = new EverCache("remote-file-cache");
-
-  // 重新获取块
-  const getCache = async (key) => {
-    const result = await storage.getItem(key);
-
-    if (result) {
-      // 重置时间
-      storage.setItem(`${key}-time`, Date.now());
-    }
-
-    return result;
-  };
-
-  const hands = {};
-  const resolver = {};
-
-  // 缓存块
-  const saveCache = (key, chunk) => {
-    storage.setItem(key, chunk);
-    storage.setItem(`${key}-time`, Date.now());
-
-    if (hands[key]) {
-      // 返回握手数据
-      resolver[key](chunk);
-      delete hands[key];
-      delete resolver[key];
-    }
-  };
-
-  // 获取握手器，当save对应hash时，及时返回数据
-  const handCache = async (hash) => {
-    const result = await getCache(hash);
-
-    if (result) {
-      return result;
-    }
-
-    const pms =
-      hands[hash] ||
-      (hands[hash] = new Promise((resolve) => {
-        resolver[hash] = resolve;
-      }));
-
-    return pms;
-  };
-
-  // 清除超时缓存
-  const clearCache = async () => {
-    const now = Date.now();
-    for await (let [key, value] of storage.entries()) {
-      if (/-time$/.test(key)) {
-        if (now - value > 5 * 60 * 1000) {
-          // 清除超过5分钟的内容
-          const realKey = key.replace("-time", "");
-          storage.removeItem(realKey);
-          storage.removeItem(key);
-        }
-      }
-    }
-
-    // 定时清除缓存
-    setTimeout(clearCache, 1 * 60 * 1000);
-  };
-
-  clearCache();
-
-  // 根据key获取值
-  // 先在本地获取，本地获取不到的情况下，从远端获取
-  const fetchCache = async (key, userid) => {
-    const result = await getCache(key);
-
-    if (result) {
-      return result;
-    }
-
-    return new Promise((resolve) => {
-      let timer;
-      let f = () => {
-        let targetUsr;
-
-        if (userid) {
-          targetUsr = user_js.users.find((e) => e.id === userid);
-        } else {
-          // 向所有用户广播查找
-          debugger;
-        }
-
-        if (!targetUsr) {
-          alert("查找不到用户");
-          return;
-        }
-
-        // 重新发送缓存请求
-        targetUsr._send({
-          type: "getCache",
-          hashs: [key],
-        });
-
-        timer = setTimeout(() => {
-          // 4秒内还没搞定，重新发起请求
-          f();
-        }, 4000);
-      };
-
-      handCache(key).then((data) => {
-        clearTimeout(timer);
-        f = null;
-        resolve(data);
-      });
-
-      f();
-    });
-  };
+  // import { CHUNK_REMOTE_SIZE } from "./util.js";
+  // import { fetchCache, saveCache } from "./cache/main.js";
 
   class PublicBaseHandle {
     constructor() {}
@@ -845,106 +546,106 @@
     }
 
     // 按照需求将文件保存到缓存池中，方便远端获取
-    async _saveCache(arg) {
-      const chunkSize = arg.size;
-      const { options, returnHashs } = arg;
+    // async _saveCache(arg) {
+    //   const chunkSize = arg.size;
+    //   const { options, returnHashs } = arg;
 
-      // 获取指定的块内容
-      const result = await this.buffer(options);
-      const datas = await splitIntoChunks(result, chunkSize);
+    //   // 获取指定的块内容
+    //   const result = await this.buffer(options);
+    //   const datas = await splitIntoChunks(result, chunkSize);
 
-      const hashs = [];
+    //   const hashs = [];
 
-      await Promise.all(
-        datas.map(async (chunk, i) => {
-          const hash = await calculateHash(chunk);
+    //   await Promise.all(
+    //     datas.map(async (chunk, i) => {
+    //       const hash = await calculateHash(chunk);
 
-          hashs[i] = hash;
+    //       hashs[i] = hash;
 
-          await saveCache(hash, chunk);
-        })
-      );
+    //       await saveCache(hash, chunk);
+    //     })
+    //   );
 
-      if (returnHashs) {
-        return hashs;
-      }
+    //   if (returnHashs) {
+    //     return hashs;
+    //   }
 
-      return true;
-    }
+    //   return true;
+    // }
 
     // 从缓冲池进行组装文件并写入
-    async _writeByCache(options) {
-      const { hashs } = options;
+    // async _writeByCache(options) {
+    //   const { hashs } = options;
 
-      const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
+    //   const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
 
-      const chunks = await Promise.all(
-        hashs.map(async (hash) => {
-          return fetchCache(hash, userId);
-        })
-      );
+    //   const chunks = await Promise.all(
+    //     hashs.map(async (hash) => {
+    //       return fetchCache(hash, userId);
+    //     })
+    //   );
 
-      // 写入文件
-      const writer = await this.createWritable();
+    //   // 写入文件
+    //   const writer = await this.createWritable();
 
-      for (let chunk of chunks) {
-        await writer.write(chunk);
-      }
+    //   for (let chunk of chunks) {
+    //     await writer.write(chunk);
+    //   }
 
-      writer.close();
+    //   writer.close();
 
-      return true;
-    }
+    //   return true;
+    // }
 
-    async _getHashs(options) {
-      options = options || {};
-      const chunkSize = options.size || CHUNK_REMOTE_SIZE;
+    // async _getHashs(options) {
+    //   options = options || {};
+    //   const chunkSize = options.size || CHUNK_REMOTE_SIZE;
 
-      // 获取指定的块内容
-      const result = await this.buffer();
+    //   // 获取指定的块内容
+    //   const result = await this.buffer();
 
-      const datas = await splitIntoChunks(result, chunkSize);
+    //   const datas = await splitIntoChunks(result, chunkSize);
 
-      const hashs = await Promise.all(
-        datas.map(async (chunk) => {
-          return await calculateHash(chunk);
-        })
-      );
+    //   const hashs = await Promise.all(
+    //     datas.map(async (chunk) => {
+    //       return await calculateHash(chunk);
+    //     })
+    //   );
 
-      return hashs;
-    }
+    //   return hashs;
+    // }
 
     // 根据哈希值，从缓存目录获取块数据，再合并成一个完整的文件
-    async _mergeChunk(hashs, cacheDirPath) {
-      const cacheDir = await (await this.root()).get(cacheDirPath);
+    // async _mergeChunk(hashs, cacheDirPath) {
+    //   const cacheDir = await (await this.root()).get(cacheDirPath);
 
-      if (!cacheDir) {
-        throw new Error("没有找到缓冲目录");
-      }
+    //   if (!cacheDir) {
+    //     throw new Error("没有找到缓冲目录");
+    //   }
 
-      const writer = await this.createWritable();
+    //   const writer = await this.createWritable();
 
-      for (let hash of hashs) {
-        const handle = await cacheDir.get(hash);
-        if (!handle) {
-          const err = get("notFoundChunk", {
-            path: item.path,
-            hash,
-          });
-          console.error(err);
-          await writer.abort();
-          throw err;
-        }
+    //   for (let hash of hashs) {
+    //     const handle = await cacheDir.get(hash);
+    //     if (!handle) {
+    //       const err = get("notFoundChunk", {
+    //         path: item.path,
+    //         hash,
+    //       });
+    //       console.error(err);
+    //       await writer.abort();
+    //       throw err;
+    //     }
 
-        const data = await handle.buffer();
-        await writer.write(data);
-      }
+    //     const data = await handle.buffer();
+    //     await writer.write(data);
+    //   }
 
-      // 没有报错
-      await writer.close();
+    //   // 没有报错
+    //   await writer.close();
 
-      return true;
-    }
+    //   return true;
+    // }
   }
 
   /**
@@ -1181,6 +882,11 @@
       }
 
       this.#path = pathArr.join("/");
+
+      return {
+        createTime: data.createTime,
+        lastModified: data.lastModified,
+      };
     }
 
     async size() {
@@ -1560,6 +1266,13 @@
      * @returns  {Promise<(FileHandle|DirHandle)>}
      */
     async get(path, options) {
+      // 确保路径正确
+      if (!isValidPath(path)) {
+        throw getErr("pathInvalid", {
+          path,
+        });
+      }
+
       await getSelfData(this, "get");
 
       const paths = path.split("/");
@@ -1771,7 +1484,7 @@
    * @param {String} path 文件或文件夹的路径
    * @returns {(DirHandle|FileHandle)}
    */
-  const get$1 = async (path, options) => {
+  const get = async (path, options) => {
     const paths = path.split("/");
 
     if (!paths.length) {
@@ -1909,7 +1622,7 @@
     }
 
     // console.log("path:", path);
-    const handle = await get$1(path);
+    const handle = await get(path);
     let content = await handle.file();
 
     const headers = {};
@@ -1944,7 +1657,7 @@
     const isdebug = pathArr.slice(-1)[0] === "appdebug";
 
     try {
-      appconfig = await get$1(`${parentPath}/app.json`);
+      appconfig = await get(`${parentPath}/app.json`);
       appconfig = JSON.parse(await appconfig.text());
     } catch (err) {
       appconfig = await fetch(`/${parentPath}/app.json`).then((e) => e.json());
@@ -1961,8 +1674,8 @@
     <title>${appconfig.name}</title>
     <link rel="shortcut icon" href="${appconfig.icon}">
     <link rel="apple-touch-icon" href="${appconfig.icon}" />
-    <script src="/packages/ofa/ofa.js"${isdebug ? " debug" : ""}></script>
-    <script src="/packages/ofa/router.min.js"></script>
+    <script src="/packages/libs/ofa/ofa.js"${isdebug ? " debug" : ""}></script>
+    <script src="/packages/libs/ofa/router.min.js"></script>
     <script src="/packages/pui/init.js" type="module"></script>
     <style>
       html,
@@ -2051,4 +1764,4 @@
     console.log("NoneOS server activation successful");
   });
 
-})({});
+})();

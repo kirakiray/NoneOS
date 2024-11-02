@@ -291,8 +291,14 @@ export class UserClient extends $.Stanz {
           }
       }
     } else {
-      // TODO: 处理二进制数据
-      debugger;
+      // 二进制数据处理
+      const midFunc = userMiddleware.get("response-block");
+      if (midFunc) {
+        midFunc(data, this, channel);
+      } else {
+        // TODO: 没有没发现的处理中间件
+        debugger;
+      }
     }
   }
 

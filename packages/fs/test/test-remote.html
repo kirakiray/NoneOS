@@ -9,8 +9,11 @@
   <body>
     test remote fs
     <script type="module">
+      import { inited } from "/packages/core/init.js";
       import { get } from "../main.js";
       import { getRemotes } from "/packages/fs/r-handle/index.js";
+
+      await inited;
 
       // 获取指定大小的随机文本(1mb)
       const getBigText = (size = 1) => {
@@ -33,6 +36,7 @@
 
         const localHandle = await get(path);
 
+        // const htmlHandle = await localHandle.get("temp.yaml");
         const htmlHandle = await localHandle.get("index.html");
 
         const text = await htmlHandle.text();

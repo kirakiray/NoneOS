@@ -101,17 +101,16 @@ export const calculateHash = async (arrayBuffer) => {
     arrayBuffer = encoder.encode(arrayBuffer);
   }
 
+  // 使用 SHA-256 哈希算法
   const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+
+  // 将 ArrayBuffer 转换成十六进制字符串
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 
-  const centerId = Math.floor(arrayBuffer.byteLength / 2);
-  return (
-    hashHex +
-    new Uint8Array(arrayBuffer.slice(centerId, centerId + 1))[0].toString(16)
-  );
+  return hashHex;
 };
 
 export const readBufferByType = ({ buffer, type, data, isChunk }) => {
