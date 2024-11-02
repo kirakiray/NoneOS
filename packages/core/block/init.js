@@ -1,6 +1,5 @@
 import { get } from "../../fs/handle/index.js";
-import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
-import { userMiddleware } from "../main.js";
+import { userMiddleware, emit } from "../main.js";
 import { saveBlock } from "./main.js";
 
 // 得到了获取块的请求
@@ -10,6 +9,16 @@ userMiddleware.set("get-block", async (options, client) => {
   });
 
   const { hashs } = options;
+
+  const gid = Math.random().toString(32).slice(3); // 分组id
+
+  // 接收到了 get block 请求
+  emit("received-get-block", {
+    hashs,
+    userName: client.userName,
+    userId: client.userId,
+    gid,
+  });
 
   for (let hash of hashs) {
     const cacheFile = await blocksCacheDir.get(hash);
@@ -34,6 +43,13 @@ userMiddleware.set("get-block", async (options, client) => {
     }
 
     client.send(finnalData);
+
+    emit("send-block", {
+      hash,
+      userName: client.userName,
+      userId: client.userId,
+      gid,
+    });
   }
 });
 
