@@ -24,8 +24,8 @@ userMiddleware.set("get-block", async (options, client) => {
 
     let finnalData;
 
+    // 压缩后数据更小的话，传输压缩后的数据
     if (composedData.byteLength < originData.byteLength) {
-      // 压缩后数据更小的话，传输压缩后的数据
       // 最后一个字节标识为100，表示为压缩格式
       finnalData = createFinalData(composedData, 100);
     } else {
