@@ -315,7 +315,8 @@ export class UserClient extends $.Stanz {
     // TODO: 获取第一个通道进行发送，后期应该分担到多个通道上
     const channel = this.#channels.get(STARTCHANNEL);
 
-    if (data.length > CHUNK_REMOTE_SIZE) {
+    if (data.length > CHUNK_REMOTE_SIZE + 1) {
+      // 第一个字节确认当前数据的类型，所以要+1
       throw new Error(
         `The data sent cannot be larger than ${CHUNK_REMOTE_SIZE / 1024}kb`
       );
