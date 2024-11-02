@@ -53,7 +53,19 @@ userMiddleware.set("get-block", async (options, client) => {
   }
 });
 
-// 获取到了数据流
+// 接收到对面用户返回的接收数据结果的信号
+userMiddleware.set("get-block-result", async (options, client) => {
+  const { state, hashs } = options;
+
+  emit("received-get-block-result", {
+    state,
+    hashs,
+    userName: client.userName,
+    userId: client.userId,
+  });
+});
+
+// 用户直接收到的二进制数据，是其他用户通过 get-block 指令接收到的
 userMiddleware.set("response-block", async (chunk, client) => {
   let data;
 
@@ -76,7 +88,14 @@ userMiddleware.set("response-block", async (chunk, client) => {
   }
 
   // 保存块数据
-  await saveBlock([data]);
+  const [hash] = await saveBlock([data]);
+
+  // 通知对方接收成功
+  client.send({
+    type: "get-block-result",
+    hashs: [hash],
+    state: "ok",
+  });
 });
 
 // 对文件进行压缩  // gzip or deflate

@@ -39,6 +39,11 @@
       font-weight: bold;
     }
 
+    .block[state="send-ok"] .state-val {
+      color: var(--md-sys-color-success);
+      font-weight: bold;
+    }
+
     .line {
       display: flex;
       align-items: center;
@@ -157,6 +162,22 @@
                 targetMsg.state = "sended";
                 targetMsg.sTime = Date.now();
               }
+            }),
+            on("received-get-block-result", ({ data }) => {
+              const { state, hashs, userName, userId } = data;
+
+              // 接收到返回的结果
+              hashs.forEach((hash) => {
+                const targetMsg = this.receiveds.find(
+                  (e) => e.userId === userId && e.hash === hash
+                );
+
+                if (targetMsg) {
+                  if (state === "ok") {
+                    targetMsg.state = "send-ok";
+                  }
+                }
+              });
             }),
           ];
           this.emit("update-title", {

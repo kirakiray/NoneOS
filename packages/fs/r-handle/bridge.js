@@ -103,7 +103,7 @@ userMiddleware.set("fs-bridge", async (data, client) => {
 
     // 提前转换对象
     if (sendData.length > CHUNK_REMOTE_SIZE) {
-      // 存到数据库
+      // 存到数据库，等待对方领取
       const hashs = await saveData({
         data: sendData,
       });
@@ -111,6 +111,7 @@ userMiddleware.set("fs-bridge", async (data, client) => {
       // 通知对方通过block方式获取数据
       client.send({
         type: "fs-bridge-response",
+        beforeOptions: options, // 因为使用了中转，把中转原因带过去
         options: {
           bid,
           // 数据太大了，让对面用块的方式获取
@@ -192,7 +193,10 @@ const dataToHandle = (item, parentPath) => {
 
 // 响应文件请求
 userMiddleware.set("fs-bridge-response", async (data, client) => {
-  const { options } = data;
+  const {
+    options,
+    beforeOptions, // 导致使用中转方法的函数参数
+  } = data;
   const { bid, error, block } = options;
 
   let result = options.result;
@@ -201,9 +205,12 @@ userMiddleware.set("fs-bridge-response", async (data, client) => {
     // block代表原来发送的数据太大了，需要从远端通过分块发送过来再进行组装
     const { hashs } = block;
 
+    debugger;
+
     const data = await getData({
       hashs,
       userId: client.userId, // 从指定用户上获取数据
+      originOptions: beforeOptions,
     });
 
     result = { value: data };

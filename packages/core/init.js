@@ -7,4 +7,6 @@ import { inited as serverInited } from "./server-connect/main.js";
 export const inited = (async () => {
   await userInited;
   await serverInited;
+
+  await new Promise((res) => setTimeout(res, 100)); // TODO: 应该是等待用户初始化完成后
 })();
