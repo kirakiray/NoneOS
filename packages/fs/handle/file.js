@@ -54,6 +54,8 @@ export class FileHandle extends BaseHandle {
 
     await writer.write(data);
     await writer.close();
+
+    return true;
   }
 
   // 写入数据流

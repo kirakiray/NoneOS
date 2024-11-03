@@ -29,27 +29,29 @@ export const bridge = async (options) => {
     const bid = getRandomId();
 
     let finnalData = {
+      ...options,
       type: "fs-bridge", // 远端 file system 桥接
-      options: {
-        ...options,
-        path: fixedPath,
-        bid,
-      },
+      path: fixedPath,
+      bid,
     };
 
     finnalData = JSON.stringify(finnalData);
 
-    if (finnalData.length > CHUNK_REMOTE_SIZE) {
-      debugger;
-
+    if (finnalData.length < CHUNK_REMOTE_SIZE) {
+      // 发送查询信息
+      await targetUser.send(finnalData);
+    } else {
+      // 大于最大区块的时候，通过转发的模式进行转发
       // 写到缓存区，让对面来获取
       const hashs = await saveData({
         data: finnalData,
       });
-    }
 
-    // 发送查询信息
-    await targetUser.send(finnalData);
+      targetUser.send({
+        type: "bridge-big-data",
+        hashs,
+      });
+    }
 
     // 从远端获取到返回的数据
     const result = await new Promise((resolve, reject) => {
@@ -83,8 +85,7 @@ export const bridge = async (options) => {
 
 // 中转响应文件
 userMiddleware.set("fs-bridge", async (data, client) => {
-  const { options } = data;
-  const { method, path, bid, args } = options;
+  const { method, path, bid, args } = data;
 
   try {
     const targetHandle = await get(path);
@@ -106,40 +107,27 @@ userMiddleware.set("fs-bridge", async (data, client) => {
       result.value = handleToData(reValue);
     }
 
-    const sendData = JSON.stringify({
+    const needSendData = JSON.stringify({
       type: "fs-bridge-response",
       bid,
       result,
     });
 
-    if (sendData.length < CHUNK_REMOTE_SIZE) {
-      client.send(sendData);
+    if (needSendData.length < CHUNK_REMOTE_SIZE) {
+      client.send(needSendData);
       return;
     }
-
-    debugger;
 
     // 提前转换对象
     // 存到数据库，等待对方领取
     const hashs = await saveData({
-      data: sendData,
+      data: needSendData,
     });
 
-    // // 让对方用中转响应转化并接受数据
-    // client.send({
-    //   type: "bridge-big-data",
-    //   main: {},
-    //   hashs,
-    // });
-
-    // 通知对方通过block方式获取数据
+    // 让对方用中转响应转化并接受数据
     client.send({
-      type: "fs-bridge-response",
-      bid,
-      // 数据太大了，让对面用块的方式获取
-      block: {
-        hashs,
-      },
+      type: "bridge-big-data",
+      hashs,
     });
   } catch (err) {
     console.error(err);
@@ -151,32 +139,37 @@ userMiddleware.set("fs-bridge", async (data, client) => {
   }
 });
 
+// 当转发的数据过大，就会通过大文件转发模式进行转发
 userMiddleware.set("bridge-big-data", async (data, client) => {
-  debugger;
+  const { hashs } = data;
+
+  const bufferData = await getData({
+    hashs,
+    userId: client.userId, // 从指定用户上获取数据
+  });
+
+  // 还原回对象数据
+  const decoder = new TextDecoder("utf-8");
+  const stringData = decoder.decode(bufferData);
+  const finnalData = JSON.parse(stringData);
+
+  const midFunc = userMiddleware.get(finnalData.type);
+
+  if (!midFunc) {
+    // TODO: 不存在的中间件
+    debugger;
+    console.error(`Middleware does not exist: ` + finnalData.type);
+    return;
+  }
+
+  midFunc(finnalData, client);
 });
 
 // 响应文件请求
 userMiddleware.set("fs-bridge-response", async (data, client) => {
-  const { bid, error, block } = data;
+  const { bid, error } = data;
 
-  let result = data.result;
-
-  if (block) {
-    // block代表原来发送的数据太大了，需要从远端通过分块发送过来再进行组装
-    const { hashs } = block;
-
-    const bufferData = await getData({
-      hashs,
-      userId: client.userId, // 从指定用户上获取数据
-    });
-
-    // 还原回对象数据
-    const decoder = new TextDecoder("utf-8");
-    const stringData = decoder.decode(bufferData);
-    const finnalData = JSON.parse(stringData);
-    result = finnalData.result;
-  }
-
+  const { result } = data;
   const { resolve, reject } = pmSaver.get(bid);
 
   if (error) {

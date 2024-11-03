@@ -26,8 +26,6 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       args,
     });
 
-    debugger;
-
     return result;
   }
 
