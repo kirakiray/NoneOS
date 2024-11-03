@@ -28,15 +28,28 @@ export const bridge = async (options) => {
 
     const bid = getRandomId();
 
-    // 发送查询信息
-    await targetUser.send({
+    let finnalData = {
       type: "fs-bridge", // 远端 file system 桥接
       options: {
         ...options,
         path: fixedPath,
         bid,
       },
-    });
+    };
+
+    finnalData = JSON.stringify(finnalData);
+
+    if (finnalData.length > CHUNK_REMOTE_SIZE) {
+      debugger;
+
+      // 写到缓存区，让对面来获取
+      const hashs = await saveData({
+        data: finnalData,
+      });
+    }
+
+    // 发送查询信息
+    await targetUser.send(finnalData);
 
     // 从远端获取到返回的数据
     const result = await new Promise((resolve, reject) => {
@@ -93,47 +106,102 @@ userMiddleware.set("fs-bridge", async (data, client) => {
       result.value = handleToData(reValue);
     }
 
-    let sendData = JSON.stringify({
+    const sendData = JSON.stringify({
       type: "fs-bridge-response",
-      options: {
-        bid,
-        result,
-      },
+      bid,
+      result,
     });
 
-    // 提前转换对象
-    if (sendData.length > CHUNK_REMOTE_SIZE) {
-      // 存到数据库，等待对方领取
-      const hashs = await saveData({
-        data: sendData,
-      });
-
-      // 通知对方通过block方式获取数据
-      client.send({
-        type: "fs-bridge-response",
-        options: {
-          bid,
-          // 数据太大了，让对面用块的方式获取
-          block: {
-            hashs,
-          },
-        },
-      });
+    if (sendData.length < CHUNK_REMOTE_SIZE) {
+      client.send(sendData);
       return;
     }
 
-    client.send(sendData);
+    debugger;
+
+    // 提前转换对象
+    // 存到数据库，等待对方领取
+    const hashs = await saveData({
+      data: sendData,
+    });
+
+    // // 让对方用中转响应转化并接受数据
+    // client.send({
+    //   type: "bridge-big-data",
+    //   main: {},
+    //   hashs,
+    // });
+
+    // 通知对方通过block方式获取数据
+    client.send({
+      type: "fs-bridge-response",
+      bid,
+      // 数据太大了，让对面用块的方式获取
+      block: {
+        hashs,
+      },
+    });
   } catch (err) {
     console.error(err);
     client.send({
       type: "fs-bridge-response",
-      options: {
-        bid,
-        error: err.stack || err.toString(),
-      },
+      bid,
+      error: err.stack || err.toString(),
     });
   }
 });
+
+userMiddleware.set("bridge-big-data", async (data, client) => {
+  debugger;
+});
+
+// 响应文件请求
+userMiddleware.set("fs-bridge-response", async (data, client) => {
+  const { bid, error, block } = data;
+
+  let result = data.result;
+
+  if (block) {
+    // block代表原来发送的数据太大了，需要从远端通过分块发送过来再进行组装
+    const { hashs } = block;
+
+    const bufferData = await getData({
+      hashs,
+      userId: client.userId, // 从指定用户上获取数据
+    });
+
+    // 还原回对象数据
+    const decoder = new TextDecoder("utf-8");
+    const stringData = decoder.decode(bufferData);
+    const finnalData = JSON.parse(stringData);
+    result = finnalData.result;
+  }
+
+  const { resolve, reject } = pmSaver.get(bid);
+
+  if (error) {
+    reject(new Error(error));
+    return;
+  }
+
+  resolve(result);
+});
+
+const getRandomId = () => Math.random().toString(32).slice(2);
+
+function isAsyncGenerator(obj) {
+  return (
+    obj &&
+    typeof obj[Symbol.asyncIterator] === "function" &&
+    obj.toString() === "[object AsyncGenerator]"
+  );
+}
+
+async function* arrayToAsyncGenerator(array) {
+  for (const item of array) {
+    yield item;
+  }
+}
 
 // 将本地的handle实例转化为远端的handle对象数据
 const handleToData = (item) => {
@@ -189,54 +257,3 @@ const dataToHandle = (item, parentPath) => {
 
   return item;
 };
-
-// 响应文件请求
-userMiddleware.set("fs-bridge-response", async (data, client) => {
-  const { options } = data;
-  const { bid, error, block } = options;
-
-  let result = options.result;
-
-  if (block) {
-    // block代表原来发送的数据太大了，需要从远端通过分块发送过来再进行组装
-    const { hashs } = block;
-
-    const bufferData = await getData({
-      hashs,
-      userId: client.userId, // 从指定用户上获取数据
-    });
-
-    // TODO: 验证接收到的文件的哈希值是否正确
-
-    // 重新转回对象
-    const decoder = new TextDecoder("utf-8");
-    const stringData = decoder.decode(bufferData);
-    const finnalData = JSON.parse(stringData);
-    result = finnalData.options.result;
-  }
-
-  const { resolve, reject } = pmSaver.get(bid);
-
-  if (error) {
-    reject(new Error(error));
-    return;
-  }
-
-  resolve(result);
-});
-
-const getRandomId = () => Math.random().toString(32).slice(2);
-
-function isAsyncGenerator(obj) {
-  return (
-    obj &&
-    typeof obj[Symbol.asyncIterator] === "function" &&
-    obj.toString() === "[object AsyncGenerator]"
-  );
-}
-
-async function* arrayToAsyncGenerator(array) {
-  for (const item of array) {
-    yield item;
-  }
-}

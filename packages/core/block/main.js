@@ -109,8 +109,6 @@ export const getData = async ({ hashs, userId }) => {
     })
   );
 
-  debugger;
-
   // 合并所有块数据
   return await mergeChunks(chunks);
 };
