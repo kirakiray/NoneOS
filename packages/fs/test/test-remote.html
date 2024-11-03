@@ -39,7 +39,7 @@
         // const htmlHandle = await localHandle.get("temp.yaml");
         const htmlHandle = await localHandle.get("index.html");
 
-        const text = await htmlHandle.text();
+        const text = await htmlHandle.file();
 
         // 获取大文件
         console.log(htmlHandle.path, "⬇️", text);
@@ -49,10 +49,9 @@
           create: "file",
         });
 
-        // await testTxt.write("haha".repeat());
-        await testTxt.write(getBigText());
-
-        debugger;
+        // await testTxt.write("haha".repeat(100));
+        const result = await testTxt.write(getBigText());
+        console.log("result: ", result);
       }
     </script>
   </body>

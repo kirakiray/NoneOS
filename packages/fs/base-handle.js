@@ -1,5 +1,5 @@
-import { splitIntoChunks, calculateHash, flatHandle } from "./util.js";
-// import { CHUNK_REMOTE_SIZE } from "./util.js";
+import { flatHandle } from "./util.js";
+import { saveData } from "../core/block/main.js";
 // import { fetchCache, saveCache } from "./cache/main.js";
 
 export class PublicBaseHandle {
@@ -11,32 +11,12 @@ export class PublicBaseHandle {
   }
 
   // 按照需求将文件保存到缓存池中，方便远端获取
-  // async _saveCache(arg) {
-  //   const chunkSize = arg.size;
-  //   const { options, returnHashs } = arg;
+  async _saveCache({ options }) {
+    // 获取指定的块内容
+    const data = await this.buffer(options);
 
-  //   // 获取指定的块内容
-  //   const result = await this.buffer(options);
-  //   const datas = await splitIntoChunks(result, chunkSize);
-
-  //   const hashs = [];
-
-  //   await Promise.all(
-  //     datas.map(async (chunk, i) => {
-  //       const hash = await calculateHash(chunk);
-
-  //       hashs[i] = hash;
-
-  //       await saveCache(hash, chunk);
-  //     })
-  //   );
-
-  //   if (returnHashs) {
-  //     return hashs;
-  //   }
-
-  //   return true;
-  // }
+    return await saveData({ data });
+  }
 
   // 从缓冲池进行组装文件并写入
   // async _writeByCache(options) {
