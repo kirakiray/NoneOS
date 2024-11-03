@@ -201,16 +201,18 @@ userMiddleware.set("fs-bridge-response", async (data, client) => {
     // block代表原来发送的数据太大了，需要从远端通过分块发送过来再进行组装
     const { hashs } = block;
 
-    debugger;
-
-    const data = await getData({
+    const bufferData = await getData({
       hashs,
       userId: client.userId, // 从指定用户上获取数据
     });
 
-    result = { value: data };
+    // TODO: 验证接收到的文件的哈希值是否正确
 
-    debugger;
+    // 重新转回对象
+    const decoder = new TextDecoder("utf-8");
+    const stringData = decoder.decode(bufferData);
+    const finnalData = JSON.parse(stringData);
+    result = finnalData.options.result;
   }
 
   const { resolve, reject } = pmSaver.get(bid);
