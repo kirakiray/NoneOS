@@ -1,5 +1,6 @@
 <template page>
   <l-m src="../comps/moment-span.html"></l-m>
+  <l-m src="../comps/data-block.html"></l-m>
   <style>
     :host {
       display: block;
@@ -22,45 +23,6 @@
       font-size: 12px;
       color: #7e7e7e;
     }
-
-    .block {
-      margin: 0 4px 4px 0;
-      padding: 4px;
-      border: #858585 solid 1px;
-      max-width: 200px;
-      border-radius: 8px;
-      font-size: 12px;
-    }
-    .block[state="sended"] {
-      border-color: #b57833;
-    }
-    .block[state="sended"] .state-val {
-      color: #b57833;
-      font-weight: bold;
-    }
-    .block[state="send-ok"] {
-      border-color: var(--md-sys-color-success);
-    }
-    .block[state="send-ok"] .state-val {
-      color: var(--md-sys-color-success);
-      font-weight: bold;
-    }
-
-    .line {
-      display: flex;
-      align-items: center;
-    }
-    .line-key {
-      font-weight: bold;
-      margin-right: 8px;
-    }
-
-    .line-val {
-      flex: 1;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      overflow: hidden;
-    }
   </style>
   <h4>请求日志</h4>
   <div class="list">
@@ -74,40 +36,13 @@
 
   <h4>发送日志</h4>
   <div class="list">
-    <x-fill :value="receiveds">
-      <div class="block" attr:title="$data.hash" attr:state="$data.state">
-        <div class="line">
-          <div class="line-key">对方名称</div>
-          <div class="line-val">{{ $data.userName }}</div>
-        </div>
-        <div class="line">
-          <div class="line-key">对方ID</div>
-          <div class="line-val">{{ $data.userId }}</div>
-        </div>
-        <div class="line">
-          <div class="line-key">hash</div>
-          <div class="line-val">{{ $data.hash }}</div>
-        </div>
-        <div class="line">
-          <div class="line-key">接收时间</div>
-          <div class="line-val">
-            <n-moment-span :time="$data.rTime"></n-moment-span>
-          </div>
-        </div>
-        <div class="line">
-          <div class="line-key">发送状态</div>
-          <div class="line-val state-val">{{$host.getState($data.state)}}</div>
-        </div>
-        <div class="line">
-          <div class="line-key">发送时间</div>
-          <div class="line-val">
-            <x-if :value="$data.sTime">
-              <n-moment-span :time="$data.sTime"></n-moment-span>
-            </x-if>
-            <x-else>-</x-else>
-          </div>
-        </div>
-      </div>
+    <x-fill :value="receiveds" fill-key="gid">
+      <n-data-block
+        :hashs="$data.hashs"
+        :user-name="$data.userName"
+        :user-id="$data.userId"
+        :gid="$data.gid"
+      ></n-data-block>
     </x-fill>
     <x-if :value="!receiveds.length">
       <div class="empty-content">空</div>
@@ -139,46 +74,13 @@
         attached() {
           this._cancels = [
             on("received-get-block", ({ data }) => {
-              const { hashs, userName, userId } = data;
+              const { hashs, userName, userId, gid } = data;
 
-              this.receiveds.unshift(
-                ...hashs.map((hash) => {
-                  return {
-                    rTime: Date.now(), // 接收时间
-                    sTime: "", // 发送时间
-                    hash,
-                    userName,
-                    state: "waiting",
-                    userId,
-                  };
-                })
-              );
-            }),
-            on("send-block", ({ data }) => {
-              const { hash, userId } = data;
-              const targetMsg = this.receiveds.find(
-                (e) => e.userId === userId && e.hash === hash
-              );
-
-              if (targetMsg) {
-                targetMsg.state = "sended";
-                targetMsg.sTime = Date.now();
-              }
-            }),
-            on("received-get-block-result", ({ data }) => {
-              const { state, hashs, userName, userId } = data;
-
-              // 接收到返回的结果
-              hashs.forEach((hash) => {
-                const targetMsg = this.receiveds.find(
-                  (e) => e.userId === userId && e.hash === hash
-                );
-
-                if (targetMsg) {
-                  if (state === "ok") {
-                    targetMsg.state = "send-ok";
-                  }
-                }
+              this.receiveds.push({
+                gid,
+                userName,
+                userId,
+                hashs,
               });
             }),
           ];

@@ -1,0 +1,134 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      max-width: 300px;
+    }
+    .container {
+      margin: 0 4px 4px 0;
+      padding: 4px;
+      border: #185f88 solid 1px;
+      border-radius: 8px;
+    }
+    .line {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+    }
+    .line-key {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .blocks {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .block {
+      width: 10px;
+      height: 10px;
+      margin: 0 2px 2px 0;
+      background-color: #767474;
+    }
+
+    .block[state="sended"] {
+      background-color: #b57833;
+    }
+    .block[state="send-ok"] {
+      background-color: var(--md-sys-color-success);
+    }
+  </style>
+  <div class="container">
+    <div class="line">
+      <div class="line-key">对方名称</div>
+      <div class="line-val">{{ userName }}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">对方ID</div>
+      <div class="line-val">{{ userId }}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">数据类型</div>
+      <div class="line-val">{{ dataType }}</div>
+    </div>
+    <div class="blocks">
+      <x-fill :value="rHashs">
+        <div
+          class="block"
+          attr:state="$data.state"
+          attr:title="$data.hash"
+        ></div>
+      </x-fill>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { on } = await load("/packages/core/main.js");
+
+      return {
+        tag: "n-data-block",
+        data: {
+          userName: "",
+          userId: "",
+          hashs: [],
+          rHashs: [],
+          gid: "",
+        },
+        watch: {
+          hashs(hashs) {
+            this.rHashs = hashs.map((hash) => {
+              return {
+                hash,
+                state: "waiting",
+              };
+            });
+          },
+        },
+        proto: {
+          get dataType() {
+            return "中转大数据块";
+          },
+        },
+        attached() {
+          this._cancels = [
+            on("send-block", ({ data }) => {
+              const { hash, userId, gid } = data;
+              if (this.gid !== gid) {
+                return;
+              }
+
+              const target = this.rHashs.find((e) => e.hash === hash);
+              if (target) {
+                target.state = "sended";
+                target.sTime = Date.now(); // 发送数据的时间
+              }
+            }),
+            on("received-get-block-result", ({ data }) => {
+              const { state, hashs, userName, userId } = data;
+
+              hashs.forEach((hash) => {
+                const target = this.rHashs.find((e) => e.hash === hash);
+                if (target) {
+                  target.state = "send-ok";
+                  target.rTime = Date.now(); // 收到数据的时间
+                }
+              });
+            }),
+          ];
+        },
+        detached() {
+          this._cancels.forEach((f) => f());
+        },
+      };
+    };
+  </script>
+</template>
