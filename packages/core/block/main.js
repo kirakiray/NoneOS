@@ -10,6 +10,44 @@ import {
 
 const storage = new EverCache("noneos-blocks-data");
 
+// 定时清除块数据
+const clearBlock = async () => {
+  const maxTime = 1000 * 60 * 10;
+
+  // 需要移除的数据
+  const needRemove = [];
+
+  for await (let [key, value] of storage.entries()) {
+    const diffTime = Date.now() - value.time;
+
+    if (diffTime > maxTime) {
+      needRemove.push(key);
+    }
+  }
+
+  // 主要缓存的文件夹
+  const blocksCacheDir = await get("local/caches/blocks", {
+    create: "dir",
+  });
+
+  if (needRemove.length) {
+    await Promise.all(
+      needRemove.map(async (key) => {
+        await storage.removeItem(key);
+        const targetFile = await blocksCacheDir.get(key);
+        targetFile && (await targetFile.remove());
+      })
+    );
+  }
+
+  console.log("clear cahce: ", needRemove.length);
+
+  return needRemove;
+};
+
+clearBlock();
+setInterval(clearBlock, 1000 * 60); // 一分钟检查一次数据并清除
+
 // 将数据保存到本地，等待对方来获取块数据
 export const saveData = async ({ data }) => {
   const chunks = await splitIntoChunks(data, CHUNK_REMOTE_SIZE);
