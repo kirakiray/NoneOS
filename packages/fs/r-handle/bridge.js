@@ -1,6 +1,6 @@
 import { get } from "../handle/index.js";
 import { users } from "/packages/core/user-connect/main.js";
-import { userMiddleware } from "../../core/main.js";
+import { userMiddleware, on } from "../../core/main.js";
 import { RemoteDirHandle } from "./dir.js";
 import { RemoteFileHandle } from "./file.js";
 import { saveData, getData } from "../../core/block/main.js";
@@ -9,10 +9,37 @@ import { CHUNK_REMOTE_SIZE } from "../util.js";
 // 暂存器
 const pmSaver = new Map();
 
+// 用户关闭时，将相关的 promiser 全部 reject
+on("user-closed", ({ data }) => {
+  const targetUser = data.target;
+
+  Array.from(pmSaver.entries()).map(([key, pmser]) => {
+    const userId = key.split("--")[1];
+
+    if (targetUser.userId === userId) {
+      pmser.reject(
+        new Error(
+          `User connection interrupted:${targetUser.userName}(${userId})`
+        )
+      );
+    }
+  });
+});
+
 // 文件函数中转器
 export const bridge = async (options) => {
   const pathArr = options.path.split(":");
   const userId = pathArr[1];
+
+  // 当调用中断时使用的对象
+  let causeErr;
+  try {
+    // 抛出一个错误以捕获当前的调用栈
+    throw new Error(`User interrupted, call failed: (${userId})`);
+  } catch (e) {
+    // 保存一份带有调用栈的错误对象
+    causeErr = e;
+  }
 
   // 去除前缀只保留路径
   const fixedPath = pathArr.slice(2).join("/");
@@ -26,7 +53,7 @@ export const bridge = async (options) => {
     // 等待连接完成
     await targetUser.watchUntil(() => targetUser.state === "connected");
 
-    const bid = getRandomId();
+    const bid = getRandomId() + `--${targetUser.userId}`;
 
     let finnalData = {
       ...options,
@@ -64,8 +91,9 @@ export const bridge = async (options) => {
           resolve(data);
           clear();
         },
-        reject(data) {
-          reject(data);
+        reject(err) {
+          causeErr.cause = err;
+          reject(causeErr);
           clear();
         },
       });
