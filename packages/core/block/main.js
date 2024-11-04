@@ -45,7 +45,7 @@ const scheduledClear = async () => {
 
     console.log("clear cache: ", needRemove.length);
   } catch (err) {
-    debugger;
+    console.error(err);
   }
 
   clearTimeout(timer);
