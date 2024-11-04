@@ -87,6 +87,26 @@ export const saveBlock = async (chunks) => {
   );
 };
 
+// 从缓存中获取数据
+export const getBlock = async (hashs) => {
+  // 主要缓存的文件夹
+  const blocksCacheDir = await get("local/caches/blocks", {
+    create: "dir",
+  });
+
+  return await Promise.all(
+    hashs.map(async (hash) => {
+      const handle = await blocksCacheDir.get(hash);
+
+      if (handle) {
+        return { hash, data: await handle.buffer() };
+      }
+
+      return { hash };
+    })
+  );
+};
+
 /**
  * 根据块信息，获取块的数据
  * @param {Object} options - 参数对象
@@ -95,7 +115,20 @@ export const saveBlock = async (chunks) => {
  * @returns {string|ArrayBuffer} 返回包含块集合的数据
  */
 export const getData = async ({ hashs, userId }) => {
-  let reHashs = hashs;
+  // const blocks = await getBlock(hashs);
+  // debug 调试代码
+  const blocks = hashs.map((hash) => {
+    return { hash };
+  });
+
+  // 需要请求的哈希文件块
+  const needToRequesHashs = [];
+
+  blocks.forEach((item) => {
+    if (!item.data) {
+      needToRequesHashs.push(item.hash);
+    }
+  });
 
   // TODO: 先从本地看看缓存了多少数据
   let targetUser;
@@ -111,15 +144,23 @@ export const getData = async ({ hashs, userId }) => {
     debugger;
   }
 
-  // 挂起本地任务
-  targetUser.send({
-    type: "get-block",
-    hashs,
-  });
+  if (needToRequesHashs.length) {
+    // 挂起本地任务
+    targetUser.send({
+      type: "get-block",
+      hashs: needToRequesHashs,
+    });
+  }
 
   // 获取所有的块数据
   const chunks = await Promise.all(
-    reHashs.map(async (hash) => {
+    blocks.map(async (opt) => {
+      const { hash, data } = opt;
+
+      if (data) {
+        return data;
+      }
+
       let targetPms = waitingBlocks[hash];
 
       if (!targetPms) {
