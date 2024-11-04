@@ -1,6 +1,7 @@
 import { RemoteBaseHandle } from "./base.js";
-import { getData } from "../../core/block/main.js";
-import { readBufferByType } from "../util.js";
+import { getData, saveData } from "../../core/block/main.js";
+import { readU8ByType } from "../util.js";
+import { getId } from "../../core/base/pair.js";
 
 export class RemoteFileHandle extends RemoteBaseHandle {
   constructor(options) {
@@ -24,26 +25,28 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     });
 
     // 获取对一个的块数据，并合并文件
-    const buffer = await getData({
+    const u8Data = await getData({
       hashs,
       userId: this.path.split(":")[1],
     });
 
-    return await readBufferByType({
-      buffer,
+    return await readU8ByType({
+      u8Data,
       type,
       data: { name: this.name },
       isChunk: options?.start || options?.end,
     });
   }
-  async write(...args) {
-    const result = await this.bridge({
-      method: "write",
-      path: this.path,
-      args,
+  async write(data) {
+    const hashs = await saveData({
+      data,
     });
 
-    return result;
+    return await this.bridge({
+      method: "_writeByCache",
+      path: this.path,
+      args: [{ hashs, userId: await getId() }],
+    });
   }
 
   /**

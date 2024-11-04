@@ -49,7 +49,7 @@ export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
 
   if (typeof input === "string") {
     arrayBuffer = new TextEncoder().encode(input).buffer;
-  } else if (input instanceof File) {
+  } else if (input instanceof Blob) {
     arrayBuffer = await input.arrayBuffer();
   } else if (input instanceof ArrayBuffer) {
     arrayBuffer = input;
@@ -113,20 +113,20 @@ export const calculateHash = async (arrayBuffer) => {
   return hashHex;
 };
 
-export const readBufferByType = ({ buffer, type, data, isChunk }) => {
+export const readU8ByType = ({ u8Data, type, data, isChunk }) => {
   // 根据type返回不同类型的数据
   if (type === "text") {
-    return new TextDecoder().decode(buffer);
+    return new TextDecoder().decode(u8Data);
   } else if (type === "file") {
     if (isChunk) {
-      return new Blob([buffer.buffer]);
+      return new Blob([u8Data.buffer]);
     }
-    return new File([buffer.buffer], data.name, {
+    return new File([u8Data.buffer], data.name, {
       lastModified: data.lastModified,
     });
   } else if (type === "base64") {
     return new Promise((resolve) => {
-      const file = new File([buffer.buffer], data.name);
+      const file = new File([u8Data.buffer], data.name);
       const reader = new FileReader();
       reader.onload = () => {
         resolve(reader.result);
@@ -134,7 +134,7 @@ export const readBufferByType = ({ buffer, type, data, isChunk }) => {
       reader.readAsDataURL(file);
     });
   } else {
-    return buffer.buffer;
+    return u8Data.buffer;
   }
 };
 

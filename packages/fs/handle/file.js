@@ -7,7 +7,7 @@ import {
   splitIntoChunks,
   mergeChunks,
   calculateHash,
-  readBufferByType,
+  readU8ByType,
 } from "../util.js";
 
 /**
@@ -133,10 +133,10 @@ export class FileHandle extends BaseHandle {
       }
     }
 
-    const buffer = mergeChunks(chunks);
+    const u8Data = mergeChunks(chunks);
 
-    return readBufferByType({
-      buffer,
+    return readU8ByType({
+      u8Data,
       type,
       data,
       isChunk: options?.start || options?.end,
@@ -193,12 +193,17 @@ class DBFSWritableFileStream {
 
     if (typeof input === "string") {
       arrayBuffer = new TextEncoder().encode(input).buffer;
-    } else if (input instanceof File) {
+    } else if (input instanceof Blob) {
       arrayBuffer = await input.arrayBuffer();
     } else if (input instanceof ArrayBuffer) {
       arrayBuffer = input;
+    } else if (input instanceof Uint8Array) {
+      arrayBuffer = input.buffer;
+    } else {
+      throw new Error(
+        "Input must be a string, File object or ArrayBuffer object"
+      );
     }
-
     this.#size += arrayBuffer.byteLength;
 
     // 写入缓存区

@@ -50,7 +50,9 @@
         });
 
         // await testTxt.write("haha".repeat(100));
-        const result = await testTxt.write(getBigText());
+        // const result = await testTxt.write(getBigText());
+        const fdata = new Blob([getBigText()]);
+        const result = await testTxt.write(fdata);
         console.log("result: ", result);
       }
     </script>
