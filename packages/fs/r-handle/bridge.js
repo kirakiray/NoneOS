@@ -35,7 +35,7 @@ export const bridge = async (options) => {
   let causeErr;
   try {
     // 抛出一个错误以捕获当前的调用栈
-    throw new Error(`User interrupted, call failed: (${userId})`);
+    throw new Error(`Failed to bridge data: (${userId})`);
   } catch (e) {
     // 保存一份带有调用栈的错误对象
     causeErr = e;
