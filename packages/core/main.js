@@ -27,6 +27,6 @@ export const on = (name, func) => {
 export const userMiddleware = new Map();
 
 // 等待中的块数据
-// export const waitingBlocks = $.stanz({});
-export const waitingBlocks = {};
-export const waitingBlocksResolver = {};
+export const blocks = $.stanz({
+  waiting: [], // 等待中的块
+});

@@ -1,6 +1,6 @@
 import { EverCache } from "../../libs/ever-cache/main.js";
 import { get } from "../../fs/handle/index.js";
-import { waitingBlocks, waitingBlocksResolver, users } from "../main.js";
+import { users, blocks } from "../main.js";
 import {
   CHUNK_REMOTE_SIZE,
   calculateHash,
@@ -8,45 +8,53 @@ import {
   mergeChunks,
 } from "../../fs/util.js";
 
+export const waitingBlocks = {}; // 存放promise的对象
+export const waitingBlocksResolver = {};
+
 const storage = new EverCache("noneos-blocks-data");
 
 // 定时清除块数据
-const clearBlock = async () => {
+let timer = null;
+const scheduledClear = async () => {
   const maxTime = 1000 * 60 * 10;
 
   // 需要移除的数据
   const needRemove = [];
 
-  for await (let [key, value] of storage.entries()) {
-    const diffTime = Date.now() - value.time;
+  try {
+    for await (let [key, value] of storage.entries()) {
+      const diffTime = Date.now() - value.time;
 
-    if (diffTime > maxTime) {
-      needRemove.push(key);
+      if (diffTime > maxTime) {
+        needRemove.push(key);
+      }
     }
+
+    // 主要缓存的文件夹
+    const blocksCacheDir = await get("local/caches/blocks");
+
+    if (needRemove.length) {
+      await Promise.all(
+        needRemove.map(async (key) => {
+          await storage.removeItem(key);
+          const targetFile = await blocksCacheDir.get(key);
+          targetFile && (await targetFile.remove());
+        })
+      );
+    }
+
+    console.log("clear cache: ", needRemove.length);
+  } catch (err) {
+    debugger;
   }
 
-  // 主要缓存的文件夹
-  const blocksCacheDir = await get("local/caches/blocks", {
-    create: "dir",
-  });
-
-  if (needRemove.length) {
-    await Promise.all(
-      needRemove.map(async (key) => {
-        await storage.removeItem(key);
-        const targetFile = await blocksCacheDir.get(key);
-        targetFile && (await targetFile.remove());
-      })
-    );
-  }
-
-  console.log("clear cahce: ", needRemove.length);
+  clearTimeout(timer);
+  timer = setTimeout(() => scheduledClear(), 1000 * 60); // 一分钟检查一次数据并清除
 
   return needRemove;
 };
 
-clearBlock();
-setInterval(clearBlock, 1000 * 60); // 一分钟检查一次数据并清除
+scheduledClear(); // 定时
 
 // 将数据保存到本地，等待对方来获取块数据
 export const saveData = async ({ data }) => {

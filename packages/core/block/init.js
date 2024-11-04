@@ -42,7 +42,7 @@ userMiddleware.set("get-block", async (options, client) => {
       finnalData = createFinalData(originData, 101);
     }
 
-    client.send(finnalData);
+    await client.send(finnalData);
 
     emit("send-block", {
       hash,
@@ -79,6 +79,7 @@ userMiddleware.set("response-block", async (chunk, client) => {
     } catch (err) {
       // TODO: 数据损坏解压缩失败
       debugger;
+      console.error(new Error(`The received block data is wrong`));
     }
   } else if (lastByte === 101) {
     data = buffer;
