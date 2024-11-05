@@ -199,3 +199,8 @@ export const getData = async ({ hashs, userId }) => {
   // 合并所有块数据
   return await mergeChunks(chunks);
 };
+
+// 清除块数据
+export const clearBlock = async ({ hashs }) => {
+  console.log("clear block: ", hashs);
+};

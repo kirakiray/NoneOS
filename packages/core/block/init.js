@@ -1,13 +1,8 @@
-import { get } from "../../fs/handle/index.js";
 import { userMiddleware, emit } from "../main.js";
-import { saveBlock } from "./main.js";
+import { saveBlock, clearBlock, getBlock } from "./main.js";
 
 // 得到了获取块的请求
 userMiddleware.set("get-block", async (options, client) => {
-  const blocksCacheDir = await get("local/caches/blocks", {
-    create: "dir",
-  });
-
   const { hashs } = options;
 
   const gid = Math.random().toString(32).slice(3); // 分组id
@@ -20,15 +15,14 @@ userMiddleware.set("get-block", async (options, client) => {
     gid,
   });
 
-  for (let hash of hashs) {
-    const cacheFile = await blocksCacheDir.get(hash);
+  const blocks = await getBlock(hashs);
 
-    if (!cacheFile) {
+  for (let { hash, data: originData } of blocks) {
+    if (!originData) {
       // TODO: 过早的清除了缓存，尝试从临时数据上，查看这个缓存是在哪个文件上的，并从中获取
       debugger;
     }
 
-    const originData = await cacheFile.buffer();
     const composedData = await compressArrayBuffer(originData);
 
     let finnalData;
@@ -56,6 +50,8 @@ userMiddleware.set("get-block", async (options, client) => {
 // 接收到对面用户返回的接收数据结果的信号
 userMiddleware.set("get-block-result", async (options, client) => {
   const { state, hashs } = options;
+
+  clearBlock({ hashs }); // 清除内容
 
   emit("received-get-block-result", {
     state,
