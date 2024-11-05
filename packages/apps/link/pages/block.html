@@ -1,10 +1,12 @@
 <template page>
   <l-m src="../comps/moment-span.html"></l-m>
   <l-m src="../comps/data-block.html"></l-m>
+  <l-m src="../comps/block-log.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
     h4 {
       margin: 16px 0 0;
       padding: 4px 0;
@@ -24,27 +26,17 @@
       color: #7e7e7e;
     }
   </style>
-  <h4>请求日志</h4>
-  <div class="list">
-    <div class="empty-content">空</div>
-  </div>
 
-  <h4>获得日志</h4>
+  <h4>块日志</h4>
   <div class="list">
-    <div class="empty-content">空</div>
-  </div>
-
-  <h4>发送日志</h4>
-  <div class="list">
-    <x-fill :value="receiveds" fill-key="gid">
-      <n-data-block
+    <x-fill :value="blocks" fill-key="gid">
+      <n-block-log
         :hashs="$data.hashs"
-        :user-name="$data.userName"
-        :user-id="$data.userId"
-        :gid="$data.gid"
-      ></n-data-block>
+        :type="$data.type"
+        :time="$data.time"
+      ></n-block-log>
     </x-fill>
-    <x-if :value="!receiveds.length">
+    <x-if :value="!blocks.length">
       <div class="empty-content">空</div>
     </x-if>
   </div>
@@ -53,11 +45,11 @@
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
-      const { on } = await load("/packages/core/main.js");
+      const { on, blocks } = await load("/packages/core/main.js");
 
       return {
         data: {
-          receiveds: [], // 接收到的请求
+          blocks: [], // 块日志
         },
         proto: {
           getState(state) {
@@ -72,18 +64,7 @@
           },
         },
         attached() {
-          this._cancels = [
-            on("received-get-block", ({ data }) => {
-              const { hashs, userName, userId, gid } = data;
-
-              this.receiveds.push({
-                gid,
-                userName,
-                userId,
-                hashs,
-              });
-            }),
-          ];
+          this.blocks = blocks;
           this.emit("update-title", {
             composed: true,
             data: {
@@ -96,7 +77,7 @@
           });
         },
         detached() {
-          this._cancels.forEach((f) => f());
+          this.blocks = [];
         },
       };
     };

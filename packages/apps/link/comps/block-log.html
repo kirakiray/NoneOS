@@ -1,0 +1,108 @@
+<template component>
+  <l-m src="./moment-span.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      max-width: 300px;
+      min-width: 200px;
+    }
+    .container {
+      margin: 0 4px 4px 0;
+      padding: 4px;
+      border: #185f88 solid 1px;
+      border-radius: 8px;
+    }
+    .line {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      line-height: 1.3em;
+    }
+    .line-key {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .blocks {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    .block {
+      width: 10px;
+      height: 10px;
+      margin: 0 2px 2px 0;
+      background-color: #767474;
+    }
+
+    .block[state="sended"] {
+      background-color: #b57833;
+    }
+    .block[state="send-ok"] {
+      background-color: var(--md-sys-color-success);
+    }
+
+    [data-type="get"] {
+      color: var(--md-sys-color-success);
+    }
+    [data-type="save"] {
+      color: var(--md-sys-color-primary);
+    }
+    [data-type="clear"] {
+      color: var(--md-sys-color-error);
+    }
+  </style>
+  <div class="container">
+    <div class="line">
+      <div class="line-key">类型</div>
+      <div class="line-val" attr:data-type="type">{{ dataType }}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">时间</div>
+      <div class="line-val">
+        <n-moment-span :time="time"></n-moment-span>
+      </div>
+    </div>
+    <div class="blocks">
+      <x-fill :value="hashs">
+        <div class="block"></div>
+      </x-fill>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { on } = await load("/packages/core/main.js");
+
+      return {
+        tag: "n-block-log",
+        data: {
+          type: "",
+          time: "",
+          hashs: [],
+        },
+        proto: {
+          get dataType() {
+            switch (this.type) {
+              case "get":
+                return "获取块";
+              case "save":
+                return "缓存块";
+              case "clear":
+                return "清除块";
+            }
+          },
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

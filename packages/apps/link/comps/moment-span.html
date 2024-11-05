@@ -10,6 +10,17 @@
     import "/packages/libs/moment/zh-cn.js";
     moment.locale("zh-cn");
 
+    // 已经加入 document 的元素
+    const eles = new Set();
+    setInterval(() => {
+      eles.forEach((e) => {
+        // 一小时内的需要刷新
+        if ((Date.now() - e.time) / 1000 / 3600 < 1) {
+          e.refreshMoment();
+        }
+      });
+    }, 10000);
+
     export default async ({ load }) => {
       return {
         tag: "n-moment-span",
@@ -40,20 +51,10 @@
           },
         },
         attached() {
-          const refresh = () => {
-            this._timer = setTimeout(() => {
-              this.refreshMoment();
-              refresh();
-            }, 10000);
-          };
-
-          // 一小时内的需要刷新
-          if ((Date.now() - this.time) / 1000 / 3600 < 1) {
-            refresh();
-          }
+          eles.add(this);
         },
         detached() {
-          clearTimeout(this._timer);
+          eles.delete(this);
         },
       };
     };

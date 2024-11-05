@@ -8,7 +8,7 @@ import {
   mergeChunks,
 } from "../../fs/util.js";
 
-export const waitingBlocks = {}; // 存放promise的对象
+export const waitingBlocks = {}; //blocks 存放promise的对象
 export const waitingBlocksResolver = {};
 
 const storage = new EverCache("noneos-blocks-data");
@@ -155,7 +155,7 @@ export const saveBlock = async (chunks) => {
     create: "dir",
   });
 
-  return Promise.all(
+  const hashs = await Promise.all(
     chunks.map(async (chunk) => {
       const hash = await calculateHash(chunk);
 
@@ -178,6 +178,14 @@ export const saveBlock = async (chunks) => {
       return hash;
     })
   );
+
+  blocks.unshift({
+    type: "save",
+    hashs,
+    time: Date.now(),
+  });
+
+  return hashs;
 };
 
 // 从缓存中获取数据
@@ -185,6 +193,12 @@ export const getBlock = async (hashs) => {
   // 主要缓存的文件夹
   const blocksCacheDir = await get("local/caches/blocks", {
     create: "dir",
+  });
+
+  blocks.unshift({
+    type: "get",
+    hashs,
+    time: Date.now(),
   });
 
   return await Promise.all(
@@ -203,4 +217,10 @@ export const getBlock = async (hashs) => {
 // 清除块数据
 export const clearBlock = async (hashs) => {
   console.log("clear block: ", hashs);
+
+  blocks.unshift({
+    type: "clear",
+    hashs,
+    time: Date.now(),
+  });
 };
