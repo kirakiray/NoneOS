@@ -2,6 +2,7 @@
   <l-m src="../comps/moment-span.html"></l-m>
   <l-m src="../comps/data-block.html"></l-m>
   <l-m src="../comps/block-log.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -27,7 +28,12 @@
     }
   </style>
 
-  <h4>块日志</h4>
+  <h4>
+    块日志
+    <p-button on:click="blocks.splice(0)" size="mini" style="margin-left: 28px">
+      清除日志
+    </p-button>
+  </h4>
   <div class="list">
     <x-fill :value="blocks" fill-key="gid">
       <n-block-log
@@ -42,12 +48,18 @@
   </div>
 
   <script>
-    export const parent = "../outer.html";
-
-    export default async ({ load }) => {
+    export default async ({ load, query }) => {
       const { on, blocks } = await load("/packages/core/main.js");
 
+      if (query.noframe) {
+        $("head").push(
+          `<link href="/packages/pui/css/public.css" rel="stylesheet" />`
+        );
+        $("html").classList.add("theme-dark-mode");
+      }
+
       return {
+        parent: query.noframe ? undefined : "../outer.html",
         data: {
           blocks: [], // 块日志
         },

@@ -11,6 +11,11 @@ import {
 export const waitingBlocks = {}; //blocks 存放promise的对象
 export const waitingBlocksResolver = {};
 
+// 定时清除超长的块数据
+blocks.watchTick(() => {
+  blocks.splice(100);
+}, 100);
+
 const storage = new EverCache("noneos-blocks-data");
 
 // 定时清除块数据

@@ -5,9 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test remote copy</title>
     <script src="/packages/libs/ofa/ofa.js"></script>
+    <style>
+      o-page {
+        display: block;
+        height: 80vh;
+      }
+    </style>
   </head>
   <body>
     test remote fs
+    <o-page src="/packages/apps/link/pages/block.html?noframe=1"></o-page>
     <script type="module">
       import { inited } from "/packages/core/init.js";
       import { get } from "../main.js";

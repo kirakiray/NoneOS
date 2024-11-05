@@ -12,14 +12,17 @@
 
     // 已经加入 document 的元素
     const eles = new Set();
-    setInterval(() => {
+    const refresh = () => {
       eles.forEach((e) => {
         // 一小时内的需要刷新
         if ((Date.now() - e.time) / 1000 / 3600 < 1) {
           e.refreshMoment();
         }
       });
-    }, 10000);
+
+      setTimeout(refresh, 20000);
+    };
+    refresh();
 
     export default async ({ load }) => {
       return {
