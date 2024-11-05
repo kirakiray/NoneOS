@@ -51,7 +51,7 @@ userMiddleware.set("get-block", async (options, client) => {
 userMiddleware.set("get-block-result", async (options, client) => {
   const { state, hashs } = options;
 
-  clearBlock({ hashs }); // 清除内容
+  clearBlock(hashs); // 清除内容
 
   emit("received-get-block-result", {
     state,

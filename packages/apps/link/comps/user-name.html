@@ -4,10 +4,10 @@
       display: block;
     }
   </style>
-  {{realName}}
   <x-if :value="isme">
     <span style="color: var(--md-sys-color-primary)"> (我) </span>
   </x-if>
+  {{realName}}
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/handle/index.js");

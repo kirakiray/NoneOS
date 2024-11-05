@@ -28,5 +28,7 @@ export const userMiddleware = new Map();
 
 // 等待中的块数据
 export const blocks = $.stanz({
-  waiting: [], // 等待中的块
+  get: [], // 获取块操作
+  save: [], // 保存块操作
+  clear: [], // 清除块操作
 });

@@ -63,58 +63,6 @@ export const saveData = async ({ data }) => {
   return await saveBlock(chunks);
 };
 
-// 将块数据保存到本地
-export const saveBlock = async (chunks) => {
-  // 主要缓存的文件夹
-  const blocksCacheDir = await get("local/caches/blocks", {
-    create: "dir",
-  });
-
-  return Promise.all(
-    chunks.map(async (chunk) => {
-      const hash = await calculateHash(chunk);
-
-      // 保存缓存文件的信息
-      storage.setItem(hash, {
-        time: Date.now(),
-      });
-
-      const fileHandle = await blocksCacheDir.get(hash, {
-        create: "file",
-      });
-
-      await fileHandle.write(chunk);
-
-      // 触发记录中的块请求
-      if (waitingBlocksResolver[hash]) {
-        waitingBlocksResolver[hash].resolve(chunk);
-      }
-
-      return hash;
-    })
-  );
-};
-
-// 从缓存中获取数据
-export const getBlock = async (hashs) => {
-  // 主要缓存的文件夹
-  const blocksCacheDir = await get("local/caches/blocks", {
-    create: "dir",
-  });
-
-  return await Promise.all(
-    hashs.map(async (hash) => {
-      const handle = await blocksCacheDir.get(hash);
-
-      if (handle) {
-        return { hash, data: await handle.buffer() };
-      }
-
-      return { hash };
-    })
-  );
-};
-
 /**
  * 根据块信息，获取块的数据
  * @param {Object} options - 参数对象
@@ -200,7 +148,59 @@ export const getData = async ({ hashs, userId }) => {
   return await mergeChunks(chunks);
 };
 
+// 将块数据保存到本地
+export const saveBlock = async (chunks) => {
+  // 主要缓存的文件夹
+  const blocksCacheDir = await get("local/caches/blocks", {
+    create: "dir",
+  });
+
+  return Promise.all(
+    chunks.map(async (chunk) => {
+      const hash = await calculateHash(chunk);
+
+      // 保存缓存文件的信息
+      storage.setItem(hash, {
+        time: Date.now(),
+      });
+
+      const fileHandle = await blocksCacheDir.get(hash, {
+        create: "file",
+      });
+
+      await fileHandle.write(chunk);
+
+      // 触发记录中的块请求
+      if (waitingBlocksResolver[hash]) {
+        waitingBlocksResolver[hash].resolve(chunk);
+      }
+
+      return hash;
+    })
+  );
+};
+
+// 从缓存中获取数据
+export const getBlock = async (hashs) => {
+  // 主要缓存的文件夹
+  const blocksCacheDir = await get("local/caches/blocks", {
+    create: "dir",
+  });
+
+  return await Promise.all(
+    hashs.map(async (hash) => {
+      const handle = await blocksCacheDir.get(hash);
+
+      if (handle) {
+        return { hash, data: await handle.buffer() };
+      }
+
+      return { hash };
+    })
+  );
+};
+
 // 清除块数据
-export const clearBlock = async ({ hashs }) => {
+export const clearBlock = async (hashs) => {
   console.log("clear block: ", hashs);
 };
