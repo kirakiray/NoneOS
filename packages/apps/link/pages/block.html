@@ -33,7 +33,7 @@
       清除日志
     </p-button>
   </h4>
-  <div class="list">
+  <div class="list" on:click-block="clickBlock">
     <x-fill :value="blocks" fill-key="gid">
       <n-block-log
         :hashs="$data.hashs"
@@ -46,6 +46,8 @@
       <div class="empty-content">空</div>
     </x-if>
   </div>
+
+  <style id="acitve-block-style"></style>
 
   <script>
     export default async ({ load, query }) => {
@@ -62,8 +64,19 @@
         parent: query.noframe ? undefined : "../outer.html",
         data: {
           blocks: [], // 块日志
+          activeBlock: "",
         },
         proto: {
+          clickBlock(e) {
+            e.stopPropagation();
+            const { data } = e;
+
+            this.shadow.$("#acitve-block-style").html = `
+              n-block-log::part(block-hash-${data.hash}){
+                background: var(--md-sys-color-primary);
+              }
+            `;
+          },
           getState(state) {
             switch (state) {
               case "waiting":

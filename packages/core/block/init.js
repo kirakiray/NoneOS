@@ -7,8 +7,20 @@ userMiddleware.set("get-block", async (options, client) => {
 
   const gid = Math.random().toString(32).slice(3); // 分组id
 
-  const blocks = await getBlock(hashs, {
+  let blocks = await getBlock(hashs, {
     reason: "middle-get-block",
+  });
+
+  console.log("blocks: ", blocks);
+
+  // 去重提升数据传输效率
+  const seen = new Set();
+  blocks = blocks.filter((item) => {
+    if (!seen.has(item.hash)) {
+      seen.add(item.hash);
+      return true;
+    }
+    return false;
   });
 
   for (let { hash, data: originData } of blocks) {

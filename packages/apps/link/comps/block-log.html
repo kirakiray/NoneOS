@@ -36,10 +36,15 @@
     }
 
     .block {
-      width: 10px;
-      height: 10px;
+      width: 14px;
+      height: 14px;
       margin: 0 2px 2px 0;
       background-color: #767474;
+      cursor: pointer;
+    }
+    .block:hover {
+      transform: scale(1.3);
+      border: var(--md-sys-color-primary) solid .5px;
     }
 
     .block[state="sended"] {
@@ -72,9 +77,14 @@
       <div class="line-key">时间</div>
       <div class="line-val">{{timeStr}}</div>
     </div>
-    <div class="blocks">
+    <div class="blocks" on:click="clickBlock">
       <x-fill :value="hashs">
-        <div class="block"></div>
+        <div
+          class="block"
+          attr:data-block="$data"
+          attr:title="$data"
+          attr:part="'block-hash-' + $data"
+        ></div>
       </x-fill>
     </div>
   </div>
@@ -91,6 +101,15 @@
           reason: "", // 保存块的理由
         },
         proto: {
+          clickBlock(e) {
+            if (e.target.dataset.block) {
+              this.emit("click-block", {
+                data: {
+                  hash: e.target.dataset.block,
+                },
+              });
+            }
+          },
           get timeStr() {
             return (
               new Date(this.time).toLocaleString() +
@@ -100,9 +119,9 @@
           get reasonStr() {
             switch (this.reason) {
               case "response-block":
-                return "接收二进制缓存块";
+                return "收到二进制缓存块";
               case "before-send-write":
-                return "向远端写入文件";
+                return "向远端写入文件前分块";
               case "big-data":
                 return "通知数据数据过大";
               case "fs-bridge-data":
@@ -112,7 +131,7 @@
               case "middle-get-block":
                 return "对方请示我向他发送数据块";
               case "already-received":
-                return "对方已接收数据块";
+                return "对方已收到数据块";
             }
 
             return this.reason || "-";
@@ -120,7 +139,7 @@
           get dataType() {
             switch (this.type) {
               case "get":
-                return "获取块";
+                return "发送块";
               case "save":
                 return "缓存块";
               case "clear":
