@@ -14,7 +14,7 @@ export const waitingBlocksResolver = {};
 // 定时清除超长的块数据
 blocks.watchTick(() => {
   if (blocks.length > 100) {
-    blocks.splice(100);
+    blocks.splice(70);
   }
 }, 100);
 
