@@ -64,10 +64,13 @@ const scheduledClear = async () => {
 scheduledClear(); // 定时
 
 // 将数据保存到本地，等待对方来获取块数据
-export const saveData = async ({ data, path, reason }) => {
+export const saveData = async ({ data, path, reason, userId }) => {
   const chunks = await splitIntoChunks(data, CHUNK_REMOTE_SIZE);
 
-  return await saveBlock(chunks, { reason, reasonData: { path } });
+  return await saveBlock(chunks, {
+    reason,
+    reasonData: { path, userId },
+  });
 };
 
 /**
@@ -78,18 +81,6 @@ export const saveData = async ({ data, path, reason }) => {
  * @returns {string|ArrayBuffer} 返回包含块集合的数据
  */
 export const getData = async ({ hashs, userId, reason }) => {
-  const blocks = await getBlock(hashs, { reason });
-
-  // 需要请求的哈希文件块
-  const needToRequesHashs = [];
-
-  blocks.forEach((item) => {
-    if (!item.data) {
-      needToRequesHashs.push(item.hash);
-    }
-  });
-
-  // TODO: 先从本地看看缓存了多少数据
   let targetUser;
   if (userId) {
     targetUser = users.find((e) => e.userId === userId);
@@ -102,6 +93,21 @@ export const getData = async ({ hashs, userId, reason }) => {
     // TODO: 查找不到用户，需要处理
     debugger;
   }
+
+  const reasonData = {};
+  if (targetUser) {
+    reasonData.userId = targetUser.userId;
+  }
+  const blocks = await getBlock(hashs, { reason, reasonData });
+
+  // 需要请求的哈希文件块
+  const needToRequesHashs = [];
+
+  blocks.forEach((item) => {
+    if (!item.data) {
+      needToRequesHashs.push(item.hash);
+    }
+  });
 
   if (needToRequesHashs.length) {
     // 挂起本地任务
@@ -231,7 +237,7 @@ export const getBlock = async (hashs, { reason, reasonData }) => {
 };
 
 // 清除块数据
-export const clearBlock = async (hashs, { reason }) => {
+export const clearBlock = async (hashs, { reason, reasonData }) => {
   console.log("clear block: ", hashs);
 
   blocks.unshift({
@@ -239,5 +245,6 @@ export const clearBlock = async (hashs, { reason }) => {
     hashs,
     time: Date.now(),
     reason,
+    reasonData,
   });
 };

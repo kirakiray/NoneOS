@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="./user-name.html"></l-m>
   <style>
     :host {
       display: block;
@@ -30,7 +31,6 @@
 
     .blocks {
       display: flex;
-      margin-top: 4px;
       padding: 4px;
       overflow-x: auto;
     }
@@ -61,10 +61,10 @@
       color: var(--md-sys-color-error);
     }
 
-    .origin-line {
+    .hashval-line {
       display: none;
     }
-    .origin-line[title] {
+    .hashval-line[title] {
       display: flex;
     }
   </style>
@@ -73,7 +73,13 @@
       <div class="line-key">类型</div>
       <div class="line-val" attr:data-type="type">{{ dataType }}</div>
     </div>
-    <div class="line origin-line" attr:title="getPath()">
+    <div class="line hashval-line" attr:title="userId">
+      <div class="line-key">对方用户</div>
+      <div class="line-val">
+        <n-user-name :userid="userId"></n-user-name>
+      </div>
+    </div>
+    <div class="line hashval-line" attr:title="getPath()">
       <div class="line-key">目标文件</div>
       <div class="line-val">{{getPath(true)}}</div>
     </div>
@@ -113,7 +119,7 @@
         },
         proto: {
           getPath(ellipsis = false) {
-            if (this.reasonData && this.reasonData.path) {
+            if (this.reasonData?.path) {
               const path = this.reasonData.path;
               if (ellipsis && path.length > 30) {
                 return "..." + path.slice(-27);
@@ -122,6 +128,9 @@
             }
 
             return null;
+          },
+          get userId() {
+            return this?.reasonData?.userId || null;
           },
           get hashsData() {
             if (this.hashs) {

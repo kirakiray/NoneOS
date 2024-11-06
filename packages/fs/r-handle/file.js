@@ -43,6 +43,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       data,
       reason: "before-send-write",
       path: this.path,
+      userId: this.path.split(":")[1],
     });
 
     return await this.bridge({

@@ -52,6 +52,10 @@ userMiddleware.set("get-block-result", async (options, client) => {
 
   clearBlock(hashs, {
     reason: "already-received",
+    reasonData: {
+      userId: client.userId,
+      userName: client.userName,
+    },
   }); // 清除内容
 });
 
@@ -81,6 +85,10 @@ userMiddleware.set("response-block", async (chunk, client) => {
   // 保存块数据
   const [hash] = await saveBlock([data], {
     reason: "response-block",
+    reasonData: {
+      userId: client.userId,
+      userName: client.userName,
+    },
   });
 
   // 通知对方接收成功
