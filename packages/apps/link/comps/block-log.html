@@ -2,8 +2,7 @@
   <style>
     :host {
       display: block;
-      max-width: 300px;
-      min-width: 200px;
+      width: 250px;
     }
     .container {
       margin: 0 4px 4px 0;
@@ -31,8 +30,9 @@
 
     .blocks {
       display: flex;
-      flex-wrap: wrap;
       margin-top: 4px;
+      padding: 4px;
+      overflow-x: auto;
     }
 
     .block {
@@ -60,11 +60,22 @@
     [data-type="clear"] {
       color: var(--md-sys-color-error);
     }
+
+    .origin-line {
+      display: none;
+    }
+    .origin-line[title] {
+      display: flex;
+    }
   </style>
   <div class="container">
     <div class="line">
       <div class="line-key">类型</div>
       <div class="line-val" attr:data-type="type">{{ dataType }}</div>
+    </div>
+    <div class="line origin-line" attr:title="getPath()">
+      <div class="line-key">目标文件</div>
+      <div class="line-val">{{getPath(true)}}</div>
     </div>
     <div class="line">
       <div class="line-key">理由</div>
@@ -74,6 +85,7 @@
       <div class="line-key">时间</div>
       <div class="line-val">{{timeStr}}</div>
     </div>
+
     <div class="blocks" on:click="clickBlock">
       <x-fill :value="hashsData">
         <div
@@ -100,6 +112,17 @@
           reasonData: null,
         },
         proto: {
+          getPath(ellipsis = false) {
+            if (this.reasonData && this.reasonData.path) {
+              const path = this.reasonData.path;
+              if (ellipsis && path.length > 30) {
+                return "..." + path.slice(-27);
+              }
+              return this.reasonData.path;
+            }
+
+            return null;
+          },
           get hashsData() {
             if (this.hashs) {
               const { exists = [] } = this.reasonData || {};

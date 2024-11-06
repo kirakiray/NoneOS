@@ -64,10 +64,10 @@ const scheduledClear = async () => {
 scheduledClear(); // 定时
 
 // 将数据保存到本地，等待对方来获取块数据
-export const saveData = async ({ data, reason }) => {
+export const saveData = async ({ data, path, reason }) => {
   const chunks = await splitIntoChunks(data, CHUNK_REMOTE_SIZE);
 
-  return await saveBlock(chunks, { reason });
+  return await saveBlock(chunks, { reason, reasonData: { path } });
 };
 
 /**
@@ -152,7 +152,11 @@ export const getData = async ({ hashs, userId, reason }) => {
 };
 
 // 将块数据保存到本地
-export const saveBlock = async (chunks, { reason }) => {
+export const saveBlock = async (chunks, { reason, reasonData }) => {
+  // const reasonData = {
+  //   path: "", // 缓存文件的来源
+  // };
+
   // 主要缓存的文件夹
   const blocksCacheDir = await get("local/caches/blocks", {
     create: "dir",
@@ -187,6 +191,7 @@ export const saveBlock = async (chunks, { reason }) => {
     hashs,
     time: Date.now(),
     reason,
+    reasonData,
   });
 
   return hashs;
