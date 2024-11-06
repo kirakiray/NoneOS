@@ -77,12 +77,8 @@ export const saveData = async ({ data, reason }) => {
  * @param {string} options.userId - 从哪个用户获取块数据
  * @returns {string|ArrayBuffer} 返回包含块集合的数据
  */
-export const getData = async ({ hashs, userId }) => {
-  // const blocks = await getBlock(hashs);
-  // debug 调试代码
-  const blocks = hashs.map((hash) => {
-    return { hash };
-  });
+export const getData = async ({ hashs, userId, reason }) => {
+  const blocks = await getBlock(hashs, { reason });
 
   // 需要请求的哈希文件块
   const needToRequesHashs = [];
@@ -197,30 +193,36 @@ export const saveBlock = async (chunks, { reason }) => {
 };
 
 // 从缓存中获取数据
-export const getBlock = async (hashs, { reason }) => {
+export const getBlock = async (hashs, { reason, reasonData }) => {
   // 主要缓存的文件夹
   const blocksCacheDir = await get("local/caches/blocks", {
     create: "dir",
   });
 
-  blocks.unshift({
-    type: "get",
-    hashs,
-    time: Date.now(),
-    reason,
-  });
+  const exists = []; // 已存在的块数据
 
-  return await Promise.all(
+  const reData = await Promise.all(
     hashs.map(async (hash) => {
       const handle = await blocksCacheDir.get(hash);
 
       if (handle) {
+        exists.push(hash);
         return { hash, data: await handle.buffer() };
       }
 
       return { hash };
     })
   );
+
+  blocks.unshift({
+    type: "get",
+    hashs,
+    time: Date.now(),
+    reasonData: { exists, ...reasonData },
+    reason,
+  });
+
+  return reData;
 };
 
 // 清除块数据

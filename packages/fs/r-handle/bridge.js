@@ -176,6 +176,7 @@ userMiddleware.set("bridge-big-data", async (data, client) => {
   const bufferData = await getData({
     hashs,
     userId: client.userId, // 从指定用户上获取数据
+    reason: "bridge-big-data",
   });
 
   // 还原回对象数据

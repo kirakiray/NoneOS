@@ -19,7 +19,7 @@ export class PublicBaseHandle {
 
   // 从缓存区获取数据并写入
   async _writeByCache({ hashs, userId }) {
-    const data = await getData({ hashs, userId });
+    const data = await getData({ hashs, userId, reason: "remote-write-cache" });
 
     return await this.write(data);
   }

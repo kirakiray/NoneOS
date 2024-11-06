@@ -28,6 +28,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     const u8Data = await getData({
       hashs,
       userId: this.path.split(":")[1],
+      reason: "handle-read",
     });
 
     return await readU8ByType({
