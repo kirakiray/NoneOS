@@ -14,7 +14,7 @@ export class PublicBaseHandle {
     // 获取指定的块内容
     const data = await this.buffer(options);
 
-    return await saveData({ data });
+    return await saveData({ data, reason: "save-cache" });
   }
 
   // 从缓存区获取数据并写入

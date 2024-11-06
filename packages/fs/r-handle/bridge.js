@@ -72,6 +72,7 @@ export const bridge = async (options) => {
       // 写到缓存区，让对面来获取
       const hashs = await saveData({
         data: finnalData,
+        reason: "big-data",
       });
 
       targetUser.send({
@@ -150,6 +151,7 @@ userMiddleware.set("fs-bridge", async (data, client) => {
     // 存到数据库，等待对方领取
     const hashs = await saveData({
       data: needSendData,
+      reason: "fs-bridge-data",
     });
 
     // 让对方用中转响应转化并接受数据

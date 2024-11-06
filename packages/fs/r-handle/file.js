@@ -40,6 +40,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
   async write(data) {
     const hashs = await saveData({
       data,
+      reason: "before-send-write",
     });
 
     return await this.bridge({

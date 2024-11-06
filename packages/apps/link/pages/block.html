@@ -1,6 +1,5 @@
 <template page>
   <l-m src="../comps/moment-span.html"></l-m>
-  <l-m src="../comps/data-block.html"></l-m>
   <l-m src="../comps/block-log.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
@@ -40,6 +39,7 @@
         :hashs="$data.hashs"
         :type="$data.type"
         :time="$data.time"
+        :reason="$data.reason"
       ></n-block-log>
     </x-fill>
     <x-if :value="!blocks.length">

@@ -13,7 +13,9 @@ export const waitingBlocksResolver = {};
 
 // 定时清除超长的块数据
 blocks.watchTick(() => {
-  blocks.splice(100);
+  if (blocks.length > 100) {
+    blocks.splice(100);
+  }
 }, 100);
 
 const storage = new EverCache("noneos-blocks-data");
@@ -62,10 +64,10 @@ const scheduledClear = async () => {
 scheduledClear(); // 定时
 
 // 将数据保存到本地，等待对方来获取块数据
-export const saveData = async ({ data }) => {
+export const saveData = async ({ data, reason }) => {
   const chunks = await splitIntoChunks(data, CHUNK_REMOTE_SIZE);
 
-  return await saveBlock(chunks);
+  return await saveBlock(chunks, { reason });
 };
 
 /**
@@ -154,7 +156,7 @@ export const getData = async ({ hashs, userId }) => {
 };
 
 // 将块数据保存到本地
-export const saveBlock = async (chunks) => {
+export const saveBlock = async (chunks, { reason }) => {
   // 主要缓存的文件夹
   const blocksCacheDir = await get("local/caches/blocks", {
     create: "dir",
@@ -188,13 +190,14 @@ export const saveBlock = async (chunks) => {
     type: "save",
     hashs,
     time: Date.now(),
+    reason,
   });
 
   return hashs;
 };
 
 // 从缓存中获取数据
-export const getBlock = async (hashs) => {
+export const getBlock = async (hashs, { reason }) => {
   // 主要缓存的文件夹
   const blocksCacheDir = await get("local/caches/blocks", {
     create: "dir",
@@ -204,6 +207,7 @@ export const getBlock = async (hashs) => {
     type: "get",
     hashs,
     time: Date.now(),
+    reason,
   });
 
   return await Promise.all(
@@ -220,12 +224,13 @@ export const getBlock = async (hashs) => {
 };
 
 // 清除块数据
-export const clearBlock = async (hashs) => {
+export const clearBlock = async (hashs, { reason }) => {
   console.log("clear block: ", hashs);
 
   blocks.unshift({
     type: "clear",
     hashs,
     time: Date.now(),
+    reason,
   });
 };

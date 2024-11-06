@@ -1,4 +1,4 @@
-import { userMiddleware, emit } from "../main.js";
+import { userMiddleware } from "../main.js";
 import { saveBlock, clearBlock, getBlock } from "./main.js";
 
 // 得到了获取块的请求
@@ -7,15 +7,9 @@ userMiddleware.set("get-block", async (options, client) => {
 
   const gid = Math.random().toString(32).slice(3); // 分组id
 
-  // 接收到了 get block 请求
-  emit("received-get-block", {
-    hashs,
-    userName: client.userName,
-    userId: client.userId,
-    gid,
+  const blocks = await getBlock(hashs, {
+    reason: "middle-get-block",
   });
-
-  const blocks = await getBlock(hashs);
 
   for (let { hash, data: originData } of blocks) {
     if (!originData) {
@@ -37,28 +31,16 @@ userMiddleware.set("get-block", async (options, client) => {
     }
 
     await client.send(finnalData);
-
-    emit("send-block", {
-      hash,
-      userName: client.userName,
-      userId: client.userId,
-      gid,
-    });
   }
 });
 
-// 接收到对面用户返回的接收数据结果的信号
+// 接收到对面用户返回的接收数据结果的信`号
 userMiddleware.set("get-block-result", async (options, client) => {
   const { state, hashs } = options;
 
-  clearBlock(hashs); // 清除内容
-
-  emit("received-get-block-result", {
-    state,
-    hashs,
-    userName: client.userName,
-    userId: client.userId,
-  });
+  clearBlock(hashs, {
+    reason: "already-received",
+  }); // 清除内容
 });
 
 // 用户直接收到的二进制数据，是其他用户通过 get-block 指令接收到的
@@ -85,7 +67,9 @@ userMiddleware.set("response-block", async (chunk, client) => {
   }
 
   // 保存块数据
-  const [hash] = await saveBlock([data]);
+  const [hash] = await saveBlock([data], {
+    reason: "response-block",
+  });
 
   // 通知对方接收成功
   client.send({

@@ -1,5 +1,4 @@
 <template component>
-  <l-m src="./moment-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -66,10 +65,12 @@
       <div class="line-val" attr:data-type="type">{{ dataType }}</div>
     </div>
     <div class="line">
+      <div class="line-key">理由</div>
+      <div class="line-val">{{ reasonStr }}</div>
+    </div>
+    <div class="line">
       <div class="line-key">时间</div>
-      <div class="line-val">
-        <n-moment-span :time="time"></n-moment-span>
-      </div>
+      <div class="line-val">{{timeStr}}</div>
     </div>
     <div class="blocks">
       <x-fill :value="hashs">
@@ -87,8 +88,35 @@
           type: "",
           time: "",
           hashs: [],
+          reason: "", // 保存块的理由
         },
         proto: {
+          get timeStr() {
+            return (
+              new Date(this.time).toLocaleString() +
+              `.${String(this.time).slice(-3)}`
+            );
+          },
+          get reasonStr() {
+            switch (this.reason) {
+              case "response-block":
+                return "接收二进制缓存块";
+              case "before-send-write":
+                return "向远端写入文件";
+              case "big-data":
+                return "通知数据数据过大";
+              case "fs-bridge-data":
+                return "文件通知信息信息过大";
+              case "save-cache":
+                return "对方请求我的文件";
+              case "middle-get-block":
+                return "对方请示我向他发送数据块";
+              case "already-received":
+                return "对方已接收数据块";
+            }
+
+            return this.reason || "-";
+          },
           get dataType() {
             switch (this.type) {
               case "get":
