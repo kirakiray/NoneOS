@@ -1,6 +1,6 @@
 <template page>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
-  <l-m src="../comps/user-log-block.html"></l-m>
+  <l-m src="../comps/user-data-log.html"></l-m>
   <l-m src="../comps/copy-span.html"></l-m>
   <style>
     :host {
@@ -37,7 +37,7 @@
       flex-wrap: wrap;
     }
 
-    user-log-block {
+    user-data-log {
       margin: 8px 8px 0 0;
     }
   </style>
@@ -93,7 +93,7 @@
   </div>
   <div class="logs">
     <x-fill :value="logs" fill-key="$data.time">
-      <user-log-block :item="$data"></user-log-block>
+      <user-data-log :item="$data"></user-data-log>
     </x-fill>
     <x-if :value="!logs.length">
       <div

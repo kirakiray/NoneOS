@@ -1,6 +1,6 @@
 <template page>
-  <!-- <l-m src="../comps/log-block.html"></l-m> -->
-  <l-m src="../comps/server-log-block.html"></l-m>
+  <!-- <l-m src="../comps/data-log.html"></l-m> -->
+  <l-m src="../comps/server-data-log.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
@@ -67,7 +67,7 @@
       <span class="group_title"> 五分钟内:</span>
       <div class="container">
         <x-fill :value="groupData.withinFiveMinutes">
-          <server-log-block :item="$data"></server-log-block>
+          <server-data-log :item="$data"></server-data-log>
         </x-fill>
       </div>
     </div>
@@ -78,7 +78,7 @@
       <span class="group_title"> 一小时内:</span>
       <div class="container">
         <x-fill :value="groupData.withinOneHour">
-          <server-log-block :item="$data"></server-log-block>
+          <server-data-log :item="$data"></server-data-log>
         </x-fill>
       </div>
     </div>
@@ -89,7 +89,7 @@
       <span class="group_title"> 24小时内:</span>
       <div class="container">
         <x-fill :value="groupData.withinOneDay">
-          <server-log-block :item="$data"></server-log-block>
+          <server-data-log :item="$data"></server-data-log>
         </x-fill>
       </div>
     </div>
@@ -100,7 +100,7 @@
       <span class="group_title"> 一天前:</span>
       <div class="container">
         <x-fill :value="groupData.moreThanOneDay">
-          <server-log-block :item="$data"></server-log-block>
+          <server-data-log :item="$data"></server-data-log>
         </x-fill>
       </div>
     </div>

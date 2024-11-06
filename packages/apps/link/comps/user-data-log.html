@@ -1,5 +1,5 @@
 <template component>
-  <l-m src="./log-block.html"></l-m>
+  <l-m src="./data-log.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="./moment-span.html"></l-m>
 
@@ -9,12 +9,11 @@
       min-width: 300px;
     }
 
-    .log-block {
+    .data-log {
       display: block;
-      border: rgb(37, 110, 47) solid 1px;
+      border: rgb(45, 45, 205) solid 1px;
       padding: 8px;
       border-radius: 4px;
-      margin: 8px 8px 0 0;
     }
 
     .log-line {
@@ -30,23 +29,22 @@
       top: -26px;
     }
   </style>
-  <div class="log-block">
-    <div class="log-line">
-      时间:
+  <div class="data-log">
+    <div class="log-line" attr:title="time">
       <n-moment-span :time="item.time"></n-moment-span>
     </div>
-    <div class="log-line">类型: {{logType}}</div>
+    <div class="log-line" attr:title="time">类型: {{logType}}</div>
     <div class="log-content">
       <p-button on:click="showAll = showAll ? null : 1" size="mini">
         {{showAll ? '折叠内容' : '显示所有'}}
       </p-button>
-      <n-log-block :str="item._data" :show-all="showAll"></n-log-block>
+      <n-data-log :str="item._data" :show-all="showAll"></n-data-log>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
       return {
-        tag: "server-log-block",
+        tag: "user-data-log",
         data: {
           item: {
             _data: "{}",
@@ -57,15 +55,25 @@
           get logType() {
             try {
               const data = JSON.parse(this.item._data);
-              switch (data.__type) {
-                case "init":
-                  return "服务初始化";
-                case "agent-connect":
-                  return "转发数据";
+              switch (data.type) {
+                case "msg":
+                  return "测试信息";
+                case "get-certs":
+                  return "请求对方证书";
+                case "obtain-certs":
+                  return "缓存对方给的证书";
+                default:
+                  // TODO: 为止类型处理
+                  console.log("unknow: ", data);
+                  return "不明";
               }
             } catch (err) {
-              return "";
+              // TODO: 转化出错处理
+              return "文件损坏";
             }
+          },
+          get time() {
+            return new Date(this.item.time).toLocaleString();
           },
         },
       };
