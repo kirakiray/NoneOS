@@ -121,8 +121,13 @@ userMiddleware.set("fs-bridge", async (data, client) => {
   try {
     const targetHandle = await get(path);
 
+    // 临时添加用户信息
+    targetHandle.__remote_user = client.userId;
+
     // 实际运行后要返回的值
     const reValue = await targetHandle[method](...args);
+
+    delete targetHandle.__remote_user;
 
     // 返回的对象
     const result = {};

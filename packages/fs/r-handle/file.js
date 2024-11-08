@@ -29,6 +29,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       hashs,
       userId: this.path.split(":")[1],
       reason: "handle-read",
+      path: this.path,
     });
 
     return await readU8ByType({

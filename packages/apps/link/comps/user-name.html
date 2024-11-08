@@ -21,14 +21,13 @@
         tag: "n-user-name",
         data: {
           userid: "", // 用户id
-          realName: "", // 实际显示的名字字符串
+          realName: "loading", // 实际显示的名字字符串
           selfUserId, // 当前用户自身的id
           isme: false,
         },
         watch: {
           async userid(userid) {
             userid && (userid = userid.trim());
-            this.realName = userid;
             this.attr("title", userid);
 
             if (selfUserId === userid) {
@@ -44,8 +43,9 @@
             if (cardHandle) {
               let card = await cardHandle.text();
               card = JSON.parse(card);
-
               this.realName = new Map(card.data).get("userName");
+            } else {
+              this.realName = userid;
             }
           },
         },

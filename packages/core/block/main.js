@@ -78,9 +78,10 @@ export const saveData = async ({ data, path, reason, userId }) => {
  * @param {Object} options - 参数对象
  * @param {Array<string>} options.hashs - 块的哈希数组，用于标识特定块
  * @param {string} options.userId - 从哪个用户获取块数据
+ * @param {string} options.path - 访问数据来源于文件的路径
  * @returns {string|ArrayBuffer} 返回包含块集合的数据
  */
-export const getData = async ({ hashs, userId, reason }) => {
+export const getData = async ({ hashs, userId, reason, path }) => {
   let targetUser;
   if (userId) {
     targetUser = users.find((e) => e.userId === userId);
@@ -94,7 +95,7 @@ export const getData = async ({ hashs, userId, reason }) => {
     debugger;
   }
 
-  const reasonData = {};
+  const reasonData = { path };
   if (targetUser) {
     reasonData.userId = targetUser.userId;
   }
@@ -113,6 +114,7 @@ export const getData = async ({ hashs, userId, reason }) => {
     // 挂起本地任务
     targetUser.send({
       type: "get-block",
+      path,
       hashs: needToRequesHashs,
     });
   }

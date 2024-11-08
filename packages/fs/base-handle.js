@@ -18,12 +18,18 @@ export class PublicBaseHandle {
       data,
       reason: "save-cache",
       path: this.path,
+      userId: this.__remote_user,
     });
   }
 
   // 从缓存区获取数据并写入
   async _writeByCache({ hashs, userId }) {
-    const data = await getData({ hashs, userId, reason: "remote-write-cache" });
+    const data = await getData({
+      hashs,
+      userId,
+      path: this.path,
+      reason: "remote-write-cache",
+    });
 
     return await this.write(data);
   }

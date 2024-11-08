@@ -1,5 +1,6 @@
 import { userMiddleware } from "../main.js";
 import { saveBlock, clearBlock, getBlock } from "./main.js";
+import { getId } from "../base/pair.js";
 
 // 得到了获取块的请求
 userMiddleware.set("get-block", async (options, client) => {
@@ -7,8 +8,23 @@ userMiddleware.set("get-block", async (options, client) => {
 
   const gid = Math.random().toString(32).slice(3); // 分组id
 
+  const selfId = await getId();
+
+  let path = options.path;
+  if (path) {
+    // 如果路径是远程的，判断是否是自己，是的话去掉远程地址相关的标识
+    const mArr = options.path.split(":");
+    if (mArr.length >= 3 && mArr[1] === selfId) {
+      path = mArr[2];
+    }
+  }
+
   let blocks = await getBlock(hashs, {
     reason: "middle-get-block",
+    reasonData: {
+      userId: client.userId,
+      path,
+    },
   });
 
   console.log("blocks: ", blocks);
@@ -54,7 +70,6 @@ userMiddleware.set("get-block-result", async (options, client) => {
     reason: "already-received",
     reasonData: {
       userId: client.userId,
-      userName: client.userName,
     },
   }); // 清除内容
 });
