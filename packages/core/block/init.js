@@ -102,7 +102,6 @@ userMiddleware.set("response-block", async (chunk, client) => {
     reason: "response-block",
     reasonData: {
       userId: client.userId,
-      userName: client.userName,
     },
   });
 

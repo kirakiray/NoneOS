@@ -442,7 +442,7 @@ export class UserClient extends $.Stanz {
       rtcPC = this.initRTC();
     }
 
-    console.log("server agent : ", data);
+    // console.log("server agent : ", data);
 
     switch (data.step) {
       case "set-remote":

@@ -72,7 +72,7 @@ export const updateOnlineUser = async () => {
             return handle.write(JSON.stringify(userData));
           })
           .then(() => {
-            console.log(`写入${client.userId}卡片完成`);
+            // console.log(`写入${client.userId}卡片完成`);
           });
 
         // 如果已经存在，则不添加
