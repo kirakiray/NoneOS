@@ -50,7 +50,7 @@ const scheduledClear = async () => {
       );
     }
 
-    console.log("clear cache: ", needRemove.length);
+    // console.log("clear cache: ", needRemove.length);
   } catch (err) {
     console.error(err);
   }

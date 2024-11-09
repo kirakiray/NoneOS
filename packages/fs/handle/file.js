@@ -4,7 +4,6 @@ import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
 import {
   CHUNK_SIZE,
-  splitIntoChunks,
   mergeChunks,
   calculateHash,
   readU8ByType,

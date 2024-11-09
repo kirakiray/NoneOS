@@ -725,10 +725,6 @@
     });
   };
 
-  new EverCache();
-
-  // 所有存放的服务器
-
   // 所有的用户
   const users = [];
 
@@ -736,7 +732,7 @@
   new EventTarget();
 
   // 等待中的块数据
-  const blocks = []
+  const blocks = [];
 
   const waitingBlocks = {}; //blocks 存放promise的对象
   const waitingBlocksResolver = {};
@@ -774,7 +770,7 @@
         );
       }
 
-      console.log("clear cache: ", needRemove.length);
+      // console.log("clear cache: ", needRemove.length);
     } catch (err) {
       console.error(err);
     }

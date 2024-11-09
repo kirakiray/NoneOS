@@ -46,7 +46,12 @@
         // const htmlHandle = await localHandle.get("temp.yaml");
         const htmlHandle = await localHandle.get("index.html");
 
-        const text = await htmlHandle.file();
+        // const text = await htmlHandle.file();
+        const text = await htmlHandle.text();
+        // const text = await htmlHandle.text({
+        //   start: 0,
+        //   end: 100,
+        // });
 
         // 获取大文件
         console.log(htmlHandle.path, "⬇️", text);
