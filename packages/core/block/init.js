@@ -66,6 +66,7 @@ userMiddleware.set("get-block", async (options, client) => {
 userMiddleware.set("get-block-result", async (options, client) => {
   const { state, hashs } = options;
 
+  // 清除发送方的缓存
   clearBlock(hashs, {
     reason: "already-received",
     reasonData: {
