@@ -1,7 +1,7 @@
 import { RemoteBaseHandle } from "./base.js";
 import { getData, saveData } from "../../core/block/main.js";
-import { readU8ByType } from "../util.js";
 import { getId } from "../../core/base/pair.js";
+import { readBlobByType } from "../util.js";
 
 export class RemoteFileHandle extends RemoteBaseHandle {
   constructor(options) {
@@ -25,15 +25,15 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     });
 
     // 获取对一个的块数据，并合并文件
-    const u8Data = await getData({
+    const blobData = await getData({
       hashs,
       userId: this.path.split(":")[1],
       reason: "handle-read",
       path: this.path,
     });
 
-    return await readU8ByType({
-      u8Data,
+    return await readBlobByType({
+      blobData,
       type,
       data: { name: this.name },
       isChunk: options?.start || options?.end,

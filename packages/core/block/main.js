@@ -4,8 +4,7 @@ import { users, blocks } from "../main.js";
 import {
   CHUNK_REMOTE_SIZE,
   calculateHash,
-  splitIntoChunks,
-  mergeChunks,
+  splitIntoBlobs,
 } from "../../fs/util.js";
 
 export const waitingBlocks = {}; //blocks 存放promise的对象
@@ -65,9 +64,9 @@ scheduledClear(); // 定时
 
 // 将数据保存到本地，等待对方来获取块数据
 export const saveData = async ({ data, path, reason, userId }) => {
-  const chunks = await splitIntoChunks(data, CHUNK_REMOTE_SIZE);
+  const blobs = await splitIntoBlobs(data, CHUNK_REMOTE_SIZE);
 
-  return await saveBlock(chunks, {
+  return await saveBlock(blobs, {
     reason,
     reasonData: { path, userId },
   });
@@ -120,7 +119,7 @@ export const getData = async ({ hashs, userId, reason, path }) => {
   }
 
   // 获取所有的块数据
-  const chunks = await Promise.all(
+  const blobs = await Promise.all(
     blocks.map(async (opt) => {
       const { hash, data } = opt;
 
@@ -156,7 +155,15 @@ export const getData = async ({ hashs, userId, reason, path }) => {
   );
 
   // 合并所有块数据
-  return await mergeChunks(chunks);
+  return await mergeBlobs(blobs);
+};
+
+export const mergeBlobs = async (blobs) => {
+  if (blobs[0] instanceof Uint8Array) {
+    debugger;
+  }
+
+  return new Blob(blobs);
 };
 
 // 将块数据保存到本地
@@ -220,7 +227,7 @@ export const getBlock = async (hashs, { reason, reasonData }) => {
 
       if (handle) {
         exists.push(hash);
-        return { hash, data: await handle.buffer() };
+        return { hash, data: await handle.file() };
       }
 
       return { hash };

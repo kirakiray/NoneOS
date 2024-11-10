@@ -44,7 +44,7 @@ export const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
  * @param {(string|file|arrayBuffer)} input 写入的内容
  * @returns {array} 分割后的内容
  */
-export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
+export const splitIntoBlobs = async (input, csize = CHUNK_SIZE) => {
   let blob;
 
   if (typeof input === "string") {
@@ -57,33 +57,29 @@ export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
     throw new Error("Input must be a string, Blob, ArrayBuffer, or Uint8Array");
   }
 
-  const chunks = [];
+  const blobs = [];
   for (let i = 0; i < blob.size; i += csize) {
-    const chunk = blob.slice(i, i + csize);
-    chunks.push(chunk);
+    const blob = blob.slice(i, i + csize);
+    blobs.push(blob);
   }
 
-  return chunks;
+  return blobs;
 };
 
 /**
- * 将分割的块还原回原来的数据
- * @param {ArrayBuffer[]} chunks 分割的块
- * @returns {ArrayBuffer} 还原后的数据
+ * 将文件转成arraybuffer
+ * @param {Blob} blob 二进制文件
+ * @returns ArrayBuffer
  */
-export const mergeChunks = (chunks) => {
-  // 计算总长度
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
-
-  const mergedArrayBuffer = new Uint8Array(totalLength);
-
-  let offset = 0;
-  chunks.forEach((chunk) => {
-    mergedArrayBuffer.set(new Uint8Array(chunk), offset);
-    offset += chunk.byteLength;
+export const blobToBuffer = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(new Uint8Array(reader.result));
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(blob);
   });
-
-  return mergedArrayBuffer;
 };
 
 /**
@@ -96,15 +92,7 @@ export const calculateHash = async (arrayBuffer) => {
     const encoder = new TextEncoder();
     arrayBuffer = encoder.encode(arrayBuffer);
   } else if (arrayBuffer instanceof Blob) {
-    const buffer = await new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(new Uint8Array(reader.result));
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(arrayBuffer);
-    });
-    arrayBuffer = buffer;
+    arrayBuffer = await blobToBuffer(arrayBuffer);
   }
 
   // 使用 SHA-256 哈希算法
@@ -119,28 +107,32 @@ export const calculateHash = async (arrayBuffer) => {
   return hashHex;
 };
 
-export const readU8ByType = ({ u8Data, type, data, isChunk }) => {
+export const readBlobByType = ({ blobData, type, data, isChunk }) => {
   // 根据type返回不同类型的数据
   if (type === "text") {
-    return new TextDecoder().decode(u8Data);
+    try {
+      return new Response(blobData).text();
+    } catch (err) {
+      debugger;
+      throw err;
+    }
   } else if (type === "file") {
     if (isChunk) {
-      return new Blob([u8Data.buffer]);
+      return blobData; // 如果是分块，则直接返回blobData
     }
-    return new File([u8Data.buffer], data.name, {
+    return new File([blobData], data.name, {
       lastModified: data.lastModified,
     });
   } else if (type === "base64") {
     return new Promise((resolve) => {
-      const file = new File([u8Data.buffer], data.name);
       const reader = new FileReader();
       reader.onload = () => {
         resolve(reader.result);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(blobData);
     });
   } else {
-    return u8Data.buffer;
+    return blobData; // 如果类型未知，直接返回blobData
   }
 };
 

@@ -1,6 +1,7 @@
 import { userMiddleware } from "../main.js";
 import { saveBlock, clearBlock, getBlock } from "./main.js";
 import { getId } from "../base/pair.js";
+import { blobToBuffer } from "../../fs/util.js";
 
 // 得到了获取块的请求
 userMiddleware.set("get-block", async (options, client) => {
@@ -50,10 +51,15 @@ userMiddleware.set("get-block", async (options, client) => {
     let finnalData;
 
     // 压缩后数据更小的话，传输压缩后的数据
-    if (composedData.byteLength < originData.byteLength) {
+    // if (composedData.byteLength < originData.byteLength) {
+    if (composedData.byteLength < (originData.size || originData.byteLength)) {
       // 最后一个字节标识为100，表示为压缩格式
       finnalData = createFinalData(composedData, 100);
     } else {
+      if (originData instanceof Blob) {
+        originData = await blobToBuffer(originData);
+      }
+
       // 最后一个字节标识为 101，标识为原格式
       finnalData = createFinalData(originData, 101);
     }

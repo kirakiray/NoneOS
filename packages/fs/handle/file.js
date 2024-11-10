@@ -2,12 +2,7 @@ import { BaseHandle } from "./base.js";
 import { setData, getData } from "./db.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
-import {
-  CHUNK_SIZE,
-  mergeChunks,
-  calculateHash,
-  readU8ByType,
-} from "../util.js";
+import { CHUNK_SIZE, calculateHash, readBlobByType } from "../util.js";
 
 /**
  * 创建文件handle
@@ -79,13 +74,13 @@ export class FileHandle extends BaseHandle {
     // 重新组合文件
     const { hashs } = data;
 
-    let chunks = [];
+    let blobs = [];
     if (options && (options.start || options.end)) {
       // 获取指定范围内的数据
       let startBlockId = Math.floor(options.start / CHUNK_SIZE);
       let endBlockId = Math.floor(options.end / CHUNK_SIZE);
 
-      chunks = await Promise.all(
+      blobs = await Promise.all(
         hashs.map(async (hash, index) => {
           let chunk;
 
@@ -111,13 +106,13 @@ export class FileHandle extends BaseHandle {
             }
           }
 
-          return chunk;
+          return new Blob([chunk]);
         })
       );
-      chunks = chunks.filter((e) => !!e);
+      blobs = blobs.filter((e) => !!e);
     } else {
       if (hashs) {
-        chunks = await Promise.all(
+        blobs = await Promise.all(
           hashs.map(async (hash, index) => {
             const result = await getData({
               storename: "blocks",
@@ -126,18 +121,18 @@ export class FileHandle extends BaseHandle {
 
             const { chunk } = result;
 
-            return chunk;
+            return new Blob([chunk]);
           })
         );
       }
     }
 
-    const u8Data = mergeChunks(chunks);
+    const blobData = new Blob(blobs);
 
-    return readU8ByType({
-      u8Data,
+    return await readBlobByType({
+      blobData,
       type,
-      data,
+      data: { name: this.name },
       isChunk: options?.start || options?.end,
     });
   }
