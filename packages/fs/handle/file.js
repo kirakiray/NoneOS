@@ -106,7 +106,9 @@ export class FileHandle extends BaseHandle {
             }
           }
 
-          return new Blob([chunk]);
+          if (chunk) {
+            return new Blob([chunk]);
+          }
         })
       );
       blobs = blobs.filter((e) => !!e);
