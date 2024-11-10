@@ -45,25 +45,21 @@ export const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
  * @returns {array} 分割后的内容
  */
 export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
-  let arrayBuffer;
+  let blob;
 
   if (typeof input === "string") {
-    arrayBuffer = new TextEncoder().encode(input).buffer;
+    blob = new Blob([new TextEncoder().encode(input)], { type: "text/plain" });
   } else if (input instanceof Blob) {
-    arrayBuffer = await input.arrayBuffer();
-  } else if (input instanceof ArrayBuffer) {
-    arrayBuffer = input;
-  } else if (input instanceof Uint8Array) {
-    arrayBuffer = input.buffer;
+    blob = input;
+  } else if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
+    blob = new Blob([input], { type: "application/octet-stream" });
   } else {
-    throw new Error(
-      "Input must be a string, File object or ArrayBuffer object"
-    );
+    throw new Error("Input must be a string, Blob, ArrayBuffer, or Uint8Array");
   }
 
   const chunks = [];
-  for (let i = 0; i < arrayBuffer.byteLength; i += csize) {
-    const chunk = arrayBuffer.slice(i, i + csize);
+  for (let i = 0; i < blob.size; i += csize) {
+    const chunk = blob.slice(i, i + csize);
     chunks.push(chunk);
   }
 
@@ -99,6 +95,16 @@ export const calculateHash = async (arrayBuffer) => {
   if (typeof arrayBuffer == "string") {
     const encoder = new TextEncoder();
     arrayBuffer = encoder.encode(arrayBuffer);
+  } else if (arrayBuffer instanceof Blob) {
+    const buffer = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(new Uint8Array(reader.result));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(arrayBuffer);
+    });
+    arrayBuffer = buffer;
   }
 
   // 使用 SHA-256 哈希算法

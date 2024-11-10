@@ -172,6 +172,28 @@ export class FileHandle extends BaseHandle {
   base64(options) {
     return this.read("base64", options);
   }
+
+  // 获取文件哈希值的方法
+  async hash() {
+    const hashs = await this._getHashs();
+
+    const hash = await calculateHash(hashs.join(""));
+
+    return hash;
+  }
+
+  // 获取1mb分区哈希块数组
+  async _getHashs() {
+    const targetData = await getData({
+      key: this.id,
+    });
+
+    if (!targetData) {
+      return null;
+    }
+
+    return targetData.hashs;
+  }
 }
 
 // 虚拟文件系统的文件流

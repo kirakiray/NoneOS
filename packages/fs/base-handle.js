@@ -12,7 +12,8 @@ export class PublicBaseHandle {
   // 按照需求将文件保存到缓存池中，方便远端获取
   async _saveCache({ options }) {
     // 获取指定的块内容
-    const data = await this.buffer(options);
+    // const data = await this.buffer(options);
+    const data = await this.file(options);
 
     return await saveData({
       data,

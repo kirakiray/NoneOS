@@ -10,11 +10,11 @@ export const origin = {
 // 根据首个地址，选取特定的
 export const get = async (path, options) => {
   if (/^\$remote:/.test(path)) {
-    return remoteGet(path);
+    return remoteGet(path, options);
   }
 
   if (/^\$origin:/.test(path)) {
-    return originGet(path);
+    return originGet(path, options);
   }
 
   return dbGet(path, options);
