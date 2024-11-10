@@ -469,50 +469,42 @@
    * @param {(string|file|arrayBuffer)} input 写入的内容
    * @returns {array} 分割后的内容
    */
-  const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
-    let arrayBuffer;
+  const splitIntoBlobs = async (input, csize = CHUNK_SIZE) => {
+    let blob;
 
     if (typeof input === "string") {
-      arrayBuffer = new TextEncoder().encode(input).buffer;
+      blob = new Blob([new TextEncoder().encode(input)], { type: "text/plain" });
     } else if (input instanceof Blob) {
-      arrayBuffer = await input.arrayBuffer();
-    } else if (input instanceof ArrayBuffer) {
-      arrayBuffer = input;
-    } else if (input instanceof Uint8Array) {
-      arrayBuffer = input.buffer;
+      blob = input;
+    } else if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
+      blob = new Blob([input], { type: "application/octet-stream" });
     } else {
-      throw new Error(
-        "Input must be a string, File object or ArrayBuffer object"
-      );
+      throw new Error("Input must be a string, Blob, ArrayBuffer, or Uint8Array");
     }
 
-    const chunks = [];
-    for (let i = 0; i < arrayBuffer.byteLength; i += csize) {
-      const chunk = arrayBuffer.slice(i, i + csize);
-      chunks.push(chunk);
+    const blobs = [];
+    for (let i = 0; i < blob.size; i += csize) {
+      const chunk = blob.slice(i, i + csize);
+      blobs.push(chunk);
     }
 
-    return chunks;
+    return blobs;
   };
 
   /**
-   * 将分割的块还原回原来的数据
-   * @param {ArrayBuffer[]} chunks 分割的块
-   * @returns {ArrayBuffer} 还原后的数据
+   * 将文件转成arraybuffer
+   * @param {Blob} blob 二进制文件
+   * @returns ArrayBuffer
    */
-  const mergeChunks = (chunks) => {
-    // 计算总长度
-    const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
-
-    const mergedArrayBuffer = new Uint8Array(totalLength);
-
-    let offset = 0;
-    chunks.forEach((chunk) => {
-      mergedArrayBuffer.set(new Uint8Array(chunk), offset);
-      offset += chunk.byteLength;
+  const blobToBuffer = (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(new Uint8Array(reader.result));
+      };
+      reader.onerror = reject;
+      reader.readAsArrayBuffer(blob);
     });
-
-    return mergedArrayBuffer;
   };
 
   /**
@@ -524,6 +516,8 @@
     if (typeof arrayBuffer == "string") {
       const encoder = new TextEncoder();
       arrayBuffer = encoder.encode(arrayBuffer);
+    } else if (arrayBuffer instanceof Blob) {
+      arrayBuffer = await blobToBuffer(arrayBuffer);
     }
 
     // 使用 SHA-256 哈希算法
@@ -538,28 +532,32 @@
     return hashHex;
   };
 
-  const readU8ByType = ({ u8Data, type, data, isChunk }) => {
+  const readBlobByType = ({ blobData, type, data, isChunk }) => {
     // 根据type返回不同类型的数据
     if (type === "text") {
-      return new TextDecoder().decode(u8Data);
+      try {
+        return new Response(blobData).text();
+      } catch (err) {
+        debugger;
+        throw err;
+      }
     } else if (type === "file") {
       if (isChunk) {
-        return new Blob([u8Data.buffer]);
+        return blobData; // 如果是分块，则直接返回blobData
       }
-      return new File([u8Data.buffer], data.name, {
+      return new File([blobData], data.name, {
         lastModified: data.lastModified,
       });
     } else if (type === "base64") {
       return new Promise((resolve) => {
-        const file = new File([u8Data.buffer], data.name);
         const reader = new FileReader();
         reader.onload = () => {
           resolve(reader.result);
         };
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(blobData);
       });
     } else {
-      return u8Data.buffer;
+      return blobData; // 如果类型未知，直接返回blobData
     }
   };
 
@@ -725,18 +723,48 @@
     });
   };
 
+  new EverCache();
+
+  const hasOfa = typeof $ !== "undefined";
+
+  // 所有存放的服务器
+  hasOfa ? $.stanz([]) : [];
+
   // 所有的用户
-  const users = [];
+  const users = hasOfa ? $.stanz([]) : [];
 
   // 事件寄宿对象
   new EventTarget();
 
   // 等待中的块数据
-  const blocks = [];
+  const blocks = hasOfa
+    ? $.stanz([
+        // {
+        //   type: "get", // 块的操作类型
+        //   // get // 获取块操作
+        //   // save // 保存块操作
+        //   // clear // 清除块操作
+        //   hashs: [], // 要保存的块内容
+        //   time: "", // 请求的时间
+        //   reason: {} // 请求的原因
+        // },
+      ])
+    : [];
+
+  if (!hasOfa) {
+    // 兼容 dist.js 操作
+    blocks.watchTick = () => {};
+  }
 
   const waitingBlocks = {}; //blocks 存放promise的对象
   const waitingBlocksResolver = {};
 
+  // 定时清除超长的块数据
+  blocks.watchTick(() => {
+    if (blocks.length > 100) {
+      blocks.splice(70);
+    }
+  }, 100);
 
   const storage = new EverCache("noneos-blocks-data");
 
@@ -785,9 +813,9 @@
 
   // 将数据保存到本地，等待对方来获取块数据
   const saveData = async ({ data, path, reason, userId }) => {
-    const chunks = await splitIntoChunks(data, CHUNK_REMOTE_SIZE);
+    const blobs = await splitIntoBlobs(data, CHUNK_REMOTE_SIZE);
 
-    return await saveBlock(chunks, {
+    return await saveBlock(blobs, {
       reason,
       reasonData: { path, userId },
     });
@@ -840,7 +868,7 @@
     }
 
     // 获取所有的块数据
-    const chunks = await Promise.all(
+    const blobs = await Promise.all(
       blocks.map(async (opt) => {
         const { hash, data } = opt;
 
@@ -876,7 +904,15 @@
     );
 
     // 合并所有块数据
-    return await mergeChunks(chunks);
+    return await mergeBlobs(blobs);
+  };
+
+  const mergeBlobs = async (blobs) => {
+    if (blobs[0] instanceof Uint8Array) {
+      debugger;
+    }
+
+    return new Blob(blobs);
   };
 
   // 将块数据保存到本地
@@ -940,7 +976,7 @@
 
         if (handle) {
           exists.push(hash);
-          return { hash, data: await handle.buffer() };
+          return { hash, data: await handle.file() };
         }
 
         return { hash };
@@ -969,7 +1005,7 @@
     // 按照需求将文件保存到缓存池中，方便远端获取
     async _saveCache({ options }) {
       // 获取指定的块内容
-      const data = await this.buffer(options);
+      const data = await this.file(options);
 
       return await saveData({
         data,
@@ -1326,13 +1362,13 @@
       // 重新组合文件
       const { hashs } = data;
 
-      let chunks = [];
+      let blobs = [];
       if (options && (options.start || options.end)) {
         // 获取指定范围内的数据
         let startBlockId = Math.floor(options.start / CHUNK_SIZE);
         let endBlockId = Math.floor(options.end / CHUNK_SIZE);
 
-        chunks = await Promise.all(
+        blobs = await Promise.all(
           hashs.map(async (hash, index) => {
             let chunk;
 
@@ -1358,13 +1394,15 @@
               }
             }
 
-            return chunk;
+            if (chunk) {
+              return new Blob([chunk]);
+            }
           })
         );
-        chunks = chunks.filter((e) => !!e);
+        blobs = blobs.filter((e) => !!e);
       } else {
         if (hashs) {
-          chunks = await Promise.all(
+          blobs = await Promise.all(
             hashs.map(async (hash, index) => {
               const result = await getData$1({
                 storename: "blocks",
@@ -1373,18 +1411,18 @@
 
               const { chunk } = result;
 
-              return chunk;
+              return new Blob([chunk]);
             })
           );
         }
       }
 
-      const u8Data = mergeChunks(chunks);
+      const blobData = new Blob(blobs);
 
-      return readU8ByType({
-        u8Data,
+      return await readBlobByType({
+        blobData,
         type,
-        data,
+        data: { name: this.name },
         isChunk: options?.start || options?.end,
       });
     }
@@ -1418,6 +1456,28 @@
 
     base64(options) {
       return this.read("base64", options);
+    }
+
+    // 获取文件哈希值的方法
+    async hash() {
+      const hashs = await this._getHashs();
+
+      const hash = await calculateHash(hashs.join(""));
+
+      return hash;
+    }
+
+    // 获取1mb分区哈希块数组
+    async _getHashs() {
+      const targetData = await getData$1({
+        key: this.id,
+      });
+
+      if (!targetData) {
+        return null;
+      }
+
+      return targetData.hashs;
     }
   }
 
