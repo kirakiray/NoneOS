@@ -7,7 +7,7 @@
     <script src="/packages/libs/ofa/ofa.js"></script>
   </head>
   <body>
-    get hash
+    hash result :<span id="hash"></span>
   </body>
   <script type="module">
     import { get } from "../main.js";
@@ -45,7 +45,7 @@
     await ofile.write(text);
 
     const hash2 = await ofile.hash();
-    
-    debugger;
+
+    $("#hash").text = hash === hash2;
   </script>
 </html>
