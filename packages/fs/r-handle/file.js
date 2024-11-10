@@ -1,5 +1,5 @@
 import { RemoteBaseHandle } from "./base.js";
-import { getData, saveData } from "../../core/block/main.js";
+import { getData, saveData, clearBlock } from "../../core/block/main.js";
 import { getId } from "../../core/base/pair.js";
 import { readBlobByType } from "../util.js";
 
@@ -24,12 +24,22 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       ],
     });
 
+    const userId = this.path.split(":")[1];
+
     // 获取对一个的块数据，并合并文件
     const blobData = await getData({
       hashs,
-      userId: this.path.split(":")[1],
+      userId,
       reason: "handle-read",
       path: this.path,
+    });
+
+    clearBlock(hashs, {
+      reason: "clear-read-cache",
+      reasonData: {
+        path: this.path,
+        userId,
+      },
     });
 
     return await readBlobByType({

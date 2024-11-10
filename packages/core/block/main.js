@@ -10,57 +10,59 @@ import {
 export const waitingBlocks = {}; //blocks 存放promise的对象
 export const waitingBlocksResolver = {};
 
-// 定时清除超长的块数据
-blocks.watchTick(() => {
-  if (blocks.length > 100) {
-    blocks.splice(70);
-  }
-}, 100);
-
 const storage = new EverCache("noneos-blocks-data");
 
-// 定时清除块数据
-let timer = null;
-const scheduledClear = async () => {
-  const maxTime = 1000 * 60 * 10;
+{
+  // 定时清除超长的块数据
+  blocks.watchTick(() => {
+    if (blocks.length > 100) {
+      blocks.splice(70);
+    }
+  }, 100);
 
-  // 需要移除的数据
-  const needRemove = [];
+  // 定时清除块数据
+  let timer = null;
+  const scheduledClear = async () => {
+    const maxTime = 1000 * 60 * 10;
 
-  try {
-    for await (let [key, value] of storage.entries()) {
-      const diffTime = Date.now() - value.time;
+    // 需要移除的数据
+    const needRemove = [];
 
-      if (diffTime > maxTime) {
-        needRemove.push(key);
+    try {
+      for await (let [key, value] of storage.entries()) {
+        const diffTime = Date.now() - value.time;
+
+        if (diffTime > maxTime) {
+          needRemove.push(key);
+        }
       }
+
+      // 主要缓存的文件夹
+      const blocksCacheDir = await get("local/caches/blocks");
+
+      if (needRemove.length) {
+        await Promise.all(
+          needRemove.map(async (key) => {
+            await storage.removeItem(key);
+            const targetFile = await blocksCacheDir.get(key);
+            targetFile && (await targetFile.remove());
+          })
+        );
+      }
+
+      // console.log("clear cache: ", needRemove.length);
+    } catch (err) {
+      console.error(err);
     }
 
-    // 主要缓存的文件夹
-    const blocksCacheDir = await get("local/caches/blocks");
+    clearTimeout(timer);
+    timer = setTimeout(() => scheduledClear(), 1000 * 60); // 一分钟检查一次数据并清除
 
-    if (needRemove.length) {
-      await Promise.all(
-        needRemove.map(async (key) => {
-          await storage.removeItem(key);
-          const targetFile = await blocksCacheDir.get(key);
-          targetFile && (await targetFile.remove());
-        })
-      );
-    }
+    return needRemove;
+  };
 
-    // console.log("clear cache: ", needRemove.length);
-  } catch (err) {
-    console.error(err);
-  }
-
-  clearTimeout(timer);
-  timer = setTimeout(() => scheduledClear(), 1000 * 60); // 一分钟检查一次数据并清除
-
-  return needRemove;
-};
-
-scheduledClear(); // 定时
+  scheduledClear(); // 定时
+}
 
 // 将数据保存到本地，等待对方来获取块数据
 export const saveData = async ({ data, path, reason, userId }) => {
@@ -155,14 +157,6 @@ export const getData = async ({ hashs, userId, reason, path }) => {
   );
 
   // 合并所有块数据
-  return await mergeBlobs(blobs);
-};
-
-export const mergeBlobs = async (blobs) => {
-  if (blobs[0] instanceof Uint8Array) {
-    debugger;
-  }
-
   return new Blob(blobs);
 };
 
