@@ -1,4 +1,5 @@
 import { getErr } from "../errors.js";
+import { calculateHash, CHUNK_SIZE } from "../util.js";
 import { OriginBaseHandle } from "./base.js";
 
 /**
@@ -124,5 +125,29 @@ export class OriginFileHandle extends OriginBaseHandle {
 
   base64(options) {
     return this.read("base64", options);
+  }
+
+  // 获取文件哈希值的方法
+  async hash() {
+    const hashs = await this._getHashs();
+
+    return await calculateHash(hashs.join(""));
+  }
+
+  // 获取1mb分区哈希块数组
+  async _getHashs() {
+    const file = await this._fsh.getFile();
+
+    const hashs = [];
+
+    for (let i = 0; i < file.size; i += CHUNK_SIZE) {
+      const chunk = file.slice(i, i + CHUNK_SIZE);
+      // 计算文件的哈希值
+      const hash = await calculateHash(chunk);
+
+      hashs.push(hash);
+    }
+
+    return hashs;
   }
 }
