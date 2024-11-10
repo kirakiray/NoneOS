@@ -59,8 +59,8 @@ export const splitIntoBlobs = async (input, csize = CHUNK_SIZE) => {
 
   const blobs = [];
   for (let i = 0; i < blob.size; i += csize) {
-    const blob = blob.slice(i, i + csize);
-    blobs.push(blob);
+    const chunk = blob.slice(i, i + csize);
+    blobs.push(chunk);
   }
 
   return blobs;
