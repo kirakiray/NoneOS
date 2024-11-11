@@ -14,8 +14,7 @@
   </body>
   <script type="module">
     import { get } from "../main.js";
-    import { get as originGet } from "../o-handle/index.js";
-    import { copyTo } from "../task.js";
+    import { copyTo } from "../task/main.js";
 
     // 获取指定大小的随机文本(1mb)
     const getBigText = (size = 1) => {
@@ -35,7 +34,7 @@
       console.log("写入 file1 开始");
 
       // 先创建一个大文件
-      const bigFile1 = await originGet("local/task-test/bigfile1.txt", {
+      const bigFile1 = await get("$origin:local/task-test/bigfile1.txt", {
         create: "file",
       });
 
@@ -45,7 +44,7 @@
       console.log("写入 file1 结束");
       console.log("写入 file2 开始");
 
-      const bigFile2 = await originGet("local/task-test/b2/bigfile2.txt", {
+      const bigFile2 = await get("$origin:local/task-test/b2/bigfile2.txt", {
         create: "file",
       });
 
@@ -57,7 +56,7 @@
 
     {
       // // 如果确保初始化
-      // const t1 = await originGet("local/task-test/bigfile1.txt").catch(
+      // const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
       //   () => null
       // );
       // if (!t1) {
@@ -68,7 +67,7 @@
     }
 
     {
-      const ohandle = await originGet("local/task-test");
+      const ohandle = await get("$origin:local/task-test");
 
       const chandle = await get("local/test-copy-task", {
         create: "dir",
@@ -78,8 +77,8 @@
 
       // copyTask测试
       const result = await copyTo({
-        source: ohandle,
-        target: chandle,
+        from: ohandle,
+        to: chandle,
         debugTime: 100,
         async confirm(files) {
           // 询问是否复制
@@ -99,7 +98,7 @@
       });
 
       $("#bigfile1").text =
-        (await originGet("local/task-test/bigfile1.txt").then((e) =>
+        (await get("$origin:local/task-test/bigfile1.txt").then((e) =>
           e.text()
         )) ===
         (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
@@ -107,7 +106,7 @@
         ));
 
       $("#bigfile2").text =
-        (await originGet("local/task-test/b2/bigfile2.txt").then((e) =>
+        (await get("$origin:local/task-test/b2/bigfile2.txt").then((e) =>
           e.text()
         )) ===
         (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>

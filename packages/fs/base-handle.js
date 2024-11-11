@@ -1,4 +1,4 @@
-import { flatHandle } from "./util.js";
+import { calculateHash, CHUNK_SIZE, flatHandle, getHashs } from "./util.js";
 import { saveData, getData } from "../core/block/main.js";
 
 export class PublicBaseHandle {
@@ -32,5 +32,39 @@ export class PublicBaseHandle {
     });
 
     return await this.write(data);
+  }
+
+  // 获取文件哈希值的方法
+  async hash() {
+    if (this.kind === "dir") {
+      throw new Error(`The directory cannot use the hash method`);
+    }
+    const hashs = await this._getHashs();
+
+    const hash = await calculateHash(hashs.join(""));
+
+    return hash;
+  }
+
+  // 获取1mb分区哈希块数组
+  async _getHashs(options) {
+    const chunkSize = options?.chunkSize || CHUNK_SIZE;
+
+    if (this.kind === "file") {
+      return getHashs(await this._fsh.getFile(), chunkSize);
+    }
+
+    // 能进入这里，肯定是dir的类型
+    // 扁平文件数据
+    const flatdata = await this.flat();
+
+    // 获取所有hash
+    return await Promise.all(
+      flatdata.map(async (item) => {
+        const hashs = await item.handle._getHashs();
+
+        return [item.path, hashs];
+      })
+    );
   }
 }

@@ -2,7 +2,12 @@ import { BaseHandle } from "./base.js";
 import { setData, getData } from "./db.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
-import { CHUNK_SIZE, calculateHash, readBlobByType } from "../util.js";
+import {
+  CHUNK_SIZE,
+  calculateHash,
+  getHashs,
+  readBlobByType,
+} from "../util.js";
 
 /**
  * 创建文件handle
@@ -169,18 +174,14 @@ export class FileHandle extends BaseHandle {
   base64(options) {
     return this.read("base64", options);
   }
-
-  // 获取文件哈希值的方法
-  async hash() {
-    const hashs = await this._getHashs();
-
-    const hash = await calculateHash(hashs.join(""));
-
-    return hash;
-  }
-
   // 获取1mb分区哈希块数组
-  async _getHashs() {
+  async _getHashs(options) {
+    const chunkSize = options?.chunkSize || CHUNK_SIZE;
+
+    if (chunkSize !== CHUNK_SIZE) {
+      return getHashs(await this.file(), chunkSize);
+    }
+
     const targetData = await getData({
       key: this.id,
     });

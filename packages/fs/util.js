@@ -141,3 +141,27 @@ export function isValidPath(path) {
   // 定义不允许出现的特殊字符
   return !invalidChars.test(path);
 }
+
+/**
+ * 获取文件的哈希值列表
+ *
+ * 本函数通过异步读取文件，并分块计算每个部分的哈希值，最后返回一个包含所有分块哈希值的数组
+ * 这对于处理大文件非常有用，因为它允许分块处理文件，而不是一次性加载整个文件到内存中
+ *
+ * @param {File} file - 要计算哈希值的文件对象
+ * @param {number} chunkSize - 每个文件块的大小，以字节为单位，默认为CHUNK_SIZE常量的值
+ * @returns {Promise<Array<string>>} 返回一个Promise对象，解析为一个包含文件各分块哈希值的数组
+ */
+export const getHashs = async (file, chunkSize = CHUNK_SIZE) => {
+  const hashs = [];
+
+  for (let i = 0; i < file.size; i += chunkSize) {
+    const chunk = file.slice(i, i + chunkSize);
+    // 计算文件的哈希值
+    const hash = await calculateHash(chunk);
+
+    hashs.push(hash);
+  }
+
+  return hashs;
+};
