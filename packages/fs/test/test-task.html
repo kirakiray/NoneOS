@@ -57,13 +57,14 @@
 
     {
       // 如果确保初始化
-      // const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
-      //   () => null
-      // );
-      // if (!t1) {
-      //   await initTestFile();
-      // }
-      await initTestFile();
+      const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
+        () => null
+      );
+      if (!t1) {
+        await initTestFile();
+      }
+
+      // await initTestFile();
     }
 
     {
