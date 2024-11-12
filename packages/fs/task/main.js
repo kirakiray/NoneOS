@@ -2,7 +2,7 @@ import { calculateHash } from "../util.js";
 
 // 按照块的模式，复制文件
 export const copyTo = async (options) => {
-  const { from: fHandle, to: tHandle } = options;
+  const { from: fHandle, to: tHandle, delayTime } = options;
 
   // 复制到目的地的文件名
   let finalName = options.name || fHandle.name;
@@ -15,11 +15,19 @@ export const copyTo = async (options) => {
     return;
   }
 
+  const fromDirPath = fHandle.path;
+  flatFileDatas.forEach(([path, info]) => {
+    const afterPath = path.replace(`${fromDirPath}/`, "");
+    info.afterPath = afterPath;
+  });
+
   // 确认信息
   if (options.confirm) {
-    const result = options.confirm(JSON.parse(JSON.stringify(flatFileDatas)));
+    const result = await options.confirm(
+      JSON.parse(JSON.stringify(flatFileDatas))
+    );
 
-    if (!result) {
+    if (result === false) {
       return;
     }
   }
@@ -43,15 +51,11 @@ export const copyTo = async (options) => {
   });
   let cachedCount = 0;
 
-  const fromDirPath = fHandle.path;
   // 按照1m的大小，开始逐个复制文件夹信息
   for (let [path, info] of flatFileDatas) {
-    const { hashs1m } = info;
+    const { hashs1m, afterPath } = info;
 
     // 最终写入文件地址
-    const afterPath = path.replace(`${fromDirPath}/`, "");
-    info.afterPath = afterPath;
-
     const handle = await fHandle.get(afterPath);
 
     if (!handle) {
@@ -146,6 +150,10 @@ export const copyTo = async (options) => {
           currentTotal,
         });
 
+        if (delayTime) {
+          await new Promise((resolve) => setTimeout(resolve, delayTime));
+        }
+
         if (result === false) {
           // TODO: 停止复制过程
           debugger;
@@ -178,6 +186,7 @@ export const copyTo = async (options) => {
         if (!blobs[hash]) {
           // TODO: 块数据没有找到，需要重新复制
           debugger;
+          throw new Error("no blob here");
         }
 
         return blobs[hash];
@@ -200,21 +209,28 @@ export const copyTo = async (options) => {
           total: flatFileDatas.length,
         });
       }
+
+      if (delayTime) {
+        await new Promise((resolve) => setTimeout(resolve, delayTime));
+      }
     }
   }
+  {
+    // 删除缓存文件
+    let removed = 0;
+    const totalCount = await targetCacheHandle.length();
 
-  // 删除缓存文件
-  let removed = 0;
-  await targetCacheHandle.remove((e) => {
-    removed++;
-    if (options.clear) {
-      options.clear({
-        ...e,
-        removed,
-        totalCount: totalCount + 2,
-      });
-    }
-  });
+    await targetCacheHandle.remove((e) => {
+      removed++;
+      if (options.clear) {
+        options.clear({
+          ...e,
+          removed,
+          total: totalCount + 1,
+        });
+      }
+    });
+  }
 
   return targetHandle;
 };

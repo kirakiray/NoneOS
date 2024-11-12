@@ -1,4 +1,4 @@
-//! ofa.js - v4.5.22 https://github.com/kirakiray/ofa.js  (c) 2018-2024 YAO
+//! ofa.js - v4.5.26 https://github.com/kirakiray/ofa.js  (c) 2018-2024 YAO
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
   typeof define === 'function' && define.amd ? define(factory) :
@@ -2465,7 +2465,7 @@ try{
       ...opts,
     };
 
-    const { fn } = $;
+    const { fn, extensions } = $;
     if (fn) {
       // 检查 proto 和 data 上的key，是否和fn上的key冲突
       Object.keys(defaults.data).forEach((name) => {
@@ -2592,6 +2592,7 @@ try{
         }
 
         defaults.attached && defaults.attached.call(eleX(this));
+        extensions.afterAttached && extensions.afterAttached(eleX(this));
       }
 
       disconnectedCallback() {
@@ -2600,6 +2601,7 @@ try{
         }
 
         defaults.detached && defaults.detached.call(eleX(this));
+        extensions.afterDetached && extensions.afterDetached(eleX(this));
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
@@ -2632,6 +2634,7 @@ try{
     }
   };
 
+  // 判断元素是否临时脱离节点，防止数组操作导致元素触发detached问题
   function isInternal(ele) {
     let target = ele;
 
@@ -3053,7 +3056,8 @@ try{
           while (true) {
             next = next.nextElementSibling;
 
-            if (!next) {
+            if (!next || next.tagName == "X-IF") {
+              // 下一个还是if的话，就直接跳过遍历的逻辑，因为下一个if后面可能有它们的else
               break;
             }
 
@@ -4096,11 +4100,16 @@ try{
     }
   }
 
+  const getNotHttp = (url) => /^blob:/.test(url) || /^data:/.test(url);
+
   const caches = new Map();
   const wrapFetch = async (url, params) => {
-    const d = new URL(url);
+    let reUrl = url;
 
-    const reUrl = params.includes("-direct") ? url : `${d.origin}${d.pathname}`;
+    if (!getNotHttp(url)) {
+      const d = new URL(url);
+      reUrl = params.includes("-direct") ? url : `${d.origin}${d.pathname}`;
+    }
 
     let fetchObj = caches.get(reUrl);
 
@@ -4142,7 +4151,7 @@ try{
       const { url, params } = ctx;
       const d = new URL(url);
 
-      const notHttp = /^blob:/.test(url) || /^data:/.test(url);
+      const notHttp = getNotHttp(url);
       try {
         if (notHttp || params.includes("-direct")) {
           ctx.result = await import(url);
@@ -6572,7 +6581,7 @@ ${scriptContent}`;
     },
   });
 
-  const version = "ofa.js@4.5.22";
+  const version = "ofa.js@4.5.26";
   $.version = version.replace("ofa.js@", "");
 
   if (document.currentScript) {
