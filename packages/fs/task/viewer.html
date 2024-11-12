@@ -90,8 +90,8 @@
             attr:value="precentOne"
             variant="determinate"
           ></p-progress>
-          <x-if :value="precentOne >= 100"> 区块复制完成 </x-if>
-          <x-else> 区块复制中({{precentOne}})% </x-else>
+          <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
+          <x-else> 缓存中({{precentOne}})% </x-else>
         </div>
         <div class="line" class:show="precentOne >= 100">
           <p-progress
@@ -101,8 +101,8 @@
             variant="determinate"
             style="margin-left: 8px"
           ></p-progress>
-          <x-if :value="precentTwo >= 100"> 合并文件完成 </x-if>
-          <x-else> 合并文件中({{precentTwo}})% </x-else>
+          <x-if :value="precentTwo >= 100"> 合并完成 </x-if>
+          <x-else> 合并中({{precentTwo}})% </x-else>
         </div>
         <div class="line" class:show="precentThree >= 100">
           <p-progress
