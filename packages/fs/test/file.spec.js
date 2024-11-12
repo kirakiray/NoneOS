@@ -85,7 +85,7 @@ test("write stream", async ({ page, browserName }) => {
 
 test("file hash", async ({ page, browserName }) => {
   await page.goto("http://127.0.0.1:5559/packages/fs/test/get-hash.html");
-  
+
   if (browserName === "webkit") {
     test.skip(true, "safari fileSystemHandle No write permission");
     return;
@@ -96,16 +96,16 @@ test("file hash", async ({ page, browserName }) => {
   expect(true).toBe(true);
 });
 
-// test("write copy task", async ({ page, browserName }) => {
-//   await page.goto("http://127.0.0.1:5559/packages/fs/test/test-task.html");
+test("write copy task", async ({ page, browserName }) => {
+  await page.goto("http://127.0.0.1:5559/packages/fs/test/test-task.html");
 
-//   // safari 下，fileSystemHandle无法写入内容
-//   if (browserName === "webkit") {
-//     test.skip(true, "safari fileSystemHandle No write permission");
-//     return;
-//   }
+  // safari 下，fileSystemHandle无法写入内容
+  if (browserName === "webkit") {
+    test.skip(true, "safari fileSystemHandle No write permission");
+    return;
+  }
 
-//   await page.getByText("bigfile1: true").click();
-//   await page.getByText("bigfile2: true").click();
-//   await page.getByText("dbCount: 50").click();
-// });
+  await page.getByText("bigfile1: true").click();
+  await page.getByText("bigfile2: true").click();
+  await page.getByText("dbCount: 15").click();
+});

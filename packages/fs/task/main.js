@@ -85,6 +85,26 @@ export const copyTo = async (options) => {
 
         blobs[hash] = cachedBlob;
 
+        if (options.copy) {
+          cachedCount++;
+          currentCached++;
+
+          const result = options.copy({
+            cached: cachedCount,
+            total: totalCount,
+            current: `${tHandle.path}/${finalName}/${afterPath}`,
+            fromPath: path,
+            currentCached,
+            currentTotal,
+            isCache: true,
+          });
+
+          if (result === false) {
+            // TODO: 停止复制过程
+            debugger;
+          }
+        }
+
         // 哈希一样，直接继续下一个块的复制
         continue;
       }
@@ -120,7 +140,8 @@ export const copyTo = async (options) => {
         const result = options.copy({
           cached: cachedCount,
           total: totalCount,
-          current: path,
+          current: `${tHandle.path}/${finalName}/${afterPath}`,
+          fromPath: path,
           currentCached,
           currentTotal,
         });
@@ -133,16 +154,20 @@ export const copyTo = async (options) => {
     }
   }
 
+  // 最终目标文件
+  let targetHandle;
+
   if (fHandle.kind === "file") {
     // 直接写入文件
     debugger;
     return;
   } else {
     // 目标文件夹
-    const targetHandle = await tHandle.get(finalName, {
+    targetHandle = await tHandle.get(finalName, {
       create: "dir",
     });
 
+    let count = 0;
     // 根据信息开始合并文件
     for (let [path, info] of flatFileDatas) {
       const { afterPath } = info;
@@ -164,9 +189,32 @@ export const copyTo = async (options) => {
       });
 
       await handle.write(new Blob(fileBlobs));
+
+      count++;
+
+      if (options.merge) {
+        options.merge({
+          path: handle.path,
+          fromPath: path,
+          count,
+          total: flatFileDatas.length,
+        });
+      }
     }
   }
 
   // 删除缓存文件
-  await targetCacheHandle.remove();
+  let removed = 0;
+  await targetCacheHandle.remove((e) => {
+    removed++;
+    if (options.clear) {
+      options.clear({
+        ...e,
+        removed,
+        totalCount: totalCount + 2,
+      });
+    }
+  });
+
+  return targetHandle;
 };

@@ -56,14 +56,13 @@
 
     {
       // 如果确保初始化
-      const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
-        () => null
-      );
-      if (!t1) {
-        await initTestFile();
-      }
-
-      // await initTestFile();
+      // const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
+      //   () => null
+      // );
+      // if (!t1) {
+      //   await initTestFile();
+      // }
+      await initTestFile();
     }
 
     {
@@ -109,23 +108,23 @@
         },
       });
 
-      // $("#bigfile1").text =
-      //   (await get("$origin:local/task-test/bigfile1.txt").then((e) =>
-      //     e.text()
-      //   )) ===
-      //   (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
-      //     e.text()
-      //   ));
+      $("#bigfile1").text =
+        (await get("$origin:local/task-test/bigfile1.txt").then((e) =>
+          e.text()
+        )) ===
+        (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
+          e.text()
+        ));
 
-      // $("#bigfile2").text =
-      //   (await get("$origin:local/task-test/b2/bigfile2.txt").then((e) =>
-      //     e.text()
-      //   )) ===
-      //   (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
-      //     e.text()
-      //   ));
+      $("#bigfile2").text =
+        (await get("$origin:local/task-test/b2/bigfile2.txt").then((e) =>
+          e.text()
+        )) ===
+        (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
+          e.text()
+        ));
 
-      // console.log("end: ", result);
+      console.log("end: ", result);
     }
   </script>
 </html>

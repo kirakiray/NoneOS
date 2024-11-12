@@ -10,9 +10,7 @@ export class PublicBaseHandle {
   }
 
   // 给拷贝进度用的方法，获取文件或文件夹的分块信息
-  async _info(options) {
-    const h128 = options?.h128;
-
+  async _info() {
     const flatData = await this.flat();
 
     const reData = await Promise.all(
@@ -21,17 +19,13 @@ export class PublicBaseHandle {
 
         const hashs1m = await handle._getHashs();
 
-        const valObj = {
-          size: item.size,
-          hashs1m,
-        };
-
-        if (h128) {
-          const hashs128k = await handle._getHashs({ chunkSize: 128 * 1024 });
-          valObj.hashs128k = hashs128k;
-        }
-
-        return [item.path, valObj];
+        return [
+          item.path,
+          {
+            size: item.size,
+            hashs1m,
+          },
+        ];
       })
     );
 
