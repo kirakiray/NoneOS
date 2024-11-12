@@ -55,15 +55,15 @@
     };
 
     {
-      // // 如果确保初始化
-      // const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
-      //   () => null
-      // );
-      // if (!t1) {
-      //   await initTestFile();
-      // }
+      // 如果确保初始化
+      const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
+        () => null
+      );
+      if (!t1) {
+        await initTestFile();
+      }
 
-      await initTestFile();
+      // await initTestFile();
     }
 
     {
@@ -89,31 +89,43 @@
             }, 500);
           });
         },
-        async progress(e) {
+        // 复制块的过程中
+        copy(e) {
           // 复制过程
-          console.log("progress: ", e);
+          console.log("copy: ", e);
           count++;
           $("#dbcount").text = count;
         },
+        // 合并文件中
+        merge(e) {
+          console.log("merge", e);
+        },
+        // 清除缓存中
+        clear(e) {
+          console.log("clear", e);
+        },
+        error() {
+          debugger;
+        },
       });
 
-      $("#bigfile1").text =
-        (await get("$origin:local/task-test/bigfile1.txt").then((e) =>
-          e.text()
-        )) ===
-        (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
-          e.text()
-        ));
+      // $("#bigfile1").text =
+      //   (await get("$origin:local/task-test/bigfile1.txt").then((e) =>
+      //     e.text()
+      //   )) ===
+      //   (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
+      //     e.text()
+      //   ));
 
-      $("#bigfile2").text =
-        (await get("$origin:local/task-test/b2/bigfile2.txt").then((e) =>
-          e.text()
-        )) ===
-        (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
-          e.text()
-        ));
+      // $("#bigfile2").text =
+      //   (await get("$origin:local/task-test/b2/bigfile2.txt").then((e) =>
+      //     e.text()
+      //   )) ===
+      //   (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
+      //     e.text()
+      //   ));
 
-      console.log("end: ", result);
+      // console.log("end: ", result);
     }
   </script>
 </html>

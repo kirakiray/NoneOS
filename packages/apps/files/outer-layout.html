@@ -3,8 +3,8 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
   <!-- <l-m src="/packages/fs/comps/task-viewer/viewer.html"></l-m> -->
-  <l-m src="/packages/fs/comps/task-list.html"></l-m>
-  <l-m src="/packages/fs/comps/task-list-viewer.html"></l-m>
+  <!-- <l-m src="/packages/fs/comps/task-list.html"></l-m>
+  <l-m src="/packages/fs/comps/task-list-viewer.html"></l-m> -->
   <style>
     :host {
       display: block;
@@ -80,9 +80,9 @@
           </p-list>
         </p-list-item>
       </p-list>
-      <div class="left-bottom">
+      <!-- <div class="left-bottom">
         <n-task-list></n-task-list>
-      </div>
+      </div> -->
     </div>
     <slot></slot>
   </n-horsp-pannel>
@@ -102,11 +102,11 @@
     </p-list-item>
   </template>
 
-  <n-task-list-viewer></n-task-list-viewer>
+  <!-- <n-task-list-viewer></n-task-list-viewer> -->
 
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";
-    import { copyTo } from "/packages/fs/task.js";
+    // import { copyTo } from "/packages/fs/task.js";
     import { openTask } from "/packages/fs/comps/public.js";
 
     export default async ({ load }) => {

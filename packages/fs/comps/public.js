@@ -1,5 +1,6 @@
 import { get } from "../main.js";
-import { on } from "../task.js";
+// import { on } from "../task.js";
+const on = () => {};
 
 export const tasks = $.stanz([
   // {
