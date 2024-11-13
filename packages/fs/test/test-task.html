@@ -78,7 +78,13 @@
 
       {
         $("body").push(
-          `<fs-task-viewer type="copy" from="$origin:local/task-test" to="local/test-copy-task"></fs-task-viewer>`
+          `<fs-task-viewer 
+             type="copy" 
+             from="$origin:local/task-test" 
+             to="local/test-copy-task"
+            >
+             
+           </fs-task-viewer>`
         );
 
         const viewer = $("fs-task-viewer");

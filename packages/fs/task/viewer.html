@@ -158,6 +158,7 @@
           type: "",
           from: "", // 来源地址
           to: "", // 目标地址
+          delayTime: null,
         },
         data: {
           fname: "",
@@ -184,8 +185,9 @@
             if (this.type === "copy") {
               this.fname = from.name;
               this.handleType = from.kind;
+
               const result = await copyTo({
-                delayTime: 200, // 故意延迟用于调试
+                delayTime: this.delayTime ? parseInt(this.delayTime) : null, // 故意延迟用于调试
                 from,
                 to,
                 confirm: async (e) => {
