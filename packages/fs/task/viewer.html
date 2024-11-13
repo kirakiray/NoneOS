@@ -236,8 +236,6 @@
                       (e.currentCached / e.currentTotal) * 100;
                   }
 
-                  console.log("copy", e);
-
                   this.precentOne = Math.floor((e.cached / e.total) * 100);
 
                   return this.__copy_result;
@@ -265,7 +263,6 @@
                 },
               });
 
-              console.log(result);
               this.done = true;
             }
           },
