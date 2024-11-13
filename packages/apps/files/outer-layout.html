@@ -2,9 +2,6 @@
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
-  <!-- <l-m src="/packages/fs/comps/task-viewer/viewer.html"></l-m> -->
-  <!-- <l-m src="/packages/fs/comps/task-list.html"></l-m>
-  <l-m src="/packages/fs/comps/task-list-viewer.html"></l-m> -->
   <style>
     :host {
       display: block;
@@ -106,8 +103,6 @@
 
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";
-    // import { copyTo } from "/packages/fs/task.js";
-    import { openTask } from "/packages/fs/comps/public.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
@@ -170,17 +165,19 @@
             if (data.type === "copyTo") {
               const { source, target } = data;
 
+              debugger;
+
               // 直接执行拷贝动作
-              copyTo({
-                source,
-                target,
-                prepare: async (e) => {
-                  // 添加延迟并刷新粘贴中的页面
-                  await new Promise((res) => setTimeout(res, 150));
-                  this.app.current.refreshFiles();
-                  await new Promise((res) => setTimeout(res, 150));
-                },
-              });
+              // copyTo({
+              //   source,
+              //   target,
+              //   prepare: async (e) => {
+              //     // 添加延迟并刷新粘贴中的页面
+              //     await new Promise((res) => setTimeout(res, 150));
+              //     this.app.current.refreshFiles();
+              //     await new Promise((res) => setTimeout(res, 150));
+              //   },
+              // });
             }
           });
 
@@ -191,7 +188,8 @@
           // 双击任务目录后触发的事件
           this.on("open-task", async (e) => {
             e.stopPropagation();
-            await openTask(e.data);
+            debugger;
+            // await openTask(e.data);
           });
 
           this.remotes = await getRemotes();
