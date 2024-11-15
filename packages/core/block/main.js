@@ -38,7 +38,9 @@ const storage = new EverCache("noneos-blocks-data");
       }
 
       // 主要缓存的文件夹
-      const blocksCacheDir = await get("local/caches/blocks");
+      const blocksCacheDir = await get("local/caches/blocks", {
+        create: "dir",
+      });
 
       if (needRemove.length) {
         await Promise.all(

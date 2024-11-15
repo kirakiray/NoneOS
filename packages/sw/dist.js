@@ -567,6 +567,30 @@
     return !invalidChars.test(path);
   }
 
+  /**
+   * 获取文件的哈希值列表
+   *
+   * 本函数通过异步读取文件，并分块计算每个部分的哈希值，最后返回一个包含所有分块哈希值的数组
+   * 这对于处理大文件非常有用，因为它允许分块处理文件，而不是一次性加载整个文件到内存中
+   *
+   * @param {File} file - 要计算哈希值的文件对象
+   * @param {number} chunkSize - 每个文件块的大小，以字节为单位，默认为CHUNK_SIZE常量的值
+   * @returns {Promise<Array<string>>} 返回一个Promise对象，解析为一个包含文件各分块哈希值的数组
+   */
+  const getHashs = async (file, chunkSize = CHUNK_SIZE) => {
+    const hashs = [];
+
+    for (let i = 0; i < file.size; i += chunkSize) {
+      const chunk = file.slice(i, i + chunkSize);
+      // 计算文件的哈希值
+      const hash = await calculateHash(chunk);
+
+      hashs.push(hash);
+    }
+
+    return hashs;
+  };
+
   const SName = Symbol("storage-name");
   const IDB = Symbol("idb");
 
@@ -759,57 +783,59 @@
   const waitingBlocks = {}; //blocks 存放promise的对象
   const waitingBlocksResolver = {};
 
-  // 定时清除超长的块数据
-  blocks.watchTick(() => {
-    if (blocks.length > 100) {
-      blocks.splice(70);
-    }
-  }, 100);
-
   const storage = new EverCache("noneos-blocks-data");
 
-  // 定时清除块数据
-  let timer = null;
-  const scheduledClear = async () => {
-    const maxTime = 1000 * 60 * 10;
+  {
+    // 定时清除超长的块数据
+    blocks.watchTick(() => {
+      if (blocks.length > 100) {
+        blocks.splice(70);
+      }
+    }, 100);
 
-    // 需要移除的数据
-    const needRemove = [];
+    // 定时清除块数据
+    let timer = null;
+    const scheduledClear = async () => {
+      const maxTime = 1000 * 60 * 10;
 
-    try {
-      for await (let [key, value] of storage.entries()) {
-        const diffTime = Date.now() - value.time;
+      // 需要移除的数据
+      const needRemove = [];
 
-        if (diffTime > maxTime) {
-          needRemove.push(key);
+      try {
+        for await (let [key, value] of storage.entries()) {
+          const diffTime = Date.now() - value.time;
+
+          if (diffTime > maxTime) {
+            needRemove.push(key);
+          }
         }
+
+        // 主要缓存的文件夹
+        const blocksCacheDir = await get("local/caches/blocks");
+
+        if (needRemove.length) {
+          await Promise.all(
+            needRemove.map(async (key) => {
+              await storage.removeItem(key);
+              const targetFile = await blocksCacheDir.get(key);
+              targetFile && (await targetFile.remove());
+            })
+          );
+        }
+
+        // console.log("clear cache: ", needRemove.length);
+      } catch (err) {
+        console.error(err);
       }
 
-      // 主要缓存的文件夹
-      const blocksCacheDir = await get("local/caches/blocks");
+      clearTimeout(timer);
+      timer = setTimeout(() => scheduledClear(), 1000 * 60); // 一分钟检查一次数据并清除
 
-      if (needRemove.length) {
-        await Promise.all(
-          needRemove.map(async (key) => {
-            await storage.removeItem(key);
-            const targetFile = await blocksCacheDir.get(key);
-            targetFile && (await targetFile.remove());
-          })
-        );
-      }
+      return needRemove;
+    };
 
-      // console.log("clear cache: ", needRemove.length);
-    } catch (err) {
-      console.error(err);
-    }
-
-    clearTimeout(timer);
-    timer = setTimeout(() => scheduledClear(), 1000 * 60); // 一分钟检查一次数据并清除
-
-    return needRemove;
-  };
-
-  scheduledClear(); // 定时
+    scheduledClear(); // 定时
+  }
 
   // 将数据保存到本地，等待对方来获取块数据
   const saveData = async ({ data, path, reason, userId }) => {
@@ -904,14 +930,6 @@
     );
 
     // 合并所有块数据
-    return await mergeBlobs(blobs);
-  };
-
-  const mergeBlobs = async (blobs) => {
-    if (blobs[0] instanceof Uint8Array) {
-      debugger;
-    }
-
     return new Blob(blobs);
   };
 
@@ -1002,6 +1020,29 @@
       return flatHandle(this);
     }
 
+    // 给拷贝进度用的方法，获取文件或文件夹的分块信息
+    async _info() {
+      const flatData = await this.flat();
+
+      const reData = await Promise.all(
+        flatData.map(async (item) => {
+          const { handle } = item;
+
+          const hashs1m = await handle._getHashs();
+
+          return [
+            item.path,
+            {
+              size: item.size,
+              hashs1m,
+            },
+          ];
+        })
+      );
+
+      return reData;
+    }
+
     // 按照需求将文件保存到缓存池中，方便远端获取
     async _saveCache({ options }) {
       // 获取指定的块内容
@@ -1025,6 +1066,32 @@
       });
 
       return await this.write(data);
+    }
+
+    // 获取文件哈希值的方法
+    async hash() {
+      if (this.kind === "dir") {
+        throw new Error(`The directory cannot use the hash method`);
+      }
+
+      const hashs = await this._getHashs();
+
+      const hash = await calculateHash(hashs.join(""));
+
+      return hash;
+    }
+
+    // 获取1mb分区哈希块数组
+    async _getHashs(options) {
+      if (this.kind === "dir") {
+        throw new Error(`The directory cannot use the _getHashs method`);
+      }
+
+      const chunkSize = options?.chunkSize || CHUNK_SIZE;
+
+      if (this.kind === "file") {
+        return getHashs(await this._fsh.getFile(), chunkSize);
+      }
     }
   }
 
@@ -1457,18 +1524,14 @@
     base64(options) {
       return this.read("base64", options);
     }
-
-    // 获取文件哈希值的方法
-    async hash() {
-      const hashs = await this._getHashs();
-
-      const hash = await calculateHash(hashs.join(""));
-
-      return hash;
-    }
-
     // 获取1mb分区哈希块数组
-    async _getHashs() {
+    async _getHashs(options) {
+      const chunkSize = options?.chunkSize || CHUNK_SIZE;
+
+      if (chunkSize !== CHUNK_SIZE) {
+        return getHashs(await this.file(), chunkSize);
+      }
+
       const targetData = await getData$1({
         key: this.id,
       });
@@ -1493,37 +1556,82 @@
       this.#path = path;
     }
 
+    // // 写入流数据
+    // async write(input) {
+    //   let arrayBuffer;
+
+    //   debugger;
+
+    //   if (typeof input === "string") {
+    //     arrayBuffer = new TextEncoder().encode(input).buffer;
+    //   } else if (input instanceof Blob) {
+    //     arrayBuffer = await input.arrayBuffer();
+    //   } else if (input instanceof ArrayBuffer) {
+    //     arrayBuffer = input;
+    //   } else if (input instanceof Uint8Array) {
+    //     arrayBuffer = input.buffer;
+    //   } else {
+    //     throw new Error(
+    //       "Input must be a string, File object or ArrayBuffer object"
+    //     );
+    //   }
+    //   this.#size += arrayBuffer.byteLength;
+
+    //   // 写入缓存区
+    //   this.#cache = mergeArrayBuffers(this.#cache, arrayBuffer);
+
+    //   // 根据缓冲区写入到硬盘
+    //   while (this.#cache.byteLength > CHUNK_SIZE) {
+    //     // 取出前1mb的数据
+    //     const targetChunk = this.#cache.slice(0, CHUNK_SIZE);
+    //     this.#cache = this.#cache.slice(CHUNK_SIZE);
+
+    //     const hash = await this._writeChunk(targetChunk);
+    //     this.#hashs.push(hash);
+    //   }
+    // }
+
     // 写入流数据
     async write(input) {
-      let arrayBuffer;
+      let blob;
 
       if (typeof input === "string") {
-        arrayBuffer = new TextEncoder().encode(input).buffer;
+        // 将字符串转换为Blob
+        blob = new Blob([new TextEncoder().encode(input)], {
+          type: "text/plain",
+        });
       } else if (input instanceof Blob) {
-        arrayBuffer = await input.arrayBuffer();
-      } else if (input instanceof ArrayBuffer) {
-        arrayBuffer = input;
-      } else if (input instanceof Uint8Array) {
-        arrayBuffer = input.buffer;
+        // 输入已经是Blob
+        blob = input;
+      } else if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
+        // 将ArrayBuffer或Uint8Array转换为Blob
+        blob = new Blob([input], { type: "application/octet-stream" });
       } else {
         throw new Error(
-          "Input must be a string, File object or ArrayBuffer object"
+          "Input must be a string, Blob, ArrayBuffer or Uint8Array"
         );
       }
-      this.#size += arrayBuffer.byteLength;
 
-      // 写入缓存区
-      this.#cache = mergeArrayBuffers(this.#cache, arrayBuffer);
+      // 更新大小
+      this.#size += blob.size;
+
+      // 将新的Blob与缓存合并
+      this.#cache = this.#mergeBlobs(this.#cache, blob);
 
       // 根据缓冲区写入到硬盘
-      while (this.#cache.byteLength > CHUNK_SIZE) {
-        // 取出前1mb的数据
+      while (this.#cache.size > CHUNK_SIZE) {
+        // 取出前CHUNK_SIZE的数据
         const targetChunk = this.#cache.slice(0, CHUNK_SIZE);
         this.#cache = this.#cache.slice(CHUNK_SIZE);
 
         const hash = await this._writeChunk(targetChunk);
         this.#hashs.push(hash);
       }
+    }
+
+    // 合并两个Blob
+    #mergeBlobs(blob1, blob2) {
+      return new Blob([blob1, blob2], { type: "application/octet-stream" });
     }
 
     // 写入真正的内容
@@ -1639,25 +1747,25 @@
     }
   }
 
-  // 合并buffer数据的方法
-  function mergeArrayBuffers(buffer1, buffer2) {
-    // 计算新 ArrayBuffer 的总长度
-    const totalLength = buffer1.byteLength + buffer2.byteLength;
+  // // 合并buffer数据的方法
+  // function mergeArrayBuffers(buffer1, buffer2) {
+  //   // 计算新 ArrayBuffer 的总长度
+  //   const totalLength = buffer1.byteLength + buffer2.byteLength;
 
-    // 创建一个新的 ArrayBuffer
-    const mergedBuffer = new ArrayBuffer(totalLength);
+  //   // 创建一个新的 ArrayBuffer
+  //   const mergedBuffer = new ArrayBuffer(totalLength);
 
-    // 创建一个 Uint8Array 以便操作新的 ArrayBuffer
-    const uint8Array = new Uint8Array(mergedBuffer);
+  //   // 创建一个 Uint8Array 以便操作新的 ArrayBuffer
+  //   const uint8Array = new Uint8Array(mergedBuffer);
 
-    // 复制第一个 ArrayBuffer 的数据
-    uint8Array.set(new Uint8Array(buffer1), 0);
+  //   // 复制第一个 ArrayBuffer 的数据
+  //   uint8Array.set(new Uint8Array(buffer1), 0);
 
-    // 复制第二个 ArrayBuffer 的数据
-    uint8Array.set(new Uint8Array(buffer2), buffer1.byteLength);
+  //   // 复制第二个 ArrayBuffer 的数据
+  //   uint8Array.set(new Uint8Array(buffer2), buffer1.byteLength);
 
-    return mergedBuffer;
-  }
+  //   return mergedBuffer;
+  // }
 
   /**
    * 创建文件夹handle
