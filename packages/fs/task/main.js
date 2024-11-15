@@ -4,14 +4,14 @@ import { calculateHash } from "../util.js";
 export const tasks = $.stanz([]);
 
 // 添加任务
-export const addTask = async ({ type, from, to, delayTime }) => {
+export const addTask = async ({ type, from, to, delayTime, paused }) => {
   tasks.push({
     type,
     from,
     to,
     delayTime,
     path: "", // 任务目录的地址
-    paused: false, // 是否暂停中
+    paused: !!paused, // 是否暂停中
     showViewer: true, // 是否显示查看器
     done: false, // 任务是否已经完成
     step: 1, // 1块拷贝中 2合并中 3清理中
@@ -115,7 +115,7 @@ export const copyTo = async (options) => {
           cachedCount++;
           currentCached++;
 
-          const result = options.copy({
+          let result = options.copy({
             cached: cachedCount,
             total: totalCount,
             current: `${tHandle.path}/${finalName}/${afterPath}`,

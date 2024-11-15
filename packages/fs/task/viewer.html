@@ -221,11 +221,9 @@
           precentTwo: 0, // 文件合并中的进度
           precentThree: 0, // 删除缓存的进度
         },
-        proto: {
-          clickPause(e) {
-            this.ispaused = !this.ispaused;
-            e.stopPropagation();
-            if (this.ispaused) {
+        watch: {
+          ispaused(ispaused) {
+            if (ispaused) {
               this.__copy_result = new Promise((resolve) => {
                 this.__resolve_copy_result = resolve;
               });
@@ -233,6 +231,12 @@
               this.__resolve_copy_result(true);
               this.__resolve_copy_result = null;
             }
+          },
+        },
+        proto: {
+          clickPause(e) {
+            this.ispaused = !this.ispaused;
+            e.stopPropagation();
           },
           async loadTask() {
             switch (this.type) {
@@ -346,10 +350,16 @@
           },
         },
         attached() {
-          this.__copy_result = true;
+          if (!this.__copy_result) {
+            this.__copy_result = true;
+          }
           this.loadTask();
         },
         detached() {
+          if (this.__resolve_copy_result) {
+            this.__resolve_copy_result(false);
+            this.__resolve_copy_result = null;
+          }
           this.__copy_result = false;
         },
       };

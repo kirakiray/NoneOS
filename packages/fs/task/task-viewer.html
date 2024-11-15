@@ -5,6 +5,7 @@
     <p-dialog :open="$data.showViewer" on:click-mask="$data.showViewer=false">
       <div style="min-width: 400px; max-height: 60vh; overflow-y: auto">
         <fs-task-viewer
+          sync:ispaused="$data.paused"
           attr:type="$data.type"
           attr:from="$data.from"
           attr:to="$data.to"
