@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
@@ -19,7 +20,6 @@
     .mainicon {
       display: block;
       font-size: 24px;
-      margin-right: 12px;
     }
 
     .line.show {
@@ -53,19 +53,71 @@
       margin-right: 0;
       font-size: 18px;
     }
+
+    .prefix-btn {
+      display: none;
+    }
   </style>
+
+  <x-if :value="!precentTwo">
+    <style>
+      .prefix-area {
+        position: relative;
+        z-index: 20;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .prefix-area:hover .type-icon {
+        display: none;
+      }
+
+      .prefix-btn {
+        display: none;
+      }
+
+      .prefix-area:hover .prefix-btn {
+        display: block;
+      }
+
+      [data-ispaused] .prefix-btn {
+        display: block;
+      }
+      [data-ispaused] .type-icon {
+        display: none;
+      }
+    </style>
+  </x-if>
   <p-list>
-    <p-list-item button="suffix" collapse-childs="open">
-      <x-if :value="handleType === 'dir'">
-        <n-local-icon
-          name="folder"
-          slot="prefix"
-          class="mainicon"
-        ></n-local-icon>
-      </x-if>
-      <x-else>
-        <n-local-icon name="file" slot="prefix" class="mainicon"></n-local-icon>
-      </x-else>
+    <p-list-item
+      button="suffix"
+      collapse-childs="open"
+      attr:data-ispaused="ispaused"
+      attr:data-iscached="!!precentTwo"
+    >
+      <div class="prefix-area" slot="prefix">
+        <x-if :value="handleType === 'dir'">
+          <n-local-icon name="folder" class="mainicon type-icon"></n-local-icon>
+        </x-if>
+        <x-else>
+          <n-local-icon name="file" class="mainicon type-icon"></n-local-icon>
+        </x-else>
+        <div class="prefix-btn">
+          <x-if :value="ispaused">
+            <p-button size="small" variant="text" icon on:click="clickPause">
+              <n-local-icon name="play" class="mainicon"></n-local-icon>
+            </p-button>
+          </x-if>
+          <x-else>
+            <p-button size="small" variant="text" icon on:click="clickPause">
+              <n-local-icon name="pause" class="mainicon"></n-local-icon>
+            </p-button>
+          </x-else>
+        </div>
+      </div>
       <div style="display: flex; align-items: center">
         <x-if :value="!!done">
           <n-local-icon
@@ -161,6 +213,7 @@
           delayTime: null,
         },
         data: {
+          ispaused: false, // 暂停中
           fname: "",
           done: null, // 是否完成
           totalSize: 0, // 总大小
@@ -170,6 +223,18 @@
           precentThree: 0, // 删除缓存的进度
         },
         proto: {
+          clickPause(e) {
+            this.ispaused = !this.ispaused;
+            e.stopPropagation();
+            if (this.ispaused) {
+              this.__copy_result = new Promise((resolve) => {
+                this.__resolve_copy_result = resolve;
+              });
+            } else if (this.__resolve_copy_result) {
+              this.__resolve_copy_result(true);
+              this.__resolve_copy_result = null;
+            }
+          },
           async loadTask() {
             switch (this.type) {
               case "copy":
@@ -241,6 +306,7 @@
 
                   this.precentOne = Math.floor((e.cached / e.total) * 100);
 
+                  console.log("this.__copy_result: ", this.__copy_result);
                   return this.__copy_result;
                 },
                 // 合并文件中

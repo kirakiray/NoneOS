@@ -124,9 +124,12 @@ export const copyTo = async (options) => {
             isCache: true,
           });
 
+          if (result instanceof Promise) {
+            result = await result;
+          }
+
           if (result === false) {
-            // TODO: 停止复制过程
-            debugger;
+            break;
           }
         }
 
@@ -162,7 +165,7 @@ export const copyTo = async (options) => {
         cachedCount++;
         currentCached++;
 
-        const result = options.copy({
+        let result = options.copy({
           cached: cachedCount,
           total: totalCount,
           current: `${tHandle.path}/${finalName}/${afterPath}`,
@@ -175,9 +178,12 @@ export const copyTo = async (options) => {
           await new Promise((resolve) => setTimeout(resolve, delayTime));
         }
 
+        if (result instanceof Promise) {
+          result = await result;
+        }
+
         if (result === false) {
-          // TODO: 停止复制过程
-          debugger;
+          break;
         }
       }
     }
