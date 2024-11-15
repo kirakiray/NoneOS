@@ -109,6 +109,7 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { addTask } = await load("/packages/fs/task/main.js");
 
       return {
         data: {
@@ -168,19 +169,11 @@
             if (data.type === "copyTo") {
               const { source, target } = data;
 
-              debugger;
-
-              // 直接执行拷贝动作
-              // copyTo({
-              //   source,
-              //   target,
-              //   prepare: async (e) => {
-              //     // 添加延迟并刷新粘贴中的页面
-              //     await new Promise((res) => setTimeout(res, 150));
-              //     this.app.current.refreshFiles();
-              //     await new Promise((res) => setTimeout(res, 150));
-              //   },
-              // });
+              addTask({
+                type: "copy",
+                from: source.path,
+                to: target.path,
+              });
             }
           });
 
@@ -191,8 +184,14 @@
           // 双击任务目录后触发的事件
           this.on("open-task", async (e) => {
             e.stopPropagation();
-            debugger;
-            // await openTask(e.data);
+            const configData = await get(`${e.data.path}/task.json`);
+
+            if (configData) {
+              let data = await configData.text();
+              data = JSON.parse(data);
+
+              debugger;
+            }
           });
 
           this.remotes = await getRemotes();

@@ -30,15 +30,14 @@ export const copyTo = async (options) => {
   const flatFileDatas = await fHandle._info();
 
   if (fHandle.kind === "file") {
-    debugger;
-    return;
+    flatFileDatas[0][1].afterPath = flatFileDatas[0][0];
+  } else {
+    const fromDirPath = fHandle.path;
+    flatFileDatas.forEach(([path, info]) => {
+      const afterPath = path.replace(`${fromDirPath}/`, "");
+      info.afterPath = afterPath;
+    });
   }
-
-  const fromDirPath = fHandle.path;
-  flatFileDatas.forEach(([path, info]) => {
-    const afterPath = path.replace(`${fromDirPath}/`, "");
-    info.afterPath = afterPath;
-  });
 
   // 确认信息
   if (options.confirm) {
@@ -61,7 +60,13 @@ export const copyTo = async (options) => {
     create: "file",
   });
 
-  await pkgHandle.write(JSON.stringify(flatFileDatas));
+  await pkgHandle.write(
+    JSON.stringify({
+      from: fHandle.path,
+      to: tHandle.path,
+      flats: flatFileDatas,
+    })
+  );
 
   // 获取总块数量
   let totalCount = 0;
@@ -70,18 +75,15 @@ export const copyTo = async (options) => {
   });
   let cachedCount = 0;
 
-  // 按照1m的大小，开始逐个复制文件夹信息
-  for (let [path, info] of flatFileDatas) {
-    const { hashs1m, afterPath } = info;
-
-    // 最终写入文件地址
-    const handle = await fHandle.get(afterPath);
-
+  // 缓存文块数据
+  const cacheFile = async (handle, path, info) => {
     if (!handle) {
       // TODO: 对面文件没有了，标识任务出错
       debugger;
       throw new Error("no file here");
     }
+
+    const { afterPath, hashs1m } = info;
 
     const blobs = (info.blobs = {});
 
@@ -179,16 +181,29 @@ export const copyTo = async (options) => {
         }
       }
     }
+  };
+
+  if (fHandle.kind === "dir") {
+    // 按照1m的大小，开始逐个复制文件夹信息
+    for (let [path, info] of flatFileDatas) {
+      const { hashs1m, afterPath } = info;
+
+      // 最终写入文件地址
+      const handle = await fHandle.get(afterPath);
+
+      await cacheFile(handle, path, info);
+    }
+  } else {
+    const path = flatFileDatas[0][0];
+    const info = flatFileDatas[0][1];
+    await cacheFile(fHandle, path, info);
   }
 
   // 最终目标文件
   let targetHandle;
 
-  if (fHandle.kind === "file") {
-    // 直接写入文件
-    debugger;
-    return;
-  } else {
+  // 将缓存文件组合成完整的文件
+  if (fHandle.kind === "dir") {
     // 目标文件夹
     targetHandle = await tHandle.get(finalName, {
       create: "dir",
@@ -212,7 +227,7 @@ export const copyTo = async (options) => {
       });
 
       // 合并块数据并写入到最终目标文件中
-      const handle = await targetHandle.get(afterPath, {
+      let handle = await targetHandle.get(afterPath, {
         create: "file",
       });
 
@@ -233,7 +248,41 @@ export const copyTo = async (options) => {
         await new Promise((resolve) => setTimeout(resolve, delayTime));
       }
     }
+  } else {
+    // 目标文件文件
+    targetHandle = await tHandle.get(finalName, {
+      create: "file",
+    });
+
+    const [path, info] = flatFileDatas[0];
+    const { blobs, hashs1m } = info;
+
+    const fileBlobs = hashs1m.map((hash) => {
+      if (!blobs[hash]) {
+        // TODO: 块数据没有找到，需要重新复制
+        debugger;
+        throw new Error("no blob here");
+      }
+
+      return blobs[hash];
+    });
+
+    await targetHandle.write(new Blob(fileBlobs));
+
+    if (options.merge) {
+      options.merge({
+        path: targetHandle.path,
+        fromPath: path,
+        count: 1,
+        total: 1,
+      });
+    }
+
+    if (delayTime) {
+      await new Promise((resolve) => setTimeout(resolve, delayTime));
+    }
   }
+
   {
     // 删除缓存文件
     let removed = 0;
