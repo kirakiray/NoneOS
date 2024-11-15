@@ -8,6 +8,8 @@
   </head>
   <body>
     <l-m src="../task/viewer.html"></l-m>
+    <l-m src="../task/task-viewer.html"></l-m>
+    <l-m src="../task/task-list.html"></l-m>
     test task
     <div>dbCount: <span id="dbcount">-</span></div>
     <div>bigfile1: <span id="bigfile1">-</span></div>
@@ -15,7 +17,7 @@
   </body>
   <script type="module">
     import { get } from "../main.js";
-    import { copyTo } from "../task/main.js";
+    // import { copyTo } from "../task/main.js";
 
     // 获取指定大小的随机文本(1mb)
     const getBigText = (size = 1) => {

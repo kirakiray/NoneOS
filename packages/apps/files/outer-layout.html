@@ -2,6 +2,9 @@
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/pui/drawer/drawer.html"></l-m>
+  <l-m src="/packages/fs/task/task-list.html"></l-m>
+  <l-m src="/packages/fs/task/task-viewer.html"></l-m>
   <style>
     :host {
       display: block;
@@ -77,9 +80,9 @@
           </p-list>
         </p-list-item>
       </p-list>
-      <!-- <div class="left-bottom">
+      <div class="left-bottom">
         <n-task-list></n-task-list>
-      </div> -->
+      </div>
     </div>
     <slot></slot>
   </n-horsp-pannel>
@@ -99,7 +102,7 @@
     </p-list-item>
   </template>
 
-  <!-- <n-task-list-viewer></n-task-list-viewer> -->
+  <n-task-viewer></n-task-viewer>
 
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";

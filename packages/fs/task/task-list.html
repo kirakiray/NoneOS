@@ -1,0 +1,74 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .mainicon {
+      display: block;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+    b {
+      color: var(--md-sys-color-primary);
+    }
+  </style>
+
+  <p-list>
+    <x-fill :value="tasks">
+      <p-list-item button on:click="$data.showViewer=true">
+        <n-local-icon name="copy" slot="prefix" class="mainicon"></n-local-icon>
+        <div :html="$host.getItemTitle($data)"></div>
+        <div secondary>
+          <p-progress
+            attr:color="$host.getColor($data)"
+            :value="$data.precentage * 100"
+            style="--line-size: 2px; margin-top: 4px"
+          ></p-progress>
+        </div>
+      </p-list-item>
+    </x-fill>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { tasks } = await load("./main.js");
+
+      return {
+        tag: "n-task-list",
+        data: {
+          tasks: [],
+        },
+        proto: {
+          getColor(data) {
+            if (data.step == 1) {
+              return "primary";
+            } else if (data.step == 2) {
+              return "success";
+            } else if (data.step == 3) {
+              return "error";
+            }
+          },
+          getItemTitle(data) {
+            if (data.done) {
+              return `复制 <b>${data.from.replace(/.+\/(.+)/, "$1")}</b> 完成`;
+            }
+            return `将 <b>${data.from.replace(
+              /.+\/(.+)/,
+              "$1"
+            )}</b> 复制到 <b>${data.to.replace(/.+\/(.+)/, "$1")}</b>`;
+          },
+        },
+        attached() {
+          this.tasks = tasks;
+        },
+        detached() {
+          this.tasks = [];
+        },
+      };
+    };
+  </script>
+</template>

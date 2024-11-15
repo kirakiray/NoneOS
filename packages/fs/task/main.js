@@ -1,5 +1,24 @@
 import { calculateHash } from "../util.js";
 
+// 所有任务
+export const tasks = $.stanz([]);
+
+// 添加任务
+export const addTask = async ({ type, from, to, delayTime }) => {
+  tasks.push({
+    type,
+    from,
+    to,
+    delayTime,
+    path: "", // 任务目录的地址
+    paused: false, // 是否暂停中
+    showViewer: true, // 是否显示查看器
+    done: false, // 任务是否已经完成
+    step: 1, // 1块拷贝中 2合并中 3清理中
+    precentage: 0, // 任务进行率 0-1
+  });
+};
+
 // 按照块的模式，复制文件
 export const copyTo = async (options) => {
   const { from: fHandle, to: tHandle, delayTime } = options;

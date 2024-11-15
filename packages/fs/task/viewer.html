@@ -225,6 +225,7 @@
                   // 复制过程
                   this.emit("copying", {
                     bubbles: false,
+                    data: { ...e },
                   });
 
                   const targetProgress = this.shadow.$(
@@ -244,6 +245,11 @@
                 },
                 // 合并文件中
                 merge: (e) => {
+                  this.emit("merging", {
+                    bubbles: false,
+                    data: { ...e },
+                  });
+
                   const targetProgress = this.shadow.$(
                     `p-list-item[data-path="${encodeURIComponent(
                       e.fromPath
@@ -258,6 +264,11 @@
                 },
                 // 清除缓存中
                 clear: (e) => {
+                  this.emit("clearing", {
+                    bubbles: false,
+                    data: { ...e },
+                  });
+
                   this.precentThree = Math.floor((e.removed / e.total) * 100);
                 },
                 error() {
