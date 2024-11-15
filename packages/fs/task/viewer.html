@@ -53,6 +53,15 @@
       margin-right: 0;
       font-size: 18px;
     }
+    .prefix-area {
+      position: relative;
+      z-index: 3;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
     .prefix-btn {
       display: none;
@@ -61,16 +70,6 @@
 
   <x-if :value="!precentTwo">
     <style>
-      .prefix-area {
-        position: relative;
-        z-index: 20;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
       .prefix-area:hover .type-icon {
         display: none;
       }

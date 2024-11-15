@@ -62,6 +62,7 @@ export const copyTo = async (options) => {
 
   await pkgHandle.write(
     JSON.stringify({
+      type: "copy",
       from: fHandle.path,
       to: tHandle.path,
       flats: flatFileDatas,
