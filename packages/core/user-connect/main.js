@@ -8,7 +8,7 @@ export { users };
 
 export const inited = (async () => {
   // 加载收藏中的用户
-  const cardsDir = await get("local/system/user/cards");
+  const cardsDir = await get("local/system/user/cards").catch(() => null);
 
   if (!cardsDir) {
     return;

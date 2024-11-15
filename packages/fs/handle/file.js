@@ -341,7 +341,7 @@ class DBFSWritableFileStream {
     }
 
     // 写入最后一缓存的内容
-    if (this.#cache.byteLength > 0) {
+    if (this.#cache.size > 0) {
       const hash = await this._writeChunk(this.#cache);
       this.#hashs.push(hash);
     }
