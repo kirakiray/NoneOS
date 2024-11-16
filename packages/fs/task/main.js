@@ -104,38 +104,38 @@ export const copyTo = async (options) => {
 
         const hashResult = await calculateHash(cachedBlob);
 
-        if (hash !== hashResult) {
-          // TODO: 哈希值不一样，继续重试
-          debugger;
-        }
+        if (hash === hashResult) {
+          // 哈希一致，直接使用
+          blobs[hash] = cachedBlob;
 
-        blobs[hash] = cachedBlob;
+          if (options.copy) {
+            cachedCount++;
+            currentCached++;
 
-        if (options.copy) {
-          cachedCount++;
-          currentCached++;
+            let result = options.copy({
+              cached: cachedCount,
+              total: totalCount,
+              current: `${tHandle.path}/${finalName}/${afterPath}`,
+              fromPath: path,
+              currentCached,
+              currentTotal,
+              isCache: true,
+            });
 
-          let result = options.copy({
-            cached: cachedCount,
-            total: totalCount,
-            current: `${tHandle.path}/${finalName}/${afterPath}`,
-            fromPath: path,
-            currentCached,
-            currentTotal,
-            isCache: true,
-          });
+            if (result instanceof Promise) {
+              result = await result;
+            }
 
-          if (result instanceof Promise) {
-            result = await result;
+            if (result === false) {
+              break;
+            }
           }
 
-          if (result === false) {
-            break;
-          }
+          // 哈希一样，继续下一个块的复制
+          continue;
         }
 
-        // 哈希一样，直接继续下一个块的复制
-        continue;
+        // 哈希不一致，重新复制
       }
 
       // 读取块数据
