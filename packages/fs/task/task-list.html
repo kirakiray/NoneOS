@@ -21,7 +21,21 @@
   <p-list>
     <x-fill :value="tasks">
       <p-list-item button on:click="$data.showViewer=true">
-        <n-local-icon name="copy" slot="prefix" class="mainicon"></n-local-icon>
+        <x-if :value="$data.errInfo">
+          <n-local-icon
+            name="error"
+            slot="prefix"
+            class="mainicon"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+        </x-if>
+        <x-else>
+          <n-local-icon
+            name="copy"
+            slot="prefix"
+            class="mainicon"
+          ></n-local-icon>
+        </x-else>
         <div :html="$host.getItemTitle($data)"></div>
         <div secondary>
           <p-progress
@@ -53,6 +67,12 @@
             }
           },
           getItemTitle(data) {
+            if (data.errInfo) {
+              return `复制 <b>${data.from.replace(
+                /.+\/(.+)/,
+                "$1"
+              )}</b> 失败: ${data.errInfo}`;
+            }
             if (data.done) {
               return `复制 <b>${data.from.replace(/.+\/(.+)/, "$1")}</b> 完成`;
             }
