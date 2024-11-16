@@ -1,3 +1,4 @@
+import { getErr } from "../errors.js";
 import { calculateHash } from "../util.js";
 
 // 所有任务
@@ -16,6 +17,7 @@ export const addTask = async ({ type, from, to, delayTime, paused }) => {
     done: false, // 任务是否已经完成
     step: 1, // 1块拷贝中 2合并中 3清理中
     precentage: 0, // 任务进行率 0-1
+    errInfo: "", // 错误信息
   });
 };
 
@@ -26,8 +28,42 @@ export const copyTo = async (options) => {
   // 复制到目的地的文件名
   let finalName = options.name || fHandle.name;
 
-  // 获取扁平化的数据
-  const flatFileDatas = await fHandle._info();
+  let hashResult = false; // 保证得到哈希值正确的数据
+  let flatFileDatas;
+
+  let errCount = 0; // 错误次数
+
+  while (!hashResult) {
+    // 获取扁平化的数据
+    flatFileDatas = await fHandle._info();
+
+    try {
+      // 判断文件哈希表看是否正确
+      await Promise.all(
+        flatFileDatas.map(async ([path, item]) => {
+          const { hashs1m, hash } = item;
+          const reHash = await calculateHash(hashs1m.join(""));
+
+          if (reHash !== hash) {
+            errCount++;
+            throw getErr("getHashErr", { path, count: errCount });
+          }
+        })
+      );
+
+      hashResult = true;
+    } catch (err) {
+      hashResult = false;
+
+      if (options.error) {
+        options.error(err);
+      }
+
+      if (errCount > 5) {
+        throw getErr("getHashErr", { path, count: errCount });
+      }
+    }
+  }
 
   if (fHandle.kind === "file") {
     flatFileDatas[0][1].afterPath = flatFileDatas[0][0];
@@ -80,8 +116,7 @@ export const copyTo = async (options) => {
   const cacheFile = async (handle, path, info) => {
     if (!handle) {
       // TODO: 对面文件没有了，标识任务出错
-      debugger;
-      throw new Error("no file here");
+      throw getErr("copyNoFile", { path });
     }
 
     const { afterPath, hashs1m } = info;
@@ -138,19 +173,32 @@ export const copyTo = async (options) => {
         // 哈希不一致，重新复制
       }
 
-      // 读取块数据
-      const blobData = await handle.file({
-        start: i * 1024 * 1024,
-        end: (i + 1) * 1024 * 1024,
-      });
+      let finnalResult = false; // 复制块是否成功
+      let loadCount = 0;
 
-      // 计算哈希值是否相等
-      const hashResult = await calculateHash(blobData);
+      let blobData; // 读取到的数据
 
-      if (hash !== hashResult) {
-        // TODO: 哈希值不一样，继续重试
-        debugger;
-        continue;
+      while (!finnalResult) {
+        if (loadCount > 5) {
+          // 重新读取了5次还是不行，就不要再读取了
+          throw getErr("notFoundChunk", { path, hash });
+        }
+
+        // 读取块数据
+        blobData = await handle.file({
+          start: i * 1024 * 1024,
+          end: (i + 1) * 1024 * 1024,
+        });
+
+        // 计算哈希值是否相等
+        const hashResult = await calculateHash(blobData);
+
+        if (hash !== hashResult) {
+          // 哈希值不一样，重新复制
+          loadCount++;
+        } else {
+          finnalResult = true;
+        }
       }
 
       // 写入缓存数据
@@ -193,7 +241,7 @@ export const copyTo = async (options) => {
   if (fHandle.kind === "dir") {
     // 按照1m的大小，开始逐个复制文件夹信息
     for (let [path, info] of flatFileDatas) {
-      const { hashs1m, afterPath } = info;
+      const { afterPath } = info;
 
       // 最终写入文件地址
       const handle = await fHandle.get(afterPath);

@@ -18,12 +18,14 @@ export class PublicBaseHandle {
         const { handle } = item;
 
         const hashs1m = await handle._getHashs();
+        const hash = await handle.hash();
 
         return [
           item.path,
           {
             size: item.size,
             hashs1m,
+            hash,
           },
         ];
       })

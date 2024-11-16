@@ -97,28 +97,42 @@
       attr:data-ispaused="ispaused"
       attr:data-iscached="!!precentTwo"
     >
-      <div class="prefix-area" slot="prefix">
-        <x-if :value="handleType === 'dir'">
-          <n-local-icon name="folder" class="mainicon type-icon"></n-local-icon>
-        </x-if>
-        <x-else>
-          <n-local-icon name="file" class="mainicon type-icon"></n-local-icon>
-        </x-else>
-        <div class="prefix-btn">
-          <x-if :value="ispaused">
-            <p-button size="small" variant="text" icon on:click="clickPause">
-              <n-local-icon name="play" class="mainicon"></n-local-icon>
-            </p-button>
+      <x-if :value="errInfo">
+        <div class="prefix-area" slot="prefix">
+          <n-local-icon
+            name="error"
+            class="mainicon"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+        </div>
+      </x-if>
+      <x-else>
+        <div class="prefix-area" slot="prefix">
+          <x-if :value="handleType === 'dir'">
+            <n-local-icon
+              name="folder"
+              class="mainicon type-icon"
+            ></n-local-icon>
           </x-if>
           <x-else>
-            <p-button size="small" variant="text" icon on:click="clickPause">
-              <n-local-icon name="pause" class="mainicon"></n-local-icon>
-            </p-button>
+            <n-local-icon name="file" class="mainicon type-icon"></n-local-icon>
           </x-else>
+          <div class="prefix-btn">
+            <x-if :value="ispaused">
+              <p-button size="small" variant="text" icon on:click="clickPause">
+                <n-local-icon name="play" class="mainicon"></n-local-icon>
+              </p-button>
+            </x-if>
+            <x-else>
+              <p-button size="small" variant="text" icon on:click="clickPause">
+                <n-local-icon name="pause" class="mainicon"></n-local-icon>
+              </p-button>
+            </x-else>
+          </div>
         </div>
-      </div>
+      </x-else>
       <div style="display: flex; align-items: center">
-        <x-if :value="!!done">
+        <x-if :value="!!done && !errInfo">
           <n-local-icon
             name="tick-circle"
             style="
@@ -134,39 +148,46 @@
           {{fname}} <span style="font-size: 12px">({{totalSize}})</span>
         </x-else>
       </div>
-      <div secondary style="display: flex; align-items: center">
-        <div class="line show">
-          <p-progress
-            type="circle"
-            attr:value="precentOne"
-            variant="determinate"
-          ></p-progress>
-          <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
-          <x-else> 缓存中({{precentOne}})% </x-else>
+      <x-if :value="errInfo">
+        <div secondary style="display: flex; align-items: center">
+          {{errInfo}}
         </div>
-        <div class="line" class:show="precentOne >= 100">
-          <p-progress
-            type="circle"
-            color="success"
-            attr:value="precentTwo"
-            variant="determinate"
-            style="margin-left: 8px"
-          ></p-progress>
-          <x-if :value="precentTwo >= 100"> 合并完成 </x-if>
-          <x-else> 合并中({{precentTwo}})% </x-else>
+      </x-if>
+      <x-else>
+        <div secondary style="display: flex; align-items: center">
+          <div class="line show">
+            <p-progress
+              type="circle"
+              attr:value="precentOne"
+              variant="determinate"
+            ></p-progress>
+            <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
+            <x-else> 缓存中({{precentOne}})% </x-else>
+          </div>
+          <div class="line" class:show="precentOne >= 100">
+            <p-progress
+              type="circle"
+              color="success"
+              attr:value="precentTwo"
+              variant="determinate"
+              style="margin-left: 8px"
+            ></p-progress>
+            <x-if :value="precentTwo >= 100"> 合并完成 </x-if>
+            <x-else> 合并中({{precentTwo}})% </x-else>
+          </div>
+          <div class="line" class:show="precentThree >= 100">
+            <p-progress
+              type="circle"
+              color="error"
+              attr:value="precentThree"
+              variant="determinate"
+              style="margin-left: 8px"
+            ></p-progress>
+            <x-if :value="precentThree >= 100"> 删除缓存完成 </x-if>
+            <x-else> 删除缓存中({{precentThree}})% </x-else>
+          </div>
         </div>
-        <div class="line" class:show="precentThree >= 100">
-          <p-progress
-            type="circle"
-            color="error"
-            attr:value="precentThree"
-            variant="determinate"
-            style="margin-left: 8px"
-          ></p-progress>
-          <x-if :value="precentThree >= 100"> 删除缓存完成 </x-if>
-          <x-else> 删除缓存中({{precentThree}})% </x-else>
-        </div>
-      </div>
+      </x-else>
       <i collapse-triangle slot="suffix"></i>
       <p-list slot="childs" style="padding-left: 8px">
         <!-- <p-list-item>
@@ -189,6 +210,7 @@
     export default async ({ load }) => {
       const { copyTo } = await load("/packages/fs/task/main.js");
       const { get } = await load("../main.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
 
       // 写一个函数，根据传入的size大小，其转化为 kb mb gb 的单位
       const formatSize = (size) => {
@@ -220,6 +242,7 @@
           precentOne: 0, // 复制区块进度
           precentTwo: 0, // 文件合并中的进度
           precentThree: 0, // 删除缓存的进度
+          errInfo: null, // 错误信息
         },
         watch: {
           ispaused(ispaused) {
@@ -340,10 +363,30 @@
 
                   this.precentThree = Math.floor((e.removed / e.total) * 100);
                 },
-                error() {
-                  debugger;
+                error(err) {
+                  enqueue({
+                    content: err.toString(),
+                    color: "error",
+                  });
                 },
-              });
+              }).catch((err) => err);
+
+              if (result instanceof Error) {
+                this.emit("error", {
+                  bubbles: false,
+                  data: { ...result },
+                  error: result,
+                });
+
+                this.errInfo = result.toString();
+
+                enqueue({
+                  content: this.errInfo,
+                  color: "error",
+                });
+              }
+
+              this.errInfo = "测试错误信息";
 
               this.done = true;
             }
