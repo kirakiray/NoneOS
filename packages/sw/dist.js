@@ -1468,13 +1468,26 @@
                 return chunk;
               }
 
-              return new Blob([chunk]);
+              return new Blob([chunk], {
+                type: "application/octet-stream",
+              });
             }
           })
         );
         blobs = blobs.filter((e) => !!e);
       } else {
         if (hashs) {
+          // blobs = [];
+          // for (let hash of hashs) {
+          //   const result = await getData({
+          //     storename: "blocks",
+          //     key: hash,
+          //   });
+
+          //   const { chunk } = result;
+
+          //   blobs.push(new Blob([chunk]));
+          // }
           blobs = await Promise.all(
             hashs.map(async (hash, index) => {
               const result = await getData$1({
@@ -1494,7 +1507,9 @@
         }
       }
 
-      const blobData = new Blob(blobs);
+      const blobData = new Blob(blobs, {
+        type: "application/octet-stream",
+      });
 
       return await readBlobByType({
         blobData,
@@ -1566,11 +1581,9 @@
       this.#path = path;
     }
 
-    // // 写入流数据
+    // 写入流数据
     // async write(input) {
     //   let arrayBuffer;
-
-    //   debugger;
 
     //   if (typeof input === "string") {
     //     arrayBuffer = new TextEncoder().encode(input).buffer;
@@ -1667,6 +1680,18 @@
           ...chunkData,
         });
       }
+
+      let reChunk = chunk;
+
+      if (isSafari) {
+        // 🖕: 垃圾 safari 存储 blob引用，底层数据会出错，要改用 arraybuffer
+        reChunk = await new Promise((res) => {
+          const reader = new FileReader();
+          reader.readAsArrayBuffer(chunk);
+          reader.onload = () => res(reader.result);
+        });
+      }
+
       // 写入到硬盘
       if (!exited) {
         await setData({
@@ -1674,7 +1699,7 @@
           datas: [
             {
               hash,
-              chunk,
+              chunk: reChunk,
             },
           ],
         });
@@ -1776,6 +1801,10 @@
 
   //   return mergedBuffer;
   // }
+
+  const isSafari =
+    navigator.userAgent.includes("Safari") &&
+    !navigator.userAgent.includes("Chrome");
 
   /**
    * 创建文件夹handle

@@ -35,6 +35,7 @@ import { ok } from "./ok.js";
     const fullFile = await get("local/files/Sfile2.txt", {
       create: "file",
     });
+
     await fullFile.write(fcontent);
 
     {

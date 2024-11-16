@@ -116,7 +116,9 @@ export class FileHandle extends BaseHandle {
               return chunk;
             }
 
-            return new Blob([chunk]);
+            return new Blob([chunk], {
+              type: "application/octet-stream",
+            });
           }
         })
       );
@@ -142,7 +144,9 @@ export class FileHandle extends BaseHandle {
       }
     }
 
-    const blobData = new Blob(blobs);
+    const blobData = new Blob(blobs, {
+      type: "application/octet-stream",
+    });
 
     return await readBlobByType({
       blobData,
@@ -214,11 +218,9 @@ class DBFSWritableFileStream {
     this.#path = path;
   }
 
-  // // 写入流数据
+  // 写入流数据
   // async write(input) {
   //   let arrayBuffer;
-
-  //   debugger;
 
   //   if (typeof input === "string") {
   //     arrayBuffer = new TextEncoder().encode(input).buffer;
@@ -315,6 +317,18 @@ class DBFSWritableFileStream {
         ...chunkData,
       });
     }
+
+    let reChunk = chunk;
+
+    if (isSafari) {
+      // 🖕: 垃圾 safari 存储 blob引用，底层数据会出错，要改用 arraybuffer
+      reChunk = await new Promise((res) => {
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(chunk);
+        reader.onload = () => res(reader.result);
+      });
+    }
+
     // 写入到硬盘
     if (!exited) {
       await setData({
@@ -322,7 +336,7 @@ class DBFSWritableFileStream {
         datas: [
           {
             hash,
-            chunk,
+            chunk: reChunk,
           },
         ],
       });
@@ -424,3 +438,7 @@ class DBFSWritableFileStream {
 
 //   return mergedBuffer;
 // }
+
+const isSafari =
+  navigator.userAgent.includes("Safari") &&
+  !navigator.userAgent.includes("Chrome");
