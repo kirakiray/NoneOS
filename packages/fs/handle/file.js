@@ -112,6 +112,10 @@ export class FileHandle extends BaseHandle {
           }
 
           if (chunk) {
+            if (chunk instanceof Blob) {
+              return chunk;
+            }
+
             return new Blob([chunk]);
           }
         })
@@ -127,6 +131,10 @@ export class FileHandle extends BaseHandle {
             });
 
             const { chunk } = result;
+
+            if (chunk instanceof Blob) {
+              return chunk;
+            }
 
             return new Blob([chunk]);
           })

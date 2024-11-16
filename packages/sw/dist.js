@@ -811,7 +811,9 @@
         }
 
         // 主要缓存的文件夹
-        const blocksCacheDir = await get("local/caches/blocks");
+        const blocksCacheDir = await get("local/caches/blocks", {
+          create: "dir",
+        });
 
         if (needRemove.length) {
           await Promise.all(
@@ -1462,6 +1464,10 @@
             }
 
             if (chunk) {
+              if (chunk instanceof Blob) {
+                return chunk;
+              }
+
               return new Blob([chunk]);
             }
           })
@@ -1477,6 +1483,10 @@
               });
 
               const { chunk } = result;
+
+              if (chunk instanceof Blob) {
+                return chunk;
+              }
 
               return new Blob([chunk]);
             })
@@ -1691,7 +1701,7 @@
       }
 
       // 写入最后一缓存的内容
-      if (this.#cache.byteLength > 0) {
+      if (this.#cache.size > 0) {
         const hash = await this._writeChunk(this.#cache);
         this.#hashs.push(hash);
       }
