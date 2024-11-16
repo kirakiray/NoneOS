@@ -71,7 +71,7 @@
               return `复制 <b>${data.from.replace(
                 /.+\/(.+)/,
                 "$1"
-              )}</b> 失败: ${data.errInfo}`;
+              )}</b> 失败，${data.errInfo}`;
             }
             if (data.done) {
               return `复制 <b>${data.from.replace(/.+\/(.+)/, "$1")}</b> 完成`;
