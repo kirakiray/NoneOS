@@ -66,9 +66,19 @@ export const copyTo = async (options) => {
   }
 
   if (fHandle.kind === "file") {
+    if (fHandle._mark === "remote") {
+      debugger;
+    }
+    
     flatFileDatas[0][1].afterPath = flatFileDatas[0][0];
   } else {
-    const fromDirPath = fHandle.path;
+    let fromDirPath;
+    if (fHandle._mark === "remote") {
+      // 远程文件类型只取尾端
+      fromDirPath = fHandle.path.split(":").slice(2).join(":");
+    } else {
+      fromDirPath = fHandle.path;
+    }
     flatFileDatas.forEach(([path, info]) => {
       const afterPath = path.replace(`${fromDirPath}/`, "");
       info.afterPath = afterPath;

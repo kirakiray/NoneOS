@@ -97,7 +97,7 @@
       attr:data-ispaused="ispaused"
       attr:data-iscached="!!precentTwo"
     >
-      <x-if :value="errInfo">
+      <x-if :value="!!errInfo">
         <div class="prefix-area" slot="prefix">
           <n-local-icon
             name="error"
@@ -148,7 +148,7 @@
           {{fname}} <span style="font-size: 12px">({{totalSize}})</span>
         </x-else>
       </div>
-      <x-if :value="errInfo">
+      <x-if :value="!!errInfo">
         <div secondary style="display: flex; align-items: center">
           {{errInfo}}
         </div>

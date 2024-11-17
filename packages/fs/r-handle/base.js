@@ -1,3 +1,5 @@
+import { PublicBaseHandle } from "../base-handle.js";
+
 export class RemoteBaseHandle {
   #path;
   #createTime;
@@ -64,3 +66,18 @@ export class RemoteBaseHandle {
     return "remote";
   }
 }
+
+// 转发所有方法
+Object.keys(
+  Object.getOwnPropertyDescriptors(PublicBaseHandle.prototype)
+).forEach((name) => {
+  if (name !== "constructor") {
+    RemoteBaseHandle.prototype[name] = function (...args) {
+      return this.bridge({
+        method: name,
+        path: this.path,
+        args,
+      });
+    };
+  }
+});
