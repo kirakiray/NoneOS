@@ -121,7 +121,7 @@ export const copyTo = async (options) => {
 
     const { afterPath, hashs1m } = info;
 
-    const blobs = (info.blobs = {});
+    // const blobs = (info.blobs = {});
 
     const currentTotal = hashs1m.length;
     let currentCached = 0;
@@ -137,11 +137,11 @@ export const copyTo = async (options) => {
         // 重新验证文件哈希是否正确
         const cachedBlob = await cacheHandle.file();
 
-        const hashResult = await calculateHash(cachedBlob);
+        const hashResult = await cacheHandle._dataHash();
 
         if (hash === hashResult) {
           // 哈希一致，直接使用
-          blobs[hash] = cachedBlob;
+          // blobs[hash] = cachedBlob;
 
           if (options.copy) {
             cachedCount++;
@@ -208,7 +208,7 @@ export const copyTo = async (options) => {
 
       await cacheHandle.write(blobData);
 
-      blobs[hash] = blobData;
+      // blobs[hash] = blobData;
 
       if (options.copy) {
         cachedCount++;
@@ -264,78 +264,22 @@ export const copyTo = async (options) => {
       create: "dir",
     });
 
-    let count = 0;
-    // 根据信息开始合并文件
-    for (let [path, info] of flatFileDatas) {
-      const { afterPath } = info;
-
-      const { blobs, hashs1m } = info;
-
-      const fileBlobs = hashs1m.map((hash) => {
-        if (!blobs[hash]) {
-          // TODO: 块数据没有找到，需要重新复制
-          debugger;
-          throw new Error("no blob here");
-        }
-
-        return blobs[hash];
-      });
-
-      // 合并块数据并写入到最终目标文件中
-      let handle = await targetHandle.get(afterPath, {
-        create: "file",
-      });
-
-      await handle.write(new Blob(fileBlobs));
-
-      count++;
-
-      if (options.merge) {
-        options.merge({
-          path: handle.path,
-          fromPath: path,
-          count,
-          total: flatFileDatas.length,
-        });
-      }
-
-      if (delayTime) {
-        await new Promise((resolve) => setTimeout(resolve, delayTime));
-      }
-    }
+    await targetHandle._mergeChunks({
+      flatFileDatas,
+      delayTime,
+      merge: options.merge,
+    });
   } else {
     // 目标文件文件
     targetHandle = await tHandle.get(finalName, {
       create: "file",
     });
 
-    const [path, info] = flatFileDatas[0];
-    const { blobs, hashs1m } = info;
-
-    const fileBlobs = hashs1m.map((hash) => {
-      if (!blobs[hash]) {
-        // TODO: 块数据没有找到，需要重新复制
-        debugger;
-        throw new Error("no blob here");
-      }
-
-      return blobs[hash];
+    await targetHandle._mergeChunks({
+      flatFileDatas,
+      delayTime,
+      merge: options.merge,
     });
-
-    await targetHandle.write(new Blob(fileBlobs));
-
-    if (options.merge) {
-      options.merge({
-        path: targetHandle.path,
-        fromPath: path,
-        count: 1,
-        total: 1,
-      });
-    }
-
-    if (delayTime) {
-      await new Promise((resolve) => setTimeout(resolve, delayTime));
-    }
   }
 
   {
