@@ -32,7 +32,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
 }
 
 // 转发 generator 相关方法
-["keys", "values", "entries"].forEach((name) => {
+["keys", "values", "entries", "length"].forEach((name) => {
   RemoteDirHandle.prototype[name] = async function* (...args) {
     const result = await this.bridge({
       method: name,

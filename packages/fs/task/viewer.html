@@ -356,6 +356,8 @@
                 },
                 // 清除缓存中
                 clear: (e) => {
+                  this.precentTwo = 100; // 合并完成才会执行这个方法
+
                   this.emit("clearing", {
                     bubbles: false,
                     data: { ...e },
@@ -384,11 +386,18 @@
                   content: this.errInfo,
                   color: "error",
                 });
+              } else {
+                this.precentTwo = 100; // 必定合并完成
+                this.precentThree = 100; // 必定清除缓存完成
               }
 
               // this.errInfo = "测试错误信息";
 
               this.done = true;
+
+              this.emit("task-done", {
+                bubbles: false,
+              });
             }
           },
         },

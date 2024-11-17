@@ -53,6 +53,14 @@ export class RemoteBaseHandle {
     });
   }
 
+  async remove(...args) {
+    return this.bridge({
+      method: "remove",
+      path: this.path,
+      args,
+    });
+  }
+
   async root() {
     debugger;
   }

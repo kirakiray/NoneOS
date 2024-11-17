@@ -6,6 +6,14 @@ export const tasks = $.stanz([]);
 
 // 添加任务
 export const addTask = async ({ type, from, to, delayTime, paused }) => {
+  // 查看是否已经村子啊
+  const exited = tasks.find((e) => e.from === from && e.to === to);
+
+  if (exited) {
+    exited.showViewer = true;
+    return;
+  }
+
   tasks.push({
     type,
     from,
@@ -69,7 +77,7 @@ export const copyTo = async (options) => {
     if (fHandle._mark === "remote") {
       debugger;
     }
-    
+
     flatFileDatas[0][1].afterPath = flatFileDatas[0][0];
   } else {
     let fromDirPath;

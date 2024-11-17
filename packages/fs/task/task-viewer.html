@@ -14,6 +14,7 @@
           on:copying="$host.copying($data,$event)"
           on:merging="$host.merging($data,$event)"
           on:clearing="$host.clearing($data,$event)"
+          on:task-done="$host.taskDone($data,$event)"
         >
         </fs-task-viewer>
       </div>
@@ -29,6 +30,31 @@
           tasks: [],
         },
         proto: {
+          taskDone(item, event) {
+            item.done = true;
+
+            // 时间一到，如果item已经隐藏，则自动删除；
+            // 如果是打开的，监听到隐藏后，再进行删除
+            let removeData = () => {
+              const index = tasks.indexOf(item);
+              if (index > -1) {
+                tasks.splice(index, 1);
+              }
+              removeData = null;
+            };
+            if (item.showViewer) {
+              item
+                .watchUntil(() => {
+                  return !item.showViewer;
+                })
+                .then(() => {
+                  // 保证动画结束后进行删除
+                  setTimeout(removeData, 300);
+                });
+            } else {
+              removeData();
+            }
+          },
           copying(item, event) {
             const { data } = event;
             item.step = 1;
@@ -43,31 +69,6 @@
             const { data } = event;
             item.step = 3;
             item.precentage = data.removed / data.total;
-            if (item.precentage >= 1) {
-              item.done = true;
-
-              // 时间一到，如果item已经隐藏，则自动删除；
-              // 如果是打开的，监听到隐藏后，再进行删除
-              let removeData = () => {
-                const index = tasks.indexOf(item);
-                if (index > -1) {
-                  tasks.splice(index, 1);
-                }
-                removeData = null;
-              };
-              if (item.showViewer) {
-                item
-                  .watchUntil(() => {
-                    return !item.showViewer;
-                  })
-                  .then(() => {
-                    // 保证动画结束后进行删除
-                    setTimeout(removeData, 300);
-                  });
-              } else {
-                removeData();
-              }
-            }
           },
         },
         attached() {
