@@ -126,6 +126,59 @@ export const copyTo = async (options) => {
   });
   let cachedCount = 0;
 
+  // 缓冲块数据
+  const cacheBlob = async ({ hash, handle, i }) => {
+    // 判断是否已经缓存
+    let cacheHandle = await targetCacheHandle.get(hash);
+
+    if (cacheHandle) {
+      const hashResult = await cacheHandle._dataHash();
+
+      if (hash === hashResult) {
+        return true;
+      }
+
+      // 哈希不一致，重新走复制流程
+    }
+
+    let finnalResult = false; // 复制块是否成功
+    let loadCount = 0;
+
+    let blobData; // 读取到的数据
+
+    while (!finnalResult) {
+      if (loadCount > 5) {
+        // 重新读取了5次还是不行，就不要再读取了
+        throw getErr("notFoundChunk", { path, hash });
+      }
+
+      // 读取块数据
+      blobData = await handle.file({
+        start: i * 1024 * 1024,
+        end: (i + 1) * 1024 * 1024,
+      });
+
+      // 计算哈希值是否相等
+      const hashResult = await calculateHash(blobData);
+
+      if (hash !== hashResult) {
+        // 哈希值不一样，重新复制
+        loadCount++;
+      } else {
+        finnalResult = true;
+      }
+    }
+
+    // 写入缓存数据
+    cacheHandle = await targetCacheHandle.get(hash, {
+      create: "file",
+    });
+
+    await cacheHandle.write(blobData);
+
+    return true;
+  };
+
   // 缓存文块数据
   const cacheFile = async (handle, path, info) => {
     if (!handle) {
@@ -135,8 +188,6 @@ export const copyTo = async (options) => {
 
     const { afterPath, hashs1m } = info;
 
-    // const blobs = (info.blobs = {});
-
     const currentTotal = hashs1m.length;
     let currentCached = 0;
 
@@ -144,90 +195,12 @@ export const copyTo = async (options) => {
     for (let i = 0; i < hashs1m.length; i++) {
       const hash = hashs1m[i];
 
-      // 判断是否已经缓存
-      let cacheHandle = await targetCacheHandle.get(hash);
+      await cacheBlob({ hash, handle, i });
 
-      if (cacheHandle) {
-        // 重新验证文件哈希是否正确
-        const cachedBlob = await cacheHandle.file();
-
-        const hashResult = await cacheHandle._dataHash();
-
-        if (hash === hashResult) {
-          // 哈希一致，直接使用
-          // blobs[hash] = cachedBlob;
-
-          if (options.copy) {
-            cachedCount++;
-            currentCached++;
-
-            let result = options.copy({
-              cached: cachedCount,
-              total: totalCount,
-              current: `${tHandle.path}/${finalName}/${afterPath}`,
-              fromPath: path,
-              currentCached,
-              currentTotal,
-              isCache: true,
-            });
-
-            if (result instanceof Promise) {
-              result = await result;
-            }
-
-            if (result === false) {
-              break;
-            }
-          }
-
-          // 哈希一样，继续下一个块的复制
-          continue;
-        }
-
-        // 哈希不一致，重新复制
-      }
-
-      let finnalResult = false; // 复制块是否成功
-      let loadCount = 0;
-
-      let blobData; // 读取到的数据
-
-      while (!finnalResult) {
-        if (loadCount > 5) {
-          // 重新读取了5次还是不行，就不要再读取了
-          throw getErr("notFoundChunk", { path, hash });
-        }
-
-        // 读取块数据
-        blobData = await handle.file({
-          start: i * 1024 * 1024,
-          end: (i + 1) * 1024 * 1024,
-        });
-
-        // 计算哈希值是否相等
-        const hashResult = await calculateHash(blobData);
-
-        if (hash !== hashResult) {
-          // 哈希值不一样，重新复制
-          loadCount++;
-        } else {
-          finnalResult = true;
-        }
-      }
-
-      // 写入缓存数据
-      cacheHandle = await targetCacheHandle.get(hash, {
-        create: "file",
-      });
-
-      await cacheHandle.write(blobData);
-
-      // blobs[hash] = blobData;
+      cachedCount++;
+      currentCached++;
 
       if (options.copy) {
-        cachedCount++;
-        currentCached++;
-
         let result = options.copy({
           cached: cachedCount,
           total: totalCount,

@@ -96,7 +96,7 @@ test("file hash", async ({ page, browserName }) => {
   expect(true).toBe(true);
 });
 
-test("write copy task", async ({ page, browserName }) => {
+test("copy task", async ({ page, browserName }) => {
   await page.goto("http://127.0.0.1:5559/packages/fs/test/test-task.html");
 
   // safari 下，fileSystemHandle无法写入内容

@@ -4,8 +4,6 @@ import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
 import { verify } from "../base/verify.js";
 import { inited } from "../server-connect/main.js";
 
-const STARTCHANNEL = "startChannel";
-
 // 获取存放日志的文件
 const saveLog = async (userId, data) => {
   const fileHandle = await get(
@@ -228,7 +226,9 @@ export class UserClient extends $.Stanz {
     // const rtcPC = this.#rtcConnection || this.initRTC(); // 开始初始化
     const rtcPC = this.initRTC(); // 重新开始初始化更有效率
 
-    await this._getChannel(STARTCHANNEL); // 必须先创建channel ，不然不会触发 ice 事件
+    // 初始化通道
+    // 必须先创建channel ，不然不会触发 ice 事件
+    await this.setChannelCount(1);
 
     const offer = await rtcPC.createOffer();
 
@@ -242,7 +242,27 @@ export class UserClient extends $.Stanz {
 
     this.state = "send-remote";
 
+    // 默认设置多一条通道
+    this.setChannelCount(6);
+
     return true;
+  }
+
+  // 设置通道数量
+  async setChannelCount(num) {
+    if (this.#channels.size < num) {
+      // 新增通道
+      for (let i = this.#channels.size; i < num; i++) {
+        await this._getChannel();
+      }
+    } else if (this.#channels.size > num) {
+      // 删除多余的通道
+      // for (let i = num; i < this.#channels.size; i++) {
+      //   const channel = this.#channels.get(i);
+      //   channel.close();
+      // }
+      debugger;
+    }
   }
 
   get userData() {
@@ -312,8 +332,30 @@ export class UserClient extends $.Stanz {
       data = JSON.stringify(data);
     }
 
-    // TODO: 获取第一个通道进行发送，后期应该分担到多个通道上
-    const channel = this.#channels.get(STARTCHANNEL);
+    // 查找最少发送次数的通道进行发送
+    let channel;
+
+    this.#channels.forEach((e) => {
+      if (!e.__count) {
+        e.__count = 0;
+      }
+
+      if (e.readyState !== "open") {
+        return;
+      }
+
+      if (!channel) {
+        channel = e;
+        return;
+      }
+
+      // 查看是否比上一个数量少
+      if (e.__count < channel.__count) {
+        channel = e;
+      }
+    });
+
+    channel.__count++; // 递增次数
 
     if (data.length > CHUNK_REMOTE_SIZE + 1) {
       // 第一个字节确认当前数据的类型，所以要+1
