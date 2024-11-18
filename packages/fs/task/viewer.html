@@ -145,7 +145,17 @@
           复制 {{fname}} 完成
         </x-if>
         <x-else>
-          {{fname}} <span style="font-size: 12px">({{totalSize}})</span>
+          {{fname}}
+          <div style="margin-left: 4px">
+            <x-if :value="cachedSize !== totalSize">
+              <span style="font-size: 12px">
+                ({{cachedSize}} / {{totalSize}})
+              </span>
+            </x-if>
+            <x-else>
+              <span style="font-size: 12px"> ({{totalSize}}) </span>
+            </x-else>
+          </div>
         </x-else>
       </div>
       <x-if :value="!!errInfo">
@@ -162,7 +172,12 @@
               variant="determinate"
             ></p-progress>
             <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
-            <x-else> 缓存中({{precentOne}})% </x-else>
+            <x-else>
+              缓存中({{precentOne}}%)
+              <div style="margin-left: 8px">
+                <x-if :value="_copySpeed"> {{copySpeed}}/S </x-if>
+              </div>
+            </x-else>
           </div>
           <div class="line" class:show="precentOne >= 100">
             <p-progress
@@ -237,7 +252,11 @@
           ispaused: false, // 暂停中
           fname: "",
           done: null, // 是否完成
+          cachedSize: 0, // 已经缓冲的大小
+          _cachedSize: 0,
           totalSize: 0, // 总大小
+          copySpeed: 0, // 每秒的速度
+          _copySpeed: 0,
           handleType: "", // 来源handle的类型
           precentOne: 0, // 复制区块进度
           precentTwo: 0, // 文件合并中的进度
@@ -282,14 +301,6 @@
                 from,
                 to,
                 confirm: async (e) => {
-                  let totalSize = 0;
-
-                  e.forEach(([path, item]) => {
-                    totalSize += item.size;
-                  });
-
-                  this.totalSize = formatSize(totalSize);
-
                   const listEl = this.shadow.$(`p-list[slot="childs"]`);
 
                   e.forEach(([path, item]) => {
@@ -311,6 +322,14 @@
 
                     listEl.push(li);
                   });
+
+                  // 准备计算每秒的速度
+                  this._last = 0;
+                  this._caculator = setInterval(() => {
+                    this._copySpeed = this._cachedSize - this._last;
+                    this.copySpeed = formatSize(this._copySpeed);
+                    this._last = this._cachedSize;
+                  }, 1000);
                 },
                 copy: (e) => {
                   // 复制过程
@@ -330,7 +349,16 @@
                       (e.currentCached / e.currentTotal) * 100;
                   }
 
+                  this._cachedSize = e.cachedSize;
+                  this.cachedSize = formatSize(e.cachedSize);
+                  this.totalSize = formatSize(e.totalSize);
+
                   this.precentOne = Math.floor((e.cached / e.total) * 100);
+
+                  if (this.precentOne >= 100) {
+                    clearInterval(this._caculator);
+                    this._copySpeed = 0;
+                  }
 
                   console.log("this.__copy_result: ", this.__copy_result);
                   return this.__copy_result;
@@ -413,6 +441,7 @@
             this.__resolve_copy_result = null;
           }
           this.__copy_result = false;
+          clearInterval(this._caculator);
         },
       };
     };

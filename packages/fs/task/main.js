@@ -119,12 +119,15 @@ export const copyTo = async (options) => {
     })
   );
 
-  // 获取总块数量
+  // 获取总块数量和总大小
   let totalCount = 0;
+  let totalSize = 0;
   flatFileDatas.forEach(([path, item]) => {
     totalCount += item.hashs1m.length;
+    totalSize += item.size;
   });
-  let cachedCount = 0;
+  let cachedCount = 0; // 缓存总块数
+  let cachedSize = 0; // 缓存总大小
 
   // 缓冲块数据
   const cacheBlob = async ({ hash, handle, i }) => {
@@ -135,6 +138,7 @@ export const copyTo = async (options) => {
       const hashResult = await cacheHandle._dataHash();
 
       if (hash === hashResult) {
+        cachedSize += await cacheHandle.size();
         return true;
       }
 
@@ -176,6 +180,8 @@ export const copyTo = async (options) => {
 
     await cacheHandle.write(blobData);
 
+    cachedSize += blobData.size;
+
     return true;
   };
 
@@ -189,7 +195,7 @@ export const copyTo = async (options) => {
     const { afterPath, hashs1m } = info;
 
     const currentTotal = hashs1m.length;
-    let currentCached = 0;
+    let currentCached = 0; // 当前文件的缓存块数量
 
     // 按照 1m 的格式，开始读取文件的块数据
     for (let i = 0; i < hashs1m.length; i++) {
@@ -208,6 +214,8 @@ export const copyTo = async (options) => {
           fromPath: path,
           currentCached,
           currentTotal,
+          totalSize,
+          cachedSize,
         });
 
         if (delayTime) {
