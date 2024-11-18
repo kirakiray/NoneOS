@@ -23,6 +23,8 @@
     notMoveToChild: "{targetPath} 是 {path} 的子目录，不能移动到自己的子目录",
     notFoundChunk: "{path}文件没有找到对应的块文件:{hash}",
     pathInvalid: "路径不能包含特殊字符 {path}",
+    getHashErr: "获取hash出错:{path}",
+    copyNoFile: "复制文件到目标目录失败:{path} (次数：{count})",
   };
 
   /**
@@ -1031,12 +1033,14 @@
           const { handle } = item;
 
           const hashs1m = await handle._getHashs();
+          const hash = await handle.hash();
 
           return [
             item.path,
             {
               size: item.size,
               hashs1m,
+              hash,
             },
           ];
         })
@@ -1095,7 +1099,111 @@
         return getHashs(await this._fsh.getFile(), chunkSize);
       }
     }
+
+    // 直接计算数据的哈希值
+    async _dataHash() {
+      const cachedBlob = await this.file();
+      return await calculateHash(cachedBlob);
+    }
+
+    // 读取缓存的chunk并，合并文件后写入
+    async _mergeChunks(options) {
+      const { flatFileDatas, delayTime } = options;
+
+      let blobsDir;
+      {
+        const parent = await this.parent();
+        blobsDir = await parent.get(`${this.name}.fs_task_cache`);
+      }
+
+      const targetHandle = this;
+
+      if (this.kind === "dir") {
+        // 目录合并
+        let count = 0;
+        // 根据信息开始合并文件
+        for (let [path, info] of flatFileDatas) {
+          const { afterPath } = info;
+
+          const { hashs1m } = info;
+
+          await mergeBlob({
+            path,
+            hashs1m,
+            blobsDir,
+            merge: (e) => {
+              count++;
+
+              options.merge &&
+                options.merge({
+                  ...e,
+                  count,
+                  total: flatFileDatas.length,
+                });
+            },
+            delayTime,
+            fileHandle: await targetHandle.get(afterPath, {
+              create: "file",
+            }),
+          });
+        }
+      } else {
+        // 文件合并
+        const [path, info] = flatFileDatas[0];
+        const { hashs1m } = info;
+
+        await mergeBlob({
+          path,
+          hashs1m,
+          blobsDir,
+          merge: options.merge,
+          delayTime,
+          fileHandle: targetHandle,
+        });
+      }
+
+      return true;
+    }
   }
+
+  // 合并文件
+  const mergeBlob = async ({
+    path,
+    hashs1m,
+    blobsDir,
+    merge,
+    delayTime,
+    fileHandle,
+  }) => {
+    const fileBlobs = await Promise.all(
+      hashs1m.map(async (hash) => {
+        const handle = await blobsDir.get(hash);
+
+        if (!handle) {
+          // TODO: 块数据没有找到，需要重新复制
+          debugger;
+          throw new Error("no blob here");
+        }
+
+        return handle.file();
+      })
+    );
+
+    await fileHandle.write(new Blob(fileBlobs));
+
+    if (merge) {
+      merge({
+        path: fileHandle.path,
+        fromPath: path,
+        count: 1,
+        total: 1,
+      });
+    }
+
+    if (delayTime) {
+      await new Promise((resolve) => setTimeout(resolve, delayTime));
+    }
+  };
 
   /**
    * 基础的Handle
@@ -1477,17 +1585,6 @@
         blobs = blobs.filter((e) => !!e);
       } else {
         if (hashs) {
-          // blobs = [];
-          // for (let hash of hashs) {
-          //   const result = await getData({
-          //     storename: "blocks",
-          //     key: hash,
-          //   });
-
-          //   const { chunk } = result;
-
-          //   blobs.push(new Blob([chunk]));
-          // }
           blobs = await Promise.all(
             hashs.map(async (hash, index) => {
               const result = await getData$1({
