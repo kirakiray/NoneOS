@@ -242,9 +242,6 @@ export class UserClient extends $.Stanz {
 
     this.state = "send-remote";
 
-    // 默认设置多一条通道
-    this.setChannelCount(6);
-
     return true;
   }
 
