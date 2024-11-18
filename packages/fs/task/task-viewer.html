@@ -54,6 +54,12 @@
             } else {
               removeData();
             }
+
+            this.emit("task-done", {
+              data: {
+                ...item.toJSON(),
+              },
+            });
           },
           copying(item, event) {
             const { data } = event;

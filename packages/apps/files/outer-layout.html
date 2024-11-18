@@ -102,7 +102,7 @@
     </p-list-item>
   </template>
 
-  <n-task-viewer></n-task-viewer>
+  <n-task-viewer on:task-done="taskDone"></n-task-viewer>
 
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";
@@ -137,6 +137,9 @@
           remotes: [], // 远端设备
         },
         proto: {
+          taskDone(e) {
+            this.app.current.refreshFiles();
+          },
           clickTab(data) {
             if (data.path === this.selectedRootName) {
               return;

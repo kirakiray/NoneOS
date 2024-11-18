@@ -74,10 +74,6 @@ export const copyTo = async (options) => {
   }
 
   if (fHandle.kind === "file") {
-    if (fHandle._mark === "remote") {
-      debugger;
-    }
-
     flatFileDatas[0][1].afterPath = flatFileDatas[0][0];
   } else {
     let fromDirPath;
