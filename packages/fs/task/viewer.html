@@ -400,11 +400,13 @@
 
                   this.precentThree = Math.floor((e.removed / e.total) * 100);
                 },
-                error(err) {
+                error: (err) => {
                   enqueue({
                     content: err.toString(),
                     color: "error",
                   });
+
+                  clearInterval(this._caculator);
                 },
               }).catch((err) => err);
 
@@ -416,6 +418,8 @@
                 });
 
                 this.errInfo = result.toString();
+
+                clearInterval(this._caculator);
 
                 enqueue({
                   content: this.errInfo,

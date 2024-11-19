@@ -168,8 +168,8 @@ export const copyTo = async (options) => {
         const timeoutPms = new Promise((resolve) => {
           const timer = setTimeout(() => {
             resolve(new Error(`fetch blob timeout: ${hash}`));
-          // }, 15000);
-          }, 1000);
+          }, 15000);
+          // }, 1000); // debug
           _innerResolve = () => {
             clearTimeout(timer);
             _innerResolve = null;
@@ -230,14 +230,18 @@ export const copyTo = async (options) => {
     // 让发送块数据的线程保持在指定的数量
     const MaxRunCount = 4; // 最大线程数
     let running = 0; // 已经运行的线程数
-    let waitingResolve;
+    let waitingResolve, waitingReject;
     let waitingPms;
     // 重新设置等待的 Promise
     const resetWaiting = () => {
-      waitingPms = new Promise((resolve) => {
+      waitingPms = new Promise((resolve, reject) => {
+        waitingReject = (error) => {
+          waitingPms = waitingResolve = waitingReject = null;
+          reject(error);
+        };
         waitingResolve = () => {
           running--;
-          waitingPms = waitingResolve = null;
+          waitingPms = waitingResolve = waitingReject = null;
           resolve();
         };
       });
@@ -264,35 +268,39 @@ export const copyTo = async (options) => {
       }
 
       allPms.push(
-        cacheBlob({ hash, handle, i }).then(async () => {
-          cachedCount++;
-          currentCached++;
+        cacheBlob({ hash, handle, i })
+          .then(async () => {
+            cachedCount++;
+            currentCached++;
 
-          if (options.copy) {
-            let result = options.copy({
-              cached: cachedCount,
-              total: totalCount,
-              current: `${tHandle.path}/${finalName}/${afterPath}`,
-              fromPath: path,
-              currentCached,
-              currentTotal,
-              totalSize,
-              cachedSize,
-            });
+            if (options.copy) {
+              let result = options.copy({
+                cached: cachedCount,
+                total: totalCount,
+                current: `${tHandle.path}/${finalName}/${afterPath}`,
+                fromPath: path,
+                currentCached,
+                currentTotal,
+                totalSize,
+                cachedSize,
+              });
 
-            if (delayTime) {
-              await new Promise((resolve) => setTimeout(resolve, delayTime));
+              if (delayTime) {
+                await new Promise((resolve) => setTimeout(resolve, delayTime));
+              }
+
+              if (result instanceof Promise) {
+                result = await result;
+              }
+
+              if (waitingResolve) {
+                waitingResolve(result);
+              }
             }
-
-            if (result instanceof Promise) {
-              result = await result;
-            }
-
-            if (waitingResolve) {
-              waitingResolve(result);
-            }
-          }
-        })
+          })
+          .catch((err) => {
+            waitingReject(err);
+          })
       );
     }
 
