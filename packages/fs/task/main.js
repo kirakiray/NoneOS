@@ -153,14 +153,44 @@ export const copyTo = async (options) => {
     while (!finnalResult) {
       if (loadCount > 5) {
         // 重新读取了5次还是不行，就不要再读取了
-        throw getErr("notFoundChunk", { path, hash });
+        throw getErr("notFoundChunk", { path: handle.path, hash });
       }
 
-      // 读取块数据
-      blobData = await handle.file({
-        start: i * 1024 * 1024,
-        end: (i + 1) * 1024 * 1024,
-      });
+      try {
+        // 读取块数据
+        const filePms = handle.file({
+          start: i * 1024 * 1024,
+          end: (i + 1) * 1024 * 1024,
+        });
+
+        // 添加超时机制，15秒后无法得到数据的情况，跑出超时错误
+        let _innerResolve;
+        const timeoutPms = new Promise((resolve) => {
+          const timer = setTimeout(() => {
+            resolve(new Error(`fetch blob timeout: ${hash}`));
+          // }, 15000);
+          }, 1000);
+          _innerResolve = () => {
+            clearTimeout(timer);
+            _innerResolve = null;
+            resolve();
+          };
+        });
+
+        const finnalResult = await Promise.race([filePms, timeoutPms]);
+
+        if (finnalResult instanceof Error) {
+          throw err;
+        }
+
+        _innerResolve && _innerResolve(null);
+
+        blobData = await filePms;
+      } catch (err) {
+        // 加载报错，重新开始
+        loadCount++;
+        continue;
+      }
 
       // 计算哈希值是否相等
       const hashResult = await calculateHash(blobData);
@@ -197,41 +227,6 @@ export const copyTo = async (options) => {
     const currentTotal = hashs1m.length;
     let currentCached = 0; // 当前文件的缓存块数量
 
-    // 并行发送块缓存的请求
-    // await Promise.all(
-    //   hashs1m.map(async (hash, i) => {
-    //     await cacheBlob({ hash, handle, i });
-
-    //     cachedCount++;
-    //     currentCached++;
-
-    //     if (options.copy) {
-    //       let result = options.copy({
-    //         cached: cachedCount,
-    //         total: totalCount,
-    //         current: `${tHandle.path}/${finalName}/${afterPath}`,
-    //         fromPath: path,
-    //         currentCached,
-    //         currentTotal,
-    //         totalSize,
-    //         cachedSize,
-    //       });
-
-    //       if (delayTime) {
-    //         await new Promise((resolve) => setTimeout(resolve, delayTime));
-    //       }
-
-    //       if (result instanceof Promise) {
-    //         result = await result;
-    //       }
-
-    //       if (result === false) {
-    //         throw new Error("copyCancel");
-    //       }
-    //     }
-    //   })
-    // );
-
     // 让发送块数据的线程保持在指定的数量
     const MaxRunCount = 4; // 最大线程数
     let running = 0; // 已经运行的线程数
@@ -267,8 +262,6 @@ export const copyTo = async (options) => {
       if (running > MaxRunCount) {
         resetWaiting();
       }
-
-      // console.log("cacheBlob: ", hash, i);
 
       allPms.push(
         cacheBlob({ hash, handle, i }).then(async () => {
