@@ -197,40 +197,113 @@ export const copyTo = async (options) => {
     const currentTotal = hashs1m.length;
     let currentCached = 0; // 当前文件的缓存块数量
 
+    // 并行发送块缓存的请求
+    // await Promise.all(
+    //   hashs1m.map(async (hash, i) => {
+    //     await cacheBlob({ hash, handle, i });
+
+    //     cachedCount++;
+    //     currentCached++;
+
+    //     if (options.copy) {
+    //       let result = options.copy({
+    //         cached: cachedCount,
+    //         total: totalCount,
+    //         current: `${tHandle.path}/${finalName}/${afterPath}`,
+    //         fromPath: path,
+    //         currentCached,
+    //         currentTotal,
+    //         totalSize,
+    //         cachedSize,
+    //       });
+
+    //       if (delayTime) {
+    //         await new Promise((resolve) => setTimeout(resolve, delayTime));
+    //       }
+
+    //       if (result instanceof Promise) {
+    //         result = await result;
+    //       }
+
+    //       if (result === false) {
+    //         throw new Error("copyCancel");
+    //       }
+    //     }
+    //   })
+    // );
+
+    // 让发送块数据的线程保持在指定的数量
+    const MaxRunCount = 4; // 最大线程数
+    let running = 0; // 已经运行的线程数
+    let waitingResolve;
+    let waitingPms;
+    // 重新设置等待的 Promise
+    const resetWaiting = () => {
+      waitingPms = new Promise((resolve) => {
+        waitingResolve = () => {
+          running--;
+          waitingPms = waitingResolve = null;
+          resolve();
+        };
+      });
+    };
+
+    const allPms = []; // 所有的请求进程
+
     // 按照 1m 的格式，开始读取文件的块数据
     for (let i = 0; i < hashs1m.length; i++) {
       const hash = hashs1m[i];
 
-      await cacheBlob({ hash, handle, i });
-
-      cachedCount++;
-      currentCached++;
-
-      if (options.copy) {
-        let result = options.copy({
-          cached: cachedCount,
-          total: totalCount,
-          current: `${tHandle.path}/${finalName}/${afterPath}`,
-          fromPath: path,
-          currentCached,
-          currentTotal,
-          totalSize,
-          cachedSize,
-        });
-
-        if (delayTime) {
-          await new Promise((resolve) => setTimeout(resolve, delayTime));
-        }
-
-        if (result instanceof Promise) {
-          result = await result;
-        }
+      if (waitingPms) {
+        const result = await waitingPms;
 
         if (result === false) {
           break;
         }
       }
+
+      running++;
+
+      if (running > MaxRunCount) {
+        resetWaiting();
+      }
+
+      // console.log("cacheBlob: ", hash, i);
+
+      allPms.push(
+        cacheBlob({ hash, handle, i }).then(async () => {
+          cachedCount++;
+          currentCached++;
+
+          if (options.copy) {
+            let result = options.copy({
+              cached: cachedCount,
+              total: totalCount,
+              current: `${tHandle.path}/${finalName}/${afterPath}`,
+              fromPath: path,
+              currentCached,
+              currentTotal,
+              totalSize,
+              cachedSize,
+            });
+
+            if (delayTime) {
+              await new Promise((resolve) => setTimeout(resolve, delayTime));
+            }
+
+            if (result instanceof Promise) {
+              result = await result;
+            }
+
+            if (waitingResolve) {
+              waitingResolve(result);
+            }
+          }
+        })
+      );
     }
+
+    await Promise.all(allPms); // 保证全部块都缓存完才进行下一步
   };
 
   if (fHandle.kind === "dir") {

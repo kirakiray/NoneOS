@@ -157,6 +157,11 @@
             </x-else>
           </div>
         </x-else>
+        <x-if :value="!!copyTime">
+          <div style="margin-left: 4px; font-size: 12px">
+            (时间: {{copyTime}}s)
+          </div>
+        </x-if>
       </div>
       <x-if :value="!!errInfo">
         <div secondary style="display: flex; align-items: center">
@@ -174,7 +179,7 @@
             <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
             <x-else>
               缓存中({{precentOne}}%)
-              <div style="margin-left: 8px">
+              <div style="margin-left: 4px">
                 <x-if :value="_copySpeed"> {{copySpeed}}/S </x-if>
               </div>
             </x-else>
@@ -257,6 +262,7 @@
           totalSize: 0, // 总大小
           copySpeed: 0, // 每秒的速度
           _copySpeed: 0,
+          copyTime: 0, // 拷贝时间
           handleType: "", // 来源handle的类型
           precentOne: 0, // 复制区块进度
           precentTwo: 0, // 文件合并中的进度
@@ -329,6 +335,7 @@
                     this._copySpeed = this._cachedSize - this._last;
                     this.copySpeed = formatSize(this._copySpeed);
                     this._last = this._cachedSize;
+                    this.copyTime++;
                   }, 1000);
                 },
                 copy: (e) => {
@@ -360,7 +367,7 @@
                     this._copySpeed = 0;
                   }
 
-                  console.log("this.__copy_result: ", this.__copy_result);
+                  // console.log("this.__copy_result: ", this.__copy_result);
                   return this.__copy_result;
                 },
                 // 合并文件中

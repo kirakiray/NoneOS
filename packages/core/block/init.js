@@ -4,7 +4,7 @@ import { getId } from "../base/pair.js";
 import { blobToBuffer } from "../../fs/util.js";
 
 // 得到了获取块的请求
-userMiddleware.set("get-block", async (options, client) => {
+userMiddleware.set("get-block", async (options, client, channel) => {
   const { hashs } = options;
 
   const gid = Math.random().toString(32).slice(3); // 分组id
@@ -28,7 +28,7 @@ userMiddleware.set("get-block", async (options, client) => {
     },
   });
 
-  console.log("blocks: ", blocks);
+  // console.log("blocks: ", blocks, channel.label, channel.__count);
 
   // 去重提升数据传输效率
   const seen = new Set();

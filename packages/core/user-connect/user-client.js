@@ -104,6 +104,8 @@ export class UserClient extends $.Stanz {
   _bindChannel(channel) {
     channel.onmessage = (e) => this.#onmsg(e, channel);
 
+    // console.log("create channel: ", channel);
+
     channel.onclose = async () => {
       console.log("channel close: ", channel.label, channel);
 
@@ -166,7 +168,28 @@ export class UserClient extends $.Stanz {
   }
 
   initRTC() {
-    const rtcPC = (this.#rtcConnection = new RTCPeerConnection());
+    const configuration = {
+      iceServers: [
+        { urls: "stun:stun.l.google.com:19302" },
+        { urls: "stun:stun.xten.com:3478" },
+        { urls: "stun:stun.voipbuster.com:3478" },
+        { urls: "stun:stun.sipgate.net:3478" },
+        { urls: "stun:stun.ekiga.net:3478" },
+        { urls: "stun:stun.ideasip.com:3478" },
+        { urls: "stun:stun.schlund.de:3478" },
+        { urls: "stun:stun.voiparound.com:3478" },
+        { urls: "stun:stun.voipstunt.com:3478" },
+        { urls: "stun:stun.counterpath.com:3478" },
+        { urls: "stun:stun.1und1.de:3478" },
+        { urls: "stun:stun.gmx.net:3478" },
+        { urls: "stun:stun.callwithus.com:3478" },
+        { urls: "stun:stun.counterpath.net:3478" },
+        { urls: "stun:stun.internetcalls.com:3478" },
+        { urls: "stun:numb.viagenie.ca:3478" },
+      ],
+    };
+
+    const rtcPC = (this.#rtcConnection = new RTCPeerConnection(configuration));
 
     // RTC对象的事件
     // icecandidate：当找到新的 ICE 候选者时触发。
@@ -228,7 +251,7 @@ export class UserClient extends $.Stanz {
 
     // 初始化通道
     // 必须先创建channel ，不然不会触发 ice 事件
-    await this.setChannelCount(1);
+    await this.setChannelCount(3);
 
     const offer = await rtcPC.createOffer();
 
@@ -246,6 +269,7 @@ export class UserClient extends $.Stanz {
   }
 
   // 设置通道数量
+  // TODO: 增加通道数貌似不会增加发送速度
   async setChannelCount(num) {
     if (this.#channels.size < num) {
       // 新增通道
@@ -360,6 +384,8 @@ export class UserClient extends $.Stanz {
         `The data sent cannot be larger than ${CHUNK_REMOTE_SIZE / 1024}kb`
       );
     }
+
+    // console.log("send: ", data);
 
     channel.send(data);
   }
