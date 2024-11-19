@@ -460,7 +460,8 @@
     return data;
   };
 
-  const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
+  // export const CHUNK_REMOTE_SIZE = 128 * 1024; // 128kb // 远程复制的块大小
+  const CHUNK_REMOTE_SIZE = 256 * 1024; // 256kb // 远程复制的块大小
 
   const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
   // const CHUNK_SIZE = 512 * 1024; // 512KB
