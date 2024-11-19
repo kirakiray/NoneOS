@@ -151,8 +151,8 @@ export const copyTo = async (options) => {
     let blobData; // 读取到的数据
 
     while (!finnalResult) {
-      if (loadCount > 5) {
-        // 重新读取了5次还是不行，就不要再读取了
+      if (loadCount > 3) {
+        // 重新读取了3次还是不行，就不要再读取了
         throw getErr("notFoundChunk", { path: handle.path, hash });
       }
 
@@ -299,7 +299,7 @@ export const copyTo = async (options) => {
             }
           })
           .catch((err) => {
-            waitingReject(err);
+            waitingReject && waitingReject(err);
           })
       );
     }

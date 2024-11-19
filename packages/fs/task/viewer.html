@@ -66,6 +66,10 @@
     .prefix-btn {
       display: none;
     }
+
+    [secondary] {
+      word-break: break-all;
+    }
   </style>
 
   <x-if :value="!precentTwo">
@@ -208,7 +212,20 @@
           </div>
         </div>
       </x-else>
-      <i collapse-triangle slot="suffix"></i>
+      <x-if :value="errInfo">
+        <p-button
+          size="small"
+          slot="suffix"
+          on:click="retry"
+          attr:disabled="clickRetried"
+          style="z-index: 3"
+        >
+          重试
+        </p-button>
+      </x-if>
+      <x-else>
+        <i collapse-triangle slot="suffix"></i>
+      </x-else>
       <p-list slot="childs" style="padding-left: 8px">
         <!-- <p-list-item>
           <div class="sub-item-prefix" slot="prefix">
@@ -268,6 +285,7 @@
           precentTwo: 0, // 文件合并中的进度
           precentThree: 0, // 删除缓存的进度
           errInfo: null, // 错误信息
+          clickRetried: false, // 点击重试
         },
         watch: {
           ispaused(ispaused) {
@@ -282,6 +300,12 @@
           },
         },
         proto: {
+          // 重试
+          retry(e) {
+            this.clickRetried = true;
+            e.stopPropagation();
+            this.loadTask();
+          },
           clickPause(e) {
             this.ispaused = !this.ispaused;
             e.stopPropagation();
@@ -301,6 +325,8 @@
             if (this.type === "copy") {
               this.fname = from.name;
               this.handleType = from.kind;
+
+              this.clickRetried = false;
 
               const result = await copyTo({
                 delayTime: this.delayTime ? parseInt(this.delayTime) : null, // 故意延迟用于调试
