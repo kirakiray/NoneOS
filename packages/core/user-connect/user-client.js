@@ -1,6 +1,5 @@
 import { get } from "/packages/fs/handle/index.js";
 import { servers, emit, userMiddleware } from "../main.js";
-import { CHUNK_REMOTE_SIZE } from "../../fs/util.js";
 import { verify } from "../base/verify.js";
 import { inited } from "../server-connect/main.js";
 
@@ -378,11 +377,8 @@ export class UserClient extends $.Stanz {
 
     channel.__count++; // 递增次数
 
-    if (data.length > CHUNK_REMOTE_SIZE + 1) {
-      // 第一个字节确认当前数据的类型，所以要+1
-      throw new Error(
-        `The data sent cannot be larger than ${CHUNK_REMOTE_SIZE / 1024}kb`
-      );
+    if (data.length > 256 * 1024) {
+      throw new Error(`The data sent cannot be larger than 256kb`);
     }
 
     // console.log("send: ", data);
