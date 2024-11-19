@@ -31,9 +31,7 @@ export const addServer = (serverUrl) => {
 
   servers.push(connector);
 
-  if (isSave) {
-    saveServer();
-  }
+  saveServer();
 };
 
 function validateURL(url) {
