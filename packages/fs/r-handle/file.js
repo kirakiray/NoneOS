@@ -1,93 +1,66 @@
-import { getErr } from "../errors.js";
-import { saveCache } from "../cache/util.js";
-import { fetchCache } from "../cache/main.js";
 import { RemoteBaseHandle } from "./base.js";
-import {
-  calculateHash,
-  mergeChunks,
-  readBufferByType,
-  splitIntoChunks,
-} from "../util.js";
-import { CHUNK_REMOTE_SIZE } from "../util.js";
+import { getData, saveData, clearBlock } from "../../core/block/main.js";
+import { getId } from "../../core/base/pair.js";
+import { readBlobByType } from "../util.js";
 
-/**
- * 创建文件handle
- * @extends {RemoteBaseHandle}
- */
 export class RemoteFileHandle extends RemoteBaseHandle {
-  /**
-   */
-  constructor(path, bridgeFunc) {
-    super(path, bridgeFunc, "file");
+  constructor(options) {
+    super(options);
   }
 
-  /**
-   * 写入文件数据
-   * 最大只能写入 REMOTE_CHUNK_SIZE 大小的数据
-   * @returns {Promise<void>}
-   */
-  async write(data) {
-    // 将数据缓冲到缓存池，等待远端获取
-    const chunks = await splitIntoChunks(data);
-
-    const hashs = [];
-    await Promise.all(
-      chunks.map(async (chunk, i) => {
-        const hash = await calculateHash(chunk);
-        hashs[i] = hash;
-        await saveCache(hash, chunk);
-      })
-    );
-
-    // 推送给对方进行组装
-    const result = await this._bridge({
-      method: "_writeByCache",
-      path: this._path,
-      args: [
-        {
-          hashs,
-        },
-      ],
-    });
-
-    return result;
+  get kind() {
+    return "file";
   }
 
-  /**
-   * 返回文件数据
-   * @param {string} type 读取数据后返回的类型
-   * @param {object} options 读取数据的选项
-   * @returns {Promise<(File|String|Buffer)>}
-   */
-  async read(type = "text", options) {
-    // 通知对面保存块
-    const hashs = await this._bridge({
+  async read(type, options) {
+    // 让对面保存到cache，并得到整个文件的哈希值
+    const hashs = await this.bridge({
       method: "_saveCache",
-      path: this._path,
+      path: this.path,
       args: [
         {
-          size: CHUNK_REMOTE_SIZE,
-          returnHashs: true, // 返回哈希数组
           options,
         },
       ],
     });
 
-    const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
+    const userId = this.path.split(":")[1];
 
-    const chunks = await Promise.all(
-      hashs.map(async (hash) => {
-        return fetchCache(hash, userId);
-      })
-    );
+    // 获取对一个的块数据，并合并文件
+    const blobData = await getData({
+      hashs,
+      userId,
+      reason: "handle-read",
+      path: this.path,
+    });
 
-    const buffer = mergeChunks(chunks);
+    clearBlock(hashs, {
+      reason: "clear-read-cache",
+      reasonData: {
+        path: this.path,
+        userId,
+      },
+    });
 
-    return readBufferByType({
-      buffer,
+    return await readBlobByType({
+      blobData,
       type,
       data: { name: this.name },
       isChunk: options?.start || options?.end,
+    });
+  }
+  async write(data) {
+    const hashs = await saveData({
+      data,
+      reason: "before-send-write",
+      path: this.path,
+      userId: this.path.split(":")[1],
+    });
+
+    return await this.bridge({
+      method: "_writeByCache",
+      path: this.path,
+      args: [{ hashs, userId: await getId() }],
     });
   }
 

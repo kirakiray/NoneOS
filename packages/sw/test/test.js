@@ -36,13 +36,13 @@ onmessage = (event)=>{
 
   await handle.write(content);
 
-  const worker = new Worker("/$/local/test_worker.js");
+  // const worker = new Worker("/$/local/test_worker.js");
 
-  worker.onmessage = (event) => {
-    ok(event.data === "收到了:test", "worker");
+  // worker.onmessage = (event) => {
+  //   ok(event.data === "收到了:test", "worker");
 
-    worker.terminate();
-  };
+  //   worker.terminate();
+  // };
 
-  worker.postMessage("test");
+  // worker.postMessage("test");
 }

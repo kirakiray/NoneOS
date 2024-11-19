@@ -1,6 +1,5 @@
-import { splitIntoChunks, calculateHash, flatHandle } from "./util.js";
-import { CHUNK_REMOTE_SIZE } from "./util.js";
-import { fetchCache, saveCache } from "./cache/main.js";
+import { calculateHash, CHUNK_SIZE, flatHandle, getHashs } from "./util.js";
+import { saveData, getData } from "../core/block/main.js";
 
 export class PublicBaseHandle {
   constructor() {}
@@ -10,105 +9,183 @@ export class PublicBaseHandle {
     return flatHandle(this);
   }
 
+  // 给拷贝进度用的方法，获取文件或文件夹的分块信息
+  async _info() {
+    const flatData = await this.flat();
+
+    const reData = await Promise.all(
+      flatData.map(async (item) => {
+        const { handle } = item;
+
+        const hashs1m = await handle._getHashs();
+        const hash = await handle.hash();
+
+        return [
+          item.path,
+          {
+            size: item.size,
+            hashs1m,
+            hash,
+          },
+        ];
+      })
+    );
+
+    return reData;
+  }
+
   // 按照需求将文件保存到缓存池中，方便远端获取
-  async _saveCache(arg) {
-    const chunkSize = arg.size;
-    const { options, returnHashs } = arg;
-
+  async _saveCache({ options }) {
     // 获取指定的块内容
-    const result = await this.buffer(options);
-    const datas = await splitIntoChunks(result, chunkSize);
+    const data = await this.file(options);
 
-    const hashs = [];
-
-    await Promise.all(
-      datas.map(async (chunk, i) => {
-        const hash = await calculateHash(chunk);
-
-        hashs[i] = hash;
-
-        await saveCache(hash, chunk);
-      })
-    );
-
-    if (returnHashs) {
-      return hashs;
-    }
-
-    return true;
+    return await saveData({
+      data,
+      reason: "save-cache",
+      path: this.path,
+      userId: this.__remote_user,
+    });
   }
 
-  // 从缓冲池进行组装文件并写入
-  async _writeByCache(options) {
-    const { hashs } = options;
+  // 从缓存区获取数据并写入
+  async _writeByCache({ hashs, userId }) {
+    const data = await getData({
+      hashs,
+      userId,
+      path: this.path,
+      reason: "remote-write-cache",
+    });
 
-    const userId = this.path.replace(/^\$remote:(.+):.+\/.+/, "$1");
-
-    const chunks = await Promise.all(
-      hashs.map(async (hash) => {
-        return fetchCache(hash, userId);
-      })
-    );
-
-    // 写入文件
-    const writer = await this.createWritable();
-
-    for (let chunk of chunks) {
-      await writer.write(chunk);
-    }
-
-    writer.close();
-
-    return true;
+    return await this.write(data);
   }
 
+  // 获取文件哈希值的方法
+  async hash() {
+    if (this.kind === "dir") {
+      throw new Error(`The directory cannot use the hash method`);
+    }
+
+    const hashs = await this._getHashs();
+
+    const hash = await calculateHash(hashs.join(""));
+
+    return hash;
+  }
+
+  // 获取1mb分区哈希块数组
   async _getHashs(options) {
-    options = options || {};
-    const chunkSize = options.size || CHUNK_REMOTE_SIZE;
+    if (this.kind === "dir") {
+      throw new Error(`The directory cannot use the _getHashs method`);
+    }
 
-    // 获取指定的块内容
-    const result = await this.buffer();
+    const chunkSize = options?.chunkSize || CHUNK_SIZE;
 
-    const datas = await splitIntoChunks(result, chunkSize);
-
-    const hashs = await Promise.all(
-      datas.map(async (chunk) => {
-        return await calculateHash(chunk);
-      })
-    );
-
-    return hashs;
+    if (this.kind === "file") {
+      return getHashs(await this._fsh.getFile(), chunkSize);
+    }
   }
 
-  // 根据哈希值，从缓存目录获取块数据，再合并成一个完整的文件
-  async _mergeChunk(hashs, cacheDirPath) {
-    const cacheDir = await (await this.root()).get(cacheDirPath);
+  // 直接计算数据的哈希值
+  async _dataHash() {
+    const cachedBlob = await this.file();
+    return await calculateHash(cachedBlob);
+  }
 
-    if (!cacheDir) {
-      throw new Error("没有找到缓冲目录");
+  // 读取缓存的chunk并，合并文件后写入
+  async _mergeChunks(options) {
+    const { flatFileDatas, delayTime } = options;
+
+    let blobsDir;
+    {
+      const parent = await this.parent();
+      blobsDir = await parent.get(`${this.name}.fs_task_cache`);
     }
 
-    const writer = await this.createWritable();
+    const targetHandle = this;
 
-    for (let hash of hashs) {
-      const handle = await cacheDir.get(hash);
-      if (!handle) {
-        const err = get("notFoundChunk", {
-          path: item.path,
-          hash,
+    if (this.kind === "dir") {
+      // 目录合并
+      let count = 0;
+      // 根据信息开始合并文件
+      for (let [path, info] of flatFileDatas) {
+        const { afterPath } = info;
+
+        const { hashs1m } = info;
+
+        await mergeBlob({
+          path,
+          hashs1m,
+          blobsDir,
+          merge: (e) => {
+            count++;
+
+            options.merge &&
+              options.merge({
+                ...e,
+                count,
+                total: flatFileDatas.length,
+              });
+          },
+          delayTime,
+          fileHandle: await targetHandle.get(afterPath, {
+            create: "file",
+          }),
         });
-        console.error(err);
-        await writer.abort();
-        throw err;
       }
+    } else {
+      // 文件合并
+      const [path, info] = flatFileDatas[0];
+      const { hashs1m } = info;
 
-      const data = await handle.buffer();
-      await writer.write(data);
+      await mergeBlob({
+        path,
+        hashs1m,
+        blobsDir,
+        merge: options.merge,
+        delayTime,
+        fileHandle: targetHandle,
+      });
     }
-
-    // 没有报错
-    await writer.close();
 
     return true;
   }
 }
+
+// 合并文件
+const mergeBlob = async ({
+  path,
+  hashs1m,
+  blobsDir,
+  merge,
+  delayTime,
+  fileHandle,
+}) => {
+  const fileBlobs = await Promise.all(
+    hashs1m.map(async (hash) => {
+      const handle = await blobsDir.get(hash);
+
+      if (!handle) {
+        // TODO: 块数据没有找到，需要重新复制
+        debugger;
+        throw new Error("no blob here");
+      }
+
+      return handle.file();
+    })
+  );
+
+  await fileHandle.write(new Blob(fileBlobs));
+
+  if (merge) {
+    merge({
+      path: fileHandle.path,
+      fromPath: path,
+      count: 1,
+      total: 1,
+    });
+  }
+
+  if (delayTime) {
+    await new Promise((resolve) => setTimeout(resolve, delayTime));
+  }
+};

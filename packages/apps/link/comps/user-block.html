@@ -1,0 +1,178 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./copy-span.html"></l-m>
+  <l-m src="./moment-span.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      max-width: 320px;
+      min-width: 300px;
+      display: block;
+      border: green solid 1px;
+      padding: 8px;
+      border-radius: 8px;
+    }
+    .line {
+      display: flex;
+      align-items: center;
+    }
+    .line-key {
+      font-size: 14px;
+      font-weight: bold;
+      color: #7a7a7a;
+      margin-right: 8px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    [state="disconnected"],
+    [state="closed"] {
+      color: var(--md-sys-color-error);
+    }
+    [state="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+  <div>
+    <div class="line">
+      <div class="line-key">用户名</div>
+      <div class="line-val">{{item.userName}}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">用户ID</div>
+      <div class="line-val">
+        <n-copy-span>{{item.userId}}</n-copy-span>
+      </div>
+    </div>
+    <div class="line">
+      <div class="line-key">签名时间</div>
+      <div class="line-val">
+        <n-moment-span :time="item.time"></n-moment-span>
+      </div>
+    </div>
+    <div class="line">
+      <div class="line-key">连接状态</div>
+      <div class="line-val" attr:state="item.state">{{item.state}}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">延迟时间</div>
+      <div class="line-val">
+        <span style="display: inline-block; width: 60px">
+          {{item.delayTime}}
+        </span>
+        <p-button
+          on:click="item.ping()"
+          size="mini"
+          attr:disabled="item.state === 'disconnected' || item.state === 'closed'"
+        >
+          测试延迟
+        </p-button>
+      </div>
+    </div>
+    <div>
+      <p-button
+        size="mini"
+        on:click="connect"
+        size="mini"
+        attr:disabled="!(item.state === 'disconnected' || item.state === 'closed')"
+      >
+        {{connecting ? '连接中...' : '连接用户'}}
+      </p-button>
+
+      <p-button on:click="viewLog" size="mini">查看日志</p-button>
+    </div>
+  </div>
+  <p-button
+    size="mini"
+    attr:color="!iskeep ? 'normal' : 'primary'"
+    icon
+    on:click="clickFavory"
+    style="position: absolute; right: 8px; top: 8px"
+  >
+    <x-if :value="!iskeep">
+      <n-local-icon
+        name="favory-outline"
+        style="font-size: 12px"
+      ></n-local-icon>
+    </x-if>
+    <x-else>
+      <n-local-icon name="favory" style="font-size: 12px"></n-local-icon>
+    </x-else>
+  </p-button>
+
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+
+      return {
+        tag: "n-user-block",
+        data: {
+          item: {},
+          connecting: false,
+          iskeep: false, // 是否收藏到用户文件夹内
+        },
+        proto: {
+          async clickFavory() {
+            this.iskeep = !this.iskeep;
+
+            const cardsDir = await get("local/system/user/cards", {
+              create: "dir",
+            });
+
+            const { userData, user } = this.item;
+
+            if (this.iskeep) {
+              // 保存到用户文件夹内
+              const fileHandle = await cardsDir.get(userData.userID, {
+                create: "file",
+              });
+
+              await fileHandle.write(JSON.stringify(user));
+            } else {
+              // 移出用户文件夹
+              const fileHandle = await cardsDir.get(userData.userID);
+
+              if (fileHandle) {
+                // 删除收藏
+                await fileHandle.remove();
+              }
+            }
+          },
+          async viewLog() {
+            this.app.current.goto(
+              `user-logs.html?id=${this.item.userId}&name=${this.item.userName}`
+            );
+          },
+          async connect() {
+            this.connecting = true;
+            if (this.item.connect) {
+              await this.item.connect();
+            } else {
+              debugger;
+            }
+            this.connecting = false;
+          },
+        },
+        async attached() {
+          const { userData } = this.item;
+
+          // 查看是否在缓存文件夹内
+          const targetFile = await get(
+            `local/system/user/cards/${userData.userID}`
+          ).catch(() => null);
+
+          if (targetFile) {
+            // 在收藏文件夹内，则标记为收藏
+            const size = await targetFile.size();
+            this.iskeep = !!size;
+          }
+        },
+      };
+    };
+  </script>
+</template>

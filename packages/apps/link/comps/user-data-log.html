@@ -1,0 +1,82 @@
+<template component>
+  <l-m src="./data-log.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./moment-span.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+      min-width: 300px;
+    }
+
+    .data-log {
+      display: block;
+      border: rgb(45, 45, 205) solid 1px;
+      padding: 8px;
+      border-radius: 4px;
+    }
+
+    .log-line {
+      font-size: 12px;
+    }
+    .log-content {
+      position: relative;
+    }
+
+    .log-content p-button {
+      position: absolute;
+      right: 0;
+      top: -26px;
+    }
+  </style>
+  <div class="data-log">
+    <div class="log-line" attr:title="time">
+      <n-moment-span :time="item.time"></n-moment-span>
+    </div>
+    <div class="log-line" attr:title="time">类型: {{logType}}</div>
+    <div class="log-content">
+      <p-button on:click="showAll = showAll ? null : 1" size="mini">
+        {{showAll ? '折叠内容' : '显示所有'}}
+      </p-button>
+      <n-data-log :str="item._data" :show-all="showAll"></n-data-log>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "user-data-log",
+        data: {
+          item: {
+            _data: "{}",
+          },
+          showAll: null,
+        },
+        proto: {
+          get logType() {
+            try {
+              const data = JSON.parse(this.item._data);
+              switch (data.type) {
+                case "msg":
+                  return "测试信息";
+                case "get-certs":
+                  return "请求对方证书";
+                case "obtain-certs":
+                  return "缓存对方给的证书";
+                default:
+                  // TODO: 为止类型处理
+                  console.log("unknow: ", data);
+                  return "不明";
+              }
+            } catch (err) {
+              // TODO: 转化出错处理
+              return "文件损坏";
+            }
+          },
+          get time() {
+            return new Date(this.item.time).toLocaleString();
+          },
+        },
+      };
+    };
+  </script>
+</template>

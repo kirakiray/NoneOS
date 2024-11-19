@@ -1,93 +1,22 @@
 import { RemoteBaseHandle } from "./base.js";
-import { RemoteFileHandle } from "./file.js";
-
-export const createHandle = async (item, _this) => {
-  if (!item) {
-    return item;
-  }
-  let handle;
-  const prefixStr = _this.path.split(":").slice(0, 2).join(":");
-
-  if (item.kind === "file") {
-    handle = new RemoteFileHandle(`${prefixStr}:${item.path}`, _this._bridge);
-  } else {
-    handle = new RemoteDirHandle(`${prefixStr}:${item.path}`, _this._bridge);
-  }
-
-  handle._init(item);
-
-  return handle;
-};
 
 export class RemoteDirHandle extends RemoteBaseHandle {
-  constructor(path, bridgeFunc) {
-    super(path, bridgeFunc, "dir");
+  constructor(options) {
+    super(options);
   }
-  /**
-   * 获取子文件或目录的handle
-   * @param {string} path - 获取的子文件或目录的路径
-   * @param {Object} options - 获取选项的选项
-   * @returns  {Promise<(OriginFileHandle|OriginDirHandle)>}
-   */
+
+  get kind() {
+    return "dir";
+  }
+
   async get(...args) {
-    const item = await this._bridge({
+    const target = await this.bridge({
       method: "get",
-      path: this._path,
+      path: this.path,
       args,
     });
 
-    return createHandle(item, this);
-  }
-
-  /**
-   * 异步生成器函数，返回子数据的名称。
-   * @async
-   * @generator
-   * @yields {string} 子数据的名称。
-   */
-  async *keys() {
-    const result = await this._bridge({
-      method: "keys",
-      path: this._path,
-    });
-
-    for (let key of result) {
-      yield key;
-    }
-  }
-
-  /**
-   * 异步生成器函数，返回子数据的名称和对应的句柄。
-   * @async
-   * @generator
-   * @yields {Array} 包含子数据名称和句柄的数组。
-   */
-  async *entries() {
-    const result = await this._bridge({
-      method: "entries",
-      path: this._path,
-    });
-
-    for (let [key, item] of result) {
-      yield [key, await createHandle(item, this)];
-    }
-  }
-
-  /**
-   * 异步生成器函数，返回子数据的句柄。
-   * @async
-   * @generator
-   * @yields {(OriginDirHandle|OriginFileHandle)} 子数据的句柄。
-   */
-  async *values() {
-    const result = await this._bridge({
-      method: "values",
-      path: this._path,
-    });
-
-    for (let item of result) {
-      yield await createHandle(item, this);
-    }
+    return target;
   }
 
   /**
@@ -100,13 +29,19 @@ export class RemoteDirHandle extends RemoteBaseHandle {
       await callback(item);
     }
   }
-
-  async length() {
-    let count = 0;
-    for await (let key of this.keys()) {
-      count++;
-    }
-
-    return count;
-  }
 }
+
+// 转发 generator 相关方法
+["keys", "values", "entries", "length"].forEach((name) => {
+  RemoteDirHandle.prototype[name] = async function* (...args) {
+    const result = await this.bridge({
+      method: name,
+      path: this.path,
+      args,
+    });
+
+    for await (let item of result) {
+      yield item;
+    }
+  };
+});

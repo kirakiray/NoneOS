@@ -27,28 +27,15 @@ import { ok } from "./ok.js";
   {
     let fcontent = "";
 
-    const mbStr = (str) => {
-      let f1 = "";
-      for (let i = 0; i < 1024; i++) {
-        f1 += str;
-      }
-
-      let content = "";
-      for (let i = 0; i < 1024; i++) {
-        content += f1;
-      }
-
-      return content;
-    };
-
-    fcontent += mbStr("0");
-    fcontent += mbStr("1");
-    fcontent += mbStr("2");
-    fcontent += mbStr("3");
+    fcontent += "0".repeat(1024 * 1024);
+    fcontent += "1".repeat(1024 * 1024);
+    fcontent += "2".repeat(1024 * 1024);
+    fcontent += "3".repeat(1024 * 1024);
 
     const fullFile = await get("local/files/Sfile2.txt", {
       create: "file",
     });
+
     await fullFile.write(fcontent);
 
     {
@@ -67,7 +54,7 @@ import { ok } from "./ok.js";
       end: 1024 * 1024 * 2 + 1,
     });
 
-    ok(text2 === `0${mbStr("1")}2`, "read range");
+    ok(text2 === `0${"1".repeat(1024 * 1024)}2`, "read range");
 
     const rd = Math.random();
     const rStart = Math.ceil(rd * 1024 * 1024);

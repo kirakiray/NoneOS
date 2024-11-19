@@ -1,0 +1,207 @@
+<template component>
+  <l-m src="./user-name.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      width: 250px;
+    }
+    .container {
+      margin: 0 4px 4px 0;
+      padding: 4px;
+      border: #185f88 solid 1px;
+      border-radius: 8px;
+    }
+    .line {
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      line-height: 1.3em;
+    }
+    .line-key {
+      font-weight: bold;
+      margin-right: 8px;
+    }
+
+    .line-val {
+      flex: 1;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .blocks {
+      display: flex;
+      padding: 4px;
+      overflow-x: auto;
+    }
+
+    .block {
+      width: 14px;
+      height: 14px;
+      margin: 0 2px 2px 0;
+      background-color: #767474;
+      cursor: pointer;
+    }
+    .block:hover {
+      transform: scale(1.3);
+      outline: var(--md-sys-color-primary) solid 0.5px;
+    }
+
+    .block.exited {
+      background-color: var(--md-sys-color-success);
+    }
+
+    [data-type="get"] {
+      color: var(--md-sys-color-success);
+    }
+    [data-type="save"] {
+      color: var(--md-sys-color-primary);
+    }
+    [data-type="clear"] {
+      color: var(--md-sys-color-error);
+    }
+
+    .hashval-line {
+      display: none;
+    }
+    .hashval-line[title] {
+      display: flex;
+    }
+  </style>
+  <div class="container">
+    <div class="line">
+      <div class="line-key">类型</div>
+      <div class="line-val" attr:data-type="type">{{ dataType }}</div>
+    </div>
+    <div class="line hashval-line" attr:title="userId">
+      <div class="line-key">对方用户</div>
+      <div class="line-val">
+        <n-user-name :userid="userId"></n-user-name>
+      </div>
+    </div>
+    <div class="line hashval-line" attr:title="getPath()">
+      <div class="line-key">目标文件</div>
+      <div class="line-val">{{getPath(true)}}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">理由</div>
+      <div class="line-val">{{ reasonStr }}</div>
+    </div>
+    <div class="line">
+      <div class="line-key">时间</div>
+      <div class="line-val">{{timeStr}}</div>
+    </div>
+
+    <div class="blocks" on:click="clickBlock">
+      <x-fill :value="hashsData">
+        <div
+          class="block"
+          class:exited="$data.exited"
+          attr:data-block="$data.hash"
+          attr:title="$data.hash"
+          attr:part="'block-hash-' + $data.hash"
+        ></div>
+      </x-fill>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { on } = await load("/packages/core/main.js");
+
+      return {
+        tag: "n-block-log",
+        data: {
+          type: "",
+          time: "",
+          hashs: [],
+          reason: "", // 保存块的理由
+          reasonData: null,
+        },
+        proto: {
+          getPath(ellipsis = false) {
+            if (this.reasonData?.path) {
+              const path = this.reasonData.path;
+              if (ellipsis && path.length > 30) {
+                return "..." + path.slice(-27);
+              }
+              return this.reasonData.path;
+            }
+
+            return null;
+          },
+          get userId() {
+            return this?.reasonData?.userId || null;
+          },
+          get hashsData() {
+            if (this.hashs) {
+              const { exists = [] } = this.reasonData || {};
+
+              return [
+                ...this.hashs.map((hash) => {
+                  return {
+                    hash,
+                    exited: exists.includes(hash),
+                  };
+                }),
+              ];
+            }
+            return [];
+          },
+          clickBlock(e) {
+            if (e.target.dataset.block) {
+              this.emit("click-block", {
+                data: {
+                  hash: e.target.dataset.block,
+                },
+              });
+            }
+          },
+          get timeStr() {
+            return (
+              new Date(this.time).toLocaleString() +
+              `.${String(this.time).slice(-3)}`
+            );
+          },
+          get reasonStr() {
+            switch (this.reason) {
+              case "response-block":
+                return "收到二进制缓存块";
+              case "before-send-write":
+                return "向远端写入文件前分块";
+              case "big-data":
+                return "通知数据数据过大";
+              case "fs-bridge-data":
+                return "文件通知信息信息过大";
+              case "save-cache":
+                return "对方请求我的文件";
+              case "middle-get-block":
+                return "对方请示我向他发送数据块";
+              case "already-received":
+                return "对方已收到数据块";
+              case "handle-read":
+                return "读取远程文件";
+              case "remote-write-cache":
+                return "得到通知，使用缓存写入文件";
+              case "clear-read-cache":
+                return "清理读取远程文件的缓存";
+            }
+
+            return this.reason || "-";
+          },
+          get dataType() {
+            switch (this.type) {
+              case "get":
+                return "请求块";
+              case "save":
+                return "缓存块";
+              case "clear":
+                return "清除块";
+            }
+          },
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

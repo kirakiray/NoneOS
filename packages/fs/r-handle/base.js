@@ -1,204 +1,91 @@
-import { createHandle } from "./dir.js";
-import { copyTo } from "../public.js";
+import { PublicBaseHandle } from "../base-handle.js";
 
-/**
- * 基础的Handle
- */
 export class RemoteBaseHandle {
-  #path; // 显式路径
-  _path; // 远程的真实路径
-  #kind;
-  _bridge = null;
-  #data;
-  constructor(path, bridgeFunc, kind) {
-    this.#kind = kind;
+  #path;
+  #createTime;
+  #lastModified;
+  constructor(options) {
+    const { path, bridge, info } = options;
     this.#path = path;
-    this._bridge = bridgeFunc;
+    Object.defineProperties(this, {
+      bridge: {
+        value: bridge,
+      },
+    });
 
-    const pathArr = path.split("/");
-    const rootInfo = pathArr[0].split(":");
-    // const userid = rootInfo[1];
-    const rootName = rootInfo[2];
-
-    this._path = [rootName, ...pathArr.slice(1)].join("/");
+    if (info) {
+      const { createTime, lastModified } = info;
+      this.#createTime = createTime;
+      this.#lastModified = lastModified;
+    }
   }
 
-  _init(data) {
-    this.#data = data;
-  }
-
-  /**
-   * 获取当前handle的唯一id
-   * @returns {string}
-   */
-  get id() {
-    return this.#data.id;
-  }
-
-  get lastModified() {
-    return this.#data.lastModified;
-  }
-
-  get createTime() {
-    return this.#data.createTime;
-  }
-
-  /**
-   * 获取当前handle的路径
-   * @returns {string}
-   */
   get path() {
     return this.#path;
   }
 
-  /**
-   * 获取文件名
-   * @returns {string}
-   */
+  get createTime() {
+    return this.#createTime;
+  }
+
+  get lastModified() {
+    return this.#lastModified;
+  }
+
   get name() {
-    return this.#data.name;
+    const arr = this.#path.split("/");
+    if (arr.length > 1) {
+      return arr.slice(-1)[0];
+    }
+
+    return this.#path.split(":").slice(-1)[0];
   }
 
-  /**
-   * 获取当前handle的类型
-   * @returns {string}
-   */
-  get kind() {
-    return this.#kind;
-  }
+  async size(...args) {
+    if (this.kind === "dir") {
+      return;
+    }
 
-  /**
-   * 获取根文件夹的handle
-   * @returns {Promise<OriginDirHandle>}
-   */
-  async root() {
-    const result = await this._bridge({
-      method: "root",
-      path: this._path,
-    });
-
-    return await createHandle(result, this);
-  }
-
-  /**
-   * 获取父文件夹handle
-   * @returns {Promise<OriginDirHandle>}
-   */
-  async parent() {
-    const result = await this._bridge({
-      method: "parent",
-      path: this._path,
-    });
-
-    return await createHandle(result, this);
-  }
-
-  /**
-   * 移动当前文件或文件夹
-   * 若 target 为字符串，则表示重命名
-   * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
-   * @param {string} name 移动到目标文件夹下的名称
-   */
-  async moveTo(target, name) {
-    throw new Error(`Please use the copyTo operation before deleting.`);
-  }
-
-  /**
-   * 复制当前文件或文件夹
-   * @param {(string|OriginDirHandle)} target 移动到目标的文件夹
-   * @param {string} name 移动到目标文件夹下的名称
-   */
-  async copyTo(target, name) {
-    throw new Error(`Please use the copyTo operation before deleting.`);
-  }
-
-  /**
-   * 删除当前文件或文件夹
-   * @returns {Promise<void>}
-   */
-  async remove(...args) {
-    const result = await this._bridge({
-      method: "remove",
-      path: this._path,
+    return this.bridge({
+      method: "size",
+      path: this.path,
       args,
     });
-
-    return result;
   }
 
-  async refresh() {
-    // Invalid method, compatible with handle
+  async remove(...args) {
+    return this.bridge({
+      method: "remove",
+      path: this.path,
+      args,
+    });
+  }
+
+  async root() {
+    debugger;
+  }
+
+  // 刷新信息
+  refresh() {
+    // 基本已经刷新
   }
 
   get _mark() {
     return "remote";
   }
-
-  async size() {
-    const result = await this._bridge({
-      method: "size",
-      path: this._path,
-    });
-
-    return result;
-  }
-
-  async _getHashs(...args) {
-    const result = await this._bridge({
-      method: "_getHashs",
-      path: this._path,
-      args,
-    });
-
-    return result;
-  }
-
-  async _mergeChunk(...args) {
-    const result = await this._bridge({
-      method: "_mergeChunk",
-      path: this._path,
-      args,
-    });
-
-    return result;
-  }
-
-  async flat(...args) {
-    const result = await this._bridge({
-      method: "flat",
-      path: this._path,
-      args,
-    });
-
-    // 带有remote根的路径
-    const rootName = this.path.split("/")[0];
-
-    // 修正写入的字段
-    result.forEach((e) => {
-      const relatePath = e.path.replace(this._path + "/", "");
-
-      // 修正根路径
-      const pathArr = e.path.split("/");
-      pathArr[0] = rootName;
-      e.path = pathArr.join("/");
-
-      if (this.kind == "file") {
-        // 执行flat的handle就是file的话，一定是当前文件
-
-        Object.defineProperty(e, "handle", {
-          get: async () => {
-            return this;
-          },
-        });
-      } else {
-        Object.defineProperty(e, "handle", {
-          get: async () => {
-            return this.get(relatePath);
-          },
-        });
-      }
-    });
-
-    return result;
-  }
 }
+
+// 转发所有方法
+Object.keys(
+  Object.getOwnPropertyDescriptors(PublicBaseHandle.prototype)
+).forEach((name) => {
+  if (name !== "constructor") {
+    RemoteBaseHandle.prototype[name] = function (...args) {
+      return this.bridge({
+        method: name,
+        path: this.path,
+        args,
+      });
+    };
+  }
+});

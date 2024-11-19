@@ -1,0 +1,55 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <x-if :value="isme">
+    <span style="color: var(--md-sys-color-primary)"> (我) </span>
+  </x-if>
+  {{realName}}
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+      const { getId } = await load("/packages/core/base/pair.js");
+      const { getInfo } = await load("/packages/core/base/user.js");
+
+      const selfUserId = await getId();
+      const selfInfo = await getInfo();
+
+      return {
+        tag: "n-user-name",
+        data: {
+          userid: "", // 用户id
+          realName: "", // 实际显示的名字字符串
+          selfUserId, // 当前用户自身的id
+          isme: false,
+        },
+        watch: {
+          async userid(userid) {
+            userid && (userid = userid.trim());
+            this.attr("title", userid);
+
+            if (selfUserId === userid) {
+              this.realName = selfInfo.userName;
+              this.isme = true;
+              return;
+            }
+
+            this.isme = false;
+
+            const cardHandle = await get(`local/caches/cards/${userid}`);
+
+            if (cardHandle) {
+              let card = await cardHandle.text();
+              card = JSON.parse(card);
+              this.realName = new Map(card.data).get("userName");
+            } else {
+              this.realName = userid;
+            }
+          },
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,0 +1,154 @@
+<template page>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="../comps/cert-form.html"></l-m>
+  <l-m src="../comps/cert-block.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    h4 {
+      margin: 16px 0 0;
+      padding: 4px 0;
+      font-size: 14px;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    n-cert-block {
+      margin: 0 8px 8px 0;
+    }
+  </style>
+  <h4>本地证书</h4>
+  <div class="container">
+    <x-if :value="!certs.length  ">
+      <div
+        style="
+          min-width: 80px;
+          text-align: center;
+          line-height: 50px;
+          font-size: 14px;
+          color: #767676;
+        "
+      >
+        空
+      </div>
+    </x-if>
+    <x-fill :value="certs">
+      <n-cert-block
+        :item="$data.data"
+        :sign="$data.sign"
+        on:delete-end="$host.loadCerts()"
+      ></n-cert-block>
+    </x-fill>
+  </div>
+
+  <h4>授权证书</h4>
+  <n-cert-form on:add-cert="loadCerts"></n-cert-form>
+
+  <h4>手动导入证书</h4>
+  <p-text-field
+    style="max-width: 400px; word-break: break-all"
+    multiline
+    max-rows="8"
+    sync:value="icertVal"
+    placeholder="请填入证书内容"
+  ></p-text-field>
+  <p-button
+    style="margin-top: 8px"
+    attr:disabled="!icertVal"
+    on:click="importCert"
+  >
+    确认导入
+  </p-button>
+
+  <script>
+    export const parent = "../outer.html";
+    import { get } from "/packages/fs/handle/index.js";
+    import { verify } from "/packages/core/base/verify.js";
+
+    export default async ({ load }) => {
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { getAllCerts, importCert } = await load(
+        "/packages/core/cert/main.js"
+      );
+
+      return {
+        data: {
+          certs: [], // 所有证书
+          loading: false,
+          icertVal: "", // 要导入的内容
+        },
+        proto: {
+          // 手动导入证书
+          async importCert() {
+            let val = this.icertVal;
+            try {
+              val = JSON.parse(val);
+            } catch (err) {
+              console.error(err);
+              enqueue({
+                content: err.toString(),
+                color: "error",
+              });
+              return;
+            }
+
+            const result = await importCert(val);
+
+            if (result instanceof Error) {
+              enqueue({
+                color: "error",
+                content: result.toString(),
+              });
+              return;
+            }
+
+            if (result.code === "already") {
+              enqueue({
+                content: "证书已经存在",
+              });
+              return;
+            }
+
+            if (result.code == "ok") {
+              // 导入成功，重载内容
+              this.icertVal = "";
+              this.loadCerts();
+              enqueue({
+                content: "导入成功",
+                color: "success",
+              });
+            }
+          },
+          async loadCerts() {
+            this.loading = true;
+
+            this.certs = await getAllCerts({
+              filterExpired: false,
+            });
+
+            this.loading = false;
+          },
+        },
+        attached() {
+          this.emit("update-title", {
+            composed: true,
+            data: {
+              titles: [
+                {
+                  name: "授权管理",
+                },
+              ],
+            },
+          });
+
+          this.loadCerts();
+        },
+      };
+    };
+  </script>
+</template>

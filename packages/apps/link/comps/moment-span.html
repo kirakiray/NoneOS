@@ -1,0 +1,65 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  {{momentTime}}
+  <script>
+    import moment from "/packages/libs/moment/moment.min.js";
+    import "/packages/libs/moment/zh-cn.js";
+    moment.locale("zh-cn");
+
+    // 已经加入 document 的元素
+    const eles = new Set();
+    const refresh = () => {
+      eles.forEach((e) => {
+        // 一小时内的需要刷新
+        if ((Date.now() - e.time) / 1000 / 3600 < 1) {
+          e.refreshMoment();
+        }
+      });
+
+      setTimeout(refresh, 20000);
+    };
+    refresh();
+
+    export default async ({ load }) => {
+      return {
+        tag: "n-moment-span",
+        data: {
+          time: "",
+          momentTime: "",
+        },
+        watch: {
+          time(time) {
+            this.refreshMoment();
+          },
+        },
+        proto: {
+          refreshMoment() {
+            const { time } = this;
+
+            if (/\D/.test(time)) {
+              if (time === "never") {
+                this.momentTime = "不会过期";
+                return;
+              }
+              this.momentTime = time;
+              return;
+            }
+
+            this.momentTime = moment(this.time).fromNow();
+            this.attr("title", new Date(this.time).toLocaleString());
+          },
+        },
+        attached() {
+          eles.add(this);
+        },
+        detached() {
+          eles.delete(this);
+        },
+      };
+    };
+  </script>
+</template>

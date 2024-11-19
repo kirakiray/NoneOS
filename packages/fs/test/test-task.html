@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test task</title>
-    <script src="/packages/ofa/ofa.js"></script>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
   </head>
   <body>
+    <l-m src="../task/viewer.html"></l-m>
+    <l-m src="../task/task-viewer.html"></l-m>
+    <l-m src="../task/task-list.html"></l-m>
     test task
     <div>dbCount: <span id="dbcount">-</span></div>
     <div>bigfile1: <span id="bigfile1">-</span></div>
@@ -14,8 +17,7 @@
   </body>
   <script type="module">
     import { get } from "../main.js";
-    import { get as originGet } from "../o-handle/index.js";
-    import { copyTo } from "../task.js";
+    // import { copyTo } from "../task/main.js";
 
     // 获取指定大小的随机文本(1mb)
     const getBigText = (size = 1) => {
@@ -35,7 +37,7 @@
       console.log("写入 file1 开始");
 
       // 先创建一个大文件
-      const bigFile1 = await originGet("local/task-test/bigfile1.txt", {
+      const bigFile1 = await get("$origin:local/task-test/bigfile1.txt", {
         create: "file",
       });
 
@@ -45,7 +47,7 @@
       console.log("写入 file1 结束");
       console.log("写入 file2 开始");
 
-      const bigFile2 = await originGet("local/task-test/b2/bigfile2.txt", {
+      const bigFile2 = await get("$origin:local/task-test/b2/bigfile2.txt", {
         create: "file",
       });
 
@@ -56,19 +58,19 @@
     };
 
     {
-      // // 如果确保初始化
-      // const t1 = await originGet("local/task-test/bigfile1.txt").catch(
-      //   () => null
-      // );
-      // if (!t1) {
-      //   await initTestFile();
-      // }
+      // 如果确保初始化
+      const t1 = await get("$origin:local/task-test/bigfile1.txt").catch(
+        () => null
+      );
+      if (!t1) {
+        await initTestFile();
+      }
 
-      await initTestFile();
+      // await initTestFile();
     }
 
     {
-      const ohandle = await originGet("local/task-test");
+      const ohandle = await get("$origin:local/task-test");
 
       const chandle = await get("local/test-copy-task", {
         create: "dir",
@@ -76,30 +78,68 @@
 
       let count = 0;
 
-      // copyTask测试
-      const result = await copyTo({
-        source: ohandle,
-        target: chandle,
-        debugTime: 100,
-        async confirm(files) {
-          // 询问是否复制
-          console.log("files: ", files);
-          return new Promise((res) => {
-            setTimeout(() => {
-              res(true);
-            }, 500);
-          });
-        },
-        async progress(e) {
-          // 复制过程
-          console.log("progress: ", e);
+      {
+        $("body").push(
+          `<fs-task-viewer
+             type="copy" 
+             from="$origin:local/task-test" 
+             to="local/test-copy-task"
+             delay-time="100"
+           >
+             
+           </fs-task-viewer>`
+        );
+
+        const viewer = $("fs-task-viewer");
+
+        viewer.on("copying", () => {
           count++;
           $("#dbcount").text = count;
-        },
-      });
+        });
+
+        await viewer.watchUntil(() => viewer.done);
+      }
+
+      // {
+      //   // copyTask测试
+      //   const result = await copyTo({
+      //     from: ohandle,
+      //     to: chandle,
+      //     debugTime: 100,
+      //     async confirm(files) {
+      //       // 询问是否复制
+      //       console.log("files: ", files);
+      //       return new Promise((res) => {
+      //         setTimeout(() => {
+      //           res(true);
+      //         }, 500);
+      //       });
+      //     },
+      //     // 复制块的过程中
+      //     copy(e) {
+      //       // 复制过程
+      //       console.log("copy: ", e);
+      //       count++;
+      //       $("#dbcount").text = count;
+      //     },
+      //     // 合并文件中
+      //     merge(e) {
+      //       console.log("merge", e);
+      //     },
+      //     // 清除缓存中
+      //     clear(e) {
+      //       console.log("clear", e);
+      //     },
+      //     error() {
+      //       debugger;
+      //     },
+      //   });
+
+      //   console.log("end: ", result);
+      // }
 
       $("#bigfile1").text =
-        (await originGet("local/task-test/bigfile1.txt").then((e) =>
+        (await get("$origin:local/task-test/bigfile1.txt").then((e) =>
           e.text()
         )) ===
         (await get("local/test-copy-task/task-test/bigfile1.txt").then((e) =>
@@ -107,14 +147,12 @@
         ));
 
       $("#bigfile2").text =
-        (await originGet("local/task-test/b2/bigfile2.txt").then((e) =>
+        (await get("$origin:local/task-test/b2/bigfile2.txt").then((e) =>
           e.text()
         )) ===
         (await get("local/test-copy-task/task-test/b2/bigfile2.txt").then((e) =>
           e.text()
         ));
-
-      console.log("end: ", result);
     }
   </script>
 </html>

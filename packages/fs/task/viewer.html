@@ -1,0 +1,486 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .line {
+      display: flex;
+      align-items: center;
+      height: 20px;
+      opacity: 0;
+      transform: translate(10px, 0);
+      transition: all ease 0.3s;
+    }
+
+    .mainicon {
+      display: block;
+      font-size: 24px;
+    }
+
+    .line.show {
+      transform: translate(0, 0);
+      opacity: 1;
+    }
+
+    .line p-progress {
+      display: block;
+      margin-right: 4px;
+      --circle-size: 14;
+    }
+
+    .sub-progress {
+      position: absolute;
+      left: 0;
+      top: 0;
+      --circle-size: 30;
+      margin-right: 0;
+    }
+
+    .sub-item-prefix {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+    }
+    .sub-item-prefix n-local-icon {
+      margin-right: 0;
+      font-size: 18px;
+    }
+    .prefix-area {
+      position: relative;
+      z-index: 3;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .prefix-btn {
+      display: none;
+    }
+
+    [secondary] {
+      word-break: break-all;
+    }
+  </style>
+
+  <x-if :value="!precentTwo">
+    <style>
+      .prefix-area:hover .type-icon {
+        display: none;
+      }
+
+      .prefix-btn {
+        display: none;
+      }
+
+      .prefix-area:hover .prefix-btn {
+        display: block;
+      }
+
+      [data-ispaused] .prefix-btn {
+        display: block;
+      }
+      [data-ispaused] .type-icon {
+        display: none;
+      }
+    </style>
+  </x-if>
+  <p-list>
+    <p-list-item
+      button="suffix"
+      collapse-childs="open"
+      attr:data-ispaused="ispaused"
+      attr:data-iscached="!!precentTwo"
+    >
+      <x-if :value="!!errInfo">
+        <div class="prefix-area" slot="prefix">
+          <n-local-icon
+            name="error"
+            class="mainicon"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+        </div>
+      </x-if>
+      <x-else>
+        <div class="prefix-area" slot="prefix">
+          <x-if :value="handleType === 'dir'">
+            <n-local-icon
+              name="folder"
+              class="mainicon type-icon"
+            ></n-local-icon>
+          </x-if>
+          <x-else>
+            <n-local-icon name="file" class="mainicon type-icon"></n-local-icon>
+          </x-else>
+          <div class="prefix-btn">
+            <x-if :value="ispaused">
+              <p-button size="small" variant="text" icon on:click="clickPause">
+                <n-local-icon name="play" class="mainicon"></n-local-icon>
+              </p-button>
+            </x-if>
+            <x-else>
+              <p-button size="small" variant="text" icon on:click="clickPause">
+                <n-local-icon name="pause" class="mainicon"></n-local-icon>
+              </p-button>
+            </x-else>
+          </div>
+        </div>
+      </x-else>
+      <div style="display: flex; align-items: center">
+        <x-if :value="!!done && !errInfo">
+          <n-local-icon
+            name="tick-circle"
+            style="
+              color: var(--md-sys-color-success);
+              font-size: 16px;
+              margin-right: 4px;
+              display: inline-block;
+            "
+          ></n-local-icon>
+          复制 {{fname}} 完成
+        </x-if>
+        <x-else>
+          {{fname}}
+          <div style="margin-left: 4px">
+            <x-if :value="cachedSize !== totalSize">
+              <span style="font-size: 12px">
+                ({{cachedSize}} / {{totalSize}})
+              </span>
+            </x-if>
+            <x-else>
+              <span style="font-size: 12px"> ({{totalSize}}) </span>
+            </x-else>
+          </div>
+        </x-else>
+        <x-if :value="!!copyTime">
+          <div style="margin-left: 4px; font-size: 12px">
+            (时间: {{copyTime}}s)
+          </div>
+        </x-if>
+      </div>
+      <x-if :value="!!errInfo">
+        <div secondary style="display: flex; align-items: center">
+          {{errInfo}}
+        </div>
+      </x-if>
+      <x-else>
+        <div secondary style="display: flex; align-items: center">
+          <div class="line show">
+            <p-progress
+              type="circle"
+              attr:value="precentOne"
+              variant="determinate"
+            ></p-progress>
+            <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
+            <x-else>
+              缓存中({{precentOne}}%)
+              <div style="margin-left: 4px">
+                <x-if :value="_copySpeed"> {{copySpeed}}/S </x-if>
+              </div>
+            </x-else>
+          </div>
+          <div class="line" class:show="precentOne >= 100">
+            <p-progress
+              type="circle"
+              color="success"
+              attr:value="precentTwo"
+              variant="determinate"
+              style="margin-left: 8px"
+            ></p-progress>
+            <x-if :value="precentTwo >= 100"> 合并完成 </x-if>
+            <x-else> 合并中({{precentTwo}})% </x-else>
+          </div>
+          <div class="line" class:show="precentThree >= 100">
+            <p-progress
+              type="circle"
+              color="error"
+              attr:value="precentThree"
+              variant="determinate"
+              style="margin-left: 8px"
+            ></p-progress>
+            <x-if :value="precentThree >= 100"> 删除缓存完成 </x-if>
+            <x-else> 删除缓存中({{precentThree}})% </x-else>
+          </div>
+        </div>
+      </x-else>
+      <x-if :value="errInfo">
+        <p-button
+          size="small"
+          slot="suffix"
+          on:click="retry"
+          attr:disabled="clickRetried"
+          style="z-index: 3"
+        >
+          重试
+        </p-button>
+      </x-if>
+      <x-else>
+        <i collapse-triangle slot="suffix"></i>
+      </x-else>
+      <p-list slot="childs" style="padding-left: 8px">
+        <!-- <p-list-item>
+          <div class="sub-item-prefix" slot="prefix">
+            <p-progress
+              class="sub-progress"
+              type="circle"
+              value="90"
+              variant="determinate"
+            ></p-progress>
+            <n-local-icon name="file"></n-local-icon>
+          </div>
+          <div>${item.afterPath}</div>
+          <div secondary>${formatSize(item.size)}</div>
+        </p-list-item> -->
+      </p-list>
+    </p-list-item>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { copyTo } = await load("/packages/fs/task/main.js");
+      const { get } = await load("../main.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+
+      // 写一个函数，根据传入的size大小，其转化为 kb mb gb 的单位
+      const formatSize = (size) => {
+        const units = ["B", "KB", "MB", "GB", "TB"];
+        let unitIndex = 0;
+
+        while (size >= 1024 && unitIndex < units.length - 1) {
+          size /= 1024;
+          unitIndex++;
+        }
+
+        return `${size.toFixed(2)} ${units[unitIndex]}`;
+      };
+
+      return {
+        tag: "fs-task-viewer",
+        attrs: {
+          type: "",
+          from: "", // 来源地址
+          to: "", // 目标地址
+          delayTime: null,
+        },
+        data: {
+          ispaused: false, // 暂停中
+          fname: "",
+          done: null, // 是否完成
+          cachedSize: 0, // 已经缓冲的大小
+          _cachedSize: 0,
+          totalSize: 0, // 总大小
+          copySpeed: 0, // 每秒的速度
+          _copySpeed: 0,
+          copyTime: 0, // 拷贝时间
+          handleType: "", // 来源handle的类型
+          precentOne: 0, // 复制区块进度
+          precentTwo: 0, // 文件合并中的进度
+          precentThree: 0, // 删除缓存的进度
+          errInfo: null, // 错误信息
+          clickRetried: false, // 点击重试
+        },
+        watch: {
+          ispaused(ispaused) {
+            if (ispaused) {
+              this.__copy_result = new Promise((resolve) => {
+                this.__resolve_copy_result = resolve;
+              });
+            } else if (this.__resolve_copy_result) {
+              this.__resolve_copy_result(true);
+              this.__resolve_copy_result = null;
+            }
+          },
+        },
+        proto: {
+          // 重试
+          retry(e) {
+            this.clickRetried = true;
+            e.stopPropagation();
+            this.loadTask();
+          },
+          clickPause(e) {
+            this.ispaused = !this.ispaused;
+            e.stopPropagation();
+          },
+          async loadTask() {
+            switch (this.type) {
+              case "copy":
+                break;
+              default:
+                console.error("不明的任务类型");
+                return;
+            }
+
+            const from = await get(this.from);
+            const to = await get(this.to);
+
+            if (this.type === "copy") {
+              this.fname = from.name;
+              this.handleType = from.kind;
+
+              this.clickRetried = false;
+
+              const result = await copyTo({
+                delayTime: this.delayTime ? parseInt(this.delayTime) : null, // 故意延迟用于调试
+                from,
+                to,
+                confirm: async (e) => {
+                  const listEl = this.shadow.$(`p-list[slot="childs"]`);
+
+                  e.forEach(([path, item]) => {
+                    const li = $(`
+                   <p-list-item data-path="${encodeURIComponent(path)}">
+                    <div class="sub-item-prefix" slot="prefix">
+                        <p-progress
+                        class="sub-progress"
+                        type="circle"
+                        value="0"
+                        variant="determinate"
+                        ></p-progress>
+                        <n-local-icon name="file"></n-local-icon>
+                    </div>
+                    <div>${item.afterPath}</div>
+                    <div secondary>${formatSize(item.size)}</div>
+                    </p-list-item>
+                      `);
+
+                    listEl.push(li);
+                  });
+
+                  // 准备计算每秒的速度
+                  this._last = 0;
+                  this._caculator = setInterval(() => {
+                    this._copySpeed = this._cachedSize - this._last;
+                    this.copySpeed = formatSize(this._copySpeed);
+                    this._last = this._cachedSize;
+                    this.copyTime++;
+                  }, 1000);
+                },
+                copy: (e) => {
+                  // 复制过程
+                  this.emit("copying", {
+                    bubbles: false,
+                    data: { ...e },
+                  });
+
+                  const targetProgress = this.shadow.$(
+                    `p-list-item[data-path="${encodeURIComponent(
+                      e.fromPath
+                    )}"] p-progress`
+                  );
+
+                  if (targetProgress) {
+                    targetProgress.value =
+                      (e.currentCached / e.currentTotal) * 100;
+                  }
+
+                  this._cachedSize = e.cachedSize;
+                  this.cachedSize = formatSize(e.cachedSize);
+                  this.totalSize = formatSize(e.totalSize);
+
+                  this.precentOne = Math.floor((e.cached / e.total) * 100);
+
+                  if (this.precentOne >= 100) {
+                    clearInterval(this._caculator);
+                    this._copySpeed = 0;
+                  }
+
+                  // console.log("this.__copy_result: ", this.__copy_result);
+                  return this.__copy_result;
+                },
+                // 合并文件中
+                merge: (e) => {
+                  this.emit("merging", {
+                    bubbles: false,
+                    data: { ...e },
+                  });
+
+                  const targetProgress = this.shadow.$(
+                    `p-list-item[data-path="${encodeURIComponent(
+                      e.fromPath
+                    )}"] p-progress`
+                  );
+
+                  if (targetProgress) {
+                    targetProgress.color = "success";
+                  }
+
+                  this.precentTwo = Math.floor((e.count / e.total) * 100);
+                },
+                // 清除缓存中
+                clear: (e) => {
+                  this.precentTwo = 100; // 合并完成才会执行这个方法
+
+                  this.emit("clearing", {
+                    bubbles: false,
+                    data: { ...e },
+                  });
+
+                  this.precentThree = Math.floor((e.removed / e.total) * 100);
+                },
+                error: (err) => {
+                  enqueue({
+                    content: err.toString(),
+                    color: "error",
+                  });
+
+                  clearInterval(this._caculator);
+                },
+              }).catch((err) => err);
+
+              if (result instanceof Error) {
+                this.emit("error", {
+                  bubbles: false,
+                  data: { ...result },
+                  error: result,
+                });
+
+                this.errInfo = result.toString();
+
+                clearInterval(this._caculator);
+
+                enqueue({
+                  content: this.errInfo,
+                  color: "error",
+                });
+              } else {
+                this.precentTwo = 100; // 必定合并完成
+                this.precentThree = 100; // 必定清除缓存完成
+              }
+
+              // this.errInfo = "测试错误信息";
+
+              this.done = true;
+
+              this.emit("task-done", {
+                bubbles: false,
+              });
+            }
+          },
+        },
+        attached() {
+          if (!this.__copy_result) {
+            this.__copy_result = true;
+          }
+          this.loadTask();
+        },
+        detached() {
+          if (this.__resolve_copy_result) {
+            this.__resolve_copy_result(false);
+            this.__resolve_copy_result = null;
+          }
+          this.__copy_result = false;
+          clearInterval(this._caculator);
+        },
+      };
+    };
+  </script>
+</template>

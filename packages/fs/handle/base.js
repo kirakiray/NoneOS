@@ -239,6 +239,11 @@ export class BaseHandle extends PublicBaseHandle {
     }
 
     this.#path = pathArr.join("/");
+
+    return {
+      createTime: data.createTime,
+      lastModified: data.lastModified,
+    };
   }
 
   async size() {

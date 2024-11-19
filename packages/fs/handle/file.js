@@ -4,10 +4,9 @@ import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 
 import {
   CHUNK_SIZE,
-  splitIntoChunks,
-  mergeChunks,
   calculateHash,
-  readBufferByType,
+  getHashs,
+  readBlobByType,
 } from "../util.js";
 
 /**
@@ -54,6 +53,8 @@ export class FileHandle extends BaseHandle {
 
     await writer.write(data);
     await writer.close();
+
+    return true;
   }
 
   // 写入数据流
@@ -78,13 +79,13 @@ export class FileHandle extends BaseHandle {
     // 重新组合文件
     const { hashs } = data;
 
-    let chunks = [];
+    let blobs = [];
     if (options && (options.start || options.end)) {
       // 获取指定范围内的数据
       let startBlockId = Math.floor(options.start / CHUNK_SIZE);
       let endBlockId = Math.floor(options.end / CHUNK_SIZE);
 
-      chunks = await Promise.all(
+      blobs = await Promise.all(
         hashs.map(async (hash, index) => {
           let chunk;
 
@@ -110,31 +111,47 @@ export class FileHandle extends BaseHandle {
             }
           }
 
-          return chunk;
+          if (chunk) {
+            if (chunk instanceof Blob) {
+              return chunk;
+            }
+
+            return new Blob([chunk], {
+              type: "application/octet-stream",
+            });
+          }
         })
       );
-      chunks = chunks.filter((e) => !!e);
+      blobs = blobs.filter((e) => !!e);
     } else {
       if (hashs) {
-        chunks = await Promise.all(
+        blobs = await Promise.all(
           hashs.map(async (hash, index) => {
-            const { chunk } = await getData({
+            const result = await getData({
               storename: "blocks",
               key: hash,
             });
 
-            return chunk;
+            const { chunk } = result;
+
+            if (chunk instanceof Blob) {
+              return chunk;
+            }
+
+            return new Blob([chunk]);
           })
         );
       }
     }
 
-    const buffer = mergeChunks(chunks);
+    const blobData = new Blob(blobs, {
+      type: "application/octet-stream",
+    });
 
-    return readBufferByType({
-      buffer,
+    return await readBlobByType({
+      blobData,
       type,
-      data,
+      data: { name: this.name },
       isChunk: options?.start || options?.end,
     });
   }
@@ -169,6 +186,24 @@ export class FileHandle extends BaseHandle {
   base64(options) {
     return this.read("base64", options);
   }
+  // 获取1mb分区哈希块数组
+  async _getHashs(options) {
+    const chunkSize = options?.chunkSize || CHUNK_SIZE;
+
+    if (chunkSize !== CHUNK_SIZE) {
+      return getHashs(await this.file(), chunkSize);
+    }
+
+    const targetData = await getData({
+      key: this.id,
+    });
+
+    if (!targetData) {
+      return null;
+    }
+
+    return targetData.hashs;
+  }
 }
 
 // 虚拟文件系统的文件流
@@ -184,31 +219,79 @@ class DBFSWritableFileStream {
   }
 
   // 写入流数据
+  // async write(input) {
+  //   let arrayBuffer;
+
+  //   if (typeof input === "string") {
+  //     arrayBuffer = new TextEncoder().encode(input).buffer;
+  //   } else if (input instanceof Blob) {
+  //     arrayBuffer = await input.arrayBuffer();
+  //   } else if (input instanceof ArrayBuffer) {
+  //     arrayBuffer = input;
+  //   } else if (input instanceof Uint8Array) {
+  //     arrayBuffer = input.buffer;
+  //   } else {
+  //     throw new Error(
+  //       "Input must be a string, File object or ArrayBuffer object"
+  //     );
+  //   }
+  //   this.#size += arrayBuffer.byteLength;
+
+  //   // 写入缓存区
+  //   this.#cache = mergeArrayBuffers(this.#cache, arrayBuffer);
+
+  //   // 根据缓冲区写入到硬盘
+  //   while (this.#cache.byteLength > CHUNK_SIZE) {
+  //     // 取出前1mb的数据
+  //     const targetChunk = this.#cache.slice(0, CHUNK_SIZE);
+  //     this.#cache = this.#cache.slice(CHUNK_SIZE);
+
+  //     const hash = await this._writeChunk(targetChunk);
+  //     this.#hashs.push(hash);
+  //   }
+  // }
+
+  // 写入流数据
   async write(input) {
-    let arrayBuffer;
+    let blob;
 
     if (typeof input === "string") {
-      arrayBuffer = new TextEncoder().encode(input).buffer;
-    } else if (input instanceof File) {
-      arrayBuffer = await input.arrayBuffer();
-    } else if (input instanceof ArrayBuffer) {
-      arrayBuffer = input;
+      // 将字符串转换为Blob
+      blob = new Blob([new TextEncoder().encode(input)], {
+        type: "text/plain",
+      });
+    } else if (input instanceof Blob) {
+      // 输入已经是Blob
+      blob = input;
+    } else if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
+      // 将ArrayBuffer或Uint8Array转换为Blob
+      blob = new Blob([input], { type: "application/octet-stream" });
+    } else {
+      throw new Error(
+        "Input must be a string, Blob, ArrayBuffer or Uint8Array"
+      );
     }
 
-    this.#size += arrayBuffer.byteLength;
+    // 更新大小
+    this.#size += blob.size;
 
-    // 写入缓存区
-    this.#cache = mergeArrayBuffers(this.#cache, arrayBuffer);
+    // 将新的Blob与缓存合并
+    this.#cache = this.#mergeBlobs(this.#cache, blob);
 
     // 根据缓冲区写入到硬盘
-    while (this.#cache.byteLength > CHUNK_SIZE) {
-      // 取出前1mb的数据
+    while (this.#cache.size > CHUNK_SIZE) {
+      // 取出前CHUNK_SIZE的数据
       const targetChunk = this.#cache.slice(0, CHUNK_SIZE);
       this.#cache = this.#cache.slice(CHUNK_SIZE);
 
       const hash = await this._writeChunk(targetChunk);
       this.#hashs.push(hash);
     }
+  }
+
+  // 合并两个Blob
+  #mergeBlobs(blob1, blob2) {
+    return new Blob([blob1, blob2], { type: "application/octet-stream" });
   }
 
   // 写入真正的内容
@@ -234,6 +317,18 @@ class DBFSWritableFileStream {
         ...chunkData,
       });
     }
+
+    let reChunk = chunk;
+
+    if (isSafari) {
+      // 🖕: 垃圾 safari 存储 blob引用，底层数据会出错，要改用 arraybuffer
+      reChunk = await new Promise((res) => {
+        const reader = new FileReader();
+        reader.readAsArrayBuffer(chunk);
+        reader.onload = () => res(reader.result);
+      });
+    }
+
     // 写入到硬盘
     if (!exited) {
       await setData({
@@ -241,7 +336,7 @@ class DBFSWritableFileStream {
         datas: [
           {
             hash,
-            chunk,
+            chunk: reChunk,
           },
         ],
       });
@@ -268,7 +363,7 @@ class DBFSWritableFileStream {
     }
 
     // 写入最后一缓存的内容
-    if (this.#cache.byteLength > 0) {
+    if (this.#cache.size > 0) {
       const hash = await this._writeChunk(this.#cache);
       this.#hashs.push(hash);
     }
@@ -324,22 +419,26 @@ class DBFSWritableFileStream {
   }
 }
 
-// 合并buffer数据的方法
-function mergeArrayBuffers(buffer1, buffer2) {
-  // 计算新 ArrayBuffer 的总长度
-  const totalLength = buffer1.byteLength + buffer2.byteLength;
+// // 合并buffer数据的方法
+// function mergeArrayBuffers(buffer1, buffer2) {
+//   // 计算新 ArrayBuffer 的总长度
+//   const totalLength = buffer1.byteLength + buffer2.byteLength;
 
-  // 创建一个新的 ArrayBuffer
-  const mergedBuffer = new ArrayBuffer(totalLength);
+//   // 创建一个新的 ArrayBuffer
+//   const mergedBuffer = new ArrayBuffer(totalLength);
 
-  // 创建一个 Uint8Array 以便操作新的 ArrayBuffer
-  const uint8Array = new Uint8Array(mergedBuffer);
+//   // 创建一个 Uint8Array 以便操作新的 ArrayBuffer
+//   const uint8Array = new Uint8Array(mergedBuffer);
 
-  // 复制第一个 ArrayBuffer 的数据
-  uint8Array.set(new Uint8Array(buffer1), 0);
+//   // 复制第一个 ArrayBuffer 的数据
+//   uint8Array.set(new Uint8Array(buffer1), 0);
 
-  // 复制第二个 ArrayBuffer 的数据
-  uint8Array.set(new Uint8Array(buffer2), buffer1.byteLength);
+//   // 复制第二个 ArrayBuffer 的数据
+//   uint8Array.set(new Uint8Array(buffer2), buffer1.byteLength);
 
-  return mergedBuffer;
-}
+//   return mergedBuffer;
+// }
+
+const isSafari =
+  navigator.userAgent.includes("Safari") &&
+  !navigator.userAgent.includes("Chrome");

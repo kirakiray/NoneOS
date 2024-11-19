@@ -4,17 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>remote copy to local</title>
-    <script src="/packages/ofa/ofa.js" debug></script>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
   </head>
   <body>
-    <l-m src="/packages/fs/comps/task-viewer/viewer.html"></l-m>
+    <l-m src="../task/viewer.html"></l-m>
+    <l-m src="../task/task-viewer.html"></l-m>
+    <l-m src="../task/task-list.html"></l-m>
+
     test remote fs
-    <task-viewer path="local/testdir/.ceshi_video.fs_task_cache"></task-viewer>
 
     <script type="module">
       import { get } from "../main.js";
       import { getRemotes } from "/packages/fs/r-handle/index.js";
-      import { copyTo } from "/packages/fs/task.js";
+      import { copyTo } from "/packages/fs/task/main.js";
+
+      import { inited } from "/packages/core/init.js";
+
+      await inited;
 
       const remotes = await getRemotes();
 
@@ -23,24 +29,32 @@
 
         const remoteHandle = await get(path);
 
-        for await (let item of remoteHandle.values()) {
-          console.log(item);
-        }
+        // for await (let item of remoteHandle.values()) {
+        //   console.log(item);
+        // }
 
         const testdir = await get("local/testdir", {
           create: "dir",
         });
 
+        const ceshiVideoDir = await remoteHandle.get("ceshi_video");
+
         // 将文件复制过来
-        // debugger;
+        {
+          $("body").push(
+            `<fs-task-viewer
+             type="copy" 
+             from="${ceshiVideoDir.path}" 
+             to="${testdir.path}"
+           >
+             
+           </fs-task-viewer>`
+          );
 
-        // copyTo({
-        //   source: await remoteHandle.get("ceshi_video"),
-        //   target: testdir,
-        //   debugTime: 5000,
-        // });
+          const viewer = $("fs-task-viewer");
 
-        $("task-viewer").show = true;
+          await viewer.watchUntil(() => viewer.done);
+        }
       }
     </script>
   </body>

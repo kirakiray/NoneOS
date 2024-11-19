@@ -33,7 +33,8 @@ const getFileData = async (handle) => {
   return data;
 };
 
-export const CHUNK_REMOTE_SIZE = 128 * 1024; // 64kb // 远程复制的块大小
+// export const CHUNK_REMOTE_SIZE = 128 * 1024; // 128kb // 远程复制的块大小
+export const CHUNK_REMOTE_SIZE = 256 * 1024; // 256kb // 远程复制的块大小
 
 export const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
 // const CHUNK_SIZE = 512 * 1024; // 512KB
@@ -44,50 +45,42 @@ export const CHUNK_SIZE = 1024 * 1024; // 1mb // db数据库文件块的大小
  * @param {(string|file|arrayBuffer)} input 写入的内容
  * @returns {array} 分割后的内容
  */
-export const splitIntoChunks = async (input, csize = CHUNK_SIZE) => {
-  let arrayBuffer;
+export const splitIntoBlobs = async (input, csize = CHUNK_SIZE) => {
+  let blob;
 
   if (typeof input === "string") {
-    arrayBuffer = new TextEncoder().encode(input).buffer;
-  } else if (input instanceof File) {
-    arrayBuffer = await input.arrayBuffer();
-  } else if (input instanceof ArrayBuffer) {
-    arrayBuffer = input;
-  } else if (input instanceof Uint8Array) {
-    arrayBuffer = input.buffer;
+    blob = new Blob([new TextEncoder().encode(input)], { type: "text/plain" });
+  } else if (input instanceof Blob) {
+    blob = input;
+  } else if (input instanceof ArrayBuffer || input instanceof Uint8Array) {
+    blob = new Blob([input], { type: "application/octet-stream" });
   } else {
-    throw new Error(
-      "Input must be a string, File object or ArrayBuffer object"
-    );
+    throw new Error("Input must be a string, Blob, ArrayBuffer, or Uint8Array");
   }
 
-  const chunks = [];
-  for (let i = 0; i < arrayBuffer.byteLength; i += csize) {
-    const chunk = arrayBuffer.slice(i, i + csize);
-    chunks.push(chunk);
+  const blobs = [];
+  for (let i = 0; i < blob.size; i += csize) {
+    const chunk = blob.slice(i, i + csize);
+    blobs.push(chunk);
   }
 
-  return chunks;
+  return blobs;
 };
 
 /**
- * 将分割的块还原回原来的数据
- * @param {ArrayBuffer[]} chunks 分割的块
- * @returns {ArrayBuffer} 还原后的数据
+ * 将文件转成arraybuffer
+ * @param {Blob} blob 二进制文件
+ * @returns ArrayBuffer
  */
-export const mergeChunks = (chunks) => {
-  // 计算总长度
-  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.byteLength, 0);
-
-  const mergedArrayBuffer = new Uint8Array(totalLength);
-
-  let offset = 0;
-  chunks.forEach((chunk) => {
-    mergedArrayBuffer.set(new Uint8Array(chunk), offset);
-    offset += chunk.byteLength;
+export const blobToBuffer = (blob) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      resolve(new Uint8Array(reader.result));
+    };
+    reader.onerror = reject;
+    reader.readAsArrayBuffer(blob);
   });
-
-  return mergedArrayBuffer;
 };
 
 /**
@@ -99,42 +92,77 @@ export const calculateHash = async (arrayBuffer) => {
   if (typeof arrayBuffer == "string") {
     const encoder = new TextEncoder();
     arrayBuffer = encoder.encode(arrayBuffer);
+  } else if (arrayBuffer instanceof Blob) {
+    arrayBuffer = await blobToBuffer(arrayBuffer);
   }
 
+  // 使用 SHA-256 哈希算法
   const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
+
+  // 将 ArrayBuffer 转换成十六进制字符串
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   const hashHex = hashArray
-    .map((b) => b.toString(16).padStart(2, "0"))
+    .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 
-  const centerId = Math.floor(arrayBuffer.byteLength / 2);
-  return (
-    hashHex +
-    new Uint8Array(arrayBuffer.slice(centerId, centerId + 1))[0].toString(16)
-  );
+  return hashHex;
 };
 
-export const readBufferByType = ({ buffer, type, data, isChunk }) => {
+export const readBlobByType = ({ blobData, type, data, isChunk }) => {
   // 根据type返回不同类型的数据
   if (type === "text") {
-    return new TextDecoder().decode(buffer);
+    try {
+      return new Response(blobData).text();
+    } catch (err) {
+      debugger;
+      throw err;
+    }
   } else if (type === "file") {
     if (isChunk) {
-      return new Blob([buffer.buffer]);
+      return blobData; // 如果是分块，则直接返回blobData
     }
-    return new File([buffer.buffer], data.name, {
+    return new File([blobData], data.name, {
       lastModified: data.lastModified,
     });
   } else if (type === "base64") {
     return new Promise((resolve) => {
-      const file = new File([buffer.buffer], data.name);
       const reader = new FileReader();
       reader.onload = () => {
         resolve(reader.result);
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(blobData);
     });
   } else {
-    return buffer.buffer;
+    return blobData; // 如果类型未知，直接返回blobData
   }
+};
+
+const invalidChars = /[<>:"\\|?*\x00-\x1F]/;
+export function isValidPath(path) {
+  // 定义不允许出现的特殊字符
+  return !invalidChars.test(path);
+}
+
+/**
+ * 获取文件的哈希值列表
+ *
+ * 本函数通过异步读取文件，并分块计算每个部分的哈希值，最后返回一个包含所有分块哈希值的数组
+ * 这对于处理大文件非常有用，因为它允许分块处理文件，而不是一次性加载整个文件到内存中
+ *
+ * @param {File} file - 要计算哈希值的文件对象
+ * @param {number} chunkSize - 每个文件块的大小，以字节为单位，默认为CHUNK_SIZE常量的值
+ * @returns {Promise<Array<string>>} 返回一个Promise对象，解析为一个包含文件各分块哈希值的数组
+ */
+export const getHashs = async (file, chunkSize = CHUNK_SIZE) => {
+  const hashs = [];
+
+  for (let i = 0; i < file.size; i += chunkSize) {
+    const chunk = file.slice(i, i + chunkSize);
+    // 计算文件的哈希值
+    const hash = await calculateHash(chunk);
+
+    hashs.push(hash);
+  }
+
+  return hashs;
 };

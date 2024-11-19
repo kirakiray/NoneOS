@@ -70,8 +70,8 @@ const resposeApp = async ({ pathname, path }) => {
     <title>${appconfig.name}</title>
     <link rel="shortcut icon" href="${appconfig.icon}">
     <link rel="apple-touch-icon" href="${appconfig.icon}" />
-    <script src="/packages/ofa/ofa.js"${isdebug ? " debug" : ""}></script>
-    <script src="/packages/ofa/router.min.js"></script>
+    <script src="/packages/libs/ofa/ofa.js"${isdebug ? " debug" : ""}></script>
+    <script src="/packages/libs/ofa/router.min.js"></script>
     <script src="/packages/pui/init.js" type="module"></script>
     <style>
       html,

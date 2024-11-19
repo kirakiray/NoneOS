@@ -4,13 +4,23 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test remote copy</title>
-    <script src="/packages/ofa/ofa.js"></script>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <style>
+      o-page {
+        display: block;
+        height: 80vh;
+      }
+    </style>
   </head>
   <body>
     test remote fs
+    <o-page src="/packages/apps/link/pages/block.html?noframe=1"></o-page>
     <script type="module">
+      import { inited } from "/packages/core/init.js";
       import { get } from "../main.js";
       import { getRemotes } from "/packages/fs/r-handle/index.js";
+
+      await inited;
 
       // 获取指定大小的随机文本(1mb)
       const getBigText = (size = 1) => {
@@ -33,9 +43,15 @@
 
         const localHandle = await get(path);
 
+        // const htmlHandle = await localHandle.get("temp.yaml");
         const htmlHandle = await localHandle.get("index.html");
 
+        // const text = await htmlHandle.file();
         const text = await htmlHandle.text();
+        // const text = await htmlHandle.text({
+        //   start: 0,
+        //   end: 100,
+        // });
 
         // 获取大文件
         console.log(htmlHandle.path, "⬇️", text);
@@ -45,10 +61,11 @@
           create: "file",
         });
 
-        // await testTxt.write("haha".repeat());
-        await testTxt.write(getBigText());
-
-        debugger;
+        // await testTxt.write("haha".repeat(100));
+        // const result = await testTxt.write(getBigText());
+        const fdata = new Blob([getBigText()]);
+        const result = await testTxt.write(fdata);
+        console.log("result: ", result);
       }
     </script>
   </body>

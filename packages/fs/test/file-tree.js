@@ -16,15 +16,15 @@ styleEl.innerHTML = `
 
 document.head.appendChild(styleEl);
 
-const ul = document.createElement("ul");
-ul.classList.add("file-list");
-document.body.append(ul);
-
 let localRoot;
 
 setTimeout(async () => {
   const get = await finalGet;
   localRoot = await get("local");
+
+  const ul = document.createElement("ul");
+  ul.classList.add("file-list");
+  document.body.append(ul);
 
   reloadView(localRoot);
 }, 400);

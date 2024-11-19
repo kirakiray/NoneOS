@@ -19,6 +19,9 @@ export const cn = {
     "{path} 已经是一个'{exitedType}'，不能创建为'{targetType}'",
   notMoveToChild: "{targetPath} 是 {path} 的子目录，不能移动到自己的子目录",
   notFoundChunk: "{path}文件没有找到对应的块文件:{hash}",
+  pathInvalid: "路径不能包含特殊字符 {path}",
+  getHashErr: "获取hash出错:{path}",
+  copyNoFile: "复制文件到目标目录失败:{path} (次数：{count})",
 };
 
 /**

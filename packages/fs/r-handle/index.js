@@ -1,67 +1,81 @@
-import { getCerts } from "/packages/user/cert.js";
-import { getSelfUserInfo } from "/packages/user/main.js";
-import { getUserCard } from "/packages/user/usercard.js";
+import { getAllCerts } from "../../core/cert/main.js";
+import { getId } from "../../core/base/pair.js";
+import { users } from "../../core/main.js";
+import { getUser } from "/packages/core/user-connect/main.js";
 import { RemoteDirHandle } from "./dir.js";
-import { handleBridge } from "./bridge.js";
+import { bridge } from "./bridge.js";
 
-// 获取可远端的根目录
+// 获取所有可以访问的远程节点
 export const getRemotes = async () => {
-  const certs = await getCerts();
-  const selfUserInfo = await getSelfUserInfo();
-  const userCards = await getUserCard();
+  const selfUserID = await getId();
+  const certs = await getAllCerts();
 
-  const remotes = [];
+  // 过滤到只给自己的完整授权证书
+  const availableCerts = (
+    await Promise.all(
+      certs.map(async (e) => {
+        const data = new Map(e.data);
+        const authTo = data.get("authTo");
 
-  // 授权给自己的所有权的非过期证书
-  certs.forEach((certData) => {
-    // 过期的不要
-    if (certData.expire !== "never" && Date.now() > certData.expire) {
-      return;
-    }
+        if (authTo !== selfUserID) {
+          return null;
+        }
 
-    // 不是授权给我的不要
-    if (certData.authTo !== selfUserInfo.userID) {
-      return;
-    }
+        const issuerID = data.get("issuer");
 
-    if (certData.permission === "fully") {
-      const card = userCards.find((user) => user.id === certData.issuer);
+        const cards = await getUser({
+          userId: issuerID,
+        });
 
-      // 确保没有重复
-      if (remotes.find((e) => e.userid === certData.issuer)) {
-        return;
-      }
+        if (cards.length) {
+          const card = cards[0];
 
-      // 转换对象
-      remotes.push({
-        name: card?.name,
-        userid: card?.id,
-        paths: [
-          {
-            name: "虚拟空间",
-            path: `$remote:${certData.issuer}:local`,
-          },
-          {
-            name: "应用",
-            path: `$remote:${certData.issuer}:apps`,
-          },
-        ],
-      });
-    }
-  });
+          return {
+            name: new Map(card.data).get("userName"),
+            userId: issuerID,
+            paths: [
+              {
+                name: "虚拟空间",
+                path: `$remote:${issuerID}:local`,
+              },
+              {
+                name: "应用",
+                path: `$remote:${issuerID}:apps`,
+              },
+            ],
+          };
+        }
+      })
+    )
+  ).filter((e) => e);
 
-  return remotes;
+  return availableCerts;
 };
 
 export const get = async (path) => {
   const pathArr = path.split("/");
   const rootInfo = pathArr[0].split(":");
-  const userid = rootInfo[1];
-  // const rootName = rootInfo[2];
+  const userId = rootInfo[1];
 
-  const rootHandle = new RemoteDirHandle(pathArr[0], (options) =>
-    handleBridge(options, userid)
-  );
+  // 查看用户是否在线
+  if (!users.some((e) => e.userId === userId)) {
+    let targetUserData = await getUser({ userId });
+    if (targetUserData.length) {
+      targetUserData = new Map(targetUserData[0].data);
+    } else {
+      targetUserData = null;
+    }
+    throw new Error(
+      `Unable to connect to user '(${
+        targetUserData ? targetUserData.get("userName") : ""
+      })${userId}'`
+    );
+  }
+
+  const rootHandle = new RemoteDirHandle({
+    path: pathArr[0],
+    bridge,
+  });
 
   if (pathArr.length === 1) {
     return rootHandle;

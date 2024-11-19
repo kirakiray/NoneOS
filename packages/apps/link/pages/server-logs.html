@@ -1,0 +1,260 @@
+<template page>
+  <!-- <l-m src="../comps/data-log.html"></l-m> -->
+  <l-m src="../comps/server-data-log.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+    }
+    .group_title {
+      font-size: 12px;
+      color: #7e7e7e;
+    }
+    .group {
+      margin-top: 16px;
+    }
+  </style>
+  <div>
+    服务器地址:
+    <span
+      style="
+        color: var(--md-sys-color-normal);
+        user-select: text;
+        font-size: 14px;
+      "
+      >{{serverUrl}}</span
+    >
+  </div>
+
+  <div style="display: flex; margin: 4px 0; align-items: center">
+    历史日志:
+
+    <x-if :value="logSize">
+      <span style="display: inline-block; margin-left: 8px; font-size: 14px">
+        {{logSize}} 条
+      </span>
+    </x-if>
+
+    <x-if :value="loading">
+      <p-progress
+        color="success"
+        type="circle"
+        style="--circle-size: 20; margin-left: 8px"
+      ></p-progress>
+    </x-if>
+
+    <div style="margin-left: 16px">
+      <p-button size="mini" on:click="loadLogs">刷新</p-button>
+      <p-button size="mini" color="error" on:click="deleteAll">
+        删除所有日志
+      </p-button>
+    </div>
+  </div>
+  <div class="container">
+    <x-if :value="!loading && isEmpty">
+      <div style="width: 200px; color: #7e7e7e; text-align: center">
+        没有日志
+      </div>
+    </x-if>
+  </div>
+
+  <x-if :value="groupData.withinFiveMinutes.length">
+    <div class="group">
+      <span class="group_title"> 五分钟内:</span>
+      <div class="container">
+        <x-fill :value="groupData.withinFiveMinutes">
+          <server-data-log :item="$data"></server-data-log>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <x-if :value="groupData.withinOneHour.length">
+    <div class="group">
+      <span class="group_title"> 一小时内:</span>
+      <div class="container">
+        <x-fill :value="groupData.withinOneHour">
+          <server-data-log :item="$data"></server-data-log>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <x-if :value="groupData.withinOneDay.length">
+    <div class="group">
+      <span class="group_title"> 24小时内:</span>
+      <div class="container">
+        <x-fill :value="groupData.withinOneDay">
+          <server-data-log :item="$data"></server-data-log>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <x-if :value="groupData.moreThanOneDay.length">
+    <div class="group">
+      <span class="group_title"> 一天前:</span>
+      <div class="container">
+        <x-fill :value="groupData.moreThanOneDay">
+          <server-data-log :item="$data"></server-data-log>
+        </x-fill>
+      </div>
+    </div>
+  </x-if>
+
+  <div style="height: 32px"></div>
+
+  <script>
+    export const parent = "../outer.html";
+
+    export default async ({ load, query }) => {
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { get } = await load("/packages/fs/handle/index.js");
+      const serverUrl = decodeURIComponent(query.url);
+
+      return {
+        data: {
+          serverUrl,
+          loading: false,
+          isEmpty: false,
+          // 分组数据
+          groupData: {
+            withinFiveMinutes: [], // 五分钟内的数据
+            withinOneHour: [], // 一个小时内的数据
+            withinOneDay: [], // 一天内的数据
+            moreThanOneDay: [], // 一天外的数据
+          },
+          logSize: 0, // 记录的条数
+        },
+        proto: {
+          async deleteAll() {
+            const result = await confirm({
+              title: "删除日志",
+              content: "确认删除所有日志吗？",
+            });
+
+            if (result) {
+              const dirHandle = await get(`local/caches/server-logs/${this.sname}`);
+
+              await dirHandle.remove();
+
+              this.loadLogs();
+            }
+          },
+          get sname() {
+            const urlObj = new URL(serverUrl);
+
+            // 打印目录名
+            const sname =
+              urlObj.host.split(":").join("--") +
+              urlObj.pathname.split("/").join("--");
+
+            return sname;
+          },
+          async loadLogs() {
+            this.loading = true;
+
+            const dirHandle = await get(`local/caches/server-logs/${this.sname}`);
+
+            const logs = [];
+
+            if (dirHandle) {
+              for await (let item of dirHandle.values()) {
+                const time = parseInt(item.name.replace(".json", ""));
+
+                const _data = await item.text();
+
+                if (_data) {
+                  logs.push({
+                    time,
+                    _data,
+                  });
+                } else {
+                  // 损坏的删除
+                  item.remove();
+                }
+              }
+
+              logs.sort((a, b) => {
+                return b.time - a.time;
+              });
+            }
+
+            this.loading = false;
+            this.logSize = logs.length;
+
+            if (!logs.length) {
+              // 空数据
+              this.isEmpty = true;
+              this.groupData = {
+                withinFiveMinutes: [], // 五分钟内的数据
+                withinOneHour: [], // 一个小时内的数据
+                withinOneDay: [], // 一天内的数据
+                moreThanOneDay: [], // 一天外的数据
+              };
+              return;
+            }
+
+            this.isEmpty = false;
+            const gdata = (this.groupData = groupByTime(logs));
+
+            console.log(gdata);
+          },
+        },
+        attached() {
+          this.emit("update-title", {
+            composed: true,
+            data: {
+              titles: [
+                {
+                  name: "服务器",
+                },
+                {
+                  name: "历史日志",
+                },
+              ],
+            },
+          });
+
+          this.loadLogs();
+        },
+        detached() {},
+      };
+    };
+
+    // 给数据分组
+    function groupByTime(arr) {
+      const now = new Date();
+      const fiveMinutes = 5 * 60 * 1000;
+      const oneHour = 60 * 60 * 1000;
+      const oneDay = 24 * 60 * 60 * 1000;
+
+      const groups = {
+        withinFiveMinutes: [],
+        withinOneHour: [],
+        withinOneDay: [],
+        moreThanOneDay: [],
+      };
+
+      arr.forEach((item) => {
+        const timeDiff = now - new Date(item.time);
+
+        if (timeDiff <= fiveMinutes) {
+          groups.withinFiveMinutes.push(item);
+        } else if (timeDiff <= oneHour) {
+          groups.withinOneHour.push(item);
+        } else if (timeDiff <= oneDay) {
+          groups.withinOneDay.push(item);
+        } else {
+          groups.moreThanOneDay.push(item);
+        }
+      });
+
+      return groups;
+    }
+  </script>
+</template>
