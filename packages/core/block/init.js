@@ -46,22 +46,16 @@ userMiddleware.set("get-block", async (options, client, channel) => {
       debugger;
     }
 
+    // 压缩后的数据
     const composedData = await compressArrayBuffer(originData);
 
+    // 最终要被发送的数据
     let finnalData;
 
-    // 压缩后数据更小的话，传输压缩后的数据
-    // if (composedData.byteLength < originData.byteLength) {
     if (composedData.byteLength < (originData.size || originData.byteLength)) {
-      // 最后一个字节标识为100，表示为压缩格式
-      finnalData = createFinalData(composedData, 100);
+      finnalData = composedData;
     } else {
-      if (originData instanceof Blob) {
-        originData = await blobToBuffer(originData);
-      }
-
-      // 最后一个字节标识为 101，标识为原格式
-      finnalData = createFinalData(originData, 101);
+      finnalData = originData;
     }
 
     await client.send(finnalData);
@@ -85,23 +79,12 @@ userMiddleware.set("get-block-result", async (options, client) => {
 userMiddleware.set("response-block", async (chunk, client) => {
   let data;
 
-  const { buffer, lastByte } = await extractLastByte(chunk);
-
-  if (lastByte === 100) {
-    // 压缩的数据
-    try {
-      // 是压缩文件，先进行解压缩
-      data = await decompressArrayBuffer(buffer);
-    } catch (err) {
-      // TODO: 数据损坏解压缩失败
-      debugger;
-      console.error(new Error(`The received block data is wrong`));
-    }
-  } else if (lastByte === 101) {
-    data = buffer;
-  } else {
-    // TODO: 不明类型数据
-    debugger;
+  // 尝试解压缩文件，失败的话就是数据
+  try {
+    data = await decompressArrayBuffer(chunk);
+  } catch (err) {
+    console.log("compose error", err);
+    data = chunk;
   }
 
   // 保存块数据
