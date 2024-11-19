@@ -188,6 +188,10 @@ export class UserClient extends $.Stanz {
       ],
     };
 
+    if (this.#rtcConnection) {
+      this.#rtcConnection.close();
+    }
+
     const rtcPC = (this.#rtcConnection = new RTCPeerConnection(configuration));
 
     // RTC对象的事件
@@ -238,7 +242,12 @@ export class UserClient extends $.Stanz {
 
   // 连接这个用户
   async connect() {
-    if (this.state !== "disconnected" && this.state !== "closed") {
+    if (this.state === "send-remote") {
+      // 如果超时太多就重新走流程 30秒
+      if (Date.now() - this.__sendTime < 30000) {
+        return;
+      }
+    } else if (this.state !== "disconnected" && this.state !== "closed") {
       // 只允许未连接的情况下进行通信
       return;
     }
@@ -263,6 +272,7 @@ export class UserClient extends $.Stanz {
     });
 
     this.state = "send-remote";
+    this.__sendTime = Date.now();
 
     return true;
   }
