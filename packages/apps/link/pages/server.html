@@ -144,8 +144,8 @@
     [data-ice-state="notok"] {
       background-color: red;
     }
-    
-    .sub-item{
+
+    .sub-item {
       cursor: default;
     }
   </style>
@@ -253,31 +253,42 @@
     // 测试ICE服务器
     function testIceServer(iceServer) {
       return new Promise((resolve, reject) => {
-        const configuration = {
+        const config = {
           iceServers: [iceServer],
         };
 
-        const pc = new RTCPeerConnection(configuration);
+        const peerConnection = new RTCPeerConnection(config);
 
-        // 创建一个数据通道来触发ICE候选者收集
-        const dataChannel = pc.createDataChannel("test");
-
-        // 监听ICE候选者事件
-        pc.onicecandidate = (event) => {
+        peerConnection.onicecandidate = (event) => {
           if (event.candidate) {
-            resolve(true);
-            pc.close();
-          } else {
-            console.log("No more ICE candidates");
-            reject(false);
-            pc.close();
+            const candidate = event.candidate.candidate;
+
+            // 检查候选地址类型
+            if (candidate.includes("typ srflx")) {
+              // STUN 服务器有效
+              resolve(true);
+              peerConnection.close();
+            } else if (candidate.includes("typ relay")) {
+              resolve(true);
+              peerConnection.close();
+            }
           }
         };
 
-        // 创建offer
-        pc.createOffer()
-          .then((offer) => pc.setLocalDescription(offer))
-          .catch((error) => console.error("Error creating offer:", error));
+        peerConnection.onicecandidateerror = (event) => {
+          reject(event);
+        };
+
+        // 创建一个虚假的数据通道以触发 ICE 流程
+        peerConnection.createDataChannel("test");
+
+        // 设置本地描述
+        peerConnection
+          .createOffer()
+          .then((offer) => peerConnection.setLocalDescription(offer))
+          .catch((error) => {
+            reject(error);
+          });
       });
     }
   </script>
