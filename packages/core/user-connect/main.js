@@ -14,20 +14,18 @@ export const inited = (async () => {
     return;
   }
 
-  await Promise.all(
-    cardsDir.map(async (handle) => {
-      let data = await handle.text();
-      if (data) {
-        data = JSON.parse(data);
+  await cardsDir.forEach(async (handle) => {
+    let data = await handle.text();
+    if (data) {
+      data = JSON.parse(data);
 
-        const client = new UserClient(data);
+      const client = new UserClient(data);
 
-        if (await client.verify()) {
-          users.push(client);
-        }
+      if (await client.verify()) {
+        users.push(client);
       }
-    })
-  );
+    }
+  });
 })();
 
 // 更新在线用户

@@ -47,3 +47,22 @@ if (!hasOfa) {
   // 兼容 dist.js 操作
   blocks.watchTick = () => {};
 }
+
+export const iceServers = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun.xten.com:3478" },
+  { urls: "stun:stun.voipbuster.com:3478" },
+  { urls: "stun:stun.sipgate.net:3478" },
+  { urls: "stun:stun.ekiga.net:3478" },
+  { urls: "stun:stun.ideasip.com:3478" },
+  { urls: "stun:stun.schlund.de:3478" },
+  { urls: "stun:stun.voiparound.com:3478" },
+  { urls: "stun:stun.voipstunt.com:3478" },
+  { urls: "stun:stun.counterpath.com:3478" },
+  { urls: "stun:stun.1und1.de:3478" },
+  { urls: "stun:stun.gmx.net:3478" },
+  { urls: "stun:stun.callwithus.com:3478" },
+  { urls: "stun:stun.counterpath.net:3478" },
+  { urls: "stun:stun.internetcalls.com:3478" },
+  { urls: "stun:numb.viagenie.ca:3478" },
+];

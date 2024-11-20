@@ -1,5 +1,5 @@
 import { get } from "/packages/fs/handle/index.js";
-import { servers, emit, userMiddleware } from "../main.js";
+import { servers, emit, userMiddleware, iceServers } from "../main.js";
 import { verify } from "../base/verify.js";
 import { inited } from "../server-connect/main.js";
 
@@ -168,24 +168,7 @@ export class UserClient extends $.Stanz {
 
   initRTC() {
     const configuration = {
-      iceServers: [
-        { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun.xten.com:3478" },
-        { urls: "stun:stun.voipbuster.com:3478" },
-        { urls: "stun:stun.sipgate.net:3478" },
-        { urls: "stun:stun.ekiga.net:3478" },
-        { urls: "stun:stun.ideasip.com:3478" },
-        { urls: "stun:stun.schlund.de:3478" },
-        { urls: "stun:stun.voiparound.com:3478" },
-        { urls: "stun:stun.voipstunt.com:3478" },
-        { urls: "stun:stun.counterpath.com:3478" },
-        { urls: "stun:stun.1und1.de:3478" },
-        { urls: "stun:stun.gmx.net:3478" },
-        { urls: "stun:stun.callwithus.com:3478" },
-        { urls: "stun:stun.counterpath.net:3478" },
-        { urls: "stun:stun.internetcalls.com:3478" },
-        { urls: "stun:numb.viagenie.ca:3478" },
-      ],
+      iceServers: [...iceServers],
     };
 
     if (this.#rtcConnection) {
