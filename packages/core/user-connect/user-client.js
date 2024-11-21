@@ -193,15 +193,29 @@ export class UserClient extends $.Stanz {
       this._bindChannel(channel);
     };
 
+    // 历史进程
+    const candidates = [];
+
     rtcPC.onicecandidate = (event) => {
       const { candidate } = event;
 
       if (candidate) {
-        // 传递 icecandidate
+        candidates.push(candidate);
+        // this._serverAgentPost({
+        //   step: "set-candidate",
+        //   candidate,
+        // });
+
+        console.log("onice: ", candidate);
+      } else {
+        // 传递所有 candidates
         this._serverAgentPost({
-          step: "set-candidate",
-          candidate,
+          step: "set-candidates",
+          candidates: [...candidates],
         });
+        console.log("oniceend: ", candidates);
+
+        candidates.length = 0;
       }
     };
 
@@ -512,14 +526,27 @@ export class UserClient extends $.Stanz {
           anwser: anwserOffter,
         });
         break;
-
       case "set-candidate":
         // 添加到本地信号
         const iceObj = new RTCIceCandidate(data.candidate);
         rtcPC.addIceCandidate(iceObj);
+        console.log("set-candidate: ", data.candidate);
+        break;
+      case "set-candidates":
+        data.candidates.forEach((candidate, index) => {
+          const iceObj = new RTCIceCandidate(candidate);
+          rtcPC.addIceCandidate(iceObj);
+          console.log(`set-candidate ${index}:`, candidate);
+        });
+
+        if (this.state === "set-remote") {
+          this.state = "set-candidates";
+        }
+
         break;
       case "answer-remote":
         rtcPC.setRemoteDescription(data.anwser);
+        this.state = "received-answer-remote";
         break;
       default:
         // TODO: 不明状态
