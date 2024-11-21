@@ -41,7 +41,10 @@
                 return;
               }
 
-              const serverName = dir.name;
+              const serverName = dir.name
+                .replace("---", ":")
+                .replace("--", "/");
+                
               const logs = [];
 
               await dir.forEach(async (handle) => {

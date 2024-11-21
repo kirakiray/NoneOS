@@ -11,7 +11,7 @@ const saveLog = async (serverUrl, data) => {
 
   // 打印目录名
   const sname =
-    urlObj.host.split(":").join("--") + urlObj.pathname.split("/").join("--");
+    urlObj.host.split(":").join("---") + urlObj.pathname.split("/").join("--");
 
   const handle = await get(
     `local/caches/server-logs/${sname}/${Date.now()}.json`,
