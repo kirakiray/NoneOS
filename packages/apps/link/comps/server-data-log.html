@@ -56,11 +56,21 @@
         proto: {
           get logType() {
             try {
-              const data = JSON.parse(this.item._data);
-              switch (data.__type) {
+              const origin = JSON.parse(this.item._data);
+              switch (origin.__type) {
                 case "init":
                   return "服务初始化";
                 case "agent-connect":
+                  const step = origin?.data?.step;
+
+                  if (step) {
+                    if (step === "set-candidates") {
+                      return "转发-设置候选人";
+                    } else if (step === "set-remote") {
+                      return "转发-远端设置offer";
+                    }
+                  }
+
                   return "转发数据";
               }
             } catch (err) {
