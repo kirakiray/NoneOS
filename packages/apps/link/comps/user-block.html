@@ -150,7 +150,9 @@
             );
           },
           async viewHandRelateLog() {
-            debugger;
+            this.app.current.goto(
+              `./user-ser-logs.html?userid=${this.item.userId}&username=${this.item.userName}`
+            );
           },
           async connect() {
             this.connecting = true;
