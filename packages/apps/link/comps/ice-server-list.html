@@ -105,6 +105,7 @@
   <script>
     export default async ({ load }) => {
       const { iceServers } = await load("/packages/core/main.js");
+      const { pingIces } = await load("/packages/core/ice-server.js");
 
       const { enqueue, confirm } = await load("/packages/pui/util.js");
 
@@ -132,6 +133,7 @@
                 }
 
                 this.newServerUrl = "";
+                pingIces();
                 return;
               }
 
@@ -147,6 +149,7 @@
                 urls: data,
               });
               this.newServerUrl = "";
+              pingIces();
             }
           },
           removeServer(index) {

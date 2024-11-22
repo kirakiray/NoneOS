@@ -1,6 +1,18 @@
 import { iceServers } from "./main.js";
 import { get } from "/packages/fs/handle/index.js";
 
+export const pingIces = () => {
+  iceServers.forEach(async (e) => {
+    const result = await testIceServer(e).catch(() => null);
+    if (result) {
+      e.state = result.valid ? "ok" : "notok";
+      e.time = result.latency;
+    } else {
+      e.state = "notok";
+    }
+  });
+};
+
 export const inited = (async () => {
   const icesHandle = await get("local/caches/ices").catch(() => null);
 
@@ -36,13 +48,7 @@ export const inited = (async () => {
     );
   }
 
-  iceServers.forEach(async (e) => {
-    const result = await testIceServer(e).catch(() => null);
-    if (result) {
-      e.state = result.valid ? "ok" : "notok";
-      e.time = result.latency;
-    }
-  });
+  pingIces();
 
   // 获取ICE服务器字符串
   const getIceStr = () => {
@@ -87,6 +93,11 @@ function testIceServer(iceServer) {
 
     let resolved = false; // 标记是否已经 resolve
 
+    const timer = setTimeout(() => {
+      peerConnection.close();
+      reject();
+    }, 5000);
+
     peerConnection.onicecandidate = (event) => {
       if (event.candidate && !resolved) {
         const candidate = event.candidate.candidate;
@@ -101,6 +112,7 @@ function testIceServer(iceServer) {
           const latency = endTime - startTime;
           // ICE 服务器有效
           resolve({ valid: true, latency });
+          clearTimeout(timer);
           peerConnection.close();
           resolved = true;
         }
@@ -111,6 +123,8 @@ function testIceServer(iceServer) {
       if (!resolved) {
         reject(event);
         resolved = true;
+        clearTimeout(timer);
+        peerConnection.close();
       }
     };
 
@@ -125,6 +139,8 @@ function testIceServer(iceServer) {
         if (!resolved) {
           reject(error);
           resolved = true;
+          clearTimeout(timer);
+          peerConnection.close();
         }
       });
   });

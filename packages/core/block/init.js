@@ -83,7 +83,7 @@ userMiddleware.set("response-block", async (chunk, client) => {
   try {
     data = await decompressArrayBuffer(chunk);
   } catch (err) {
-    console.log("compose error", err);
+    // console.log("decompress error", err);
     data = chunk;
   }
 
