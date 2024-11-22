@@ -58,11 +58,12 @@
               </x-if>
             </div>
             <div slot="suffix">
-              <!-- <p-button
+              <p-button
                 size="mini"
                 variant="text"
                 icon
                 attr:disabled="$index === 0"
+                on:click="$host.itemMove($index,'up')"
               >
                 <n-local-icon name="up"></n-local-icon>
               </p-button>
@@ -71,9 +72,10 @@
                 variant="text"
                 icon
                 attr:disabled="$index === $host.iceServers.length - 1"
+                on:click="$host.itemMove($index,'down')"
               >
                 <n-local-icon name="down"></n-local-icon>
-              </p-button> -->
+              </p-button>
 
               <p-button
                 size="mini"
@@ -104,6 +106,15 @@
         proto: {
           removeServer(index) {
             this.iceServers.splice(index, 1);
+          },
+          itemMove(index, dir) {
+            const item = this.iceServers.splice(index, 1)[0];
+
+            if (dir === "up") {
+              this.iceServers.splice(index - 1, 0, item);
+            } else {
+              this.iceServers.splice(index + 1, 0, item);
+            }
           },
         },
         attached() {
