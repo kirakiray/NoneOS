@@ -17,6 +17,10 @@
       margin: 8px 8px 0 0;
     }
 
+    .data-log.ispost {
+      border: rgb(55, 41, 198) solid 1px;
+    }
+
     .log-line {
       font-size: 12px;
     }
@@ -30,7 +34,7 @@
       top: -26px;
     }
   </style>
-  <div class="data-log">
+  <div class="data-log" class:ispost="ispost">
     <div class="log-line">
       时间:
       <n-moment-span :time="item.time"></n-moment-span>
@@ -40,7 +44,7 @@
       <p-button on:click="showAll = showAll ? null : 1" size="mini">
         {{showAll ? '折叠内容' : '显示所有'}}
       </p-button>
-      <n-data-log :str="item._data" :show-all="showAll"></n-data-log>
+      <n-data-log :str="logDataStr" :show-all="showAll"></n-data-log>
     </div>
   </div>
   <script>
@@ -51,29 +55,60 @@
           item: {
             _data: "{}",
           },
+          logDataStr: "{}",
           showAll: null,
+          ispost: false, // 是否自己发送的数据
         },
         proto: {
           get logType() {
             try {
               const origin = JSON.parse(this.item._data);
-              switch (origin.__type) {
+
+              this.logDataStr = JSON.stringify(origin.result);
+
+              let prefix = ``;
+
+              if (origin.__post) {
+                prefix = "发送";
+                this.ispost = true;
+              } else if (origin.__receive) {
+                prefix = "接收";
+              }
+
+              let { result } = origin;
+
+              if (result.recommends) {
+                return `${prefix}-请求推荐列表`;
+              } else if (result.search) {
+                return `${prefix}-查找用户`;
+              } else if (result.agent) {
+                result = {
+                  __type: "agent-connect",
+                  fromUserID: result.agent.targetId,
+                  data: result.agent.data,
+                };
+              }
+
+              switch (result.__type) {
                 case "init":
-                  return "服务初始化";
+                  return `${prefix}-服务初始化`;
                 case "agent-connect":
-                  const step = origin?.data?.step;
+                  const step = result?.data?.step;
 
                   if (step) {
                     if (step === "set-candidates") {
-                      return `转发-设置候选人(${origin.data.candidates.length})`;
+                      return `${prefix}-设置候选人(${result.data.candidates.length})`;
                     } else if (step === "set-remote") {
-                      return "转发-使用offer";
+                      return `${prefix}-使用offer`;
                     } else if (step === "answer-remote") {
-                      return "转发-回答远端offer";
+                      return `${prefix}-远端offer`;
                     }
                   }
 
-                  return "转发数据";
+                  return `${prefix}-转发数据`;
+                default:
+                  console.log(result);
+                  return "unknown";
               }
             } catch (err) {
               return "";

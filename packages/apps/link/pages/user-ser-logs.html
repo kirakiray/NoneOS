@@ -54,14 +54,27 @@
               const logs = [];
 
               await dir.forEach(async (handle) => {
-                let origin = await handle.text();
+                const _data = await handle.text();
+                if (!_data) {
+                  return;
+                }
                 try {
-                  origin = JSON.parse(origin);
+                  const origin = JSON.parse(_data);
 
-                  if (origin.fromUserID === userid) {
+                  let result = origin?.result;
+
+                  if (result.agent) {
+                    result = {
+                      __type: "agent-connect",
+                      fromUserID: result.agent.targetId,
+                      data: result.agent.data,
+                    };
+                  }
+
+                  if (result?.fromUserID === userid) {
                     logs.push({
                       time: handle.createTime,
-                      _data: JSON.stringify(origin),
+                      _data,
                     });
                   }
                 } catch (err) {
@@ -90,7 +103,7 @@
                   name: "用户",
                 },
                 {
-                  name: `${username}的握手日志`,
+                  name: `和${username}的握手日志`,
                 },
               ],
             },
