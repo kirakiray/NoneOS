@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="../comps/ice-server-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -121,69 +122,7 @@
     </x-fill>
   </div>
 
-  <l-m src="/packages/pui/list/list.html"></l-m>
-
-  <style>
-    .ice-line {
-      display: flex;
-      align-items: center;
-      height: 22px;
-      font-size: 14px;
-    }
-    [data-ice-state] {
-      margin-right: 8px;
-      width: 8px;
-      height: 8px;
-      border-radius: 5px;
-      background-color: #eee;
-    }
-
-    [data-ice-state="ok"] {
-      background-color: green;
-    }
-    [data-ice-state="notok"] {
-      background-color: red;
-    }
-
-    .sub-item {
-      cursor: default;
-    }
-  </style>
-
-  <p-list style="margin-top: 8px; max-width: 600px">
-    <p-list-item button="suffix" collapse-childs="close">
-      ice服务器
-      <i collapse-triangle slot="suffix"></i>
-      <p-list slot="childs">
-        <x-fill :value="iceServers">
-          <p-list-item class="sub-item">
-            <span slot="prefix" attr:data-ice-state="$data.state"></span>
-
-            <div>
-              {{$data.urls}}
-              <x-if :value="$data.state === 'ok'">
-                <span
-                  style="
-                    display: inline;
-                    margin-left: 8px;
-                    font-size: 12px;
-                    color: #878787;
-                  "
-                >
-                  {{$data.time}}ms
-                </span>
-              </x-if>
-            </div>
-          </p-list-item>
-        </x-fill>
-      </p-list>
-    </p-list-item>
-  </p-list>
-  <!-- 
-  <h5 style="margin-bottom: 4px">ice服务器</h5>
-  <x-fill :value="iceServers">
-    <div class="ice-line"></div>
-  </x-fill> -->
+  <n-ice-server-list></n-ice-server-list>
 
   <script>
     export const parent = "../outer.html";
@@ -195,13 +134,10 @@
         "/packages/core/server-connect/main.js"
       );
 
-      const { iceServers } = await load("/packages/core/main.js");
-
       return {
         data: {
           servers: [],
           newServer: "",
-          iceServers,
         },
         proto: {
           async gotoLog(item) {
@@ -243,14 +179,6 @@
           this.servers = servers;
           console.log(servers);
 
-          this.iceServers.forEach(async (e) => {
-            const result = await testIceServer(e).catch(() => null);
-            if (result) {
-              e.state = result.valid ? "ok" : "notok";
-              e.time = result.latency;
-            }
-          });
-
           this.emit("update-title", {
             composed: true,
             data: {
@@ -267,61 +195,5 @@
         },
       };
     };
-
-    // 测试ICE服务器
-    function testIceServer(iceServer) {
-      return new Promise((resolve, reject) => {
-        const config = {
-          iceServers: [iceServer],
-        };
-
-        const startTime = Date.now(); // 记录开始时间
-
-        const peerConnection = new RTCPeerConnection(config);
-
-        let resolved = false; // 标记是否已经 resolve
-
-        peerConnection.onicecandidate = (event) => {
-          if (event.candidate && !resolved) {
-            const candidate = event.candidate.candidate;
-            const endTime = Date.now(); // 记录结束时间
-
-            // 检查候选地址类型
-            if (
-              candidate.includes("typ srflx") ||
-              candidate.includes("typ relay")
-            ) {
-              // 计算延迟
-              const latency = endTime - startTime;
-              // ICE 服务器有效
-              resolve({ valid: true, latency });
-              peerConnection.close();
-              resolved = true;
-            }
-          }
-        };
-
-        peerConnection.onicecandidateerror = (event) => {
-          if (!resolved) {
-            reject(event);
-            resolved = true;
-          }
-        };
-
-        // 创建一个虚假的数据通道以触发 ICE 流程
-        peerConnection.createDataChannel("test");
-
-        // 设置本地描述
-        peerConnection
-          .createOffer()
-          .then((offer) => peerConnection.setLocalDescription(offer))
-          .catch((error) => {
-            if (!resolved) {
-              reject(error);
-              resolved = true;
-            }
-          });
-      });
-    }
   </script>
 </template>
