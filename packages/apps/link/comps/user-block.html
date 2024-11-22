@@ -84,7 +84,8 @@
         {{connecting ? '连接中...' : '连接用户'}}
       </p-button>
 
-      <p-button on:click="viewLog" size="mini">查看日志</p-button>
+      <p-button on:click="viewLog" size="mini">查看用户日志</p-button>
+      <p-button on:click="viewHandRelateLog" size="mini">查看握手日志</p-button>
     </div>
   </div>
   <p-button
@@ -146,6 +147,11 @@
           async viewLog() {
             this.app.current.goto(
               `user-logs.html?id=${this.item.userId}&name=${this.item.userName}`
+            );
+          },
+          async viewHandRelateLog() {
+            this.app.current.goto(
+              `./user-ser-logs.html?userid=${this.item.userId}&username=${this.item.userName}`
             );
           },
           async connect() {

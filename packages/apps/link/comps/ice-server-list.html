@@ -1,0 +1,202 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+
+  <style>
+    .ice-line {
+      display: flex;
+      align-items: center;
+      height: 22px;
+      font-size: 14px;
+    }
+    [data-ice-state] {
+      margin-right: 8px;
+      width: 8px;
+      height: 8px;
+      border-radius: 5px;
+      background-color: #eee;
+    }
+
+    [data-ice-state="ok"] {
+      background-color: green;
+    }
+    [data-ice-state="notok"] {
+      background-color: red;
+    }
+
+    .sub-item {
+      cursor: default;
+    }
+
+    .sub-item:hover {
+      background-color: var(--md-ref-palette-translucent-primary50);
+    }
+  </style>
+
+  <p-list style="margin-top: 8px; max-width: 600px">
+    <p-list-item button="suffix" collapse-childs="open">
+      ice服务器
+      <i collapse-triangle slot="suffix"></i>
+      <p-list slot="childs">
+        <p-list-item>
+          <p-text-field
+            size="small"
+            sync:value="newServerUrl"
+            placeholder="输入ice服务器地址，按回车添加"
+            on:keyup="addServer"
+          ></p-text-field>
+        </p-list-item>
+        <x-fill :value="iceServers">
+          <p-list-item class="sub-item">
+            <span slot="prefix" attr:data-ice-state="$data.state"></span>
+
+            <div>
+              {{$data.urls}}
+              <x-if :value="$data.state === 'ok'">
+                <span
+                  style="
+                    display: inline;
+                    margin-left: 8px;
+                    font-size: 12px;
+                    color: #878787;
+                  "
+                >
+                  {{$data.time}}ms
+                </span>
+              </x-if>
+            </div>
+            <div slot="suffix">
+              <p-button
+                size="mini"
+                variant="text"
+                icon
+                attr:disabled="$index === 0"
+                on:click="$host.itemMove($index,'up')"
+              >
+                <n-local-icon name="up"></n-local-icon>
+              </p-button>
+              <p-button
+                size="mini"
+                variant="text"
+                icon
+                attr:disabled="$index === $host.iceServers.length - 1"
+                on:click="$host.itemMove($index,'down')"
+              >
+                <n-local-icon name="down"></n-local-icon>
+              </p-button>
+
+              <p-button
+                size="mini"
+                variant="text"
+                icon
+                color="error"
+                on:click="$host.removeServer($index)"
+              >
+                <n-local-icon name="close"></n-local-icon>
+              </p-button>
+            </div>
+          </p-list-item>
+        </x-fill>
+      </p-list>
+    </p-list-item>
+  </p-list>
+
+  <div></div>
+  <script>
+    export default async ({ load }) => {
+      const { iceServers } = await load("/packages/core/main.js");
+      const { pingIces } = await load("/packages/core/ice-server.js");
+
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+
+      return {
+        tag: "n-ice-server-list",
+        data: {
+          newServerUrl: "",
+          iceServers: [],
+        },
+        proto: {
+          // 添加服务器
+          addServer(e) {
+            if (e.key === "Enter" || e.code === "Enter") {
+              let data = this.newServerUrl.trim();
+
+              if (data.includes("{")) {
+                // 对象类型的数据
+                data = JSON.parse(data);
+
+                if (Array.isArray(data)) {
+                  // 数组类型
+                  iceServers.unshift(...getServers(data));
+                } else {
+                  iceServers.unshift(...getServers([data]));
+                }
+
+                this.newServerUrl = "";
+                pingIces();
+                return;
+              }
+
+              if (!isStunOrTurnAddress(data)) {
+                enqueue({
+                  content: "输入的ice服务器地址不合法",
+                  color: "error",
+                });
+                return;
+              }
+
+              iceServers.unshift({
+                urls: data,
+              });
+              this.newServerUrl = "";
+              pingIces();
+            }
+          },
+          removeServer(index) {
+            this.iceServers.splice(index, 1);
+          },
+          itemMove(index, dir) {
+            const item = this.iceServers.splice(index, 1)[0];
+
+            if (dir === "up") {
+              this.iceServers.splice(index - 1, 0, item);
+            } else {
+              this.iceServers.splice(index + 1, 0, item);
+            }
+          },
+        },
+        attached() {
+          this.iceServers = iceServers;
+        },
+        detached() {
+          this.iceServers = [];
+        },
+      };
+    };
+
+    // 获取服务器数据
+    const getServers = (arr) => {
+      return arr
+        .map((data) => {
+          if (!data.urls) {
+            return null;
+          }
+
+          return {
+            credential: data.credential,
+            urls: data.urls.trim(),
+            username: data.username,
+          };
+        })
+        .filter((e) => !!e);
+    };
+
+    function isStunOrTurnAddress(address) {
+      // 正则表达式匹配STUN或TURN地址
+      const pattern = /^(stun|turn):[a-zA-Z0-9.-]+(:\d+)?$/;
+
+      // 测试输入的字符串是否符合模式
+      return pattern.test(address);
+    }
+  </script>
+</template>

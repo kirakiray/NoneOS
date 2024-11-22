@@ -11,7 +11,7 @@ const saveLog = async (serverUrl, data) => {
 
   // 打印目录名
   const sname =
-    urlObj.host.split(":").join("--") + urlObj.pathname.split("/").join("--");
+    urlObj.host.split(":").join("---") + urlObj.pathname.split("/").join("--");
 
   const handle = await get(
     `local/caches/server-logs/${sname}/${Date.now()}.json`,
@@ -33,10 +33,6 @@ const KEEP_SERVER_LOG_COUNT = MAX_SERVER_LOG_COUNT / 2; // 单个服务器删除
       const serversDir = await get(`local/caches/server-logs`, {
         create: "dir",
       });
-
-      if (!serversDir) {
-        return;
-      }
 
       for await (let serverHandle of serversDir.values()) {
         const len = await serverHandle.length();
@@ -118,7 +114,13 @@ export class ServerConnector extends $.Stanz {
       eventSource.onmessage = (event) => {
         const result = JSON.parse(event.data);
 
-        saveLog(this.serverUrl, JSON.stringify(result));
+        saveLog(
+          this.serverUrl,
+          JSON.stringify({
+            __receive: 1,
+            result,
+          })
+        );
 
         // 更新服务器信息
         if (result.__type === "init") {
@@ -234,6 +236,17 @@ export class ServerConnector extends $.Stanz {
     }
 
     await this.#initingPms;
+
+    if (!data.ping) {
+      // 记录发送的信息
+      saveLog(
+        this.serverUrl,
+        JSON.stringify({
+          __post: 1,
+          result: data,
+        })
+      );
+    }
 
     return fetch(this.serverPostUrl, {
       method: "POST",

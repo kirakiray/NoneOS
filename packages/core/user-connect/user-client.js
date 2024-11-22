@@ -193,31 +193,57 @@ export class UserClient extends $.Stanz {
       this._bindChannel(channel);
     };
 
+    // 历史进程
+    const candidates = [];
+    let timer;
+
+    const sendCandidates = () => {
+      if (candidates.length) {
+        // 传递所有 candidates
+        this._serverAgentPost({
+          step: "set-candidates",
+          candidates: [...candidates],
+        });
+
+        candidates.length = 0;
+      }
+    };
+
     rtcPC.onicecandidate = (event) => {
       const { candidate } = event;
 
       if (candidate) {
-        // 传递 icecandidate
-        this._serverAgentPost({
-          step: "set-candidate",
-          candidate,
-        });
+        candidates.push(candidate);
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+          sendCandidates();
+        }, 10000);
+
+        console.log("onice: ", candidate);
+      } else {
+        sendCandidates();
+        clearTimeout(timer);
+
+        console.log("oniceend: ", candidates);
       }
     };
 
     // rtcPC.oniceconnectionstatechange = (event) => {
     //   // TODO： 当 ICE 连接状态改变时触发。状态可能包括 new、checking、connected、completed、failed、disconnected 和 closed。
     //   // debugger;
+    //   console.log("oniceconnectionstatechange: ", event);
     // };
 
     // rtcPC.onicegatheringstatechange = (event) => {
     //   // TODO: 当 ICE 收集状态改变时触发。状态可能包括 new、gathering 和 complete。
     //   // debugger;
+    //   console.log("onicegatheringstatechange: ", event);
     // };
 
     // rtcPC.onnegotiationneeded = (event) => {
     //   // TODO: 当需要重新协商连接时触发
     //   // debugger;
+    //   console.log("onnegotiationneeded: ", event);
     // };
 
     return rtcPC;
@@ -268,13 +294,6 @@ export class UserClient extends $.Stanz {
       for (let i = this.#channels.size; i < num; i++) {
         await this._getChannel();
       }
-    } else if (this.#channels.size > num) {
-      // 删除多余的通道
-      // for (let i = num; i < this.#channels.size; i++) {
-      //   const channel = this.#channels.get(i);
-      //   channel.close();
-      // }
-      debugger;
     }
   }
 
@@ -512,14 +531,27 @@ export class UserClient extends $.Stanz {
           anwser: anwserOffter,
         });
         break;
-
       case "set-candidate":
         // 添加到本地信号
         const iceObj = new RTCIceCandidate(data.candidate);
         rtcPC.addIceCandidate(iceObj);
+        console.log("set-candidate: ", data.candidate);
+        break;
+      case "set-candidates":
+        data.candidates.forEach((candidate, index) => {
+          const iceObj = new RTCIceCandidate(candidate);
+          rtcPC.addIceCandidate(iceObj);
+          console.log(`set-candidate ${index}:`, candidate);
+        });
+
+        if (this.state === "set-remote") {
+          this.state = "set-candidates";
+        }
+
         break;
       case "answer-remote":
         rtcPC.setRemoteDescription(data.anwser);
+        this.state = "received-answer-remote";
         break;
       default:
         // TODO: 不明状态
