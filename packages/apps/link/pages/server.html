@@ -158,7 +158,22 @@
         <x-fill :value="iceServers">
           <p-list-item class="sub-item">
             <span slot="prefix" attr:data-ice-state="$data.state"></span>
-            {{$data.urls}}
+
+            <div>
+              {{$data.urls}}
+              <x-if :value="$data.state === 'ok'">
+                <span
+                  style="
+                    display: inline;
+                    margin-left: 8px;
+                    font-size: 12px;
+                    color: #878787;
+                  "
+                >
+                  {{$data.time}}ms
+                </span>
+              </x-if>
+            </div>
           </p-list-item>
         </x-fill>
       </p-list>
@@ -230,7 +245,10 @@
 
           this.iceServers.forEach(async (e) => {
             const result = await testIceServer(e).catch(() => null);
-            e.state = result ? "ok" : "notok";
+            if (result) {
+              e.state = result.valid ? "ok" : "notok";
+              e.time = result.latency;
+            }
           });
 
           this.emit("update-title", {
@@ -257,26 +275,37 @@
           iceServers: [iceServer],
         };
 
+        const startTime = Date.now(); // 记录开始时间
+
         const peerConnection = new RTCPeerConnection(config);
 
+        let resolved = false; // 标记是否已经 resolve
+
         peerConnection.onicecandidate = (event) => {
-          if (event.candidate) {
+          if (event.candidate && !resolved) {
             const candidate = event.candidate.candidate;
+            const endTime = Date.now(); // 记录结束时间
 
             // 检查候选地址类型
-            if (candidate.includes("typ srflx")) {
-              // STUN 服务器有效
-              resolve(true);
+            if (
+              candidate.includes("typ srflx") ||
+              candidate.includes("typ relay")
+            ) {
+              // 计算延迟
+              const latency = endTime - startTime;
+              // ICE 服务器有效
+              resolve({ valid: true, latency });
               peerConnection.close();
-            } else if (candidate.includes("typ relay")) {
-              resolve(true);
-              peerConnection.close();
+              resolved = true;
             }
           }
         };
 
         peerConnection.onicecandidateerror = (event) => {
-          reject(event);
+          if (!resolved) {
+            reject(event);
+            resolved = true;
+          }
         };
 
         // 创建一个虚假的数据通道以触发 ICE 流程
@@ -287,7 +316,10 @@
           .createOffer()
           .then((offer) => peerConnection.setLocalDescription(offer))
           .catch((error) => {
-            reject(error);
+            if (!resolved) {
+              reject(error);
+              resolved = true;
+            }
           });
       });
     }
