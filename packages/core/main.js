@@ -43,10 +43,11 @@ export const blocks = hasOfa
     ])
   : [];
 
+// 辅助连接的 ice 服务器
+export const iceServers = hasOfa ? $.stanz([]) : [];
+
 if (!hasOfa) {
   // 兼容 dist.js 操作
   blocks.watchTick = () => {};
+  iceServers.watchTick = () => {};
 }
-
-// 辅助连接的 ice 服务器
-export const iceServers = $.stanz([]);
