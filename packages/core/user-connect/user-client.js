@@ -198,12 +198,15 @@ export class UserClient extends $.Stanz {
     let timer;
 
     const sendCandidates = () => {
-      // 传递所有 candidates
-      this._serverAgentPost({
-        step: "set-candidates",
-        candidates: [...candidates],
-      });
-      candidates.length = 0;
+      if (candidates.length) {
+        // 传递所有 candidates
+        this._serverAgentPost({
+          step: "set-candidates",
+          candidates: [...candidates],
+        });
+
+        candidates.length = 0;
+      }
     };
 
     rtcPC.onicecandidate = (event) => {
@@ -211,11 +214,6 @@ export class UserClient extends $.Stanz {
 
       if (candidate) {
         candidates.push(candidate);
-        // this._serverAgentPost({
-        //   step: "set-candidate",
-        //   candidate,
-        // });
-
         clearTimeout(timer);
         timer = setTimeout(() => {
           sendCandidates();
