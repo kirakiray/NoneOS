@@ -778,9 +778,13 @@
       ])
     : [];
 
+  // 辅助连接的 ice 服务器
+  const iceServers = hasOfa ? $.stanz([]) : [];
+
   if (!hasOfa) {
     // 兼容 dist.js 操作
     blocks.watchTick = () => {};
+    iceServers.watchTick = () => {};
   }
 
   const waitingBlocks = {}; //blocks 存放promise的对象
