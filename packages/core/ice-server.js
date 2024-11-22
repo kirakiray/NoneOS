@@ -49,9 +49,9 @@ export const inited = (async () => {
     return JSON.stringify(
       iceServers.map((e) => {
         return {
+          credential: e.credential,
           urls: e.urls,
           username: e.username,
-          credential: e.credential,
         };
       })
     );

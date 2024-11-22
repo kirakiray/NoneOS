@@ -38,6 +38,14 @@
       ice服务器
       <i collapse-triangle slot="suffix"></i>
       <p-list slot="childs">
+        <p-list-item>
+          <p-text-field
+            size="small"
+            sync:value="newServerUrl"
+            placeholder="输入ice服务器地址，按回车添加"
+            on:keyup="addServer"
+          ></p-text-field>
+        </p-list-item>
         <x-fill :value="iceServers">
           <p-list-item class="sub-item">
             <span slot="prefix" attr:data-ice-state="$data.state"></span>
@@ -98,12 +106,49 @@
     export default async ({ load }) => {
       const { iceServers } = await load("/packages/core/main.js");
 
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
+
       return {
         tag: "n-ice-server-list",
         data: {
+          newServerUrl: "",
           iceServers: [],
         },
         proto: {
+          // 添加服务器
+          addServer(e) {
+            if (e.key === "Enter" || e.code === "Enter") {
+              let data = this.newServerUrl.trim();
+
+              if (data.includes("{")) {
+                // 对象类型的数据
+                data = JSON.parse(data);
+
+                if (Array.isArray(data)) {
+                  // 数组类型
+                  iceServers.unshift(...getServers(data));
+                } else {
+                  iceServers.unshift(...getServers([data]));
+                }
+
+                this.newServerUrl = "";
+                return;
+              }
+
+              if (!isStunOrTurnAddress(data)) {
+                enqueue({
+                  content: "输入的ice服务器地址不合法",
+                  color: "error",
+                });
+                return;
+              }
+
+              iceServers.unshift({
+                urls: data,
+              });
+              this.newServerUrl = "";
+            }
+          },
           removeServer(index) {
             this.iceServers.splice(index, 1);
           },
@@ -125,5 +170,30 @@
         },
       };
     };
+
+    // 获取服务器数据
+    const getServers = (arr) => {
+      return arr
+        .map((data) => {
+          if (!data.urls) {
+            return null;
+          }
+
+          return {
+            credential: data.credential,
+            urls: data.urls.trim(),
+            username: data.username,
+          };
+        })
+        .filter((e) => !!e);
+    };
+
+    function isStunOrTurnAddress(address) {
+      // 正则表达式匹配STUN或TURN地址
+      const pattern = /^(stun|turn):[a-zA-Z0-9.-]+(:\d+)?$/;
+
+      // 测试输入的字符串是否符合模式
+      return pattern.test(address);
+    }
   </script>
 </template>
