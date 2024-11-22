@@ -5,6 +5,9 @@
       display: block;
     }
   </style>
+  <p-button size="small" attr:disabled="loading" on:click="loadServerLogs">
+    刷新
+  </p-button>
   <x-fill :value="lists">
     <div>
       <div style="font-size: 14px; padding: 8px 0 0px 0; font-weight: bold">
@@ -29,9 +32,12 @@
         data: {
           userid,
           lists: [],
+          loading: false,
         },
         proto: {
           async loadServerLogs() {
+            this.loading = true;
+
             const sersHandle = await get(`local/caches/server-logs`);
 
             const lists = [];
@@ -72,6 +78,7 @@
             });
 
             this.lists = lists;
+            this.loading = false;
           },
         },
         attached() {

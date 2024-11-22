@@ -65,9 +65,9 @@
 
                   if (step) {
                     if (step === "set-candidates") {
-                      return "转发-设置候选人";
+                      return `转发-设置候选人(${origin.data.candidates.length})`;
                     } else if (step === "set-remote") {
-                      return "转发-远端设置offer";
+                      return "转发-使用offer";
                     } else if (step === "answer-remote") {
                       return "转发-回答远端offer";
                     }

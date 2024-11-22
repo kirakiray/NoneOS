@@ -296,13 +296,6 @@ export class UserClient extends $.Stanz {
       for (let i = this.#channels.size; i < num; i++) {
         await this._getChannel();
       }
-    } else if (this.#channels.size > num) {
-      // 删除多余的通道
-      // for (let i = num; i < this.#channels.size; i++) {
-      //   const channel = this.#channels.get(i);
-      //   channel.close();
-      // }
-      debugger;
     }
   }
 
