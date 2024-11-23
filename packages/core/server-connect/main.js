@@ -7,7 +7,7 @@ export { servers };
 export const removeServer = async (serverUrl) => {
   const index = servers.findIndex((e) => e.serverUrl === serverUrl);
 
-  if (index > 0) {
+  if (index >= 0) {
     servers.splice(index, 1);
 
     await saveServer();
