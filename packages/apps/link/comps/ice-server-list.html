@@ -89,6 +89,15 @@
                 size="mini"
                 variant="text"
                 icon
+                on:click="$host.reloadItem($data)"
+              >
+                <n-local-icon name="reload"></n-local-icon>
+              </p-button>
+
+              <p-button
+                size="mini"
+                variant="text"
+                icon
                 color="error"
                 on:click="$host.removeServer($index)"
               >
@@ -105,7 +114,7 @@
   <script>
     export default async ({ load }) => {
       const { iceServers } = await load("/packages/core/main.js");
-      const { pingIces } = await load("/packages/core/ice-server.js");
+      const { pingIce } = await load("/packages/core/ice-server.js");
 
       const { enqueue, confirm } = await load("/packages/pui/util.js");
 
@@ -116,6 +125,9 @@
           iceServers: [],
         },
         proto: {
+          reloadItem(data) {
+            pingIce(data);
+          },
           // 添加服务器
           addServer(e) {
             if (e.key === "Enter" || e.code === "Enter") {
@@ -133,7 +145,7 @@
                 }
 
                 this.newServerUrl = "";
-                pingIces();
+                pingIce();
                 return;
               }
 
@@ -149,7 +161,7 @@
                 urls: data,
               });
               this.newServerUrl = "";
-              pingIces();
+              pingIce();
             }
           },
           removeServer(index) {
