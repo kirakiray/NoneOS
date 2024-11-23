@@ -1,67 +1,81 @@
 import { iceServers } from "./main.js";
 import { get } from "/packages/fs/handle/index.js";
 
-export const pingIces = () => {
-  iceServers.forEach(async (e) => {
-    const result = await testIceServer(e).catch(() => null);
+export const pingIce = async (e) => {
+  const pingFunc = async (item) => {
+    const result = await testIceServer(item).catch(() => null);
+
     if (result) {
-      e.state = result.valid ? "ok" : "notok";
-      e.time = result.latency;
+      item.state = result.valid ? "ok" : "notok";
+      item.time = result.latency;
     } else {
-      e.state = "notok";
+      item.state = "notok";
     }
-  });
+  };
+
+  if (e) {
+    return pingFunc(e);
+  }
+
+  for (let item of iceServers) {
+    await pingFunc(item);
+  }
+
+  // await Promise.all(iceServers.map(pingFunc));
+};
+
+// 获取ICE服务器字符串
+const getIceStr = () => {
+  return JSON.stringify(
+    iceServers.map((e) => {
+      return {
+        credential: e.credential,
+        urls: e.urls,
+        username: e.username,
+      };
+    })
+  );
 };
 
 export const inited = (async () => {
-  const icesHandle = await get("local/caches/ices").catch(() => null);
+  let icesHandle = await get("local/caches/ices").catch(() => null);
 
   if (icesHandle) {
     // 获取文件内容，并添加服务器列表
     const text = await icesHandle.text();
-    const servers = JSON.parse(text);
-    iceServers.push(...servers);
+
+    if (!localStorage._iceUpdate) {
+      await icesHandle.remove();
+      icesHandle = null;
+      localStorage._iceUpdate = 20241123;
+    } else {
+      const servers = JSON.parse(text);
+      iceServers.push(...servers);
+    }
   }
 
   if (!icesHandle && !iceServers.length) {
     // 如果为空，添加默认的ice服务器
     iceServers.push(
       ...[
-        { urls: "stun:stun.miwifi.com" },
+        { urls: "stun:stun.tutous.com" },
         { urls: "stun:stun.l.google.com:19302" },
-        { urls: "stun:stun.chat.bilibili.com" },
-        { urls: "stun:stun.hot-chilli.net" },
-        { urls: "stun:stun.cloudflare.com" },
-        { urls: "stun:stunserver2024.stunprotocol.org" },
-        { urls: "stun:w1.xirsys.com" },
-        { urls: "stun:u1.xirsys.com" },
-        { urls: "stun:stun.relay.metered.ca:80" },
-        { urls: "stun:stun.hivestreaming.com" },
-        { urls: "stun:stun.cdnbye.com" },
-        { urls: "stun:stun.hitv.com" },
-        { urls: "stun:stun.douyucdn.cn:18000" },
         { urls: "stun:stun1.l.google.com:19302" },
         { urls: "stun:stun2.l.google.com:19302" },
         { urls: "stun:stun3.l.google.com:19302" },
         { urls: "stun:stun4.l.google.com:19302" },
+        { urls: "stun:stun.cloudflare.com" },
       ]
     );
+
+    saveIceServer();
   }
 
-  pingIces();
-
-  // 获取ICE服务器字符串
-  const getIceStr = () => {
-    return JSON.stringify(
-      iceServers.map((e) => {
-        return {
-          credential: e.credential,
-          urls: e.urls,
-          username: e.username,
-        };
-      })
-    );
-  };
+  setTimeout(() => {
+    inited.then(() => {
+      pingIce();
+    });
+  }, 1000);
 
   let oldServersStr = getIceStr();
 
@@ -69,16 +83,23 @@ export const inited = (async () => {
     const newServersStr = getIceStr();
 
     if (newServersStr !== oldServersStr) {
-      const icesHandle = await get("local/caches/ices", {
-        create: "file",
-      });
-
-      await icesHandle.write(newServersStr);
+      await saveIceServer();
 
       oldServersStr = newServersStr;
     }
   }, 100);
 })();
+
+// 保存ICE服务器
+export const saveIceServer = async () => {
+  const serverStr = getIceStr();
+
+  const icesHandle = await get("local/caches/ices", {
+    create: "file",
+  });
+
+  await icesHandle.write(serverStr);
+};
 
 // 测试ICE服务器
 function testIceServer(iceServer) {

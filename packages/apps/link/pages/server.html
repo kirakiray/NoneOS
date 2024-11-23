@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="../comps/ice-server-list.html"></l-m>
+  <l-m src="/packages/apps/link/comps/copy-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -98,7 +99,7 @@
             class="block-line-value"
             style="user-select: text; font-size: 14px"
           >
-            {{$data.serverUrl}}
+            <n-copy-span> {{$data.serverUrl}} </n-copy-span>
           </div>
         </div>
         <div
@@ -123,6 +124,8 @@
   </div>
 
   <n-ice-server-list></n-ice-server-list>
+
+  <div style="height: 40px"></div>
 
   <script>
     export const parent = "../outer.html";
