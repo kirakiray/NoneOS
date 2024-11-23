@@ -67,7 +67,7 @@ const sessionID = Math.random().toString(32).slice(2); // 临时id
 
 export class ServerConnector extends $.Stanz {
   #apiID; // post请求的接口ID
-  #initingPms = null; // 初始化的 promise 对象
+  #initializedPms = null; // 初始化的 promise 对象
   #sse; //  SSE 对象
   constructor(data) {
     super({
@@ -84,15 +84,15 @@ export class ServerConnector extends $.Stanz {
 
   // 初始化
   async init() {
-    if (this.#initingPms) {
-      return await this.#initingPms;
+    if (this.#initializedPms) {
+      return this.#initializedPms;
     }
-
-    const selfCardData = await getSelfUserCard();
 
     this.status = "connecting"; // 设置连接中
 
-    return (this.#initingPms = new Promise(async (resolve, reject) => {
+    return (this.#initializedPms = new Promise(async (resolve, reject) => {
+      const selfCardData = await getSelfUserCard();
+
       // 让服务器验证是当前用户的验证
       const serverSign = await sign(new URL(this.serverUrl).origin);
 
@@ -146,7 +146,7 @@ export class ServerConnector extends $.Stanz {
       // const closeSource = (eventSource.onclose = () => {
       const closeSource = (this._onclose = () => {
         if (this.#sse === eventSource) {
-          this.#initingPms = null;
+          this.#initializedPms = null;
           reject();
           this.delayTime = BADTIME;
           this.status = "closed";
@@ -231,11 +231,11 @@ export class ServerConnector extends $.Stanz {
 
   // 给服务器发送数据
   async _post(data) {
-    if (!this.#initingPms) {
+    if (!this.#initializedPms) {
       await this.init();
     }
 
-    await this.#initingPms;
+    await this.#initializedPms;
 
     if (!data.ping) {
       // 记录发送的信息
