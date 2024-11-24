@@ -101,7 +101,14 @@ export class UserClient extends $.Stanz {
 
   // 统一的初始化信道的方法
   _bindChannel(channel) {
-    channel.onmessage = (e) => this.#onmsg(e, channel);
+    channel.onmessage = (e) => {
+      // message事件可能会优先open触发，所以提前判断并修正状态
+      if (channel.readyState === "open" && this.state !== "connected") {
+        this.state = "connected";
+      }
+
+      this.#onmsg(e, channel);
+    };
 
     // console.log("create channel: ", channel);
 
@@ -136,8 +143,10 @@ export class UserClient extends $.Stanz {
           target: this,
         });
 
-        // 初次测试延迟
-        this.ping();
+        setTimeout(() => {
+          // 初次测试延迟
+          this.ping();
+        }, 400);
       }
     };
 
@@ -232,6 +241,12 @@ export class UserClient extends $.Stanz {
     //   // TODO： 当 ICE 连接状态改变时触发。状态可能包括 new、checking、connected、completed、failed、disconnected 和 closed。
     //   // debugger;
     //   console.log("oniceconnectionstatechange: ", event);
+
+    //   if (rtcPC.connectionState === "failed" && this.#rtcConnection === rtcPC) {
+    //     debugger;
+    //     // 断开连接
+    //     this.#channels.forEach((channel) => channel.close());
+    //   }
     // };
 
     // rtcPC.onicegatheringstatechange = (event) => {
@@ -356,6 +371,16 @@ export class UserClient extends $.Stanz {
 
   // 向对面发送数据
   async send(data) {
+    // rtc有时候关闭了，却不会触发任何事件，需要提前判断
+    if (this.#rtcConnection.connectionState === "failed") {
+      // 手动关闭
+      this.#rtcConnection.close();
+      this.#channels.forEach((channel) => channel.close());
+      // this.state = "closed";
+      console.error(new Error(`The connection has been closed`));
+      return;
+    }
+
     if (this.state !== "connected") {
       throw new Error("The user is not connected yet, and data cannot be sent");
     }
