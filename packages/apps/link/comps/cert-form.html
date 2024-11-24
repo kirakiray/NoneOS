@@ -54,6 +54,7 @@
     import { get } from "/packages/fs/handle/index.js";
     import { signData } from "/packages/core/base/sign.js";
     import { getHash } from "/packages/user/util.js";
+    import { users } from "/packages/core/main.js";
 
     export default async ({ load }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
@@ -113,6 +114,16 @@
             });
 
             this.emit("add-cert");
+
+            // 如果对方在线，立刻发送证书
+            const targetUser = users.find((e) => e.userId === this.authTo);
+
+            if (targetUser.state === "connected") {
+              targetUser.send({
+                type: "obtain-certs",
+                certs: [data],
+              });
+            }
           },
         },
       };

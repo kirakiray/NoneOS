@@ -27,6 +27,10 @@
         },
         watch: {
           async userid(userid) {
+            if (!userid) {
+              return;
+            }
+
             userid && (userid = userid.trim());
             this.attr("title", userid);
 

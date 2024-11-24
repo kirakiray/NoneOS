@@ -376,7 +376,6 @@ export class UserClient extends $.Stanz {
       // 手动关闭
       this.#rtcConnection.close();
       this.#channels.forEach((channel) => channel.close());
-      // this.state = "closed";
       console.error(new Error(`The connection has been closed`));
       return;
     }
