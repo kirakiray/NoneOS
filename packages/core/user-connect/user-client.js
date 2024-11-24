@@ -80,6 +80,7 @@ export class UserClient extends $.Stanz {
        */
       state: "disconnected",
       delayTime: "-", // 延迟时间
+      errorMsg: "",
     });
 
     const { data, sign } = opt;
@@ -290,15 +291,22 @@ export class UserClient extends $.Stanz {
     // 设置给自身
     rtcPC.setLocalDescription(offer);
 
-    await this._serverAgentPost({
-      step: "set-remote",
-      offer,
-    });
+    try {
+      await this._serverAgentPost({
+        step: "set-remote",
+        offer,
+      });
 
-    this.state = "send-remote";
-    this.__sendTime = Date.now();
+      this.state = "send-remote";
+      this.__sendTime = Date.now();
 
-    return true;
+      return true;
+    } catch (err) {
+      console.error(err);
+      this.state = "error";
+      this.errorMsg = err.toString();
+      return err;
+    }
   }
 
   // 设置通道数量
