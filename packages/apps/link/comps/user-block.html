@@ -88,7 +88,13 @@
         size="mini"
         attr:disabled="!(item.state === 'disconnected' || item.state === 'closed' || item.state === 'error')"
       >
-        {{connecting ? '连接中...' : '连接用户'}}
+        <x-if :value="item.state === 'disconnected'"> 连接用户 </x-if>
+        <x-else-if
+          :value="!(item.state === 'closed' || item.state === 'error')"
+        >
+          连接中...
+        </x-else-if>
+        <x-else>重新连接</x-else>
       </p-button>
 
       <p-button on:click="viewHandRelateLog" size="mini">查看握手日志</p-button>
@@ -121,7 +127,6 @@
         tag: "n-user-block",
         data: {
           item: {},
-          connecting: false,
           iskeep: false, // 是否收藏到用户文件夹内
         },
         proto: {
@@ -162,13 +167,25 @@
             );
           },
           async connect() {
-            this.connecting = true;
+            // this.connectExpiredTime = 0;
+            // const startTime = Date.now();
+            // clearInterval(this.__connectTimer);
             if (this.item.connect) {
-              await this.item.connect();
+              // this.__connectTimer = setInterval(() => {
+              //   const diffTime = Date.now() - startTime;
+
+              //   if (diffTime > 30000) {
+              //     // 30秒重现连接按钮
+              //     this.connectExpiredTime = Math.floor(diffTime / 1000); // 连接超时，可以尝试重新连接
+              //   }
+              // }, 1000);
+
+              const result = await this.item.connect();
+              clearInterval(this.__connectTimer);
             } else {
               debugger;
             }
-            this.connecting = false;
+            // this.connectExpiredTime = 0;
           },
         },
         async attached() {
