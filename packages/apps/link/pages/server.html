@@ -71,14 +71,22 @@
           <div class="block-line-key">服务器版本</div>
           <div class="block-line-value">{{$data.serverVersion}}</div>
         </div>
-        <div class="block-line">
-          <div class="block-line-key">延迟</div>
-          <div class="block-line-value">{{$data.delayTime}}ms</div>
-
-          <p-button size="mini" variant="text" on:click="$host.ping($data)">
-            测试延迟
-          </p-button>
-        </div>
+        <x-if :value="!$data.connectEndTime">
+          <div class="block-line">
+            <div class="block-line-key">开始连接时间</div>
+            <div class="block-line-value">
+              {{new Date($data.connectStartTime).toLocaleString()}}
+            </div>
+          </div>
+        </x-if>
+        <x-else>
+          <div class="block-line">
+            <div class="block-line-key">成功时间</div>
+            <div class="block-line-value">
+              {{new Date($data.connectEndTime).toLocaleString()}}
+            </div>
+          </div>
+        </x-else>
         <div class="block-line">
           <div class="block-line-key">连接状态</div>
           <div class="block-line-value" attr:status="$data.status">
@@ -92,6 +100,14 @@
           <x-else-if :value="$data.status === 'closed'">
             <p-button size="mini" on:click="$data.init()"> 重新连接 </p-button>
           </x-else-if>
+        </div>
+        <div class="block-line">
+          <div class="block-line-key">延迟</div>
+          <div class="block-line-value">{{$data.delayTime}}ms</div>
+
+          <p-button size="mini" variant="text" on:click="$host.ping($data)">
+            测试延迟
+          </p-button>
         </div>
         <div class="block-line">
           <div class="block-line-key">服务器地址</div>
