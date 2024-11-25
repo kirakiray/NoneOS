@@ -47,11 +47,11 @@
           ></p-text-field>
         </p-list-item>
         <x-fill :value="iceServers">
-          <p-list-item class="sub-item">
+          <p-list-item class="sub-item" collapse-childs="close">
             <span slot="prefix" attr:data-ice-state="$data.state"></span>
 
             <div>
-              {{$data.urls}}
+              <span style="user-select: text">{{$data.urls}}</span>
               <x-if :value="$data.state === 'ok'">
                 <span
                   style="
@@ -65,7 +65,7 @@
                 </span>
               </x-if>
             </div>
-            <div slot="suffix">
+            <div slot="suffix" style="display: flex; align-items: center">
               <p-button
                 size="mini"
                 variant="text"
@@ -104,6 +104,42 @@
                 <n-local-icon name="close"></n-local-icon>
               </p-button>
             </div>
+
+            <x-if :value="$host.isTurn($data.urls)">
+              <p-button
+                collapse-triangle
+                slot="suffix"
+                size="mini"
+                slot="suffix"
+                variant="text"
+                color="normal"
+                icon
+              >
+                <n-local-icon name="fold-left"></n-local-icon>
+              </p-button>
+              <p-list slot="childs">
+                <p-list-item>
+                  <div style="display: flex">
+                    <p-text-field
+                      style="width: 150px"
+                      variant="filled"
+                      size="small"
+                      sync:value="$data.username"
+                    >
+                      <label>用户名</label>
+                    </p-text-field>
+                    <p-text-field
+                      style="width: 150px; margin-left: 8px"
+                      variant="filled"
+                      size="small"
+                      sync:value="$data.credential"
+                    >
+                      <label>密码</label>
+                    </p-text-field>
+                  </div>
+                </p-list-item>
+              </p-list>
+            </x-if>
           </p-list-item>
         </x-fill>
       </p-list>
@@ -125,6 +161,9 @@
           iceServers: [],
         },
         proto: {
+          isTurn(urls) {
+            return /^turn:/.test(urls);
+          },
           reloadItem(data) {
             pingIce(data);
           },
