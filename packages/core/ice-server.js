@@ -3,6 +3,9 @@ import { get } from "/packages/fs/handle/index.js";
 
 export const pingIce = async (e) => {
   const pingFunc = async (item) => {
+    if (item.disabled) {
+      return;
+    }
     const result = await testIceServer(item).catch(() => null);
 
     if (result) {
@@ -29,6 +32,7 @@ const getIceStr = () => {
   return JSON.stringify(
     iceServers.map((e) => {
       return {
+        disabled: e.disabled,
         credential: e.credential,
         urls: e.urls,
         username: e.username,

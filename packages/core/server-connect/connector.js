@@ -76,6 +76,8 @@ export class ServerConnector extends $.Stanz {
       status: "", // 当前服务器的状态
       serverID: "", //  服务器ID
       delayTime: BADTIME, // 服务器的延迟时间
+      connectStartTime: 0, // 开始进入连接的时间
+      connectEndTime: 0, // 连接成功的时间
       ...data,
     });
 
@@ -89,6 +91,8 @@ export class ServerConnector extends $.Stanz {
     }
 
     this.status = "connecting"; // 设置连接中
+
+    this.connectStartTime = Date.now();
 
     return (this.#initializedPms = new Promise(async (resolve, reject) => {
       const selfCardData = await getSelfUserCard();
@@ -130,6 +134,8 @@ export class ServerConnector extends $.Stanz {
           this.#apiID = result.apiID;
 
           this.status = "connected";
+
+          this.connectEndTime = Date.now();
 
           resolve();
 

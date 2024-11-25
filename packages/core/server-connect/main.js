@@ -7,7 +7,7 @@ export { servers };
 export const removeServer = async (serverUrl) => {
   const index = servers.findIndex((e) => e.serverUrl === serverUrl);
 
-  if (index > 0) {
+  if (index >= 0) {
     servers.splice(index, 1);
 
     await saveServer();
@@ -83,10 +83,18 @@ export const inited = (async () => {
   }
 
   if (!servers.length && location.host.includes("localhost")) {
-    // 添加测试服务器
-    const connector = new ServerConnector({
-      serverUrl: "http://localhost:5569/user",
-    });
-    servers.push(connector);
+    if (location.host.includes("localhost")) {
+      // 添加测试服务器
+      const connector = new ServerConnector({
+        serverUrl: "http://localhost:5569/user",
+      });
+      servers.push(connector);
+    } else {
+      // 添加测试服务器
+      const connector = new ServerConnector({
+        serverUrl: "https://hand.tutous.com:812/user",
+      });
+      servers.push(connector);
+    }
   }
 })();
