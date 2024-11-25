@@ -178,7 +178,17 @@ export class UserClient extends $.Stanz {
 
   initRTC() {
     const configuration = {
-      iceServers: [...iceServers],
+      iceServers: [
+        ...iceServers
+          .filter((e) => !e.disabled)
+          .map((e) => {
+            return {
+              urls: e.urls,
+              username: e.username,
+              credential: e.credential,
+            };
+          }),
+      ],
     };
 
     if (this.#rtcConnection) {
