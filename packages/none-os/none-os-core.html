@@ -71,7 +71,8 @@
     import "/packages/pui/init.js";
 
     export default async ({ load }) => {
-      const { configs } = await load("/packages/none-os/configs.js");
+      const { configs } = await load("./configs.js");
+      const { openApp } = await load("./app.js");
 
       return {
         tag: "none-os-core",
@@ -95,6 +96,8 @@
           // 运行app，一般情况下，是通过app-manager来运行的
           runApp(e) {
             const { data } = e;
+
+            debugger
 
             let targetBarApp = this.barApps.find((e) => e.name === data.name);
 
@@ -296,9 +299,10 @@
           this.on("open-app", (e) => {
             e.stopPropagation();
 
-            const { path } = e.path;
-
-            debugger;
+            openApp({
+              path: e.data.path,
+              core: this,
+            });
           });
         },
         async attached() {

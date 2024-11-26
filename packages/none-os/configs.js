@@ -10,3 +10,11 @@ export const configs = $.stanz(
 configs.watchTick(() => {
   localStorage._nconfig = JSON.stringify(configs);
 });
+
+// 默认应用
+export const defaultApps = [
+  "/packages/apps/files",
+  "/packages/apps/setting",
+  "/packages/apps/link",
+  "/packages/apps/picture",
+];

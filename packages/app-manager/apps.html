@@ -141,12 +141,8 @@
       const { get } = await load("/packages/fs/main.js");
 
       // 默认应用
-      const defaultApps = [
-        "/packages/apps/files",
-        "/packages/apps/setting",
-        "/packages/apps/link",
-        "/packages/apps/picture",
-      ];
+      const { defaultApps } = await load("/packages/none-os/configs.js");
+      const { getAppBase } = await load("/packages/none-os/app.js");
 
       return {
         data: {
@@ -220,41 +216,11 @@
           // 获取默认应用信息
           this._defaultApps = await Promise.all(defaultApps.map(getAppBase));
 
+          debugger
+
           this.refreshApps();
         },
       };
     };
-
-    // 获取应用的配置数据
-    const getAppBase = async (path) => {
-      try {
-        const appJsonPath = `${path}/app.json`;
-        const configData = await fetch(appJsonPath).then((e) => e.json());
-
-        const icon = getRelatePath(appJsonPath, configData.icon);
-        let configUrl;
-
-        if (configData.config) {
-          configUrl = getRelatePath(appJsonPath, configData.config);
-        }
-
-        return {
-          name: configData.name,
-          icon: {
-            url: icon,
-          },
-          url: configUrl || `${path}/app-config.js`,
-        };
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    // 获取相对路径
-    function getRelatePath(basePath, relativePath) {
-      const baseUrl = new URL(basePath, window.location.href);
-      const resolvedUrl = new URL(relativePath, baseUrl);
-      return resolvedUrl.pathname;
-    }
   </script>
 </template>
