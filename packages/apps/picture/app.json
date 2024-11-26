@@ -1,0 +1,6 @@
+{
+  "name": "图片",
+  "icon": "icon.svg",
+  "config": "app-config.js",
+  "accept": ["png", "jpg", "gif", "bmp", "webp"]
+}

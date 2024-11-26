@@ -251,7 +251,12 @@
               `./explore.html?path=${encodeURIComponent(data.path)}`
             );
           } else {
-            window.open(`/$/${encodeURI(data.path)}`);
+            this.emit("open-app", {
+              data: {
+                path: data.path,
+              },
+              composed: true,
+            });
           }
         },
         get sqColor() {

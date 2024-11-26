@@ -292,6 +292,14 @@
           this.shadow.on("router-change", (e) => {
             this.saveAppsState();
           });
+
+          this.on("open-app", (e) => {
+            e.stopPropagation();
+
+            const { path } = e.path;
+
+            debugger;
+          });
         },
         async attached() {
           if (history.state && history.state.routerType === "current") {
