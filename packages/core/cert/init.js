@@ -2,7 +2,7 @@
 import { on, userMiddleware } from "../main.js";
 import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
-import { getHash } from "/packages/user/util.js";
+import { getHash } from "../util.js";
 import { getAllCerts } from "./main.js";
 
 {

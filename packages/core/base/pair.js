@@ -5,7 +5,7 @@ import {
   pairToString,
   stringToPair,
   getHash,
-} from "/packages/user/util.js";
+} from "../util.js";
 
 let publicStr; // 公钥(字符串)
 

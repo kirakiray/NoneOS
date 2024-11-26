@@ -3,7 +3,7 @@ import {
   dataToArrayBuffer,
   arrayBufferToBase64,
   getHash,
-} from "/packages/user/util.js";
+} from "../util.js";
 import { getPair, getPublic } from "./pair.js";
 
 /**
