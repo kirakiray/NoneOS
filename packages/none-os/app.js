@@ -1,4 +1,24 @@
 import { get } from "../fs/main.js";
+import { defaultApps } from "./configs.js";
+
+// 获取所有可用的应用数据
+export const getApps = async () => {
+  const appHandle = await get("apps");
+
+  // 获取默认应用信息
+  const apps = await Promise.all(defaultApps.map(getAppBase));
+
+  for await (let handle of appHandle.values()) {
+    const data = await getAppBase(`/$/${handle.path}`);
+
+    if (data) {
+      data.__not_default = 1; // 标识不是默认应用
+      apps.push(data);
+    }
+  }
+
+  return apps;
+};
 
 // 获取应用的配置数据
 export const getAppBase = async (path) => {

@@ -138,15 +138,11 @@
   </p-provider>
   <script>
     export default async ({ load }) => {
-      const { get } = await load("/packages/fs/main.js");
-
       // 默认应用
-      const { defaultApps } = await load("/packages/none-os/configs.js");
-      const { getAppBase } = await load("/packages/none-os/app.js");
+      const { getAppBase, getApps } = await load("/packages/none-os/app.js");
 
       return {
         data: {
-          _defaultApps: [],
           apps: [
             // {
             //   name: "文件管理",
@@ -197,27 +193,10 @@
             });
           },
           async refreshApps() {
-            const appHandle = await get("apps");
-
-            const apps = [];
-            for await (let handle of appHandle.values()) {
-              const data = await getAppBase(`/$/${handle.path}`);
-
-              if (data) {
-                data.__not_default = 1; // 标识不是默认应用
-                apps.push(data);
-              }
-            }
-
-            this.apps = [...this._defaultApps, ...apps];
+            this.apps = await getApps();
           },
         },
         async ready() {
-          // 获取默认应用信息
-          this._defaultApps = await Promise.all(defaultApps.map(getAppBase));
-
-          debugger
-
           this.refreshApps();
         },
       };
