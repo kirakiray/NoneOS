@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -17,6 +18,7 @@
       justify-content: center;
       align-items: center;
       height: 30px;
+      font-size: 12px;
       background-color: var(--md-sys-color-on-normal);
     }
 
@@ -29,6 +31,7 @@
       text-align: center;
       user-select: text;
       padding: 0 12px;
+      font-size: 14px;
     }
 
     .main {
@@ -38,15 +41,41 @@
       justify-content: center;
       align-items: center;
     }
+
+    .tool-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 16px;
+      color: var(--md-sys-color-normal);
+      line-height: 16px;
+    }
+    .tool-block n-local-icon {
+      display: block;
+      font-size: 18px;
+      margin-right: 4px;
+    }
+    .tool-block + .tool-block {
+      border-left: var(--md-sys-color-normal) solid 1px;
+    }
   </style>
   <div class="container">
     <div class="top-tool">
       <div class="title">{{imgName}}</div>
     </div>
     <div class="main">
-      <img attr:src="imgsrc" />
+      <img attr:src="imgsrc" on:load="onloadImg" />
     </div>
-    <div class="bottom-tool">v</div>
+    <div class="bottom-tool">
+      <div class="tool-block">
+        <n-local-icon name="size"></n-local-icon>
+        {{nwdith}} × {{nheight}}
+      </div>
+      <div class="tool-block">
+        <n-local-icon name="save"></n-local-icon>
+        {{imgSize}}
+      </div>
+    </div>
   </div>
   <script>
     export default async ({ load, query }) => {
@@ -57,10 +86,17 @@
       return {
         data: {
           path,
-          imgsrc: "",
-          imgName: "",
+          imgsrc: "", // 图片地址
+          imgName: "", // 图片名称
+          imgSize: "-", // 图片大小
+          nwdith: "-", // 图片宽度
+          nheight: "-", // 图片高度
         },
         proto: {
+          onloadImg(e) {
+            this.nwdith = e.target.naturalWidth;
+            this.nheight = e.target.naturalHeight;
+          },
           async loadImg() {
             const handle = await get(path).catch(() => null);
 
@@ -68,6 +104,7 @@
               this.imgName = handle.name;
 
               const file = await handle.file();
+              this.imgSize = formatBytes(file.size);
 
               const newUrl = URL.createObjectURL(file);
 
@@ -89,5 +126,20 @@
         detached() {},
       };
     };
+
+    function formatBytes(bytes) {
+      if (!bytes) {
+        return bytes;
+      }
+
+      const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+      let i = 0;
+      while (bytes >= 1024 && i < units.length - 1) {
+        bytes /= 1024;
+        i++;
+      }
+
+      return `${bytes.toFixed(2)} ${units[i]}`;
+    }
   </script>
 </template>
