@@ -52,7 +52,6 @@
           <n-app-frame
             sync:app-status="$data.status"
             :appindex="$index"
-            sync:focus="$data.focus"
             sync:app-top="$data.appTop"
             sync:app-left="$data.appLeft"
             sync:app-width="$data.appWidth"
@@ -110,7 +109,6 @@
                 },
                 url: data.url, // app config 资源地址
                 status: "normal", // 运行状态
-                focus: null, // 是否聚焦
                 // 窗口的定位信息，初始数值如下
                 appTop: (window.innerHeight - 200) / 2,
                 appLeft: 0,
@@ -125,9 +123,11 @@
             // 修复焦点
             this.barApps.forEach((e) => {
               if (e === targetBarApp) {
-                e.focus = 1;
-              } else {
-                e.focus = null;
+                const targetApp = this.shadow.$(
+                  `n-app-frame[data-appid='${targetBarApp.appid}']`
+                );
+
+                targetApp && targetApp.focusApp();
               }
             });
 
@@ -136,7 +136,9 @@
             return targetBarApp;
           },
           get currentAppFrame() {
-            return this.shadow.$("n-app-frame[focus]");
+            return this.shadow
+              .all("n-app-frame")
+              .sort((a, b) => b.zindex - a.zindex)[0];
           },
           // 点击应用栏应用
           clickBarApp({ data }) {
@@ -155,9 +157,11 @@
             // 修复焦点
             this.barApps.forEach((e) => {
               if (e === targetBarApp) {
-                e.focus = 1;
-              } else {
-                e.focus = null;
+                const targetFrame = this.shadow.$(
+                  `n-app-frame[data-appid='${e.appid}']`
+                );
+
+                targetFrame.focusApp();
               }
             });
 
@@ -258,7 +262,9 @@
             this._routerTimer = setTimeout(() => {
               sessionStorage._bar_apps = JSON.stringify(
                 this.barApps.map((e) => {
-                  const targetApp = this.shadow.$(`o-app[src="${e.url}"]`);
+                  const targetApp = this.shadow.$(
+                    `o-app[data-appid="${e.appid}"]`
+                  );
 
                   return {
                     ...e,

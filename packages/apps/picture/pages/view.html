@@ -7,13 +7,46 @@
 
     .container {
       display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .top-tool,
+    .bottom-tool {
+      display: flex;
       justify-content: center;
       align-items: center;
-      height: 100%;
+      height: 30px;
+      background-color: var(--md-sys-color-on-normal);
+    }
+
+    .top-tool {
+      text-align: center;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    .title {
+      text-align: center;
+      user-select: text;
+      padding: 0 12px;
+    }
+
+    .main {
+      flex: 1;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   </style>
   <div class="container">
-    <img attr:src="imgsrc" />
+    <div class="top-tool">
+      <div class="title">{{imgName}}</div>
+    </div>
+    <div class="main">
+      <img attr:src="imgsrc" />
+    </div>
+    <div class="bottom-tool">v</div>
   </div>
   <script>
     export default async ({ load, query }) => {
@@ -25,12 +58,15 @@
         data: {
           path,
           imgsrc: "",
+          imgName: "",
         },
         proto: {
           async loadImg() {
             const handle = await get(path).catch(() => null);
 
             if (handle) {
+              this.imgName = handle.name;
+
               const file = await handle.file();
 
               const newUrl = URL.createObjectURL(file);

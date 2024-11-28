@@ -258,7 +258,7 @@
         appWidth: 200,
         appHeight: 200,
         theme: "",
-        zindex: 1,
+        zindex: 0,
       },
       watch: {
         zindex(zindex) {
@@ -554,7 +554,9 @@
           });
         }
 
-        this.focusApp();
+        if (!this.zindex) {
+          this.focusApp();
+        }
       },
     };
   </script>
