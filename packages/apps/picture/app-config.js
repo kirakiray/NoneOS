@@ -15,8 +15,10 @@ export const pageAnime = {
   },
 };
 
-export const onHandle = async (e) => {
-  console.log("onHandle: ", e);
+export const onHandle = async function ({ handle, path }) {
+  // handle 和 path 必定会传入其中一个
+  console.log("onHandle: ", path, handle);
+  this.current.goto(`./view.html?path=${path}`);
 };
 
 export const allowForward = true;

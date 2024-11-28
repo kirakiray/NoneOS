@@ -39,6 +39,7 @@ export const getAppBase = async (path) => {
         url: icon,
       },
       url: configUrl || `${path}/app-config.js`,
+      configData,
     };
   } catch (err) {
     console.error(err);
@@ -53,22 +54,49 @@ function getRelatePath(basePath, relativePath) {
 }
 
 // 根据文件路径，使用应用程序打开文件
-export const openApp = async ({ path, core }) => {
+export const openFileWithApp = async ({ path, core }) => {
   const handle = await get(path);
+  const appsData = await getApps();
 
   if (handle) {
     // 获取文件后缀
-    const sarr = handle.path.match(/.+\.(.+)$/);
+    const sarr = path.match(/.+\.(.+)$/);
     if (sarr) {
       const type = sarr[1];
 
-      if (type === "png" || type === "jpg") {
-        debugger;
+      for (let app of appsData) {
+        if (app.configData?.accept?.includes(type)) {
+          // TODO: 打开应用程序
+          const barData = core.runApp({
+            data: {
+              name: app.name,
+              icon: app.icon,
+              url: app.url,
+            },
+          });
 
-        return;
+          await new Promise((res) => {
+            setTimeout(async () => {
+              const targetApp = core.shadow.$(
+                `o-app[data-appid="${barData.appid}"]`
+              );
+
+              if (targetApp) {
+                await targetApp.watchUntil(() => !!targetApp._module);
+
+                if (targetApp._module.onHandle) {
+                  targetApp._module.onHandle.call(targetApp, { handle, path });
+                }
+              }
+              res();
+            }, 100);
+          });
+
+          return true;
+        }
       }
 
-      // TODO: 其他应用程序
+      // TODO: 没有该后缀的应用程序
       debugger;
     } else {
       // TODO: 没有后缀的情况，弹床显示打开的默认程序

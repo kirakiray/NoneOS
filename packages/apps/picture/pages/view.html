@@ -1,0 +1,16 @@
+<template page>
+  <div>图片 {{path}}</div>
+  <script>
+    export default async ({ load, query }) => {
+      const { path } = query;
+
+      return {
+        data: {
+          path,
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

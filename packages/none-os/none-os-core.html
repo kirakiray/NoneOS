@@ -48,7 +48,7 @@
         ></os-bar>
       </div>
       <div class="main" on:app-change="appChange">
-        <x-fill :value="barApps" fill-key="url">
+        <x-fill :value="barApps" fill-key="appid">
           <n-app-frame
             sync:app-status="$data.status"
             :appindex="$index"
@@ -57,8 +57,9 @@
             sync:app-left="$data.appLeft"
             sync:app-width="$data.appWidth"
             sync:app-height="$data.appHeight"
+            attr:data-appid="$data.appid"
           >
-            <o-app attr:src="$data.url"></o-app>
+            <o-app attr:src="$data.url" attr:data-appid="$data.appid"></o-app>
           </n-app-frame>
         </x-fill>
       </div>
@@ -72,7 +73,7 @@
 
     export default async ({ load }) => {
       const { configs } = await load("./configs.js");
-      const { openApp } = await load("./app.js");
+      const { openFileWithApp } = await load("./app.js");
 
       return {
         tag: "none-os-core",
@@ -97,8 +98,6 @@
           runApp(e) {
             const { data } = e;
 
-            debugger
-
             let targetBarApp = this.barApps.find((e) => e.name === data.name);
 
             if (!targetBarApp) {
@@ -116,6 +115,7 @@
                 appLeft: 0,
                 appWidth: 200,
                 appHeight: 200,
+                appid: Math.random().toString(32).slice(2),
               });
 
               targetBarApp = this.barApps.find((e) => e.name === data.name);
@@ -299,7 +299,7 @@
           this.on("open-app", (e) => {
             e.stopPropagation();
 
-            openApp({
+            openFileWithApp({
               path: e.data.path,
               core: this,
             });
