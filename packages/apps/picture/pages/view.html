@@ -1,14 +1,55 @@
 <template page>
-  <div>图片 {{path}}</div>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+  </style>
+  <div class="container">
+    <img attr:src="imgsrc" />
+  </div>
   <script>
     export default async ({ load, query }) => {
       const { path } = query;
 
+      const { get } = await load("/packages/fs/main.js");
+
       return {
         data: {
           path,
+          imgsrc: "",
         },
-        attached() {},
+        proto: {
+          async loadImg() {
+            const handle = await get(path).catch(() => null);
+
+            if (handle) {
+              const file = await handle.file();
+
+              const newUrl = URL.createObjectURL(file);
+
+              if (this.imgsrc) {
+                URL.revokeObjectURL(this.imgsrc);
+              }
+
+              this.imgsrc = newUrl;
+              return;
+            }
+
+            // TODO: 没有找到对应的图片
+            debugger;
+          },
+        },
+        attached() {
+          this.loadImg();
+        },
         detached() {},
       };
     };
