@@ -431,6 +431,24 @@
         });
       },
       attached() {
+        {
+          // 窗口改动监听
+
+          // 创建一个ResizeObserver实例
+          const resizeObserver = (this.__resobs = new ResizeObserver(
+            (entries) => {
+              this.all(`o-page`).forEach((page) => {
+                if (page.onresize) {
+                  page.onresize();
+                }
+              });
+            }
+          ));
+
+          // 开始观察element
+          resizeObserver.observe(this.ele);
+        }
+
         const topEle = this.shadow.$(".app-top");
 
         // 设置初始值
@@ -556,6 +574,11 @@
 
         if (!this.zindex) {
           this.focusApp();
+        }
+      },
+      detached() {
+        if (this.__resobs) {
+          this.__resobs.disconnect();
         }
       },
     };
