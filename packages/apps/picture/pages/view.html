@@ -35,11 +35,25 @@
     }
 
     .main {
-      flex: 1;
       position: relative;
+      flex: 1;
+    }
+
+    .img-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
+    }
+
+    .img-area img {
+      display: block;
+      max-width: 100%;
+      max-height: 100%;
     }
 
     .tool-block {
@@ -64,12 +78,14 @@
       <div class="title">{{imgName}}</div>
     </div>
     <div class="main">
-      <img attr:src="imgsrc" on:load="onloadImg" />
+      <div class="img-area">
+        <img class="main-img" />
+      </div>
     </div>
     <div class="bottom-tool">
       <div class="tool-block">
         <n-local-icon name="size"></n-local-icon>
-        {{nwdith}} × {{nheight}}
+        {{naturalWidth}} × {{naturalHeight}}
       </div>
       <div class="tool-block">
         <n-local-icon name="save"></n-local-icon>
@@ -89,14 +105,24 @@
           imgsrc: "", // 图片地址
           imgName: "", // 图片名称
           imgSize: "-", // 图片大小
-          nwdith: "-", // 图片宽度
-          nheight: "-", // 图片高度
+          naturalWidth: "-", // 图片宽度
+          naturalHeight: "-", // 图片高度
+          scale: "-", // 图片缩放比
         },
         proto: {
-          onloadImg(e) {
-            this.nwdith = e.target.naturalWidth;
-            this.nheight = e.target.naturalHeight;
+          // 重制尺寸分布
+          resetSize() {
+            // 获取图片在容器内的尺寸
+            const containerImgWidth = this.shadow.$(".container .main-img").ele
+              .clientWidth;
+
+            // 计算当前的缩放比
+            this.scale = (
+              (containerImgWidth / this.naturalWidth) *
+              100
+            ).toFixed(2);
           },
+          // 加载图片
           async loadImg() {
             const handle = await get(path).catch(() => null);
 
@@ -113,6 +139,16 @@
               }
 
               this.imgsrc = newUrl;
+
+              const mainImg = this.shadow.$(".main-img");
+              mainImg.attr("src", newUrl);
+
+              await mainImg.ele.decode();
+
+              this.naturalWidth = mainImg.ele.naturalWidth;
+              this.naturalHeight = mainImg.ele.naturalHeight;
+
+              this.resetSize();
               return;
             }
 
