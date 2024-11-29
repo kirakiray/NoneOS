@@ -39,21 +39,19 @@
       flex: 1;
     }
 
-    .img-area {
+    /* .img-area {
       position: absolute;
       left: 0;
       top: 0;
       width: 100%;
       height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+    } */
 
-    .img-area img {
+    .main-img {
       display: block;
-      max-width: 100%;
-      max-height: 100%;
+      position: absolute;
+      left: 0;
+      top: 0;
     }
 
     .tool-block {
@@ -78,9 +76,7 @@
       <div class="title">{{imgName}}</div>
     </div>
     <div class="main">
-      <div class="img-area">
-        <img class="main-img" />
-      </div>
+      <img class="main-img" />
     </div>
     <div class="bottom-tool">
       <div class="tool-block">
@@ -111,48 +107,52 @@
           imgSize: "-", // 图片大小
           naturalWidth: "-", // 图片宽度
           naturalHeight: "-", // 图片高度
-          originScale: 100, // 图片原始缩放比
-          // scale: "-", // 图片缩放比
+          scale: "-", // 图片缩放比
         },
         proto: {
           onresize() {
             this.resetScale();
           },
-          get scale() {
-            return this.originScale;
-          },
           // 重制尺寸缩放
           resetScale() {
-            // // 获取容器的尺寸
-            // const containerWidth = this.shadow.$(".container").ele.clientWidth;
-            // const containerHeight =
-            //   this.shadow.$(".container").ele.clientHeight;
-            // const { naturalWidth, naturalHeight } = this;
-            // // 图片的最终大小，不能超过容器的尺寸
-            // let finnalWidth = naturalWidth,
-            //   finnalHeight = naturalHeight;
-            // if (finnalWidth > containerWidth) {
-            //   finnalWidth = containerWidth;
-            //   finnalHeight = (finnalWidth / naturalWidth) * naturalHeight;
-            // }
-            // if (finnalHeight > containerHeight) {
-            //   finnalHeight = containerHeight;
-            //   finnalWidth = (finnalHeight / naturalHeight) * naturalWidth;
-            // }
-            // Object.assign(this.shadow.$(".main-img").style, {
-            //   width: finnalWidth + "px",
-            //   heighe: finnalHeight + "px",
-            // });
+            // 获取容器的尺寸
+            const containerWidth =
+              this.shadow.$(".container .main").ele.clientWidth;
+            const containerHeight =
+              this.shadow.$(".container .main").ele.clientHeight;
 
-            // 获取图片在容器内的尺寸
-            const containerImgWidth = this.shadow.$(".container .main-img").ele
-              .clientWidth;
+            const { naturalWidth, naturalHeight } = this;
+            // 图片的最终大小，不能超过容器的尺寸
+            let finnalWidth = naturalWidth,
+              finnalHeight = naturalHeight;
+            if (finnalWidth > containerWidth) {
+              finnalWidth = containerWidth;
+              finnalHeight = (finnalWidth / naturalWidth) * naturalHeight;
+            }
+            if (finnalHeight > containerHeight) {
+              finnalHeight = containerHeight;
+              finnalWidth = (finnalHeight / naturalHeight) * naturalWidth;
+            }
+            Object.assign(this.shadow.$(".main-img").style, {
+              width: finnalWidth + "px",
+              heighe: finnalHeight + "px",
+              left: (containerWidth - finnalWidth) / 2 + "px",
+              top: (containerHeight - finnalHeight) / 2 + "px",
+            });
 
-            // 计算当前的缩放比
-            this.originScale = (
-              (containerImgWidth / this.naturalWidth) *
-              100
-            ).toFixed(2);
+            this.scale = ((finnalWidth / naturalWidth) * 100).toFixed(2);
+
+            console.log("containerHeight: ", containerHeight, finnalHeight);
+
+            // // 获取图片在容器内的尺寸
+            // const containerImgWidth = this.shadow.$(".container .main-img").ele
+            //   .clientWidth;
+
+            // // 计算当前的缩放比
+            // this.originScale = (
+            //   (containerImgWidth / this.naturalWidth) *
+            //   100
+            // ).toFixed(2);
           },
           // 加载图片
           async loadImg() {
@@ -190,14 +190,26 @@
         },
         ready() {
           let transScale = 1;
+
+          const mainImg = this.shadow.$(".main-img");
+
           // 移动光标
-          this.on("wheel", (e) => {
+          mainImg.on("wheel", (e) => {
             e.preventDefault();
 
             const { deltaY } = e;
 
+            transScale += deltaY / 1000;
+
+            if (transScale < 0.1) {
+              // 不能小于0.1;
+              transScale = 0.1;
+            }
+
+            mainImg.style.transform = `scale(${transScale})`;
+
             // 按照滚轮的移动方向缩放图片
-            console.log("wheel", deltaY);
+            // console.log("wheel", deltaY, transScale);
           });
         },
         attached() {
