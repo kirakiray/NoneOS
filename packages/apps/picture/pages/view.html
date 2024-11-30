@@ -109,22 +109,25 @@
           naturalWidth: "-", // 图片宽度
           naturalHeight: "-", // 图片高度
           scale: "-", // 图片缩放比
+          // 缩放的中心点，1代表100%
+          centerX: 0.5,
+          centerY: 0.5,
         },
         proto: {
           onresize() {
-            this.resetScale();
+            this.resetBox();
           },
           setStyle({ width, height, left, top }) {
             const styleObj = this.shadow.$(".main-img").style;
 
             // 记录容器的偏移
             if (typeof left === "number") {
-              this.__x = left;
+              this.__left = left;
               styleObj.left = left + "px";
             }
 
             if (typeof top === "number") {
-              this.__y = top;
+              this.__top = top;
               styleObj.top = top + "px";
             }
 
@@ -139,7 +142,7 @@
             }
           },
           // 重制尺寸缩放
-          resetScale() {
+          resetBox() {
             // 获取容器的尺寸
             const containerWidth =
               this.shadow.$(".container .main").ele.clientWidth;
@@ -160,9 +163,8 @@
               finnalWidth = (finnalHeight / naturalHeight) * naturalWidth;
             }
 
-            // 记录容器的偏移
-            this.__x = (containerWidth - finnalWidth) / 2;
-            this.__y = (containerHeight - finnalHeight) / 2;
+            this.centerX = 0.5;
+            this.centerY = 0.5;
 
             this.setStyle({
               width: finnalWidth,
@@ -201,7 +203,7 @@
               this.naturalWidth = mainImg.ele.naturalWidth;
               this.naturalHeight = mainImg.ele.naturalHeight;
 
-              this.resetScale();
+              this.resetBox();
               return;
             }
 
@@ -209,7 +211,7 @@
             debugger;
           },
           // 缩放图片
-          setScale({ scale, x, y }) {
+          setScale({ scale, diffX, diffY }) {
             const { naturalWidth, naturalHeight } = this;
 
             const finnalWidth = (naturalWidth * scale) / 100;
@@ -220,11 +222,14 @@
             const containerHeight =
               this.shadow.$(".container .main").ele.clientHeight;
 
+            console.log("diffX: ", diffX);
+
             this.setStyle({
               width: finnalWidth,
               height: finnalHeight,
-              left: (containerWidth - finnalWidth) / 2,
-              top: (containerHeight - finnalHeight) / 2,
+              left: ((containerWidth - finnalWidth) / 2) * (this.centerX / 0.5),
+              top:
+                ((containerHeight - finnalHeight) / 2) * (this.centerY / 0.5),
             });
 
             // 修正缩放值
@@ -242,14 +247,17 @@
 
             const { deltaY } = e;
 
-            const newScale =
-              parseFloat(this.scale) + (deltaY / 500) * parseFloat(this.scale);
+            // 修正当前坐标中心
+            const centerX = e.layerX / e.target.clientWidth;
+            const centerY = e.layerY / e.target.clientHeight;
+
+            this.centerX = centerX;
+            this.centerY = centerY;
 
             this.setScale({
-              scale: newScale, // 缩放比例修正
-              // 缩放的坐标
-              // x: 100,
-              // y: 100,
+              scale:
+                parseFloat(this.scale) +
+                (deltaY / 500) * parseFloat(this.scale), // 缩放比例修正
             });
           });
 
@@ -257,9 +265,16 @@
             let startX = 0;
             let startY = 0;
 
+            let __left, __top;
+
             const moveFunc = (e) => {
               const diffX = e.clientX - startX;
               const diffY = e.clientY - startY;
+
+              this.setStyle({
+                left: __left + diffX,
+                top: __top + diffY,
+              });
 
               console.log(diffX, diffY);
             };
@@ -271,6 +286,8 @@
 
             // 拖拽偏移
             mainImg.on("mousedown", (e) => {
+              __left = this.__left;
+              __top = this.__top;
               e.preventDefault();
 
               startX = e.clientX;
