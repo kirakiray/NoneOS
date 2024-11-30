@@ -112,6 +112,9 @@
           // 缩放的中心点，1代表100%
           centerX: 0.5,
           centerY: 0.5,
+          // 坐标轴上的偏移
+          diffX: 0,
+          diffY: 0,
         },
         proto: {
           onresize() {
@@ -122,22 +125,18 @@
 
             // 记录容器的偏移
             if (typeof left === "number") {
-              this.__left = left;
               styleObj.left = left + "px";
             }
 
             if (typeof top === "number") {
-              this.__top = top;
               styleObj.top = top + "px";
             }
 
             if (typeof width === "number") {
-              this.__width = width;
               styleObj.width = width + "px";
             }
 
             if (typeof height === "number") {
-              this.__height = height;
               styleObj.height = height + "px";
             }
           },
@@ -211,7 +210,7 @@
             debugger;
           },
           // 缩放图片
-          setScale({ scale, diffX, diffY }) {
+          setScale({ scale }) {
             const { naturalWidth, naturalHeight } = this;
 
             const finnalWidth = (naturalWidth * scale) / 100;
@@ -221,8 +220,6 @@
               this.shadow.$(".container .main").ele.clientWidth;
             const containerHeight =
               this.shadow.$(".container .main").ele.clientHeight;
-
-            console.log("diffX: ", diffX);
 
             this.setStyle({
               width: finnalWidth,
@@ -248,11 +245,8 @@
             const { deltaY } = e;
 
             // 修正当前坐标中心
-            const centerX = e.layerX / e.target.clientWidth;
-            const centerY = e.layerY / e.target.clientHeight;
-
-            this.centerX = centerX;
-            this.centerY = centerY;
+            // this.centerX = e.layerX / e.target.clientWidth;
+            // this.centerY = e.layerY / e.target.clientHeight;
 
             this.setScale({
               scale:
@@ -261,43 +255,43 @@
             });
           });
 
-          {
-            let startX = 0;
-            let startY = 0;
+          // {
+          //   let startX = 0;
+          //   let startY = 0;
 
-            let __left, __top;
+          //   let __left, __top;
 
-            const moveFunc = (e) => {
-              const diffX = e.clientX - startX;
-              const diffY = e.clientY - startY;
+          //   const moveFunc = (e) => {
+          //     const diffX = e.clientX - startX;
+          //     const diffY = e.clientY - startY;
 
-              this.setStyle({
-                left: __left + diffX,
-                top: __top + diffY,
-              });
+          //     this.setStyle({
+          //       left: __left + diffX,
+          //       top: __top + diffY,
+          //     });
 
-              console.log(diffX, diffY);
-            };
+          //     console.log(diffX, diffY);
+          //   };
 
-            const endFunc = (e) => {
-              mainImg.off("mousemove", moveFunc);
-              mainImg.off("mouseup", endFunc);
-            };
+          //   const endFunc = (e) => {
+          //     mainImg.off("mousemove", moveFunc);
+          //     mainImg.off("mouseup", endFunc);
+          //   };
 
-            // 拖拽偏移
-            mainImg.on("mousedown", (e) => {
-              __left = this.__left;
-              __top = this.__top;
-              e.preventDefault();
+          //   // 拖拽偏移
+          //   mainImg.on("mousedown", (e) => {
+          //     __left = this.__left;
+          //     __top = this.__top;
+          //     e.preventDefault();
 
-              startX = e.clientX;
-              startY = e.clientY;
-              endFunc(); // 提前清除一下旧事件绑定
+          //     startX = e.clientX;
+          //     startY = e.clientY;
+          //     endFunc(); // 提前清除一下旧事件绑定
 
-              mainImg.on("mousemove", moveFunc);
-              mainImg.on("mouseup", endFunc);
-            });
-          }
+          //     mainImg.on("mousemove", moveFunc);
+          //     mainImg.on("mouseup", endFunc);
+          //   });
+          // }
         },
         attached() {
           this.loadImg();
