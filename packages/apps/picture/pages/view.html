@@ -114,34 +114,30 @@
           onresize() {
             this.resetScale();
           },
-          // getSqSize() {
-          //   // 获取容器的尺寸
-          //   const containerWidth =
-          //     this.shadow.$(".container .main").ele.clientWidth;
-          //   const containerHeight =
-          //     this.shadow.$(".container .main").ele.clientHeight;
+          setStyle({ width, height, left, top }) {
+            const styleObj = this.shadow.$(".main-img").style;
 
-          //   const { naturalWidth, naturalHeight } = this;
+            // 记录容器的偏移
+            if (typeof left === "number") {
+              this.__x = left;
+              styleObj.left = left + "px";
+            }
 
-          //   // 图片的最终大小，不能超过容器的尺寸
-          //   let finnalWidth = naturalWidth,
-          //     finnalHeight = naturalHeight;
-          //   if (finnalWidth > containerWidth) {
-          //     finnalWidth = containerWidth;
-          //     finnalHeight = (finnalWidth / naturalWidth) * naturalHeight;
-          //   }
-          //   if (finnalHeight > containerHeight) {
-          //     finnalHeight = containerHeight;
-          //     finnalWidth = (finnalHeight / naturalHeight) * naturalWidth;
-          //   }
+            if (typeof top === "number") {
+              this.__y = top;
+              styleObj.top = top + "px";
+            }
 
-          //   return {
-          //     containerWidth,
-          //     containerHeight,
-          //     finnalWidth,
-          //     finnalHeight,
-          //   };
-          // },
+            if (typeof width === "number") {
+              this.__width = width;
+              styleObj.width = width + "px";
+            }
+
+            if (typeof height === "number") {
+              this.__height = height;
+              styleObj.height = height + "px";
+            }
+          },
           // 重制尺寸缩放
           resetScale() {
             // 获取容器的尺寸
@@ -168,11 +164,11 @@
             this.__x = (containerWidth - finnalWidth) / 2;
             this.__y = (containerHeight - finnalHeight) / 2;
 
-            Object.assign(this.shadow.$(".main-img").style, {
-              width: finnalWidth + "px",
-              height: finnalHeight + "px",
-              left: this.__x + "px",
-              top: this.__y + "px",
+            this.setStyle({
+              width: finnalWidth,
+              height: finnalHeight,
+              left: (containerWidth - finnalWidth) / 2,
+              top: (containerHeight - finnalHeight) / 2,
             });
 
             this.scale = ((finnalWidth / naturalWidth) * 100).toFixed(2);
@@ -224,13 +220,11 @@
             const containerHeight =
               this.shadow.$(".container .main").ele.clientHeight;
 
-            Object.assign(this.shadow.$(".main-img").style, {
-              width: finnalWidth + "px",
-              height: finnalHeight + "px",
-              left: (containerWidth - finnalWidth) / 2 + "px",
-              top: (containerHeight - finnalHeight) / 2 + "px",
-              // left: `${x}px`,
-              // top: `${y}px`,
+            this.setStyle({
+              width: finnalWidth,
+              height: finnalHeight,
+              left: (containerWidth - finnalWidth) / 2,
+              top: (containerHeight - finnalHeight) / 2,
             });
 
             // 修正缩放值
@@ -258,6 +252,35 @@
               // y: 100,
             });
           });
+
+          {
+            let startX = 0;
+            let startY = 0;
+
+            const moveFunc = (e) => {
+              const diffX = e.clientX - startX;
+              const diffY = e.clientY - startY;
+
+              console.log(diffX, diffY);
+            };
+
+            const endFunc = (e) => {
+              mainImg.off("mousemove", moveFunc);
+              mainImg.off("mouseup", endFunc);
+            };
+
+            // 拖拽偏移
+            mainImg.on("mousedown", (e) => {
+              e.preventDefault();
+
+              startX = e.clientX;
+              startY = e.clientY;
+              endFunc(); // 提前清除一下旧事件绑定
+
+              mainImg.on("mousemove", moveFunc);
+              mainImg.on("mouseup", endFunc);
+            });
+          }
         },
         attached() {
           this.loadImg();
