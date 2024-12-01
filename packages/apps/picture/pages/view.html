@@ -83,6 +83,10 @@
       width: 100%;
       height: 100%;
       z-index: 2;
+      cursor: grab;
+    }
+    .fake-area:active {
+      cursor: grabbing;
     }
   </style>
   <div class="container">
@@ -102,7 +106,7 @@
           size="mini"
           variant="text"
           attr:disabled="iscover"
-          on:click="resetBox"
+          on:click="resetBox('smooth')"
           icon
           style="margin-left: 6px"
         >
@@ -167,7 +171,14 @@
             }
           },
           // 重制尺寸缩放
-          resetBox() {
+          resetBox(type) {
+            if (type === "smooth") {
+              this.shadow.$(".main-img").style.transition = "all ease .25s";
+              setTimeout(() => {
+                this.shadow.$(".main-img").style.transition = "";
+              }, 300);
+            }
+
             this.iscover = true;
 
             // 获取容器的尺寸
@@ -273,80 +284,86 @@
           const mainCon = this.shadow.$(".main");
           const mainImg = this.shadow.$(".main-img");
 
-          // 移动光标
-          mainCon.on("wheel", (e) => {
-            e.preventDefault();
+          {
+            let oldX = 0;
+            let oldY = 0;
+            // 移动光标
+            mainCon.on("wheel", (e) => {
+              e.preventDefault();
 
-            const { offsetX, offsetY, deltaY } = e;
+              const { offsetX, offsetY, deltaY } = e;
 
-            // 获取图片相对的坐标
-            const imgLeft = parseFloat(mainImg.ele.style.left);
-            const imgTop = parseFloat(mainImg.ele.style.top);
+              // 获取图片相对的坐标
+              const imgLeft = parseFloat(mainImg.ele.style.left);
+              const imgTop = parseFloat(mainImg.ele.style.top);
 
-            // 计算鼠标在图片中的坐标
-            const mouseX = offsetX - imgLeft;
-            const mouseY = offsetY - imgTop;
+              if (oldX !== offsetX && oldY !== offsetY) {
+                // 缩放太小的时候，误差会增大，所以没必要不改动坐标
+                // 计算鼠标在图片中的坐标
+                const mouseX = offsetX - imgLeft;
+                const mouseY = offsetY - imgTop;
 
-            // 计算图片中心坐标的百分比值
-            this.centerX = mouseX / mainImg.ele.clientWidth;
-            this.centerY = mouseY / mainImg.ele.clientHeight;
+                // 计算图片中心坐标的百分比值
+                this.centerX = mouseX / mainImg.ele.clientWidth;
+                this.centerY = mouseY / mainImg.ele.clientHeight;
 
-            // console.log(offsetX, offsetY, imgLeft, imgTop);
+                oldX = offsetX;
+                oldY = offsetY;
+              }
 
-            // 修正当前坐标中心
-            // this.centerX = e.layerX / e.target.clientWidth;
-            // this.centerY = e.layerY / e.target.clientHeight;
+              // console.log(offsetX, offsetY, imgLeft, imgTop);
 
-            // let scale = this.scale + (deltaY / 500) * this.scale;
+              // 修正当前坐标中心
+              // this.centerX = e.layerX / e.target.clientWidth;
+              // this.centerY = e.layerY / e.target.clientHeight;
 
-            // if (scale < 10) {
-            //   // debugger;
-            // }
+              let scale = this.scale + (deltaY / 500) * this.scale;
 
-            // console.log("scale: ", scale);
-
-            this.setScale({
-              scale: this.scale + (deltaY / 500) * this.scale, // 缩放比例修正
+              this.setScale({
+                scale,
+              });
             });
-          });
+          }
 
-          // {
-          //   let startX = 0;
-          //   let startY = 0;
+          {
+            // 拖拽位移
+            let startX = 0;
+            let startY = 0;
 
-          //   let __left, __top;
+            let __left, __top;
 
-          //   const moveFunc = (e) => {
-          //     const diffX = e.clientX - startX;
-          //     const diffY = e.clientY - startY;
+            const moveFunc = (e) => {
+              const diffX = e.clientX - startX;
+              const diffY = e.clientY - startY;
 
-          //     this.setStyle({
-          //       left: __left + diffX,
-          //       top: __top + diffY,
-          //     });
+              this.setStyle({
+                left: __left + diffX,
+                top: __top + diffY,
+              });
 
-          //     console.log(diffX, diffY);
-          //   };
+              console.log(diffX, diffY);
+            };
 
-          //   const endFunc = (e) => {
-          //     mainImg.off("mousemove", moveFunc);
-          //     mainImg.off("mouseup", endFunc);
-          //   };
+            const endFunc = (e) => {
+              mainCon.off("mousemove", moveFunc);
+              mainCon.off("mouseup", endFunc);
+            };
 
-          //   // 拖拽偏移
-          //   mainImg.on("mousedown", (e) => {
-          //     __left = this.__left;
-          //     __top = this.__top;
-          //     e.preventDefault();
+            // 拖拽偏移
+            mainCon.on("mousedown", (e) => {
+              __left = parseFloat(mainImg.ele.style.left);
+              __top = parseFloat(mainImg.ele.style.top);
 
-          //     startX = e.clientX;
-          //     startY = e.clientY;
-          //     endFunc(); // 提前清除一下旧事件绑定
+              e.preventDefault();
 
-          //     mainImg.on("mousemove", moveFunc);
-          //     mainImg.on("mouseup", endFunc);
-          //   });
-          // }
+              startX = e.clientX;
+              startY = e.clientY;
+              endFunc(); // 提前清除一下旧事件绑定
+
+              mainCon.on("mousemove", moveFunc);
+              mainCon.on("mouseup", endFunc);
+            });
+          }
         },
         attached() {
           this.loadImg();
