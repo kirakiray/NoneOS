@@ -91,9 +91,9 @@
       <div class="fake-area"></div>
     </div>
     <div class="bottom-tool">
-      <div class="tool-block">
+      <div class="tool-block" on:click="resetBox">
         <n-local-icon name="magnifier" style="font-size: 14px"></n-local-icon>
-        {{scale}}%
+        {{scale.toFixed(2)}}%
       </div>
       <div class="tool-block">
         <n-local-icon name="size"></n-local-icon>
@@ -119,10 +119,10 @@
           imgSize: "-", // 图片大小
           naturalWidth: "-", // 图片宽度
           naturalHeight: "-", // 图片高度
-          scale: "-", // 图片缩放比
+          scale: 0, // 图片缩放比
           // 缩放的中心点，1代表100%
-          centerX: 0.5,
-          centerY: 0.5,
+          centerX: 0,
+          centerY: 0,
           // 坐标轴上的偏移
           diffX: 0,
           diffY: 0,
@@ -174,7 +174,7 @@
             }
 
             this.centerX = 0.5;
-            this.centerY = 0.5;
+            this.centerY = 0.25;
 
             this._fillingLeft = (containerWidth - finnalWidth) / 2;
             this._fillingTop = (containerHeight - finnalHeight) / 2;
@@ -240,13 +240,13 @@
             this.setStyle({
               width: finnalWidth,
               height: finnalHeight,
-              left: ((containerWidth - finnalWidth) / 2) * (this.centerX / 0.5),
+              left:
+                ((containerWidth - finnalWidth) / 2) * (this.centerX / 0.5) +
+                this._fillingLeft * 2 * (0.5 - this.centerX),
               top:
                 ((containerHeight - finnalHeight) / 2) * (this.centerY / 0.5) +
                 this._fillingTop * 2 * (0.5 - this.centerY),
             });
-
-            console.log("asd", this.centerY, this._fillingTop);
 
             // 修正缩放值
             this.scale = scale;
@@ -273,8 +273,8 @@
             const mouseY = offsetY - imgTop;
 
             // 计算图片中心坐标的百分比值
-            // this.centerX = mouseX / mainImg.ele.clientWidth;
-            // this.centerY = mouseY / mainImg.ele.clientHeight;
+            this.centerX = mouseX / mainImg.ele.clientWidth;
+            this.centerY = mouseY / mainImg.ele.clientHeight;
 
             // console.log(offsetX, offsetY, imgLeft, imgTop);
 
@@ -282,16 +282,16 @@
             // this.centerX = e.layerX / e.target.clientWidth;
             // this.centerY = e.layerY / e.target.clientHeight;
 
-            let scale = this.scale + (deltaY / 500) * this.scale;
+            // let scale = this.scale + (deltaY / 500) * this.scale;
 
-            if (scale < 10) {
-              // debugger;
-            }
+            // if (scale < 10) {
+            //   // debugger;
+            // }
 
-            console.log("scale: ", scale);
+            // console.log("scale: ", scale);
 
             this.setScale({
-              scale, // 缩放比例修正
+              scale: this.scale + (deltaY / 500) * this.scale, // 缩放比例修正
             });
           });
 
