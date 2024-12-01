@@ -347,12 +347,12 @@
                   scale,
                 });
 
-                console.log("pdata: ", pdata);
+                // console.log("pdata: ", pdata);
 
-                console.log(
-                  pdata.finnalWidth - imgWidth,
-                  pdata.finnalHeight - imgHeight
-                );
+                // console.log(
+                //   pdata.finnalWidth - imgWidth,
+                //   pdata.finnalHeight - imgHeight
+                // );
 
                 // 计算差值，让图片和当前定位保持一致
                 diffX = imgLeft - pdata.left - (pdata.finnalWidth - imgWidth);
@@ -385,7 +385,7 @@
                 top: __top + diffY,
               });
 
-              console.log(diffX, diffY);
+              // console.log(diffX, diffY);
             };
 
             const endFunc = (e) => {
