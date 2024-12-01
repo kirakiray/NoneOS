@@ -53,6 +53,7 @@
       position: absolute;
       left: 0;
       top: 0;
+      z-index: 1;
     }
 
     .tool-block {
@@ -71,6 +72,14 @@
     .tool-block + .tool-block {
       border-left: var(--md-sys-color-normal) solid 1px;
     }
+    .fake-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
   </style>
   <div class="container">
     <div class="top-tool">
@@ -78,6 +87,8 @@
     </div>
     <div class="main">
       <img class="main-img" />
+      <!-- 用于遮盖图片层，获取绝对定位的元素 -->
+      <div class="fake-area"></div>
     </div>
     <div class="bottom-tool">
       <div class="tool-block">
@@ -165,14 +176,19 @@
             this.centerX = 0.5;
             this.centerY = 0.5;
 
+            this._fillingLeft = (containerWidth - finnalWidth) / 2;
+            this._fillingTop = (containerHeight - finnalHeight) / 2;
+
+            console.log(this._fillingLeft, this._fillingTop);
+
             this.setStyle({
               width: finnalWidth,
               height: finnalHeight,
-              left: (containerWidth - finnalWidth) / 2,
-              top: (containerHeight - finnalHeight) / 2,
+              left: this._fillingLeft,
+              top: this._fillingTop,
             });
 
-            this.scale = ((finnalWidth / naturalWidth) * 100).toFixed(2);
+            this.scale = (finnalWidth / naturalWidth) * 100;
 
             console.log("containerHeight: ", containerHeight, finnalHeight);
           },
@@ -226,32 +242,56 @@
               height: finnalHeight,
               left: ((containerWidth - finnalWidth) / 2) * (this.centerX / 0.5),
               top:
-                ((containerHeight - finnalHeight) / 2) * (this.centerY / 0.5),
+                ((containerHeight - finnalHeight) / 2) * (this.centerY / 0.5) +
+                this._fillingTop * 2 * (0.5 - this.centerY),
             });
 
+            console.log("asd", this.centerY, this._fillingTop);
+
             // 修正缩放值
-            this.scale = scale.toFixed(2);
+            this.scale = scale;
           },
         },
         ready() {
           let transScale = 1;
 
+          const mainCon = this.shadow.$(".main");
           const mainImg = this.shadow.$(".main-img");
 
           // 移动光标
-          mainImg.on("wheel", (e) => {
+          mainCon.on("wheel", (e) => {
             e.preventDefault();
 
-            const { deltaY } = e;
+            const { offsetX, offsetY, deltaY } = e;
+
+            // 获取图片相对的坐标
+            const imgLeft = parseFloat(mainImg.ele.style.left);
+            const imgTop = parseFloat(mainImg.ele.style.top);
+
+            // 计算鼠标在图片中的坐标
+            const mouseX = offsetX - imgLeft;
+            const mouseY = offsetY - imgTop;
+
+            // 计算图片中心坐标的百分比值
+            // this.centerX = mouseX / mainImg.ele.clientWidth;
+            // this.centerY = mouseY / mainImg.ele.clientHeight;
+
+            // console.log(offsetX, offsetY, imgLeft, imgTop);
 
             // 修正当前坐标中心
             // this.centerX = e.layerX / e.target.clientWidth;
             // this.centerY = e.layerY / e.target.clientHeight;
 
+            let scale = this.scale + (deltaY / 500) * this.scale;
+
+            if (scale < 10) {
+              // debugger;
+            }
+
+            console.log("scale: ", scale);
+
             this.setScale({
-              scale:
-                parseFloat(this.scale) +
-                (deltaY / 500) * parseFloat(this.scale), // 缩放比例修正
+              scale, // 缩放比例修正
             });
           });
 
