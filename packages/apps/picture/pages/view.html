@@ -54,6 +54,7 @@
       left: 0;
       top: 0;
       z-index: 1;
+      transition: all ease 0.05s;
     }
 
     .tool-block {
@@ -173,6 +174,7 @@
           // 重制尺寸缩放
           resetBox(type) {
             if (type === "smooth") {
+              // 平滑过度到平铺尺寸模式
               this.shadow.$(".main-img").style.transition = "all ease .25s";
               setTimeout(() => {
                 this.shadow.$(".main-img").style.transition = "";
@@ -202,10 +204,14 @@
             }
 
             this.centerX = 0.5;
-            this.centerY = 0.25;
+            this.centerY = 0.5;
 
             this._fillingLeft = (containerWidth - finnalWidth) / 2;
             this._fillingTop = (containerHeight - finnalHeight) / 2;
+
+            // 设置图片的定位点
+            this._pointX = this._fillingLeft;
+            this._pointY = this._fillingTop;
 
             this.setStyle({
               width: finnalWidth,
@@ -214,7 +220,8 @@
               top: this._fillingTop,
             });
 
-            this.scale = (finnalWidth / naturalWidth) * 100;
+            // 记录缩放值
+            this._initScale = this.scale = (finnalWidth / naturalWidth) * 100;
           },
           // 加载图片
           async loadImg() {
@@ -249,29 +256,44 @@
             // TODO: 没有找到对应的图片
             debugger;
           },
-          // 缩放图片
-          setScale({ scale }) {
-            this.iscover = false;
 
+          // 获取缩放比的定位
+          getScalePosition({ scale }) {
             const { naturalWidth, naturalHeight } = this;
 
             const finnalWidth = (naturalWidth * scale) / 100;
             const finnalHeight = (naturalHeight * scale) / 100;
 
-            const containerWidth =
-              this.shadow.$(".container .main").ele.clientWidth;
-            const containerHeight =
-              this.shadow.$(".container .main").ele.clientHeight;
+            const mainCon = this.shadow.$(".container .main").ele;
 
-            this.setStyle({
-              width: finnalWidth,
-              height: finnalHeight,
+            const containerWidth = mainCon.clientWidth;
+            const containerHeight = mainCon.clientHeight;
+
+            return {
+              finnalWidth,
+              finnalHeight,
               left:
                 ((containerWidth - finnalWidth) / 2) * (this.centerX / 0.5) +
                 this._fillingLeft * 2 * (0.5 - this.centerX),
               top:
                 ((containerHeight - finnalHeight) / 2) * (this.centerY / 0.5) +
                 this._fillingTop * 2 * (0.5 - this.centerY),
+            };
+          },
+          // 缩放图片
+          setScale({ scale, diffX, diffY }) {
+            this.iscover = false;
+
+            const { finnalWidth, finnalHeight, left, top } =
+              this.getScalePosition({
+                scale,
+              });
+
+            this.setStyle({
+              width: finnalWidth,
+              height: finnalHeight,
+              left: left + diffX,
+              top: top + diffY,
             });
 
             // 修正缩放值
@@ -285,19 +307,29 @@
           const mainImg = this.shadow.$(".main-img");
 
           {
+            // 用于定位初始移动的坐标
             let oldX = 0;
             let oldY = 0;
+
+            // 坐标轴上的偏移
+            let diffX = 0;
+            let diffY = 0;
+
             // 移动光标
             mainCon.on("wheel", (e) => {
               e.preventDefault();
 
               const { offsetX, offsetY, deltaY } = e;
 
-              // 获取图片相对的坐标
-              const imgLeft = parseFloat(mainImg.ele.style.left);
-              const imgTop = parseFloat(mainImg.ele.style.top);
+              const scale = this.scale + (deltaY / 500) * this.scale;
 
               if (oldX !== offsetX && oldY !== offsetY) {
+                // 获取图片相对的坐标
+                const imgLeft = parseFloat(mainImg.ele.style.left);
+                const imgTop = parseFloat(mainImg.ele.style.top);
+                const imgWidth = parseFloat(mainImg.ele.style.width);
+                const imgHeight = parseFloat(mainImg.ele.style.height);
+
                 // 缩放太小的时候，误差会增大，所以没必要不改动坐标
                 // 计算鼠标在图片中的坐标
                 const mouseX = offsetX - imgLeft;
@@ -309,18 +341,30 @@
 
                 oldX = offsetX;
                 oldY = offsetY;
+
+                // 先假设缩放到一倍的情况下，在计算位移
+                const pdata = this.getScalePosition({
+                  scale,
+                });
+
+                console.log("pdata: ", pdata);
+
+                console.log(
+                  pdata.finnalWidth - imgWidth,
+                  pdata.finnalHeight - imgHeight
+                );
+
+                // 计算差值，让图片和当前定位保持一致
+                diffX = imgLeft - pdata.left - (pdata.finnalWidth - imgWidth);
+                diffY = imgTop - pdata.top - (pdata.finnalHeight - imgHeight);
               }
 
-              // console.log(offsetX, offsetY, imgLeft, imgTop);
-
-              // 修正当前坐标中心
-              // this.centerX = e.layerX / e.target.clientWidth;
-              // this.centerY = e.layerY / e.target.clientHeight;
-
-              let scale = this.scale + (deltaY / 500) * this.scale;
+              // console.log(diffX, diffY);
 
               this.setScale({
                 scale,
+                diffX,
+                diffY,
               });
             });
           }
@@ -351,6 +395,8 @@
 
             // 拖拽偏移
             mainCon.on("mousedown", (e) => {
+              this.iscover = false;
+
               __left = parseFloat(mainImg.ele.style.left);
               __top = parseFloat(mainImg.ele.style.top);
 
