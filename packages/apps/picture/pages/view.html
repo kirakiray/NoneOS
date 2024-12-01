@@ -69,6 +69,10 @@
       font-size: 18px;
       margin-right: 4px;
     }
+    .tool-block p-button n-local-icon {
+      margin-right: 0;
+    }
+
     .tool-block + .tool-block {
       border-left: var(--md-sys-color-normal) solid 1px;
     }
@@ -91,9 +95,19 @@
       <div class="fake-area"></div>
     </div>
     <div class="bottom-tool">
-      <div class="tool-block" on:click="resetBox">
+      <div class="tool-block">
         <n-local-icon name="magnifier" style="font-size: 14px"></n-local-icon>
         {{scale.toFixed(2)}}%
+        <p-button
+          size="mini"
+          variant="text"
+          attr:disabled="iscover"
+          on:click="resetBox"
+          icon
+          style="margin-left: 6px"
+        >
+          <n-local-icon name="resize"></n-local-icon>
+        </p-button>
       </div>
       <div class="tool-block">
         <n-local-icon name="size"></n-local-icon>
@@ -126,6 +140,7 @@
           // 坐标轴上的偏移
           diffX: 0,
           diffY: 0,
+          iscover: true, // 是否铺平模式
         },
         proto: {
           onresize() {
@@ -153,6 +168,8 @@
           },
           // 重制尺寸缩放
           resetBox() {
+            this.iscover = true;
+
             // 获取容器的尺寸
             const containerWidth =
               this.shadow.$(".container .main").ele.clientWidth;
@@ -179,8 +196,6 @@
             this._fillingLeft = (containerWidth - finnalWidth) / 2;
             this._fillingTop = (containerHeight - finnalHeight) / 2;
 
-            console.log(this._fillingLeft, this._fillingTop);
-
             this.setStyle({
               width: finnalWidth,
               height: finnalHeight,
@@ -189,8 +204,6 @@
             });
 
             this.scale = (finnalWidth / naturalWidth) * 100;
-
-            console.log("containerHeight: ", containerHeight, finnalHeight);
           },
           // 加载图片
           async loadImg() {
@@ -227,6 +240,8 @@
           },
           // 缩放图片
           setScale({ scale }) {
+            this.iscover = false;
+
             const { naturalWidth, naturalHeight } = this;
 
             const finnalWidth = (naturalWidth * scale) / 100;
