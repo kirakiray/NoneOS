@@ -2,5 +2,5 @@
   "name": "图片",
   "icon": "icon.svg",
   "config": "app-config.js",
-  "accept": ["png", "jpg", "gif", "bmp", "webp"]
+  "accept": ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", "ico"]
 }

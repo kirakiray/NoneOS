@@ -10,6 +10,12 @@
       display: flex;
       flex-direction: column;
       height: 100%;
+      transition: opacity ease 0.3s;
+      opacity: 1;
+    }
+
+    .hide {
+      opacity: 0;
     }
 
     .top-tool,
@@ -90,7 +96,7 @@
       cursor: grabbing;
     }
   </style>
-  <div class="container">
+  <div class="container" class:hide="loading">
     <div class="top-tool">
       <div class="title">{{imgName}}</div>
     </div>
@@ -132,6 +138,7 @@
 
       return {
         data: {
+          loading: true,
           path,
           imgsrc: "", // 图片地址
           imgName: "", // 图片名称
@@ -301,6 +308,10 @@
           },
         },
         ready() {
+          setTimeout(() => {
+            this.loading = false;
+          }, 200);
+
           let transScale = 1;
 
           const mainCon = this.shadow.$(".main");

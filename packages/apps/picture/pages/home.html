@@ -1,9 +1,47 @@
 <template page>
-  <div>图片首页</div>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface);
+    }
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 100%;
+      transition: all ease 0.3s;
+      opacity: 1;
+    }
+    p {
+      color: var(--md-sys-color-normal);
+      margin: 0;
+      padding: 0;
+    }
+
+    .hide {
+      opacity: 0;
+    }
+  </style>
+  <div class="container" class:hide="loading">
+    <h2>图片预览器</h2>
+    <p>目前支持 {{accept}} 格式的图片。</p>
+    <p>当您在文件管理器中双击图片文件时，会自动使用该软件进行预览。</p>
+  </div>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const configs = await load("../app.json");
+
       return {
-        data: {},
+        data: {
+          loading: true,
+          accept: configs.accept.join(" , "),
+        },
+        ready() {
+          setTimeout(() => {
+            this.loading = false;
+          }, 300);
+        },
       };
     };
   </script>

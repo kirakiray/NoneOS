@@ -1,5 +1,6 @@
 import { get } from "../fs/main.js";
 import { defaultApps } from "./configs.js";
+import { alert } from "/packages/pui/util.js";
 
 // 获取所有可用的应用数据
 export const getApps = async () => {
@@ -96,8 +97,13 @@ export const openFileWithApp = async ({ path, core }) => {
         }
       }
 
+      const surfix = handle.name.replace(/.+\.(.+)/, "$1");
+
       // TODO: 没有该后缀的应用程序
-      debugger;
+      alert({
+        title: `无法打开${surfix || ""}`,
+        content: `没有可以打开 ${handle.name} 的应用程`,
+      });
     } else {
       // TODO: 没有后缀的情况，弹床显示打开的默认程序
       debugger;
