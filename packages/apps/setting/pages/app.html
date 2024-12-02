@@ -17,6 +17,9 @@
         <p-list-item button>
           <img attr:src="$data.icon" height="25" slot="prefix" />
           {{$data.name}}
+          <x-if :value="$data.accept">
+            <div secondary>支持 {{$host.getSecondText($data)}} 格式</div>
+          </x-if>
         </p-list-item>
       </x-fill>
     </p-list>
@@ -32,6 +35,9 @@
           apps: [],
         },
         proto: {
+          getSecondText($data) {
+            return $data.accept ? $data.accept.join(",") : "";
+          },
           async initApps() {
             const apps = await getApps();
 
