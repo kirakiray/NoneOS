@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -10,14 +11,45 @@
     }
   </style>
   <div>
-    <h5>默认应用程序</h5>
+    <h5>应用程序</h5>
+    <p-list style="max-width: 600px; padding-right: 8px">
+      <x-fill :value="apps">
+        <p-list-item button>
+          <img attr:src="$data.icon" height="25" slot="prefix" />
+          {{$data.name}}
+        </p-list-item>
+      </x-fill>
+    </p-list>
   </div>
   <script>
     export const parent = "../outer.html";
 
-    export default async () => {
+    export default async ({ load }) => {
+      const { getApps } = await load("/packages/none-os/app.js");
+
       return {
-        data: {},
+        data: {
+          apps: [],
+        },
+        proto: {
+          async initApps() {
+            const apps = await getApps();
+
+            console.log("apps: ", apps);
+
+            this.apps = apps.map((app) => {
+              return {
+                name: app.name,
+                icon: app.icon.url,
+                url: app.url.replace("/app-config.js", ""),
+                accept: app.configData.accept,
+              };
+            });
+          },
+        },
+        attached() {
+          this.initApps();
+        },
       };
     };
   </script>
