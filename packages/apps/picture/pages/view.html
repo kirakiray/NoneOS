@@ -332,7 +332,7 @@
 
               const { offsetX, offsetY, deltaY } = e;
 
-              const scale = this.scale + (deltaY / 500) * this.scale;
+              const scale = this.scale + (-deltaY / 500) * this.scale;
 
               if (oldX !== offsetX && oldY !== offsetY) {
                 // 获取图片相对的坐标

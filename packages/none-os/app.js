@@ -97,15 +97,13 @@ export const openFileWithApp = async ({ path, core }) => {
         }
       }
 
-      const surfix = handle.name.replace(/.+\.(.+)/, "$1");
-
       // TODO: 没有该后缀的应用程序
       alert({
-        title: `无法打开${surfix || ""}`,
+        title: `无法打开${type || ""}`,
         content: `没有可以打开 ${handle.name} 的应用程`,
       });
     } else {
-      // TODO: 没有后缀的情况，弹床显示打开的默认程序
+      // TODO: 没有后缀的情况，弹窗显示打开的默认程序
       debugger;
     }
   } else {
