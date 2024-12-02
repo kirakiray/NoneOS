@@ -1,0 +1,447 @@
+<template page>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      transition: opacity ease 0.3s;
+      opacity: 1;
+    }
+
+    .hide {
+      opacity: 0;
+    }
+
+    .top-tool,
+    .bottom-tool {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 30px;
+      font-size: 12px;
+      background-color: var(--md-sys-color-on-normal);
+    }
+
+    .top-tool {
+      text-align: center;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    .title {
+      text-align: center;
+      user-select: text;
+      padding: 0 12px;
+      font-size: 14px;
+    }
+
+    .main {
+      position: relative;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* .img-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    } */
+
+    .main-img {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      transition: all ease 0.05s;
+    }
+
+    .tool-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 0 16px;
+      color: var(--md-sys-color-normal);
+      line-height: 16px;
+    }
+    .tool-block n-local-icon {
+      display: block;
+      font-size: 18px;
+      margin-right: 4px;
+    }
+    .tool-block p-button n-local-icon {
+      margin-right: 0;
+    }
+
+    .tool-block + .tool-block {
+      border-left: var(--md-sys-color-normal) solid 1px;
+    }
+    .fake-area {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+      cursor: grab;
+    }
+    .fake-area:active {
+      cursor: grabbing;
+    }
+  </style>
+  <div class="container" class:hide="loading">
+    <div class="top-tool">
+      <div class="title">{{imgName}}</div>
+    </div>
+    <div class="main">
+      <img class="main-img" />
+      <!-- 用于遮盖图片层，获取绝对定位的元素 -->
+      <div class="fake-area"></div>
+    </div>
+    <div class="bottom-tool">
+      <div class="tool-block">
+        <n-local-icon name="magnifier" style="font-size: 14px"></n-local-icon>
+        {{scale.toFixed(2)}}%
+        <p-button
+          size="mini"
+          variant="text"
+          attr:disabled="iscover"
+          on:click="resetBox('smooth')"
+          icon
+          style="margin-left: 6px"
+        >
+          <n-local-icon name="resize"></n-local-icon>
+        </p-button>
+      </div>
+      <div class="tool-block">
+        <n-local-icon name="size"></n-local-icon>
+        {{naturalWidth}} × {{naturalHeight}}
+      </div>
+      <div class="tool-block">
+        <n-local-icon name="save"></n-local-icon>
+        {{imgSize}}
+      </div>
+    </div>
+  </div>
+  <script>
+    export default async ({ load, query }) => {
+      const { path } = query;
+
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        data: {
+          loading: true,
+          path,
+          imgsrc: "", // 图片地址
+          imgName: "", // 图片名称
+          imgSize: "-", // 图片大小
+          naturalWidth: "-", // 图片宽度
+          naturalHeight: "-", // 图片高度
+          scale: 0, // 图片缩放比
+          // 缩放的中心点，1代表100%
+          centerX: 0,
+          centerY: 0,
+          // 坐标轴上的偏移
+          diffX: 0,
+          diffY: 0,
+          iscover: true, // 是否铺平模式
+        },
+        proto: {
+          onresize() {
+            this.resetBox();
+          },
+          setStyle({ width, height, left, top }) {
+            const styleObj = this.shadow.$(".main-img").style;
+
+            // 记录容器的偏移
+            if (typeof left === "number") {
+              styleObj.left = left + "px";
+            }
+
+            if (typeof top === "number") {
+              styleObj.top = top + "px";
+            }
+
+            if (typeof width === "number") {
+              styleObj.width = width + "px";
+            }
+
+            if (typeof height === "number") {
+              styleObj.height = height + "px";
+            }
+          },
+          // 重制尺寸缩放
+          resetBox(type) {
+            if (type === "smooth") {
+              // 平滑过度到平铺尺寸模式
+              this.shadow.$(".main-img").style.transition = "all ease .25s";
+              setTimeout(() => {
+                this.shadow.$(".main-img").style.transition = "";
+              }, 300);
+            }
+
+            this.iscover = true;
+
+            // 获取容器的尺寸
+            const containerWidth =
+              this.shadow.$(".container .main").ele.clientWidth;
+            const containerHeight =
+              this.shadow.$(".container .main").ele.clientHeight;
+
+            const { naturalWidth, naturalHeight } = this;
+
+            // 图片的最终大小，不能超过容器的尺寸
+            let finnalWidth = naturalWidth,
+              finnalHeight = naturalHeight;
+            if (finnalWidth > containerWidth) {
+              finnalWidth = containerWidth;
+              finnalHeight = (finnalWidth / naturalWidth) * naturalHeight;
+            }
+            if (finnalHeight > containerHeight) {
+              finnalHeight = containerHeight;
+              finnalWidth = (finnalHeight / naturalHeight) * naturalWidth;
+            }
+
+            this.centerX = 0.5;
+            this.centerY = 0.5;
+
+            this._fillingLeft = (containerWidth - finnalWidth) / 2;
+            this._fillingTop = (containerHeight - finnalHeight) / 2;
+
+            // 设置图片的定位点
+            this._pointX = this._fillingLeft;
+            this._pointY = this._fillingTop;
+
+            this.setStyle({
+              width: finnalWidth,
+              height: finnalHeight,
+              left: this._fillingLeft,
+              top: this._fillingTop,
+            });
+
+            // 记录缩放值
+            this._initScale = this.scale = (finnalWidth / naturalWidth) * 100;
+          },
+          // 加载图片
+          async loadImg() {
+            const handle = await get(path).catch(() => null);
+
+            if (handle) {
+              this.imgName = handle.name;
+
+              const file = await handle.file();
+              this.imgSize = formatBytes(file.size);
+
+              const newUrl = URL.createObjectURL(file);
+
+              if (this.imgsrc) {
+                URL.revokeObjectURL(this.imgsrc);
+              }
+
+              this.imgsrc = newUrl;
+
+              const mainImg = this.shadow.$(".main-img");
+              mainImg.attr("src", newUrl);
+
+              await mainImg.ele.decode();
+
+              this.naturalWidth = mainImg.ele.naturalWidth;
+              this.naturalHeight = mainImg.ele.naturalHeight;
+
+              this.resetBox();
+              return;
+            }
+
+            // TODO: 没有找到对应的图片
+            debugger;
+          },
+
+          // 获取缩放比的定位
+          getScalePosition({ scale }) {
+            const { naturalWidth, naturalHeight } = this;
+
+            const finnalWidth = (naturalWidth * scale) / 100;
+            const finnalHeight = (naturalHeight * scale) / 100;
+
+            const mainCon = this.shadow.$(".container .main").ele;
+
+            const containerWidth = mainCon.clientWidth;
+            const containerHeight = mainCon.clientHeight;
+
+            return {
+              finnalWidth,
+              finnalHeight,
+              left:
+                ((containerWidth - finnalWidth) / 2) * (this.centerX / 0.5) +
+                this._fillingLeft * 2 * (0.5 - this.centerX),
+              top:
+                ((containerHeight - finnalHeight) / 2) * (this.centerY / 0.5) +
+                this._fillingTop * 2 * (0.5 - this.centerY),
+            };
+          },
+          // 缩放图片
+          setScale({ scale, diffX, diffY }) {
+            this.iscover = false;
+
+            const { finnalWidth, finnalHeight, left, top } =
+              this.getScalePosition({
+                scale,
+              });
+
+            this.setStyle({
+              width: finnalWidth,
+              height: finnalHeight,
+              left: left + diffX,
+              top: top + diffY,
+            });
+
+            // 修正缩放值
+            this.scale = scale;
+          },
+        },
+        ready() {
+          setTimeout(() => {
+            this.loading = false;
+          }, 200);
+
+          let transScale = 1;
+
+          const mainCon = this.shadow.$(".main");
+          const mainImg = this.shadow.$(".main-img");
+
+          {
+            // 用于定位初始移动的坐标
+            let oldX = 0;
+            let oldY = 0;
+
+            // 坐标轴上的偏移
+            let diffX = 0;
+            let diffY = 0;
+
+            // 移动光标
+            mainCon.on("wheel", (e) => {
+              e.preventDefault();
+
+              const { offsetX, offsetY, deltaY } = e;
+
+              const scale = this.scale + (-deltaY / 500) * this.scale;
+
+              if (oldX !== offsetX && oldY !== offsetY) {
+                // 获取图片相对的坐标
+                const imgLeft = parseFloat(mainImg.ele.style.left);
+                const imgTop = parseFloat(mainImg.ele.style.top);
+                const imgWidth = parseFloat(mainImg.ele.style.width);
+                const imgHeight = parseFloat(mainImg.ele.style.height);
+
+                // 缩放太小的时候，误差会增大，所以没必要不改动坐标
+                // 计算鼠标在图片中的坐标
+                const mouseX = offsetX - imgLeft;
+                const mouseY = offsetY - imgTop;
+
+                // 计算图片中心坐标的百分比值
+                this.centerX = mouseX / mainImg.ele.clientWidth;
+                this.centerY = mouseY / mainImg.ele.clientHeight;
+
+                oldX = offsetX;
+                oldY = offsetY;
+
+                // 先假设缩放到一倍的情况下，在计算位移
+                const pdata = this.getScalePosition({
+                  scale,
+                });
+
+                // console.log("pdata: ", pdata);
+
+                // console.log(
+                //   pdata.finnalWidth - imgWidth,
+                //   pdata.finnalHeight - imgHeight
+                // );
+
+                // 计算差值，让图片和当前定位保持一致
+                diffX = imgLeft - pdata.left - (pdata.finnalWidth - imgWidth);
+                diffY = imgTop - pdata.top - (pdata.finnalHeight - imgHeight);
+              }
+
+              // console.log(diffX, diffY);
+
+              this.setScale({
+                scale,
+                diffX,
+                diffY,
+              });
+            });
+          }
+
+          {
+            // 拖拽位移
+            let startX = 0;
+            let startY = 0;
+
+            let __left, __top;
+
+            const moveFunc = (e) => {
+              const diffX = e.clientX - startX;
+              const diffY = e.clientY - startY;
+
+              this.setStyle({
+                left: __left + diffX,
+                top: __top + diffY,
+              });
+
+              // console.log(diffX, diffY);
+            };
+
+            const endFunc = (e) => {
+              mainCon.off("mousemove", moveFunc);
+              mainCon.off("mouseup", endFunc);
+            };
+
+            // 拖拽偏移
+            mainCon.on("mousedown", (e) => {
+              this.iscover = false;
+
+              __left = parseFloat(mainImg.ele.style.left);
+              __top = parseFloat(mainImg.ele.style.top);
+
+              e.preventDefault();
+
+              startX = e.clientX;
+              startY = e.clientY;
+              endFunc(); // 提前清除一下旧事件绑定
+
+              mainCon.on("mousemove", moveFunc);
+              mainCon.on("mouseup", endFunc);
+            });
+          }
+        },
+        attached() {
+          this.loadImg();
+        },
+        detached() {},
+      };
+    };
+
+    function formatBytes(bytes) {
+      if (!bytes) {
+        return bytes;
+      }
+
+      const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+      let i = 0;
+      while (bytes >= 1024 && i < units.length - 1) {
+        bytes /= 1024;
+        i++;
+      }
+
+      return `${bytes.toFixed(2)} ${units[i]}`;
+    }
+  </script>
+</template>

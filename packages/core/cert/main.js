@@ -1,7 +1,7 @@
 // 和证书相关的方法
 import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
-import { getHash } from "/packages/user/util.js";
+import { getHash } from "../util.js";
 
 /**
  * 获取所有证书

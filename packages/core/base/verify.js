@@ -1,4 +1,4 @@
-import { dataToArrayBuffer, base64ToArrayBuffer } from "/packages/user/util.js";
+import { dataToArrayBuffer, base64ToArrayBuffer } from "../util.js";
 
 /**
  * 验证数据是否正确

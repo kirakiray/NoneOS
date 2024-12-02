@@ -247,7 +247,7 @@
     export default {
       tag: "n-app-frame",
       attrs: {
-        focus: null,
+        // focus: null,
         // defaultAppStatus: "normal", // 初始的app状态 // normal max
         // appStatus: "min", // min normal max // 这个是给组件内使用的，外部调用该组件，不要使用这个属性
         appStatus: "",
@@ -258,8 +258,12 @@
         appWidth: 200,
         appHeight: 200,
         theme: "",
+        zindex: 0,
       },
       watch: {
+        zindex(zindex) {
+          this.style.zIndex = zindex;
+        },
         appStatus(status) {
           // this._first_status = 1;
           this.style.transition = "all ease 0.25s";
@@ -393,15 +397,25 @@
         },
         // 聚焦当前的app
         focusApp() {
-          // 将同级的app focus 去除，并自身聚焦
-          this.siblings &&
-            this.siblings.forEach((e) => {
-              if (e.tag === "n-app-frame") {
-                e.focus = null;
-              }
-            });
+          // 计算应用数
+          const appLen = this.siblings.length + 1;
 
-          this.focus = 1;
+          // 对所有应用层进行排序
+          const sortedAppFrames = [this, ...this.siblings].sort((a, b) => {
+            return (
+              getComputedStyle(a.ele).zIndex - getComputedStyle(b.ele).zIndex
+            );
+          });
+
+          // 设置应用层F
+          sortedAppFrames.forEach((e, i) => {
+            if (e === this) {
+              // 自身则设置最大值
+              e.zindex = appLen + 1;
+              return;
+            }
+            e.zindex = i + 1;
+          });
 
           this.emit("app-change", {
             data: {
@@ -413,12 +427,28 @@
       },
       ready() {
         this.on("mousedown", () => {
-          if (this.focus === null) {
-            this.focusApp();
-          }
+          this.focusApp();
         });
       },
       attached() {
+        {
+          // 窗口改动监听
+
+          // 创建一个ResizeObserver实例
+          const resizeObserver = (this.__resobs = new ResizeObserver(
+            (entries) => {
+              this.all(`o-page`).forEach((page) => {
+                if (page.onresize) {
+                  page.onresize();
+                }
+              });
+            }
+          ));
+
+          // 开始观察element
+          resizeObserver.observe(this.ele);
+        }
+
         const topEle = this.shadow.$(".app-top");
 
         // 设置初始值
@@ -540,6 +570,15 @@
               })
             );
           });
+        }
+
+        if (!this.zindex) {
+          this.focusApp();
+        }
+      },
+      detached() {
+        if (this.__resobs) {
+          this.__resobs.disconnect();
         }
       },
     };

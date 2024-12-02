@@ -48,17 +48,18 @@
         ></os-bar>
       </div>
       <div class="main" on:app-change="appChange">
-        <x-fill :value="barApps" fill-key="url">
+        <x-fill :value="barApps" fill-key="appid">
           <n-app-frame
             sync:app-status="$data.status"
             :appindex="$index"
-            sync:focus="$data.focus"
             sync:app-top="$data.appTop"
             sync:app-left="$data.appLeft"
             sync:app-width="$data.appWidth"
             sync:app-height="$data.appHeight"
+            sync:zindex="$data.zindex"
+            attr:data-appid="$data.appid"
           >
-            <o-app attr:src="$data.url"></o-app>
+            <o-app attr:src="$data.url" attr:data-appid="$data.appid"></o-app>
           </n-app-frame>
         </x-fill>
       </div>
@@ -71,7 +72,8 @@
     import "/packages/pui/init.js";
 
     export default async ({ load }) => {
-      const { configs } = await load("/packages/none-os/configs.js");
+      const { configs } = await load("./configs.js");
+      const { openFileWithApp } = await load("./app.js");
 
       return {
         tag: "none-os-core",
@@ -107,12 +109,12 @@
                 },
                 url: data.url, // app config 资源地址
                 status: "normal", // 运行状态
-                focus: null, // 是否聚焦
                 // 窗口的定位信息，初始数值如下
                 appTop: (window.innerHeight - 200) / 2,
                 appLeft: 0,
                 appWidth: 200,
                 appHeight: 200,
+                appid: Math.random().toString(32).slice(2),
               });
 
               targetBarApp = this.barApps.find((e) => e.name === data.name);
@@ -121,9 +123,11 @@
             // 修复焦点
             this.barApps.forEach((e) => {
               if (e === targetBarApp) {
-                e.focus = 1;
-              } else {
-                e.focus = null;
+                const targetApp = this.shadow.$(
+                  `n-app-frame[data-appid='${targetBarApp.appid}']`
+                );
+
+                targetApp && targetApp.focusApp();
               }
             });
 
@@ -132,7 +136,9 @@
             return targetBarApp;
           },
           get currentAppFrame() {
-            return this.shadow.$("n-app-frame[focus]");
+            return this.shadow
+              .all("n-app-frame")
+              .sort((a, b) => b.zindex - a.zindex)[0];
           },
           // 点击应用栏应用
           clickBarApp({ data }) {
@@ -151,9 +157,11 @@
             // 修复焦点
             this.barApps.forEach((e) => {
               if (e === targetBarApp) {
-                e.focus = 1;
-              } else {
-                e.focus = null;
+                const targetFrame = this.shadow.$(
+                  `n-app-frame[data-appid='${e.appid}']`
+                );
+
+                targetFrame.focusApp();
               }
             });
 
@@ -254,7 +262,9 @@
             this._routerTimer = setTimeout(() => {
               sessionStorage._bar_apps = JSON.stringify(
                 this.barApps.map((e) => {
-                  const targetApp = this.shadow.$(`o-app[src="${e.url}"]`);
+                  const targetApp = this.shadow.$(
+                    `o-app[data-appid="${e.appid}"]`
+                  );
 
                   return {
                     ...e,
@@ -291,6 +301,15 @@
         ready() {
           this.shadow.on("router-change", (e) => {
             this.saveAppsState();
+          });
+
+          this.on("open-app", (e) => {
+            e.stopPropagation();
+
+            openFileWithApp({
+              path: e.data.path,
+              core: this,
+            });
           });
         },
         async attached() {

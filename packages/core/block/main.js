@@ -243,19 +243,19 @@ export const getBlock = async (hashs, { reason, reasonData }) => {
 
 // 清除块数据
 export const clearBlock = async (hashs, { reason, reasonData }) => {
-  // 主要缓存的文件夹
-  const blocksCacheDir = await get(`local/caches/blocks`);
+  // // 主要缓存的文件夹
+  // const blocksCacheDir = await get(`local/caches/blocks`);
 
-  await Promise.all(
-    hashs.map(async (hash) => {
-      const cacheHandle = await blocksCacheDir.get(hash);
+  // await Promise.all(
+  //   hashs.map(async (hash) => {
+  //     const cacheHandle = await blocksCacheDir.get(hash);
 
-      if (cacheHandle) {
-        await cacheHandle.remove();
-        await storage.removeItem(hash);
-      }
-    })
-  );
+  //     if (cacheHandle) {
+  //       await cacheHandle.remove();
+  //       await storage.removeItem(hash);
+  //     }
+  //   })
+  // );
 
   blocks.unshift({
     type: "clear",
