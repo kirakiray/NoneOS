@@ -69,6 +69,7 @@
             class:active="$host.step == $index"
             button
             attr:disabled="$host.step < $index"
+            on:click="$host.clickItem($index)"
           >
             {{$data.name}}
           </p-list-item>
@@ -109,6 +110,12 @@
           steps: [],
         },
         proto: {
+          clickItem(index) {
+            if (index > this.step) {
+              return;
+            }
+            this.step = index;
+          },
           async loadSteps() {
             const steps = [];
             this.all("n-installer-page").forEach((e) => {
