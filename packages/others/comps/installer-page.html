@@ -27,6 +27,12 @@
           stepName: "",
         },
         data: {},
+        attached() {
+          this.emit("installer-page-change");
+        },
+        detached() {
+          this.emit("installer-page-change");
+        },
       };
     };
   </script>

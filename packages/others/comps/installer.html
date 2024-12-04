@@ -49,6 +49,9 @@
       color: var(--md-sys-color-on-primary);
     }
 
+    ::slotted(n-installer-page) {
+      opacity: 0;
+    }
     ::slotted(n-installer-page[show]) {
       opacity: 1;
     }
@@ -72,15 +75,6 @@
           >
             {{$data.name}}
           </p-list-item>
-
-          <!-- <p-list-item
-            class:active="$host.step == $index"
-            attr:disabled="$host.step < $index"
-            button
-            on:click="$host.clickItem($index)"
-          >
-            {{$data.name}}
-          </p-list-item> -->
         </x-fill>
       </p-list>
     </div>
@@ -96,8 +90,6 @@
   </div>
   <script>
     export default async ({ load }) => {
-      await load("./installer-page.html");
-
       return {
         tag: "n-installer",
         attrs: {
@@ -136,8 +128,16 @@
             this.steps = steps;
           },
         },
-        attached() {
-          this.loadSteps();
+        ready() {
+          let timer;
+          this.on("installer-page-change", (e) => {
+            e.stopPropagation();
+
+            clearTimeout(timer);
+            timer = setTimeout(() => {
+              this.loadSteps();
+            }, 50);
+          });
         },
       };
     };
