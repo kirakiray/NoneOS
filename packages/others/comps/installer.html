@@ -1,0 +1,128 @@
+<template component>
+  <l-m src="./installer-page.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--md-sys-color-surface);
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      width: 100%;
+      height: 80%;
+      max-width: 800px;
+      margin: 0 auto;
+      box-shadow: var(--md-ref-palette-translucent-normal60) 0 0 6px;
+    }
+    .left-menu {
+      width: 200px;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+    }
+    .main {
+      position: relative;
+      flex: 1;
+      background-color: var(--md-sys-color-on-normal);
+    }
+    .left-appshower {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      font-size: 14px;
+    }
+    .left-appshower img {
+      margin: 0 8px 0 0;
+      width: 32px;
+      height: 32px;
+    }
+    .left-menu p-list-item {
+      margin: 2px 16px 0 0;
+      border-radius: 0 16px 16px 0;
+    }
+
+    .left-menu p-list-item.active {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    ::slotted(n-installer-page) {
+      display: none;
+    }
+
+    ::slotted(n-installer-page[show]) {
+      display: block;
+    }
+  </style>
+  <div class="container">
+    <div class="left-menu">
+      <div class="left-appshower">
+        <img attr:src="appicon" />
+        {{appname}}
+      </div>
+
+      <p-list>
+        <x-fill :value="steps">
+          <p-list-item
+            class:active="$host.step == $index"
+            button
+            attr:disabled="$host.step < $index"
+          >
+            {{$data.name}}
+          </p-list-item>
+        </x-fill>
+      </p-list>
+    </div>
+    <div class="main">
+      <div
+        style="position: absolute; left: 0; top: 0; width: 100%; height: 100%"
+      >
+        <slot></slot>
+      </div>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      await load("./installer-page.html");
+
+      return {
+        tag: "n-installer",
+        attrs: {
+          appname: "",
+          appicon: "",
+          step: 0,
+        },
+        watch: {
+          step(step) {
+            this.all("n-installer-page").forEach((e, index) => {
+              if (index == step) {
+                e.attr("show", 1);
+              } else {
+                e.attr("show", null);
+              }
+            });
+          },
+        },
+        data: {
+          steps: [],
+        },
+        proto: {
+          async loadSteps() {
+            const steps = [];
+            this.all("n-installer-page").forEach((e) => {
+              steps.push({
+                name: e.stepName,
+              });
+            });
+            this.steps = steps;
+          },
+        },
+        attached() {
+          this.loadSteps();
+        },
+      };
+    };
+  </script>
+</template>

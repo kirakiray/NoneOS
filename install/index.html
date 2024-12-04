@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>系统安装或更新</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/pui/init.js" type="module"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
+    <link rel="stylesheet" href="/packages/others/colors.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="/packages/others/comps/installer.html"></l-m>
+    <n-installer appname="安装NoneOS" appicon="/logo.png" step="1">
+      <n-installer-page step-name="我是步骤1"> 11111 </n-installer-page>
+      <n-installer-page step-name="我是步骤2"> 22222 </n-installer-page>
+      <n-installer-page step-name="我是步骤3"> 3333 </n-installer-page>
+      <n-installer-page step-name="我是步骤4"> 4444 </n-installer-page>
+    </n-installer>
+  </body>
+</html>

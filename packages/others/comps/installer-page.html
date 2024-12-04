@@ -1,0 +1,31 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <div class="container">
+    <slot></slot>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "n-installer-page",
+        attrs: {
+          stepName: "",
+        },
+        data: {},
+      };
+    };
+  </script>
+</template>
