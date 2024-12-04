@@ -26,6 +26,7 @@
       position: relative;
       flex: 1;
       background-color: var(--md-sys-color-on-normal);
+      overflow: hidden;
     }
     .left-appshower {
       display: flex;
@@ -48,12 +49,12 @@
       color: var(--md-sys-color-on-primary);
     }
 
-    ::slotted(n-installer-page) {
-      display: none;
+    ::slotted(n-installer-page[show]) {
+      opacity: 1;
     }
 
-    ::slotted(n-installer-page[show]) {
-      display: block;
+    p-list-item[disabled] {
+      opacity: 0.77;
     }
   </style>
   <div class="container">
@@ -67,12 +68,19 @@
         <x-fill :value="steps">
           <p-list-item
             class:active="$host.step == $index"
-            button
             attr:disabled="$host.step < $index"
-            on:click="$host.clickItem($index)"
           >
             {{$data.name}}
           </p-list-item>
+
+          <!-- <p-list-item
+            class:active="$host.step == $index"
+            attr:disabled="$host.step < $index"
+            button
+            on:click="$host.clickItem($index)"
+          >
+            {{$data.name}}
+          </p-list-item> -->
         </x-fill>
       </p-list>
     </div>
@@ -80,7 +88,9 @@
       <div
         style="position: absolute; left: 0; top: 0; width: 100%; height: 100%"
       >
-        <slot></slot>
+        <div>
+          <slot></slot>
+        </div>
       </div>
     </div>
   </div>
@@ -99,7 +109,7 @@
           step(step) {
             this.all("n-installer-page").forEach((e, index) => {
               if (index == step) {
-                e.attr("show", 1);
+                e.attr("show", "");
               } else {
                 e.attr("show", null);
               }
@@ -110,12 +120,12 @@
           steps: [],
         },
         proto: {
-          clickItem(index) {
-            if (index > this.step) {
-              return;
-            }
-            this.step = index;
-          },
+          // clickItem(index) {
+          //   if (index > this.step) {
+          //     return;
+          //   }
+          //   this.step = index;
+          // },
           async loadSteps() {
             const steps = [];
             this.all("n-installer-page").forEach((e) => {

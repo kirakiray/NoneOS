@@ -18,12 +18,35 @@
     </style>
   </head>
   <body>
+    <l-m src="/packages/pui/button/button.html"></l-m>
     <l-m src="/packages/others/comps/installer.html"></l-m>
-    <n-installer appname="安装NoneOS" appicon="/logo.png" step="1">
-      <n-installer-page step-name="我是步骤1"> 11111 </n-installer-page>
-      <n-installer-page step-name="我是步骤2"> 22222 </n-installer-page>
-      <n-installer-page step-name="我是步骤3"> 3333 </n-installer-page>
-      <n-installer-page step-name="我是步骤4"> 4444 </n-installer-page>
+    <n-installer appname="安装NoneOS" appicon="/logo.png" step="0">
+      <n-installer-page step-name="欢迎">
+        <div style="height: 300px; background-color: #aaa">11111</div>
+        <p-button id="btn1">下一步</p-button>
+        <script>
+          $("#btn1").on("click", () => {
+            $("n-installer").step++;
+          });
+        </script>
+      </n-installer-page>
+      <n-installer-page step-name="使用协议">
+        <div style="height: 200px; background-color: #bc9f9f">22222</div>
+
+        <p-button id="btn2-1">上一步</p-button>
+        <p-button id="btn2-2">下一步</p-button>
+        <script>
+          $("#btn2-1").on("click", () => {
+            $("n-installer").step--;
+          });
+          $("#btn2-2").on("click", () => {
+            $("n-installer").step++;
+          });
+        </script>
+      </n-installer-page>
+      <n-installer-page step-name="选择安装源"> 3333 </n-installer-page>
+      <n-installer-page step-name="开始安装"> 4444 </n-installer-page>
+      <n-installer-page step-name="安装完成"> 4444 </n-installer-page>
     </n-installer>
   </body>
 </html>
