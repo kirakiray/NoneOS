@@ -10,6 +10,7 @@
       background-color: var(--md-sys-color-surface);
       height: 100%;
     }
+
     .container {
       display: flex;
       width: 100%;
@@ -18,6 +19,7 @@
       margin: 0 auto;
       box-shadow: var(--md-ref-palette-translucent-normal60) 0 0 6px;
     }
+
     .left-menu {
       width: 200px;
       color: var(--md-sys-color-on-primary-container);
@@ -75,7 +77,42 @@
       height: 40px;
       font-size: 14px;
     }
+    .main-inner {
+      position: absolute;
+      left: 0;
+      top: 40px;
+      width: 100%;
+      height: calc(100% - 40px);
+    }
   </style>
+
+  <style>
+    :host {
+      container-type: inline-size;
+    }
+
+    @container (width < 600px) {
+      .left-menu {
+        display: none;
+      }
+
+      .container {
+        height: 100%;
+        margin: 0 auto;
+        box-shadow: var(--md-ref-palette-translucent-normal60) 0 0 6px;
+      }
+    }
+    @container (width > 600px) {
+      .menu-line {
+        display: none;
+      }
+      .main-inner {
+        top: 0;
+        height: 100%;
+      }
+    }
+  </style>
+
   <div class="container">
     <div class="left-menu">
       <div class="left-appshower">
@@ -102,16 +139,11 @@
           style="margin: 0 6px; display: block; font-size: 18px"
         ></n-local-icon>
         {{stepTitle}}
+        <span style="display: inline-block; margin-left: 6px; font-size: 12px">
+          ( {{parseInt(step) + 1}} / {{steps.length}} )
+        </span>
       </div>
-      <div
-        style="
-          position: absolute;
-          left: 0;
-          top: 40px;
-          width: 100%;
-          height: calc(100% - 40px);
-        "
-      >
+      <div class="main-inner">
         <slot></slot>
       </div>
     </div>
@@ -145,9 +177,7 @@
               return "";
             }
 
-            return `${this.steps[this.step]?.name} ( ${
-              parseInt(this.step) + 1
-            } / ${this.steps.length} )`;
+            return `${this.steps[this.step]?.name}`;
           },
           // clickItem(index) {
           //   if (index > this.step) {
