@@ -23,12 +23,19 @@
       display: flex;
       flex-direction: column;
     }
+
+    .os-version {
+      font-size: 14px;
+      font-weight: 400;
+    }
   </style>
   <div class="container">
-    <h2>欢迎来到 NoneOS</h2>
-
-    <p>一个运行在浏览器的桌面操作系统，连接您的所有设备。</p>
-    <p>安全且简单易用。</p>
+    <h2>
+      欢迎来到 NoneOS
+      <span class="os-version"></span>
+    </h2>
+    <p>一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。</p>
+    <p>安全、简单、易用。</p>
 
     <p-select sync:value="lang" style="margin-top: 16px">
       <n-local-icon
@@ -54,6 +61,10 @@
           nextStep() {
             $("n-installer").step++;
           },
+        },
+        async attached() {
+          const data = await load("/package.json");
+          this.shadow.$(".os-version").text = data.version;
         },
       };
     };

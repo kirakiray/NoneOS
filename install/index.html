@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>系统安装或更新</title>
+    <title>安装或更新系统</title>
     <script src="/packages/libs/ofa/ofa.js"></script>
     <script src="/packages/pui/init.js" type="module"></script>
     <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
@@ -25,30 +25,11 @@
         <o-page src="/install/pages/welcome.html"></o-page>
       </n-installer-page>
       <n-installer-page step-name="使用协议">
-        <div style="height: 200px; background-color: #bc9f9f">22222</div>
-
-        <p-button id="btn2-1">上一步</p-button>
-        <p-button id="btn2-2">下一步</p-button>
-        <script>
-          $("#btn2-1").on("click", () => {
-            $("n-installer").step--;
-          });
-          $("#btn2-2").on("click", () => {
-            $("n-installer").step++;
-          });
-        </script>
+        <o-page src="/install/pages/agreement.html"></o-page>
       </n-installer-page>
-      <n-installer-page step-name="选择安装源">
-        3333
-
-        <p-button id="btn3">上一步</p-button>
-        <script>
-          $("#btn3").on("click", () => {
-            $("n-installer").step--;
-          });
-        </script>
+      <n-installer-page step-name="开始安装">
+        <o-page src="/install/pages/start.html"></o-page>
       </n-installer-page>
-      <n-installer-page step-name="开始安装"> 4444 </n-installer-page>
       <n-installer-page step-name="安装完成"> 4444 </n-installer-page>
     </n-installer>
   </body>

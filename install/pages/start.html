@@ -1,0 +1,36 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80%;
+    }
+    h2,
+    p {
+      margin: 0;
+      padding: 8px 0;
+    }
+  </style>
+  <div class="container">
+    <h2>开始安装</h2>
+    <x-if :value="subStep === 'search'">
+      <p>正在查找可用安装的源</p>
+    </x-if>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          subStep: "search", // 搜索、下载、安装
+          searchProgress: 0,
+        },
+      };
+    };
+  </script>
+</template>
