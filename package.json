@@ -9,7 +9,8 @@
     "build-sw": "rollup packages/sw/main.js --file packages/sw/dist.js --format iife",
     "build-sw-min": "rollup packages/sw/main.js --file packages/sw/dist.min.js --format iife --plugin terser",
     "bu": "npm run build-sw && npm run build-sw-min && node scripts/build.js",
-    "update": "node scripts/update.js"
+    "update": "node scripts/update.js",
+    "buhash": "node scripts/buhash.js"
   },
   "repository": {
     "type": "git",
