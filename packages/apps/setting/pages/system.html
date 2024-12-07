@@ -81,8 +81,8 @@
           <div slot="suffix">已经是最新版</div>
         </x-else-if>
         <x-else-if :value="onlineVersion">
-          <p-button size="small" slot="suffix" on:click="updateSystem">
-            更新到 {{onlineVersion}}
+          <p-button size="small" slot="suffix">
+            <a href="/install"> 更新到 {{onlineVersion}}</a>
           </p-button>
         </x-else-if>
       </p-list-item>
@@ -191,13 +191,6 @@
             // 改变程序坞的方向
             const dir = $(e.target).value;
             this.bardir = dir;
-          },
-          async updateSystem() {
-            await installOS(({ count, length }) => {
-              this.updateing = `更新中 ${count}/${length}`;
-            });
-            await this.refreshVersion();
-            this.updateing = "";
           },
           async refreshVersion() {
             const pgFile = await get("packages/package.json");
