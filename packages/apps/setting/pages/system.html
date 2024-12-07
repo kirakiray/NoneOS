@@ -153,7 +153,6 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { installOS } = await load("/packages/none-os/util.js");
 
       const { configs } = await load("/packages/none-os/configs.js");
 
