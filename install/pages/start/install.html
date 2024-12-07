@@ -1,0 +1,31 @@
+<template page>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      text-align: center;
+    }
+  </style>
+  <div>正在写入系统文件</div>
+
+  <script>
+    export default async () => {
+      return {
+        data: {
+          //   _files:[]
+          progress: 0,
+        },
+        proto: {
+          async init() {
+            const files = this._files;
+
+            debugger;
+          },
+        },
+        attached() {
+          this.init();
+        },
+      };
+    };
+  </script>
+</template>

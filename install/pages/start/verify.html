@@ -7,9 +7,20 @@
     }
   </style>
 
-  <div>正在验证文件 {{count}} / {{total}}</div>
-
-  <p-progress :value="progress" style="width: 200px"></p-progress>
+  <x-if :value="step === 'caculate-hash'">
+    正在计算文件的哈希 {{c_count}} / {{c_total}}
+    <p-progress
+      :value="c_progress"
+      style="width: 200px; --progress-animation: none"
+    ></p-progress>
+  </x-if>
+  <x-else-if :value="step === 'verify'">
+    正在匹配文件 {{d_count}} / {{d_total}}
+    <p-progress
+      :value="d_progress"
+      style="width: 200px; --progress-animation: none"
+    ></p-progress>
+  </x-else-if>
 
   <script>
     export default async ({ load }) => {
@@ -18,55 +29,72 @@
       return {
         data: {
           // _fdata: {}, // 主体的文件数据
-          total: 0, // 总文件件数
-          count: 0,
-          progress: 0,
+          // c_ 开头代表计算哈希的进度
+          c_total: 0,
+          c_count: 0,
+          c_progress: 0,
+          step: "caculate-hash",
+          // d开头代表匹配系统文件的进度
+          d_total: 0,
+          d_count: 0,
+          d_progress: 0,
         },
         proto: {},
         async attached() {
           const { filesJson, pgzipfile } = this._fdata;
 
-          this.total = filesJson.data.files.length;
+          const { files } = filesJson.data;
 
-          const maps = new Map();
+          const pgfiles = await unzip(pgzipfile);
 
-          // 抓换文件数据
-          filesJson.data.files.forEach((e) => {
-            maps.set(e.path.replace(/^packages\//, ""), e.hashes);
-          });
+          // 哈希存储仓库
+          const caches = new Map();
 
-          const files = await unzip(pgzipfile);
-
-          // 验证文件是否正确
-          for (let e of files) {
-            const hashs = await computeHashForFile(e.file);
-
-            const originalHash = maps.get(e.path);
-
-            if (!originalHash) {
-              debugger;
-              continue;
-            }
-
-            if (hashs.join("") !== originalHash.join("")) {
-              // TODO: 验证失败
-              debugger;
-              continue;
-            }
-
-            this.count++;
-
-            this.progress = (this.count / this.total) * 100;
+          // 将所有 file 转化为 hash 并塞到一个仓库对象上
+          this.c_total = pgfiles.length;
+          for (let e of pgfiles) {
+            const hashes = await computeHashForFile(e.file);
+            caches.set(hashes.join(""), e.file);
+            this.c_count++;
+            this.c_progress = (this.c_count / this.c_total) * 100;
           }
 
-          if (this.count !== this.total) {
+          this.step = "verify";
+
+          // 根据files重新组装文件
+          const afterFiles = [];
+          this.d_total = files.length;
+          for (let e of files) {
+            const hid = e.hashes.join("");
+
+            const file = caches.get(hid);
+
+            if (file) {
+              this.d_count++;
+              this.d_progress = (this.d_count / this.d_total) * 100;
+              afterFiles.push({
+                path: e.path,
+                file,
+              });
+            } else {
+              // TODO: 没有匹配的文件
+              debugger;
+            }
+
+            await new Promise((r) => setTimeout(r, 1)); // 太快了，减慢一下速度
+          }
+
+          if (afterFiles.length !== files.length) {
             // TODO: 验证数量不一致，需要补充剩余的文件
             debugger;
             return;
           }
 
-          debugger;
-          return true;
+          this.emit("verify-complete", {
+            data: {
+              files: afterFiles,
+            },
+          });
         },
       };
     };

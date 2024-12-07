@@ -1,4 +1,6 @@
 <template page>
+  <l-m src="./start/verify.html"></l-m>
+  <l-m src="./start/install.html"></l-m>
   <style>
     :host {
       display: block;
@@ -19,6 +21,7 @@
   </style>
   <div class="container">
     <h2>安装NoneOS</h2>
+    <div>安装正在进行中，请不要关闭浏览器。</div>
     <x-if :value="subStep === 'download'">
       <o-page
         src="./start/download.html"
@@ -28,9 +31,12 @@
     <x-else-if :value="subStep === 'verify'">
       <o-page
         src="./start/verify.html"
-        id="verify-page"
         :_fdata="_filedata"
+        on:verify-complete="verComplete"
       ></o-page>
+    </x-else-if>
+    <x-else-if :value="subStep === 'install'">
+      <o-page :_files="_files" src="./start/install.html"></o-page>
     </x-else-if>
   </div>
   <script>
@@ -40,12 +46,17 @@
           subStep: "download", // 下载、安装
           searchProgress: 0,
           _filedata: {},
+          _files: [],
         },
         proto: {
           // 得到了文件，交给解压缩并验证文件
           getFile({ data }) {
             this._filedata = data;
             this.subStep = "verify";
+          },
+          verComplete({ data }) {
+            this.subStep = "install";
+            this._files = data.files;
           },
         },
         async attached() {},
