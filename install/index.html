@@ -20,7 +20,7 @@
   <body>
     <l-m src="/packages/pui/button/button.html"></l-m>
     <l-m src="/packages/others/comps/installer.html"></l-m>
-    <n-installer appname="安装NoneOS" appicon="/logo.png" step="2">
+    <n-installer appname="安装NoneOS" appicon="/logo.png" step="3">
       <n-installer-page step-name="欢迎" hide-leftmenu>
         <o-page src="/install/pages/welcome.html"></o-page>
       </n-installer-page>
@@ -28,9 +28,11 @@
         <o-page src="/install/pages/agreement.html"></o-page>
       </n-installer-page>
       <n-installer-page step-name="开始安装">
-        <o-page src="/install/pages/start.html"></o-page>
+        <o-page src="/install/pages/start.html" id="start-page"></o-page>
       </n-installer-page>
-      <n-installer-page step-name="安装完成"> 4444 </n-installer-page>
+      <n-installer-page step-name="安装完成">
+        <o-page src="/install/pages/ok.html"></o-page>
+      </n-installer-page>
     </n-installer>
   </body>
 </html>

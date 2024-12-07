@@ -1,0 +1,27 @@
+<template page>
+  <style>
+    :host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 80%;
+    }
+  </style>
+  <h2>NoneOS安装成功</h2>
+
+  <p-button>
+    <a href="/">点击进入 NoneOS</a>
+  </p-button>
+  <script>
+    export default async () => {
+      return {
+        data: {
+          time: 4,
+        },
+        proto: {},
+        attached() {},
+      };
+    };
+  </script>
+</template>

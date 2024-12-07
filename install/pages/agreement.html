@@ -177,6 +177,10 @@
         },
         nextStep() {
           $("n-installer").step++;
+
+          setTimeout(() => {
+            $("#start-page").start();
+          }, 500);
         },
       },
     };

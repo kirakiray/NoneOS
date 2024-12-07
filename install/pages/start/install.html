@@ -7,19 +7,42 @@
     }
   </style>
   <div>正在写入系统文件</div>
+  <p-progress
+    :value="progress"
+    style="width: 200px; --progress-animation: none"
+  ></p-progress>
 
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+
       return {
         data: {
           //   _files:[]
           progress: 0,
+          total: 0,
+          count: 0,
         },
         proto: {
           async init() {
             const files = this._files;
+            this.total = files.length;
 
-            debugger;
+            // 写入文件
+            for (let e of files) {
+              const { path, file } = e;
+
+              const fileHandle = await get(path, {
+                create: "file",
+              });
+
+              await fileHandle.write(file);
+
+              this.count++;
+              this.progress = (this.count / this.total) * 100;
+            }
+
+            this.emit("install-complete");
           },
         },
         attached() {

@@ -21,9 +21,9 @@
   </style>
   <div class="container">
     <h2>安装NoneOS</h2>
-    <div>安装正在进行中，请不要关闭浏览器。</div>
     <x-if :value="subStep === 'download'">
       <o-page
+        id="download-page"
         src="./start/download.html"
         on:download-complete="getFile"
       ></o-page>
@@ -36,8 +36,21 @@
       ></o-page>
     </x-else-if>
     <x-else-if :value="subStep === 'install'">
-      <o-page :_files="_files" src="./start/install.html"></o-page>
+      <o-page
+        :_files="_files"
+        on:install-complete="nextStep"
+        src="./start/install.html"
+      ></o-page>
     </x-else-if>
+    <div
+      style="
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--md-sys-color-normal);
+      "
+    >
+      安装正在进行中，请不要关闭浏览器。
+    </div>
   </div>
   <script>
     export default async ({ load }) => {
@@ -57,6 +70,12 @@
           verComplete({ data }) {
             this.subStep = "install";
             this._files = data.files;
+          },
+          nextStep() {
+            $("n-installer").step++;
+          },
+          start() {
+            this.shadow.$("#download-page").loadFilesJSON();
           },
         },
         async attached() {},
