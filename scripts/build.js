@@ -19,7 +19,7 @@ import path from "path";
 
   await zipDirectory("./packages", "./packages.zip");
 
-  await fs.rm("./packages/package.json");
+  // await fs.rm("./packages/package.json");
 })();
 
 async function zipDirectory(source, out) {

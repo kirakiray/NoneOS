@@ -18,18 +18,37 @@
     }
   </style>
   <div class="container">
-    <h2>开始安装</h2>
-    <x-if :value="subStep === 'search'">
-      <p>正在查找可用安装的源</p>
+    <h2>安装NoneOS</h2>
+    <x-if :value="subStep === 'download'">
+      <o-page
+        src="./start/download.html"
+        on:download-complete="getFile"
+      ></o-page>
     </x-if>
+    <x-else-if :value="subStep === 'verify'">
+      <o-page
+        src="./start/verify.html"
+        id="verify-page"
+        :_fdata="_filedata"
+      ></o-page>
+    </x-else-if>
   </div>
   <script>
     export default async ({ load }) => {
       return {
         data: {
-          subStep: "search", // 搜索、下载、安装
+          subStep: "download", // 下载、安装
           searchProgress: 0,
+          _filedata: {},
         },
+        proto: {
+          // 得到了文件，交给解压缩并验证文件
+          getFile({ data }) {
+            this._filedata = data;
+            this.subStep = "verify";
+          },
+        },
+        async attached() {},
       };
     };
   </script>

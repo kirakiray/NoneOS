@@ -1,0 +1,126 @@
+<template page>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      text-align: center;
+    }
+  </style>
+
+  <div>正在验证文件 {{count}} / {{total}}</div>
+
+  <p-progress :value="progress" style="width: 200px"></p-progress>
+
+  <script>
+    export default async ({ load }) => {
+      const { unzip } = await load("/packages/libs/zip/main.js");
+
+      return {
+        data: {
+          // _fdata: {}, // 主体的文件数据
+          total: 0, // 总文件件数
+          count: 0,
+          progress: 0,
+        },
+        proto: {},
+        async attached() {
+          const { filesJson, pgzipfile } = this._fdata;
+
+          this.total = filesJson.data.files.length;
+
+          const maps = new Map();
+
+          // 抓换文件数据
+          filesJson.data.files.forEach((e) => {
+            maps.set(e.path.replace(/^packages\//, ""), e.hashes);
+          });
+
+          const files = await unzip(pgzipfile);
+
+          // 验证文件是否正确
+          for (let e of files) {
+            const hashs = await computeHashForFile(e.file);
+
+            const originalHash = maps.get(e.path);
+
+            if (!originalHash) {
+              debugger;
+              continue;
+            }
+
+            if (hashs.join("") !== originalHash.join("")) {
+              // TODO: 验证失败
+              debugger;
+              continue;
+            }
+
+            this.count++;
+
+            this.progress = (this.count / this.total) * 100;
+          }
+
+          if (this.count !== this.total) {
+            // TODO: 验证数量不一致，需要补充剩余的文件
+            debugger;
+            return;
+          }
+
+          debugger;
+          return true;
+        },
+      };
+    };
+
+    async function computeHashForFile(file) {
+      const chunkSize = 1 * 1024 * 1024; // 1 MB in bytes
+      const chunks = [];
+      let position = 0;
+
+      while (position < file.size) {
+        const chunk = file.slice(
+          position,
+          Math.min(position + chunkSize, file.size)
+        );
+        chunks.push(chunk);
+        position += chunkSize;
+      }
+
+      const hashPromises = chunks.map(async (chunk) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+
+          reader.onload = async () => {
+            try {
+              const hashBuffer = await crypto.subtle.digest(
+                "SHA-256",
+                reader.result
+              );
+              const hashArray = Array.from(new Uint8Array(hashBuffer));
+              const hashHex = hashArray
+                .map((b) => b.toString(16).padStart(2, "0"))
+                .join("");
+              resolve(hashHex);
+            } catch (error) {
+              reject(error);
+            }
+          };
+
+          reader.onerror = (error) => reject(error);
+          reader.readAsArrayBuffer(chunk);
+        });
+      });
+
+      return Promise.all(hashPromises);
+    }
+
+    // 使用方法:
+    // const fileInput = document.querySelector('input[type="file"]');
+    // fileInput.addEventListener('change', async (event) => {
+    //     const file = event.target.files[0];
+    //     if (file) {
+    //         const hashes = await computeHashForFile(file);
+    //         console.log(hashes); // 打印所有分片的哈希值
+    //     }
+    // });
+  </script>
+</template>
