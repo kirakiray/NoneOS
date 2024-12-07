@@ -15,12 +15,34 @@
         padding: 0;
         height: 100%;
       }
+
+      n-installer {
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      .start-con {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+      }
     </style>
   </head>
   <body>
+    <div class="start-con">
+      Loading...
+      <span style="margin-left: 8px" id="loading-progress-text">(0 / 3)</span>
+    </div>
     <l-m src="/packages/pui/button/button.html"></l-m>
     <l-m src="/packages/others/comps/installer.html"></l-m>
-    <n-installer appname="安装NoneOS" appicon="/logo.png" step="0">
+    <n-installer
+      appname="安装NoneOS"
+      appicon="/logo.png"
+      step="0"
+      style="display: none"
+    >
       <n-installer-page step-name="欢迎" hide-leftmenu>
         <o-page src="/install/pages/welcome.html"></o-page>
       </n-installer-page>
@@ -35,4 +57,24 @@
       </n-installer-page>
     </n-installer>
   </body>
+  <script type="module">
+    const load = lm(import.meta);
+
+    // 等待加载完成
+    await load("/packages/pui/button/button.html");
+    await load("/packages/pui/select/select.html");
+    $("#loading-progress-text").text = "(1 / 3)";
+
+    await load("/packages/others/comps/installer.html");
+    $("#loading-progress-text").text = "(2 / 3)";
+
+    await load("/install/pages/welcome.html");
+    $("#loading-progress-text").text = "(3 / 3)";
+
+    $("n-installer").style.display = "";
+    setTimeout(() => {
+      $(".start-con").style.display = "none";
+      $("n-installer").style.opacity = 1;
+    }, 300);
+  </script>
 </html>

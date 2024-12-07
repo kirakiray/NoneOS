@@ -27,15 +27,28 @@
     .os-version {
       font-size: 14px;
       font-weight: 400;
+      color: var(--md-sys-color-primary);
     }
   </style>
   <div class="container">
-    <h2>
-      欢迎来到 NoneOS
-      <span class="os-version"></span>
-    </h2>
-    <p>一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。</p>
-    <p>安全、简单、易用。</p>
+    <x-if :value="isupdate">
+      <h2>更新你的NoneOS</h2>
+
+      <p>
+        从
+        <span class="os-version">{{localVersion}}</span>
+        更新到
+        <span class="os-version">{{onlineVersion}}</span>
+      </p>
+    </x-if>
+    <x-else>
+      <h2>
+        欢迎来到 NoneOS
+        <span class="os-version">{{onlineVersion}}</span>
+      </h2>
+      <p>一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。</p>
+      <p>安全、简单、易用。</p>
+    </x-else>
 
     <p-select sync:value="lang" style="margin-top: 16px">
       <n-local-icon
@@ -48,14 +61,21 @@
     </p-select>
 
     <p-button on:click="nextStep" style="margin-top: 24px; width: 120px">
-      下一步
+      <x-if :value="localVersion === onlineVersion"> 重装系统 </x-if>
+      <x-else> 下一步 </x-else>
     </p-button>
+    <x-if :value="localVersion === onlineVersion"> </x-if>
   </div>
   <script>
     export default async ({ load }) => {
+      const { get } = await load("/packages/fs/handle/index.js");
+
       return {
         data: {
           lang: "cn",
+          isupdate: false, // 是否是更新
+          onlineVersion: "",
+          localVersion: "",
         },
         proto: {
           nextStep() {
@@ -64,7 +84,18 @@
         },
         async attached() {
           const data = await load("/package.json");
-          this.shadow.$(".os-version").text = data.version;
+          this.onlineVersion = data.version;
+
+          // 读取本地的文件
+          const localPkg = await get("packages/package.json");
+
+          if (localPkg) {
+            let data = await localPkg.text();
+            data = JSON.parse(data);
+
+            this.isupdate = true;
+            this.localVersion = data.version;
+          }
         },
       };
     };
