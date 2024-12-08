@@ -74,24 +74,15 @@
               }
             });
 
-          // await storage.setItem("use-online", 1);
+          const useOnline = await storage.getItem("use-online");
 
-          // debugger
+          // 判断本地是否安装
+          const pgFile = await get("packages/package.json");
 
-          if (!(await storage.getItem("use-online"))) {
+          // 没有安装且不是在线模式，跳转到安装页面
+          if (!pgFile && !useOnline) {
             location.href = "/install";
           }
-
-          // // 判断本地是否安装
-          // const pgFile = await get("packages/package.json");
-
-          // if (localStorage["__use-online"] || pgFile) {
-          //   // 已安装或者在线模式
-          //   return;
-          // } else {
-          //   // 跳转到安装页面
-          //   location.href = "/install";
-          // }
         },
       };
     };
