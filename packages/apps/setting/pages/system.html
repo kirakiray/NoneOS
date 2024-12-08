@@ -74,12 +74,9 @@
         <n-local-icon name="version" slot="prefix"></n-local-icon>
         系统版本
         <div class="item-tips">{{osVersion}}</div>
-        <x-if :value="updateing">
-          <div slot="suffix">{{updateing}}</div>
-        </x-if>
-        <x-else-if :value="onlineVersion === osVersion">
+        <x-if :value="onlineVersion === osVersion">
           <div slot="suffix">已经是最新版</div>
-        </x-else-if>
+        </x-if>
         <x-else-if :value="onlineVersion">
           <p-button size="small" slot="suffix">
             <a href="/install"> 更新到 {{onlineVersion}}</a>
@@ -162,7 +159,6 @@
           darkMode: false,
           osVersion: "Loading",
           onlineVersion: "",
-          updateing: "",
           theme: "",
           bardir: configs.barDirection, // 程序坞的方向
         },
