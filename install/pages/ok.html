@@ -14,13 +14,17 @@
     <a href="/">点击进入 NoneOS</a>
   </p-button>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
+
       return {
         data: {
           time: 4,
         },
         proto: {},
-        attached() {},
+        attached() {
+          storage.removeItem("use-online");
+        },
       };
     };
   </script>

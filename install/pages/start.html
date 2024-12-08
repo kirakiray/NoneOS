@@ -74,11 +74,10 @@
           nextStep() {
             $("n-installer").step++;
           },
-          start() {
-            this.shadow.$("#download-page").loadFilesJSON();
-          },
         },
-        async attached() {},
+        async attached() {
+          this.shadow.$("#download-page").loadFilesJSON();
+        },
       };
     };
   </script>

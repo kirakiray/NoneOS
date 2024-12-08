@@ -29,10 +29,12 @@
         },
         data: {},
         attached() {
+          this._oldParent = this.parent;
           this.emit("installer-page-change");
         },
         detached() {
-          this.emit("installer-page-change");
+          this._oldParent.emit("installer-page-change");
+          this._oldParent = null;
         },
       };
     };
