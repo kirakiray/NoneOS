@@ -48,6 +48,7 @@
   <script>
     export default async ({ load }) => {
       const { get, createRoot } = await load("../fs/handle/index.js");
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
 
       await createRoot("apps");
       await createRoot("packages");
@@ -73,19 +74,24 @@
               }
             });
 
-          // 判断本地是否安装
-          const pgFile = await get("packages/package.json");
+          // await storage.setItem("use-online", 1);
 
-          if (
-            localStorage["__use-online"] ||
-            (pgFile && !localStorage.__installing)
-          ) {
-            // 已安装或者在线模式
-            return;
-          } else {
-            // 跳转到安装页面
+          // debugger
+
+          if (!(await storage.getItem("use-online"))) {
             location.href = "/install";
           }
+
+          // // 判断本地是否安装
+          // const pgFile = await get("packages/package.json");
+
+          // if (localStorage["__use-online"] || pgFile) {
+          //   // 已安装或者在线模式
+          //   return;
+          // } else {
+          //   // 跳转到安装页面
+          //   location.href = "/install";
+          // }
         },
       };
     };

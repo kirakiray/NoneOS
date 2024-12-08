@@ -17,6 +17,9 @@
         },
         watch: {
           async name(name) {
+            if (!name) {
+              return;
+            }
             const content = await load(`./icons/${name}.svg`).then((e) =>
               e.text()
             );

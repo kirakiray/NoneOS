@@ -1,0 +1,33 @@
+<template page>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <p-switch sync:value="useonline" on:change="changeVal">use online </p-switch>
+  <script>
+    export default async ({ load }) => {
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
+
+      const useonline = await storage.getItem("use-online");
+
+      return {
+        data: {
+          useonline: !!useonline,
+        },
+        proto: {
+          changeVal(e) {
+            if ($(e.target).value) {
+              storage.setItem("use-online", 1);
+            } else {
+              storage.removeItem("use-online");
+            }
+          },
+        },
+        async attached() {},
+      };
+    };
+  </script>
+</template>
