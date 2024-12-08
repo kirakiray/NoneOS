@@ -70,19 +70,31 @@
   <div class="container">
     <h5>系统</h5>
     <div class="list">
-      <p-list-item radius>
-        <n-local-icon name="version" slot="prefix"></n-local-icon>
-        系统版本
-        <div class="item-tips">{{osVersion}}</div>
-        <x-if :value="onlineVersion === osVersion">
-          <div slot="suffix">已经是最新版</div>
-        </x-if>
-        <x-else-if :value="onlineVersion">
+      <x-if :value="useOnline">
+        <p-list-item radius>
+          <n-local-icon name="version" slot="prefix"></n-local-icon>
+          系统版本
+          <div class="item-tips">在线版 {{onlineVersion}}</div>
           <p-button size="small" slot="suffix">
-            <a href="/install"> 更新到 {{onlineVersion}}</a>
+            <a href="/install">去安装</a>
           </p-button>
-        </x-else-if>
-      </p-list-item>
+        </p-list-item>
+      </x-if>
+      <x-else>
+        <p-list-item radius>
+          <n-local-icon name="version" slot="prefix"></n-local-icon>
+          系统版本
+          <div class="item-tips">{{osVersion}}</div>
+          <x-if :value="onlineVersion === osVersion">
+            <div slot="suffix">已经是最新版</div>
+          </x-if>
+          <x-else-if :value="onlineVersion">
+            <p-button size="small" slot="suffix">
+              <a href="/install"> 更新到 {{onlineVersion}}</a>
+            </p-button>
+          </x-else-if>
+        </p-list-item>
+      </x-else>
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
         系统语言
@@ -149,9 +161,12 @@
     export const parent = "../outer.html";
 
     export default async ({ load }) => {
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
       const { get } = await load("/packages/fs/main.js");
 
       const { configs } = await load("/packages/none-os/configs.js");
+
+      const useOnline = !!(await storage.getItem("use-online")); // 使用在线版
 
       return {
         data: {
@@ -161,6 +176,7 @@
           onlineVersion: "",
           theme: "",
           bardir: configs.barDirection, // 程序坞的方向
+          useOnline,
         },
         watch: {
           theme(theme) {
