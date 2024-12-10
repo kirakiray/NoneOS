@@ -2,6 +2,9 @@
   <style>
     :host {
       display: block;
+      border: #7a7a7a solid 1px;
+      padding: 4px;
+      margin: 4px;
     }
 
     div {
@@ -14,9 +17,16 @@
       user-select: all;
     }
   </style>
+  <h5 style="margin-bottom: 0; margin-top: 0">public</h5>
   <div>{{pubkey}}</div>
+  <h5 style="margin-bottom: 0">private</h5>
   <div>{{prikey}}</div>
-  <div>{{allKey}}</div>
+  <br />
+  <textarea
+    sync:value="parikeyStr"
+    style="display: block; resize: none"
+    on:change="changeTextarea"
+  ></textarea>
   <script>
     export default async ({ load }) => {
       const { generateSignKeyPair, pairToString } = await load(
@@ -27,17 +37,24 @@
         data: {
           pubkey: "",
           prikey: "",
-          allKey: "",
+          parikeyStr: "",
+          pairData: {},
         },
         proto: {
           async genKey() {
-            const data = await pairToString(await generateSignKeyPair());
+            this.pairData = await pairToString(await generateSignKeyPair());
+            this.changeData();
+          },
+          changeTextarea() {
+            this.pairData = JSON.parse(this.parikeyStr);
+            this.changeData();
+          },
+          changeData() {
+            const data = this.pairData;
 
             this.pubkey = data.public;
             this.prikey = data.private;
-            this.allKey = JSON.stringify(data);
-
-            console.log(data);
+            this.parikeyStr = JSON.stringify(data);
           },
         },
         attached() {
