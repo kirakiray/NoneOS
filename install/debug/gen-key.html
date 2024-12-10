@@ -1,0 +1,49 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+
+    div {
+      padding: 8px;
+      margin: 8px;
+      border: var(--md-sys-color-primary) solid 1px;
+      word-break: break-all;
+      font-size: 12px;
+      line-height: 1.2em;
+      user-select: all;
+    }
+  </style>
+  <div>{{pubkey}}</div>
+  <div>{{prikey}}</div>
+  <div>{{allKey}}</div>
+  <script>
+    export default async ({ load }) => {
+      const { generateSignKeyPair, pairToString } = await load(
+        "/packages/core/util.js"
+      );
+
+      return {
+        data: {
+          pubkey: "",
+          prikey: "",
+          allKey: "",
+        },
+        proto: {
+          async genKey() {
+            const data = await pairToString(await generateSignKeyPair());
+
+            this.pubkey = data.public;
+            this.prikey = data.private;
+            this.allKey = JSON.stringify(data);
+
+            console.log(data);
+          },
+        },
+        attached() {
+          this.genKey();
+        },
+      };
+    };
+  </script>
+</template>
