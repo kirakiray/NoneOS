@@ -59,6 +59,13 @@
         },
         attached() {
           this.genKey();
+
+          fetch("/rootkeys/root.json")
+            .then((e) => e.json())
+            .then((data) => {
+              this.pairData = data;
+              this.changeData();
+            });
         },
       };
     };
