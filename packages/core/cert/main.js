@@ -122,4 +122,4 @@ export const importCert = async (certItem, toCache = false) => {
 };
 
 // 根证书公钥
-export const rootPublicCert = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwqKk1tx1Pr7XcTCSnCaLOtbSnAPgO6LYLlK2Z1gOPAUCs+e6kzXDtScowZhso0yEp+J/Z5X6saYx8iveBvxKjg==`;
+export const rootPublic = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwqKk1tx1Pr7XcTCSnCaLOtbSnAPgO6LYLlK2Z1gOPAUCs+e6kzXDtScowZhso0yEp+J/Z5X6saYx8iveBvxKjg==`;

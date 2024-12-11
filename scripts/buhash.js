@@ -26,14 +26,14 @@ import {
     // 签名data数据
     console.log(pairData);
 
-    const verification = await sign(data, pairData);
+    const signature = await sign(data, pairData);
 
     // 写入得到的数据
     await fs.writeFile(
       "./files.json",
       JSON.stringify({
         data,
-        verification,
+        signature,
       })
     );
 

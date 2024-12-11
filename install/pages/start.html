@@ -76,7 +76,9 @@
           },
         },
         async attached() {
-          this.shadow.$("#download-page").loadFilesJSON();
+          const pageEl = this.shadow.$("#download-page");
+          await pageEl.watchUntil(() => pageEl.pageIsReady);
+          pageEl.loadFilesJSON();
         },
       };
     };

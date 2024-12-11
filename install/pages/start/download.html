@@ -6,26 +6,45 @@
       text-align: center;
     }
   </style>
-  <x-if :value="step === 'get-files'">
-    <div>正在获取文件列表</div>
+  <x-if :value="error">
+    <div style="color: #fb4747">{{error}}</div>
   </x-if>
+  <x-else-if :value="step === 'get-files'">
+    <div>正在获取文件列表</div>
+  </x-else-if>
   <x-else-if :value="step === 'download'">
     <div>正在下载文件</div>
     <p-progress :value="progress" style="width: 200px"></p-progress>
   </x-else-if>
 
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { verifyMessage } = await load("/packages/core/base/verify.js");
+      const { rootPublic } = await load("/packages/core/cert/main.js");
+
       return {
         data: {
           step: "get-files",
           progress: 0,
+          error: "",
         },
         proto: {
           async loadFilesJSON() {
             const filesJson = await fetch(`/files.json?v=${Date.now()}`)
               .then((e) => e.json())
               .catch(() => null);
+
+            const result = await verifyMessage(
+              filesJson.data,
+              filesJson.signature,
+              rootPublic
+            );
+
+            if (!result) {
+              // 签名验证失败，提示无法安装
+              this.error = "验证系统文件失败，无法安装";
+              return;
+            }
 
             if (!filesJson) {
               // TODO: 请求更新文件失败
