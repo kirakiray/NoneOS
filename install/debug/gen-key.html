@@ -21,12 +21,13 @@
   <div>{{pubkey}}</div>
   <h5 style="margin-bottom: 0">private</h5>
   <div>{{prikey}}</div>
-  <br />
-  <textarea
+  <h5 style="margin-bottom: 0">json string</h5>
+  <div>{{parikeyStr}}</div>
+  <!-- <textarea
     sync:value="parikeyStr"
     style="display: block; resize: none"
     on:change="changeTextarea"
-  ></textarea>
+  ></textarea> -->
   <script>
     export default async ({ load }) => {
       const { generateSignKeyPair, pairToString } = await load(
