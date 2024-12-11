@@ -1,6 +1,5 @@
 <template component>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
-  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="./none-os-core.html"></l-m>
   <link rel="stylesheet" href="./public.css" />
   <style>
@@ -44,34 +43,12 @@
     </style>
   </x-else>
 
-  <x-if :value="step === 2">
-    <none-os-core></none-os-core>
-  </x-if>
-  <x-else-if :value="step === 1">
-    <div class="installing-container">
-      <div class="frosted-glass" style="padding: 16px 24px; text-align: center">
-        <div
-          style="
-            font-size: 24px;
-            font-weight: bold;
-            color: var(--md-sys-color-primary);
-          "
-        >
-          None OS
-          <span style="font-size: 12px">{{version}}</span>
-        </div>
-        <div style="margin: 0 0 8px; font-size: 14px">
-          {{installOK ? '安装完成' : '安装中...'}}
-        </div>
-        <p-progress :value="installVal" style="width: 200px"></p-progress>
-      </div>
-    </div>
-  </x-else-if>
+  <none-os-core></none-os-core>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export default async ({ load }) => {
       const { get, createRoot } = await load("../fs/handle/index.js");
-      const { installOS } = await load("./util.js");
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
 
       await createRoot("apps");
       await createRoot("packages");
@@ -97,27 +74,14 @@
               }
             });
 
+          const useOnline = await storage.getItem("use-online");
+
           // 判断本地是否安装
           const pgFile = await get("packages/package.json");
 
-          if (
-            localStorage["__use-online"] ||
-            (pgFile && !localStorage.__installing)
-          ) {
-            // 添加安装
-            this.step = 2;
-          } else {
-            this.step = 1;
-            // 确保安装
-            await installOS(({ count, length }) => {
-              this.installVal = (count / length) * 100;
-            });
-
-            this.installOK = true;
-
-            setTimeout(() => {
-              location.reload(true);
-            }, 1500);
+          // 没有安装且不是在线模式，跳转到安装页面
+          if (!pgFile && !useOnline) {
+            location.href = "/install";
           }
         },
       };

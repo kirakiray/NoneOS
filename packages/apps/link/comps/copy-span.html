@@ -13,7 +13,7 @@
       size="mini"
       on:click="clickCopy"
       attr:color="ok ? 'success' : 'primary'"
-      style="flex-shrink: 0"
+      style="flex-shrink: 0; color: var(--md-sys-color-primary)"
     >
       <x-if :value="ok">
         <svg
@@ -23,7 +23,7 @@
           viewBox="0 0 24 24"
         >
           <path
-            fill="#4695fb"
+            fill="currentColor"
             d="M21 7L9 19l-5.5-5.5l1.41-1.41L9 16.17L19.59 5.59z"
           />
         </svg>
@@ -37,12 +37,12 @@
         >
           <g fill="none">
             <path
-              fill="#4695fb"
+              fill="currentColor"
               fill-opacity="0.16"
               d="M18.6 9h-7.2A2.4 2.4 0 0 0 9 11.4v7.2a2.4 2.4 0 0 0 2.4 2.4h7.2a2.4 2.4 0 0 0 2.4-2.4v-7.2A2.4 2.4 0 0 0 18.6 9"
             />
             <path
-              stroke="#4695fb"
+              stroke="currentColor"
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-miterlimit="10"

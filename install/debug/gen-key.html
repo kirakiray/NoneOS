@@ -1,0 +1,74 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      border: #7a7a7a solid 1px;
+      padding: 4px;
+      margin: 4px;
+    }
+
+    div {
+      padding: 8px;
+      margin: 8px;
+      border: var(--md-sys-color-primary) solid 1px;
+      word-break: break-all;
+      font-size: 12px;
+      line-height: 1.2em;
+      user-select: all;
+    }
+  </style>
+  <h5 style="margin-bottom: 0; margin-top: 0">public</h5>
+  <div>{{pubkey}}</div>
+  <h5 style="margin-bottom: 0">private</h5>
+  <div>{{prikey}}</div>
+  <h5 style="margin-bottom: 0">json string</h5>
+  <div>{{parikeyStr}}</div>
+  <!-- <textarea
+    sync:value="parikeyStr"
+    style="display: block; resize: none"
+    on:change="changeTextarea"
+  ></textarea> -->
+  <script>
+    export default async ({ load }) => {
+      const { generateSignKeyPair, pairToString } = await load(
+        "/packages/core/util.js"
+      );
+
+      return {
+        data: {
+          pubkey: "",
+          prikey: "",
+          parikeyStr: "",
+          pairData: {},
+        },
+        proto: {
+          async genKey() {
+            this.pairData = await pairToString(await generateSignKeyPair());
+            this.changeData();
+          },
+          changeTextarea() {
+            this.pairData = JSON.parse(this.parikeyStr);
+            this.changeData();
+          },
+          changeData() {
+            const data = this.pairData;
+
+            this.pubkey = data.public;
+            this.prikey = data.private;
+            this.parikeyStr = JSON.stringify(data);
+          },
+        },
+        attached() {
+          this.genKey();
+
+          fetch("/rootkeys/root.json")
+            .then((e) => e.json())
+            .then((data) => {
+              this.pairData = data;
+              this.changeData();
+            });
+        },
+      };
+    };
+  </script>
+</template>

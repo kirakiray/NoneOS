@@ -1,0 +1,115 @@
+<template page>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      text-align: center;
+    }
+  </style>
+  <x-if :value="error">
+    <div style="color: #fb4747">{{error}}</div>
+  </x-if>
+  <x-else-if :value="step === 'get-files'">
+    <div>正在获取文件列表</div>
+  </x-else-if>
+  <x-else-if :value="step === 'download'">
+    <div>正在下载文件</div>
+    <p-progress :value="progress" style="width: 200px"></p-progress>
+  </x-else-if>
+
+  <script>
+    export default async ({ load }) => {
+      const { verifyMessage } = await load("/packages/core/base/verify.js");
+      const { rootPublic } = await load("/packages/core/cert/main.js");
+
+      return {
+        data: {
+          step: "get-files",
+          progress: 0,
+          error: "",
+        },
+        proto: {
+          async loadFilesJSON() {
+            const filesJson = await fetch(`/files.json?v=${Date.now()}`)
+              .then((e) => e.json())
+              .catch(() => null);
+
+            const result = await verifyMessage(
+              filesJson.data,
+              filesJson.signature,
+              rootPublic
+            );
+
+            if (!result) {
+              // 签名验证失败，提示无法安装
+              this.error = "验证系统文件失败，无法安装";
+              return;
+            }
+
+            if (!filesJson) {
+              // TODO: 请求更新文件失败
+              return;
+            }
+
+            // TODO: 验证更新证书是否正确
+
+            // TODO: 验证本地文件的差异，不超过30个文件变动的，只更新差异的文件
+
+            this.step = "download";
+            // 本地没有太多的系统文件，直接下载整个包文件
+            const pgzipfile = await downloadFileWithProgress(
+              `/packages.zip`,
+              (e) => {
+                this.progress = e;
+              }
+            );
+
+            await new Promise((r) => setTimeout(r, 300));
+
+            this.emit("download-complete", {
+              data: {
+                filesJson,
+                pgzipfile,
+              },
+            });
+          },
+        },
+        // attached() {
+        //   this.loadFilesJSON();
+        // },
+      };
+    };
+
+    function downloadFileWithProgress(url, onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.responseType = "blob";
+
+        xhr.onprogress = function (event) {
+          if (event.lengthComputable && onProgress) {
+            const percentComplete = +(
+              (event.loaded / event.total) *
+              100
+            ).toFixed(2);
+            onProgress(percentComplete);
+          }
+        };
+
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            resolve(xhr.response); // 解析为 Blob 对象
+          } else {
+            reject(new Error(`Download failed with status ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = function () {
+          reject(new Error("Request failed"));
+        };
+
+        xhr.send();
+      });
+    }
+  </script>
+</template>

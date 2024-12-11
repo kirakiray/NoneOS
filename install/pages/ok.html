@@ -1,0 +1,31 @@
+<template page>
+  <style>
+    :host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      height: 80%;
+    }
+  </style>
+  <h2>NoneOS安装成功</h2>
+
+  <p-button>
+    <a href="/">点击进入 NoneOS</a>
+  </p-button>
+  <script>
+    export default async ({ load }) => {
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
+
+      return {
+        data: {
+          time: 4,
+        },
+        proto: {},
+        attached() {
+          storage.removeItem("use-online");
+        },
+      };
+    };
+  </script>
+</template>

@@ -750,7 +750,7 @@
     });
   };
 
-  new EverCache();
+  const storage$1 = new EverCache();
 
   const hasOfa = typeof $ !== "undefined";
 
@@ -2376,9 +2376,15 @@
    */
 
 
+  let useOnline, uTime;
+
   self.addEventListener("fetch", (event) => {
     const { request } = event;
     const { pathname, origin } = new URL(request.url);
+
+    if (!uTime) {
+      uTime = Date.now();
+    }
 
     if (location.origin === origin) {
       if (pathname === "/" || pathname === "/index.html") {
@@ -2399,6 +2405,14 @@
       } else if (/^\/packages\//.test(pathname)) {
         event.respondWith(
           (async () => {
+            if (Date.now() - uTime > 5000) {
+              useOnline = !!(await storage$1.getItem("use-online"));
+            }
+
+            if (useOnline) {
+              return fetch(request.url);
+            }
+
             try {
               // 转发代理本地packages文件
               return await resposeFS({

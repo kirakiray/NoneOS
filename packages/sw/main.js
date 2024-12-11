@@ -5,10 +5,17 @@
 
 import resposeFS from "./resp-fs.js";
 import { cacheResponse } from "./util.js";
+import { storage } from "../libs/ever-cache/main.js";
+
+let useOnline, uTime;
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const { pathname, origin } = new URL(request.url);
+
+  if (!uTime) {
+    uTime = Date.now();
+  }
 
   if (location.origin === origin) {
     if (pathname === "/" || pathname === "/index.html") {
@@ -29,6 +36,14 @@ self.addEventListener("fetch", (event) => {
     } else if (/^\/packages\//.test(pathname)) {
       event.respondWith(
         (async () => {
+          if (Date.now() - uTime > 5000) {
+            useOnline = !!(await storage.getItem("use-online"));
+          }
+
+          if (useOnline) {
+            return fetch(request.url);
+          }
+
           try {
             // 转发代理本地packages文件
             return await resposeFS({

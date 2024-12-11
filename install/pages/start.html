@@ -1,0 +1,86 @@
+<template page>
+  <l-m src="./start/verify.html"></l-m>
+  <l-m src="./start/install.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 80%;
+    }
+    h2,
+    p {
+      margin: 0;
+      padding: 8px 0;
+    }
+  </style>
+  <div class="container">
+    <h2>安装NoneOS</h2>
+    <x-if :value="subStep === 'download'">
+      <o-page
+        id="download-page"
+        src="./start/download.html"
+        on:download-complete="getFile"
+      ></o-page>
+    </x-if>
+    <x-else-if :value="subStep === 'verify'">
+      <o-page
+        src="./start/verify.html"
+        :_fdata="_filedata"
+        on:verify-complete="verComplete"
+      ></o-page>
+    </x-else-if>
+    <x-else-if :value="subStep === 'install'">
+      <o-page
+        :_files="_files"
+        on:install-complete="nextStep"
+        src="./start/install.html"
+      ></o-page>
+    </x-else-if>
+    <div
+      style="
+        margin-top: 8px;
+        font-size: 12px;
+        color: var(--md-sys-color-normal);
+      "
+    >
+      安装正在进行中，请不要关闭浏览器。
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          subStep: "download", // 下载、安装
+          searchProgress: 0,
+          _filedata: {},
+          _files: [],
+        },
+        proto: {
+          // 得到了文件，交给解压缩并验证文件
+          getFile({ data }) {
+            this._filedata = data;
+            this.subStep = "verify";
+          },
+          verComplete({ data }) {
+            this.subStep = "install";
+            this._files = data.files;
+          },
+          nextStep() {
+            $("n-installer").step++;
+          },
+        },
+        async attached() {
+          const pageEl = this.shadow.$("#download-page");
+          await pageEl.watchUntil(() => pageEl.pageIsReady);
+          pageEl.loadFilesJSON();
+        },
+      };
+    };
+  </script>
+</template>

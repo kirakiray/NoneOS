@@ -1,9 +1,5 @@
 // 使用本地密钥进行签名的相关模块
-import {
-  dataToArrayBuffer,
-  arrayBufferToBase64,
-  getHash,
-} from "../util.js";
+import { dataToArrayBuffer, arrayBufferToBase64, getHash } from "../util.js";
 import { getPair, getPublic } from "./pair.js";
 
 /**
@@ -11,10 +7,10 @@ import { getPair, getPublic } from "./pair.js";
  * @param {String|Object} message 需要签名的数据
  * @returns 签名字符串
  */
-export const sign = async (message) => {
+export async function sign(message, outerPair) {
   let data = dataToArrayBuffer(message);
 
-  const pair = await getPair();
+  const pair = outerPair || (await getPair());
 
   // 使用私钥进行签名
   const signature = await crypto.subtle.sign(
@@ -27,7 +23,7 @@ export const sign = async (message) => {
   );
 
   return arrayBufferToBase64(signature);
-};
+}
 
 /**
  * 用自身的私钥对数据进行签名，并返回封装的数据和签名

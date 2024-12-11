@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>安装或更新系统</title>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
+    <script src="/packages/pui/init.js" type="module"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
+    <link rel="stylesheet" href="/packages/others/colors.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+
+      n-installer {
+        opacity: 0;
+        transform: translate(-30px, 0);
+        transition: all ease 0.5s;
+      }
+
+      .start-con {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="start-con">
+      Loading...
+      <span style="margin-left: 8px" id="loading-progress-text">(0 / 3)</span>
+    </div>
+    <l-m src="/packages/pui/button/button.html"></l-m>
+    <l-m src="/packages/others/comps/installer.html"></l-m>
+    <n-installer
+      appname="安装NoneOS"
+      appicon="/logo.png"
+      step="0"
+      style="display: none"
+    >
+      <n-installer-page step-name="欢迎" hide-leftmenu>
+        <o-page src="/install/pages/welcome.html"></o-page>
+      </n-installer-page>
+      <n-installer-page step-name="使用协议">
+        <o-page src="/install/pages/agreement.html"></o-page>
+      </n-installer-page>
+      <n-installer-page step-name="开始安装">
+        <template>
+          <o-page src="/install/pages/start.html" id="start-page"></o-page>
+        </template>
+      </n-installer-page>
+      <n-installer-page step-name="安装完成">
+        <template>
+          <o-page src="/install/pages/ok.html"></o-page>
+        </template>
+      </n-installer-page>
+    </n-installer>
+  </body>
+  <script type="module">
+    const load = lm(import.meta);
+
+    // 等待加载完成
+    await load("/packages/pui/button/button.html");
+    await load("/packages/pui/select/select.html");
+    $("#loading-progress-text").text = "(1 / 3)";
+
+    await load("/packages/others/comps/installer.html");
+    $("#loading-progress-text").text = "(2 / 3)";
+
+    await load("/install/pages/welcome.html");
+    $("#loading-progress-text").text = "(3 / 3)";
+
+    $("n-installer").style.display = "";
+    setTimeout(() => {
+      $(".start-con").style.display = "none";
+      $("n-installer").style.opacity = 1;
+      $("n-installer").style.transform = "translate(0px, 0)";
+    }, 300);
+  </script>
+</html>

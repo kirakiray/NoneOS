@@ -9,7 +9,6 @@
   <body>
     <div>当前系统版本：<span id="version"></span></div>
     <div id="install-info"></div>
-    <button id="re-install">点击重装系统</button>
     <button id="remove-os">删除系统</button>
 
     <br /><br /><br />
@@ -19,7 +18,6 @@
 
     <script type="module">
       import { get } from "../packages/fs/main.js";
-      import { installOS } from "../packages/none-os/util.js";
 
       const pbHandle = await get("packages/package.json").catch(() => null);
 
@@ -30,23 +28,6 @@
 
         $("#version").text = data.version;
       }
-
-      $("#re-install").on("click", async () => {
-        $.all("[button]").forEach((e) => e.attr("disabled", ""));
-
-        await installOS((e) => {
-          $("#install-info").text = `安装中 ${e.count} / ${e.length}`;
-        }, `/packages.zip?v=${Math.random()}`);
-
-        $("#install-info").text = "";
-        $.all("[button]").forEach((e) => e.attr("disabled", null));
-
-        const registrations = await navigator.serviceWorker.getRegistrations();
-
-        for (let registration of registrations) {
-          await registration.unregister();
-        }
-      });
 
       $("#remove-os").on("click", async () => {
         $.all("[button]").forEach((e) => e.attr("disabled", ""));

@@ -8,24 +8,48 @@
       line-height: 1.2em;
       overflow: auto;
     }
-
-    .string {
-      color: #ee9264;
-    }
-    .number {
-      color: #9480f7;
-    }
-    .boolean {
-      color: #cdedd2;
-    }
-    .null {
-      color: #a7a7a7;
-    }
-    .key {
-      color: #f3ce4a;
-    }
   </style>
 
+  <x-if :value="theme == 'dark'">
+    <style>
+      .string {
+        color: #ee9264;
+      }
+      .number {
+        color: #9480f7;
+      }
+      .boolean {
+        color: #cdedd2;
+      }
+      .null {
+        color: #a7a7a7;
+      }
+      .key {
+        color: #f3ce4a;
+      }
+    </style>
+  </x-if>
+  <x-else>
+    <style>
+      .string {
+        color: #af4916;
+      }
+      .number {
+        color: #280cb7;
+      }
+      .boolean {
+        color: #2c883b;
+      }
+      .null {
+        color: #707070;
+      }
+      .key {
+        color: #7a6000;
+      }
+    </style>
+  </x-else>
+
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <div class="main"></div>
   <script>
     export default {
@@ -35,6 +59,7 @@
       },
       data: {
         str: "", // json字符串
+        theme: "",
       },
       watch: {
         showAll() {
