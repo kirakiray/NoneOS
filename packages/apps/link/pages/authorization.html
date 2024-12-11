@@ -65,6 +65,12 @@
     确认导入
   </p-button>
 
+  <h4>根证书</h4>
+  <div style="word-break: break-all; font-size: 12px; user-select: all">
+    {{rootCert}}
+  </div>
+
+  <div style="height: 40px"></div>
   <script>
     export const parent = "../outer.html";
     import { get } from "/packages/fs/handle/index.js";
@@ -75,12 +81,14 @@
       const { getAllCerts, importCert } = await load(
         "/packages/core/cert/main.js"
       );
+      const { rootPublic } = await load("/packages/core/cert/main.js");
 
       return {
         data: {
           certs: [], // 所有证书
           loading: false,
           icertVal: "", // 要导入的内容
+          rootCert: rootPublic,
         },
         proto: {
           // 手动导入证书
