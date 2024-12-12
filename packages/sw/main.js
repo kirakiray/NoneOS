@@ -4,7 +4,7 @@
  */
 
 import resposeFS from "./resp-fs.js";
-import { cacheResponse } from "./util.js";
+import { responseIndex } from "./util.js";
 import { storage } from "../libs/ever-cache/main.js";
 
 let useOnline, uTime;
@@ -31,7 +31,11 @@ self.addEventListener("fetch", (event) => {
     }
 
     if (pathname === "/" || pathname === "/index.html") {
-      event.respondWith(cacheResponse(pathname));
+      if (useOnline) {
+        return;
+      }
+
+      event.respondWith(responseIndex());
       return;
     }
 

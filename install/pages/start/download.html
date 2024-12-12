@@ -64,7 +64,9 @@
 
               this.sourceName = targetSource.name;
 
-              const filesJson = await fetch(targetSource.filesPath)
+              const filesJson = await fetch(
+                targetSource.filesPath + `?v=${sessionStorage.onlineVersion}`
+              )
                 .then((e) => e.json())
                 .catch(() => null);
 
@@ -83,7 +85,7 @@
 
               // 本地没有太多的系统文件，直接下载整个包文件
               const pgzipfile = await downloadFileWithProgress(
-                targetSource.pkgPath,
+                targetSource.pkgPath + `?v=${sessionStorage.onlineVersion}`,
                 (e) => {
                   this.progress = e;
                 }
