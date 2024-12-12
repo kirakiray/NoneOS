@@ -18,12 +18,14 @@
           useonline: !!useonline,
         },
         proto: {
-          changeVal(e) {
+          async changeVal(e) {
             if ($(e.target).value) {
-              storage.setItem("use-online", 1);
+              await storage.setItem("use-online", 1);
             } else {
-              storage.removeItem("use-online");
+              await storage.removeItem("use-online");
             }
+
+            fetch("/refresh-use-online");
           },
         },
         async attached() {},

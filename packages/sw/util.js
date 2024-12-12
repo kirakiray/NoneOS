@@ -1,18 +1,62 @@
-export const cacheResponse = async (path) => {
-  const cache = await caches.open("noneos-default-cache");
-  let resp = await cache.match(path);
+// export const cacheResponse = async (path) => {
+//   const cache = await caches.open("noneos-default-cache");
+//   let resp = await cache.match(path);
 
-  if (resp) {
-    return resp.clone();
-  }
+//   if (resp) {
+//     return resp.clone();
+//   }
 
-  resp = await fetch(path);
+//   resp = await fetch(path);
 
-  if (resp.status === 200) {
-    cache.put(path, resp.clone());
-  }
+//   if (resp.status === 200) {
+//     cache.put(path, resp.clone());
+//   }
 
-  return resp;
+//   return resp;
+// };
+
+export const responseIndex = async () => {
+  const text = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NoneOS</title>
+    <link rel="shortcut icon" href="/logo.png" />
+    <link rel="apple-touch-icon" href="/logo.png" />
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/libs/ofa/ofa-error-zh.js"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
+    <link rel="stylesheet" href="/packages/others/colors.css" />
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./packages/none-os/none-os.html"></l-m>
+    <none-os></none-os>
+    <script>
+      navigator.serviceWorker.register("/sw.js");
+    </script>
+  </body>
+</html>
+`;
+
+  return new Response(text, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+    },
+  });
 };
 
 export const getContentType = (prefix) => {
