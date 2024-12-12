@@ -81,6 +81,15 @@
         async attached() {
           storage.setItem("use-online", 1);
 
+          // 刷新useonline模式
+          const result = await fetch("/refresh-use-online")
+            .then((e) => {
+              return e.status === 200;
+            })
+            .catch(() => false);
+
+          console.log("refresh online: ", result);
+
           this.subStep = "download";
         },
       };
