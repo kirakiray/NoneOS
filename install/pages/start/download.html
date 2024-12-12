@@ -10,10 +10,10 @@
     <div style="color: #fb4747">{{error}}</div>
   </x-if>
   <x-else-if :value="step === 'get-files'">
-    <div>正在获取文件列表</div>
+    <div>正在从 {{sourceName}} 获取文件列表</div>
   </x-else-if>
   <x-else-if :value="step === 'download'">
-    <div>正在下载文件</div>
+    <div>正在从 {{sourceName}} 下载文件</div>
     <p-progress :value="progress" style="width: 200px"></p-progress>
   </x-else-if>
 
@@ -21,60 +21,121 @@
     export default async ({ load }) => {
       const { verifyMessage } = await load("/packages/core/base/verify.js");
       let { rootPublic } = await load("/packages/core/cert/main.js");
+      const { unzip } = await load("/packages/libs/zip/main.js");
+
       rootPublic =
         rootPublic ||
         `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwqKk1tx1Pr7XcTCSnCaLOtbSnAPgO6LYLlK2Z1gOPAUCs+e6kzXDtScowZhso0yEp+J/Z5X6saYx8iveBvxKjg==`;
 
+      const sources = [
+        {
+          name: "jsdelivr",
+          filesPath:
+            "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/files.json",
+          pkgPath:
+            "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/packages.zip",
+        },
+        {
+          name: "github",
+          filesPath: "https://kirakiray.github.io/NoneOS/files.json",
+          pkgPath: "https://kirakiray.github.io/NoneOS/packages.zip",
+        },
+        {
+          name: "Current Website",
+          filesPath: "/files.json",
+          pkgPath: "/packages.zip",
+        },
+      ];
+
       return {
         data: {
           step: "get-files",
+          sourceName: "",
           progress: 0,
           error: "",
         },
         proto: {
           async loadFilesJSON() {
-            const filesJson = await fetch(`/files.json?v=${Date.now()}`)
-              .then((e) => e.json())
-              .catch(() => null);
+            let isSucceed = false;
 
-            const result = await verifyMessage(
-              filesJson.data,
-              filesJson.signature,
-              rootPublic
-            );
+            // 按照顺序依次请求，直到请求成功
+            for (let targetSource of sources) {
+              this.step = "get-files";
 
-            if (!result) {
-              // 签名验证失败，提示无法安装
-              this.error = "验证系统文件失败，无法安装";
-              return;
-            }
+              this.sourceName = targetSource.name;
 
-            if (!filesJson) {
-              // TODO: 请求更新文件失败
-              return;
-            }
+              const filesJson = await fetch(targetSource.filesPath)
+                .then((e) => e.json())
+                .catch(() => null);
 
-            // TODO: 验证更新证书是否正确
+              const result = await verifyMessage(
+                filesJson.data,
+                filesJson.signature,
+                rootPublic
+              );
 
-            // TODO: 验证本地文件的差异，不超过30个文件变动的，只更新差异的文件
-
-            this.step = "download";
-            // 本地没有太多的系统文件，直接下载整个包文件
-            const pgzipfile = await downloadFileWithProgress(
-              `/packages.zip`,
-              (e) => {
-                this.progress = e;
+              if (!result) {
+                // 签名验证失败，提示无法安装
+                continue;
               }
-            );
 
-            await new Promise((r) => setTimeout(r, 300));
+              this.step = "download";
 
-            this.emit("download-complete", {
-              data: {
-                filesJson,
-                pgzipfile,
-              },
-            });
+              // 本地没有太多的系统文件，直接下载整个包文件
+              const pgzipfile = await downloadFileWithProgress(
+                targetSource.pkgPath,
+                (e) => {
+                  this.progress = e;
+                }
+              ).catch(() => null);
+
+              if (!pgzipfile) {
+                // 内容不对
+                continue;
+              }
+
+              if (filesJson.data.version !== sessionStorage.onlineVersion) {
+                // 版本不对
+                continue;
+              }
+
+              await new Promise((r) => setTimeout(r, 300));
+
+              const files = await unzip(pgzipfile);
+
+              const pkgJson = files.find((e) => e.path === "package.json");
+
+              const pkgData = await new Promise((resolve) => {
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                  resolve(JSON.parse(e.target.result));
+                };
+
+                reader.readAsText(pkgJson.file); // 以文本形式读取文件
+              });
+
+              if (pkgData.version !== sessionStorage.onlineVersion) {
+                // 版本不一致，跳到下一个源
+                continue;
+              }
+
+              isSucceed = true;
+              this.emit("download-complete", {
+                data: {
+                  filesJson,
+                  pgzipfile,
+                  files,
+                  fileHash: filesJson.data.files,
+                },
+              });
+
+              break;
+            }
+
+            if (!isSucceed) {
+              this.error = "无法从任何源获取到正确的系统文件";
+            }
           },
         },
         attached() {
