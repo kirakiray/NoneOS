@@ -24,8 +24,6 @@
 
   <script>
     export default async ({ load }) => {
-      const { unzip } = await load("/packages/libs/zip/main.js");
-
       return {
         data: {
           // _fdata: {}, // 主体的文件数据
@@ -41,11 +39,11 @@
         },
         proto: {},
         async attached() {
-          const { filesJson, pgzipfile } = this._fdata;
+          const { filesJson, pgzipfile, files: pgfiles } = this._fdata;
 
           const { files } = filesJson.data;
 
-          const pgfiles = await unzip(pgzipfile);
+          debugger;
 
           // 哈希存储仓库
           const caches = new Map();
