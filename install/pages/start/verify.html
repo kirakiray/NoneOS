@@ -39,18 +39,14 @@
         },
         proto: {},
         async attached() {
-          const { filesJson, pgzipfile, files: pgfiles } = this._fdata;
-
-          const { files } = filesJson.data;
-
-          debugger;
+          const { files, fileHash } = this._fdata;
 
           // 哈希存储仓库
           const caches = new Map();
 
           // 将所有 file 转化为 hash 并塞到一个仓库对象上
-          this.c_total = pgfiles.length;
-          for (let e of pgfiles) {
+          this.c_total = files.length;
+          for (let e of files) {
             const hashes = await computeHashForFile(e.file);
             caches.set(hashes.join(""), e.file);
             this.c_count++;
@@ -61,8 +57,8 @@
 
           // 根据files重新组装文件
           const afterFiles = [];
-          this.d_total = files.length;
-          for (let e of files) {
+          this.d_total = fileHash.length;
+          for (let e of fileHash) {
             const hid = e.hashes.join("");
 
             const file = caches.get(hid);
@@ -82,7 +78,7 @@
             await new Promise((r) => setTimeout(r, 1)); // 太快了，减慢一下速度
           }
 
-          if (afterFiles.length !== files.length) {
+          if (afterFiles.length !== fileHash.length) {
             // TODO: 验证数量不一致，需要补充剩余的文件
             debugger;
             return;
