@@ -18,9 +18,24 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (location.origin === origin) {
+    if (pathname === "/refresh-use-online") {
+      event.respondWith(
+        (async () => {
+          useOnline = !!(await storage.getItem("use-online"));
+          return new Response(useOnline.toString(), {
+            status: 200,
+          });
+        })()
+      );
+      return;
+    }
+
     if (pathname === "/" || pathname === "/index.html") {
       event.respondWith(cacheResponse(pathname));
-    } else if (/^\/\$/.test(pathname)) {
+      return;
+    }
+
+    if (/^\/\$/.test(pathname)) {
       event.respondWith(
         (async () => {
           try {
@@ -33,7 +48,10 @@ self.addEventListener("fetch", (event) => {
           }
         })()
       );
-    } else if (/^\/packages\//.test(pathname)) {
+      return;
+    }
+
+    if (/^\/packages\//.test(pathname)) {
       event.respondWith(
         (async () => {
           if (Date.now() - uTime > 5000) {
@@ -57,6 +75,7 @@ self.addEventListener("fetch", (event) => {
           }
         })()
       );
+      return;
     }
   }
 });

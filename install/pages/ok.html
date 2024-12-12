@@ -24,6 +24,7 @@
         proto: {},
         attached() {
           storage.removeItem("use-online");
+          fetch("/refresh-use-online");
         },
       };
     };

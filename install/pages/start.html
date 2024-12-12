@@ -21,13 +21,14 @@
   </style>
   <div class="container">
     <h2>安装NoneOS</h2>
-    <x-if :value="subStep === 'download'">
+    <x-if :value="subStep === 'wait'"> 等待下载 </x-if>
+    <x-else-if :value="subStep === 'download'">
       <o-page
         id="download-page"
         src="./start/download.html"
         on:download-complete="getFile"
       ></o-page>
-    </x-if>
+    </x-else-if>
     <x-else-if :value="subStep === 'verify'">
       <o-page
         src="./start/verify.html"
@@ -54,9 +55,11 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { storage } = await load("/packages/libs/ever-cache/main.js");
+
       return {
         data: {
-          subStep: "download", // 下载、安装
+          subStep: "wait", // 下载、安装
           searchProgress: 0,
           _filedata: {},
           _files: [],
@@ -76,9 +79,18 @@
           },
         },
         async attached() {
-          const pageEl = this.shadow.$("#download-page");
-          await pageEl.watchUntil(() => pageEl.pageIsReady);
-          pageEl.loadFilesJSON();
+          storage.setItem("use-online", 1);
+
+          // 刷新useonline模式
+          const result = await fetch("/refresh-use-online")
+            .then((e) => {
+              return e.status === 200;
+            })
+            .catch(() => false);
+
+          console.log("refresh online: ", result);
+
+          this.subStep = "download";
         },
       };
     };
