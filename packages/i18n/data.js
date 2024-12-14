@@ -1,28 +1,32 @@
-export const data = $.stanz({
-  lang: "cn",
-  space: {},
-});
+// 当前采用的语言
+let lang = "cn";
 
+// 多语言的存储主体对象
+export const space = $.stanz({});
+
+// 存储多语言的主体空间
 export const spacePath = {};
 
-export const changeLang = async (lang) => {
-  data.lang = lang;
-  Object.entries(data.space).forEach(async ([key, langObj]) => {
+// 获取当前语言
+export const getLang = () => lang;
+
+// 切换语言
+export const changeLang = async (argLang) => {
+  lang = argLang;
+  Object.entries(space).forEach(async ([key, langObj]) => {
     const path = spacePath[key];
     const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());
-
     Object.assign(langObj, langData);
   });
 };
 
+// 设置语言包的地址
 export const setSpace = async (name, path) => {
   spacePath[name] = path;
 
-  const langData = await fetch(`${path}/${data.lang}.json`).then((e) =>
-    e.json()
-  );
+  const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());
 
-  if (!data.space[name]) {
-    data.space[name] = langData;
+  if (!space[name]) {
+    space[name] = langData;
   }
 };

@@ -7,25 +7,31 @@
   <div></div>
   <script>
     export default async ({ load }) => {
-      const { data, spaceAddress } = await load("./data.js");
+      const { space, spaceAddress } = await load("./data.js");
 
       return {
         tag: "n-desc",
         attrs: {
           name: "", // 描述名称
-          space: "",
+          space: "", // 语言的存储空间
+          setType: null, // 设置语言的方式，默认text，可以改用 html
         },
         data: {},
         proto: {
           changeName() {
-            const val = data.space[this.space][this.name];
+            const val = space[this.space][this.name];
 
             if (this.__oldVal === val) {
               return;
             }
             this.__oldVal = val;
 
-            this.text = val;
+            if (this.setType === "html") {
+              this.html = val;
+            } else {
+              this.text = val;
+            }
+
             this.emit("change-desc-text");
           },
         },
@@ -38,13 +44,13 @@
           },
         },
         attached() {
-          this._wid = data.watchTick(() => {
+          this._wid = space.watchTick(() => {
             this.changeName();
           });
         },
         detached() {
           if (this._wid) {
-            data.unwatchTick(this._wid);
+            space.unwatchTick(this._wid);
           }
         },
       };
