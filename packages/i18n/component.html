@@ -7,7 +7,7 @@
   <slot></slot>
   <script>
     export default async ({ load }) => {
-      const { space, spaceAddress } = await load("./data.js");
+      const { space, spacePath, getLang } = await load("./data.js");
 
       return {
         tag: "n-desc",
@@ -15,10 +15,24 @@
           name: "", // 描述名称
           space: "", // 语言的存储空间
           setType: null, // 设置语言的方式，默认text，可以改用 html
+          article: null, // 是不是文章
         },
         data: {},
         proto: {
           changeName() {
+            if (this.article !== null) {
+              const path = spacePath[this.space];
+
+              if (this.name) {
+                fetch(`${path}/${this.name}/${getLang()}.html`)
+                  .then((e) => e.text())
+                  .then((html) => {
+                    this.html = html;
+                  });
+              }
+              return;
+            }
+
             const val = space[this.space].get(this.name);
 
             if (this.__oldVal === val) {
@@ -50,7 +64,7 @@
         },
         detached() {
           if (this._wid) {
-            space.unwatchTick(this._wid);
+            space.unwatch(this._wid);
           }
         },
       };

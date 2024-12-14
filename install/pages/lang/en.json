@@ -2,13 +2,17 @@
   "install": "Install NoneOS",
   "welcome": "Welcome",
   "agreement": "Agreement",
-  "startInstall": "Start Installation",
-  "installEnd": "Installation Completed",
-  "nextStep": "Next Step",
+  "startInstall": "Start installation",
+  "reinstall": "Reinstall system",
+  "entrySystemDirectly": "Enter system directly",
+  "installEnd": "Installation completed",
+  "nextStep": "Next step",
   "p2": {
     "title": "Welcome to NoneOS",
-    "updateTitle": "Update Your NoneOS",
-    "desc1": "A desktop operating system that runs in a browser, allowing all your devices to be connected together.",
-    "desc2": "Safe, simple, and easy to use."
-  }
+    "updateTitle": "Update your NoneOS",
+    "desc1": "A desktop operating system that runs in a browser that connects all your devices together.",
+    "desc2": "Safe, simple and easy to use."
+  },
+  "disagree": "Disagree",
+  "agreenAndInstall": "Agree and install"
 }

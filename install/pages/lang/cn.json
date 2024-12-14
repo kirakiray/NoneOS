@@ -3,6 +3,8 @@
   "welcome": "欢迎",
   "agreement": "使用协议",
   "startInstall": "开始安装",
+  "reinstall": "重装系统",
+  "entrySystemDirectly": "直接进入系统",
   "installEnd": "安装完成",
   "nextStep": "下一步",
   "p2": {
@@ -10,5 +12,7 @@
     "updateTitle": "更新你的NoneOS",
     "desc1": "一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。",
     "desc2": "安全、简单、易用。"
-  }
+  },
+  "disagree": "不同意",
+  "agreenAndInstall": "同意并安装"
 }
