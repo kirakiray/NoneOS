@@ -198,8 +198,10 @@
           async loadSteps() {
             const steps = [];
             this.all("n-installer-page").forEach((e) => {
+              const stepName = e.$(`[step-name]`)?.text;
+
               steps.push({
-                name: e.stepName,
+                name: e.stepName || stepName,
               });
             });
             this.steps = steps;
@@ -207,14 +209,16 @@
         },
         ready() {
           let timer;
-          this.on("installer-page-change", (e) => {
+          const refreshStep = (e) => {
             e.stopPropagation();
 
             clearTimeout(timer);
             timer = setTimeout(() => {
               this.loadSteps();
             }, 50);
-          });
+          };
+          this.on("installer-page-change", refreshStep);
+          this.on("change-desc-text", refreshStep);
         },
       };
     };

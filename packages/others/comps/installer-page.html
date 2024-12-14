@@ -16,6 +16,10 @@
       height: 100%;
       overflow: auto;
     }
+
+    ::slotted([step-name]) {
+      display: none;
+    }
   </style>
   <div class="container">
     <slot></slot>
@@ -26,6 +30,11 @@
         tag: "n-installer-page",
         attrs: {
           stepName: "",
+        },
+        watch: {
+          stepName() {
+            this.emit("installer-page-change");
+          },
         },
         data: {},
         attached() {
