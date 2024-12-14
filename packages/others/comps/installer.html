@@ -214,7 +214,11 @@
             e.stopPropagation();
 
             clearTimeout(timer);
+
             timer = setTimeout(() => {
+              const name = this.$("[install-name]").text;
+              this.appname = name;
+
               this.loadSteps();
             }, 50);
           };

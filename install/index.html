@@ -39,12 +39,9 @@
     <l-m src="/packages/pui/button/button.html"></l-m>
     <l-m src="/packages/others/comps/installer.html"></l-m>
     <l-m src="/packages/i18n/component.html"></l-m>
-    <n-installer
-      appname="安装NoneOS"
-      appicon="/logo.png"
-      step="0"
-      style="display: none"
-    >
+    <n-installer appicon="/logo.png" step="0" style="display: none">
+      <n-desc space="installer" name="install" install-name></n-desc>
+
       <n-installer-page hide-leftmenu>
         <n-desc space="installer" name="welcome" step-name></n-desc>
         <o-page src="/install/pages/welcome.html"></o-page>
