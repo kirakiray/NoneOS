@@ -50,13 +50,13 @@
       <p>安全、简单、易用。</p>
     </x-else>
 
-    <p-select sync:value="lang" style="margin-top: 16px">
+    <p-select sync:value="lang" on:change="changeLang" style="margin-top: 16px">
       <n-local-icon
         name="lang"
         slot="prefix"
         style="display: inline-block; margin-right: 8px"
       ></n-local-icon>
-      <option value="en" disabled>English</option>
+      <option value="en">English</option>
       <option value="cn">中文</option>
     </p-select>
 
@@ -85,6 +85,8 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/handle/index.js");
 
+      const { changeLang } = await load("/packages/i18n/data.js");
+
       return {
         data: {
           lang: "cn",
@@ -95,6 +97,9 @@
         proto: {
           nextStep() {
             $("n-installer").step++;
+          },
+          changeLang(e) {
+            changeLang($(e.target).value);
           },
         },
         async attached() {

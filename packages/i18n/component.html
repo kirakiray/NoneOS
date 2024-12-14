@@ -7,7 +7,7 @@
   <div></div>
   <script>
     export default async ({ load }) => {
-      const { data } = await load("./data.js");
+      const { data, spaceAddress } = await load("./data.js");
 
       return {
         tag: "n-desc",
@@ -15,53 +15,37 @@
           name: "", // 描述名称
           space: "",
         },
-        data: {
-          _spaceData: null,
-        },
+        data: {},
         proto: {
-          async initSpace() {
-            if (this._initedSpace) return;
-
-            this._initedSpace = 1;
-
-            const spaceName = this.space;
-
-            if (!data.space[spaceName]) {
-              // 加载新空间
-              const spaceData = await load(`./space/${spaceName}/cn.json`);
-              data.space[spaceName] = spaceData;
-            }
-
-            if (this.ele.isConnected) {
-              // 塞入数据
-              this._spaceData = data.space[spaceName];
-
-              this.changeName();
-            } else {
-              this._initedSpace = null;
-            }
-          },
           changeName() {
-            if (this._spaceData) {
-              const val = this._spaceData[this.name];
-              this.text = val;
-              this.emit("change-desc-text");
+            const val = data.space[this.space][this.name];
+
+            if (this.__oldVal === val) {
+              return;
             }
+            this.__oldVal = val;
+
+            this.text = val;
+            this.emit("change-desc-text");
           },
         },
         watch: {
-          async space(spaceName) {
-            this.initSpace();
-          },
           name() {
+            this.changeName();
+          },
+          space() {
             this.changeName();
           },
         },
         attached() {
-          this.initSpace();
+          this._wid = data.watchTick(() => {
+            this.changeName();
+          });
         },
         detached() {
-          this._spaceData = null;
+          if (this._wid) {
+            data.unwatchTick(this._wid);
+          }
         },
       };
     };

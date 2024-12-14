@@ -67,6 +67,9 @@
   <script type="module">
     const load = lm(import.meta);
 
+    const { setSpace } = await load("/packages/i18n/data.js");
+    setSpace("installer", "/install/pages/lang");
+
     // 等待加载完成
     await load("/packages/pui/button/button.html");
     await load("/packages/pui/select/select.html");
