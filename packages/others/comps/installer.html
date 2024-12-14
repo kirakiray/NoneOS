@@ -175,9 +175,10 @@
               if (index == step) {
                 e.attr("show", "");
 
-                if (e[0].tag === "template") {
+                if (e.$("template")) {
                   // 直接解放内容
-                  e.html = e[0].html;
+                  e.push(e.$("template").html);
+                  e.$("template").remove();
                 }
               } else {
                 e.attr("show", null);
@@ -201,7 +202,7 @@
               const stepName = e.$(`[step-name]`)?.text;
 
               steps.push({
-                name: e.stepName || stepName,
+                name: stepName || e.stepName,
               });
             });
             this.steps = steps;
