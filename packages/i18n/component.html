@@ -33,20 +33,32 @@
               return;
             }
 
-            const val = space[this.space].get(this.name);
+            clearTimeout(this._c_timer);
+            this._c_timer = setTimeout(() => {
+              let val = space[this.space].get(this.name);
 
-            if (this.__oldVal === val) {
-              return;
-            }
-            this.__oldVal = val;
+              if (this.__oldVal === val) {
+                return;
+              }
+              this.__oldVal = val;
 
-            if (this.setType === "html") {
-              this.html = val;
-            } else {
-              this.text = val;
-            }
+              if (/\{.+\}/.test(val)) {
+                const matchArr = val.match(/(\{.+?\})/g);
+                matchArr &&
+                  matchArr.forEach((e) => {
+                    const key = e.replace("{", "").replace("}", "").trim();
+                    val = val.replace(e, this.data[key]);
+                  });
+              }
 
-            this.emit("change-desc-text");
+              if (this.setType === "html") {
+                this.html = val;
+              } else {
+                this.text = val;
+              }
+
+              this.emit("change-desc-text");
+            }, 50);
           },
         },
         watch: {

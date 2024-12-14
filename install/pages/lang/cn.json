@@ -10,6 +10,7 @@
   "p2": {
     "title": "欢迎来到 NoneOS",
     "updateTitle": "更新你的NoneOS",
+    "updateTo": "从 <span class='os-version'>{localVersion}</span> 更新到 <span class='os-version'>{onlineVersion}</span>",
     "desc1": "一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。",
     "desc2": "安全、简单、易用。"
   },
