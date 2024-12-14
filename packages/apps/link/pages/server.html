@@ -105,7 +105,12 @@
           <div class="block-line-key">延迟</div>
           <div class="block-line-value">{{$data.delayTime}}ms</div>
 
-          <p-button size="mini" variant="text" on:click="$host.ping($data)">
+          <p-button
+            size="mini"
+            variant="text"
+            attr:disabled="$host.disabledPing === $data.serverUrl"
+            on:click="$host.ping($data)"
+          >
             测试延迟
           </p-button>
         </div>
@@ -157,6 +162,7 @@
         data: {
           servers: [],
           newServer: "",
+          disabledPing: null,
         },
         proto: {
           async gotoLog(item) {
@@ -165,6 +171,10 @@
             );
           },
           ping(item) {
+            this.disabledPing = item.serverUrl;
+            setTimeout(() => {
+              this.disabledPing = null;
+            }, 1000);
             item.ping();
           },
           async deleteServer(item) {
