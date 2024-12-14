@@ -32,7 +32,9 @@
   </style>
   <div class="container">
     <x-if :value="isupdate">
-      <h2>更新你的NoneOS</h2>
+      <h2>
+        <n-desc space="installer" name="p2.updateTitle"></n-desc>
+      </h2>
 
       <p>
         从
@@ -43,7 +45,7 @@
     </x-if>
     <x-else>
       <h2>
-        欢迎来到 NoneOS
+        <n-desc space="installer" name="p2.title"></n-desc>
         <span class="os-version">{{onlineVersion}}</span>
       </h2>
       <p>一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。</p>

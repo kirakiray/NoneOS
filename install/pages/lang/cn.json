@@ -3,5 +3,9 @@
   "welcome": "欢迎",
   "agreement": "使用协议",
   "startInstall": "开始安装",
-  "installEnd": "安装完成"
+  "installEnd": "安装完成",
+  "p2": {
+    "title": "欢迎来到 NoneOS",
+    "updateTitle": "更新你的NoneOS"
+  }
 }

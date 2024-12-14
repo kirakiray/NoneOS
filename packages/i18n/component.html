@@ -4,7 +4,7 @@
       display: contents;
     }
   </style>
-  <div></div>
+  <slot></slot>
   <script>
     export default async ({ load }) => {
       const { space, spaceAddress } = await load("./data.js");
@@ -19,7 +19,11 @@
         data: {},
         proto: {
           changeName() {
-            const val = space[this.space][this.name];
+            const val = space[this.space].get(this.name);
+
+            if (this.name.includes("p2")) {
+              debugger;
+            }
 
             if (this.__oldVal === val) {
               return;
