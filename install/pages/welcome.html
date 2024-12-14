@@ -68,19 +68,19 @@
       <p-button
         on:click="nextStep"
         variant="outlined"
-        style="margin-top: 24px; width: 120px"
+        style="margin-top: 24px; width: 200px"
       >
         <n-desc space="installer" name="reinstall"></n-desc>
       </p-button>
     </x-if>
     <x-else>
-      <p-button on:click="nextStep" style="margin-top: 24px; width: 120px">
+      <p-button on:click="nextStep" style="margin-top: 24px; width: 200px">
         <n-desc space="installer" name="nextStep"></n-desc>
       </p-button>
     </x-else>
 
     <x-if :value="localVersion === onlineVersion">
-      <p-button style="margin-top: 16px; width: 120px">
+      <p-button style="margin-top: 16px; width: 200px">
         <a href="/">
           <n-desc space="installer" name="entrySystemDirectly"></n-desc>
         </a>

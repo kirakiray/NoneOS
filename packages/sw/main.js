@@ -11,13 +11,18 @@ let useOnline, uTime;
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  const { pathname, origin } = new URL(request.url);
+  const { pathname, origin, searchParams } = new URL(request.url);
 
   if (!uTime) {
     uTime = Date.now();
   }
 
   if (location.origin === origin) {
+    if (searchParams.get("direct")) {
+      // 直接访问不用缓存
+      return;
+    }
+
     if (pathname === "/refresh-use-online") {
       event.respondWith(
         (async () => {
