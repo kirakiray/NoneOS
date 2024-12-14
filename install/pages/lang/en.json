@@ -1,5 +1,13 @@
 {
   "install": "Install NoneOS",
   "welcome": "Welcome",
-  "agreement": "Usage Agreement"
+  "agreement": "Agreement",
+  "startInstall": "Start Installation",
+  "installEnd": "Installation Completed",
+  "p2": {
+    "title": "Welcome to NoneOS",
+    "updateTitle": "Update Your NoneOS",
+    "desc1": "A desktop operating system that runs in a browser, allowing all your devices to be connected together.",
+    "desc2": "Safe, simple, and easy to use."
+  }
 }

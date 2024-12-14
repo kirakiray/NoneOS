@@ -17,11 +17,13 @@
     }
     .container {
       height: 80%;
-      padding: 0 16px;
+      padding: 0 40px;
       justify-content: center;
       align-items: center;
       display: flex;
       flex-direction: column;
+      text-align: center;
+      text-wrap: balance;
     }
 
     .os-version {
@@ -48,8 +50,8 @@
         <n-desc space="installer" name="p2.title"></n-desc>
         <span class="os-version">{{onlineVersion}}</span>
       </h2>
-      <p>一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。</p>
-      <p>安全、简单、易用。</p>
+      <p><n-desc space="installer" name="p2.desc1"></n-desc></p>
+      <p><n-desc space="installer" name="p2.desc2"></n-desc></p>
     </x-else>
 
     <p-select sync:value="lang" on:change="changeLang" style="margin-top: 16px">
