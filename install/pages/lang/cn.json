@@ -16,5 +16,17 @@
     "closeAlert": "感谢你的支持，再见。（如果窗口未关闭，请自行关闭）"
   },
   "disagree": "不同意",
-  "agreenAndInstall": "同意并安装"
+  "agreenAndInstall": "同意并安装",
+  "p3": {
+    "waitDownload": "等待下载",
+    "tips": "安装正在进行中，请不要关闭浏览器。",
+    "readList": "正在从 {sourceName} 获取文件列表",
+    "download": "正在从 {sourceName} 下载文件",
+    "error1": "无法从任何源获取到正确的系统文件",
+    "caculateHash": "正在计算文件的哈希",
+    "matchFile": "正在匹配文件",
+    "writeSystem": "正在写入系统文件"
+  },
+  "installSucceed": "NoneOS安装成功",
+  "entrySystem": "进入系统"
 }

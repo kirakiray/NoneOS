@@ -8,14 +8,16 @@
   </style>
 
   <x-if :value="step === 'caculate-hash'">
-    正在计算文件的哈希 {{c_count}} / {{c_total}}
+    <n-desc space="installer" name="p3.caculateHash"></n-desc>
+    {{c_count}} / {{c_total}}
     <p-progress
       :value="c_progress"
       style="width: 200px; --progress-animation: none"
     ></p-progress>
   </x-if>
   <x-else-if :value="step === 'verify'">
-    正在匹配文件 {{d_count}} / {{d_total}}
+    <n-desc space="installer" name="p3.matchFile"></n-desc>
+    {{d_count}} / {{d_total}}
     <p-progress
       :value="d_progress"
       style="width: 200px; --progress-animation: none"

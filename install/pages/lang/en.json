@@ -4,16 +4,29 @@
   "agreement": "Agreement",
   "startInstall": "Start installation",
   "reinstall": "Reinstall system",
-  "entrySystemDirectly": "Enter system directly",
+  "entrySystemDirectly": "Enter the system directly",
   "installEnd": "Installation completed",
   "nextStep": "Next step",
   "p2": {
     "title": "Welcome to NoneOS",
     "updateTitle": "Update your NoneOS",
     "updateTo": "Update from <span class='os-version'>{localVersion}</span> to <span class='os-version'>{onlineVersion}</span>",
-    "desc1": "A desktop operating system that runs in a browser, allowing all your devices to connect together.",
-    "desc2": "Secure, simple and easy to use."
+    "desc1": "A desktop operating system that runs in a browser, allowing all your devices to be connected together.",
+    "desc2": "Safe, simple and easy to use.",
+    "closeAlert": "Thank you for your support, goodbye. (If the window is not closed, please close it yourself)"
   },
   "disagree": "Disagree",
-  "agreenAndInstall": "Agree and install"
+  "agreenAndInstall": "Agree and install",
+  "p3": {
+    "waitDownload": "Waiting to download",
+    "tips": "Installation is in progress, please do not close the browser.",
+    "readList": "Getting file list from {sourceName}",
+    "download": "Downloading files from {sourceName}",
+    "error1": "Unable to get the correct system file from any source",
+    "caculateHash": "Calculating the hash of the file",
+    "matchFile": "Matching files",
+    "writeSystem": "Writing system files"
+  },
+  "installSucceed": "NoneOS installation successful",
+  "entrySystem": "Entey the system"
 }

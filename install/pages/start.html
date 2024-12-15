@@ -20,8 +20,12 @@
     }
   </style>
   <div class="container">
-    <h2>安装NoneOS</h2>
-    <x-if :value="subStep === 'wait'"> 等待下载 </x-if>
+    <h2>
+      <n-desc space="installer" name="install"></n-desc>
+    </h2>
+    <x-if :value="subStep === 'wait'">
+      <n-desc space="installer" name="p3.waitDownload"></n-desc>
+    </x-if>
     <x-else-if :value="subStep === 'download'">
       <o-page
         id="download-page"
@@ -50,7 +54,7 @@
         color: var(--md-sys-color-normal);
       "
     >
-      安装正在进行中，请不要关闭浏览器。
+      <n-desc space="installer" name="p3.tips"></n-desc>
     </div>
   </div>
   <script>
