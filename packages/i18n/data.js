@@ -1,5 +1,5 @@
 // 当前采用的语言
-let lang = "cn";
+let lang = localStorage.getItem("_lang") || "en";
 
 // 多语言的存储主体对象
 export const space = $.stanz({});
@@ -17,6 +17,7 @@ export const getLang = () => lang;
 // 切换语言
 export const changeLang = async (argLang) => {
   lang = argLang;
+  localStorage.setItem("_lang", lang);
   Object.entries(space).forEach(async ([key, langObj]) => {
     const path = spacePath[key];
     const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());

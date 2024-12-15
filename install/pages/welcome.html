@@ -98,7 +98,7 @@
 
       return {
         data: {
-          lang: "cn",
+          lang: localStorage.getItem("_lang") || "en",
           isupdate: false, // 是否是更新
           onlineVersion: "",
           localVersion: "",
