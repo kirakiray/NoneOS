@@ -7,6 +7,10 @@ export const space = $.stanz({});
 // 存储多语言的主体空间
 export const spacePath = {};
 
+export const getText = (key, spaceName) => {
+  return space[spaceName].get(key);
+};
+
 // 获取当前语言
 export const getLang = () => lang;
 

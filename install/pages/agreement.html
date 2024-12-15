@@ -61,10 +61,13 @@
     </div>
   </div>
   <script>
+    import { getText } from "/packages/i18n/data.js";
+
     export default {
       proto: {
         clickClose() {
-          window.alert(`感谢你的支持，再见。（如果窗口未关闭，请自行关闭）`);
+          const text = getText("p2.closeAlert", "installer");
+          window.alert(text);
 
           window.close();
         },
