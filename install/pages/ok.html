@@ -26,8 +26,8 @@
           time: 4,
         },
         proto: {},
-        attached() {
-          storage.removeItem("use-online");
+        async attached() {
+          await storage.removeItem("use-online");
           fetch("/refresh-use-online");
         },
       };
