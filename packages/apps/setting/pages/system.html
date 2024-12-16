@@ -177,7 +177,7 @@
           :value="bardir"
           on:change="changeDir"
         >
-          <x-fill :value="dirOptions">
+          <x-fill :value="dirOptions" fill-key="value">
             <option attr:value="$data.value">{{$data.name}}</option>
           </x-fill>
         </p-select>
