@@ -73,6 +73,9 @@
           this._wid = space.watchTick(() => {
             this.changeName();
           });
+          // this.watchTick(() => {
+          //   this.changeName();
+          // });
         },
         detached() {
           if (this._wid) {

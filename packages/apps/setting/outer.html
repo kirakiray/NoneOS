@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/i18n/component.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
   <style>
@@ -42,7 +43,11 @@
     <slot></slot>
   </n-horsp-pannel>
   <script>
-    export default () => {
+    export default async ({ load, url }) => {
+      const { setSpace } = await load("/packages/i18n/data.js");
+
+      setSpace("setting", new URL("./lang", url).href);
+
       return {
         data: {
           roots: [

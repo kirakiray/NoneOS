@@ -1,0 +1,16 @@
+{
+  "system": "system",
+  "sversion": "system version",
+  "onlineVer": "online version",
+  "gotoInstall": "go to install",
+  "alreadyLates": "already the latest version",
+  "updateTo": "update to",
+  "systemLang": "system language",
+  "restart": "restart",
+  "restartSystem": "restart system",
+  "restartTips": "Click to restart the virtual system",
+  "appearance": "appearance",
+  "darkMode": "dark mode",
+  "modeTips": "click to switch to {mode} mode",
+  "barDir": "dock direction"
+}
