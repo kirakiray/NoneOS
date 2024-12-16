@@ -182,7 +182,7 @@
     <p-text-field
       size="small"
       class="search-input"
-      placeholder="在当前文件夹搜索"
+      attr:placeholder="searchPlaceText"
       sync:value="search"
     >
       <n-local-icon name="search" slot="prefix"></n-local-icon>
@@ -266,6 +266,7 @@
             count: 0, // 已经删除的数量
             total: 0, // 总共文件
           },
+          searchPlaceText: "在当前文件夹搜索",
         },
         watch: {
           search(text) {
