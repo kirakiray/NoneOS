@@ -16,5 +16,7 @@
   "dark": "dark",
   "light": "light",
   "dirLeft": "left",
-  "dirBottom": "bottom"
+  "dirBottom": "bottom",
+  "apps": "applications",
+  "supportFiles": "Support {ext} Format"
 }

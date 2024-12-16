@@ -11,14 +11,24 @@
     }
   </style>
   <div>
-    <h5>应用程序</h5>
+    <h5>
+      <n-desc space="setting" name="apps"></n-desc>
+    </h5>
     <p-list style="max-width: 600px; padding-right: 8px">
       <x-fill :value="apps">
         <p-list-item button>
           <img attr:src="$data.icon" height="25" slot="prefix" />
           {{$data.name}}
           <x-if :value="$data.accept">
-            <div secondary>支持 {{$host.getSecondText($data)}} 格式</div>
+            <div secondary>
+              <!-- 支持 {{}} 格式 -->
+
+              <n-desc
+                space="setting"
+                name="supportFiles"
+                attr:data-ext="$host.getSecondText($data)"
+              ></n-desc>
+            </div>
           </x-if>
         </p-list-item>
       </x-fill>

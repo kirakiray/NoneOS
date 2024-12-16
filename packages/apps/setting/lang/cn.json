@@ -16,5 +16,7 @@
   "dark": "深色",
   "light": "浅色",
   "dirLeft": "左侧",
-  "dirBottom": "底部"
+  "dirBottom": "底部",
+  "apps": "应用程序",
+  "supportFiles": "支持 {ext} 格式"
 }
