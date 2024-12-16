@@ -45,27 +45,25 @@
   <script>
     export default async ({ load, url }) => {
       const { setSpace } = await load("/packages/i18n/data.js");
+      const { changeLang, getText, onChangeLang } = await load(
+        "/packages/i18n/data.js"
+      );
 
-      setSpace("setting", new URL("./lang", url).href);
+      await setSpace("setting", new URL("./lang", url).href);
 
       return {
         data: {
           roots: [
             {
-              name: "系统设置",
+              name: getText("systemSetting", "setting"),
               path: "system",
               icon: "/packages/apps/setting/sources/system.svg",
             },
             {
-              name: "应用程序",
+              name: getText("apps", "setting"),
               path: "app",
               icon: "/packages/apps/setting/sources/app.svg",
             },
-            // {
-            //   name: "联网（旧）",
-            //   path: "user",
-            //   icon: "/packages/apps/setting/sources/user.svg",
-            // },
           ],
           selectedRootName: null,
         },
@@ -87,6 +85,25 @@
               return "";
             }
           },
+        },
+        attached() {
+          this._cancel = onChangeLang(() => {
+            this.roots = [
+              {
+                name: getText("systemSetting", "setting"),
+                path: "system",
+                icon: "/packages/apps/setting/sources/system.svg",
+              },
+              {
+                name: getText("apps", "setting"),
+                path: "app",
+                icon: "/packages/apps/setting/sources/app.svg",
+              },
+            ];
+          });
+        },
+        detached() {
+          this._cancel && this._cancel();
         },
       };
     };

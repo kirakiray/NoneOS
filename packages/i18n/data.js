@@ -17,15 +17,32 @@ export const getText = (key, spaceName) => {
 // 获取当前语言
 export const getLang = () => lang;
 
+const listeners = [];
+
 // 切换语言
 export const changeLang = async (argLang) => {
   lang = argLang;
   localStorage.setItem("_lang", lang);
-  Object.entries(space).forEach(async ([key, langObj]) => {
-    const path = spacePath[key];
-    const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());
-    Object.assign(langObj, langData);
-  });
+  await Promise.all(
+    Object.entries(space).map(async ([key, langObj]) => {
+      const path = spacePath[key];
+      const langData = await fetch(`${path}/${lang}.json`).then((e) =>
+        e.json()
+      );
+      Object.assign(langObj, langData);
+    })
+  );
+
+  listeners.forEach((f) => f());
+};
+
+// 监听语言切换
+export const onChangeLang = (func) => {
+  listeners.push(func);
+  return () => {
+    const index = listeners.indexOf(func);
+    return listeners.splice(index, 1);
+  };
 };
 
 // 设置语言包的地址
