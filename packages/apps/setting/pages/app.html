@@ -37,6 +37,7 @@
 
     export default async ({ load }) => {
       const { getApps } = await load("/packages/none-os/app.js");
+      const { getLang } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -52,11 +53,23 @@
             console.log("apps: ", apps);
 
             this.apps = apps.map((app) => {
+              const { configData } = app;
+
+              let { name } = app;
+
+              if (configData.i18n) {
+                const currentLangData = configData.i18n[getLang()];
+
+                if (currentLangData && currentLangData.name) {
+                  name = currentLangData.name;
+                }
+              }
+
               return {
-                name: app.name,
+                name,
                 icon: app.icon.url,
                 url: app.url.replace("/app-config.js", ""),
-                accept: app.configData.accept,
+                accept: configData.accept,
               };
             });
           },

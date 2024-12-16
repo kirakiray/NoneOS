@@ -1,5 +1,13 @@
 {
   "name": "文件管理",
   "icon": "icon.svg",
-  "config": "app-config.js"
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "文件管理"
+    },
+    "en": {
+      "name": "File Manager"
+    }
+  }
 }

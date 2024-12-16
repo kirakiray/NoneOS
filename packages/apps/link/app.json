@@ -1,5 +1,13 @@
 {
   "name": "联网配置",
   "icon": "icon.svg",
-  "config": "app-config.js"
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "联网配置"
+    },
+    "en": {
+      "name": "Network Configs"
+    }
+  }
 }
