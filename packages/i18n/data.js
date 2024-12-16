@@ -8,6 +8,9 @@ export const space = $.stanz({});
 export const spacePath = {};
 
 export const getText = (key, spaceName) => {
+  if (!space[spaceName]) {
+    return "";
+  }
   return space[spaceName].get(key);
 };
 

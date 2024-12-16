@@ -12,5 +12,9 @@
   "appearance": "appearance",
   "darkMode": "dark mode",
   "modeTips": "click to switch to {mode} mode",
-  "barDir": "dock direction"
+  "barDir": "dock direction",
+  "dark": "dark",
+  "light": "light",
+  "dirLeft": "left",
+  "dirBottom": "bottom"
 }

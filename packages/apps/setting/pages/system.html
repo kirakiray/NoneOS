@@ -155,10 +155,14 @@
           <n-desc
             space="setting"
             name="modeTips"
-            attr:data-mode="darkMode ? '浅色' : '深色'"
+            attr:data-mode="modeText"
           ></n-desc>
         </div>
-        <p-switch slot="suffix" sync:value="darkMode"></p-switch>
+        <p-switch
+          slot="suffix"
+          sync:value="darkMode"
+          on:change="refreshModeText()"
+        ></p-switch>
       </p-list-item>
       <p-list-item radius>
         <n-local-icon
@@ -188,7 +192,7 @@
       const { get } = await load("/packages/fs/main.js");
 
       const { configs } = await load("/packages/none-os/configs.js");
-      const { changeLang } = await load("/packages/i18n/data.js");
+      const { changeLang, getText } = await load("/packages/i18n/data.js");
 
       const useOnline = !!(await storage.getItem("use-online")); // 使用在线版
 
@@ -201,6 +205,7 @@
           theme: "",
           bardir: configs.barDirection, // 程序坞的方向
           useOnline,
+          modeText: "",
         },
         watch: {
           theme(theme) {
@@ -219,8 +224,16 @@
           },
         },
         proto: {
+          refreshModeText() {
+            setTimeout(() => {
+              this.modeText = this.darkMode
+                ? getText("light", "setting")
+                : getText("dark", "setting");
+            }, 50);
+          },
           changeLang(e) {
             changeLang($(e.target).value);
+            this.refreshModeText();
           },
           async reloadSystem() {
             location.reload();
@@ -251,6 +264,7 @@
         },
         ready() {
           this.refreshVersion();
+          this.refreshModeText();
         },
       };
     };
