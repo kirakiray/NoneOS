@@ -37,12 +37,6 @@
             this._c_timer = setTimeout(() => {
               let val = space[this.space].get(this.name);
 
-              // if (this.__oldVal === val) {
-              //   debugger;
-              //   return;
-              // }
-              // this.__oldVal = val;
-
               if (/\{.+\}/.test(val)) {
                 const matchArr = val.match(/(\{.+?\})/g);
                 matchArr &&

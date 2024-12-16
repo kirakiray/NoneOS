@@ -177,8 +177,9 @@
           :value="bardir"
           on:change="changeDir"
         >
-          <option value="left">左侧</option>
-          <option value="bottom">下方</option>
+          <x-fill :value="dirOptions">
+            <option attr:value="$data.value">{{$data.name}}</option>
+          </x-fill>
         </p-select>
       </p-list-item>
     </div>
@@ -206,6 +207,16 @@
           bardir: configs.barDirection, // 程序坞的方向
           useOnline,
           modeText: "",
+          dirOptions: [
+            {
+              name: "左侧",
+              value: "left",
+            },
+            {
+              name: "底部",
+              value: "bottom",
+            },
+          ],
         },
         watch: {
           theme(theme) {
@@ -229,6 +240,17 @@
               this.modeText = this.darkMode
                 ? getText("light", "setting")
                 : getText("dark", "setting");
+
+              this.dirOptions = [
+                {
+                  name: getText("dirLeft", "setting"),
+                  value: "left",
+                },
+                {
+                  name: getText("dirBottom", "setting"),
+                  value: "bottom",
+                },
+              ];
             }, 50);
           },
           changeLang(e) {
