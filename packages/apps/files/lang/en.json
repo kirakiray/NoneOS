@@ -19,5 +19,7 @@
   "fileName": "Name",
   "modifyTime": "Last modified time",
   "fileSize": "File size",
-  "fileType": "Type"
+  "fileType": "Type",
+  "file": "file",
+  "folder": "folder"
 }

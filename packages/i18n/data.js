@@ -14,12 +14,20 @@ export const getText = (key, spaceName) => {
   return space[spaceName].get(key);
 };
 
-export const getSpaceData = (key) => {
-  if (!space[key]) {
-    space[key] = {};
+const spaceWaiter = {};
+export const getSpaceData = (name, isWaitSpace) => {
+  if (!space[name]) {
+    space[name] = {};
   }
 
-  return space[key];
+  if (isWaitSpace && spaceWaiter[name] !== 1) {
+    return new Promise((resolve) => {
+      const targetMaps = spaceWaiter[name] || (spaceWaiter[name] = []);
+      targetMaps.push(resolve);
+    });
+  }
+
+  return space[name];
 };
 
 // 获取当前语言
@@ -64,4 +72,10 @@ export const setSpace = async (name, path) => {
   const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());
 
   Object.assign(space[name], langData);
+
+  if (spaceWaiter[name] && spaceWaiter[name] !== 1) {
+    spaceWaiter[name].forEach((res) => res());
+  }
+
+  spaceWaiter[name] = 1;
 };

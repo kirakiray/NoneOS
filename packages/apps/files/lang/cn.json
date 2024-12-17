@@ -19,5 +19,7 @@
   "fileName": "名称",
   "modifyTime": "最后修改时间",
   "fileSize": "文件大小",
-  "fileType": "类型"
+  "fileType": "类型",
+  "file": "文件",
+  "folder": "文件夹"
 }

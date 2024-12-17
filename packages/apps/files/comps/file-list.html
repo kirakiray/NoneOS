@@ -169,6 +169,8 @@
     export default async ({ load }) => {
       const { getSpaceData } = await load("/packages/i18n/data.js");
 
+      const spaceData = await getSpaceData("files", true);
+
       return {
         tag: "n-file-list",
         data: {
@@ -293,14 +295,14 @@
           getKind(kind) {
             switch (kind) {
               case "dir":
-                return "文件夹";
+                return spaceData.folder;
               case "file":
-                return "文件";
+                return spaceData.file;
             }
           },
         },
         attached() {
-          this.spaceData = getSpaceData("files");
+          this.spaceData = spaceData;
         },
         detached() {
           this.spaceData = {};
