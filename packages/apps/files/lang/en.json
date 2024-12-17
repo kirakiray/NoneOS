@@ -7,11 +7,17 @@
   "otherDevice": "Other devices",
   "searchWithCurrent": "Search in the current device",
   "clickToPaste": "Click <n-local-icon name='paste'></n-local-icon> to paste.",
-  "clickToCancel": "Cancel the operation",
+  "clickToCancel": "Click to cancel the operation",
   "deleteOK": "Delete completed",
   "readyDelete": "Deleting, deleted",
-  "importingFile": "Importing file",
+  "importingFile": "In the import file",
   "impoted": "Import completed",
   "copy": "Copy",
-  "cut": "Cut"
+  "cut": "Cut",
+  "emptyDir": "This is an empty folder",
+  "noMatch": "No matching files or folders",
+  "fileName": "Name",
+  "modifyTime": "Last modified time",
+  "fileSize": "File size",
+  "fileType": "Type"
 }

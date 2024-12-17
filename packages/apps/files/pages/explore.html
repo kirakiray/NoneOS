@@ -60,7 +60,7 @@
       <div class="center-box">{{errorStr}}</div>
     </x-else-if>
     <x-else-if :value="files.length === 0 && !loading">
-      <div class="center-box">这是一个空文件夹</div>
+      <div class="center-box">{{spaceData.emptyDir}}</div>
     </x-else-if>
   </div>
 
@@ -69,6 +69,7 @@
 
     export default async ({ load, query }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { getSpaceData } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -77,6 +78,7 @@
           loading: true,
           search: "",
           errorStr: null, // 报错
+          spaceData: {},
         },
         proto: {
           async renameFile(e) {
@@ -116,8 +118,8 @@
             try {
               const files = [];
 
-              if(!handle){
-                debugger
+              if (!handle) {
+                debugger;
               }
 
               await handle.forEach(async (item) => {
@@ -154,6 +156,10 @@
               path: this.path,
             },
           });
+          this.spaceData = getSpaceData("files");
+        },
+        detached() {
+          this.spaceData = {};
         },
       };
     };

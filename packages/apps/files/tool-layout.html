@@ -198,7 +198,7 @@
 
   <div class="bottom-area" class:hide="!clipboard?.sources?.length">
     <x-if :value="clipboard?.sources?.length">
-      {{clipboardText}}，
+      {{clipboardText}},
       <n-desc space="files" name="clickToPaste" set-type="html"></n-desc>
       <p-button
         size="small"
@@ -245,8 +245,6 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-
-      window.aaa = getSpaceData("files");
 
       return {
         data: {

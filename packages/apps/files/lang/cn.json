@@ -13,5 +13,11 @@
   "importingFile": "导入文件中",
   "impoted": "导入完成",
   "copy": "复制",
-  "cut": "剪切"
+  "cut": "剪切",
+  "emptyDir": "这是一个空文件夹",
+  "noMatch": "没有匹配的文件或文件夹",
+  "fileName": "名称",
+  "modifyTime": "最后修改时间",
+  "fileSize": "文件大小",
+  "fileType": "类型"
 }
