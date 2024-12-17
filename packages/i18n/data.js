@@ -14,6 +14,14 @@ export const getText = (key, spaceName) => {
   return space[spaceName].get(key);
 };
 
+export const getSpaceData = (key) => {
+  if (!space[key]) {
+    space[key] = {};
+  }
+
+  return space[key];
+};
+
 // 获取当前语言
 export const getLang = () => lang;
 
@@ -49,9 +57,11 @@ export const onChangeLang = (func) => {
 export const setSpace = async (name, path) => {
   spacePath[name] = path;
 
+  if (!space[name]) {
+    space[name] = {};
+  }
+
   const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());
 
-  if (!space[name]) {
-    space[name] = langData;
-  }
+  Object.assign(space[name], langData);
 };

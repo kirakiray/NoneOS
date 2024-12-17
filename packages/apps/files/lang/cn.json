@@ -4,5 +4,14 @@
   "apps": "应用",
   "depPkg": "依赖包",
   "empty": "无",
-  "otherDevice": "其他设备"
+  "otherDevice": "其他设备",
+  "searchWithCurrent": "在当前设备中搜索",
+  "clickToPaste": "点击 <n-local-icon name='paste'></n-local-icon> 进行粘贴。",
+  "clickToCancel": "点击取消操作",
+  "deleteOK": "删除完成",
+  "readyDelete": "正在删除，已删除 ",
+  "importingFile": "导入文件中",
+  "impoted": "导入完成",
+  "copy": "复制",
+  "cut": "剪切"
 }

@@ -4,5 +4,14 @@
   "apps": "Application",
   "depPkg": "Dependency package",
   "empty": "None",
-  "otherDevice": "Other devices"
+  "otherDevice": "Other devices",
+  "searchWithCurrent": "Search in the current device",
+  "clickToPaste": "Click <n-local-icon name='paste'></n-local-icon> to paste.",
+  "clickToCancel": "Cancel the operation",
+  "deleteOK": "Delete completed",
+  "readyDelete": "Deleting, deleted",
+  "importingFile": "Importing file",
+  "impoted": "Import completed",
+  "copy": "Copy",
+  "cut": "Cut"
 }
