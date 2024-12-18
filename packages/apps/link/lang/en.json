@@ -15,7 +15,8 @@
   "addServer": "Add server",
   "addServerPlace": "Fill in handshake server address",
   "succeedTime": "Success time",
-  "linkState": "Connection status",
+  "state": "State",
+  "linkState": "Connection state",
   "disconnect": "Disconnect",
   "reconnect": "Reconnect",
   "delay": "Delay",
@@ -62,5 +63,12 @@
   "connectUser": "Connect user",
   "connecting": "Connecting...",
   "viewHandLog": "View handshake log",
-  "viewUserLog": "View user log"
+  "viewUserLog": "View user log",
+  "userLog": "User log",
+  "writeTestContent": "Fill in the test content to be sent",
+  "logHis": "Log record",
+  "testMsg": "Test message",
+  "reqCert": "Request the other party's certificate",
+  "cacheOtherSideCert": "Cache the certificate given by the other party",
+  "fileBad": "File is damaged"
 }

@@ -41,13 +41,15 @@
       margin: 8px 8px 0 0;
     }
   </style>
-  <div class="line"><b>用户名</b> <span>{{userName}}</span></div>
   <div class="line">
-    <b>用户ID</b>
+    <b>{{spaceData.username}}</b> <span>{{userName}}</span>
+  </div>
+  <div class="line">
+    <b>{{spaceData.userid}}</b>
     <n-copy-span style="max-width: 300px">{{userId}}</n-copy-span>
   </div>
   <div class="line">
-    <b>状态</b>
+    <b>{{spaceData.state}}</b>
     <span attr:state="state">
       {{state}}
 
@@ -57,7 +59,7 @@
         attr:disabled="!(state === 'disconnected' || state === 'closed')"
         style="margin-left: 16px"
       >
-        连接用户
+        {{spaceData.connectUser}}
       </p-button>
     </span>
   </div>
@@ -65,7 +67,7 @@
     <p-text-field
       multiline
       sync:value="val"
-      placeholder="填写要发送的测试内容"
+      attr:placeholder="spaceData.writeTestContent"
     ></p-text-field>
     <p-button
       style="margin-top: 8px"
@@ -73,14 +75,14 @@
       on:click="send"
       attr:disabled="!val || state !== 'connected'"
     >
-      发送
+      {{spaceData.send}}
     </p-button>
   </div>
   <div style="font-size: 14px; margin-top: 16px">
-    <b> 日志记录：</b>
-    <x-if :value="logs.length"> <span> {{logs.length}}条 </span> </x-if>
+    <b> {{spaceData.logHis}}</b>
+    <x-if :value="logs.length"> <span> {{logs.length}} </span> </x-if>
     <p-button size="mini" on:click="loadLogs" style="margin-left: 16px">
-      刷新
+      {{spaceData.refresh}}
     </p-button>
     <p-button
       size="mini"
@@ -88,7 +90,7 @@
       style="margin-left: 8px"
       color="error"
     >
-      删除所有日志
+      {{spaceData.deleteAllLogs}}
     </p-button>
   </div>
   <div class="logs">
@@ -104,10 +106,11 @@
           padding-left: 30px;
         "
       >
-        没有日志
+        {{spaceData.noLogs}}
       </div>
     </x-if>
   </div>
+  <div style="height: 40px"></div>
   <script>
     export const parent = "../outer.html";
     import "/packages/core/user-connect/main.js";
@@ -116,6 +119,10 @@
       const { users } = await load("/packages/core/main.js");
       const { get } = await load("/packages/fs/handle/index.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link");
 
       return {
         data: {
@@ -125,6 +132,7 @@
           val: "",
           _user: null, // 目标用户对象
           logs: [], // 所有用户日志
+          spaceData: {},
         },
         proto: {
           async deleteAll() {
@@ -197,18 +205,26 @@
         attached() {
           this.loadLogs();
 
-          this.emit("update-title", {
-            composed: true,
-            data: {
-              titles: [
-                {
-                  name: "用户",
-                },
-                {
-                  name: "用户日志",
-                },
-              ],
-            },
+          const updateTitle = () => {
+            this.emit("update-title", {
+              composed: true,
+              data: {
+                titles: [
+                  {
+                    name: spaceData.user,
+                  },
+                  {
+                    name: spaceData.userLog,
+                  },
+                ],
+              },
+            });
+          };
+
+          updateTitle();
+
+          this._cancel = onChangeLang(() => {
+            updateTitle();
           });
 
           let f;
@@ -223,9 +239,13 @@
             })
           );
           f();
+
+          this.spaceData = spaceData;
         },
         detached() {
           users.unwatch(this._wid);
+          this.spaceData = {};
+          this._cancel && this._cancel();
         },
       };
     };

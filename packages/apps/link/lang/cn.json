@@ -15,6 +15,7 @@
   "addServer": "添加服务器",
   "addServerPlace": "填写握手服务器地址",
   "succeedTime": "成功时间",
+  "state": "状态",
   "linkState": "连接状态",
   "disconnect": "断开连接",
   "reconnect": "重新连接",
@@ -62,5 +63,12 @@
   "connectUser": "连接用户",
   "connecting": "连接中...",
   "viewHandLog": "查看握手日志",
-  "viewUserLog": "查看用户日志"
+  "viewUserLog": "查看用户日志",
+  "userLog": "用户日志",
+  "writeTestContent": "填写要发送的测试内容",
+  "logHis": "日志记录",
+  "testMsg": "测试信息",
+  "reqCert": "请求对方证书",
+  "cacheOtherSideCert": "缓存对方给的证书",
+  "fileBad": "文件损坏"
 }
