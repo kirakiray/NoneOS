@@ -9,7 +9,7 @@
   "systemLang": "System Language",
   "restart": "Restart",
   "restartSystem": "Restart System",
-  "restartTips": "Click to restart the virtual system",
+  "restartTips": "Clicking will restart the virtual system",
   "appearance": "Appearance",
   "darkMode": "Dark Mode",
   "modeTips": "Click to switch to {mode} mode",
@@ -19,5 +19,5 @@
   "dirLeft": "Left",
   "dirBottom": "Bottom",
   "apps": "Applications",
-  "supportFiles": "Support {ext} format"
+  "supportFiles": "Supports {ext} format"
 }
