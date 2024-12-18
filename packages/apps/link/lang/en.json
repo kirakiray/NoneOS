@@ -93,5 +93,7 @@
   "copySucceed": "Copy successful",
   "copyCert": "Copy certificate",
   "deleteCert": "Delete certificate",
-  "deleteCertQe": "Confirm to delete certificate?"
+  "deleteCertQe": "Confirm to delete certificate?",
+  "yesAuth": "Confirm authorization",
+  "expiredTime": "Expiration time"
 }

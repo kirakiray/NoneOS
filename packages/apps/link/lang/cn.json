@@ -93,5 +93,7 @@
   "copySucceed": "复制成功",
   "copyCert": "复制证书",
   "deleteCert": "删除证书",
-  "deleteCertQe": "确认删除证书？"
+  "deleteCertQe": "确认删除证书？",
+  "yesAuth": "确认授权",
+  "expiredTime": "到期时间"
 }
