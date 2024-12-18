@@ -3,6 +3,8 @@
   "server": "服务器",
   "user": "用户",
   "authorization": "授权",
+  "time": "时间",
+  "type": "类型",
   "block": "数据块",
   "username": "用户名",
   "userid": "用户ID",
@@ -40,5 +42,16 @@
   "hor24": "24小时内",
   "day1": "一天前",
   "deleteLog": "删除日志",
-  "deleteAllLogsQe": "确认删除所有日志吗？"
+  "deleteAllLogsQe": "确认删除所有日志吗？",
+  "collContent": "折叠内容",
+  "showAllContent": "显示所有",
+  "send": "发送",
+  "receive": "接收",
+  "requestRecommends": "请求推荐列表",
+  "searchUser": "查找用户",
+  "serverInit": "服务初始化",
+  "setCandi": "设置候选人",
+  "useOffer": "使用offer",
+  "remoteOffer": "远端offer",
+  "forwardData": "转发数据"
 }
