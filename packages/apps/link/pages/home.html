@@ -28,7 +28,9 @@
   </style>
 
   <div class="line">
-    <div class="line-key">用户名</div>
+    <div class="line-key">
+      <n-desc space="link" name="username"></n-desc>
+    </div>
     <div class="line-val" style="display: flex">
       <x-if :value="renameMode">
         <input
@@ -56,13 +58,17 @@
     </div>
   </div>
   <div class="line">
-    <div class="line-key">用户ID</div>
+    <div class="line-key">
+      <n-desc space="link" name="userid"></n-desc>
+    </div>
     <div class="line-val">
       <n-copy-span>{{userID}} </n-copy-span>
     </div>
   </div>
   <div class="line">
-    <div class="line-key">签名公钥</div>
+    <div class="line-key">
+      <n-desc space="link" name="publicKey"></n-desc>
+    </div>
     <div class="line-val">
       <div class="row-val" attr:title="signPublic">
         <n-copy-span>{{signPublic}} </n-copy-span>
@@ -75,6 +81,8 @@
     export default async ({ load }) => {
       const { getId, getPublic } = await load("/packages/core/base/pair.js");
       const { getInfo, setInfo } = await load("/packages/core/base/user.js");
+
+      const { getText, onChangeLang } = await load("/packages/i18n/data.js");
 
       const selfUserInfo = await getInfo();
 
@@ -105,16 +113,26 @@
           },
         },
         attached() {
-          this.emit("update-title", {
-            composed: true,
-            data: {
-              titles: [
-                {
-                  name: "首页",
-                },
-              ],
-            },
+          const updateTitle = () => {
+            this.emit("update-title", {
+              composed: true,
+              data: {
+                titles: [
+                  {
+                    name: getText("home", "link"),
+                  },
+                ],
+              },
+            });
+          };
+          updateTitle();
+
+          this._cancel = onChangeLang((lang) => {
+            updateTitle();
           });
+        },
+        detached() {
+          this._cancel && this._cancel();
         },
       };
     };

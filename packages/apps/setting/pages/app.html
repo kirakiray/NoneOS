@@ -11,14 +11,22 @@
     }
   </style>
   <div>
-    <h5>应用程序</h5>
+    <h5>
+      <n-desc space="setting" name="apps"></n-desc>
+    </h5>
     <p-list style="max-width: 600px; padding-right: 8px">
       <x-fill :value="apps">
         <p-list-item button>
           <img attr:src="$data.icon" height="25" slot="prefix" />
           {{$data.name}}
           <x-if :value="$data.accept">
-            <div secondary>支持 {{$host.getSecondText($data)}} 格式</div>
+            <div secondary>
+              <n-desc
+                space="setting"
+                name="supportFiles"
+                attr:data-ext="$host.getSecondText($data)"
+              ></n-desc>
+            </div>
           </x-if>
         </p-list-item>
       </x-fill>
@@ -29,6 +37,7 @@
 
     export default async ({ load }) => {
       const { getApps } = await load("/packages/none-os/app.js");
+      const { getLang } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -44,11 +53,23 @@
             console.log("apps: ", apps);
 
             this.apps = apps.map((app) => {
+              const { configData } = app;
+
+              let { name } = app;
+
+              if (configData.i18n) {
+                const currentLangData = configData.i18n[getLang()];
+
+                if (currentLangData && currentLangData.name) {
+                  name = currentLangData.name;
+                }
+              }
+
               return {
-                name: app.name,
+                name,
                 icon: app.icon.url,
                 url: app.url.replace("/app-config.js", ""),
-                accept: app.configData.accept,
+                accept: configData.accept,
               };
             });
           },

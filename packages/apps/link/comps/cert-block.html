@@ -69,13 +69,13 @@
     </div>
   </div>
   <div class="line">
-    <div class="line-key">卡片ID</div>
+    <div class="line-key">CardID</div>
     <div class="line-val">{{certID}}</div>
   </div>
 
   <div>
     <p-button size="mini" color="error" on:click="deleteCert">
-      删除证书
+      {{spaceData.deleteCert}}
     </p-button>
 
     <p-button
@@ -83,7 +83,7 @@
       attr:color="isClickCopy ? 'success' : 'primary'"
       on:click="clickCopy"
     >
-      {{isClickCopy ? '复制成功' : '复制证书'}}
+      {{isClickCopy ? spaceData.copySucceed : spaceData.copyCert}}
     </p-button>
   </div>
 
@@ -112,6 +112,11 @@
       const { get } = await load("/packages/fs/handle/index.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
 
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link", true);
+
       return {
         tag: "n-cert-block",
         data: {
@@ -121,6 +126,7 @@
           certData: {}, // 主体卡片数据
           isClickCopy: false,
           certID: "", // 卡片哈希id
+          spaceData: {},
         },
         watch: {
           item(item) {
@@ -189,8 +195,8 @@
           // 删除证书
           async deleteCert() {
             const result = await confirm({
-              title: "删除证书",
-              content: `确认删除证书？`,
+              title: spaceData.deleteCert,
+              content: spaceData.deleteCertQe,
             });
 
             if (!result) {
@@ -220,27 +226,16 @@
             const expire = new Map(this.item).get("expire");
 
             if (!/\D/.test(expire) && Date.now() > expire) {
-              return `(已过期)`;
+              return `(${spaceData.expired})`;
             }
             return "";
           },
           getName(key) {
-            switch (key) {
-              case "issuer":
-                return "证书颁发者";
-              case "authTo":
-                return "授权给";
-              case "permission":
-                return "权限";
-              case "signPublic":
-                return "公钥";
-              case "creation":
-                return "创建时间";
-              case "expire":
-                return "过期时间";
+            if (spaceData.certData) {
+              return spaceData.certData[key];
             }
 
-            return key;
+            return "";
           },
         },
         async attached() {
@@ -253,6 +248,11 @@
               this.iskeep = !!(await targetHandle.size());
             }
           }
+
+          this.spaceData = spaceData;
+        },
+        detached() {
+          this.spaceData = {};
         },
       };
     };

@@ -87,7 +87,7 @@
 
   <script>
     import "../commons/init.js";
-    
+
     export default {
       tag: "p-select",
       attrs: {
@@ -125,9 +125,7 @@
 
           return "";
         },
-      },
-      ready() {
-        this.shadow.on("slotchange", () => {
+        refreshOptions() {
           // let hasprefix = false;
           let hasOption = 0;
           const options = document.createDocumentFragment();
@@ -145,7 +143,28 @@
             selector.push(options);
           }
           // this.hasprefix = hasprefix;
+        },
+      },
+      ready() {
+        this.shadow.on("slotchange", () => {
+          this.refreshOptions();
         });
+      },
+      attached() {
+        // 监听子节点的变化
+        // 创建一个观察器实例并传入回调函数
+        const observer = (this._obs = new MutationObserver((mutationsList) => {
+          this.refreshOptions();
+        }));
+
+        // 开始观察目标节点
+        observer.observe(this.ele, {
+          attributes: true,
+          subtree: true,
+        });
+      },
+      detached() {
+        this._obs.disconnect();
       },
     };
   </script>

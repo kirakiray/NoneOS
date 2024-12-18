@@ -1,0 +1,32 @@
+{
+  "install": "NoneOSをインストール",
+  "welcome": "ようこそ",
+  "agreement": "利用規約",
+  "startInstall": "インストールを開始",
+  "reinstall": "システムを再インストール",
+  "entrySystemDirectly": "システムに直接入る",
+  "installEnd": "インストール完了",
+  "nextStep": "次へ",
+  "p2": {
+    "title": "NoneOSへようこそ",
+    "updateTitle": "NoneOSを更新する",
+    "updateTo": "<span class='os-version'>{localVersion}</span> から <span class='os-version'>{onlineVersion}</span> へ更新",
+    "desc1": "ブラウザで動作するデスクトップオペレーティングシステムで、すべてのデバイスをつなげます。",
+    "desc2": "安全、シンプル、使いやすい。",
+    "closeAlert": "ご支援ありがとうございます。さようなら。（ウィンドウが閉じない場合は手動で閉じてください）"
+  },
+  "disagree": "同意しない",
+  "agreenAndInstall": "同意してインストール",
+  "p3": {
+    "waitDownload": "ダウンロードを待機中",
+    "tips": "インストールが進行中です。ブラウザを閉じないでください。",
+    "readList": "{sourceName} からファイルリストを取得中",
+    "download": "{sourceName} からファイルをダウンロード中",
+    "error1": "正しいシステムファイルをどのソースからも取得できません",
+    "caculateHash": "ファイルのハッシュを計算中",
+    "matchFile": "ファイルを照合中",
+    "writeSystem": "システムファイルを書き込み中"
+  },
+  "installSucceed": "NoneOSのインストールに成功しました",
+  "entrySystem": "システムに入る"
+}

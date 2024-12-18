@@ -7,8 +7,8 @@
   {{momentTime}}
   <script>
     import moment from "/packages/libs/moment/moment.min.js";
-    import "/packages/libs/moment/zh-cn.js";
-    moment.locale("zh-cn");
+    // import "/packages/libs/moment/zh-cn.js";
+    // moment.locale("zh-cn");
 
     // 已经加入 document 的元素
     const eles = new Set();
@@ -25,6 +25,12 @@
     refresh();
 
     export default async ({ load }) => {
+      const { getLang } = await load("/packages/i18n/data.js");
+      if (getLang() === "cn") {
+        await load("/packages/libs/moment/zh-cn.js");
+        moment.locale("zh-cn");
+      }
+
       return {
         tag: "n-moment-span",
         data: {
@@ -42,7 +48,11 @@
 
             if (/\D/.test(time)) {
               if (time === "never") {
-                this.momentTime = "不会过期";
+                if (getLang() === "cn") {
+                  this.momentTime = "不会过期";
+                } else {
+                  this.momentTime = "never";
+                }
                 return;
               }
               this.momentTime = time;

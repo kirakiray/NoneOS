@@ -1,0 +1,101 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      const { space, spacePath, getLang } = await load("./data.js");
+
+      return {
+        tag: "n-desc",
+        attrs: {
+          name: "", // 描述名称
+          space: "", // 语言的存储空间
+          setType: null, // 设置语言的方式，默认text，可以改用 html
+          article: null, // 是不是文章
+        },
+        data: {},
+        proto: {
+          changeName() {
+            if (this.article !== null) {
+              const path = spacePath[this.space];
+
+              if (this.name) {
+                fetch(`${path}/${this.name}/${getLang()}.html`)
+                  .then((e) => e.text())
+                  .then((html) => {
+                    this.html = html;
+                  });
+              }
+              return;
+            }
+
+            clearTimeout(this._c_timer);
+            this._c_timer = setTimeout(() => {
+              let val = space[this.space].get(this.name);
+
+              if (/\{.+\}/.test(val)) {
+                const matchArr = val.match(/(\{.+?\})/g);
+                matchArr &&
+                  matchArr.forEach((e) => {
+                    const key = e.replace("{", "").replace("}", "").trim();
+                    val = val.replace(e, this.data[key]);
+                  });
+              }
+
+              if (this.setType === "html") {
+                if (this.html !== val) {
+                  this.html = val;
+                  this.emit("change-desc-text");
+                }
+              } else {
+                if (this.text !== val) {
+                  this.text = val;
+                  this.emit("change-desc-text");
+                }
+              }
+            }, 50);
+          },
+        },
+        watch: {
+          name() {
+            this.changeName();
+          },
+          space() {
+            this.changeName();
+          },
+        },
+        attached() {
+          this._wid = space.watchTick(() => {
+            this.changeName();
+          });
+
+          // 选择要观察变动的目标节点
+          const targetNode = this.ele;
+
+          const observer = (this._attrObs = new MutationObserver(
+            (mutationsList) => {
+              this.changeName();
+            }
+          ));
+
+          // 开始观察目标节点
+          observer.observe(targetNode, {
+            attributes: true,
+          });
+        },
+        detached() {
+          if (this._wid) {
+            space.unwatch(this._wid);
+          }
+          if (this._attrObs) {
+            this._attrObs.disconnect();
+          }
+        },
+      };
+    };
+  </script>
+</template>

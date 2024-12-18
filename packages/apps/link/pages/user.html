@@ -20,13 +20,13 @@
   </style>
   <div class="title">
     <!-- 在线用户 -->
-    推荐用户
+    {{spaceData.recommendUser}}
     <p-button
       on:click="updateOnlineUser"
       style="margin: 0 16px 0 32px"
       size="mini"
     >
-      刷新用户
+      {{spaceData.refreshUser}}
     </p-button>
   </div>
   <div class="container">
@@ -43,10 +43,15 @@
       const { updateOnlineUser } = await load(
         "/packages/core/user-connect/main.js"
       );
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link");
 
       return {
         data: {
           users: [], // 所有用户
+          spaceData: {},
         },
         proto: {
           // 更新在线用户
@@ -55,19 +60,31 @@
         async attached() {
           this.users = users;
 
-          this.emit("update-title", {
-            composed: true,
-            data: {
-              titles: [
-                {
-                  name: "用户",
-                },
-              ],
-            },
+          const updateTitle = () => {
+            this.emit("update-title", {
+              composed: true,
+              data: {
+                titles: [
+                  {
+                    name: spaceData.user,
+                  },
+                ],
+              },
+            });
+          };
+
+          updateTitle();
+
+          this.spaceData = spaceData;
+
+          this._cancel = onChangeLang((lang) => {
+            updateTitle();
           });
         },
         detached() {
           this.users = [];
+          this.spaceData = {};
+          this._cancel && this._cancel();
         },
       };
     };

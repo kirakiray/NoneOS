@@ -101,11 +101,13 @@
   <div class="container">
     <div class="file-item head">
       <div class="file-item-cell">
-        <div style="padding-left: 20px">名称</div>
+        <div style="padding-left: 20px">{{spaceData.fileName}}</div>
       </div>
-      <div class="file-item-cell" style="flex-grow: 0">修改时间</div>
-      <div class="file-item-cell small-cell">文件大小</div>
-      <div class="file-item-cell small-cell">类型</div>
+      <div class="file-item-cell" style="flex-grow: 0">
+        {{spaceData.modifyTime}}
+      </div>
+      <div class="file-item-cell small-cell">{{spaceData.fileSize}}</div>
+      <div class="file-item-cell small-cell">{{spaceData.fileType}}</div>
     </div>
     <div style="position: relative; margin-top: 0.5px">
       <div class="stripe-bg"></div>
@@ -157,57 +159,61 @@
     </div>
   </div>
   <x-if :value="noMatch">
-    <div style="text-align: center; font-size: 14px">
-      没有匹配的文件或文件夹
-    </div>
+    <div style="text-align: center; font-size: 14px">{{spaceData.noMatch}}</div>
   </x-if>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
   <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>
   <style id="clipboard-style"></style>
   <script>
-    export default {
-      tag: "n-file-list",
-      data: {
-        files: [],
-        theme: null,
-        clipboard: {},
-        needRename: null, // 需要重命名的文件
-        search: "", // 搜索内容
-        noMatch: false, // 没有搜索到结果为true
-      },
-      watch: {
-        search() {
-          if (!this.files || !this.files.length) {
-            return;
-          }
+    export default async ({ load }) => {
+      const { getSpaceData } = await load("/packages/i18n/data.js");
 
-          clearTimeout(this._search_timer);
-          this._search_timer = setTimeout(() => {
-            let exited = false;
-            const text = this.search.toLowerCase();
-            this.files.forEach((e) => {
-              e.hide = !e.name.toLowerCase().includes(text);
-              if (!e.hide) {
-                exited = true;
-              }
-            });
-            // 所有都隐藏，就显示空
-            this.noMatch = !exited;
-          }, 100);
+      const spaceData = await getSpaceData("files", true);
+
+      return {
+        tag: "n-file-list",
+        data: {
+          files: [],
+          theme: null,
+          clipboard: {},
+          needRename: null, // 需要重命名的文件
+          search: "", // 搜索内容
+          noMatch: false, // 没有搜索到结果为true
+          spaceData: {},
         },
-        clipboard(clipboard) {
-          // 让图标出现剪贴板的样式，保证页面跳转后也能出现标识
-          if (!clipboard?.type) {
-            this.shadow.$("#clipboard-style").html = "";
-            return;
-          }
+        watch: {
+          search() {
+            if (!this.files || !this.files.length) {
+              return;
+            }
 
-          let styleContent = "";
+            clearTimeout(this._search_timer);
+            this._search_timer = setTimeout(() => {
+              let exited = false;
+              const text = this.search.toLowerCase();
+              this.files.forEach((e) => {
+                e.hide = !e.name.toLowerCase().includes(text);
+                if (!e.hide) {
+                  exited = true;
+                }
+              });
+              // 所有都隐藏，就显示空
+              this.noMatch = !exited;
+            }, 100);
+          },
+          clipboard(clipboard) {
+            // 让图标出现剪贴板的样式，保证页面跳转后也能出现标识
+            if (!clipboard?.type) {
+              this.shadow.$("#clipboard-style").html = "";
+              return;
+            }
 
-          if (clipboard.type === "cut") {
-            clipboard.sources.forEach((e) => {
-              styleContent += `
+            let styleContent = "";
+
+            if (clipboard.type === "cut") {
+              clipboard.sources.forEach((e) => {
+                styleContent += `
               .file-item[data-path="${e}"]{
                 opacity:.6;
               }
@@ -215,86 +221,93 @@
                 width:20px;
               }
             `;
-            });
-          } else if (clipboard.type === "copy") {
-            clipboard.sources.forEach((e) => {
-              styleContent += `
+              });
+            } else if (clipboard.type === "copy") {
+              clipboard.sources.forEach((e) => {
+                styleContent += `
               .file-item[data-path="${e}"] .copy-icon{
                 width:20px;
               }
             `;
-            });
-          }
-
-          this.shadow.$("#clipboard-style").html = styleContent;
-        },
-      },
-      proto: {
-        get selecteds() {
-          return this.files.filter((e) => {
-            return e.selected;
-          });
-        },
-        async open(data) {
-          if (/\.fs_task_cache$/.test(data.name)) {
-            // 确认是任务进度
-
-            this.emit("open-task", {
-              composed: true,
-              data: {
-                name: data.name,
-                path: data.path,
-              },
-            });
-          } else if (data.kind === "dir") {
-            this.host.goto(
-              `./explore.html?path=${encodeURIComponent(data.path)}`
-            );
-          } else {
-            this.emit("open-app", {
-              data: {
-                path: data.path,
-              },
-              composed: true,
-            });
-          }
-        },
-        get sqColor() {
-          return this.theme === "dark"
-            ? "--md-ref-palette-normal10"
-            : "--md-ref-palette-normal95";
-        },
-
-        async selectItem(data) {
-          this.files.forEach((e) => {
-            if (e === data) {
-              return;
+              });
             }
 
-            // 去除其他选中的元素
-            if (e.selected) {
-              e.selected = null;
+            this.shadow.$("#clipboard-style").html = styleContent;
+          },
+        },
+        proto: {
+          get selecteds() {
+            return this.files.filter((e) => {
+              return e.selected;
+            });
+          },
+          async open(data) {
+            if (/\.fs_task_cache$/.test(data.name)) {
+              // 确认是任务进度
+
+              this.emit("open-task", {
+                composed: true,
+                data: {
+                  name: data.name,
+                  path: data.path,
+                },
+              });
+            } else if (data.kind === "dir") {
+              this.host.goto(
+                `./explore.html?path=${encodeURIComponent(data.path)}`
+              );
+            } else {
+              this.emit("open-app", {
+                data: {
+                  path: data.path,
+                },
+                composed: true,
+              });
             }
-          });
+          },
+          get sqColor() {
+            return this.theme === "dark"
+              ? "--md-ref-palette-normal10"
+              : "--md-ref-palette-normal95";
+          },
 
-          data.selected = data.selected ? null : 1;
+          async selectItem(data) {
+            this.files.forEach((e) => {
+              if (e === data) {
+                return;
+              }
 
-          this.emit("select-files", {
-            data: {
-              selecteds: this.selecteds,
-            },
-            composed: true,
-          });
+              // 去除其他选中的元素
+              if (e.selected) {
+                e.selected = null;
+              }
+            });
+
+            data.selected = data.selected ? null : 1;
+
+            this.emit("select-files", {
+              data: {
+                selecteds: this.selecteds,
+              },
+              composed: true,
+            });
+          },
+          getKind(kind) {
+            switch (kind) {
+              case "dir":
+                return spaceData.folder;
+              case "file":
+                return spaceData.file;
+            }
+          },
         },
-        getKind(kind) {
-          switch (kind) {
-            case "dir":
-              return "文件夹";
-            case "file":
-              return "文件";
-          }
+        attached() {
+          this.spaceData = spaceData;
         },
-      },
+        detached() {
+          this.spaceData = {};
+        },
+      };
     };
   </script>
 </template>

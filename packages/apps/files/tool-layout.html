@@ -182,7 +182,7 @@
     <p-text-field
       size="small"
       class="search-input"
-      placeholder="在当前文件夹搜索"
+      attr:placeholder="spaceData.searchWithCurrent"
       sync:value="search"
     >
       <n-local-icon name="search" slot="prefix"></n-local-icon>
@@ -198,26 +198,26 @@
 
   <div class="bottom-area" class:hide="!clipboard?.sources?.length">
     <x-if :value="clipboard?.sources?.length">
-      {{clipboardText}}，点击
-      <n-local-icon name="paste"></n-local-icon> 进行粘贴。
+      {{clipboardText}},
+      <n-desc space="files" name="clickToPaste" set-type="html"></n-desc>
       <p-button
         size="small"
         on:click="cProvider.desc = null"
         style="margin: 0 8px"
       >
-        点击取消操作
+        {{spaceData.clickToCancel}}
       </p-button>
     </x-if>
   </div>
 
   <div class="bottom-area delay error-mode" class:hide="!showDelete">
-    <x-if :value="deletingData.total == 0"> 删除完成 </x-if>
-    <x-else> 正在删除，已删除 {{deletedPercentage}}</x-else>
+    <x-if :value="deletingData.total == 0"> {{spaceData.deleteOK}} </x-if>
+    <x-else> {{spaceData.readyDelete}} {{deletedPercentage}}</x-else>
   </div>
 
   <div class="bottom-area" class:hide="!importingLen">
     <x-if :value="importingLen > importedLen">
-      导入文件中
+      {{spaceData.importingFile}}
       <p-progress
         :value="importedLen / importingLen * 100"
         type="circle"
@@ -225,7 +225,7 @@
       ></p-progress>
       {{importedLen}} / {{importingLen}}
     </x-if>
-    <x-else> 导入完成 </x-else>
+    <x-else> {{spaceData.impoted}} </x-else>
   </div>
 
   <div class="address">
@@ -244,6 +244,7 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { getSpaceData } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -266,6 +267,7 @@
             count: 0, // 已经删除的数量
             total: 0, // 总共文件
           },
+          spaceData: {},
         },
         watch: {
           search(text) {
@@ -344,9 +346,9 @@
 
               switch (this?.clipboard?.type) {
                 case "copy":
-                  return `复制 ${sources}`;
+                  return `${this.spaceData.copy} ${sources}`;
                 case "cut":
-                  return `剪切 ${sources}`;
+                  return `${this.spaceData.cut} ${sources}`;
               }
             }
           },
@@ -458,6 +460,12 @@
             this.needRename = null;
             this.search = "";
           });
+        },
+        attached() {
+          this.spaceData = getSpaceData("files");
+        },
+        detached() {
+          this.spaceData = {};
         },
       };
     };

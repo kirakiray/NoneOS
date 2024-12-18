@@ -39,14 +39,14 @@
 
   <p-list style="margin-top: 8px; max-width: 600px">
     <p-list-item button="suffix" collapse-childs="open">
-      ICE 服务器 ({{iceServers.length}})
+      {{spaceData.iceServer}} ({{iceServers.length}})
       <i collapse-triangle slot="suffix"></i>
       <p-list slot="childs">
         <p-list-item>
           <p-text-field
             size="small"
             sync:value="newServerUrl"
-            placeholder="输入ice服务器地址，按回车添加"
+            attr:placeholder="spaceData.addIceServerPlace"
             on:keyup="addServer"
           ></p-text-field>
         </p-list-item>
@@ -146,7 +146,7 @@
                       size="small"
                       sync:value="$data.username"
                     >
-                      <label>用户名</label>
+                      <label>{{$host.spaceData.username}}</label>
                     </p-text-field>
                     <p-text-field
                       style="width: 150px; margin-left: 8px"
@@ -154,7 +154,7 @@
                       size="small"
                       sync:value="$data.credential"
                     >
-                      <label>密码</label>
+                      <label>{{$host.spaceData.pwd}}</label>
                     </p-text-field>
                   </div>
                 </p-list-item>
@@ -174,11 +174,17 @@
 
       const { enqueue, confirm } = await load("/packages/pui/util.js");
 
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link");
+
       return {
         tag: "n-ice-server-list",
         data: {
           newServerUrl: "",
           iceServers: [],
+          spaceData: {},
         },
         proto: {
           isTurn(urls) {
@@ -210,7 +216,7 @@
 
               if (!isStunOrTurnAddress(data)) {
                 enqueue({
-                  content: "输入的ice服务器地址不合法",
+                  content: getText("iceIll", "link"),
                   color: "error",
                 });
                 return;
@@ -225,7 +231,7 @@
           },
           async removeServer(data) {
             const result = await confirm({
-              content: `确认删除ice服务器：${data.urls}`,
+              content: getText("deleteIceServer", "link", { urls: data.urls }),
               color: "error",
             });
 
@@ -248,9 +254,13 @@
         },
         attached() {
           this.iceServers = iceServers;
+
+          this.spaceData = spaceData;
         },
         detached() {
           this.iceServers = [];
+
+          this.spaceData = {};
         },
       };
     };

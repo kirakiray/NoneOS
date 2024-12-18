@@ -1,0 +1,32 @@
+{
+  "install": "Install NoneOS",
+  "welcome": "Welcome",
+  "agreement": "User Agreement",
+  "startInstall": "Start Installation",
+  "reinstall": "Reinstall System",
+  "entrySystemDirectly": "Enter System Directly",
+  "installEnd": "Installation Complete",
+  "nextStep": "Next Step",
+  "p2": {
+    "title": "Welcome to NoneOS",
+    "updateTitle": "Update Your NoneOS",
+    "updateTo": "Update from <span class='os-version'>{localVersion}</span> to <span class='os-version'>{onlineVersion}</span>",
+    "desc1": "A browser-based desktop operating system that connects all your devices.",
+    "desc2": "Secure, simple, and easy to use.",
+    "closeAlert": "Thank you for your support. Goodbye. (If the window does not close, please close it manually)"
+  },
+  "disagree": "Disagree",
+  "agreenAndInstall": "Agree and Install",
+  "p3": {
+    "waitDownload": "Waiting for Download",
+    "tips": "The installation is in progress. Please do not close the browser.",
+    "readList": "Fetching file list from {sourceName}",
+    "download": "Downloading files from {sourceName}",
+    "error1": "Unable to fetch the correct system files from any source",
+    "caculateHash": "Calculating file hash",
+    "matchFile": "Matching files",
+    "writeSystem": "Writing system files"
+  },
+  "installSucceed": "NoneOS Installed Successfully",
+  "entrySystem": "Enter System"
+}

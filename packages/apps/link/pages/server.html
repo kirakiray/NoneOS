@@ -31,7 +31,7 @@
     .block-line-key {
       font-weight: bold;
       font-size: 14px;
-      width: 100px;
+      width: 150px;
     }
 
     .block-line-value {
@@ -50,30 +50,33 @@
       margin-left: 8px;
     }
   </style>
+  <h5 style="margin: 0; padding: 0 0 8px">{{spaceData.handServer}}</h5>
   <div style="display: flex; margin: 0 8px 16px 0">
     <p-text-field
       size="small"
-      placeholder="填写握手服务器地址"
+      attr:placeholder="spaceData.addServerPlace"
       sync:value="newServer"
       style="flex: 1; margin-right: 16px"
     ></p-text-field>
-    <p-button size="small" on:click="addServer">添加服务器</p-button>
+    <p-button size="small" on:click="addServer">
+      {{spaceData.addServer}}
+    </p-button>
   </div>
 
   <div class="container">
     <x-fill :value="servers" fill-key="serverUrl">
       <div class="server-block">
         <div class="block-line">
-          <div class="block-line-key">服务器名称</div>
+          <div class="block-line-key">{{$host.spaceData.serverName}}</div>
           <div class="block-line-value">{{$data.serverName}}</div>
         </div>
         <div class="block-line">
-          <div class="block-line-key">服务器版本</div>
+          <div class="block-line-key">{{$host.spaceData.serverVersion}}</div>
           <div class="block-line-value">{{$data.serverVersion}}</div>
         </div>
         <x-if :value="!$data.connectEndTime">
           <div class="block-line">
-            <div class="block-line-key">开始连接时间</div>
+            <div class="block-line-key">{{$host.spaceData.startLinkTime}}</div>
             <div class="block-line-value">
               {{new Date($data.connectStartTime).toLocaleString()}}
             </div>
@@ -81,36 +84,43 @@
         </x-if>
         <x-else>
           <div class="block-line">
-            <div class="block-line-key">成功时间</div>
+            <div class="block-line-key">{{$host.spaceData.succeedTime}}</div>
             <div class="block-line-value">
               {{new Date($data.connectEndTime).toLocaleString()}}
             </div>
           </div>
         </x-else>
         <div class="block-line">
-          <div class="block-line-key">连接状态</div>
+          <div class="block-line-key">{{$host.spaceData.linkState}}</div>
           <div class="block-line-value" attr:status="$data.status">
             {{$data.status}}
           </div>
           <x-if :value="$data.status === 'connected'">
             <p-button color="error" size="mini" on:click="$data.close()">
-              断开连接
+              {{$host.spaceData.disconnect}}
             </p-button>
           </x-if>
           <x-else-if :value="$data.status === 'closed'">
-            <p-button size="mini" on:click="$data.init()"> 重新连接 </p-button>
+            <p-button size="mini" on:click="$data.init()">
+              {{$host.spaceData.reconnect}}
+            </p-button>
           </x-else-if>
         </div>
         <div class="block-line">
-          <div class="block-line-key">延迟</div>
+          <div class="block-line-key">{{$host.spaceData.delay}}</div>
           <div class="block-line-value">{{$data.delayTime}}ms</div>
 
-          <p-button size="mini" variant="text" on:click="$host.ping($data)">
-            测试延迟
+          <p-button
+            size="mini"
+            variant="text"
+            attr:disabled="$host.disabledPing === $data.serverUrl"
+            on:click="$host.ping($data)"
+          >
+            {{$host.spaceData.testDelay}}
           </p-button>
         </div>
         <div class="block-line">
-          <div class="block-line-key">服务器地址</div>
+          <div class="block-line-key">{{$host.spaceData.serverAddress}}</div>
           <div
             class="block-line-value"
             style="user-select: text; font-size: 14px"
@@ -123,7 +133,7 @@
           style="margin-top: 4px; justify-content: flex-end"
         >
           <p-button size="mini" on:click="$host.gotoLog($data)">
-            查看历史日志
+            {{$host.spaceData.viewHisLogs}}
           </p-button>
           <p-button
             color="error"
@@ -132,7 +142,7 @@
             on:click="$host.deleteServer($data)"
             style="position: absolute; right: 8px; top: 12px"
           >
-            删除
+            {{$host.spaceData.delete}}
           </p-button>
         </div>
       </div>
@@ -148,6 +158,10 @@
 
     export default async ({ load }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link");
 
       const { servers, addServer, removeServer } = await load(
         "/packages/core/server-connect/main.js"
@@ -157,6 +171,8 @@
         data: {
           servers: [],
           newServer: "",
+          disabledPing: null,
+          spaceData: {},
         },
         proto: {
           async gotoLog(item) {
@@ -165,14 +181,21 @@
             );
           },
           ping(item) {
+            this.disabledPing = item.serverUrl;
+            setTimeout(() => {
+              this.disabledPing = null;
+            }, 1000);
             item.ping();
           },
           async deleteServer(item) {
             const result = await confirm({
-              title: "删除服务器",
-              content: `确认要从本地删除 ${item.serverName}(${item.serverUrl}) 吗？`,
-              yes: "确认删除",
-              cancel: "取消",
+              title: getText("deleteDialogTitle", "link"),
+              content: getText("deleteContent", "link", {
+                serverName: item.serverName,
+                serverUrl: item.serverUrl,
+              }),
+              yes: getText("okDelete", "link"),
+              cancel: getText("cancel", "link"),
             });
 
             if (result) {
@@ -198,19 +221,31 @@
           this.servers = servers;
           console.log(servers);
 
-          this.emit("update-title", {
-            composed: true,
-            data: {
-              titles: [
-                {
-                  name: "服务器",
-                },
-              ],
-            },
+          const onUpdateTitle = () => {
+            this.emit("update-title", {
+              composed: true,
+              data: {
+                titles: [
+                  {
+                    name: spaceData.server,
+                  },
+                ],
+              },
+            });
+          };
+
+          onUpdateTitle();
+
+          this._cancel = onChangeLang((lang) => {
+            onUpdateTitle();
           });
+
+          this.spaceData = spaceData;
         },
         detached() {
           this.servers = [];
+          this.spaceData = {};
+          this._cancel && this._cancel();
         },
       };
     };

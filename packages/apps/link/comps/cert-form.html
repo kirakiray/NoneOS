@@ -17,26 +17,32 @@
   </style>
   <div class="container">
     <p-text-field class="field-ele" sync:value="authTo">
-      <label>授权给</label>
+      <label>
+        <n-desc name="certData.authTo" space="link"></n-desc>
+      </label>
     </p-text-field>
     <p-select sync:value="type" class="field-ele">
-      <label>类型</label>
-      <option value="fully">完全授权</option>
-      <option value="read" disabled>只读</option>
-      <option value="recommend" disabled>推荐</option>
-      <option value="follow" disabled>关注</option>
-      <option value="custom" disabled>自定义类型</option>
+      <label>
+        <n-desc name="type" space="link"></n-desc>
+      </label>
+      <option value="fully">Fully</option>
+      <option value="onlyread" disabled>OnlyRead</option>
+      <option value="recommend" disabled>Recommend</option>
+      <option value="follow" disabled>Follow</option>
+      <option value="custom" disabled>Custom</option>
     </p-select>
     <!-- <p-text-field class="field-ele">
           <label>自定义类型</label>
         </p-text-field> -->
     <p-select sync:value="expireTime" class="field-ele">
-      <label>到期时间</label>
-      <option value="1second">1秒后</option>
-      <option value="1hour">1小时后</option>
-      <option value="1day">1天后</option>
-      <option value="1week">1周后</option>
-      <option value="forever">永久</option>
+      <label>
+        <n-desc name="expiredTime" space="link"></n-desc>
+      </label>
+      <option value="1second">1 second later</option>
+      <option value="1hour">1 hour later</option>
+      <option value="1day">1 day later</option>
+      <option value="1week">1 week later</option>
+      <option value="forever">Never</option>
     </p-select>
     <!-- <p-text-field multiline disabled class="field-ele">
           <label>附加内容</label>
@@ -46,7 +52,7 @@
         attr:disabled="!authTo || !type || !expireTime"
         on:click="submit"
       >
-        确认授权
+        <n-desc name="yesAuth" space="link"></n-desc>
       </p-button>
     </div>
   </div>

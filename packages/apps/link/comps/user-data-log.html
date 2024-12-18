@@ -36,13 +36,18 @@
     <div class="log-line" attr:title="time">类型: {{logType}}</div>
     <div class="log-content">
       <p-button on:click="showAll = showAll ? null : 1" size="mini">
-        {{showAll ? '折叠内容' : '显示所有'}}
+        {{showAll ? spaceData.collContent : spaceData.showAllContent}}
       </p-button>
       <n-data-log :str="item._data" :show-all="showAll"></n-data-log>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link", true);
+
       return {
         tag: "user-data-log",
         data: {
@@ -50,6 +55,7 @@
             _data: "{}",
           },
           showAll: null,
+          spaceData,
         },
         proto: {
           get logType() {
@@ -57,19 +63,19 @@
               const data = JSON.parse(this.item._data);
               switch (data.type) {
                 case "msg":
-                  return "测试信息";
+                  return spaceData.testMsg;
                 case "get-certs":
-                  return "请求对方证书";
+                  return spaceData.reqCert;
                 case "obtain-certs":
-                  return "缓存对方给的证书";
+                  return spaceData.cacheOtherSideCert;
                 default:
                   // TODO: 为止类型处理
                   console.log("unknow: ", data);
-                  return "不明";
+                  return "unkown";
               }
             } catch (err) {
               // TODO: 转化出错处理
-              return "文件损坏";
+              return spaceData.fileBad;
             }
           },
           get time() {

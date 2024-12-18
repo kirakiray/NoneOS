@@ -17,11 +17,13 @@
     }
     .container {
       height: 80%;
-      padding: 0 16px;
+      padding: 0 40px;
       justify-content: center;
       align-items: center;
       display: flex;
       flex-direction: column;
+      text-align: center;
+      text-wrap: balance;
     }
 
     .os-version {
@@ -32,52 +34,60 @@
   </style>
   <div class="container">
     <x-if :value="isupdate">
-      <h2>更新你的NoneOS</h2>
+      <h2>
+        <n-desc space="installer" name="p2.updateTitle"></n-desc>
+      </h2>
 
       <p>
-        从
-        <span class="os-version">{{localVersion}}</span>
-        更新到
-        <span class="os-version">{{onlineVersion}}</span>
+        <n-desc
+          space="installer"
+          name="p2.updateTo"
+          attr:data-local-version="localVersion"
+          attr:data-online-version="onlineVersion"
+          set-type="html"
+        ></n-desc>
       </p>
     </x-if>
     <x-else>
       <h2>
-        欢迎来到 NoneOS
+        <n-desc space="installer" name="p2.title"></n-desc>
         <span class="os-version">{{onlineVersion}}</span>
       </h2>
-      <p>一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。</p>
-      <p>安全、简单、易用。</p>
+      <p><n-desc space="installer" name="p2.desc1"></n-desc></p>
+      <p><n-desc space="installer" name="p2.desc2"></n-desc></p>
     </x-else>
 
-    <p-select sync:value="lang" style="margin-top: 16px">
+    <p-select sync:value="lang" on:change="changeLang" style="margin-top: 16px">
       <n-local-icon
         name="lang"
         slot="prefix"
         style="display: inline-block; margin-right: 8px"
       ></n-local-icon>
-      <option value="en" disabled>English</option>
+      <option value="en">English</option>
       <option value="cn">中文</option>
+      <option value="ja">日本語</option>
     </p-select>
 
     <x-if :value="localVersion === onlineVersion">
       <p-button
         on:click="nextStep"
         variant="outlined"
-        style="margin-top: 24px; width: 120px"
+        style="margin-top: 24px; width: 200px"
       >
-        重装系统
+        <n-desc space="installer" name="reinstall"></n-desc>
       </p-button>
     </x-if>
     <x-else>
-      <p-button on:click="nextStep" style="margin-top: 24px; width: 120px">
-        下一步
+      <p-button on:click="nextStep" style="margin-top: 24px; width: 200px">
+        <n-desc space="installer" name="nextStep"></n-desc>
       </p-button>
     </x-else>
 
     <x-if :value="localVersion === onlineVersion">
-      <p-button style="margin-top: 16px; width: 120px">
-        <a href="/">直接进入系统</a>
+      <p-button style="margin-top: 16px; width: 200px">
+        <a href="/">
+          <n-desc space="installer" name="entrySystemDirectly"></n-desc>
+        </a>
       </p-button>
     </x-if>
   </div>
@@ -85,9 +95,11 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/handle/index.js");
 
+      const { changeLang } = await load("/packages/i18n/data.js");
+
       return {
         data: {
-          lang: "cn",
+          lang: localStorage.getItem("_lang") || "en",
           isupdate: false, // 是否是更新
           onlineVersion: "",
           localVersion: "",
@@ -95,6 +107,9 @@
         proto: {
           nextStep() {
             $("n-installer").step++;
+          },
+          changeLang(e) {
+            changeLang($(e.target).value);
           },
         },
         async attached() {

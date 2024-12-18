@@ -48,14 +48,18 @@
     <div slot="left" class="left-con">
       <p-list>
         <p-list-item collapse-childs="open" button="suffix">
-          <span style="font-size: 13px; font-weight: 600">当前空间</span>
+          <span style="font-size: 13px; font-weight: 600">
+            <n-desc space="files" name="currentStorage"></n-desc>
+          </span>
           <i collapse-triangle slot="suffix"></i>
           <p-list slot="childs">
             <x-fill :value="locals" name="path-item"> </x-fill>
           </p-list>
         </p-list-item>
         <p-list-item collapse-childs="open" button="suffix">
-          <span style="font-size: 13px; font-weight: 600">其他设备</span>
+          <span style="font-size: 13px; font-weight: 600">
+            <n-desc space="files" name="otherDevice"></n-desc>
+          </span>
           <i collapse-triangle slot="suffix"></i>
           <p-list slot="childs">
             <x-fill :value="remotes">
@@ -74,7 +78,9 @@
             </x-fill>
             <x-if :value="!remotes.length">
               <p-list-item>
-                <div style="text-align: center; color: #7d7d7d">无</div>
+                <div style="text-align: center; color: #7d7d7d">
+                  <n-desc space="files" name="empty"></n-desc>
+                </div>
               </p-list-item>
             </x-if>
           </p-list>
@@ -107,31 +113,36 @@
   <script>
     import { getRemotes } from "/packages/fs/r-handle/index.js";
 
-    export default async ({ load }) => {
+    export default async ({ load, url }) => {
       const { get } = await load("/packages/fs/main.js");
       const { addTask } = await load("/packages/fs/task/main.js");
+      const { setSpace, getText, onChangeLang, getLang } = await load(
+        "/packages/i18n/data.js"
+      );
+
+      await setSpace("files", new URL("./lang", url).href);
 
       return {
         data: {
           locals: [
-            {
-              name: "虚拟空间",
-              path: "local",
-            },
-            {
-              name: "应用",
-              path: "apps",
-              icon: "apps",
-            },
-            {
-              name: "依赖包",
-              path: "packages",
-              icon: "safe",
-            },
-            {
-              name: "高速盘(test)",
-              path: "$origin:local",
-            },
+            // {
+            //   name: "虚拟本地",
+            //   path: "local",
+            // },
+            // {
+            //   name: "应用",
+            //   path: "apps",
+            //   icon: "apps",
+            // },
+            // {
+            //   name: "依赖包",
+            //   path: "packages",
+            //   icon: "safe",
+            // },
+            // {
+            //   name: "高速盘(test)",
+            //   path: "$origin:local",
+            // },
           ],
           selectedRootName: null,
           remotes: [], // 远端设备
@@ -146,6 +157,24 @@
             }
             this.selectedRootName = data.path;
             this.app.current.goto(`./explore.html?path=${data.path}`);
+          },
+          refreashLocals() {
+            this.locals = [
+              {
+                name: getText("virLocal", "files"),
+                path: "local",
+              },
+              {
+                name: getText("apps", "files"),
+                path: "apps",
+                icon: "apps",
+              },
+              {
+                name: getText("depPkg", "files"),
+                path: "packages",
+                icon: "safe",
+              },
+            ];
           },
         },
         async ready() {
@@ -202,7 +231,16 @@
             }
           });
 
+          this.refreashLocals();
           this.remotes = await getRemotes();
+        },
+        attached() {
+          this._cancel = onChangeLang((lang) => {
+            this.refreashLocals();
+          });
+        },
+        detached() {
+          this._cancel && this._cancel();
         },
       };
     };

@@ -41,33 +41,45 @@
   </style>
   <div>
     <div class="line">
-      <div class="line-key">用户名</div>
+      <div class="line-key">
+        <n-desc name="username" space="link"></n-desc>
+      </div>
       <div class="line-val">{{item.userName}}</div>
     </div>
     <div class="line">
-      <div class="line-key">用户ID</div>
+      <div class="line-key">
+        <n-desc name="userid" space="link"></n-desc>
+      </div>
       <div class="line-val">
         <n-copy-span>{{item.userId}}</n-copy-span>
       </div>
     </div>
     <div class="line">
-      <div class="line-key">签名时间</div>
+      <div class="line-key">
+        <n-desc name="signTime" space="link"></n-desc>
+      </div>
       <div class="line-val">
         <n-moment-span :time="item.time"></n-moment-span>
       </div>
     </div>
     <div class="line">
-      <div class="line-key">连接状态</div>
+      <div class="line-key">
+        <n-desc name="linkState" space="link"></n-desc>
+      </div>
       <div class="line-val" attr:state="item.state">{{item.state}}</div>
     </div>
     <x-if :value="item.state === 'error' && item.errorMsg">
       <div class="line">
-        <div class="line-key">报错信息</div>
+        <div class="line-key">
+          <n-desc name="errInfo" space="link"></n-desc>
+        </div>
         <div class="line-val" attr:state="item.state">{{item.errorMsg}}</div>
       </div>
     </x-if>
     <div class="line">
-      <div class="line-key">延迟时间</div>
+      <div class="line-key">
+        <n-desc name="delayTime" space="link"></n-desc>
+      </div>
       <div class="line-val">
         <span style="display: inline-block; width: 60px">
           {{item.delayTime}}
@@ -77,7 +89,7 @@
           size="mini"
           attr:disabled="item.state !== 'connected'"
         >
-          测试延迟
+          <n-desc name="testDelay" space="link"></n-desc>
         </p-button>
       </div>
     </div>
@@ -88,17 +100,25 @@
         size="mini"
         attr:disabled="!(item.state === 'disconnected' || item.state === 'closed' || item.state === 'error')"
       >
-        <x-if :value="item.state === 'disconnected'"> 连接用户 </x-if>
+        <x-if :value="item.state === 'disconnected'">
+          <n-desc name="connectUser" space="link"></n-desc>
+        </x-if>
         <x-else-if
           :value="!(item.state === 'closed' || item.state === 'error')"
         >
-          连接中...
+          <n-desc name="connecting" space="link"></n-desc>
         </x-else-if>
-        <x-else>重新连接</x-else>
+        <x-else>
+          <n-desc name="reconnect" space="link"></n-desc>
+        </x-else>
       </p-button>
 
-      <p-button on:click="viewHandRelateLog" size="mini">查看握手日志</p-button>
-      <p-button on:click="viewLog" size="mini">查看用户日志</p-button>
+      <p-button on:click="viewHandRelateLog" size="mini">
+        <n-desc name="viewHandLog" space="link"></n-desc>
+      </p-button>
+      <p-button on:click="viewLog" size="mini">
+        <n-desc name="viewUserLog" space="link"></n-desc>
+      </p-button>
     </div>
   </div>
   <p-button

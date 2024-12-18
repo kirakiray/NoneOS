@@ -70,25 +70,35 @@
   </style>
   <div class="container">
     <div class="line">
-      <div class="line-key">类型</div>
+      <div class="line-key">
+        <n-desc name="type" space="link"></n-desc>
+      </div>
       <div class="line-val" attr:data-type="type">{{ dataType }}</div>
     </div>
     <div class="line hashval-line" attr:title="userId">
-      <div class="line-key">对方用户</div>
+      <div class="line-key">
+        <n-desc name="otherSideUser" space="link"></n-desc>
+      </div>
       <div class="line-val">
         <n-user-name :userid="userId"></n-user-name>
       </div>
     </div>
     <div class="line hashval-line" attr:title="getPath()">
-      <div class="line-key">目标文件</div>
+      <div class="line-key">
+        <n-desc name="targetFile" space="link"></n-desc>
+      </div>
       <div class="line-val">{{getPath(true)}}</div>
     </div>
     <div class="line">
-      <div class="line-key">理由</div>
+      <div class="line-key">
+        <n-desc name="reason" space="link"></n-desc>
+      </div>
       <div class="line-val">{{ reasonStr }}</div>
     </div>
     <div class="line">
-      <div class="line-key">时间</div>
+      <div class="line-key">
+        <n-desc name="time" space="link"></n-desc>
+      </div>
       <div class="line-val">{{timeStr}}</div>
     </div>
 
@@ -107,6 +117,9 @@
   <script>
     export default async ({ load }) => {
       const { on } = await load("/packages/core/main.js");
+      const { getLang, getSpaceData } = await load("/packages/i18n/data.js");
+
+      const spaceData = await getSpaceData("link", true);
 
       return {
         tag: "n-block-log",
@@ -116,6 +129,7 @@
           hashs: [],
           reason: "", // 保存块的理由
           reasonData: null,
+          lang: getLang(),
         },
         proto: {
           getPath(ellipsis = false) {
@@ -165,25 +179,25 @@
           get reasonStr() {
             switch (this.reason) {
               case "response-block":
-                return "收到二进制缓存块";
+                return spaceData.get("blockReason.responseBlock");
               case "before-send-write":
-                return "向远端写入文件前分块";
+                return spaceData.get("blockReason.beforeSendWrite");
               case "big-data":
-                return "通知数据数据过大";
+                return spaceData.get("blockReason.bigData");
               case "fs-bridge-data":
-                return "文件通知信息信息过大";
+                return spaceData.get("blockReason.fsBridgeData");
               case "save-cache":
-                return "对方请求我的文件";
+                return spaceData.get("blockReason.fsBridgeData");
               case "middle-get-block":
-                return "对方请示我向他发送数据块";
+                return spaceData.get("blockReason.middleGetBlock");
               case "already-received":
-                return "对方已收到数据块";
+                return spaceData.get("blockReason.alreadyReceived");
               case "handle-read":
-                return "读取远程文件";
+                return spaceData.get("blockReason.handleRead");
               case "remote-write-cache":
-                return "得到通知，使用缓存写入文件";
+                return spaceData.get("blockReason.remoteWriteCache");
               case "clear-read-cache":
-                return "清理读取远程文件的缓存";
+                return spaceData.get("blockReason.clearReadCache");
             }
 
             return this.reason || "-";
@@ -191,11 +205,11 @@
           get dataType() {
             switch (this.type) {
               case "get":
-                return "请求块";
+                return spaceData.requestBlock;
               case "save":
-                return "缓存块";
+                return spaceData.cacheBlock;
               case "clear":
-                return "清除块";
+                return spaceData.clearBlock;
             }
           },
         },

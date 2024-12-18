@@ -36,19 +36,24 @@
   </style>
   <div class="data-log" class:ispost="ispost">
     <div class="log-line">
-      时间:
+      {{spaceData.time}}:
       <n-moment-span :time="item.time"></n-moment-span>
     </div>
-    <div class="log-line">类型: {{logType}}</div>
+    <div class="log-line">{{spaceData.type}}: {{logType}}</div>
     <div class="log-content">
       <p-button on:click="showAll = showAll ? null : 1" size="mini">
-        {{showAll ? '折叠内容' : '显示所有'}}
+        {{showAll ? spaceData.collContent : spaceData.showAllContent}}
       </p-button>
       <n-data-log :str="logDataStr" :show-all="showAll"></n-data-log>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link");
+
       return {
         tag: "server-data-log",
         data: {
@@ -58,6 +63,7 @@
           logDataStr: "{}",
           showAll: null,
           ispost: false, // 是否自己发送的数据
+          spaceData: {},
         },
         proto: {
           get logType() {
@@ -69,18 +75,18 @@
               let prefix = ``;
 
               if (origin.__post) {
-                prefix = "发送";
+                prefix = spaceData.send;
                 this.ispost = true;
               } else if (origin.__receive) {
-                prefix = "接收";
+                prefix = spaceData.receive;
               }
 
               let { result } = origin;
 
               if (result.recommends) {
-                return `${prefix}-请求推荐列表`;
+                return `${prefix}-${spaceData.requestRecommends}`;
               } else if (result.search) {
-                return `${prefix}-查找用户`;
+                return `${prefix}-${spaceData.searchUser}`;
               } else if (result.agent) {
                 result = {
                   __type: "agent-connect",
@@ -91,21 +97,21 @@
 
               switch (result.__type) {
                 case "init":
-                  return `${prefix}-服务初始化`;
+                  return `${prefix}-${spaceData.serverInit}`;
                 case "agent-connect":
                   const step = result?.data?.step;
 
                   if (step) {
                     if (step === "set-candidates") {
-                      return `${prefix}-设置候选人(${result.data.candidates.length})`;
+                      return `${prefix}-${spaceData.setCandi}(${result.data.candidates.length})`;
                     } else if (step === "set-remote") {
-                      return `${prefix}-使用offer`;
+                      return `${prefix}-${spaceData.useOffer}`;
                     } else if (step === "answer-remote") {
-                      return `${prefix}-远端offer`;
+                      return `${prefix}-${spaceData.remoteOffer}`;
                     }
                   }
 
-                  return `${prefix}-转发数据`;
+                  return `${prefix}-${spaceData.forwardData}`;
                 default:
                   console.log(result);
                   return "unknown";
@@ -114,6 +120,12 @@
               return "";
             }
           },
+        },
+        attached() {
+          this.spaceData = spaceData;
+        },
+        detached() {
+          this.spaceData = {};
         },
       };
     };

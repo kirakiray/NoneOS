@@ -2,5 +2,16 @@
   "name": "图片",
   "icon": "icon.svg",
   "config": "app-config.js",
-  "accept": ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", "ico"]
+  "accept": ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", "ico"],
+  "i18n": {
+    "cn": {
+      "name": "图片"
+    },
+    "en": {
+      "name": "Picture"
+    },
+    "ja": {
+      "name": "画像"
+    }
+  }
 }

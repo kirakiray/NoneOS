@@ -78,6 +78,11 @@
       width: var(--block-size);
       margin-top: 8px;
       text-align: center;
+      line-height: 1.2em;
+    }
+
+    .midsize {
+      font-size: 14px;
     }
 
     .empty-content {
@@ -106,7 +111,7 @@
     <div class="container">
       <div class="top">
         <p-text-field
-          placeholder="搜索应用"
+          attr:placeholder="searchPlaceText"
           sync:value="searchText"
           on:click="$event.stopPropagation()"
         >
@@ -127,19 +132,28 @@
             <div class="icon">
               <img attr:src="$data.icon.url" />
             </div>
-            <div class="app-name">{{$data.name}}</div>
+            <div class="app-name" class:midsize="$data.realName.length > 10">
+              {{$data.realName || $data.name}}
+            </div>
           </div>
         </x-fill>
         <x-if :value="isEmpty">
-          <div class="empty-content">没有符合搜索条件应用</div>
+          <div class="empty-content">
+            <n-desc space="app-manager" name="emptyTips"></n-desc>
+          </div>
         </x-if>
       </div>
     </div>
   </p-provider>
   <script>
-    export default async ({ load }) => {
+    export default async ({ load, url }) => {
       // 默认应用
       const { getAppBase, getApps } = await load("/packages/none-os/app.js");
+      const { setSpace, getText, onChangeLang, getLang } = await load(
+        "/packages/i18n/data.js"
+      );
+
+      await setSpace("app-manager", new URL("./lang", url).href);
 
       return {
         data: {
@@ -155,6 +169,7 @@
             // },
           ],
           searchText: "",
+          searchPlaceText: getText("searchPlace", "app-manager"),
           isEmpty: false,
         },
         watch: {
@@ -193,11 +208,37 @@
             });
           },
           async refreshApps() {
-            this.apps = await getApps();
+            const apps = await getApps();
+
+            const currentLang = getLang();
+
+            apps.forEach((app) => {
+              const { configData } = app;
+              app.realName = app.name;
+
+              if (configData.i18n) {
+                const currentData = configData.i18n[currentLang];
+
+                if (currentData && currentData.name) {
+                  app.realName = currentData.name;
+                }
+              }
+            });
+
+            this.apps = apps;
           },
         },
         async ready() {
           this.refreshApps();
+        },
+        attached() {
+          this._cancel = onChangeLang(() => {
+            this.searchPlaceText = getText("searchPlace", "app-manager");
+            this.refreshApps();
+          });
+        },
+        detached() {
+          this._cancel && this._cancel();
         },
       };
     };

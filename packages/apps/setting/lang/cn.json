@@ -1,0 +1,23 @@
+{
+  "systemSetting": "系统设置",
+  "system": "系统",
+  "sversion": "系统版本",
+  "onlineVer": "在线版本",
+  "gotoInstall": "去安装",
+  "alreadyLates": "已经是最新版",
+  "updateTo": "更新到",
+  "systemLang": "系统语言",
+  "restart": "重启",
+  "restartSystem": "重启系统",
+  "restartTips": "点击后，将重新启动虚拟系统",
+  "appearance": "外观",
+  "darkMode": "深色模式",
+  "modeTips": "点击切换到{mode}模式",
+  "barDir": "程序坞方向",
+  "dark": "深色",
+  "light": "浅色",
+  "dirLeft": "左侧",
+  "dirBottom": "底部",
+  "apps": "应用程序",
+  "supportFiles": "支持 {ext} 格式"
+}

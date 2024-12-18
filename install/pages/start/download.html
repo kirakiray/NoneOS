@@ -10,10 +10,19 @@
     <div style="color: #fb4747">{{error}}</div>
   </x-if>
   <x-else-if :value="step === 'get-files'">
-    <div>正在从 {{sourceName}} 获取文件列表</div>
+    <n-desc
+      space="installer"
+      name="p3.readList"
+      attr:data-source-name="sourceName"
+    ></n-desc>
   </x-else-if>
   <x-else-if :value="step === 'download'">
-    <div>正在从 {{sourceName}} 下载文件</div>
+    <n-desc
+      space="installer"
+      name="p3.download"
+      attr:data-source-name="sourceName"
+    ></n-desc>
+
     <p-progress :value="progress" style="width: 200px"></p-progress>
   </x-else-if>
 
@@ -22,6 +31,7 @@
       const { verifyMessage } = await load("/packages/core/base/verify.js");
       let { rootPublic } = await load("/packages/core/cert/main.js");
       const { unzip } = await load("/packages/libs/zip/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       rootPublic =
         rootPublic ||
@@ -136,7 +146,7 @@
             }
 
             if (!isSucceed) {
-              this.error = "无法从任何源获取到正确的系统文件";
+              this.error = getText("p3.error1", "installer");
             }
           },
         },

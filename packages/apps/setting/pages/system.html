@@ -25,6 +25,7 @@
       grid-template-columns: repeat(auto-fill, 48%);
       row-gap: 8px;
       column-gap: 8px;
+      text-transform: capitalize;
     }
 
     p-list-item {
@@ -68,57 +69,76 @@
     }
   </style>
   <div class="container">
-    <h5>系统</h5>
+    <h5>
+      <n-desc space="setting" name="system"></n-desc>
+    </h5>
     <div class="list">
       <x-if :value="useOnline">
         <p-list-item radius>
           <n-local-icon name="version" slot="prefix"></n-local-icon>
-          系统版本
-          <div class="item-tips">在线版 {{onlineVersion}}</div>
+          <n-desc space="setting" name="sversion"></n-desc>
+
+          <div class="item-tips">
+            <n-desc space="setting" name="onlineVer"></n-desc>
+            {{onlineVersion}}
+          </div>
           <p-button size="small" slot="suffix">
-            <a href="/install">去安装</a>
+            <a href="/install">
+              <n-desc space="setting" name="gotoInstall"></n-desc>
+            </a>
           </p-button>
         </p-list-item>
       </x-if>
       <x-else>
         <p-list-item radius>
           <n-local-icon name="version" slot="prefix"></n-local-icon>
-          系统版本
+          <n-desc space="setting" name="sversion"></n-desc>
           <div class="item-tips">{{osVersion}}</div>
           <x-if :value="onlineVersion === osVersion">
-            <div slot="suffix">已经是最新版</div>
+            <div slot="suffix">
+              <n-desc space="setting" name="alreadyLates"></n-desc>
+            </div>
           </x-if>
           <x-else-if :value="onlineVersion">
             <p-button size="small" slot="suffix">
-              <a href="/install"> 更新到 {{onlineVersion}}</a>
+              <a href="/install">
+                <n-desc space="setting" name="updateTo"></n-desc>
+                {{onlineVersion}}
+              </a>
             </p-button>
           </x-else-if>
         </p-list-item>
       </x-else>
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
-        系统语言
-        <div class="item-tips">en 正在准备中...</div>
+
+        <n-desc space="setting" name="systemLang"></n-desc>
         <p-select
           size="small"
           slot="suffix"
           sync:value="lang"
+          on:change="changeLang"
           style="margin-right: 8px"
         >
           <option value="cn">简体中文</option>
-          <option value="en" disabled>English</option>
+          <option value="en">English</option>
+          <option value="ja">日本語</option>
         </p-select>
       </p-list-item>
       <p-list-item radius>
         <n-local-icon name="version" slot="prefix"></n-local-icon>
-        重启系统
-        <div class="item-tips">点击后，将重新启动虚拟系统</div>
+        <n-desc space="setting" name="restartSystem"></n-desc>
+        <div class="item-tips">
+          <n-desc space="setting" name="restartTips"></n-desc>
+        </div>
         <p-button slot="suffix" size="small" on:click="reloadSystem">
-          重启
+          <n-desc space="setting" name="restart"></n-desc>
         </p-button>
       </p-list-item>
     </div>
-    <h5>外观</h5>
+    <h5>
+      <n-desc space="setting" name="appearance"></n-desc>
+    </h5>
     <div class="list">
       <p-list-item button="suffix" radius>
         <n-local-icon
@@ -131,11 +151,19 @@
           slot="prefix"
           class:hide="darkMode"
         ></n-local-icon>
-        深色模式
+        <n-desc space="setting" name="darkMode"></n-desc>
         <div class="item-tips">
-          点击切换到{{darkMode ? '浅色' : '深色'}}模式
+          <n-desc
+            space="setting"
+            name="modeTips"
+            attr:data-mode="modeText"
+          ></n-desc>
         </div>
-        <p-switch slot="suffix" sync:value="darkMode"></p-switch>
+        <p-switch
+          slot="suffix"
+          sync:value="darkMode"
+          on:change="refreshModeText()"
+        ></p-switch>
       </p-list-item>
       <p-list-item radius>
         <n-local-icon
@@ -143,15 +171,16 @@
           slot="prefix"
           style="font-size: 26px"
         ></n-local-icon>
-        程序坞方向
+        <n-desc space="setting" name="barDir"></n-desc>
         <p-select
           slot="suffix"
           size="small"
           :value="bardir"
           on:change="changeDir"
         >
-          <option value="left">左侧</option>
-          <option value="bottom">下方</option>
+          <x-fill :value="dirOptions" fill-key="value">
+            <option attr:value="$data.value">{{$data.name}}</option>
+          </x-fill>
         </p-select>
       </p-list-item>
     </div>
@@ -165,18 +194,30 @@
       const { get } = await load("/packages/fs/main.js");
 
       const { configs } = await load("/packages/none-os/configs.js");
+      const { changeLang, getText } = await load("/packages/i18n/data.js");
 
       const useOnline = !!(await storage.getItem("use-online")); // 使用在线版
 
       return {
         data: {
-          lang: "cn",
+          lang: localStorage.getItem("_lang") || "en",
           darkMode: false,
           osVersion: "Loading",
           onlineVersion: "",
           theme: "",
           bardir: configs.barDirection, // 程序坞的方向
           useOnline,
+          modeText: "",
+          dirOptions: [
+            {
+              name: "左侧",
+              value: "left",
+            },
+            {
+              name: "底部",
+              value: "bottom",
+            },
+          ],
         },
         watch: {
           theme(theme) {
@@ -195,6 +236,28 @@
           },
         },
         proto: {
+          refreshModeText() {
+            setTimeout(() => {
+              this.modeText = this.darkMode
+                ? getText("light", "setting")
+                : getText("dark", "setting");
+
+              this.dirOptions = [
+                {
+                  name: getText("dirLeft", "setting"),
+                  value: "left",
+                },
+                {
+                  name: getText("dirBottom", "setting"),
+                  value: "bottom",
+                },
+              ];
+            }, 50);
+          },
+          changeLang(e) {
+            changeLang($(e.target).value);
+            this.refreshModeText();
+          },
           async reloadSystem() {
             location.reload();
           },
@@ -224,6 +287,7 @@
         },
         ready() {
           this.refreshVersion();
+          this.refreshModeText();
         },
       };
     };

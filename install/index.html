@@ -37,25 +37,27 @@
       <span style="margin-left: 8px" id="loading-progress-text">(0 / 3)</span>
     </div>
     <l-m src="/packages/pui/button/button.html"></l-m>
-    <l-m src="/packages/others/comps/installer.html"></l-m>
-    <n-installer
-      appname="安装NoneOS"
-      appicon="/logo.png"
-      step="0"
-      style="display: none"
-    >
-      <n-installer-page step-name="欢迎" hide-leftmenu>
+    <l-m src="/packages/others/comps/installer.html?direct=1 -direct"></l-m>
+    <l-m src="/packages/i18n/component.html"></l-m>
+    <n-installer appicon="/logo.png" step="0" style="display: none">
+      <n-desc space="installer" name="install" install-name></n-desc>
+
+      <n-installer-page hide-leftmenu>
+        <n-desc space="installer" name="welcome" step-name></n-desc>
         <o-page src="/install/pages/welcome.html"></o-page>
       </n-installer-page>
-      <n-installer-page step-name="使用协议">
+      <n-installer-page>
+        <n-desc space="installer" name="agreement" step-name></n-desc>
         <o-page src="/install/pages/agreement.html"></o-page>
       </n-installer-page>
-      <n-installer-page step-name="开始安装">
+      <n-installer-page>
+        <n-desc space="installer" name="startInstall" step-name></n-desc>
         <template>
           <o-page src="/install/pages/start.html" id="start-page"></o-page>
         </template>
       </n-installer-page>
-      <n-installer-page step-name="安装完成">
+      <n-installer-page>
+        <n-desc space="installer" name="installEnd" step-name></n-desc>
         <template>
           <o-page src="/install/pages/ok.html"></o-page>
         </template>
@@ -65,12 +67,15 @@
   <script type="module">
     const load = lm(import.meta);
 
+    const { setSpace } = await load("/packages/i18n/data.js");
+    setSpace("installer", "/install/pages/lang");
+
     // 等待加载完成
     await load("/packages/pui/button/button.html");
     await load("/packages/pui/select/select.html");
     $("#loading-progress-text").text = "(1 / 3)";
 
-    await load("/packages/others/comps/installer.html");
+    await load("/packages/others/comps/installer.html?direct=1 -direct");
     $("#loading-progress-text").text = "(2 / 3)";
 
     await load("/install/pages/welcome.html");
