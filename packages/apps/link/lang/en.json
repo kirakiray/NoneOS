@@ -80,5 +80,18 @@
   "rootCert": "Root Certificate",
   "importOK": "Import Successfully",
   "alreadyImportCert": "Certificate already exists",
-  "authManager": "Authorization Management"
+  "authManager": "Authorization Management",
+  "certData": {
+    "issuer": "Issuer",
+    "authTo": "Authorize to",
+    "permission": "Permission",
+    "signPublic": "Public Key",
+    "creation": "Creation Time",
+    "expire": "Expiration Time"
+  },
+  "expired": "Expired",
+  "copySucceed": "Copy successful",
+  "copyCert": "Copy certificate",
+  "deleteCert": "Delete certificate",
+  "deleteCertQe": "Confirm to delete certificate?"
 }

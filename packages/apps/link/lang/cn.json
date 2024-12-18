@@ -80,5 +80,18 @@
   "rootCert": "根证书",
   "importOK": "导入成功",
   "alreadyImportCert": "证书已经存在",
-  "authManager": "授权管理"
+  "authManager": "授权管理",
+  "certData": {
+    "issuer": "签发者",
+    "authTo": "授权给",
+    "permission": "权限",
+    "signPublic": "公钥",
+    "creation": "创建时间",
+    "expire": "过期时间"
+  },
+  "expired": "已过期",
+  "copySucceed": "复制成功",
+  "copyCert": "复制证书",
+  "deleteCert": "删除证书",
+  "deleteCertQe": "确认删除证书？"
 }

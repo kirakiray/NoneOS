@@ -48,7 +48,11 @@
 
             if (/\D/.test(time)) {
               if (time === "never") {
-                this.momentTime = "不会过期";
+                if (getLang() === "cn") {
+                  this.momentTime = "不会过期";
+                } else {
+                  this.momentTime = "never";
+                }
                 return;
               }
               this.momentTime = time;
