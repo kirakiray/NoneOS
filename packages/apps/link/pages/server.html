@@ -50,6 +50,7 @@
       margin-left: 8px;
     }
   </style>
+  <h5 style="margin: 0; padding: 0 0 8px">{{spaceData.handServer}}</h5>
   <div style="display: flex; margin: 0 8px 16px 0">
     <p-text-field
       size="small"
@@ -157,7 +158,7 @@
 
     export default async ({ load }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
-      const { getSpaceData, onChangeLang } = await load(
+      const { getSpaceData, onChangeLang, getText } = await load(
         "/packages/i18n/data.js"
       );
       const spaceData = await getSpaceData("link");
@@ -188,10 +189,13 @@
           },
           async deleteServer(item) {
             const result = await confirm({
-              title: "删除服务器",
-              content: `确认要从本地删除 ${item.serverName}(${item.serverUrl}) 吗？`,
-              yes: "确认删除",
-              cancel: "取消",
+              title: getText("deleteDialogTitle", "link"),
+              content: getText("deleteContent", "link", {
+                serverName: item.serverName,
+                serverUrl: item.serverUrl,
+              }),
+              yes: getText("okDelete", "link"),
+              cancel: getText("cancel", "link"),
             });
 
             if (result) {

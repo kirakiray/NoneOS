@@ -20,5 +20,14 @@
   "testDelay": "测试延迟",
   "serverAddress": "服务器地址",
   "viewHisLogs": "查看历史日志",
-  "delete": "删除"
+  "delete": "删除",
+  "okDelete": "确认删除",
+  "cancel": "取消",
+  "deleteDialogTitle": "删除服务器",
+  "handServer": "握手服务器",
+  "iceServer": "ICE 服务器",
+  "addIceServerPlace": "输入ice服务器地址，按回车添加",
+  "pwd": "密码",
+  "iceIll": "输入的ice服务器地址不合法",
+  "deleteContent": "确认要从本地删除 {serverName}({serverUrl}) 吗？"
 }

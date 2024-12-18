@@ -7,11 +7,23 @@ export const space = $.stanz({});
 // 存储多语言的主体空间
 export const spacePath = {};
 
-export const getText = (key, spaceName) => {
+export const getText = (key, spaceName, data) => {
   if (!space[spaceName]) {
     return "";
   }
-  return space[spaceName].get(key);
+
+  let val = space[spaceName].get(key);
+
+  if (data && /\{.+\}/.test(val)) {
+    const matchArr = val.match(/(\{.+?\})/g);
+    matchArr &&
+      matchArr.forEach((e) => {
+        const key = e.replace("{", "").replace("}", "").trim();
+        val = val.replace(e, data[key]);
+      });
+  }
+
+  return val;
 };
 
 const spaceWaiter = {};
