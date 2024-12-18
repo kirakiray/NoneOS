@@ -19,7 +19,7 @@
     }
   </style>
   <div>
-    服务器地址:
+    {{spaceData.serverAddress}}:
     <span
       style="
         color: var(--md-sys-color-normal);
@@ -31,11 +31,11 @@
   </div>
 
   <div style="display: flex; margin: 4px 0; align-items: center">
-    历史日志:
+    {{spaceData.hisLogs}}:
 
     <x-if :value="logSize">
       <span style="display: inline-block; margin-left: 8px; font-size: 14px">
-        {{logSize}} 条
+        {{logSize}}
       </span>
     </x-if>
 
@@ -48,23 +48,23 @@
     </x-if>
 
     <div style="margin-left: 16px">
-      <p-button size="mini" on:click="loadLogs">刷新</p-button>
+      <p-button size="mini" on:click="loadLogs">{{spaceData.refresh}}</p-button>
       <p-button size="mini" color="error" on:click="deleteAll">
-        删除所有日志
+        {{spaceData.deleteAllLogs}}
       </p-button>
     </div>
   </div>
   <div class="container">
     <x-if :value="!loading && isEmpty">
       <div style="width: 200px; color: #7e7e7e; text-align: center">
-        没有日志
+        {{spaceData.noLogs}}
       </div>
     </x-if>
   </div>
 
   <x-if :value="groupData.withinFiveMinutes.length">
     <div class="group">
-      <span class="group_title"> 五分钟内:</span>
+      <span class="group_title"> {{spaceData.minute5}}:</span>
       <div class="container">
         <x-fill :value="groupData.withinFiveMinutes">
           <server-data-log :item="$data"></server-data-log>
@@ -75,7 +75,7 @@
 
   <x-if :value="groupData.withinOneHour.length">
     <div class="group">
-      <span class="group_title"> 一小时内:</span>
+      <span class="group_title"> {{spaceData.hor1}}:</span>
       <div class="container">
         <x-fill :value="groupData.withinOneHour">
           <server-data-log :item="$data"></server-data-log>
@@ -86,7 +86,7 @@
 
   <x-if :value="groupData.withinOneDay.length">
     <div class="group">
-      <span class="group_title"> 24小时内:</span>
+      <span class="group_title"> {{spaceData.hor24}}:</span>
       <div class="container">
         <x-fill :value="groupData.withinOneDay">
           <server-data-log :item="$data"></server-data-log>
@@ -97,7 +97,7 @@
 
   <x-if :value="groupData.moreThanOneDay.length">
     <div class="group">
-      <span class="group_title"> 一天前:</span>
+      <span class="group_title"> {{spaceData.day1}}:</span>
       <div class="container">
         <x-fill :value="groupData.moreThanOneDay">
           <server-data-log :item="$data"></server-data-log>
@@ -115,6 +115,10 @@
       const { enqueue, confirm } = await load("/packages/pui/util.js");
       const { get } = await load("/packages/fs/handle/index.js");
       const serverUrl = decodeURIComponent(query.url);
+      const { getSpaceData, onChangeLang, getText } = await load(
+        "/packages/i18n/data.js"
+      );
+      const spaceData = await getSpaceData("link");
 
       return {
         data: {
@@ -129,12 +133,13 @@
             moreThanOneDay: [], // 一天外的数据
           },
           logSize: 0, // 记录的条数
+          spaceData: {},
         },
         proto: {
           async deleteAll() {
             const result = await confirm({
-              title: "删除日志",
-              content: "确认删除所有日志吗？",
+              title: spaceData.deleteLog,
+              content: spaceData.deleteAllLogsQe,
             });
 
             if (result) {
@@ -210,23 +215,37 @@
           },
         },
         attached() {
-          this.emit("update-title", {
-            composed: true,
-            data: {
-              titles: [
-                {
-                  name: "服务器",
-                },
-                {
-                  name: "历史日志",
-                },
-              ],
-            },
-          });
+          const updateTitle = () => {
+            this.emit("update-title", {
+              composed: true,
+              data: {
+                titles: [
+                  {
+                    name: spaceData.server,
+                  },
+                  {
+                    name: spaceData.hisLogs,
+                  },
+                ],
+              },
+            });
+          };
+
+          updateTitle();
 
           this.loadLogs();
+
+          this.spaceData = spaceData;
+
+          this._cancel = onChangeLang(() => {
+            updateTitle();
+          });
         },
-        detached() {},
+        detached() {
+          this.spaceData = {};
+
+          this._cancel && this._cancel();
+        },
       };
     };
 

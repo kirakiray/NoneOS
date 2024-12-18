@@ -30,5 +30,15 @@
   "pwd": "密码",
   "iceIll": "输入的ice服务器地址不合法",
   "deleteContent": "确认要从本地删除 {serverName}({serverUrl}) 吗？",
-  "deleteIceServer": "确认删除ice服务器：{urls}"
+  "deleteIceServer": "确认删除ice服务器：{urls}",
+  "hisLogs": "历史日志",
+  "refresh": "刷新",
+  "deleteAllLogs": "删除所有日志",
+  "noLogs": "没有日志",
+  "minute5": "五分钟内",
+  "hor1": "一小时内",
+  "hor24": "24小时内",
+  "day1": "一天前",
+  "deleteLog": "删除日志",
+  "deleteAllLogsQe": "确认删除所有日志吗？"
 }
