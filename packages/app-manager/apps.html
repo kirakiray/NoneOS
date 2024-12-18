@@ -214,6 +214,7 @@
 
             apps.forEach((app) => {
               const { configData } = app;
+              app.realName = app.name;
 
               if (configData.i18n) {
                 const currentData = configData.i18n[currentLang];

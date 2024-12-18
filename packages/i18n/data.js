@@ -81,7 +81,15 @@ export const setSpace = async (name, path) => {
     space[name] = {};
   }
 
-  const langData = await fetch(`${path}/${lang}.json`).then((e) => e.json());
+  const langData = await fetch(`${path}/${lang}.json`)
+    .then((e) => e.json())
+    .catch(() => {
+      return fetch(`${path}/en.json`)
+        .then((e) => e.json())
+        .catch(() => {
+          return fetch(`${path}/cn.json`).then((e) => e.json());
+        });
+    });
 
   Object.assign(space[name], langData);
 
