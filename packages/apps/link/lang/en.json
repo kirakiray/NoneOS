@@ -95,5 +95,11 @@
   "deleteCert": "Delete certificate",
   "deleteCertQe": "Confirm to delete certificate?",
   "yesAuth": "Confirm authorization",
-  "expiredTime": "Expiration time"
+  "expiredTime": "Expiration time",
+  "dataBlock": "Data block",
+  "blockLog": "Data block log",
+  "clearLog": "Clear log",
+  "waitToSend": "Wait to send",
+  "alreadySend": "Sent",
+  "sendSucceed": "Sent successfully"
 }

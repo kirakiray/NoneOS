@@ -95,5 +95,11 @@
   "deleteCert": "删除证书",
   "deleteCertQe": "确认删除证书？",
   "yesAuth": "确认授权",
-  "expiredTime": "到期时间"
+  "expiredTime": "到期时间",
+  "dataBlock": "数据块",
+  "blockLog": "数据块日志",
+  "clearLog": "清除日志",
+  "waitToSend": "等待发送",
+  "alreadySend": "已发送",
+  "sendSucceed": "发送成功"
 }
