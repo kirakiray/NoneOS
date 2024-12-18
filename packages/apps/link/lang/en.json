@@ -3,5 +3,8 @@
   "server": "Server",
   "user": "User",
   "authorization": "Authorization",
-  "block": "Data block"
+  "block": "Data block",
+  "username": "User name",
+  "userid": "User ID",
+  "publicKey": "Public key"
 }

@@ -3,5 +3,8 @@
   "server": "服务器",
   "user": "用户",
   "authorization": "授权",
-  "block": "数据块"
+  "block": "数据块",
+  "username": "用户名",
+  "userid": "用户ID",
+  "publicKey": "公钥"
 }
