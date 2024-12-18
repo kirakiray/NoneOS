@@ -53,5 +53,14 @@
   "setCandi": "设置候选人",
   "useOffer": "使用offer",
   "remoteOffer": "远端offer",
-  "forwardData": "转发数据"
+  "forwardData": "转发数据",
+  "recommendUser": "推荐用户",
+  "refreshUser": "刷新用户",
+  "signTime": "签名时间",
+  "errInfo": "报错信息",
+  "delayTime": "延迟时间",
+  "connectUser": "连接用户",
+  "connecting": "连接中...",
+  "viewHandLog": "查看握手日志",
+  "viewUserLog": "查看用户日志"
 }

@@ -48,10 +48,19 @@
   "send": "Send",
   "receive": "Receive",
   "requestRecommends": "Request recommendation list",
-  "searchUser": "Search user",
+  "searchUser": "Find user",
   "serverInit": "Service initialization",
   "setCandi": "Set candidate",
   "useOffer": "Use offer",
   "remoteOffer": "Remote offer",
-  "forwardData": "Forward data"
+  "forwardData": "Forward data",
+  "recommendUser": "Recommend user",
+  "refreshUser": "Refresh user",
+  "signTime": "Signature time",
+  "errInfo": "Error information",
+  "delayTime": "Delay time",
+  "connectUser": "Connect user",
+  "connecting": "Connecting...",
+  "viewHandLog": "View handshake log",
+  "viewUserLog": "View user log"
 }
