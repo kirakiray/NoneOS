@@ -231,7 +231,7 @@
           },
           async removeServer(data) {
             const result = await confirm({
-              content: `确认删除ice服务器：${data.urls}`,
+              content: getText("deleteIceServer", "link", { urls: data.urls }),
               color: "error",
             });
 

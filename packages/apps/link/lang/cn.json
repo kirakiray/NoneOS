@@ -29,5 +29,6 @@
   "addIceServerPlace": "输入ice服务器地址，按回车添加",
   "pwd": "密码",
   "iceIll": "输入的ice服务器地址不合法",
-  "deleteContent": "确认要从本地删除 {serverName}({serverUrl}) 吗？"
+  "deleteContent": "确认要从本地删除 {serverName}({serverUrl}) 吗？",
+  "deleteIceServer": "确认删除ice服务器：{urls}"
 }
