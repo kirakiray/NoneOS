@@ -101,5 +101,23 @@
   "clearLog": "清除日志",
   "waitToSend": "等待发送",
   "alreadySend": "已发送",
-  "sendSucceed": "发送成功"
+  "sendSucceed": "发送成功",
+  "otherSideUser": "对方用户",
+  "targetFile": "目标文件",
+  "reason": "理由",
+  "requestBlock": "请求块",
+  "cacheBlock": "缓存块",
+  "clearBlock": "清除块",
+  "blockReason": {
+    "responseBlock": "收到二进制缓存块",
+    "beforeSendWrite": "向远端写入文件前分块",
+    "bigData": "通知数据数据过大",
+    "fsBridgeData": "文件通知信息信息过大",
+    "saveCache": "对方请求我的文件",
+    "middleGetBlock": "对方请示我向他发送数据块",
+    "alreadyReceived": "对方已收到数据块",
+    "handleRead": "读取远程文件",
+    "remoteWriteCache": "得到通知，使用缓存写入文件",
+    "clearReadCache": "清理读取远程文件的缓存"
+  }
 }

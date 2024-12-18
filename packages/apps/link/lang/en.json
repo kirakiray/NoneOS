@@ -93,7 +93,7 @@
   "copySucceed": "Copy successful",
   "copyCert": "Copy certificate",
   "deleteCert": "Delete certificate",
-  "deleteCertQe": "Confirm to delete certificate?",
+  "deleteCertQe": "Confirm to delete certificate? ",
   "yesAuth": "Confirm authorization",
   "expiredTime": "Expiration time",
   "dataBlock": "Data block",
@@ -101,5 +101,23 @@
   "clearLog": "Clear log",
   "waitToSend": "Wait to send",
   "alreadySend": "Sent",
-  "sendSucceed": "Sent successfully"
+  "sendSucceed": "Sent successfully",
+  "otherSideUser": "Other user",
+  "targetFile": "Target file",
+  "reason": "Reason",
+  "requestBlock": "Request block",
+  "cacheBlock": "Cache block",
+  "clearBlock": "Clear block",
+  "blockReason": {
+    "responseBlock": "Receive binary cache block",
+    "beforeSendWrite": "Block before writing file to remote end",
+    "bigData": "Notification data is too large",
+    "fsBridgeData": "File notification information is too large",
+    "saveCache": "The other party requests my file",
+    "middleGetBlock": "The other party asked me to send him a data block",
+    "alreadyReceived": "The other party has received the data block",
+    "handleRead": "Read remote files",
+    "remoteWriteCache": "Get notification and use cache to write files",
+    "clearReadCache": "Clear the cache for reading remote files"
+  }
 }
