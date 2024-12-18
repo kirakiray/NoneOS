@@ -6,5 +6,19 @@
   "block": "Data block",
   "username": "User name",
   "userid": "User ID",
-  "publicKey": "Public key"
+  "publicKey": "Public key",
+  "serverName": "Server name",
+  "serverVersion": "Server version",
+  "startLinkTime": "Start connection time",
+  "addServer": "Add server",
+  "addServerPlace": "Fill in handshake server address",
+  "succeedTime": "Success time",
+  "linkState": "Connection status",
+  "disconnect": "Disconnect",
+  "reconnect": "Reconnect",
+  "delay": "Delay",
+  "testDelay": "Test delay",
+  "serverAddress": "Server address",
+  "viewHisLogs": "View historical logs",
+  "delete": "Delete"
 }

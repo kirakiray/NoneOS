@@ -6,5 +6,19 @@
   "block": "数据块",
   "username": "用户名",
   "userid": "用户ID",
-  "publicKey": "公钥"
+  "publicKey": "公钥",
+  "serverName": "服务器名称",
+  "serverVersion": "服务器版本",
+  "startLinkTime": "开始连接时间",
+  "addServer": "添加服务器",
+  "addServerPlace": "填写握手服务器地址",
+  "succeedTime": "成功时间",
+  "linkState": "连接状态",
+  "disconnect": "断开连接",
+  "reconnect": "重新连接",
+  "delay": "延迟",
+  "testDelay": "测试延迟",
+  "serverAddress": "服务器地址",
+  "viewHisLogs": "查看历史日志",
+  "delete": "删除"
 }
