@@ -5,7 +5,10 @@
     }
   </style>
   <x-if :value="isme">
-    <span style="color: var(--md-sys-color-primary)"> (我) </span>
+    <span style="color: var(--md-sys-color-primary)">
+      <x-if :value="lang === 'cn'"> (我) </x-if>
+      <x-else> (me) </x-else>
+    </span>
   </x-if>
   {{realName}}
   <script>
@@ -13,6 +16,8 @@
       const { get } = await load("/packages/fs/handle/index.js");
       const { getId } = await load("/packages/core/base/pair.js");
       const { getInfo } = await load("/packages/core/base/user.js");
+
+      const { getLang } = await load("/packages/i18n/data.js");
 
       const selfUserId = await getId();
       const selfInfo = await getInfo();
@@ -24,6 +29,7 @@
           realName: "", // 实际显示的名字字符串
           selfUserId, // 当前用户自身的id
           isme: false,
+          lang: getLang(),
         },
         watch: {
           async userid(userid) {
