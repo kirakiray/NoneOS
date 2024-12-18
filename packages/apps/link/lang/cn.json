@@ -38,6 +38,7 @@
   "refresh": "刷新",
   "deleteAllLogs": "删除所有日志",
   "noLogs": "没有日志",
+  "empty": "空",
   "minute5": "五分钟内",
   "hor1": "一小时内",
   "hor24": "24小时内",
@@ -70,5 +71,14 @@
   "testMsg": "测试信息",
   "reqCert": "请求对方证书",
   "cacheOtherSideCert": "缓存对方给的证书",
-  "fileBad": "文件损坏"
+  "fileBad": "文件损坏",
+  "localCert": "本地证书",
+  "customCert": "自定义授权证书",
+  "importCert": "手动导入证书",
+  "fillCert": "请填入证书内容",
+  "yesImport": "确认导入",
+  "rootCert": "根证书",
+  "importOK": "导入成功",
+  "alreadyImportCert": "证书已经存在",
+  "authManager": "授权管理"
 }
