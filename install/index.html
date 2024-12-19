@@ -64,6 +64,9 @@
       </n-installer-page>
     </n-installer>
   </body>
+  <script>
+    navigator.serviceWorker.register("/sw.js");
+  </script>
   <script type="module">
     const load = lm(import.meta);
 
