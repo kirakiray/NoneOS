@@ -2139,6 +2139,8 @@
   // 初始化Local
   const inited = (async () => {
     await createRoot("local");
+    await createRoot("apps");
+    await createRoot("packages");
   })();
 
   /**
