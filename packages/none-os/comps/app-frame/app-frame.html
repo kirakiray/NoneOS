@@ -176,7 +176,21 @@
         class="top-main"
         on:dblclick="appStatus !== 'max' ? changeState('max') : changeState('normal')"
       >
-        <div class="title">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            font-size: 13px;
+          "
+        >
+          <img attr:src="icon" height="18" style="margin-right: 6px" />
+          {{realname}}
+        </div>
+        <div
+          class="title"
+          style="flex: 1; margin-left: auto; text-align: center"
+        >
           <slot name="top"></slot>
         </div>
       </div>
@@ -244,6 +258,8 @@
   </div>
 
   <script>
+    import { getLang } from "/packages/i18n/data.js";
+
     export default {
       tag: "n-app-frame",
       attrs: {
@@ -259,13 +275,14 @@
         appHeight: 200,
         theme: "",
         zindex: 0,
+        icon: "",
+        configData: "",
       },
       watch: {
         zindex(zindex) {
           this.style.zIndex = zindex;
         },
         appStatus(status) {
-          // this._first_status = 1;
           this.style.transition = "all ease 0.25s";
           clearTimeout(this._transtimer);
           this._transtimer = setTimeout(() => {
@@ -282,6 +299,25 @@
         },
       },
       proto: {
+        get realname() {
+          const { configData } = this;
+
+          if (!configData) {
+            return "";
+          }
+
+          if (!configData.i18n) {
+            return configData.name;
+          }
+
+          const lang = getLang();
+
+          if (configData.i18n[lang] && configData.i18n[lang].name) {
+            return configData.i18n[lang].name;
+          }
+
+          return configData.name;
+        },
         forward() {
           this.$("o-app").forward();
         },
