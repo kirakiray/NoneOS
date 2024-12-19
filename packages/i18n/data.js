@@ -1,6 +1,9 @@
 // 当前采用的语言
 let lang = localStorage.getItem("_lang") || "en";
 
+const load = lm(import.meta);
+load("./component.html");
+
 // 多语言的存储主体对象
 export const space = $.stanz({});
 
