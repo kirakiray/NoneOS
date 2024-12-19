@@ -64,6 +64,9 @@
       </n-installer-page>
     </n-installer>
   </body>
+  <script>
+    navigator.serviceWorker.register("/sw.js");
+  </script>
   <script type="module">
     const load = lm(import.meta);
 
@@ -71,6 +74,14 @@
 
     const { setSpace } = await load("/packages/i18n/data.js");
     setSpace("installer", "/install/pages/lang");
+
+    const useOnline = await storage.getItem("use-online");
+    if (!useOnline) {
+      await storage.setItem("use-online", 1);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await fetch("/refresh-use-online");
+      location.reload(true);
+    }
 
     // 等待加载完成
     await load("/packages/pui/button/button.html");
@@ -84,14 +95,6 @@
     $("#loading-progress-text").text = "(3 / 3)";
 
     $("n-installer").style.display = "";
-
-    const useOnline = await storage.getItem("use-online");
-    if (!useOnline) {
-      await storage.setItem("use-online", 1);
-      await new Promise((resolve) => setTimeout(resolve, 100));
-      await fetch("/refresh-use-online");
-      location.reload(true);
-    }
 
     window.addEventListener("beforeunload", function (event) {
       storage.removeItem("use-online");

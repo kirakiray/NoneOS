@@ -93,7 +93,7 @@
   </div>
   <script>
     export default async ({ load }) => {
-      const { get } = await load("/packages/fs/handle/index.js");
+      const { get, inited } = await load("/packages/fs/handle/index.js");
 
       const { changeLang } = await load("/packages/i18n/data.js");
 
@@ -113,6 +113,8 @@
           },
         },
         async attached() {
+          await inited;
+          
           const data = await load("/package.json");
           this.onlineVersion = data.version;
 
