@@ -1,5 +1,7 @@
 <template component>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="./none-os-core.html"></l-m>
   <link rel="stylesheet" href="./public.css" />
   <style>
@@ -43,15 +45,25 @@
     </style>
   </x-else>
 
-  <none-os-core></none-os-core>
+  <x-if :value="step === 2">
+    <none-os-core></none-os-core>
+  </x-if>
+  <p-dialog :open="step === 1">
+    <div slot="title">Install</div>
+    <div>
+      It is detected that you have not installed NoneOS, do you want to install
+      it?
+    </div>
+    <p-button slot="bottom" on:click="gotoInstall">Install NoneOS</p-button>
+    <p-button slot="bottom" variant="text" on:click="useOnline">
+      Use the online version
+    </p-button>
+  </p-dialog>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
     export default async ({ load }) => {
-      const { get, createRoot } = await load("../fs/handle/index.js");
+      const { get } = await load("../fs/handle/index.js");
       const { storage } = await load("/packages/libs/ever-cache/main.js");
-
-      await createRoot("apps");
-      await createRoot("packages");
 
       return {
         tag: "none-os",
@@ -61,8 +73,17 @@
           installVal: 0,
           version: "",
           theme: "light",
-          step: 0,
           installOK: false,
+          step: null, // 1:询问使用的版本 2:进入使用core系统
+        },
+        proto: {
+          gotoInstall() {
+            location.href = "/install";
+          },
+          async useOnline() {
+            await storage.setItem("use-online", 1);
+            this.step = 2;
+          },
         },
         async ready() {
           fetch("/package.json")
@@ -81,7 +102,13 @@
 
           // 没有安装且不是在线模式，跳转到安装页面
           if (!pgFile && !useOnline) {
-            location.href = "/install";
+            if (location.hostname === "localhost") {
+              this.step = 1;
+            } else {
+              location.href = "/install";
+            }
+          } else {
+            this.step = 2;
           }
         },
       };

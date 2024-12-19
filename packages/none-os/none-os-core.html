@@ -58,6 +58,8 @@
             sync:app-height="$data.appHeight"
             sync:zindex="$data.zindex"
             attr:data-appid="$data.appid"
+            :icon="$data.icon.url"
+            :config-data="$data.configData"
           >
             <o-app attr:src="$data.url" attr:data-appid="$data.appid"></o-app>
           </n-app-frame>
@@ -115,6 +117,7 @@
                 appWidth: 200,
                 appHeight: 200,
                 appid: Math.random().toString(32).slice(2),
+                configData: data.configData,
               });
 
               targetBarApp = this.barApps.find((e) => e.name === data.name);
