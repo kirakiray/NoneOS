@@ -102,12 +102,14 @@
 
           // 没有安装且不是在线模式，跳转到安装页面
           if (!pgFile && !useOnline) {
-            this.step = 1;
-            return;
+            if (location.hostname === "localhost") {
+              this.step = 1;
+            } else {
+              location.href = "/install";
+            }
+          } else {
+            this.step = 2;
           }
-
-          await storage.setItem("use-online", 1);
-          this.step = 2;
         },
       };
     };
