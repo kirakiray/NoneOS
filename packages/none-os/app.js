@@ -67,12 +67,12 @@ export const openFileWithApp = async ({ path, core }) => {
 
       for (let app of appsData) {
         if (app.configData?.accept?.includes(type)) {
-          // TODO: 打开应用程序
           const barData = core.runApp({
             data: {
               name: app.name,
               icon: app.icon,
               url: app.url,
+              configData: app.configData,
             },
           });
 
