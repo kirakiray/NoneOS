@@ -29,7 +29,7 @@
   </style>
   <n-horsp-pannel>
     <p-list slot="left">
-      <x-fill :value="roots">
+      <x-fill :value="roots" fill-key="name">
         <p-list-item
           button
           attr:active-item="$data.path === $host.currentPath"
