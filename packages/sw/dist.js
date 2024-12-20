@@ -2442,6 +2442,7 @@
         event.respondWith(
           (async () => {
             useOnline = !!(await storage$1.getItem("use-online"));
+            uTime = Date.now();
             return new Response(useOnline.toString(), {
               status: 200,
             });
@@ -2479,7 +2480,13 @@
         event.respondWith(
           (async () => {
             if (Date.now() - uTime > 5000) {
-              useOnline = !!(await storage$1.getItem("use-online"));
+              try {
+                useOnline = !!(await storage$1.getItem("use-online"));
+                uTime = Date.now();
+              } catch (err) {
+                console.error(err);
+                useOnline = true;
+              }
             }
 
             if (useOnline) {
