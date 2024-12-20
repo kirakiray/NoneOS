@@ -728,9 +728,9 @@
     const db = await _this[IDB];
 
     return new Promise((resolve, reject) => {
-      const req = afterStore(
-        db.transaction([_this[SName]], mode).objectStore(_this[SName])
-      );
+      const sname = _this[SName];
+
+      const req = afterStore(db.transaction([sname], mode).objectStore(sname));
 
       req.onsuccess = (e) => {
         if (succeed) {
