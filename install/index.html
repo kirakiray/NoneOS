@@ -76,10 +76,14 @@
     setSpace("installer", "/install/pages/lang");
 
     const useOnline = await storage.getItem("use-online");
+    console.log("useOnline: ", useOnline);
     if (!useOnline) {
       await storage.setItem("use-online", 1);
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       await fetch("/refresh-use-online");
+
+      const useOnline2 = await storage.getItem("use-online");
+      console.log("useOnline2", useOnline2);
       location.reload(true);
     }
 
@@ -96,11 +100,11 @@
 
     $("n-installer").style.display = "";
 
-    window.addEventListener("beforeunload", function (event) {
-      storage.removeItem("use-online");
-    });
-
     setTimeout(() => {
+      window.addEventListener("beforeunload", function (event) {
+        storage.removeItem("use-online");
+      });
+
       $(".start-con").style.display = "none";
       $("n-installer").style.opacity = 1;
       $("n-installer").style.transform = "translate(0px, 0)";

@@ -105,16 +105,22 @@
             unique: false,
           });
 
+          console.log("db created 1");
+
           // 以父key和name作为索引，用于获取特定文件
           mainStore.createIndex("parent_and_name", ["parent", "name"], {
             // 父文件夹下只能有一个同名文件夹或文件
             unique: true,
           });
 
+          console.log("db created 2");
+
           // 用于判断文件的块是否有重复出现，如果没有重复出现，在覆盖的时候删除blocks中的对应数据
           mainStore.createIndex("hash", "hash", {
             unique: false,
           });
+
+          console.log("db created 3");
 
           // 存储文件的表
           db.createObjectStore("blocks", {
