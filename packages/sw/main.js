@@ -27,6 +27,7 @@ self.addEventListener("fetch", (event) => {
       event.respondWith(
         (async () => {
           useOnline = !!(await storage.getItem("use-online"));
+          uTime = Date.now();
           return new Response(useOnline.toString(), {
             status: 200,
           });
@@ -64,7 +65,13 @@ self.addEventListener("fetch", (event) => {
       event.respondWith(
         (async () => {
           if (Date.now() - uTime > 5000) {
-            useOnline = !!(await storage.getItem("use-online"));
+            try {
+              useOnline = !!(await storage.getItem("use-online"));
+              uTime = Date.now();
+            } catch (err) {
+              console.error(err);
+              useOnline = true;
+            }
           }
 
           if (useOnline) {

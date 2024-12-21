@@ -105,16 +105,22 @@
             unique: false,
           });
 
+          console.log("db created 1");
+
           // 以父key和name作为索引，用于获取特定文件
           mainStore.createIndex("parent_and_name", ["parent", "name"], {
             // 父文件夹下只能有一个同名文件夹或文件
             unique: true,
           });
 
+          console.log("db created 2");
+
           // 用于判断文件的块是否有重复出现，如果没有重复出现，在覆盖的时候删除blocks中的对应数据
           mainStore.createIndex("hash", "hash", {
             unique: false,
           });
+
+          console.log("db created 3");
 
           // 存储文件的表
           db.createObjectStore("blocks", {
@@ -728,9 +734,9 @@
     const db = await _this[IDB];
 
     return new Promise((resolve, reject) => {
-      const req = afterStore(
-        db.transaction([_this[SName]], mode).objectStore(_this[SName])
-      );
+      const sname = _this[SName];
+
+      const req = afterStore(db.transaction([sname], mode).objectStore(sname));
 
       req.onsuccess = (e) => {
         if (succeed) {
@@ -2442,6 +2448,7 @@
         event.respondWith(
           (async () => {
             useOnline = !!(await storage$1.getItem("use-online"));
+            uTime = Date.now();
             return new Response(useOnline.toString(), {
               status: 200,
             });
@@ -2479,7 +2486,13 @@
         event.respondWith(
           (async () => {
             if (Date.now() - uTime > 5000) {
-              useOnline = !!(await storage$1.getItem("use-online"));
+              try {
+                useOnline = !!(await storage$1.getItem("use-online"));
+                uTime = Date.now();
+              } catch (err) {
+                console.error(err);
+                useOnline = true;
+              }
             }
 
             if (useOnline) {

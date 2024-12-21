@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>安装或更新系统</title>
-    <script src="/packages/libs/ofa/ofa.js" debug></script>
+    <script src="/packages/libs/ofa/ofa.js"></script>
     <script src="/packages/pui/init.js" type="module"></script>
     <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
     <link rel="stylesheet" href="/packages/others/colors.css" />
@@ -76,10 +76,14 @@
     setSpace("installer", "/install/pages/lang");
 
     const useOnline = await storage.getItem("use-online");
+    console.log("useOnline: ", useOnline);
     if (!useOnline) {
       await storage.setItem("use-online", 1);
       await new Promise((resolve) => setTimeout(resolve, 500));
       await fetch("/refresh-use-online");
+
+      const useOnline2 = await storage.getItem("use-online");
+      console.log("useOnline2", useOnline2);
       location.reload(true);
     }
 
@@ -96,11 +100,11 @@
 
     $("n-installer").style.display = "";
 
-    window.addEventListener("beforeunload", function (event) {
-      storage.removeItem("use-online");
-    });
-
     setTimeout(() => {
+      window.addEventListener("beforeunload", function (event) {
+        storage.removeItem("use-online");
+      });
+
       $(".start-con").style.display = "none";
       $("n-installer").style.opacity = 1;
       $("n-installer").style.transform = "translate(0px, 0)";
