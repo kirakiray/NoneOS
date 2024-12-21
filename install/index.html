@@ -79,7 +79,7 @@
     console.log("useOnline: ", useOnline);
     if (!useOnline) {
       await storage.setItem("use-online", 1);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       await fetch("/refresh-use-online");
 
       const useOnline2 = await storage.getItem("use-online");
