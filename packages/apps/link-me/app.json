@@ -2,7 +2,6 @@
   "name": "LinkMe",
   "icon": "icon.svg",
   "config": "app-config.js",
-  "accept": ["png", "jpg", "jpeg", "gif", "bmp", "webp", "svg", "ico"],
   "i18n": {
     "cn": {
       "name": "连我"
