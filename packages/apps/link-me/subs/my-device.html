@@ -30,25 +30,25 @@
         </div>
         <i collapse-triangle slot="suffix"></i>
 
-        <x-if :value="!devices.length">
-          <div
-            style="
-              line-height: 80px;
-              font-size: 12px;
-              text-align: center;
-              color: #7c7c7c;
-            "
-          >
-            没有其他设备
-          </div>
-        </x-if>
-        <x-else>
-          <p-list slot="childs">
+        <p-list slot="childs">
+          <x-if :value="!devices.length">
+            <div
+              style="
+                line-height: 80px;
+                font-size: 12px;
+                text-align: center;
+                color: #7c7c7c;
+              "
+            >
+              没有其他设备
+            </div>
+          </x-if>
+          <x-else>
             <x-fill :value="devices" fill-key="name">
               <p-list-item button>{{$data.name}}</p-list-item>
             </x-fill>
-          </p-list>
-        </x-else>
+          </x-else>
+        </p-list>
       </p-list-item>
     </p-list>
   </div>
@@ -57,9 +57,9 @@
       return {
         data: {
           devices: [
-            {
-              name: "test 1",
-            },
+            // {
+            //   name: "test 1",
+            // },
           ],
         },
         watch: {},
