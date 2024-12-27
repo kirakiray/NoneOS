@@ -1,6 +1,8 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/apps/link/comps/copy-span.html"></l-m>
+
   <style>
     :host {
       display: block;
@@ -107,6 +109,14 @@
                     >
                       测试延迟
                     </p-button>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <div style="display: flex; align-items: center">
+                    服务器地址:
+                    <n-copy-span style="margin-left: 8px">
+                      {{$data.serverUrl}}
+                    </n-copy-span>
                   </div>
                 </p-list-item>
               </p-list>
