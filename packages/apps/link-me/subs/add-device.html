@@ -1,0 +1,28 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+  </style>
+  <div class="container">
+    <div>我的设备码</div>
+    <div style="display: flex; margin-top: 16px">
+      <div style="flex: 1"></div>
+      <p-button variant="text" on:click="emit('cancel')">取消</p-button>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {},
+        proto: {},
+      };
+    };
+  </script>
+</template>

@@ -1,18 +1,9 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <style>
     :host {
       display: block;
-    }
-
-    .container {
-      /* display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center; */
-      padding: 16px;
-      max-width: 800px;
-      margin: 0 auto;
     }
 
     .root-item {
@@ -21,37 +12,46 @@
     }
   </style>
 
-  <div class="container">
-    <p-list>
-      <p-list-item radius collapse-childs="open" button="suffix">
-        <div>
-          <span class="root-item">其他设备</span>
-          ({{devices.length}})
-        </div>
-        <i collapse-triangle slot="suffix"></i>
+  <p-list>
+    <p-list-item radius collapse-childs="open" button="suffix">
+      <div>
+        <span class="root-item">我的设备</span>
+        ({{devices.length}})
+        <p-button
+          size="mini"
+          on:click="addDevice"
+          style="margin-left: 24px; position: relative; z-index: 3"
+        >
+          添加设备
+        </p-button>
+      </div>
+      <i collapse-triangle slot="suffix"></i>
 
-        <p-list slot="childs">
-          <x-if :value="!devices.length">
-            <div
-              style="
-                line-height: 80px;
-                font-size: 12px;
-                text-align: center;
-                color: #7c7c7c;
-              "
-            >
-              没有其他设备
-            </div>
-          </x-if>
-          <x-else>
-            <x-fill :value="devices" fill-key="name">
-              <p-list-item button>{{$data.name}}</p-list-item>
-            </x-fill>
-          </x-else>
-        </p-list>
-      </p-list-item>
-    </p-list>
-  </div>
+      <p-list slot="childs">
+        <x-if :value="!devices.length">
+          <div
+            style="
+              line-height: 80px;
+              font-size: 12px;
+              text-align: center;
+              color: #7c7c7c;
+            "
+          >
+            没有其他设备
+          </div>
+        </x-if>
+        <x-else>
+          <x-fill :value="devices" fill-key="name">
+            <p-list-item button>{{$data.name}}</p-list-item>
+          </x-fill>
+        </x-else>
+      </p-list>
+    </p-list-item>
+  </p-list>
+  <p-dialog :open="showAddDevice" on:cancel="showAddDevice = false">
+    <div slot="title">添加设备</div>
+    <o-page src="./add-device.html"></o-page>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
       return {
@@ -61,9 +61,14 @@
             //   name: "test 1",
             // },
           ],
+          showAddDevice: false,
         },
-        watch: {},
-        proto: {},
+        proto: {
+          async addDevice(e) {
+            e.stopPropagation();
+            this.showAddDevice = true;
+          },
+        },
       };
     };
   </script>
