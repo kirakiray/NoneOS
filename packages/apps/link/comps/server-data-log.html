@@ -113,6 +113,9 @@
 
                   return `${prefix}-${spaceData.forwardData}`;
                 default:
+                  if (result.__type || result.type) {
+                    return result.__type || result.type;
+                  }
                   console.log(result);
                   return "unknown";
               }

@@ -134,3 +134,29 @@ export const getUser = async ({ userId }) => {
 
   return users;
 };
+
+// 连接用户
+export const connectUser = async ({ userData }) => {
+  // 判断用户卡片数据是否正确
+  const result = await verify(userData);
+
+  if (!result) {
+    return false;
+  }
+
+  const targetUserID = new Map(userData.data).get("userID");
+
+  // 查看是否已经存在
+  let user = users.find((e) => e.userId === targetUserID);
+
+  if (!user) {
+    user = new UserClient(userData);
+
+    // 不存在则添加
+    users.push(user);
+  }
+
+  user.connect();
+
+  return user;
+};

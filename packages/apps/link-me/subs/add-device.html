@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <style>
     :host {
       display: block;
@@ -36,19 +37,34 @@
       </div>
     </x-if>
     <x-else-if :value="step === 1">
-      <div>
+      <div style="display: flex; align-items: center">
         我的设备码：
         <span
           style="font-size: 22px; font-weight: bold; font-family: monospace"
         >
-          {{selfDeviceCode}}
+          <n-copy-span> {{selfDeviceCode}} </n-copy-span>
         </span>
       </div>
+      <p>请在另一个设备输入此设备码。</p>
+      <p>
+        <n-local-icon
+          name="loading"
+          style="display: inline-block; vertical-align: bottom"
+        ></n-local-icon>
+        正在等待另一端输入设备码...
+      </p>
     </x-else-if>
     <x-else>
-      <p-text-field autofocus style="margin-top: 16px">
+      <p-text-field sync:value="remoteCode" autofocus style="margin-top: 16px">
         <label> 输入另一个设备的设备码 </label>
-        <p-button slot="suffix" size="small">确认</p-button>
+        <p-button
+          slot="suffix"
+          size="small"
+          attr:disabled="!remoteCode || !!getUsering"
+          on:click="confirmCode"
+        >
+          确认
+        </p-button>
       </p-text-field>
     </x-else>
     <div style="display: flex; margin-top: 16px">
@@ -59,14 +75,54 @@
   <script>
     export default async ({ load }) => {
       const { servers } = await load("/packages/core/server-connect/main.js");
+      const { connectUser } = await load("/packages/core/user-connect/main.js");
 
       return {
         data: {
           selfDeviceCode: null, // 自己的设备码
-          sideCode: null, // 另一端的设备码
+          remoteCode: null, // 另一端的设备码
           step: 0, // 0:等待选择，1: 生成设备码，2: 输入设备码
+          getUsering: false, // 是否正在获取用户
         },
         proto: {
+          async confirmCode() {
+            this.getUsering = true;
+            let ok = 0;
+
+            await Promise.all(
+              servers.map(async (server) => {
+                if (server.status === "connected") {
+                  const result = await server
+                    ._post({
+                      type: "device-code",
+                      getUser: this.remoteCode,
+                    })
+                    .then((e) => e.json());
+
+                  if (result.ok && !ok) {
+                    ok = 1;
+                    const otherSideUser = result.user;
+
+                    const userClient = await connectUser({
+                      userData: otherSideUser,
+                    });
+
+                    debugger;
+                    // receves.push({
+                    //   server,
+                    //   user: result.user,
+                    // });
+                  }
+
+                  console.log("getUser result", result);
+                }
+              })
+            ).catch(() => {
+              debugger;
+            });
+
+            this.getUsering = false;
+          },
           async genCode() {
             this.setDeviceCode();
             this.step = 1;
@@ -76,12 +132,12 @@
               if (server.status === "connected") {
                 const result = await server
                   ._post({
-                    type: "set-device-code",
-                    code: this.selfDeviceCode,
+                    type: "device-code",
+                    setCode: this.selfDeviceCode,
                   })
                   .then((e) => e.json());
 
-                console.log("result", result);
+                console.log("setCode result", result);
               }
             });
           },
@@ -89,12 +145,25 @@
             this.step = 2;
           },
           setDeviceCode() {
-            this.selfDeviceCode = Math.random().toString(36).substr(2, 5);
+            this.selfDeviceCode = Math.random().toString(36).substr(2, 6);
           },
           clickCancel() {
             setTimeout(() => {
               this.step = 0;
             }, 300);
+            servers.forEach(async (server) => {
+              if (server.status === "connected") {
+                const result = await server
+                  ._post({
+                    type: "device-code",
+                    remove: this.selfDeviceCode,
+                  })
+                  .then((e) => e.json());
+
+                console.log("result", result);
+              }
+            });
+
             this.emit("cancel");
           },
         },
