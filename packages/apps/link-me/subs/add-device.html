@@ -41,13 +41,14 @@
         <span
           style="font-size: 22px; font-weight: bold; font-family: monospace"
         >
-          {{deviceCode}}
+          {{selfDeviceCode}}
         </span>
       </div>
     </x-else-if>
     <x-else>
-      <p-text-field style="margin-top: 16px">
+      <p-text-field autofocus style="margin-top: 16px">
         <label> 输入另一个设备的设备码 </label>
+        <p-button slot="suffix" size="small">确认</p-button>
       </p-text-field>
     </x-else>
     <div style="display: flex; margin-top: 16px">
@@ -57,21 +58,38 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { servers } = await load("/packages/core/server-connect/main.js");
+
       return {
         data: {
-          deviceCode: null,
+          selfDeviceCode: null, // 自己的设备码
+          sideCode: null, // 另一端的设备码
           step: 0, // 0:等待选择，1: 生成设备码，2: 输入设备码
         },
         proto: {
           async genCode() {
             this.setDeviceCode();
             this.step = 1;
+
+            // 发送设备码到服务器
+            servers.forEach(async (server) => {
+              if (server.status === "connected") {
+                const result = await server
+                  ._post({
+                    type: "set-device-code",
+                    code: this.selfDeviceCode,
+                  })
+                  .then((e) => e.json());
+
+                console.log("result", result);
+              }
+            });
           },
           async addCode() {
             this.step = 2;
           },
           setDeviceCode() {
-            this.deviceCode = Math.random().toString(36).substr(2, 5);
+            this.selfDeviceCode = Math.random().toString(36).substr(2, 5);
           },
           clickCancel() {
             setTimeout(() => {

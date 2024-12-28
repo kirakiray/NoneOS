@@ -38,7 +38,7 @@ export const updateOnlineUser = async () => {
   servers.forEach(async (server) => {
     const result = await server
       ._post({
-        recommends: 1, // 获取推荐用户的参数
+        type: "recommends",
       })
       .then((e) => e.json());
 
