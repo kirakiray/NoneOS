@@ -1,27 +1,85 @@
 <template page>
+  <l-m src="/packages/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
       height: 100%;
     }
     .container {
-      display: flex;
-      flex-direction: column;
       height: 100%;
     }
   </style>
   <div class="container">
-    <div>我的设备码</div>
+    <p>
+      通过添加设备操作，确认两个设备是否属于同一人，以便在多个设备之间同步数据。
+    </p>
+    <p>其中一个设备生成设备码，另一个设备输入设备码，即可完成添加设备操作。</p>
+
+    <x-if :value="step === 0">
+      <div style="display: flex; padding-top: 8px">
+        <p-button on:click="genCode">
+          <n-local-icon
+            name="device-mobile-up"
+            slot="prefix"
+            style="display: inline-block; margin-right: 4px"
+          ></n-local-icon>
+          生成设备码
+        </p-button>
+        <p-button on:click="addCode" style="margin-left: 16px">
+          <n-local-icon
+            name="add-phone"
+            slot="prefix"
+            style="display: inline-block; margin-right: 4px"
+          ></n-local-icon>
+          添加设备码
+        </p-button>
+      </div>
+    </x-if>
+    <x-else-if :value="step === 1">
+      <div>
+        我的设备码：
+        <span
+          style="font-size: 22px; font-weight: bold; font-family: monospace"
+        >
+          {{deviceCode}}
+        </span>
+      </div>
+    </x-else-if>
+    <x-else>
+      <p-text-field style="margin-top: 16px">
+        <label> 输入另一个设备的设备码 </label>
+      </p-text-field>
+    </x-else>
     <div style="display: flex; margin-top: 16px">
       <div style="flex: 1"></div>
-      <p-button variant="text" on:click="emit('cancel')">取消</p-button>
+      <p-button variant="text" on:click="clickCancel">取消</p-button>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
       return {
-        data: {},
-        proto: {},
+        data: {
+          deviceCode: null,
+          step: 0, // 0:等待选择，1: 生成设备码，2: 输入设备码
+        },
+        proto: {
+          async genCode() {
+            this.setDeviceCode();
+            this.step = 1;
+          },
+          async addCode() {
+            this.step = 2;
+          },
+          setDeviceCode() {
+            this.deviceCode = Math.random().toString(36).substr(2, 5);
+          },
+          clickCancel() {
+            setTimeout(() => {
+              this.step = 0;
+            }, 300);
+            this.emit("cancel");
+          },
+        },
       };
     };
   </script>
