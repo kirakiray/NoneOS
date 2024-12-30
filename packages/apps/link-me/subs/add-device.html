@@ -9,6 +9,20 @@
     .container {
       height: 100%;
     }
+
+    .user-block {
+      padding: 4px 8px;
+      font-size: 12px;
+      border: #7a7a7a solid 1px;
+      max-width: 240px;
+      border-radius: 6px;
+    }
+
+    .user-block div {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
+    }
   </style>
   <div class="container">
     <p>
@@ -45,14 +59,61 @@
           <n-copy-span> {{selfDeviceCode}} </n-copy-span>
         </span>
       </div>
-      <p>请在另一个设备输入此设备码。</p>
-      <p>
-        <n-local-icon
-          name="loading"
-          style="display: inline-block; vertical-align: bottom"
-        ></n-local-icon>
-        正在等待另一端输入设备码...
-      </p>
+      <div>
+        <x-if :value="recevesUser.length">
+          <p>确认是我的设备后，点击确认按钮。</p>
+        </x-if>
+        <x-else>
+          <p>请在另一个设备输入此设备码。</p>
+        </x-else>
+      </div>
+      <div>
+        <div>
+          <x-if :value="!!recevesUser.length">
+            <div>匹配到的用户:</div>
+            <div style="margin-top: 4px; display: flex; flex-wrap: wrap">
+              <x-fill :value="recevesUser">
+                <div class="user-block">
+                  <x-if :value="$data.userName">
+                    <div attr:title="$data.userId">
+                      用户ID: {{$data.userId}}
+                    </div>
+                    <div>用户名: {{$data.userName}}</div>
+                    <div style="padding: 4px 0">
+                      <p-button size="mini"> 确认是我的设备 </p-button>
+                      <p-button
+                        size="mini"
+                        color="error"
+                        variant="text"
+                        style="padding-left: 8px"
+                      >
+                        取消
+                      </p-button>
+                    </div>
+                  </x-if>
+                  <x-else>
+                    <div>用户ID: {{$data.userId}}</div>
+                    <div>
+                      <n-local-icon
+                        name="loading"
+                        style="display: inline-block; vertical-align: bottom"
+                      ></n-local-icon>
+                      正在连接用户中...
+                    </div>
+                  </x-else>
+                </div>
+              </x-fill>
+            </div>
+          </x-if>
+          <x-else>
+            <n-local-icon
+              name="loading"
+              style="display: inline-block; vertical-align: bottom"
+            ></n-local-icon>
+            正在等待另一端输入设备码...
+          </x-else>
+        </div>
+      </div>
     </x-else-if>
     <x-else>
       <p-text-field sync:value="remoteCode" autofocus style="margin-top: 16px">
@@ -76,6 +137,7 @@
     export default async ({ load }) => {
       const { servers } = await load("/packages/core/server-connect/main.js");
       const { connectUser } = await load("/packages/core/user-connect/main.js");
+      const { on } = await load("/packages/core/main.js");
 
       return {
         data: {
@@ -83,15 +145,16 @@
           remoteCode: null, // 另一端的设备码
           step: 0, // 0:等待选择，1: 生成设备码，2: 输入设备码
           getUsering: false, // 是否正在获取用户
+          recevesUser: [],
         },
         proto: {
           async confirmCode() {
             this.getUsering = true;
             let ok = 0;
 
-            await Promise.all(
-              servers.map(async (server) => {
-                if (server.status === "connected") {
+            for (let server of servers) {
+              if (server.status === "connected") {
+                try {
                   const result = await server
                     ._post({
                       type: "device-code",
@@ -107,7 +170,8 @@
                       userData: otherSideUser,
                     });
 
-                    debugger;
+                    console.log("use device", userClient);
+
                     // receves.push({
                     //   server,
                     //   user: result.user,
@@ -115,11 +179,12 @@
                   }
 
                   console.log("getUser result", result);
+                } catch (e) {
+                  console.log("ping error", e);
+                  continue;
                 }
-              })
-            ).catch(() => {
-              debugger;
-            });
+              }
+            }
 
             this.getUsering = false;
           },
@@ -150,22 +215,63 @@
           clickCancel() {
             setTimeout(() => {
               this.step = 0;
-            }, 300);
-            servers.forEach(async (server) => {
-              if (server.status === "connected") {
-                const result = await server
-                  ._post({
-                    type: "device-code",
-                    remove: this.selfDeviceCode,
-                  })
-                  .then((e) => e.json());
 
-                console.log("result", result);
-              }
-            });
+              // 清空接收用户
+              this.recevesUser.splice(0);
+            }, 300);
+
+            if (this.selfDeviceCode) {
+              servers.forEach(async (server) => {
+                if (server.status === "connected") {
+                  const result = await server
+                    ._post({
+                      type: "device-code",
+                      remove: this.selfDeviceCode,
+                    })
+                    .then((e) => e.json());
+
+                  console.log("result", result);
+                }
+              });
+            }
 
             this.emit("cancel");
           },
+        },
+        attached() {
+          this._cancels = [
+            on("get-user-card", (e) => {
+              const { data } = e;
+
+              if (
+                data.way === "device-code" &&
+                data.code === this.selfDeviceCode
+              ) {
+                // 有设备获取了你的信息，并且匹配了设备码
+                // 添加用户信息
+                this.recevesUser.push({
+                  userId: data.userId,
+                });
+              }
+            }),
+            on("user-connected", (e) => {
+              const { data } = e;
+
+              const targetUser = data.target;
+
+              // 查找旧的并替换新的
+              const targetIndex = this.recevesUser.findIndex(
+                (e) => e.userId === targetUser.userId
+              );
+
+              if (targetIndex > -1) {
+                this.recevesUser[targetIndex] = targetUser;
+              }
+            }),
+          ];
+        },
+        detached() {
+          this._cancels && this._cancels.forEach((e) => e());
         },
       };
     };
