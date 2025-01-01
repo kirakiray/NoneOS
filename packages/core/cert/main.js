@@ -2,6 +2,7 @@
 import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
 import { getHash } from "../util.js";
+import { signData } from "../base/sign.js";
 
 /**
  * 获取所有证书
@@ -123,3 +124,44 @@ export const importCert = async (certItem, toCache = false) => {
 
 // 根证书公钥
 export const rootPublic = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwqKk1tx1Pr7XcTCSnCaLOtbSnAPgO6LYLlK2Z1gOPAUCs+e6kzXDtScowZhso0yEp+J/Z5X6saYx8iveBvxKjg==`;
+
+// 创建证书
+export const createCert = async ({ ...data }) => {
+  if (data.expire) {
+    let expire = Date.now();
+
+    switch (data.expire) {
+      case "1second":
+        expire += 1000;
+        break;
+      case "1hour":
+        expire += 60 * 60 * 1000;
+        break;
+      case "1day":
+        expire += 60 * 60 * 1000 * 24;
+        break;
+      case "1week":
+        expire += 60 * 60 * 1000 * 24 * 7;
+        break;
+    }
+
+    data.expire = expire;
+  }
+
+  const afterData = await signData(Object.entries(data));
+
+  const certsHandle = await get("local/system/user/certs", {
+    create: "dir",
+  });
+
+  const fileHash = await getHash(afterData);
+
+  // 写入并保存文件哈希
+  const fileHandle = await certsHandle.get(fileHash, {
+    create: "file",
+  });
+
+  await fileHandle.write(JSON.stringify(afterData));
+
+  return afterData;
+};

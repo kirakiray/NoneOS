@@ -70,7 +70,7 @@
       <div>
         <div>
           <x-if :value="!!recevesUser.length">
-            <div>匹配到的用户:</div>
+            <div>匹配到的用户</div>
             <div style="margin-top: 4px; display: flex; flex-wrap: wrap">
               <x-fill :value="recevesUser">
                 <div class="user-block">
@@ -80,11 +80,14 @@
                     </div>
                     <div>用户名: {{$data.userName}}</div>
                     <div style="padding: 4px 0">
-                      <p-button size="mini" on:click="$host.yesMyDevice($data)">
+                      <p-button
+                        size="small"
+                        on:click="$host.firstYesMyDevice($data)"
+                      >
                         确认是我的设备
                       </p-button>
                       <p-button
-                        size="mini"
+                        size="small"
                         color="error"
                         variant="text"
                         on:click="$host.noMyDevice($data)"
@@ -121,11 +124,30 @@
     <x-else>
       <div>
         <x-if :value="!!confirmerUser.userId">
-          <p>正在等待对方确认</p>
+          <p>确认到的用户</p>
           <div class="user-block">
             <div>用户ID:{{confirmerUser.userId}}</div>
             <div>用户名:{{confirmerUser.userName}}</div>
             <div>连接状态: <span>{{confirmerUser.state}}</span></div>
+            <x-if :value="confirmerUser.state === 'connected'">
+              <div style="padding: 4px 0">
+                <p-button
+                  on:click="firstYesMyDevice(confirmerUser)"
+                  size="small"
+                >
+                  确认是我的设备
+                </p-button>
+                <p-button
+                  on:click="noMyDevice(confirmerUser)"
+                  size="small"
+                  color="error"
+                  variant="text"
+                  style="margin-left: 8px"
+                >
+                  不是我的设备
+                </p-button>
+              </div>
+            </x-if>
           </div>
         </x-if>
         <x-else>
@@ -156,9 +178,8 @@
     <div slot="title">确认设备</div>
     <div style="max-width: 360px">
       <p>请认真确认信息无误后，才进行操作，防止添加了错误的设备。</p>
-      <p>未确认信息添加了错误的设备，将会导致自己数据泄漏，请再三确认无误。</p>
       <div>
-        <div>
+        <div style="display: flex; word-break: break-all">
           <span
             style="
               color: var(--md-sys-color-normal);
@@ -168,7 +189,7 @@
           >
             用户名:
           </span>
-          {{deviceData.userName}}
+          <div style="flex: 1">{{_deviceData.userName}}</div>
         </div>
         <div style="display: flex; word-break: break-all">
           <div
@@ -181,9 +202,10 @@
           >
             用户ID:
           </div>
-          <div style="flex: 1">{{deviceData.userId}}</div>
+          <div style="flex: 1">{{_deviceData.userId}}</div>
         </div>
       </div>
+      <p>未确认信息添加了错误的设备，将会导致自己数据泄漏，请再三确认无误。</p>
     </div>
     <div slot="bottom">
       <p-button on:click="showConfirm = false" variant="text">取消</p-button>
@@ -195,6 +217,7 @@
       const { servers } = await load("/packages/core/server-connect/main.js");
       const { connectUser } = await load("/packages/core/user-connect/main.js");
       const { on } = await load("/packages/core/main.js");
+      const { createCert } = load("/packages/core/cert/main.js");
 
       return {
         data: {
@@ -205,17 +228,19 @@
           getUsering: false, // 是否正在获取用户
           recevesUser: [], // 通过添加设备，接收到的用户
           showConfirm: false, // 是否显示确认对话框
-          deviceData: {}, // 确认设备时的用户信息
+          _deviceData: {}, // 确认设备时的用户信息
         },
         proto: {
-          async yesMyDevice(item) {
+          async firstYesMyDevice(item) {
+            this._deviceData = item;
             this.showConfirm = true;
-            this.deviceData = item;
           },
           // 重新确认我的设备
           async reConfirmMyDevice() {
-            debugger;
             // 开始交换证书
+
+            // 给对方一份完全授权的证书
+            debugger;
           },
           // 不是我的设备
           async noMyDevice(item) {

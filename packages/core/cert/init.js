@@ -46,7 +46,7 @@ userMiddleware.set("get-certs", async (midData, client) => {
 userMiddleware.set("obtain-certs", async (midData, client) => {
   const { certs } = midData;
 
-  if (!certs.length) {
+  if (!certs || !certs.length) {
     return;
   }
 
