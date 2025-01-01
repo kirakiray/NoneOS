@@ -189,7 +189,7 @@
           >
             用户名:
           </span>
-          <div style="flex: 1">{{_deviceData.userName}}</div>
+          <div style="flex: 1">{{_deviceUser.userName}}</div>
         </div>
         <div style="display: flex; word-break: break-all">
           <div
@@ -202,7 +202,7 @@
           >
             用户ID:
           </div>
-          <div style="flex: 1">{{_deviceData.userId}}</div>
+          <div style="flex: 1">{{_deviceUser.userId}}</div>
         </div>
       </div>
       <p>未确认信息添加了错误的设备，将会导致自己数据泄漏，请再三确认无误。</p>
@@ -217,7 +217,8 @@
       const { servers } = await load("/packages/core/server-connect/main.js");
       const { connectUser } = await load("/packages/core/user-connect/main.js");
       const { on } = await load("/packages/core/main.js");
-      const { createCert } = load("/packages/core/cert/main.js");
+      const { createCert } = await load("/packages/core/cert/main.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
 
       return {
         data: {
@@ -228,27 +229,41 @@
           getUsering: false, // 是否正在获取用户
           recevesUser: [], // 通过添加设备，接收到的用户
           showConfirm: false, // 是否显示确认对话框
-          _deviceData: {}, // 确认设备时的用户信息
+          _deviceUser: {}, // 确认设备时的用户信息
         },
         proto: {
-          async firstYesMyDevice(item) {
-            this._deviceData = item;
+          async firstYesMyDevice(user) {
+            this._deviceUser = user;
             this.showConfirm = true;
           },
           // 重新确认我的设备
           async reConfirmMyDevice() {
-            // 开始交换证书
-
             // 给对方一份完全授权的证书
-            debugger;
+            const data = await createCert({
+              authTo: this._deviceUser.userId,
+              expire: "never",
+              permission: "fully",
+            });
+
+            this._deviceUser.send({
+              type: "obtain-certs",
+              certs: [data],
+            });
+
+            this.clickCancel();
+
+            enqueue({
+              color: "success",
+              content: "已确认设备，已发送授权证书给对方。",
+            });
           },
           // 不是我的设备
-          async noMyDevice(item) {
-            item.connection.close();
+          async noMyDevice(user) {
+            user.connection.close();
 
             // 删除用户
             const index = this.recevesUser.findIndex(
-              (e) => e.userId === item.userId
+              (e) => e.userId === user.userId
             );
             this.recevesUser.splice(index, 1);
 

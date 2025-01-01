@@ -128,24 +128,26 @@ export const rootPublic = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwqKk1tx1Pr7XcTCSn
 // 创建证书
 export const createCert = async ({ ...data }) => {
   if (data.expire) {
-    let expire = Date.now();
+    if (data.expire !== "never") {
+      let expire = Date.now();
 
-    switch (data.expire) {
-      case "1second":
-        expire += 1000;
-        break;
-      case "1hour":
-        expire += 60 * 60 * 1000;
-        break;
-      case "1day":
-        expire += 60 * 60 * 1000 * 24;
-        break;
-      case "1week":
-        expire += 60 * 60 * 1000 * 24 * 7;
-        break;
+      switch (data.expire) {
+        case "1second":
+          expire += 1000;
+          break;
+        case "1hour":
+          expire += 60 * 60 * 1000;
+          break;
+        case "1day":
+          expire += 60 * 60 * 1000 * 24;
+          break;
+        case "1week":
+          expire += 60 * 60 * 1000 * 24 * 7;
+          break;
+      }
+
+      data.expire = expire;
     }
-
-    data.expire = expire;
   }
 
   const afterData = await signData(Object.entries(data));
