@@ -61,7 +61,7 @@
       </div>
       <div>
         <x-if :value="recevesUser.length">
-          <p>确认是我的设备后，点击确认按钮。</p>
+          <p>确认是我的设备后，点击 “确认是我的设备”。</p>
         </x-if>
         <x-else>
           <p>请在另一个设备输入此设备码。</p>
@@ -80,14 +80,17 @@
                     </div>
                     <div>用户名: {{$data.userName}}</div>
                     <div style="padding: 4px 0">
-                      <p-button size="mini"> 确认是我的设备 </p-button>
+                      <p-button size="mini" on:click="$host.yesMyDevice($data)">
+                        确认是我的设备
+                      </p-button>
                       <p-button
                         size="mini"
                         color="error"
                         variant="text"
+                        on:click="$host.noMyDevice($data)"
                         style="padding-left: 8px"
                       >
-                        取消
+                        不是我的设备
                       </p-button>
                     </div>
                   </x-if>
@@ -116,23 +119,77 @@
       </div>
     </x-else-if>
     <x-else>
-      <p-text-field sync:value="remoteCode" autofocus style="margin-top: 16px">
-        <label> 输入另一个设备的设备码 </label>
-        <p-button
-          slot="suffix"
-          size="small"
-          attr:disabled="!remoteCode || !!getUsering"
-          on:click="confirmCode"
-        >
-          确认
-        </p-button>
-      </p-text-field>
+      <div>
+        <x-if :value="!!confirmerUser.userId">
+          <p>正在等待对方确认</p>
+          <div class="user-block">
+            <div>用户ID:{{confirmerUser.userId}}</div>
+            <div>用户名:{{confirmerUser.userName}}</div>
+            <div>连接状态: <span>{{confirmerUser.state}}</span></div>
+          </div>
+        </x-if>
+        <x-else>
+          <p-text-field
+            sync:value="remoteCode"
+            autofocus
+            style="margin-top: 16px"
+          >
+            <label> 输入另一个设备的设备码 </label>
+            <p-button
+              slot="suffix"
+              size="small"
+              attr:disabled="!remoteCode || !!getUsering"
+              on:click="confirmCode"
+            >
+              确认
+            </p-button>
+          </p-text-field>
+        </x-else>
+      </div>
     </x-else>
     <div style="display: flex; margin-top: 16px">
       <div style="flex: 1"></div>
       <p-button variant="text" on:click="clickCancel">取消</p-button>
     </div>
   </div>
+  <p-dialog :open="showConfirm">
+    <div slot="title">确认设备</div>
+    <div style="max-width: 360px">
+      <p>请认真确认信息无误后，才进行操作，防止添加了错误的设备。</p>
+      <p>未确认信息添加了错误的设备，将会导致自己数据泄漏，请再三确认无误。</p>
+      <div>
+        <div>
+          <span
+            style="
+              color: var(--md-sys-color-normal);
+              display: inline-block;
+              margin-right: 8px;
+            "
+          >
+            用户名:
+          </span>
+          {{deviceData.userName}}
+        </div>
+        <div style="display: flex; word-break: break-all">
+          <div
+            style="
+              flex-shrink: 0;
+              color: var(--md-sys-color-normal);
+              display: inline-block;
+              margin-right: 8px;
+            "
+          >
+            用户ID:
+          </div>
+          <div style="flex: 1">{{deviceData.userId}}</div>
+        </div>
+      </div>
+    </div>
+    <div slot="bottom">
+      <p-button on:click="showConfirm = false" variant="text">取消</p-button>
+      <p-button on:click="reConfirmMyDevice">确认</p-button>
+    </div>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
       const { servers } = await load("/packages/core/server-connect/main.js");
@@ -143,11 +200,35 @@
         data: {
           selfDeviceCode: null, // 自己的设备码
           remoteCode: null, // 另一端的设备码
+          confirmerUser: {}, // 通过设备码，从服务端传递过来的用户
           step: 0, // 0:等待选择，1: 生成设备码，2: 输入设备码
           getUsering: false, // 是否正在获取用户
-          recevesUser: [],
+          recevesUser: [], // 通过添加设备，接收到的用户
+          showConfirm: false, // 是否显示确认对话框
+          deviceData: {}, // 确认设备时的用户信息
         },
         proto: {
+          async yesMyDevice(item) {
+            this.showConfirm = true;
+            this.deviceData = item;
+          },
+          // 重新确认我的设备
+          async reConfirmMyDevice() {
+            debugger;
+            // 开始交换证书
+          },
+          // 不是我的设备
+          async noMyDevice(item) {
+            item.connection.close();
+
+            // 删除用户
+            const index = this.recevesUser.findIndex(
+              (e) => e.userId === item.userId
+            );
+            this.recevesUser.splice(index, 1);
+
+            // TODO: 应该再次确认是否不是我的设备，判断服务器是否乱推送用户数据，进行拉黑服务器等操作
+          },
           async confirmCode() {
             this.getUsering = true;
             let ok = 0;
@@ -172,10 +253,7 @@
 
                     console.log("use device", userClient);
 
-                    // receves.push({
-                    //   server,
-                    //   user: result.user,
-                    // });
+                    this.confirmerUser = userClient;
                   }
 
                   console.log("getUser result", result);
@@ -218,6 +296,7 @@
 
               // 清空接收用户
               this.recevesUser.splice(0);
+              this.confirmerUser = {};
             }, 300);
 
             if (this.selfDeviceCode) {
@@ -264,7 +343,10 @@
                 (e) => e.userId === targetUser.userId
               );
 
-              if (targetIndex > -1) {
+              if (
+                this.recevesUser[targetIndex] !== targetUser &&
+                targetIndex > -1
+              ) {
                 this.recevesUser[targetIndex] = targetUser;
               }
             }),

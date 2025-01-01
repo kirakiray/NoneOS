@@ -96,6 +96,10 @@ export class UserClient extends $.Stanz {
     });
   }
 
+  get connection() {
+    return this.#rtcConnection;
+  }
+
   async verify() {
     return verify(this.#user);
   }
