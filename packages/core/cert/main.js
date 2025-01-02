@@ -17,11 +17,18 @@ export const getAllCerts = async ({ userId, filterExpired = 1 } = {}) => {
   const cacheCerts = await getCerts(cacheCertsDir, userId, filterExpired);
 
   // 去重复
-  cacheCerts.forEach((e) => {
-    if (!relateCerts.some((item) => item.sign === e.sign)) {
-      relateCerts.push(e);
-    }
-  });
+  await Promise.all(
+    cacheCerts.map(async (e) => {
+      if (!relateCerts.some((item) => item.sign === e.sign)) {
+        // 验证通过的
+        const result = await verify(e);
+
+        if (result) {
+          relateCerts.push(e);
+        }
+      }
+    })
+  );
 
   return relateCerts;
 };
