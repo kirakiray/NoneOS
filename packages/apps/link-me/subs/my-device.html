@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/apps/link/comps/moment-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -53,6 +54,52 @@
               <i collapse-triangle slot="suffix"></i>
               <p-list slot="childs" style="padding-left: 32px">
                 <p-list-item> UserID: {{$data.userId}} </p-list-item>
+                <p-list-item collapse-childs="close" button="suffix">
+                  <i collapse-triangle slot="suffix"></i>
+                  <n-local-icon
+                    name="cert"
+                    slot="prefix"
+                    style="display: inline-block; margin-right: 4px"
+                  ></n-local-icon>
+                  <div>颁发给我的证书</div>
+                  <p-list slot="childs" style="padding-left: 29px">
+                    <p-list-item>
+                      颁发时间:
+                      <n-moment-span
+                        :time="$data.receivedCert.creation"
+                      ></n-moment-span>
+                    </p-list-item>
+                    <p-list-item>
+                      有效期至:
+                      <n-moment-span
+                        :time="$data.receivedCert.expire"
+                      ></n-moment-span>
+                    </p-list-item>
+                  </p-list>
+                </p-list-item>
+                <p-list-item collapse-childs="close" button="suffix">
+                  <i collapse-triangle slot="suffix"></i>
+                  <n-local-icon
+                    name="cert"
+                    slot="prefix"
+                    style="display: inline-block; margin-right: 4px"
+                  ></n-local-icon>
+                  <div>我颁发的证书</div>
+                  <p-list slot="childs" style="padding-left: 29px">
+                    <p-list-item>
+                      颁发时间:
+                      <n-moment-span
+                        :time="$data.issusedCert.creation"
+                      ></n-moment-span>
+                    </p-list-item>
+                    <p-list-item>
+                      有效期至:
+                      <n-moment-span
+                        :time="$data.issusedCert.expire"
+                      ></n-moment-span>
+                    </p-list-item>
+                  </p-list>
+                </p-list-item>
               </p-list>
             </p-list-item>
           </x-fill>
@@ -139,9 +186,12 @@
                         (device) => device.userId === userData.userId
                       )
                     ) {
+                      console.log(receivedCert.data);
                       myDevices.push({
                         userName: userData.userName,
                         userId: userData.userID,
+                        receivedCert: Object.fromEntries(receivedCert.data),
+                        issusedCert: Object.fromEntries(cert.data),
                       });
                     }
                   }
