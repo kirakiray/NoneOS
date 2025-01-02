@@ -213,6 +213,8 @@
     </div>
   </p-dialog>
   <script>
+    import "/packages/core/init.js";
+
     export default async ({ load }) => {
       const { servers } = await load("/packages/core/server-connect/main.js");
       const { connectUser } = await load("/packages/core/user-connect/main.js");

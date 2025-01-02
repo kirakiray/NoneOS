@@ -3,6 +3,7 @@ import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
 import { getHash } from "../util.js";
 import { signData } from "../base/sign.js";
+import { emit } from "../main.js";
 
 /**
  * 获取所有证书
@@ -172,5 +173,9 @@ export const createCert = async ({ ...data }) => {
 
   await fileHandle.write(JSON.stringify(afterData));
 
+  emit("save-certs", {
+    certs: [afterData],
+  });
+  
   return afterData;
 };

@@ -57,6 +57,7 @@
       const { getAllCerts } = await load("/packages/core/cert/main.js");
       const { getId } = await load("/packages/core/base/pair.js");
       const { getUser } = await load("/packages/core/user-connect/main.js");
+      const { on } = await load("/packages/core/main.js");
 
       const myId = await getId();
 
@@ -141,6 +142,13 @@
         },
         attached() {
           this.reloadMyDevices();
+
+          this._off = on("save-certs", (e) => {
+            this.reloadMyDevices();
+          });
+        },
+        detached() {
+          this._off && this._off();
         },
       };
     };

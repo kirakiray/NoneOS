@@ -1,5 +1,5 @@
 // 初始化证书相关逻辑
-import { on, userMiddleware } from "../main.js";
+import { on, userMiddleware, emit } from "../main.js";
 import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
 import { getHash } from "../util.js";
@@ -75,5 +75,9 @@ userMiddleware.set("obtain-certs", async (midData, client) => {
     });
 
     await fileHandle.write(JSON.stringify(cert));
+  });
+
+  emit("save-certs", {
+    certs,
   });
 });
