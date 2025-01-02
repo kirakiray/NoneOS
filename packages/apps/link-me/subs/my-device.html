@@ -42,7 +42,7 @@
         </x-if>
         <x-else>
           <x-fill :value="devices" fill-key="name">
-            <p-list-item button>{{$data.name}}</p-list-item>
+            <p-list-item button>{{$data}}</p-list-item>
           </x-fill>
         </x-else>
       </p-list>
@@ -54,6 +54,12 @@
   </p-dialog>
   <script>
     export default async ({ load }) => {
+      const { getAllCerts } = await load("/packages/core/cert/main.js");
+      const { getId } = await load("/packages/core/base/pair.js");
+      const { getUser } = await load("/packages/core/user-connect/main.js");
+
+      const myId = await getId();
+
       return {
         data: {
           devices: [
@@ -68,6 +74,73 @@
             e.stopPropagation();
             this.showAddDevice = true;
           },
+          async reloadMyDevices() {
+            const certs = await getAllCerts();
+
+            // 我颁发fully证书给的用户，并且对方也给我了fully证书，就是我的设备
+            const myDevices = [];
+
+            // 我颁发的证书
+            const issused = [];
+            // 颁发给我的证书
+            const received = [];
+
+            certs.forEach((cert) => {
+              const data = new Map(cert.data);
+
+              cert._data = data;
+
+              const authTo = data.get("authTo");
+              const issuer = data.get("issuer");
+
+              if (authTo === myId) {
+                received.push(cert);
+              } else if (issuer === myId) {
+                issused.push(cert);
+              }
+            });
+
+            if (issused.length) {
+              // 查看是否也有收到证书
+              await Promise.all(
+                issused.map(async (cert) => {
+                  const authTo = cert._data.get("authTo");
+
+                  if (!authTo) {
+                    return;
+                  }
+
+                  const receivedCert = received.find(
+                    (cert) => cert._data.get("issuer") === authTo
+                  );
+
+                  if (receivedCert) {
+                    let userData = await getUser({ userId: authTo });
+                    if (userData.length) {
+                      userData = Object.fromEntries(userData[0].data);
+                    }
+
+                    // 去重并添加
+                    if (
+                      !myDevices.find(
+                        (device) => device.userId === userData.userId
+                      )
+                    ) {
+                      myDevices.push({
+                        userName: userData.userName,
+                        userId: userData.userId,
+                      });
+                    }
+                  }
+                })
+              );
+            }
+
+            this.devices = myDevices;
+          },
+        },
+        attached() {
+          this.reloadMyDevices();
         },
       };
     };
