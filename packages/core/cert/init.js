@@ -77,7 +77,7 @@ userMiddleware.set("obtain-certs", async (midData, client) => {
     await fileHandle.write(JSON.stringify(cert));
   });
 
-  emit("save-certs", {
+  emit("change-certs", {
     certs,
   });
 });

@@ -4,6 +4,7 @@ import { verify } from "../base/verify.js";
 import { getHash } from "../util.js";
 import { signData } from "../base/sign.js";
 import { emit } from "../main.js";
+import { getId } from "../base/pair.js";
 
 /**
  * 获取所有证书
@@ -89,9 +90,8 @@ const getCerts = async (certsDir, userId, filterExpired) => {
 /**
  * 将证书导入到本地
  * @param {Object} certItem 证书对象
- * @param {boolean} toCache 是否放到缓存
  */
-export const importCert = async (certItem, toCache = false) => {
+export const importCert = async (certItem) => {
   const reItem = {
     data: certItem.data,
     sign: certItem.sign,
@@ -125,6 +125,10 @@ export const importCert = async (certItem, toCache = false) => {
   // 写入内容
   await exitedHandle.write(itemStr);
 
+  emit("change-certs", {
+    certs: [reItem],
+  });
+
   return {
     code: "ok",
   };
@@ -136,7 +140,7 @@ export const rootPublic = `MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEwqKk1tx1Pr7XcTCSn
 // 创建证书
 export const createCert = async ({ ...data }) => {
   if (data.expire) {
-    if (data.expire !== "never") {
+    if (data.expire !== "never" && /\D/.test(data.expire)) {
       let expire = Date.now();
 
       switch (data.expire) {
@@ -173,9 +177,80 @@ export const createCert = async ({ ...data }) => {
 
   await fileHandle.write(JSON.stringify(afterData));
 
-  emit("save-certs", {
+  emit("change-certs", {
     certs: [afterData],
   });
-  
+
   return afterData;
+};
+
+// 获取我的设备的所有证书
+export const getMyDeviceCerts = async () => {
+  const certs = await getAllCerts();
+
+  // 我颁发fully证书给的用户，并且对方也给我了fully证书，就是我的设备
+  const myDevices = [];
+
+  // 我颁发的证书
+  const issused = [];
+  // 颁发给我的证书
+  const received = [];
+
+  const myId = await getId();
+
+  certs.forEach((cert) => {
+    const data = new Map(cert.data);
+
+    cert._data = data;
+
+    const authTo = data.get("authTo");
+    const issuer = data.get("issuer");
+
+    if (authTo === myId) {
+      received.push(cert);
+    } else if (issuer === myId) {
+      issused.push(cert);
+    }
+  });
+
+  if (issused.length) {
+    // 查看是否也有收到证书
+    await Promise.all(
+      issused.map(async (cert) => {
+        const authTo = cert._data.get("authTo");
+
+        if (!authTo) {
+          return;
+        }
+
+        const receivedCert = received.find(
+          (cert) => cert._data.get("issuer") === authTo
+        );
+
+        if (receivedCert) {
+          myDevices.push({
+            userId: authTo,
+            receivedCert: Object.fromEntries(receivedCert._data),
+            issusedCert: Object.fromEntries(cert._data),
+          });
+          // let userData = await getUser({ userId: authTo });
+          // if (userData.length) {
+          //   userData = Object.fromEntries(userData[0].data);
+          // }
+
+          // // 去重并添加
+          // if (!myDevices.find((device) => device.userId === userData.userId)) {
+          //   myDevices.push({
+          //     userName: userData.userName,
+          //     userId: userData.userID,
+          //     receivedCert: Object.fromEntries(receivedCert.data),
+          //     issusedCert: Object.fromEntries(cert.data),
+          //   });
+          // }
+        }
+      })
+    );
+  }
+
+  return myDevices;
 };
