@@ -102,7 +102,12 @@
                   </p-list>
                 </p-list-item>
                 <p-list-item>
-                  <p-button color="error" size="small" style="width: 100px">
+                  <p-button
+                    color="error"
+                    size="small"
+                    on:click="$host.removeDevice($data)"
+                    style="width: 100px"
+                  >
                     删除该设备
                   </p-button>
                 </p-list-item>
@@ -132,6 +137,9 @@
           showAddDevice: false,
         },
         proto: {
+          async removeDevice(item) {
+            console.log("remove device", item);
+          },
           async addDevice(e) {
             e.stopPropagation();
             this.showAddDevice = true;
