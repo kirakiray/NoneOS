@@ -99,7 +99,6 @@
 
           // 判断本地是否安装
           const pgFile = await get("packages/package.json");
-
           // 没有安装且不是在线模式，跳转到安装页面
           if (!pgFile && !useOnline) {
             if (location.hostname === "localhost") {

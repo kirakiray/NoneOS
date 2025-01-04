@@ -6,35 +6,6 @@ import { signData } from "../base/sign.js";
 import { emit } from "../main.js";
 import { getId } from "../base/pair.js";
 
-/**
- * 获取所有证书
- * @param {string} userId 只获取目标用户id的证书
- */
-export const getAllCerts = async ({ userId, filterExpired = 1 } = {}) => {
-  // 获取所有证书
-  const certsDir = await get("local/system/user/certs");
-  const cacheCertsDir = await get("local/caches/certs");
-
-  const relateCerts = await getCerts(certsDir, userId, filterExpired);
-  const cacheCerts = await getCerts(cacheCertsDir, userId, filterExpired);
-
-  // 去重复
-  await Promise.all(
-    cacheCerts.map(async (e) => {
-      if (!relateCerts.some((item) => item.sign === e.sign)) {
-        // 验证通过的
-        const result = await verify(e);
-
-        if (result) {
-          relateCerts.push(e);
-        }
-      }
-    })
-  );
-
-  return relateCerts;
-};
-
 // 从目录中获取证书
 const getCerts = async (certsDir, userId, filterExpired) => {
   if (!certsDir) {
@@ -83,6 +54,35 @@ const getCerts = async (certsDir, userId, filterExpired) => {
       relateCerts.push(data);
     }
   }
+
+  return relateCerts;
+};
+
+/**
+ * 获取所有证书
+ * @param {string} userId 只获取目标用户id的证书
+ */
+export const getAllCerts = async ({ userId, filterExpired = 1 } = {}) => {
+  // 获取所有证书
+  const certsDir = await get("local/system/user/certs");
+  const cacheCertsDir = await get("local/caches/certs");
+
+  const relateCerts = await getCerts(certsDir, userId, filterExpired);
+  const cacheCerts = await getCerts(cacheCertsDir, userId, filterExpired);
+
+  // 去重复
+  await Promise.all(
+    cacheCerts.map(async (e) => {
+      if (!relateCerts.some((item) => item.sign === e.sign)) {
+        // 验证通过的
+        const result = await verify(e);
+
+        if (result) {
+          relateCerts.push(e);
+        }
+      }
+    })
+  );
 
   return relateCerts;
 };
