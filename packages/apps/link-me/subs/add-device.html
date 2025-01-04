@@ -79,22 +79,28 @@
                       用户ID: {{$data.userId}}
                     </div>
                     <div>用户名: {{$data.userName}}</div>
+
                     <div style="padding: 4px 0">
-                      <p-button
-                        size="small"
-                        on:click="$host.firstYesMyDevice($data)"
-                      >
-                        确认是我的设备
-                      </p-button>
-                      <p-button
-                        size="small"
-                        color="error"
-                        variant="text"
-                        on:click="$host.noMyDevice($data)"
-                        style="padding-left: 8px"
-                      >
-                        不是我的设备
-                      </p-button>
+                      <x-if :value="$host.isMyDevice($data)">
+                        <p-button size="small" disabled>已添加的设备</p-button>
+                      </x-if>
+                      <x-else>
+                        <p-button
+                          size="small"
+                          on:click="$host.firstYesMyDevice($data)"
+                        >
+                          确认是我的设备
+                        </p-button>
+                        <p-button
+                          size="small"
+                          color="error"
+                          variant="text"
+                          on:click="$host.noMyDevice($data)"
+                          style="padding-left: 8px"
+                        >
+                          不是我的设备
+                        </p-button>
+                      </x-else>
                     </div>
                   </x-if>
                   <x-else>
@@ -129,7 +135,10 @@
             <div>用户ID:{{confirmerUser.userId}}</div>
             <div>用户名:{{confirmerUser.userName}}</div>
             <div>连接状态: <span>{{confirmerUser.state}}</span></div>
-            <x-if :value="confirmerUser.state === 'connected'">
+            <x-if :value="isMyDevice(confirmerUser)">
+              <p-button size="small" disabled>已添加的设备</p-button>
+            </x-if>
+            <x-else-if :value="confirmerUser.state === 'connected'">
               <div style="padding: 4px 0">
                 <p-button
                   on:click="firstYesMyDevice(confirmerUser)"
@@ -147,7 +156,7 @@
                   不是我的设备
                 </p-button>
               </div>
-            </x-if>
+            </x-else-if>
           </div>
         </x-if>
         <x-else>
@@ -221,6 +230,7 @@
       const { on } = await load("/packages/core/main.js");
       const { createCert } = await load("/packages/core/cert/main.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { getMyDeviceCerts } = await load("/packages/core/cert/main.js");
 
       return {
         data: {
@@ -232,8 +242,12 @@
           recevesUser: [], // 通过添加设备，接收到的用户
           showConfirm: false, // 是否显示确认对话框
           _deviceUser: {}, // 确认设备时的用户信息
+          myDevices: [], // 已添加的设备
         },
         proto: {
+          isMyDevice(user) {
+            return this.myDevices.some((e) => e.userId === user.userId);
+          },
           async firstYesMyDevice(user) {
             this._deviceUser = user;
             this.showConfirm = true;
@@ -358,8 +372,12 @@
 
             this.emit("cancel");
           },
+          async loadMyDevices() {
+            this.myDevices = await getMyDeviceCerts();
+          },
         },
         attached() {
+          this.loadMyDevices();
           this._cancels = [
             on("get-user-card", (e) => {
               const { data } = e;
