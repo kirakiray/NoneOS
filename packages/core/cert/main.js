@@ -126,6 +126,7 @@ export const importCert = async (certItem) => {
   await exitedHandle.write(itemStr);
 
   emit("change-certs", {
+    type: "add-cert",
     certs: [reItem],
   });
 
@@ -178,6 +179,7 @@ export const createCert = async ({ ...data }) => {
   await fileHandle.write(JSON.stringify(afterData));
 
   emit("change-certs", {
+    type: "add-cert",
     certs: [afterData],
   });
 
@@ -230,27 +232,49 @@ export const getMyDeviceCerts = async () => {
         if (receivedCert) {
           myDevices.push({
             userId: authTo,
-            receivedCert: Object.fromEntries(receivedCert._data),
-            issusedCert: Object.fromEntries(cert._data),
+            received: {
+              data: receivedCert.data,
+              sign: receivedCert.sign,
+            },
+            issused: {
+              data: cert.data,
+              sign: cert.sign,
+            },
+            receivedCertData: Object.fromEntries(receivedCert._data),
+            issusedCertData: Object.fromEntries(cert._data),
           });
-          // let userData = await getUser({ userId: authTo });
-          // if (userData.length) {
-          //   userData = Object.fromEntries(userData[0].data);
-          // }
-
-          // // 去重并添加
-          // if (!myDevices.find((device) => device.userId === userData.userId)) {
-          //   myDevices.push({
-          //     userName: userData.userName,
-          //     userId: userData.userID,
-          //     receivedCert: Object.fromEntries(receivedCert.data),
-          //     issusedCert: Object.fromEntries(cert.data),
-          //   });
-          // }
         }
       })
     );
   }
 
   return myDevices;
+};
+
+// 删除证书
+export const removeCert = async (certData) => {
+  const hash = await getHash(certData);
+
+  console.log("hash: ", hash);
+
+  const certHandle = await get(`local/system/user/certs/${hash}`).catch(
+    () => null
+  );
+
+  if (certHandle) {
+    await certHandle.remove();
+  }
+
+  const cacheCertHandle = await get(`local/caches/certs/${hash}`).catch(
+    () => null
+  );
+
+  if (cacheCertHandle) {
+    await cacheCertHandle.remove();
+  }
+
+  emit("change-certs", {
+    type: "remove-cert",
+    certs: [],
+  });
 };

@@ -67,13 +67,13 @@
                     <p-list-item>
                       颁发时间:
                       <n-moment-span
-                        :time="$data.receivedCert.creation"
+                        :time="$data.receivedCertData.creation"
                       ></n-moment-span>
                     </p-list-item>
                     <p-list-item>
                       有效期至:
                       <n-moment-span
-                        :time="$data.receivedCert.expire"
+                        :time="$data.receivedCertData.expire"
                       ></n-moment-span>
                     </p-list-item>
                   </p-list>
@@ -90,13 +90,13 @@
                     <p-list-item>
                       颁发时间:
                       <n-moment-span
-                        :time="$data.issusedCert.creation"
+                        :time="$data.issusedCertData.creation"
                       ></n-moment-span>
                     </p-list-item>
                     <p-list-item>
                       有效期至:
                       <n-moment-span
-                        :time="$data.issusedCert.expire"
+                        :time="$data.issusedCertData.expire"
                       ></n-moment-span>
                     </p-list-item>
                   </p-list>
@@ -105,7 +105,7 @@
                   <p-button
                     color="error"
                     size="small"
-                    on:click="$host.removeDevice($data)"
+                    on:click="$host.beforeRemove($data)"
                     style="width: 100px"
                   >
                     删除该设备
@@ -122,9 +122,35 @@
     <div slot="title">添加设备</div>
     <o-page src="./add-device.html"></o-page>
   </p-dialog>
+  <p-dialog :open="showRemoveDevice" on:cancel="showRemoveDevice = false">
+    <div slot="title">删除设备</div>
+    <div style="max-width: 500px">
+      确定删除设备
+      <n-user-name
+        :userid="needRemoveItem.userId"
+        style="display: inline"
+      ></n-user-name>
+      ？
+      <p>
+        执行操作后，您当前使用的环境中的该设备将被删除。
+        <br />
+        为了彻底移除设备，您还需要在另一台设备上执行相应的删除操作。这样，才能确保设备被完全删除。
+      </p>
+    </div>
+    <div slot="bottom">
+      <p-button variant="text" on:click="showRemoveDevice = false">
+        取消
+      </p-button>
+      <p-button color="primary" on:click="removeDevice(needRemoveItem)">
+        确定
+      </p-button>
+    </div>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
-      const { getMyDeviceCerts } = await load("/packages/core/cert/main.js");
+      const { getMyDeviceCerts, removeCert } = await load(
+        "/packages/core/cert/main.js"
+      );
       const { on } = await load("/packages/core/main.js");
 
       return {
@@ -134,11 +160,18 @@
             //   name: "test 1",
             // },
           ],
+          needRemoveItem: {},
           showAddDevice: false,
+          showRemoveDevice: false,
         },
         proto: {
+          async beforeRemove(item) {
+            this.needRemoveItem = item.toJSON();
+            this.showRemoveDevice = true;
+          },
           async removeDevice(item) {
-            console.log("remove device", item);
+            await removeCert(item.received);
+            await removeCert(item.issused);
           },
           async addDevice(e) {
             e.stopPropagation();
