@@ -70,9 +70,9 @@ export const getAllCerts = async ({ userId, filterExpired = 1 } = {}) => {
   const relateCerts = await getCerts(certsDir, userId, filterExpired);
   const cacheCerts = await getCerts(cacheCertsDir, userId, filterExpired);
 
-  // 去重复
   await Promise.all(
     cacheCerts.map(async (e) => {
+      // 去重复
       if (!relateCerts.some((item) => item.sign === e.sign)) {
         // 验证通过的
         const result = await verify(e);
@@ -194,9 +194,9 @@ export const getMyDeviceCerts = async () => {
   const myDevices = [];
 
   // 我颁发的证书
-  const issused = [];
+  const issuseds = [];
   // 颁发给我的证书
-  const received = [];
+  const receiveds = [];
 
   const myId = await getId();
 
@@ -209,40 +209,71 @@ export const getMyDeviceCerts = async () => {
     const issuer = data.get("issuer");
 
     if (authTo === myId) {
-      received.push(cert);
+      receiveds.push(cert);
     } else if (issuer === myId) {
-      issused.push(cert);
+      issuseds.push(cert);
     }
   });
 
-  if (issused.length) {
+  if (issuseds.length) {
     // 查看是否也有收到证书
     await Promise.all(
-      issused.map(async (cert) => {
+      issuseds.map(async (cert) => {
         const authTo = cert._data.get("authTo");
 
         if (!authTo) {
           return;
         }
 
-        const receivedCert = received.find(
+        const receivedCert = receiveds.find(
           (cert) => cert._data.get("issuer") === authTo
         );
 
         if (receivedCert) {
+          const received = {
+            data: receivedCert.data,
+            sign: receivedCert.sign,
+          };
+
+          const issused = {
+            data: cert.data,
+            sign: cert.sign,
+          };
+
           myDevices.push({
             userId: authTo,
-            received: {
-              data: receivedCert.data,
-              sign: receivedCert.sign,
-            },
-            issused: {
-              data: cert.data,
-              sign: cert.sign,
-            },
+            received,
+            issused,
             receivedCertData: Object.fromEntries(receivedCert._data),
             issusedCertData: Object.fromEntries(cert._data),
           });
+
+          // 将临时证书放到用户私人文件夹
+          const collectCert = async (cert) => {
+            const certHash = await getHash(cert);
+
+            const userCertsDir = await get("local/system/user/certs", {
+              create: "dir",
+            });
+
+            // 确认是设备联合证书，对证书进行收藏
+            const certHandle = await userCertsDir.get(certHash);
+
+            if (!certHandle) {
+              const cachedCertHandle = await get(
+                `local/caches/certs/${certHash}`
+              );
+
+              if (cachedCertHandle) {
+                await cachedCertHandle.moveTo(userCertsDir);
+              }
+
+              console.log("cert: ", cert);
+            }
+          };
+
+          await collectCert(received);
+          await collectCert(issused);
         }
       })
     );
