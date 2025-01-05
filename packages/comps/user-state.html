@@ -1,0 +1,62 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    .point {
+      width: 8px;
+      height: 8px;
+      border-radius: 5px;
+      background-color: #7c7c7c;
+    }
+
+    [data-state="connected"] {
+      background-color: var(--md-sys-color-success);
+    }
+    [data-state="disconnected"],
+    [data-state="error"],
+    [data-state="closed"] {
+      background-color: var(--md-sys-color-error);
+    }
+  </style>
+  <div class="point" attr:data-state="state"></div>
+  <script>
+    export default async ({ load }) => {
+      const { users } = await load("/packages/core/main.js");
+
+      return {
+        tag: "n-user-state",
+        data: {
+          state: null,
+          userid: null,
+        },
+        proto: {
+          refreshState() {
+            const targetUser = users.find(
+              (user) => user.userId === this.userid
+            );
+
+            if (targetUser) {
+              this.state = targetUser.state;
+            } else {
+              this.state = "disconnected";
+            }
+          },
+        },
+        watch: {
+          userid() {
+            this.refreshState();
+          },
+        },
+        attached() {
+          this._wid = users.watchTick(() => {
+            this.refreshState();
+          });
+        },
+        detached() {
+          users.unwatch(this._wid);
+        },
+      };
+    };
+  </script>
+</template>

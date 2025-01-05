@@ -4,6 +4,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/apps/link/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -46,6 +47,7 @@
         <x-else>
           <x-fill :value="devices" fill-key="name">
             <p-list-item button="suffix" collapse-childs="close">
+              <n-user-state :userid="$data.userId" slot="prefix"></n-user-state>
               <n-local-icon
                 name="device"
                 slot="prefix"
