@@ -256,17 +256,15 @@ export const getMyDeviceCerts = async () => {
               create: "dir",
             });
 
+            const cachedCertHandle = await get(
+              `local/caches/certs/${certHash}`
+            );
+
             // 确认是设备联合证书，对证书进行收藏
             const certHandle = await userCertsDir.get(certHash);
 
-            if (!certHandle) {
-              const cachedCertHandle = await get(
-                `local/caches/certs/${certHash}`
-              );
-
-              if (cachedCertHandle) {
-                await cachedCertHandle.moveTo(userCertsDir);
-              }
+            if (!certHandle && cachedCertHandle) {
+              await cachedCertHandle.moveTo(userCertsDir);
 
               console.log("cert: ", cert);
             }
