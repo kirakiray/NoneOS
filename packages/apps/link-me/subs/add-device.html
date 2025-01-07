@@ -231,6 +231,7 @@
       const { createCert } = await load("/packages/core/cert/main.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
       const { getMyDeviceCerts } = await load("/packages/core/cert/main.js");
+      const { saveUserCard } = await load("/packages/core/card.js");
 
       return {
         data: {
@@ -254,6 +255,10 @@
           },
           // 重新确认我的设备
           async reConfirmMyDevice() {
+            // 保存用户卡片
+            await saveUserCard(this._deviceUser.user);
+            debugger;
+
             // 给对方一份完全授权的证书
             const data = await createCert({
               authTo: this._deviceUser.userId,

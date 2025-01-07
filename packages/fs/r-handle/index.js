@@ -1,7 +1,7 @@
 import { getAllCerts } from "../../core/cert/main.js";
 import { getId } from "../../core/base/pair.js";
 import { users } from "../../core/main.js";
-import { getUser } from "/packages/core/user-connect/main.js";
+import { getUserCard } from "/packages/core/card.js";
 import { RemoteDirHandle } from "./dir.js";
 import { bridge } from "./bridge.js";
 
@@ -23,13 +23,9 @@ export const getRemotes = async () => {
 
         const issuerID = data.get("issuer");
 
-        const cards = await getUser({
-          userId: issuerID,
-        });
+        const card = await getUserCard(issuerID);
 
-        if (cards.length) {
-          const card = cards[0];
-
+        if (card) {
           return {
             name: new Map(card.data).get("userName"),
             userId: issuerID,
@@ -59,15 +55,14 @@ export const get = async (path) => {
 
   // 查看用户是否在线
   if (!users.some((e) => e.userId === userId)) {
-    let targetUserData = await getUser({ userId });
-    if (targetUserData.length) {
-      targetUserData = new Map(targetUserData[0].data);
-    } else {
-      targetUserData = null;
+    let targetUser = await getUserCard(userId);
+    if (targetUser) {
+      targetUser = new Map(targetUser.data);
     }
+
     throw new Error(
       `Unable to connect to user '(${
-        targetUserData ? targetUserData.get("userName") : ""
+        targetUser ? targetUser.get("userName") : ""
       })${userId}'`
     );
   }

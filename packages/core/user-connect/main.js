@@ -101,40 +101,6 @@ servers.watchTick(() => {
   }
 });
 
-/**
- * 根据参数，获取用户卡片信息
- * @param {Object} param0 获取用户的参数
- */
-export const getUser = async ({ userId }) => {
-  const cards = await get("local/caches/cards", { create: "dir" });
-
-  const users = [];
-
-  for await (let item of cards.values()) {
-    let data = await item.text();
-    data = JSON.parse(data);
-
-    const result = await verify(data);
-
-    if (!result) {
-      // TODO: 错误用户卡片报错处理
-      continue;
-    }
-
-    if (userId) {
-      const userData = new Map(data.data);
-
-      if (userId && userData.get("userID") !== userId) {
-        continue;
-      }
-    }
-
-    users.push(data);
-  }
-
-  return users;
-};
-
 // 连接用户
 export const connectUser = async ({ userData }) => {
   // 判断用户卡片数据是否正确

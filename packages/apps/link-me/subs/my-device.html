@@ -172,6 +172,7 @@
             this.showRemoveDevice = true;
           },
           async removeDevice(item) {
+            this.showRemoveDevice = false;
             await removeCert(item.received);
             await removeCert(item.issused);
           },
