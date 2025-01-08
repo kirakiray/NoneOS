@@ -4,6 +4,7 @@
       display: block;
     }
     .point {
+      display: none;
       width: 8px;
       height: 8px;
       border-radius: 5px;
@@ -18,16 +19,33 @@
     [data-state="closed"] {
       background-color: var(--md-sys-color-error);
     }
+
+    :host([show-point]) .point {
+      display: block;
+    }
+  </style>
+
+  <style>
+    ::slotted([show-with]) {
+      display: none;
+    }
+    ::slotted([show-with~="data(state)"]) {
+      display: block;
+    }
   </style>
   <div class="point" attr:data-state="state"></div>
+  <slot></slot>
   <script>
     export default async ({ load }) => {
       const { users } = await load("/packages/core/main.js");
 
       return {
         tag: "n-user-state",
-        data: {
+        attrs: {
           state: null,
+          hidePoint: null,
+        },
+        data: {
           userid: null,
         },
         proto: {

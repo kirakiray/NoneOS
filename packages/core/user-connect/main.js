@@ -3,6 +3,7 @@ import { UserClient } from "./user-client.js";
 import { getId } from "../base/pair.js";
 import { get } from "/packages/fs/handle/index.js";
 import { verify } from "../base/verify.js";
+import { getUserCard } from "../card.js";
 
 export { users };
 
@@ -102,7 +103,12 @@ servers.watchTick(() => {
 });
 
 // 连接用户
-export const connectUser = async ({ userData }) => {
+export const connectUser = async ({ userData, userId }) => {
+  if (userId && !userData) {
+    // 查询用户卡片后进行连接
+    userData = await getUserCard(userId);
+  }
+
   // 判断用户卡片数据是否正确
   const result = await verify(userData);
 

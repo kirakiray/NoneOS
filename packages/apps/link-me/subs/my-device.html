@@ -45,9 +45,13 @@
           </div>
         </x-if>
         <x-else>
-          <x-fill :value="devices" fill-key="name">
+          <x-fill :value="devices" fill-key="userId">
             <p-list-item button="suffix" collapse-childs="close">
-              <n-user-state :userid="$data.userId" slot="prefix"></n-user-state>
+              <n-user-state
+                :userid="$data.userId"
+                show-point
+                slot="prefix"
+              ></n-user-state>
               <n-local-icon
                 name="device"
                 slot="prefix"
@@ -104,14 +108,33 @@
                   </p-list>
                 </p-list-item>
                 <p-list-item>
-                  <p-button
-                    color="error"
-                    size="small"
-                    on:click="$host.beforeRemove($data)"
-                    style="width: 100px"
-                  >
-                    删除该设备
-                  </p-button>
+                  <div style="display: flex">
+                    <n-user-state :userid="$data.userId">
+                      <p-button
+                        show-with="disconnected"
+                        size="small"
+                        on:click="$host.connectUser($data)"
+                        style="margin-right: 8px"
+                      >
+                        连接该用户
+                      </p-button>
+                      <p-button
+                        show-with="closed error"
+                        size="small"
+                        on:click="$host.connectUser($data)"
+                        style="margin-right: 8px"
+                      >
+                        重新连接
+                      </p-button>
+                    </n-user-state>
+                    <p-button
+                      color="error"
+                      size="small"
+                      on:click="$host.beforeRemove($data)"
+                    >
+                      删除该设备
+                    </p-button>
+                  </div>
                 </p-list-item>
               </p-list>
             </p-list-item>
@@ -153,6 +176,8 @@
       const { getMyDeviceCerts, removeCert } = await load(
         "/packages/core/cert/main.js"
       );
+
+      const { connectUser } = await load("/packages/core/user-connect/main.js");
       const { on } = await load("/packages/core/main.js");
 
       return {
@@ -167,6 +192,11 @@
           showRemoveDevice: false,
         },
         proto: {
+          async connectUser(user) {
+            const result = await connectUser({
+              userId: user.userId,
+            });
+          },
           async beforeRemove(item) {
             this.needRemoveItem = item.toJSON();
             this.showRemoveDevice = true;
