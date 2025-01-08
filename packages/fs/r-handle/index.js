@@ -30,14 +30,14 @@ export const getRemotes = async () => {
             name: new Map(card.data).get("userName"),
             userId: issuerID,
             paths: [
-              {
-                name: "虚拟空间",
-                path: `$remote:${issuerID}:local`,
-              },
-              {
-                name: "应用",
-                path: `$remote:${issuerID}:apps`,
-              },
+              // {
+              //   name: "虚拟空间",
+              //   path: `$remote:${issuerID}:local`,
+              // },
+              // {
+              //   name: "应用",
+              //   path: `$remote:${issuerID}:apps`,
+              // },
             ],
           };
         }

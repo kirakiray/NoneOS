@@ -5,6 +5,7 @@
   <l-m src="/packages/pui/drawer/drawer.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
   <l-m src="/packages/fs/task/task-viewer.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -64,16 +65,37 @@
           <p-list slot="childs">
             <x-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
+                <n-user-state
+                  :userid="$data.userId"
+                  slot="prefix"
+                  sync:state="$data.state"
+                  style="display: none"
+                >
+                </n-user-state>
                 <n-local-icon
                   slot="prefix"
                   name="user"
                   style="padding-left: 8px"
                 ></n-local-icon>
                 {{$data.name}}
-                <i collapse-triangle slot="suffix"></i>
-                <p-list slot="childs" style="--padding-left: 16px">
-                  <x-fill :value="$data.paths" name="path-item"></x-fill>
-                </p-list>
+                <x-if
+                  :value="$data.state === 'disconnected' || $data.state === 'closed' || $data.state === 'error'"
+                >
+                  <p-button
+                    size="mini"
+                    variant="text"
+                    slot="suffix"
+                    style="z-index: 3"
+                  >
+                    Connect
+                  </p-button>
+                </x-if>
+                <x-else-if :value="$data.state === 'connected'">
+                  <i collapse-triangle slot="suffix"></i>
+                  <p-list slot="childs" style="--padding-left: 16px">
+                    <x-fill :value="$data.paths" name="path-item"></x-fill>
+                  </p-list>
+                </x-else-if>
               </p-list-item>
             </x-fill>
             <x-if :value="!remotes.length">
@@ -232,7 +254,14 @@
           });
 
           this.refreashLocals();
-          this.remotes = await getRemotes();
+          const remotes = await getRemotes();
+          this.remotes = remotes.map((e) => {
+            console.log(e);
+            return {
+              ...e,
+              state: "disconnected",
+            };
+          });
         },
         attached() {
           this._cancel = onChangeLang((lang) => {
