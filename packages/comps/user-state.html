@@ -42,17 +42,31 @@
       return {
         tag: "n-user-state",
         attrs: {
-          state: null,
-          hidePoint: null,
+          state: null, // 用户的连接状态
+          updateAccess: null,
         },
         data: {
-          userid: null,
+          userid: null, // 用户的id
+          accessibleDirs: [], // 可访问的路径
         },
         proto: {
           refreshState() {
             const targetUser = users.find(
               (user) => user.userId === this.userid
             );
+
+            if (targetUser && this.updateAccess !== null) {
+              if (!targetUser.accessibleDirs) {
+                if (this.accessibleDirs.length) {
+                  this.accessibleDirs = [];
+                }
+              } else if (
+                JSON.stringify(targetUser.accessibleDirs) !==
+                JSON.stringify(this.accessibleDirs)
+              ) {
+                this.accessibleDirs = targetUser.accessibleDirs.toJSON();
+              }
+            }
 
             if (targetUser) {
               this.state = targetUser.state;
@@ -67,9 +81,9 @@
           },
         },
         attached() {
-          this._wid = users.watchTick(() => {
+          this._wid = users.watchTick((e) => {
             this.refreshState();
-          });
+          }, 100);
         },
         detached() {
           users.unwatch(this._wid);

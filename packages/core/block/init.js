@@ -1,13 +1,11 @@
 import { userMiddleware } from "../main.js";
 import { saveBlock, clearBlock, getBlock } from "./main.js";
 import { getId } from "../base/pair.js";
-import { blobToBuffer } from "../../fs/util.js";
+// import { blobToBuffer } from "../../fs/util.js";
 
 // 得到了获取块的请求
 userMiddleware.set("get-block", async (options, client, channel) => {
   const { hashs } = options;
-
-  const gid = Math.random().toString(32).slice(3); // 分组id
 
   const selfId = await getId();
 
@@ -172,39 +170,39 @@ const decompressArrayBuffer = (() => {
   };
 })();
 
-// 创建一个新的 ArrayBuffer，额外的一个字节用于标识数据格式
-const createFinalData = (data, formatFlag) => {
-  const newBuffer = new ArrayBuffer(data.byteLength + 1); // 新建 ArrayBuffer，大小为数据长度 + 1
-  const view = new Uint8Array(newBuffer); // 使用 Uint8Array 视图来操作新的 ArrayBuffer
+// // 创建一个新的 ArrayBuffer，额外的一个字节用于标识数据格式
+// const createFinalData = (data, formatFlag) => {
+//   const newBuffer = new ArrayBuffer(data.byteLength + 1); // 新建 ArrayBuffer，大小为数据长度 + 1
+//   const view = new Uint8Array(newBuffer); // 使用 Uint8Array 视图来操作新的 ArrayBuffer
 
-  // 将原数据复制到新 ArrayBuffer 中
-  view.set(new Uint8Array(data), 0); // 从源数据的起始位置开始复制
+//   // 将原数据复制到新 ArrayBuffer 中
+//   view.set(new Uint8Array(data), 0); // 从源数据的起始位置开始复制
 
-  // 在最后一个字节位置标记数据格式
-  view[data.byteLength] = formatFlag; // 设置格式标识字节
-  return newBuffer; // 返回新的 ArrayBuffer
-};
+//   // 在最后一个字节位置标记数据格式
+//   view[data.byteLength] = formatFlag; // 设置格式标识字节
+//   return newBuffer; // 返回新的 ArrayBuffer
+// };
 
-/**
- * 从给定的 ArrayBuffer 中获取最后一个字节，并返回去掉最后一个字节的新 ArrayBuffer。
- * @param {ArrayBuffer} buffer - 原始 ArrayBuffer。
- * @returns {{ newBuffer: ArrayBuffer, lastByte: number }} - 包含新 ArrayBuffer 和最后一个字节的对象。
- */
-function extractLastByte(buffer) {
-  const length = buffer.byteLength; // 获取原始 ArrayBuffer 的长度
+// /**
+//  * 从给定的 ArrayBuffer 中获取最后一个字节，并返回去掉最后一个字节的新 ArrayBuffer。
+//  * @param {ArrayBuffer} buffer - 原始 ArrayBuffer。
+//  * @returns {{ newBuffer: ArrayBuffer, lastByte: number }} - 包含新 ArrayBuffer 和最后一个字节的对象。
+//  */
+// function extractLastByte(buffer) {
+//   const length = buffer.byteLength; // 获取原始 ArrayBuffer 的长度
 
-  if (length === 0) {
-    throw new Error("Buffer is empty"); // 处理空缓冲区的情况
-  }
+//   if (length === 0) {
+//     throw new Error("Buffer is empty"); // 处理空缓冲区的情况
+//   }
 
-  const lastByte = new Uint8Array(buffer)[length - 1]; // 获取最后一个字节
+//   const lastByte = new Uint8Array(buffer)[length - 1]; // 获取最后一个字节
 
-  // 创建一个新的 ArrayBuffer，大小为原始数据长度减去 1
-  const newBuffer = new ArrayBuffer(length - 1);
-  const newView = new Uint8Array(newBuffer); // 创建新的 Uint8Array 视图以操作新 ArrayBuffer
+//   // 创建一个新的 ArrayBuffer，大小为原始数据长度减去 1
+//   const newBuffer = new ArrayBuffer(length - 1);
+//   const newView = new Uint8Array(newBuffer); // 创建新的 Uint8Array 视图以操作新 ArrayBuffer
 
-  // 将原始数据复制到新 ArrayBuffer 中（去掉最后一个字节）
-  newView.set(new Uint8Array(buffer).subarray(0, length - 1));
+//   // 将原始数据复制到新 ArrayBuffer 中（去掉最后一个字节）
+//   newView.set(new Uint8Array(buffer).subarray(0, length - 1));
 
-  return { buffer: newBuffer, lastByte }; // 返回新的 ArrayBuffer 和最后一个字节
-}
+//   return { buffer: newBuffer, lastByte }; // 返回新的 ArrayBuffer 和最后一个字节
+// }
