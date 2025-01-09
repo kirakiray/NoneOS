@@ -83,14 +83,13 @@
                 <x-if
                   :value="$data.state === 'disconnected' || $data.state === 'closed' || $data.state === 'error'"
                 >
-                  <p-button
-                    size="mini"
-                    variant="text"
+                  <n-local-icon
+                    name="disconnected"
                     slot="suffix"
-                    style="z-index: 3"
+                    style="font-size: 16px"
+                    on:click="$host.connectUser($data)"
                   >
-                    Connect
-                  </p-button>
+                  </n-local-icon>
                 </x-if>
                 <x-else-if :value="$data.state === 'connected'">
                   <i collapse-triangle slot="suffix"></i>
@@ -98,6 +97,14 @@
                     <x-fill :value="$data.paths" name="path-item"></x-fill>
                   </p-list>
                 </x-else-if>
+                <x-else>
+                  <n-local-icon
+                    name="loading"
+                    slot="suffix"
+                    style="font-size: 18px; color: var(--md-sys-color-primary)"
+                  >
+                  </n-local-icon>
+                </x-else>
               </p-list-item>
             </x-fill>
             <x-if :value="!remotes.length">
@@ -143,6 +150,7 @@
       const { setSpace, getText, onChangeLang, getLang } = await load(
         "/packages/i18n/data.js"
       );
+      const { connectUser } = await load("/packages/core/user-connect/main.js");
 
       await setSpace("files", new URL("./lang", url).href);
 
@@ -172,6 +180,11 @@
           remotes: [], // 远端设备
         },
         proto: {
+          async connectUser(item) {
+            connectUser({
+              userId: item.userId,
+            });
+          },
           taskDone(e) {
             this.app.current.refreshFiles();
           },
