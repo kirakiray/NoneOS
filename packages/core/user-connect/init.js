@@ -1,6 +1,8 @@
 import { on, userMiddleware } from "../main.js";
 import { getId } from "../base/pair.js";
 import { getText, setSpace } from "/packages/i18n/data.js";
+import { getMyDeviceCerts } from "../cert/main.js";
+import { connectUser } from "../user-connect/main.js";
 
 {
   on("user-connected", async ({ data: { target } }) => {
@@ -26,3 +28,12 @@ import { getText, setSpace } from "/packages/i18n/data.js";
 userMiddleware.set("obtain-accessible-directories", async (midData, client) => {
   client.accessibleDirs = midData.dirs;
 });
+
+setTimeout(async () => {
+  // 自动连接我的设备
+  const devices = await getMyDeviceCerts();
+
+  devices.forEach(({ userId }) => {
+    connectUser({ userId });
+  });
+}, 500);
