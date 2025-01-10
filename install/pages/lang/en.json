@@ -25,6 +25,7 @@
     "error1": "Unable to fetch the correct system files from any source",
     "caculateHash": "Calculating file hash",
     "matchFile": "Matching files",
+    "removeOldFile": "Removing old system files",
     "writeSystem": "Writing system files"
   },
   "installSucceed": "NoneOS Installed Successfully",

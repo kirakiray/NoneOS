@@ -7,7 +7,12 @@
     }
   </style>
   <div>
-    <n-desc space="installer" name="p3.writeSystem"></n-desc>
+    <x-if :value="removeIng">
+      <n-desc space="installer" name="p3.removeOldFile"></n-desc>
+    </x-if>
+    <x-else>
+      <n-desc space="installer" name="p3.writeSystem"></n-desc>
+    </x-else>
   </div>
   <p-progress
     :value="progress"
@@ -24,11 +29,22 @@
           progress: 0,
           total: 0,
           count: 0,
+          removeIng: false,
         },
         proto: {
           async init() {
             const files = this._files;
             this.total = files.length;
+
+            // 清除旧的文件
+            const packagesDir = await get("packages");
+            if (packagesDir) {
+              this.removeIng = true;
+              for await (let e of packagesDir.values()) {
+                await e.remove();
+              }
+              this.removeIng = false;
+            }
 
             // 写入文件
             for (let e of files) {

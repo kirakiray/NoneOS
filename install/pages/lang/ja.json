@@ -25,6 +25,7 @@
     "error1": "正しいシステムファイルをどのソースからも取得できません",
     "caculateHash": "ファイルのハッシュを計算中",
     "matchFile": "ファイルを照合中",
+    "removeOldFile": "古いシステム ファイルを削除しています",
     "writeSystem": "システムファイルを書き込み中"
   },
   "installSucceed": "NoneOSのインストールに成功しました",
