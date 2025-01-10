@@ -1,0 +1,232 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/apps/link/comps/moment-span.html"></l-m>
+  <l-m src="/packages/comps/user-name.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .root-item {
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
+    }
+  </style>
+
+  <p-list>
+    <p-list-item radius collapse-childs="open" button="suffix">
+      <div>
+        <span class="root-item">我的设备</span>
+        ({{devices.length}})
+        <p-button
+          size="mini"
+          on:click="addDevice"
+          style="margin-left: 24px; position: relative; z-index: 3"
+        >
+          添加设备
+        </p-button>
+      </div>
+      <i collapse-triangle slot="suffix"></i>
+
+      <p-list slot="childs">
+        <x-if :value="!devices.length">
+          <div
+            style="
+              line-height: 80px;
+              font-size: 12px;
+              text-align: center;
+              color: #7c7c7c;
+            "
+          >
+            没有其他设备
+          </div>
+        </x-if>
+        <x-else>
+          <x-fill :value="devices" fill-key="userId">
+            <p-list-item button="suffix" collapse-childs="close">
+              <n-user-state
+                :userid="$data.userId"
+                show-point
+                slot="prefix"
+              ></n-user-state>
+              <n-local-icon
+                name="device"
+                slot="prefix"
+                style="display: inline-block; margin-right: 8px"
+              ></n-local-icon>
+              <n-user-name :userid="$data.userId"></n-user-name>
+              <i collapse-triangle slot="suffix"></i>
+              <p-list slot="childs" style="padding-left: 32px">
+                <p-list-item> UserID: {{$data.userId}} </p-list-item>
+                <p-list-item collapse-childs="close" button="suffix">
+                  <i collapse-triangle slot="suffix"></i>
+                  <n-local-icon
+                    name="cert"
+                    slot="prefix"
+                    style="display: inline-block; margin-right: 4px"
+                  ></n-local-icon>
+                  <div>颁发给我的证书</div>
+                  <p-list slot="childs" style="padding-left: 29px">
+                    <p-list-item>
+                      颁发时间:
+                      <n-moment-span
+                        :time="$data.receivedCertData.creation"
+                      ></n-moment-span>
+                    </p-list-item>
+                    <p-list-item>
+                      有效期至:
+                      <n-moment-span
+                        :time="$data.receivedCertData.expire"
+                      ></n-moment-span>
+                    </p-list-item>
+                  </p-list>
+                </p-list-item>
+                <p-list-item collapse-childs="close" button="suffix">
+                  <i collapse-triangle slot="suffix"></i>
+                  <n-local-icon
+                    name="cert"
+                    slot="prefix"
+                    style="display: inline-block; margin-right: 4px"
+                  ></n-local-icon>
+                  <div>我颁发的证书</div>
+                  <p-list slot="childs" style="padding-left: 29px">
+                    <p-list-item>
+                      颁发时间:
+                      <n-moment-span
+                        :time="$data.issusedCertData.creation"
+                      ></n-moment-span>
+                    </p-list-item>
+                    <p-list-item>
+                      有效期至:
+                      <n-moment-span
+                        :time="$data.issusedCertData.expire"
+                      ></n-moment-span>
+                    </p-list-item>
+                  </p-list>
+                </p-list-item>
+                <p-list-item>
+                  <div style="display: flex">
+                    <n-user-state :userid="$data.userId">
+                      <p-button
+                        show-with="disconnected"
+                        size="small"
+                        on:click="$host.connectUser($data)"
+                        style="margin-right: 8px"
+                      >
+                        连接该用户
+                      </p-button>
+                      <p-button
+                        show-with="closed error"
+                        size="small"
+                        on:click="$host.connectUser($data)"
+                        style="margin-right: 8px"
+                      >
+                        重新连接
+                      </p-button>
+                    </n-user-state>
+                    <p-button
+                      color="error"
+                      size="small"
+                      on:click="$host.beforeRemove($data)"
+                    >
+                      删除该设备
+                    </p-button>
+                  </div>
+                </p-list-item>
+              </p-list>
+            </p-list-item>
+          </x-fill>
+        </x-else>
+      </p-list>
+    </p-list-item>
+  </p-list>
+  <p-dialog :open="showAddDevice" on:cancel="showAddDevice = false">
+    <div slot="title">添加设备</div>
+    <o-page src="./add-device.html"></o-page>
+  </p-dialog>
+  <p-dialog :open="showRemoveDevice" on:cancel="showRemoveDevice = false">
+    <div slot="title">删除设备</div>
+    <div style="max-width: 500px">
+      确定删除设备
+      <n-user-name
+        :userid="needRemoveItem.userId"
+        style="display: inline"
+      ></n-user-name>
+      ？
+      <p>
+        执行操作后，您当前使用的环境中的该设备将被删除。
+        <br />
+        为了彻底移除设备，您还需要在另一台设备上执行相应的删除操作。这样，才能确保设备被完全删除。
+      </p>
+    </div>
+    <div slot="bottom">
+      <p-button variant="text" on:click="showRemoveDevice = false">
+        取消
+      </p-button>
+      <p-button color="primary" on:click="removeDevice(needRemoveItem)">
+        确定
+      </p-button>
+    </div>
+  </p-dialog>
+  <script>
+    export default async ({ load }) => {
+      const { getMyDeviceCerts, removeCert } = await load(
+        "/packages/core/cert/main.js"
+      );
+
+      const { connectUser } = await load("/packages/core/user-connect/main.js");
+      const { on } = await load("/packages/core/main.js");
+
+      return {
+        data: {
+          devices: [
+            // {
+            //   name: "test 1",
+            // },
+          ],
+          needRemoveItem: {},
+          showAddDevice: false,
+          showRemoveDevice: false,
+        },
+        proto: {
+          async connectUser(user) {
+            const result = await connectUser({
+              userId: user.userId,
+            });
+          },
+          async beforeRemove(item) {
+            this.needRemoveItem = item.toJSON();
+            this.showRemoveDevice = true;
+          },
+          async removeDevice(item) {
+            this.showRemoveDevice = false;
+            await removeCert(item.received);
+            await removeCert(item.issused);
+          },
+          async addDevice(e) {
+            e.stopPropagation();
+            this.showAddDevice = true;
+          },
+          async reloadMyDevices() {
+            const myDevices = await getMyDeviceCerts();
+
+            this.devices = myDevices;
+          },
+        },
+        attached() {
+          this.reloadMyDevices();
+
+          this._off = on("change-certs", (e) => {
+            this.reloadMyDevices();
+          });
+        },
+        detached() {
+          this._off && this._off();
+        },
+      };
+    };
+  </script>
+</template>

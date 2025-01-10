@@ -42,7 +42,7 @@
       <option value="1hour">1 hour later</option>
       <option value="1day">1 day later</option>
       <option value="1week">1 week later</option>
-      <option value="forever">Never</option>
+      <option value="never">Never</option>
     </p-select>
     <!-- <p-text-field multiline disabled class="field-ele">
           <label>附加内容</label>
@@ -57,10 +57,8 @@
     </div>
   </div>
   <script>
-    import { get } from "/packages/fs/handle/index.js";
-    import { signData } from "/packages/core/base/sign.js";
-    import { getHash } from "/packages/core/util.js";
     import { users } from "/packages/core/main.js";
+    import { createCert } from "/packages/core/cert/main.js";
 
     export default async ({ load }) => {
       const { enqueue, confirm } = await load("/packages/pui/util.js");
@@ -75,44 +73,11 @@
         proto: {
           // 提交生成用户证书
           async submit() {
-            let expire = Date.now();
-
-            switch (this.expireTime) {
-              case "1second":
-                expire += 1000;
-                break;
-              case "1hour":
-                expire += 60 * 60 * 1000;
-                break;
-              case "1day":
-                expire += 60 * 60 * 1000 * 24;
-                break;
-              case "1week":
-                expire += 60 * 60 * 1000 * 24 * 7;
-                break;
-              case "forever":
-                expire = "never";
-                break;
-            }
-
-            const data = await signData([
-              ["authTo", this.authTo],
-              ["expire", expire],
-              ["permission", "fully"],
-            ]);
-
-            const certsHandle = await get("local/system/user/certs", {
-              create: "dir",
+            const data = await createCert({
+              authTo: this.authTo,
+              expire: this.expireTime,
+              permission: this.type,
             });
-
-            const fileHash = await getHash(data);
-
-            // 写入并保存文件哈希
-            const fileHandle = await certsHandle.get(fileHash, {
-              create: "file",
-            });
-
-            await fileHandle.write(JSON.stringify(data));
 
             enqueue({
               content: "授权成功",

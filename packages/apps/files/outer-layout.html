@@ -1,10 +1,11 @@
 <template page>
-  <l-m src="/packages/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
-  <l-m src="/packages/others/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/pui/drawer/drawer.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
   <l-m src="/packages/fs/task/task-viewer.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -64,16 +65,46 @@
           <p-list slot="childs">
             <x-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
+                <n-user-state
+                  :userid="$data.userId"
+                  slot="prefix"
+                  sync:state="$data.state"
+                  watch:accessible-dirs="$data.paths"
+                  update-access
+                  style="display: none"
+                >
+                </n-user-state>
                 <n-local-icon
                   slot="prefix"
                   name="user"
                   style="padding-left: 8px"
                 ></n-local-icon>
                 {{$data.name}}
-                <i collapse-triangle slot="suffix"></i>
-                <p-list slot="childs" style="--padding-left: 16px">
-                  <x-fill :value="$data.paths" name="path-item"></x-fill>
-                </p-list>
+                <x-if
+                  :value="$data.state === 'disconnected' || $data.state === 'closed' || $data.state === 'error'"
+                >
+                  <n-local-icon
+                    name="disconnected"
+                    slot="suffix"
+                    style="font-size: 16px"
+                    on:click="$host.connectUser($data)"
+                  >
+                  </n-local-icon>
+                </x-if>
+                <x-else-if :value="$data.state === 'connected'">
+                  <i collapse-triangle slot="suffix"></i>
+                  <p-list slot="childs" style="--padding-left: 16px">
+                    <x-fill :value="$data.paths" name="path-item"></x-fill>
+                  </p-list>
+                </x-else-if>
+                <x-else>
+                  <n-local-icon
+                    name="loading"
+                    slot="suffix"
+                    style="font-size: 18px; color: var(--md-sys-color-primary)"
+                  >
+                  </n-local-icon>
+                </x-else>
               </p-list-item>
             </x-fill>
             <x-if :value="!remotes.length">
@@ -119,6 +150,7 @@
       const { setSpace, getText, onChangeLang, getLang } = await load(
         "/packages/i18n/data.js"
       );
+      const { connectUser } = await load("/packages/core/user-connect/main.js");
 
       await setSpace("files", new URL("./lang", url).href);
 
@@ -148,6 +180,11 @@
           remotes: [], // 远端设备
         },
         proto: {
+          async connectUser(item) {
+            connectUser({
+              userId: item.userId,
+            });
+          },
           taskDone(e) {
             this.app.current.refreshFiles();
           },
@@ -232,7 +269,14 @@
           });
 
           this.refreashLocals();
-          this.remotes = await getRemotes();
+          const remotes = await getRemotes();
+          this.remotes = remotes.map((e) => {
+            console.log(e);
+            return {
+              ...e,
+              state: "disconnected",
+            };
+          });
         },
         attached() {
           this._cancel = onChangeLang((lang) => {

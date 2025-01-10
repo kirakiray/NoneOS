@@ -3,7 +3,7 @@ import { sign } from "../base/sign.js";
 import { verify } from "../base/verify.js";
 import { get } from "/packages/fs/handle/index.js";
 import { UserClient } from "../user-connect/user-client.js";
-import { users } from "../main.js";
+import { users, emit } from "../main.js";
 
 // 保存历史日志
 const saveLog = async (serverUrl, data) => {
@@ -174,7 +174,7 @@ export class ServerConnector extends $.Stanz {
   async _onServerMsg(result) {
     // console.log("server msg: ", result);
     switch (result.__type) {
-      case "agent-connect":
+      case "agent-connect": {
         // 转发用户数据
         const { fromUser, data } = result;
 
@@ -198,6 +198,16 @@ export class ServerConnector extends $.Stanz {
         }
 
         break;
+      }
+      case "get-user-card": {
+        const { data } = result;
+
+        // 触发别人通过设备码获取了你的用户信息
+        emit("get-user-card", data);
+        break;
+      }
+      default:
+        debugger;
     }
   }
 

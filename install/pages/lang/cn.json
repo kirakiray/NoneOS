@@ -25,6 +25,7 @@
     "error1": "无法从任何源获取到正确的系统文件",
     "caculateHash": "正在计算文件的哈希",
     "matchFile": "正在匹配文件",
+    "removeOldFile": "正在删除旧系统文件",
     "writeSystem": "正在写入系统文件"
   },
   "installSucceed": "NoneOS安装成功",

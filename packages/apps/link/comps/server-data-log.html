@@ -83,15 +83,15 @@
 
               let { result } = origin;
 
-              if (result.recommends) {
+              if (result.type === "recommends") {
                 return `${prefix}-${spaceData.requestRecommends}`;
-              } else if (result.search) {
+              } else if (result.type === "search") {
                 return `${prefix}-${spaceData.searchUser}`;
-              } else if (result.agent) {
+              } else if (result.type === "agent") {
                 result = {
                   __type: "agent-connect",
-                  fromUserID: result.agent.targetId,
-                  data: result.agent.data,
+                  fromUserID: result.targetId,
+                  data: result.data,
                 };
               }
 
@@ -113,6 +113,9 @@
 
                   return `${prefix}-${spaceData.forwardData}`;
                 default:
+                  if (result.__type || result.type) {
+                    return result.__type || result.type;
+                  }
                   console.log(result);
                   return "unknown";
               }

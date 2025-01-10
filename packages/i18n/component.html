@@ -35,6 +35,10 @@
 
             clearTimeout(this._c_timer);
             this._c_timer = setTimeout(() => {
+              if (!space[this.space]) {
+                return;
+              }
+              
               let val = space[this.space].get(this.name);
 
               if (/\{.+\}/.test(val)) {

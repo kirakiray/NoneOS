@@ -1,0 +1,200 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .root-item {
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
+    }
+    .status-point {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-normal);
+    }
+    [data-status="connected"] {
+      background-color: var(--md-sys-color-success);
+    }
+    [data-status="disconnected"],
+    [data-status="error"],
+    [data-status="closed"] {
+      background-color: var(--md-sys-color-error);
+    }
+
+    .server-item-list p-list-item {
+      margin-left: 20px;
+      --pui-space-y: 2px;
+    }
+
+    .server-item-list p-list-item::part(main) {
+      height: 22px;
+    }
+
+    [data-connected-status="disconnected"],
+    [data-connected-status="error"],
+    [data-connected-status="closed"] {
+      color: var(--md-sys-color-error);
+    }
+    [data-connected-status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+
+  <p-list>
+    <p-list-item radius collapse-childs="close" button="suffix">
+      <div>
+        <span class="root-item">握手服务器</span>
+        ({{servers.length}})
+      </div>
+      <i collapse-triangle slot="suffix"></i>
+
+      <p-list slot="childs">
+        <x-if :value="!servers.length">
+          <div
+            style="
+              line-height: 80px;
+              font-size: 12px;
+              text-align: center;
+              color: #7c7c7c;
+            "
+          >
+            没有服务器
+          </div>
+        </x-if>
+        <x-else>
+          <x-fill :value="servers" fill-key="serverUrl">
+            <p-list-item button="suffix" collapse-childs="close">
+              <div
+                class="status-point"
+                attr:data-status="$data.status"
+                slot="prefix"
+              ></div>
+              <div>
+                {{$data.serverName}}
+
+                <span style="color: #7c7c7c; font-size: 12px; margin-left: 4px">
+                  Version: {{$data.serverVersion}}
+                </span>
+              </div>
+              <div secondary>{{$data.serverUrl}}</div>
+              <p-list slot="childs" class="server-item-list">
+                <p-list-item>
+                  <div>服务器名称: {{$data.serverName}}</div>
+                </p-list-item>
+                <p-list-item>
+                  <div>
+                    连接状态:
+                    <span attr:data-connected-status="$data.status">
+                      {{$data.status}}
+                    </span>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  连接成功时间: {{ $host.getTime($data.connectEndTime); }}
+                </p-list-item>
+                <p-list-item>
+                  <div>
+                    延迟时间: {{$data.delayTime}} ms
+                    <p-button
+                      size="mini"
+                      variant="text"
+                      on:click="$host.ping($data)"
+                      style="margin-left: 4px"
+                    >
+                      测试延迟
+                    </p-button>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <div style="display: flex; align-items: center">
+                    服务器地址:
+                    <n-copy-span style="margin-left: 8px">
+                      {{$data.serverUrl}}
+                    </n-copy-span>
+                  </div>
+                </p-list-item>
+              </p-list>
+
+              <i collapse-triangle slot="suffix"></i>
+            </p-list-item>
+          </x-fill>
+        </x-else>
+      </p-list>
+    </p-list-item>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { servers, addServer, removeServer } = await load(
+        "/packages/core/server-connect/main.js"
+      );
+
+      return {
+        data: {
+          servers: [
+            // {
+            //   name: "test 1",
+            // },
+          ],
+        },
+        proto: {
+          getTime(time) {
+            return new Date(time).toLocaleString();
+          },
+          async gotoLog(item) {
+            this.goto(
+              `./server-logs.html?url=${encodeURIComponent(item.serverUrl)}`
+            );
+          },
+          ping(item) {
+            this.disabledPing = item.serverUrl;
+            setTimeout(() => {
+              this.disabledPing = null;
+            }, 1000);
+            item.ping();
+          },
+          async deleteServer(item) {
+            const result = await confirm({
+              title: getText("deleteDialogTitle", "link"),
+              content: getText("deleteContent", "link", {
+                serverName: item.serverName,
+                serverUrl: item.serverUrl,
+              }),
+              yes: getText("okDelete", "link"),
+              cancel: getText("cancel", "link"),
+            });
+
+            if (result) {
+              await removeServer(item.serverUrl);
+            }
+          },
+          async addServer() {
+            const result = await addServer(this.newServer);
+
+            // 如果返回内容是Error，代表出错，弹窗提示
+            if (result instanceof Error) {
+              enqueue({
+                color: "error",
+                content: result.toString(),
+              });
+              return;
+            }
+
+            this.newServer = "";
+          },
+        },
+        attached() {
+          this.servers = servers;
+        },
+        detached() {
+          this.servers = [];
+        },
+      };
+    };
+  </script>
+</template>

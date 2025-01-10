@@ -19,6 +19,8 @@
 
       const { getLang } = await load("/packages/i18n/data.js");
 
+      const { getUserCard } = await load("/packages/core/card.js");
+
       const selfUserId = await getId();
       const selfInfo = await getInfo();
 
@@ -48,12 +50,10 @@
 
             this.isme = false;
 
-            const cardHandle = await get(`local/caches/cards/${userid}`);
+            const targetUserCard = await getUserCard(userid);
 
-            if (cardHandle) {
-              let card = await cardHandle.text();
-              card = JSON.parse(card);
-              this.realName = new Map(card.data).get("userName");
+            if (targetUserCard) {
+              this.realName = new Map(targetUserCard.data).get("userName");
             } else {
               this.realName = userid;
             }

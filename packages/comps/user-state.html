@@ -1,0 +1,94 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    .point {
+      display: none;
+      width: 8px;
+      height: 8px;
+      border-radius: 5px;
+      background-color: #7c7c7c;
+    }
+
+    [data-state="connected"] {
+      background-color: var(--md-sys-color-success);
+    }
+    [data-state="disconnected"],
+    [data-state="error"],
+    [data-state="closed"] {
+      background-color: var(--md-sys-color-error);
+    }
+
+    :host([show-point]) .point {
+      display: block;
+    }
+  </style>
+
+  <style>
+    ::slotted([show-with]) {
+      display: none;
+    }
+    ::slotted([show-with~="data(state)"]) {
+      display: block;
+    }
+  </style>
+  <div class="point" attr:data-state="state"></div>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      const { users } = await load("/packages/core/main.js");
+
+      return {
+        tag: "n-user-state",
+        attrs: {
+          state: null, // 用户的连接状态
+          updateAccess: null,
+        },
+        data: {
+          userid: null, // 用户的id
+          accessibleDirs: [], // 可访问的路径
+        },
+        proto: {
+          refreshState() {
+            const targetUser = users.find(
+              (user) => user.userId === this.userid
+            );
+
+            if (targetUser && this.updateAccess !== null) {
+              if (!targetUser.accessibleDirs) {
+                if (this.accessibleDirs.length) {
+                  this.accessibleDirs = [];
+                }
+              } else if (
+                JSON.stringify(targetUser.accessibleDirs) !==
+                JSON.stringify(this.accessibleDirs)
+              ) {
+                this.accessibleDirs = targetUser.accessibleDirs.toJSON();
+              }
+            }
+
+            if (targetUser) {
+              this.state = targetUser.state;
+            } else {
+              this.state = "disconnected";
+            }
+          },
+        },
+        watch: {
+          userid() {
+            this.refreshState();
+          },
+        },
+        attached() {
+          this._wid = users.watchTick((e) => {
+            this.refreshState();
+          }, 100);
+        },
+        detached() {
+          users.unwatch(this._wid);
+        },
+      };
+    };
+  </script>
+</template>

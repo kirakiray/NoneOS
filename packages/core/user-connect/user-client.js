@@ -96,6 +96,10 @@ export class UserClient extends $.Stanz {
     });
   }
 
+  get connection() {
+    return this.#rtcConnection;
+  }
+
   async verify() {
     return verify(this.#user);
   }
@@ -472,10 +476,9 @@ export class UserClient extends $.Stanz {
     if (ser) {
       return await ser
         ._post({
-          agent: {
-            targetId: this.userId,
-            data,
-          },
+          type: "agent",
+          targetId: this.userId,
+          data,
         })
         .then((e) => e.json())
         .catch(() => null);
@@ -511,7 +514,8 @@ export class UserClient extends $.Stanz {
         // 查找用户是否存在
         const sResult = await ser
           ._post({
-            search: this.userId,
+            type: "search",
+            userId: this.userId,
           })
           .then((e) => e.json())
           .catch(() => null);

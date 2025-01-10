@@ -241,9 +241,9 @@
           }
 
           if (this.button === "suffix") {
-            this.$("[slot='suffix']").ele.click();
+            this.$("[slot='suffix']") && this.$("[slot='suffix']").ele.click();
           } else if (this.button === "prefix") {
-            this.$("[slot='prefix']").ele.click();
+            this.$("[slot='prefix']") && this.$("[slot='prefix']").ele.click();
           }
         },
       },
