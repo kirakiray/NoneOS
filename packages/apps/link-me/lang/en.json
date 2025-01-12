@@ -36,5 +36,12 @@
   },
   "userId": "User ID",
   "userName": "User Name",
-  "linkState": "Connection Status"
+  "linkState": "Connection Status",
+  "noServer": "No server",
+  "handServer": "Handshake server",
+  "serverName": "Server name",
+  "connectTime": "Connection success time",
+  "delayTime": "Delay time",
+  "ping": "Test delay",
+  "serverUrl": "Server address"
 }
