@@ -5,6 +5,7 @@
   <l-m src="/packages/apps/link/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="/packages/i18n/component.html"></l-m>
   <style>
     :host {
       display: block;
@@ -19,14 +20,16 @@
   <p-list>
     <p-list-item radius collapse-childs="open" button="suffix">
       <div>
-        <span class="root-item">我的设备</span>
+        <span class="root-item">
+          <n-desc name="myDevices" space="linkme"></n-desc>
+        </span>
         ({{devices.length}})
         <p-button
           size="mini"
           on:click="addDevice"
           style="margin-left: 24px; position: relative; z-index: 3"
         >
-          添加设备
+          <n-desc name="addDevice" space="linkme"></n-desc>
         </p-button>
       </div>
       <i collapse-triangle slot="suffix"></i>
@@ -41,7 +44,7 @@
               color: #7c7c7c;
             "
           >
-            没有其他设备
+            <n-desc name="noOtherDevices" space="linkme"></n-desc>
           </div>
         </x-if>
         <x-else>
@@ -68,16 +71,19 @@
                     slot="prefix"
                     style="display: inline-block; margin-right: 4px"
                   ></n-local-icon>
-                  <div>颁发给我的证书</div>
+                  <div>
+                    <n-desc name="toMeCerts" space="linkme"></n-desc>
+                  </div>
                   <p-list slot="childs" style="padding-left: 29px">
                     <p-list-item>
-                      颁发时间:
+                      <n-desc name="issueTime" space="linkme"></n-desc>
+                      :
                       <n-moment-span
                         :time="$data.receivedCertData.creation"
                       ></n-moment-span>
                     </p-list-item>
                     <p-list-item>
-                      有效期至:
+                      <n-desc name="validUntil" space="linkme"></n-desc>:
                       <n-moment-span
                         :time="$data.receivedCertData.expire"
                       ></n-moment-span>
@@ -91,16 +97,18 @@
                     slot="prefix"
                     style="display: inline-block; margin-right: 4px"
                   ></n-local-icon>
-                  <div>我颁发的证书</div>
+                  <div>
+                    <n-desc name="myCerts" space="linkme"></n-desc>
+                  </div>
                   <p-list slot="childs" style="padding-left: 29px">
                     <p-list-item>
-                      颁发时间:
+                      <n-desc name="issueTime" space="linkme"></n-desc>:
                       <n-moment-span
                         :time="$data.issusedCertData.creation"
                       ></n-moment-span>
                     </p-list-item>
                     <p-list-item>
-                      有效期至:
+                      <n-desc name="validUntil" space="linkme"></n-desc>::
                       <n-moment-span
                         :time="$data.issusedCertData.expire"
                       ></n-moment-span>
@@ -116,7 +124,7 @@
                         on:click="$host.connectUser($data)"
                         style="margin-right: 8px"
                       >
-                        连接该用户
+                        <n-desc name="linkToUser" space="linkme"></n-desc>
                       </p-button>
                       <p-button
                         show-with="closed error"
@@ -124,7 +132,7 @@
                         on:click="$host.connectUser($data)"
                         style="margin-right: 8px"
                       >
-                        重新连接
+                        <n-desc name="relink" space="linkme"></n-desc>
                       </p-button>
                     </n-user-state>
                     <p-button
@@ -132,7 +140,7 @@
                       size="small"
                       on:click="$host.beforeRemove($data)"
                     >
-                      删除该设备
+                      <n-desc name="deleteDevice" space="linkme"></n-desc>
                     </p-button>
                   </div>
                 </p-list-item>
@@ -144,30 +152,34 @@
     </p-list-item>
   </p-list>
   <p-dialog :open="showAddDevice" on:cancel="showAddDevice = false">
-    <div slot="title">添加设备</div>
+    <div slot="title">
+      <n-desc name="addDevice" space="linkme"></n-desc>
+    </div>
     <o-page src="./add-device.html"></o-page>
   </p-dialog>
   <p-dialog :open="showRemoveDevice" on:cancel="showRemoveDevice = false">
-    <div slot="title">删除设备</div>
+    <div slot="title">
+      <n-desc name="addDevice" space="linkme"></n-desc>
+    </div>
     <div style="max-width: 500px">
-      确定删除设备
+      <n-desc name="confirmDeleteDevice" space="linkme"></n-desc>
       <n-user-name
         :userid="needRemoveItem.userId"
         style="display: inline"
       ></n-user-name>
-      ？
+      ?
       <p>
-        执行操作后，您当前使用的环境中的该设备将被删除。
+        <n-desc name="confirm1" space="linkme"></n-desc>
         <br />
-        为了彻底移除设备，您还需要在另一台设备上执行相应的删除操作。这样，才能确保设备被完全删除。
+        <n-desc name="confirm2" space="linkme"></n-desc>
       </p>
     </div>
     <div slot="bottom">
       <p-button variant="text" on:click="showRemoveDevice = false">
-        取消
+        <n-desc name="cancel" space="linkme"></n-desc>
       </p-button>
       <p-button color="primary" on:click="removeDevice(needRemoveItem)">
-        确定
+        <n-desc name="ok" space="linkme"></n-desc>
       </p-button>
     </div>
   </p-dialog>
@@ -176,6 +188,10 @@
       const { getMyDeviceCerts, removeCert } = await load(
         "/packages/core/cert/main.js"
       );
+
+      // const { setSpace, getText, onChangeLang, getLang } = await load(
+      //   "/packages/i18n/data.js"
+      // );
 
       const { connectUser } = await load("/packages/core/user-connect/main.js");
       const { on } = await load("/packages/core/main.js");

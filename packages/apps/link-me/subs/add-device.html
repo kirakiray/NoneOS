@@ -26,9 +26,11 @@
   </style>
   <div class="container">
     <p>
-      通过添加设备操作，确认两个设备是否属于同一人，以便在多个设备之间同步数据。
+      <n-desc name="add.desc1" space="linkme"></n-desc>
     </p>
-    <p>其中一个设备生成设备码，另一个设备输入设备码，即可完成添加设备操作。</p>
+    <p>
+      <n-desc name="add.desc2" space="linkme"></n-desc>
+    </p>
 
     <x-if :value="step === 0">
       <div style="display: flex; padding-top: 8px">
@@ -38,7 +40,8 @@
             slot="prefix"
             style="display: inline-block; margin-right: 4px"
           ></n-local-icon>
-          生成设备码
+
+          <n-desc name="add.genCode" space="linkme"></n-desc>
         </p-button>
         <p-button on:click="addCode" style="margin-left: 16px">
           <n-local-icon
@@ -46,13 +49,14 @@
             slot="prefix"
             style="display: inline-block; margin-right: 4px"
           ></n-local-icon>
-          添加设备码
+
+          <n-desc name="add.addCode" space="linkme"></n-desc>
         </p-button>
       </div>
     </x-if>
     <x-else-if :value="step === 1">
       <div style="display: flex; align-items: center">
-        我的设备码：
+        <n-desc name="add.myCode" space="linkme"></n-desc> :
         <span
           style="font-size: 22px; font-weight: bold; font-family: monospace"
         >
@@ -61,35 +65,50 @@
       </div>
       <div>
         <x-if :value="recevesUser.length">
-          <p>确认是我的设备后，点击 “确认是我的设备”。</p>
+          <p>
+            <n-desc name="add.desc3" space="linkme"></n-desc>
+          </p>
         </x-if>
         <x-else>
-          <p>请在另一个设备输入此设备码。</p>
+          <p>
+            <n-desc name="add.desc4" space="linkme"></n-desc>
+          </p>
         </x-else>
       </div>
       <div>
         <div>
           <x-if :value="!!recevesUser.length">
-            <div>匹配到的用户</div>
+            <div>
+              <n-desc name="add.matchedUser" space="linkme"></n-desc>
+            </div>
             <div style="margin-top: 4px; display: flex; flex-wrap: wrap">
               <x-fill :value="recevesUser">
                 <div class="user-block">
                   <x-if :value="$data.userName">
                     <div attr:title="$data.userId">
-                      用户ID: {{$data.userId}}
+                      <n-desc name="userId" space="linkme"></n-desc>
+                      : {{$data.userId}}
                     </div>
-                    <div>用户名: {{$data.userName}}</div>
+                    <div>
+                      <n-desc name="userName" space="linkme"></n-desc>:
+                      {{$data.userName}}
+                    </div>
 
                     <div style="padding: 4px 0">
                       <x-if :value="$host.isMyDevice($data)">
-                        <p-button size="small" disabled>已添加的设备</p-button>
+                        <p-button size="small" disabled>
+                          <n-desc name="add.addedUser" space="linkme"></n-desc>
+                        </p-button>
                       </x-if>
                       <x-else>
                         <p-button
                           size="small"
                           on:click="$host.firstYesMyDevice($data)"
                         >
-                          确认是我的设备
+                          <n-desc
+                            name="add.confirmMyUser"
+                            space="linkme"
+                          ></n-desc>
                         </p-button>
                         <p-button
                           size="small"
@@ -98,19 +117,25 @@
                           on:click="$host.noMyDevice($data)"
                           style="padding-left: 8px"
                         >
-                          不是我的设备
+                          <n-desc
+                            name="add.notMyDevice"
+                            space="linkme"
+                          ></n-desc>
                         </p-button>
                       </x-else>
                     </div>
                   </x-if>
                   <x-else>
-                    <div>用户ID: {{$data.userId}}</div>
+                    <div>
+                      <n-desc name="userId" space="linkme"></n-desc>:
+                      {{$data.userId}}
+                    </div>
                     <div>
                       <n-local-icon
                         name="loading"
                         style="display: inline-block; vertical-align: bottom"
                       ></n-local-icon>
-                      正在连接用户中...
+                      <n-desc name="add.connecting" space="linkme"></n-desc>...
                     </div>
                   </x-else>
                 </div>
@@ -122,7 +147,7 @@
               name="loading"
               style="display: inline-block; vertical-align: bottom"
             ></n-local-icon>
-            正在等待另一端输入设备码...
+            <n-desc name="add.waiting" space="linkme"></n-desc>...
           </x-else>
         </div>
       </div>
@@ -130,13 +155,26 @@
     <x-else>
       <div>
         <x-if :value="!!confirmerUser.userId">
-          <p>确认到的用户</p>
+          <p>
+            <n-desc name="add.confirmUser" space="linkme"></n-desc>
+          </p>
           <div class="user-block">
-            <div>用户ID:{{confirmerUser.userId}}</div>
-            <div>用户名:{{confirmerUser.userName}}</div>
-            <div>连接状态: <span>{{confirmerUser.state}}</span></div>
+            <div>
+              <n-desc name="userId" space="linkme"></n-desc>
+              :{{confirmerUser.userId}}
+            </div>
+            <div>
+              <n-desc name="userName" space="linkme"></n-desc>
+              :{{confirmerUser.userName}}
+            </div>
+            <div>
+              <n-desc name="linkState" space="linkme"></n-desc>:
+              <span>{{confirmerUser.state}}</span>
+            </div>
             <x-if :value="isMyDevice(confirmerUser)">
-              <p-button size="small" disabled>已添加的设备</p-button>
+              <p-button size="small" disabled>
+                <n-desc name="add.addedUser" space="linkme"></n-desc>
+              </p-button>
             </x-if>
             <x-else-if :value="confirmerUser.state === 'connected'">
               <div style="padding: 4px 0">
@@ -144,7 +182,7 @@
                   on:click="firstYesMyDevice(confirmerUser)"
                   size="small"
                 >
-                  确认是我的设备
+                  <n-desc name="add.confirmMyUser" space="linkme"></n-desc>
                 </p-button>
                 <p-button
                   on:click="noMyDevice(confirmerUser)"
@@ -153,7 +191,7 @@
                   variant="text"
                   style="margin-left: 8px"
                 >
-                  不是我的设备
+                  <n-desc name="add.notMyDevice" space="linkme"></n-desc>
                 </p-button>
               </div>
             </x-else-if>
@@ -165,14 +203,16 @@
             autofocus
             style="margin-top: 16px"
           >
-            <label> 输入另一个设备的设备码 </label>
+            <label>
+              <n-desc name="add.inputSideCode" space="linkme"></n-desc>
+            </label>
             <p-button
               slot="suffix"
               size="small"
               attr:disabled="!remoteCode || !!getUsering"
               on:click="confirmCode"
             >
-              确认
+              <n-desc name="ok" space="linkme"></n-desc>
             </p-button>
           </p-text-field>
         </x-else>
@@ -180,13 +220,19 @@
     </x-else>
     <div style="display: flex; margin-top: 16px">
       <div style="flex: 1"></div>
-      <p-button variant="text" on:click="clickCancel">取消</p-button>
+      <p-button variant="text" on:click="clickCancel">
+        <n-desc name="cancel" space="linkme"></n-desc>
+      </p-button>
     </div>
   </div>
   <p-dialog :open="showConfirm">
-    <div slot="title">确认设备</div>
+    <div slot="title">
+      <n-desc name="add.confirmDevice" space="linkme"></n-desc>
+    </div>
     <div style="max-width: 360px">
-      <p>请认真确认信息无误后，才进行操作，防止添加了错误的设备。</p>
+      <p>
+        <n-desc name="add.desc5" space="linkme"></n-desc>
+      </p>
       <div>
         <div style="display: flex; word-break: break-all">
           <span
@@ -196,7 +242,8 @@
               margin-right: 8px;
             "
           >
-            用户名:
+            <n-desc name="userName" space="linkme"></n-desc>
+            :
           </span>
           <div style="flex: 1">{{_deviceUser.userName}}</div>
         </div>
@@ -209,16 +256,23 @@
               margin-right: 8px;
             "
           >
-            用户ID:
+            <n-desc name="userId" space="linkme"></n-desc>
+            :
           </div>
           <div style="flex: 1">{{_deviceUser.userId}}</div>
         </div>
       </div>
-      <p>未确认信息添加了错误的设备，将会导致自己数据泄漏，请再三确认无误。</p>
+      <p>
+        <n-desc name="add.desc6" space="linkme"></n-desc>
+      </p>
     </div>
     <div slot="bottom">
-      <p-button on:click="showConfirm = false" variant="text">取消</p-button>
-      <p-button on:click="reConfirmMyDevice">确认</p-button>
+      <p-button on:click="showConfirm = false" variant="text">
+        <n-desc name="cancel" space="linkme"></n-desc>
+      </p-button>
+      <p-button on:click="reConfirmMyDevice">
+        <n-desc name="ok" space="linkme"></n-desc>
+      </p-button>
     </div>
   </p-dialog>
   <script>

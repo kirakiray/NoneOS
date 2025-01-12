@@ -21,3 +21,10 @@ export const onHandle = async function ({ handle, path }) {
 };
 
 export const allowForward = true;
+
+import { setSpace } from "/packages/i18n/data.js";
+
+await setSpace(
+  "linkme",
+  new URL("/packages/apps/link-me/lang", location.href).href
+);

@@ -49,7 +49,9 @@
   <p-list>
     <p-list-item radius collapse-childs="close" button="suffix">
       <div>
-        <span class="root-item">握手服务器</span>
+        <span class="root-item">
+          <n-desc name="handServer" space="linkme"></n-desc>
+        </span>
         ({{servers.length}})
       </div>
       <i collapse-triangle slot="suffix"></i>
@@ -64,7 +66,7 @@
               color: #7c7c7c;
             "
           >
-            没有服务器
+            <n-desc name="noServer" space="linkme"></n-desc>
           </div>
         </x-if>
         <x-else>
@@ -85,35 +87,42 @@
               <div secondary>{{$data.serverUrl}}</div>
               <p-list slot="childs" class="server-item-list">
                 <p-list-item>
-                  <div>服务器名称: {{$data.serverName}}</div>
+                  <div>
+                    <n-desc name="serverName" space="linkme"></n-desc>
+                    : {{$data.serverName}}
+                  </div>
                 </p-list-item>
                 <p-list-item>
                   <div>
-                    连接状态:
+                    <n-desc name="linkState" space="linkme"></n-desc>
+                    :
                     <span attr:data-connected-status="$data.status">
                       {{$data.status}}
                     </span>
                   </div>
                 </p-list-item>
                 <p-list-item>
-                  连接成功时间: {{ $host.getTime($data.connectEndTime); }}
+                  <n-desc name="connectTime" space="linkme"></n-desc>
+                  : {{ $host.getTime($data.connectEndTime); }}
                 </p-list-item>
                 <p-list-item>
                   <div>
-                    延迟时间: {{$data.delayTime}} ms
+                    <n-desc name="delayTime" space="linkme"></n-desc>
+                    : {{$data.delayTime}} ms
                     <p-button
                       size="mini"
                       variant="text"
                       on:click="$host.ping($data)"
                       style="margin-left: 4px"
                     >
-                      测试延迟
+                      <n-desc name="ping" space="linkme"></n-desc>
                     </p-button>
                   </div>
                 </p-list-item>
                 <p-list-item>
                   <div style="display: flex; align-items: center">
-                    服务器地址:
+                    <n-desc name="serverUrl" space="linkme"></n-desc>
+                    :
                     <n-copy-span style="margin-left: 8px">
                       {{$data.serverUrl}}
                     </n-copy-span>
