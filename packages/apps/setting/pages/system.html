@@ -65,6 +65,7 @@
     .item-tips {
       color: var(--md-sys-color-normal);
       font-size: 12px;
+      text-transform: none;
     }
   </style>
   <div class="container">
@@ -164,6 +165,11 @@
           on:change="refreshModeText()"
         ></p-switch>
       </p-list-item>
+    </div>
+    <h5>
+      <n-desc space="setting" name="relateDesktop"></n-desc>
+    </h5>
+    <div class="list">
       <p-list-item radius>
         <n-local-icon
           attr:name="'toolbar-' + bardir"
@@ -181,6 +187,18 @@
             <option attr:value="$data.value">{{$data.name}}</option>
           </x-fill>
         </p-select>
+      </p-list-item>
+      <p-list-item>
+        <n-local-icon
+          name="wallpaper"
+          slot="prefix"
+          style="font-size: 26px"
+        ></n-local-icon>
+        <n-desc space="setting" name="desktopPic"></n-desc>
+        <div class="item-tips">packages/others/default-bg.jpg</div>
+        <p-button slot="suffix" size="small" disabled>
+          <n-desc space="setting" name="change"></n-desc>
+        </p-button>
       </p-list-item>
     </div>
   </div>
@@ -208,14 +226,14 @@
           useOnline,
           modeText: "",
           dirOptions: [
-            {
-              name: "左侧",
-              value: "left",
-            },
-            {
-              name: "底部",
-              value: "bottom",
-            },
+            // {
+            //   name: "左侧",
+            //   value: "left",
+            // },
+            // {
+            //   name: "底部",
+            //   value: "bottom",
+            // },
           ],
         },
         watch: {
