@@ -146,7 +146,12 @@
               display: inline-block;
             "
           ></n-local-icon>
-          复制 {{fname}} 完成
+          <n-desc
+            name="copyok"
+            set-type="html"
+            space="fs-task"
+            attr:data-fname="fname"
+          ></n-desc>
         </x-if>
         <x-else>
           {{fname}}
@@ -163,7 +168,8 @@
         </x-else>
         <x-if :value="!!copyTime">
           <div style="margin-left: 4px; font-size: 12px">
-            (时间: {{copyTime}}s)
+            (
+            <n-desc name="time" space="fs-task"></n-desc>: {{copyTime}}s)
           </div>
         </x-if>
       </div>
@@ -180,9 +186,12 @@
               attr:value="precentOne"
               variant="determinate"
             ></p-progress>
-            <x-if :value="precentOne >= 100"> 缓存完成 </x-if>
+            <x-if :value="precentOne >= 100">
+              <n-desc name="cacheok" space="fs-task"></n-desc>
+            </x-if>
             <x-else>
-              缓存中({{precentOne}}%)
+              <n-desc name="caching" space="fs-task"></n-desc>
+              ({{precentOne}}%)
               <div style="margin-left: 4px">
                 <x-if :value="_copySpeed"> {{copySpeed}}/S </x-if>
               </div>
@@ -196,8 +205,13 @@
               variant="determinate"
               style="margin-left: 8px"
             ></p-progress>
-            <x-if :value="precentTwo >= 100"> 合并完成 </x-if>
-            <x-else> 合并中({{precentTwo}})% </x-else>
+            <x-if :value="precentTwo >= 100">
+              <n-desc name="mergeok" space="fs-task"></n-desc>
+            </x-if>
+            <x-else>
+              <n-desc name="merging" space="fs-task"></n-desc>
+              ({{precentTwo}})%
+            </x-else>
           </div>
           <div class="line" class:show="precentThree >= 100">
             <p-progress
@@ -207,8 +221,13 @@
               variant="determinate"
               style="margin-left: 8px"
             ></p-progress>
-            <x-if :value="precentThree >= 100"> 删除缓存完成 </x-if>
-            <x-else> 删除缓存中({{precentThree}})% </x-else>
+            <x-if :value="precentThree >= 100">
+              <n-desc name="deleteCacheok" space="fs-task"></n-desc>
+            </x-if>
+            <x-else>
+              <n-desc name="deleteCache" space="fs-task"></n-desc>
+              ({{precentThree}})%
+            </x-else>
           </div>
         </div>
       </x-else>
@@ -220,7 +239,7 @@
           attr:disabled="clickRetried"
           style="z-index: 3"
         >
-          重试
+          <n-desc name="retry" space="fs-task"></n-desc>
         </p-button>
       </x-if>
       <x-else>

@@ -1,5 +1,8 @@
 import { getErr } from "../errors.js";
 import { calculateHash } from "../util.js";
+import { setSpace } from "/packages/i18n/data.js";
+
+setSpace("fs-task", new URL("/packages/fs/task/lang", location.href));
 
 // 所有任务
 export const tasks = $.stanz([]);

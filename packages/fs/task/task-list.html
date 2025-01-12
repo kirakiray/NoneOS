@@ -50,6 +50,7 @@
   <script>
     export default async ({ load }) => {
       const { tasks } = await load("./main.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       return {
         tag: "n-task-list",
@@ -68,18 +69,21 @@
           },
           getItemTitle(data) {
             if (data.errInfo) {
-              return `复制 <b>${data.from.replace(
-                /.+\/(.+)/,
-                "$1"
-              )}</b> 失败，${data.errInfo}`;
+              return getText("copyfail", "fs-task", {
+                fname: data.from.replace(/.+\/(.+)/, "$1"),
+                errInfo: data.errInfo,
+              });
             }
             if (data.done) {
-              return `复制 <b>${data.from.replace(/.+\/(.+)/, "$1")}</b> 完成`;
+              return getText("copyok", "fs-task", {
+                fname: data.from.replace(/.+\/(.+)/, "$1"),
+              });
             }
-            return `将 <b>${data.from.replace(
-              /.+\/(.+)/,
-              "$1"
-            )}</b> 复制到 <b>${data.to.replace(/.+\/(.+)/, "$1")}</b>`;
+
+            return getText("copyto", "fs-task", {
+              fname: data.from.replace(/.+\/(.+)/, "$1"),
+              tname: data.to.replace(/.+\/(.+)/, "$1"),
+            });
           },
         },
         attached() {
