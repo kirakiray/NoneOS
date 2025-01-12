@@ -1,0 +1,17 @@
+{
+  "myDevices": "我的设备",
+  "addDevice": "添加设备",
+  "noOtherDevices": "没有其他设备",
+  "toMeCerts": "颁发给我的证书",
+  "issueTime": "颁发时间",
+  "validUntil": "有效期至",
+  "myCerts": "我颁发的证书",
+  "linkToUser": "连接该用户",
+  "relink": "重新连接",
+  "cancel": "取消",
+  "ok": "确定",
+  "deleteDevice": "删除该设备",
+  "confirmDeleteDevice": "确定删除设备",
+  "confirm1": "执行操作后，您当前使用的环境中的该设备将被删除。",
+  "confirm2": "为了彻底移除设备，您还需要在另一台设备上执行相应的删除操作。这样，才能确保设备被完全删除。"
+}

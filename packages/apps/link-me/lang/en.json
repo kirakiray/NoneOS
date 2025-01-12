@@ -1,0 +1,17 @@
+{
+  "myDevices": "My devices",
+  "addDevice": "Add device",
+  "noOtherDevices": "No other devices",
+  "toMeCerts": "Certificates issued to me",
+  "issueTime": "Issuance time",
+  "validUntil": "Valid until",
+  "myCerts": "Certificates issued by me",
+  "linkToUser": "Connect to this user",
+  "relink": "Relink",
+  "cancel": "Cancel",
+  "ok": "Yes",
+  "deleteDevice": "Delete this device",
+  "confirmDeleteDevice": "Confirm to delete the device",
+  "confirm1": "After executing the operation, the device in your current environment will be deleted.",
+  "confirm2": "In order to completely remove the device, you also need to perform the corresponding deletion operation on another device. In this way, you can ensure that the device is completely deleted."
+}
