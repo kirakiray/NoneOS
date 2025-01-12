@@ -77,6 +77,12 @@
     export default async ({ load }) => {
       const { configs } = await load("./configs.js");
       const { openFileWithApp } = await load("./app.js");
+      const { get } = await load("/packages/fs/handle/index.js");
+
+      // 创建桌面文件夹
+      await get("local/desktop", {
+        create: "dir",
+      });
 
       return {
         tag: "none-os-core",
