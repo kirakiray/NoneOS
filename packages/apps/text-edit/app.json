@@ -1,0 +1,16 @@
+{
+  "name": "TextEditor",
+  "icon": "icon.svg",
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "文本编辑器"
+    },
+    "en": {
+      "name": "TextEditor"
+    },
+    "ja": {
+      "name": "TextEditor"
+    }
+  }
+}
