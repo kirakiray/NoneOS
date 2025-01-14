@@ -19,6 +19,7 @@ export const allowForward = true;
 
 export const onHandle = async function ({ handle, path }) {
   // handle 和 path 必定会传入其中一个
-  console.log("onHandle: ", path, handle);
-  this.current.goto(`./view.html?path=${path}`);
+  console.log("editor onHandle: ", path, handle);
+
+  this.current.goto(`./edit.html?path=${path}`);
 };
