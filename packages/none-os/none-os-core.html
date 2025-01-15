@@ -84,14 +84,6 @@
         create: "dir",
       });
 
-      // 添加使用文档
-      // debug: 先添加一个测试文件
-      get("local/desktop/test.txt", {
-        create: "file",
-      }).then((fhandle) => {
-        fhandle.write("Hello World!");
-      });
-
       return {
         tag: "none-os-core",
         data: {
@@ -344,6 +336,18 @@
           this.configs = configs;
 
           this.loadAppsState();
+
+          // 添加使用文档
+          // debug: 先添加一个测试文件
+          let firstHandle = await get("local/desktop/test.txt");
+
+          if (!firstHandle) {
+            firstHandle = await create("local/desktop/test.txt", {
+              create: "file",
+            });
+
+            firstHandle.write("Hello World!");
+          }
         },
         detached() {
           this._offState && this._offState();
