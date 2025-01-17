@@ -146,10 +146,15 @@
             this.refreshFiles();
           },
         },
+        watch: {
+          path(path) {
+            if (path) {
+              this.refreshFiles();
+            }
+          },
+        },
         attached() {
           this.spaceData = getSpaceData("files");
-
-          this.refreshFiles();
         },
         detached() {
           this.spaceData = {};

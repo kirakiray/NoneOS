@@ -138,12 +138,12 @@
               <n-local-icon
                 class="cut-icon"
                 name="cut"
-                slot="suffix"
+                slot="prefix"
               ></n-local-icon>
               <n-local-icon
                 class="copy-icon"
                 name="copy"
-                slot="prefix"
+                slot="suffix"
               ></n-local-icon>
             </n-handle-block>
           </div>
@@ -253,7 +253,8 @@
                 },
               });
             } else if (data.kind === "dir") {
-              this.host.goto(
+              debugger
+              this.app.current.goto(
                 `./explore.html?path=${encodeURIComponent(data.path)}`
               );
             } else {
