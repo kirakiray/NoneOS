@@ -15,7 +15,11 @@
         data: {
           path: query.path || "local",
         },
-        proto: {},
+        proto: {
+          refreshFiles() {
+            this.shadow.$("n-file-explore").refreshFiles();
+          },
+        },
         ready() {},
         attached() {
           this.emit("go-page", {

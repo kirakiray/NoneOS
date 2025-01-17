@@ -1,5 +1,5 @@
 {
-  "name": "设置",
+  "name": "Setting",
   "icon": "icon.svg",
   "config": "app-config.js",
   "i18n": {

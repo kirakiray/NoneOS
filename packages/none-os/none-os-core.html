@@ -77,12 +77,12 @@
     export default async ({ load }) => {
       const { configs } = await load("./configs.js");
       const { openFileWithApp } = await load("./app.js");
-      const { get } = await load("/packages/fs/handle/index.js");
+      // const { get } = await load("/packages/fs/handle/index.js");
 
       // 创建桌面文件夹
-      await get("local/desktop", {
-        create: "dir",
-      });
+      // await get("local/desktop", {
+      //   create: "dir",
+      // });
 
       return {
         tag: "none-os-core",
@@ -339,15 +339,15 @@
 
           // 添加使用文档
           // debug: 先添加一个测试文件
-          let firstHandle = await get("local/desktop/test.txt");
+          // let firstHandle = await get("local/desktop/test.txt");
 
-          if (!firstHandle) {
-            firstHandle = await create("local/desktop/test.txt", {
-              create: "file",
-            });
+          // if (!firstHandle) {
+          //   firstHandle = await get("local/desktop/test.txt", {
+          //     create: "file",
+          //   });
 
-            firstHandle.write("Hello World!");
-          }
+          //   firstHandle.write("Hello World!");
+          // }
         },
         detached() {
           this._offState && this._offState();
