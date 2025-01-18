@@ -68,7 +68,7 @@
     }
   </style>
   <p-field-container
-    :hang-label="(hanglabel !== null ? '1' : null) || (infocus || value ? '' : null)"
+    :hang-label="isHangLable"
     :variant="variant"
     :active="infocus ? '' : null"
     :size="size"
@@ -142,7 +142,7 @@
           }
         },
         defaultValue(val) {
-          if (val) {
+          if (val !== null && val !== undefined) {
             this.value = val;
           }
         },
@@ -151,6 +151,20 @@
         },
       },
       proto: {
+        get isHangLable() {
+          if (this.hanglabel) {
+            return 1;
+          }
+
+          if (
+            this.infocus ||
+            (this.value !== null && this.value !== undefined)
+          ) {
+            return 1;
+          }
+
+          return null;
+        },
         renderMulti() {
           const target = this.shadow.$("textarea");
           this.changeTextarea(this.value);

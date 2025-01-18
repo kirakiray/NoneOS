@@ -1,0 +1,135 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      position: relative;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      const { areas } = await load("./menu-area.html");
+
+      return {
+        tag: "p-bind-contextmenu",
+        attrs: {
+          area: null,
+          autoClose: null,
+        },
+        proto: {
+          get menu() {
+            return this.$("p-menu");
+          },
+        },
+        attached() {
+          this.menu.open = "off";
+
+          this.menu.on("click-menu-item", (e) => {
+            // 如果设置了autoClose，且点击的元素不是菜单，则自动关闭菜单
+            if (
+              this.autoClose !== null &&
+              !$(e.target).some((e) => e.tag === "p-menu")
+            ) {
+              this.menu.open = "off";
+            }
+          });
+
+          // 防止菜单内的右键触发
+          this.menu.on("contextmenu", (e) => e.stopPropagation());
+
+          this.on("contextmenu", (e) => {
+            e.preventDefault();
+
+            this.menu.open = "";
+
+            const { offsetX, offsetY, clientX, clientY } = e;
+
+            Object.assign(this.menu.style, {
+              position: "absolute",
+              left: `${offsetX}px`,
+              top: `${offsetY}px`,
+            });
+
+            // 获取安全容器的尺寸和位置
+            const targetArea = this.area ? areas.get(this.area) : null;
+
+            const {
+              left: areaLeft,
+              top: areaTop,
+              width: areaWidth,
+              height: areaHeight,
+            } = targetArea
+              ? targetArea.ele.getBoundingClientRect()
+              : this.ele.getBoundingClientRect();
+
+            // 菜单的尺寸和位置
+            const {
+              width: menuWidth,
+              height: menuHeight,
+              left: menuLeft,
+              top: menuTop,
+            } = this.menu.ele.getBoundingClientRect();
+
+            // 菜单超出下方安全区域，修正为下方定位
+            if (menuTop + menuHeight > areaTop + areaHeight) {
+              this.menu.style.top = `${
+                parseInt(this.menu.style.top) - menuHeight
+              }px`;
+            }
+
+            // 菜单超出右方安全区域，修正为右侧定位
+            if (menuLeft + menuWidth > areaLeft + areaWidth) {
+              this.menu.style.left = `${
+                parseInt(this.menu.style.left) - menuWidth
+              }px`;
+            }
+
+            // 修正二级菜单的定位
+            this.menu.all("p-menu").forEach((menu) => {
+              // 先还原定位
+              Object.assign(menu.style, {
+                left: "",
+                top: "",
+              });
+
+              const {
+                width: subMenuWidth,
+                height: subMenuHeight,
+                left: subMenuLeft,
+                top: subMenuTop,
+              } = menu.ele.getBoundingClientRect();
+
+              // 超出右侧的范围，放在左侧
+              if (subMenuLeft + subMenuWidth > areaLeft + areaWidth) {
+                menu.style.left = `-${subMenuWidth}px`;
+              }
+
+              // 超出下方的范围，放在上方
+              if (subMenuTop + subMenuHeight > areaTop + areaHeight) {
+                menu.style.top = `-${subMenuHeight - menu.parent.height}px`;
+              }
+            });
+          });
+
+          if (!this._bindFn) {
+            // 点击外部环境后，取消菜单绑定
+            $("html").on(
+              "click",
+              (this._bindFn = () => {
+                this.menu.open = "off";
+
+                $("html").off("mouseup", this._bindFn);
+                this._bindFn = null;
+              })
+            );
+          }
+        },
+        detached() {
+          if (this._bindFn) {
+            $("html").off("mouseup", this._bindFn);
+          }
+        },
+      };
+    };
+  </script>
+</template>

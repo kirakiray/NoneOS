@@ -182,7 +182,7 @@
       <br />
       <br />
       <br />
-      <p-menu class="test-visibility">
+      <p-menu class="test-open">
         <p-menu-item>
           <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
           Cut
@@ -205,7 +205,7 @@
         >
       </p-menu>
 
-      <p-menu class="test-visibility" style="width: 200px">
+      <p-menu class="test-open" style="width: 200px">
         <p-menu-item>
           <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
           Cut
@@ -233,8 +233,8 @@
       <br />
       <script>
         setInterval(() => {
-          $.all(".test-visibility").forEach((e) => {
-            e.visibility = e.visibility !== "hidden" ? "hidden" : "visible";
+          $.all(".test-open").forEach((e) => {
+            e.open = e.open !== "off" ? "off" : "on";
           });
         }, 2000);
       </script>
