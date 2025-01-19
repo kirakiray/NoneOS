@@ -32,7 +32,6 @@
     <div style="height: 50px"></div>
 
     <p-debug-container>
-      <!-- <div style="margin: 12px; transform: translate(0, 0)"> -->
       <p-menu-area
         area-name="area1"
         style="
@@ -91,7 +90,38 @@
           </p-menu>
         </p-bind-contextmenu>
       </p-menu-area>
-      <!-- </div> -->
+
+      <style>
+        .test-item {
+          margin: 16px;
+          display: inline-block;
+          padding: 24px;
+          background-color: rgba(165, 173, 22, 0.306);
+          border-radius: 8px;
+          cursor: default;
+        }
+        .test-item:hover {
+          background-color: rgba(149, 15, 20, 0.393);
+        }
+        .test-container {
+          background-color: rgba(15, 149, 55, 0.393);
+          height: 300px;
+          margin-top: 20px;
+        }
+      </style>
+
+      <p-bind-contextmenu auto-close class="test-container">
+        <div class="test-item">Test Item</div>
+        <p-menu contextmenu-selector=".test-item">
+          <p-menu-item id="targetItem">Cut</p-menu-item>
+          <p-menu-item>Copy</p-menu-item>
+          <hr />
+          <p-menu-item>Clipboard</p-menu-item>
+        </p-menu>
+        <p-menu contextmenu-selector=".test-container">
+          <p-menu-item>Reload</p-menu-item>
+        </p-menu>
+      </p-bind-contextmenu>
     </p-debug-container>
 
     <script>
