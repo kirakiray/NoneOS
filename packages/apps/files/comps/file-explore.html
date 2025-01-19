@@ -1,6 +1,8 @@
 <template component>
   <l-m src="../comps/file-list.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
   <style>
     :host {
       display: block;
@@ -35,10 +37,29 @@
       padding: 60px 16px;
       color: #7b7b7b;
     }
+
+    .main {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .main-menu {
+      width: 120px;
+      z-index: 2;
+    }
+
+    .main-menu n-local-icon {
+      display: block;
+      margin-right: 8px;
+    }
   </style>
 
   <div class="container">
-    <div class="abs-over" style="flex: 1; overflow: auto">
+    <p-bind-contextmenu class="main" auto-close>
       <div
         class="other-area abs-over"
         on:click="clickOther"
@@ -49,8 +70,34 @@
         on:rename-file="renameFile"
         :search="search"
       ></n-file-list>
-      <div style="height: 1px"></div>
-    </div>
+      <p-menu class="main-menu">
+        <p-menu-item>
+          <n-local-icon name="cut" slot="prefix"></n-local-icon>
+          剪切
+        </p-menu-item>
+        <p-menu-item>
+          <n-local-icon name="copy" slot="prefix"></n-local-icon>
+          复制
+        </p-menu-item>
+        <p-menu-item>
+          <n-local-icon name="paste" slot="prefix"></n-local-icon>
+          粘贴
+        </p-menu-item>
+        <p-menu-item>
+          <n-local-icon name="rename" slot="prefix"></n-local-icon>
+          重命名
+        </p-menu-item>
+        <p-menu-item>
+          <n-local-icon name="delete" slot="prefix"></n-local-icon>
+          删除
+        </p-menu-item>
+        <hr />
+        <p-menu-item>
+          <n-local-icon name="export" slot="prefix"></n-local-icon>
+          导出文件
+        </p-menu-item>
+      </p-menu>
+    </p-bind-contextmenu>
     <x-if :value="loading">
       <div class="center-box">
         <p-progress type="circle"></p-progress>
