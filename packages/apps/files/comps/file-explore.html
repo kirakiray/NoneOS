@@ -111,6 +111,7 @@
           <n-local-icon name="reload" slot="prefix"></n-local-icon>
           刷新
         </p-menu-item>
+        <hr />
         <p-menu-item>
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
           导入文件
@@ -140,6 +141,7 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
+      const { addTask } = await load("/packages/fs/task/main.js");
 
       return {
         tag: "n-file-explore",
@@ -186,26 +188,29 @@
           },
 
           async clickRemove() {
-            // TODO: 删除文件，改用弹窗方式
+            await addTask({
+              type: "delete",
+              from: this.selecteds.map((e) => e.path),
+            });
 
-            const handles = await Promise.all(
-              this.selecteds.map(async ({ path }) => {
-                const handle = await get(path);
+            // const handles = await Promise.all(
+            //   this.selecteds.map(async ({ path }) => {
+            //     const handle = await get(path);
 
-                const files = await handle.flat();
-                // this.deletingData.total = files.length + 1; // 总共需要删除的文件数
-                // this.showDelete = true;
+            //     const files = await handle.flat();
+            //     // this.deletingData.total = files.length + 1; // 总共需要删除的文件数
+            //     // this.showDelete = true;
 
-                let count = 0;
-                await handle.remove((e) => {
-                  count++;
-                  // this.deletingData.count = count;
-                });
+            //     let count = 0;
+            //     await handle.remove((e) => {
+            //       count++;
+            //       // this.deletingData.count = count;
+            //     });
 
-                // this.deletingData.total = 0;
-                // this.showDelete = false;
-              })
-            );
+            //     // this.deletingData.total = 0;
+            //     // this.showDelete = false;
+            //   })
+            // );
 
             this.refreshFiles();
           },
@@ -230,8 +235,10 @@
                       composed: true,
                       data: {
                         type: "copyTo",
-                        source: handle,
-                        target: targetHandle,
+                        from: sources.path,
+                        to: targetHandle.path,
+                        // source: handle,
+                        // target: targetHandle,
                       },
                     });
                   }

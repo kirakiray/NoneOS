@@ -17,19 +17,47 @@ export const addTask = async ({ type, from, to, delayTime, paused }) => {
     return;
   }
 
-  tasks.push({
-    type,
-    from,
-    to,
-    delayTime,
-    path: "", // 任务目录的地址
-    paused: !!paused, // 是否暂停中
-    showViewer: true, // 是否显示查看器
-    done: false, // 任务是否已经完成
-    step: 1, // 1块拷贝中 2合并中 3清理中
-    precentage: 0, // 任务进行率 0-1
-    errInfo: "", // 错误信息
-  });
+  if (type === "delete") {
+    tasks.push({
+      type,
+      from,
+      delayTime,
+      precentage: 0, // 任务进行率 0-1
+      done: false, // 任务是否已经完成
+    });
+
+    // 查找到最关键的元素
+  } else if (type === "copy") {
+    tasks.push({
+      type,
+      from,
+      to,
+      delayTime,
+      path: "", // 任务目录的地址
+      paused: !!paused, // 是否暂停中
+      showViewer: true, // 是否显示查看器
+      done: false, // 任务是否已经完成
+      step: 1, // 1块拷贝中 2合并中 3清理中
+      precentage: 0, // 任务进行率 0-1
+      errInfo: "", // 错误信息
+    });
+  }
+};
+
+const deleteTask = async (options) => {
+  const { from: fHandle, to: tHandle, delayTime } = options;
+
+  // 复制到目的地的文件名
+  let finalName = options.name || fHandle.name;
+
+  // 确认信息
+  if (options.confirm) {
+    const result = await options.confirm(finalName);
+
+    if (result === false) {
+      return;
+    }
+  }
 };
 
 // 按照块的模式，复制文件

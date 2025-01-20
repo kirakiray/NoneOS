@@ -7,7 +7,7 @@
     <script src="/packages/libs/ofa/ofa.js" debug></script>
   </head>
   <body>
-    <l-m src="../task/viewer.html"></l-m>
+    <l-m src="../task/copy-task-viewer.html"></l-m>
     <l-m src="../task/task-viewer.html"></l-m>
     <l-m src="../task/task-list.html"></l-m>
     test task
@@ -80,17 +80,17 @@
 
       {
         $("body").push(
-          `<fs-task-viewer
+          `<n-copy-task-viewer
              type="copy" 
              from="$origin:local/task-test" 
              to="local/test-copy-task"
              delay-time="100"
            >
              
-           </fs-task-viewer>`
+           </n-copy-task-viewer>`
         );
 
-        const viewer = $("fs-task-viewer");
+        const viewer = $("n-copy-task-viewer");
 
         viewer.on("copying", () => {
           count++;

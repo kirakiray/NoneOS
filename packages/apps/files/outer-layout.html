@@ -240,12 +240,12 @@
             const { data } = e;
 
             if (data.type === "copyTo") {
-              const { source, target } = data;
+              const { from, to } = data;
 
               addTask({
                 type: "copy",
-                from: source.path,
-                to: target.path,
+                from,
+                to,
               });
             }
           });

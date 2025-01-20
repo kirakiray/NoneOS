@@ -1,24 +1,32 @@
 <template component>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
-  <l-m src="./viewer.html"></l-m>
+  <l-m src="./copy-task-viewer.html"></l-m>
+
   <x-fill :value="tasks">
-    <p-dialog :open="$data.showViewer" on:click-mask="$data.showViewer=false">
-      <div style="min-width: 400px; max-height: 60vh; overflow-y: auto">
-        <fs-task-viewer
-          sync:ispaused="$data.paused"
-          sync:err-info="$data.errInfo"
-          attr:type="$data.type"
-          attr:from="$data.from"
-          attr:to="$data.to"
-          attr:delay-time="$data.delayTime"
-          on:copying="$host.copying($data,$event)"
-          on:merging="$host.merging($data,$event)"
-          on:clearing="$host.clearing($data,$event)"
-          on:task-done="$host.taskDone($data,$event)"
+    <div>
+      <x-if :value="$data.type === 'copy'">
+        <p-dialog
+          :open="$data.showViewer"
+          on:click-mask="$data.showViewer=false"
         >
-        </fs-task-viewer>
-      </div>
-    </p-dialog>
+          <div style="min-width: 400px; max-height: 60vh; overflow-y: auto">
+            <n-copy-task-viewer
+              sync:ispaused="$data.paused"
+              sync:err-info="$data.errInfo"
+              attr:type="$data.type"
+              attr:from="$data.from"
+              attr:to="$data.to"
+              attr:delay-time="$data.delayTime"
+              on:copying="$host.copying($data,$event)"
+              on:merging="$host.merging($data,$event)"
+              on:clearing="$host.clearing($data,$event)"
+              on:task-done="$host.taskDone($data,$event)"
+            >
+            </n-copy-task-viewer>
+          </div>
+        </p-dialog>
+      </x-if>
+    </div>
   </x-fill>
   <script>
     export default async ({ load }) => {
