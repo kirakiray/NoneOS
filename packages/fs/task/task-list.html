@@ -29,13 +29,21 @@
             style="color: var(--md-sys-color-error)"
           ></n-local-icon>
         </x-if>
-        <x-else>
+        <x-else-if :value="$data.type === 'copy'">
           <n-local-icon
             name="copy"
             slot="prefix"
             class="mainicon"
           ></n-local-icon>
-        </x-else>
+        </x-else-if>
+        <x-else-if :value="$data.type === 'delete'">
+          <n-local-icon
+            name="delete"
+            slot="prefix"
+            class="mainicon"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+        </x-else-if>
         <div :html="$host.getItemTitle($data)"></div>
         <div secondary>
           <p-progress
@@ -68,22 +76,39 @@
             }
           },
           getItemTitle(data) {
-            if (data.errInfo) {
-              return getText("copyfail", "fs-task", {
-                fname: data.from.replace(/.+\/(.+)/, "$1"),
-                errInfo: data.errInfo,
-              });
-            }
-            if (data.done) {
-              return getText("copyok", "fs-task", {
-                fname: data.from.replace(/.+\/(.+)/, "$1"),
-              });
+            let fname = "";
+
+            if (data.from instanceof Array) {
+              fname =
+                data.from[0].replace(/.+\/(.+)/, "$1") +
+                `...(${data.from.length})`;
+            } else {
+              fname = data.from.replace(/.+\/(.+)/, "$1");
             }
 
-            return getText("copyto", "fs-task", {
-              fname: data.from.replace(/.+\/(.+)/, "$1"),
-              tname: data.to.replace(/.+\/(.+)/, "$1"),
-            });
+            if (data.type === "copy") {
+              if (data.errInfo) {
+                return getText("copyfail", "fs-task", {
+                  fname,
+                  errInfo: data.errInfo,
+                });
+              }
+              if (data.done) {
+                return getText("copyok", "fs-task", {
+                  fname,
+                });
+              }
+
+              return getText("copyto", "fs-task", {
+                fname,
+                tname: data.to.replace(/.+\/(.+)/, "$1"),
+              });
+            } else if (data.type === "delete") {
+              if (data.done) {
+                return `删除 <b>${fname}</b> 成功`;
+              }
+              return `删除 <b>${fname}</b>`;
+            }
           },
         },
         attached() {
