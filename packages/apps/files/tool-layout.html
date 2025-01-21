@@ -101,34 +101,6 @@
     <p-button-group variant="outlined">
       <p-button
         size="small"
-        on:click="shadow.$(`#imFileInputer`).ele.click()"
-        attr:disabled="isPackages || !!selecteds.length"
-      >
-        <n-local-icon name="import-file"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        on:click="shadow.$(`#imDirInputer`).ele.click()"
-        attr:disabled="isPackages || !!selecteds.length"
-      >
-        <n-local-icon name="import-dir"></n-local-icon>
-      </p-button>
-      <div style="position: absolute; width: 0; height: 0; overflow: hidden">
-        <input
-          type="file"
-          webkitdirectory
-          id="imDirInputer"
-          on:change="importFiles"
-        />
-        <input
-          type="file"
-          multiple
-          id="imFileInputer"
-          on:change="importFiles"
-        />
-      </div>
-      <p-button
-        size="small"
         on:click="clickExport"
         attr:disabled="!selecteds.length || hasTask"
       >
@@ -265,34 +237,6 @@
 
             setTimeout(() => {
               URL.revokeObjectURL(url);
-            }, 1000);
-          },
-          async importFiles(e) {
-            const files = await fileFilter(e.target.files);
-
-            // 写入文件
-            const nowHandle = await get(this.path);
-
-            this.importingLen = files.length;
-            this.importedLen = 0;
-
-            for (let file of files) {
-              const handle = await nowHandle.get(
-                file.webkitRelativePath || file.name,
-                {
-                  create: "file",
-                }
-              );
-
-              await handle.write(file);
-              this.importedLen++;
-            }
-
-            this.app.current.refreshFiles();
-
-            setTimeout(() => {
-              this.importingLen = 0;
-              this.importedLen = 0;
             }, 1000);
           },
           get clipboardText() {

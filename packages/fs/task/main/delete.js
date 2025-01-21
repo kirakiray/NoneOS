@@ -42,7 +42,8 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
   let count = 0;
   for (let handle of allHandles) {
     await handle.remove((e) => {
-      targetTask.precentage = (++count / total).toFixed(2);
+      const pCount = ++count / total;
+      targetTask.precentage = pCount > 1 ? 1 : pCount.toFixed(2);
     });
   }
 
