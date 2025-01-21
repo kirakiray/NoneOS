@@ -220,15 +220,10 @@
                   if (handle._mark === "db" && targetHandle._mark === "db") {
                     await handle.copyTo(targetHandle);
                   } else {
-                    this.emit("run-task", {
-                      composed: true,
-                      data: {
-                        type: "copyTo",
-                        from: handle.path,
-                        to: targetHandle.path,
-                        // source: handle,
-                        // target: targetHandle,
-                      },
+                    await addTask({
+                      type: "copy",
+                      from: handle.path,
+                      to: targetHandle.path,
                     });
                   }
                 }

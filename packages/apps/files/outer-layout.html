@@ -237,20 +237,6 @@
             this.selectedRootName = rootName;
           });
 
-          this.on("run-task", async (e) => {
-            const { data } = e;
-
-            if (data.type === "copyTo") {
-              const { from, to } = data;
-
-              addTask({
-                type: "copy",
-                from,
-                to,
-              });
-            }
-          });
-
           this.on("task-complete", async (e) => {
             this.app.current.refreshFiles();
           });
