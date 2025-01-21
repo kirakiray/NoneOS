@@ -1,5 +1,6 @@
 import { confirm } from "/packages/pui/util.js";
 import { get } from "../../main.js";
+import { tasks } from "../base.js";
 
 // 删除文件的任务
 export const runDeleteTask = async ({ from: fromPath, delayTime }) => {

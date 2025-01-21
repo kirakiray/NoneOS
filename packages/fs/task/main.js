@@ -1,11 +1,9 @@
 import { setSpace } from "/packages/i18n/data.js";
 import { runDeleteTask } from "./main/delete.js";
 import { copyTo } from "./main/copy.js";
+import { tasks } from "./base.js";
 
 setSpace("fs-task", new URL("/packages/fs/task/lang", location.href));
-
-// 所有任务
-export const tasks = $.stanz([]);
 
 // 添加任务
 export const addTask = async ({ type, from, to, delayTime, paused }) => {
@@ -37,4 +35,4 @@ export const addTask = async ({ type, from, to, delayTime, paused }) => {
   }
 };
 
-export { copyTo, runDeleteTask };
+export { copyTo, runDeleteTask, tasks };
