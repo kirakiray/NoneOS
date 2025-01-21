@@ -1,5 +1,6 @@
 import { setSpace } from "/packages/i18n/data.js";
 import { runDeleteTask } from "./main/delete.js";
+import { runImportFolderTask } from "./main/import.js";
 import { copyTo } from "./main/copy.js";
 import { tasks } from "./base.js";
 
@@ -17,6 +18,8 @@ export const addTask = async ({ type, from, to, delayTime, paused }) => {
 
   if (type === "delete") {
     await runDeleteTask({ from, delayTime });
+  } else if (type === "import-folder") {
+    await runImportFolderTask({ to, delayTime });
   } else if (type === "copy") {
     debugger;
     tasks.push({

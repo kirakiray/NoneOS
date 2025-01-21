@@ -18,7 +18,6 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
     tid,
     type: "delete",
     from: fromPath,
-    delayTime,
     step: 3,
     precentage: 0, // 任务进行率 0-1
     done: false, // 任务是否已经完成

@@ -108,6 +108,8 @@
                 return `删除 <b>${fname}</b> 成功`;
               }
               return `删除 <b>${fname}</b>`;
+            } else if (data.type === "import-folder") {
+              return `将 <b>${fname}</b> 文件夹导入 到 <b>${data.to}</b>`;
             }
           },
         },

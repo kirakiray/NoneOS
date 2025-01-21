@@ -116,7 +116,7 @@
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
           导入文件
         </p-menu-item>
-        <p-menu-item>
+        <p-menu-item on:click="importDir">
           <n-local-icon name="import-dir" slot="prefix"></n-local-icon>
           导入文件夹
         </p-menu-item>
@@ -160,6 +160,14 @@
           },
         },
         proto: {
+          async importDir() {
+            await addTask({
+              type: "import-folder",
+              to: this.path,
+            });
+
+            this.refreshFiles();
+          },
           get clipboardProvider() {
             return this.getProvider("clipboard");
           },
@@ -192,25 +200,6 @@
               type: "delete",
               from: this.selecteds.map((e) => e.path),
             });
-
-            // const handles = await Promise.all(
-            //   this.selecteds.map(async ({ path }) => {
-            //     const handle = await get(path);
-
-            //     const files = await handle.flat();
-            //     // this.deletingData.total = files.length + 1; // 总共需要删除的文件数
-            //     // this.showDelete = true;
-
-            //     let count = 0;
-            //     await handle.remove((e) => {
-            //       count++;
-            //       // this.deletingData.count = count;
-            //     });
-
-            //     // this.deletingData.total = 0;
-            //     // this.showDelete = false;
-            //   })
-            // );
 
             this.refreshFiles();
           },
