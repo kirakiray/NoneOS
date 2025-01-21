@@ -489,7 +489,10 @@
           if (!this.__copy_result) {
             this.__copy_result = true;
           }
+          setTimeout(() => {
+
           this.loadTask();
+          }, 100);
         },
         detached() {
           if (this.__resolve_copy_result) {

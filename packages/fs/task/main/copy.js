@@ -1,5 +1,5 @@
-import { getErr } from "../errors.js";
-import { calculateHash } from "../util.js";
+import { getErr } from "../../errors.js";
+import { calculateHash } from "../../util.js";
 
 // 按照块的模式，复制文件
 export const copyTo = async (options) => {

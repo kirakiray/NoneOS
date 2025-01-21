@@ -150,6 +150,7 @@
       const { setSpace, getText, onChangeLang, getLang } = await load(
         "/packages/i18n/data.js"
       );
+
       const { connectUser } = await load("/packages/core/user-connect/main.js");
 
       await setSpace("files", new URL("./lang", url).href);
