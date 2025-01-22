@@ -18,25 +18,24 @@ export const runImportFolderTask = async (options) => {
     fileEl.style.display = "none";
     // fileEl.multiple = true;
     fileEl.onchange = async (e) => {
-      const files = e.target.files;
+      const afterFiles = await fileFilter(e.target.files);
 
       // 查找到目标任务对象并运行
       const targetTask = addTaskData({
         type: "import-folder",
-        from: files[0].webkitRelativePath.replace(/(.+)\/.+/, "$1"),
-        to,
+        tips: `正在将 <b>${afterFiles[0].webkitRelativePath.replace(
+          /(.+?)\/.+/,
+          "$1"
+        )}</b>导入到<b>${to}</b>`,
         step: 1,
         precentage: 0, // 任务进行率 0-1
       });
-
-      const afterFiles = await fileFilter(e.target.files);
 
       // 写入文件
       const nowHandle = await get(to);
 
       const total = afterFiles.length;
       let count = 0;
-      // this.importedLen = 0;
 
       for (let file of afterFiles) {
         const handle = await nowHandle.get(
@@ -51,6 +50,11 @@ export const runImportFolderTask = async (options) => {
       }
 
       targetTask.done = true;
+
+      targetTask.tips = `<b>${afterFiles[0].webkitRelativePath.replace(
+        /(.+?)\/.+/,
+        "$1"
+      )}</b>导入到<b>${to}</b> 成功`;
 
       resolve();
     };

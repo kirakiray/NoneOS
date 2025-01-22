@@ -44,7 +44,7 @@
             style="color: var(--md-sys-color-error)"
           ></n-local-icon>
         </x-else-if>
-        <div :html="$host.getItemTitle($data)"></div>
+        <div :html="$data.tips"></div>
         <div secondary>
           <p-progress
             attr:color="$host.getColor($data)"
@@ -52,7 +52,7 @@
             style="
               --line-size: 2px;
               margin-top: 4px;
-              --progress-animation: none;
+              --progress-animation: ease-in-out 0.1s;
             "
           ></p-progress>
         </div>
@@ -107,13 +107,6 @@
                 fname,
                 tname: data.to.replace(/.+\/(.+)/, "$1"),
               });
-            } else if (data.type === "delete") {
-              if (data.done) {
-                return `删除 <b>${fname}</b> 成功`;
-              }
-              return `删除 <b>${fname}</b>`;
-            } else if (data.type === "import-folder") {
-              return `将 <b>${fname}</b> 文件夹导入 到 <b>${data.to}</b>`;
             }
           },
         },

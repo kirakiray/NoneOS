@@ -22,6 +22,7 @@ export const addTaskData = (opts) => {
 
   tasks.push({
     tid,
+    tips: "",
     ...opts,
     done: false, // 任务是否已经完成
   });

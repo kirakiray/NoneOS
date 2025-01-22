@@ -2,29 +2,37 @@ import { getErr } from "../../errors.js";
 import { calculateHash } from "../../util.js";
 import { get } from "../../main.js";
 import { addTaskData } from "../base.js";
+import { getText } from "/packages/i18n/data.js";
 
 // 运行复制任务
 export const runCopyTask = async ({ from, to, delayTime }) => {
   const targetTask = addTaskData({
     type: "copy",
-    from,
-    to,
+    tips: "正在确认内容",
     step: 1,
     precentage: 0, // 任务进行率 0-1
   });
 
+  const fname = from.replace(/.+\/(.+)/, "$1");
+
   await copyTo({
+    delayTime,
     from: await get(from),
     to: await get(to),
-    delayTime,
     copy: (opts) => {
+      targetTask.tips = getText("copyto", "fs-task", {
+        fname,
+        tname: to.replace(/.+\/(.+)/, "$1"),
+      });
       targetTask.precentage = opts.cached / opts.total;
     },
     merge: (opts) => {
+      targetTask.tips = `开始合并 <b>${fname}</b>`;
       targetTask.step = 2;
       targetTask.precentage = opts.count / opts.total;
     },
     clear: (opts) => {
+      targetTask.tips = `开始清除缓存`;
       targetTask.step = 3;
       targetTask.precentage = opts.removed / opts.total;
     },
@@ -38,6 +46,10 @@ export const runCopyTask = async ({ from, to, delayTime }) => {
   });
 
   targetTask.done = true;
+
+  targetTask.tips = getText("copyok", "fs-task", {
+    fname,
+  });
 };
 
 // 按照块的模式，复制文件

@@ -12,10 +12,12 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
     return false;
   }
 
+  const handleName = fromPath[0].replace(/.+\/(.+)/, "$1");
+
   // 查找到目标任务对象并运行
   const targetTask = addTaskData({
     type: "delete",
-    from: fromPath,
+    tips: `正在删除 <b>${handleName}</b>`,
     step: 3,
     precentage: 0, // 任务进行率 0-1
   });
@@ -35,6 +37,10 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
   );
   let count = 0;
   for (let handle of allHandles) {
+    if (delayTime) {
+      await new Promise((resolve) => setTimeout(resolve, delayTime));
+    }
+
     await handle.remove((e) => {
       const pCount = ++count / total;
       targetTask.precentage = pCount > 1 ? 1 : pCount.toFixed(2);
@@ -42,4 +48,6 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
   }
 
   targetTask.done = true;
+
+  targetTask.tips = `<b>${handleName}</b> 删除成功`;
 };
