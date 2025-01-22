@@ -1,6 +1,6 @@
 import { confirm } from "/packages/pui/util.js";
 import { get } from "../../main.js";
-import { tasks } from "../base.js";
+import { addTaskData } from "../base.js";
 
 // 运行删除文件的任务
 export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
@@ -12,19 +12,13 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
     return false;
   }
 
-  const tid = Math.random().toString(32).slice(3);
-
-  tasks.push({
-    tid,
+  // 查找到目标任务对象并运行
+  const targetTask = addTaskData({
     type: "delete",
     from: fromPath,
     step: 3,
     precentage: 0, // 任务进行率 0-1
-    done: false, // 任务是否已经完成
   });
-
-  // 查找到目标任务对象并运行
-  const targetTask = tasks.find((e) => e.tid === tid);
 
   // 文件总数
   let total = 0;
@@ -48,10 +42,4 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
   }
 
   targetTask.done = true;
-
-  setTimeout(() => {
-    // 删除数据
-    const index = tasks.findIndex((e) => e.tid === tid);
-    tasks.splice(index, 1);
-  }, 2000);
 };
