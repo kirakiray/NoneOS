@@ -2,7 +2,7 @@ import { confirm } from "/packages/pui/util.js";
 import { get } from "../../main.js";
 import { tasks } from "../base.js";
 
-// 删除文件的任务
+// 运行删除文件的任务
 export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
   const result = await confirm({
     content: `确认删除 ${fromPath}？`,

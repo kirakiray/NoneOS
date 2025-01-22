@@ -1,5 +1,56 @@
 import { getErr } from "../../errors.js";
 import { calculateHash } from "../../util.js";
+import { get } from "../../main.js";
+import { tasks } from "../base.js";
+
+// 运行复制任务
+export const runCopyTask = async ({ from, to, delayTime }) => {
+  const tid = Math.random().toString(32).slice(3);
+
+  tasks.push({
+    tid,
+    type: "copy",
+    from,
+    to,
+    step: 1,
+    precentage: 0, // 任务进行率 0-1
+    done: false, // 任务是否已经完成
+  });
+
+  // 查找到目标任务对象并运行
+  const targetTask = tasks.find((e) => e.tid === tid);
+
+  await copyTo({
+    from: await get(from),
+    to: await get(to),
+    delayTime,
+    copy: (opts) => {
+      targetTask.precentage = opts.cached / opts.total;
+    },
+    merge: (opts) => {
+      targetTask.step = 2;
+      targetTask.precentage = opts.count / opts.total;
+    },
+    clear: (opts) => {
+      targetTask.step = 3;
+      targetTask.precentage = opts.removed / opts.total;
+    },
+    confirm: () => {
+      targetTask;
+    },
+    error: (error) => {
+      targetTask;
+    },
+  });
+
+  targetTask.done = true;
+
+  setTimeout(() => {
+    // 删除数据
+    const index = tasks.findIndex((e) => e.tid === tid);
+    tasks.splice(index, 1);
+  }, 2000);
+};
 
 // 按照块的模式，复制文件
 export const copyTo = async (options) => {
