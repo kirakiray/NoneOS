@@ -112,7 +112,7 @@
           刷新
         </p-menu-item>
         <hr />
-        <p-menu-item>
+        <p-menu-item on:click="importFiles">
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
           导入文件
         </p-menu-item>
@@ -160,6 +160,14 @@
           },
         },
         proto: {
+          async importFiles() {
+            await addTask({
+              type: "import-files",
+              to: this.path,
+            });
+
+            this.refreshFiles();
+          },
           async importDir() {
             await addTask({
               type: "import-folder",
