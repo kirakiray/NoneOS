@@ -132,6 +132,12 @@ export class FileHandle extends BaseHandle {
               key: hash,
             });
 
+            if (!result) {
+              hashs;
+              this;
+              debugger;
+            }
+
             const { chunk } = result;
 
             if (chunk instanceof Blob) {
