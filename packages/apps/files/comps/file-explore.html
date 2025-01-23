@@ -90,7 +90,7 @@
           删除
         </p-menu-item>
         <hr />
-        <p-menu-item>
+        <p-menu-item on:click="exportFiles">
           <n-local-icon name="export" slot="prefix"></n-local-icon>
           导出文件
         </p-menu-item>
@@ -160,6 +160,12 @@
           },
         },
         proto: {
+          exportFiles() {
+            addTask({
+              type: "export-files",
+              from: this.selecteds.map((e) => e.path),
+            });
+          },
           async importFiles() {
             await addTask({
               type: "import-files",
