@@ -251,12 +251,14 @@
               let data = await configData.text();
               data = JSON.parse(data);
 
-              addTask({
+              await addTask({
                 type: data.type,
                 from: data.from,
                 to: data.to,
                 paused: true,
               });
+
+              this.app.current.refreshFiles();
             }
           });
 

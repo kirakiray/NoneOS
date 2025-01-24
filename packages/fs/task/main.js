@@ -8,7 +8,7 @@ import { tasks } from "./base.js";
 setSpace("fs-task", new URL("/packages/fs/task/lang", location.href));
 
 // 添加任务
-export const addTask = async ({ type, from, to, delayTime = 100, paused }) => {
+export const addTask = async ({ type, from, to, delayTime, paused }) => {
   // 查看是否已经村子啊
   const exited = tasks.find((e) => e.from === from && e.to === to);
 
