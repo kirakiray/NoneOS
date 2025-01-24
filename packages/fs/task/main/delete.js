@@ -22,32 +22,37 @@ export const runDeleteTask = async ({ from: fromPath, delayTime }) => {
     precentage: 0, // 任务进行率 0-1
   });
 
-  // 文件总数
-  let total = 0;
-  const allHandles = [];
+  try {
+    // 文件总数
+    let total = 0;
+    const allHandles = [];
 
-  // 计算总数
-  await Promise.all(
-    fromPath.map(async (path) => {
-      const targetHandle = await get(path);
-      allHandles.push(targetHandle);
-      const flats = await targetHandle.flat();
-      total += flats.length + 1;
-    })
-  );
-  let count = 0;
-  for (let handle of allHandles) {
-    if (delayTime) {
-      await new Promise((resolve) => setTimeout(resolve, delayTime));
+    // 计算总数
+    await Promise.all(
+      fromPath.map(async (path) => {
+        const targetHandle = await get(path);
+        allHandles.push(targetHandle);
+        const flats = await targetHandle.flat();
+        total += flats.length + 1;
+      })
+    );
+    let count = 0;
+    for (let handle of allHandles) {
+      if (delayTime) {
+        await new Promise((resolve) => setTimeout(resolve, delayTime));
+      }
+
+      await handle.remove((e) => {
+        const pCount = ++count / total;
+        targetTask.precentage = pCount > 1 ? 1 : pCount.toFixed(2);
+      });
     }
 
-    await handle.remove((e) => {
-      const pCount = ++count / total;
-      targetTask.precentage = pCount > 1 ? 1 : pCount.toFixed(2);
-    });
+    targetTask.done = true;
+
+    targetTask.tips = `<b>${handleName}</b> 删除成功`;
+  } catch (err) {
+    console.error(err);
+    targetTask.error = err.toString();
   }
-
-  targetTask.done = true;
-
-  targetTask.tips = `<b>${handleName}</b> 删除成功`;
 };

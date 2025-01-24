@@ -42,6 +42,7 @@ export const runExportFileTask = async (options) => {
     // TODO: 多文件导出
     debugger;
   } catch (err) {
+    console.error(err);
     targetTask.error = `导出 <b>${handle.name}</b> 出错`;
   }
 };

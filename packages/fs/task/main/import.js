@@ -56,28 +56,33 @@ const importFiles = async ({ files: afterFiles, to, delayTime }) => {
     precentage: 0, // 任务进行率 0-1
   });
 
-  // 写入文件
-  const nowHandle = await get(to);
+  try {
+    // 写入文件
+    const nowHandle = await get(to);
 
-  const total = afterFiles.length;
-  let count = 0;
+    const total = afterFiles.length;
+    let count = 0;
 
-  for (let file of afterFiles) {
-    if (delayTime) {
-      await new Promise((resolve) => setTimeout(resolve, delayTime));
+    for (let file of afterFiles) {
+      if (delayTime) {
+        await new Promise((resolve) => setTimeout(resolve, delayTime));
+      }
+
+      const handle = await nowHandle.get(file.webkitRelativePath || file.name, {
+        create: "file",
+      });
+
+      await handle.write(file);
+      targetTask.precentage = (++count / total).toFixed(2);
     }
 
-    const handle = await nowHandle.get(file.webkitRelativePath || file.name, {
-      create: "file",
-    });
+    targetTask.done = true;
 
-    await handle.write(file);
-    targetTask.precentage = (++count / total).toFixed(2);
+    targetTask.tips = `<b>${dirName}</b> 导入到 <b>${to}</b> 成功`;
+  } catch (err) {
+    console.error(err);
+    targetTask.error = err.toString();
   }
-
-  targetTask.done = true;
-
-  targetTask.tips = `<b>${dirName}</b> 导入到 <b>${to}</b> 成功`;
 };
 
 // 过滤掉 node_modules 和 .开头的文件
