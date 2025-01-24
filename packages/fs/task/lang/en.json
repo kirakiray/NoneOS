@@ -2,7 +2,6 @@
   "cacheok": "Cache done",
   "caching": "Caching...",
   "copyok": "Copied <b>{fname}</b>",
-  "copyfail": "Failed to copy <b>{fname}</b>, {errInfo}",
   "copyto": "Copy <b>{fname}</b> to <b>{tname}</b>",
   "merging": "Merging...",
   "mergeok": "Merge done",

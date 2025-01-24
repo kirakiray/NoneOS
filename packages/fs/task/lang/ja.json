@@ -2,7 +2,6 @@
   "cacheok": "キャッシュ完了",
   "caching": "キャッシュ中",
   "copyok": "<b>{fname}</b> コピー完了",
-  "copyfail": "<b>{fname}</b> コピー失敗, {errInfo}",
   "copyto": "<b>{fname}</b> を <b>{tname}</b> にコピー",
   "merging": "マージ中",
   "mergeok": "マージ完了",

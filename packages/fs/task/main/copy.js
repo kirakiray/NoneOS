@@ -15,41 +15,53 @@ export const runCopyTask = async ({ from, to, delayTime }) => {
 
   const fname = from.replace(/.+\/(.+)/, "$1");
 
-  await copyTo({
-    delayTime,
-    from: await get(from),
-    to: await get(to),
-    copy: (opts) => {
-      targetTask.tips = getText("copyto", "fs-task", {
-        fname,
-        tname: to.replace(/.+\/(.+)/, "$1"),
-      });
-      targetTask.precentage = opts.cached / opts.total;
-    },
-    merge: (opts) => {
-      targetTask.tips = `开始合并 <b>${fname}</b>`;
-      targetTask.step = 2;
-      targetTask.precentage = opts.count / opts.total;
-    },
-    clear: (opts) => {
-      targetTask.tips = `开始清除缓存`;
-      targetTask.step = 3;
-      targetTask.precentage = opts.removed / opts.total;
-    },
-    confirm: () => {
-      targetTask;
-    },
-    error: (error) => {
-      targetTask;
-      debugger;
-    },
-  });
+  try {
+    let count = 0; // 测试用复制出错
 
-  targetTask.done = true;
+    await copyTo({
+      delayTime,
+      from: await get(from),
+      to: await get(to),
+      copy: (opts) => {
+        targetTask.tips = getText("copyto", "fs-task", {
+          fname,
+          tname: to.replace(/.+\/(.+)/, "$1"),
+        });
+        targetTask.precentage = opts.cached / opts.total;
 
-  targetTask.tips = getText("copyok", "fs-task", {
-    fname,
-  });
+        if (count > 5) {
+          throw new Error("hahaha");
+        }
+        count++;
+      },
+      merge: (opts) => {
+        targetTask.tips = `开始合并 <b>${fname}</b>`;
+        targetTask.step = 2;
+        targetTask.precentage = opts.count / opts.total;
+      },
+      clear: (opts) => {
+        targetTask.tips = `开始清除缓存`;
+        targetTask.step = 3;
+        targetTask.precentage = opts.removed / opts.total;
+      },
+      confirm: () => {
+        targetTask;
+      },
+      error: (error) => {
+        targetTask;
+        debugger;
+      },
+    });
+
+    targetTask.done = true;
+
+    targetTask.tips = getText("copyok", "fs-task", {
+      fname,
+    });
+  } catch (err) {
+    console.error(err);
+    targetTask.error = err.toString();
+  }
 };
 
 // 按照块的模式，复制文件

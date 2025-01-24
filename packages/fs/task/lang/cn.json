@@ -2,7 +2,6 @@
   "cacheok": "缓存完成",
   "caching": "正在缓存",
   "copyok": "复制 <b> {fname} </b> 完成",
-  "copyfail": "复制 <b> {fname} </b> 失败，{errInfo}",
   "copyto": "将 <b> {fname} </b> 复制到 <b> {tname} </b>",
   "merging": "合并中",
   "mergeok": "合并完成",
