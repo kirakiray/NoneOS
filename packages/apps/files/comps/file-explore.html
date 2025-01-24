@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="/packages/i18n/component.html"></l-m>
   <style>
     :host {
       display: block;
@@ -75,24 +76,24 @@
       <p-menu class="main-menu" contextmenu-selector="n-file-list">
         <p-menu-item on:click="clickMenuItem('cut')">
           <n-local-icon name="cut" slot="prefix"></n-local-icon>
-          剪切
+          <n-desc name="cut" space="files"></n-desc>
         </p-menu-item>
         <p-menu-item on:click="clickMenuItem('copy')">
           <n-local-icon name="copy" slot="prefix"></n-local-icon>
-          复制
+          <n-desc name="copy" space="files"></n-desc>
         </p-menu-item>
         <p-menu-item on:click="clickMenuItem('rename')">
           <n-local-icon name="rename" slot="prefix"></n-local-icon>
-          重命名
+          <n-desc name="rename" space="files"></n-desc>
         </p-menu-item>
         <p-menu-item on:click="clickRemove">
           <n-local-icon name="delete" slot="prefix"></n-local-icon>
-          删除
+          <n-desc name="delete" space="files"></n-desc>
         </p-menu-item>
         <hr />
         <p-menu-item on:click="exportFiles">
           <n-local-icon name="export" slot="prefix"></n-local-icon>
-          导出文件
+          <n-desc name="exportFile" space="files"></n-desc>
         </p-menu-item>
       </p-menu>
 
@@ -103,22 +104,23 @@
             on:click="clickPaste"
           >
             <n-local-icon name="paste" slot="prefix"></n-local-icon>
-            粘贴
+            <n-desc name="paste" space="files"></n-desc>
           </p-menu-item>
           <hr />
         </x-if>
         <p-menu-item on:click="app.current.refreshFiles()">
           <n-local-icon name="reload" slot="prefix"></n-local-icon>
-          刷新
+
+          <n-desc name="reload" space="files"></n-desc>
         </p-menu-item>
         <hr />
         <p-menu-item on:click="importFiles">
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
-          导入文件
+          <n-desc name="importFile" space="files"></n-desc>
         </p-menu-item>
         <p-menu-item on:click="importDir">
           <n-local-icon name="import-dir" slot="prefix"></n-local-icon>
-          导入文件夹
+          <n-desc name="importDir" space="files"></n-desc>
         </p-menu-item>
       </p-menu>
     </p-bind-contextmenu>
