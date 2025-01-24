@@ -1,13 +1,20 @@
 {
   "cacheok": "キャッシュ完了",
-  "caching": "キャッシュ中",
+  "caching": "キャッシュ中...",
   "copyok": "<b>{fname}</b> コピー完了",
-  "copyfail": "<b>{fname}</b> コピー失敗, {errInfo}",
   "copyto": "<b>{fname}</b> を <b>{tname}</b> にコピー",
-  "merging": "マージ中",
+  "merging": "<b>{fname}</b> マージ開始",
   "mergeok": "マージ完了",
   "deleteCache": "キャッシュ削除中",
   "deleteCacheok": "キャッシュ削除完了",
   "time": "時間",
-  "retry": "再試行"
+  "retry": "再試行",
+  "confirmContent": "内容確認中",
+  "confirmDelete": "<b style='color:var(--md-sys-color-primary);'>{fromPath}</b> の削除を確認しますか？",
+  "deleting": "<b>{handleName}</b> 削除中",
+  "deleteok": "<b>{handleName}</b> 削除完了",
+  "download": "<b>{handleName}</b> ダウンロード中",
+  "exportok": "<b>{handleName}</b> エクスポート完了",
+  "importFolder": "<b>{dirName}</b> を <b>{to}</b> にインポート中",
+  "importFolderok": "<b>{dirName}</b> を <b>{to}</b> にインポート完了"
 }

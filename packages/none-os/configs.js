@@ -17,5 +17,6 @@ export const defaultApps = [
   "/packages/apps/files",
   "/packages/apps/setting",
   "/packages/apps/picture",
+  "/packages/apps/text-edit",
   "/packages/apps/link",
 ];

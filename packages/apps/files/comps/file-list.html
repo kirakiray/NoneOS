@@ -115,7 +115,8 @@
         <div
           class="file-item"
           on:dblclick="$host.open($data)"
-          on:click="$host.selectItem($data)"
+          on:click="$host.selectItem($data,$event)"
+          on:contextmenu="$host.selectItem($data,$event)"
           class:selected="!!$data.selected"
           attr:data-path="$data.path"
           class:hide="$data.hide"
@@ -138,12 +139,12 @@
               <n-local-icon
                 class="cut-icon"
                 name="cut"
-                slot="suffix"
+                slot="prefix"
               ></n-local-icon>
               <n-local-icon
                 class="copy-icon"
                 name="copy"
-                slot="prefix"
+                slot="suffix"
               ></n-local-icon>
             </n-handle-block>
           </div>
@@ -237,9 +238,11 @@
         },
         proto: {
           get selecteds() {
-            return this.files.filter((e) => {
-              return e.selected;
-            });
+            return this.files
+              .filter((e) => {
+                return e.selected;
+              })
+              .map((e) => e.toJSON());
           },
           async open(data) {
             if (/\.fs_task_cache$/.test(data.name)) {
@@ -253,7 +256,7 @@
                 },
               });
             } else if (data.kind === "dir") {
-              this.host.goto(
+              this.app.current.goto(
                 `./explore.html?path=${encodeURIComponent(data.path)}`
               );
             } else {
@@ -271,7 +274,16 @@
               : "--md-ref-palette-normal95";
           },
 
-          async selectItem(data) {
+          async selectItem(data, event) {
+            // 如果是已经选择的项目，且是 contextmenu 触发的，不做任何处理
+            if (
+              event &&
+              event.type === "contextmenu" &&
+              JSON.stringify(this.selecteds) === JSON.stringify([data])
+            ) {
+              return;
+            }
+
             this.files.forEach((e) => {
               if (e === data) {
                 return;

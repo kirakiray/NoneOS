@@ -19,5 +19,8 @@
   "dirLeft": "左側",
   "dirBottom": "下部",
   "apps": "アプリケーション",
-  "supportFiles": "{ext}フォーマットに対応"
+  "supportFiles": "{ext}フォーマットに対応",
+  "change": "変更",
+  "relateDesktop": "デスクトップ関連",
+  "desktopPic": "デスクトップの壁紙"
 }

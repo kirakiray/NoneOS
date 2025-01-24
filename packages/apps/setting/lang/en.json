@@ -19,5 +19,8 @@
   "dirLeft": "Left",
   "dirBottom": "Bottom",
   "apps": "Applications",
-  "supportFiles": "Supports {ext} format"
+  "supportFiles": "Supports {ext} format",
+  "change": "change",
+  "relateDesktop": "desktop related",
+  "desktopPic": "desktop wallpaper"
 }

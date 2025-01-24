@@ -150,6 +150,7 @@
       const { setSpace, getText, onChangeLang, getLang } = await load(
         "/packages/i18n/data.js"
       );
+
       const { connectUser } = await load("/packages/core/user-connect/main.js");
 
       await setSpace("files", new URL("./lang", url).href);
@@ -211,6 +212,11 @@
                 path: "packages",
                 icon: "safe",
               },
+              {
+                name: "SpeedDisk(test)",
+                path: "$origin:local",
+                icon: "rocket",
+              },
             ];
           },
         },
@@ -232,20 +238,6 @@
             this.selectedRootName = rootName;
           });
 
-          this.on("run-task", async (e) => {
-            const { data } = e;
-
-            if (data.type === "copyTo") {
-              const { source, target } = data;
-
-              addTask({
-                type: "copy",
-                from: source.path,
-                to: target.path,
-              });
-            }
-          });
-
           this.on("task-complete", async (e) => {
             this.app.current.refreshFiles();
           });
@@ -259,12 +251,14 @@
               let data = await configData.text();
               data = JSON.parse(data);
 
-              addTask({
+              await addTask({
                 type: data.type,
                 from: data.from,
                 to: data.to,
                 paused: true,
               });
+
+              this.app.current.refreshFiles();
             }
           });
 

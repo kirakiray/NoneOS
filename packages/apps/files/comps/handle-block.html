@@ -48,7 +48,7 @@
   </div>
   <div class="name">
     <div style="flex-shrink: 0">
-      <slot name="surfix"></slot>
+      <slot name="prefix"></slot>
     </div>
     <div class:hide="renameMode" class="name-content" attr:title="name">
       {{realName}}
@@ -60,7 +60,7 @@
       on:blur="renameItem"
     />
     <div style="flex-shrink: 0">
-      <slot name="prefix"></slot>
+      <slot name="suffix"></slot>
     </div>
   </div>
   <script>

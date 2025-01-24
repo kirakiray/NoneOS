@@ -9,12 +9,16 @@
       border-radius: var(--pui-border-radius);
       background-color: var(--pui-bg-light, var(--md-ref-palette-primary98));
       box-shadow: var(--contained-shadow);
-      transition: opacity ease 0.1s;
       --triangle-color: #5f6368;
+      transform-origin: 50% 0;
+      transform: translate(0, 0);
+      transition: opacity ease 0.2s, transform ease 0.2s;
     }
 
-    :host([visibility="hidden"]) {
+    :host([open="off"]) {
       pointer-events: none;
+      transform: translate(4px, 0);
+      opacity: 0;
     }
 
     .container {
@@ -34,12 +38,6 @@
       transition: margin ease 0.2s;
     }
 
-    :host([visibility="hidden"]) .container {
-      padding-top: 0;
-      padding-bottom: 0;
-      transition: opacity ease 0.2s;
-    }
-
     .safearea {
       display: block;
       position: absolute;
@@ -50,55 +48,17 @@
       background: transparent;
       z-index: 0;
     }
+
+    ::slotted(p-menu-item) {
+      transition: all ease 0.3s;
+    }
+
+    :host([open="off"]) ::slotted(p-menu-item) {
+      transform: translate(10px, 0);
+      opacity: 0;
+    }
   </style>
-  <inject-host>
-    <style>
-      p-menu p-menu-item::part(container) {
-        transition: line-height ease 0.2s, padding ease 0.2s;
-      }
-      p-menu[visibility="hidden"] p-menu-item {
-        line-height: 0px !important;
-      }
-      p-menu[visibility="hidden"] p-menu-item::part(container) {
-        padding-top: 0 !important;
-        padding-bottom: 0 !important;
-      }
-
-      p-menu[visibility="hidden"] p-menu-item::part(fake-button) {
-        /* Remove focus when hidden */
-        display: none !important;
-      }
-
-      p-menu [slot="prefix"] {
-        transition: all ease 0.2s;
-      }
-
-      p-menu p-menu-item img[slot="prefix"] {
-        opacity: 1;
-        transition: opacity ease 0.5s;
-      }
-
-      p-menu[visibility="hidden"] p-menu-item img[slot="prefix"] {
-        opacity: 0;
-      }
-      p-menu[visibility="hidden"] {
-        opacity: 0;
-        pointer-events: none;
-      }
-
-      p-menu[visibility="hidden"] [slot="prefix"] {
-        font-size: 0px;
-        line-height: 0;
-      }
-
-      p-menu[visibility="hidden"] hr {
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        border-width: 0;
-        opacity: 0;
-      }
-    </style>
-  </inject-host>
+  <link rel="stylesheet" href="./menu.css" />
 
   <x-if :value="isChild">
     <style>
@@ -147,7 +107,7 @@
     export default {
       tag: "p-menu",
       attrs: {
-        visibility: null,
+        open: null,
       },
       data: {
         theme: "light",

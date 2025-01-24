@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>menu</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.13/dist/ofa.min.js"
+      debug
+    ></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      *:not(:defined) {
+        display: none;
+      }
+      div {
+        padding: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/comp-shower.html"></l-m>
+
+    <l-m src="../../ancillary/debug-container.html"></l-m>
+    <l-m
+      src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"
+    ></l-m>
+    <l-m src="./menu.html"></l-m>
+    <l-m src="./menu-area.html"></l-m>
+    <l-m src="./bind-contextmenu.html"></l-m>
+
+    <div style="height: 50px"></div>
+
+    <p-debug-container>
+      <p-menu-area
+        area-name="area1"
+        style="
+          display: flex;
+          background-color: rgba(146, 29, 29, 0.2);
+          height: 300px;
+        "
+      >
+        <p-bind-contextmenu
+          area="area1"
+          auto-close
+          style="
+            background-color: rgba(33, 15, 149, 0.393);
+            width: calc(100% - 40px);
+            height: calc(100% - 40px);
+            margin: 20px;
+          "
+        >
+          <p-menu>
+            <p-menu-item id="targetItem">Cut</p-menu-item>
+            <p-menu-item>Copy</p-menu-item>
+            <hr />
+            <p-menu-item>Clipboard</p-menu-item>
+
+            <p-menu-item id="targetItem3">
+              <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+              item2
+              <p-menu style="width: 150px">
+                <p-menu-item>
+                  <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+                  item2-1
+                </p-menu-item>
+                <p-menu-item>
+                  <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+                  item2-2
+                  <p-menu>
+                    <p-menu-item>
+                      <iconify-icon
+                        icon="tabler:cut"
+                        slot="prefix"
+                      ></iconify-icon>
+                      item2-2-1
+                    </p-menu-item>
+                    <p-menu-item>
+                      <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+                      item2-2-2
+                    </p-menu-item>
+                  </p-menu>
+                </p-menu-item>
+                <p-menu-item>
+                  <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+                  item2-3
+                </p-menu-item>
+              </p-menu>
+            </p-menu-item>
+          </p-menu>
+        </p-bind-contextmenu>
+      </p-menu-area>
+
+      <style>
+        .test-item {
+          margin: 16px;
+          display: inline-block;
+          padding: 24px;
+          background-color: rgba(165, 173, 22, 0.306);
+          border-radius: 8px;
+          cursor: default;
+        }
+        .test-item:hover {
+          background-color: rgba(149, 15, 20, 0.393);
+        }
+        .test-container {
+          background-color: rgba(15, 149, 55, 0.393);
+          height: 300px;
+          margin-top: 20px;
+        }
+      </style>
+
+      <p-bind-contextmenu auto-close class="test-container">
+        <div class="test-item">Test Item</div>
+        <p-menu contextmenu-selector=".test-item">
+          <p-menu-item id="targetItem">Cut</p-menu-item>
+          <p-menu-item>Copy</p-menu-item>
+          <hr />
+          <p-menu-item>Clipboard</p-menu-item>
+        </p-menu>
+        <p-menu contextmenu-selector=".test-container">
+          <p-menu-item>Reload</p-menu-item>
+        </p-menu>
+      </p-bind-contextmenu>
+    </p-debug-container>
+
+    <script>
+      $("#targetItem").on("click", () => {
+        console.log("click cut");
+      });
+    </script>
+  </body>
+</html>

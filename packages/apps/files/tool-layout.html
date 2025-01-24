@@ -13,6 +13,7 @@
     }
     .top {
       display: flex;
+      align-items: center;
       flex-wrap: wrap;
       padding: 4px;
       min-height: 40px;
@@ -97,87 +98,6 @@
         <n-local-icon name="forward"></n-local-icon>
       </p-button>
     </p-button-group>
-    <p-button-group variant="outlined">
-      <p-button
-        size="small"
-        attr:disabled="isPackages || !selecteds.length || hasTask"
-        on:click="clickCut"
-      >
-        <n-local-icon name="cut"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        attr:disabled="!selecteds.length || hasTask"
-        on:click="clickCopy"
-      >
-        <n-local-icon name="copy"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        attr:disabled="isPackages || !clipboard?.sources?.length || hasTask"
-        on:click="clickPaste"
-      >
-        <n-local-icon name="paste"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        attr:disabled="isPackages || selecteds.length !== 1 || hasTask"
-        on:click="clickRename"
-      >
-        <n-local-icon name="rename"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        attr:disabled="isPackages || selecteds.length !== 1"
-        on:click="clickRemove"
-      >
-        <n-local-icon name="delete"></n-local-icon>
-      </p-button>
-    </p-button-group>
-    <p-button-group variant="outlined">
-      <p-button
-        size="small"
-        on:click="clickReload"
-        attr:disabled="!!selecteds.length"
-      >
-        <n-local-icon name="reload"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        on:click="shadow.$(`#imFileInputer`).ele.click()"
-        attr:disabled="isPackages || !!selecteds.length"
-      >
-        <n-local-icon name="import-file"></n-local-icon>
-      </p-button>
-      <p-button
-        size="small"
-        on:click="shadow.$(`#imDirInputer`).ele.click()"
-        attr:disabled="isPackages || !!selecteds.length"
-      >
-        <n-local-icon name="import-dir"></n-local-icon>
-      </p-button>
-      <div style="position: absolute; width: 0; height: 0; overflow: hidden">
-        <input
-          type="file"
-          webkitdirectory
-          id="imDirInputer"
-          on:change="importFiles"
-        />
-        <input
-          type="file"
-          multiple
-          id="imFileInputer"
-          on:change="importFiles"
-        />
-      </div>
-      <p-button
-        size="small"
-        on:click="clickExport"
-        attr:disabled="!selecteds.length || hasTask"
-      >
-        <n-local-icon name="export"></n-local-icon>
-      </p-button>
-    </p-button-group>
 
     <p-text-field
       size="small"
@@ -210,24 +130,6 @@
     </x-if>
   </div>
 
-  <div class="bottom-area delay error-mode" class:hide="!showDelete">
-    <x-if :value="deletingData.total == 0"> {{spaceData.deleteOK}} </x-if>
-    <x-else> {{spaceData.readyDelete}} {{deletedPercentage}}</x-else>
-  </div>
-
-  <div class="bottom-area" class:hide="!importingLen">
-    <x-if :value="importingLen > importedLen">
-      {{spaceData.importingFile}}
-      <p-progress
-        :value="importedLen / importingLen * 100"
-        type="circle"
-        style="--circle-size: 20; margin: 0 8px"
-      ></p-progress>
-      {{importedLen}} / {{importingLen}}
-    </x-if>
-    <x-else> {{spaceData.impoted}} </x-else>
-  </div>
-
   <div class="address">
     <n-bottom-address
       :path="path"
@@ -239,8 +141,6 @@
 
   <script>
     export const parent = "./outer-layout.html";
-
-    import { handleToZip } from "./util.js";
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
@@ -262,7 +162,6 @@
           importedLen: 0, // 导入成功的数量
           hasTask: false, // 选中的文件包含task目录
           // taskPercentage: 0, // 任务进度数据
-          showDelete: false,
           deletingData: {
             count: 0, // 已经删除的数量
             total: 0, // 总共文件
@@ -285,59 +184,6 @@
           get isPackages() {
             return !!/^packages/.test(this.path);
           },
-          async clickExport() {
-            const handler = await get(this.selecteds[0]);
-
-            let resultFile;
-            let download;
-            if (handler.kind === "dir") {
-              resultFile = await handleToZip(handler);
-              download = `${handler.name}.zip`;
-            } else {
-              resultFile = await handler.file();
-              download = handler.name;
-            }
-
-            const url = URL.createObjectURL(resultFile);
-
-            // 模拟下载文件
-            const linkEl = document.createElement("a");
-            linkEl.href = url;
-            linkEl.download = download;
-            linkEl.click();
-
-            setTimeout(() => {
-              URL.revokeObjectURL(url);
-            }, 1000);
-          },
-          async importFiles(e) {
-            const files = await fileFilter(e.target.files);
-
-            // 写入文件
-            const nowHandle = await get(this.path);
-
-            this.importingLen = files.length;
-            this.importedLen = 0;
-
-            for (let file of files) {
-              const handle = await nowHandle.get(
-                file.webkitRelativePath || file.name,
-                {
-                  create: "file",
-                }
-              );
-
-              await handle.write(file);
-              this.importedLen++;
-            }
-
-            this.app.current.refreshFiles();
-
-            setTimeout(() => {
-              this.importingLen = 0;
-              this.importedLen = 0;
-            }, 1000);
-          },
           get clipboardText() {
             if (this?.clipboard?.sources) {
               const sources = this.clipboard.sources
@@ -354,84 +200,6 @@
           },
           get cProvider() {
             return this.getProvider("clipboard");
-          },
-          clickReload() {
-            this.app.current.refreshFiles();
-          },
-          clickCopy(e) {
-            this.cProvider.desc = {
-              type: "copy",
-              sources: [...this.selecteds],
-            };
-          },
-          clickCut(e) {
-            this.cProvider.desc = {
-              type: "cut",
-              sources: [...this.selecteds],
-            };
-          },
-          clickRename() {
-            this.needRename = this.selecteds[0];
-          },
-          async clickPaste(e) {
-            const { sources, type } = this.clipboard;
-
-            const handles = await Promise.all(
-              sources.map(async (path) => {
-                return await get(path);
-              })
-            );
-
-            const targetHandle = await get(this.path);
-
-            switch (type) {
-              case "copy":
-                for (let handle of handles) {
-                  if (handle._mark === "db" && targetHandle._mark === "db") {
-                    await handle.copyTo(targetHandle);
-                  } else {
-                    this.emit("run-task", {
-                      composed: true,
-                      data: {
-                        type: "copyTo",
-                        source: handle,
-                        target: targetHandle,
-                      },
-                    });
-                  }
-                }
-                break;
-              case "cut":
-                for (let handle of handles) {
-                  await handle.moveTo(targetHandle);
-                }
-            }
-
-            this.cProvider.desc = 0;
-
-            this.app.current.refreshFiles();
-          },
-          async clickRemove() {
-            const handles = await Promise.all(
-              this.selecteds.map(async (path) => {
-                const handle = await get(path);
-
-                const files = await handle.flat();
-                this.deletingData.total = files.length + 1; // 总共需要删除的文件数
-                this.showDelete = true;
-
-                let count = 0;
-                await handle.remove((e) => {
-                  count++;
-                  this.deletingData.count = count;
-                });
-
-                this.deletingData.total = 0;
-                this.showDelete = false;
-              })
-            );
-
-            this.app.current.refreshFiles();
           },
           selectFiles(e) {
             e.stopPropagation();

@@ -27,6 +27,7 @@ export const createRoot = async (name) => {
 
 // 初始化Local
 const inited = (async () => {
+  // 创建三个关键目录
   await createRoot("local");
   await createRoot("apps");
   await createRoot("packages");

@@ -204,7 +204,7 @@
   </div>
   <script>
     import "../commons/init.js";
-    
+
     export default {
       tag: "p-switch",
       attrs: {
@@ -216,11 +216,6 @@
       data: {
         value: false,
         infocus: false,
-      },
-      watch: {
-        value(val) {
-          this.emit("change");
-        },
       },
       proto: {
         get checked() {
@@ -235,6 +230,7 @@
             return;
           }
           this.value = !this.value;
+          this.emit("change");
         },
       },
       ready() {

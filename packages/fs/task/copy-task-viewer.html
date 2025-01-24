@@ -282,7 +282,7 @@
       };
 
       return {
-        tag: "fs-task-viewer",
+        tag: "n-copy-task-viewer",
         attrs: {
           type: "",
           from: "", // 来源地址
@@ -489,7 +489,9 @@
           if (!this.__copy_result) {
             this.__copy_result = true;
           }
-          this.loadTask();
+          setTimeout(() => {
+            this.loadTask();
+          }, 100);
         },
         detached() {
           if (this.__resolve_copy_result) {

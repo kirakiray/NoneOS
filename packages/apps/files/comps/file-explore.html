@@ -1,0 +1,355 @@
+<template component>
+  <l-m src="../comps/file-list.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="/packages/i18n/component.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+
+    .container {
+      position: relative;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .container > * {
+      z-index: 2;
+    }
+
+    .abs-over {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .center-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+      padding: 60px 16px;
+      color: #7b7b7b;
+    }
+
+    .main {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .main-menu {
+      width: 120px;
+      z-index: 2;
+    }
+
+    .main-menu n-local-icon {
+      display: block;
+      margin-right: 8px;
+      color: var(--md-sys-color-primary);
+    }
+  </style>
+
+  <div class="container" on:select-files="selecteds = $event.data.selecteds">
+    <p-bind-contextmenu class="main" auto-close>
+      <div
+        class="other-area abs-over"
+        on:click="clickOther"
+        on:contextmenu="clickOther"
+        style="z-index: 1"
+      ></div>
+      <n-file-list
+        :files="files"
+        on:rename-file="renameFile"
+        :search="search"
+      ></n-file-list>
+      <p-menu class="main-menu" contextmenu-selector="n-file-list">
+        <p-menu-item on:click="clickMenuItem('cut')">
+          <n-local-icon name="cut" slot="prefix"></n-local-icon>
+          <n-desc name="cut" space="files"></n-desc>
+        </p-menu-item>
+        <p-menu-item on:click="clickMenuItem('copy')">
+          <n-local-icon name="copy" slot="prefix"></n-local-icon>
+          <n-desc name="copy" space="files"></n-desc>
+        </p-menu-item>
+        <p-menu-item on:click="clickMenuItem('rename')">
+          <n-local-icon name="rename" slot="prefix"></n-local-icon>
+          <n-desc name="rename" space="files"></n-desc>
+        </p-menu-item>
+        <p-menu-item on:click="clickRemove">
+          <n-local-icon name="delete" slot="prefix"></n-local-icon>
+          <n-desc name="delete" space="files"></n-desc>
+        </p-menu-item>
+        <hr />
+        <p-menu-item on:click="exportFiles">
+          <n-local-icon name="export" slot="prefix"></n-local-icon>
+          <n-desc name="exportFile" space="files"></n-desc>
+        </p-menu-item>
+      </p-menu>
+
+      <p-menu class="main-menu" contextmenu-selector=".other-area">
+        <x-if :value="clipboard?.sources?.length">
+          <p-menu-item
+            attr:disabled="!clipboard?.sources?.length"
+            on:click="clickPaste"
+          >
+            <n-local-icon name="paste" slot="prefix"></n-local-icon>
+            <n-desc name="paste" space="files"></n-desc>
+          </p-menu-item>
+          <hr />
+        </x-if>
+        <p-menu-item on:click="app.current.refreshFiles()">
+          <n-local-icon name="reload" slot="prefix"></n-local-icon>
+
+          <n-desc name="reload" space="files"></n-desc>
+        </p-menu-item>
+        <hr />
+        <p-menu-item on:click="importFiles">
+          <n-local-icon name="import-file" slot="prefix"></n-local-icon>
+          <n-desc name="importFile" space="files"></n-desc>
+        </p-menu-item>
+        <p-menu-item on:click="importDir">
+          <n-local-icon name="import-dir" slot="prefix"></n-local-icon>
+          <n-desc name="importDir" space="files"></n-desc>
+        </p-menu-item>
+      </p-menu>
+    </p-bind-contextmenu>
+    <x-if :value="loading">
+      <div class="center-box">
+        <p-progress type="circle"></p-progress>
+      </div>
+    </x-if>
+    <x-else-if :value="errorStr">
+      <div class="center-box">{{errorStr}}</div>
+    </x-else-if>
+    <x-else-if :value="files.length === 0 && !loading">
+      <div class="center-box">{{spaceData.emptyDir}}</div>
+    </x-else-if>
+  </div>
+
+  <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
+
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { getSpaceData } = await load("/packages/i18n/data.js");
+      const { addTask } = await load("/packages/fs/task/main.js");
+
+      return {
+        tag: "n-file-explore",
+        data: {
+          path: "",
+          files: [],
+          loading: true,
+          search: "",
+          errorStr: null, // 报错
+          spaceData: {},
+          selecteds: [], // 选择的文件或文件夹
+          clipboard: {
+            // 等待中的操作
+            // type: "copy", // cut 或 copy
+            // sources: [], // 源地址
+          },
+        },
+        proto: {
+          exportFiles() {
+            addTask({
+              type: "export-files",
+              from: this.selecteds.map((e) => e.path),
+            });
+          },
+          async importFiles() {
+            await addTask({
+              type: "import-files",
+              to: this.path,
+            });
+
+            this.refreshFiles();
+          },
+          async importDir() {
+            await addTask({
+              type: "import-folder",
+              to: this.path,
+            });
+
+            this.refreshFiles();
+          },
+          get clipboardProvider() {
+            return this.getProvider("clipboard");
+          },
+          async clickMenuItem(type) {
+            switch (type) {
+              case "cut": {
+                this.clipboardProvider.desc = {
+                  type: "cut",
+                  sources: [...this.selecteds.map((e) => e.path)],
+                };
+                break;
+              }
+              case "copy": {
+                this.clipboardProvider.desc = {
+                  type: "copy",
+                  sources: [...this.selecteds.map((e) => e.path)],
+                };
+                break;
+              }
+              case "rename": {
+                const renameProvider = this.getProvider("rename-file");
+                renameProvider.needRename = this.selecteds[0].path;
+                break;
+              }
+            }
+          },
+
+          async clickRemove() {
+            await addTask({
+              type: "delete",
+              from: this.selecteds.map((e) => e.path),
+            });
+
+            this.refreshFiles();
+          },
+          async clickPaste(e) {
+            const { sources, type } = this.clipboard;
+
+            const handles = await Promise.all(
+              sources.map(async (path) => {
+                return await get(path);
+              })
+            );
+
+            const targetHandle = await get(this.path);
+
+            switch (type) {
+              case "copy":
+                for (let handle of handles) {
+                  if (handle._mark === "db" && targetHandle._mark === "db") {
+                    await handle.copyTo(targetHandle);
+                  } else {
+                    await addTask({
+                      type: "copy",
+                      from: handle.path,
+                      to: targetHandle.path,
+                    });
+                  }
+                }
+                break;
+              case "cut":
+                for (let handle of handles) {
+                  await handle.moveTo(targetHandle);
+                }
+            }
+
+            this.clipboardProvider.desc = 0;
+
+            this.refreshFiles();
+          },
+
+          // 加载文件
+          async refreshFiles() {
+            this.loading = true;
+
+            const handle = await get(decodeURIComponent(this.path)).catch(
+              (err) => err
+            );
+
+            if (handle instanceof Error) {
+              this.errorStr = handle.toString();
+              this.loading = false;
+              return;
+            }
+
+            try {
+              const files = [];
+
+              if (!handle) {
+                debugger;
+              }
+
+              await handle.forEach(async (item) => {
+                files.push({
+                  size: formatBytes(await item.size()),
+                  id: item.id,
+                  kind: item.kind,
+                  name: item.name,
+                  path: item.path,
+                  createTime: new Date(item.createTime).toLocaleString(),
+                  lastModified: item.lastModified
+                    ? new Date(item.lastModified).toLocaleString()
+                    : "",
+                });
+              });
+
+              this.files = files;
+              this.loading = false;
+              this.errorStr = "";
+            } catch (err) {
+              this.errorStr = err.toString();
+              console.error(err);
+              this.loading = false;
+              return;
+            }
+          },
+          clickOther() {
+            // 清空选择
+            this.shadow.$("n-file-list").selectItem({});
+          },
+          async renameFile(e) {
+            e.stopPropagation();
+
+            const {
+              data: { targetPath, newName },
+            } = e;
+
+            if (!targetPath) {
+              return;
+            }
+
+            const handle = await get(targetPath);
+            await handle.moveTo(newName);
+
+            this.refreshFiles();
+          },
+        },
+        watch: {
+          path(path) {
+            if (path) {
+              this.refreshFiles();
+            }
+          },
+        },
+        attached() {
+          this.spaceData = getSpaceData("files");
+        },
+        detached() {
+          this.spaceData = {};
+        },
+      };
+    };
+
+    function formatBytes(bytes) {
+      if (!bytes) {
+        return bytes;
+      }
+
+      const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+      let i = 0;
+      while (bytes >= 1024 && i < units.length - 1) {
+        bytes /= 1024;
+        i++;
+      }
+
+      return `${bytes.toFixed(2)} ${units[i]}`;
+    }
+  </script>
+</template>

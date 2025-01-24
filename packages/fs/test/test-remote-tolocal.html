@@ -7,7 +7,7 @@
     <script src="/packages/libs/ofa/ofa.js" debug></script>
   </head>
   <body>
-    <l-m src="../task/viewer.html"></l-m>
+    <l-m src="../task/copy-task-viewer.html"></l-m>
     <l-m src="../task/task-viewer.html"></l-m>
     <l-m src="../task/task-list.html"></l-m>
 
@@ -42,16 +42,16 @@
         // 将文件复制过来
         {
           $("body").push(
-            `<fs-task-viewer
+            `<n-copy-task-viewer
              type="copy" 
              from="${ceshiVideoDir.path}" 
              to="${testdir.path}"
            >
              
-           </fs-task-viewer>`
+           </n-copy-task-viewer>`
           );
 
-          const viewer = $("fs-task-viewer");
+          const viewer = $("n-copy-task-viewer");
 
           await viewer.watchUntil(() => viewer.done);
         }

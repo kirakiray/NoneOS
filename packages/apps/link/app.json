@@ -1,5 +1,5 @@
 {
-  "name": "联网配置",
+  "name": "Network Configs",
   "icon": "icon.svg",
   "config": "app-config.js",
   "i18n": {

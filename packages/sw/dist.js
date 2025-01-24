@@ -1603,6 +1603,12 @@
                 key: hash,
               });
 
+              if (!result) {
+                throw new Error(
+                  `Block data not found, hahs: ${hash} ; path: ${this.path}`
+                );
+              }
+
               const { chunk } = result;
 
               if (chunk instanceof Blob) {
@@ -2144,6 +2150,7 @@
 
   // 初始化Local
   const inited = (async () => {
+    // 创建三个关键目录
     await createRoot("local");
     await createRoot("apps");
     await createRoot("packages");

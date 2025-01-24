@@ -21,7 +21,7 @@
   <p-list>
     <x-fill :value="tasks">
       <p-list-item button on:click="$data.showViewer=true">
-        <x-if :value="$data.errInfo">
+        <x-if :value="$data.error">
           <n-local-icon
             name="error"
             slot="prefix"
@@ -29,21 +29,51 @@
             style="color: var(--md-sys-color-error)"
           ></n-local-icon>
         </x-if>
-        <x-else>
+        <x-else-if :value="$data.type === 'copy'">
           <n-local-icon
             name="copy"
             slot="prefix"
             class="mainicon"
           ></n-local-icon>
+        </x-else-if>
+        <x-else-if :value="$data.type === 'delete'">
+          <n-local-icon
+            name="delete"
+            slot="prefix"
+            class="mainicon"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+        </x-else-if>
+        <div :html="$data.tips"></div>
+        <x-if :value="$data.error">
+          <div secondary>{{$data.error}}</div>
+        </x-if>
+        <x-else>
+          <div secondary>
+            <p-progress
+              attr:color="$host.getColor($data)"
+              :value="$data.precentage * 100"
+              style="
+                --line-size: 2px;
+                margin-top: 4px;
+                --progress-animation: ease-in-out 0.1s;
+              "
+            ></p-progress>
+          </div>
         </x-else>
-        <div :html="$host.getItemTitle($data)"></div>
-        <div secondary>
-          <p-progress
-            attr:color="$host.getColor($data)"
-            :value="$data.precentage * 100"
-            style="--line-size: 2px; margin-top: 4px"
-          ></p-progress>
-        </div>
+
+        <x-if :value="$data.error">
+          <p-button
+            on:click="$host.closeItem($data)"
+            slot="suffix"
+            icon
+            size="small"
+            variant="text"
+            style="z-index: 3"
+          >
+            <n-local-icon name="close"></n-local-icon>
+          </p-button>
+        </x-if>
       </p-list-item>
     </x-fill>
   </p-list>
@@ -58,6 +88,12 @@
           tasks: [],
         },
         proto: {
+          closeItem(item) {
+            const index = tasks.indexOf(item);
+            if (index > -1) {
+              this.tasks.splice(index, 1);
+            }
+          },
           getColor(data) {
             if (data.step == 1) {
               return "primary";
@@ -66,24 +102,6 @@
             } else if (data.step == 3) {
               return "error";
             }
-          },
-          getItemTitle(data) {
-            if (data.errInfo) {
-              return getText("copyfail", "fs-task", {
-                fname: data.from.replace(/.+\/(.+)/, "$1"),
-                errInfo: data.errInfo,
-              });
-            }
-            if (data.done) {
-              return getText("copyok", "fs-task", {
-                fname: data.from.replace(/.+\/(.+)/, "$1"),
-              });
-            }
-
-            return getText("copyto", "fs-task", {
-              fname: data.from.replace(/.+\/(.+)/, "$1"),
-              tname: data.to.replace(/.+\/(.+)/, "$1"),
-            });
           },
         },
         attached() {

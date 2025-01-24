@@ -490,8 +490,18 @@ export class UserClient extends $.Stanz {
   // 查找最好的服务器进行发送
   async _getServer() {
     if (this._bestServer) {
-      // 直接返回已设置的最好的服务器
-      return this._bestServer;
+      const _old_best_server = this._bestServer;
+
+      try {
+        // 直接返回已设置的最好的服务器
+        const result = await this._bestServer;
+        
+        return result;
+      } catch (err) {
+        if (this._bestServer === _old_best_server) {
+          this._bestServer = null;
+        }
+      }
     }
 
     // 必须等待服务器初始化，不然没有服务器可以查询

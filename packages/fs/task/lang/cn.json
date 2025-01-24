@@ -2,12 +2,19 @@
   "cacheok": "缓存完成",
   "caching": "正在缓存",
   "copyok": "复制 <b> {fname} </b> 完成",
-  "copyfail": "复制 <b> {fname} </b> 失败，{errInfo}",
   "copyto": "将 <b> {fname} </b> 复制到 <b> {tname} </b>",
-  "merging": "合并中",
+  "merging": "开始合并 <b>{fname}</b>",
   "mergeok": "合并完成",
   "deleteCache": "删除缓存中",
   "deleteCacheok": "删除缓存完成",
   "time": "时间",
-  "retry": "重试"
+  "retry": "重试",
+  "confirmContent": "正在确认内容",
+  "confirmDelete": "确认删除 <b style='color:var(--md-sys-color-primary);'>{fromPath}</b>？",
+  "deleting": "正在删除 <b>{handleName}</b>",
+  "deleteok": "<b>{handleName}</b> 删除成功",
+  "download": "正在下载 <b>{handleName}</b>",
+  "exportok": "导出 <b>{handleName}</b> 成功",
+  "importFolder": "正在将 <b>{dirName}</b> 导入到 <b>{to}</b>",
+  "importFolderok": "<b>{dirName}</b> 导入到 <b>{to}</b> 成功"
 }

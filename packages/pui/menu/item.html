@@ -131,7 +131,7 @@
   </div>
   <script>
     import "../commons/init.js";
-    
+
     export default {
       tag: "p-menu-item",
       attrs: {
@@ -146,6 +146,7 @@
           this.infocus = true;
           this.enterItem();
         },
+        // 模拟tab 键切换菜单项时，触发菜单的关闭
         blurFakeBtn() {
           this.infocus = false;
 
@@ -165,20 +166,20 @@
                 });
 
                 if (!infocus) {
-                  e.visibility = "hidden";
+                  e.open = "off";
                 }
               }
             });
           });
         },
         enterItem() {
-          if (this.hasMenu) {
-            this.$("p-menu").visibility = "";
+          if (this.hasMenu && this.disabled === null) {
+            this.$("p-menu").open = "";
           }
         },
         leaveItem() {
           if (this.hasMenu) {
-            this.$("p-menu").visibility = "hidden";
+            this.$("p-menu").open = "off";
           }
         },
       },
@@ -186,14 +187,14 @@
         this.shadow.$("slot[data-main]").on("slotchange", () => {
           this.hasMenu = !!this.$("p-menu");
           this.all("p-menu").forEach((e) => {
-            e.visibility = "hidden";
+            e.open = "off";
             e.isChild = true;
           });
         });
 
         this.on("click", (e) => {
           e.stopPropagation();
-          this.emit("click-item", {
+          this.emit("click-menu-item", {
             data: e.target,
           });
         });

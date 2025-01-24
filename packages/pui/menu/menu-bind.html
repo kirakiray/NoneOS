@@ -73,7 +73,7 @@
               return;
             }
 
-            this.$("p-menu").visibility = "hidden";
+            this.$("p-menu").open = "off";
 
             this.shadow.$("p-placement")._init({
               self: anchorEl,
@@ -81,11 +81,11 @@
                 placementEl._refreshPosition(anchorEl);
                 setTimeout(() => {
                   // 延迟显示，避免闪烁
-                  this.$("p-menu").visibility = null;
+                  this.$("p-menu").open = null;
                 }, 30);
               },
               close: () => {
-                this.$("p-menu").visibility = "hidden";
+                this.$("p-menu").open = "off";
               },
             });
 
@@ -95,9 +95,9 @@
         attached() {
           this.init();
 
-          this.on("click-item", () => {
+          this.on("click-menu-item", () => {
             this.shadow.$("p-placement").showmask = false;
-            this.$("p-menu").visibility = "hidden";
+            this.$("p-menu").open = "off";
           });
         },
       };
