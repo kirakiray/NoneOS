@@ -16,7 +16,7 @@ export const runCopyTask = async ({ from, to, delayTime }) => {
   const fname = from.replace(/.+\/(.+)/, "$1");
 
   try {
-    let count = 0; // 测试用复制出错
+    // let debugCount = 0; // 测试用复制出错
 
     await copyTo({
       delayTime,
@@ -29,10 +29,10 @@ export const runCopyTask = async ({ from, to, delayTime }) => {
         });
         targetTask.precentage = opts.cached / opts.total;
 
-        if (count > 5) {
-          throw new Error("hahaha");
-        }
-        count++;
+        // if (debugCount > 5) {
+        //   throw new Error("hahaha");
+        // }
+        // debugCount++;
       },
       merge: (opts) => {
         targetTask.tips = `开始合并 <b>${fname}</b>`;
