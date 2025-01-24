@@ -8,7 +8,7 @@ import { getText } from "/packages/i18n/data.js";
 export const runCopyTask = async ({ from, to, delayTime }) => {
   const targetTask = addTaskData({
     type: "copy",
-    tips: "正在确认内容",
+    tips: getText("confirmContent", "fs-task"),
     step: 1,
     precentage: 0, // 任务进行率 0-1
   });
@@ -35,12 +35,14 @@ export const runCopyTask = async ({ from, to, delayTime }) => {
         // debugCount++;
       },
       merge: (opts) => {
-        targetTask.tips = `开始合并 <b>${fname}</b>`;
+        targetTask.tips = getText("merging", "fs-task", {
+          fname,
+        });
         targetTask.step = 2;
         targetTask.precentage = opts.count / opts.total;
       },
       clear: (opts) => {
-        targetTask.tips = `开始清除缓存`;
+        targetTask.tips = getText("deleteCache", "fs-task");
         targetTask.step = 3;
         targetTask.precentage = opts.removed / opts.total;
       },

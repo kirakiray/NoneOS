@@ -1,5 +1,6 @@
 import { get } from "../../main.js";
 import { addTaskData } from "../base.js";
+import { getText } from "/packages/i18n/data.js";
 
 // 导入文件夹
 export const runImportFolderTask = async (options) => {
@@ -51,7 +52,10 @@ const importFiles = async ({ files: afterFiles, to, delayTime }) => {
   // 查找到目标任务对象并运行
   const targetTask = addTaskData({
     type: "import-folder",
-    tips: `正在将 <b>${dirName}</b> 导入到 <b>${to}</b>`,
+    tips: getText("importFolder", "fs-task", {
+      dirName,
+      to,
+    }),
     step: 1,
     precentage: 0, // 任务进行率 0-1
   });
@@ -78,7 +82,10 @@ const importFiles = async ({ files: afterFiles, to, delayTime }) => {
 
     targetTask.done = true;
 
-    targetTask.tips = `<b>${dirName}</b> 导入到 <b>${to}</b> 成功`;
+    targetTask.tips = getText("importFolderok", "fs-task", {
+      dirName,
+      to,
+    });
   } catch (err) {
     console.error(err);
     targetTask.error = err.toString();

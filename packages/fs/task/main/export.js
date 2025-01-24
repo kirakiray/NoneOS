@@ -1,6 +1,7 @@
 import { get } from "../../main.js";
 import { addTaskData } from "../base.js";
 import { handleToZip } from "/packages/apps/files/util.js";
+import { getText } from "/packages/i18n/data.js";
 
 // 运行导出文件任务
 export const runExportFileTask = async (options) => {
@@ -14,7 +15,9 @@ export const runExportFileTask = async (options) => {
     if (from.length === 1) {
       const handle = await get(from[0]);
 
-      targetTask.tips = `正在下载 <b>${handle.name}</b>`;
+      targetTask.tips = getText("download", "fs-task", {
+        handleName: handle.name,
+      });
 
       let finnalFile;
 
@@ -34,7 +37,9 @@ export const runExportFileTask = async (options) => {
         URL.revokeObjectURL(url);
       }, 1000);
 
-      targetTask.tips = `导出 <b>${handle.name}</b> 成功`;
+      targetTask.tips = getText("exportok", "fs-task", {
+        handleName: handle.name,
+      });
       targetTask.done = true;
       return;
     }
@@ -43,6 +48,6 @@ export const runExportFileTask = async (options) => {
     debugger;
   } catch (err) {
     console.error(err);
-    targetTask.error = `导出 <b>${handle.name}</b> 出错`;
+    targetTask.error = err.toString();
   }
 };
