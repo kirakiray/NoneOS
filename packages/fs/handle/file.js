@@ -133,9 +133,9 @@ export class FileHandle extends BaseHandle {
             });
 
             if (!result) {
-              hashs;
-              this;
-              debugger;
+              throw new Error(
+                `Block data not found, hahs: ${hash} ; path: ${this.path}`
+              );
             }
 
             const { chunk } = result;
