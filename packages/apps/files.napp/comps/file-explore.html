@@ -49,7 +49,7 @@
     }
 
     .main-menu {
-      width: 120px;
+      width: 130px;
       z-index: 2;
     }
 
@@ -74,7 +74,7 @@
         :search="search"
       ></n-file-list>
       <p-menu class="main-menu" contextmenu-selector="n-file-list">
-        <p-menu-item on:click="clickMenuItem('cut')">
+        <p-menu-item on:click="clickMenuItem('cut')" attr:disabled="isSystem">
           <n-local-icon name="cut" slot="prefix"></n-local-icon>
           <n-desc name="cut" space="files"></n-desc>
         </p-menu-item>
@@ -82,11 +82,14 @@
           <n-local-icon name="copy" slot="prefix"></n-local-icon>
           <n-desc name="copy" space="files"></n-desc>
         </p-menu-item>
-        <p-menu-item on:click="clickMenuItem('rename')">
+        <p-menu-item
+          on:click="clickMenuItem('rename')"
+          attr:disabled="isSystem"
+        >
           <n-local-icon name="rename" slot="prefix"></n-local-icon>
           <n-desc name="rename" space="files"></n-desc>
         </p-menu-item>
-        <p-menu-item on:click="clickRemove">
+        <p-menu-item on:click="clickRemove" attr:disabled="isSystem">
           <n-local-icon name="delete" slot="prefix"></n-local-icon>
           <n-desc name="delete" space="files"></n-desc>
         </p-menu-item>
@@ -162,6 +165,14 @@
           },
         },
         proto: {
+          get isSystem() {
+            return this.selecteds.some(
+              (e) =>
+                e.path === "local/system" ||
+                e.path.includes("local/system/") ||
+                e.path === "local/caches"
+            );
+          },
           exportFiles() {
             addTask({
               type: "export-files",
