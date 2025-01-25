@@ -55,11 +55,19 @@ function getRelatePath(basePath, relativePath) {
 }
 
 // 根据文件路径，使用应用程序打开文件
-export const openFileWithApp = async ({ path, core }) => {
+export const openFileWithApp = async ({ path, core, appUrl }) => {
   const handle = await get(path);
   const appsData = await getApps();
 
   if (handle) {
+    if (appUrl) {
+      const targetApp = appsData.find((e) => e.url === appUrl);
+
+      await runByApp({ app: targetApp, core, handle, path });
+
+      return true;
+    }
+
     // 获取文件后缀
     const sarr = path.match(/.+\.(.+)$/);
     if (sarr) {
@@ -67,32 +75,7 @@ export const openFileWithApp = async ({ path, core }) => {
 
       for (let app of appsData) {
         if (app.configData?.accept?.includes(type)) {
-          const barData = core.runApp({
-            data: {
-              name: app.name,
-              icon: app.icon,
-              url: app.url,
-              configData: app.configData,
-            },
-          });
-
-          await new Promise((res) => {
-            setTimeout(async () => {
-              const targetApp = core.shadow.$(
-                `o-app[data-appid="${barData.appid}"]`
-              );
-
-              if (targetApp) {
-                await targetApp.watchUntil(() => !!targetApp._module);
-
-                if (targetApp._module.onHandle) {
-                  targetApp._module.onHandle.call(targetApp, { handle, path });
-                }
-              }
-              res();
-            }, 100);
-          });
-
+          await runByApp({ app, core, handle, path });
           return true;
         }
       }
@@ -110,4 +93,30 @@ export const openFileWithApp = async ({ path, core }) => {
     // TODO: 已经删除了
     debugger;
   }
+};
+
+const runByApp = async ({ app, core, handle, path }) => {
+  const barData = core.runApp({
+    data: {
+      name: app.name,
+      icon: app.icon,
+      url: app.url,
+      configData: app.configData,
+    },
+  });
+
+  await new Promise((res) => {
+    setTimeout(async () => {
+      const targetApp = core.shadow.$(`o-app[data-appid="${barData.appid}"]`);
+
+      if (targetApp) {
+        await targetApp.watchUntil(() => !!targetApp._module);
+
+        if (targetApp._module.onHandle) {
+          targetApp._module.onHandle.call(targetApp, { handle, path });
+        }
+      }
+      res();
+    }, 100);
+  });
 };

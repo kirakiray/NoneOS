@@ -84,14 +84,20 @@
           </x-else>
           <n-desc name="open" space="files"></n-desc>
         </p-menu-item>
-        <p-menu-item
-          on:click="clickMenuItem('open-with')"
-          attr:disabled="isFolder"
-        >
+        <p-menu-item attr:disabled="isFolder">
           <n-local-icon name="open-file" slot="prefix"></n-local-icon>
           <n-desc name="openWith" space="files"></n-desc>
           <p-menu>
-            <p-menu-item> aa </p-menu-item>
+            <x-fill :value="apps">
+              <p-menu-item on:click="$host.openWith($data)">
+                <img
+                  attr:src="$data.icon"
+                  slot="prefix"
+                  style="margin-right: 4px"
+                />
+                {{$data.name}}
+              </p-menu-item>
+            </x-fill>
           </p-menu>
         </p-menu-item>
         <hr />
@@ -168,6 +174,9 @@
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
       const { addTask } = await load("/packages/fs/task/main.js");
+      const { getApps } = await load("/packages/none-os/app.js");
+
+      const apps = getApps();
 
       return {
         tag: "n-file-explore",
@@ -184,6 +193,7 @@
             // type: "copy", // cut 或 copy
             // sources: [], // 源地址
           },
+          apps: [], // 所有可用的应用列表
         },
         proto: {
           get isSystem() {
@@ -224,6 +234,17 @@
           get clipboardProvider() {
             return this.getProvider("clipboard");
           },
+          async openWith(data) {
+            const selectedData = this.selecteds[0];
+
+            this.emit("open-app", {
+              data: {
+                path: selectedData.path,
+                app: data.url,
+              },
+              composed: true,
+            });
+          },
           async clickMenuItem(type) {
             switch (type) {
               case "open": {
@@ -244,10 +265,6 @@
                   },
                   composed: true,
                 });
-                break;
-              }
-              case "open-with": {
-                debugger;
                 break;
               }
               case "cut": {
@@ -389,8 +406,23 @@
             }
           },
         },
-        attached() {
+        async attached() {
           this.spaceData = getSpaceData("files");
+
+          this.apps = (await apps)
+            .map((appData) => {
+              if (appData.configData.accept) {
+                // 只返回接受类型的应用
+                return {
+                  name: appData.name,
+                  icon: appData.icon.url,
+                  // url: appData.url.replace("/app-config.js", ""),
+                  url: appData.url,
+                  accept: appData.configData.accept,
+                };
+              }
+            })
+            .filter((e) => e);
         },
         detached() {
           this.spaceData = {};

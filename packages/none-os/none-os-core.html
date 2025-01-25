@@ -310,9 +310,12 @@
           this.on("open-app", async (e) => {
             e.stopPropagation();
 
+            const { app, path } = e.data;
+
             openFileWithApp({
-              path: e.data.path,
+              path,
               core: this,
+              appUrl: app,
             });
           });
         },
