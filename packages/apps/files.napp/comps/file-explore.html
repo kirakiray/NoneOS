@@ -49,7 +49,8 @@
     }
 
     .main-menu {
-      width: 130px;
+      /* width: 130px; */
+      white-space: nowrap;
       z-index: 2;
     }
 
@@ -74,6 +75,26 @@
         :search="search"
       ></n-file-list>
       <p-menu class="main-menu" contextmenu-selector="n-file-list">
+        <p-menu-item on:click="clickMenuItem('open')">
+          <x-if :value="isFolder">
+            <n-local-icon name="open-folder" slot="prefix"></n-local-icon>
+          </x-if>
+          <x-else>
+            <n-local-icon name="open-file" slot="prefix"></n-local-icon>
+          </x-else>
+          <n-desc name="open" space="files"></n-desc>
+        </p-menu-item>
+        <p-menu-item
+          on:click="clickMenuItem('open-with')"
+          attr:disabled="isFolder"
+        >
+          <n-local-icon name="open-file" slot="prefix"></n-local-icon>
+          <n-desc name="openWith" space="files"></n-desc>
+          <p-menu>
+            <p-menu-item> aa </p-menu-item>
+          </p-menu>
+        </p-menu-item>
+        <hr />
         <p-menu-item on:click="clickMenuItem('cut')" attr:disabled="isSystem">
           <n-local-icon name="cut" slot="prefix"></n-local-icon>
           <n-desc name="cut" space="files"></n-desc>
@@ -166,12 +187,17 @@
         },
         proto: {
           get isSystem() {
+            // 选中的是否是系统文件，系统文件不能删除，剪切和重命名
             return this.selecteds.some(
               (e) =>
                 e.path === "local/system" ||
                 e.path.includes("local/system/") ||
                 e.path === "local/caches"
             );
+          },
+          // 选中的是否是文件夹
+          get isFolder() {
+            return this.selecteds.some((e) => e.kind === "dir");
           },
           exportFiles() {
             addTask({
@@ -200,6 +226,30 @@
           },
           async clickMenuItem(type) {
             switch (type) {
+              case "open": {
+                const selectedData = this.selecteds[0];
+
+                if (selectedData.kind === "dir") {
+                  this.app.current.goto(
+                    `./explore.html?path=${encodeURIComponent(
+                      selectedData.path
+                    )}`
+                  );
+                  return;
+                }
+
+                this.emit("open-app", {
+                  data: {
+                    path: selectedData.path,
+                  },
+                  composed: true,
+                });
+                break;
+              }
+              case "open-with": {
+                debugger;
+                break;
+              }
               case "cut": {
                 this.clipboardProvider.desc = {
                   type: "cut",

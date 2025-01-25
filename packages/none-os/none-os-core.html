@@ -307,7 +307,7 @@
             this.saveAppsState();
           });
 
-          this.on("open-app", (e) => {
+          this.on("open-app", async (e) => {
             e.stopPropagation();
 
             openFileWithApp({

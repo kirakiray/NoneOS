@@ -12,6 +12,8 @@
   "readyDelete": "正在删除，已删除 ",
   "importingFile": "导入文件中",
   "impoted": "导入完成",
+  "open": "打开",
+  "openWith": "打开方式",
   "copy": "复制",
   "cut": "剪切",
   "rename": "重命名",
