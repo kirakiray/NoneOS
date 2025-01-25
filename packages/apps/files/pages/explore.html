@@ -6,7 +6,7 @@
       height: 100%;
     }
   </style>
-  <n-file-explore :path="path"></n-file-explore>
+  <n-file-explore :path="path" :search="search"></n-file-explore>
   <script>
     export const parent = "../tool-layout.html";
 
@@ -14,6 +14,7 @@
       return {
         data: {
           path: query.path || "local",
+          search: "",
         },
         proto: {
           refreshFiles() {
