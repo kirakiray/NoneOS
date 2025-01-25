@@ -74,15 +74,9 @@
     .bottom-area.hide.delay {
       transition-delay: 1s;
     }
-
-    @media screen and (max-width: 600px) {
-      .hide-in-mobile {
-        display: none;
-      }
-    }
   </style>
   <div class="top">
-    <p-button-group variant="outlined" class="hide-in-mobile">
+    <p-button-group variant="outlined">
       <p-button
         size="small"
         on:click="app.back()"
