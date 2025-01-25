@@ -16,6 +16,7 @@
   </div>
   <p-progress
     :value="progress"
+    :color="progressColor"
     style="width: 200px; --progress-animation: none"
   ></p-progress>
 
@@ -30,6 +31,7 @@
           total: 0,
           count: 0,
           removeIng: false,
+          progressColor: "primary",
         },
         proto: {
           async init() {
@@ -40,11 +42,19 @@
             const packagesDir = await get("packages");
             if (packagesDir) {
               this.removeIng = true;
+              const len = await packagesDir.length();
+              this.progressColor = "error";
+              let count = 0;
               for await (let e of packagesDir.values()) {
+                count++;
+                this.progress = (count / len) * 100;
                 await e.remove();
               }
               this.removeIng = false;
             }
+
+            this.progress = 0;
+            this.progressColor = "primary";
 
             // 写入文件
             for (let e of files) {

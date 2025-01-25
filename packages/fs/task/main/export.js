@@ -1,6 +1,6 @@
 import { get } from "../../main.js";
 import { addTaskData } from "../base.js";
-import { handleToZip } from "/packages/apps/files/util.js";
+import { handleToZip } from "/packages/apps/files.napp/util.js";
 import { getText } from "/packages/i18n/data.js";
 
 // 运行导出文件任务

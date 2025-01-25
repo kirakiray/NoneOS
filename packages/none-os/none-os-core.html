@@ -83,10 +83,10 @@
         data: {
           showHomeApp: false,
           homeApp: {
-            url: "/packages/app-manager/app-config.js",
+            url: "/packages/app-select.napp/app-config.js",
             icon: {
               component: true,
-              url: "/packages/app-manager/apps-icon.html",
+              url: "/packages/app-select.napp/apps-icon.html",
               name: "n-apps-icon",
             },
             name: "App Manager",
@@ -97,7 +97,7 @@
           configs: {},
         },
         proto: {
-          // 运行app，一般情况下，是通过app-manager来运行的
+          // 运行app，一般情况下，是通过app-select来运行的
           runApp(e) {
             const { data } = e;
 
@@ -307,12 +307,15 @@
             this.saveAppsState();
           });
 
-          this.on("open-app", (e) => {
+          this.on("open-app", async (e) => {
             e.stopPropagation();
 
+            const { app, path } = e.data;
+
             openFileWithApp({
-              path: e.data.path,
+              path,
               core: this,
+              appUrl: app,
             });
           });
         },
