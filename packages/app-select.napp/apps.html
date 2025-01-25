@@ -94,16 +94,21 @@
     }
 
     @container (width < 600px) {
+      .main {
+        padding: 0 40px;
+        align-items: center;
+        justify-content: center;
+        --block-size: 40px;
+      }
       .app-block {
         padding-top: 8px;
         margin: 8px;
-        width: 60px;
+        width: 120px;
         height: 80px;
         border-radius: 12px;
       }
-      .main {
-        padding: 0 40px;
-        --block-size: 40px;
+      .app-name {
+        width: 100px;
       }
     }
   </style>
