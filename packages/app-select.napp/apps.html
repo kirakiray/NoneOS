@@ -139,7 +139,7 @@
         </x-fill>
         <x-if :value="isEmpty">
           <div class="empty-content">
-            <n-desc space="app-manager" name="emptyTips"></n-desc>
+            <n-desc space="app-select" name="emptyTips"></n-desc>
           </div>
         </x-if>
       </div>
@@ -153,7 +153,7 @@
         "/packages/i18n/data.js"
       );
 
-      await setSpace("app-manager", new URL("./lang", url).href);
+      await setSpace("app-select", new URL("./lang", url).href);
 
       return {
         data: {
@@ -169,7 +169,7 @@
             // },
           ],
           searchText: "",
-          searchPlaceText: getText("searchPlace", "app-manager"),
+          searchPlaceText: getText("searchPlace", "app-select"),
           isEmpty: false,
         },
         watch: {
@@ -234,7 +234,7 @@
         },
         attached() {
           this._cancel = onChangeLang(() => {
-            this.searchPlaceText = getText("searchPlace", "app-manager");
+            this.searchPlaceText = getText("searchPlace", "app-select");
             this.refreshApps();
           });
         },
