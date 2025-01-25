@@ -26,5 +26,5 @@ import { setSpace } from "/packages/i18n/data.js";
 
 await setSpace(
   "linkme",
-  new URL("/packages/apps/link-me/lang", location.href).href
+  new URL("/packages/apps/link-me.napp/lang", location.href).href
 );

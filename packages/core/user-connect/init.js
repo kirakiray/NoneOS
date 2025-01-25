@@ -8,7 +8,7 @@ import { connectUser } from "../user-connect/main.js";
   on("user-connected", async ({ data: { target } }) => {
     await setSpace(
       "files",
-      new URL("/packages/apps/files/lang", location.href).href
+      new URL("/packages/apps/files.napp/lang", location.href).href
     );
 
     // 连接成功时，发送一次可访问的目录

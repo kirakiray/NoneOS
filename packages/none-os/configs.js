@@ -13,10 +13,10 @@ configs.watchTick(() => {
 
 // 默认应用
 export const defaultApps = [
-  "/packages/apps/link-me",
-  "/packages/apps/files",
-  "/packages/apps/setting",
-  "/packages/apps/picture",
-  "/packages/apps/text-edit",
-  "/packages/apps/link",
+  "/packages/apps/link-me.napp",
+  "/packages/apps/files.napp",
+  "/packages/apps/setting.napp",
+  "/packages/apps/picture.napp",
+  "/packages/apps/text-edit.napp",
+  "/packages/apps/link.napp",
 ];
