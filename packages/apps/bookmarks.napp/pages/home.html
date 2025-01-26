@@ -1,3 +1,20 @@
 <template page>
-  <div style="font-size: 22px; font-weight: bold">Hello World</div>
+  <l-m src="../comps/bookmark-card.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  </style>
+
+  <div class="main">
+    <n-bookmark-card></n-bookmark-card>
+    <n-bookmark-card></n-bookmark-card>
+  </div>
 </template>

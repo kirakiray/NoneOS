@@ -1,0 +1,61 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    .card {
+      margin: 16px;
+      padding: 8px;
+      width: 200px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      color: var(--md-sys-color-on-normal);
+      background-color: var(--md-sys-color-normal);
+      text-align: center;
+      cursor: pointer;
+      transition: all ease 0.2s;
+      box-shadow: var(--contained-shadow);
+    }
+
+    .card:hover {
+      box-shadow: var(--contained-hover-shadow);
+    }
+
+    .card:active {
+      box-shadow: var(--contained-active-shadow);
+    }
+
+    .logo-line {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100px;
+      font-size: 32px;
+      font-weight: 500;
+    }
+    .logo-line img {
+      display: block;
+      max-width: 80%;
+      max-height: 80%;
+    }
+    .url-line {
+      font-size: 12px;
+    }
+  </style>
+  <div class="card">
+    <div class="logo-line">
+      <img
+        src="https://search-operate.cdn.bcebos.com/4466f881476a1ee804b4a32aee790675.gif"
+      />
+    </div>
+    <div class="url-line">baidu.com</div>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "n-bookmark-card",
+        data: {},
+      };
+    };
+  </script>
+</template>
