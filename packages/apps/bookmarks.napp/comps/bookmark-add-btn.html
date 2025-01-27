@@ -1,0 +1,53 @@
+<template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .line {
+      padding: 8px 0;
+    }
+
+    .line:last-child {
+      padding-bottom: 0;
+    }
+  </style>
+
+  <p-button on:click="showDialog = true">
+    <n-local-icon
+      name="add-web"
+      slot="prefix"
+      style="margin-right: 8px; display: inline-block"
+    ></n-local-icon>
+    添加网页
+  </p-button>
+
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title">添加网页</div>
+    <div class="line">
+      <p-text-field sync:value="newUrl">
+        <label>网址</label>
+      </p-text-field>
+    </div>
+    <div class="line" style="display: flex">
+      <div style="flex: 1"></div>
+      <p-button attr:disabled="!newUrl">确认</p-button>
+    </div>
+  </p-dialog>
+
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-bookmark-add-btn",
+        data: {
+          showDialog: false,
+          newUrl: "",
+        },
+      };
+    };
+  </script>
+</template>

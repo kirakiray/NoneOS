@@ -1,8 +1,15 @@
 <template page>
   <l-m src="../comps/bookmark-card.html"></l-m>
+  <l-m src="../comps/bookmark-add-btn.html"></l-m>
   <style>
     :host {
       display: block;
+    }
+
+    .tool-container {
+      display: flex;
+      padding: 16px;
+      max-width: 800px;
     }
 
     .main {
@@ -12,6 +19,10 @@
       flex-wrap: wrap;
     }
   </style>
+
+  <div class="tool-container">
+    <n-bookmark-add-btn style="margin-left: auto"></n-bookmark-add-btn>
+  </div>
 
   <div class="main">
     <n-bookmark-card></n-bookmark-card>
