@@ -4,6 +4,7 @@
       display: block;
     }
     .card {
+      position: relative;
       margin: 16px;
       padding: 8px;
       width: 200px;
@@ -41,20 +42,37 @@
     .url-line {
       font-size: 12px;
     }
+    a {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
   </style>
   <div class="card">
     <div class="logo-line">
-      <img
-        src="https://search-operate.cdn.bcebos.com/4466f881476a1ee804b4a32aee790675.gif"
-      />
+      <img attr:src="logoUrl" />
     </div>
-    <div class="url-line">baidu.com</div>
+    <div class="url-line">{{cardName}}</div>
+    <a attr:href="url" target="_blank"></a>
   </div>
   <script>
     export default async () => {
       return {
         tag: "n-bookmark-card",
-        data: {},
+        data: {
+          url: "https://www.baidu.com",
+          logoUrl:
+            "https://search-operate.cdn.bcebos.com/4466f881476a1ee804b4a32aee790675.gif",
+        },
+        proto: {
+          get cardName() {
+            return new URL(this.url).host;
+          },
+        },
       };
     };
   </script>

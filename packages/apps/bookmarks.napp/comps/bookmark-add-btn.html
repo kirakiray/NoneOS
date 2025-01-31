@@ -33,6 +33,11 @@
         <label>网址</label>
       </p-text-field>
     </div>
+    <div class="line">
+      <p-text-field sync:value="logoUrl">
+        <label>logo地址</label>
+      </p-text-field>
+    </div>
     <div class="line" style="display: flex">
       <div style="flex: 1"></div>
       <p-button attr:disabled="!newUrl">确认</p-button>
@@ -46,6 +51,7 @@
         data: {
           showDialog: false,
           newUrl: "",
+          logoUrl: "",
         },
       };
     };
