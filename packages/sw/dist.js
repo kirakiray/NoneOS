@@ -247,9 +247,20 @@
             }
           });
 
+        transaction.onerror = null;
         resolve(true);
       };
       transaction.onerror = (e) => {
+        console.log("transaction error : ", {
+          event: e,
+          transaction,
+          setData: {
+            dbname,
+            storename,
+            datas,
+            removes,
+          },
+        });
         reject(getErr("setDataErr", null, e.target.error));
       };
 
