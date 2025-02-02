@@ -25,7 +25,41 @@
   </div>
 
   <div class="main">
-    <n-bookmark-card></n-bookmark-card>
-    <n-bookmark-card></n-bookmark-card>
+    <x-fill :value="cards">
+      <n-bookmark-card
+        :url="$data.url"
+        :logo-url="$data.logoUrl"
+      ></n-bookmark-card>
+    </x-fill>
   </div>
+  <script>
+    export default async () => {
+      const target = {};
+
+      return {
+        data: {
+          cards: [
+            {
+              url: "htts://baidu.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
+            },
+            {
+              url: "https://myzaker.com",
+              logoUrl:
+                "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
+            },
+            {
+              url: "https://google.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+            },
+          ],
+        },
+        proto: {
+          async readMarks() {
+            const list = await target.read();
+          },
+        },
+      };
+    };
+  </script>
 </template>
