@@ -2,7 +2,7 @@
   "currentStorage": "Current Storage",
   "virLocal": "Virtual Local",
   "apps": "Apps",
-  "depPkg": "Dependencies",
+  "depPkg": "System Files",
   "empty": "Empty",
   "otherDevice": "Other Device",
   "searchWithCurrent": "Search within this device",

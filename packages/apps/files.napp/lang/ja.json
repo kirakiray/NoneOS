@@ -2,7 +2,7 @@
   "currentStorage": "現在のストレージ",
   "virLocal": "仮想ローカル",
   "apps": "アプリ",
-  "depPkg": "依存パッケージ",
+  "depPkg": "システムファイル",
   "empty": "なし",
   "otherDevice": "他のデバイス",
   "searchWithCurrent": "このデバイス内で検索",
