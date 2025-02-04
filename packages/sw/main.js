@@ -75,7 +75,7 @@ self.addEventListener("fetch", (event) => {
           }
 
           if (useOnline) {
-            return fetch(request.url);
+            return fetch(request);
           }
 
           try {
@@ -87,7 +87,7 @@ self.addEventListener("fetch", (event) => {
             });
           } catch (err) {
             // 本地请求失败，则请求线上
-            return fetch(request.url);
+            return fetch(request);
           }
         })()
       );

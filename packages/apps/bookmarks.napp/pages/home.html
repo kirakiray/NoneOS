@@ -34,8 +34,6 @@
   </div>
   <script>
     export default async () => {
-      const target = {};
-
       return {
         data: {
           cards: [
@@ -56,7 +54,22 @@
         },
         proto: {
           async readMarks() {
-            const list = await target.read();
+            // 获取书签数据
+            // const bObj = get("bookmarks");
+            // const others = await bObj.others();
+            // const self = await bObj.self();
+
+            // // 获取所有数据
+            // const list = await self.data();
+
+            // const list = await get({
+            //   type: "bookmarks",
+            //   target: "self",
+            //   selector: {
+            //     age: { $gt: 20, $lt: 30 }, // 年龄大于20且小于30
+            //     name: { $eq: "John" }, // 名字等于'John'
+            //   },
+            // });
           },
         },
       };

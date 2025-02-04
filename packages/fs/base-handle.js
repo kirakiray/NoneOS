@@ -4,6 +4,13 @@ import { saveData, getData } from "../core/block/main.js";
 export class PublicBaseHandle {
   constructor() {}
 
+  // 监听文件或文件夹的变化
+  observe(func) {
+    debugger;
+
+    return () => {};
+  }
+
   // 扁平化文件数据
   async flat() {
     return flatHandle(this);

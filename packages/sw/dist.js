@@ -1041,6 +1041,13 @@
   class PublicBaseHandle {
     constructor() {}
 
+    // 监听文件或文件夹的变化
+    observe(func) {
+      debugger;
+
+      return () => {};
+    }
+
     // 扁平化文件数据
     async flat() {
       return flatHandle(this);
@@ -2514,7 +2521,7 @@
             }
 
             if (useOnline) {
-              return fetch(request.url);
+              return fetch(request);
             }
 
             try {
@@ -2526,7 +2533,7 @@
               });
             } catch (err) {
               // 本地请求失败，则请求线上
-              return fetch(request.url);
+              return fetch(request);
             }
           })()
         );
