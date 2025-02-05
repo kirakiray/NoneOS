@@ -4,7 +4,7 @@ import { FileHandle } from "./file.js";
 import { getErr } from "../errors.js";
 import { getSelfData, updateParentsModified } from "./util.js";
 import { isValidPath } from "../util.js";
-import { _writeEnd } from "../base-handle.js";
+import { _changeHandle } from "../base-handle.js";
 
 /**
  * 创建文件夹handle
@@ -98,13 +98,13 @@ export class DirHandle extends BaseHandle {
         {
           if (!this.path) {
             this.refresh().then(() => {
-              _writeEnd({
+              _changeHandle({
                 type: `create-${data.type}`,
                 path: `${this.path}/${path}`,
               });
             });
           } else {
-            _writeEnd({
+            _changeHandle({
               type: `create-${data.type}`,
               path: `${this.path}/${path}`,
             });

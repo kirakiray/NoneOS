@@ -3,7 +3,9 @@ import { getErr } from "../errors.js";
 import { DirHandle } from "./dir.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
 import { fixTargetAndName, copyTo } from "../public.js";
-import { PublicBaseHandle } from "../base-handle.js";
+import { _changeHandle, PublicBaseHandle } from "../base-handle.js";
+
+const INNERREMOVE = Symbol("InnerRemove");
 
 /**
  * 基础的Handle
@@ -177,7 +179,7 @@ export class BaseHandle extends PublicBaseHandle {
    * 删除当前文件或文件夹
    * @returns {Promise<void>}
    */
-  async remove(callback) {
+  async remove(callback, isInnerRemove) {
     const data = await getSelfData(this, "remove");
 
     if (data.parent === "root") {
@@ -190,7 +192,7 @@ export class BaseHandle extends PublicBaseHandle {
     if (this.kind === "dir") {
       // 删除子文件和文件夹
       await this.forEach(async (handle) => {
-        await handle.remove(callback);
+        await handle.remove(callback, INNERREMOVE);
       });
     }
 
@@ -211,6 +213,13 @@ export class BaseHandle extends PublicBaseHandle {
 
     if (callback) {
       callback({
+        type: "remove",
+        path: this.path,
+      });
+    }
+
+    if (isInnerRemove !== INNERREMOVE) {
+      _changeHandle({
         type: "remove",
         path: this.path,
       });

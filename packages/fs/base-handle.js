@@ -5,7 +5,7 @@ import { saveData, getData } from "../core/block/main.js";
 const needObserver = [];
 
 // 写入文件结束后的处理
-export const _writeEnd = async (opts) => {
+export const _changeHandle = async (opts) => {
   needObserver.forEach(({ handle, func }) => {
     const { path } = opts;
     if (path.startsWith(handle.path)) {
