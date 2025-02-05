@@ -5,9 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test file observe</title>
     <script src="/packages/libs/ofa/ofa.js"></script>
+    <style>
+      #log1,
+      #log2 {
+        margin: 6px;
+        padding: 8px;
+        border: #aaa solid 1px;
+      }
+    </style>
   </head>
   <body>
     test file observe
+    <div id="log1"></div>
+    <div id="log2"></div>
   </body>
   <script type="module">
     import { get } from "../main.js";
@@ -18,6 +28,7 @@
 
     const disconnect1 = dir1.observe((e) => {
       console.log("dir1 has change: ", e);
+      $("#log1").text = JSON.stringify(e);
     });
 
     const dir2 = await dir1.get("dir2", {
@@ -36,6 +47,7 @@
 
     const disconnect2 = dir3.observe((e) => {
       console.log("dir3 has change: ", e);
+      $("#log2").text = JSON.stringify(e);
     });
 
     const file2 = await dir3.get("file2.txt", {

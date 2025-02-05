@@ -7,16 +7,24 @@ const needObserver = [];
 let changeTimer = null;
 let CTIME = 100;
 
+const castChannel = new BroadcastChannel("nfs-handle-change");
+castChannel.onmessage = (event) => {
+  _changeHandle(event.data, 1);
+};
+
 // 写入文件结束后的处理
-export const _changeHandle = async (opts) => {
+export const _changeHandle = async (opts, ignoreChannel = false) => {
   if (!changeTimer) {
     changeTimer = 1;
     setTimeout(() => {
       changeTimer = null;
+
       for (let obsOption of needObserver) {
         try {
-          obsOption.func.call(null, obsOption.pool.slice());
-          obsOption.pool.length = 0; // 清空池子
+          if (obsOption.pool && obsOption.pool.length) {
+            obsOption.func.call(null, obsOption.pool.slice());
+            obsOption.pool.length = 0; // 清空池子
+          }
         } catch (err) {
           console.error(err);
         }
@@ -32,6 +40,10 @@ export const _changeHandle = async (opts) => {
       });
     }
   });
+
+  if (!ignoreChannel) {
+    castChannel.postMessage(opts);
+  }
 };
 
 export class PublicBaseHandle {
