@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("file system", async ({ page }) => {
-  await page.goto("http://127.0.0.1:5559/packages/fs/test/test-fs.html");
+  await page.goto("http://localhost:5559/packages/fs/test/test-fs.html");
 
   await page.getByText("get local ok").click();
   await page.getByText("get subDir ok").click();
@@ -27,7 +27,7 @@ test("file system", async ({ page }) => {
 });
 
 test("opfs", async ({ page, browserName }) => {
-  await page.goto("http://127.0.0.1:5559/packages/fs/test/test-opfs.html");
+  await page.goto("http://localhost:5559/packages/fs/test/test-opfs.html");
 
   // safari 下，fileSystemHandle无法写入内容
   if (browserName === "webkit") {
@@ -60,7 +60,7 @@ test("opfs", async ({ page, browserName }) => {
 
 test("copy process", async ({ page, browserName }) => {
   await page.goto(
-    "http://127.0.0.1:5559/packages/fs/test/test-copy-process.html"
+    "http://localhost:5559/packages/fs/test/test-copy-process.html"
   );
 
   // safari 下，fileSystemHandle无法写入内容
@@ -76,7 +76,7 @@ test("copy process", async ({ page, browserName }) => {
 
 test("write stream", async ({ page, browserName }) => {
   await page.goto(
-    "http://127.0.0.1:5559/packages/fs/test/test-write-stream.html"
+    "http://localhost:5559/packages/fs/test/test-write-stream.html"
   );
 
   await page.getByText("file stream: true").click();
@@ -84,7 +84,7 @@ test("write stream", async ({ page, browserName }) => {
 });
 
 test("file hash", async ({ page, browserName }) => {
-  await page.goto("http://127.0.0.1:5559/packages/fs/test/get-hash.html");
+  await page.goto("http://localhost:5559/packages/fs/test/get-hash.html");
 
   if (browserName === "webkit") {
     test.skip(true, "safari fileSystemHandle No write permission");
@@ -97,7 +97,7 @@ test("file hash", async ({ page, browserName }) => {
 });
 
 test("copy task", async ({ page, browserName }) => {
-  await page.goto("http://127.0.0.1:5559/packages/fs/test/test-task.html");
+  await page.goto("http://localhost:5559/packages/fs/test/test-task.html");
 
   // safari 下，fileSystemHandle无法写入内容
   if (browserName === "webkit") {
