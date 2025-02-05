@@ -12,9 +12,22 @@
   <script type="module">
     import { get } from "../main.js";
 
-    const dir1 = await get("local/dir1");
-    
+    const dir1 = await get("local/dir1", {
+      create: "dir",
+    });
 
-    debugger;
+    const disconnect = dir1.observe((e) => {
+      console.log("has change: ", e);
+    });
+
+    const dir2 = await dir1.get("dir2", {
+      create: "dir",
+    });
+
+    const file1 = await dir2.get("file1.txt", {
+      create: "file",
+    });
+
+    await file1.write("Hello World " + new Date().toISOString());
   </script>
 </html>

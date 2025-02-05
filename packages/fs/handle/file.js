@@ -1,6 +1,7 @@
 import { BaseHandle } from "./base.js";
 import { setData, getData } from "./db.js";
 import { clearHashs, getSelfData, updateParentsModified } from "./util.js";
+import { _writeEnd } from "../base-handle.js";
 
 import {
   CHUNK_SIZE,
@@ -413,6 +414,11 @@ class DBFSWritableFileStream {
       }
 
       await updateParentsModified(targetData.parent);
+
+      _writeEnd({
+        type: "write",
+        path: this.#path,
+      });
     }
   }
 

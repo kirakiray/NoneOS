@@ -1,14 +1,40 @@
 import { calculateHash, CHUNK_SIZE, flatHandle, getHashs } from "./util.js";
 import { saveData, getData } from "../core/block/main.js";
 
+// 需要监听的文件或文件夹的数组
+const needObserver = [];
+
+// 写入文件结束后的处理
+export const _writeEnd = async (opts) => {
+  needObserver.forEach(({ handle, func }) => {
+    const { path } = opts;
+    if (path.startsWith(handle.path)) {
+      try {
+        func({
+          type: opts.type,
+          path,
+        });
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  });
+};
+
 export class PublicBaseHandle {
   constructor() {}
 
   // 监听文件或文件夹的变化
   observe(func) {
-    debugger;
+    const obj = { handle: this, func };
+    needObserver.push(obj);
 
-    return () => {};
+    return () => {
+      const index = needObserver.indexOf(obj);
+      if (index > -1) {
+        needObserver.splice(index, 1);
+      }
+    };
   }
 
   // 扁平化文件数据
