@@ -16,8 +16,8 @@
       create: "dir",
     });
 
-    const disconnect = dir1.observe((e) => {
-      console.log("has change: ", e);
+    const disconnect1 = dir1.observe((e) => {
+      console.log("dir1 has change: ", e);
     });
 
     const dir2 = await dir1.get("dir2", {
@@ -28,8 +28,24 @@
       create: "file",
     });
 
-    await file1.write("Hello World " + new Date().toISOString());
+    await file1.write("Hello World 1 - " + new Date().toISOString());
 
+    const dir3 = await get("local/dir3", {
+      create: "dir",
+    });
+
+    const disconnect2 = dir3.observe((e) => {
+      console.log("dir3 has change: ", e);
+    });
+
+    const file2 = await dir3.get("file2.txt", {
+      create: "file",
+    });
+    file2.write("Hello World 2 - " + new Date().toISOString());
+
+    await file2.moveTo(dir2);
+
+    // 清除缓存
     await dir1.remove();
   </script>
 </html>

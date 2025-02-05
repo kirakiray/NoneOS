@@ -112,11 +112,25 @@ export class BaseHandle extends PublicBaseHandle {
     selfData.name = name.toLowerCase();
     selfData.realName = name;
 
+    const fromPath = this.path;
+
+    _changeHandle({
+      type: "moveto",
+      path: fromPath,
+      to: target.path,
+    });
+
     await setData({
       datas: [selfData],
     });
 
     await this.refresh();
+
+    _changeHandle({
+      type: "paste",
+      path: this.path,
+      from: fromPath,
+    });
   }
 
   /**
