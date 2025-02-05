@@ -4,19 +4,32 @@ import { saveData, getData } from "../core/block/main.js";
 // 需要监听的文件或文件夹的数组
 const needObserver = [];
 
+let changeTimer = null;
+let CTIME = 100;
+
 // 写入文件结束后的处理
 export const _changeHandle = async (opts) => {
-  needObserver.forEach(({ handle, func }) => {
-    const { path } = opts;
-    if (path.startsWith(handle.path)) {
-      try {
-        func({
-          type: opts.type,
-          path,
-        });
-      } catch (err) {
-        console.error(err);
+  if (!changeTimer) {
+    changeTimer = 1;
+    setTimeout(() => {
+      changeTimer = null;
+      for (let obsOption of needObserver) {
+        try {
+          obsOption.func.call(null, obsOption.pool.slice());
+          obsOption.pool.length = 0; // 清空池子
+        } catch (err) {
+          console.error(err);
+        }
       }
+    }, CTIME);
+  }
+
+  needObserver.forEach((obsOption) => {
+    const { path } = opts;
+    if (path.startsWith(obsOption.handle.path)) {
+      obsOption.pool.push({
+        ...opts,
+      });
     }
   });
 };
@@ -26,7 +39,12 @@ export class PublicBaseHandle {
 
   // 监听文件或文件夹的变化
   observe(func) {
-    const obj = { handle: this, func };
+    const obj = {
+      handle: this,
+      func,
+      pool: [], // 存储数据改动变化数据的池子
+    };
+
     needObserver.push(obj);
 
     return () => {
