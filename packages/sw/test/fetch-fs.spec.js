@@ -5,11 +5,11 @@ test("fetch file", async ({ page }) => {
 
   await page.getByText("sw state: activated").click();
 
-  await new Promise((res) => setTimeout(res), 200);
+  await new Promise((res) => setTimeout(res), 300);
 
   await page.evaluate(() => window.location.reload());
 
-  await new Promise((res) => setTimeout(res), 200);
+  await new Promise((res) => setTimeout(res), 300);
 
   await page.getByText("fetch file content ok").click();
 

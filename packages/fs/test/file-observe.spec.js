@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 
-test("monitoring Files", async ({ page }) => {
+test("monitoring files", async ({ page }) => {
   await page.goto("http://localhost:5559/packages/fs/test/test-obs.html");
 
   await new Promise((res) => setTimeout(res, 1000));
@@ -16,4 +16,6 @@ test("monitoring Files", async ({ page }) => {
   expect(
     await page.evaluate(() => $("iframe").ele.contentWindow.$("#log1").text)
   ).toBe(log1SucceedText);
+
+  await page.getByRole("button", { name: "obs step 1" }).click();
 });
