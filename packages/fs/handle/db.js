@@ -17,7 +17,7 @@ export function getRandomId(length = 10) {
  */
 export const getDB = async (dbName = "noneos_fs_defaults") => {
   if (!allDB[dbName]) {
-    allDB[dbName] = new Promise((resolve) => {
+    allDB[dbName] = new Promise((resolve, reject) => {
       // 根据id获取数据库
       const req = indexedDB.open(dbName);
 
@@ -29,6 +29,7 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
         };
 
         resolve(db);
+        reject = null;
 
         // setTimeout(() => {
         //   allDB[dbName] = null;
@@ -49,22 +50,16 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
           unique: false,
         });
 
-        console.log("db created 1");
-
         // 以父key和name作为索引，用于获取特定文件
         mainStore.createIndex("parent_and_name", ["parent", "name"], {
           // 父文件夹下只能有一个同名文件夹或文件
           unique: true,
         });
 
-        console.log("db created 2");
-
         // 用于判断文件的块是否有重复出现，如果没有重复出现，在覆盖的时候删除blocks中的对应数据
         mainStore.createIndex("hash", "hash", {
           unique: false,
         });
-
-        console.log("db created 3");
 
         // 存储文件的表
         db.createObjectStore("blocks", {
@@ -73,9 +68,16 @@ export const getDB = async (dbName = "noneos_fs_defaults") => {
       };
 
       req.onerror = (event) => {
-        throw new Event(dbName + " creation error", {
+        allDB[dbName] = null;
+        const err = new Event(dbName + " creation error", {
           cause: event.error,
         });
+
+        if (reject) {
+          reject(err);
+        } else {
+          throw err;
+        }
       };
     });
   }
