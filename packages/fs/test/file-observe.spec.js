@@ -13,9 +13,19 @@ test("monitoring files", async ({ page }) => {
     `[{"type":"create-file","path":"local/dir3/file2.txt"},{"type":"write","path":"local/dir3/file2.txt"},{"type":"moveto","path":"local/dir3/file2.txt","to":"local/dir1/dir2"}]`
   );
 
+  // disconnect test
+  await page.getByRole("button", { name: "obs step" }).click();
+
   expect(
     await page.evaluate(() => $("iframe").ele.contentWindow.$("#log1").text)
   ).toBe(log1SucceedText);
 
-  await page.getByRole("button", { name: "obs step 1" }).click();
+  // disconnect test
+  await page.getByRole("button", { name: "disconnect step" }).click();
+
+  expect(await page.evaluate(() => $("#log1").text)).toBe(log1SucceedText);
+
+  expect(
+    await page.evaluate(() => $("iframe").ele.contentWindow.$("#log1").text)
+  ).toBe(`[{"type":"write","path":"local/dir1/dir2/file1.txt"}]`);
 });

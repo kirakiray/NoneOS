@@ -82,7 +82,21 @@
 
     await file2.moveTo(dir2);
 
-    $("body").push("<button>obs step 1</button>");
+    // 等待第一次的测试流程
+    await new Promise((res) => setTimeout(res, 200));
+
+    $("body").push("<button>obs step</button>");
+
+    await new Promise((res) => setTimeout(res, 300));
+
+    // 取消注册
+    disconnect1();
+
+    await file1.write("Hello World 1 - update1 - " + new Date().toISOString());
+
+    await new Promise((res) => setTimeout(res, 300));
+
+    $("body").push("<button>disconnect step</button>");
 
     // 清除缓存
     // setTimeout(() => {
