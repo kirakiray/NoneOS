@@ -530,7 +530,7 @@
       emitUpdate(options);
     },
     watchUntil(func) {
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         let f;
         const tid = this.watch(
           (f = () => {
@@ -893,7 +893,7 @@
     } else if (isObject(value)) {
       const desc = Object.getOwnPropertyDescriptor(target, key);
       if (!desc || desc.hasOwnProperty("value")) {
-        data = new Stanz(value);
+        data = new (target.__Origin || Stanz)(value);
         data._owner.push(receiver);
       }
     }

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test hybird data</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { HybirdData } from "../main.js";
+
+      const hdata = new HybirdData({
+        val: "test data",
+        obj: {
+          val: "I am obj",
+        },
+      });
+
+      hdata.aaa = {
+        a: "aaaaa",
+      };
+
+      console.log(hdata);
+    </script>
+  </body>
+</html>
