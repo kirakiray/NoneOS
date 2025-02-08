@@ -1038,14 +1038,70 @@
     return reData;
   };
 
+  // 需要监听的文件或文件夹的数组
+  const needObserver = [];
+
+  let changeTimer = null;
+  let CTIME = 100;
+
+  const castChannel = new BroadcastChannel("nfs-handle-change");
+  castChannel.onmessage = (event) => {
+    _changeHandle(event.data, 1);
+  };
+
+  // 写入文件结束后的处理
+  const _changeHandle = async (opts, ignoreChannel = false) => {
+    if (!changeTimer) {
+      changeTimer = 1;
+      setTimeout(() => {
+        changeTimer = null;
+
+        for (let obsOption of needObserver) {
+          try {
+            if (obsOption.pool && obsOption.pool.length) {
+              obsOption.func.call(null, obsOption.pool.slice());
+              obsOption.pool.length = 0; // 清空池子
+            }
+          } catch (err) {
+            console.error(err);
+          }
+        }
+      }, CTIME);
+    }
+
+    needObserver.forEach((obsOption) => {
+      const { path } = opts;
+      if (path.startsWith(obsOption.handle.path)) {
+        obsOption.pool.push({
+          ...opts,
+        });
+      }
+    });
+
+    if (!ignoreChannel) {
+      castChannel.postMessage(opts);
+    }
+  };
+
   class PublicBaseHandle {
     constructor() {}
 
     // 监听文件或文件夹的变化
     observe(func) {
-      debugger;
+      const obj = {
+        handle: this,
+        func,
+        pool: [], // 存储数据改动变化数据的池子
+      };
 
-      return () => {};
+      needObserver.push(obj);
+
+      return () => {
+        const index = needObserver.indexOf(obj);
+        if (index > -1) {
+          needObserver.splice(index, 1);
+        }
+      };
     }
 
     // 扁平化文件数据
@@ -1234,6 +1290,8 @@
     }
   };
 
+  const INNERREMOVE = Symbol("InnerRemove");
+
   /**
    * 基础的Handle
    */
@@ -1339,11 +1397,25 @@
       selfData.name = name.toLowerCase();
       selfData.realName = name;
 
+      const fromPath = this.path;
+
+      _changeHandle({
+        type: "moveto",
+        path: fromPath,
+        to: target.path,
+      });
+
       await setData({
         datas: [selfData],
       });
 
       await this.refresh();
+
+      _changeHandle({
+        type: "paste",
+        path: this.path,
+        from: fromPath,
+      });
     }
 
     /**
@@ -1406,7 +1478,7 @@
      * 删除当前文件或文件夹
      * @returns {Promise<void>}
      */
-    async remove(callback) {
+    async remove(callback, isInnerRemove) {
       const data = await getSelfData(this, "remove");
 
       if (data.parent === "root") {
@@ -1419,7 +1491,7 @@
       if (this.kind === "dir") {
         // 删除子文件和文件夹
         await this.forEach(async (handle) => {
-          await handle.remove(callback);
+          await handle.remove(callback, INNERREMOVE);
         });
       }
 
@@ -1440,6 +1512,13 @@
 
       if (callback) {
         callback({
+          type: "remove",
+          path: this.path,
+        });
+      }
+
+      if (isInnerRemove !== INNERREMOVE) {
+        _changeHandle({
           type: "remove",
           path: this.path,
         });
@@ -1902,6 +1981,11 @@
         }
 
         await updateParentsModified(targetData.parent);
+
+        _changeHandle({
+          type: "write",
+          path: this.#path,
+        });
       }
     }
 
@@ -2026,6 +2110,22 @@
           });
 
           await updateParentsModified(self.id);
+
+          {
+            if (!this.path) {
+              this.refresh().then(() => {
+                _changeHandle({
+                  type: `create-${data.type}`,
+                  path: `${this.path}/${path}`,
+                });
+              });
+            } else {
+              _changeHandle({
+                type: `create-${data.type}`,
+                path: `${this.path}/${path}`,
+              });
+            }
+          }
         }
       }
 
@@ -2521,7 +2621,12 @@
             }
 
             if (useOnline) {
-              return fetch(request);
+              return fetch(request).catch((err) => {
+                console.error(err);
+                return new Response(err.stack || err.toString(), {
+                  status: 404,
+                });
+              });
             }
 
             try {
@@ -2533,7 +2638,12 @@
               });
             } catch (err) {
               // 本地请求失败，则请求线上
-              return fetch(request);
+              return fetch(request).catch((err) => {
+                console.error(err);
+                return new Response(err.stack || err.toString(), {
+                  status: 404,
+                });
+              });
             }
           })()
         );

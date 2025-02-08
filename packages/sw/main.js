@@ -75,7 +75,12 @@ self.addEventListener("fetch", (event) => {
           }
 
           if (useOnline) {
-            return fetch(request);
+            return fetch(request).catch((err) => {
+              console.error(err);
+              return new Response(err.stack || err.toString(), {
+                status: 404,
+              });
+            });
           }
 
           try {
@@ -87,7 +92,12 @@ self.addEventListener("fetch", (event) => {
             });
           } catch (err) {
             // 本地请求失败，则请求线上
-            return fetch(request);
+            return fetch(request).catch((err) => {
+              console.error(err);
+              return new Response(err.stack || err.toString(), {
+                status: 404,
+              });
+            });
           }
         })()
       );
