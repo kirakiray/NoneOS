@@ -20,6 +20,7 @@
   "reload": "Refresh",
   "importFile": "Import File",
   "importDir": "Import Directory",
+  "newDir": "New Folder",
   "exportFile": "Export File",
   "emptyDir": "This is an empty folder",
   "noMatch": "No matching files or folders",

@@ -144,6 +144,11 @@
           <n-desc name="reload" space="files"></n-desc>
         </p-menu-item>
         <hr />
+
+        <p-menu-item on:click="createDir">
+          <n-local-icon name="new-folder" slot="prefix"></n-local-icon>
+          <n-desc name="newDir" space="files"></n-desc>
+        </p-menu-item>
         <p-menu-item on:click="importFiles">
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
           <n-desc name="importFile" space="files"></n-desc>
@@ -196,6 +201,9 @@
           apps: [], // 所有可用的应用列表
         },
         proto: {
+          async createDir() {
+            debugger;
+          },
           get isSystem() {
             // 选中的是否是系统文件，系统文件不能删除，剪切和重命名
             return this.selecteds.some(
