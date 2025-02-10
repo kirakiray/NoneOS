@@ -1,17 +1,96 @@
 const Stanz = $.Stanz;
 
 export class HybirdData extends Stanz {
-  constructor(data) {
-    super(data);
-    if (data.dataStatus) {
-      const err = new Error("dataStatus is a reserved key");
-      console.warn(err, data);
-      throw err;
+  constructor(arg1) {
+    super({
+      dataStatus: "preparing",
+    });
+
+    if (arg1._mark === "db") {
+      this._init(arg1);
+    } else {
+      const data = arg1;
+
+      if (data.dataStatus) {
+        const err = new Error("dataStatus is a reserved key");
+        console.warn(err, data);
+        throw err;
+      }
+
+      Object.assign(this, data);
+      this.dataStatus = "ok";
     }
-    this.dataStatus = true;
   }
 
-  get __Origin() {
+  async _init(handle) {
+    let wid;
+
+    Object.defineProperties(this, {
+      // 停止监听
+      disconnect: {
+        value: () => this.unwatch(wid),
+      },
+    });
+
+    const hdFile = await handle.get("_d", {
+      create: "file",
+    });
+
+    const text = await hdFile.text();
+
+    if (text) {
+      // 初始化数据
+      Object.assign(this, JSON.parse(text));
+    }
+
+    this.dataStatus = "ok";
+
+    wid = this.watchTick((watchers) => {
+      let changedSelf = false; // 是否执行过一次自身的变动
+      watchers.forEach(async (e) => {
+        if (e.path.length === 0) {
+          if (e.type === "set") {
+            // 自身对应key的value变动
+            if (!changedSelf) {
+              // 保存一次自身变动
+              changedSelf = 1;
+
+              const realData = getDataObject(this);
+
+              await hdFile.write(JSON.stringify(realData));
+            }
+          } else {
+            // 自身的数组操作
+            debugger;
+          }
+        } else {
+          // TODO: 子对象的数据变动
+          debugger;
+        }
+      });
+      console.log("watchers", watchers);
+    });
+  }
+
+  get __OriginStanz() {
     return HybirdData;
   }
 }
+
+// 去除所有非必要字段后的数据
+const getDataObject = (xdata) => {
+  const realData = {};
+
+  for (let [key, value] of Object.entries(xdata)) {
+    // 对非数字和隐藏的key进行保存
+    if (/\D/.test(key) && !/^_/.test(key) && key !== "dataStatus") {
+      if (typeof value === "object") {
+        realData[key] = getDataObject(value);
+      } else {
+        realData[key] = value;
+      }
+    }
+  }
+
+  return realData;
+};

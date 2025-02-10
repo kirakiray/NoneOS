@@ -9,17 +9,26 @@
   <body>
     <script type="module">
       import { HybirdData } from "../main.js";
+      import { get } from "/packages/fs/handle/index.js";
+      const testDataDir = await get("local/testDataDir", { create: "dir" });
 
-      const hdata = new HybirdData({
-        val: "test data",
-        obj: {
-          val: "I am obj",
-        },
-      });
+      const hdata = new HybirdData(testDataDir);
 
-      hdata.aaa = {
-        a: "aaaaa",
+      // 等待准备完成
+      await hdata.watchUntil(() => hdata.dataStatus === "ok");
+
+      const mid = Math.random().toString(32).slice(2);
+
+      hdata.val = "I am main object";
+
+      hdata.a = {
+        val: "I am a " + Math.random(),
       };
+
+      hdata.push({
+        id: hdata.length + 1,
+        val: "I am " + mid,
+      });
 
       console.log(hdata);
     </script>
