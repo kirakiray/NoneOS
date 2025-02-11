@@ -52,10 +52,8 @@ export class HybirdData extends Stanz {
     if (text) {
       const data = JSON.parse(text);
 
-      const { _id } = data;
-
-      if (_id) {
-        this[DATAID] = _id;
+      if (data._id) {
+        this[DATAID] = data._id;
         delete data._id;
       } else {
         this[DATAID] = Math.random().toString(36).slice(2);
