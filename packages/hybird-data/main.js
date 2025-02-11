@@ -1,39 +1,44 @@
 const Stanz = $.Stanz;
+const nextTick = $.nextTick;
 
 const DATAID = Symbol("data_id");
+const SELFHANDLE = Symbol("self_handle");
+
+const getRandomId = () => Math.random().toString(36).slice(2);
 
 export class HybirdData extends Stanz {
   constructor(arg1) {
     super({
       dataStatus: "preparing",
     });
-    // this[DATAID] = Math.random().toString(36).slice(2);
 
     if (arg1._mark === "db") {
-      this._init(arg1);
+      this._initByHandle(arg1);
     } else {
-      const data = { ...arg1 };
+      this._initData({ ...arg1 });
 
-      if (data.dataStatus) {
-        const err = new Error("dataStatus is a reserved key");
-        console.warn(err, data);
-        throw err;
-      }
+      nextTick(async () => {
+        // 添加自身handle
+        const { owner } = this;
 
-      if (data._id) {
-        this[DATAID] = data._id;
-        delete data._id;
-      } else {
-        this[DATAID] = Math.random().toString(36).slice(2);
-      }
+        if (owner.size === 1) {
+          const parentHandle = Array.from(owner)[0][SELFHANDLE];
 
-      Object.assign(this, data);
+          this[SELFHANDLE] = await parentHandle.get(this._dataid, {
+            create: "dir",
+          });
 
-      this.dataStatus = "ok";
+          this.dataStatus = "ok";
+        } else {
+          // 出现情况，找不到对应的 dir handle
+          debugger;
+        }
+      });
     }
   }
 
-  async _init(handle) {
+  // 使用handle进行初始化
+  async _initByHandle(handle) {
     let wid;
 
     Object.defineProperties(this, {
@@ -42,6 +47,9 @@ export class HybirdData extends Stanz {
         value: () => this.unwatch(wid),
       },
     });
+
+    // 设置自身 handle
+    this[SELFHANDLE] = handle;
 
     const dFileHandle = await handle.get("_d", {
       create: "file",
@@ -52,22 +60,49 @@ export class HybirdData extends Stanz {
     if (text) {
       const data = JSON.parse(text);
 
-      if (data._id) {
-        this[DATAID] = data._id;
-        delete data._id;
-      } else {
-        this[DATAID] = Math.random().toString(36).slice(2);
-      }
+      debugger;
 
-      // 初始化数据
-      Object.assign(this, data);
+      await this._initData(data, "handle");
     }
 
-    this.dataStatus = "ok";
-
     wid = this.watchTick((watchers) => {
-      dataWatchEnd(watchers, this, dFileHandle);
+      // 判断是否有自身的变动，有的话就直接更新文件
+      const hasChange = watchers.some((e) => !e.path.length);
+
+      if (hasChange) {
+        // 更新自身
+        updateDataHandle(this);
+      }
+
+      // 根据变动存储其他的对象
+      watchers.forEach((watchOpt) => {
+        if (watchOpt.path && watchOpt.name !== "dataStatus") {
+          // 子对象数据变动
+          debugger;
+        }
+      });
     });
+
+    this.dataStatus = "ok";
+  }
+
+  async _initData(data) {
+    if (data.dataStatus) {
+      const err = new Error("dataStatus is a reserved key");
+      console.warn(err, data);
+      throw err;
+    }
+
+    if (data._id) {
+      this[DATAID] = data._id;
+      delete data._id;
+    } else {
+      this[DATAID] = getRandomId();
+    }
+
+    Object.assign(this, data);
+
+    this.dataStatus = "loaded";
   }
 
   get __OriginStanz() {
@@ -79,50 +114,26 @@ export class HybirdData extends Stanz {
   }
 }
 
-const dataWatchEnd = async (watchers, xdata, dFileHandle) => {
-  let changedSelf = false; // 是否执行过一次自身的变动
-
-  for (let e of watchers) {
-    if (e.path.length === 0) {
-      if (e.type === "set") {
-        // 自身对应key的value变动
-        if (!changedSelf) {
-          // 保存一次自身变动
-          changedSelf = 1;
-
-          const realData = getDataObject(xdata);
-
-          await dFileHandle.write(JSON.stringify(realData));
-        }
-      } else {
-        // 自身的数组操作
-        debugger;
-      }
-    } else {
-      // TODO: 子对象的数据变动
-      debugger;
-    }
-  }
-
-  console.log("watchers", watchers);
-};
-
-// 去除所有非必要字段后的数据
-const getDataObject = (xdata) => {
-  const realData = {
-    _id: xdata._dataid,
+const updateDataHandle = async (hydata) => {
+  const obj = {
+    length: hydata.length,
   };
 
-  for (let [key, value] of Object.entries(xdata)) {
-    // 对非数字和隐藏的key进行保存
-    if (/\D/.test(key) && !/^_/.test(key) && key !== "dataStatus") {
-      if (typeof value === "object") {
-        realData[key] = getDataObject(value);
-      } else {
-        realData[key] = value;
-      }
+  for (let [key, value] of Object.entries(hydata)) {
+    // 如果是对象类型，写入到新的文件夹内
+    if (typeof value === "object") {
+      obj[key] = `___dataid___${value._dataid}`;
+      continue;
     }
+
+    obj[key] = value;
   }
 
-  return realData;
+  const dFile = await hydata[SELFHANDLE].get("_d", {
+    create: "file",
+  });
+
+  await dFile.write(JSON.stringify(obj));
+
+  console.log("obj: ", obj);
 };
