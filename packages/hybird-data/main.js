@@ -1,5 +1,7 @@
 const Stanz = $.Stanz;
 
+const DATAID = Symbol("data_id");
+
 export class HybirdData extends Stanz {
   constructor(arg1) {
     super({
@@ -7,6 +9,8 @@ export class HybirdData extends Stanz {
     });
 
     if (arg1._mark === "db") {
+      this[DATAID] = Math.random().toString(36).slice(2);
+
       this._init(arg1);
     } else {
       const data = arg1;
@@ -32,54 +36,75 @@ export class HybirdData extends Stanz {
       },
     });
 
-    const hdFile = await handle.get("_d", {
+    const dFileHandle = await handle.get("_d", {
       create: "file",
     });
 
-    const text = await hdFile.text();
+    const text = await dFileHandle.text();
 
     if (text) {
+      const data = JSON.parse(text);
+
+      const { _id } = data;
+      delete data._id;
+
       // 初始化数据
-      Object.assign(this, JSON.parse(text));
+      Object.assign(this, data);
+
+      if (_id) {
+        this[DATAID] = _id;
+      }
     }
 
     this.dataStatus = "ok";
 
     wid = this.watchTick((watchers) => {
-      let changedSelf = false; // 是否执行过一次自身的变动
-      watchers.forEach(async (e) => {
-        if (e.path.length === 0) {
-          if (e.type === "set") {
-            // 自身对应key的value变动
-            if (!changedSelf) {
-              // 保存一次自身变动
-              changedSelf = 1;
-
-              const realData = getDataObject(this);
-
-              await hdFile.write(JSON.stringify(realData));
-            }
-          } else {
-            // 自身的数组操作
-            debugger;
-          }
-        } else {
-          // TODO: 子对象的数据变动
-          debugger;
-        }
-      });
-      console.log("watchers", watchers);
+      dataWatchEnd(watchers, this, dFileHandle);
     });
   }
 
   get __OriginStanz() {
     return HybirdData;
   }
+
+  get _dataid() {
+    return this[DATAID];
+  }
 }
+
+const dataWatchEnd = async (watchers, xdata, dFileHandle) => {
+  let changedSelf = false; // 是否执行过一次自身的变动
+
+  for (let e of watchers) {
+    if (e.path.length === 0) {
+      if (e.type === "set") {
+        // 自身对应key的value变动
+        if (!changedSelf) {
+          // 保存一次自身变动
+          changedSelf = 1;
+
+          const realData = getDataObject(xdata);
+
+          await dFileHandle.write(JSON.stringify(realData));
+        }
+      } else {
+        // 自身的数组操作
+        debugger;
+      }
+    } else {
+      // TODO: 子对象的数据变动
+      debugger;
+    }
+  }
+
+  console.log("watchers", watchers);
+};
 
 // 去除所有非必要字段后的数据
 const getDataObject = (xdata) => {
-  const realData = {};
+  const realData = {
+    _id: xdata._dataid,
+  };
 
   for (let [key, value] of Object.entries(xdata)) {
     // 对非数字和隐藏的key进行保存
