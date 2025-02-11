@@ -7,13 +7,12 @@ export class HybirdData extends Stanz {
     super({
       dataStatus: "preparing",
     });
+    // this[DATAID] = Math.random().toString(36).slice(2);
 
     if (arg1._mark === "db") {
-      this[DATAID] = Math.random().toString(36).slice(2);
-
       this._init(arg1);
     } else {
-      const data = arg1;
+      const data = { ...arg1 };
 
       if (data.dataStatus) {
         const err = new Error("dataStatus is a reserved key");
@@ -21,7 +20,15 @@ export class HybirdData extends Stanz {
         throw err;
       }
 
+      if (data._id) {
+        this[DATAID] = data._id;
+        delete data._id;
+      } else {
+        this[DATAID] = Math.random().toString(36).slice(2);
+      }
+
       Object.assign(this, data);
+
       this.dataStatus = "ok";
     }
   }
@@ -46,14 +53,16 @@ export class HybirdData extends Stanz {
       const data = JSON.parse(text);
 
       const { _id } = data;
-      delete data._id;
-
-      // 初始化数据
-      Object.assign(this, data);
 
       if (_id) {
         this[DATAID] = _id;
+        delete data._id;
+      } else {
+        this[DATAID] = Math.random().toString(36).slice(2);
       }
+
+      // 初始化数据
+      Object.assign(this, data);
     }
 
     this.dataStatus = "ok";
