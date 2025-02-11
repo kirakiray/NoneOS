@@ -28,6 +28,11 @@ export class HybirdData extends Stanz {
             create: "dir",
           });
 
+          if (!arg1._id) {
+            // 属于读取文件夹的数据，不需要写入记录
+            await writeDataHandle(this);
+          }
+
           this.dataStatus = "ok";
         } else {
           // 出现情况，找不到对应的 dir handle
@@ -60,23 +65,23 @@ export class HybirdData extends Stanz {
     if (text) {
       const data = JSON.parse(text);
 
-      debugger;
-
       await this._initData(data, "handle");
     }
 
     wid = this.watchTick((watchers) => {
       // 判断是否有自身的变动，有的话就直接更新文件
-      const hasChange = watchers.some((e) => !e.path.length);
+      const hasChange = watchers.some(
+        (e) => e.name !== "dataStatus" && !e.path.length
+      );
 
       if (hasChange) {
         // 更新自身
-        updateDataHandle(this);
+        writeDataHandle(this);
       }
 
       // 根据变动存储其他的对象
       watchers.forEach((watchOpt) => {
-        if (watchOpt.path && watchOpt.name !== "dataStatus") {
+        if (watchOpt.path.length && watchOpt.name !== "dataStatus") {
           // 子对象数据变动
           debugger;
         }
@@ -100,9 +105,20 @@ export class HybirdData extends Stanz {
       this[DATAID] = getRandomId();
     }
 
-    Object.assign(this, data);
+    for (let [key, value] of Object.entries(data)) {
+      if (typeof value === "string" && value.startsWith("___dataid___")) {
+        const targetId = value.slice(12);
 
-    this.dataStatus = "loaded";
+        const targetDFile = await this[SELFHANDLE].get(`${targetId}/_d`);
+        const dataText = await targetDFile.text();
+
+        this[key] = JSON.parse(dataText);
+      } else {
+        this[key] = value;
+      }
+    }
+
+    this.dataStatus = "inited";
   }
 
   get __OriginStanz() {
@@ -114,12 +130,19 @@ export class HybirdData extends Stanz {
   }
 }
 
-const updateDataHandle = async (hydata) => {
+const reservedKeys = ["dataStatus"];
+
+// 将数据变动写到文件内
+const writeDataHandle = async (hydata) => {
   const obj = {
-    length: hydata.length,
+    _id: hydata._dataid,
   };
 
   for (let [key, value] of Object.entries(hydata)) {
+    if (reservedKeys.includes(key) || /^\_/.test(key)) {
+      continue;
+    }
+
     // 如果是对象类型，写入到新的文件夹内
     if (typeof value === "object") {
       obj[key] = `___dataid___${value._dataid}`;
@@ -135,5 +158,5 @@ const updateDataHandle = async (hydata) => {
 
   await dFile.write(JSON.stringify(obj));
 
-  console.log("obj: ", obj);
+  console.log("write obj: ", obj);
 };
