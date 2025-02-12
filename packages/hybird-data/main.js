@@ -3,6 +3,7 @@ const nextTick = $.nextTick;
 
 const DATAID = Symbol("data_id");
 const SELFHANDLE = Symbol("self_handle");
+const reservedKeys = ["dataStatus"];
 
 const getRandomId = () => Math.random().toString(36).slice(2);
 
@@ -69,22 +70,27 @@ export class HybirdData extends Stanz {
     }
 
     wid = this.watchTick((watchers) => {
-      // 判断是否有自身的变动，有的话就直接更新文件
-      const hasChange = watchers.some(
-        (e) => e.name !== "dataStatus" && !e.path.length
-      );
-
-      if (hasChange) {
-        // 更新自身
-        writeDataHandle(this);
-      }
+      const needSaveDatas = new Set();
 
       // 根据变动存储其他的对象
       watchers.forEach((watchOpt) => {
-        if (watchOpt.path.length && watchOpt.name !== "dataStatus") {
-          // 子对象数据变动
-          debugger;
+        if (watchOpt.type === "set" && reservedKeys.includes(watchOpt.name)) {
+          return;
         }
+
+        if (watchOpt.path.length) {
+          // 设置值可能会删除旧的对象值，所以要特别监听
+          needSaveDatas.add(watchOpt.target);
+        } else {
+          needSaveDatas.add(this);
+        }
+      });
+
+      needSaveDatas.forEach(async (hdata) => {
+        // 确保handle已经被设置
+        await hdata.watchUntil(() => !!hdata[SELFHANDLE]);
+
+        writeDataHandle(hdata);
       });
     });
 
@@ -130,13 +136,13 @@ export class HybirdData extends Stanz {
   }
 }
 
-const reservedKeys = ["dataStatus"];
-
 // 将数据变动写到文件内
 const writeDataHandle = async (hydata) => {
   const obj = {
     _id: hydata._dataid,
   };
+
+  // TODO: 确保被删除的旧对象被回收
 
   for (let [key, value] of Object.entries(hydata)) {
     if (reservedKeys.includes(key) || /^\_/.test(key)) {
