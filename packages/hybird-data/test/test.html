@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test hybird data</title>
     <script src="/packages/libs/ofa/ofa.js" debug></script>
+    <script src="/packages/libs/ofa/ofa-error-zh.js"></script>
   </head>
   <body>
     <script type="module">
@@ -17,32 +18,36 @@
       // 等待准备完成
       await hdata.watchUntil(() => hdata.dataStatus === "ok");
 
-      {
-        hdata.val = "I am main object";
+      // {
+      //   // hdata.val = "I am main object";
 
-        // if (!hdata.a) {
-        //   if (hdata.dataStatus !== "ok") {
-        //     debugger;
-        //   }
+      //   if (!hdata.a) {
+      //     if (hdata.dataStatus !== "ok") {
+      //       debugger;
+      //     }
 
-        //   hdata.a = {
-        //     val: "I am a " + Math.random(),
-        //   };
-        // } else {
-        // hdata.a.val = "change a " + new Date().toLocaleString();
-        // }
+      //     debugger;
 
-        // hdata.a = {
-        //   val: "I am a " + Math.random(),
-        // };
+      hdata.a = {
+        val: "I am a " + Math.random(),
+      };
+      //   } else {
+      //     // hdata.a.val = "change a " + new Date().toLocaleString();
 
-        hdata.push({
-          testid: hdata.length + 1,
-          val: "I am " + Math.random().toString(32).slice(2),
-        });
+      //     hdata.a.push({
+      //       val: `a sub-${hdata.a.length}-${Math.random()
+      //         .toString(32)
+      //         .slice(2)}`,
+      //     });
+      //   }
 
-        hdata.splice(1);
-      }
+      //   // hdata.push({
+      //   //   testid: hdata.length + 1,
+      //   //   val: "I am " + Math.random().toString(32).slice(2),
+      //   // });
+
+      //   // hdata.splice(1);
+      // }
 
       console.log(hdata);
     </script>

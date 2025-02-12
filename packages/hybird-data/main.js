@@ -1,53 +1,101 @@
 const Stanz = $.Stanz;
-const nextTick = $.nextTick;
 
 const DATAID = Symbol("data_id");
 const SELFHANDLE = Symbol("self_handle");
-const reservedKeys = ["dataStatus"];
-
-const getRandomId = () => Math.random().toString(36).slice(2);
+const reservedKeys = ["dataStatus", "_id"];
 
 export class HybirdData extends Stanz {
-  constructor(arg1) {
+  constructor(arg, options) {
     super({
       dataStatus: "preparing",
     });
 
     // BUG: 当splice时，会莫名将数字参数带进来，这时候判断是非对象的话，直接返回
-    if (!(arg1 instanceof Object)) {
+    if (!(arg instanceof Object)) {
       return;
     }
 
-    if (arg1._mark === "db") {
-      this._initByHandle(arg1);
+    if (arg._mark === "db") {
+      this[SELFHANDLE] = arg;
+
+      this._initByHandle(arg);
     } else {
-      this._initData({ ...arg1 });
+      this._initId(arg);
 
-      nextTick(async () => {
-        // 添加自身handle
-        const { owner } = this;
+      Promise.all([
+        // 设置 handler
+        (async () => {
+          const { owner } = options;
+          if (owner) {
+            if (!owner[SELFHANDLE]) {
+              await owner.watchUntil(() => !!owner[SELFHANDLE], 3000);
+            }
 
-        if (owner.size === 1) {
-          const parentHandle = Array.from(owner)[0][SELFHANDLE];
-
-          this[SELFHANDLE] = await parentHandle.get(this._dataid, {
-            create: "dir",
-          });
-
-          if (!arg1._id) {
-            // 属于读取文件夹的数据，不需要写入记录
-            await writeDataHandle(this);
+            this[SELFHANDLE] = await owner[SELFHANDLE].get(this._dataid, {
+              create: "dir",
+            });
           }
+        })(),
 
-          this.dataStatus = "ok";
-        } else {
-          // 还没初始化完成就删除了，不需要继续写入
-        }
+        (async () => {
+          await this._initData({ ...arg });
+
+          if (!arg._id) {
+            // 属于新增数据，需要直接保存
+            writeDataByHandle(this);
+          }
+        })(),
+      ]).then(() => {
+        this.dataStatus = "ok";
       });
     }
   }
 
-  // 使用handle进行初始化
+  async _initData(data) {
+    if (data.dataStatus) {
+      const err = new Error("dataStatus is a reserved key");
+      console.warn(err, data);
+      throw err;
+    }
+
+    for (let [key, value] of Object.entries(data)) {
+      if (reservedKeys.includes(key) || /^\_/.test(key)) {
+        continue;
+      }
+
+      if (typeof value === "string" && value.startsWith("___dataid___")) {
+        const targetId = value.slice(12);
+
+        if (!this[SELFHANDLE]) {
+          // 等待自身handle 初始化完成
+          debugger;
+          await this.watchUntil(() => !!this[SELFHANDLE], 3000);
+        }
+
+        try {
+          const targetDFile = await this[SELFHANDLE].get(`${targetId}/_d`);
+          const dataText = await targetDFile.text();
+          this[key] = JSON.parse(dataText);
+        } catch (err) {
+          // TODO: 查找不到对象数据
+          debugger;
+        }
+      } else {
+        this[key] = value;
+      }
+    }
+
+    this.dataStatus = "loaded";
+  }
+
+  _initId(data) {
+    if (data && data._id) {
+      this[DATAID] = data._id;
+    } else {
+      this[DATAID] = getRandomId();
+    }
+  }
+
   async _initByHandle(handle) {
     let wid;
 
@@ -58,77 +106,32 @@ export class HybirdData extends Stanz {
       },
     });
 
-    // 设置自身 handle
-    this[SELFHANDLE] = handle;
-
-    const dFileHandle = await handle.get("_d", {
+    const dFile = await handle.get("_d", {
       create: "file",
     });
 
-    const text = await dFileHandle.text();
+    const text = await dFile.text();
 
     if (text) {
       const data = JSON.parse(text);
-
+      this._initId(data);
       await this._initData(data);
+    } else {
+      this._initId();
     }
 
     this.dataStatus = "ok";
 
     wid = this.watchTick((watchers) => {
-      const needSaveDatas = new Set();
-
       // 根据变动存储其他的对象
       watchers.forEach((watchOpt) => {
         if (watchOpt.type === "set" && reservedKeys.includes(watchOpt.name)) {
           return;
         }
 
-        if (watchOpt.path.length) {
-          // 设置值可能会删除旧的对象值，所以要特别监听
-          needSaveDatas.add(watchOpt.target);
-        } else {
-          needSaveDatas.add(this);
-        }
-      });
-
-      needSaveDatas.forEach(async (hdata) => {
-        // 确保handle已经被设置
-        await hdata.watchUntil(() => !!hdata[SELFHANDLE]);
-
-        writeDataHandle(hdata);
+        writeDataByHandle(watchOpt.target);
       });
     });
-  }
-
-  async _initData(data) {
-    if (data.dataStatus) {
-      const err = new Error("dataStatus is a reserved key");
-      console.warn(err, data);
-      throw err;
-    }
-
-    if (data._id) {
-      this[DATAID] = data._id;
-      delete data._id;
-    } else {
-      this[DATAID] = getRandomId();
-    }
-
-    for (let [key, value] of Object.entries(data)) {
-      if (typeof value === "string" && value.startsWith("___dataid___")) {
-        const targetId = value.slice(12);
-
-        const targetDFile = await this[SELFHANDLE].get(`${targetId}/_d`);
-        const dataText = await targetDFile.text();
-
-        this[key] = JSON.parse(dataText);
-      } else {
-        this[key] = value;
-      }
-    }
-
-    this.dataStatus = "inited";
   }
 
   get __OriginStanz() {
@@ -140,49 +143,75 @@ export class HybirdData extends Stanz {
   }
 }
 
-// 将数据变动写到文件内
-const writeDataHandle = async (hydata) => {
-  // 确保被删除的旧对象被回收
+// 临时存储监听的池子
+const watcherPool = new Set();
+
+// 重新保存数据
+const writeDataByHandle = async (hydata) => {
+  console.log("writeDataByHandle: ", hydata);
+  watcherPool.add(hydata);
+
+  if (!isRunning) {
+    // 添加延迟减少重复写入的次数
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    isRunning = true;
+
+    runWriteTask();
+  }
+};
+
+let isRunning = false;
+const runWriteTask = async () => {
+  const nextHyData = [...watcherPool][0];
+
+  if (!nextHyData) {
+    isRunning = false;
+    return;
+  }
+
+  if (!nextHyData[SELFHANDLE]) {
+    await nextHyData.watchUntil(() => !!nextHyData[SELFHANDLE], 3000);
+  }
+
   let oldData;
 
+  const dFile = await nextHyData[SELFHANDLE].get("_d", {
+    create: "file",
+  });
+
   try {
-    oldData = await hydata[SELFHANDLE].get("_d", { create: "file" }).then((e) =>
-      e.text()
-    );
+    oldData = await dFile.text();
     if (oldData) {
       oldData = JSON.parse(oldData);
     }
   } catch (err) {
-    // TODO: 错误的文件读取操作
+    // TODO: 错误的旧文件读取操作
     debugger;
   }
 
-  const obj = {
-    _id: hydata._dataid,
+  const finnalObj = {
+    _id: nextHyData[DATAID],
   };
 
-  for (let [key, value] of Object.entries(hydata)) {
+  for (let [key, value] of Object.entries(nextHyData)) {
     if (reservedKeys.includes(key) || /^\_/.test(key)) {
       continue;
     }
 
     // 如果是对象类型，写入到新的文件夹内
     if (typeof value === "object") {
-      obj[key] = `___dataid___${value._dataid}`;
+      finnalObj[key] = `___dataid___${value._dataid}`;
       continue;
     }
 
-    obj[key] = value;
+    finnalObj[key] = value;
   }
 
-  const dFile = await hydata[SELFHANDLE].get("_d", {
-    create: "file",
-  });
-
-  await dFile.write(JSON.stringify(obj));
+  await dFile.write(JSON.stringify(finnalObj));
 
   // 新value值，用于确认旧对象是否被删除
-  const newValues = Object.values(obj);
+  const newValues = Object.values(finnalObj);
 
   // 清除被删除的子对象
   await Promise.all(
@@ -196,10 +225,22 @@ const writeDataHandle = async (hydata) => {
         // 旧对象已经被删除
         const targetId = value.slice(12);
 
-        const targetSubDirHandle = await hydata[SELFHANDLE].get(targetId);
+        const targetSubDirHandle = await nextHyData[SELFHANDLE].get(targetId);
+
+        if (!targetSubDirHandle) {
+          debugger;
+          return;
+        }
 
         await targetSubDirHandle.remove();
       }
     })
   );
+
+  console.log("runWriteTask", nextHyData);
+
+  watcherPool.delete(nextHyData);
+  runWriteTask();
 };
+
+const getRandomId = () => Math.random().toString(36).slice(2);
