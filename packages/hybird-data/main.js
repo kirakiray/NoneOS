@@ -66,7 +66,7 @@ export class HybirdData extends Stanz {
     if (text) {
       const data = JSON.parse(text);
 
-      await this._initData(data, "handle");
+      await this._initData(data);
     }
 
     wid = this.watchTick((watchers) => {
@@ -138,11 +138,24 @@ export class HybirdData extends Stanz {
 
 // 将数据变动写到文件内
 const writeDataHandle = async (hydata) => {
+  // 确保被删除的旧对象被回收
+  let oldData;
+
+  try {
+    oldData = await hydata[SELFHANDLE].get("_d", { create: "file" }).then((e) =>
+      e.text()
+    );
+    if (oldData) {
+      oldData = JSON.parse(oldData);
+    }
+  } catch (err) {
+    // TODO: 错误的文件读取操作
+    debugger;
+  }
+
   const obj = {
     _id: hydata._dataid,
   };
-
-  // TODO: 确保被删除的旧对象被回收
 
   for (let [key, value] of Object.entries(hydata)) {
     if (reservedKeys.includes(key) || /^\_/.test(key)) {
@@ -164,5 +177,27 @@ const writeDataHandle = async (hydata) => {
 
   await dFile.write(JSON.stringify(obj));
 
-  console.log("write obj: ", obj);
+  // 新value值，用于确认旧对象是否被删除
+  const newValues = Object.values(obj);
+
+  // 清除被删除的子对象
+  await Promise.all(
+    Object.entries(oldData).map(async ([key, value]) => {
+      if (reservedKeys.includes(key) || /^\_/.test(key)) {
+        return;
+      }
+
+      // 如果是对象标识，则判断是否已被删除
+      if (/___dataid___/.test(value) && !newValues.includes(value)) {
+        // 旧对象已经被删除
+        const targetId = value.slice(12);
+
+        const targetSubDirHandle = await hydata[SELFHANDLE].get(targetId);
+
+        await targetSubDirHandle.remove();
+      }
+    })
+  );
+
+  console.log("write data :", hydata);
 };
