@@ -19,27 +19,21 @@
       await hdata.watchUntil(() => hdata.dataStatus === "ok");
 
       // {
-      //   // hdata.val = "I am main object";
+      hdata.val = "I am main object";
 
-      //   if (!hdata.a) {
-      //     if (hdata.dataStatus !== "ok") {
-      //       debugger;
-      //     }
+      if (!hdata.a) {
+        hdata.a = {
+          val: "I am a " + Math.random(),
+        };
+      } else {
+        await hdata.a.watchUntil(() => hdata.a.dataStatus === "ok");
 
-      //     debugger;
+        hdata.a.val = "change a " + new Date().toLocaleString();
 
-      hdata.a = {
-        val: "I am a " + Math.random(),
-      };
-      //   } else {
-      //     // hdata.a.val = "change a " + new Date().toLocaleString();
-
-      //     hdata.a.push({
-      //       val: `a sub-${hdata.a.length}-${Math.random()
-      //         .toString(32)
-      //         .slice(2)}`,
-      //     });
-      //   }
+        hdata.a.push({
+          val: `a sub-${hdata.a.length}-${Math.random().toString(32).slice(2)}`,
+        });
+      }
 
       //   // hdata.push({
       //   //   testid: hdata.length + 1,

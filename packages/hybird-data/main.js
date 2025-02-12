@@ -34,6 +34,9 @@ export class HybirdData extends Stanz {
             this[SELFHANDLE] = await owner[SELFHANDLE].get(this._dataid, {
               create: "dir",
             });
+
+            // 冒泡改动，触发 watchUntil
+            this.refresh();
           }
         })(),
 
@@ -68,7 +71,7 @@ export class HybirdData extends Stanz {
 
         if (!this[SELFHANDLE]) {
           // 等待自身handle 初始化完成
-          debugger;
+          console.log("等待自身handle 初始化完成", this);
           await this.watchUntil(() => !!this[SELFHANDLE], 3000);
         }
 
@@ -125,6 +128,10 @@ export class HybirdData extends Stanz {
     wid = this.watchTick((watchers) => {
       // 根据变动存储其他的对象
       watchers.forEach((watchOpt) => {
+        if (watchOpt.type === "refresh") {
+          return;
+        }
+
         if (watchOpt.type === "set" && reservedKeys.includes(watchOpt.name)) {
           return;
         }
@@ -230,7 +237,7 @@ const runWriteTask = async () => {
         const targetSubDirHandle = await nextHyData[SELFHANDLE].get(targetId);
 
         if (!targetSubDirHandle) {
-          debugger;
+          console.log("子对象没找到: ", targetId);
           return;
         }
 
