@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>test hybird data</title>
-    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
   </head>
   <body>
     <script type="module">
@@ -29,17 +29,19 @@
         //     val: "I am a " + Math.random(),
         //   };
         // } else {
-          // hdata.a.val = "change a " + new Date().toLocaleString();
+        // hdata.a.val = "change a " + new Date().toLocaleString();
         // }
 
         // hdata.a = {
         //   val: "I am a " + Math.random(),
         // };
 
-        // hdata.push({
-        //   testid: hdata.length + 1,
-        //   val: "I am " + Math.random().toString(32).slice(2),
-        // });
+        hdata.push({
+          testid: hdata.length + 1,
+          val: "I am " + Math.random().toString(32).slice(2),
+        });
+
+        hdata.splice(1);
       }
 
       console.log(hdata);

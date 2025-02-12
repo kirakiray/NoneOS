@@ -13,6 +13,11 @@ export class HybirdData extends Stanz {
       dataStatus: "preparing",
     });
 
+    // BUG: 当splice时，会莫名将数字参数带进来，这时候判断是非对象的话，直接返回
+    if (!(arg1 instanceof Object)) {
+      return;
+    }
+
     if (arg1._mark === "db") {
       this._initByHandle(arg1);
     } else {
@@ -36,8 +41,7 @@ export class HybirdData extends Stanz {
 
           this.dataStatus = "ok";
         } else {
-          // 出现情况，找不到对应的 dir handle
-          debugger;
+          // 还没初始化完成就删除了，不需要继续写入
         }
       });
     }
@@ -69,6 +73,8 @@ export class HybirdData extends Stanz {
       await this._initData(data);
     }
 
+    this.dataStatus = "ok";
+
     wid = this.watchTick((watchers) => {
       const needSaveDatas = new Set();
 
@@ -93,8 +99,6 @@ export class HybirdData extends Stanz {
         writeDataHandle(hdata);
       });
     });
-
-    this.dataStatus = "ok";
   }
 
   async _initData(data) {
@@ -198,6 +202,4 @@ const writeDataHandle = async (hydata) => {
       }
     })
   );
-
-  console.log("write data :", hydata);
 };
