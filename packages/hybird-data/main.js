@@ -144,12 +144,14 @@ export class HybirdData extends Stanz {
 }
 
 // 临时存储监听的池子
-const watcherPool = new Set();
+const watcherPool = [];
 
 // 重新保存数据
 const writeDataByHandle = async (hydata) => {
   console.log("writeDataByHandle: ", hydata);
-  watcherPool.add(hydata);
+  if (!watcherPool.includes(hydata)) {
+    watcherPool.push(hydata);
+  }
 
   if (!isRunning) {
     // 添加延迟减少重复写入的次数
@@ -163,7 +165,7 @@ const writeDataByHandle = async (hydata) => {
 
 let isRunning = false;
 const runWriteTask = async () => {
-  const nextHyData = [...watcherPool][0];
+  const nextHyData = watcherPool.shift();
 
   if (!nextHyData) {
     isRunning = false;
@@ -239,7 +241,6 @@ const runWriteTask = async () => {
 
   console.log("runWriteTask", nextHyData);
 
-  watcherPool.delete(nextHyData);
   runWriteTask();
 };
 
