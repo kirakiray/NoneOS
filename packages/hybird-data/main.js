@@ -4,6 +4,8 @@ const DATAID = Symbol("data_id");
 const SELFHANDLE = Symbol("self_handle");
 const reservedKeys = ["dataStatus", "_id"];
 
+const Identification = "___dataid___";
+
 export class HybirdData extends Stanz {
   constructor(arg, options) {
     super({
@@ -61,32 +63,47 @@ export class HybirdData extends Stanz {
       throw err;
     }
 
-    for (let [key, value] of Object.entries(data)) {
-      if (reservedKeys.includes(key) || /^\_/.test(key)) {
-        continue;
-      }
-
-      if (typeof value === "string" && value.startsWith("___dataid___")) {
-        const targetId = value.slice(12);
-
-        if (!this[SELFHANDLE]) {
-          // 等待自身handle 初始化完成
-          console.log("等待自身handle 初始化完成", this);
-          await this.watchUntil(() => !!this[SELFHANDLE], 3000);
-        }
-
-        try {
-          const targetDFile = await this[SELFHANDLE].get(`${targetId}/_d`);
-          const dataText = await targetDFile.text();
-          this[key] = JSON.parse(dataText);
-        } catch (err) {
-          // TODO: 查找不到对象数据
-          debugger;
-        }
-      } else {
-        this[key] = value;
-      }
+    if (!this[SELFHANDLE]) {
+      // 等待自身handle 初始化完成
+      // console.log("等待自身handle 初始化完成", this);
+      await this.watchUntil(() => !!this[SELFHANDLE], 3000);
     }
+
+    const needRun = [];
+
+    await Promise.all(
+      Object.entries(data).map(async ([key, value]) => {
+        if (reservedKeys.includes(key) || /^\_/.test(key)) {
+          return;
+        }
+
+        if (typeof value === "string" && value.startsWith(Identification)) {
+          const targetId = value.slice(12);
+
+          try {
+            const targetDFile = await this[SELFHANDLE].get(`${targetId}/_d`);
+            const dataText = await targetDFile.text();
+
+            needRun.push(() => {
+              this[key] = JSON.parse(dataText);
+            });
+          } catch (err) {
+            // TODO: 查找不到对象数据
+            debugger;
+          }
+        } else {
+          needRun.push(() => {
+            this[key] = value;
+          });
+        }
+      })
+    );
+
+    this.__unupdate = 1;
+
+    needRun.forEach((f) => f());
+
+    delete this.__unupdate;
 
     this.dataStatus = "loaded";
   }
@@ -134,6 +151,10 @@ export class HybirdData extends Stanz {
 
         if (watchOpt.type === "set" && reservedKeys.includes(watchOpt.name)) {
           return;
+        }
+
+        if (watchOpt.type === "set") {
+          console.log(watchOpt);
         }
 
         writeDataByHandle(watchOpt.target);
@@ -210,7 +231,7 @@ const runWriteTask = async () => {
 
     // 如果是对象类型，写入到新的文件夹内
     if (typeof value === "object") {
-      finnalObj[key] = `___dataid___${value._dataid}`;
+      finnalObj[key] = `${Identification}${value._dataid}`;
       continue;
     }
 
@@ -230,7 +251,11 @@ const runWriteTask = async () => {
       }
 
       // 如果是对象标识，则判断是否已被删除
-      if (/___dataid___/.test(value) && !newValues.includes(value)) {
+      if (
+        value instanceof String &&
+        value.startsWith(Identification) &&
+        !newValues.includes(value)
+      ) {
         // 旧对象已经被删除
         const targetId = value.slice(12);
 
