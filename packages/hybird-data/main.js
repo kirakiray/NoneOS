@@ -4,7 +4,7 @@ const DATAID = Symbol("data_id");
 const SELFHANDLE = Symbol("self_handle");
 const reservedKeys = ["dataStatus", "_id"];
 
-const Identification = "___dataid___";
+const Identification = "__dataid__";
 
 export class HybirdData extends Stanz {
   constructor(arg, options) {
@@ -78,7 +78,7 @@ export class HybirdData extends Stanz {
         }
 
         if (typeof value === "string" && value.startsWith(Identification)) {
-          const targetId = value.slice(12);
+          const targetId = value.slice(Identification.length);
 
           try {
             const targetDFile = await this[SELFHANDLE].get(`${targetId}/_d`);
@@ -257,7 +257,7 @@ const runWriteTask = async () => {
         !newValues.includes(value)
       ) {
         // 旧对象已经被删除
-        const targetId = value.slice(12);
+        const targetId = value.slice(Identification.length);
 
         const targetSubDirHandle = await nextHyData[SELFHANDLE].get(targetId);
 
