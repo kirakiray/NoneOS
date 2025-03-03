@@ -137,9 +137,10 @@ export class HybirdData extends Stanz {
   _initId(data) {
     if (data && data._id) {
       this[DATAID] = data._id;
-    } else {
-      this[DATAID] = getRandomId();
+      return;
     }
+
+    this[DATAID] = getRandomId();
   }
 
   async _initByHandle(handle) {
@@ -161,6 +162,7 @@ export class HybirdData extends Stanz {
     if (text) {
       const data = JSON.parse(text);
       this._initId(data);
+
       await this._initData(data);
     } else {
       this._initId();
