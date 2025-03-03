@@ -17,11 +17,13 @@ export class HybirdData extends Stanz {
       return;
     }
 
+    // 确认是handle，使用handle进行初始化
     if (arg._mark === "db") {
       this[SELFHANDLE] = arg;
 
       this._initByHandle(arg);
     } else {
+      // 不是handle，代表是子孙代对象
       this._initId(arg);
 
       Promise.all([
@@ -56,12 +58,17 @@ export class HybirdData extends Stanz {
     }
   }
 
+  // 更新数据
+  async reload() {}
+
   async _initData(data) {
     if (data.dataStatus) {
       const err = new Error("dataStatus is a reserved key");
       console.warn(err, data);
       throw err;
     }
+
+    this.dataStatus = "loading";
 
     if (!this[SELFHANDLE]) {
       // 等待自身handle 初始化完成
@@ -89,7 +96,11 @@ export class HybirdData extends Stanz {
             });
           } catch (err) {
             // TODO: 查找不到对象数据
-            debugger;
+            console.warn("找不到对象数据: ", {
+              target: this,
+              key,
+              dataid: targetId,
+            });
           }
         } else {
           needRun.push(() => {
