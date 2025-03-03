@@ -15,8 +15,10 @@
 
       const hdata = new HybirdData(testDataDir);
 
+      window.hdata = hdata;
+
       // 等待准备完成
-      await hdata.watchUntil(() => hdata.dataStatus === "ok");
+      await hdata.ready();
 
       // {
       hdata.val = "I am main object";
@@ -26,7 +28,7 @@
           val: "I am a " + Math.random(),
         };
       } else {
-        await hdata.a.watchUntil(() => hdata.a.dataStatus === "ok");
+        await hdata.a.ready();
 
         // hdata.a.val = "change a " + new Date().toLocaleString();
 
