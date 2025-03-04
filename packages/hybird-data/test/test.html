@@ -20,10 +20,7 @@
       // 等待准备完成
       await hdata.ready();
 
-      // {
       hdata.val = "I am main object";
-
-      // hdata.a = null;
 
       if (!hdata.a) {
         hdata.a = {
@@ -31,22 +28,19 @@
         };
       } else {
         await hdata.a.ready();
-        // hdata.a.splice(2)
-        // hdata.a.val = "change a " + new Date().toLocaleString();
-        // hdata.a.push({
-        //   val: `a sub-${hdata.a.length}-${Math.random().toString(32).slice(2)}`,
-        // });
       }
 
-      //   // hdata.push({
-      //   //   testid: hdata.length + 1,
-      //   //   val: "I am " + Math.random().toString(32).slice(2),
-      //   // });
+      console.log("data 1", hdata);
 
-      //   // hdata.splice(1);
-      // }
+      const hdata2 = new HybirdData(testDataDir);
 
-      console.log(hdata);
+      await hdata2.ready();
+      await hdata2.a.ready();
+
+      console.log("data 2", hdata2);
+
+      hdata2.a.val =
+        "data2 change a val: " + new Date().toLocaleString().toLocaleString();
     </script>
   </body>
 </html>
