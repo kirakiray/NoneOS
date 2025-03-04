@@ -59,7 +59,9 @@ export class HybirdData extends Stanz {
   }
 
   // 更新数据
-  async reload() {}
+  async reload() {
+    debugger;
+  }
 
   async ready() {
     if (this.dataStatus === "ok") {
@@ -144,12 +146,16 @@ export class HybirdData extends Stanz {
   }
 
   async _initByHandle(handle) {
-    let wid;
+    let wid, cancelObs;
 
     Object.defineProperties(this, {
       // 停止监听
       disconnect: {
-        value: () => this.unwatch(wid),
+        value: () => {
+          this.unwatch(wid);
+          this.revoke();
+          cancelObs();
+        },
       },
     });
 
@@ -170,6 +176,7 @@ export class HybirdData extends Stanz {
 
     this.dataStatus = "ok";
 
+    // 监听数据变动，变动后进行保存数据
     wid = this.watchTick((watchers) => {
       // 根据变动存储其他的对象
       watchers.forEach((watchOpt) => {
@@ -186,6 +193,40 @@ export class HybirdData extends Stanz {
         }
 
         saveData(watchOpt.target);
+      });
+    });
+
+    cancelObs = handle.observe((arr) => {
+      arr.forEach((e) => {
+        if (e.type !== "write") {
+          return;
+        }
+
+        const selfHandle = this[SELFHANDLE];
+        const realPath = e.path.replace(selfHandle.path + "/", "");
+        const paths = realPath.split("/");
+
+        let targetData = this;
+        let isFinnal = false;
+
+        while (paths.length > 1) {
+          const currentObjKey = paths.shift();
+          for (let [key, value] of Object.entries(targetData)) {
+            if (value._dataid === currentObjKey) {
+              targetData = targetData[key];
+              isFinnal = paths.length === 1;
+              continue;
+            }
+          }
+        }
+
+        if (isFinnal) {
+          // TODO:如果不是当前对象的改动，就需要重新刷新
+          debugger;
+        }
+
+        // TODO: 不存在key，可能被清除了
+        debugger;
       });
     });
   }
