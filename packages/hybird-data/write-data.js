@@ -6,8 +6,8 @@ export const DATAID = Symbol("data_id");
 const watcherPool = [];
 
 // 重新保存数据
-export const writeDataByHandle = async (hydata) => {
-  console.log("writeDataByHandle: ", hydata);
+export const saveData = async (hydata) => {
+  console.log("saveData: ", hydata);
   if (!watcherPool.includes(hydata)) {
     watcherPool.push(hydata);
   }
@@ -65,14 +65,14 @@ const runWriteTask = async () => {
 
   await dFile.write(JSON.stringify(finnalObj));
 
-  await clearOldObject(nextHyData, finnalObj);
+  await clearOldData(nextHyData, finnalObj);
 
   console.log("runWriteTask", nextHyData);
 
   runWriteTask(nextHyData);
 };
 
-const clearOldObject = async (hyData, finnalObj) => {
+const clearOldData = async (hyData, finnalObj) => {
   const dirHandle = hyData[SELFHANDLE];
   const finnalValues = Object.values(finnalObj);
 

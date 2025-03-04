@@ -1,5 +1,5 @@
 import {
-  writeDataByHandle,
+  saveData,
   SELFHANDLE,
   Identification,
   reservedKeys,
@@ -49,7 +49,7 @@ export class HybirdData extends Stanz {
 
           if (!startData._id) {
             // 属于新增数据，需要直接保存
-            writeDataByHandle(this);
+            saveData(this);
           }
         })(),
       ]).then(() => {
@@ -185,7 +185,7 @@ export class HybirdData extends Stanz {
           console.log(watchOpt);
         }
 
-        writeDataByHandle(watchOpt.target);
+        saveData(watchOpt.target);
       });
     });
   }
