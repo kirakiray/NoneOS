@@ -20,18 +20,17 @@
       // 等待准备完成
       await hdata.ready();
 
-      // hdata.a = null;
-
       // {
       hdata.val = "I am main object";
+
+      // hdata.a = null;
 
       if (!hdata.a) {
         hdata.a = {
           val: "I am a " + Math.random(),
         };
       } else {
-        // await hdata.a.ready();
-        // hdata.a = null;
+        await hdata.a.ready();
         // hdata.a.val = "change a " + new Date().toLocaleString();
         // hdata.a.push({
         //   val: `a sub-${hdata.a.length}-${Math.random().toString(32).slice(2)}`,

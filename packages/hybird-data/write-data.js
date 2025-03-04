@@ -31,23 +31,19 @@ const runWriteTask = async () => {
     return;
   }
 
-  await nextHyData._handleReady();
+  if (
+    !nextHyData.disconnect &&
+    (!nextHyData._owner || !nextHyData._owner.length)
+  ) {
+    // TODO: 已经被清除的数据，不需要在保存
+    debugger;
+  }
 
-  let oldData;
+  await nextHyData._handleReady();
 
   const dFile = await nextHyData[SELFHANDLE].get("_d", {
     create: "file",
   });
-
-  try {
-    oldData = await dFile.text();
-    if (oldData) {
-      oldData = JSON.parse(oldData);
-    }
-  } catch (err) {
-    // TODO: 错误的旧文件读取操作
-    debugger;
-  }
 
   const finnalObj = {
     _id: nextHyData[DATAID],
@@ -59,7 +55,7 @@ const runWriteTask = async () => {
     }
 
     // 如果是对象类型，写入到新的文件夹内
-    if (typeof value === "object") {
+    if (value && typeof value === "object") {
       finnalObj[key] = `${Identification}${value._dataid}`;
       continue;
     }
@@ -69,38 +65,27 @@ const runWriteTask = async () => {
 
   await dFile.write(JSON.stringify(finnalObj));
 
-  // 新value值，用于确认旧对象是否被删除
-  const newValues = Object.values(finnalObj);
-
-  // 清除被删除的子对象
-  await Promise.all(
-    Object.entries(oldData).map(async ([key, value]) => {
-      if (reservedKeys.includes(key) || /^\_/.test(key)) {
-        return;
-      }
-
-      // 如果是对象标识，则判断是否已被删除
-      if (
-        value instanceof String &&
-        value.startsWith(Identification) &&
-        !newValues.includes(value)
-      ) {
-        // 旧对象已经被删除
-        const targetId = value.slice(Identification.length);
-
-        const targetSubDirHandle = await nextHyData[SELFHANDLE].get(targetId);
-
-        if (!targetSubDirHandle) {
-          console.log("子对象没找到: ", targetId);
-          return;
-        }
-
-        await targetSubDirHandle.remove();
-      }
-    })
-  );
+  await clearOldObject(nextHyData, finnalObj);
 
   console.log("runWriteTask", nextHyData);
 
-  runWriteTask();
+  runWriteTask(nextHyData);
+};
+
+const clearOldObject = async (hyData, finnalObj) => {
+  const dirHandle = hyData[SELFHANDLE];
+  const finnalValues = Object.values(finnalObj);
+
+  if (!dirHandle) {
+    throw new Error("dirHandle is not found");
+  }
+
+  for await (const [key, value] of dirHandle.entries()) {
+    if (value.kind === "dir") {
+      // 如果查找不到对应的value对象标识，则进行删除
+      if (!finnalValues.includes(`${Identification}${key}`)) {
+        await value.remove();
+      }
+    }
+  }
 };
