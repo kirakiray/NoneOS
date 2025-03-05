@@ -19,40 +19,59 @@
       import { get } from "/packages/fs/handle/index.js";
       const testDataDir = await get("local/test/dataDir", { create: "dir" });
 
-      const hdata = new HybirdData(testDataDir);
+      const hdata = new HybirdData(
+        {},
+        {
+          handle: testDataDir,
+          isroot: true,
+        }
+      );
 
       window.hdata = hdata;
 
-      // 等待准备完成
-      await hdata.ready();
+      console.log("hdata: ", hdata);
 
-      hdata.val = "I am main object";
+      // // 等待准备完成
+      // await hdata.ready();
 
-      if (!hdata.a) {
-        hdata.a = {
-          val: "I am a " + Math.random(),
-        };
-      } else {
-        await hdata.a.ready();
-      }
+      // hdata.val = "I am main object";
 
-      console.log("data 1", hdata);
+      // if (!hdata.a) {
+      //   hdata.a = {
+      //     val: "I am a " + Math.random(),
+      //   };
+      // }
 
-      const hdata2 = new HybirdData(testDataDir);
+      // await hdata.a.ready();
 
-      window.hdata2 = hdata2;
+      // if (!hdata.a.length) {
+      //   hdata.a.push({
+      //     sub: "I am sub " + Date.now(),
+      //   });
+      // }
 
-      await hdata2.ready();
-      await hdata2.a.ready();
+      // console.log("data 1", hdata.a);
 
-      console.log("data 2", hdata2);
+      // await hdata.a[0].ready();
+      // const oldDataA0 = hdata.a[0];
+      // console.log("oldDataA0: ", oldDataA0);
 
-      hdata2.a.val =
-        "data2 change a val: " + new Date().toLocaleString().toLocaleString();
+      // const hdata2 = new HybirdData(testDataDir);
 
-      await new Promise((res) => setTimeout(res, 200));
+      // window.hdata2 = hdata2;
 
-      console.log("eq: ", hdata.a.val === hdata2.a.val);
+      // await hdata2.ready();
+      // await hdata2.a.ready();
+
+      // console.log("data 2", hdata2.a);
+
+      // hdata2.a.val =
+      //   "data2 change a val: " + new Date().toLocaleString().toLocaleString();
+
+      // await new Promise((res) => setTimeout(res, 200));
+
+      // console.log("eq: ", hdata.a.val === hdata2.a.val);
+      // console.log("eq2: ", hdata.a[0] === oldDataA0);
     </script>
   </body>
 </html>
