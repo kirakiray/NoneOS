@@ -159,7 +159,6 @@ export class HybirdData extends Stanz {
           
           if (markValues.includes(value)) {
             // 属于已有的数据，重新设置值
-            debugger;
             return;
           }
 

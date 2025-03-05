@@ -29,12 +29,12 @@
 
       window.hdata = hdata;
 
+      // 等待准备完成
+      await hdata.ready();
+
       console.log("hdata: ", hdata);
 
-      // // 等待准备完成
-      // await hdata.ready();
-
-      // hdata.val = "I am main object";
+      // hdata.val = "I am main object: 2";
 
       // if (!hdata.a) {
       //   hdata.a = {
