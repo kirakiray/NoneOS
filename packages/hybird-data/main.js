@@ -65,8 +65,6 @@ export class HybirdData extends Stanz {
           console.log(watchOpt);
         }
 
-        debugger;
-
         saveData(watchOpt.target);
       });
     });
@@ -74,6 +72,11 @@ export class HybirdData extends Stanz {
     cancelObs = handle.observe((arr) => {
       arr.forEach((e) => {
         if (e.type !== "write") {
+          return;
+        }
+
+        if (this.xid === e.remark.rootXid) {
+          // 修改的是自身，不需要变动
           return;
         }
 

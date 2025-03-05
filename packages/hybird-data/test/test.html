@@ -20,7 +20,6 @@
       const testDataDir = await get("local/test/dataDir", { create: "dir" });
 
       const hdata = createData(testDataDir);
-
       window.hdata = hdata;
 
       // 等待准备完成
@@ -28,7 +27,13 @@
 
       console.log("hdata: ", hdata);
 
-      // hdata.val = "I am main object: 2";
+      const hdata2 = createData(testDataDir);
+      window.hdata2 = hdata2;
+      await hdata2.ready();
+
+      console.log("hdata2: ", hdata2);
+
+      hdata.val = "I am main object: 5";
 
       // if (!hdata.a) {
       //   hdata.a = {
@@ -49,10 +54,6 @@
       // await hdata.a[0].ready();
       // const oldDataA0 = hdata.a[0];
       // console.log("oldDataA0: ", oldDataA0);
-
-      // const hdata2 = new HybirdData(testDataDir);
-
-      // window.hdata2 = hdata2;
 
       // await hdata2.ready();
       // await hdata2.a.ready();
