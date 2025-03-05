@@ -29,6 +29,8 @@ const runWriteTask = async () => {
     return;
   }
 
+  debugger
+
   if (
     !nextHyData.disconnect &&
     (!nextHyData._owner || !nextHyData._owner.length)

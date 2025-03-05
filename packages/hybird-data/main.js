@@ -18,9 +18,13 @@ export class HybirdData extends Stanz {
 
     if (options.handle) {
       this[SELFHANDLE] = options.handle;
-      this._initRoot().then(() => {
+      if (options.isroot) {
+        this._initRoot().then(() => {
+          this.reload();
+        });
+      } else {
         this.reload();
-      });
+      }
     } else {
       // TODO: 直接初始化数据
       debugger;
@@ -184,3 +188,13 @@ export class HybirdData extends Stanz {
     return finnalObj;
   }
 }
+
+export const createData = (handle) => {
+  return new HybirdData(
+    {},
+    {
+      handle,
+      isroot: true,
+    }
+  );
+};

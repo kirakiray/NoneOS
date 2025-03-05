@@ -15,17 +15,11 @@
   </head>
   <body>
     <script type="module">
-      import { HybirdData } from "../main.js";
+      import { HybirdData, createData } from "../main.js";
       import { get } from "/packages/fs/handle/index.js";
       const testDataDir = await get("local/test/dataDir", { create: "dir" });
 
-      const hdata = new HybirdData(
-        {},
-        {
-          handle: testDataDir,
-          isroot: true,
-        }
-      );
+      const hdata = createData(testDataDir);
 
       window.hdata = hdata;
 
