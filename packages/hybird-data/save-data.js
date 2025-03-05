@@ -29,8 +29,6 @@ const runWriteTask = async () => {
     return;
   }
 
-  debugger
-
   if (
     !nextHyData.disconnect &&
     (!nextHyData._owner || !nextHyData._owner.length)
@@ -50,13 +48,13 @@ const runWriteTask = async () => {
   {
     let currentData = nextHyData;
     while (true) {
-      if (!currentData.owner.size) {
-        // 没有父节点，直接关闭
+      if (currentData.disconnect) {
+        rootXid = currentData.xid;
         break;
       }
 
-      if (currentData.disconnect) {
-        rootXid = currentData.xid;
+      if (!currentData.owner.size) {
+        // 没有父节点，直接关闭
         break;
       }
 
@@ -80,7 +78,7 @@ const runWriteTask = async () => {
 
   console.log("runWriteTask", nextHyData);
 
-  runWriteTask(nextHyData);
+  runWriteTask();
 };
 
 // 清除旧数据

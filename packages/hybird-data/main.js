@@ -178,7 +178,7 @@ export class HybirdData extends Stanz {
 
       // 如果是对象类型，写入到新的文件夹内
       if (value && typeof value === "object") {
-        finnalObj[key] = `${Identification}${value._dataid}`;
+        finnalObj[key] = `${Identification}${value[SELFID]}`;
         continue;
       }
 
