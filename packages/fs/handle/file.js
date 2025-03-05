@@ -27,8 +27,8 @@ export class FileHandle extends BaseHandle {
    * 写入文件数据
    * @returns {Promise<void>}
    */
-  async write(data, callback) {
-    const writer = await this.createWritable();
+  async write(data, callback, options) {
+    const writer = await this.createWritable(options);
 
     const size = data.length || data.size || data.byteLength || 0;
 
@@ -59,8 +59,8 @@ export class FileHandle extends BaseHandle {
   }
 
   // 写入数据流
-  async createWritable() {
-    return new DBFSWritableFileStream(this.id, this.path);
+  async createWritable(options) {
+    return new DBFSWritableFileStream(this.id, this.path, options);
   }
 
   /**
@@ -220,9 +220,14 @@ class DBFSWritableFileStream {
   #hashs = []; // 写入块的哈希值
   #size = 0;
   #path;
-  constructor(id, path) {
+  #writeRemark;
+  constructor(id, path, options) {
     this.#fileID = id;
     this.#path = path;
+
+    if (options && options.remark) {
+      this.#writeRemark = options.remark;
+    }
   }
 
   // 写入流数据
@@ -418,6 +423,7 @@ class DBFSWritableFileStream {
       _changeHandle({
         type: "write",
         path: this.#path,
+        remark: this.#writeRemark,
       });
     }
   }

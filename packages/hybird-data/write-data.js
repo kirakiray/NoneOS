@@ -3,6 +3,8 @@ export const reservedKeys = ["dataStatus", "_id"];
 export const Identification = "__dataid__";
 export const DATAID = Symbol("data_id");
 
+import { HybirdData } from "./main.js";
+
 const watcherPool = [];
 
 // 重新保存数据
@@ -63,7 +65,36 @@ const runWriteTask = async () => {
     finnalObj[key] = value;
   }
 
-  await dFile.write(JSON.stringify(finnalObj));
+  // 根节点数据的xid
+  let rootXid = null;
+  {
+    let currentData = nextHyData;
+    while (true) {
+      if (!currentData.owner.size) {
+        // 没有父节点，直接关闭
+        break;
+      }
+
+      for (let item of Array.from(currentData.owner)) {
+        if (item instanceof HybirdData) {
+          currentData = item;
+          break;
+        }
+      }
+
+      if (currentData.disconnect) {
+        rootXid = currentData.xid;
+        break;
+      }
+    }
+  }
+
+  await dFile.write(JSON.stringify(finnalObj), null, {
+    remark: {
+      rootXid,
+      dataXid: nextHyData.xid,
+    },
+  });
 
   await clearOldData(nextHyData, finnalObj);
 
@@ -72,6 +103,7 @@ const runWriteTask = async () => {
   runWriteTask(nextHyData);
 };
 
+// 清除旧数据
 const clearOldData = async (hyData, finnalObj) => {
   const dirHandle = hyData[SELFHANDLE];
   const finnalValues = Object.values(finnalObj);

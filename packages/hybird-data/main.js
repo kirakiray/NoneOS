@@ -202,6 +202,13 @@ export class HybirdData extends Stanz {
           return;
         }
 
+        const { dataXid, rootXid } = e.remark;
+
+        if (rootXid === this.xid) {
+          // 代表是当前数据的改动，跳过
+          return;
+        }
+
         const selfHandle = this[SELFHANDLE];
         const realPath = e.path.replace(selfHandle.path + "/", "");
         const paths = realPath.split("/");
@@ -220,9 +227,10 @@ export class HybirdData extends Stanz {
           }
         }
 
-        if (isFinnal) {
-          // TODO:如果不是当前对象的改动，就需要重新刷新
-          debugger;
+        if (isFinnal && targetData.xid !== dataXid) {
+          // 不是当前数据的改动，更新数据
+          targetData.reload();
+          return;
         }
 
         // TODO: 不存在key，可能被清除了
