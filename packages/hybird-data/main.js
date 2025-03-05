@@ -7,6 +7,7 @@ import {
 } from "./write-data.js";
 
 const Stanz = $.Stanz;
+const ISOBSRELOAD = Symbol("is_observe_reload");
 
 export class HybirdData extends Stanz {
   constructor(startData, options) {
@@ -45,6 +46,7 @@ export class HybirdData extends Stanz {
         })(),
 
         (async () => {
+          await this._handleReady();
           await this._initData({ ...startData });
 
           if (!startData._id) {
@@ -59,8 +61,27 @@ export class HybirdData extends Stanz {
   }
 
   // 更新数据
-  async reload() {
-    debugger;
+  async reload(options) {
+    await this._handleReady();
+
+    const handle = this[SELFHANDLE];
+
+    const dFile = await handle.get("_d", {
+      create: "file",
+    });
+
+    const text = await dFile.text();
+    const data = JSON.parse(text);
+
+    if (options.ISOBSRELOAD === ISOBSRELOAD) {
+      console.log("isobsreload");
+    }
+
+    delete data._id;
+
+    await this._initData(data, { ...options });
+
+    this.dataStatus = "ok";
   }
 
   async ready() {
@@ -82,7 +103,30 @@ export class HybirdData extends Stanz {
     return true;
   }
 
-  async _initData(data) {
+  // 获取可以存储的数据
+  getMarkData() {
+    const finnalObj = {
+      _id: this[DATAID],
+    };
+
+    for (let [key, value] of Object.entries(this)) {
+      if (reservedKeys.includes(key) || /^\_/.test(key)) {
+        continue;
+      }
+
+      // 如果是对象类型，写入到新的文件夹内
+      if (value && typeof value === "object") {
+        finnalObj[key] = `${Identification}${value._dataid}`;
+        continue;
+      }
+
+      finnalObj[key] = value;
+    }
+
+    return finnalObj;
+  }
+
+  async _initData(data, options) {
     if (data.dataStatus) {
       const err = new Error("dataStatus is a reserved key");
       console.warn(err, data);
@@ -91,7 +135,9 @@ export class HybirdData extends Stanz {
 
     this.dataStatus = "loading";
 
-    await this._handleReady();
+    // await this._handleReady();
+
+    // 判断已有的key
 
     const needRun = [];
 
@@ -229,7 +275,7 @@ export class HybirdData extends Stanz {
 
         if (isFinnal && targetData.xid !== dataXid) {
           // 不是当前数据的改动，更新数据
-          targetData.reload();
+          targetData.reload({ ISOBSRELOAD });
           return;
         }
 

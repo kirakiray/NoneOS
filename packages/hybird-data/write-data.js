@@ -16,7 +16,7 @@ export const saveData = async (hydata) => {
 
   if (!isRunning) {
     // 添加延迟减少重复写入的次数
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 50));
 
     isRunning = true;
 
@@ -47,23 +47,7 @@ const runWriteTask = async () => {
     create: "file",
   });
 
-  const finnalObj = {
-    _id: nextHyData[DATAID],
-  };
-
-  for (let [key, value] of Object.entries(nextHyData)) {
-    if (reservedKeys.includes(key) || /^\_/.test(key)) {
-      continue;
-    }
-
-    // 如果是对象类型，写入到新的文件夹内
-    if (value && typeof value === "object") {
-      finnalObj[key] = `${Identification}${value._dataid}`;
-      continue;
-    }
-
-    finnalObj[key] = value;
-  }
+  const finnalObj = nextHyData.getMarkData();
 
   // 根节点数据的xid
   let rootXid = null;

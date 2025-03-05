@@ -17,7 +17,7 @@
     <script type="module">
       import { HybirdData } from "../main.js";
       import { get } from "/packages/fs/handle/index.js";
-      const testDataDir = await get("local/testDataDir", { create: "dir" });
+      const testDataDir = await get("local/test/dataDir", { create: "dir" });
 
       const hdata = new HybirdData(testDataDir);
 
@@ -40,6 +40,8 @@
 
       const hdata2 = new HybirdData(testDataDir);
 
+      window.hdata2 = hdata2;
+
       await hdata2.ready();
       await hdata2.a.ready();
 
@@ -47,6 +49,10 @@
 
       hdata2.a.val =
         "data2 change a val: " + new Date().toLocaleString().toLocaleString();
+
+      await new Promise((res) => setTimeout(res, 200));
+
+      console.log("eq: ", hdata.a.val === hdata2.a.val);
     </script>
   </body>
 </html>
