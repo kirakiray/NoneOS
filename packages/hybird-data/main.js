@@ -30,7 +30,8 @@ export class HybirdData extends Stanz {
       if (options.owner) {
         this[DATAID] = getRandomId();
         (async () => {
-          await this._resetData(data);
+          Object.assign(this, data);
+          // await this._resetData(data);
           await options.owner.watchUntil(() => !!options.owner[SELFHANDLE]);
 
           const selfDir = await options.owner[SELFHANDLE].get(this[DATAID], {
@@ -93,12 +94,35 @@ export class HybirdData extends Stanz {
           return;
         }
 
-        if (this.xid === e.remark.rootXid) {
+        if (e.remark && this.xid === e.remark.rootXid) {
           // 修改的是自身，不需要变动
           return;
         }
 
-        this.reload();
+        const realPath = e.path.replace(this[SELFHANDLE].path + "/", "");
+        const paths = realPath.split("/");
+
+        let targetData = this;
+        let isFinnal = false;
+
+        while (paths.length > 1) {
+          const currentObjKey = paths.shift();
+          for (let [key, value] of Object.entries(targetData)) {
+            if (value[DATAID] === currentObjKey) {
+              targetData = targetData[key];
+              isFinnal = paths.length === 1;
+              continue;
+            }
+          }
+        }
+        if (isFinnal) {
+          // 不是当前数据的改动，更新数据
+          targetData.reload();
+          return;
+        }
+
+        // TODO: 不存在key，可能被清除了
+        debugger;
       });
     });
   }
@@ -171,10 +195,12 @@ export class HybirdData extends Stanz {
           );
 
           if (exitedData) {
+            // 从已有的值中获取
             finnalData[key] = exitedData;
             return;
           }
 
+          // 读取本地数据
           const subDir = await this[SELFHANDLE].get(targetId, {
             create: "dir",
           });
@@ -194,6 +220,20 @@ export class HybirdData extends Stanz {
     );
 
     this.__unupdate = 1;
+
+    const finnalKeys = Object.keys(finnalData);
+    // 删除不存在的key
+    Object.keys(this).forEach((key) => {
+      if (reservedKeys.includes(key) || /^\_/.test(key)) {
+        return;
+      }
+
+      if (!finnalKeys.includes(key)) {
+        delete this[key];
+      }
+    });
+
+    // 重新合并数据
     Object.assign(this, finnalData);
     delete this.__unupdate;
   }
