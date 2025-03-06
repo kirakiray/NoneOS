@@ -4,13 +4,7 @@
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static": "node scripts/static-server",
-    "test": "npx playwright test",
-    "build-sw": "rollup packages/sw/main.js --file packages/sw/dist.js --format iife",
-    "build-sw-min": "rollup packages/sw/main.js --file packages/sw/dist.min.js --format iife --plugin terser",
-    "bu": "npm run build-sw && npm run build-sw-min && node scripts/build.js && npm run buhash",
-    "update": "node scripts/update.js",
-    "buhash": "node scripts/buhash.js"
+    "static": "node scripts/static-server"
   },
   "repository": {
     "type": "git",
@@ -23,13 +17,8 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
-    "@rollup/plugin-terser": "^0.4.4",
-    "@types/node": "^22.7.5",
-    "archiver": "^7.0.1",
     "koa": "^2.15.3",
     "koa-static": "^5.0.0",
-    "noneos-handshake": "^0.3.0",
-    "rollup": "^4.24.0"
+    "noneos-handshake": "^0.3.0"
   }
 }
