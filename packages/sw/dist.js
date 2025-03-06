@@ -73,7 +73,7 @@
    */
   const getDB = async (dbName = "noneos_fs_defaults") => {
     if (!allDB[dbName]) {
-      allDB[dbName] = new Promise((resolve) => {
+      allDB[dbName] = new Promise((resolve, reject) => {
         // 根据id获取数据库
         const req = indexedDB.open(dbName);
 
@@ -85,6 +85,7 @@
           };
 
           resolve(db);
+          reject = null;
 
           // setTimeout(() => {
           //   allDB[dbName] = null;
@@ -105,22 +106,16 @@
             unique: false,
           });
 
-          console.log("db created 1");
-
           // 以父key和name作为索引，用于获取特定文件
           mainStore.createIndex("parent_and_name", ["parent", "name"], {
             // 父文件夹下只能有一个同名文件夹或文件
             unique: true,
           });
 
-          console.log("db created 2");
-
           // 用于判断文件的块是否有重复出现，如果没有重复出现，在覆盖的时候删除blocks中的对应数据
           mainStore.createIndex("hash", "hash", {
             unique: false,
           });
-
-          console.log("db created 3");
 
           // 存储文件的表
           db.createObjectStore("blocks", {
@@ -129,9 +124,16 @@
         };
 
         req.onerror = (event) => {
-          throw new Event(dbName + " creation error", {
+          allDB[dbName] = null;
+          const err = new Event(dbName + " creation error", {
             cause: event.error,
           });
+
+          if (reject) {
+            reject(err);
+          } else {
+            throw err;
+          }
         };
       });
     }
@@ -1594,8 +1596,8 @@
      * 写入文件数据
      * @returns {Promise<void>}
      */
-    async write(data, callback) {
-      const writer = await this.createWritable();
+    async write(data, callback, options) {
+      const writer = await this.createWritable(options);
 
       const size = data.length || data.size || data.byteLength || 0;
 
@@ -1626,8 +1628,8 @@
     }
 
     // 写入数据流
-    async createWritable() {
-      return new DBFSWritableFileStream(this.id, this.path);
+    async createWritable(options) {
+      return new DBFSWritableFileStream(this.id, this.path, options);
     }
 
     /**
@@ -1787,9 +1789,14 @@
     #hashs = []; // 写入块的哈希值
     #size = 0;
     #path;
-    constructor(id, path) {
+    #writeRemark;
+    constructor(id, path, options) {
       this.#fileID = id;
       this.#path = path;
+
+      if (options && options.remark) {
+        this.#writeRemark = options.remark;
+      }
     }
 
     // 写入流数据
@@ -1985,6 +1992,7 @@
         _changeHandle({
           type: "write",
           path: this.#path,
+          remark: this.#writeRemark,
         });
       }
     }
