@@ -1,0 +1,78 @@
+<template page>
+  <l-m src="../comps/bookmark-card.html"></l-m>
+  <l-m src="../comps/bookmark-add-btn.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .tool-container {
+      display: flex;
+      padding: 16px;
+      max-width: 800px;
+    }
+
+    .main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+  </style>
+
+  <div class="tool-container">
+    <n-bookmark-add-btn style="margin-left: auto"></n-bookmark-add-btn>
+  </div>
+
+  <div class="main">
+    <x-fill :value="cards">
+      <n-bookmark-card
+        :url="$data.url"
+        :logo-url="$data.logoUrl"
+      ></n-bookmark-card>
+    </x-fill>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        data: {
+          cards: [
+            {
+              url: "htts://baidu.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
+            },
+            {
+              url: "https://myzaker.com",
+              logoUrl:
+                "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
+            },
+            {
+              url: "https://google.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+            },
+          ],
+        },
+        proto: {
+          async readMarks() {
+            // 获取书签数据
+            // const bObj = get("bookmarks");
+            // const others = await bObj.others();
+            // const self = await bObj.self();
+
+            // // 获取所有数据
+            // const list = await self.data();
+
+            // const list = await get({
+            //   type: "bookmarks",
+            //   target: "self",
+            //   selector: {
+            //     age: { $gt: 20, $lt: 30 }, // 年龄大于20且小于30
+            //     name: { $eq: "John" }, // 名字等于'John'
+            //   },
+            // });
+          },
+        },
+      };
+    };
+  </script>
+</template>

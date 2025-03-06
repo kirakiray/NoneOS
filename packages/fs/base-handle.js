@@ -1,8 +1,71 @@
 import { calculateHash, CHUNK_SIZE, flatHandle, getHashs } from "./util.js";
 import { saveData, getData } from "../core/block/main.js";
 
+// 需要监听的文件或文件夹的数组
+const needObserver = [];
+
+let changeTimer = null;
+let CTIME = 100;
+
+const castChannel = new BroadcastChannel("nfs-handle-change");
+castChannel.onmessage = (event) => {
+  _changeHandle(event.data, 1);
+};
+
+// 写入文件结束后的处理
+export const _changeHandle = async (opts, ignoreChannel = false) => {
+  if (!changeTimer) {
+    changeTimer = 1;
+    setTimeout(() => {
+      changeTimer = null;
+
+      for (let obsOption of needObserver) {
+        try {
+          if (obsOption.pool && obsOption.pool.length) {
+            obsOption.func.call(null, obsOption.pool.slice());
+            obsOption.pool.length = 0; // 清空池子
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    }, CTIME);
+  }
+
+  needObserver.forEach((obsOption) => {
+    const { path } = opts;
+    if (path.startsWith(obsOption.handle.path)) {
+      obsOption.pool.push({
+        ...opts,
+      });
+    }
+  });
+
+  if (!ignoreChannel) {
+    castChannel.postMessage(opts);
+  }
+};
+
 export class PublicBaseHandle {
   constructor() {}
+
+  // 监听文件或文件夹的变化
+  observe(func) {
+    const obj = {
+      handle: this,
+      func,
+      pool: [], // 存储数据改动变化数据的池子
+    };
+
+    needObserver.push(obj);
+
+    return () => {
+      const index = needObserver.indexOf(obj);
+      if (index > -1) {
+        needObserver.splice(index, 1);
+      }
+    };
+  }
 
   // 扁平化文件数据
   async flat() {

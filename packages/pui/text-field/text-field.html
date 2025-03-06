@@ -156,10 +156,7 @@
             return 1;
           }
 
-          if (
-            this.infocus ||
-            (this.value !== null && this.value !== undefined)
-          ) {
+          if (this.infocus || !!this.value) {
             return 1;
           }
 

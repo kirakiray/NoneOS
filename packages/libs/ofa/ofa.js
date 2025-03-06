@@ -1,9 +1,9 @@
-//! ofa.js - v4.5.29 https://github.com/kirakiray/ofa.js  (c) 2018-2025 YAO
+//! ofa.js - v4.5.31 https://github.com/kirakiray/ofa.js  (c) 2018-2025 YAO
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.$ = factory());
-})(this, (function () { 'use strict';
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  typeof define === 'function' && define.amd ? define(['exports'], factory) :
+  (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.$ = {}));
+})(this, (function (exports) { 'use strict';
 
   // const error_origin = "http://127.0.0.1:5793/errors";
   const error_origin = "https://ofajs.github.io/ofa-errors/errors";
@@ -529,18 +529,27 @@
       };
       emitUpdate(options);
     },
-    watchUntil(func) {
-      return new Promise((resolve) => {
+    watchUntil(func, outTime = 30000) {
+      return new Promise((resolve, reject) => {
         let f;
+        let timer;
         const tid = this.watch(
           (f = () => {
             const bool = func();
             if (bool) {
+              clearTimeout(timer);
               this.unwatch(tid);
               resolve(this);
             }
           })
         );
+
+        timer = setTimeout(() => {
+          this.unwatch(tid);
+          const err = getErr("watchuntil_timeout");
+          console.warn(err, func, this);
+          reject(err);
+        }, outTime);
 
         f();
       });
@@ -617,7 +626,7 @@
         }
 
         for (let item of deletedItems) {
-          clearData(item, this);
+          clearOwner(item, this);
         }
 
         emitUpdate({
@@ -723,7 +732,8 @@
   }
 
   class Stanz extends Array {
-    constructor(data) {
+    constructor(data, options) {
+      // options是被继承的类库使用的参数，当前stanz不需要使用
       super();
 
       return constructor.call(this, data);
@@ -893,7 +903,10 @@
     } else if (isObject(value)) {
       const desc = Object.getOwnPropertyDescriptor(target, key);
       if (!desc || desc.hasOwnProperty("value")) {
-        data = new Stanz(value);
+        data = new (target.__OriginStanz || Stanz)(value, {
+          owner: receiver,
+        });
+
         data._owner.push(receiver);
       }
     }
@@ -901,7 +914,7 @@
     const isSame = oldValue === value;
 
     if (!isSame && isxdata(oldValue)) {
-      clearData(oldValue, receiver);
+      clearOwner(oldValue, receiver);
     }
 
     const reval = succeed(data);
@@ -921,16 +934,21 @@
     return reval;
   };
 
-  const clearData = (val, target) => {
-    if (isxdata(val)) {
-      const index = val._owner.indexOf(target);
+  const clearOwner = (targetData, owner) => {
+    if (isxdata(targetData)) {
+      const index = targetData._owner.indexOf(owner);
       if (index > -1) {
-        val._owner.splice(index, 1);
+        targetData._owner.splice(index, 1);
+        if (targetData.__chear_owner) {
+          targetData.__chear_owner({
+            oldOwner: owner,
+          });
+        }
       } else {
         const err = getErr("error_no_owner");
         console.warn(err, {
-          target,
-          mismatch: val,
+          owner,
+          mismatch: targetData,
         });
         console.error(err);
       }
@@ -6588,7 +6606,7 @@ ${scriptContent}`;
     },
   });
 
-  const version = "ofa.js@4.5.29";
+  const version = "ofa.js@4.5.31";
   $.version = version.replace("ofa.js@", "");
 
   if (document.currentScript) {
@@ -6605,6 +6623,9 @@ ${scriptContent}`;
     value: $,
   });
 
-  return $;
+  exports.Stanz = Stanz;
+  exports.default = $;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
 
 }));
