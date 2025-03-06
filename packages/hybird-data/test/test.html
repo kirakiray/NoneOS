@@ -17,7 +17,7 @@
     <script type="module">
       import { HybirdData, createData } from "../main.js";
       import { get } from "/packages/fs/handle/index.js";
-      const testDataDir = await get("local/test/dataDir", { create: "dir" });
+      const testDataDir = await get("local/test/dataDir2", { create: "dir" });
 
       const hdata = createData(testDataDir);
       window.hdata = hdata;
@@ -50,6 +50,18 @@
       //     },
       //   },
       // };
+      // hdata.b = {
+      //   val: "change b",
+      // };
+
+      if (hdata.b) {
+        await hdata.b.ready();
+
+        const oldBid = hdata.b.xid;
+        await hdata.reload();
+
+        console.log("eq2: ", oldBid === hdata.b.xid);
+      }
     </script>
   </body>
 </html>
