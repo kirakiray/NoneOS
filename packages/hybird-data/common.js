@@ -1,5 +1,5 @@
 export const SELFHANDLE = Symbol("selfHandle");
-export const SELFID = Symbol("selfId");
+export const DATAID = Symbol("dataId");
 export const reservedKeys = ["dataStatus", "_id"];
 export const Identification = "__dataid__";
 

@@ -1,6 +1,6 @@
 import {
   SELFHANDLE,
-  SELFID,
+  DATAID,
   getRandomId,
   reservedKeys,
   Identification,
@@ -26,8 +26,26 @@ export class HybirdData extends Stanz {
         this.reload();
       }
     } else {
-      // TODO: 直接初始化数据
-      debugger;
+      // 属于新设置的数据，直接进行初始化操作
+      if (options.owner) {
+        this[DATAID] = getRandomId();
+        (async () => {
+          await this._resetData(data);
+          await options.owner.watchUntil(() => !!options.owner[SELFHANDLE]);
+
+          const selfDir = await options.owner[SELFHANDLE].get(this[DATAID], {
+            create: "dir",
+          });
+
+          this[SELFHANDLE] = selfDir;
+          this.dataStatus = "ok";
+
+          saveData(this);
+        })();
+      } else {
+        // 不明情况
+        debugger;
+      }
     }
   }
 
@@ -80,7 +98,7 @@ export class HybirdData extends Stanz {
           return;
         }
 
-        debugger;
+        this.reload();
       });
     });
   }
@@ -95,23 +113,24 @@ export class HybirdData extends Stanz {
 
     const text = await dFile.text();
     if (!text) {
-      // TODO: 清空数据
-      debugger;
+      // 没有数据就直接清空
+      console.warn("cannot find data", this);
+      this.revoke();
       return;
     }
 
     const data = JSON.parse(text);
 
-    if (this[SELFID] && this[SELFID] !== data._id) {
+    if (this[DATAID] && this[DATAID] !== data._id) {
       // TODO: 抛出异常
       debugger;
       throw new Error("data error");
     }
 
     if (data._id) {
-      this[SELFID] = data._id;
-    } else if (!this[SELFID]) {
-      this[SELFID] = getRandomId();
+      this[DATAID] = data._id;
+    } else if (!this[DATAID]) {
+      this[DATAID] = getRandomId();
     }
 
     await this._resetData(data);
@@ -171,7 +190,7 @@ export class HybirdData extends Stanz {
   // 获取可以存储的数据
   getCachedData() {
     const finnalObj = {
-      _id: this[SELFID],
+      _id: this[DATAID],
     };
 
     for (let [key, value] of Object.entries(this)) {
@@ -181,7 +200,7 @@ export class HybirdData extends Stanz {
 
       // 如果是对象类型，写入到新的文件夹内
       if (value && typeof value === "object") {
-        finnalObj[key] = `${Identification}${value[SELFID]}`;
+        finnalObj[key] = `${Identification}${value[DATAID]}`;
         continue;
       }
 
@@ -189,6 +208,9 @@ export class HybirdData extends Stanz {
     }
 
     return finnalObj;
+  }
+  get __OriginStanz() {
+    return HybirdData;
   }
 }
 
