@@ -113,9 +113,10 @@ export class HybirdData extends Stanz {
 
     const text = await dFile.text();
     if (!text) {
-      // 没有数据就直接清空
-      console.warn("cannot find data", this);
-      this.revoke();
+      // 没有数据就是空对象
+      // console.warn("cannot find data", this);
+      // this.revoke();
+      this.dataStatus = "ok";
       return;
     }
 
@@ -144,6 +145,17 @@ export class HybirdData extends Stanz {
 
     const finnalData = {};
 
+    // 先保留一份
+    const currentValues = Object.values(this);
+    // 确保子级的数据加载完成再操作
+    await Promise.all(
+      currentValues.map(async ([key, value]) => {
+        if (value instanceof HybirdData) {
+          await value.ready();
+        }
+      })
+    );
+
     await Promise.all(
       Object.entries(data).map(async ([key, value]) => {
         if (reservedKeys.includes(key) || /^\_/.test(key)) {
@@ -152,6 +164,16 @@ export class HybirdData extends Stanz {
 
         if (typeof value === "string" && value.startsWith(Identification)) {
           const targetId = value.slice(Identification.length);
+
+          // 判断是否已经存在的数据
+          const exitedData = currentValues.find(
+            (data) => data[DATAID] === targetId
+          );
+
+          if (exitedData) {
+            finnalData[key] = exitedData;
+            return;
+          }
 
           const subDir = await this[SELFHANDLE].get(targetId, {
             create: "dir",
