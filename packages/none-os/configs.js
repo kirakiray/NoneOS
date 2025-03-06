@@ -15,7 +15,7 @@ configs.watchTick(() => {
 export const defaultApps = [
   "/packages/apps/link-me.napp",
   "/packages/apps/setting.napp",
-  "/packages/apps/bookmarks.napp",
+  // "/packages/apps/bookmarks.napp",
   "/packages/apps/files.napp",
   "/packages/apps/text-edit.napp",
   "/packages/apps/picture.napp",
