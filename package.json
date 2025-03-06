@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
+    "@playwright/test": "^1.50.1",
+    "@types/node": "^22.13.9",
     "koa": "^2.15.3",
     "koa-static": "^5.0.0",
     "noneos-handshake": "^0.3.0"
