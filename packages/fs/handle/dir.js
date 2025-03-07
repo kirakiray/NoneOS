@@ -10,9 +10,11 @@ export class DirHandle extends BaseHandle {
     const { create } = options || {};
 
     // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-    let beforeHandle = await this.handle.getFileHandle(name);
+    let beforeHandle = await this.handle.getFileHandle(name).catch(() => null);
     if (!beforeHandle) {
-      beforeHandle = await this.handle.getDirectoryHandle(name);
+      beforeHandle = await this.handle
+        .getDirectoryHandle(name)
+        .catch(() => null);
     }
 
     if (!create && !beforeHandle) {

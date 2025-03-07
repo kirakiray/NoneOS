@@ -13,12 +13,12 @@
 
       async function runAllTests() {
         // 初始化测试目录
-        const testDir1 = await init("testDir1");
+        const testDir = await init("testDir2");
 
         // 测试文件创建和写入
         results.appendChild(
           await runTest("Create and Write File", async () => {
-            const file1 = await testDir1.get("file1.txt", { create: "file" });
+            const file1 = await testDir.get("file1.txt", { create: "file" });
             const someText = "Write some text " + Math.random();
             await file1.write(someText);
             const text2 = await file1.text();
@@ -32,7 +32,7 @@
         // 测试文件读取
         results.appendChild(
           await runTest("Read Existing File", async () => {
-            const file1 = await testDir1.get("file1.txt");
+            const file1 = await testDir.get("file1.txt");
             const content = await file1.text();
             return {
               assert: content.includes("Write some text"),
@@ -44,16 +44,12 @@
         // 测试不存在的文件
         results.appendChild(
           await runTest("Try to Read Non-existent File", async () => {
-            try {
-              await testDir1.get("nonexistent.txt");
-              return "Should not reach here";
-            } catch (e) {
-              // throw new Error("File not found as expected");
-              return {
-                assert: true,
-                content: "nonexistent succeed",
-              };
-            }
+            const handle = await testDir.get("nonexistent.txt");
+
+            return {
+              assert: handle === null,
+              content: "nonexistent succeed",
+            };
           })
         );
       }
