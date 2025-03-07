@@ -30,6 +30,9 @@ onmessage = async (event) => {
       data = new TextEncoder().encode(content);
     }
 
+    // 清空文件内容
+    syncHandle.truncate(0);
+
     // 写入文件（从文件开头写入）
     syncHandle.write(data, { at: 0 });
 
