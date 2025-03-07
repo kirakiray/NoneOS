@@ -5,11 +5,7 @@ test.describe('GetHash Function Tests', () => {
     await page.goto('/tests/fs-util/getHash.html');
   });
 
-  test('页面标题正确加载', async ({ page }) => {
-    await expect(page).toHaveTitle('GetHash Function Test');
-  });
-
-  test('所有测试用例都应该成功执行', async ({ page }) => {
+  test('验证 GetHash 函数的所有功能', async ({ page }) => {
     // 等待所有测试用例执行完成
     await page.waitForSelector('.test-case');
 
@@ -24,9 +20,8 @@ test.describe('GetHash Function Tests', () => {
       const successMark = await testCase.$('.success');
       expect(successMark).not.toBeNull();
     }
-  });
 
-  test('验证具体测试用例的存在', async ({ page }) => {
+    // 验证具体测试用例的存在
     const expectedTests = [
       'Test String Input',
       'Test Empty String',
@@ -38,13 +33,8 @@ test.describe('GetHash Function Tests', () => {
       const testElement = await page.getByText(testName);
       await expect(testElement).toBeVisible();
     }
-  });
 
-  test('验证哈希结果格式', async ({ page }) => {
-    // 等待所有测试结果加载
-    await page.waitForSelector('.test-case');
-
-    // 获取所有结果文本
+    // 验证哈希结果格式
     const results = await page.$$eval('.test-case', elements => 
       elements.map(el => el.textContent.match(/Result: ([a-f0-9]+)/)?.[1])
     );

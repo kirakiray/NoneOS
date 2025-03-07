@@ -4,7 +4,8 @@
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static": "node scripts/static-server"
+    "static": "node scripts/static-server",
+    "test": "npx playwright test"
   },
   "repository": {
     "type": "git",
