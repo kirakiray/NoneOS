@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GetHash Function Test</title>
+    <style>
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      .test-case {
+        margin: 10px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>GetHash Function Test</h1>
+    <div id="results"></div>
+
+    <script type="module">
+      import { getHash } from "/packages/fs/util.js";
+
+      const results = document.getElementById("results");
+
+      async function runTest(testName, testFn) {
+        const div = document.createElement("div");
+        div.className = "test-case";
+        try {
+          const result = await testFn();
+          div.innerHTML = `
+                    <span class="success">✓</span> ${testName}<br>
+                    Result: ${result}
+                `;
+        } catch (error) {
+          div.innerHTML = `
+                    <span class="error">✗</span> ${testName}<br>
+                    Error: ${error.message}
+                `;
+        }
+        results.appendChild(div);
+      }
+
+      // Test cases
+      async function runAllTests() {
+        // Test string input
+        await runTest("Test String Input", async () => {
+          return await getHash("Hello, World!");
+        });
+
+        // Test empty string
+        await runTest("Test Empty String", async () => {
+          return await getHash("");
+        });
+
+        // Test Blob input
+        await runTest("Test Blob Input", async () => {
+          const blob = new Blob(["Test Blob Content"], { type: "text/plain" });
+          return await getHash(blob);
+        });
+
+        // Test ArrayBuffer input
+        await runTest("Test ArrayBuffer Input", async () => {
+          const buffer = new TextEncoder().encode("Test Buffer").buffer;
+          return await getHash(buffer);
+        });
+      }
+
+      // Run all tests
+      runAllTests();
+    </script>
+  </body>
+</html>
