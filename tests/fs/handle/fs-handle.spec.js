@@ -1,14 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("File System Handle Tests", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("/tests/fs/handle/write-and-get.html");
-    // 等待测试容器初始化完成
-    await page.waitForSelector("#results");
-  });
-
   test("should write and read file correctly", async ({ page }) => {
-    // 等待所有测试完成
+    await page.goto("/tests/fs/handle/write-and-get.html");
+
     // 等待所有测试用例执行完成
     await page.waitForSelector(".test-case");
 

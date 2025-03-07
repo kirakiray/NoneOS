@@ -1,11 +1,9 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("GetHash Function Tests", () => {
-  test.beforeEach(async ({ page }) => {
-    await page.goto("tests/fs/util/getHash.html");
-  });
-
   test("验证 GetHash 函数的所有功能", async ({ page }) => {
+    await page.goto("/tests/fs/util/getHash.html");
+
     // 等待所有测试用例执行完成
     await page.waitForSelector(".test-case");
 
