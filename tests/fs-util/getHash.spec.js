@@ -21,27 +21,34 @@ test.describe('GetHash Function Tests', () => {
       expect(successMark).not.toBeNull();
     }
 
-    // 验证具体测试用例的存在
+    // 验证具体测试用例的存在和结果
     const expectedTests = [
-      'Test String Input',
-      'Test Empty String',
-      'Test Blob Input',
-      'Test ArrayBuffer Input'
+      {
+        name: 'Test String Input',
+        hash: 'dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f'
+      },
+      {
+        name: 'Test Empty String',
+        hash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+      },
+      {
+        name: 'Test Blob Input',
+        hash: '9f634430702b96598ef75225eb371ace8c1461e56fc9c55d9ed4b4a8b997b10a'
+      },
+      {
+        name: 'Test ArrayBuffer Input',
+        hash: '6976d91affad9df9ede28e08ed345fe6590a4e970b7f8dfd412835d794aeba25'
+      }
     ];
 
-    for (const testName of expectedTests) {
-      const testElement = await page.getByText(testName);
+    for (const test of expectedTests) {
+      // 验证测试用例存在
+      const testElement = await page.getByText(test.name);
       await expect(testElement).toBeVisible();
-    }
 
-    // 验证哈希结果格式
-    const results = await page.$$eval('.test-case', elements => 
-      elements.map(el => el.textContent.match(/Result: ([a-f0-9]+)/)?.[1])
-    );
-
-    // 验证每个结果都是64位的十六进制字符串
-    for (const result of results) {
-      expect(result).toMatch(/^[a-f0-9]{64}$/);
+      // 验证具体哈希值
+      const resultElement = await page.getByText(`Result: ${test.hash}`);
+      await expect(resultElement).toBeVisible();
     }
   });
 });
