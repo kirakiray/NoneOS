@@ -24,7 +24,7 @@
             const text2 = await file1.text();
             return {
               assert: someText === text2,
-              content: text2,
+              content: someText + " -- " + text2,
             };
           })
         );

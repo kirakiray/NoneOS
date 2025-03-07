@@ -16,12 +16,13 @@ export async function runTest(testName, testFn, options = { stringify: true }) {
       return div;
     }
 
-    throw new Error("assert error");
+    throw new Error(result.content);
   } catch (error) {
     div.innerHTML = `
       <span class="error">✗</span> ${testName}<br>
       Error: ${error.message}
     `;
+    console.error(error);
   }
   return div;
 }

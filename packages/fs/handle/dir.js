@@ -45,9 +45,13 @@ export class DirHandle extends BaseHandle {
 
     // 根据handle类型返回
     if (beforeHandle.kind === "file") {
-      return new FileHandle(beforeHandle);
+      return new FileHandle(beforeHandle, {
+        parentPath: this.path,
+      });
     } else if (beforeHandle.kind === "dir") {
-      return new DirHandle(beforeHandle);
+      return new DirHandle(beforeHandle, {
+        parentPath: this.path,
+      });
     }
 
     // 不应该存在的情况会到这里

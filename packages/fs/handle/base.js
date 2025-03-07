@@ -1,8 +1,10 @@
 // 对OPFS进行封装
 export class BaseHandle {
   #originHandle = null;
-  constructor(dirHandle) {
+  #parentPath;
+  constructor(dirHandle, options = {}) {
     this.#originHandle = dirHandle;
+    this.#parentPath = options.parentPath;
   }
 
   get handle() {
@@ -11,5 +13,13 @@ export class BaseHandle {
 
   async kind() {
     return this.#originHandle.kind;
+  }
+
+  get path() {
+    if (this.#parentPath) {
+      return `${this.#parentPath}/${this.#originHandle.name}`;
+    }
+
+    return this.#originHandle.name;
   }
 }
