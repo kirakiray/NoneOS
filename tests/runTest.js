@@ -30,6 +30,7 @@ export async function runTest(testName, testFn, options = { stringify: true }) {
 export function initTestContainer(title) {
   document.body.innerHTML = `
     <h1>${title}</h1>
+    <div>UA: ${navigator.userAgent}</div>
     <div id="results"></div>
      <style>
       .success { color: green; }

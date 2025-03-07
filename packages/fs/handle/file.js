@@ -14,6 +14,7 @@ export class FileHandle extends BaseHandle {
     //   start: "",
     //   end: "",
     // };
+
     let file = await this.handle.getFile();
     if (options.start || options.end) {
       file = file.slice(options.start, options.end);
@@ -56,7 +57,7 @@ export class FileHandle extends BaseHandle {
             reject(error);
           }
 
-          // worker.terminate();
+          worker.terminate();
         };
       });
     }
