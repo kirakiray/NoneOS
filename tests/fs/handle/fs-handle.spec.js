@@ -1,11 +1,14 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("GetHash Function Tests", () => {
+test.describe("File System Handle Tests", () => {
   test.beforeEach(async ({ page }) => {
-    await page.goto("tests/fs/util/getHash.html");
+    await page.goto("/tests/fs/handle/write-and-get.html");
+    // 等待测试容器初始化完成
+    await page.waitForSelector("#results");
   });
 
-  test("验证 GetHash 函数的所有功能", async ({ page }) => {
+  test("should write and read file correctly", async ({ page }) => {
+    // 等待所有测试完成
     // 等待所有测试用例执行完成
     await page.waitForSelector(".test-case");
 
@@ -13,7 +16,7 @@ test.describe("GetHash Function Tests", () => {
     const testCases = await page.$$(".test-case");
 
     // 验证测试用例数量
-    expect(await testCases.length).toBe(4);
+    expect(await testCases.length).toBe(3);
 
     // 验证每个测试用例都成功执行
     for (const testCase of testCases) {

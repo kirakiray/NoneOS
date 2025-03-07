@@ -3,10 +3,20 @@ export async function runTest(testName, testFn, options = { stringify: true }) {
   div.className = "test-case";
   try {
     const result = await testFn();
-    div.innerHTML = `
+
+    if (result.assert) {
+      div.innerHTML = `
       <span class="success">✓</span> ${testName}<br>
-      Result: ${options.stringify ? JSON.stringify(result) : result}
+      Result: ${
+        typeof result.content === "object"
+          ? JSON.stringify(result.content)
+          : result.content
+      }
     `;
+      return div;
+    }
+
+    throw new Error("assert error");
   } catch (error) {
     div.innerHTML = `
       <span class="error">✗</span> ${testName}<br>

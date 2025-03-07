@@ -14,50 +14,62 @@
       async function runAllTests() {
         // Test string input
         results.appendChild(
-          await runTest(
-            "Test String Input",
-            async () => {
-              return await getHash("Hello, World!");
-            },
-            { stringify: false }
-          )
+          await runTest("Test String Input", async () => {
+            const content = await getHash("Hello, World!");
+
+            return {
+              assert:
+                content ===
+                "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f",
+              content,
+            };
+          })
         );
 
         // Test empty string
         results.appendChild(
-          await runTest(
-            "Test Empty String",
-            async () => {
-              return await getHash("");
-            },
-            { stringify: false }
-          )
+          await runTest("Test Empty String", async () => {
+            const content = await getHash("");
+
+            return {
+              assert:
+                content ===
+                "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              content,
+            };
+          })
         );
 
         // Test Blob input
         results.appendChild(
-          await runTest(
-            "Test Blob Input",
-            async () => {
-              const blob = new Blob(["Test Blob Content"], {
-                type: "text/plain",
-              });
-              return await getHash(blob);
-            },
-            { stringify: false }
-          )
+          await runTest("Test Blob Input", async () => {
+            const blob = new Blob(["Test Blob Content"], {
+              type: "text/plain",
+            });
+
+            const content = await getHash(blob);
+
+            return {
+              assert:
+                content ===
+                "9f634430702b96598ef75225eb371ace8c1461e56fc9c55d9ed4b4a8b997b10a",
+              content,
+            };
+          })
         );
 
         // Test ArrayBuffer input
         results.appendChild(
-          await runTest(
-            "Test ArrayBuffer Input",
-            async () => {
-              const buffer = new TextEncoder().encode("Test Buffer").buffer;
-              return await getHash(buffer);
-            },
-            { stringify: false }
-          )
+          await runTest("Test ArrayBuffer Input", async () => {
+            const buffer = new TextEncoder().encode("Test Buffer").buffer;
+            const content = await getHash(buffer);
+            return {
+              assert:
+                content ===
+                "6976d91affad9df9ede28e08ed345fe6590a4e970b7f8dfd412835d794aeba25",
+              content,
+            };
+          })
         );
       }
 

@@ -23,9 +23,8 @@
             await file1.write(someText);
             const text2 = await file1.text();
             return {
-              success: someText === text2,
-              originalText: someText,
-              readText: text2,
+              assert: someText === text2,
+              content: text2,
             };
           })
         );
@@ -36,8 +35,8 @@
             const file1 = await testDir1.get("file1.txt");
             const content = await file1.text();
             return {
-              content: content,
-              fileInfo: file1,
+              assert: content.includes("Write some text"),
+              content: "Read succeed",
             };
           })
         );
@@ -51,8 +50,8 @@
             } catch (e) {
               // throw new Error("File not found as expected");
               return {
+                assert: true,
                 content: "nonexistent succeed",
-                success: true,
               };
             }
           })
