@@ -15,7 +15,7 @@ export class DirHandle extends BaseHandle {
       beforeHandle = await this.handle.getDirectoryHandle(name);
     }
 
-    if (!create) {
+    if (!create && !beforeHandle) {
       //   throw new Error(`${name} is not exist`);
       // 找不到文件或文件夹，返回null
       return null;
@@ -52,7 +52,5 @@ export class DirHandle extends BaseHandle {
     debugger;
   }
 
-  remove() {
-    
-  }
+  remove() {}
 }

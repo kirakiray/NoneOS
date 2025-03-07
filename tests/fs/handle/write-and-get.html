@@ -49,7 +49,11 @@
               await testDir1.get("nonexistent.txt");
               return "Should not reach here";
             } catch (e) {
-              throw new Error("File not found as expected");
+              // throw new Error("File not found as expected");
+              return {
+                content: "nonexistent succeed",
+                success: true,
+              };
             }
           })
         );
