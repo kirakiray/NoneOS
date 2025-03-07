@@ -8,4 +8,8 @@ export class BaseHandle {
   get handle() {
     return this.#originHandle;
   }
+
+  async kind() {
+    return this.#originHandle.kind;
+  }
 }

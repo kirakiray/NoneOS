@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>File Write and Get Test</title>
+  </head>
+  <body>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { runTest, initTestContainer } from "/tests/runTest.js";
+
+      const results = initTestContainer("File Write and Get Test");
+
+      async function runAllTests() {
+        // 初始化测试目录
+        const testDir1 = await init("testDir1");
+
+        // 测试文件创建和写入
+        results.appendChild(
+          await runTest("Create and Write File", async () => {
+            const file1 = await testDir1.get("file1.txt", { create: "file" });
+            const someText = "Write some text " + Math.random();
+            await file1.write(someText);
+            const text2 = await file1.text();
+            return {
+              success: someText === text2,
+              originalText: someText,
+              readText: text2,
+            };
+          })
+        );
+
+        // 测试文件读取
+        results.appendChild(
+          await runTest("Read Existing File", async () => {
+            const file1 = await testDir1.get("file1.txt");
+            const content = await file1.text();
+            return {
+              content: content,
+              fileInfo: file1,
+            };
+          })
+        );
+
+        // 测试不存在的文件
+        results.appendChild(
+          await runTest("Try to Read Non-existent File", async () => {
+            try {
+              await testDir1.get("nonexistent.txt");
+              return "Should not reach here";
+            } catch (e) {
+              throw new Error("File not found as expected");
+            }
+          })
+        );
+      }
+
+      runAllTests();
+    </script>
+  </body>
+</html>
