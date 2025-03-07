@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>case</title>
+  </head>
+  <body>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+
+      // 确保初始化空间
+      const testDir1 = await init("testDir1");
+
+      const file1 = await testDir1.get("file1.txt", { create: "file" });
+
+      // 写入数据
+      const someText = "Write some text " + Math.random();
+      await file1.write(someText);
+
+      const text2 = await file1.text();
+
+      console.log(someText === text2);
+
+      console.log("testDir1: ", testDir1);
+      console.log("file1: ", file1);
+    </script>
+  </body>
+</html>
