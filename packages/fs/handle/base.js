@@ -55,15 +55,6 @@ export class BaseHandle {
     });
   }
 
-  async moveTo(targetHandle, name) {
-    const [finalTarget, finalName] = await resolveTargetAndName(
-      targetHandle,
-      name,
-      "move",
-      this
-    );
-  }
-
   async copyTo(targetHandle, name) {
     const [finalTarget, finalName] = await resolveTargetAndName(
       targetHandle,
@@ -72,8 +63,18 @@ export class BaseHandle {
       this
     );
   }
+
+  async moveTo(targetHandle, name) {
+    const [finalTarget, finalName] = await resolveTargetAndName(
+      targetHandle,
+      name,
+      "move",
+      this
+    );
+  }
 }
 
+// 处理目标路径和文件名
 const resolveTargetAndName = async (targetHandle, name, methodName, self) => {
   // 处理第一个参数为字符串的情况
   let finalTarget = targetHandle;
