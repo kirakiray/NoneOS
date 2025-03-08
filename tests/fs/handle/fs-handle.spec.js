@@ -28,4 +28,20 @@ test.describe("File System Handle Tests", () => {
 
     await testSucceedCount(page, 4);
   });
+
+  test("Some test", async ({ page }) => {
+    await page.goto("tests/fs/handle/some.html");
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 1);
+  });
+
+  test("Values test", async ({ page }) => {
+    await page.goto("tests/fs/handle/values.html");
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 1);
+  });
 });
