@@ -1,5 +1,4 @@
 import { DirHandle } from "../packages/fs/handle/dir.js";
-const rootPms = navigator.storage.getDirectory();
 
 // 响应文件相关的请求
 const resposeFs = (event) => {
@@ -13,31 +12,37 @@ const resposeFs = (event) => {
 
   event.respondWith(
     (async () => {
-      const rootSystemHandle = await rootPms;
+      try {
+        const rootSystemHandle = await navigator.storage.getDirectory();
 
-      const rootHandle = new DirHandle(
-        await rootSystemHandle.getDirectoryHandle(rootName)
-      );
+        const rootHandle = new DirHandle(
+          await rootSystemHandle.getDirectoryHandle(rootName)
+        );
 
-      const fileHandle = await rootHandle.get(filepath);
+        const fileHandle = await rootHandle.get(filepath);
 
-      console.log("sw:", {
-        rootName,
-        pathname,
-        rootHandle,
-        filepath,
-        fileHandle,
-      });
+        console.log("sw:", {
+          rootName,
+          pathname,
+          rootHandle,
+          filepath,
+          fileHandle,
+        });
 
-      const prefix = pathname.split(".").pop();
+        const prefix = pathname.split(".").pop();
 
-      const headers = {};
-      headers["Content-Type"] = getContentType(prefix);
+        const headers = {};
+        headers["Content-Type"] = getContentType(prefix);
 
-      return new Response(await fileHandle.file(), {
-        status: 200,
-        headers,
-      });
+        return new Response(await fileHandle.file(), {
+          status: 200,
+          headers,
+        });
+      } catch (err) {
+        return new Response(err.stack || err.toString(), {
+          status: 400,
+        });
+      }
     })()
   );
 };
