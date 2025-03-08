@@ -19,19 +19,19 @@
       //   await e.remove();
       // }
 
-      for (let i = 0; i < 10; i++) {
-        const file = await testDir4.get(`test${i}.txt`, { create: "file" });
-        await file.write("some text " + i);
+      // for (let i = 0; i < 10; i++) {
+      //   const file = await testDir4.get(`test${i}.txt`, { create: "file" });
+      //   await file.write("some text " + i);
 
-        const subFile = await testDir4.get(`subdir-${i}/sub.txt`, {
-          create: "file",
-        });
-        await subFile.write("sub text " + i);
-      }
+      //   const subFile = await testDir4.get(`subdir-${i}/sub.txt`, {
+      //     create: "file",
+      //   });
+      //   await subFile.write("sub text " + i);
+      // }
 
       const length = await testDir4.length();
 
-      console.log(length);
+      console.log(length, testDir4);
     </script>
   </body>
 </html>
