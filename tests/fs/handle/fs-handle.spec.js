@@ -10,8 +10,14 @@ test.describe("File System Handle Tests", () => {
       test.skip();
     }
 
-    await page.goto("/tests/fs/handle/write-and-get.html");
+    await page.goto("tests/fs/handle/write-and-get.html");
 
     await testSucceedCount(page, 3);
+  });
+
+  test("fetch test", async ({ page }) => {
+    await page.goto("tests/fs/handle/fetch-test.html");
+
+    await testSucceedCount(page, 1);
   });
 });
