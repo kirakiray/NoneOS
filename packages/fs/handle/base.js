@@ -62,6 +62,31 @@ export class BaseHandle {
       "copy",
       this
     );
+
+    // 如果是文件，直接复制文件内容
+    if (this.kind === "file") {
+      const newHandle = await finalTarget.get(finalName, {
+        create: "file",
+      });
+      await newHandle.write(await this.file());
+
+      return newHandle;
+    }
+
+    // 创建目标目录
+    const newDir = await finalTarget.get(finalName, {
+      create: "dir",
+    });
+
+    // 获取当前目录下的所有条目
+    const entries = await this.entries();
+
+    // 递归复制所有子文件和子目录
+    for (const [entryName, entry] of entries) {
+      await entry.copyTo(newDir, entryName);
+    }
+
+    return newDir;
   }
 
   async moveTo(targetHandle, name) {
