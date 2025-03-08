@@ -16,7 +16,7 @@ test.describe("File System Handle Tests", () => {
   });
 
   test("fetch test", async ({ page }) => {
-    await page.goto("tests/fs/handle/fetch-test.html");
+    await page.goto("tests/fs/handle/fetch.html");
 
     await testSucceedCount(page, 1);
   });

@@ -45,7 +45,11 @@ export class BaseHandle {
   async remove() {
     const parent = await this.parent();
 
-    await parent.#originHandle.removeEntry(this.#originHandle.name);
+    try {
+      await parent.#originHandle.removeEntry(this.#originHandle.name);
+    } catch (err) {
+      console.log("err: ", this.#originHandle.name);
+    }
   }
 
   async moveTo() {}

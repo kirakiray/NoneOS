@@ -99,11 +99,33 @@ export class DirHandle extends BaseHandle {
     return count;
   }
 
-  async *entries() {}
-  async *keys() {}
-  async *values() {}
+  async *keys() {
+    for await (let key of this.handle.keys()) {
+      yield key;
+    }
+  }
 
-  async *some() {}
+  async *entries() {
+    for await (let key of this.keys()) {
+      const handle = await this.get(key);
+      yield [key, handle];
+    }
+  }
+
+  async *values() {
+    for await (let [key, value] of this.entries()) {
+      yield value;
+    }
+  }
+
+  async some(callback) {
+    // 遍历目录，如果回调返回true则提前退出
+    for await (let [key, value] of this.entries()) {
+      if (await callback(value, key, this)) {
+        break;
+      }
+    }
+  }
 
   // 扁平化获取所有的子文件（包括多级子孙代）
   async flat() {}

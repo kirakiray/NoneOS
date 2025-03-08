@@ -11,14 +11,28 @@
       import { init } from "/packages/fs/main.js";
 
       // 确保初始化空间
-      const testDir3 = await init("test-dir3");
+      let testDir4 = await init("test-dir4");
 
-      const file2 = await testDir3.get("a/b/c/d/file2.txt", { create: "file" });
-      const f2_parent = await file2.parent();
+      const funcs = [];
+      for await (let e of testDir4.values()) {
+        // await e.remove();
+        funcs.push(e);
+      }
+      await Promise.all(funcs.map((e) => e.remove()));
 
-      const dir_d = await testDir3.get("a/b/c/d");
+      // for (let i = 0; i < 10; i++) {
+      //   const file = await testDir4.get(`test${i}.txt`, { create: "file" });
+      //   await file.write("some text " + i);
 
-      console.log(await f2_parent.isSame(dir_d));
+      //   const subFile = await testDir4.get(`subdir-${i}/sub.txt`, {
+      //     create: "file",
+      //   });
+      //   await subFile.write("sub text " + i);
+      // }
+
+      const length = await testDir4.length();
+
+      console.log(length);
     </script>
   </body>
 </html>
