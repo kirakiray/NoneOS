@@ -45,18 +45,16 @@
       return this.#root || this;
     }
 
+    async remove() {
+      const parent = await this.parent();
+
+      await parent.#originHandle.removeEntry(this.#originHandle.name);
+    }
+
     async moveTo() {}
 
     async copyTo() {}
-
-    async remove() {}
   }
-
-  // const writerWorkerPath = import.meta.resolve("./fs-write-worker.js");
-
-  // const isSafari =
-  //   navigator.userAgent.includes("Safari") &&
-  //   !navigator.userAgent.includes("Chrome");
 
   class FileHandle extends BaseHandle {
     constructor(...args) {
@@ -88,31 +86,6 @@
     }
 
     async write(data) {
-      // const { path } = await this;
-
-      // if (isSafari) {
-      //   return new Promise((resolve, reject) => {
-      //     const worker = new Worker(writerWorkerPath);
-      //     worker.postMessage({
-      //       // fileHandle: this.handle,
-      //       path,
-      //       content: data,
-      //     });
-      //     worker.onmessage = async (event) => {
-      //       const { success, error } = event.data;
-
-      //       if (success) {
-      //         console.log("文件写入成功！");
-      //         resolve(true);
-      //       } else {
-      //         reject(error);
-      //       }
-
-      //       worker.terminate();
-      //     };
-      //   });
-      // }
-
       const handle = this.handle;
       const steam = await handle.createWritable();
       await steam.write(data);
@@ -251,13 +224,24 @@
       return "dir";
     }
 
+    // 获取子文件数量
+    async length() {
+      let count = 0;
+      // 遍历目录下所有文件和文件夹
+      for await (const [name, handle] of this.handle.entries()) {
+        count++;
+      }
+      return count;
+    }
+
     async *entries() {}
     async *keys() {}
     async *values() {}
 
     async *some() {}
 
-    async length() {}
+    // 扁平化获取所有的子文件（包括多级子孙代）
+    async flat() {}
   }
 
   // 响应文件相关的请求

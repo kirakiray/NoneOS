@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Parent Directory Test</title>
+    <title>Normal Test</title>
   </head>
   <body>
     <script src="/sw/register.js" type="module"></script>
@@ -52,7 +52,7 @@
       });
 
       // 测试删除
-      await runTest("Remote Test", async () => {
+      await runTest("Remove Test", async () => {
         const testFile = await testDirectory.get("a2/test2.txt", {
           create: "file",
         });
@@ -68,6 +68,23 @@
         return {
           assert: !reTestFile,
           content: `Expected file to be deleted`,
+        };
+      });
+
+      await runTest("Dir Length Test", async () => {
+        for (let i = 0; i < 10; i++) {
+          const testFile = await testDirectory.get(`a3/test${i}.txt`, {
+            create: "file",
+          });
+
+          await testFile.write("some text " + i);
+        }
+
+        const len = await (await testDirectory.get("a3")).length();
+
+        return {
+          assert: len === 10,
+          content: `Expected length to be 10, got ${len}`,
         };
       });
     </script>

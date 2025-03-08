@@ -21,9 +21,11 @@ test.describe("File System Handle Tests", () => {
     await testSucceedCount(page, 1);
   });
 
-  test("Parent And Root test", async ({ page }) => {
-    await page.goto("tests/fs/handle/parent-dir.html");
+  test("Normal test", async ({ page }) => {
+    await page.goto("tests/fs/handle/normal.html");
 
-    await testSucceedCount(page, 3);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 4);
   });
 });

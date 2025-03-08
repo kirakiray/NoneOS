@@ -89,8 +89,15 @@ export class DirHandle extends BaseHandle {
     return "dir";
   }
 
-  // 扁平化获取所有的子文件（包括多级子孙代）
-  async flat() {}
+  // 获取子文件数量
+  async length() {
+    let count = 0;
+    // 遍历目录下所有文件和文件夹
+    for await (const [name, handle] of this.handle.entries()) {
+      count++;
+    }
+    return count;
+  }
 
   async *entries() {}
   async *keys() {}
@@ -98,5 +105,6 @@ export class DirHandle extends BaseHandle {
 
   async *some() {}
 
-  async length() {}
+  // 扁平化获取所有的子文件（包括多级子孙代）
+  async flat() {}
 }
