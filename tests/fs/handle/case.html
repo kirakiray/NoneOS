@@ -13,12 +13,11 @@
       // 确保初始化空间
       let testDir4 = await init("test-dir4");
 
-      const funcs = [];
-      for await (let e of testDir4.values()) {
-        // await e.remove();
-        funcs.push(e);
-      }
-      await Promise.all(funcs.map((e) => e.remove()));
+      // const flats = await testDir4.flat();
+
+      // for await (let e of testDir4.values()) {
+      //   await e.remove();
+      // }
 
       // for (let i = 0; i < 10; i++) {
       //   const file = await testDir4.get(`test${i}.txt`, { create: "file" });
