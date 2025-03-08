@@ -6,7 +6,7 @@ export class FileHandle extends BaseHandle {
   }
 
   // 读取文件
-  async read(options) {
+  async read(options = {}) {
     // options = {
     //   type: "text",
     //   start: "",

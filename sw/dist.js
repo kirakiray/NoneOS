@@ -16,6 +16,10 @@
       return this.#originHandle;
     }
 
+    get name() {
+      return this.#originHandle.name;
+    }
+
     get path() {
       if (this.#parent) {
         return `${this.#parent.path}/${this.#originHandle.name}`;
@@ -48,7 +52,31 @@
     async remove() {
       const parent = await this.parent();
 
-      await parent.#originHandle.removeEntry(this.#originHandle.name);
+      try {
+        // 如果是目录类型，需要先删除所有子文件和子目录
+        if (this.kind === "dir") {
+          // 获取所有文件和目录的扁平列表
+          const entries = await this.flat();
+
+          // 先删除所有文件
+          for (const entry of entries) {
+            if (entry.kind === "file") {
+              await entry.remove();
+            }
+          }
+
+          // 再删除所有目录（从深到浅）
+          const dirs = entries.filter((entry) => entry.kind === "dir");
+          for (let i = dirs.length - 1; i >= 0; i--) {
+            await dirs[i].remove();
+          }
+        }
+
+        // 最后删除当前目录或文件
+        await parent.#originHandle.removeEntry(this.#originHandle.name);
+      } catch (err) {
+        console.error("删除失败: ", this.#originHandle.name, err);
+      }
     }
 
     async moveTo() {}
@@ -62,7 +90,7 @@
     }
 
     // 读取文件
-    async read(options) {
+    async read(options = {}) {
       // options = {
       //   type: "text",
       //   start: "",
@@ -234,14 +262,50 @@
       return count;
     }
 
-    async *entries() {}
-    async *keys() {}
-    async *values() {}
+    async *keys() {
+      for await (let key of this.handle.keys()) {
+        yield key;
+      }
+    }
 
-    async *some() {}
+    async *entries() {
+      for await (let key of this.keys()) {
+        const handle = await this.get(key);
+        yield [key, handle];
+      }
+    }
+
+    async *values() {
+      for await (let [key, value] of this.entries()) {
+        yield value;
+      }
+    }
+
+    async some(callback) {
+      // 遍历目录，如果回调返回true则提前退出
+      for await (let [key, value] of this.entries()) {
+        if (await callback(value, key, this)) {
+          break;
+        }
+      }
+    }
 
     // 扁平化获取所有的子文件（包括多级子孙代）
-    async flat() {}
+    async flat() {
+      const result = [];
+      // 遍历当前目录下的所有文件和文件夹
+      for await (const [name, handle] of this.entries()) {
+        // 只有非目录类型才加入结果数组
+        if (handle.kind !== "dir") {
+          result.push(handle);
+        } else {
+          // 如果是文件夹，只获取其子文件
+          const children = await handle.flat();
+          result.push(...children);
+        }
+      }
+      return result;
+    }
   }
 
   // 响应文件相关的请求

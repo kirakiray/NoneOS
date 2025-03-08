@@ -13,6 +13,10 @@ export class BaseHandle {
     return this.#originHandle;
   }
 
+  get name() {
+    return this.#originHandle.name;
+  }
+
   get path() {
     if (this.#parent) {
       return `${this.#parent.path}/${this.#originHandle.name}`;

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Some Method Test</title>
+  </head>
+  <body>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { runTest } from "/tests/runTest.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-some");
+
+      // 测试 some 方法的使用
+      await runTest("Test DirHandle some method", async () => {
+        // 创建几个测试文件
+        const file1 = await testDir.get("file1.txt", { create: "file" });
+        const file2 = await testDir.get("file2.txt", { create: "file" });
+        const file3 = await testDir.get("file3.txt", { create: "file" });
+
+        // 写入一些内容
+        await file1.write("content1");
+        await file2.write("target content");
+        await file3.write("content3");
+
+        let foundTarget = false;
+        let count = 0;
+
+        // 使用 some 方法查找包含 "target" 的文件
+        await testDir.some(async (handle, name) => {
+          count++;
+          if (handle.kind === "file") {
+            const content = await handle.read();
+            if (content.includes("target")) {
+              foundTarget = true;
+              return true; // 找到目标文件后提前退出遍历
+            }
+          }
+          return false;
+        });
+
+        return {
+          assert: foundTarget && count === 2, // 应该在第二个文件就找到并退出
+          content: `Found target: ${foundTarget}, Iterations: ${count}`,
+        };
+      });
+    </script>
+  </body>
+</html>
