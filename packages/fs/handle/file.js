@@ -1,11 +1,5 @@
 import { BaseHandle } from "./base.js";
 
-// const writerWorkerPath = import.meta.resolve("./fs-write-worker.js");
-
-// const isSafari =
-//   navigator.userAgent.includes("Safari") &&
-//   !navigator.userAgent.includes("Chrome");
-
 export class FileHandle extends BaseHandle {
   constructor(...args) {
     super(...args);
@@ -36,31 +30,6 @@ export class FileHandle extends BaseHandle {
   }
 
   async write(data) {
-    // const { path } = await this;
-
-    // if (isSafari) {
-    //   return new Promise((resolve, reject) => {
-    //     const worker = new Worker(writerWorkerPath);
-    //     worker.postMessage({
-    //       // fileHandle: this.handle,
-    //       path,
-    //       content: data,
-    //     });
-    //     worker.onmessage = async (event) => {
-    //       const { success, error } = event.data;
-
-    //       if (success) {
-    //         console.log("文件写入成功！");
-    //         resolve(true);
-    //       } else {
-    //         reject(error);
-    //       }
-
-    //       worker.terminate();
-    //     };
-    //   });
-    // }
-
     const handle = this.handle;
     const steam = await handle.createWritable();
     await steam.write(data);

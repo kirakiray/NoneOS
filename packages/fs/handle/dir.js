@@ -89,6 +89,9 @@ export class DirHandle extends BaseHandle {
     return "dir";
   }
 
+  // 扁平化获取所有的子文件（包括多级子孙代）
+  async flat() {}
+
   async *entries() {}
   async *keys() {}
   async *values() {}
