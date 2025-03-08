@@ -7,54 +7,42 @@
   <body>
     <script type="module">
       import { init } from "/packages/fs/main.js";
-      import { runTest, initTestContainer } from "/tests/runTest.js";
+      import { runTest } from "/tests/runTest.js";
 
-      const results = initTestContainer("File Write and Get Test");
+      // 初始化测试目录
+      const testDir = await init("testDir2");
 
-      async function runAllTests() {
-        // 初始化测试目录
-        const testDir = await init("testDir2");
+      // 测试文件创建和写入
+      await runTest("Create and Write File", async () => {
+        const file1 = await testDir.get("file1.txt", { create: "file" });
+        const someText = "Write some text " + Math.random();
+        await file1.write(someText);
+        const text2 = await file1.text();
+        return {
+          assert: someText === text2,
+          content: someText + " -- " + text2,
+        };
+      });
 
-        // 测试文件创建和写入
-        results.appendChild(
-          await runTest("Create and Write File", async () => {
-            const file1 = await testDir.get("file1.txt", { create: "file" });
-            const someText = "Write some text " + Math.random();
-            await file1.write(someText);
-            const text2 = await file1.text();
-            return {
-              assert: someText === text2,
-              content: someText + " -- " + text2,
-            };
-          })
-        );
+      // 测试文件读取
+      await runTest("Read Existing File", async () => {
+        const file1 = await testDir.get("file1.txt");
+        const content = await file1.text();
+        return {
+          assert: content.includes("Write some text"),
+          content: "Read succeed",
+        };
+      });
 
-        // 测试文件读取
-        results.appendChild(
-          await runTest("Read Existing File", async () => {
-            const file1 = await testDir.get("file1.txt");
-            const content = await file1.text();
-            return {
-              assert: content.includes("Write some text"),
-              content: "Read succeed",
-            };
-          })
-        );
+      // 测试不存在的文件
+      await runTest("Try to Read Non-existent File", async () => {
+        const handle = await testDir.get("nonexistent.txt");
 
-        // 测试不存在的文件
-        results.appendChild(
-          await runTest("Try to Read Non-existent File", async () => {
-            const handle = await testDir.get("nonexistent.txt");
-
-            return {
-              assert: handle === null,
-              content: "nonexistent succeed",
-            };
-          })
-        );
-      }
-
-      runAllTests();
+        return {
+          assert: handle === null,
+          content: "nonexistent succeed",
+        };
+      });
     </script>
   </body>
 </html>

@@ -31,6 +31,11 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
+
+    // 禁用隐私模式
+    // launchOptions: {
+    //   args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    // },
   },
   // 设置全局超时时间为3秒
   timeout: 3000,
