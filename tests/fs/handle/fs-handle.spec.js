@@ -20,4 +20,10 @@ test.describe("File System Handle Tests", () => {
 
     await testSucceedCount(page, 1);
   });
+
+  test("Parent And Root test", async ({ page }) => {
+    await page.goto("tests/fs/handle/parent-dir.html");
+
+    await testSucceedCount(page, 2);
+  });
 });

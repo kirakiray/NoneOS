@@ -1,10 +1,12 @@
 // 对OPFS进行封装
 export class BaseHandle {
   #originHandle = null;
-  #parentPath;
+  #parent;
+  #root;
   constructor(dirHandle, options = {}) {
     this.#originHandle = dirHandle;
-    this.#parentPath = options.parentPath;
+    this.#root = options.root;
+    this.#parent = options.parent;
   }
 
   get handle() {
@@ -12,10 +14,37 @@ export class BaseHandle {
   }
 
   get path() {
-    if (this.#parentPath) {
-      return `${this.#parentPath}/${this.#originHandle.name}`;
+    if (this.#parent) {
+      return `${this.#parent.path}/${this.#originHandle.name}`;
     }
 
     return this.#originHandle.name;
   }
+
+  async size() {
+    if (this.kind === "file") {
+      const file = await this.file();
+      return file.size;
+    }
+
+    return null;
+  }
+
+  async isSame(target) {
+    return this.#originHandle.isSameEntry(target.handle);
+  }
+
+  async parent() {
+    return this.#parent;
+  }
+
+  async root() {
+    return this.#root || this;
+  }
+
+  async moveTo() {}
+
+  async copyTo() {}
+
+  async remove() {}
 }

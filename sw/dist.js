@@ -4,27 +4,52 @@
   // 对OPFS进行封装
   class BaseHandle {
     #originHandle = null;
-    #parentPath;
+    #parent;
+    #root;
     constructor(dirHandle, options = {}) {
       this.#originHandle = dirHandle;
-      this.#parentPath = options.parentPath;
+      this.#root = options.root;
+      this.#parent = options.parent;
     }
 
     get handle() {
       return this.#originHandle;
     }
 
-    async kind() {
-      return this.#originHandle.kind;
-    }
-
     get path() {
-      if (this.#parentPath) {
-        return `${this.#parentPath}/${this.#originHandle.name}`;
+      if (this.#parent) {
+        return `${this.#parent.path}/${this.#originHandle.name}`;
       }
 
       return this.#originHandle.name;
     }
+
+    async size() {
+      if (this.kind === "file") {
+        const file = await this.file();
+        return file.size;
+      }
+
+      return null;
+    }
+
+    async isSame(target) {
+      return this.#originHandle.isSameEntry(target.handle);
+    }
+
+    async parent() {
+      return this.#parent;
+    }
+
+    async root() {
+      return this.#root || this;
+    }
+
+    async moveTo() {}
+
+    async copyTo() {}
+
+    async remove() {}
   }
 
   // const writerWorkerPath = import.meta.resolve("./fs-write-worker.js");
@@ -76,9 +101,6 @@
       //     worker.onmessage = async (event) => {
       //       const { success, error } = event.data;
 
-      //       // BUG: 这里需要一个延时，否则写入的文件会丢失
-      //       await new Promise((resolve) => setTimeout(resolve, 100));
-
       //       if (success) {
       //         console.log("文件写入成功！");
       //         resolve(true);
@@ -119,11 +141,25 @@
     }
 
     async base64(options) {
-      debugger;
+      const file = await this.file(options);
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+        reader.onerror = (error) => {
+          reject(error);
+        };
+        reader.readAsDataURL(file);
+      });
     }
 
-    get lastModified() {
-      return this.file.lastModified;
+    async lastModified() {
+      return (await this.file()).lastModified;
+    }
+
+    get kind() {
+      return "file";
     }
   }
 
@@ -135,25 +171,49 @@
     async get(name, options) {
       const { create } = options || {};
 
+      // 多重路径进行递归
+      if (name.includes("/")) {
+        const names = name.split("/");
+        let handle = this;
+        while (names.length) {
+          const name = names.shift();
+          let innerCreate;
+          if (create) {
+            if (names.length) {
+              innerCreate = "dir";
+            } else {
+              innerCreate = create;
+            }
+          }
+          handle = await handle.get(name, {
+            create: innerCreate,
+          });
+        }
+
+        return handle;
+      }
+
       // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-      let beforeHandle = await this.handle.getFileHandle(name).catch(() => null);
-      if (!beforeHandle) {
-        beforeHandle = await this.handle
+      let beforeOriHandle = await this.handle
+        .getFileHandle(name)
+        .catch(() => null);
+      if (!beforeOriHandle) {
+        beforeOriHandle = await this.handle
           .getDirectoryHandle(name)
           .catch(() => null);
       }
 
-      if (!create && !beforeHandle) {
+      if (!create && !beforeOriHandle) {
         //   throw new Error(`${name} is not exist`);
         // 找不到文件或文件夹，返回null
         return null;
       }
 
-      if (beforeHandle) {
+      if (beforeOriHandle) {
         // 如果存在文件，看是否与 create 参数冲突
-        if (create === "file" && beforeHandle.kind !== "file") {
+        if (create === "file" && beforeOriHandle.kind !== "file") {
           throw new Error(`${name} is not a file`);
-        } else if (create === "dir" && beforeHandle.kind !== "directory") {
+        } else if (create === "dir" && beforeOriHandle.kind !== "directory") {
           throw new Error(`${name} is not a directory`);
         }
       } else {
@@ -164,27 +224,40 @@
           funcName = "getFileHandle";
         }
 
-        beforeHandle = await this.handle[funcName](name, {
+        beforeOriHandle = await this.handle[funcName](name, {
           create: true,
         });
       }
 
       // 根据handle类型返回
-      if (beforeHandle.kind === "file") {
-        return new FileHandle(beforeHandle, {
+      if (beforeOriHandle.kind === "file") {
+        return new FileHandle(beforeOriHandle, {
           parentPath: this.path,
+          parent: this,
+          root: (await this.root()) || this,
         });
-      } else if (beforeHandle.kind === "dir") {
-        return new DirHandle(beforeHandle, {
+      } else if (beforeOriHandle.kind === "directory") {
+        return new DirHandle(beforeOriHandle, {
           parentPath: this.path,
+          parent: this,
+          root: (await this.root()) || this,
         });
       }
 
-      // 不应该存在的情况会到这里
-      debugger;
+      return null;
     }
 
-    remove() {}
+    get kind() {
+      return "dir";
+    }
+
+    async *entries() {}
+    async *keys() {}
+    async *values() {}
+
+    async *some() {}
+
+    async length() {}
   }
 
   // 响应文件相关的请求

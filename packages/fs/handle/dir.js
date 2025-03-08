@@ -9,25 +9,49 @@ export class DirHandle extends BaseHandle {
   async get(name, options) {
     const { create } = options || {};
 
+    // 多重路径进行递归
+    if (name.includes("/")) {
+      const names = name.split("/");
+      let handle = this;
+      while (names.length) {
+        const name = names.shift();
+        let innerCreate;
+        if (create) {
+          if (names.length) {
+            innerCreate = "dir";
+          } else {
+            innerCreate = create;
+          }
+        }
+        handle = await handle.get(name, {
+          create: innerCreate,
+        });
+      }
+
+      return handle;
+    }
+
     // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-    let beforeHandle = await this.handle.getFileHandle(name).catch(() => null);
-    if (!beforeHandle) {
-      beforeHandle = await this.handle
+    let beforeOriHandle = await this.handle
+      .getFileHandle(name)
+      .catch(() => null);
+    if (!beforeOriHandle) {
+      beforeOriHandle = await this.handle
         .getDirectoryHandle(name)
         .catch(() => null);
     }
 
-    if (!create && !beforeHandle) {
+    if (!create && !beforeOriHandle) {
       //   throw new Error(`${name} is not exist`);
       // 找不到文件或文件夹，返回null
       return null;
     }
 
-    if (beforeHandle) {
+    if (beforeOriHandle) {
       // 如果存在文件，看是否与 create 参数冲突
-      if (create === "file" && beforeHandle.kind !== "file") {
+      if (create === "file" && beforeOriHandle.kind !== "file") {
         throw new Error(`${name} is not a file`);
-      } else if (create === "dir" && beforeHandle.kind !== "directory") {
+      } else if (create === "dir" && beforeOriHandle.kind !== "directory") {
         throw new Error(`${name} is not a directory`);
       }
     } else {
@@ -38,29 +62,38 @@ export class DirHandle extends BaseHandle {
         funcName = "getFileHandle";
       }
 
-      beforeHandle = await this.handle[funcName](name, {
+      beforeOriHandle = await this.handle[funcName](name, {
         create: true,
       });
     }
 
     // 根据handle类型返回
-    if (beforeHandle.kind === "file") {
-      return new FileHandle(beforeHandle, {
+    if (beforeOriHandle.kind === "file") {
+      return new FileHandle(beforeOriHandle, {
         parentPath: this.path,
+        parent: this,
+        root: (await this.root()) || this,
       });
-    } else if (beforeHandle.kind === "dir") {
-      return new DirHandle(beforeHandle, {
+    } else if (beforeOriHandle.kind === "directory") {
+      return new DirHandle(beforeOriHandle, {
         parentPath: this.path,
+        parent: this,
+        root: (await this.root()) || this,
       });
     }
 
-    // 不应该存在的情况会到这里
-    debugger;
+    return null;
   }
-
-  remove() {}
 
   get kind() {
     return "dir";
   }
+
+  async *entries() {}
+  async *keys() {}
+  async *values() {}
+
+  async *some() {}
+
+  async length() {}
 }

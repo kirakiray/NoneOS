@@ -13,18 +13,12 @@
       // 确保初始化空间
       const testDir3 = await init("test-dir3");
 
-      const file1 = await testDir3.get("file1.txt", { create: "file" });
+      const file2 = await testDir3.get("a/b/c/d/file2.txt", { create: "file" });
+      const f2_parent = await file2.parent();
 
-      // 写入数据
-      const someText = "Write some text " + Math.random();
+      const dir_d = await testDir3.get("a/b/c/d");
 
-      await file1.write(someText);
-
-      const content = await fetch("/$test-dir3/file1.txt").then((e) =>
-        e.text()
-      );
-
-      console.log("content: ", content);
+      console.log(await f2_parent.isSame(dir_d));
     </script>
   </body>
 </html>
