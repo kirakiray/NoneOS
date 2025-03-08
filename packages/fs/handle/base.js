@@ -49,31 +49,10 @@ export class BaseHandle {
   async remove() {
     const parent = await this.parent();
 
-    try {
-      // 如果是目录类型，需要先删除所有子文件和子目录
-      if (this.kind === "dir") {
-        // 获取所有文件和目录的扁平列表
-        const entries = await this.flat();
-
-        // 先删除所有文件
-        for (const entry of entries) {
-          if (entry.kind === "file") {
-            await entry.remove();
-          }
-        }
-
-        // 再删除所有目录（从深到浅）
-        const dirs = entries.filter((entry) => entry.kind === "dir");
-        for (let i = dirs.length - 1; i >= 0; i--) {
-          await dirs[i].remove();
-        }
-      }
-
-      // 最后删除当前目录或文件
-      await parent.#originHandle.removeEntry(this.#originHandle.name);
-    } catch (err) {
-      console.error("删除失败: ", this.#originHandle.name, err);
-    }
+    // 最后删除当前目录或文件
+    await parent.#originHandle.removeEntry(this.#originHandle.name, {
+      recursive: true,
+    });
   }
 
   async moveTo() {}
