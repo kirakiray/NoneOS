@@ -49,9 +49,6 @@ export class FileHandle extends BaseHandle {
     //     worker.onmessage = async (event) => {
     //       const { success, error } = event.data;
 
-    //       // BUG: 这里需要一个延时，否则写入的文件会丢失
-    //       await new Promise((resolve) => setTimeout(resolve, 100));
-
     //       if (success) {
     //         console.log("文件写入成功！");
     //         resolve(true);
@@ -92,10 +89,20 @@ export class FileHandle extends BaseHandle {
   }
 
   async base64(options) {
-    debugger;
+    const file = await this.file(options);
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        resolve(reader.result);
+      };
+      reader.onerror = (error) => {
+        reject(error);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
-  get lastModified() {
-    return this.file.lastModified;
+  async lastModified() {
+    return (await this.file()).lastModified;
   }
 }
