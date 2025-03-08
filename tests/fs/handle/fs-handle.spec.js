@@ -24,6 +24,6 @@ test.describe("File System Handle Tests", () => {
   test("Parent And Root test", async ({ page }) => {
     await page.goto("tests/fs/handle/parent-dir.html");
 
-    await testSucceedCount(page, 2);
+    await testSucceedCount(page, 3);
   });
 });

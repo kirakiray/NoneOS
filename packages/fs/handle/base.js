@@ -42,9 +42,13 @@ export class BaseHandle {
     return this.#root || this;
   }
 
+  async remove() {
+    const parent = await this.parent();
+
+    await parent.#originHandle.removeEntry(this.#originHandle.name);
+  }
+
   async moveTo() {}
 
   async copyTo() {}
-
-  async remove() {}
 }

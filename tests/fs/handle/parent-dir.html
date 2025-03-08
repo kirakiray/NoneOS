@@ -31,7 +31,7 @@
         };
       });
 
-      // 测试父目录是否相同
+      // 测试根目录是否相同
       await runTest("Root Comparison Test", async () => {
         const testFile = await testDirectory.get("a/b/c/d/test.txt", {
           create: "file",
@@ -48,6 +48,26 @@
         return {
           assert: isSame,
           content: `Expected root directory to be the same as directory 'd'`,
+        };
+      });
+
+      // 测试删除
+      await runTest("Remote Test", async () => {
+        const testFile = await testDirectory.get("a2/test2.txt", {
+          create: "file",
+        });
+
+        await testFile.write("some text");
+
+        const size = await testFile.size();
+
+        await testFile.remove();
+
+        const reTestFile = await testDirectory.get("a2/test2.txt");
+
+        return {
+          assert: !reTestFile,
+          content: `Expected file to be deleted`,
         };
       });
     </script>
