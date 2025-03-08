@@ -11,10 +11,10 @@
 //   };
 // }
 
-const registration = navigator.serviceWorker.register("/sw.js", {
-  type: "module",
-});
-// const registration = navigator.serviceWorker.register("/sw.js");
+// const registration = navigator.serviceWorker.register("/sw.js", {
+//   type: "module",
+// });
+const registration = navigator.serviceWorker.register("/sw.js");
 
 setTimeout(async () => {
   try {

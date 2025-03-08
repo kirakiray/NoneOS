@@ -20,6 +20,8 @@
         const someText = "Write some text " + Math.random();
         await file1.write(someText);
 
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
         const content = await fetch("/$test-dir3/file1.txt").then((e) =>
           e.text()
         );
