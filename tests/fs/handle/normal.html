@@ -52,7 +52,7 @@
       });
 
       // 测试删除
-      await runTest("Remove Test", async () => {
+      await runTest("Remove And Size Test", async () => {
         const testFile = await testDirectory.get("a2/test2.txt", {
           create: "file",
         });
@@ -66,7 +66,7 @@
         const reTestFile = await testDirectory.get("a2/test2.txt");
 
         return {
-          assert: !reTestFile,
+          assert: !reTestFile && size === 9,
           content: `Expected file to be deleted`,
         };
       });
