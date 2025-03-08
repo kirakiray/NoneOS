@@ -78,11 +78,8 @@ export class BaseHandle {
       create: "dir",
     });
 
-    // 获取当前目录下的所有条目
-    const entries = await this.entries();
-
     // 递归复制所有子文件和子目录
-    for (const [entryName, entry] of entries) {
+    for await (const [entryName, entry] of this.entries()) {
       await entry.copyTo(newDir, entryName);
     }
 

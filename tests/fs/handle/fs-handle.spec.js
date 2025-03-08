@@ -60,4 +60,12 @@ test.describe("File System Handle Tests", () => {
 
     await testSucceedCount(page, 1);
   });
+
+  test("CopyTo test", async ({ page }) => {
+    await page.goto("tests/fs/handle/copy-to.html");
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 4);
+  });
 });

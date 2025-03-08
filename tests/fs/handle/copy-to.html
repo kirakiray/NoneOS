@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CopyTo Method Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { runTest } from "/tests/runTest.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-copy");
+
+      // 测试复制单个文件
+      await runTest("Test copy single file", async () => {
+        // 创建源文件
+        const sourceFile = await testDir.get("source.txt", { create: "file" });
+        await sourceFile.write("Hello, World!");
+
+        // 创建目标目录
+        const targetDir = await testDir.get("target", { create: "dir" });
+
+        // 复制文件
+        const copiedFile = await sourceFile.copyTo(targetDir, "copied.txt");
+
+        // 验证复制的文件内容
+        const content = await copiedFile.read();
+
+        return {
+          assert: content === "Hello, World!",
+          content: `Copied file content: ${content}`,
+        };
+      });
+
+      // 测试复制目录及其内容
+      await runTest("Test copy directory with contents", async () => {
+        // 创建源目录结构
+        const sourceDir = await testDir.get("sourceDir", { create: "dir" });
+        const file1 = await sourceDir.get("file1.txt", { create: "file" });
+        const subDir = await sourceDir.get("subDir", { create: "dir" });
+        const file2 = await subDir.get("file2.txt", { create: "file" });
+
+        // 写入测试内容
+        await file1.write("Content 1");
+        await file2.write("Content 2");
+
+        // 复制整个目录
+        const targetDir = await testDir.get("targetDir", { create: "dir" });
+        const copiedDir = await sourceDir.copyTo(targetDir);
+
+        // 验证复制的目录结构
+        const copiedFile1 = await copiedDir.get("file1.txt");
+        const copiedSubDir = await copiedDir.get("subDir");
+        const copiedFile2 = await copiedSubDir.get("file2.txt");
+
+        const content1 = await copiedFile1.read();
+        const content2 = await copiedFile2.read();
+
+        return {
+          assert: content1 === "Content 1" && content2 === "Content 2",
+          content: `Copied structure verified:\nfile1: ${content1}\nfile2: ${content2}`,
+        };
+      });
+
+      // 测试复制到同一目录（重命名）
+      await runTest("Test copy with rename in same directory", async () => {
+        const sourceFile = await testDir.get("original.txt", {
+          create: "file",
+        });
+        await sourceFile.write("Original content");
+
+        // 在同一目录下复制并重命名
+        const copiedFile = await sourceFile.copyTo("renamed.txt");
+        const content = await copiedFile.read();
+
+        return {
+          assert: content === "Original content",
+          content: `Renamed file content: ${content}`,
+        };
+      });
+
+      // 测试错误情况
+      await runTest("Test copy error cases", async () => {
+        const sourceDir = await testDir.get("sourceDir", { create: "dir" });
+        const targetDir = await testDir.get("sourceDir/subDir", {
+          create: "dir",
+        });
+
+        try {
+          await sourceDir.copyTo(targetDir);
+          return {
+            assert: false,
+            content:
+              "Should not be able to copy directory into its subdirectory",
+          };
+        } catch (error) {
+          return {
+            assert: error.message.includes("Cannot copy"),
+            content: `Expected error caught: ${error.message}`,
+          };
+        }
+      });
+    </script>
+  </body>
+</html>
