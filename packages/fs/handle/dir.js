@@ -59,4 +59,8 @@ export class DirHandle extends BaseHandle {
   }
 
   remove() {}
+
+  get kind() {
+    return "dir";
+  }
 }

@@ -11,10 +11,6 @@ export class BaseHandle {
     return this.#originHandle;
   }
 
-  async kind() {
-    return this.#originHandle.kind;
-  }
-
   get path() {
     if (this.#parentPath) {
       return `${this.#parentPath}/${this.#originHandle.name}`;

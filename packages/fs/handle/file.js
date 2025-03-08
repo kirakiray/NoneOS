@@ -105,4 +105,8 @@ export class FileHandle extends BaseHandle {
   async lastModified() {
     return (await this.file()).lastModified;
   }
+
+  get kind() {
+    return "file";
+  }
 }
