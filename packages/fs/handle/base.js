@@ -1,12 +1,11 @@
-export class BaseHandle {
+import { PublicBaseHandle } from "../public-base.js";
+
+export class BaseHandle extends PublicBaseHandle {
   // 对OPFS进行封装
   #originHandle = null;
-  #parent;
-  #root;
   constructor(dirHandle, options = {}) {
+    super(options);
     this.#originHandle = dirHandle;
-    this.#root = options.root;
-    this.#parent = options.parent;
   }
 
   get handle() {
@@ -14,14 +13,6 @@ export class BaseHandle {
   }
 
   get name() {
-    return this.#originHandle.name;
-  }
-
-  get path() {
-    if (this.#parent) {
-      return `${this.#parent.path}/${this.#originHandle.name}`;
-    }
-
     return this.#originHandle.name;
   }
 
@@ -36,14 +27,6 @@ export class BaseHandle {
 
   async isSame(target) {
     return this.#originHandle.isSameEntry(target.handle);
-  }
-
-  get parent() {
-    return this.#parent;
-  }
-
-  get root() {
-    return this.#root || this;
   }
 
   async remove() {

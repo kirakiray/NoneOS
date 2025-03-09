@@ -1,15 +1,37 @@
 (function () {
   'use strict';
 
-  class BaseHandle {
-    // 对OPFS进行封装
-    #originHandle = null;
+  class PublicBaseHandle {
     #parent;
     #root;
-    constructor(dirHandle, options = {}) {
-      this.#originHandle = dirHandle;
-      this.#root = options.root;
+    constructor(options) {
       this.#parent = options.parent;
+      this.#root = options.root;
+    }
+
+    get parent() {
+      return this.#parent;
+    }
+
+    get root() {
+      return this.#root || this;
+    }
+
+    get path() {
+      if (this.parent) {
+        return `${this.parent.path}/${this.name}`;
+      }
+
+      return this.name;
+    }
+  }
+
+  class BaseHandle extends PublicBaseHandle {
+    // 对OPFS进行封装
+    #originHandle = null;
+    constructor(dirHandle, options = {}) {
+      super(options);
+      this.#originHandle = dirHandle;
     }
 
     get handle() {
@@ -17,14 +39,6 @@
     }
 
     get name() {
-      return this.#originHandle.name;
-    }
-
-    get path() {
-      if (this.#parent) {
-        return `${this.#parent.path}/${this.#originHandle.name}`;
-      }
-
       return this.#originHandle.name;
     }
 
@@ -39,14 +53,6 @@
 
     async isSame(target) {
       return this.#originHandle.isSameEntry(target.handle);
-    }
-
-    get parent() {
-      return this.#parent;
-    }
-
-    get root() {
-      return this.#root || this;
     }
 
     async remove() {

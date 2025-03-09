@@ -1,4 +1,4 @@
-import { BaseDBHandle } from "./base.js";
+import { DirDBHandle } from "./dir.js";
 import { getData, setData, getRandomId } from "./db.js";
 
 export const init = async (name) => {
@@ -23,7 +23,7 @@ export const init = async (name) => {
 
   debugger;
 
-  return new BaseDBHandle({
+  return new DirDBHandle({
     name: rootData.name,
     dbId: rootData.id,
     //  root,
