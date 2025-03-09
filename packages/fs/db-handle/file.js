@@ -10,7 +10,12 @@ export class FileDBHandle extends BaseDBHandle {
   async read(options = {}) {
     const tx = this._db.transaction(["files"], "readonly");
     const store = tx.objectStore("files");
-    const file = await store.get(this.path);
+    const request = store.get(this.path);
+
+    const file = await new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
 
     if (!file) {
       throw new Error(`File ${this.path} not found`);
