@@ -1,9 +1,12 @@
-import { get as handleGet, init as handleInit } from "./handle/main.js";
+import {
+  get as systemHandleGet,
+  init as systemHandleInit,
+} from "./handle/main.js";
 
 export const init = async (name) => {
-  return handleGet(name);
+  return systemHandleGet(name);
 };
 
 export const get = async (path, options) => {
-  return handleInit(path, options);
+  return systemHandleInit(path, options);
 };
