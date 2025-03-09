@@ -4,9 +4,9 @@ import {
 } from "./handle/main.js";
 
 export const init = async (name) => {
-  return systemHandleGet(name);
+  return await systemHandleInit(name);
 };
 
 export const get = async (path, options) => {
-  return systemHandleInit(path, options);
+  return await systemHandleGet(path, options);
 };
