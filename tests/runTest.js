@@ -1,7 +1,8 @@
 let resultsContainer;
 
 export function initTestContainer(title) {
-  document.body.innerHTML = `
+  const div = document.createElement("div");
+  div.innerHTML = `
     <h1>${title}</h1>
     <div>UA: ${navigator.userAgent}</div>
     <div id="results"></div>
@@ -11,6 +12,7 @@ export function initTestContainer(title) {
       .test-case { margin: 10px 0; }
     </style>
   `;
+  document.body.append(div);
   resultsContainer = document.getElementById("results");
 }
 initTestContainer(document.querySelector("title").innerText);

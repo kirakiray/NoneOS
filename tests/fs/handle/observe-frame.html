@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Frame for Cross-Tab Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+
+      // 在 iframe 中初始化并操作文件系统
+      const testDir = await init("test-dir-cross-tab");
+      
+      // 创建文件
+      const file = await testDir.get("test-from-iframe.txt", { create: "file" });
+      await file.write("Hello from iframe!");
+      
+      // 删除文件
+      await file.remove();
+    </script>
+  </body>
+</html>

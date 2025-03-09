@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cross-Tab Observe Test</title>
+  </head>
+  <body>
+    <iframe id="testFrame" style="width: 0; height: 0; border: none;"></iframe>
+
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { runTest } from "/tests/runTest.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-cross-tab");
+
+      // 测试跨标签页文件变化监听
+      await runTest("Test cross-tab file observation", async () => {
+        const events = [];
+        
+        // 创建观察者
+        const unobserve = await testDir.observe((event) => {
+          events.push(event);
+        });
+
+        // 获取 iframe 元素
+        const iframe = document.getElementById('testFrame');
+        
+        // 创建一个 Promise 来等待 iframe 加载完成
+        await new Promise((resolve) => {
+          iframe.src = '/tests/fs/handle/observe-frame.html';
+          iframe.onload = resolve;
+        });
+
+        // 等待 iframe 中的操作完成
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // 取消观察
+        unobserve();
+
+        return {
+          assert: events.length > 0,
+          content: `Received ${events.length} events from other tab:\n${events.map(e => 
+            `- Type: ${e.type}, Path: ${e.path}`
+          ).join('\n')}`,
+        };
+      });
+    </script>
+  </body>
+</html>
