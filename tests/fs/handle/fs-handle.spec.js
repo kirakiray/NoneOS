@@ -76,4 +76,20 @@ test.describe("File System Handle Tests", () => {
 
     await testSucceedCount(page, 4);
   });
+
+  test("Observe test", async ({ page }) => {
+    await page.goto("tests/fs/handle/observe.html");
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 3);
+  });
+
+  test("Cross-Tab Observe test", async ({ page }) => {
+    await page.goto("tests/fs/handle/observe-tabs.html");
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 1);
+  });
 });
