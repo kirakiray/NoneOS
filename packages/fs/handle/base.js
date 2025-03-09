@@ -1,3 +1,23 @@
+// 监听文件系统变化
+const castChannel = new BroadcastChannel("nonefs-system-handle-change");
+castChannel.onmessage = (event) => {};
+
+// 观察者集合
+const observers = new Set();
+
+// 文件发生变动，就除法这个方法，通知所有的观察者
+export const notify = ({ path, ...others }) => {
+  observers.forEach((observer) => {
+    // 只通知当前目录下或文件的观察者
+    if (observer.handle.path.includes(path)) {
+      observer.func({
+        path,
+        ...others,
+      });
+    }
+  });
+};
+
 // 对OPFS进行封装
 export class BaseHandle {
   #originHandle = null;
@@ -52,6 +72,11 @@ export class BaseHandle {
     // 最后删除当前目录或文件
     await parent.#originHandle.removeEntry(this.#originHandle.name, {
       recursive: true,
+    });
+
+    notify({
+      path: this.path,
+      type: "remove",
     });
   }
 
@@ -118,6 +143,19 @@ export class BaseHandle {
     await this.remove();
 
     return newDir;
+  }
+
+  // 监听文件系统变化
+  async observe(func) {
+    const obj = {
+      func,
+      handle: this,
+    };
+    observers.add(obj);
+
+    return () => {
+      observers.delete(obj);
+    };
   }
 }
 

@@ -1,4 +1,4 @@
-import { BaseHandle } from "./base.js";
+import { BaseHandle, notify } from "./base.js";
 
 export class FileHandle extends BaseHandle {
   constructor(...args) {
@@ -34,6 +34,12 @@ export class FileHandle extends BaseHandle {
     const steam = await handle.createWritable();
     await steam.write(data);
     await steam.close();
+
+    notify({
+      path: handle.path,
+      type: "write",
+      data,
+    });
   }
 
   async file(options) {
