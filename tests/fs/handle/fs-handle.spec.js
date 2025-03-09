@@ -68,4 +68,12 @@ test.describe("File System Handle Tests", () => {
 
     await testSucceedCount(page, 4);
   });
+
+  test("MoveTo test", async ({ page }) => {
+    await page.goto("tests/fs/handle/move-to.html");
+
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    await testSucceedCount(page, 4);
+  });
 });

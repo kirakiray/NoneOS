@@ -93,6 +93,31 @@ export class BaseHandle {
       "move",
       this
     );
+
+    // 如果是文件，直接移动文件
+    if (this.kind === "file") {
+      const newHandle = await finalTarget.get(finalName, {
+        create: "file",
+      });
+      await newHandle.write(await this.file());
+      await this.remove();
+      return newHandle;
+    }
+
+    // 如果是目录，先创建新目录
+    const newDir = await finalTarget.get(finalName, {
+      create: "dir",
+    });
+
+    // 递归移动所有子文件和子目录
+    for await (const [entryName, entry] of this.entries()) {
+      await entry.moveTo(newDir, entryName);
+    }
+
+    // 删除原目录
+    await this.remove();
+
+    return newDir;
   }
 }
 
