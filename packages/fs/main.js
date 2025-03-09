@@ -1,4 +1,6 @@
 import { DirHandle } from "./handle/dir.js";
+// import { DirDBHandle } from "./db-handle/dir.js";
+
 // 获取根目录
 const opfsRootPms = navigator.storage.getDirectory();
 
@@ -40,7 +42,8 @@ export const get = async (path, options) => {
 };
 
 // 初始化空间
-export const init = async (name, options) => {
+// 默认使用DirHandle；type为db时，使用 DirDBHandle
+export const init = async (name, options = { type: "system" }) => {
   const opfsRoot = await opfsRootPms;
 
   const dir = await opfsRoot.getDirectoryHandle(name, { create: true });
