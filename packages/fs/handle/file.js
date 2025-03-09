@@ -36,7 +36,7 @@ export class FileHandle extends BaseHandle {
     await steam.close();
 
     notify({
-      path: handle.path,
+      path: this.path,
       type: "write",
       data,
     });

@@ -6,32 +6,9 @@
     <title>case</title>
   </head>
   <body>
-    <script src="/sw/register.js" type="module"></script>
+    <!-- <script src="/sw/register.js" type="module"></script> -->
     <script type="module">
-      import { init } from "/packages/fs/main.js";
-
-      // 确保初始化空间
-      // let testDir4 = await init("test-dir4");
-
-      // const flats = await testDir4.flat();
-
-      // for await (let e of testDir4.values()) {
-      //   await e.remove();
-      // }
-
-      // for (let i = 0; i < 10; i++) {
-      //   const file = await testDir4.get(`test${i}.txt`, { create: "file" });
-      //   await file.write("some text " + i);
-
-      //   const subFile = await testDir4.get(`subdir-${i}/sub.txt`, {
-      //     create: "file",
-      //   });
-      //   await subFile.write("sub text " + i);
-      // }
-
-      // const length = await testDir4.length();
-
-      console.log(length, testDir4);
+      import { DirDBHandle } from "/packages/fs/db-handle/dir.js";
     </script>
   </body>
 </html>

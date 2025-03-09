@@ -9,7 +9,7 @@ const observers = new Set();
 export const notify = ({ path, ...others }) => {
   observers.forEach((observer) => {
     // 只通知当前目录下或文件的观察者
-    if (observer.handle.path.includes(path)) {
+    if (path.includes(observer.handle.path)) {
       observer.func({
         path,
         ...others,
