@@ -72,13 +72,13 @@ export class DirHandle extends BaseHandle {
       return new FileHandle(beforeOriHandle, {
         parentPath: this.path,
         parent: this,
-        root: (await this.root()) || this,
+        root: this.root || this,
       });
     } else if (beforeOriHandle.kind === "directory") {
       return new DirHandle(beforeOriHandle, {
         parentPath: this.path,
         parent: this,
-        root: (await this.root()) || this,
+        root: this.root || this,
       });
     }
 

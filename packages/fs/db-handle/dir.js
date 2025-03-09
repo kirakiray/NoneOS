@@ -1,22 +1,9 @@
 import { BaseDBHandle } from "./base.js";
+import { getData, setData } from "./db.js";
 
 export class DirDBHandle extends BaseDBHandle {
-  constructor() {
-    super();
+  constructor(...args) {
+    super(...args);
   }
-  async get(name, options) {
-    const { create } = options;
-    const children = await this.children();
-    const child = children.find((child) => child.name === name);
-    if (child) {
-      return child;
-    }
-    if (create === "dir") {
-      return await this.createDir(name);
-    }
-    if (create === "file") {
-      return await this.createFile(name);
-    }
-    throw new Error("not found");
-  }
+  async get(name, options) {}
 }

@@ -1,7 +1,8 @@
 import { BaseDBHandle } from "./base.js";
+import { getData, setData } from "./db.js";
 
 export class FileDBHandle extends BaseDBHandle {
-  constructor() {
-    super();
+  constructor(...args) {
+    super(...args);
   }
 }

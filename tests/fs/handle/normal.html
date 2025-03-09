@@ -19,7 +19,7 @@
         const testFile = await testDirectory.get("a/b/c/d/test.txt", {
           create: "file",
         });
-        const fileParentDir = await testFile.parent();
+        const fileParentDir = await testFile.parent;
 
         const directoryD = await testDirectory.get("a/b/c/d");
 
@@ -37,11 +37,11 @@
           create: "file",
         });
 
-        const root1 = await testFile.root();
+        const root1 = testFile.root;
 
         const directoryD = await testDirectory.get("a/b/c/d");
 
-        const root2 = await directoryD.root();
+        const root2 = directoryD.root;
 
         const isSame = await root1.isSame(root2);
 

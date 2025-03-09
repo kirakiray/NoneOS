@@ -1,8 +1,8 @@
 (function () {
   'use strict';
 
-  // 对OPFS进行封装
   class BaseHandle {
+    // 对OPFS进行封装
     #originHandle = null;
     #parent;
     #root;
@@ -41,20 +41,25 @@
       return this.#originHandle.isSameEntry(target.handle);
     }
 
-    async parent() {
+    get parent() {
       return this.#parent;
     }
 
-    async root() {
+    get root() {
       return this.#root || this;
     }
 
     async remove() {
-      const parent = await this.parent();
+      const parent = this.parent;
 
       // 最后删除当前目录或文件
       await parent.#originHandle.removeEntry(this.#originHandle.name, {
         recursive: true,
+      });
+
+      notify({
+        path: this.path,
+        type: "remove",
       });
     }
 
@@ -122,6 +127,19 @@
 
       return newDir;
     }
+
+    // 监听文件系统变化
+    async observe(func) {
+      const obj = {
+        func,
+        handle: this,
+      };
+      observers.add(obj);
+
+      return () => {
+        observers.delete(obj);
+      };
+    }
   }
 
   // 处理目标路径和文件名
@@ -132,7 +150,7 @@
 
     if (typeof targetHandle === "string") {
       finalName = targetHandle;
-      finalTarget = await self.parent();
+      finalTarget = self.parent;
     }
     // 如果目标句柄和当前句柄相同，则不需要移动
     if (await self.isSame(finalTarget)) {
@@ -150,6 +168,42 @@
     finalName = finalName || self.name;
 
     return [finalTarget, finalName];
+  };
+
+  // 监听文件系统变化
+  const castChannel = new BroadcastChannel("nonefs-system-handle-change");
+  castChannel.onmessage = (event) => {
+    // 通知所有的观察者
+    notify(
+      {
+        ...event.data,
+      },
+      true
+    );
+  };
+
+  // 观察者集合
+  const observers = new Set();
+
+  // 文件发生变动，就除法这个方法，通知所有的观察者
+  const notify = ({ path, ...others }, isCast) => {
+    if (!isCast) {
+      // 通知其他标签页的文件系统变化
+      castChannel.postMessage({
+        path,
+        ...others,
+      });
+    }
+
+    observers.forEach((observer) => {
+      // 只通知当前目录下或文件的观察者
+      if (path.includes(observer.handle.path)) {
+        observer.func({
+          path,
+          ...others,
+        });
+      }
+    });
   };
 
   class FileHandle extends BaseHandle {
@@ -186,6 +240,12 @@
       const steam = await handle.createWritable();
       await steam.write(data);
       await steam.close();
+
+      notify({
+        path: this.path,
+        type: "write",
+        data,
+      });
     }
 
     async file(options) {
@@ -303,13 +363,13 @@
         return new FileHandle(beforeOriHandle, {
           parentPath: this.path,
           parent: this,
-          root: (await this.root()) || this,
+          root: this.root || this,
         });
       } else if (beforeOriHandle.kind === "directory") {
         return new DirHandle(beforeOriHandle, {
           parentPath: this.path,
           parent: this,
-          root: (await this.root()) || this,
+          root: this.root || this,
         });
       }
 

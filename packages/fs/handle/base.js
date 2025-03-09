@@ -38,16 +38,16 @@ export class BaseHandle {
     return this.#originHandle.isSameEntry(target.handle);
   }
 
-  async parent() {
+  get parent() {
     return this.#parent;
   }
 
-  async root() {
+  get root() {
     return this.#root || this;
   }
 
   async remove() {
-    const parent = await this.parent();
+    const parent = this.parent;
 
     // 最后删除当前目录或文件
     await parent.#originHandle.removeEntry(this.#originHandle.name, {
@@ -147,7 +147,7 @@ const resolveTargetAndName = async (targetHandle, name, methodName, self) => {
 
   if (typeof targetHandle === "string") {
     finalName = targetHandle;
-    finalTarget = await self.parent();
+    finalTarget = self.parent;
   }
   // 如果目标句柄和当前句柄相同，则不需要移动
   if (await self.isSame(finalTarget)) {
