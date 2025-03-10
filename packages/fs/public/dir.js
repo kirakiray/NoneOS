@@ -1,4 +1,27 @@
 class PublicDirHandle {
+  async _getByMultiPath(name, options) {
+    const { create } = options || {};
+
+    const names = name.split("/");
+    let handle = this;
+    while (names.length) {
+      const name = names.shift();
+      let innerCreate;
+      if (create) {
+        if (names.length) {
+          innerCreate = "dir";
+        } else {
+          innerCreate = create;
+        }
+      }
+      handle = await handle.get(name, {
+        create: innerCreate,
+      });
+    }
+
+    return handle;
+  }
+
   async *entries() {
     for await (let key of this.keys()) {
       const handle = await this.get(key);

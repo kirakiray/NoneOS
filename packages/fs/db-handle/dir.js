@@ -7,6 +7,10 @@ export class DirDBHandle extends BaseDBHandle {
     super(...args);
   }
   async get(name, options = {}) {
+    if (name.includes("/")) {
+      return await this._getByMultiPath(name, options);
+    }
+
     let targetData = await getData({
       indexName: "parentAndName",
       index: [this._dbid, name],
