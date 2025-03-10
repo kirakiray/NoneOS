@@ -2,13 +2,14 @@ import { BaseDBHandle } from "./base.js";
 import { notify } from "../public/base.js";
 import { extendFileHandle } from "../public/file.js";
 import { getData, setData } from "./db.js";
+import { isSafari } from "../util.js";
 
 export class FileDBHandle extends BaseDBHandle {
   constructor(...args) {
     super(...args);
   }
 
-  async read(options) {
+  async read(options = {}) {
     // options = {
     //   type: "text",
     //   start: "",
@@ -18,10 +19,15 @@ export class FileDBHandle extends BaseDBHandle {
       index: this._dbid,
     });
 
-    const file = targetData.file;
+    let file = targetData.file;
 
     if (!file) {
       return null;
+    }
+
+    if (isSafari) {
+      // safari存储的是 arrayBuffer，需要转成file
+      file = new File([file], this.name);
     }
 
     if (options.start || options.end) {
@@ -43,16 +49,25 @@ export class FileDBHandle extends BaseDBHandle {
   async write(data) {
     let finalData = data;
 
-    // 将data转换为file，file可能是不同的类型
-    if (typeof data === "string" || data instanceof ArrayBuffer) {
-      finalData = new File([data], this.name, {
-        type: "text/plain",
-      });
-    }
+    if (!isSafari) {
+      // 将data转换为file，file可能是不同的类型
+      if (typeof data === "string" || data instanceof ArrayBuffer) {
+        finalData = new File([data], this.name, {
+          type: "text/plain",
+        });
+      }
 
-    // 最终不是file类型，直接报错
-    if (!(finalData instanceof File)) {
-      throw new Error("data must be file, string or ArrayBuffer");
+      // 最终不是file类型，直接报错
+      if (!(finalData instanceof File)) {
+        throw new Error("data must be file, string or ArrayBuffer");
+      }
+    } else {
+      // 如果是safari，就转成 arrayBuffer
+      if (typeof data === "string") {
+        finalData = new TextEncoder().encode(data);
+      } else if (data instanceof Blob) {
+        finalData = await data.arrayBuffer();
+      }
     }
 
     const targetData = await getData({

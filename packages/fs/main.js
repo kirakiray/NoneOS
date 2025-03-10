@@ -4,12 +4,7 @@ import {
 } from "./handle/main.js";
 
 import { init as dbHandleInit, get as dbHandleGet } from "./db-handle/main.js";
-
-// 查看是否Safari
-const isSafari = (() => {
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.includes("safari") && !ua.includes("chrome");
-})();
+import { isSafari } from "./util.js";
 
 export const init = async (name) => {
   return !isSafari ? systemHandleInit(name) : dbHandleInit(name);

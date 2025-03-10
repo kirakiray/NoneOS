@@ -480,6 +480,46 @@
 
   extendDirHandle(DirHandle);
 
+  const get$2 = async (path, options) => {
+    // 获取根目录
+    const opfsRoot = await navigator.storage.getDirectory();
+
+    // 解析路径
+    const pathParts = path.split("/").filter(Boolean);
+
+    if (pathParts.length === 0) {
+      throw new Error("路径不能为空");
+    }
+
+    // 获取根空间名称
+    const rootName = pathParts[0];
+
+    try {
+      // 尝试获取根目录句柄
+      const rootDir = await opfsRoot.getDirectoryHandle(rootName);
+      const dirHandle = new DirHandle(rootDir);
+
+      // 如果只有根目录，直接返回
+      if (pathParts.length === 1) {
+        return dirHandle;
+      }
+
+      // 通过根目录，使用get方法获取剩余路径
+      const remainingPath = pathParts.slice(1).join("/");
+      return await dirHandle.get(remainingPath, options);
+    } catch (error) {
+      if (error.name === "NotFoundError") {
+        throw new Error(
+          `根目录 "${rootName}" 不存在，请先使用 init("${rootName}") 初始化`,
+          {
+            cause: error,
+          }
+        );
+      }
+      throw error;
+    }
+  };
+
   // 主体数据库对象
   let mainDB = null;
 
@@ -630,6 +670,20 @@
     }
   }
 
+  /**
+   * @file util.js
+   * @author yao
+   * 传入一个数据，计算哈希值
+   * @param {ArrayBuffer|Blob|String} data 数据
+   * @return {Promise<string>} 哈希值
+   */
+
+  // 查看是否Safari
+  const isSafari = (() => {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes("safari") && !ua.includes("chrome");
+  })();
+
   class FileDBHandle extends BaseDBHandle {
     constructor(...args) {
       super(...args);
@@ -645,10 +699,15 @@
         index: this._dbid,
       });
 
-      const file = targetData.file;
+      let file = targetData.file;
 
       if (!file) {
         return null;
+      }
+
+      if (isSafari) {
+        // safari存储的是 arrayBuffer，需要转成file
+        file = new File([file], this.name);
       }
 
       if (options.start || options.end) {
@@ -670,16 +729,25 @@
     async write(data) {
       let finalData = data;
 
-      // 将data转换为file，file可能是不同的类型
-      if (typeof data === "string" || data instanceof ArrayBuffer) {
-        finalData = new File([data], this.name, {
-          type: "text/plain",
-        });
-      }
+      if (!isSafari) {
+        // 将data转换为file，file可能是不同的类型
+        if (typeof data === "string" || data instanceof ArrayBuffer) {
+          finalData = new File([data], this.name, {
+            type: "text/plain",
+          });
+        }
 
-      // 最终不是file类型，直接报错
-      if (!(finalData instanceof File)) {
-        throw new Error("data must be file, string or ArrayBuffer");
+        // 最终不是file类型，直接报错
+        if (!(finalData instanceof File)) {
+          throw new Error("data must be file, string or ArrayBuffer");
+        }
+      } else {
+        // 如果是safari，就转成 arrayBuffer
+        if (typeof data === "string") {
+          finalData = new TextEncoder().encode(data);
+        } else if (data instanceof Blob) {
+          finalData = await data.arrayBuffer();
+        }
       }
 
       const targetData = await getData({
@@ -810,18 +878,10 @@
     return await rootHandle.get(pathParts.slice(1).join("/"), options);
   };
 
-  // 查看是否Safari
-  (() => {
-    const ua = navigator.userAgent.toLowerCase();
-    return ua.includes("safari") && !ua.includes("chrome");
-  })();
-
   const get = async (path, options) => {
-    return await get$1(path, options);
-    // return systemHandleGet(path, options);
-    // return !isSafari
-    //   ? systemHandleGet(path, options)
-    //   : dbHandleGet(path, options);
+    return !isSafari
+      ? get$2(path, options)
+      : get$1(path, options);
   };
 
   // 响应文件相关的请求
