@@ -1,3 +1,4 @@
+// safari专供的文件系统，因为它的 servers worker 不支持 getDirectoryHandle
 import { DirDBHandle } from "./dir.js";
 import { getData, setData, getRandomId } from "./db.js";
 

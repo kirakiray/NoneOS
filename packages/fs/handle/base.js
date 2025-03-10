@@ -1,4 +1,4 @@
-import { PublicBaseHandle, notify } from "../public.js";
+import { PublicBaseHandle, notify } from "../public/base.js";
 
 export class BaseHandle extends PublicBaseHandle {
   // 对OPFS进行封装

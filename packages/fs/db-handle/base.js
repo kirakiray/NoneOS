@@ -1,4 +1,4 @@
-import { PublicBaseHandle } from "../public.js";
+import { PublicBaseHandle } from "../public/base.js";
 
 export class BaseDBHandle extends PublicBaseHandle {
   #name;
