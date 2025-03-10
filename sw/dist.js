@@ -480,9 +480,6 @@
 
   extendDirHandle(DirHandle);
 
-  // 获取根目录
-  navigator.storage.getDirectory();
-
   // 主体数据库对象
   let mainDB = null;
 
@@ -820,7 +817,7 @@
   })();
 
   const get = async (path, options) => {
-    return get$1(path, options);
+    return await get$1(path, options);
     // return systemHandleGet(path, options);
     // return !isSafari
     //   ? systemHandleGet(path, options)

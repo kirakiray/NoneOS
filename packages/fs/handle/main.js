@@ -1,11 +1,8 @@
 import { DirHandle } from "./dir.js";
 
-// 获取根目录
-const opfsRootPms = navigator.storage.getDirectory();
-
 export const get = async (path, options) => {
   // 获取根目录
-  const opfsRoot = await opfsRootPms;
+  const opfsRoot = await navigator.storage.getDirectory();
 
   // 解析路径
   const pathParts = path.split("/").filter(Boolean);
@@ -45,7 +42,7 @@ export const get = async (path, options) => {
 
 // 初始化空间
 export const init = async (name) => {
-  const opfsRoot = await opfsRootPms;
+  const opfsRoot = await navigator.storage.getDirectory();
 
   const dir = await opfsRoot.getDirectoryHandle(name, { create: true });
 
