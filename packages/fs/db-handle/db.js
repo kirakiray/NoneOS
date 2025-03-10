@@ -22,6 +22,11 @@ const getDB = async () => {
 
       request.onsuccess = function (event) {
         const db = event.target.result;
+
+        request.onclose = function () {
+          mainDB = null;
+        };
+
         resolve(db);
       };
 

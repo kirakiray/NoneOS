@@ -481,47 +481,7 @@
   extendDirHandle(DirHandle);
 
   // 获取根目录
-  const opfsRootPms = navigator.storage.getDirectory();
-
-  const get$1 = async (path, options) => {
-    // 获取根目录
-    const opfsRoot = await opfsRootPms;
-
-    // 解析路径
-    const pathParts = path.split("/").filter(Boolean);
-
-    if (pathParts.length === 0) {
-      throw new Error("路径不能为空");
-    }
-
-    // 获取根空间名称
-    const rootName = pathParts[0];
-
-    try {
-      // 尝试获取根目录句柄
-      const rootDir = await opfsRoot.getDirectoryHandle(rootName);
-      const dirHandle = new DirHandle(rootDir);
-
-      // 如果只有根目录，直接返回
-      if (pathParts.length === 1) {
-        return dirHandle;
-      }
-
-      // 通过根目录，使用get方法获取剩余路径
-      const remainingPath = pathParts.slice(1).join("/");
-      return await dirHandle.get(remainingPath, options);
-    } catch (error) {
-      if (error.name === "NotFoundError") {
-        throw new Error(
-          `根目录 "${rootName}" 不存在，请先使用 init("${rootName}") 初始化`,
-          {
-            cause: error,
-          }
-        );
-      }
-      throw error;
-    }
-  };
+  navigator.storage.getDirectory();
 
   // 主体数据库对象
   let mainDB = null;
@@ -547,6 +507,11 @@
 
         request.onsuccess = function (event) {
           const db = event.target.result;
+
+          request.onclose = function () {
+            mainDB = null;
+          };
+
           resolve(db);
         };
 
@@ -815,6 +780,39 @@
 
   extendDirHandle(DirDBHandle);
 
+  // safari专供的文件系统，因为它的 servers worker 不支持 getDirectoryHandle
+
+  const get$1 = async (path, options) => {
+    // 解析路径
+    const pathParts = path.split("/").filter(Boolean);
+
+    if (pathParts.length === 0) {
+      throw new Error("路径不能为空");
+    }
+
+    // 获取根空间名称
+    const rootName = pathParts[0];
+
+    // 从数据库中查询对应的文件/目录数据
+    const data = await getData({
+      indexName: "parentAndName",
+      index: ["root", rootName],
+    });
+
+    // 如果数据不存在，返回 null
+    if (!data) {
+      return null;
+    }
+
+    // 根据类型返回对应的 handle
+    const rootHandle = new DirDBHandle({
+      name: data.name,
+      dbId: data.id,
+    });
+
+    return await rootHandle.get(pathParts.slice(1).join("/"), options);
+  };
+
   // 查看是否Safari
   (() => {
     const ua = navigator.userAgent.toLowerCase();
@@ -822,8 +820,8 @@
   })();
 
   const get = async (path, options) => {
-    // return dbHandleGet(path, options);
     return get$1(path, options);
+    // return systemHandleGet(path, options);
     // return !isSafari
     //   ? systemHandleGet(path, options)
     //   : dbHandleGet(path, options);
