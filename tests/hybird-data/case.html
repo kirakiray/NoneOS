@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test hybird data</title>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
+    <style>
+      html,
+      body {
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      // hybird data 是前端状态和文件的混合数据，数据改动后，会自动保存到Handle上，即使刷新页面，如果引用同样的目录handle 创建的数据，会自动恢复上一次的状态
+      import { createData } from "/packages/hybird-data/main.js";
+      import { get, init } from "/packages/fs/main.js";
+      await init("local");
+      const testDataDir = await get("local/test/dataDir2", { create: "dir" });
+
+      const hdata = createData(testDataDir);
+      window.hdata = hdata;
+
+      // 等待准备完成
+      await hdata.ready();
+
+      console.log("hdata: ", hdata);
+
+      // const hdata2 = createData(testDataDir);
+      // window.hdata2 = hdata2;
+      // await hdata2.ready();
+
+      // console.log("hdata2: ", hdata2);
+
+      // hdata.val = "I am main object: 8";
+
+      // await new Promise((res) => setTimeout(res, 200));
+
+      // console.log("eq1: ", hdata.val === hdata2.val);
+
+      // delete hdata.b;
+
+      // hdata.b = {
+      //   val: "I am b",
+      //   c: {
+      //     val: "I am c",
+      //     d: {
+      //       val: "I am d",
+      //     },
+      //   },
+      // };
+      // hdata.b = {
+      //   val: "change b",
+      // };
+
+      if (hdata.b) {
+        await hdata.b.ready();
+
+        const oldBid = hdata.b.xid;
+        await hdata.reload();
+
+        console.log("eq2: ", oldBid === hdata.b.xid);
+      }
+    </script>
+  </body>
+</html>

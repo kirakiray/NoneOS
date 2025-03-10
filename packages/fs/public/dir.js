@@ -38,10 +38,16 @@ class PublicDirHandle {
   async some(callback) {
     // 遍历目录，如果回调返回true则提前退出
     for await (let [key, value] of this.entries()) {
-      const result = await callback(value, key, this);
-      if (result) {
+      if (await callback(value, key, this)) {
         break;
       }
+    }
+  }
+
+  async forEach(callback) {
+    // 遍历目录
+    for await (let [key, value] of this.entries()) {
+      await callback(value, key, this);
     }
   }
 
