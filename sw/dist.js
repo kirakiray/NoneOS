@@ -24,23 +24,6 @@
 
       return this.name;
     }
-  }
-
-  class BaseHandle extends PublicBaseHandle {
-    // 对OPFS进行封装
-    #originHandle = null;
-    constructor(dirHandle, options = {}) {
-      super(options);
-      this.#originHandle = dirHandle;
-    }
-
-    get handle() {
-      return this.#originHandle;
-    }
-
-    get name() {
-      return this.#originHandle.name;
-    }
 
     async size() {
       if (this.kind === "file") {
@@ -49,24 +32,6 @@
       }
 
       return null;
-    }
-
-    async isSame(target) {
-      return this.#originHandle.isSameEntry(target.handle);
-    }
-
-    async remove() {
-      const parent = this.parent;
-
-      // 最后删除当前目录或文件
-      await parent.#originHandle.removeEntry(this.#originHandle.name, {
-        recursive: true,
-      });
-
-      notify({
-        path: this.path,
-        type: "remove",
-      });
     }
 
     async copyTo(targetHandle, name) {
@@ -134,6 +99,14 @@
       return newDir;
     }
 
+    toJSON() {
+      debugger;
+      return {
+        name: this.name,
+        path: this.path,
+      };
+    }
+
     // 监听文件系统变化
     async observe(func) {
       const obj = {
@@ -147,34 +120,6 @@
       };
     }
   }
-
-  // 处理目标路径和文件名
-  const resolveTargetAndName = async (targetHandle, name, methodName, self) => {
-    // 处理第一个参数为字符串的情况
-    let finalTarget = targetHandle;
-    let finalName = name;
-
-    if (typeof targetHandle === "string") {
-      finalName = targetHandle;
-      finalTarget = self.parent;
-    }
-    // 如果目标句柄和当前句柄相同，则不需要移动
-    if (await self.isSame(finalTarget)) {
-      return self;
-    }
-
-    // 检查目标路径是否为当前路径的子目录
-    const targetPath = finalTarget.path;
-    const currentPath = self.path;
-    if (targetPath.startsWith(currentPath + "/")) {
-      throw new Error(`Cannot ${methodName} a directory into its subdirectory`);
-    }
-
-    // 获取目标文件名，如果没有提供则使用原文件名
-    finalName = finalName || self.name;
-
-    return [finalTarget, finalName];
-  };
 
   // 监听文件系统变化
   const castChannel = new BroadcastChannel("nonefs-system-handle-change");
@@ -211,6 +156,69 @@
       }
     });
   };
+
+  // 处理目标路径和文件名
+  const resolveTargetAndName = async (targetHandle, name, methodName, self) => {
+    // 处理第一个参数为字符串的情况
+    let finalTarget = targetHandle;
+    let finalName = name;
+
+    if (typeof targetHandle === "string") {
+      finalName = targetHandle;
+      finalTarget = self.parent;
+    }
+    // 如果目标句柄和当前句柄相同，则不需要移动
+    if (await self.isSame(finalTarget)) {
+      return self;
+    }
+
+    // 检查目标路径是否为当前路径的子目录
+    const targetPath = finalTarget.path;
+    const currentPath = self.path;
+    if (targetPath.startsWith(currentPath + "/")) {
+      throw new Error(`Cannot ${methodName} a directory into its subdirectory`);
+    }
+
+    // 获取目标文件名，如果没有提供则使用原文件名
+    finalName = finalName || self.name;
+
+    return [finalTarget, finalName];
+  };
+
+  class BaseHandle extends PublicBaseHandle {
+    // 对OPFS进行封装
+    #originHandle = null;
+    constructor(dirHandle, options = {}) {
+      super(options);
+      this.#originHandle = dirHandle;
+    }
+
+    get handle() {
+      return this.#originHandle;
+    }
+
+    get name() {
+      return this.#originHandle.name;
+    }
+
+    async isSame(target) {
+      return this.#originHandle.isSameEntry(target.handle);
+    }
+
+    async remove() {
+      const parent = this.parent;
+
+      // 最后删除当前目录或文件
+      await parent.#originHandle.removeEntry(this.#originHandle.name, {
+        recursive: true,
+      });
+
+      notify({
+        path: this.path,
+        type: "remove",
+      });
+    }
+  }
 
   class FileHandle extends BaseHandle {
     constructor(...args) {

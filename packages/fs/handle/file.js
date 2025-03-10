@@ -1,4 +1,5 @@
-import { BaseHandle, notify } from "./base.js";
+import { BaseHandle } from "./base.js";
+import { notify } from "../public.js";
 
 export class FileHandle extends BaseHandle {
   constructor(...args) {
