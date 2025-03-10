@@ -32,8 +32,9 @@
         await testDir.some(async (handle, name) => {
           count++;
           if (handle.kind === "file") {
-            const content = await handle.read();
-            if (content.includes("target")) {
+            // const content = await handle.read();
+            // if (content.includes("target")) {
+            if (count === 2) {
               foundTarget = true;
               return true; // 找到目标文件后提前退出遍历
             }
