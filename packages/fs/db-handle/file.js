@@ -27,7 +27,11 @@ export class FileDBHandle extends BaseDBHandle {
 
     if (isSafari) {
       // safari存储的是 arrayBuffer，需要转成file
-      file = new File([file], this.name);
+      if (targetData.fileInfo) {
+        file = new File([file], this.name, targetData.fileInfo);
+      } else {
+        file = new File([file], this.name);
+      }
     }
 
     if (options.start || options.end) {
@@ -51,7 +55,11 @@ export class FileDBHandle extends BaseDBHandle {
 
     if (!isSafari) {
       // 将data转换为file，file可能是不同的类型
-      if (typeof data === "string" || data instanceof ArrayBuffer) {
+      if (
+        typeof data === "string" ||
+        data instanceof ArrayBuffer ||
+        data instanceof Uint8Array
+      ) {
         finalData = new File([data], this.name, {
           type: "text/plain",
         });
@@ -59,7 +67,7 @@ export class FileDBHandle extends BaseDBHandle {
 
       // 最终不是file类型，直接报错
       if (!(finalData instanceof File)) {
-        throw new Error("data must be file, string or ArrayBuffer");
+        throw new Error("data must be file, string, Uint8Array or ArrayBuffer");
       }
     } else {
       // 如果是safari，就转成 arrayBuffer
@@ -68,11 +76,28 @@ export class FileDBHandle extends BaseDBHandle {
       } else if (data instanceof Blob) {
         finalData = await data.arrayBuffer();
       }
+
+      // 如果不是arrayBuffer，直接报错
+      if (
+        !(finalData instanceof Uint8Array || finalData instanceof ArrayBuffer)
+      ) {
+        throw new Error("data must be file, string, Uint8Array or ArrayBuffer");
+      }
     }
 
     const targetData = await getData({
       index: this._dbid,
     });
+
+    if (isSafari) {
+      // 带上原始文件信息
+      if (data instanceof File) {
+        targetData.fileInfo = {
+          type: data.type,
+          lastModified: data.lastModified,
+        };
+      }
+    }
 
     // 写入文件
     targetData.file = finalData;
