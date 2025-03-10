@@ -21,8 +21,6 @@ export const init = async (name) => {
     });
   }
 
-  debugger;
-
   return new DirDBHandle({
     name: rootData.name,
     dbId: rootData.id,
@@ -30,3 +28,5 @@ export const init = async (name) => {
     // parent,
   });
 };
+
+export const get = async () => {};

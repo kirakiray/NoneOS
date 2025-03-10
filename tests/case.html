@@ -11,6 +11,16 @@
 
       const testDir = await init("test-dir-1");
 
+      const a = await testDir.get("a.txt", {
+        create: "file",
+      });
+
+      await a.write("hello world");
+
+      const content = await a.read({
+        type: "text",
+      });
+      
       debugger;
     </script>
   </body>

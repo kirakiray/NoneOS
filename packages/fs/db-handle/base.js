@@ -1,26 +1,23 @@
-export class BaseDBHandle {
+import { PublicBaseHandle } from "../public.js";
+
+export class BaseDBHandle extends PublicBaseHandle {
   #name;
   #dbId;
-  #root;
-  #parent;
+
   constructor({ name, dbId, root, parent }) {
+    super({
+      root,
+      parent,
+    });
     this.#name = name;
     this.#dbId = dbId;
-    this.#root = root;
-    this.#parent = parent;
   }
 
   get name() {
     return this.#name;
   }
 
-  get path() {}
-
-  get parent() {
-    return this.#parent;
-  }
-
-  get root() {
-    return this.#root || this;
+  get _dbid() {
+    return this.#dbId;
   }
 }
