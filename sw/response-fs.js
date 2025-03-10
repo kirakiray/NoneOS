@@ -1,4 +1,4 @@
-import { DirHandle } from "../packages/fs/handle/dir.js";
+import { get } from "../packages/fs/main.js";
 
 // 响应文件相关的请求
 const resposeFs = (event) => {
@@ -6,28 +6,12 @@ const resposeFs = (event) => {
   const { pathname, origin, searchParams } = new URL(request.url);
 
   const paths = pathname.split("/");
-  // 获取根目录文件夹
-  const rootName = paths[1].replace(/^\$/, "");
-  const filepath = paths.slice(2).join("/");
+  const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");
 
   event.respondWith(
     (async () => {
       try {
-        const rootSystemHandle = await navigator.storage.getDirectory();
-
-        const rootHandle = new DirHandle(
-          await rootSystemHandle.getDirectoryHandle(rootName)
-        );
-
-        const fileHandle = await rootHandle.get(filepath);
-
-        console.log("sw:", {
-          rootName,
-          pathname,
-          rootHandle,
-          filepath,
-          fileHandle,
-        });
+        const fileHandle = await get(filepath);
 
         const prefix = pathname.split(".").pop();
 
