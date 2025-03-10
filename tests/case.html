@@ -15,13 +15,12 @@
         create: "file",
       });
 
-      await a.write("hello world");
+      const oriText = "hello world " + Date.now();
+      await a.write(oriText);
 
-      const content = await a.read({
-        type: "text",
-      });
-      
-      debugger;
+      const content = await a.text();
+
+      console.log(content === oriText);
     </script>
   </body>
 </html>

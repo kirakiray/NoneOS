@@ -1,5 +1,6 @@
 import { BaseDBHandle } from "./base.js";
 import { notify } from "../public/base.js";
+import { extendFileHandle } from "../public/file.js";
 import { getData, setData } from "./db.js";
 
 export class FileDBHandle extends BaseDBHandle {
@@ -68,47 +69,6 @@ export class FileDBHandle extends BaseDBHandle {
       data,
     });
   }
-
-  async file(options) {
-    return this.read({
-      ...options,
-      type: "file",
-    });
-  }
-
-  async text(options) {
-    return this.read({
-      ...options,
-      type: "text",
-    });
-  }
-
-  async buffer(options) {
-    return this.read({
-      ...options,
-      type: "buffer",
-    });
-  }
-
-  async base64(options) {
-    const file = await this.file(options);
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        resolve(reader.result);
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  async lastModified() {
-    return (await this.file()).lastModified;
-  }
-
-  get kind() {
-    return "file";
-  }
 }
+
+extendFileHandle(FileDBHandle);

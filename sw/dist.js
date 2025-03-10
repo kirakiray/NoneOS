@@ -220,48 +220,7 @@
     }
   }
 
-  class FileHandle extends BaseHandle {
-    constructor(...args) {
-      super(...args);
-    }
-
-    // 读取文件
-    async read(options = {}) {
-      // options = {
-      //   type: "text",
-      //   start: "",
-      //   end: "",
-      // };
-
-      let file = await this.handle.getFile();
-      if (options.start || options.end) {
-        file = file.slice(options.start, options.end);
-      }
-      switch (options.type) {
-        case "file":
-          return file;
-        case "text":
-          return file.text();
-        case "buffer":
-          return file.arrayBuffer();
-        default:
-          return file.text();
-      }
-    }
-
-    async write(data) {
-      const handle = this.handle;
-      const steam = await handle.createWritable();
-      await steam.write(data);
-      await steam.close();
-
-      notify({
-        path: this.path,
-        type: "write",
-        data,
-      });
-    }
-
+  class PublicFileHandle {
     async file(options) {
       return this.read({
         ...options,
@@ -305,6 +264,114 @@
       return "file";
     }
   }
+
+  // 扩展 FileHandle 的方法
+  const extendFileHandle = async (FileHandle) => {
+    const propDescs = Object.getOwnPropertyDescriptors(
+      PublicFileHandle.prototype
+    );
+    delete propDescs.constructor;
+
+    Object.defineProperties(FileHandle.prototype, propDescs);
+  };
+
+  class FileHandle extends BaseHandle {
+    constructor(...args) {
+      super(...args);
+    }
+
+    // 读取文件
+    async read(options = {}) {
+      // options = {
+      //   type: "text",
+      //   start: "",
+      //   end: "",
+      // };
+
+      let file = await this.handle.getFile();
+      if (options.start || options.end) {
+        file = file.slice(options.start, options.end);
+      }
+      switch (options.type) {
+        case "file":
+          return file;
+        case "text":
+          return file.text();
+        case "buffer":
+          return file.arrayBuffer();
+        default:
+          return file.text();
+      }
+    }
+
+    async write(data) {
+      const handle = this.handle;
+      const steam = await handle.createWritable();
+      await steam.write(data);
+      await steam.close();
+
+      notify({
+        path: this.path,
+        type: "write",
+        data,
+      });
+    }
+  }
+
+  extendFileHandle(FileHandle);
+
+  class PublicDirHandle {
+    async *entries() {
+      for await (let key of this.keys()) {
+        const handle = await this.get(key);
+        yield [key, handle];
+      }
+    }
+
+    async *values() {
+      for await (let [key, value] of this.entries()) {
+        yield value;
+      }
+    }
+
+    async some(callback) {
+      // 遍历目录，如果回调返回true则提前退出
+      for await (let [key, value] of this.entries()) {
+        if (await callback(value, key, this)) {
+          break;
+        }
+      }
+    }
+
+    // 扁平化获取所有的子文件（包括多级子孙代）
+    async flat() {
+      const result = [];
+      // 遍历当前目录下的所有文件和文件夹
+      for await (const [name, handle] of this.entries()) {
+        // 只有非目录类型才加入结果数组
+        if (handle.kind !== "dir") {
+          result.push(handle);
+        } else {
+          // 如果是文件夹，只获取其子文件
+          const children = await handle.flat();
+          result.push(...children);
+        }
+      }
+      return result;
+    }
+
+    get kind() {
+      return "dir";
+    }
+  }
+
+  // 扩展 DirHandle 的方法
+  const extendDirHandle = async (DirHandle) => {
+    const propDescs = Object.getOwnPropertyDescriptors(PublicDirHandle.prototype);
+    delete propDescs.constructor;
+
+    Object.defineProperties(DirHandle.prototype, propDescs);
+  };
 
   class DirHandle extends BaseHandle {
     constructor(...args) {
@@ -390,10 +457,6 @@
       return null;
     }
 
-    get kind() {
-      return "dir";
-    }
-
     // 获取子文件数量
     async length() {
       let count = 0;
@@ -409,46 +472,9 @@
         yield key;
       }
     }
-
-    async *entries() {
-      for await (let key of this.keys()) {
-        const handle = await this.get(key);
-        yield [key, handle];
-      }
-    }
-
-    async *values() {
-      for await (let [key, value] of this.entries()) {
-        yield value;
-      }
-    }
-
-    async some(callback) {
-      // 遍历目录，如果回调返回true则提前退出
-      for await (let [key, value] of this.entries()) {
-        if (await callback(value, key, this)) {
-          break;
-        }
-      }
-    }
-
-    // 扁平化获取所有的子文件（包括多级子孙代）
-    async flat() {
-      const result = [];
-      // 遍历当前目录下的所有文件和文件夹
-      for await (const [name, handle] of this.entries()) {
-        // 只有非目录类型才加入结果数组
-        if (handle.kind !== "dir") {
-          result.push(handle);
-        } else {
-          // 如果是文件夹，只获取其子文件
-          const children = await handle.flat();
-          result.push(...children);
-        }
-      }
-      return result;
-    }
   }
+
+  extendDirHandle(DirHandle);
 
   // 响应文件相关的请求
   const resposeFs = (event) => {
