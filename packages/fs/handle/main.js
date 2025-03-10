@@ -33,7 +33,10 @@ export const get = async (path, options) => {
   } catch (error) {
     if (error.name === "NotFoundError") {
       throw new Error(
-        `根目录 "${rootName}" 不存在，请先使用 init("${rootName}") 初始化`
+        `根目录 "${rootName}" 不存在，请先使用 init("${rootName}") 初始化`,
+        {
+          cause: error,
+        }
       );
     }
     throw error;

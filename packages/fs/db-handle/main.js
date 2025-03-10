@@ -2,6 +2,37 @@
 import { DirDBHandle } from "./dir.js";
 import { getData, setData, getRandomId } from "./db.js";
 
+export const get = async (path, options) => {
+  // 解析路径
+  const pathParts = path.split("/").filter(Boolean);
+
+  if (pathParts.length === 0) {
+    throw new Error("路径不能为空");
+  }
+
+  // 获取根空间名称
+  const rootName = pathParts[0];
+
+  // 从数据库中查询对应的文件/目录数据
+  const data = await getData({
+    indexName: "parentAndName",
+    index: ["root", rootName],
+  });
+
+  // 如果数据不存在，返回 null
+  if (!data) {
+    return null;
+  }
+
+  // 根据类型返回对应的 handle
+  const rootHandle = new DirDBHandle({
+    name: data.name,
+    dbId: data.id,
+  });
+
+  return await rootHandle.get(pathParts.slice(1).join("/"), options);
+};
+
 export const init = async (name) => {
   let rootData = await getData({
     indexName: "parentAndName",
@@ -29,5 +60,3 @@ export const init = async (name) => {
     // parent,
   });
 };
-
-export const get = async () => {};
