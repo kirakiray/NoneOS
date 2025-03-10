@@ -214,8 +214,8 @@
       });
 
       notify({
-        path: this.path,
         type: "remove",
+        path: this.path,
       });
     }
   }
