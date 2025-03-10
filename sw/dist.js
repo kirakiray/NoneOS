@@ -193,7 +193,7 @@
       this.#originHandle = dirHandle;
     }
 
-    get handle() {
+    get _handle() {
       return this.#originHandle;
     }
 
@@ -202,7 +202,7 @@
     }
 
     async isSame(target) {
-      return this.#originHandle.isSameEntry(target.handle);
+      return this.#originHandle.isSameEntry(target._handle);
     }
 
     async remove() {
@@ -288,7 +288,7 @@
       //   end: "",
       // };
 
-      let file = await this.handle.getFile();
+      let file = await this._handle.getFile();
       if (options.start || options.end) {
         file = file.slice(options.start, options.end);
       }
@@ -305,7 +305,7 @@
     }
 
     async write(data) {
-      const handle = this.handle;
+      const handle = this._handle;
       const steam = await handle.createWritable();
       await steam.write(data);
       await steam.close();
@@ -321,6 +321,29 @@
   extendFileHandle(FileHandle);
 
   class PublicDirHandle {
+    async _getByMultiPath(name, options) {
+      const { create } = options || {};
+
+      const names = name.split("/");
+      let handle = this;
+      while (names.length) {
+        const name = names.shift();
+        let innerCreate;
+        if (create) {
+          if (names.length) {
+            innerCreate = "dir";
+          } else {
+            innerCreate = create;
+          }
+        }
+        handle = await handle.get(name, {
+          create: innerCreate,
+        });
+      }
+
+      return handle;
+    }
+
     async *entries() {
       for await (let key of this.keys()) {
         const handle = await this.get(key);
@@ -381,34 +404,16 @@
     async get(name, options) {
       const { create } = options || {};
 
-      // 多重路径进行递归
       if (name.includes("/")) {
-        const names = name.split("/");
-        let handle = this;
-        while (names.length) {
-          const name = names.shift();
-          let innerCreate;
-          if (create) {
-            if (names.length) {
-              innerCreate = "dir";
-            } else {
-              innerCreate = create;
-            }
-          }
-          handle = await handle.get(name, {
-            create: innerCreate,
-          });
-        }
-
-        return handle;
+        return await this._getByMultiPath(name, options);
       }
 
       // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-      let beforeOriHandle = await this.handle
+      let beforeOriHandle = await this._handle
         .getFileHandle(name)
         .catch(() => null);
       if (!beforeOriHandle) {
-        beforeOriHandle = await this.handle
+        beforeOriHandle = await this._handle
           .getDirectoryHandle(name)
           .catch(() => null);
       }
@@ -434,7 +439,7 @@
           funcName = "getFileHandle";
         }
 
-        beforeOriHandle = await this.handle[funcName](name, {
+        beforeOriHandle = await this._handle[funcName](name, {
           create: true,
         });
       }
@@ -442,13 +447,11 @@
       // 根据handle类型返回
       if (beforeOriHandle.kind === "file") {
         return new FileHandle(beforeOriHandle, {
-          parentPath: this.path,
           parent: this,
           root: this.root || this,
         });
       } else if (beforeOriHandle.kind === "directory") {
         return new DirHandle(beforeOriHandle, {
-          parentPath: this.path,
           parent: this,
           root: this.root || this,
         });
@@ -461,14 +464,14 @@
     async length() {
       let count = 0;
       // 遍历目录下所有文件和文件夹
-      for await (const [name, handle] of this.handle.entries()) {
+      for await (const [name, handle] of this._handle.entries()) {
         count++;
       }
       return count;
     }
 
     async *keys() {
-      for await (let key of this.handle.keys()) {
+      for await (let key of this._handle.keys()) {
         yield key;
       }
     }

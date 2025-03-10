@@ -1,6 +1,7 @@
 import { BaseDBHandle } from "./base.js";
 import { FileDBHandle } from "./file.js";
 import { getData, setData, getRandomId } from "./db.js";
+import { extendDirHandle } from "../public/dir.js";
 
 export class DirDBHandle extends BaseDBHandle {
   constructor(...args) {
@@ -55,4 +56,26 @@ export class DirDBHandle extends BaseDBHandle {
 
     return null;
   }
+
+  async length() {
+    return await getData({
+      indexName: "parent",
+      index: this._dbid,
+      method: "count",
+    });
+  }
+
+  async *keys() {
+    let datas = await getData({
+      indexName: "parent",
+      index: this._dbid,
+      method: "getAll",
+    });
+
+    for (const item of datas) {
+      yield item.name;
+    }
+  }
 }
+
+extendDirHandle(DirDBHandle);

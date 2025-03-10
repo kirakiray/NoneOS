@@ -15,11 +15,11 @@ export class DirHandle extends BaseHandle {
     }
 
     // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-    let beforeOriHandle = await this.handle
+    let beforeOriHandle = await this._handle
       .getFileHandle(name)
       .catch(() => null);
     if (!beforeOriHandle) {
-      beforeOriHandle = await this.handle
+      beforeOriHandle = await this._handle
         .getDirectoryHandle(name)
         .catch(() => null);
     }
@@ -45,7 +45,7 @@ export class DirHandle extends BaseHandle {
         funcName = "getFileHandle";
       }
 
-      beforeOriHandle = await this.handle[funcName](name, {
+      beforeOriHandle = await this._handle[funcName](name, {
         create: true,
       });
     }
@@ -70,14 +70,14 @@ export class DirHandle extends BaseHandle {
   async length() {
     let count = 0;
     // 遍历目录下所有文件和文件夹
-    for await (const [name, handle] of this.handle.entries()) {
+    for await (const [name, handle] of this._handle.entries()) {
       count++;
     }
     return count;
   }
 
   async *keys() {
-    for await (let key of this.handle.keys()) {
+    for await (let key of this._handle.keys()) {
       yield key;
     }
   }

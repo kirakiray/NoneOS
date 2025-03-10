@@ -8,7 +8,7 @@ export class BaseHandle extends PublicBaseHandle {
     this.#originHandle = dirHandle;
   }
 
-  get handle() {
+  get _handle() {
     return this.#originHandle;
   }
 
@@ -17,7 +17,7 @@ export class BaseHandle extends PublicBaseHandle {
   }
 
   async isSame(target) {
-    return this.#originHandle.isSameEntry(target.handle);
+    return this.#originHandle.isSameEntry(target._handle);
   }
 
   async remove() {
@@ -29,8 +29,8 @@ export class BaseHandle extends PublicBaseHandle {
     });
 
     notify({
-      path: this.path,
       type: "remove",
+      path: this.path,
     });
   }
 }

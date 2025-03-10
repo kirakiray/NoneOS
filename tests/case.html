@@ -21,6 +21,16 @@
       const content = await a.text();
 
       console.log(content === oriText);
+
+      // for await (let e of testDir.entries()) {
+      //   debugger;
+      // }
+
+      console.log("length1", await testDir.length());
+
+      await a.remove();
+
+      console.log("length2", await testDir.length());
     </script>
   </body>
 </html>

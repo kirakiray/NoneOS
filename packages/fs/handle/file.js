@@ -15,7 +15,7 @@ export class FileHandle extends BaseHandle {
     //   end: "",
     // };
 
-    let file = await this.handle.getFile();
+    let file = await this._handle.getFile();
     if (options.start || options.end) {
       file = file.slice(options.start, options.end);
     }
@@ -32,7 +32,7 @@ export class FileHandle extends BaseHandle {
   }
 
   async write(data) {
-    const handle = this.handle;
+    const handle = this._handle;
     const steam = await handle.createWritable();
     await steam.write(data);
     await steam.close();
