@@ -1,6 +1,8 @@
 <template component>
+  <l-m src="/packages/pui/provider/provider.html"></l-m>
   <l-m src="./comps/os-bar.html"></l-m>
   <l-m src="./comps/app-frame.html"></l-m>
+  <l-m src="./comps/home-app-frame.html"></l-m>
   <style>
     :host {
       display: block;
@@ -21,28 +23,40 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      background-color: rgba(128, 128, 128, 0.3);
+      position: relative;
+      z-index: 190001;
     }
 
     .main {
       flex: 1;
     }
   </style>
-  <div class="container">
-    <div class="bar">
-      <none-os-bar :apps="barApps"></none-os-bar>
+  <p-provider theme="dark">
+    <div class="container">
+      <div class="bar">
+        <none-os-bar
+          :apps="barApps"
+          sync:active-home="showHomeApp"
+        ></none-os-bar>
+      </div>
+      <div class="main">
+        <x-fill :value="barApps">
+          <n-app-frame :item="$data"></n-app-frame>
+        </x-fill>
+      </div>
     </div>
-    <div class="main">
-      <x-fill :value="barApps">
-        <n-app-frame :item="$data"></n-app-frame>
-      </x-fill>
-    </div>
-  </div>
+  </p-provider>
+
+  <n-home-app-frame sync:show-home-app="showHomeApp">
+    <!-- <o-app :src="homeApp.url" on:click-app="runApp"></o-app> -->
+    <div>asd</div>
+  </n-home-app-frame>
   <script>
     export default async ({ load }) => {
       return {
         tag: "none-os",
         data: {
+          showHomeApp: false, // 显示首页应用
           barApps: [], // 程序坞程序数据
         },
       };

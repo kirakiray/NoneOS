@@ -7,17 +7,17 @@
       display: block;
     }
 
-    :host {
+    /* :host {
       --frosted-glass-bg: rgba(255, 255, 255, 0.7);
       --frosted-shadow-color: rgba(0, 0, 0, 0.1);
       --barbtn-bg: rgba(255, 255, 255, 0.4);
-    }
+    } */
 
-    /* :host {
+    :host {
       --frosted-glass-bg: rgba(50, 50, 50, 0.7);
       --frosted-shadow-color: rgba(255, 255, 255, 0.1);
       --barbtn-bg: rgba(100, 100, 100, 0.4);
-    } */
+    }
 
     .main {
       border-radius: 30px;
@@ -29,8 +29,11 @@
   </style>
   <div class="main frosted-glass">
     <div style="height: 1px"></div>
-    <n-bar-btn style="background-color: var(--barbtn-bg)">
-      <n-apps-icon></n-apps-icon>
+    <n-bar-btn
+      on:click="activeHome = !activeHome"
+      style="background-color: var(--barbtn-bg)"
+    >
+      <n-apps-icon attr:active="activeHome"></n-apps-icon>
     </n-bar-btn>
     <n-bar-btn :name="aa">
       <img attr:src="icon" />
@@ -45,6 +48,7 @@
       return {
         tag: "none-os-bar",
         data: {
+          activeHome: false,
           apps: [],
           icon: "/packages/others/logo.png",
           aa: "aaaaaa",
