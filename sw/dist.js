@@ -304,7 +304,7 @@
       }
     }
 
-    async write(data) {
+    async write(data, options = {}) {
       const handle = this._handle;
       const steam = await handle.createWritable();
       await steam.write(data);
@@ -314,6 +314,7 @@
         path: this.path,
         type: "write",
         data,
+        remark: options.remark,
       });
     }
   }
@@ -360,10 +361,16 @@
     async some(callback) {
       // 遍历目录，如果回调返回true则提前退出
       for await (let [key, value] of this.entries()) {
-        const result = await callback(value, key, this);
-        if (result) {
+        if (await callback(value, key, this)) {
           break;
         }
+      }
+    }
+
+    async forEach(callback) {
+      // 遍历目录
+      for await (let [key, value] of this.entries()) {
+        await callback(value, key, this);
       }
     }
 
@@ -730,7 +737,7 @@
       }
     }
 
-    async write(data) {
+    async write(data, options = {}) {
       let finalData = data;
 
       if (!isSafari) {
@@ -787,6 +794,7 @@
         path: this.path,
         type: "write",
         data,
+        remark: options.remark,
       });
     }
   }

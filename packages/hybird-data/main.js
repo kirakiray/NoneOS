@@ -80,10 +80,6 @@ export class HybirdData extends Stanz {
           return;
         }
 
-        if (watchOpt.type === "set") {
-          console.log(watchOpt);
-        }
-
         saveData(watchOpt.target);
       });
     });
@@ -271,6 +267,10 @@ export class HybirdData extends Stanz {
   }
   get __OriginStanz() {
     return HybirdData;
+  }
+
+  get _dataid() {
+    return this[DATAID];
   }
 }
 
