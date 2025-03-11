@@ -13,61 +13,60 @@
       import { runTest } from "/tests/runTest.js";
       import { createData } from "/packages/hybird-data/main.js";
 
-      // 初始化测试目录
-      const testDirectory = await init("test-dir10");
+      const TEST_DIR = "test-dir10";
+      const STORAGE_KEY = "_d1_inited";
+      const WAIT_TIME = 800;
 
-      // 测试父目录是否相同
-      await runTest("sub data can save", async () => {
+      async function initializeData() {
+        const testDirectory = await init(TEST_DIR);
         const testData1 = await testDirectory.get("test-data-1", {
           create: "dir",
         });
-
-        window.testData1 = testData1;
-
         const data1 = await createData(testData1);
-
-        window.data1 = data1;
-
         await data1.ready();
 
-        // 第一次进度
-        if (!sessionStorage._d1_inited) {
-          // 等待初始化
-          await data1.ready();
+        return { testData1, data1 };
+      }
 
-          // 设置值，下次刷新后看看是否会保存
-          data1.val = "I am data1";
-          data1.subdata = {
-            val: "I am subdata",
-          };
+      await runTest("sub data can save", async () => {
+        try {
+          const { testData1, data1 } = await initializeData();
 
-          sessionStorage._d1_inited = 1;
+          if (!sessionStorage[STORAGE_KEY]) {
+            data1.val = "I am data1";
+            data1.subdata = {
+              val: "I am subdata",
+            };
 
-          await new Promise((res) => setTimeout(res, 800));
+            sessionStorage[STORAGE_KEY] = "1";
 
-          location.reload();
+            await new Promise((res) => setTimeout(res, WAIT_TIME));
+            location.reload();
 
-          return {
-            assert: false,
-            content: `waiting for save`,
-          };
-        } else {
-          // 不是第一次，查看是否保存了
-          await data1.ready();
+            return {
+              assert: false,
+              content: "waiting for save",
+            };
+          }
 
           if (data1.subdata) {
             await data1.subdata.ready();
           }
 
+          const isDataValid =
+            data1.val === "I am data1" && data1.subdata.val === "I am subdata";
+
           return {
-            assert:
-              data1.val === "I am data1" &&
-              data1.subdata.val === "I am subdata",
+            assert: isDataValid,
             content: `check data saved : ${JSON.stringify(data1)}`,
           };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `Test failed: ${error.message}`,
+          };
         }
-
-        console.log("data1: ", data1);
       });
     </script>
   </body>
