@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>navigation</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.13/dist/ofa.min.js"
+      debug
+    ></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/dark-switch.html"></l-m>
+    <l-m src="./nav-bar.html"></l-m>
+    <dark-switch></dark-switch>
+
+    <div style="padding: 40px">
+      <p-nav-bar auto-active style="width: 320px">
+        <p-nav-item active-item>
+          Home
+          <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon
+            icon="fluent:movies-and-tv-16-filled"
+            slot="icon"
+          ></iconify-icon>
+          Movies
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon
+            icon="material-symbols:photo"
+            slot="icon"
+          ></iconify-icon>
+          Photos
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon icon="mingcute:music-fill" slot="icon"></iconify-icon>
+          Musics
+        </p-nav-item>
+      </p-nav-bar>
+      <br />
+
+      <p-nav-bar style="width: 320px">
+        <p-nav-item>
+          Home
+          <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
+        </p-nav-item>
+        <p-nav-item active-item>
+          <iconify-icon
+            icon="fluent:movies-and-tv-16-filled"
+            slot="icon"
+          ></iconify-icon>
+          Movies
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon
+            icon="material-symbols:photo"
+            slot="icon"
+          ></iconify-icon>
+          Photos
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon icon="mingcute:music-fill" slot="icon"></iconify-icon>
+          Musics
+        </p-nav-item>
+      </p-nav-bar>
+      <br />
+      <p-nav-bar
+        auto-active
+        style="display: inline-block; --navbar-direction: column"
+      >
+        <p-nav-item>
+          Home
+          <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
+        </p-nav-item>
+        <p-nav-item active-item>
+          <iconify-icon
+            icon="fluent:movies-and-tv-16-filled"
+            slot="icon"
+          ></iconify-icon>
+          Movies
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon
+            icon="material-symbols:photo"
+            slot="icon"
+          ></iconify-icon>
+          Photos
+        </p-nav-item>
+        <p-nav-item>
+          <iconify-icon icon="mingcute:music-fill" slot="icon"></iconify-icon>
+          Musics
+        </p-nav-item>
+      </p-nav-bar>
+    </div>
+  </body>
+</html>

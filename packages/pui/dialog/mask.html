@@ -1,0 +1,103 @@
+<template component>
+  <l-m src="./mask.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      font-size: 14px;
+    }
+    .mask {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10000;
+      background-color: rgba(128, 128, 128, 0.5);
+      transition: all ease 0.3s;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .mask.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .container {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: var(--container-justify-content, center);
+      align-items: var(--container-align-items, center);
+      z-index: 1001;
+      transition: all ease 0.1s;
+      opacity: 0;
+      transform: var(
+        --container-init-transform,
+        translate(0, -100px) scale(1, 0.5)
+      );
+      pointer-events: none;
+    }
+    .container.open {
+      opacity: 1;
+      transform: translate(0, 0) scale(1);
+      transition: all ease 0.3s, opacity ease 0.2s;
+    }
+
+    .inner {
+      display: contents;
+    }
+
+    .container.open .inner {
+      pointer-events: auto;
+    }
+  </style>
+  <div
+    class="mask"
+    class:open="open"
+    on:click="emit('click-mask',{bubbles:false})"
+    :style.z-index="maskId"
+    part="mask"
+  ></div>
+  <div
+    class="container"
+    class:open="open"
+    :style.z-index="maskId + 1"
+    part="container"
+  >
+    <div class="inner" style="visibility: hidden">
+      <slot></slot>
+    </div>
+  </div>
+  <script>
+    import "../commons/init.js";
+    import dialogUtil from "./command.js";
+
+    let total = 1001;
+
+    export default {
+      tag: "p-mask",
+      data: {
+        open: false,
+        maskId: dialogUtil.maskId,
+      },
+      watch: {
+        open(val) {
+          clearTimeout(this._timer);
+          if (val) {
+            if (this.maskId <= dialogUtil.maskId) {
+              dialogUtil.maskId = dialogUtil.maskId + 2;
+              this.maskId = dialogUtil.maskId;
+            }
+            this.shadow.$(".inner").style.visibility = "";
+          } else {
+            this._timer = setTimeout(() => {
+              this.shadow.$(".inner").style.visibility = "hidden";
+            }, 300);
+          }
+        },
+      },
+    };
+  </script>
+</template>

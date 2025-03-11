@@ -1,0 +1,115 @@
+<template component>
+  <style>
+    :host {
+      box-sizing: border-box;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      --card-border-raduis: calc(var(--pui-space-x) * 3);
+      border-radius: var(--card-border-raduis);
+      color: var(--md-sys-color-normal);
+      font-size: 14px;
+    }
+
+    :host([elevated]) {
+      box-shadow: var(--contained-shadow);
+      background-color: var(--card-bg-color);
+    }
+
+    :host([filled]) {
+      background-color: var(--md-sys-color-primary-container);
+    }
+    :host([outlined]) {
+      border: var(--md-sys-color-primary-container) solid 1px;
+    }
+
+    ::slotted(h1),
+    ::slotted(h2),
+    ::slotted(h3),
+    ::slotted(h4),
+    ::slotted(h5) {
+      font-weight: 500;
+      line-height: 1.4em;
+      color: var(--md-sys-color-on-normal-container);
+    }
+
+    ::slotted(h1),
+    ::slotted(h2),
+    ::slotted(h3),
+    ::slotted(h4),
+    ::slotted(h5),
+    ::slotted(p) {
+      padding: 0;
+      margin: 0;
+    }
+
+    ::slotted(h1) {
+      font-size: 36px;
+    }
+    ::slotted(h2) {
+      font-size: 30px;
+    }
+    ::slotted(h3) {
+      font-size: 24px;
+    }
+    ::slotted(h4) {
+      font-size: 18px;
+    }
+    ::slotted(h5) {
+      font-size: 16px;
+    }
+
+    ::slotted([slot="pic"]) {
+      border-radius: var(--card-border-raduis);
+    }
+
+    .container {
+      display: block;
+    }
+
+    ::slotted(*:not([slot])) {
+      line-height: 1.4em;
+      margin: calc(var(--pui-space-y) * 2) calc(var(--pui-space-x) * 3);
+    }
+
+    ::slotted(*:last-child) {
+      margin-bottom: calc(var(--pui-space-y) * 4);
+    }
+
+    ::slotted(*:first-child:not([slot])) {
+      margin-top: calc(var(--pui-space-y) * 4);
+    }
+    :host {
+      --card-bg-color: var(--md-ref-palette-primary98);
+    }
+  </style>
+
+  <x-if :value="theme === 'dark'">
+    <style>
+      :host {
+        --card-bg-color: var(--md-ref-palette-normal10);
+      }
+    </style>
+  </x-if>
+
+  <div style="flex-shrink: 0"><slot name="pic"></slot></div>
+  <div class="container" slot="container">
+    <slot></slot>
+  </div>
+  <o-consumer name="pui" watch:theme="theme"></o-consumer>
+  <script>
+    import "../commons/init.js";
+
+    export default {
+      tag: "p-card",
+      attrs: {
+        elevated: null,
+        filled: null,
+        outlined: null,
+      },
+      data: {
+        theme: "light",
+      },
+    };
+  </script>
+</template>

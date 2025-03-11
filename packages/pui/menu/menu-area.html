@@ -1,0 +1,27 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export const areas = new Map();
+
+    export default async ({ load }) => {
+      return {
+        tag: "p-menu-area",
+        attrs: {
+          areaName: null, // 容器区域名称
+        },
+        data: {},
+        attached() {
+          areas.set(this.areaName, this);
+        },
+        detached() {
+          areas.delete(this.areaName);
+        },
+      };
+    };
+  </script>
+</template>

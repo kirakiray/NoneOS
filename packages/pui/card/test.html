@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>card test</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.13/dist/ofa.min.js"
+      debug
+    ></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
+    <link rel="stylesheet" href="../css/public.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+
+      .demos {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .pic {
+        height: 200px;
+        background-repeat: no-repeat;
+        background-size: cover;
+      }
+      p-card {
+        width: 300px;
+        margin: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../../ancillary/debug-container.html"></l-m>
+    <l-m src="../button/button.html"></l-m>
+    <l-m src="./card.html"></l-m>
+    <p-debug-container>
+      <div class="demos">
+        <p-card elevated>
+          <div
+            slot="pic"
+            class="pic"
+            style="
+              background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            "
+          ></div>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+        <p-card filled>
+          <div
+            slot="pic"
+            class="pic"
+            style="
+              background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            "
+          ></div>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+        <p-card outlined>
+          <div
+            slot="pic"
+            class="pic"
+            style="
+              background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            "
+          ></div>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+      </div>
+      <br />
+      <style>
+        .test-row .pic {
+          width: 160px;
+          height: 160px;
+          vertical-align: middle;
+        }
+
+        .test-row p-card {
+          width: 450px;
+          flex-direction: row;
+        }
+      </style>
+      <div class="test-row demos">
+        <p-card elevated>
+          <div
+            slot="pic"
+            class="pic"
+            style="
+              background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            "
+          ></div>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+        <p-card filled>
+          <div
+            slot="pic"
+            class="pic"
+            style="
+              background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            "
+          ></div>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+        <p-card outlined>
+          <div
+            slot="pic"
+            class="pic"
+            style="
+              background-image: url(https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=300&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D);
+            "
+          ></div>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+      </div>
+      <br />
+      <div class="demos">
+        <p-card elevated>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+        <p-card filled>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+        <p-card outlined>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+        </p-card>
+      </div>
+      <br />
+      <div class="demos">
+        <p-card elevated>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+          <p-button>Get Ticks</p-button>
+        </p-card>
+        <p-card filled>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+          <p-button>Get Ticks</p-button>
+        </p-card>
+        <p-card outlined>
+          <h3>Headline</h3>
+          <h5>Subhead</h5>
+          <p>
+            Explain more about the topic shown in the mediumdisplay and subhead
+            through supporting text here.
+          </p>
+          <p-button>Get Ticks</p-button>
+        </p-card>
+      </div>
+    </p-debug-container>
+  </body>
+</html>

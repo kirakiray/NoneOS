@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>test Button</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.5.13/dist/ofa.min.js"
+      debug
+    ></script>
+    <style>
+      body {
+        font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
+          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
+          Segoe UI Emoji;
+        background-color: #aaa;
+      }
+      *:not(:defined) {
+        display: none;
+      }
+
+      .block {
+        position: relative;
+        margin: 80px 0 0 80px;
+        width: 200px;
+        height: 200px;
+        border: #aaa solid 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./wave.html"></l-m>
+    <div class="block" style="background-color: #fb4747">
+      <p-wave></p-wave>
+      in text
+    </div>
+    <div class="block" style="background-color: #fb4747; border-radius: 60px">
+      <p-wave></p-wave>
+      in text 2
+    </div>
+    <div class="block" style="background-color: blue">
+      <p-wave></p-wave>
+      in text 3
+    </div>
+  </body>
+</html>
