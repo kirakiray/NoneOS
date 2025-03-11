@@ -15,19 +15,17 @@ export const getApps = async () => {
 
 // 根据路径，获取完全的数据
 const getFullAppData = async (appDirPath) => {
-  const configUrl = `${appDirPath}/app.json`;
-  const configData = await fetch(configUrl).then((e) => e.json());
+  const appJsonUrl = `${appDirPath}/app.json`;
+  const configUrl = `${appDirPath}/app-config.js`;
+  const appData = await fetch(`${appDirPath}/app.json`).then((e) => e.json());
 
-  const iconUrlObj = new URL(
-    configData.icon,
-    new URL(configUrl, location.href)
-  );
+  const iconUrlObj = new URL(appData.icon, new URL(appJsonUrl, location.href));
 
   return {
     icon: {
       url: iconUrlObj.href,
     },
     configUrl,
-    configData,
+    appData,
   };
 };

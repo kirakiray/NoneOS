@@ -2,6 +2,7 @@
   <link rel="stylesheet" href="../public.css" />
   <l-m src="./apps-icon.html"></l-m>
   <l-m src="./bar-btn.html"></l-m>
+  <l-m src="./bar-time.html"></l-m>
   <style>
     :host {
       display: block;
@@ -20,6 +21,10 @@
     }
 
     .main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
       border-radius: 30px;
     }
 
@@ -28,20 +33,19 @@
     }
   </style>
   <div class="main frosted-glass">
-    <div style="height: 1px"></div>
     <n-bar-btn
       on:click="activeHome = !activeHome"
       style="background-color: var(--barbtn-bg)"
     >
       <n-apps-icon attr:active="activeHome"></n-apps-icon>
     </n-bar-btn>
-    <n-bar-btn :name="aa">
+    <!-- <n-bar-btn :name="aa">
       <img attr:src="icon" />
     </n-bar-btn>
     <n-bar-btn :name="aa">
       <img src="/packages/apps/bookmarks.napp/icon.svg" />
-    </n-bar-btn>
-    <div style="height: 1px"></div>
+    </n-bar-btn> -->
+    <n-bar-time></n-bar-time>
   </div>
   <script>
     export default async () => {
