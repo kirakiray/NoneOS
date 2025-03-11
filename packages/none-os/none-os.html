@@ -48,11 +48,20 @@
   </p-provider>
 
   <n-home-app-frame sync:show-home-app="showHomeApp">
-    <o-app src="/packages/apps/app-select.napp/app-config.js" on:click-app="runApp"></o-app>
-    <div>asd</div>
+    <o-app
+      src="/packages/apps/app-select.napp/app-config.js"
+      on:click-app="runApp"
+    ></o-app>
   </n-home-app-frame>
   <script>
     export default async ({ load }) => {
+      const { init } = await load("/packages/fs/main.js");
+
+      // 初始化几个重要目录
+      await init("local"); // 用户的本地数据
+      await init("apps"); // 应用目录
+      await init("system"); // 存储系统初始化数据，这个目录不要暴露给用户
+
       return {
         tag: "none-os",
         data: {
