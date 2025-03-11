@@ -48,7 +48,7 @@
   </p-provider>
 
   <n-home-app-frame sync:show-home-app="showHomeApp">
-    <!-- <o-app :src="homeApp.url" on:click-app="runApp"></o-app> -->
+    <o-app src="/packages/apps/app-select.napp/app-config.js" on:click-app="runApp"></o-app>
     <div>asd</div>
   </n-home-app-frame>
   <script>
@@ -58,6 +58,11 @@
         data: {
           showHomeApp: false, // 显示首页应用
           barApps: [], // 程序坞程序数据
+        },
+        proto: {
+          runApp(e) {
+            console.log("runapp: ", e);
+          },
         },
       };
     };

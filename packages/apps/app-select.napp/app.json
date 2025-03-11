@@ -1,0 +1,16 @@
+{
+  "name": "App Select",
+  "icon": "icon.svg",
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "应用选择"
+    },
+    "en": {
+      "name": "App Select"
+    },
+    "ja": {
+      "name": "アプリケーションの選択"
+    }
+  }
+}
