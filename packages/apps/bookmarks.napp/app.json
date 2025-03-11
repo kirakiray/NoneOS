@@ -1,7 +1,6 @@
 {
   "name": "Bookmarks",
   "icon": "icon.svg",
-  "config": "app-config.js",
   "i18n": {
     "cn": {
       "name": "我的书签"
