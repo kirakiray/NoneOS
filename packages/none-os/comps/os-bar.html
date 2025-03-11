@@ -1,14 +1,54 @@
 <template component>
+  <link rel="stylesheet" href="../public.css" />
+  <l-m src="./apps-icon.html"></l-m>
+  <l-m src="./bar-btn.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    :host {
+      --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+      --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+      --barbtn-bg: rgba(255, 255, 255, 0.4);
+    }
+
+    /* :host {
+      --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+      --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+      --barbtn-bg: rgba(100, 100, 100, 0.4);
+    } */
+
+    .main {
+      border-radius: 30px;
+    }
+
+    n-bar-btn {
+      margin: 4px;
+    }
   </style>
-  OS BAR
+  <div class="main frosted-glass">
+    <div style="height: 1px"></div>
+    <n-bar-btn style="background-color: var(--barbtn-bg)">
+      <n-apps-icon></n-apps-icon>
+    </n-bar-btn>
+    <n-bar-btn :name="aa">
+      <img attr:src="icon" />
+    </n-bar-btn>
+    <n-bar-btn :name="aa">
+      <img src="/packages/apps/bookmarks.napp/icon.svg" />
+    </n-bar-btn>
+    <div style="height: 1px"></div>
+  </div>
   <script>
     export default async () => {
       return {
         tag: "none-os-bar",
+        data: {
+          apps: [],
+          icon: "/packages/others/logo.png",
+          aa: "aaaaaa",
+        },
       };
     };
   </script>

@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./comps/os-bar.html"></l-m>
+  <l-m src="./comps/app-frame.html"></l-m>
   <style>
     :host {
       display: block;
@@ -17,8 +18,10 @@
     }
 
     .bar {
-      width: 60px;
-      background-color: rgba(255, 255, 255, 0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(128, 128, 128, 0.3);
     }
 
     .main {
@@ -27,9 +30,13 @@
   </style>
   <div class="container">
     <div class="bar">
-      <none-os-bar></none-os-bar>
+      <none-os-bar :apps="barApps"></none-os-bar>
     </div>
-    <div class="main"></div>
+    <div class="main">
+      <x-fill :value="barApps">
+        <n-app-frame :item="$data"></n-app-frame>
+      </x-fill>
+    </div>
   </div>
   <script>
     export default async ({ load }) => {
