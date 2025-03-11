@@ -31,7 +31,7 @@ export class FileHandle extends BaseHandle {
     }
   }
 
-  async write(data) {
+  async write(data, options = {}) {
     const handle = this._handle;
     const steam = await handle.createWritable();
     await steam.write(data);
@@ -41,6 +41,7 @@ export class FileHandle extends BaseHandle {
       path: this.path,
       type: "write",
       data,
+      remark: options.remark,
     });
   }
 }

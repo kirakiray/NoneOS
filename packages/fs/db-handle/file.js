@@ -50,7 +50,7 @@ export class FileDBHandle extends BaseDBHandle {
     }
   }
 
-  async write(data) {
+  async write(data, options = {}) {
     let finalData = data;
 
     if (!isSafari) {
@@ -107,6 +107,7 @@ export class FileDBHandle extends BaseDBHandle {
       path: this.path,
       type: "write",
       data,
+      remark: options.remark,
     });
   }
 }

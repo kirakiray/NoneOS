@@ -67,7 +67,7 @@ const runWriteTask = async () => {
     }
   }
 
-  await dFile.write(JSON.stringify(finnalObj), null, {
+  await dFile.write(JSON.stringify(finnalObj), {
     remark: {
       rootXid,
       dataXid: nextHyData.xid,

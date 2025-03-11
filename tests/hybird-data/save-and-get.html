@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Normal Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { runTest } from "/tests/runTest.js";
+      import { createData } from "/packages/hybird-data/main.js";
+
+      // 初始化测试目录
+      const testDirectory = await init("test-dir10");
+
+      // 测试父目录是否相同
+      await runTest("sub data can save", async () => {
+        const testData1 = await testDirectory.get("test-data-1", {
+          create: "dir",
+        });
+
+        window.testData1 = testData1;
+
+        const data1 = await createData(testData1);
+
+        window.data1 = data1;
+
+        await data1.ready();
+
+        // 第一次进度
+        if (!sessionStorage._d1_inited) {
+          // 等待初始化
+          await data1.ready();
+
+          // 设置值，下次刷新后看看是否会保存
+          data1.val = "I am data1";
+          data1.subdata = {
+            val: "I am subdata",
+          };
+
+          sessionStorage._d1_inited = 1;
+
+          await new Promise((res) => setTimeout(res, 800));
+
+          location.reload();
+
+          return {
+            assert: false,
+            content: `waiting for save`,
+          };
+        } else {
+          // 不是第一次，查看是否保存了
+          await data1.ready();
+
+          if (data1.subdata) {
+            await data1.subdata.ready();
+          }
+
+          return {
+            assert:
+              data1.val === "I am data1" &&
+              data1.subdata.val === "I am subdata",
+            content: `check data saved : ${JSON.stringify(data1)}`,
+          };
+        }
+
+        console.log("data1: ", data1);
+      });
+    </script>
+  </body>
+</html>

@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { testSucceedCount } from "../../specUtil.js";
 
-test.describe("GetHash Function Tests", () => {
+test.describe("Util Function Tests", () => {
   test("GetHash All", async ({ page }) => {
     await page.goto("/tests/fs/util/getHash.html");
 
