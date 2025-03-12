@@ -65,13 +65,15 @@
   </style>
   <div class="container frosted-glass">
     <div class="top">
-      <div class="app-info" on:dblclick="item.appStatus = item.appStatus === 'max' ? 'normal' : 'max'">
+      <div
+        class="app-info"
+        on:dblclick="item.appStatus = item.appStatus === 'max' ? 'normal' : 'max'"
+      >
         <img attr:src="item.icon.url" />
         <span style="margin-left: 8px"> {{appName}} </span> - {{item.appStatus}}
       </div>
       <p-button
         size="small"
-        color="normal"
         icon
         variant="text"
         on:click="item.appStatus = 'min'"
@@ -81,7 +83,6 @@
       <x-if :value="item.appStatus === 'max'">
         <p-button
           size="small"
-          color="normal"
           icon
           variant="text"
           on:click="item.appStatus = 'normal'"
@@ -92,7 +93,6 @@
       <x-if :value="item.appStatus !== 'max'">
         <p-button
           size="small"
-          color="normal"
           icon
           variant="text"
           on:click="item.appStatus = 'max'"
@@ -100,7 +100,7 @@
           <n-local-icon name="max"></n-local-icon>
         </p-button>
       </x-if>
-      <p-button size="small" color="normal" icon variant="text">
+      <p-button size="small" icon variant="text">
         <n-local-icon name="close"></n-local-icon>
       </p-button>
     </div>
