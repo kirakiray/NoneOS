@@ -109,6 +109,9 @@
             this.barApps.forEach((e) => (e.focused = false));
 
             if (exitedApp) {
+              if (exitedApp.appStatus === "min") {
+                exitedApp.appStatus = exitedApp._oldAppStatus || "normal";
+              }
               exitedApp.focused = true;
             } else {
               const rect = this.shadow.$(".main").ele.getBoundingClientRect();

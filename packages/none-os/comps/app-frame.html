@@ -62,6 +62,29 @@
       top: 0 !important;
       left: 0 !important;
     }
+
+    :host([app-status="min"]) {
+      transform-origin: 0 50%;
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    :host([app-status="closing"]) {
+      animation: app-close ease 0.3s;
+    }
+
+    @keyframes app-close {
+      0% {
+        transform-origin: 50% 100%;
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        transform-origin: 50% -10%;
+        opacity: 0;
+        transform: scale(0);
+      }
+    }
   </style>
   <div class="container frosted-glass">
     <div class="top">
@@ -72,12 +95,7 @@
         <img attr:src="item.icon.url" />
         <span style="margin-left: 8px"> {{appName}} </span> - {{item.appStatus}}
       </div>
-      <p-button
-        size="small"
-        icon
-        variant="text"
-        on:click="item.appStatus = 'min'"
-      >
+      <p-button size="small" icon variant="text" on:click="clickMin">
         <n-local-icon name="min"></n-local-icon>
       </p-button>
       <x-if :value="item.appStatus === 'max'">
@@ -100,7 +118,7 @@
           <n-local-icon name="max"></n-local-icon>
         </p-button>
       </x-if>
-      <p-button size="small" icon variant="text">
+      <p-button size="small" icon variant="text" on:click="clickClose">
         <n-local-icon name="close"></n-local-icon>
       </p-button>
     </div>
@@ -155,6 +173,27 @@
           },
         },
         proto: {
+          clickMin() {
+            this.item._oldAppStatus = this.item.appStatus;
+            this.item.appStatus = "min";
+          },
+          async clickClose() {
+            this.$("o-app").emit("app-close");
+
+            // 如果是在noneos组件内，定时删除窗口
+            if (this.host.is("none-os")) {
+              this.item.appStatus = "closing";
+              setTimeout(() => {
+                const itemIndex = this.host.barApps.findIndex(
+                  (e) => e === this.item
+                );
+
+                if (itemIndex > -1) {
+                  this.host.barApps.splice(itemIndex, 1);
+                }
+              }, 300);
+            }
+          },
           get appName() {
             return this?.item?.appData?.name;
           },
@@ -234,13 +273,6 @@
               $("body").off("mouseup", mouseEnd);
               $("body").off("mouseleave", mouseEnd);
               this.__oldResize = null;
-
-              this.emit("app-change", {
-                data: {
-                  type: "offset",
-                  appindex: this.appindex,
-                },
-              });
             });
 
             $("body").on("mouseup", mouseEnd);
@@ -340,13 +372,6 @@
                 $("body").off("mousemove", moveFunc);
                 $("body").off("mouseup", upFunc);
                 $("body").off("mouseleave", leaveFunc);
-
-                this.emit("app-change", {
-                  data: {
-                    type: "offset",
-                    appindex: this.appindex,
-                  },
-                });
               });
 
               $("body").on(
