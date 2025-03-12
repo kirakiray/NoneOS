@@ -40,6 +40,7 @@
     }
 
     .main {
+      position: relative;
       flex: 1;
     }
   </style>
@@ -67,6 +68,7 @@
       on:click-app="runApp"
     ></o-app>
   </n-home-app-frame>
+
   <script>
     export default async ({ load }) => {
       const { init } = await load("/packages/fs/main.js");
@@ -86,6 +88,10 @@
             //   appData: data.appData, // 应用json的数据
             //   configUrl: data.configUrl, // 应用配置js的地址
             //   focused: true, // 应用是否处于焦点的状态
+            //   top: 0, // 窗口定位相关的数据
+            //   left: 0,
+            //   width: 200,
+            //   height: 200,
             // },
           ], // 程序坞程序数据
         },
@@ -104,12 +110,29 @@
             if (exitedApp) {
               exitedApp.focused = true;
             } else {
+              const mainInfo = this.shadow
+                .$(".main")
+                .ele.getBoundingClientRect();
+
+              const box = {
+                // top: 0,
+                // left: 0,
+                // 默认为窗口一半大小的尺寸
+                width: Math.floor(mainInfo.width * 0.75),
+                height: Math.floor(mainInfo.height * 0.75),
+              };
+
+              // 修正坐标处于正中间
+              box.left = Math.floor((mainInfo.width - box.width) / 2);
+              box.top = Math.floor((mainInfo.height - box.height) / 2);
+
               // 添加到应用内
               this.barApps.push({
                 icon: data.icon,
                 appData: data.appData,
                 configUrl: data.configUrl,
                 focused: true,
+                ...box,
               });
 
               console.log(this.barApps.slice(-1)[0]);

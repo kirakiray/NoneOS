@@ -2,17 +2,40 @@
   <link rel="stylesheet" href="../public.css" />
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <link rel="stylesheet" href="./app-frame.css" />
   <style>
     :host {
       display: block;
+      position: absolute;
+      user-select: none;
     }
     .container {
       display: flex;
       flex-direction: column;
+      height: 100%;
     }
     .top {
       display: flex;
       height: 30px;
+    }
+
+    .main {
+      flex: 1;
+      position: relative;
+    }
+
+    .innerMain {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    ::slotted(o-app) {
+      width: 100%;
+      height: 100%;
     }
 
     .app-info {
@@ -51,9 +74,23 @@
       </p-button>
     </div>
     <div class="main">
-      <slot></slot>
+      <div class="innerMain">
+        <slot></slot>
+      </div>
     </div>
   </div>
+
+  <div on:mousedown="borderMouseDown">
+    <div border-area="top" resize-top="1"></div>
+    <div border-area="bottom" resize-bottom="1"></div>
+    <div border-area="left" resize-left="1"></div>
+    <div border-area="right" resize-right="1"></div>
+    <div border-point="top-left" resize-top="1" resize-left="1"></div>
+    <div border-point="top-right" resize-top="1" resize-right="1"></div>
+    <div border-point="bottom-left" resize-bottom="1" resize-left="1"></div>
+    <div border-point="bottom-right" resize-bottom="1" resize-right="1"></div>
+  </div>
+
   <script>
     export default async () => {
       return {
@@ -63,7 +100,20 @@
         },
         proto: {
           get appName() {
-            return this.item.appData.name;
+            return this?.item?.appData?.name;
+          },
+          borderMouseDown() {},
+        },
+        watch: {
+          item() {
+            const { item } = this;
+
+            Object.assign(this.style, {
+              top: `${item.top}px`,
+              left: `${item.left}px`,
+              width: `${item.width}px`,
+              height: `${item.height}px`,
+            });
           },
         },
       };
