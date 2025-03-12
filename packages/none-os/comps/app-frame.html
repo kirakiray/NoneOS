@@ -98,12 +98,6 @@
         data: {
           item: {},
         },
-        proto: {
-          get appName() {
-            return this?.item?.appData?.name;
-          },
-          borderMouseDown() {},
-        },
         watch: {
           item() {
             const { item } = this;
@@ -114,6 +108,99 @@
               width: `${item.width}px`,
               height: `${item.height}px`,
             });
+          },
+        },
+        proto: {
+          get appName() {
+            return this?.item?.appData?.name;
+          },
+          borderMouseDown(e) {
+            if (this.__oldResize) {
+              this.__oldResize();
+            }
+
+            const resizeTop = !!e.target.getAttribute("resize-top");
+            const resizeLeft = !!e.target.getAttribute("resize-left");
+            const resizeBottom = !!e.target.getAttribute("resize-bottom");
+            const resizeRight = !!e.target.getAttribute("resize-right");
+
+            let startX = e.clientX,
+              startY = e.clientY;
+
+            let moveFunc, leaveFunc, upFunc;
+
+            // 获取初始定位和尺寸数据
+            const startTop = this.item.top;
+            const startLeft = this.item.left;
+            const startWidth = this.item.width;
+            const startHeight = this.item.height;
+
+            // 修改后的定位数据
+            let reTop = startTop;
+            let reLeft = startLeft;
+            let reWidth = startWidth;
+            let reHeight = startHeight;
+
+            $("body").on(
+              "mousemove",
+              (moveFunc = (e) => {
+                const diffX = e.clientX - startX;
+                const diffY = e.clientY - startY;
+
+                if (resizeTop) {
+                  reTop = startTop + diffY;
+                  reHeight = startHeight - diffY;
+                }
+
+                if (resizeLeft) {
+                  reLeft = startLeft + diffX;
+                  reWidth = startWidth - diffX;
+                }
+
+                if (resizeBottom) {
+                  reHeight = startHeight + diffY;
+                }
+
+                if (resizeRight) {
+                  reWidth = startWidth + diffX;
+                }
+
+                Object.assign(this.style, {
+                  top: `${reTop}px`,
+                  left: `${reLeft}px`,
+                  width: `${reWidth}px`,
+                  height: `${reHeight}px`,
+                });
+
+                // console.log("diffX: ", diffX);
+                // console.log("diffY: ", diffY);
+              })
+            );
+
+            const mouseEnd = (this.__oldResize = () => {
+              // 设置最终尺寸和定位数据
+              Object.assign(this.item, {
+                top: reTop,
+                left: reLeft,
+                width: reWidth,
+                height: reHeight,
+              });
+
+              $("body").off("mousemove", moveFunc);
+              $("body").off("mouseup", mouseEnd);
+              $("body").off("mouseleave", mouseEnd);
+              this.__oldResize = null;
+
+              this.emit("app-change", {
+                data: {
+                  type: "offset",
+                  appindex: this.appindex,
+                },
+              });
+            });
+
+            $("body").on("mouseup", mouseEnd);
+            $("body").on("mouseleave", mouseEnd);
           },
         },
       };
