@@ -42,7 +42,7 @@
       <n-apps-icon attr:active="activeHome"></n-apps-icon>
     </n-bar-btn>
     <x-fill :value="apps">
-      <n-bar-btn>
+      <n-bar-btn :status="$data.appStatus">
         <img attr:src="$data.icon.url" />
       </n-bar-btn>
     </x-fill>

@@ -92,6 +92,7 @@
             //   left: 0,
             //   width: 200,
             //   height: 200,
+            //   appStatus: 'normal' // min normal max
             // },
           ], // 程序坞程序数据
         },
@@ -110,21 +111,19 @@
             if (exitedApp) {
               exitedApp.focused = true;
             } else {
-              const mainInfo = this.shadow
-                .$(".main")
-                .ele.getBoundingClientRect();
+              const rect = this.shadow.$(".main").ele.getBoundingClientRect();
 
               const box = {
                 // top: 0,
                 // left: 0,
                 // 默认为窗口一半大小的尺寸
-                width: Math.floor(mainInfo.width * 0.75),
-                height: Math.floor(mainInfo.height * 0.75),
+                width: Math.floor(rect.width * 0.75),
+                height: Math.floor(rect.height * 0.75),
               };
 
               // 修正坐标处于正中间
-              box.left = Math.floor((mainInfo.width - box.width) / 2);
-              box.top = Math.floor((mainInfo.height - box.height) / 2);
+              box.left = Math.floor((rect.width - box.width) / 2);
+              box.top = Math.floor((rect.height - box.height) / 2);
 
               // 添加到应用内
               this.barApps.push({
@@ -132,6 +131,7 @@
                 appData: data.appData,
                 configUrl: data.configUrl,
                 focused: true,
+                appStatus: "normal",
                 ...box,
               });
 

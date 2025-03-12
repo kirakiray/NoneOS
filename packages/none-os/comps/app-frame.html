@@ -14,6 +14,7 @@
       flex-direction: column;
       height: 100%;
     }
+
     .top {
       display: flex;
       height: 30px;
@@ -43,6 +44,7 @@
       align-items: center;
       flex: 1;
       font-size: 14px;
+      /* background-color: red; */
     }
 
     .app-info img {
@@ -53,22 +55,51 @@
     .top > p-button {
       margin: 2px;
     }
+
+    :host([app-status="max"]) {
+      width: 100% !important;
+      height: 100% !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
   </style>
   <div class="container frosted-glass">
     <div class="top">
-      <div class="app-info">
+      <div class="app-info" on:dblclick="item.appStatus = item.appStatus === 'max' ? 'normal' : 'max'">
         <img attr:src="item.icon.url" />
-        <span style="margin-left: 8px"> {{appName}} </span>
+        <span style="margin-left: 8px"> {{appName}} </span> - {{item.appStatus}}
       </div>
-      <p-button size="small" color="normal" icon variant="text">
+      <p-button
+        size="small"
+        color="normal"
+        icon
+        variant="text"
+        on:click="item.appStatus = 'min'"
+      >
         <n-local-icon name="min"></n-local-icon>
       </p-button>
-      <p-button size="small" color="normal" icon variant="text">
-        <n-local-icon name="multi"></n-local-icon>
-      </p-button>
-      <p-button size="small" color="normal" icon variant="text">
-        <n-local-icon name="max"></n-local-icon>
-      </p-button>
+      <x-if :value="item.appStatus === 'max'">
+        <p-button
+          size="small"
+          color="normal"
+          icon
+          variant="text"
+          on:click="item.appStatus = 'normal'"
+        >
+          <n-local-icon name="multi"></n-local-icon>
+        </p-button>
+      </x-if>
+      <x-if :value="item.appStatus !== 'max'">
+        <p-button
+          size="small"
+          color="normal"
+          icon
+          variant="text"
+          on:click="item.appStatus = 'max'"
+        >
+          <n-local-icon name="max"></n-local-icon>
+        </p-button>
+      </x-if>
       <p-button size="small" color="normal" icon variant="text">
         <n-local-icon name="close"></n-local-icon>
       </p-button>
@@ -108,6 +139,19 @@
               width: `${item.width}px`,
               height: `${item.height}px`,
             });
+
+            if (item.appStatus !== this.attr("app-status")) {
+              // 切换窗口大小的时候，需要添加动画；动画结束后去除动画，用于切换窗口大小位移；
+              this.style.transition = "all ease 0.25s";
+              clearTimeout(this._transtimer);
+              this._transtimer = setTimeout(() => {
+                this.style.transition = "";
+              }, 300);
+
+              requestAnimationFrame(() => {
+                this.attr("app-status", this.item.appStatus);
+              });
+            }
           },
         },
         proto: {
@@ -205,14 +249,36 @@
         },
         attached() {
           {
+            // 窗口改动监听
+
+            // 创建一个ResizeObserver实例
+            const resizeObserver = (this.__resobs = new ResizeObserver(
+              (entries) => {
+                this.all(`o-page`).forEach((page) => {
+                  if (page.onresize) {
+                    page.onresize();
+                  }
+                });
+              }
+            ));
+
+            // 开始观察element
+            resizeObserver.observe(this.ele);
+          }
+
+          {
             // 拖拽的初始化逻辑
-            const topEle = this.shadow.$(".top");
+            const topEle = this.shadow.$(".top .app-info");
 
             let startX, startY;
             let moveFunc, upFunc, leaveFunc;
 
             // 拖动逻辑
             topEle.on("mousedown", (e) => {
+              if (this.item.appStatus !== "normal") {
+                return;
+              }
+
               if (this._oldClear) {
                 this._oldClear();
               }
@@ -314,6 +380,11 @@
                 })
               );
             });
+          }
+        },
+        detached() {
+          if (this.__resobs) {
+            this.__resobs.disconnect();
           }
         },
       };
