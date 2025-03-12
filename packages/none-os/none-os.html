@@ -124,9 +124,16 @@
                 height: Math.floor(rect.height * 0.75),
               };
 
-              // 修正坐标处于正中间
-              box.left = Math.floor((rect.width - box.width) / 2);
-              box.top = Math.floor((rect.height - box.height) / 2);
+              // 修正坐标处于正中间（添加一定的偏移）
+              const offset = 100;
+              box.left =
+                Math.floor((rect.width - box.width) / 2) +
+                Math.random() * offset -
+                offset / 2;
+              box.top =
+                Math.floor((rect.height - box.height) / 2) +
+                Math.random() * offset -
+                offset / 2;
 
               // 添加到应用内
               this.barApps.push({
