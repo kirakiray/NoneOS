@@ -203,6 +203,119 @@
             $("body").on("mouseleave", mouseEnd);
           },
         },
+        attached() {
+          {
+            // 拖拽的初始化逻辑
+            const topEle = this.shadow.$(".top");
+
+            let startX, startY;
+            let moveFunc, upFunc, leaveFunc;
+
+            // 拖动逻辑
+            topEle.on("mousedown", (e) => {
+              if (this._oldClear) {
+                this._oldClear();
+              }
+
+              if (this.appStatus === "max") {
+                return;
+              }
+
+              startX = e.clientX;
+              startY = e.clientY;
+
+              const { top: appTop, left: appLeft } = this.item;
+
+              const parentRect = this.parent.ele.getBoundingClientRect();
+              const selfRect = this.ele.getBoundingClientRect();
+
+              const clearBind = (this._oldClear = (e) => {
+                if (e) {
+                  const { clientX, clientY } = e;
+
+                  const diffX = clientX - startX;
+                  const diffY = clientY - startY;
+
+                  let newAppTop = appTop + diffY;
+                  let newAppLeft = appLeft + diffX;
+
+                  let needAnime = false; // 主动修正定位时，需要添加动画
+
+                  if (newAppTop < -20) {
+                    newAppTop = 0;
+                    needAnime = 1;
+                  } else if (newAppTop > parentRect.height - 80) {
+                    newAppTop = parentRect.height - 80;
+                    needAnime = 1;
+                  }
+
+                  if (newAppLeft + 80 > parentRect.width) {
+                    newAppLeft = parentRect.width - 80;
+                    needAnime = 1;
+                  } else if (newAppLeft + selfRect.width < 120) {
+                    newAppLeft = -1 * selfRect.width + 120;
+                    needAnime = 1;
+                  }
+
+                  if (needAnime) {
+                    this.classList.add("in-anime");
+
+                    setTimeout(() => {
+                      this.classList.remove("in-anime");
+                    }, 300);
+                  }
+
+                  Object.assign(this.item, {
+                    left: newAppLeft,
+                    top: newAppTop,
+                  });
+                }
+
+                $("body").off("mousemove", moveFunc);
+                $("body").off("mouseup", upFunc);
+                $("body").off("mouseleave", leaveFunc);
+
+                this.emit("app-change", {
+                  data: {
+                    type: "offset",
+                    appindex: this.appindex,
+                  },
+                });
+              });
+
+              $("body").on(
+                "mousemove",
+                (moveFunc = (e) => {
+                  const { clientX, clientY } = e;
+
+                  const diffX = clientX - startX;
+                  const diffY = clientY - startY;
+
+                  Object.assign(this.style, {
+                    left: appLeft + diffX + "px",
+                    top: appTop + diffY + "px",
+                  });
+                })
+              );
+
+              $("body").on(
+                "mouseup",
+                (upFunc = (e) => {
+                  const { clientX, clientY } = e;
+
+                  clearBind(e);
+                })
+              );
+
+              $("body").on(
+                "mouseleave",
+                (leaveFunc = (e) => {
+                  clearBind(e);
+                })
+              );
+            });
+          }
+        },
       };
     };
   </script>
