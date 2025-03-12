@@ -13,6 +13,18 @@
       background-position: center;
     }
 
+    /* :host {
+      --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+      --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+      --barbtn-bg: rgba(255, 255, 255, 0.4);
+    } */
+
+    :host {
+      --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+      --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+      --barbtn-bg: rgba(100, 100, 100, 0.4);
+    }
+
     .container {
       display: flex;
       width: 100%;
@@ -41,7 +53,9 @@
       </div>
       <div class="main">
         <x-fill :value="barApps">
-          <n-app-frame :item="$data"></n-app-frame>
+          <n-app-frame :item="$data">
+            <o-app attr:src="$data.configUrl"></o-app>
+          </n-app-frame>
         </x-fill>
       </div>
     </div>
@@ -66,18 +80,40 @@
         tag: "none-os",
         data: {
           showHomeApp: false, // 显示首页应用
-          barApps: [], // 程序坞程序数据
+          barApps: [
+            // {
+            //   icon: data.icon, // 应用图标
+            //   appData: data.appData, // 应用json的数据
+            //   configUrl: data.configUrl, // 应用配置js的地址
+            //   focused: true, // 应用是否处于焦点的状态
+            // },
+          ], // 程序坞程序数据
         },
         proto: {
           runApp(e) {
             const { data } = e;
 
-            // 添加到应用内
-            this.barApps.push({
-              icon: data.icon,
-              appData: data.appData,
-              configUrl: data.configUrl,
-            });
+            // 查找是否已经存在
+            const exitedApp = this.barApps.find(
+              (appData) => appData.configUrl === data.configUrl
+            );
+
+            // 取消其他应用的聚焦状态
+            this.barApps.forEach((e) => (e.focused = false));
+
+            if (exitedApp) {
+              exitedApp.focused = true;
+            } else {
+              // 添加到应用内
+              this.barApps.push({
+                icon: data.icon,
+                appData: data.appData,
+                configUrl: data.configUrl,
+                focused: true,
+              });
+
+              console.log(this.barApps.slice(-1)[0]);
+            }
           },
         },
       };

@@ -1,15 +1,70 @@
 <template component>
+  <link rel="stylesheet" href="../public.css" />
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
     }
+    .container {
+      display: flex;
+      flex-direction: column;
+    }
+    .top {
+      display: flex;
+      height: 30px;
+    }
+
+    .app-info {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      font-size: 14px;
+    }
+
+    .app-info img {
+      margin-left: 8px;
+      height: 20px;
+    }
+
+    .top > p-button {
+      margin: 2px;
+    }
   </style>
+  <div class="container frosted-glass">
+    <div class="top">
+      <div class="app-info">
+        <img attr:src="item.icon.url" />
+        <span style="margin-left: 8px"> {{appName}} </span>
+      </div>
+      <p-button size="small" color="normal" icon variant="text">
+        <n-local-icon name="min"></n-local-icon>
+      </p-button>
+      <p-button size="small" color="normal" icon variant="text">
+        <n-local-icon name="multi"></n-local-icon>
+      </p-button>
+      <p-button size="small" color="normal" icon variant="text">
+        <n-local-icon name="max"></n-local-icon>
+      </p-button>
+      <p-button size="small" color="normal" icon variant="text">
+        <n-local-icon name="close"></n-local-icon>
+      </p-button>
+    </div>
+    <div class="main">
+      <slot></slot>
+    </div>
+  </div>
   <script>
     export default async () => {
       return {
         tag: "n-app-frame",
         data: {
           item: {},
+        },
+        proto: {
+          get appName() {
+            return this.item.appData.name;
+          },
         },
       };
     };
