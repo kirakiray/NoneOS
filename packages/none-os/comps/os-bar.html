@@ -31,6 +31,19 @@
     n-bar-btn {
       margin: 4px;
     }
+
+    n-bar-btn img {
+      animation: icon-img-fadein ease 0.3s;
+    }
+
+    @keyframes icon-img-fadein {
+      0% {
+        height: 0;
+      }
+      100% {
+        height: 30px;
+      }
+    }
   </style>
   <div class="main frosted-glass">
     <n-bar-btn
@@ -39,6 +52,11 @@
     >
       <n-apps-icon attr:active="activeHome"></n-apps-icon>
     </n-bar-btn>
+    <x-fill :value="apps">
+      <n-bar-btn>
+        <img attr:src="$data.icon.url" />
+      </n-bar-btn>
+    </x-fill>
     <!-- <n-bar-btn :name="aa">
       <img attr:src="icon" />
     </n-bar-btn>

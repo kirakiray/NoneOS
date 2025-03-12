@@ -70,10 +70,14 @@
         },
         proto: {
           runApp(e) {
-            console.log("runapp: ", e);
+            const { data } = e;
 
             // 添加到应用内
-            debugger;
+            this.barApps.push({
+              icon: data.icon,
+              appData: data.appData,
+              configUrl: data.configUrl,
+            });
           },
         },
       };
