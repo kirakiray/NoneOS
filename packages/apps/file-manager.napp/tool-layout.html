@@ -1,0 +1,253 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/button/button-group.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="./comps/bottom-address.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .top {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 4px;
+      min-height: 40px;
+    }
+    .top > * {
+      margin-top: 4px;
+      margin-bottom: 4px;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    p-button-group {
+      margin-right: 8px;
+    }
+
+    n-local-icon {
+      display: block;
+      font-size: 18px;
+    }
+
+    .search-input {
+      margin: 0 8px 0 auto;
+      width: 200px;
+    }
+
+    .address {
+      display: flex;
+      align-items: center;
+      height: 32px;
+      font-size: 14px;
+      margin-left: 4px;
+    }
+
+    .bottom-area {
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      height: 40px;
+      font-size: 14px;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
+
+    .bottom-area.error-mode {
+      color: var(--md-sys-color-on-error-container);
+      background-color: var(--md-sys-color-error-container);
+    }
+
+    .bottom-area.hide {
+      opacity: 0;
+      height: 0;
+    }
+    .bottom-area.hide.delay {
+      transition-delay: 1s;
+    }
+  </style>
+  <div class="top">
+    <p-button-group variant="outlined">
+      <p-button
+        size="small"
+        on:click="app.back()"
+        attr:disabled="app.routers.length <= 1"
+      >
+        <n-local-icon name="back"></n-local-icon>
+      </p-button>
+      <p-button
+        size="small"
+        on:click="app.forward()"
+        attr:disabled="!app?._forwards?.length"
+      >
+        <n-local-icon name="forward"></n-local-icon>
+      </p-button>
+    </p-button-group>
+
+    <p-text-field
+      size="small"
+      class="search-input"
+      attr:placeholder="spaceData.searchWithCurrent"
+      sync:value="search"
+    >
+      <n-local-icon name="search" slot="prefix"></n-local-icon>
+    </p-text-field>
+  </div>
+  <div class="main" on:select-files="selectFiles">
+    <div style="position: relative; flex: 1">
+      <o-provider name="rename-file" sync:need-rename="needRename">
+        <slot></slot>
+      </o-provider>
+    </div>
+  </div>
+
+  <div class="bottom-area" class:hide="!clipboard?.sources?.length">
+    <x-if :value="clipboard?.sources?.length">
+      {{clipboardText}},
+      <n-desc space="files" name="clickToPaste" set-type="html"></n-desc>
+      <p-button
+        size="small"
+        on:click="cProvider.desc = null"
+        style="margin: 0 8px"
+      >
+        {{spaceData.clickToCancel}}
+      </p-button>
+    </x-if>
+  </div>
+
+  <div class="address">
+    <n-bottom-address
+      :path="path"
+      on:click-address="clickAddress"
+    ></n-bottom-address>
+  </div>
+
+  <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
+
+  <script>
+    export const parent = "./outer-layout.html";
+
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { getSpaceData } = await load("/packages/i18n/data.js");
+
+      return {
+        data: {
+          path: "",
+          selecteds: [],
+          clipboard: {
+            // 等待中的操作
+            // type: "copy", // cut 或 copy
+            // sources: [], // 源地址
+          },
+          needRename: null,
+          search: "",
+          // 正在导入中的数据
+          importingLen: 0, // 导入中的数量
+          importedLen: 0, // 导入成功的数量
+          hasTask: false, // 选中的文件包含task目录
+          // taskPercentage: 0, // 任务进度数据
+          deletingData: {
+            count: 0, // 已经删除的数量
+            total: 0, // 总共文件
+          },
+          spaceData: {},
+        },
+        watch: {
+          search(text) {
+            this[0].search = text;
+          },
+        },
+        proto: {
+          get deletedPercentage() {
+            return (
+              Math.ceil(
+                (this.deletingData.count / this.deletingData.total) * 100
+              ) + "%"
+            );
+          },
+          get isPackages() {
+            return !!/^packages/.test(this.path);
+          },
+          get clipboardText() {
+            if (this?.clipboard?.sources) {
+              const sources = this.clipboard.sources
+                .map((e) => e.replace(/.+\/(.+)$/, "$1"))
+                .join(",");
+
+              switch (this?.clipboard?.type) {
+                case "copy":
+                  return `${this.spaceData.copy} ${sources}`;
+                case "cut":
+                  return `${this.spaceData.cut} ${sources}`;
+              }
+            }
+          },
+          get cProvider() {
+            return this.getProvider("clipboard");
+          },
+          selectFiles(e) {
+            e.stopPropagation();
+            this.selecteds = e.data.selecteds.map((e) => e.path);
+
+            const hasTaskDir = e.data.selecteds.find((e) =>
+              /\.fs_task_cache$/.test(e.name)
+            );
+
+            this.hasTask = !!hasTaskDir;
+          },
+          clickAddress(e) {
+            const {
+              data: { newPath },
+            } = e;
+
+            this.app.current.goto(`./explore.html?path=${newPath}`);
+          },
+        },
+        ready() {
+          this.attr("tool-layout", "");
+
+          this.on("go-page", (e) => {
+            this.selecteds = [];
+            this.path = e.data.path;
+            this.needRename = null;
+            this.search = "";
+          });
+        },
+        attached() {
+          this.spaceData = getSpaceData("files");
+        },
+        detached() {
+          this.spaceData = {};
+        },
+      };
+    };
+
+    async function fileFilter(files) {
+      const reFiles = Array.from(files).filter((e) => {
+        const { webkitRelativePath } = e;
+
+        if (!webkitRelativePath) {
+          return true;
+        }
+
+        const paths = webkitRelativePath.split("/");
+
+        return !paths.some((e) => {
+          return e === "node_modules" || /^\./.test(e);
+        });
+      });
+
+      return reFiles;
+    }
+  </script>
+</template>

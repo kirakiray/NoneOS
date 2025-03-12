@@ -1,5 +1,8 @@
 // 系统默认的apps
-const defaultAppsPaths = ["/packages/apps/bookmarks.napp"];
+const defaultAppsPaths = [
+  "/packages/apps/file-manager.napp",
+  "/packages/apps/bookmarks.napp",
+];
 
 // 获取所有app数组
 export const getApps = async () => {

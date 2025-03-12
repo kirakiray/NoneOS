@@ -1,0 +1,286 @@
+<template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/pui/drawer/drawer.html"></l-m>
+  <!-- <l-m src="/packages/fs/task/task-list.html"></l-m> -->
+  <!-- <l-m src="/packages/fs/task/task-viewer.html"></l-m> -->
+  <!-- <l-m src="/packages/comps/user-state.html"></l-m> -->
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    p-list-item::part(main) {
+      margin: 2px 0;
+      border-radius: 0 20px 20px 0;
+      overflow: hidden;
+    }
+
+    p-list-item[active-item]::part(main) {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    n-local-icon[slot="prefix"] {
+      display: block;
+      font-size: 18px;
+      margin-right: 8px;
+    }
+
+    h5 {
+      margin: 0;
+      padding: 4px 8px;
+    }
+
+    .left-con {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .left-bottom {
+      margin-top: auto;
+    }
+  </style>
+  <n-horsp-pannel>
+    <div slot="left" class="left-con">
+      <p-list>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">
+            <n-desc space="files" name="currentStorage"></n-desc>
+          </span>
+          <i collapse-triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <x-fill :value="locals" name="path-item"> </x-fill>
+          </p-list>
+        </p-list-item>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">
+            <n-desc space="files" name="otherDevice"></n-desc>
+          </span>
+          <i collapse-triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <x-fill :value="remotes">
+              <p-list-item collapse-childs="open" button="suffix">
+                <n-user-state
+                  :userid="$data.userId"
+                  slot="prefix"
+                  sync:state="$data.state"
+                  watch:accessible-dirs="$data.paths"
+                  update-access
+                  style="display: none"
+                >
+                </n-user-state>
+                <n-local-icon
+                  slot="prefix"
+                  name="user"
+                  style="padding-left: 8px"
+                ></n-local-icon>
+                {{$data.name}}
+                <x-if
+                  :value="$data.state === 'disconnected' || $data.state === 'closed' || $data.state === 'error'"
+                >
+                  <n-local-icon
+                    name="disconnected"
+                    slot="suffix"
+                    style="font-size: 16px"
+                    on:click="$host.connectUser($data)"
+                  >
+                  </n-local-icon>
+                </x-if>
+                <x-else-if :value="$data.state === 'connected'">
+                  <i collapse-triangle slot="suffix"></i>
+                  <p-list slot="childs" style="--padding-left: 16px">
+                    <x-fill :value="$data.paths" name="path-item"></x-fill>
+                  </p-list>
+                </x-else-if>
+                <x-else>
+                  <n-local-icon
+                    name="loading"
+                    slot="suffix"
+                    style="font-size: 18px; color: var(--md-sys-color-primary)"
+                  >
+                  </n-local-icon>
+                </x-else>
+              </p-list-item>
+            </x-fill>
+            <x-if :value="!remotes.length">
+              <p-list-item>
+                <div style="text-align: center; color: #7d7d7d">
+                  <n-desc space="files" name="empty"></n-desc>
+                </div>
+              </p-list-item>
+            </x-if>
+          </p-list>
+        </p-list-item>
+      </p-list>
+      <div class="left-bottom">
+        <!-- <n-task-list></n-task-list> -->
+      </div>
+    </div>
+    <slot></slot>
+  </n-horsp-pannel>
+
+  <template name="path-item">
+    <p-list-item
+      button
+      attr:active-item="$data.path === $host.selectedRootName"
+      on:click="$host.clickTab($data)"
+    >
+      <n-local-icon
+        slot="prefix"
+        attr:name="$data.icon || 'folder'"
+        style="padding-left: var(--padding-left, 8px)"
+      ></n-local-icon>
+      {{$data.name}}
+    </p-list-item>
+  </template>
+
+  <!-- <n-task-viewer on:task-done="taskDone"></n-task-viewer> -->
+
+  <script>
+    // import { getRemotes } from "/packages/fs/r-handle/index.js";
+
+    export default async ({ load, url }) => {
+      const { get } = await load("/packages/fs/main.js");
+      // const { addTask } = await load("/packages/fs/task/main.js");
+      const { setSpace, getText, onChangeLang, getLang } = await load(
+        "/packages/i18n/data.js"
+      );
+
+      // const { connectUser } = await load("/packages/core/user-connect/main.js");
+
+      await setSpace("files", new URL("./lang", url).href);
+
+      return {
+        data: {
+          locals: [
+            // {
+            //   name: "虚拟本地",
+            //   path: "local",
+            // },
+            // {
+            //   name: "应用",
+            //   path: "apps",
+            //   icon: "apps",
+            // },
+            // {
+            //   name: "依赖包",
+            //   path: "packages",
+            //   icon: "safe",
+            // },
+            // {
+            //   name: "高速盘(test)",
+            //   path: "$origin:local",
+            // },
+          ],
+          selectedRootName: null,
+          remotes: [], // 远端设备
+        },
+        proto: {
+          // async connectUser(item) {
+          //   connectUser({
+          //     userId: item.userId,
+          //   });
+          // },
+          taskDone(e) {
+            this.app.current.refreshFiles();
+          },
+          clickTab(data) {
+            if (data.path === this.selectedRootName) {
+              return;
+            }
+            this.selectedRootName = data.path;
+            this.app.current.goto(`./explore.html?path=${data.path}`);
+          },
+          refreashLocals() {
+            this.locals = [
+              {
+                name: getText("virLocal", "files"),
+                path: "local",
+              },
+              {
+                name: getText("apps", "files"),
+                path: "apps",
+                icon: "apps",
+              },
+              {
+                name: "Packages",
+                path: "packages",
+                icon: "safe",
+              },
+              {
+                name: "System",
+                path: "system",
+                icon: "safe",
+              },
+            ];
+          },
+        },
+        async ready() {
+          const isSafari =
+            navigator.userAgent.includes("Safari") &&
+            !navigator.userAgent.includes("Chrome");
+          if (isSafari) {
+            // safari不允许写入本地盘
+            this.locals = this.locals.filter((e) => {
+              return !/^\$origin/.test(e.path);
+            });
+          }
+
+          this.on("go-page", (e) => {
+            e.stopPropagation();
+
+            const rootName = e.data.path.split("/")[0];
+            this.selectedRootName = rootName;
+          });
+
+          this.on("task-complete", async (e) => {
+            this.app.current.refreshFiles();
+          });
+
+          // 双击任务目录后触发的事件
+          this.on("open-task", async (e) => {
+            e.stopPropagation();
+            const configData = await get(`${e.data.path}/task.json`);
+
+            if (configData) {
+              let data = await configData.text();
+              data = JSON.parse(data);
+
+              // await addTask({
+              //   type: data.type,
+              //   from: data.from,
+              //   to: data.to,
+              //   paused: true,
+              // });
+
+              this.app.current.refreshFiles();
+            }
+          });
+
+          this.refreashLocals();
+          // const remotes = await getRemotes();
+          // this.remotes = remotes.map((e) => {
+          //   console.log(e);
+          //   return {
+          //     ...e,
+          //     state: "disconnected",
+          //   };
+          // });
+        },
+        attached() {
+          this._cancel = onChangeLang((lang) => {
+            this.refreashLocals();
+          });
+        },
+        detached() {
+          this._cancel && this._cancel();
+        },
+      };
+    };
+  </script>
+</template>
