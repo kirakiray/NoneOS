@@ -9,6 +9,11 @@
       position: absolute;
       user-select: none;
     }
+
+    :host([focused]) {
+      z-index: 10;
+    }
+
     .container {
       display: flex;
       flex-direction: column;
@@ -97,7 +102,7 @@
         on:dblclick="item.appStatus = item.appStatus === 'max' ? 'normal' : 'max'"
       >
         <img attr:src="item.icon.url" />
-        <span style="margin-left: 8px"> {{appName}} </span>
+        <span style="margin-left: 8px"> {{appName}} </span> - {{item.appStatus}}
       </div>
       <p-button size="small" icon variant="text" on:click="clickMin">
         <n-local-icon name="min"></n-local-icon>
@@ -174,6 +179,8 @@
                 this.attr("app-status", this.item.appStatus);
               });
             }
+
+            this.attr("focused", item.focused);
           },
         },
         proto: {
@@ -284,6 +291,15 @@
           },
         },
         attached() {
+          {
+            // 聚焦修正
+            this.on("mousedown", () => {
+              this.host.barApps.forEach((e) => {
+                e.focused = false;
+              });
+              this.item.focused = true;
+            });
+          }
           {
             // 窗口改动监听
 
