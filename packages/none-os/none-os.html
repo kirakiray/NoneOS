@@ -151,6 +151,37 @@
               });
             }
           },
+          saveAppData() {
+            clearTimeout(this._save_timer);
+            this._save_timer = setTimeout(() => {
+              // 应用的路由
+              const appsRouters = this.barApps.map((e) => {
+                const appFrameEle = this.shadow.$(
+                  `n-app-frame[data-appid="${e.appid}"]`
+                );
+
+                if (appFrameEle) {
+                  return [
+                    e.appid,
+                    appFrameEle.$("o-app").routers,
+                    appFrameEle.$("o-app")._forwards,
+                  ];
+                }
+              });
+
+              const dataStr = JSON.stringify(this.barApps);
+
+              if (sessionStorage.__noneos_apps !== dataStr) {
+                sessionStorage.__noneos_apps = dataStr;
+              }
+
+              // 存储路由数据
+              const routerStr = JSON.stringify(appsRouters);
+              if (sessionStorage.__noneos_apps_routers !== routerStr) {
+                sessionStorage.__noneos_apps_routers = routerStr;
+              }
+            }, 300);
+          },
         },
         attached() {
           {
@@ -187,39 +218,19 @@
 
             // 监听应用的变化，将数据存储到sessionStorage中，刷新页面的时候，重新加载数据
             this.barApps.watchTick(() => {
-              // 应用的路由
-              const appsRouters = this.barApps.map((e) => {
-                const appFrameEle = this.shadow.$(
-                  `n-app-frame[data-appid="${e.appid}"]`
-                );
-
-                if (appFrameEle) {
-                  return [
-                    e.appid,
-                    appFrameEle.$("o-app").routers,
-                    appFrameEle.$("o-app")._forwards,
-                  ];
-                }
-              });
-
-              const dataStr = JSON.stringify(this.barApps);
-
-              if (sessionStorage.__noneos_apps !== dataStr) {
-                sessionStorage.__noneos_apps = dataStr;
-              }
-
-              // 存储路由数据
-              const routerStr = JSON.stringify(appsRouters);
-              if (sessionStorage.__noneos_apps_routers !== routerStr) {
-                sessionStorage.__noneos_apps_routers = routerStr;
-              }
-            }, 300);
+              this.saveAppData();
+            });
           }
 
           {
             // 监听路由变化，对应用修正
-            this._cancelHistory = initHistory(() => {
-              return this.shadow.$("n-app-frame[focused]");
+            this._cancelHistory = initHistory({
+              getCurrentFrame: () => {
+                return this.shadow.$("n-app-frame[focused]");
+              },
+              onpopstate: () => {
+                this.saveAppData();
+              },
             });
           }
         },

@@ -1,4 +1,4 @@
-export const initHistory = async (getCurrentFrame) => {
+export const initHistory = async ({ getCurrentFrame, onpopstate }) => {
   const bindHistory = () => {
     let f;
     window.addEventListener(
@@ -16,6 +16,8 @@ export const initHistory = async (getCurrentFrame) => {
           // console.log("app forward");
           history.back(); // 还原
           currentAppFrame.forward();
+        } else {
+          onpopstate && onpopstate(state);
         }
       })
     );
