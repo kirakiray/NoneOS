@@ -122,6 +122,29 @@ export const deleteHandle = async (paths) => {
   }, 300);
 };
 
+// 将文件复制到指定目录
+export const copyHandle = async (froms, to) => {
+  const fromHandles = await Promise.all(froms.map(async (path) => get(path)));
+  const toHandle = await get(to);
+
+  const taskItem = addTaskItem({
+    icon: "file",
+    name: `正在将<b>${fromHandles[0].name}</b>等复制到<b>${toHandle.name}</b>`,
+  });
+
+  for (let handle of fromHandles) {
+    taskItem.name = `正在将<b>${handle.name}</b>复制到<b>${toHandle.name}</b>`;
+    await handle.copyTo(toHandle);
+  }
+
+  taskItem.name = `复制<b>${fromHandles[0].name}等</b>成功`;
+
+  setTimeout(() => {
+    // 复制可能太快了，所以要延迟一下
+    taskItem.done = true;
+  }, 300);
+};
+
 // setTimeout(() => {
 //   let taskItem = addTaskItem({
 //     icon: "file",

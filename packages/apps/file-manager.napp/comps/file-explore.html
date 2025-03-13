@@ -178,9 +178,8 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { addTask, importFile, importDir, deleteHandle } = await load(
-        "/packages/fs/task/main.js"
-      );
+      const { addTask, importFile, importDir, deleteHandle, copyHandle } =
+        await load("/packages/fs/task/main.js");
       const { getApps } = await load("/packages/none-os/app.js");
 
       const apps = getApps();
@@ -304,32 +303,15 @@
           async clickPaste(e) {
             const { sources, type } = this.clipboard;
 
-            const handles = await Promise.all(
-              sources.map(async (path) => {
-                return await get(path);
-              })
-            );
-
-            const targetHandle = await get(this.path);
-
             switch (type) {
               case "copy":
-                for (let handle of handles) {
-                  if (handle._mark === "db" && targetHandle._mark === "db") {
-                    await handle.copyTo(targetHandle);
-                  } else {
-                    await addTask({
-                      type: "copy",
-                      from: handle.path,
-                      to: targetHandle.path,
-                    });
-                  }
-                }
+                await copyHandle(sources.toJSON(), this.path);
                 break;
               case "cut":
-                for (let handle of handles) {
-                  await handle.moveTo(targetHandle);
-                }
+                debugger;
+              // for (let handle of handles) {
+              //   await handle.moveTo(targetHandle);
+              // }
             }
 
             this.clipboardProvider.desc = 0;
