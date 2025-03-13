@@ -16,11 +16,56 @@
     b {
       color: var(--md-sys-color-primary);
     }
+
+    p-list-item {
+      height: 42px;
+      animation: item-fadein ease 0.3s;
+    }
+
+    @keyframes item-fadein {
+      0% {
+        opacity: 0;
+        height: 0px;
+        transform: translate(-100%, 0px);
+      }
+
+      40% {
+        opacity: 0;
+        height: 42px;
+        transform: translate(-100%, 0px);
+      }
+
+      100% {
+        opacity: 1;
+        height: 42px;
+        transform: translate(0px, 0px);
+      }
+    }
+
+    @keyframes item-fadeout {
+      0% {
+        height: 42px;
+        opacity: 1;
+      }
+      100% {
+        height: 0px;
+        opacity: 0;
+      }
+    }
+
+    p-list-item[done] {
+      animation: item-fadeout ease 0.3s;
+      animation-fill-mode: both;
+    }
   </style>
 
   <p-list>
     <x-fill :value="tasks">
-      <p-list-item button on:click="$data.showViewer = true">
+      <p-list-item
+        button
+        on:click="$data.showViewer = true"
+        attr:done="$data.done"
+      >
         <x-if :value="$data.error">
           <n-local-icon
             name="error"
@@ -36,7 +81,7 @@
             class="mainicon"
           ></n-local-icon>
         </x-else-if>
-        <div :html="$data.tips"></div>
+        <div :html="$data.name"></div>
         <x-if :value="$data.error">
           <div secondary>{{$data.error}}</div>
         </x-if>
@@ -71,7 +116,7 @@
   </p-list>
   <script>
     export default async ({ load }) => {
-      const { tasks } = await load("./main.js");
+      const { tasks } = await load("./base.js");
       const { getText } = await load("/packages/i18n/data.js");
 
       return {
