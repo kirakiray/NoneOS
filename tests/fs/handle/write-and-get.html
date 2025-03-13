@@ -6,7 +6,7 @@
   </head>
   <body>
     <script type="module">
-      import { init } from "/packages/fs/main.js";
+      import { init, get } from "/packages/fs/main.js";
       import { runTest } from "/tests/runTest.js";
 
       // 初始化测试目录
@@ -18,8 +18,11 @@
         const someText = "Write some text " + Math.random();
         await file1.write(someText);
         const text2 = await file1.text();
+
+        const file1_2 = await get("testDir2/file1.txt");
+
         return {
-          assert: someText === text2,
+          assert: someText === text2 && file1_2.isSame(file1),
           content: someText + " -- " + text2,
         };
       });

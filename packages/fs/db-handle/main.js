@@ -4,7 +4,7 @@ import { getData, setData, getRandomId } from "./db.js";
 
 export const get = async (path, options) => {
   // 解析路径
-  const pathParts = path.split("/").filter(Boolean);
+  const pathParts = path.split("/");
 
   if (pathParts.length === 0) {
     throw new Error("路径不能为空");
@@ -30,7 +30,13 @@ export const get = async (path, options) => {
     dbId: data.id,
   });
 
-  return await rootHandle.get(pathParts.slice(1).join("/"), options);
+  if (pathParts.length === 1) {
+    return rootHandle;
+  }
+
+  const target = await rootHandle.get(pathParts.slice(1).join("/"), options);
+
+  return target;
 };
 
 export const init = async (name) => {
