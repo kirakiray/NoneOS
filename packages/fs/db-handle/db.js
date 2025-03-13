@@ -23,7 +23,7 @@ const getDB = async () => {
       request.onsuccess = function (event) {
         const db = event.target.result;
 
-        request.onclose = function () {
+        db.onclose = function () {
           mainDB = null;
         };
 
