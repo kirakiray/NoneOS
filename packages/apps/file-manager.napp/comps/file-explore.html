@@ -178,8 +178,14 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { addTask, importFile, importDir, deleteHandle, copyHandle } =
-        await load("/packages/fs/task/main.js");
+      const {
+        addTask,
+        importFile,
+        importDir,
+        deleteHandle,
+        copyHandle,
+        moveHandle,
+      } = await load("/packages/fs/task/main.js");
       const { getApps } = await load("/packages/none-os/app.js");
 
       const apps = getApps();
@@ -308,10 +314,7 @@
                 await copyHandle(sources.toJSON(), this.path);
                 break;
               case "cut":
-                debugger;
-              // for (let handle of handles) {
-              //   await handle.moveTo(targetHandle);
-              // }
+                await moveHandle(sources.toJSON(), this.path);
             }
 
             this.clipboardProvider.desc = 0;

@@ -101,7 +101,7 @@ export const importDir = async (to) => {
 // 删除文件
 export const deleteHandle = async (paths) => {
   const taskItem = addTaskItem({
-    icon: "file",
+    icon: "delete",
     name: "正在删除文件",
   });
 
@@ -128,7 +128,7 @@ export const copyHandle = async (froms, to) => {
   const toHandle = await get(to);
 
   const taskItem = addTaskItem({
-    icon: "file",
+    icon: "copy",
     name: `正在将<b>${fromHandles[0].name}</b>等复制到<b>${toHandle.name}</b>`,
   });
 
@@ -138,6 +138,29 @@ export const copyHandle = async (froms, to) => {
   }
 
   taskItem.name = `复制<b>${fromHandles[0].name}等</b>成功`;
+
+  setTimeout(() => {
+    // 复制可能太快了，所以要延迟一下
+    taskItem.done = true;
+  }, 300);
+};
+
+// 将文件剪切到指定目录
+export const moveHandle = async (froms, to) => {
+  const fromHandles = await Promise.all(froms.map(async (path) => get(path)));
+  const toHandle = await get(to);
+
+  const taskItem = addTaskItem({
+    icon: "cut",
+    name: `正在将<b>${fromHandles[0].name}</b>等剪切到<b>${toHandle.name}</b>`,
+  });
+
+  for (let handle of fromHandles) {
+    taskItem.name = `正在将<b>${handle.name}</b>剪切到<b>${toHandle.name}</b>`;
+    await handle.moveTo(toHandle);
+  }
+
+  taskItem.name = `剪切<b>${fromHandles[0].name}等</b>成功`;
 
   setTimeout(() => {
     // 复制可能太快了，所以要延迟一下
