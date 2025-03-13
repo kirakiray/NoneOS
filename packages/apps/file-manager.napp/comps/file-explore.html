@@ -178,7 +178,9 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { addTask, importFile } = await load("/packages/fs/task/main.js");
+      const { addTask, importFile, deleteHandle } = await load(
+        "/packages/fs/task/main.js"
+      );
       const { getApps } = await load("/packages/none-os/app.js");
 
       const apps = getApps();
@@ -296,10 +298,9 @@
           },
 
           async clickRemove() {
-            await addTask({
-              type: "delete",
-              from: this.selecteds.map((e) => e.path),
-            });
+            const targetHandle = await get(`${this.path}`);
+
+            await deleteHandle(this.selecteds.map((e) => e.path));
 
             this.refreshFiles();
           },
@@ -356,21 +357,17 @@
             try {
               const files = [];
 
-              if (!handle) {
-                debugger;
-              }
-
-              await handle.forEach(async (item) => {
+              await handle.forEach(async (subHandle) => {
                 files.push({
-                  size: formatBytes(await item.size()),
-                  id: item.id,
-                  kind: item.kind,
-                  name: item.name,
-                  path: item.path,
-                  createTime: new Date(item.createTime).toLocaleString(),
-                  lastModified: item.lastModified
-                    ? new Date(item.lastModified).toLocaleString()
+                  size: formatBytes(await subHandle.size()),
+                  id: await subHandle.id(),
+                  kind: subHandle.kind,
+                  name: subHandle.name,
+                  path: subHandle.path,
+                  lastModified: subHandle.lastModified
+                    ? new Date(await subHandle.lastModified()).toLocaleString()
                     : "",
+                  _handle: subHandle,
                 });
               });
 

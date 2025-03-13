@@ -1,4 +1,5 @@
 import { PublicBaseHandle, notify } from "../public/base.js";
+import { getHash } from "../util.js";
 
 export class BaseHandle extends PublicBaseHandle {
   // 对OPFS进行封装
@@ -6,6 +7,16 @@ export class BaseHandle extends PublicBaseHandle {
   constructor(dirHandle, options = {}) {
     super(options);
     this.#originHandle = dirHandle;
+  }
+
+  async id() {
+    const originHandle = this.#originHandle;
+
+    if (originHandle.getUniqueId) {
+      return await originHandle.getUniqueId();
+    }
+
+    return await getHash(this.path);
   }
 
   get _handle() {

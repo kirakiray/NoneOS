@@ -14,6 +14,10 @@ export class BaseDBHandle extends PublicBaseHandle {
     this.#dbId = dbId;
   }
 
+  async id() {
+    return this.#dbId;
+  }
+
   get _dbid() {
     return this.#dbId;
   }
