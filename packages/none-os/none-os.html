@@ -55,7 +55,7 @@
         </div>
         <div class="main">
           <x-fill :value="barApps">
-            <n-app-frame :item="$data">
+            <n-app-frame :item="$data" attr:data-appid="$data.appid">
               <o-app attr:src="$data.configUrl"></o-app>
             </n-app-frame>
           </x-fill>
@@ -141,6 +141,7 @@
 
               // 添加到应用内
               this.barApps.push({
+                appid: `app-${Math.random().toString(36).slice(2)}`,
                 icon: data.icon,
                 appData: data.appData,
                 configUrl: data.configUrl,
@@ -153,19 +154,66 @@
         },
         attached() {
           {
+            if (sessionStorage.__noneos_apps) {
+              const sessionApps = JSON.parse(sessionStorage.__noneos_apps);
+              this.barApps = sessionApps;
+            }
+
+            // 加载路由数据
+            if (sessionStorage.__noneos_apps_routers) {
+              setTimeout(() => {
+                const sessionAppsRouters = JSON.parse(
+                  sessionStorage.__noneos_apps_routers
+                );
+                sessionAppsRouters.forEach(([appid, routers, _forwards]) => {
+                  const appEle = this.shadow.$(
+                    `n-app-frame[data-appid="${appid}"]`
+                  );
+                  if (appEle) {
+                    appEle.$("o-app").routers = routers;
+                  }
+
+                  if (_forwards && _forwards.length) {
+                    appEle
+                      .$("o-app")
+                      .watchUntil(() => appEle.$("o-app").appIsReady)
+                      .then(() => {
+                        appEle.$("o-app")._forwards = _forwards;
+                      });
+                  }
+                });
+              }, 0);
+            }
+
             // 监听应用的变化，将数据存储到sessionStorage中，刷新页面的时候，重新加载数据
             this.barApps.watchTick(() => {
+              // 应用的路由
+              const appsRouters = this.barApps.map((e) => {
+                const appFrameEle = this.shadow.$(
+                  `n-app-frame[data-appid="${e.appid}"]`
+                );
+
+                if (appFrameEle) {
+                  return [
+                    e.appid,
+                    appFrameEle.$("o-app").routers,
+                    appFrameEle.$("o-app")._forwards,
+                  ];
+                }
+              });
+
               const dataStr = JSON.stringify(this.barApps);
 
               if (sessionStorage.__noneos_apps !== dataStr) {
                 sessionStorage.__noneos_apps = dataStr;
               }
-            }, 300);
 
-            if (sessionStorage.__noneos_apps) {
-              const sessionApps = JSON.parse(sessionStorage.__noneos_apps);
-              this.barApps.splice(0, 100, ...sessionApps);
-            }
+              // 存储路由数据
+              const routerStr = JSON.stringify(appsRouters);
+              if (sessionStorage.__noneos_apps_routers !== routerStr) {
+                sessionStorage.__noneos_apps_routers = routerStr;
+              }
+            }, 300);
           }
 
           {
