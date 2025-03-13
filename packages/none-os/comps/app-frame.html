@@ -289,6 +289,12 @@
             $("body").on("mouseup", mouseEnd);
             $("body").on("mouseleave", mouseEnd);
           },
+          back() {
+            this.$("o-app").back();
+          },
+          forward() {
+            this.$("o-app").forward();
+          },
         },
         attached() {
           {

@@ -74,6 +74,7 @@
   <script>
     export default async ({ load }) => {
       const { init } = await load("/packages/fs/main.js");
+      const { initHistory } = await load("./init-history.js");
 
       // 初始化几个重要目录
       await init("local"); // 用户的本地数据
@@ -151,17 +152,32 @@
           },
         },
         attached() {
-          this.barApps.watchTick(() => {
-            const dataStr = JSON.stringify(this.barApps);
+          {
+            // 监听应用的变化，将数据存储到sessionStorage中，刷新页面的时候，重新加载数据
+            this.barApps.watchTick(() => {
+              const dataStr = JSON.stringify(this.barApps);
 
-            if (sessionStorage.__noneos_apps !== dataStr) {
-              sessionStorage.__noneos_apps = dataStr;
+              if (sessionStorage.__noneos_apps !== dataStr) {
+                sessionStorage.__noneos_apps = dataStr;
+              }
+            }, 300);
+
+            if (sessionStorage.__noneos_apps) {
+              const sessionApps = JSON.parse(sessionStorage.__noneos_apps);
+              this.barApps.splice(0, 100, ...sessionApps);
             }
-          }, 300);
+          }
 
-          if (sessionStorage.__noneos_apps) {
-            const sessionApps = JSON.parse(sessionStorage.__noneos_apps);
-            this.barApps.splice(0, 100, ...sessionApps);
+          {
+            // 监听路由变化，对应用修正
+            this._cancelHistory = initHistory(() => {
+              return this.shadow.$("n-app-frame[focused]");
+            });
+          }
+        },
+        detached() {
+          if (this._cancelHistory) {
+            this._cancelHistory();
           }
         },
       };
