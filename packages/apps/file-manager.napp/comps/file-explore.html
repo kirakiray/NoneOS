@@ -178,7 +178,7 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-      // const { addTask } = await load("/packages/fs/task/main.js");
+      const { addTask } = await load("/packages/fs/task/main.js");
       const { getApps } = await load("/packages/none-os/app.js");
 
       const apps = getApps();
