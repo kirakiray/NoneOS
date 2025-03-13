@@ -44,30 +44,32 @@
       flex: 1;
     }
   </style>
-  <p-provider theme="dark">
-    <div class="container">
-      <div class="bar">
-        <none-os-bar
-          :apps="barApps"
-          sync:active-home="showHomeApp"
-        ></none-os-bar>
+  <o-provider name="clipboard">
+    <p-provider theme="dark">
+      <div class="container">
+        <div class="bar">
+          <none-os-bar
+            :apps="barApps"
+            sync:active-home="showHomeApp"
+          ></none-os-bar>
+        </div>
+        <div class="main">
+          <x-fill :value="barApps">
+            <n-app-frame :item="$data">
+              <o-app attr:src="$data.configUrl"></o-app>
+            </n-app-frame>
+          </x-fill>
+        </div>
       </div>
-      <div class="main">
-        <x-fill :value="barApps">
-          <n-app-frame :item="$data">
-            <o-app attr:src="$data.configUrl"></o-app>
-          </n-app-frame>
-        </x-fill>
-      </div>
-    </div>
-  </p-provider>
+    </p-provider>
 
-  <n-home-app-frame sync:show-home-app="showHomeApp">
-    <o-app
-      src="/packages/apps/app-select.napp/app-config.js"
-      on:click-app="runApp"
-    ></o-app>
-  </n-home-app-frame>
+    <n-home-app-frame sync:show-home-app="showHomeApp">
+      <o-app
+        src="/packages/apps/app-select.napp/app-config.js"
+        on:click-app="runApp"
+      ></o-app>
+    </n-home-app-frame>
+  </o-provider>
 
   <script>
     export default async ({ load }) => {
@@ -145,10 +147,22 @@
                 appStatus: "normal",
                 ...box,
               });
-
-              console.log(this.barApps.slice(-1)[0]);
             }
           },
+        },
+        attached() {
+          this.barApps.watchTick(() => {
+            const dataStr = JSON.stringify(this.barApps);
+
+            if (sessionStorage.__noneos_apps !== dataStr) {
+              sessionStorage.__noneos_apps = dataStr;
+            }
+          }, 300);
+
+          if (sessionStorage.__noneos_apps) {
+            const sessionApps = JSON.parse(sessionStorage.__noneos_apps);
+            this.barApps.splice(0, 100, ...sessionApps);
+          }
         },
       };
     };

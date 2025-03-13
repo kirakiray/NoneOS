@@ -149,7 +149,7 @@
           <n-local-icon name="new-folder" slot="prefix"></n-local-icon>
           <n-desc name="newDir" space="files"></n-desc>
         </p-menu-item>
-        <p-menu-item on:click="importFiles">
+        <p-menu-item on:click="clickImportFile">
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
           <n-desc name="importFile" space="files"></n-desc>
         </p-menu-item>
@@ -178,7 +178,7 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { addTask } = await load("/packages/fs/task/main.js");
+      const { addTask, importFile } = await load("/packages/fs/task/main.js");
       const { getApps } = await load("/packages/none-os/app.js");
 
       const apps = getApps();
@@ -223,11 +223,9 @@
               from: this.selecteds.map((e) => e.path),
             });
           },
-          async importFiles() {
-            await addTask({
-              type: "import-files",
-              to: this.path,
-            });
+          async clickImportFile() {
+            // 导入文件
+            await importFile(this.path);
 
             this.refreshFiles();
           },

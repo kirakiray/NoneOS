@@ -1,0 +1,92 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .mainicon {
+      display: block;
+      font-size: 18px;
+      margin-right: 12px;
+    }
+    b {
+      color: var(--md-sys-color-primary);
+    }
+  </style>
+
+  <p-list>
+    <x-fill :value="tasks">
+      <p-list-item button on:click="$data.showViewer = true">
+        <x-if :value="$data.error">
+          <n-local-icon
+            name="error"
+            slot="prefix"
+            class="mainicon"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+        </x-if>
+        <x-else-if :value="$data.icon">
+          <n-local-icon
+            attr:name="$data.icon"
+            slot="prefix"
+            class="mainicon"
+          ></n-local-icon>
+        </x-else-if>
+        <div :html="$data.tips"></div>
+        <x-if :value="$data.error">
+          <div secondary>{{$data.error}}</div>
+        </x-if>
+        <x-else>
+          <div secondary>
+            <p-progress
+              attr:color="$data.color"
+              :value="$data.precentage * 100"
+              style="
+                --line-size: 2px;
+                margin-top: 4px;
+                --progress-animation: ease-in-out 0.1s;
+              "
+            ></p-progress>
+          </div>
+        </x-else>
+
+        <x-if :value="$data.error">
+          <p-button
+            on:click="$data.done = true"
+            slot="suffix"
+            icon
+            size="small"
+            variant="text"
+            style="z-index: 3"
+          >
+            <n-local-icon name="close"></n-local-icon>
+          </p-button>
+        </x-if>
+      </p-list-item>
+    </x-fill>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { tasks } = await load("./main.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      return {
+        tag: "n-task-list",
+        data: {
+          tasks: [],
+        },
+        proto: {},
+        attached() {
+          this.tasks = tasks;
+        },
+        detached() {
+          this.tasks = [];
+        },
+      };
+    };
+  </script>
+</template>
