@@ -39,7 +39,7 @@ export const importFile = async (to) => {
 
   for (let file of files) {
     count++;
-    taskItem.name = `正在导入文件: ${count}/${files.length} 个`;
+    taskItem.name = `正在导入文件: ${file.name}`;
     taskItem.precentage = count / files.length;
 
     const fileHandle = await targetDirHandle.get(file.name, {
@@ -50,6 +50,51 @@ export const importFile = async (to) => {
   }
 
   taskItem.name = "导入文件成功";
+  taskItem.done = true;
+};
+
+// 导入文件夹
+export const importDir = async (to) => {
+  const taskItem = addTaskItem({
+    icon: "folder",
+    name: "等待选择文件夹",
+  });
+
+  const files = await new Promise((resolve) => {
+    const dirEl = document.createElement("input");
+    dirEl.type = "file";
+    dirEl.multiple = false;
+    dirEl.webkitdirectory = true;
+    dirEl.onchange = async (e) => {
+      resolve(e.target.files);
+    };
+    dirEl.oncancel = () => {
+      taskItem.name = "已取消导入文件夹";
+      taskItem.done = true;
+      resolve(null);
+    };
+    dirEl.click();
+  });
+  if (!files) return;
+
+  // 将文件夹导入到这个目录
+  const targetDirHandle = await get(to);
+
+  let count = 0;
+  for (let file of files) {
+    count++;
+    taskItem.name = `正在导入文件: ${file.name}`;
+    taskItem.precentage = count / files.length;
+    const fileHandle = await targetDirHandle.get(file.webkitRelativePath, {
+      create: "file",
+    });
+    await fileHandle.write(file);
+  }
+
+  taskItem.name = `导入文件夹 <b>${files[0].webkitRelativePath.replace(
+    /(.+?)\/.+/,
+    "$1"
+  )}</b> 成功`;
   taskItem.done = true;
 };
 

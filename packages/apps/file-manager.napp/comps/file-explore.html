@@ -178,7 +178,7 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { addTask, importFile, deleteHandle } = await load(
+      const { addTask, importFile, importDir, deleteHandle } = await load(
         "/packages/fs/task/main.js"
       );
       const { getApps } = await load("/packages/none-os/app.js");
@@ -232,10 +232,7 @@
             this.refreshFiles();
           },
           async importDir() {
-            await addTask({
-              type: "import-folder",
-              to: this.path,
-            });
+            await importDir(this.path);
 
             this.refreshFiles();
           },
