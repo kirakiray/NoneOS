@@ -1,0 +1,111 @@
+<template page>
+  <l-m src="/packages/i18n/component.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    p-list-item {
+      margin: 2px 0;
+      border-radius: 0 20px 20px 0;
+      overflow: hidden;
+    }
+
+    p-list-item[active-item] {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    img[slot="prefix"] {
+      display: block;
+      font-size: 18px;
+      margin-right: 8px;
+      height: 24px;
+    }
+  </style>
+  <n-horsp-pannel>
+    <p-list slot="left">
+      <x-fill :value="roots" fill-key="name">
+        <p-list-item
+          button
+          attr:active-item="$data.path === $host.currentPath"
+          on:click="$host.clickTab($data)"
+        >
+          <img attr:src="$data.icon" slot="prefix" />
+          {{$data.name}}
+        </p-list-item>
+      </x-fill>
+    </p-list>
+    <slot></slot>
+  </n-horsp-pannel>
+  <script>
+    export default async ({ load, url }) => {
+      const { setSpace } = await load("/packages/i18n/data.js");
+      const { changeLang, getText, onChangeLang } = await load(
+        "/packages/i18n/data.js"
+      );
+
+      await setSpace("setting", new URL("./lang", url).href);
+
+      return {
+        data: {
+          roots: [
+            {
+              name: getText("systemSetting", "setting"),
+              path: "system",
+              icon: "/packages/apps/setting.napp/sources/system.svg",
+            },
+            {
+              name: getText("apps", "setting"),
+              path: "app",
+              icon: "/packages/apps/setting.napp/sources/app.svg",
+            },
+          ],
+          selectedRootName: null,
+        },
+        proto: {
+          clickTab(data) {
+            if (data.path === this.selectedRootName) {
+              return;
+            }
+
+            this.app.current.goto(`./${data.path}.html`);
+          },
+          get currentPath() {
+            try {
+              return this.app.current.src
+                .split("/")
+                .slice(-1)[0]
+                .replace(/\..+/, "");
+            } catch (err) {
+              return "";
+            }
+          },
+        },
+        attached() {
+          this._cancel = onChangeLang(() => {
+            this.roots = [
+              {
+                name: getText("systemSetting", "setting"),
+                path: "system",
+                icon: "/packages/apps/setting.napp/sources/system.svg",
+              },
+              {
+                name: getText("apps", "setting"),
+                path: "app",
+                icon: "/packages/apps/setting.napp/sources/app.svg",
+              },
+            ];
+          });
+        },
+        detached() {
+          this._cancel && this._cancel();
+        },
+      };
+    };
+  </script>
+</template>

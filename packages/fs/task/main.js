@@ -3,7 +3,15 @@ import { addTaskItem } from "./base.js";
 import { get } from "/packages/fs/main.js";
 import { zips } from "/packages/libs/zip/main.js";
 
-setSpace("fs-task", new URL("/packages/fs/task/lang", location.href));
+let spacePath;
+
+try {
+  spacePath = import.meta.resolve("./lang");
+} catch (err) {
+  spacePath = new URL("/packages/fs/task/lang", location.href);
+}
+
+setSpace("fs-task", spacePath);
 
 // 导入文件
 export const importFile = async (to) => {

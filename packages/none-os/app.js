@@ -1,5 +1,6 @@
 // 系统默认的apps
 const defaultAppsPaths = [
+  "/packages/apps/setting.napp",
   "/packages/apps/file-manager.napp",
   "/packages/apps/bookmarks.napp",
 ];

@@ -1,0 +1,16 @@
+{
+  "name": "Setting",
+  "icon": "icon.svg",
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "设置"
+    },
+    "en": {
+      "name": "Setting"
+    },
+    "ja": {
+      "name": "設定"
+    }
+  }
+}
