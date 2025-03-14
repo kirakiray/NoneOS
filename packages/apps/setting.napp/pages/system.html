@@ -58,7 +58,8 @@
     }
 
     n-local-icon[name="moon"],
-    n-local-icon[name="sun"] {
+    n-local-icon[name="sun"],
+    n-local-icon[name="light-dark-loop"] {
       color: rgb(255, 208, 0);
     }
 
@@ -116,8 +117,7 @@
         <p-select
           size="small"
           slot="suffix"
-          sync:value="lang"
-          on:change="changeLang"
+          sync:value="settingData.lang"
           style="margin-right: 8px"
         >
           <option value="cn">简体中文</option>
@@ -131,7 +131,7 @@
         <div class="item-tips">
           <n-desc space="setting" name="restartTips"></n-desc>
         </div>
-        <p-button slot="suffix" size="small" on:click="reloadSystem">
+        <p-button slot="suffix" size="small" on:click="location.reload(true)">
           <n-desc space="setting" name="restart"></n-desc>
         </p-button>
       </p-list-item>
@@ -140,30 +140,29 @@
       <n-desc space="setting" name="appearance"></n-desc>
     </h5>
     <div class="list">
-      <p-list-item button="suffix" radius>
+      <p-list-item radius>
         <n-local-icon
           name="moon"
           slot="prefix"
-          class:hide="!darkMode"
+          class:hide="settingData.theme !== 'dark'"
+        ></n-local-icon>
+        <n-local-icon
+          name="light-dark-loop"
+          slot="prefix"
+          class:hide="settingData.theme !== 'auto'"
         ></n-local-icon>
         <n-local-icon
           name="sun"
           slot="prefix"
-          class:hide="darkMode"
+          class:hide="settingData.theme !== 'light'"
         ></n-local-icon>
-        <n-desc space="setting" name="darkMode"></n-desc>
-        <div class="item-tips">
-          <n-desc
-            space="setting"
-            name="modeTips"
-            attr:data-mode="modeText"
-          ></n-desc>
-        </div>
-        <p-switch
-          slot="suffix"
-          sync:value="darkMode"
-          on:change="refreshModeText()"
-        ></p-switch>
+        <n-desc name="systemTheme" space="setting"></n-desc>
+        <div class="item-tips">系统的主题颜色</div>
+        <p-select slot="suffix" sync:value="settingData.theme" size="small">
+          <option value="auto">自动</option>
+          <option value="dark">深色模式</option>
+          <option value="light">白天模式</option>
+        </p-select>
       </p-list-item>
     </div>
     <h5>
@@ -172,7 +171,7 @@
     <div class="list">
       <p-list-item radius>
         <n-local-icon
-          attr:name="'toolbar-' + bardir"
+          attr:name="dockDir"
           slot="prefix"
           style="font-size: 26px"
         ></n-local-icon>
@@ -180,8 +179,7 @@
         <p-select
           slot="suffix"
           size="small"
-          :value="bardir"
-          on:change="changeDir"
+          sync:value="settingData.dockDirection"
         >
           <x-fill :value="dirOptions" fill-key="value">
             <option attr:value="$data.value">{{$data.name}}</option>
@@ -209,77 +207,46 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
 
-      // const { configs } = await load("/packages/none-os/configs.js");
-      const { changeLang, getText } = await load("/packages/i18n/data.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+
+      const settingData = await getSetting();
+
+      window.settingData = settingData;
+
+      const { getText } = await load("/packages/i18n/data.js");
 
       return {
         data: {
+          settingData: {},
           lang: localStorage.getItem("_lang") || "en",
-          darkMode: false,
           osVersion: "Loading",
           onlineVersion: "",
           theme: "",
-          // bardir: configs.barDirection, // 程序坞的方向
-          bardir: "bottom", // 程序坞的方向
           useOnline: true,
           modeText: "",
           dirOptions: [
-            // {
-            //   name: "左侧",
-            //   value: "left",
-            // },
-            // {
-            //   name: "底部",
-            //   value: "bottom",
-            // },
+            {
+              name: "自动",
+              value: "auto",
+            },
+            {
+              name: "左侧",
+              value: "left",
+            },
+            {
+              name: "底部",
+              value: "bottom",
+            },
           ],
         },
-        watch: {
-          theme(theme) {
-            if (theme === null) {
-              return;
+        watch: {},
+        proto: {
+          get dockDir() {
+            if (this?.settingData?.dockDirection) {
+              return "toolbar-" + this.settingData?.dockDirection;
             }
 
-            this.darkMode = theme === "dark";
-          },
-          darkMode(bool) {
-            const puiRoot = $.getRootProvider("pui");
-            puiRoot.theme = bool ? "dark" : "light";
-          },
-          bardir(val) {
-            // configs.barDirection = val;
-          },
-        },
-        proto: {
-          refreshModeText() {
-            setTimeout(() => {
-              this.modeText = this.darkMode
-                ? getText("light", "setting")
-                : getText("dark", "setting");
-
-              this.dirOptions = [
-                {
-                  name: getText("dirLeft", "setting"),
-                  value: "left",
-                },
-                {
-                  name: getText("dirBottom", "setting"),
-                  value: "bottom",
-                },
-              ];
-            }, 50);
-          },
-          changeLang(e) {
-            changeLang($(e.target).value);
-            this.refreshModeText();
-          },
-          async reloadSystem() {
-            location.reload();
-          },
-          async changeDir(e) {
-            // 改变程序坞的方向
-            const dir = $(e.target).value;
-            this.bardir = dir;
+            return "toolbar-auto";
           },
           async refreshVersion() {
             const pgFile = await get("packages/package.json");
@@ -302,7 +269,12 @@
         },
         ready() {
           this.refreshVersion();
-          this.refreshModeText();
+        },
+        attached() {
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
         },
       };
     };

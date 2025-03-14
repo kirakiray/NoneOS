@@ -50,8 +50,6 @@
           async initApps() {
             const apps = await getApps();
 
-            console.log("apps: ", apps);
-
             this.apps = apps.map((app) => {
               const { appData } = app;
 
