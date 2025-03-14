@@ -12,7 +12,8 @@ export const addTask = async () => {};
 export const importFile = async (to) => {
   const taskItem = addTaskItem({
     icon: "file",
-    name: "等待选择文件",
+    // name: "等待选择文件",
+    name: getText("waitSelectFile", "fs-task"),
   });
 
   const files = await new Promise((resolve) => {
@@ -40,7 +41,10 @@ export const importFile = async (to) => {
 
   for (let file of files) {
     count++;
-    taskItem.name = `正在导入文件: ${file.name}`;
+    // taskItem.name = `正在导入文件: ${file.name}`;
+    taskItem.name = getText("importingFile", "fs-task", {
+      filename: file.name,
+    });
     taskItem.precentage = count / files.length;
 
     const fileHandle = await targetDirHandle.get(file.name, {
