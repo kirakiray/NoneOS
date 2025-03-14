@@ -5,9 +5,6 @@ import { zips } from "/packages/libs/zip/main.js";
 
 setSpace("fs-task", new URL("/packages/fs/task/lang", location.href));
 
-// 添加任务
-export const addTask = async () => {};
-
 // 导入文件
 export const importFile = async (to) => {
   const taskItem = addTaskItem({
