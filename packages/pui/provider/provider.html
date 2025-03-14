@@ -12,17 +12,46 @@
   <o-provider
     name="pui"
     sync:theme="theme"
-    class:theme-dark-mode="theme === 'dark'"
-    class:theme-light-mode="theme === 'light'"
+    class:theme-dark-mode="isDarkMode"
+    class:theme-light-mode="!isDarkMode"
   >
     <slot></slot>
   </o-provider>
   <script>
+    const providers = new Set();
+
     export default {
       tag: "p-provider",
       attrs: {
-        theme: "light",
+        theme: "auto",
+        defaultTheme: matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light",
+      },
+      proto: {
+        get isDarkMode() {
+          return (
+            this.theme === "dark" ||
+            (this.theme === "auto" && this.defaultTheme === "dark")
+          );
+        },
+      },
+      attached() {
+        providers.add(this);
+      },
+      detached() {
+        providers.delete(this);
       },
     };
+
+    const mediaQueryList = window.matchMedia("(prefers-color-scheme: dark)");
+
+    mediaQueryList.addEventListener("change", (e) => {
+      if (e.matches) {
+        providers.forEach((e) => (e.defaultTheme = "dark"));
+      } else {
+        providers.forEach((e) => (e.defaultTheme = "light"));
+      }
+    });
   </script>
 </template>

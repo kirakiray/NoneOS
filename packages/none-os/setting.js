@@ -17,7 +17,7 @@ const settingInitedPms = settingData.ready().then(() => {
     Object.assign(settingData, {
       lang: localStorage.getItem("_lang") || "en", // 系统默认语言
       dockDirection: "auto", // 程序坞方向
-      theme: "dark", // 系统主题
+      theme: "auto", // 系统主题
     });
   }
 

@@ -13,18 +13,6 @@
       background-position: center;
     }
 
-    /* :host {
-      --frosted-glass-bg: rgba(255, 255, 255, 0.7);
-      --frosted-shadow-color: rgba(0, 0, 0, 0.1);
-      --barbtn-bg: rgba(255, 255, 255, 0.4);
-    } */
-
-    :host {
-      --frosted-glass-bg: rgba(50, 50, 50, 0.7);
-      --frosted-shadow-color: rgba(255, 255, 255, 0.1);
-      --barbtn-bg: rgba(100, 100, 100, 0.4);
-    }
-
     .container {
       display: flex;
       width: 100%;
@@ -42,6 +30,21 @@
     .main {
       position: relative;
       flex: 1;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :host {
+        --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+        --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+        --barbtn-bg: rgba(255, 255, 255, 0.4);
+      }
+    }
+    @media (prefers-color-scheme: dark) {
+      :host {
+        --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+        --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+        --barbtn-bg: rgba(100, 100, 100, 0.4);
+      }
     }
   </style>
   <o-provider name="clipboard">
@@ -70,6 +73,25 @@
       ></o-app>
     </n-home-app-frame>
   </o-provider>
+
+  <x-if :value="settingData.theme === 'dark'">
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+        --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+        --barbtn-bg: rgba(100, 100, 100, 0.4);
+      }
+    </style>
+  </x-if>
+  <x-else-if :value="settingData.theme === 'light'">
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+        --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+        --barbtn-bg: rgba(255, 255, 255, 0.4);
+      }
+    </style>
+  </x-else-if>
 
   <script>
     export default async ({ load }) => {
