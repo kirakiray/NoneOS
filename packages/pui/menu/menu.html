@@ -7,7 +7,6 @@
       font-size: 14px;
       vertical-align: top;
       border-radius: var(--pui-border-radius);
-      background-color: var(--pui-bg-light, var(--md-ref-palette-primary98));
       box-shadow: var(--contained-shadow);
       --triangle-color: #5f6368;
       transform-origin: 50% 0;
@@ -82,10 +81,34 @@
       }
     </style>
   </x-if>
-  <x-else>
+  <x-else-if :value="theme === 'light'">
     <style>
+      :host {
+        background-color: var(--md-sys-color-surface);
+      }
       .container {
         --wave-color: rgba(0, 0, 0, 0.1);
+      }
+    </style>
+  </x-else-if>
+  <x-else>
+    <style>
+      @media (prefers-color-scheme: light) {
+        :host {
+          background-color: var(--md-sys-color-surface);
+        }
+        .container {
+          --wave-color: rgba(0, 0, 0, 0.1);
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :host {
+          background-color: var(--pui-bg-dark, var(--md-ref-palette-normal10));
+        }
+        ::slotted(hr) {
+          border-top: var(--md-ref-palette-normal30) solid 1px;
+        }
       }
     </style>
   </x-else>
