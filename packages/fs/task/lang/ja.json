@@ -1,0 +1,23 @@
+{
+  "waitSelectFile": "ファイルを選択",
+  "importingFile": "インポート中: {filename}",
+  "cancelImportFile": "インポート中止",
+  "importFileSuccess": "インポート完了",
+  "waitSelectFolder": "フォルダを選択",
+  "cancelImportFolder": "フォルダのインポート中止",
+  "importingFolder": "インポート中: {filename}",
+  "importFolderSuccess": "フォルダ<b>{foldername}</b>をインポート完了",
+  "deleting": "削除中",
+  "deletingFile": "削除中: {filename}",
+  "deleteSuccess": "削除完了",
+  "copyingFiles": "<b>{sourcename}</b>を<b>{targetname}</b>にコピー中",
+  "copyingFile": "<b>{sourcename}</b>を<b>{targetname}</b>にコピー中",
+  "copySuccess": "<b>{filename}</b>のコピー完了",
+  "movingFiles": "<b>{sourcename}</b>を<b>{targetname}</b>に移動中",
+  "movingFile": "<b>{sourcename}</b>を<b>{targetname}</b>に移動中",
+  "moveSuccess": "<b>{filename}</b>の移動完了",
+  "exporting": "エクスポート中",
+  "exportFileSuccess": "<b>{filename}</b>のエクスポート完了",
+  "packingFiles": "ファイル圧縮中",
+  "exportSuccess": "エクスポート完了"
+}

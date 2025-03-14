@@ -87,7 +87,9 @@ export const importDir = async (to) => {
   let count = 0;
   for (let file of files) {
     count++;
-    taskItem.name = `正在导入文件: ${file.name}`;
+    taskItem.name = getText("importingFolder", "fs-task", {
+      filename: file.name,
+    });
     taskItem.precentage = count / files.length;
     const fileHandle = await targetDirHandle.get(file.webkitRelativePath, {
       create: "file",
@@ -95,10 +97,9 @@ export const importDir = async (to) => {
     await fileHandle.write(file);
   }
 
-  taskItem.name = `导入文件夹 <b>${files[0].webkitRelativePath.replace(
-    /(.+?)\/.+/,
-    "$1"
-  )}</b> 成功`;
+  taskItem.name = getText("importFolderSuccess", "fs-task", {
+    foldername: files[0].webkitRelativePath.replace(/(.+?)\/.+/, "$1"),
+  });
   taskItem.done = true;
 };
 
@@ -113,7 +114,9 @@ export const deleteHandle = async (paths) => {
 
   for (let path of paths) {
     count++;
-    taskItem.name = `正在删除文件: ${path}`;
+    taskItem.name = getText("deletingFile", "fs-task", {
+      filename: path,
+    });
     taskItem.precentage = count / paths.length;
     const handle = await get(path);
     await handle.remove();
@@ -243,7 +246,7 @@ export const exportHandle = async (paths) => {
 
   downloadFile(finnalFile);
 
-  taskItem.name = "导出成功";
+  taskItem.name = getText("exportSuccess", "fs-task");
   setTimeout(() => {
     taskItem.done = true;
   }, 300);
