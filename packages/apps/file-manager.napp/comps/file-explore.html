@@ -185,6 +185,7 @@
         deleteHandle,
         copyHandle,
         moveHandle,
+        exportHandle,
       } = await load("/packages/fs/task/main.js");
       const { getApps } = await load("/packages/none-os/app.js");
 
@@ -225,10 +226,7 @@
             return this.selecteds.some((e) => e.kind === "dir");
           },
           exportFiles() {
-            addTask({
-              type: "export-files",
-              from: this.selecteds.map((e) => e.path),
-            });
+            exportHandle(this.selecteds.map((e) => e.path));
           },
           async clickImportFile() {
             // 导入文件

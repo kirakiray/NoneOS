@@ -1,6 +1,7 @@
 import { setSpace, getText } from "/packages/i18n/data.js";
 import { addTaskItem } from "./base.js";
 import { get } from "/packages/fs/main.js";
+import { zips } from "/packages/libs/zip/main.js";
 
 setSpace("fs-task", new URL("/packages/fs/task/lang", location.href));
 
@@ -166,6 +167,80 @@ export const moveHandle = async (froms, to) => {
     // 复制可能太快了，所以要延迟一下
     taskItem.done = true;
   }, 300);
+};
+
+// 导出文件
+export const exportHandle = async (paths) => {
+  const taskItem = addTaskItem({
+    icon: "file",
+    name: "正在导出文件",
+  });
+
+  if (paths.length === 1) {
+    const handle = await get(paths[0]);
+
+    if (handle.kind === "file") {
+      const file = await handle.file();
+
+      taskItem.done = true;
+      taskItem.name = `导出文件 <b>${handle.name}</b> 成功`;
+      return downloadFile(file);
+    }
+  }
+
+  // 获取所有文件
+  const files = [];
+
+  taskItem.name = "正在打包文件";
+
+  await Promise.all(
+    paths.map(async (path) => {
+      const handle = await get(path);
+      const afterPath = path.split("/").slice(0, -1).join("/");
+
+      if (handle.kind === "dir") {
+        const flatFileHandles = await handle.flat();
+
+        await Promise.all(
+          flatFileHandles.map(async (item) => {
+            const file = await item.file();
+
+            // 修正最终地址
+            const fixedPath = item.path.replace(afterPath + "/", "");
+
+            files.push({
+              path: fixedPath,
+              file,
+            });
+          })
+        );
+      } else {
+        // 文件
+        debugger;
+      }
+    })
+  );
+
+  const finnalFile = await zips(files);
+
+  downloadFile(finnalFile);
+
+  taskItem.name = "导出成功";
+  setTimeout(() => {
+    taskItem.done = true;
+  }, 300);
+};
+
+// 下载文件
+const downloadFile = async (finnalFile) => {
+  const url = URL.createObjectURL(finnalFile);
+  const aEle = document.createElement("a");
+  aEle.href = url;
+  aEle.download = finnalFile.name;
+  aEle.click();
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+  }, 1000);
 };
 
 // setTimeout(() => {
