@@ -1,4 +1,23 @@
 {
   "waitSelectFile": "等待选择文件",
-  "importingFile": "正在导入文件: {filename}"
+  "importingFile": "正在导入文件: {filename}",
+  "cancelImportFile": "已取消导入文件",
+  "importFileSuccess": "导入文件成功",
+  "waitSelectFolder": "等待选择文件夹",
+  "cancelImportFolder": "已取消导入文件夹",
+  "importingFolder": "正在导入文件: {filename}",
+  "importFolderSuccess": "导入文件夹 <b>{foldername}</b> 成功",
+  "deleting": "正在删除文件",
+  "deletingFile": "正在删除文件: {filename}",
+  "deleteSuccess": "删除文件成功",
+  "copyingFiles": "正在将<b>{sourcename}</b>等复制到<b>{targetname}</b>",
+  "copyingFile": "正在将<b>{sourcename}</b>复制到<b>{targetname}</b>",
+  "copySuccess": "复制<b>{filename}等</b>成功",
+  "movingFiles": "正在将<b>{sourcename}</b>等剪切到<b>{targetname}</b>",
+  "movingFile": "正在将<b>{sourcename}</b>剪切到<b>{targetname}</b>",
+  "moveSuccess": "剪切<b>{filename}等</b>成功",
+  "exporting": "正在导出文件",
+  "exportFileSuccess": "导出文件 <b>{filename}</b> 成功",
+  "packingFiles": "正在打包文件",
+  "exportSuccess": "导出成功"
 }

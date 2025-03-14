@@ -12,7 +12,6 @@ export const addTask = async () => {};
 export const importFile = async (to) => {
   const taskItem = addTaskItem({
     icon: "file",
-    // name: "等待选择文件",
     name: getText("waitSelectFile", "fs-task"),
   });
 
@@ -24,7 +23,7 @@ export const importFile = async (to) => {
       resolve(Array.from(e.target.files));
     };
     fileEl.oncancel = () => {
-      taskItem.name = "已取消导入文件";
+      taskItem.name = getText("cancelImportFile", "fs-task");
       taskItem.done = true;
       resolve(null);
     };
@@ -54,7 +53,7 @@ export const importFile = async (to) => {
     await fileHandle.write(file);
   }
 
-  taskItem.name = "导入文件成功";
+  taskItem.name = getText("importFileSuccess", "fs-task");
   taskItem.done = true;
 };
 
@@ -62,7 +61,7 @@ export const importFile = async (to) => {
 export const importDir = async (to) => {
   const taskItem = addTaskItem({
     icon: "folder",
-    name: "等待选择文件夹",
+    name: getText("waitSelectFolder", "fs-task"),
   });
 
   const files = await new Promise((resolve) => {
@@ -74,7 +73,7 @@ export const importDir = async (to) => {
       resolve(e.target.files);
     };
     dirEl.oncancel = () => {
-      taskItem.name = "已取消导入文件夹";
+      taskItem.name = getText("cancelImportFolder", "fs-task");
       taskItem.done = true;
       resolve(null);
     };
@@ -107,7 +106,7 @@ export const importDir = async (to) => {
 export const deleteHandle = async (paths) => {
   const taskItem = addTaskItem({
     icon: "delete",
-    name: "正在删除文件",
+    name: getText("deleting", "fs-task"),
   });
 
   let count = 0;
@@ -120,7 +119,7 @@ export const deleteHandle = async (paths) => {
     await handle.remove();
   }
 
-  taskItem.name = "删除文件成功";
+  taskItem.name = getText("deleteSuccess", "fs-task");
   setTimeout(() => {
     // 删除都太快了，所以要延迟一下
     taskItem.done = true;
@@ -134,15 +133,23 @@ export const copyHandle = async (froms, to) => {
 
   const taskItem = addTaskItem({
     icon: "copy",
-    name: `正在将<b>${fromHandles[0].name}</b>等复制到<b>${toHandle.name}</b>`,
+    name: getText("copyingFiles", "fs-task", {
+      sourcename: fromHandles[0].name,
+      targetname: toHandle.name,
+    }),
   });
 
   for (let handle of fromHandles) {
-    taskItem.name = `正在将<b>${handle.name}</b>复制到<b>${toHandle.name}</b>`;
+    taskItem.name = getText("copyingFile", "fs-task", {
+      sourcename: handle.name,
+      targetname: toHandle.name,
+    });
     await handle.copyTo(toHandle);
   }
 
-  taskItem.name = `复制<b>${fromHandles[0].name}等</b>成功`;
+  taskItem.name = getText("copySuccess", "fs-task", {
+    filename: fromHandles[0].name,
+  });
 
   setTimeout(() => {
     // 复制可能太快了，所以要延迟一下
@@ -157,15 +164,23 @@ export const moveHandle = async (froms, to) => {
 
   const taskItem = addTaskItem({
     icon: "cut",
-    name: `正在将<b>${fromHandles[0].name}</b>等剪切到<b>${toHandle.name}</b>`,
+    name: getText("movingFiles", "fs-task", {
+      sourcename: fromHandles[0].name,
+      targetname: toHandle.name,
+    }),
   });
 
   for (let handle of fromHandles) {
-    taskItem.name = `正在将<b>${handle.name}</b>剪切到<b>${toHandle.name}</b>`;
+    taskItem.name = getText("movingFile", "fs-task", {
+      sourcename: handle.name,
+      targetname: toHandle.name,
+    });
     await handle.moveTo(toHandle);
   }
 
-  taskItem.name = `剪切<b>${fromHandles[0].name}等</b>成功`;
+  taskItem.name = getText("moveSuccess", "fs-task", {
+    filename: fromHandles[0].name,
+  });
 
   setTimeout(() => {
     // 复制可能太快了，所以要延迟一下
@@ -177,7 +192,7 @@ export const moveHandle = async (froms, to) => {
 export const exportHandle = async (paths) => {
   const taskItem = addTaskItem({
     icon: "file",
-    name: "正在导出文件",
+    name: getText("exporting", "fs-task"),
   });
 
   if (paths.length === 1) {
@@ -187,15 +202,14 @@ export const exportHandle = async (paths) => {
       const file = await handle.file();
 
       taskItem.done = true;
-      taskItem.name = `导出文件 <b>${handle.name}</b> 成功`;
+      taskItem.name = getText("exportFileSuccess", "fs-task", {
+        filename: handle.name,
+      });
       return downloadFile(file);
     }
   }
 
-  // 获取所有文件
-  const files = [];
-
-  taskItem.name = "正在打包文件";
+  taskItem.name = getText("packingFiles", "fs-task");
 
   await Promise.all(
     paths.map(async (path) => {
