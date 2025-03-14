@@ -45,7 +45,7 @@
     }
   </style>
   <o-provider name="clipboard">
-    <p-provider theme="dark">
+    <p-provider attr:theme="settingData.theme">
       <div class="container">
         <div class="bar">
           <none-os-bar
@@ -75,6 +75,8 @@
     export default async ({ load }) => {
       const { init } = await load("/packages/fs/main.js");
       const { initHistory } = await load("./init-history.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
 
       // 初始化几个重要目录
       await init("local"); // 用户的本地数据
@@ -99,6 +101,7 @@
             //   appStatus: 'normal' // min normal max
             // },
           ], // 程序坞程序数据
+          settingData: {},
         },
         proto: {
           runApp(e) {
@@ -233,8 +236,11 @@
               },
             });
           }
+
+          this.settingData = settingData;
         },
         detached() {
+          this.settingData = {};
           if (this._cancelHistory) {
             this._cancelHistory();
           }

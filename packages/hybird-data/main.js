@@ -95,6 +95,13 @@ export class HybirdData extends Stanz {
       }
 
       const realPath = e.path.replace(this[SELFHANDLE].path + "/", "");
+
+      if (realPath == "_d") {
+        // 更新自身
+        this.reload();
+        return;
+      }
+
       const paths = realPath.split("/");
 
       let targetData = this;

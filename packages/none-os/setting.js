@@ -8,6 +8,8 @@ const settingData = await createData(
   })
 );
 
+window.settingData = settingData;
+
 // 添加初始化数据
 const settingInitedPms = settingData.ready().then(() => {
   // 如果没有初始化数据，直接添加初始化数据

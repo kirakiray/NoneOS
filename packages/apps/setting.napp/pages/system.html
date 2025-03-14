@@ -160,7 +160,7 @@
         <div class="item-tips">系统的主题颜色</div>
         <p-select slot="suffix" sync:value="settingData.theme" size="small">
           <option value="auto">自动</option>
-          <option value="dark">深色模式</option>
+          <option value="dark">黑夜模式</option>
           <option value="light">白天模式</option>
         </p-select>
       </p-list-item>
@@ -210,8 +210,6 @@
       const { getSetting } = await load("/packages/none-os/setting.js");
 
       const settingData = await getSetting();
-
-      window.settingData = settingData;
 
       const { getText } = await load("/packages/i18n/data.js");
 
