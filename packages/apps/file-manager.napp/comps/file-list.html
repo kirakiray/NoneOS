@@ -271,9 +271,15 @@
             }
           },
           get sqColor() {
-            return this.theme === "dark"
-              ? "--md-ref-palette-normal10"
-              : "--md-ref-palette-normal95";
+            if (
+              this.theme === "dark" ||
+              (this.theme === "auto" &&
+                matchMedia("(prefers-color-scheme: dark)").matches)
+            ) {
+              return "--md-ref-palette-normal10";
+            }
+
+            return "--md-ref-palette-normal95";
           },
 
           async selectItem(data, event) {

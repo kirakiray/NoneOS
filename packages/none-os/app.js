@@ -3,6 +3,7 @@ const defaultAppsPaths = [
   "/packages/apps/setting.napp",
   "/packages/apps/file-manager.napp",
   "/packages/apps/bookmarks.napp",
+  "/packages/apps/text-edit.napp",
 ];
 
 // 获取所有app数组
