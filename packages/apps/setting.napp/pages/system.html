@@ -157,11 +157,13 @@
           class:hide="settingData.theme !== 'light'"
         ></n-local-icon>
         <n-desc name="systemTheme" space="setting"></n-desc>
-        <div class="item-tips">系统的主题颜色</div>
+        <div class="item-tips">
+          <n-desc space="setting" name="themeDesc"></n-desc>
+        </div>
         <p-select slot="suffix" sync:value="settingData.theme" size="small">
-          <option value="auto">自动</option>
-          <option value="dark">黑夜模式</option>
-          <option value="light">白天模式</option>
+          <x-fill :value="themeOptions" fill-key="value">
+            <option attr:value="$data.value">{{$data.name}}</option>
+          </x-fill>
         </p-select>
       </p-list-item>
     </div>
@@ -224,16 +226,30 @@
           modeText: "",
           dirOptions: [
             {
-              name: "自动",
+              name: getText("dirAuto"),
               value: "auto",
             },
             {
-              name: "左侧",
+              name: getText("dirLeft"),
               value: "left",
             },
             {
-              name: "底部",
+              name: getText("dirBottom"),
               value: "bottom",
+            },
+          ],
+          themeOptions: [
+            {
+              name: getText("themeAuto"),
+              value: "auto",
+            },
+            {
+              name: getText("dark"),
+              value: "dark",
+            },
+            {
+              name: getText("light"),
+              value: "light",
             },
           ],
         },
