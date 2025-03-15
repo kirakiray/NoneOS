@@ -8,12 +8,26 @@
       display: block;
     }
 
+    @media (min-aspect-ratio: 1/1) {
+      .main {
+        flex-direction: column;
+      }
+    }
+
     .main {
       display: flex;
-      flex-direction: column;
+      /* flex-direction: column; */
       justify-content: center;
       align-items: center;
       border-radius: 30px;
+    }
+
+    .main[dir="bottom"] {
+      flex-direction: row;
+    }
+
+    .main[dir="left"] {
+      flex-direction: column;
     }
 
     n-bar-btn {
@@ -33,7 +47,7 @@
       }
     }
   </style>
-  <div class="main frosted-glass">
+  <div class="main frosted-glass" attr:dir="dir">
     <n-bar-btn
       on:click="activeHome = !activeHome"
       no-anime
@@ -61,6 +75,7 @@
         data: {
           activeHome: false,
           apps: [],
+          dir: "",
         },
         proto: {
           clickItem(item) {

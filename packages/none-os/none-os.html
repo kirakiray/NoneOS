@@ -19,6 +19,19 @@
       height: 100%;
     }
 
+    .container[os-bar-dir="left"] {
+      flex-direction: row;
+    }
+
+    .container[os-bar-dir="bottom"] {
+      flex-direction: column-reverse;
+    }
+
+    @media (max-aspect-ratio: 1/1) {
+      .container[os-bar-dir="auto"] {
+        flex-direction: column-reverse;
+      }
+    }
     .bar {
       display: flex;
       justify-content: center;
@@ -49,10 +62,11 @@
   </style>
   <o-provider name="clipboard">
     <p-provider attr:theme="settingData.theme">
-      <div class="container">
+      <div class="container" attr:os-bar-dir="settingData.dockDirection">
         <div class="bar">
           <none-os-bar
             :apps="barApps"
+            :dir="settingData.dockDirection"
             sync:active-home="showHomeApp"
           ></none-os-bar>
         </div>
