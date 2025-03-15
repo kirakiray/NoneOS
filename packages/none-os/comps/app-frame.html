@@ -152,7 +152,9 @@
   </div>
 
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { getLang } = await load("/packages/i18n/data.js");
+
       return {
         tag: "n-app-frame",
         data: {
@@ -208,7 +210,18 @@
             }
           },
           get appName() {
-            return this?.item?.appData?.name;
+            const lang = getLang();
+            const appData = this?.item?.appData;
+
+            if (appData.i18n) {
+              const currentData = appData.i18n[lang];
+
+              if (currentData && currentData.name) {
+                return currentData.name;
+              }
+            }
+
+            return appData.name;
           },
           borderMouseDown(e) {
             if (this.__oldResize) {
