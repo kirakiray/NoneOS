@@ -19,7 +19,7 @@ export const getApps = async () => {
 };
 
 // 根据路径，获取完全的数据
-const getFullAppData = async (appDirPath) => {
+export const getFullAppData = async (appDirPath) => {
   const appJsonUrl = `${appDirPath}/app.json`;
   const configUrl = `${appDirPath}/app-config.js`;
   const appData = await fetch(`${appDirPath}/app.json`).then((e) => e.json());

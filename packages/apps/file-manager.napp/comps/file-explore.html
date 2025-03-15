@@ -188,7 +188,7 @@
       } = await load("/packages/fs/task/main.js");
       const { getApps } = await load("/packages/none-os/app.js");
 
-      const apps = getApps();
+      const apps = await getApps();
 
       return {
         tag: "n-file-explore",
@@ -391,15 +391,14 @@
         async attached() {
           this.spaceData = getSpaceData("files");
 
-          this.apps = (await apps)
+          this.apps = apps
             .map((appInfo) => {
               if (appInfo.appData.accept) {
                 // 只返回接受类型的应用
                 return {
-                  name: appInfo.name,
+                  name: appInfo.appData.name,
                   icon: appInfo.icon.url,
-                  // url: appInfo.url.replace("/app-config.js", ""),
-                  url: appInfo.url,
+                  url: appInfo.configUrl,
                   accept: appInfo.appData.accept,
                 };
               }
