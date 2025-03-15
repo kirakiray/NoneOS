@@ -98,7 +98,7 @@
       const { init } = await load("/packages/fs/main.js");
       const { initHistory } = await load("./init-history.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
-      const { getFullAppData } = await load("./app.js");
+      const { runApp, openApp } = await load("./util.js");
       const settingData = await getSetting();
 
       // 初始化几个重要目录
@@ -129,94 +129,21 @@
         proto: {
           // 通过右键菜单打开文件
           async openApp(e) {
-            const {
-              data: { app: appConfigUrl, path },
-            } = e;
+            const result = await openApp({
+              noneos: this,
+              appConfigUrl: e.data.app,
+              filepath: e.data.path,
+            });
 
-            const data = await getFullAppData(
-              appConfigUrl.replace(/\/app-config\.js$/, "")
-            );
-
-            if (path) {
-              // 设置需要打开文件的地址
-              data.filepath = path;
+            if (e.data.callback) {
+              e.data.callback(result);
             }
-
-            this.runApp({ data });
           },
           runApp(e) {
-            const { data } = e;
-
-            // 查找是否已经存在
-            let exitedBarApp = this.barApps.find(
-              (appData) => appData.configUrl === data.configUrl
-            );
-
-            // 取消其他应用的聚焦状态
-            this.barApps.forEach((e) => (e.focused = false));
-
-            if (exitedBarApp) {
-              if (exitedBarApp.appStatus === "min") {
-                exitedBarApp.appStatus = exitedBarApp._oldAppStatus || "normal";
-              }
-              exitedBarApp.focused = true;
-            } else {
-              const rect = this.shadow.$(".main").ele.getBoundingClientRect();
-
-              const box = {
-                // top: 0,
-                // left: 0,
-                // 默认为窗口一半大小的尺寸
-                width: Math.floor(rect.width * 0.75),
-                height: Math.floor(rect.height * 0.75),
-              };
-
-              // 修正坐标处于正中间（添加一定的偏移）
-              const offset = 100;
-              box.left =
-                Math.floor((rect.width - box.width) / 2) +
-                Math.random() * offset -
-                offset / 2;
-              box.top =
-                Math.floor((rect.height - box.height) / 2) +
-                Math.random() * offset -
-                offset / 2;
-
-              const appid = Math.random().toString(36).slice(2);
-
-              // 添加到应用内
-              this.barApps.push({
-                appid,
-                icon: data.icon,
-                appData: data.appData,
-                configUrl: data.configUrl,
-                focused: true,
-                appStatus: "normal",
-                ...box,
-              });
-
-              exitedBarApp = this.barApps.find((e) => e.appid === appid);
-            }
-
-            if (data.filepath) {
-              setTimeout(async () => {
-                const appFrameEle = this.shadow.$(
-                  `n-app-frame[data-appid="${exitedBarApp.appid}"]`
-                );
-
-                const appEl = appFrameEle.$("o-app");
-
-                await appEl.watchUntil(() => appEl.appIsReady);
-
-                const moduleData = appEl._module;
-
-                if (moduleData.onHandle) {
-                  moduleData.onHandle.call(appEl, {
-                    path: data.filepath,
-                  });
-                }
-              }, 10);
-            }
+            runApp({
+              data: e.data,
+              noneos: this,
+            });
           },
           saveAppData() {
             clearTimeout(this._save_timer);
@@ -247,7 +174,7 @@
               if (sessionStorage.__noneos_apps_routers !== routerStr) {
                 sessionStorage.__noneos_apps_routers = routerStr;
               }
-            }, 300);
+            }, 100);
           },
         },
         attached() {

@@ -170,7 +170,7 @@
   <style id="clipboard-style"></style>
   <script>
     export default async ({ load }) => {
-      const { getSpaceData } = await load("/packages/i18n/data.js");
+      const { getSpaceData, getText } = await load("/packages/i18n/data.js");
 
       const spaceData = await getSpaceData("files", true);
 
@@ -265,6 +265,19 @@
               this.emit("open-app", {
                 data: {
                   path: data.path,
+                  callback: (result) => {
+                    if (!result) {
+                      this.emit("open-dialog", {
+                        composed: true,
+                        data: {
+                          title: this.spaceData.openFail,
+                          content: getText("openFailContent", "files", {
+                            path: data.path,
+                          }),
+                        },
+                      });
+                    }
+                  },
                 },
                 composed: true,
               });

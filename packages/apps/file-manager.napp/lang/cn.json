@@ -30,5 +30,7 @@
   "fileSize": "文件大小",
   "fileType": "类型",
   "file": "文件",
-  "folder": "文件夹"
+  "folder": "文件夹",
+  "openFail": "打开失败",
+  "openFailContent": "打开 {path} 失败，没有有找到对应的程序"
 }

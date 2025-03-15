@@ -1,8 +1,9 @@
 <template page>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
-  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/pui/drawer/drawer.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
   <style>
     :host {
@@ -43,7 +44,7 @@
       margin-top: auto;
     }
   </style>
-  <n-horsp-pannel>
+  <n-horsp-pannel on:open-dialog="openDialog">
     <div slot="left" class="left-con">
       <p-list>
         <p-list-item collapse-childs="open" button="suffix">
@@ -136,7 +137,10 @@
       {{$data.name}}
     </p-list-item>
   </template>
-
+  <p-dialog :open="showErrorDialog" on:click-mask="showErrorDialog=false">
+    <div slot="title">{{dialogData.title}}</div>
+    <div>{{dialogData.content}}</div>
+  </p-dialog>
   <!-- <n-task-viewer on:task-done="taskDone"></n-task-viewer> -->
 
   <script>
@@ -177,6 +181,11 @@
           ],
           selectedRootName: null,
           remotes: [], // 远端设备
+          showErrorDialog: false,
+          dialogData: {
+            title: "",
+            content: "",
+          },
         },
         proto: {
           // async connectUser(item) {
@@ -184,6 +193,11 @@
           //     userId: item.userId,
           //   });
           // },
+          openDialog(e) {
+            this.showErrorDialog = true;
+            this.dialogData.title = e.data.title;
+            this.dialogData.content = e.data.content;
+          },
           taskDone(e) {
             this.app.current.refreshFiles();
           },
