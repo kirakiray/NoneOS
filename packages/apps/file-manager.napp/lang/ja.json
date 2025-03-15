@@ -28,5 +28,9 @@
   "fileSize": "サイズ",
   "fileType": "タイプ",
   "file": "ファイル",
-  "folder": "フォルダ"
+  "folder": "フォルダ",
+  "open": "開く",
+  "openWith": "アプリケーションで開く",
+  "openFail": "開けませんでした",
+  "openFailContent": "{path} を開けませんでした。対応するアプリケーションが見つかりません"
 }

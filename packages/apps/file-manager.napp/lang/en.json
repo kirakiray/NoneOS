@@ -28,5 +28,9 @@
   "fileSize": "Size",
   "fileType": "Type",
   "file": "File",
-  "folder": "Folder"
+  "folder": "Folder",
+  "open": "Open",
+  "openWith": "Open With",
+  "openFail": "Failed to Open",
+  "openFailContent": "Failed to open {path}, no corresponding application found"
 }
