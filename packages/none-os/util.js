@@ -58,14 +58,10 @@ export const runApp = async ({ data, noneos: self }) => {
     (appData) => appData.configUrl === data.configUrl
   );
 
-  // 取消其他应用的聚焦状态
-  self.barApps.forEach((e) => (e.focused = false));
-
   if (exitedBarApp) {
     if (exitedBarApp.appStatus === "min") {
       exitedBarApp.appStatus = exitedBarApp._oldAppStatus || "normal";
     }
-    exitedBarApp.focused = true;
   } else {
     const rect = self.shadow.$(".main").ele.getBoundingClientRect();
 
@@ -96,7 +92,7 @@ export const runApp = async ({ data, noneos: self }) => {
       icon: data.icon,
       appData: data.appData,
       configUrl: data.configUrl,
-      focused: true,
+      zIndex: self.barApps.length + 1, // 当前的图层
       appStatus: "normal",
       ...box,
     });
@@ -104,5 +100,21 @@ export const runApp = async ({ data, noneos: self }) => {
     exitedBarApp = self.barApps.find((e) => e.appid === appid);
   }
 
+  focusBarAppItem(exitedBarApp, self.barApps);
+
   return exitedBarApp;
+};
+
+// 让 bar app item 处于焦点状态
+export const focusBarAppItem = function (item, barApps) {
+  const topIndex = barApps.length;
+
+  item.zIndex = topIndex + 1;
+
+  const newBarApps = [...barApps].sort((a, b) => b.zIndex - a.zIndex);
+
+  // 重新排序
+  newBarApps.forEach((e, i) => {
+    e.zIndex = topIndex - i;
+  });
 };

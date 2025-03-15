@@ -112,7 +112,7 @@
       const { init } = await load("/packages/fs/main.js");
       const { initHistory } = await load("./init-history.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
-      const { runApp, openApp } = await load("./util.js");
+      const { runApp, openApp, focusBarAppItem } = await load("./util.js");
       const settingData = await getSetting();
 
       // 初始化几个重要目录
@@ -130,7 +130,8 @@
             //   icon: data.icon, // 应用图标
             //   appData: data.appData, // 应用json的数据
             //   configUrl: data.configUrl, // 应用配置js的地址
-            //   focused: true, // 应用是否处于焦点的状态
+            //   zIndex: 1, // 窗口的层级
+            //   appid: data.appid, // 应用id
             //   top: 0, // 窗口定位相关的数据
             //   left: 0,
             //   width: 200,
@@ -239,11 +240,15 @@
             // 监听路由变化，对应用修正
             this._cancelHistory = initHistory({
               getCurrentFrame: () => {
-                return this.shadow.$("n-app-frame[focused]");
+                return this.shadow
+                  .all("n-app-frame")
+                  .sort((a, b) => b.item.zIndex - a.item.zIndex)[0];
               },
               onpopstate: () => {
                 this.saveAppData();
               },
+            }).then((cancel) => {
+              this._cancelHistory = cancel;
             });
           }
 

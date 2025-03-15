@@ -11,10 +11,6 @@
       user-select: none;
     }
 
-    :host([focused]) {
-      z-index: 10;
-    }
-
     .container {
       display: flex;
       flex-direction: column;
@@ -154,6 +150,7 @@
   <script>
     export default async ({ load }) => {
       const { getLang } = await load("/packages/i18n/data.js");
+      const { focusBarAppItem } = await load("../util.js");
 
       return {
         tag: "n-app-frame",
@@ -184,7 +181,7 @@
               });
             }
 
-            this.attr("focused", item.focused);
+            this.style.zIndex = item.zIndex;
           },
         },
         proto: {
@@ -315,10 +312,7 @@
           {
             // 聚焦修正
             this.on("mousedown", () => {
-              this.host.barApps.forEach((e) => {
-                e.focused = false;
-              });
-              this.item.focused = true;
+              focusBarAppItem(this.item, this.host.barApps);
             });
           }
           {
