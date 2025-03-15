@@ -15,7 +15,7 @@ const settingInitedPms = settingData.ready().then(() => {
   // 如果没有初始化数据，直接添加初始化数据
   if (!settingData.lang) {
     Object.assign(settingData, {
-      lang: localStorage.getItem("_lang") || "en", // 系统默认语言
+      lang: "en", // 系统默认语言
       dockDirection: "auto", // 程序坞方向
       theme: "auto", // 系统主题
     });

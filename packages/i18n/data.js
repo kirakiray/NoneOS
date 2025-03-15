@@ -1,5 +1,6 @@
-// 当前采用的语言
-let lang = localStorage.getItem("_lang") || "en";
+import { getSetting } from "../none-os/setting.js";
+
+const settingData = await getSetting();
 
 const load = lm(import.meta);
 load("./component.html");
@@ -46,26 +47,32 @@ export const getSpaceData = (name, isWaitSpace) => {
 };
 
 // 获取当前语言
-export const getLang = () => lang;
+export const getLang = () => settingData.lang;
 
 const listeners = [];
 
-// 切换语言
-export const changeLang = async (argLang) => {
-  lang = argLang;
-  localStorage.setItem("_lang", lang);
+let oldLang = settingData.lang;
+settingData.watchTick(async () => {
+  if (oldLang === settingData.lang) {
+    return;
+  }
+
+  oldLang = settingData.lang;
+
+  // 切换语言后，修正语言包
   await Promise.all(
-    Object.entries(space).map(async ([key, langObj]) => {
-      const path = spacePath[key];
-      const langData = await fetch(`${path}/${lang}.json`).then((e) =>
+    Object.entries(spacePath).map(async ([key, path]) => {
+      const data = await fetch(`${path}/${settingData.lang}.json`).then((e) =>
         e.json()
       );
-      Object.assign(langObj, langData);
+
+      Object.assign(space[key], data);
     })
   );
 
-  listeners.forEach((f) => f());
-};
+  // 触发监听器
+  listeners.forEach((e) => e());
+});
 
 // 监听语言切换
 export const onChangeLang = (func) => {
@@ -84,7 +91,7 @@ export const setSpace = async (name, path) => {
     space[name] = {};
   }
 
-  const langData = await fetch(`${path}/${lang}.json`)
+  const langData = await fetch(`${path}/${settingData.lang}.json`)
     .then((e) => e.json())
     .catch(() => {
       return fetch(`${path}/en.json`)

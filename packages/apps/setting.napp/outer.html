@@ -45,9 +45,7 @@
   <script>
     export default async ({ load, url }) => {
       const { setSpace } = await load("/packages/i18n/data.js");
-      const { changeLang, getText, onChangeLang } = await load(
-        "/packages/i18n/data.js"
-      );
+      const { getText, onChangeLang } = await load("/packages/i18n/data.js");
 
       await setSpace("setting", new URL("./lang", url).href);
 
