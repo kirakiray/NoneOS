@@ -177,7 +177,7 @@
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { getSpaceData } = await load("/packages/i18n/data.js");
+      const { getSpaceData, getText } = await load("/packages/i18n/data.js");
       const {
         importFile,
         importDir,
@@ -269,6 +269,19 @@
                 this.emit("open-app", {
                   data: {
                     path: selectedData.path,
+                    callback: (result) => {
+                      if (!result) {
+                        this.emit("open-dialog", {
+                          composed: true,
+                          data: {
+                            title: this.spaceData.openFail,
+                            content: getText("openFailContent", "files", {
+                              path: selectedData.path,
+                            }),
+                          },
+                        });
+                      }
+                    },
                   },
                   composed: true,
                 });
