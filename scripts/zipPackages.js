@@ -42,13 +42,15 @@ async function zipPackages() {
     const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf-8"));
     const version = packageJson.version;
 
-    // 生成压缩包
+    // 生成压缩包，设置时间戳为0以确保相同内容生成相同的压缩包
     const zipContent = await zip.generateAsync({
       type: "nodebuffer",
       compression: "DEFLATE",
       compressionOptions: {
-        level: 9
-      }
+        level: 9,
+      },
+      platform: "UNIX", // 统一使用UNIX格式，避免不同平台差异
+      date: new Date(0), // 将所有文件的时间戳设置为0，确保相同内容生成相同的压缩包
     });
 
     // 确保 dist 目录存在
