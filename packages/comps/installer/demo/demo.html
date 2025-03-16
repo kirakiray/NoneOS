@@ -8,27 +8,34 @@
     <script src="/packages/pui/init.js" type="module"></script>
     <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
     <link rel="stylesheet" href="/packages/others/colors.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+    </style>
   </head>
   <body>
-    <l-m src="../installer.html"></l-m>
-    <n-installer
-      appicon="/packages/others/logo.png"
-      step="0"
-      style="height: 60vh"
-    >
-      <div install-name>App Name</div>
-      <n-installer-page>
-        <div step-name>Step Name 1</div>
-        <o-page src="./demo-page1.html"></o-page>
-      </n-installer-page>
-      <n-installer-page>
-        <div step-name>Step Name 2</div>
-        <o-page src="./page2.html"></o-page>
-      </n-installer-page>
-      <n-installer-page>
-        <div step-name>Step Name 3</div>
-        <o-page src="./page3.html"></o-page>
-      </n-installer-page>
-    </n-installer>
+    <l-m src="/packages/comps/installer/installer.html"></l-m>
+    <l-m src="/packages/pui/provider/provider.html"></l-m>
+    <p-provider theme="auto">
+      <n-installer appicon="/packages/others/logo.png" step="0">
+        <div install-name>App Name</div>
+        <n-installer-page>
+          <div step-name>Step Name 1</div>
+          <o-page src="./demo-page1.html"></o-page>
+        </n-installer-page>
+        <n-installer-page>
+          <div step-name>Step Name 2</div>
+          <o-page src="./page2.html"></o-page>
+        </n-installer-page>
+        <n-installer-page>
+          <div step-name>Step Name 3</div>
+          <o-page src="./page3.html"></o-page>
+        </n-installer-page>
+      </n-installer>
+    </p-provider>
   </body>
 </html>

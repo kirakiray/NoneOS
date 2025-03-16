@@ -69,7 +69,9 @@
     <n-bar-time></n-bar-time>
   </div>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { focusBarAppItem } = await load("../util.js");
+
       return {
         tag: "none-os-bar",
         data: {
@@ -82,6 +84,8 @@
             if (item.appStatus === "min") {
               item.appStatus = item._oldAppStatus || "normal";
             }
+
+            focusBarAppItem(item, this.apps);
           },
         },
       };
