@@ -37,11 +37,6 @@ async function zipPackages() {
       zip.file(relativePath, fileContent);
     }
 
-    // 读取 package.json 获取版本号
-    const packageJsonPath = path.join(__dirname, "../package.json");
-    const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf-8"));
-    const version = packageJson.version;
-
     // 生成压缩包，设置时间戳为0以确保相同内容生成相同的压缩包
     const zipContent = await zip.generateAsync({
       type: "nodebuffer",
