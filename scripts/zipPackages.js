@@ -58,7 +58,7 @@ async function zipPackages() {
     await fs.mkdir(distDir, { recursive: true });
 
     // 将压缩包写入文件
-    const outputPath = path.join(distDir, `packages-${version}.zip`);
+    const outputPath = path.join(distDir, `packages.zip`);
     await fs.writeFile(outputPath, zipContent);
 
     console.log(`已完成压缩，文件保存在: ${outputPath}`);
