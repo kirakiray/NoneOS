@@ -118,6 +118,7 @@
           size="small"
           slot="suffix"
           sync:value="settingData.lang"
+          on:change="reloadOptions"
           style="margin-right: 8px"
         >
           <option value="cn">简体中文</option>
@@ -227,37 +228,44 @@
           theme: "",
           useOnline: true,
           modeText: "",
-          dirOptions: [
-            {
-              name: getText("dirAuto"),
-              value: "auto",
-            },
-            {
-              name: getText("dirLeft"),
-              value: "left",
-            },
-            {
-              name: getText("dirBottom"),
-              value: "bottom",
-            },
-          ],
-          themeOptions: [
-            {
-              name: getText("themeAuto"),
-              value: "auto",
-            },
-            {
-              name: getText("dark"),
-              value: "dark",
-            },
-            {
-              name: getText("light"),
-              value: "light",
-            },
-          ],
+          dirOptions: [],
+          themeOptions: [],
         },
         watch: {},
         proto: {
+          reloadOptions() {
+            setTimeout(() => {
+              this.dirOptions = [
+                {
+                  name: getText("dirAuto"),
+                  value: "auto",
+                },
+                {
+                  name: getText("dirLeft"),
+                  value: "left",
+                },
+                {
+                  name: getText("dirBottom"),
+                  value: "bottom",
+                },
+              ];
+
+              this.themeOptions = [
+                {
+                  name: getText("themeAuto"),
+                  value: "auto",
+                },
+                {
+                  name: getText("dark"),
+                  value: "dark",
+                },
+                {
+                  name: getText("light"),
+                  value: "light",
+                },
+              ];
+            }, 50);
+          },
           get dockDir() {
             if (this?.settingData?.dockDirection) {
               return "toolbar-" + this.settingData?.dockDirection;
@@ -289,6 +297,7 @@
         },
         attached() {
           this.settingData = settingData;
+          this.reloadOptions();
         },
         detached() {
           this.settingData = {};
