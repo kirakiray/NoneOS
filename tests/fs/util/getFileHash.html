@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GetFileHash Function Test</title>
+  </head>
+  <body>
+    <script type="module">
+      import { getFileHash } from "/packages/fs/util.js";
+      import { runTest } from "/tests/runTest.js";
+
+      // Test small file (< 128KB)
+      await runTest("Test Small File", async () => {
+        const content = "Hello, World!".repeat(1000); // ~13KB
+        const file = new File([content], "small.txt", {
+          type: "text/plain",
+        });
+        const hash = await getFileHash(file);
+
+        return {
+          assert:
+            typeof hash === "string" &&
+            hash.length === 64 &&
+            hash ===
+              "5017b7ebc2aea0345079c0b1a6eb7141faf0d6882eda5a405b83d703831d9b4f",
+          content: hash,
+        };
+      });
+
+      // Test medium file (exactly 128KB)
+      await runTest("Test Medium File (128KB)", async () => {
+        const content = "A".repeat(128 * 1024); // 128KB
+        const file = new File([content], "medium.txt", {
+          type: "text/plain",
+        });
+        const hash = await getFileHash(file);
+
+        return {
+          assert:
+            typeof hash === "string" &&
+            hash.length === 64 &&
+            hash ===
+              "bc57b6c63572fee4e15227b1389d0614f781c9364e2337e54c40a79a05c209d3",
+          content: hash,
+        };
+      });
+
+      // Test large file (> 128KB)
+      await runTest("Test Large File", async () => {
+        const content = "B".repeat(300 * 1024); // 300KB
+        const file = new File([content], "large.txt", {
+          type: "text/plain",
+        });
+        const hash = await getFileHash(file);
+
+        return {
+          assert:
+            typeof hash === "string" &&
+            hash.length === 64 &&
+            "8a518c1a7fb9df796e2245a4d1d25da19668bc97c228925e5b2d032514791265",
+          content: hash,
+        };
+      });
+
+      // Test empty file
+      await runTest("Test Empty File", async () => {
+        const file = new File([""], "empty.txt", {
+          type: "text/plain",
+        });
+        const hash = await getFileHash(file);
+
+        return {
+          assert:
+            hash ===
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          content: hash,
+        };
+      });
+    </script>
+  </body>
+</html>

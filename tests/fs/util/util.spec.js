@@ -7,4 +7,10 @@ test.describe("Util Function Tests", () => {
 
     await testSucceedCount(page, 4);
   });
+  
+  test("Get file hash", async ({ page }) => {
+    await page.goto("/tests/fs/util/getFileHash.html");
+
+    await testSucceedCount(page, 4);
+  });
 });
