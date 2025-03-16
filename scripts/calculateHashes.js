@@ -44,9 +44,18 @@ async function calculateAllHashes() {
       });
     }
 
-    // 将结果写入 JSON 文件
+    // 读取根目录的 package.json
+    const packageJsonPath = path.join(__dirname, "../package.json");
+    const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf-8"));
+
+    // 将结果写入 JSON 文件，包含版本信息
     const outputPath = path.join(__dirname, "../dist/", "hashes.json");
-    await fs.writeFile(outputPath, JSON.stringify(results));
+    const finalResults = {
+      version: packageJson.version,
+      files: results,
+    };
+    // await fs.writeFile(outputPath, JSON.stringify(finalResults, null, 2));
+    await fs.writeFile(outputPath, JSON.stringify(finalResults));
 
     console.log(`已完成所有文件的哈希值计算，结果保存在: ${outputPath}`);
     console.log(`共处理 ${results.length} 个文件`);
