@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>安装器</title>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
+    <script src="/packages/pui/init.js" type="module"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
+    <link rel="stylesheet" href="/packages/others/colors.css" />
+  </head>
+  <body>
+    <l-m src="../installer.html"></l-m>
+    <n-installer
+      appicon="/packages/others/logo.png"
+      step="0"
+      style="height: 60vh"
+    >
+      <div install-name>App Name</div>
+      <n-installer-page>
+        <div step-name>Step Name 1</div>
+        <o-page src="./demo-page1.html"></o-page>
+      </n-installer-page>
+      <n-installer-page>
+        <div step-name>Step Name 2</div>
+        <o-page src="./page2.html"></o-page>
+      </n-installer-page>
+      <n-installer-page>
+        <div step-name>Step Name 3</div>
+        <o-page src="./page3.html"></o-page>
+      </n-installer-page>
+    </n-installer>
+  </body>
+</html>

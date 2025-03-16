@@ -1,0 +1,51 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      transition: all ease 0.3s;
+    }
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    ::slotted([step-name]) {
+      display: none;
+    }
+  </style>
+  <div class="container">
+    <slot></slot>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "n-installer-page",
+        attrs: {
+          stepName: "",
+        },
+        watch: {
+          stepName() {
+            this.emit("installer-page-change");
+          },
+        },
+        data: {},
+        attached() {
+          this._oldParent = this.parent;
+          this.emit("installer-page-change");
+        },
+        detached() {
+          this._oldParent.emit("installer-page-change");
+          this._oldParent = null;
+        },
+      };
+    };
+  </script>
+</template>
