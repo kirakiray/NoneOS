@@ -31,15 +31,10 @@ async function calculateAllHashes() {
     const results = [];
 
     for (const filePath of files) {
-      const fileHandle = await fs.open(filePath, 'r');
-      const fileStats = await fileHandle.stat();
-      const file = new File(
-        [await fs.readFile(filePath)],
-        path.basename(filePath),
-        { type: 'application/octet-stream' }
-      );
+      const fileContent = await fs.readFile(filePath);
+      const fileStats = await fs.stat(filePath);
       
-      const hash = await getFileHash(file);
+      const hash = await getFileHash(fileContent); // 直接传入文件内容
       const relativePath = path.relative(packagesDir, filePath);
       
       results.push({
@@ -47,8 +42,6 @@ async function calculateAllHashes() {
         hash,
         size: fileStats.size
       });
-      
-      await fileHandle.close();
     }
 
     // 将结果写入 JSON 文件

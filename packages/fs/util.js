@@ -6,21 +6,31 @@
  * @return {Promise<string>} 哈希值
  */
 export const getHash = async (data) => {
-  if (typeof data === "string") {
-    data = new TextEncoder().encode(data);
-  } else if (data instanceof Blob) {
-    data = await data.arrayBuffer();
+  if (typeof window === "undefined") {
+    // Node.js 环境
+    const crypto = await import('crypto');
+    if (typeof data === "string") {
+      data = new TextEncoder().encode(data);
+    } else if (data instanceof Blob) {
+      data = await data.arrayBuffer();
+    }
+    const hash = crypto.createHash('sha256');
+    hash.update(Buffer.from(data));
+    return hash.digest('hex');
+  } else {
+    // 浏览器环境
+    if (typeof data === "string") {
+      data = new TextEncoder().encode(data);
+    } else if (data instanceof Blob) {
+      data = await data.arrayBuffer();
+    }
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hash));
+    const hashHex = hashArray
+      .map((bytes) => bytes.toString(16).padStart(2, "0"))
+      .join("");
+    return hashHex;
   }
-
-  const hash = await crypto.subtle.digest("SHA-256", data);
-
-  // 将哈希值转换为十六进制字符串
-  const hashArray = Array.from(new Uint8Array(hash));
-  const hashHex = hashArray
-    .map((bytes) => bytes.toString(16).padStart(2, "0"))
-    .join("");
-
-  return hashHex;
 };
 /**
  * 计算文件的分块哈希值
@@ -30,22 +40,34 @@ export const getHash = async (data) => {
  */
 export const calculateFileChunkHashes = async (file) => {
   const CHUNK_SIZE = 128 * 1024; // 128kb
-  const fileReader = new FileReader();
-  return new Promise((resolve, reject) => {
-    fileReader.onload = async (e) => {
-      const buffer = e.target.result;
-      // 创建所有块的哈希计算Promise数组
-      const hashPromises = [];
-      for (let i = 0; i < buffer.byteLength; i += CHUNK_SIZE) {
-        const chunk = buffer.slice(i, i + CHUNK_SIZE);
-        hashPromises.push(getHash(chunk));
-      }
 
-      resolve(await Promise.all(hashPromises));
-    };
-    fileReader.onerror = reject;
-    fileReader.readAsArrayBuffer(file);
-  });
+  // 判断运行环境，使用不同的方式读取文件
+  if (typeof window !== "undefined" && window.FileReader) {
+    // 浏览器环境使用 FileReader
+    const fileReader = new FileReader();
+    return new Promise((resolve, reject) => {
+      fileReader.onload = async (e) => {
+        const buffer = e.target.result;
+        const hashPromises = [];
+        for (let i = 0; i < buffer.byteLength; i += CHUNK_SIZE) {
+          const chunk = buffer.slice(i, i + CHUNK_SIZE);
+          hashPromises.push(getHash(chunk));
+        }
+        resolve(await Promise.all(hashPromises));
+      };
+      fileReader.onerror = reject;
+      fileReader.readAsArrayBuffer(file);
+    });
+  } else {
+    // Node.js 环境直接处理 Buffer
+    const buffer = file instanceof Buffer ? file : Buffer.from(file);
+    const hashPromises = [];
+    for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
+      const chunk = buffer.slice(i, i + CHUNK_SIZE);
+      hashPromises.push(getHash(chunk));
+    }
+    return Promise.all(hashPromises);
+  }
 };
 
 /**
