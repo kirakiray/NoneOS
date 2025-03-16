@@ -46,7 +46,7 @@ async function calculateAllHashes() {
 
     // 将结果写入 JSON 文件
     const outputPath = path.join(__dirname, "../dist/", "hashes.json");
-    await fs.writeFile(outputPath, JSON.stringify(results, null, 2));
+    await fs.writeFile(outputPath, JSON.stringify(results));
 
     console.log(`已完成所有文件的哈希值计算，结果保存在: ${outputPath}`);
     console.log(`共处理 ${results.length} 个文件`);
