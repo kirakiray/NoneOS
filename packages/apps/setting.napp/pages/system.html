@@ -206,14 +206,17 @@
   <script>
     export const parent = "../outer.html";
 
-    export default async ({ load }) => {
+    export default async ({ load, url }) => {
       const { get } = await load("/packages/fs/main.js");
 
       const { getSetting } = await load("/packages/none-os/setting.js");
+      const { createGetText, setSpace } = await load("/packages/i18n/data.js");
+
+      await setSpace("setting", new URL("../lang", url).href);
 
       const settingData = await getSetting();
 
-      const { getText } = await load("/packages/i18n/data.js");
+      const getText = createGetText("setting");
 
       return {
         data: {

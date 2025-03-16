@@ -30,6 +30,12 @@ export const getText = (key, spaceName, data) => {
   return val;
 };
 
+export const createGetText = (spaceName) => {
+  return (key, data) => {
+    return getText(key, spaceName, data);
+  };
+};
+
 const spaceWaiter = {};
 export const getSpaceData = (name, isWaitSpace) => {
   if (!space[name]) {
