@@ -15,6 +15,10 @@ async function getAllFiles(dir) {
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
+      // 跳过 demo 目录
+      if (entry.name === 'demo') {
+        continue;
+      }
       files.push(...(await getAllFiles(fullPath)));
     } else {
       files.push(fullPath);

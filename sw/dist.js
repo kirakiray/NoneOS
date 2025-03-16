@@ -185,12 +185,63 @@
     return [finalTarget, finalName];
   };
 
+  /**
+   * @file util.js
+   * @author yao
+   * 传入一个数据，计算哈希值
+   * @param {ArrayBuffer|Blob|String} data 数据
+   * @return {Promise<string>} 哈希值
+   */
+  const getHash = async (data) => {
+    if (typeof window === "undefined") {
+      // Node.js 环境
+      const crypto = await import('crypto');
+      if (typeof data === "string") {
+        data = new TextEncoder().encode(data);
+      } else if (data instanceof Blob) {
+        data = await data.arrayBuffer();
+      }
+      const hash = crypto.createHash('sha256');
+      hash.update(Buffer.from(data));
+      return hash.digest('hex');
+    } else {
+      // 浏览器环境
+      if (typeof data === "string") {
+        data = new TextEncoder().encode(data);
+      } else if (data instanceof Blob) {
+        data = await data.arrayBuffer();
+      }
+      const hash = await crypto.subtle.digest("SHA-256", data);
+      const hashArray = Array.from(new Uint8Array(hash));
+      const hashHex = hashArray
+        .map((bytes) => bytes.toString(16).padStart(2, "0"))
+        .join("");
+      return hashHex;
+    }
+  };
+
+  // 查看是否Safari
+  const isSafari = (() => {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes("safari") && !ua.includes("chrome");
+  })();
+
   class BaseHandle extends PublicBaseHandle {
     // 对OPFS进行封装
     #originHandle = null;
     constructor(dirHandle, options = {}) {
       super(options);
       this.#originHandle = dirHandle;
+    }
+
+    async id() {
+      const originHandle = this.#originHandle;
+
+      if (originHandle.getUniqueId) {
+        return await originHandle.getUniqueId();
+      }
+
+      return await getHash(this.path);
     }
 
     get _handle() {
@@ -552,7 +603,7 @@
         request.onsuccess = function (event) {
           const db = event.target.result;
 
-          request.onclose = function () {
+          db.onclose = function () {
             mainDB = null;
           };
 
@@ -647,6 +698,10 @@
       this.#dbId = dbId;
     }
 
+    async id() {
+      return this.#dbId;
+    }
+
     get _dbid() {
       return this.#dbId;
     }
@@ -676,20 +731,6 @@
       });
     }
   }
-
-  /**
-   * @file util.js
-   * @author yao
-   * 传入一个数据，计算哈希值
-   * @param {ArrayBuffer|Blob|String} data 数据
-   * @return {Promise<string>} 哈希值
-   */
-
-  // 查看是否Safari
-  const isSafari = (() => {
-    const ua = navigator.userAgent.toLowerCase();
-    return ua.includes("safari") && !ua.includes("chrome");
-  })();
 
   class FileDBHandle extends BaseDBHandle {
     constructor(...args) {
@@ -882,7 +923,7 @@
 
   const get$1 = async (path, options) => {
     // 解析路径
-    const pathParts = path.split("/").filter(Boolean);
+    const pathParts = path.split("/");
 
     if (pathParts.length === 0) {
       throw new Error("路径不能为空");
@@ -908,7 +949,13 @@
       dbId: data.id,
     });
 
-    return await rootHandle.get(pathParts.slice(1).join("/"), options);
+    if (pathParts.length === 1) {
+      return rootHandle;
+    }
+
+    const target = await rootHandle.get(pathParts.slice(1).join("/"), options);
+
+    return target;
   };
 
   const get = async (path, options) => {
