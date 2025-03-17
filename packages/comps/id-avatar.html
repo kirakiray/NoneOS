@@ -1,0 +1,66 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+    }
+
+    img {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <img attr:src="url" />
+  <script>
+    export default async () => {
+      return {
+        tag: "n-id-avatar",
+        data: {
+          url: "",
+        },
+        attrs: {
+          val: "",
+        },
+        watch: {
+          val(val) {
+            this.url = generateAvatarBase64(this.val);
+          },
+        },
+      };
+    };
+
+    function generateAvatarBase64(text) {
+      // 创建画布
+      const canvas = document.createElement("canvas");
+      const size = 128; // 头像尺寸
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext("2d");
+
+      // 生成背景色（基于字符串哈希）
+      const hash = text
+        .split("")
+        .reduce((acc, char) => char.charCodeAt(0) + acc, 0);
+      const hue = hash % 360;
+      ctx.fillStyle = `hsl(${hue}, 60%, 60%)`;
+      ctx.fillRect(0, 0, size, size);
+
+      // 绘制文字
+      ctx.fillStyle = "white";
+      ctx.font = `${size * 0.4}px Arial`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      // 提取显示文字（取前2个大写字母或首字母）
+      const displayText =
+        text.trim().length === 0
+          ? "?"
+          : text.trim().match(/[A-Z]/g)?.slice(0, 2).join("") ||
+            text.trim()[0].toUpperCase();
+
+      ctx.fillText(displayText, size / 2, size / 2);
+
+      // 返回Base64
+      return canvas.toDataURL();
+    }
+  </script>
+</template>
