@@ -1,6 +1,6 @@
 import { get } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
-import { generateKeyPair } from "./cert.js";
+import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
 
 const users = {
