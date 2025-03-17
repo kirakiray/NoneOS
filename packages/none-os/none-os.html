@@ -110,16 +110,17 @@
   <script>
     export default async ({ load }) => {
       const { init } = await load("/packages/fs/main.js");
-      const { initHistory } = await load("./init-history.js");
-      const { getSetting } = await load("/packages/none-os/setting.js");
-      const { runApp, openApp, focusBarAppItem } = await load("./util.js");
-      const settingData = await getSetting();
 
       // 初始化几个重要目录
       await init("local"); // 用户的本地数据
       await init("apps"); // 应用目录
       await init("packages"); // 运行虚拟系统的文件
       await init("system"); // 存储系统初始化数据，这个目录不要暴露给用户
+
+      const { initHistory } = await load("./init-history.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const { runApp, openApp, focusBarAppItem } = await load("./util.js");
+      const settingData = await getSetting();
 
       return {
         tag: "none-os",

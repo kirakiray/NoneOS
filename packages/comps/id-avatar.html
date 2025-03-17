@@ -29,38 +29,62 @@
     };
 
     function generateAvatarBase64(text) {
-      // 创建画布
       const canvas = document.createElement("canvas");
-      const size = 128; // 头像尺寸
+      const size = 200; // 图片尺寸
+      const gridSize = 6; // 总网格尺寸（需为偶数）
+      const halfGrid = gridSize / 2;
+      const cellSize = size / gridSize;
+
       canvas.width = size;
       canvas.height = size;
       const ctx = canvas.getContext("2d");
 
-      // 生成背景色（基于字符串哈希）
-      const hash = text
-        .split("")
-        .reduce((acc, char) => char.charCodeAt(0) + acc, 0);
-      const hue = hash % 360;
-      ctx.fillStyle = `hsl(${hue}, 60%, 60%)`;
+      // 生成哈希值
+      const hash = stringHash(text);
+
+      // 设置背景颜色
+      ctx.fillStyle = "#f0f0f0";
       ctx.fillRect(0, 0, size, size);
 
-      // 绘制文字
-      ctx.fillStyle = "white";
-      ctx.font = `${size * 0.4}px Arial`;
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
+      // 生成主颜色
+      const hue = ((hash & 0xff) * 1.41) % 360;
+      const saturation = 60 + ((hash >> 8) % 35);
+      const lightness = 40 + ((hash >> 16) % 40);
+      ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 
-      // 提取显示文字（取前2个大写字母或首字母）
-      const displayText =
-        text.trim().length === 0
-          ? "?"
-          : text.trim().match(/[A-Z]/g)?.slice(0, 2).join("") ||
-            text.trim()[0].toUpperCase();
+      // 仅生成左半区并镜像
+      for (let i = 0; i < gridSize; i++) {
+        for (let j = 0; j < halfGrid; j++) {
+          // 只遍历左半区
+          const bitPos = i * halfGrid + j; // 哈希位定位算法
+          if ((hash >>> bitPos) & 1) {
+            // 使用无符号右移
+            // 原始方块坐标
+            const offset = (hash >> bitPos) % 5;
+            const x = j * cellSize + offset;
+            const y = i * cellSize + offset;
+            const w = cellSize - offset * 2;
 
-      ctx.fillText(displayText, size / 2, size / 2);
+            // 绘制左侧方块
+            ctx.fillRect(x, y, w, w);
 
-      // 返回Base64
+            // 镜像绘制右侧方块（对称轴在中心）
+            const mirrorX = size - (j + 1) * cellSize + offset;
+            ctx.fillRect(mirrorX, y, w, w);
+          }
+        }
+      }
+
       return canvas.toDataURL();
+    }
+
+    // 哈希函数保持不变
+    function stringHash(str) {
+      let hash = 5381;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) + hash + str.charCodeAt(i);
+      }
+      return hash >>> 0;
     }
   </script>
 </template>
