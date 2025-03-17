@@ -1,0 +1,16 @@
+{
+  "name": "LinkMe",
+  "icon": "icon.svg",
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "连我"
+    },
+    "en": {
+      "name": "LinkMe"
+    },
+    "ja": {
+      "name": "LinkMe"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface);
+    }
+    .container {
+      padding: 32px 16px 16px;
+    }
+
+    .part {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+  <div class="container">
+    <div class="part">
+        <o-page src="./my-info.html"></o-page>
+    </div>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        data: {},
+      };
+    };
+  </script>
+</template>
