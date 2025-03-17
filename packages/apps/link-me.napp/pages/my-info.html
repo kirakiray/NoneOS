@@ -85,7 +85,7 @@
           <n-desc name="userId" space="linkme"></n-desc>
         </div>
         <div class="line-val" style="font-size: 14px">
-          <n-copy-span>{{userID}} </n-copy-span>
+          <n-copy-span>{{userData._userid}} </n-copy-span>
         </div>
       </div>
     </div>
@@ -94,11 +94,15 @@
     export default async ({ load }) => {
       const selfUserInfo = {};
 
+      const { initUser } = await load("/packages/user/main.js");
+
+      const userData = await initUser();
+
       return {
         data: {
-          userName: "nnnnnn",
-          userID: "aaaa",
           renameMode: false,
+          userName: "",
+          userData: {},
         },
         watch: {
           renameMode(bool) {
@@ -114,10 +118,15 @@
           renameEnd(e) {
             this.renameMode = false;
 
-            setInfo({
-              userName: this.userName,
-            });
+            this.userData.userName = e.target.value;
           },
+        },
+        attached() {
+          this.userData = userData;
+          this.userName = userData.userName;
+        },
+        detached() {
+          this.userData = {};
         },
       };
     };
