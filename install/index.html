@@ -8,8 +8,33 @@
     <script src="/packages/pui/init.js" type="module"></script>
     <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
     <link rel="stylesheet" href="/packages/others/colors.css" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+      }
+    </style>
   </head>
   <body>
-    
+    <l-m src="/packages/comps/installer/installer.html"></l-m>
+    <l-m src="/packages/pui/provider/provider.html"></l-m>
+    <p-provider theme="auto">
+      <n-installer appicon="/packages/others/logo.png" step="0">
+        <div install-name>App Name</div>
+        <n-installer-page>
+          <div step-name>欢迎</div>
+          <o-page src="/install/pages/welcome.html"></o-page>
+        </n-installer-page>
+        <!-- <n-installer-page>
+          <div step-name>使用协议</div>
+          <o-page src="./pages/agreement.html"></o-page>
+        </n-installer-page> -->
+    </p-provider>
+    <script type="module"  >
+      import { setSpace } from "/packages/i18n/data.js";
+      setSpace("installer", "/install/lang");
+    </script>
   </body>
 </html>

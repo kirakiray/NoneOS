@@ -1,0 +1,33 @@
+{
+  "install": "安装NoneOS",
+  "welcome": "欢迎",
+  "agreement": "使用协议",
+  "startInstall": "开始安装",
+  "reinstall": "重装系统",
+  "entrySystemDirectly": "直接进入系统",
+  "installEnd": "安装完成",
+  "nextStep": "下一步",
+  "p2": {
+    "title": "欢迎来到 NoneOS",
+    "updateTitle": "更新你的NoneOS",
+    "updateTo": "从 <span class='os-version'>{localVersion}</span> 更新到 <span class='os-version'>{onlineVersion}</span>",
+    "desc1": "一个运行在浏览器的桌面操作系统，可以让您的设备都连接在一起。",
+    "desc2": "安全、简单、易用。",
+    "closeAlert": "感谢你的支持，再见。（如果窗口未关闭，请自行关闭）"
+  },
+  "disagree": "不同意",
+  "agreenAndInstall": "同意并安装",
+  "p3": {
+    "waitDownload": "等待下载",
+    "tips": "安装正在进行中，请不要关闭浏览器。",
+    "readList": "正在从 {sourceName} 获取文件列表",
+    "download": "正在从 {sourceName} 下载文件",
+    "error1": "无法从任何源获取到正确的系统文件",
+    "caculateHash": "正在计算文件的哈希",
+    "matchFile": "正在匹配文件",
+    "removeOldFile": "正在删除旧系统文件",
+    "writeSystem": "正在写入系统文件"
+  },
+  "installSucceed": "NoneOS安装成功",
+  "entrySystem": "进入系统"
+}
