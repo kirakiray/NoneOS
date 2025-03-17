@@ -91,3 +91,52 @@ export async function importPublicKey(publicKeyBase64) {
     throw error;
   }
 }
+
+export const createSigner = async (privateKeyBase64) => {
+  try {
+    const privateKey = await importPrivateKey(privateKeyBase64);
+
+    return (message) => {
+      const encoder = new TextEncoder();
+      // 将消息转换为 Uint8Array
+      const data = encoder.encode(message);
+
+      // 使用私钥对数据进行签名
+      return window.crypto.subtle.sign(
+        {
+          name: "ECDSA",
+          hash: { name: "SHA-256" },
+        },
+        privateKey,
+        data
+      );
+    };
+  } catch (error) {
+    console.error("创建签名函数失败:", error);
+    throw error;
+  }
+};
+
+export const createVerifier = async (publicKeyBase64) => {
+  try {
+    const publicKey = await importPublicKey(publicKeyBase64);
+    return (message, signature) => {
+      const encoder = new TextEncoder();
+      // 将消息转换为 Uint8Array
+      const data = encoder.encode(message);
+      // 使用公钥验证签名
+      return window.crypto.subtle.verify(
+        {
+          name: "ECDSA",
+          hash: { name: "SHA-256" },
+        },
+        publicKey,
+        signature,
+        data
+      );
+    };
+  } catch (error) {
+    console.error("创建验证函数失败:", error);
+    throw error;
+  }
+};

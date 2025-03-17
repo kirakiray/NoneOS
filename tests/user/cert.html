@@ -14,6 +14,8 @@
         generateKeyPair,
         importPrivateKey,
         importPublicKey,
+        createSigner,
+        createVerifier,
       } from "/packages/user/cert.js";
 
       // 测试密钥对生成
@@ -101,6 +103,48 @@
             content: {
               message: "签名验证成功",
               originalMessage: message,
+              signatureLength: signature.byteLength,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试 createSigner 和 createVerifier
+      await runTest("Create Signer and Verifier Test", async () => {
+        try {
+          // 生成密钥对
+          const keyPair = await generateKeyPair();
+
+          // 创建签名器和验证器
+          const sign = await createSigner(keyPair.privateKey);
+          const verify = await createVerifier(keyPair.publicKey);
+
+          // 测试消息
+          const message = "Hello, NoneOS Signature!";
+
+          // 使用签名器生成签名
+          const signature = await sign(message);
+
+          // 使用验证器验证签名
+          const isValid = await verify(message, signature);
+
+          // 测试篡改消息的情况
+          const tamperedMessage = "Tampered Message";
+          const isInvalid = await verify(tamperedMessage, signature);
+
+          return {
+            assert: isValid && !isInvalid,
+            content: {
+              message: "签名器和验证器测试成功",
+              originalMessage: message,
+              signatureValid: isValid,
+              tamperedMessageValid: isInvalid,
               signatureLength: signature.byteLength,
             },
           };
