@@ -3,50 +3,53 @@ import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
 
-const users = {
+// 自身用户对象
+const selfUsers = {
   userDirName: "",
 };
 
 // 确保已经初始化了用户
 export const getUserStore = async (userDirName = "self") => {
-  if (users[userDirName]) {
-    return users[userDirName];
+  if (selfUsers[userDirName]) {
+    return selfUsers[userDirName];
   }
 
-  const userHandle = await get(`system/${userDirName}`, {
-    create: "dir",
-  });
+  return (selfUsers[userDirName] = (async () => {
+    const userHandle = await get(`system/${userDirName}`, {
+      create: "dir",
+    });
 
-  // 生成主体对象
-  const userStore = await createData(userHandle);
+    // 生成主体对象
+    const userStore = await createData(userHandle);
 
-  await userStore.ready();
+    await userStore.ready();
 
-  let userid;
+    let userid;
 
-  // 没有对钥，代表还未初始化
-  if (!userStore.pair) {
-    const pair = await generateKeyPair();
-    userStore.pair = pair;
+    // 没有对钥，代表还未初始化
+    if (!userStore.pair) {
+      const pair = await generateKeyPair();
+      userStore.pair = pair;
 
-    await userStore.pair.ready();
+      await userStore.pair.ready();
 
-    // 计算用户id
-    userid = await getHash(pair.publicKey);
+      // 计算用户id
+      userid = await getHash(pair.publicKey);
 
-    // 根据id生成初始用户名
-    userStore.userName = `user-${userid.slice(
-      userid.length / 2,
-      userid.length / 2 + 4
-    )}`;
-  }
+      // 根据id生成初始用户名
+      userStore.userName = `user-${userid.slice(
+        userid.length / 2,
+        userid.length / 2 + 4
+      )}`;
+    }
 
-  if (!userid) {
-    await userStore.pair.ready();
-    userid = await getHash(userStore.pair.publicKey);
-  }
+    if (!userid) {
+      await userStore.pair.ready();
+      userid = await getHash(userStore.pair.publicKey);
+    }
 
-  userStore._userid = userid;
+    userStore._userid = userid;
 
-  return userStore;
+    return userStore;
+  })());
 };
