@@ -8,7 +8,7 @@ const users = {
 };
 
 // 确保已经初始化了用户
-export const initUser = async (userDirName = "self") => {
+export const getUserStore = async (userDirName = "self") => {
   if (users[userDirName]) {
     return users[userDirName];
   }

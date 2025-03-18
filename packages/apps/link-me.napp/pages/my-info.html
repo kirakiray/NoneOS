@@ -104,9 +104,9 @@
     export default async ({ load }) => {
       const selfUserInfo = {};
 
-      const { initUser } = await load("/packages/user/main.js");
+      const { getUserStore } = await load("/packages/user/main.js");
 
-      const userData = await initUser();
+      const userData = await getUserStore();
 
       return {
         data: {
