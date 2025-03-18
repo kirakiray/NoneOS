@@ -78,6 +78,13 @@ export class HandClient extends Stanz {
     const userCard = await this.getSelfUserCard();
 
     // 发送用户卡片
-    debugger;
+    this.send({
+      type: "update-userinfo",
+      data: userCard,
+    });
+  }
+
+  send(data) {
+    this.#ws.send(JSON.stringify(data));
   }
 }
