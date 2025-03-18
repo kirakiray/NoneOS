@@ -13,7 +13,7 @@ export const initUser = async (userDirName = "self") => {
     return users[userDirName];
   }
 
-  const userHandle = await get(`/system/${userDirName}`, {
+  const userHandle = await get(`system/${userDirName}`, {
     create: "dir",
   });
 
