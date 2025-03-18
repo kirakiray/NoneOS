@@ -1,11 +1,14 @@
 import { test, expect } from "@playwright/test";
 import { testSucceedCount } from "../specUtil.js";
 
-test.describe("User Certificate Tests", () => {
+test.describe("User Tests", () => {
   test("Certificate generation and verification tests", async ({ page }) => {
     await page.goto("/tests/user/util.html");
-
-    // util.html 中包含了三个测试用例
     await testSucceedCount(page, 3);
+  });
+
+  test("User data signing and verification tests", async ({ page }) => {
+    await page.goto("/tests/user/main.html");
+    await testSucceedCount(page, 4);
   });
 });

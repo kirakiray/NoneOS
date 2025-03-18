@@ -56,5 +56,9 @@ export class HandClient extends Stanz {
   }
 
   // 更新用户信息到握手服务器
-  async updateUserInfo(user) {}
+  async updateUserInfo(user) {
+    // 生成用户卡片
+    
+    // 发送用户卡片
+  }
 }
