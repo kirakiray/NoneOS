@@ -1,8 +1,11 @@
-import { get } from "/packages/fs/main.js";
+import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
 import { createSigner, createVerifier } from "./util.js";
+
+// 需要系统目录
+await init("system");
 
 // 自身用户对象
 const selfUsers = {};
@@ -56,12 +59,18 @@ export const getUserStore = async (userDirName) => {
 
 // 用自身账户生成带签名的数据
 export const signData = async (originData, userDirName) => {
-  // 获取私钥准备签名
-  const userStore = await getUserStore(userDirName);
+  let userStore;
+  if (!userDirName || typeof userDirName === "string") {
+    // 获取私钥准备签名
+    userStore = await getUserStore(userDirName);
+  } else if (typeof userDirName === "object" && userDirName.pair) {
+    userStore = userDirName;
+  }
+
   await userStore.pair.ready();
 
   let data = {
-    createTime: Date.now(),
+    time: Date.now(),
     origin: originData,
     publicKey: userStore.pair.publicKey,
   };

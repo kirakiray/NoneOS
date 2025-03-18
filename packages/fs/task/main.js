@@ -219,6 +219,8 @@ export const exportHandle = async (paths) => {
 
   taskItem.name = getText("packingFiles", "fs-task");
 
+  const files = [];
+
   await Promise.all(
     paths.map(async (path) => {
       const handle = await get(path);

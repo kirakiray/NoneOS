@@ -10,7 +10,7 @@
     "zippkg": "node scripts/zipPackages.js",
     "buhash": "node scripts/calculateHashes.js",
     "build-sw": "rollup sw/main.js --file sw/dist.js --format iife",
-    "handshake": "node --inspect server/ws-server.js"
+    "hand": "node --inspect server/ws-server.js"
   },
   "repository": {
     "type": "git",

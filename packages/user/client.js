@@ -1,3 +1,5 @@
+import { signData } from "./main.js";
+
 const Stanz = $.Stanz;
 
 // 和服务器交互的类
@@ -55,10 +57,27 @@ export class HandClient extends Stanz {
     });
   }
 
+  // 生成自身的用户卡片
+  async getSelfUserCard() {
+    const userStore = this.#selfUserStore;
+
+    //
+    const signedData = await signData(
+      {
+        userName: userStore.userName,
+      },
+      userStore
+    );
+
+    return signedData;
+  }
+
   // 更新用户信息到握手服务器
-  async updateUserInfo(user) {
+  async updateUserInfo() {
     // 生成用户卡片
-    
+    const userCard = await this.getSelfUserCard();
+
     // 发送用户卡片
+    debugger;
   }
 }
