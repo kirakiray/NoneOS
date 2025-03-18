@@ -78,12 +78,13 @@ export const signData = async (originData, userDirName) => {
   // 生成签名器
   const sign = await createSigner(userStore.pair.privateKey);
 
-  // 签名
+  // 签名并转换为 base64
   const signature = await sign(JSON.stringify(data));
 
   return {
     data,
-    signature,
+    // 将 ArrayBuffer 转换为 base64 字符串
+    signature: btoa(String.fromCharCode(...new Uint8Array(signature))),
   };
 };
 
@@ -94,11 +95,24 @@ export const verfyData = async ({ data, signature }) => {
   // 生成验证器
   const verify = await createVerifier(publicKey);
 
-  // 验证签名
-  const result = await verify(JSON.stringify(data), signature);
+  try {
+    // 将 base64 转换回原始格式并验证签名
+    const signatureBuffer = new Uint8Array(
+      [...atob(signature)].map((c) => c.charCodeAt(0))
+    ).buffer;
 
-  return {
-    result,
-    data: data.originData,
-  };
+    const result = await verify(JSON.stringify(data), signatureBuffer);
+
+    return {
+      result,
+      data: data.origin,
+    };
+  } catch (err) {
+    // base64转换失败时返回验证失败结果
+    return {
+      result: false,
+      data: data.origin,
+      error: "Invalid base64 signature",
+    };
+  }
 };

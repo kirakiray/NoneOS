@@ -118,7 +118,8 @@
               name: "修改签名",
               data: {
                 ...signedData,
-                signature: signedData.signature.slice(0, -1),
+                // 修改 base64 字符串的最后一个字符
+                signature: signedData.signature.slice(0, -1) + "A",
               },
             },
             {
