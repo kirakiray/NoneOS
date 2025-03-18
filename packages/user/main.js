@@ -4,9 +4,7 @@ import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
 
 // 自身用户对象
-const selfUsers = {
-  userDirName: "",
-};
+const selfUsers = {};
 
 // 确保已经初始化了用户
 export const getUserStore = async (userDirName = "self") => {

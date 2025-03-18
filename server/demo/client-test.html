@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
+  </head>
+  <body>
+    <script type="module">
+      import { getUserStore } from "/packages/user/main.js";
+      import { HandClient } from "/packages/user/client.js";
+
+      const selfUserStore = await getUserStore();
+
+      const client1 = new HandClient({ store: selfUserStore });
+
+      client1.connect();
+    </script>
+  </body>
+</html>
