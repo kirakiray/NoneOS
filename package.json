@@ -1,5 +1,5 @@
 {
-  "name": "NoneOS",
+  "name": "noneos",
   "version": "3.0.0",
   "description": "A browser-based operating system",
   "type": "module",
@@ -9,7 +9,8 @@
     "build": "npm run build-sw && npm run buhash && npm run zippkg",
     "zippkg": "node scripts/zipPackages.js",
     "buhash": "node scripts/calculateHashes.js",
-    "build-sw": "rollup sw/main.js --file sw/dist.js --format iife"
+    "build-sw": "rollup sw/main.js --file sw/dist.js --format iife",
+    "handshake": "node server/ws-server.js"
   },
   "repository": {
     "type": "git",
