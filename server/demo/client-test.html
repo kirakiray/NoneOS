@@ -13,7 +13,10 @@
 
       const selfUserStore = await getUserStore();
 
-      const client1 = new HandClient({ store: selfUserStore });
+      const client1 = new HandClient({
+        store: selfUserStore,
+        url: "ws://localhost:5579",
+      });
 
       client1.connect();
     </script>

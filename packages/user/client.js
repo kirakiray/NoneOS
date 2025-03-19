@@ -7,12 +7,14 @@ export class HandClient extends Stanz {
   #ws; // websocket
   #url; // websocket的url
   #selfUserStore; // 自己的数据
+  #serverMark; // 服务器标识
 
   constructor({ store, url }) {
     super({
       state: "disconnected", // 未连接
-      url,
     });
+
+    this.#url = url;
 
     this.#selfUserStore = store;
 
@@ -26,21 +28,49 @@ export class HandClient extends Stanz {
     }
 
     return new Promise((resolve, reject) => {
-      const ws = (this.#ws = new WebSocket(this.url || "ws://localhost:5579"));
+      const ws = (this.#ws = new WebSocket(this.#url));
 
       this.state = "connecting";
 
       ws.onopen = () => {
         console.log("连接成功", this);
-        this.state = "connected";
+        this.state = "verifying";
         resolve(true);
-
-        // 更新用户信息
-        this.updateUserInfo();
       };
 
-      ws.onmessage = (event) => {
-        console.log("服务器", event.data);
+      ws.onmessage = async (event) => {
+        let data = event.data;
+
+        console.log("服务器", data);
+
+        try {
+          data = JSON.parse(event.data);
+        } catch (error) {
+          console.error("无法解析 JSON 数据:", error);
+          return;
+        }
+
+        switch (data.type) {
+          case "init":
+            this.#serverMark = data.mark;
+
+            // 发送签名的用户卡片进行认证
+            const afterData = await this.getAuthData({
+              userName: this.#selfUserStore.userName,
+              markid: data.mark,
+            });
+
+            this.send({
+              type: "auth",
+              authedData: afterData,
+            });
+            break;
+          case "authed":
+            this.state = "connected";
+
+            console.log("账户初始化成功", this);
+            break;
+        }
       };
 
       ws.onclose = () => {
@@ -58,30 +88,16 @@ export class HandClient extends Stanz {
   }
 
   // 生成自身的用户卡片
-  async getSelfUserCard() {
-    const userStore = this.#selfUserStore;
-
-    //
+  async getAuthData(data = {}) {
+    // 生成用户卡片
     const signedData = await signData(
       {
-        userName: userStore.userName,
+        ...data,
       },
-      userStore
+      this.#selfUserStore
     );
 
     return signedData;
-  }
-
-  // 更新用户信息到握手服务器
-  async updateUserInfo() {
-    // 生成用户卡片
-    const userCard = await this.getSelfUserCard();
-
-    // 发送用户卡片
-    this.send({
-      type: "update-userinfo",
-      data: userCard,
-    });
   }
 
   send(data) {

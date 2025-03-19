@@ -2,7 +2,10 @@ import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
-import { createSigner, createVerifier } from "./util.js";
+import { createSigner } from "./util.js";
+import { verifyData } from "./verify.js";
+
+export { verifyData };
 
 // 需要系统目录
 await init("system");
@@ -86,33 +89,4 @@ export const signData = async (originData, userDirName) => {
     // 将 ArrayBuffer 转换为 base64 字符串
     signature: btoa(String.fromCharCode(...new Uint8Array(signature))),
   };
-};
-
-// 验证数据
-export const verfyData = async ({ data, signature }) => {
-  const { publicKey } = data;
-
-  // 生成验证器
-  const verify = await createVerifier(publicKey);
-
-  try {
-    // 将 base64 转换回原始格式并验证签名
-    const signatureBuffer = new Uint8Array(
-      [...atob(signature)].map((c) => c.charCodeAt(0))
-    ).buffer;
-
-    const result = await verify(JSON.stringify(data), signatureBuffer);
-
-    return {
-      result,
-      data: data.origin,
-    };
-  } catch (err) {
-    // base64转换失败时返回验证失败结果
-    return {
-      result: false,
-      data: data.origin,
-      error: "Invalid base64 signature",
-    };
-  }
 };

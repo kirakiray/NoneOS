@@ -1,7 +1,7 @@
 export async function generateKeyPair() {
   try {
     // 使用 Web Crypto API 生成 ECDSA 密钥对
-    const keyPair = await window.crypto.subtle.generateKey(
+    const keyPair = await crypto.subtle.generateKey(
       {
         name: "ECDSA",
         namedCurve: "P-256", // 使用 P-256 曲线
@@ -11,13 +11,10 @@ export async function generateKeyPair() {
     );
 
     // 导出公钥（格式为 spki）
-    const publicKey = await window.crypto.subtle.exportKey(
-      "spki",
-      keyPair.publicKey
-    );
+    const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
 
     // 导出私钥（格式为 pkcs8）
-    const privateKey = await window.crypto.subtle.exportKey(
+    const privateKey = await crypto.subtle.exportKey(
       "pkcs8",
       keyPair.privateKey
     );
@@ -48,7 +45,7 @@ export async function importPrivateKey(privateKeyBase64) {
     );
 
     // 导入私钥
-    const privateKey = await window.crypto.subtle.importKey(
+    const privateKey = await crypto.subtle.importKey(
       "pkcs8",
       binaryKey,
       {
@@ -74,7 +71,7 @@ export async function importPublicKey(publicKeyBase64) {
     );
 
     // 导入公钥
-    const publicKey = await window.crypto.subtle.importKey(
+    const publicKey = await crypto.subtle.importKey(
       "spki",
       binaryKey,
       {
@@ -102,7 +99,7 @@ export const createSigner = async (privateKeyBase64) => {
       const data = encoder.encode(message);
 
       // 使用私钥对数据进行签名
-      return window.crypto.subtle.sign(
+      return crypto.subtle.sign(
         {
           name: "ECDSA",
           hash: { name: "SHA-256" },
@@ -125,7 +122,7 @@ export const createVerifier = async (publicKeyBase64) => {
       // 将消息转换为 Uint8Array
       const data = encoder.encode(message);
       // 使用公钥验证签名
-      return window.crypto.subtle.verify(
+      return crypto.subtle.verify(
         {
           name: "ECDSA",
           hash: { name: "SHA-256" },
