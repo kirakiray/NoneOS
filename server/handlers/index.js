@@ -1,3 +1,4 @@
 import { auth } from "./auth.js";
+import { post } from "./post.js";
 
-export { auth };
+export { auth, post };

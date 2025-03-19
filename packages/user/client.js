@@ -81,11 +81,23 @@ export class HandServer extends Stanz {
             // 处理服务器的心跳响应
             this.delayTime = Date.now() - this._pingTime;
             delete this._pingTime;
-            console.log("收到服务器心跳响应，延迟时间:", this.delayTime, "ms");
             break;
           case "error":
             console.error("服务器返回错误:", messageData.error);
             break;
+          case "post-response":
+            // 处理服务器的响应
+            const { taskId, data, success } = messageData;
+
+            if (this._tasks[taskId]) {
+              if (success) {
+                this._tasks[taskId].resolve(data);
+                delete this._tasks[taskId];
+              } else {
+                this._tasks[taskId].reject(data);
+                delete this._tasks[taskId];
+              }
+            }
         }
       };
 
@@ -134,5 +146,33 @@ export class HandServer extends Stanz {
   // 发送消息到服务器
   sendMessage(data) {
     this.#webSocket.send(JSON.stringify(data));
+  }
+
+  async ready() {
+    return await this.watchUntil(() => this.connectionState === "connected");
+  }
+
+  // 模拟发送请求
+  async post(data) {
+    if (!this._tasks) {
+      this._tasks = {};
+    }
+
+    const taskId = Math.random().toString(36).slice(2);
+    this._tasks[taskId] = {
+      resolve: null,
+      reject: null,
+    };
+
+    return new Promise((resolve, reject) => {
+      this._tasks[taskId].resolve = resolve;
+      this._tasks[taskId].reject = reject;
+
+      this.sendMessage({
+        type: "post",
+        taskId,
+        data,
+      });
+    });
   }
 }

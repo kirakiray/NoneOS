@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All</title>
+    <script src="/packages/libs/ofa/ofa.js" debug></script>
+  </head>
+  <body>
+    <script type="module">
+      import { getUserStore } from "/packages/user/main.js";
+      import { HandServer } from "/packages/user/client.js";
+
+      const selfUserStore = await getUserStore();
+
+      const client1 = new HandServer({
+        store: selfUserStore,
+        url: "ws://localhost:5579",
+      });
+
+      window.client1 = client1;
+
+      client1.connect();
+
+      await client1.ready();
+
+      console.log(
+        "get-all",
+        await client1.post({
+          type: "get-all",
+        })
+      );
+    </script>
+  </body>
+</html>
