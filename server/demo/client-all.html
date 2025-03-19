@@ -7,6 +7,7 @@
     <script src="/packages/libs/ofa/ofa.js" debug></script>
   </head>
   <body>
+    <div id="main"></div>
     <script type="module">
       import { getUserStore } from "/packages/user/main.js";
       import { HandServer } from "/packages/user/client.js";
@@ -24,12 +25,26 @@
 
       await client1.ready();
 
-      console.log(
-        "get-all",
-        await client1.post({
-          type: "get-all",
-        })
-      );
+      const data = await client1.post({
+        type: "get-all",
+      });
+
+      const { authenticateds, unauthenticateds } = data;
+
+      // 创建展示数据的HTML内容
+      const mainEl = document.querySelector("#main");
+      mainEl.innerHTML = `
+        <h2>已认证用户</h2>
+        <ul>
+          ${authenticateds.map(user => `<li>${JSON.stringify(user)}</li>`).join("")}
+        </ul>
+        <h2>未认证用户</h2>
+        <ul>
+          ${unauthenticateds.map(user => `<li>${JSON.stringify(user)}</li>`).join("")}
+        </ul>
+      `;
+
+      console.log("get-all", data);
     </script>
   </body>
 </html>
