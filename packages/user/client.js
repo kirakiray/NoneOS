@@ -12,6 +12,7 @@ export class HandClient extends Stanz {
   constructor({ store, url }) {
     super({
       connectionState: "disconnected", // 连接状态：disconnected(未连接) | connecting(连接中) | verifying(验证中) | connected(已连接) | error(错误)
+      delayTime: null, // 和服务器的延迟时间
     });
 
     this.#serverUrl = url;
@@ -73,14 +74,24 @@ export class HandClient extends Stanz {
 
           case "authed":
             this.connectionState = "connected";
+            this.initHeartbeat();
             console.log("用户认证成功");
+            break;
+          case "pong":
+            // 处理服务器的心跳响应
+            this.delayTime = Date.now() - this._pingTime;
+            delete this._pingTime;
+            console.log("收到服务器心跳响应，延迟时间:", this.delayTime, "ms");
             break;
         }
       };
 
       // 连接关闭处理
       webSocket.onclose = () => {
+        console.log("WebSocket连接已关闭", this);
         this.connectionState = "disconnected";
+        clearInterval(this._heartbeatTimer);
+        this.delayTime = null;
         reject("连接已关闭");
       };
 
@@ -88,9 +99,28 @@ export class HandClient extends Stanz {
       webSocket.onerror = (error) => {
         console.error("WebSocket连接错误:", error);
         this.connectionState = "error";
+        clearInterval(this._heartbeatTimer);
+        this.delayTime = null;
         reject(error);
       };
     });
+  }
+
+  // 初始化心跳机制
+  initHeartbeat() {
+    // 发送心跳消息
+    const sendHeartbeat = () => {
+      this._pingTime = Date.now();
+      this.sendMessage({
+        type: "ping",
+      });
+    };
+
+    // 先执行一次获取延迟时间
+    sendHeartbeat();
+
+    // 启动心跳定时器
+    this._heartbeatTimer = setInterval(sendHeartbeat, 30000);
   }
 
   // 生成用户认证数据

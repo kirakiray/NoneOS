@@ -40,48 +40,52 @@ export class ServerHandClient {
       }
 
       switch (parsedMessage.type) {
-        case "auth":
-          {
-            // 验证用户身份
-            const { result, data } = await verifyData(parsedMessage.authedData);
-            const { publicKey, time: accountCreationTime } =
-              parsedMessage.authedData.data;
+        case "auth": {
+          // 验证用户身份
+          const { result, data } = await verifyData(parsedMessage.authedData);
+          const { publicKey, time: accountCreationTime } =
+            parsedMessage.authedData.data;
 
-            // 验证签名
-            if (!result) {
-              console.log("身份验证失败：签名无效");
-              this.closeConnection();
-              return;
-            }
-
-            // 验证会话标识符
-            if (data.markid !== this.sessionId) {
-              console.log("身份验证失败：会话标识符不匹配");
-              this.closeConnection();
-              return;
-            }
-
-            this.userInfo = data;
-
-            // 验证成功，清除超时计时器
-            clearTimeout(authenticationTimer);
-
-            // 生成用户ID并存储用户信息
-            const userId = await getHash(publicKey);
-            this._userId = userId;
-
-            authenticatedUsers.set(userId, {
-              webSocket: this._webSocket,
-              publicKey,
-              accountCreationTime,
-            });
-
-            // 发送认证成功响应
-            this.sendMessage({
-              type: "authed",
-            });
+          // 验证签名
+          if (!result) {
+            console.log("身份验证失败：签名无效");
+            this.closeConnection();
+            return;
           }
+
+          // 验证会话标识符
+          if (data.markid !== this.sessionId) {
+            console.log("身份验证失败：会话标识符不匹配");
+            this.closeConnection();
+            return;
+          }
+
+          this.userInfo = data;
+
+          // 验证成功，清除超时计时器
+          clearTimeout(authenticationTimer);
+
+          // 生成用户ID并存储用户信息
+          const userId = await getHash(publicKey);
+          this._userId = userId;
+
+          authenticatedUsers.set(userId, {
+            webSocket: this._webSocket,
+            publicKey,
+            accountCreationTime,
+          });
+
+          // 发送认证成功响应
+          this.sendMessage({
+            type: "authed",
+          });
           break;
+        }
+        case "ping":
+          // 处理心跳消息
+          this.sendMessage({
+            type: "pong",
+          });
       }
     });
 
