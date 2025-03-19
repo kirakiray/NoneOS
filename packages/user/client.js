@@ -83,6 +83,9 @@ export class HandClient extends Stanz {
             delete this._pingTime;
             console.log("收到服务器心跳响应，延迟时间:", this.delayTime, "ms");
             break;
+          case "error":
+            console.error("服务器返回错误:", messageData.error);
+            break;
         }
       };
 

@@ -1,5 +1,3 @@
-import { getHash } from "../packages/fs/util.js";
-import { verifyData } from "../packages/user/verify.js";
 import * as handlers from "./handlers/index.js";
 
 // 全局连接管理
@@ -41,17 +39,34 @@ export class ServerHandClient {
       }
 
       if (handlers[parsedMessage.type]) {
-        const redata = await handlers[parsedMessage.type](parsedMessage, this);
+        try {
+          const redata = await handlers[parsedMessage.type](
+            parsedMessage,
+            this
+          );
 
-        // 发送认证成功响应
-        this.sendMessage(redata);
+          // 发送认证成功响应
+          this.sendMessage(redata);
+        } catch (error) {
+          // 处理错误并发送错误响应给客户端
+          console.error("处理消息时发生错误:", error);
+          this.sendMessage({
+            type: "error",
+            error: error.message || "处理请求时发生错误",
+          });
+        }
+        return;
       }
 
       if (parsedMessage.type === "ping") {
         this.sendMessage({
           type: "pong",
         });
+        return;
       }
+
+      // 没有找到对应的消息处理函数
+      console.error("未找到对应的消息处理函数", parsedMessage);
     });
 
     // 处理连接关闭
