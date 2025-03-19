@@ -69,8 +69,15 @@ export class ServerHandClient {
           const userId = await getHash(publicKey);
           this._userId = userId;
 
+          // 判断用户是否已认证
+          if (authenticatedUsers.has(userId)) {
+            // 已存在就删除旧的
+            const old = authenticatedUsers.get(userId);
+            old.client.closeConnection();
+          }
+
           authenticatedUsers.set(userId, {
-            webSocket: this._webSocket,
+            client: this,
             publicKey,
             accountCreationTime,
           });
@@ -115,7 +122,8 @@ export class ServerHandClient {
   // 清理连接资源
   cleanup() {
     activeConnections.delete(this);
-    if (this._userId) {
+    // 确认是这个对象才进行删除，避免删除其他对象的用户信息
+    if (this._userId && authenticatedUsers.get(this._userId) === this) {
       authenticatedUsers.delete(this._userId);
     }
   }
