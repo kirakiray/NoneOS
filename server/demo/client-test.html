@@ -9,11 +9,11 @@
   <body>
     <script type="module">
       import { getUserStore } from "/packages/user/main.js";
-      import { HandClient } from "/packages/user/client.js";
+      import { HandServer } from "/packages/user/client.js";
 
       const selfUserStore = await getUserStore();
 
-      const client1 = new HandClient({
+      const client1 = new HandServer({
         store: selfUserStore,
         url: "ws://localhost:5579",
       });

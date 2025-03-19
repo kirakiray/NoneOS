@@ -3,10 +3,10 @@ import { signData } from "./main.js";
 const Stanz = $.Stanz;
 
 // WebSocket客户端类：负责与服务器建立连接并处理通信
-export class HandClient extends Stanz {
+export class HandServer extends Stanz {
   #webSocket; // WebSocket实例
   #serverUrl; // WebSocket服务器地址
-  #userStore; // 用户数据存储
+  #usedUserStore; // 使用的用户数据仓库
   #serverIdentifier; // 服务器提供的身份标识
 
   constructor({ store, url }) {
@@ -16,7 +16,7 @@ export class HandClient extends Stanz {
     });
 
     this.#serverUrl = url;
-    this.#userStore = store;
+    this.#usedUserStore = store;
 
     return this;
   }
@@ -61,7 +61,7 @@ export class HandClient extends Stanz {
 
             // 生成签名认证数据
             const authenticationData = await this.generateAuthData({
-              userName: this.#userStore.userName,
+              userName: this.#usedUserStore.userName,
               markid: messageData.mark,
             });
 
@@ -128,7 +128,7 @@ export class HandClient extends Stanz {
 
   // 生成用户认证数据
   async generateAuthData(data = {}) {
-    return await signData(data, this.#userStore);
+    return await signData(data, this.#usedUserStore);
   }
 
   // 发送消息到服务器
