@@ -5,7 +5,7 @@ export const activeConnections = new Set(); // 存储所有活动的WebSocket连
 export const authenticatedUsers = new Map(); // 存储已认证用户的信息
 
 export class ServerHandClient {
-  constructor(webSocket) {
+  constructor(webSocket, { serverOptions } = {}) {
     this._webSocket = webSocket;
     this._userId = null;
     this.userInfo = {};
@@ -42,7 +42,8 @@ export class ServerHandClient {
         try {
           const redata = await handlers[parsedMessage.type](
             parsedMessage,
-            this
+            this,
+            { serverOptions }
           );
 
           // 发送认证成功响应

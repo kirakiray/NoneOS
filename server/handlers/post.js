@@ -1,7 +1,30 @@
 import { activeConnections, authenticatedUsers } from "../client.js";
 
 // 用于给管理员用的模拟post接口
-export const post = async ({ taskId, data }, client) => {
+export const post = async ({ taskId, data }, client, { serverOptions }) => {
+  if (!serverOptions?.admin) {
+    return {
+      type: "post-response",
+      taskId,
+      success: 0,
+      data: {
+        msg: "未配置管理员",
+      },
+    };
+  }
+
+  // 不是管理员无法使用
+  if (!serverOptions.admin.includes(client._userId)) {
+    return {
+      type: "post-response",
+      taskId,
+      success: 0,
+      data: {
+        msg: "您不是管理员",
+      },
+    };
+  }
+
   const { type } = data;
 
   let finnalData = {};

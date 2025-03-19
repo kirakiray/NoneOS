@@ -5,7 +5,9 @@ export const createServer = async (options = {}) => {
   const wss = new WebSocketServer({ port: options.port || 5579 });
 
   wss.on("connection", function connection(ws) {
-    const client = new ServerHandClient(ws);
+    const client = new ServerHandClient(ws, {
+      serverOptions: options,
+    });
 
     console.log("新的客户端连接", client);
   });
