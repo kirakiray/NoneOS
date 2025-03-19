@@ -2,105 +2,104 @@ import { signData } from "./main.js";
 
 const Stanz = $.Stanz;
 
-// 和服务器交互的类
+// WebSocket客户端类：负责与服务器建立连接并处理通信
 export class HandClient extends Stanz {
-  #ws; // websocket
-  #url; // websocket的url
-  #selfUserStore; // 自己的数据
-  #serverMark; // 服务器标识
+  #webSocket; // WebSocket实例
+  #serverUrl; // WebSocket服务器地址
+  #userStore; // 用户数据存储
+  #serverIdentifier; // 服务器提供的身份标识
 
   constructor({ store, url }) {
     super({
-      state: "disconnected", // 未连接
+      connectionState: "disconnected", // 连接状态：disconnected(未连接) | connecting(连接中) | verifying(验证中) | connected(已连接) | error(错误)
     });
 
-    this.#url = url;
-
-    this.#selfUserStore = store;
+    this.#serverUrl = url;
+    this.#userStore = store;
 
     return this;
   }
 
-  // 初始化websocket
+  // 建立WebSocket连接
   connect() {
-    if (this.state === "connecting" || this.state === "connected") {
+    // 防止重复连接
+    if (
+      this.connectionState === "connecting" ||
+      this.connectionState === "connected"
+    ) {
       return;
     }
 
     return new Promise((resolve, reject) => {
-      const ws = (this.#ws = new WebSocket(this.#url));
+      const webSocket = (this.#webSocket = new WebSocket(this.#serverUrl));
+      this.connectionState = "connecting";
 
-      this.state = "connecting";
-
-      ws.onopen = () => {
-        console.log("连接成功", this);
-        this.state = "verifying";
+      // 连接成功回调
+      webSocket.onopen = () => {
+        console.log("WebSocket连接已建立");
+        this.connectionState = "verifying";
         resolve(true);
       };
 
-      ws.onmessage = async (event) => {
-        let data = event.data;
-
-        console.log("服务器", data);
+      // 接收消息处理
+      webSocket.onmessage = async (event) => {
+        let messageData = event.data;
+        console.log("收到服务器消息:", messageData);
 
         try {
-          data = JSON.parse(event.data);
+          messageData = JSON.parse(event.data);
         } catch (error) {
-          console.error("无法解析 JSON 数据:", error);
+          console.error("消息解析失败:", error);
           return;
         }
 
-        switch (data.type) {
+        switch (messageData.type) {
           case "init":
-            this.#serverMark = data.mark;
+            // 保存服务器标识，用于后续身份验证
+            this.#serverIdentifier = messageData.mark;
 
-            // 发送签名的用户卡片进行认证
-            const afterData = await this.getAuthData({
-              userName: this.#selfUserStore.userName,
-              markid: data.mark,
+            // 生成签名认证数据
+            const authenticationData = await this.generateAuthData({
+              userName: this.#userStore.userName,
+              markid: messageData.mark,
             });
 
-            this.send({
+            // 发送认证请求
+            this.sendMessage({
               type: "auth",
-              authedData: afterData,
+              authedData: authenticationData,
             });
             break;
-          case "authed":
-            this.state = "connected";
 
-            console.log("账户初始化成功", this);
+          case "authed":
+            this.connectionState = "connected";
+            console.log("用户认证成功");
             break;
         }
       };
 
-      ws.onclose = () => {
-        this.state = "disconnected";
-        reject("close");
+      // 连接关闭处理
+      webSocket.onclose = () => {
+        this.connectionState = "disconnected";
+        reject("连接已关闭");
       };
 
-      ws.onerror = (error) => {
-        console.error("WebSocket 错误:", error);
-        console.log("错误", "连接发生错误");
-        this.state = "error";
+      // 错误处理
+      webSocket.onerror = (error) => {
+        console.error("WebSocket连接错误:", error);
+        this.connectionState = "error";
         reject(error);
       };
     });
   }
 
-  // 生成自身的用户卡片
-  async getAuthData(data = {}) {
-    // 生成用户卡片
-    const signedData = await signData(
-      {
-        ...data,
-      },
-      this.#selfUserStore
-    );
-
-    return signedData;
+  // 生成用户认证数据
+  async generateAuthData(data = {}) {
+    return await signData(data, this.#userStore);
   }
 
-  send(data) {
-    this.#ws.send(JSON.stringify(data));
+  // 发送消息到服务器
+  sendMessage(data) {
+    this.#webSocket.send(JSON.stringify(data));
   }
 }

@@ -1,79 +1,83 @@
 import { getHash } from "../packages/fs/util.js";
 import { verifyData } from "../packages/user/verify.js";
-// 所有的用户
-export const clients = new Set();
-export const users = new Map();
+
+// 全局连接管理
+export const activeConnections = new Set(); // 存储所有活动的WebSocket连接
+export const authenticatedUsers = new Map(); // 存储已认证用户的信息
 
 export class ServerHandClient {
-  constructor(ws) {
-    this._ws = ws;
-    this._userid = null;
-    this.userinfo = {};
+  constructor(webSocket) {
+    this._webSocket = webSocket;
+    this._userId = null;
+    this.userInfo = {};
 
-    // 随机生成一个markid
-    this.markid = Math.random().toString(36).slice(2);
+    // 生成唯一的会话标识符
+    this.sessionId = Math.random().toString(36).slice(2);
 
-    // 5秒内没有验证就关闭连接
-    const timer = setTimeout(() => {
-      this._ws.close();
+    // 设置认证超时处理（5秒内必须完成认证）
+    const authenticationTimer = setTimeout(() => {
+      this._webSocket.close();
     }, 5000);
 
-    clients.add(this);
+    activeConnections.add(this);
 
-    // 发送 markid 给客户端验证是否真实的用户
-    this.send({
+    // 发送初始化消息，包含会话标识符
+    this.sendMessage({
       type: "init",
-      mark: this.markid,
+      mark: this.sessionId,
     });
 
-    ws.on("message", async (message) => {
-      console.log("收到消息:", message.toString());
+    // 处理接收到的消息
+    webSocket.on("message", async (message) => {
+      console.log("接收到客户端消息:", message.toString());
 
-      let msg;
-
+      let parsedMessage;
       try {
-        msg = JSON.parse(message.toString());
+        parsedMessage = JSON.parse(message.toString());
       } catch (error) {
-        console.log("消息不是json");
+        console.log("消息格式错误：非JSON格式");
         return;
       }
 
-      switch (msg.type) {
+      switch (parsedMessage.type) {
         case "auth":
           {
-            //  验证用户是否真实，确定没有被伪造F
-            const { result, data } = await verifyData(msg.authedData);
-            const { publicKey, time: creationTime } = msg.authedData.data;
+            // 验证用户身份
+            const { result, data } = await verifyData(parsedMessage.authedData);
+            const { publicKey, time: accountCreationTime } =
+              parsedMessage.authedData.data;
 
-            // 不是本人签名的数据，直接关闭
+            // 验证签名
             if (!result) {
-              this.close();
+              console.log("身份验证失败：签名无效");
+              this.closeConnection();
               return;
             }
 
-            // markid对不上，直接关闭
-            if (data.markid !== this.markid) {
-              this.close();
+            // 验证会话标识符
+            if (data.markid !== this.sessionId) {
+              console.log("身份验证失败：会话标识符不匹配");
+              this.closeConnection();
               return;
             }
 
-            this.userinfo = data;
+            this.userInfo = data;
 
-            // 验证通过，清除延时检查机制，继续初始化操作
-            clearTimeout(timer);
+            // 验证成功，清除超时计时器
+            clearTimeout(authenticationTimer);
 
-            // 配置用户id
-            const userid = await getHash(publicKey);
-            this._userid = userid;
+            // 生成用户ID并存储用户信息
+            const userId = await getHash(publicKey);
+            this._userId = userId;
 
-            users.set(userid, {
-              ws: this._ws,
+            authenticatedUsers.set(userId, {
+              webSocket: this._webSocket,
               publicKey,
-              creationTime,
+              accountCreationTime,
             });
 
-            // 通知验证成功
-            this.send({
+            // 发送认证成功响应
+            this.sendMessage({
               type: "authed",
             });
           }
@@ -81,29 +85,34 @@ export class ServerHandClient {
       }
     });
 
-    ws.on("close", () => {
-      this.clear();
-      console.log("客户端断开连接");
+    // 处理连接关闭
+    webSocket.on("close", () => {
+      this.cleanup();
+      console.log("客户端连接已关闭");
     });
 
-    ws.on("error", (err) => {
-      this.clear();
-      console.log("客户端错误:", err);
+    // 处理错误
+    webSocket.on("error", (error) => {
+      this.cleanup();
+      console.log("WebSocket错误:", error);
     });
   }
 
-  send(data) {
-    this._ws.send(JSON.stringify(data));
+  // 发送消息到客户端
+  sendMessage(data) {
+    this._webSocket.send(JSON.stringify(data));
   }
 
-  close() {
-    this._ws.close();
+  // 关闭连接
+  closeConnection() {
+    this._webSocket.close();
   }
 
-  clear() {
-    clients.delete(this);
-    if (this._userid) {
-      users.delete(this._userid);
+  // 清理连接资源
+  cleanup() {
+    activeConnections.delete(this);
+    if (this._userId) {
+      authenticatedUsers.delete(this._userId);
     }
   }
 }
