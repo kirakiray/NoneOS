@@ -4,6 +4,8 @@ export const testSucceedCount = async (page, count) => {
   // 等待所有测试用例执行完成
   await page.waitForSelector(".test-case");
 
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
   // 获取所有测试用例
   const testCases = await page.$$(".test-case");
 

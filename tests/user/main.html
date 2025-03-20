@@ -10,7 +10,7 @@
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
       import { runTest } from "/tests/runTest.js";
-      import { signData, verfyData } from "/packages/user/main.js";
+      import { signData, verifyData } from "/packages/user/main.js";
 
       // 测试多用户签名
       await runTest("Multi-User Sign Test", async () => {
@@ -25,8 +25,8 @@
           const user2SignedData = await signData(testData, "user2");
 
           // 验证两个签名
-          const isUser1Valid = await verfyData(user1SignedData);
-          const isUser2Valid = await verfyData(user2SignedData);
+          const isUser1Valid = await verifyData(user1SignedData);
+          const isUser2Valid = await verifyData(user2SignedData);
 
           // 验证公钥是否不同
           const differentKeys =
@@ -68,7 +68,7 @@
           const signedData = await signData(originalData);
 
           // 验证签名
-          const verifyResult = await verfyData(signedData);
+          const verifyResult = await verifyData(signedData);
 
           return {
             assert: verifyResult.result === true,
@@ -137,7 +137,7 @@
           // 验证所有篡改情况
           const results = await Promise.all(
             tamperedTests.map(async (test) => {
-              const verifyResult = await verfyData(test.data);
+              const verifyResult = await verifyData(test.data);
               return {
                 name: test.name,
                 verified: verifyResult.result,
@@ -189,7 +189,7 @@
           const results = await Promise.all(
             invalidTests.map(async (test) => {
               try {
-                await verfyData(test.data);
+                await verifyData(test.data);
                 return {
                   name: test.name,
                   success: false,

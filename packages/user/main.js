@@ -2,10 +2,10 @@ import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
-import { createSigner } from "./util.js";
 import { verifyData } from "./verify.js";
+import { signData } from "./sign.js";
 
-export { verifyData };
+export { verifyData, signData };
 
 // 需要系统目录
 await init("system");
@@ -47,6 +47,14 @@ export const getUserStore = async (userDirName) => {
         userid.length / 2,
         userid.length / 2 + 4
       )}`;
+
+      // 初始的握手服务器地址
+      userStore.servers = [];
+      if (location.host.includes("localhost")) {
+        userStore.servers.push({
+          url: "ws://localhost:5579/",
+        });
+      }
     }
 
     if (!userid) {
@@ -54,39 +62,26 @@ export const getUserStore = async (userDirName) => {
       userid = await getHash(userStore.pair.publicKey);
     }
 
-    userStore._userid = userid;
+    // 添加 tabSessionID
+    const tabSessionid = Math.random().toString(36).slice(2);
+
+    // 添加一些基础信息
+    Object.defineProperties(userStore, {
+      _userid: {
+        get() {
+          return userid;
+        },
+      },
+      // 根当前标签页绑定的 tabSessionID
+      _tabSessionid: {
+        get() {
+          return tabSessionid;
+        },
+      },
+    });
+
+    // 初始化服务器
 
     return userStore;
   })());
-};
-
-// 用自身账户生成带签名的数据
-export const signData = async (originData, userDirName) => {
-  let userStore;
-  if (!userDirName || typeof userDirName === "string") {
-    // 获取私钥准备签名
-    userStore = await getUserStore(userDirName);
-  } else if (typeof userDirName === "object" && userDirName.pair) {
-    userStore = userDirName;
-  }
-
-  await userStore.pair.ready();
-
-  let data = {
-    time: Date.now(),
-    origin: originData,
-    publicKey: userStore.pair.publicKey,
-  };
-
-  // 生成签名器
-  const sign = await createSigner(userStore.pair.privateKey);
-
-  // 签名并转换为 base64
-  const signature = await sign(JSON.stringify(data));
-
-  return {
-    data,
-    // 将 ArrayBuffer 转换为 base64 字符串
-    signature: btoa(String.fromCharCode(...new Uint8Array(signature))),
-  };
 };
