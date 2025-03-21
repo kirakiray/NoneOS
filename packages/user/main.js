@@ -66,8 +66,6 @@ export const getUserStore = async (userDirName) => {
       },
     });
 
-    // 初始化服务器
-
     return userStore;
   })());
 };
@@ -110,9 +108,9 @@ export const getServers = async (userDirName) => {
     });
 
     __handservers.push(client);
-  });
 
-  console.log(__handservers);
+    client.connect();
+  });
 
   return __handservers;
 };

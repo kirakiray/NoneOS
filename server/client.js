@@ -4,10 +4,19 @@ import * as handlers from "./handlers/index.js";
 export const activeConnections = new Set(); // 存储所有活动的WebSocket连接
 export const authenticatedUsers = new Map(); // 存储已认证用户的信息
 
+// 读取当前 packagejson 的文件信息
+import { readFile } from "node:fs/promises";
+const packageJson = JSON.parse(
+  await readFile(new URL("./package.json", import.meta.url))
+);
+
+const serverVersion = packageJson.version;
+
 export class ServerHandClient {
   constructor(webSocket, { serverOptions } = {}) {
     this._webSocket = webSocket;
     this._userId = null;
+    this._serverName = serverOptions.name || "unknown server";
     this.userInfo = {};
 
     // 生成唯一的会话标识符
@@ -43,7 +52,7 @@ export class ServerHandClient {
           const redata = await handlers[parsedMessage.type](
             parsedMessage,
             this,
-            { serverOptions }
+            { serverOptions, serverVersion }
           );
 
           // 发送认证成功响应

@@ -1,46 +1,167 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+
   <style>
-    .container {
-      display: flex;
-      justify-content: center;
+    :host {
+      display: block;
     }
-    .part {
-      width: 50%;
+
+    .root-item {
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
     }
-    .server-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
+    .status-point {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-normal);
     }
-    .server-list-item {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      border-radius: 5px;
+    [data-status="connected"] {
+      background-color: var(--md-sys-color-success);
+    }
+    [data-status="disconnected"],
+    [data-status="error"],
+    [data-status="closed"] {
+      background-color: var(--md-sys-color-error);
+    }
+
+    .server-item-list p-list-item {
+      margin-left: 20px;
+      --pui-space-y: 2px;
+    }
+
+    .server-item-list p-list-item::part(main) {
+      height: 22px;
+    }
+
+    [data-connection-status="disconnected"],
+    [data-connection-status="error"],
+    [data-connection-status="closed"] {
+      color: var(--md-sys-color-error);
+    }
+    [data-connection-status="connected"] {
+      color: var(--md-sys-color-success);
     }
   </style>
-  <div class="server-list">
-    <x-fill :value="list">
-      <div class="server-list-item">{{$data}}</div>
-    </x-fill>
-  </div>
+
+  <p-list>
+    <p-list-item radius collapse-childs="open" button="suffix">
+      <div>
+        <span class="root-item">
+          <n-desc name="handServer" space="linkme"></n-desc>
+        </span>
+        ({{servers.length}})
+      </div>
+      <i collapse-triangle slot="suffix"></i>
+
+      <p-list slot="childs">
+        <x-if :value="!servers.length">
+          <div
+            style="
+              line-height: 80px;
+              font-size: 12px;
+              text-align: center;
+              color: #7c7c7c;
+            "
+          >
+            <n-desc name="noServer" space="linkme"></n-desc>
+          </div>
+        </x-if>
+        <x-else>
+          <x-fill :value="servers" fill-key="serverUrl">
+            <p-list-item button="suffix" collapse-childs="open">
+              <div
+                class="status-point"
+                attr:data-status="$data.connectionState"
+                slot="prefix"
+              ></div>
+              <div>
+                {{$data.serverName}}
+
+                <span style="color: #7c7c7c; font-size: 12px; margin-left: 4px">
+                  Version: {{$data.serverVersion}}
+                </span>
+              </div>
+              <div secondary>{{$data.serverUrl}}</div>
+              <p-list slot="childs" class="server-item-list">
+                <p-list-item>
+                  <div>
+                    <n-desc name="serverName" space="linkme"></n-desc>
+                    : {{$data.serverName}}
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <div>
+                    <n-desc name="linkState" space="linkme"></n-desc>
+                    :
+                    <span attr:data-connection-status="$data.connectionState">
+                      {{$data.connectionState}}
+                    </span>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <n-desc name="connectTime" space="linkme"></n-desc>
+                  : {{ $host.getTime($data.connectEndTime); }}
+                </p-list-item>
+                <p-list-item>
+                  <div>
+                    <n-desc name="delayTime" space="linkme"></n-desc>
+                    : {{$data.delayTime}} ms
+                    <p-button
+                      size="mini"
+                      variant="text"
+                      on:click="$host.ping($data)"
+                      style="margin-left: 4px"
+                    >
+                      <n-desc name="ping" space="linkme"></n-desc>
+                    </p-button>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <div style="display: flex; align-items: center">
+                    <n-desc name="serverUrl" space="linkme"></n-desc>
+                    :
+                    <n-copy-span style="margin-left: 8px">
+                      {{$data.serverUrl}}
+                    </n-copy-span>
+                  </div>
+                </p-list-item>
+              </p-list>
+
+              <i collapse-triangle slot="suffix"></i>
+            </p-list-item>
+          </x-fill>
+        </x-else>
+      </p-list>
+    </p-list-item>
+  </p-list>
   <script>
     export default async ({ load }) => {
       const { getServers } = await load("/packages/user/main.js");
 
       const servers = await getServers();
 
+      console.log(servers.toJSON());
+
       return {
         data: {
-          list: [],
+          servers: [],
+        },
+        proto: {
+          ping(item) {
+            debugger;
+          },
+          getTime(time) {
+            return new Date(time).toLocaleString();
+          },
         },
         attached() {
-          this.list = servers;
+          this.servers = servers;
         },
         detached() {
-          this.list = [];
+          this.servers = [];
         },
       };
     };

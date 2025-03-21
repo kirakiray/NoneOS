@@ -2,7 +2,11 @@ import { getHash } from "../../packages/fs/util.js";
 import { verifyData } from "../../packages/user/verify.js";
 import { authenticatedUsers } from "../client.js";
 
-export const auth = async (parsedMessage, client) => {
+export const auth = async (
+  parsedMessage,
+  client,
+  { serverOptions, serverVersion }
+) => {
   // 验证用户身份
   const { result, data } = await verifyData(parsedMessage.authedData);
   const { publicKey, time: accountCreationTime } =
@@ -42,6 +46,15 @@ export const auth = async (parsedMessage, client) => {
     client,
     publicKey,
     accountCreationTime,
+  });
+
+  // 发送服务器信息
+  client.sendMessage({
+    type: "update-server-info",
+    data: {
+      serverName: serverOptions.name,
+      serverVersion,
+    },
   });
 
   // 发送认证成功响应

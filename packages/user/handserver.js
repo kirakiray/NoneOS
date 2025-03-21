@@ -13,12 +13,18 @@ export class HandServer extends Stanz {
     super({
       connectionState: "disconnected", // 连接状态：disconnected(未连接) | connecting(连接中) | verifying(验证中) | connected(已连接) | error(错误)
       delayTime: null, // 和服务器的延迟时间
+      serverName: "unknow", // 服务器名称
+      serverVersion: null, // 服务器版本
     });
 
     this.#serverUrl = url;
     this.#usedUserStore = store;
 
     return this;
+  }
+
+  get serverUrl() {
+    return this.#serverUrl;
   }
 
   // 建立WebSocket连接
@@ -98,6 +104,10 @@ export class HandServer extends Stanz {
                 delete this._tasks[taskId];
               }
             }
+          case "update-server-info":
+            this.serverName = messageData.data.serverName;
+            this.serverVersion = messageData.data.serverVersion;
+            break;
         }
       };
 
