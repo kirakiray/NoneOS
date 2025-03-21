@@ -112,6 +112,19 @@ export class HandServer extends Stanz {
             this.serverName = messageData.data.serverName;
             this.serverVersion = messageData.data.serverVersion;
             break;
+
+          case "agent-data":
+            // 处理别的用户通过服务器转发的数据
+            const { fromUserId, data: agentData } = messageData;
+            if (this._onagentdata) {
+              this._onagentdata(fromUserId, agentData);
+            }
+            console.log("收到来自用户", fromUserId, "的数据:", agentData);
+            break;
+
+          default:
+            console.warn("未知消息类型:", messageData.type);
+            break;
         }
       };
 

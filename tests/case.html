@@ -24,23 +24,27 @@
       await user1Server[0].watchUntil(
         () => user1Server[0].connectionState === "connected"
       );
+      await user2Server[0].watchUntil(
+        () => user2Server[0].connectionState === "connected"
+      );
 
       setTimeout(async () => {
+        user2Server[0]._onagentdata = (fromUserId, data) => {
+          console.log("fromUserId", fromUserId);
+          console.log("data", data);
+        };
+
+        // 转发数据到 server2
         const result = await user1Server[0].post({
-          type: "find-friend",
+          type: "agent-data",
           friendId: user2.userid,
+          data: {
+            // 可以放任何数据
+            val: Math.random(),
+          },
         });
 
         console.log("result", result);
-
-        const result2 = await user1Server[0]
-          .post({
-            type: "find-friend",
-            friendId: Math.random().toString(16).slice(2), // 模拟找不到用户
-          })
-          .catch((err) => {
-            console.log("not find user2", err);
-          });
       }, 500);
     </script>
   </body>
