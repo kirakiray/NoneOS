@@ -32,6 +32,15 @@
         });
 
         console.log("result", result);
+
+        const result2 = await user1Server[0]
+          .post({
+            type: "find-friend",
+            friendId: Math.random().toString(16).slice(2), // 模拟找不到用户
+          })
+          .catch((err) => {
+            console.log("not find user2", err);
+          });
       }, 500);
     </script>
   </body>
