@@ -16,4 +16,9 @@ test.describe("User Tests", () => {
     await page.goto("/tests/user/handserver.html");
     await testSucceedCount(page, 2);
   });
+
+  test("Agent data transfer tests", async ({ page }) => {
+    await page.goto("/tests/user/agent-data.html");
+    await testSucceedCount(page, 6);
+  });
 });
