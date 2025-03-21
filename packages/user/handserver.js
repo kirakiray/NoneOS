@@ -108,6 +108,7 @@ export class HandServer extends Stanz {
                 delete this._tasks[taskId];
               }
             }
+            break;
           case "update-server-info":
             this.serverName = messageData.data.serverName;
             this.serverVersion = messageData.data.serverVersion;
@@ -115,11 +116,16 @@ export class HandServer extends Stanz {
 
           case "agent-data":
             // 处理别的用户通过服务器转发的数据
-            const { fromUserId, data: agentData } = messageData;
+            const { fromUserId, data: agentData, agentTaskId } = messageData;
             if (this._onagentdata) {
               this._onagentdata(fromUserId, agentData);
             }
             console.log("收到来自用户", fromUserId, "的数据:", agentData);
+            // 返回处理成功
+            this.post({
+              type: "confirm-agent",
+              agentTaskId,
+            });
             break;
 
           default:
