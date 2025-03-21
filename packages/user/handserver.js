@@ -13,6 +13,7 @@ export class HandServer extends Stanz {
     super({
       connectionState: "disconnected", // 连接状态：disconnected(未连接) | connecting(连接中) | verifying(验证中) | connected(已连接) | error(错误)
       delayTime: null, // 和服务器的延迟时间
+      pinging: false, // 是否正在发送心跳
       serverName: "unknown", // 服务器名称
       serverVersion: null, // 服务器版本
       connectedTime: null, // 连接建立时间
@@ -89,6 +90,7 @@ export class HandServer extends Stanz {
             // 处理服务器的心跳响应
             this.delayTime = Date.now() - this._pingTime;
             delete this._pingTime;
+            this.pinging = false;
             break;
           case "error":
             console.error("服务器返回错误:", messageData.error);
@@ -117,8 +119,7 @@ export class HandServer extends Stanz {
       webSocket.onclose = () => {
         console.log("WebSocket连接已关闭", this);
         this.connectionState = "disconnected";
-        clearInterval(this._heartbeatTimer);
-        this.delayTime = null;
+        this.clearup();
         reject("连接已关闭");
       };
 
@@ -126,11 +127,16 @@ export class HandServer extends Stanz {
       webSocket.onerror = (error) => {
         console.error("WebSocket连接错误:", error);
         this.connectionState = "error";
-        clearInterval(this._heartbeatTimer);
-        this.delayTime = null;
+        this.clearup();
         reject(error);
       };
     });
+  }
+
+  clearup() {
+    clearInterval(this._heartbeatTimer);
+    this.delayTime = null;
+    this.pinging = false;
   }
 
   // 初始化心跳机制
@@ -148,6 +154,8 @@ export class HandServer extends Stanz {
     if (this._pingTime) {
       return;
     }
+
+    this.pinging = true;
 
     this._pingTime = Date.now();
     this.sendMessage({
