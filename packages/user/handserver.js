@@ -117,9 +117,24 @@ export class HandServer extends Stanz {
           case "agent-data":
             // 处理别的用户通过服务器转发的数据
             const { fromUserId, data: agentData, agentTaskId } = messageData;
-            if (this._onagentdata) {
-              this._onagentdata(fromUserId, agentData);
+            
+            try {
+              // 先确认收到数据
+              await this.post({
+                type: "confirm-agent",
+                agentTaskId,
+              });
+
+              // 再处理数据
+              if (typeof this._onagentdata === 'function') {
+                await Promise.resolve(this._onagentdata(fromUserId, agentData));
+              }
+              
+              console.log("已处理来自用户", fromUserId, "的数据");
+            } catch (error) {
+              console.error("处理agent数据失败:", error);
             }
+            break;
             console.log("收到来自用户", fromUserId, "的数据:", agentData);
             // 返回处理成功
             this.post({
