@@ -151,7 +151,7 @@
         },
         proto: {
           ping(item) {
-            debugger;
+            item.ping();
           },
           getTime(time) {
             return new Date(time).toLocaleString();

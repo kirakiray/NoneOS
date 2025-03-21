@@ -14,6 +14,7 @@
       justify-content: center;
       align-items: center;
       margin: 0 auto;
+      container-type: inline-size;
     }
 
     .line {
@@ -32,6 +33,19 @@
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden;
+    }
+
+    /* 当容器宽度小于600px时，将宽度设置为320px */
+    @container (width < 700px) {
+      .line {
+        width: 320px;
+      }
+    }
+
+    @container (width < 500px) {
+      .line {
+        width: 240px;
+      }
     }
 
     .avatar {
@@ -59,7 +73,7 @@
       <!-- <n-local-icon name="avatar" style="font-size: 28px"></n-local-icon> -->
     </div>
 
-    <div>
+    <div style>
       <div class="line">
         <div class="line-key">
           <n-desc name="userName" space="linkme"></n-desc>
@@ -90,7 +104,7 @@
           </p-button>
         </div>
       </div>
-      <div class="line" style="width: 80%">
+      <div class="line">
         <div class="line-key">
           <n-desc name="userId" space="linkme"></n-desc>
         </div>

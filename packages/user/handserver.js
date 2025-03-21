@@ -13,7 +13,7 @@ export class HandServer extends Stanz {
     super({
       connectionState: "disconnected", // 连接状态：disconnected(未连接) | connecting(连接中) | verifying(验证中) | connected(已连接) | error(错误)
       delayTime: null, // 和服务器的延迟时间
-      serverName: "unknow", // 服务器名称
+      serverName: "unknown", // 服务器名称
       serverVersion: null, // 服务器版本
       connectedTime: null, // 连接建立时间
     });
@@ -135,19 +135,24 @@ export class HandServer extends Stanz {
 
   // 初始化心跳机制
   initHeartbeat() {
-    // 发送心跳消息
-    const sendHeartbeat = () => {
-      this._pingTime = Date.now();
-      this.sendMessage({
-        type: "ping",
-      });
-    };
+    clearInterval(this._heartbeatTimer);
 
     // 先执行一次获取延迟时间
-    sendHeartbeat();
+    this.ping();
 
     // 启动心跳定时器
-    this._heartbeatTimer = setInterval(sendHeartbeat, 30000);
+    this._heartbeatTimer = setInterval(() => this.ping(), 30000);
+  }
+
+  ping() {
+    if (this._pingTime) {
+      return;
+    }
+
+    this._pingTime = Date.now();
+    this.sendMessage({
+      type: "ping",
+    });
   }
 
   // 生成用户认证数据

@@ -90,6 +90,7 @@ export const getServers = async (userDirName) => {
       await selfUserStore.servers.ready();
     } else {
       // TODO: 加入官方推荐的地址
+      debugger;
     }
   }
 

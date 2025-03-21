@@ -1,0 +1,18 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>{{val}}</div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          val: "my devices",
+        },
+      };
+    };
+  </script>
+</template>

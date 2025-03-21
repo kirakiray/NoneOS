@@ -10,7 +10,8 @@
     "zippkg": "node scripts/zipPackages.js",
     "buhash": "node scripts/calculateHashes.js",
     "build-sw": "rollup sw/main.js --file sw/dist.js --format iife",
-    "hand": "nodemon --inspect server/test-server.js"
+    "hand": "nodemon --inspect server/test-server.js",
+    "dev": "npm run static & nodemon --inspect server/test-server.js"
   },
   "repository": {
     "type": "git",
