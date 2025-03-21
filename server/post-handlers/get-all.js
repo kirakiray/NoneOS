@@ -19,11 +19,8 @@ export default {
       .map(mapUnauthenticatedUser);
 
     return {
-      success: 1,
-      data: {
-        unauthenticateds,
-        authenticateds,
-      }
+      unauthenticateds,
+      authenticateds,
     };
   }
 };

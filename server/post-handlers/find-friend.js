@@ -6,18 +6,12 @@ export default {
     const friendData = authenticatedUsers.get(friendId);
 
     if (!friendData) {
-      return {
-        success: 0,
-        data: { msg: "用户不在线" }
-      };
+      throw new Error("用户不在线");
     }
 
     return {
-      success: 1,
-      data: {
-        authedTime: friendData.authedTime,
-        authedData: friendData.client.authedData,
-      }
+      authedTime: friendData.authedTime,
+      authedData: friendData.client.authedData,
     };
   }
 };

@@ -24,14 +24,14 @@ export const post = async (
   }
 
   try {
-    const { data: respData, success } = await handlerFn(data, client, {
+    const respData = await handlerFn(data, client, {
       serverOptions,
       ...otherOptions,
     });
     return successResponse(taskId, respData);
   } catch (error) {
     console.error(`Handler ${realType} error:`, error);
-    return errorResponse(taskId, "处理请求时发生错误");
+    return errorResponse(taskId, error.message || "处理请求时发生错误");
   }
 };
 
