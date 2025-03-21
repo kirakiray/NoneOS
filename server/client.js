@@ -14,10 +14,11 @@ const serverVersion = packageJson.version;
 
 export class ServerHandClient {
   constructor(webSocket, { serverOptions } = {}) {
-    this._webSocket = webSocket;
-    this._userId = null;
-    this._serverName = serverOptions.name || "unknown server";
-    this.userInfo = {};
+    this._webSocket = webSocket; // WebSocket连接
+    this._userId = null; // 用户ID
+    this._serverName = serverOptions.name || "unknown server"; // 服务器名称
+    this.userInfo = {}; // 存储用户信息
+    this.authedData = null; // 验证用的数据
 
     // 生成唯一的会话标识符
     this.sessionId = Math.random().toString(36).slice(2);

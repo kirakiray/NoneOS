@@ -1,7 +1,11 @@
 import * as postHandlers from "../post-handlers/index.js";
 
 // 用于给管理员用的模拟post接口
-export const post = async ({ taskId, data }, client, { serverOptions }) => {
+export const post = async (
+  { taskId, data },
+  client,
+  { serverOptions, ...otherOptions }
+) => {
   const { type } = data;
 
   const realType = toCamelCase(type);
@@ -36,6 +40,7 @@ export const post = async ({ taskId, data }, client, { serverOptions }) => {
 
     const { data: respData, success } = await handler(data, client, {
       serverOptions,
+      ...otherOptions,
     });
 
     return {
@@ -51,7 +56,7 @@ export const post = async ({ taskId, data }, client, { serverOptions }) => {
     taskId,
     success: 0,
     data: {
-      msg: "未知的请求类型",
+      msg: "未知的post请求类型",
     },
   };
 };

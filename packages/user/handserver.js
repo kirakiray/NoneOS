@@ -137,6 +137,14 @@ export class HandServer extends Stanz {
     clearInterval(this._heartbeatTimer);
     this.delayTime = null;
     this.pinging = false;
+
+    // 清除任务
+    if (this._tasks) {
+      Object.keys(this._tasks).forEach((taskId) => {
+        this._tasks[taskId].reject("连接已关闭");
+        delete this._tasks[taskId];
+      });
+    }
   }
 
   // 初始化心跳机制

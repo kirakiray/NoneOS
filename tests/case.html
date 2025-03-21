@@ -8,7 +8,10 @@
   </head>
   <body>
     <script type="module">
-      import { getServers } from "/packages/user/main.js";
+      import { getServers, getUserStore } from "/packages/user/main.js";
+
+      const user1 = await getUserStore("user1");
+      const user2 = await getUserStore("user2");
 
       // 分别获取用户握手服务器
       const user1Server = await getServers("user1");
@@ -16,6 +19,20 @@
 
       const user2Server = await getServers("user2");
       console.log("servers2", user2Server);
+
+      // 等待连接服务器成功
+      await user1Server[0].watchUntil(
+        () => user1Server[0].connectionState === "connected"
+      );
+
+      setTimeout(async () => {
+        const result = await user1Server[0].post({
+          type: "find-friend",
+          friendId: user2.userid,
+        });
+
+        console.log("result", result);
+      }, 500);
     </script>
   </body>
 </html>

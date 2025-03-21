@@ -27,6 +27,7 @@ export const auth = async (
   }
 
   client.userInfo = data;
+  client.authedData = parsedMessage.authedData;
 
   // 验证成功，清除超时计时器
   clearTimeout(client._authenticationTimer);
@@ -45,7 +46,7 @@ export const auth = async (
   authenticatedUsers.set(userId, {
     client,
     publicKey,
-    accountCreationTime,
+    authedTime: Date.now(),
   });
 
   // 发送服务器信息

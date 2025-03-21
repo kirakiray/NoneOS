@@ -59,7 +59,7 @@ export const getUserStore = async (userDirName) => {
 
     // 添加一些基础信息
     Object.defineProperties(userStore, {
-      _userid: {
+      userid: {
         get() {
           return userid;
         },
