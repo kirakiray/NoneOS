@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Handshake Server Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { runTest } from "/tests/runTest.js";
+      import { getServers, getUserStore } from "/packages/user/main.js";
+
+      // 测试正常的好友查找流程
+      await runTest("Normal Friend Finding Test", async () => {
+        try {
+          // 初始化两个用户
+          const user1 = await getUserStore("user1");
+          const user2 = await getUserStore("user2");
+
+          user1.userName = "local-user1";
+          user2.userName = "local-user2";
+
+          await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
+
+          // 获取用户1的握手服务器
+          const user1Server = await getServers("user1");
+          const user2Server = await getServers("user2");
+
+          // 等待服务器连接
+          await user1Server[0].watchUntil(
+            () => user1Server[0].connectionState === "connected"
+          );
+          await user2Server[0].watchUntil(
+            () => user2Server[0].connectionState === "connected"
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
+
+          // 查找用户2
+          const findResult = await user1Server[0].post({
+            type: "find-friend",
+            friendId: user2.userid,
+          });
+
+          return {
+            assert: findResult && findResult.authedData,
+            content: {
+              message: "好友查找成功",
+              user1Id: user1.userid,
+              user2Id: user2.userid,
+              findResult,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试查找不存在的用户
+      await runTest("Non-existent User Finding Test", async () => {
+        try {
+          // 获取用户1的握手服务器
+          const user1Server = await getServers("user1");
+
+          // 等待服务器连接
+          await user1Server[0].watchUntil(
+            () => user1Server[0].connectionState === "connected"
+          );
+
+          // 生成随机用户ID模拟不存在的用户
+          const nonExistentUserId = Math.random().toString(16).slice(2);
+
+          // 尝试查找不存在的用户
+          const findResult = await user1Server[0]
+            .post({
+              type: "find-friend",
+              friendId: nonExistentUserId,
+            })
+            .catch((error) => ({
+              success: false,
+              error: error.message,
+            }));
+
+          return {
+            assert: !findResult.success,
+            content: {
+              message: "成功捕获查找不存在用户的错误",
+              nonExistentUserId,
+              error: findResult.error,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+    </script>
+  </body>
+</html>

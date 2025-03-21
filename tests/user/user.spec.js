@@ -11,4 +11,9 @@ test.describe("User Tests", () => {
     await page.goto("/tests/user/main.html");
     await testSucceedCount(page, 4);
   });
+
+  test("Handshake server friend finding tests", async ({ page }) => {
+    await page.goto("/tests/user/handserver.html");
+    await testSucceedCount(page, 2);
+  });
 });
