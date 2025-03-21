@@ -1,64 +1,43 @@
 import * as postHandlers from "../post-handlers/index.js";
+import { errorResponse, successResponse } from "../utils/response.js";
 
-// 用于给管理员用的模拟post接口
 export const post = async (
   { taskId, data },
   client,
   { serverOptions, ...otherOptions }
 ) => {
   const { type } = data;
-
   const realType = toCamelCase(type);
 
-  if (postHandlers[realType]) {
-    const { handler, admin } = postHandlers[realType];
+  const handler = postHandlers[realType];
+  if (!handler) {
+    return errorResponse(taskId, "未知的post请求类型");
+  }
 
-    if (admin) {
-      if (!serverOptions?.admin) {
-        return {
-          type: "post-response",
-          taskId,
-          success: 0,
-          data: {
-            msg: "未配置管理员",
-          },
-        };
-      }
+  const { handler: handlerFn, admin } = handler;
 
-      // 不是管理员无法使用
-      if (!serverOptions.admin.includes(client._userId)) {
-        return {
-          type: "post-response",
-          taskId,
-          success: 0,
-          data: {
-            msg: "您不是管理员",
-          },
-        };
-      }
-    }
+  if (admin && !(await checkAdminPermission(client, serverOptions))) {
+    return errorResponse(
+      taskId,
+      serverOptions?.admin ? "您不是管理员" : "未配置管理员"
+    );
+  }
 
-    const { data: respData, success } = await handler(data, client, {
+  try {
+    const { data: respData, success } = await handlerFn(data, client, {
       serverOptions,
       ...otherOptions,
     });
-
-    return {
-      type: "post-response",
-      taskId,
-      success,
-      data: respData,
-    };
+    return successResponse(taskId, respData);
+  } catch (error) {
+    console.error(`Handler ${realType} error:`, error);
+    return errorResponse(taskId, "处理请求时发生错误");
   }
+};
 
-  return {
-    type: "post-response",
-    taskId,
-    success: 0,
-    data: {
-      msg: "未知的post请求类型",
-    },
-  };
+const checkAdminPermission = async (client, serverOptions) => {
+  if (!serverOptions?.admin) return false;
+  return serverOptions.admin.includes(client._userId);
 };
 
 function toCamelCase(str) {

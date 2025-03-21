@@ -1,27 +1,23 @@
-// 查找用户是否在线
-import { activeConnections, authenticatedUsers } from "../client.js";
+import { authenticatedUsers } from "../client.js";
 
 export default {
-  handler: async (requestBody, client, options) => {
+  handler: async (requestBody) => {
     const { friendId } = requestBody;
-
-    // 查找用户是否在线
     const friendData = authenticatedUsers.get(friendId);
-    if (friendData) {
+
+    if (!friendData) {
       return {
-        success: 1,
-        data: {
-          authedTime: friendData.authedTime,
-          authedData: friendData.client.authedData,
-        },
+        success: 0,
+        data: { msg: "用户不在线" }
       };
     }
 
     return {
-      success: 0,
+      success: 1,
       data: {
-        msg: "用户不在线",
-      },
+        authedTime: friendData.authedTime,
+        authedData: friendData.client.authedData,
+      }
     };
-  },
+  }
 };
