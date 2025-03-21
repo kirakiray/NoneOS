@@ -107,7 +107,8 @@ export class ServerHandClient {
   cleanup() {
     activeConnections.delete(this);
     // 确认是这个对象才进行删除，避免删除其他对象的用户信息
-    if (this._userId && authenticatedUsers.get(this._userId) === this) {
+    const exitedItem = authenticatedUsers.get(this._userId);
+    if (this._userId && exitedItem && exitedItem.client === this) {
       authenticatedUsers.delete(this._userId);
     }
   }

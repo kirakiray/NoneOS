@@ -18,9 +18,14 @@
           // 初始化两个用户
           const user1 = await getUserStore("user1");
           const user2 = await getUserStore("user2");
-
-          user1.userName = "local-user1";
-          user2.userName = "local-user2";
+          // 设置用户名，包含浏览器信息以便识别
+          const browserInfo = `${
+            navigator.userAgent.match(
+              /(?:Chrome|Firefox|Safari|Edge|OPR)\/[\d.]+/
+            )[0]
+          }`;
+          user1.userName = `TestUser1-${browserInfo}`;
+          user2.userName = `TestUser2-${browserInfo}`;
 
           await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
 
