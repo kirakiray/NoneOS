@@ -4,33 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>case</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
   </head>
   <body>
     <script type="module">
-      import { init } from "/packages/fs/db-handle/main.js";
+      import { getServers } from "/packages/user/main.js";
 
-      const testDir = await init("test-dir-1");
+      // 分别获取用户握手服务器
+      const user1Server = await getServers("user1");
+      console.log("servers1", user1Server);
 
-      const a = await testDir.get("a.txt", {
-        create: "file",
-      });
-
-      const oriText = "hello world " + Date.now();
-      await a.write(oriText);
-
-      const content = await a.text();
-
-      console.log(content === oriText);
-
-      // for await (let e of testDir.entries()) {
-      //   debugger;
-      // }
-
-      console.log("length1", await testDir.length());
-
-      await a.remove();
-
-      console.log("length2", await testDir.length());
+      const user2Server = await getServers("user2");
+      console.log("servers2", user2Server);
     </script>
   </body>
 </html>

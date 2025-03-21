@@ -75,7 +75,6 @@ import { HandServer } from "./handserver.js";
 // 获取服务器列表
 export const getServers = async (userDirName) => {
   const selfUserStore = await getUserStore(userDirName);
-
   await selfUserStore.ready(true);
 
   // 初始化服务器列表
@@ -114,4 +113,17 @@ export const getServers = async (userDirName) => {
   });
 
   return __handservers;
+};
+
+// 获取我的所有设备
+export const getDevices = async (userDirName) => {
+  const selfUserStore = await getUserStore(userDirName);
+  await selfUserStore.ready(true);
+
+  if (!selfUserStore.devices) {
+    selfUserStore.devices = [];
+    await selfUserStore.devices.ready();
+  }
+
+  return selfUserStore.devices;
 };

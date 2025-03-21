@@ -1,64 +1,61 @@
-import { activeConnections, authenticatedUsers } from "../client.js";
+import * as postHandlers from "../post-handlers/index.js";
 
 // 用于给管理员用的模拟post接口
 export const post = async ({ taskId, data }, client, { serverOptions }) => {
-  if (!serverOptions?.admin) {
-    return {
-      type: "post-response",
-      taskId,
-      success: 0,
-      data: {
-        msg: "未配置管理员",
-      },
-    };
-  }
-
-  // 不是管理员无法使用
-  if (!serverOptions.admin.includes(client._userId)) {
-    return {
-      type: "post-response",
-      taskId,
-      success: 0,
-      data: {
-        msg: "您不是管理员",
-      },
-    };
-  }
-
   const { type } = data;
 
-  let finnalData = {};
+  const realType = toCamelCase(type);
 
-  if (type === "get-all") {
-    // 已经被认证成功的用户
-    const authenticateds = Array.from(authenticatedUsers).map(([userid, e]) => {
-      const { client } = e;
-      return {
-        sessionId: client.sessionId,
-        userInfo: client.userInfo,
-        userid: client._userId,
-      };
+  if (postHandlers[realType]) {
+    const { handler, admin } = postHandlers[realType];
+
+    if (admin) {
+      if (!serverOptions?.admin) {
+        return {
+          type: "post-response",
+          taskId,
+          success: 0,
+          data: {
+            msg: "未配置管理员",
+          },
+        };
+      }
+
+      // 不是管理员无法使用
+      if (!serverOptions.admin.includes(client._userId)) {
+        return {
+          type: "post-response",
+          taskId,
+          success: 0,
+          data: {
+            msg: "您不是管理员",
+          },
+        };
+      }
+    }
+
+    const { data: respData, success } = await handler(data, client, {
+      serverOptions,
     });
 
-    // 计算没有被认证成功的用户
-    const unauthenticateds = Array.from(activeConnections)
-      .filter((e) => !e._userId)
-      .map((client) => {
-        return {
-          sessionId: client.sessionId,
-        };
-      });
-
-    finnalData = {
-      unauthenticateds,
-      authenticateds,
+    return {
+      type: "post-response",
+      taskId,
+      success,
+      data: respData,
     };
   }
 
   return {
     type: "post-response",
     taskId,
-    success: 1,
-    data: finnalData,
+    success: 0,
+    data: {
+      msg: "未知的请求类型",
+    },
   };
 };
+
+function toCamelCase(str) {
+  return str.replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
+}
