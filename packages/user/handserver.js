@@ -15,6 +15,7 @@ export class HandServer extends Stanz {
       delayTime: null, // 和服务器的延迟时间
       serverName: "unknow", // 服务器名称
       serverVersion: null, // 服务器版本
+      connectedTime: null, // 连接建立时间
     });
 
     this.#serverUrl = url;
@@ -80,6 +81,7 @@ export class HandServer extends Stanz {
 
           case "authed":
             this.connectionState = "connected";
+            this.connectedTime = Date.now();
             this.initHeartbeat();
             console.log("用户认证成功");
             break;
