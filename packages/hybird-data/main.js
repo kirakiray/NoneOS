@@ -240,12 +240,21 @@ export class HybirdData extends Stanz {
   }
 
   // 确认当前对象已经初始化完成
-  async ready() {
-    if (this.dataStatus === "ok") {
-      return true;
+  async ready(isReadyAll) {
+    if (this.dataStatus !== "ok") {
+      await this.watchUntil(() => this.dataStatus === "ok", 3000);
     }
 
-    await this.watchUntil(() => this.dataStatus === "ok", 3000);
+    if (isReadyAll) {
+      // 监听所有子级对象
+      await Promise.all(
+        Object.values(this).map(async (value) => {
+          if (value instanceof HybirdData) {
+            await value.ready(true);
+          }
+        })
+      );
+    }
 
     return true;
   }

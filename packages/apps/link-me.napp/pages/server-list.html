@@ -1,0 +1,48 @@
+<template page>
+  <style>
+    .container {
+      display: flex;
+      justify-content: center;
+    }
+    .part {
+      width: 50%;
+    }
+    .server-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .server-list-item {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 5px;
+    }
+  </style>
+  <div class="server-list">
+    <x-fill :value="list">
+      <div class="server-list-item">{{$data}}</div>
+    </x-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { getServers } = await load("/packages/user/main.js");
+
+      const servers = await getServers();
+
+      return {
+        data: {
+          list: [],
+        },
+        attached() {
+          this.list = servers;
+        },
+        detached() {
+          this.list = [];
+        },
+      };
+    };
+  </script>
+</template>
