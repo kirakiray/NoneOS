@@ -1,7 +1,7 @@
 import { authenticatedUsers } from "../client.js";
 
 // 存储代理数据的Map
-export const agentPool = new Map();
+export const agentTaskPool = new Map();
 
 // 默认超时时间（毫秒）
 const DEFAULT_TIMEOUT = 5000;
@@ -32,11 +32,10 @@ export default {
         data,
       });
 
-      // 创建Promise和定时器
-      const result = await Promise.race([
+      const agentResponse = await Promise.race([
         new Promise((resolve, reject) => {
-          const cacheObj = { resolve, reject };
-          agentPool.set(agentTaskId, cacheObj);
+          const taskPromiseHandlers = { resolve, reject };
+          agentTaskPool.set(agentTaskId, taskPromiseHandlers);
         }),
         new Promise((_, reject) => 
           setTimeout(() => reject(new Error("转发数据超时")), timeout)
@@ -46,13 +45,12 @@ export default {
       return {
         success: true,
         msg: "数据已成功转发",
-        result
+        result: agentResponse
       };
     } catch (error) {
       throw error;
     } finally {
-      // 清理代理池
-      agentPool.delete(agentTaskId);
+      agentTaskPool.delete(agentTaskId);
     }
   },
 };

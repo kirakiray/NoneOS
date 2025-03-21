@@ -1,4 +1,4 @@
-import { agentPool } from "./agent-data.js";
+import { agentTaskPool } from "./agent-data.js";
 
 export default {
   handler: async (requestBody, client) => {
@@ -8,13 +8,13 @@ export default {
       throw new Error("缺少agentTaskId参数");
     }
 
-    const cacheObj = agentPool.get(agentTaskId);
-    if (!cacheObj) {
+    const taskPromiseHandlers = agentTaskPool.get(agentTaskId);
+    if (!taskPromiseHandlers) {
       throw new Error(`未找到对应的转发任务: ${agentTaskId}`);
     }
 
     try {
-      cacheObj.resolve({
+      taskPromiseHandlers.resolve({
         confirmedBy: client._userId,
         confirmedAt: Date.now()
       });
