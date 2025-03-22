@@ -104,7 +104,7 @@ export class HandServer extends Stanz {
                 this._tasks[taskId].resolve(data);
                 delete this._tasks[taskId];
               } else {
-                this._tasks[taskId].reject(data);
+                this._tasks[taskId].reject(new Error(data.msg));
                 delete this._tasks[taskId];
               }
             }
@@ -146,7 +146,7 @@ export class HandServer extends Stanz {
         console.log("WebSocket连接已关闭", this);
         this.connectionState = "disconnected";
         this.clearup();
-        reject("连接已关闭");
+        reject(new Error("连接已关闭"));
       };
 
       // 错误处理
@@ -167,7 +167,7 @@ export class HandServer extends Stanz {
     // 清除任务
     if (this._tasks) {
       Object.keys(this._tasks).forEach((taskId) => {
-        this._tasks[taskId].reject("连接已关闭");
+        this._tasks[taskId].reject(new Error("连接已关闭"));
         delete this._tasks[taskId];
       });
     }

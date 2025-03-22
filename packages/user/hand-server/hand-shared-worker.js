@@ -33,6 +33,13 @@ userStorePms.then(async (userStore) => {
   return userStore;
 });
 
+// TEST: 定时检查连接
+setInterval(() => {
+  servers.forEach((e) => {
+    e.connect();
+  });
+}, 5000);
+
 // 监听连接事件
 servers.watchTick(() => {
   const serverList = servers.toJSON();
@@ -40,8 +47,8 @@ servers.watchTick(() => {
   // 广播服务器列表
   ports.forEach((port) => {
     port.postMessage({
-      type: "update",
-      data: {
+      resType: "update",
+      resData: {
         servers: serverList,
       },
     });
@@ -55,13 +62,43 @@ self.onconnect = async (e) => {
   console.log("连接成功", ports);
 
   port.onmessage = async (e) => {
-    const { type, data } = e.data;
+    const { agentType, agentData } = e.data;
 
-    switch (type) {
-      case "close":
+    switch (agentType) {
+      case "close": {
         port.close();
         ports.delete(port);
         break;
+      }
+      case "post": {
+        const { key, taskID, data } = agentData;
+        const server = servers.find((e) => e.key === key);
+        if (server) {
+          try {
+            const result = await server.post(data);
+
+            port.postMessage({
+              resType: "response",
+              resData: {
+                key,
+                taskID,
+                response: result,
+              },
+            });
+          } catch (error) {
+            console.error(error);
+            port.postMessage({
+              resType: "response",
+              resData: {
+                key,
+                taskID,
+                error,
+              },
+            });
+          }
+        }
+        break;
+      }
     }
   };
 
@@ -74,8 +111,8 @@ self.onconnect = async (e) => {
 
   // 初始化服务器列表
   port.postMessage({
-    type: "update",
-    data: {
+    resType: "update",
+    resData: {
       servers: servers.toJSON(),
     },
   });

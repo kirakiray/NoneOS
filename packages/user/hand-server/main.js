@@ -31,22 +31,40 @@ export const getServers = async (userDirName) => {
 
   const handWorker = (selfUserStore.__handWorker = new SharedWorker(
     new URL(
-      "./hand-shared-worker.js?userdir=" + (userDirName || "main"), // 添加括号
+      "./hand-shared-worker.js?userdir=" + (userDirName || "main"),
       import.meta.url
     ),
     {
-      name: "hand-worker-" + (userDirName || "main"), // 添加括号
+      name: "hand-worker-" + (userDirName || "main"),
       type: "module",
     }
   ));
 
+  const cachedTasks = new Map();
+
   handWorker.port.onmessage = (e) => {
-    const { type, data } = e.data;
-    switch (type) {
+    const { resType, resData } = e.data;
+    switch (resType) {
       case "update": {
-        const { servers } = data;
+        const { servers } = resData;
         mergeServers(__handservers, servers); // 使用新函数
+        addFakeMethods(__handservers, handWorker, cachedTasks);
         console.log("服务器列表初始化", servers);
+        break;
+      }
+      case "response": {
+        const { response, taskID, error } = resData;
+        const task = cachedTasks.get(taskID);
+
+        if (task) {
+          if (error) {
+            task.reject(error);
+          } else {
+            task.resolve(response);
+          }
+
+          cachedTasks.delete(taskID);
+        }
         break;
       }
     }
@@ -55,11 +73,47 @@ export const getServers = async (userDirName) => {
   // 标签关闭时，发送关闭消息
   window.addEventListener("beforeunload", () => {
     handWorker.port.postMessage({
-      type: "close",
+      agentType: "close",
     });
   });
 
   return __handservers;
+};
+
+// 给每个对象加上伪装的方法
+const addFakeMethods = (servers, handWorker, cachedTasks) => {
+  servers.forEach((server) => {
+    if (!server.post) {
+      Object.defineProperties(server, {
+        post: {
+          async value(data) {
+            const taskID = Math.random().toString(36).slice(2);
+
+            const obj = {};
+            const pms = new Promise((resolve, reject) => {
+              obj.resolve = resolve;
+              obj.reject = reject;
+            });
+
+            cachedTasks.set(taskID, obj);
+
+            handWorker.port.postMessage({
+              agentType: "post",
+              agentData: {
+                key: server.key,
+                taskID,
+                data,
+              },
+            });
+
+            const result = await pms;
+
+            return result;
+          },
+        },
+      });
+    }
+  });
 };
 
 // 新增合并服务器函数
