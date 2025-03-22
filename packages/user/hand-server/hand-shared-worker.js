@@ -23,6 +23,19 @@ userStorePms.then(async (userStore) => {
       url: e.url,
     });
 
+    client._onagentdata = (fromUserId, agentData) => {
+      ports.forEach((port) => {
+        port.postMessage({
+          resType: "onagentdata",
+          resData: {
+            key: client.key,
+            fromUserId,
+            agentData,
+          },
+        });
+      });
+    };
+
     client.connect();
 
     servers.push(client);
@@ -62,16 +75,16 @@ self.onconnect = async (e) => {
   console.log("连接成功", ports);
 
   port.onmessage = async (e) => {
-    const { agentType, agentData } = e.data;
+    const { atype, adata } = e.data;
 
-    switch (agentType) {
+    switch (atype) {
       case "close": {
         port.close();
         ports.delete(port);
         break;
       }
       case "ping": {
-        const { key } = agentData;
+        const { key } = adata;
 
         const server = servers.find((e) => e.key === key);
         if (server) {
@@ -81,7 +94,7 @@ self.onconnect = async (e) => {
         break;
       }
       case "post": {
-        const { key, taskID, data } = agentData;
+        const { key, taskID, data } = adata;
         const server = servers.find((e) => e.key === key);
         if (server) {
           try {

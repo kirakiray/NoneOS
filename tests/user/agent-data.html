@@ -32,11 +32,13 @@
         const user2Server = await getServers("user2");
 
         // 等待服务器连接
-        await user1Server[0].watchUntil(
-          () => user1Server[0].connectionState === "connected"
+        await user1Server.watchUntil(
+          () =>
+            user1Server.length && user1Server[0].connectionState === "connected"
         );
-        await user2Server[0].watchUntil(
-          () => user2Server[0].connectionState === "connected"
+        await user2Server.watchUntil(
+          () =>
+            user2Server.length && user2Server[0].connectionState === "connected"
         );
 
         await new Promise((resolve) => setTimeout(resolve, 100));

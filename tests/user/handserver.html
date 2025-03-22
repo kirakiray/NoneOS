@@ -33,6 +33,9 @@
           const user1Server = await getServers("user1");
           const user2Server = await getServers("user2");
 
+          await user1Server.watchUntil(() => user1Server.length);
+          await user2Server.watchUntil(() => user2Server.length);
+
           // 等待服务器连接
           await user1Server[0].watchUntil(
             () => user1Server[0].connectionState === "connected"

@@ -67,6 +67,14 @@ export const getServers = async (userDirName) => {
         }
         break;
       }
+      case "onagentdata": {
+        const { key, fromUserId, agentData } = resData;
+        const server = __handservers.find((s) => s.key === key);
+        if (server && server._onagentdata) {
+          server._onagentdata(fromUserId, agentData);
+        }
+        break;
+      }
     }
   };
 
@@ -98,8 +106,8 @@ const addFakeMethods = (servers, handWorker, cachedTasks) => {
             cachedTasks.set(taskID, obj);
 
             handWorker.port.postMessage({
-              agentType: "post",
-              agentData: {
+              atype: "post",
+              adata: {
                 key: server.key,
                 taskID,
                 data,
@@ -114,8 +122,8 @@ const addFakeMethods = (servers, handWorker, cachedTasks) => {
         ping: {
           value() {
             handWorker.port.postMessage({
-              agentType: "ping",
-              agentData: { key: server.key },
+              atype: "ping",
+              adata: { key: server.key },
             });
           },
         },
