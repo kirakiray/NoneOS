@@ -44,56 +44,6 @@
         return { user1, user2, user1Server, user2Server };
       }
 
-      // 测试用户间数据传输 - 时间戳验证
-      await runTest("Agent Data Timestamp Test", async () => {
-        try {
-          const { user1, user2, user1Server, user2Server } =
-            await setupTestEnvironment();
-
-          let agentdatatime;
-          // 设置用户2的数据接收处理器
-          let receivedData = null;
-          user2Server[0]._onagentdata = (fromUserId, data) => {
-            receivedData = { fromUserId, data };
-            agentdatatime = Date.now();
-          };
-
-          // 生成测试数据
-          const testData = {
-            val: Math.random(),
-            timestamp: Date.now(),
-          };
-
-          // 用户1发送数据到用户2
-          const sendResult = await user1Server[0].post({
-            type: "agent-data",
-            friendId: user2.userid,
-            data: testData,
-          });
-
-          const resultTime = Date.now();
-
-          // 等待数据接收
-          await new Promise((resolve) => setTimeout(resolve, 100));
-
-          return {
-            assert: resultTime > agentdatatime,
-            content: {
-              message: "时间戳验证测试完成",
-              agentdatatime,
-              resultTime,
-              timeDifference: resultTime - agentdatatime,
-            },
-          };
-        } catch (error) {
-          console.error("Test failed:", error);
-          return {
-            assert: false,
-            content: `测试失败: ${error.message}`,
-          };
-        }
-      });
-
       // 测试用户间数据传输 - 发送成功验证
       await runTest("Agent Data Send Success Test", async () => {
         try {
@@ -300,6 +250,57 @@
               message: "成功捕获发送到不存在用户的错误",
               nonExistentUserId,
               error: sendResult.error,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试用户间数据传输 - 时间戳验证
+      await runTest("Agent Data Timestamp Test", async () => {
+        try {
+          const { user1, user2, user1Server, user2Server } =
+            await setupTestEnvironment();
+
+          let agentdatatime;
+          // 设置用户2的数据接收处理器
+          let receivedData = null;
+          user2Server[0]._onagentdata = async (fromUserId, data) => {
+            receivedData = { fromUserId, data };
+            agentdatatime = Date.now();
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          };
+
+          // 生成测试数据
+          const testData = {
+            val: Math.random(),
+            timestamp: Date.now(),
+          };
+
+          // 用户1发送数据到用户2
+          const sendResult = await user1Server[0].post({
+            type: "agent-data",
+            friendId: user2.userid,
+            data: testData,
+          });
+
+          const resultTime = Date.now();
+
+          // 等待数据接收
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          return {
+            assert: resultTime > agentdatatime,
+            content: {
+              message: "时间戳验证测试完成",
+              agentdatatime,
+              resultTime,
+              timeDifference: resultTime - agentdatatime,
             },
           };
         } catch (error) {

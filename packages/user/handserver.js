@@ -135,14 +135,6 @@ export class HandServer extends Stanz {
               console.error("处理agent数据失败:", error);
             }
             break;
-            console.log("收到来自用户", fromUserId, "的数据:", agentData);
-            // 返回处理成功
-            this.post({
-              type: "confirm-agent",
-              agentTaskId,
-            });
-            break;
-
           default:
             console.warn("未知消息类型:", messageData.type);
             break;
