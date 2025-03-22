@@ -1,6 +1,6 @@
-import { signData } from "./main.js";
+import { signData } from "./sign.js";
 
-const Stanz = $.Stanz;
+const Stanz = window.$.Stanz;
 
 // WebSocket客户端类：负责与服务器建立连接并处理通信
 export class HandServer extends Stanz {

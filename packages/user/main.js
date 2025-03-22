@@ -2,13 +2,7 @@ import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
-import { verifyData } from "./verify.js";
-import { signData } from "./sign.js";
-
-export { verifyData, signData };
-
-// 需要系统目录
-await init("system");
+import { HandServer } from "./handserver.js";
 
 // 自身用户对象
 const selfUsers = {};
@@ -18,6 +12,9 @@ export const tabSessionid = Math.random().toString(36).slice(2);
 
 // 确保已经初始化了用户
 export const getUserStore = async (userDirName) => {
+  // 需要系统目录
+  await init("system");
+
   userDirName = userDirName || "main";
   if (selfUsers[userDirName]) {
     return selfUsers[userDirName];
@@ -70,8 +67,6 @@ export const getUserStore = async (userDirName) => {
   })());
 };
 
-import { HandServer } from "./handserver.js";
-
 // 获取服务器列表
 export const getServers = async (userDirName) => {
   const selfUserStore = await getUserStore(userDirName);
@@ -98,7 +93,7 @@ export const getServers = async (userDirName) => {
   }
 
   // 生成服务器对象数据
-  const __handservers = (selfUserStore.__handservers = $.stanz({}));
+  const __handservers = (selfUserStore.__handservers = window.$.stanz({}));
 
   // 根据配置的服务器信息进行生成对象
   selfUserStore.servers.forEach((e) => {
