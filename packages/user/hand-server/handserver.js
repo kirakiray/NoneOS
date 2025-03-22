@@ -1,5 +1,5 @@
-import { signData } from "./sign.js";
-import { Stanz } from "../libs/stanz/main.js";
+import { signData } from "../sign.js";
+import { Stanz } from "../../libs/stanz/main.js";
 
 // WebSocket客户端类：负责与服务器建立连接并处理通信
 export class HandServer extends Stanz {

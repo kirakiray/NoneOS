@@ -2,7 +2,7 @@ import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
-import { HandServer } from "./handserver.js";
+import { HandServer } from "./hand-server/main.js";
 import { Stanz } from "../libs/stanz/main.js";
 
 // 自身用户对象
@@ -74,7 +74,7 @@ export const getServers = async (userDirName) => {
   await selfUserStore.ready(true);
 
   // 初始化服务器列表
-  if (!selfUserStore.servers) {
+  if (!selfUserStore.servers || selfUserStore.servers.length === 0) {
     selfUserStore.servers = [];
     if (location.host.includes("localhost")) {
       // 加入测试地址

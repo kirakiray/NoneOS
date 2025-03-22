@@ -1,4 +1,4 @@
-//! stanz - v8.1.33 https://github.com/ofajs/stanz  (c) 2018-2025 YAO
+//! stanz - v8.2.1 https://github.com/ofajs/stanz  (c) 2018-2025 YAO
 // const error_origin = "http://127.0.0.1:5793/errors";
 const error_origin = "https://ofajs.github.io/ofa-errors/errors";
 
@@ -950,4 +950,4 @@ const stanz = (data) => {
 
 Object.assign(stanz, { is: isxdata });
 
-export { Stanz, stanz as default };
+export { Stanz, stanz as default, stanz };
