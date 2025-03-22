@@ -16,6 +16,7 @@ export class HandServer extends Stanz {
       serverName: "unknown", // 服务器名称
       serverVersion: null, // 服务器版本
       connectedTime: null, // 连接建立时间
+      key: Math.random().toString(36).slice(2), // 随机生成的唯一标识
     });
 
     this.#serverUrl = url;

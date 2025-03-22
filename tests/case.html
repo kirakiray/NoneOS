@@ -8,7 +8,15 @@
   </head>
   <body>
     <script type="module">
-      
+      import { getServers } from "/packages/user/main.js";
+
+      const servers = await getServers("user1");
+
+      servers.watchTick(() => {
+        console.log("servers: ", servers.toJSON());
+      });
+
+      console.log("servers: ", servers);
     </script>
   </body>
 </html>

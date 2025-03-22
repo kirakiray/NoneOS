@@ -1,6 +1,6 @@
 import { init } from "/packages/fs/main.js";
 import { createSigner } from "./util.js";
-import { getUserStore } from "./main.js";
+import { getUserStore } from "./user-store.js";
 
 // 用自身账户生成带签名的数据
 export const signData = async (originData, userDirName) => {

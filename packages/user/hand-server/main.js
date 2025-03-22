@@ -1,6 +1,5 @@
-import { HandServer } from "./handserver.js";
 import { Stanz } from "../../libs/stanz/main.js";
-import { getUserStore } from "../main.js";
+import { getUserStore } from "../user-store.js";
 
 // 获取服务器列表
 export const getServers = async (userDirName) => {
@@ -28,18 +27,62 @@ export const getServers = async (userDirName) => {
   }
 
   // 生成服务器对象数据
-  const __handservers = (selfUserStore.__handservers = new Stanz({}));
+  const __handservers = (selfUserStore.__handservers = new Stanz([]));
 
-  // 根据配置的服务器信息进行生成对象
-  selfUserStore.servers.forEach((e) => {
-    const client = new HandServer({
-      store: selfUserStore,
-      url: e.url,
+  const handWorker = (selfUserStore.__handWorker = new SharedWorker(
+    new URL(
+      "./hand-shared-worker.js?userdir=" + userDirName || "main",
+      import.meta.url
+    ),
+    {
+      name: "hand-worker-" + userDirName || "main",
+      type: "module",
+    }
+  ));
+
+  handWorker.port.onmessage = (e) => {
+    const { type, data } = e.data;
+    switch (type) {
+      case "update": {
+        const { servers } = data;
+
+        // 合并服务器列表
+        const currentKeys = new Set(__handservers.map((s) => s.key));
+
+        // 添加新服务器
+        servers.forEach((server) => {
+          if (!currentKeys.has(server.key)) {
+            __handservers.push(server);
+          }
+        });
+
+        // 移除不存在的服务器
+        const newKeys = new Set(servers.map((s) => s.key));
+        __handservers.forEach((server, index) => {
+          if (!newKeys.has(server.key)) {
+            __handservers.splice(index, 1);
+          }
+        });
+
+        // 已存在的更新数据
+        servers.forEach((server) => {
+          const currentServer = __handservers.find((s) => s.key === server.key);
+          if (currentServer) {
+            Object.assign(currentServer, server);
+          }
+        });
+
+        console.log("服务器列表初始化", servers);
+        break;
+      }
+    }
+  };
+
+  // 标签关闭时，发送关闭消息
+  window.addEventListener("beforeunload", () => {
+    handWorker.port.postMessage({
+      type: "close",
     });
-
-    __handservers.push(client);
-
-    client.connect();
   });
 
   return __handservers;
