@@ -14,8 +14,10 @@ export const testSucceedCount = async (page, count) => {
   expect(await testCases.length).toBe(count);
 
   // 验证每个测试用例都成功执行
+  let id = 0;
   for (const testCase of testCases) {
+    id++;
     const successMark = await testCase.$(".success");
-    expect(successMark).not.toBeNull();
+    expect(successMark, `测试用例 #${id} 执行失败`).not.toBeNull();
   }
 };
