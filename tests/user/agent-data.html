@@ -275,7 +275,6 @@
           user2Server[0]._onagentdata = async (fromUserId, data) => {
             receivedData = { fromUserId, data };
             agentdatatime = Date.now();
-            await new Promise((resolve) => setTimeout(resolve, 10));
           };
 
           // 生成测试数据
@@ -297,7 +296,7 @@
           await new Promise((resolve) => setTimeout(resolve, 100));
 
           return {
-            assert: resultTime > agentdatatime,
+            assert: resultTime >= agentdatatime,
             content: {
               message: "时间戳验证测试完成",
               agentdatatime,

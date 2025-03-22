@@ -16,6 +16,9 @@ export const getServers = async (userDirName) => {
       });
 
       await selfUserStore.servers.ready();
+
+      // TODO: server 应该监听变化，实时更新
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } else {
       // TODO: 加入官方推荐的地址
       debugger;

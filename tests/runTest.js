@@ -37,6 +37,10 @@ export async function runTest(testName, testFn, options = { stringify: true }) {
       return;
     }
 
+    if (typeof result.content === "object") {
+      throw new Error(JSON.stringify(result.content));
+    }
+
     throw new Error(result.content);
   } catch (error) {
     div.innerHTML = `
