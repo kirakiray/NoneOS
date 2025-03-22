@@ -1,5 +1,7 @@
+import { Stanz } from "../../libs/stanz/main.js";
+
 // 所有任务
-export const tasks = $.stanz([]);
+export const tasks = new Stanz([]);
 
 // 检测到完成的任务，进行清除
 tasks.watchTick(() => {

@@ -1,3 +1,5 @@
+import { generateKeyPair } from "/packages/user/util.js";
+
 // 这是一个简单的 SharedWorker 实现
 // 用于在多个页面间共享数据
 

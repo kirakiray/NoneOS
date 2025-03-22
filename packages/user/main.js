@@ -3,6 +3,7 @@ import { createData } from "/packages/hybird-data/main.js";
 import { generateKeyPair } from "./util.js";
 import { getHash } from "/packages/fs/util.js";
 import { HandServer } from "./handserver.js";
+import { Stanz } from "../libs/stanz/main.js";
 
 // 自身用户对象
 const selfUsers = {};
@@ -93,7 +94,7 @@ export const getServers = async (userDirName) => {
   }
 
   // 生成服务器对象数据
-  const __handservers = (selfUserStore.__handservers = window.$.stanz({}));
+  const __handservers = (selfUserStore.__handservers = new Stanz({}));
 
   // 根据配置的服务器信息进行生成对象
   selfUserStore.servers.forEach((e) => {

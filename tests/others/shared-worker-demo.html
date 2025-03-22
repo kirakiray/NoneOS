@@ -1,160 +1,167 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SharedWorker 演示</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .container {
-      border: 1px solid #ccc;
-      padding: 20px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-    }
-    .message-list {
-      height: 200px;
-      overflow-y: auto;
-      border: 1px solid #eee;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    .message {
-      margin-bottom: 5px;
-      padding: 5px;
-      border-radius: 3px;
-    }
-    .received {
-      background-color: #e6f7ff;
-    }
-    .sent {
-      background-color: #f6ffed;
-      text-align: right;
-    }
-    input, button {
-      padding: 8px;
-      margin-right: 5px;
-    }
-    input {
-      width: 70%;
-    }
-    .info {
-      color: #666;
-      font-style: italic;
-    }
-  </style>
-</head>
-<body>
-  <h1>SharedWorker 演示</h1>
-  <p class="info">打开多个此页面的标签页来测试 SharedWorker 的通信功能</p>
-  
-  <div class="container">
-    <h2>连接信息</h2>
-    <p>当前连接数: <span id="connection-count">0</span></p>
-    <p>页面 ID: <span id="page-id"></span></p>
-  </div>
-  
-  <div class="container">
-    <h2>消息</h2>
-    <div id="message-list" class="message-list"></div>
-    <div>
-      <input type="text" id="message-input" placeholder="输入消息...">
-      <button id="send-button">发送</button>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SharedWorker 演示</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .container {
+        border: 1px solid #ccc;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .message-list {
+        height: 200px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        padding: 10px;
+        margin-bottom: 10px;
+      }
+      .message {
+        margin-bottom: 5px;
+        padding: 5px;
+        border-radius: 3px;
+      }
+      .received {
+        background-color: #e6f7ff;
+      }
+      .sent {
+        background-color: #f6ffed;
+        text-align: right;
+      }
+      input,
+      button {
+        padding: 8px;
+        margin-right: 5px;
+      }
+      input {
+        width: 70%;
+      }
+      .info {
+        color: #666;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>SharedWorker 演示</h1>
+    <p class="info">打开多个此页面的标签页来测试 SharedWorker 的通信功能</p>
+
+    <div class="container">
+      <h2>连接信息</h2>
+      <p>当前连接数: <span id="connection-count">0</span></p>
+      <p>页面 ID: <span id="page-id"></span></p>
     </div>
-  </div>
-  
-  <script>
-    // 生成随机页面 ID
-    const pageId = Math.random().toString(36).substr(2, 9);
-    document.getElementById('page-id').textContent = pageId;
-    
-    // 初始化 SharedWorker
-    let worker;
-    try {
-      // worker = new SharedWorker('./shared-worker.js');
-      worker = new SharedWorker('/test-haha/share.js');
-      console.log('SharedWorker 已创建');
-      
-      // 处理来自 worker 的消息
-      worker.port.onmessage = function(e) {
-        const data = e.data;
-        
-        if (data.type === 'CONNECTIONS') {
-          // 更新连接数
-          document.getElementById('connection-count').textContent = data.count;
-        } else if (data.type === 'MESSAGE') {
-          // 显示收到的消息
-          addMessage(data.content, 'received');
-        }
-      };
-      
-      // 启动端口
-      worker.port.start();
-      
-      // 请求当前连接数
-      worker.port.postMessage({
-        type: 'GET_CONNECTIONS'
-      });
-      
-    } catch (error) {
-      console.error('创建 SharedWorker 失败:', error);
-      document.body.innerHTML = `
+
+    <div class="container">
+      <h2>消息</h2>
+      <div id="message-list" class="message-list"></div>
+      <div>
+        <input type="text" id="message-input" placeholder="输入消息..." />
+        <button id="send-button">发送</button>
+      </div>
+    </div>
+
+    <script>
+      // 生成随机页面 ID
+      const pageId = Math.random().toString(36).substr(2, 9);
+      document.getElementById("page-id").textContent = pageId;
+
+      // 初始化 SharedWorker
+      let worker;
+      try {
+        // worker = new SharedWorker('./shared-worker.js');
+        worker = new SharedWorker("/test-haha/share.js?v=1", {
+          type: "module",
+        });
+        console.log("SharedWorker 已创建");
+
+        // 处理来自 worker 的消息
+        worker.port.onmessage = function (e) {
+          const data = e.data;
+
+          if (data.type === "CONNECTIONS") {
+            // 更新连接数
+            document.getElementById("connection-count").textContent =
+              data.count;
+          } else if (data.type === "MESSAGE") {
+            // 显示收到的消息
+            addMessage(data.content, "received");
+          }
+        };
+
+        // 启动端口
+        worker.port.start();
+
+        // 请求当前连接数
+        worker.port.postMessage({
+          type: "GET_CONNECTIONS",
+        });
+      } catch (error) {
+        console.error("创建 SharedWorker 失败:", error);
+        document.body.innerHTML = `
         <h1>错误</h1>
         <p>无法创建 SharedWorker。请确保您的浏览器支持 SharedWorker，并且没有被安全策略阻止。</p>
         <p>错误详情: ${error.message}</p>
       `;
-    }
-    
-    // 发送消息
-    document.getElementById('send-button').addEventListener('click', sendMessage);
-    document.getElementById('message-input').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        sendMessage();
       }
-    });
-    
-    function sendMessage() {
-      const input = document.getElementById('message-input');
-      const message = input.value.trim();
-      
-      if (message && worker) {
-        // 发送消息到 worker
-        worker.port.postMessage({
-          type: 'MESSAGE',
-          content: `${pageId}: ${message}`
+
+      // 发送消息
+      document
+        .getElementById("send-button")
+        .addEventListener("click", sendMessage);
+      document
+        .getElementById("message-input")
+        .addEventListener("keypress", function (e) {
+          if (e.key === "Enter") {
+            sendMessage();
+          }
         });
-        
-        // 在本地显示已发送的消息
-        addMessage(`${pageId}: ${message}`, 'sent');
-        
-        // 清空输入框
-        input.value = '';
+
+      function sendMessage() {
+        const input = document.getElementById("message-input");
+        const message = input.value.trim();
+
+        if (message && worker) {
+          // 发送消息到 worker
+          worker.port.postMessage({
+            type: "MESSAGE",
+            content: `${pageId}: ${message}`,
+          });
+
+          // 在本地显示已发送的消息
+          addMessage(`${pageId}: ${message}`, "sent");
+
+          // 清空输入框
+          input.value = "";
+        }
       }
-    }
-    
-    // 添加消息到消息列表
-    function addMessage(message, type) {
-      const messageList = document.getElementById('message-list');
-      const messageElement = document.createElement('div');
-      messageElement.className = `message ${type}`;
-      messageElement.textContent = message;
-      messageList.appendChild(messageElement);
-      
-      // 滚动到底部
-      messageList.scrollTop = messageList.scrollHeight;
-    }
-    
-    // 页面关闭时通知 worker
-    window.addEventListener('beforeunload', function() {
-      if (worker && worker.port) {
-        worker.port.close();
+
+      // 添加消息到消息列表
+      function addMessage(message, type) {
+        const messageList = document.getElementById("message-list");
+        const messageElement = document.createElement("div");
+        messageElement.className = `message ${type}`;
+        messageElement.textContent = message;
+        messageList.appendChild(messageElement);
+
+        // 滚动到底部
+        messageList.scrollTop = messageList.scrollHeight;
       }
-    });
-  </script>
-</body>
+
+      // 页面关闭时通知 worker
+      window.addEventListener("beforeunload", function () {
+        if (worker && worker.port) {
+          worker.port.close();
+        }
+      });
+    </script>
+  </body>
 </html>

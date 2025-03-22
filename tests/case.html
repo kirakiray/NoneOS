@@ -8,44 +8,7 @@
   </head>
   <body>
     <script type="module">
-      import { getServers, getUserStore } from "/packages/user/main.js";
-
-      const user1 = await getUserStore("user1");
-      const user2 = await getUserStore("user2");
-
-      // 分别获取用户握手服务器
-      const user1Server = await getServers("user1");
-      console.log("servers1", user1Server);
-
-      const user2Server = await getServers("user2");
-      console.log("servers2", user2Server);
-
-      // 等待连接服务器成功
-      await user1Server[0].watchUntil(
-        () => user1Server[0].connectionState === "connected"
-      );
-      await user2Server[0].watchUntil(
-        () => user2Server[0].connectionState === "connected"
-      );
-
-      setTimeout(async () => {
-        user2Server[0]._onagentdata = (fromUserId, data) => {
-          console.log("fromUserId", fromUserId);
-          console.log("data", data);
-        };
-
-        // 转发数据到 server2
-        const result = await user1Server[0].post({
-          type: "agent-data",
-          friendId: user2.userid,
-          data: {
-            // 可以放任何数据
-            val: Math.random(),
-          },
-        });
-
-        console.log("result", result);
-      }, 500);
+      
     </script>
   </body>
 </html>

@@ -1,4 +1,5 @@
 import { getSetting } from "../none-os/setting.js";
+import { Stanz } from "/packages/libs/stanz/main.js";
 
 const settingData = await getSetting();
 
@@ -6,7 +7,7 @@ const load = lm(import.meta);
 load("./component.html");
 
 // 多语言的存储主体对象
-export const space = $.stanz({});
+export const space = new Stanz({});
 
 // 存储多语言的主体空间
 export const spacePath = {};

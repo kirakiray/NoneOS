@@ -1,3 +1,5 @@
+import { Stanz } from "../libs/stanz/main.js";
+
 import {
   SELFHANDLE,
   DATAID,
@@ -7,8 +9,6 @@ import {
 } from "./common.js";
 
 import { saveData } from "./save-data.js";
-
-const Stanz = $.Stanz;
 
 export class HybirdData extends Stanz {
   constructor(data, options) {
