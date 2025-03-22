@@ -6,10 +6,11 @@
   "scripts": {
     "static": "node scripts/static-server",
     "test": "npx playwright test",
-    "build": "npm run build-sw && npm run buhash && npm run zippkg",
+    "build": "npm run build-sw && npm run build-sw-min && npm run buhash && npm run zippkg",
     "zippkg": "node scripts/zipPackages.js",
     "buhash": "node scripts/calculateHashes.js",
     "build-sw": "rollup sw/main.js --file sw/dist.js --format iife",
+    "build-sw-min": "rollup sw/main.js --file sw/dist.min.js --format iife --plugin terser",
     "hand": "nodemon --inspect server/test-server.js",
     "dev": "npm run static & nodemon --inspect server/test-server.js"
   },
