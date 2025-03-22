@@ -31,11 +31,11 @@ export const getServers = async (userDirName) => {
 
   const handWorker = (selfUserStore.__handWorker = new SharedWorker(
     new URL(
-      "./hand-shared-worker.js?userdir=" + userDirName || "main",
+      "./hand-shared-worker.js?userdir=" + (userDirName || "main"), // 添加括号
       import.meta.url
     ),
     {
-      name: "hand-worker-" + userDirName || "main",
+      name: "hand-worker-" + (userDirName || "main"), // 添加括号
       type: "module",
     }
   ));
@@ -45,33 +45,7 @@ export const getServers = async (userDirName) => {
     switch (type) {
       case "update": {
         const { servers } = data;
-
-        // 合并服务器列表
-        const currentKeys = new Set(__handservers.map((s) => s.key));
-
-        // 添加新服务器
-        servers.forEach((server) => {
-          if (!currentKeys.has(server.key)) {
-            __handservers.push(server);
-          }
-        });
-
-        // 移除不存在的服务器
-        const newKeys = new Set(servers.map((s) => s.key));
-        __handservers.forEach((server, index) => {
-          if (!newKeys.has(server.key)) {
-            __handservers.splice(index, 1);
-          }
-        });
-
-        // 已存在的更新数据
-        servers.forEach((server) => {
-          const currentServer = __handservers.find((s) => s.key === server.key);
-          if (currentServer) {
-            Object.assign(currentServer, server);
-          }
-        });
-
+        mergeServers(__handservers, servers); // 使用新函数
         console.log("服务器列表初始化", servers);
         break;
       }
@@ -86,4 +60,30 @@ export const getServers = async (userDirName) => {
   });
 
   return __handservers;
+};
+
+// 新增合并服务器函数
+const mergeServers = (target, source) => {
+  const currentKeys = new Set(target.map((s) => s.key));
+  const newKeys = new Set(source.map((s) => s.key));
+
+  // 添加新服务器（保持响应式特性）
+  source.forEach((server) => {
+    if (!currentKeys.has(server.key)) {
+      target.push(server);
+    }
+  });
+
+  // 反向遍历避免索引错位
+  for (let i = target.length - 1; i >= 0; i--) {
+    if (!newKeys.has(target[i].key)) {
+      target.splice(i, 1);
+    }
+  }
+
+  // 更新现有服务器数据
+  source.forEach((server) => {
+    const current = target.find((s) => s.key === server.key);
+    current && Object.assign(current, server);
+  });
 };
