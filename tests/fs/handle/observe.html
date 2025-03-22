@@ -16,7 +16,7 @@
       // 测试文件变化监听
       await runTest("Test file change observation", async () => {
         const events = [];
-        
+
         // 创建观察者
         const unobserve = await testDir.observe((event) => {
           events.push(event);
@@ -25,39 +25,39 @@
         // 创建文件并写入内容
         const file = await testDir.get("test.txt", { create: "file" });
         await file.write("Hello");
-        
+
         // 等待事件触发
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         // 移除文件
         await file.remove();
-        
+
         // 等待事件触发
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // 取消观察
         unobserve();
 
         // 再次创建文件（这次不应该触发事件）
         const file2 = await testDir.get("test2.txt", { create: "file" });
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         return {
           assert: events.length === 2,
-          content: `Received ${events.length} events:\n${events.map(e => 
-            `- Type: ${e.type}, Path: ${e.path}`
-          ).join('\n')}`,
+          content: `Received ${events.length} events:\n${events
+            .map((e) => `- Type: ${e.type}, Path: ${e.path}`)
+            .join("\n")}`,
         };
       });
 
       // 测试子目录变化监听
       await runTest("Test subdirectory change observation", async () => {
         const events = [];
-        
+
         // 创建目录结构
         const parentDir = await testDir.get("parent", { create: "dir" });
         const subDir = await parentDir.get("sub", { create: "dir" });
-        
+
         // 观察父目录
         const unobserve = await parentDir.observe((event) => {
           events.push(event);
@@ -69,16 +69,18 @@
         await file.remove();
 
         // 等待事件触发
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // 取消观察
         unobserve();
 
         return {
           assert: events.length > 0,
-          content: `Received ${events.length} events from subdirectory:\n${events.map(e => 
-            `- Type: ${e.type}, Path: ${e.path}`
-          ).join('\n')}`,
+          content: `Received ${
+            events.length
+          } events from subdirectory:\n${events
+            .map((e) => `- Type: ${e.type}, Path: ${e.path}`)
+            .join("\n")}`,
         };
       });
 
@@ -86,12 +88,12 @@
       await runTest("Test multiple observers", async () => {
         const events1 = [];
         const events2 = [];
-        
+
         // 创建两个观察者
         const unobserve1 = await testDir.observe((event) => {
           events1.push(event);
         });
-        
+
         const unobserve2 = await testDir.observe((event) => {
           events2.push(event);
         });
@@ -101,7 +103,7 @@
         await file.remove();
 
         // 等待事件触发
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // 取消观察
         unobserve1();
@@ -112,6 +114,11 @@
           content: `Observer 1: ${events1.length} events\nObserver 2: ${events2.length} events`,
         };
       });
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
     </script>
   </body>
 </html>

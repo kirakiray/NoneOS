@@ -47,6 +47,11 @@
           content: `Found target: ${foundTarget}, Iterations: ${count}`,
         };
       });
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
     </script>
   </body>
 </html>

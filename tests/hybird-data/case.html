@@ -65,6 +65,11 @@
 
         console.log("eq2: ", oldBid === hdata.b.xid);
       }
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
     </script>
   </body>
 </html>
