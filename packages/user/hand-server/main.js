@@ -111,6 +111,14 @@ const addFakeMethods = (servers, handWorker, cachedTasks) => {
             return result;
           },
         },
+        ping: {
+          value() {
+            handWorker.port.postMessage({
+              agentType: "ping",
+              agentData: { key: server.key },
+            });
+          },
+        },
       });
     }
   });

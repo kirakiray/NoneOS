@@ -70,6 +70,16 @@ self.onconnect = async (e) => {
         ports.delete(port);
         break;
       }
+      case "ping": {
+        const { key } = agentData;
+
+        const server = servers.find((e) => e.key === key);
+        if (server) {
+          server.ping();
+        }
+
+        break;
+      }
       case "post": {
         const { key, taskID, data } = agentData;
         const server = servers.find((e) => e.key === key);
