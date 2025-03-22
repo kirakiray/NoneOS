@@ -10,7 +10,8 @@
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
       import { runTest } from "/tests/runTest.js";
-      import { signData, verifyData } from "/packages/user/main.js";
+      import { signData } from "/packages/user/sign.js";
+      import { verifyData } from "/packages/user/verify.js";
 
       // 测试多用户签名
       await runTest("Multi-User Sign Test", async () => {
