@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 export const testSucceedCount = async (page, count) => {
-  // 等待所有测试用例执行完成
+  // 等待出现测试用例执行完成
   await page.waitForSelector(".test-case");
 
   // 等待出现 All tests completed 的 h5 元素

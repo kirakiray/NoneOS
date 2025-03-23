@@ -33,15 +33,16 @@
           const user1Server = await getServers("user1");
           const user2Server = await getServers("user2");
 
-          await user1Server.watchUntil(() => user1Server.length);
-          await user2Server.watchUntil(() => user2Server.length);
-
           // 等待服务器连接
-          await user1Server[0].watchUntil(
-            () => user1Server[0].connectionState === "connected"
+          await user1Server.watchUntil(
+            () =>
+              user1Server.length &&
+              user1Server[0].connectionState === "connected"
           );
-          await user2Server[0].watchUntil(
-            () => user2Server[0].connectionState === "connected"
+          await user2Server.watchUntil(
+            () =>
+              user2Server.length &&
+              user2Server[0].connectionState === "connected"
           );
 
           await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
