@@ -3,6 +3,7 @@ let mainDB = null;
 
 // 获取数据库
 const getDB = async () => {
+  // 如果数据库连接不存在或已失效，重新创建连接
   if (!mainDB) {
     mainDB = new Promise((resolve, reject) => {
       const request = indexedDB.open("noneos_fs_db", 1);
@@ -23,7 +24,28 @@ const getDB = async () => {
       request.onsuccess = function (event) {
         const db = event.target.result;
 
+        db.onabort = (e) => {
+          console.error("事务中止:", e.target.error);
+          mainDB = null;
+        };
+        db.onblocked = (e) => {
+          console.error("事务被阻塞:", e.target.error);
+          mainDB = null;
+        };
+        // 监听数据库关闭事件
         db.onclose = function () {
+          mainDB = null;
+        };
+
+        // 监听数据库错误事件
+        db.onerror = function () {
+          console.error("数据库错误:", db);
+          mainDB = null;
+        };
+
+        // 监听数据库版本变化事件
+        db.onversionchange = function () {
+          db.close();
           mainDB = null;
         };
 
@@ -37,9 +59,21 @@ const getDB = async () => {
     });
   }
 
-  return mainDB;
+  try {
+    // 尝试获取数据库连接
+    const db = await mainDB;
+    // 测试数据库连接是否有效
+    if (db.objectStoreNames.length === 0) {
+      mainDB = null;
+      return getDB();
+    }
+    return db;
+  } catch (error) {
+    // 如果获取失败，清空连接并重试
+    mainDB = null;
+    return getDB();
+  }
 };
-
 // 从数据库中获取数据
 export const getData = async ({ indexName, index, method = "get" }) => {
   const db = await getDB();
