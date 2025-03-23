@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>C-Handle 文件系统示例</title>
+</head>
+<body>
+  <h1>C-Handle 文件系统示例</h1>
+  <div id="output"></div>
+
+  <script type="module">
+    import { init, get } from "/packages/fs/c-handle/main.js";
+
+    const log = (text) => {
+      const output = document.getElementById('output');
+      output.innerHTML += `<p>${text}</p>`;
+    };
+
+    async function demo() {
+      try {
+        // 初始化根目录
+        const root = await init("demo-fs");
+        log("✅ 初始化文件系统成功");
+
+        // 创建目录
+        const docs = await root.get("documents", { create: "dir" });
+        log("✅ 创建 documents 目录");
+
+        // 创建并写入文件
+        const file = await docs.get("hello.txt", { create: "file" });
+        await file.write("Hello, C-Handle!");
+        log("✅ 创建并写入文件 hello.txt");
+
+        // 读取文件内容
+        const content = await file.read({ type: "text" });
+        log(`📖 文件内容: ${content}`);
+
+        // 列出目录内容
+        log("📂 列出 documents 目录内容:");
+        for await (const key of docs.keys()) {
+          log(`  - ${key}`);
+        }
+
+        // 获取目录中的文件数量
+        const count = await docs.length();
+        log(`📊 documents 目录中的文件数量: ${count}`);
+
+        // 删除文件
+        await file.remove();
+        log("🗑️ 删除 hello.txt");
+
+        // 再次检查目录内容
+        const newCount = await docs.length();
+        log(`📊 删除后的文件数量: ${newCount}`);
+
+      } catch (error) {
+        log(`❌ 错误: ${error.message}`);
+      }
+    }
+
+    // 运行演示
+    demo();
+  </script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #output {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    #output p {
+      margin: 8px 0;
+      font-family: monospace;
+    }
+  </style>
+</body>
+</html>
