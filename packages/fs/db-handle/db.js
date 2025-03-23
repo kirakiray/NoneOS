@@ -20,14 +20,14 @@ export const getDB = async () => {
           unique: true,
         });
       };
-
+      
       let retryCount = 0;
       const maxRetries = 3;
 
       const attemptConnection = () => {
         request.onsuccess = function (event) {
           const db = event.target.result;
-
+  
           // 统一处理数据库事件的函数
           const handleDBEvent = (eventType, error = null) => {
             if (error) {
@@ -38,32 +38,32 @@ export const getDB = async () => {
               mainDB = null;
             }
           };
-
+  
           // 事务中止处理
-          db.onabort = (e) => handleDBEvent("事务中止", e.target.error);
-
+          db.onabort = (e) => handleDBEvent('事务中止', e.target.error);
+  
           // 事务阻塞处理
-          db.onblocked = (e) => handleDBEvent("事务被阻塞", e.target.error);
-
+          db.onblocked = (e) => handleDBEvent('事务被阻塞', e.target.error);
+  
           // 数据库关闭处理
-          db.onclose = () => handleDBEvent("关闭");
-
+          db.onclose = () => handleDBEvent('关闭');
+  
           // 数据库错误处理
-          db.onerror = () => handleDBEvent("错误", db);
-
+          db.onerror = () => handleDBEvent('错误', db);
+  
           // 数据库版本变化处理
-          db.onversionchange = () => handleDBEvent("版本变化");
-
+          db.onversionchange = () => handleDBEvent('版本变化');
+  
           resolve(db);
         };
-
+  
         request.onerror = function (event) {
           retryCount++;
           if (retryCount < maxRetries) {
             console.warn(`数据库连接失败，正在进行第${retryCount}次重试`);
             setTimeout(attemptConnection, 1000 * retryCount); // 递增重试延迟
           } else {
-            console.error("数据库连接失败，已达到最大重试次数");
+            console.error('数据库连接失败，已达到最大重试次数');
             reject(event.target.error);
             mainDB = null;
           }

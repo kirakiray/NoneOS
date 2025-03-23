@@ -32,6 +32,16 @@ export const getServers = async (userDirName) => {
   // 生成服务器对象数据
   const __handservers = (selfUserStore.__handservers = new Stanz([]));
 
+  // 如果是safari，必须等待 db 完成后，才能初始化worker，不然会因为同时初始化db而很大概率报错
+  if (
+    navigator.userAgent.includes("Safari") &&
+    !navigator.userAgent.includes("Chrome")
+  ) {
+    const { getDB } = await import("/packages/fs/db-handle/db.js");
+    await getDB();
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+
   const handWorker = (selfUserStore.__handWorker = new SharedWorker(
     new URL(
       "./hand-shared-worker.js?userdir=" + (userDirName || "main"),

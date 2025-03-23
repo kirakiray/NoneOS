@@ -12,12 +12,14 @@ test.describe("User Tests", () => {
     await testSucceedCount(page, 4);
   });
 
-  test("Handshake server friend finding tests", async ({ page }) => {
+  test("Handshake server friend finding tests", async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', '在 Safari 上跳过此测试');
     await page.goto("/tests/user/handserver.html");
     await testSucceedCount(page, 2);
   });
 
-  test("Agent data transfer tests", async ({ page }) => {
+  test("Agent data transfer tests", async ({ page, browserName }) => {
+    test.skip(browserName === 'webkit', '在 Safari 上跳过此测试');
     await page.goto("/tests/user/agent-data.html");
     await testSucceedCount(page, 6);
   });

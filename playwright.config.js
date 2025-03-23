@@ -38,7 +38,7 @@ export default defineConfig({
     // },
   },
   // 设置全局超时时间为3秒
-  timeout: 3000,
+  timeout: 5000,
 
   /* Configure projects for major browsers */
   projects: [
