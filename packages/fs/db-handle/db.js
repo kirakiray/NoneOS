@@ -2,7 +2,7 @@
 let mainDB = null;
 
 // 获取数据库
-const getDB = async () => {
+export const getDB = async () => {
   // 如果数据库连接不存在或已失效，重新创建连接
   if (!mainDB) {
     mainDB = new Promise((resolve, reject) => {
@@ -20,34 +20,34 @@ const getDB = async () => {
           unique: true,
         });
       };
-
       request.onsuccess = function (event) {
         const db = event.target.result;
 
-        db.onabort = (e) => {
-          console.error("事务中止:", e.target.error);
-          mainDB = null;
-        };
-        db.onblocked = (e) => {
-          console.error("事务被阻塞:", e.target.error);
-          mainDB = null;
-        };
-        // 监听数据库关闭事件
-        db.onclose = function () {
-          mainDB = null;
-        };
-
-        // 监听数据库错误事件
-        db.onerror = function () {
-          console.error("数据库错误:", db);
-          mainDB = null;
-        };
-
-        // 监听数据库版本变化事件
-        db.onversionchange = function () {
+        // 统一处理数据库事件的函数
+        const handleDBEvent = (eventType, error = null) => {
+          if (error) {
+            console.error(`数据库${eventType}:`, error);
+          }
           db.close();
-          mainDB = null;
+          if (mainDB === db) {
+            mainDB = null;
+          }
         };
+
+        // 事务中止处理
+        db.onabort = (e) => handleDBEvent('事务中止', e.target.error);
+
+        // 事务阻塞处理
+        db.onblocked = (e) => handleDBEvent('事务被阻塞', e.target.error);
+
+        // 数据库关闭处理
+        db.onclose = () => handleDBEvent('关闭');
+
+        // 数据库错误处理
+        db.onerror = () => handleDBEvent('错误', db);
+
+        // 数据库版本变化处理
+        db.onversionchange = () => handleDBEvent('版本变化');
 
         resolve(db);
       };
