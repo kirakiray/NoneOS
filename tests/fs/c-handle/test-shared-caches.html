@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SharedWorker CacheStorage 测试</title>
+</head>
+<body>
+  <h1>SharedWorker CacheStorage 测试</h1>
+  <div id="output"></div>
+
+  <script>
+    const log = (text) => {
+      const output = document.getElementById('output');
+      output.innerHTML += `<p>${text}</p>`;
+    };
+
+    try {
+      // 检查浏览器是否支持 SharedWorker
+      if (typeof SharedWorker === 'undefined') {
+        log('❌ 您的浏览器不支持 SharedWorker');
+      } else {
+        // 创建 SharedWorker 实例
+        const worker = new SharedWorker('shared-worker.js');
+        
+        // 监听来自 worker 的消息
+        worker.port.onmessage = (e) => {
+          const { success, message, data } = e.data;
+          log(message);
+          if (data) {
+            log(`📝 测试数据: ${data}`);
+          }
+        };
+
+        // 启动测试
+        worker.port.start();
+      }
+    } catch (error) {
+      log(`❌ 错误: ${error.message}`);
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    #output {
+      background: #f5f5f5;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+    #output p {
+      margin: 8px 0;
+      font-family: monospace;
+    }
+  </style>
+</body>
+</html>

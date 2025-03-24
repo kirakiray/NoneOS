@@ -12,6 +12,7 @@ export const init = async (name) => {
   return !isSafari ? systemHandleInit(name) : dbHandleInit(name);
 };
 
+// safari 不支持 systemHandle，所以被迫重新实现一个虚拟系统
 export const get = async (path, options) => {
   return !isSafari
     ? systemHandleGet(path, options)

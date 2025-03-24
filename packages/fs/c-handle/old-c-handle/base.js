@@ -4,13 +4,10 @@ import { getHash } from "../util.js";
 export class BaseCacheHandle extends PublicBaseHandle {
   #cache = null;
   #key = null;
-  #name = null;
 
-  constructor(name, cache, options) {
-    const { parent, root } = options || {};
-    super({ parent, root });
-
-    this.#name = name;
+  constructor(key, cache, options = {}) {
+    super(options);
+    this.#key = key;
     this.#cache = cache;
   }
 
@@ -18,19 +15,29 @@ export class BaseCacheHandle extends PublicBaseHandle {
     return await getHash(this.path);
   }
 
+  get _key() {
+    return this.#key;
+  }
+
   get _cache() {
     return this.#cache;
   }
 
   get name() {
-    return this.#name;
+    return this.#key.split("/").pop();
   }
 
   async isSame(target) {
-    return this.#cache === target.#cache && this.path === target.path;
+    return this.#key === target._key;
   }
 
   async remove() {
-    debugger;
+    const parent = this.parent;
+    await this.#cache.delete(this.#key);
+
+    notify({
+      type: "remove", 
+      path: this.path,
+    });
   }
 }

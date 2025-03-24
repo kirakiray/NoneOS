@@ -8,11 +8,22 @@ export const get = async (path, options) => {
   }
 
   const rootName = pathParts[0];
-
-  debugger;
+  const cache = await caches.open(rootName);
 
   try {
-    debugger;
+    const rootMeta = await cache.match(":meta");
+    if (!rootMeta) {
+      throw new Error("NotFoundError");
+    }
+
+    const dirHandle = new DirCacheHandle(rootName, cache);
+
+    if (pathParts.length === 1) {
+      return dirHandle;
+    }
+
+    const remainingPath = pathParts.slice(1).join("/");
+    return await dirHandle.get(remainingPath, options);
   } catch (error) {
     if (error.message === "NotFoundError") {
       throw new Error(
@@ -25,6 +36,9 @@ export const get = async (path, options) => {
 
 export const init = async (name) => {
   const cache = await caches.open(name);
+  const headers = new Headers();
+  headers.set('X-File-Type', 'dir');
+  await cache.put(name, new Response("", { headers }));
   return new DirCacheHandle(name, cache);
 };
 
