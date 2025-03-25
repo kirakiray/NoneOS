@@ -103,40 +103,67 @@ export const ensureCache = async ({ cache, path, type: enType }) => {
   });
 };
 
+// 添加一个目录更新锁跟踪器
+const dirUpdateLocks = new Map();
+
 // 目录添加子目录或子文件信息
 export const updateDir = async ({ cache, path, remove, add }) => {
-  // 获取当前目录的缓存数据
-  const { data: currentData } = await getCache(cache, path);
+  // 规范化路径
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  // 如果目录不存在，抛出错误
-  if (!currentData) {
-    throw new Error(`目录不存在: ${path}`);
+  // 检查是否有正在进行的更新操作
+  let releaseLock;
+  try {
+    // 等待获取锁
+    if (dirUpdateLocks.has(normalizedPath)) {
+      await dirUpdateLocks.get(normalizedPath);
+    }
+
+    // 创建新的锁
+    const lockPromise = new Promise((resolve) => {
+      releaseLock = resolve;
+    });
+    dirUpdateLocks.set(normalizedPath, lockPromise);
+
+    // 获取当前目录的缓存数据
+    const { data: currentData } = await getCache(cache, normalizedPath);
+
+    // 如果目录不存在，抛出错误
+    if (!currentData) {
+      throw new Error(`目录不存在: ${normalizedPath}`);
+    }
+
+    // 创建目录数据的副本
+    let updatedData = Array.isArray(currentData) ? [...currentData] : [];
+
+    // 处理需要移除的项目
+    if (remove && remove.length > 0) {
+      updatedData = updatedData.filter((item) => !remove.includes(item));
+    }
+
+    // 处理需要添加的项目
+    if (add && add.length > 0) {
+      // 过滤掉已存在的项目，避免重复
+      const newItems = add.filter((item) => !updatedData.includes(item));
+      updatedData = [...updatedData, ...newItems];
+    }
+
+    // 保存更新后的目录数据
+    await saveCache({
+      cache,
+      path: normalizedPath,
+      type: "dir",
+      data: updatedData,
+    });
+
+    return updatedData;
+  } finally {
+    // 释放锁
+    if (releaseLock) {
+      releaseLock();
+      dirUpdateLocks.delete(normalizedPath);
+    }
   }
-
-  // 创建目录数据的副本
-  let updatedData = Array.isArray(currentData) ? [...currentData] : [];
-
-  // 处理需要移除的项目
-  if (remove && remove.length > 0) {
-    updatedData = updatedData.filter((item) => !remove.includes(item));
-  }
-
-  // 处理需要添加的项目
-  if (add && add.length > 0) {
-    // 过滤掉已存在的项目，避免重复
-    const newItems = add.filter((item) => !updatedData.includes(item));
-    updatedData = [...updatedData, ...newItems];
-  }
-
-  // 保存更新后的目录数据
-  await saveCache({
-    cache,
-    path,
-    type: "dir",
-    data: updatedData,
-  });
-
-  return updatedData;
 };
 
 // 将ReadableStream转为Blob
