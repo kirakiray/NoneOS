@@ -1,7 +1,7 @@
 import { BaseCacheHandle } from "./base.js";
 import { FileCacheHandle } from "./file.js";
 import { extendDirHandle } from "../public/dir.js";
-import { saveCache, getCache, ensureCache } from "./public.js";
+import { ensureCache, updateDir } from "./public.js";
 
 export class DirCacheHandle extends BaseCacheHandle {
   constructor(...args) {
@@ -12,26 +12,6 @@ export class DirCacheHandle extends BaseCacheHandle {
       path: this.path,
       type: "dir",
     });
-
-    // 判断是否有缓存，如果没有则创建
-    // this.__preparer = new Promise(async (resolve) => {
-    //   const { type, data } = await getCache(this._cache, this.path);
-
-    //   if (type) {
-    //     console.log("已存在缓存 ", this.path, data);
-    //     resolve();
-    //     return;
-    //   }
-
-    //   console.log("新创建 ", this.path);
-    //   await saveCache({
-    //     type: "dir",
-    //     cache: this._cache,
-    //     data: [],
-    //     path: this.path,
-    //   });
-    //   resolve();
-    // });
   }
 
   async get(name, options) {
@@ -70,7 +50,11 @@ export class DirCacheHandle extends BaseCacheHandle {
 
     let finalHandle = null;
 
-    const { data: dirData } = await getCache(this._cache, this.path);
+    // 更新目录信息
+    updateDir({
+      path: this.path,
+      add: [name],
+    });
 
     // 写入到目录中
     if (finnalType === "file") {

@@ -103,6 +103,42 @@ export const ensureCache = async ({ cache, path, type: enType }) => {
   });
 };
 
+// 目录添加子目录或子文件信息
+export const updateDir = async ({ cache, path, remove, add }) => {
+  // 获取当前目录的缓存数据
+  const { data: currentData } = await getCache(cache, path);
+
+  // 如果目录不存在，抛出错误
+  if (!currentData) {
+    throw new Error(`目录不存在: ${path}`);
+  }
+
+  // 创建目录数据的副本
+  let updatedData = Array.isArray(currentData) ? [...currentData] : [];
+
+  // 处理需要移除的项目
+  if (remove && remove.length > 0) {
+    updatedData = updatedData.filter((item) => !remove.includes(item));
+  }
+
+  // 处理需要添加的项目
+  if (add && add.length > 0) {
+    // 过滤掉已存在的项目，避免重复
+    const newItems = add.filter((item) => !updatedData.includes(item));
+    updatedData = [...updatedData, ...newItems];
+  }
+
+  // 保存更新后的目录数据
+  await saveCache({
+    cache,
+    path,
+    type: "dir",
+    data: updatedData,
+  });
+
+  return updatedData;
+};
+
 // 将ReadableStream转为Blob
 const streamToBlob = async (stream) => {
   const reader = stream.getReader();

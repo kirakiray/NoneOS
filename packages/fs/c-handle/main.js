@@ -25,8 +25,7 @@ export const get = async (path, options) => {
 
 export const init = async (name) => {
   const cache = await caches.open(name);
-  const rootDirHandle = new DirCacheHandle(name, cache);
-  return rootDirHandle;
+  return new DirCacheHandle(name, cache);
 };
 
 export default get;
