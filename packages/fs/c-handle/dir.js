@@ -1,7 +1,7 @@
 import { BaseCacheHandle } from "./base.js";
 import { FileCacheHandle } from "./file.js";
 import { extendDirHandle } from "../public/dir.js";
-import { ensureCache, updateDir } from "./public.js";
+import { ensureCache, updateDir, getCache } from "./public.js";
 
 export class DirCacheHandle extends BaseCacheHandle {
   constructor(...args) {
@@ -22,41 +22,37 @@ export class DirCacheHandle extends BaseCacheHandle {
     }
 
     // 先判断是否存在
-    const targetPath = `/${this.path}/${name}`;
+    const targetPath = `${this.path}/${name}`;
 
-    const targetRespose = await this._cache.match(targetPath);
+    // 获取目标路径的缓存数据
+    const { type: cachedType } = await getCache(this._cache, targetPath);
 
     // 最终创建handle的类型，默认为传入的create，或者已存在的类型
-    let finnalType = create;
+    let finnalType = create || cachedType;
 
-    if (targetRespose) {
-      // 不存在且不创建，返回 null
-      if (!targetRespose?.body && !create) {
-        return null;
-      }
-
-      // 已存在的类型
-      const cachedType = targetRespose.headers.get("x-type");
-
-      if (cachedType && create && cachedType !== create) {
+    if (cachedType) {
+      if (!create) {
+        finnalType = cachedType;
+      } else if (cachedType !== create) {
         // 如果存在且类型不匹配，则报错
         throw new Error(
           `Type mismatch: ${targetPath} is ${cachedType}, not ${create}`
         );
       }
-
-      finnalType = cachedType;
+    } else if (!create) {
+      return null;
     }
 
     let finalHandle = null;
 
     // 更新目录信息
-    updateDir({
+    await updateDir({
+      cache: this._cache,
       path: this.path,
       add: [name],
     });
 
-    // 写入到目录中
+    // 创建对应类型的 handle
     if (finnalType === "file") {
       finalHandle = new FileCacheHandle(name, this._cache, {
         parent: this,
@@ -73,11 +69,17 @@ export class DirCacheHandle extends BaseCacheHandle {
   }
 
   async length() {
-    debugger;
+    const { data } = await getCache(this._cache, this.path);
+    return Array.isArray(data) ? data.length : 0;
   }
 
   async *keys() {
-    debugger;
+    const { data } = await getCache(this._cache, this.path);
+    if (Array.isArray(data)) {
+      for (const key of data) {
+        yield key;
+      }
+    }
   }
 }
 
