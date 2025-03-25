@@ -4,7 +4,6 @@ import {
 } from "./handle/main.js";
 
 import { init as dbHandleInit, get as dbHandleGet } from "./db-handle/main.js";
-// import { init as cHandleInit, get as cHandleGet } from "./c-handle/main.js";
 
 import { isSafari } from "./util.js";
 
