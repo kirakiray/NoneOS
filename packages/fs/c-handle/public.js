@@ -1,25 +1,50 @@
+// 添加一个保存操作跟踪器
+const savingOperations = new Map();
+
 // 保存
-export const saveCache = async (cache, path, data, type) => {
+export const saveCache = async ({ cache, path, data, type }) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  // 根据类型处理数据
-  const content = type === "dir" ? JSON.stringify(data) : data;
+  try {
+    // 创建一个 Promise 用于跟踪保存操作
+    const savePromise = new Promise(async (resolve, reject) => {
+      try {
+        const content = type === "dir" ? JSON.stringify(data) : data;
+        const resp = new Response(content, {
+          headers: {
+            "x-type": type,
+            "cache-control": "no-cache",
+          },
+        });
+        await cache.put(normalizedPath, resp);
+        resolve();
+      } catch (error) {
+        reject(error);
+      }
+    });
 
-  const resp = new Response(content, {
-    headers: {
-      "x-type": type,
-      "cache-control": "no-cache", // 添加缓存控制头
-    },
-  });
+    // 将保存操作添加到跟踪器
+    savingOperations.set(normalizedPath, savePromise);
 
-  // 写入一个response
-  await cache.put(normalizedPath, resp);
+    // 等待保存完成
+    await savePromise;
+  } finally {
+    // 操作完成后删除跟踪
+    savingOperations.delete(normalizedPath);
+  }
 };
 
 export const getCache = async (cache, path) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  // 检查是否有正在进行的保存操作
+  const pendingSave = savingOperations.get(normalizedPath);
+  if (pendingSave) {
+    // 等待保存操作完成
+    await pendingSave;
+  }
 
   const matched = await cache.match(normalizedPath);
 
@@ -51,6 +76,31 @@ export const getCache = async (cache, path) => {
       error: error.message,
     };
   }
+};
+
+// 确保缓存
+export const ensureCache = async ({ cache, path, type: enType }) => {
+  const { type, data } = await getCache(cache, path);
+
+  if (type) {
+    console.log("已存在缓存 ", path, "类型:", type, "数据:", data);
+    return data;
+  }
+
+  let finalData = null;
+  if (enType === "dir") {
+    finalData = [];
+  } else if (enType === "file") {
+    finalData = "";
+  }
+
+  console.log(`新创建路径: ${path}, 类型: ${enType}`);
+  await saveCache({
+    type: enType,
+    cache,
+    data: finalData,
+    path,
+  });
 };
 
 // 将ReadableStream转为Blob
