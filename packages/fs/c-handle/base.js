@@ -27,7 +27,10 @@ export class BaseCacheHandle extends PublicBaseHandle {
   }
 
   async isSame(target) {
-    return this.#cache === target.#cache && this.path === target.path;
+    return (
+      this.#cache[Symbol.toStringTag] === target.#cache[Symbol.toStringTag] &&
+      this.path === target.path
+    );
   }
 
   async remove() {
