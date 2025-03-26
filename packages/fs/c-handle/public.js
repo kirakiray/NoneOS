@@ -18,26 +18,6 @@ const directSaveToCache = async ({ cache, path, data, type }) => {
   }
 };
 
-// 保存
-export const saveCache = async ({ cache, path, data, type }) => {
-  // 规范化路径
-  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-  return executeInQueue(normalizedPath, async () => {
-    await directSaveToCache({
-      cache,
-      path,
-      data,
-      type,
-    });
-  });
-};
-
-// 获取缓存
-export const getCache = async (cache, path) => {
-  return await directGetCache(cache, path);
-};
-
 export const directGetCache = async (cache, path) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -80,6 +60,31 @@ export const directGetCache = async (cache, path) => {
   }
 };
 
+// 保存
+export const saveCache = async ({ cache, path, data, type }) => {
+  // 规范化路径
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  return executeInQueue(normalizedPath, async () => {
+    await directSaveToCache({
+      cache,
+      path,
+      data,
+      type,
+    });
+  });
+};
+
+// 获取缓存
+export const getCache = async (cache, path) => {
+  // 规范化路径
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  return executeInQueue(normalizedPath, async () => {
+    return await directGetCache(cache, path);
+  });
+};
+
 // 确保缓存
 export const ensureCache = async ({ cache, path, type: enType }) => {
   // 规范化路径
@@ -114,38 +119,40 @@ export const updateDir = async ({ cache, path, remove, add }) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  // 获取当前目录的缓存数据
-  const { data: currentData } = await directGetCache(cache, normalizedPath);
+  return executeInQueue(normalizedPath, async () => {
+    // 获取当前目录的缓存数据
+    const { data: currentData } = await directGetCache(cache, normalizedPath);
 
-  // 如果目录不存在，抛出错误
-  if (!currentData) {
-    throw new Error(`目录不存在: ${normalizedPath}`);
-  }
+    // 如果目录不存在，抛出错误
+    if (!currentData) {
+      throw new Error(`目录不存在: ${normalizedPath}`);
+    }
 
-  // 创建目录数据的副本
-  let updatedData = Array.isArray(currentData) ? [...currentData] : [];
+    // 创建目录数据的副本
+    let updatedData = Array.isArray(currentData) ? [...currentData] : [];
 
-  // 处理需要移除的项目
-  if (remove && remove.length > 0) {
-    updatedData = updatedData.filter((item) => !remove.includes(item));
-  }
+    // 处理需要移除的项目
+    if (remove && remove.length > 0) {
+      updatedData = updatedData.filter((item) => !remove.includes(item));
+    }
 
-  // 处理需要添加的项目
-  if (add && add.length > 0) {
-    // 过滤掉已存在的项目，避免重复
-    const newItems = add.filter((item) => !updatedData.includes(item));
-    updatedData = [...updatedData, ...newItems];
-  }
+    // 处理需要添加的项目
+    if (add && add.length > 0) {
+      // 过滤掉已存在的项目，避免重复
+      const newItems = add.filter((item) => !updatedData.includes(item));
+      updatedData = [...updatedData, ...newItems];
+    }
 
-  // 保存更新后的目录数据
-  await saveCache({
-    cache,
-    path: normalizedPath,
-    type: "dir",
-    data: updatedData,
+    // 保存更新后的目录数据
+    await directSaveToCache({
+      cache,
+      path: normalizedPath,
+      type: "dir",
+      data: updatedData,
+    });
+
+    return updatedData;
   });
-
-  return updatedData;
 };
 
 // 将ReadableStream转为Blob
