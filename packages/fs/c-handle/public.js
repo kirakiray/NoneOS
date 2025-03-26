@@ -58,6 +58,12 @@ export const getCache = async (cache, path) => {
   const type = matched.headers.get("x-type");
 
   try {
+    if (!matched.body) {
+      return {
+        type,
+        data: matched.body,
+      };
+    }
     // 获取 readsteam 数据
     const blob = await streamToBlob(matched.body);
 

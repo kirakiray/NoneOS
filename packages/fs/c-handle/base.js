@@ -1,5 +1,6 @@
 import { PublicBaseHandle, notify } from "../public/base.js";
 import { getHash } from "../util.js";
+import { updateDir } from "./public.js";
 
 export class BaseCacheHandle extends PublicBaseHandle {
   #cache = null;
@@ -30,6 +31,28 @@ export class BaseCacheHandle extends PublicBaseHandle {
   }
 
   async remove() {
-    debugger;
+    if (this.kind === "dir") {
+      // 先递归删除子目录和文件
+      for await (let e of this.values()) {
+        await e.remove();
+      }
+    }
+
+    const parent = this.parent;
+
+    // 从父目录中移除
+    await updateDir({
+      cache: this._cache,
+      path: parent.path,
+      remove: [this.name],
+    });
+
+    // 删除自身缓存
+    await this._cache.delete("/" + this.path);
+
+    notify({
+      type: "remove",
+      path: this.path,
+    });
   }
 }
