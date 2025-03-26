@@ -221,48 +221,250 @@
   };
 
   // 查看是否Safari
-  const isSafari = (() => {
+  (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes("safari") && !ua.includes("chrome");
   })();
 
-  class BaseHandle extends PublicBaseHandle {
-    // 对OPFS进行封装
-    #originHandle = null;
-    constructor(dirHandle, options = {}) {
-      super(options);
-      this.#originHandle = dirHandle;
+  // 直接保存，没有使用队列
+  const directSaveToCache = async ({ cache, path, data, type }) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    console.log("saveCache start", normalizedPath, "data:", data);
+    try {
+      const content = type === "dir" ? JSON.stringify(data) : data;
+      const resp = new Response(content, {
+        headers: {
+          "x-type": type,
+          "cache-control": "no-cache",
+        },
+      });
+      await cache.put(normalizedPath, resp);
+    } finally {
+      console.log("saveCache end", normalizedPath, "data:", data);
+    }
+  };
+
+  const directGetCache = async (cache, path) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    const matched = await cache.match(normalizedPath);
+
+    if (!matched) {
+      return {
+        type: null,
+        data: null,
+      };
+    }
+
+    const type = matched.headers.get("x-type");
+
+    try {
+      if (!matched.body) {
+        return {
+          type,
+          data: matched.body,
+        };
+      }
+      // 获取 readsteam 数据
+      const blob = await streamToBlob(matched.body);
+
+      // 根据类型处理数据
+      const data = type === "dir" ? JSON.parse(await blob.text()) : blob;
+
+      return {
+        type,
+        data,
+      };
+    } catch (error) {
+      console.error("Error processing cache data:", error);
+      return {
+        type: null,
+        data: null,
+        error: error.message,
+      };
+    }
+  };
+
+  // 保存
+  const saveCache = async ({ cache, path, data, type }) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    return executeInQueue(normalizedPath, async () => {
+      await directSaveToCache({
+        cache,
+        path,
+        data,
+        type,
+      });
+    });
+  };
+
+  // 获取缓存
+  const getCache = async (cache, path) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    return executeInQueue(normalizedPath, async () => {
+      return await directGetCache(cache, path);
+    });
+  };
+
+  // 确保缓存
+  const ensureCache = async ({ cache, path, type: enType }) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    return executeInQueue(normalizedPath, async () => {
+      const { type, data } = await directGetCache(cache, normalizedPath);
+
+      if (type) {
+        return;
+      }
+
+      let finalData = null;
+      if (enType === "dir") {
+        finalData = [];
+      } else if (enType === "file") {
+        finalData = "";
+      }
+
+      console.log(`新创建路径: ${normalizedPath}, 类型: ${enType}`);
+      await directSaveToCache({
+        type: enType,
+        cache,
+        data: finalData,
+        path: normalizedPath,
+      });
+    });
+  };
+
+  // 目录添加子目录或子文件信息
+  const updateDir = async ({ cache, path, remove, add }) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    return executeInQueue(normalizedPath, async () => {
+      // 获取当前目录的缓存数据
+      const { data: currentData } = await directGetCache(cache, normalizedPath);
+
+      // 如果目录不存在，抛出错误
+      if (!currentData) {
+        throw new Error(`目录不存在: ${normalizedPath}`);
+      }
+
+      // 创建目录数据的副本
+      let updatedData = Array.isArray(currentData) ? [...currentData] : [];
+
+      // 处理需要移除的项目
+      if (remove && remove.length > 0) {
+        updatedData = updatedData.filter((item) => !remove.includes(item));
+      }
+
+      // 处理需要添加的项目
+      if (add && add.length > 0) {
+        // 过滤掉已存在的项目，避免重复
+        const newItems = add.filter((item) => !updatedData.includes(item));
+        updatedData = [...updatedData, ...newItems];
+      }
+
+      // 保存更新后的目录数据
+      await directSaveToCache({
+        cache,
+        path: normalizedPath,
+        type: "dir",
+        data: updatedData,
+      });
+
+      return updatedData;
+    });
+  };
+
+  // 将ReadableStream转为Blob
+  const streamToBlob = async (stream) => {
+    const reader = stream.getReader();
+    let finalBlob = new Blob([]);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      // 为每个数据块创建一个新的 Blob 并与之前的合并
+      finalBlob = new Blob([finalBlob, value]);
+    }
+
+    return finalBlob;
+  };
+
+  // 队列处理器
+  const queue = new Map();
+  const executeInQueue = async (key, operation) => {
+    const current = queue.get(key) || Promise.resolve();
+    const next = current.then(async () => {
+      try {
+        return await operation();
+      } finally {
+        if (queue.get(key) === next) {
+          queue.delete(key);
+        }
+      }
+    });
+    queue.set(key, next);
+    return next;
+  };
+
+  class BaseCacheHandle extends PublicBaseHandle {
+    #cache = null;
+    #name = null;
+
+    constructor(name, cache, options) {
+      const { parent, root } = options || {};
+      super({ parent, root });
+
+      this.#name = name;
+      this.#cache = cache;
     }
 
     async id() {
-      const originHandle = this.#originHandle;
-
-      if (originHandle.getUniqueId) {
-        return await originHandle.getUniqueId();
-      }
-
       return await getHash(this.path);
     }
 
-    get _handle() {
-      return this.#originHandle;
+    get _cache() {
+      return this.#cache;
     }
 
     get name() {
-      return this.#originHandle.name;
+      return this.#name;
     }
 
     async isSame(target) {
-      return this.#originHandle.isSameEntry(target._handle);
+      return (
+        this.#cache[Symbol.toStringTag] === target.#cache[Symbol.toStringTag] &&
+        this.path === target.path
+      );
     }
 
     async remove() {
+      if (this.kind === "dir") {
+        // 先递归删除子目录和文件
+        for await (let e of this.values()) {
+          await e.remove();
+        }
+      }
+
       const parent = this.parent;
 
-      // 最后删除当前目录或文件
-      await parent.#originHandle.removeEntry(this.#originHandle.name, {
-        recursive: true,
+      // 从父目录中移除
+      await updateDir({
+        cache: this._cache,
+        path: parent.path,
+        remove: [this.name],
       });
+
+      // 删除自身缓存
+      await this._cache.delete("/" + this.path);
 
       notify({
         type: "remove",
@@ -326,40 +528,46 @@
     Object.defineProperties(FileHandle.prototype, propDescs);
   };
 
-  class FileHandle extends BaseHandle {
+  class FileCacheHandle extends BaseCacheHandle {
     constructor(...args) {
       super(...args);
+
+      ensureCache({
+        cache: this._cache,
+        path: this.path,
+        type: "file",
+      });
     }
 
-    // 读取文件
     async read(options = {}) {
-      // options = {
-      //   type: "text",
-      //   start: "",
-      //   end: "",
-      // };
+      const { data } = await getCache(this._cache, this.path);
 
-      let file = await this._handle.getFile();
-      if (options.start || options.end) {
-        file = file.slice(options.start, options.end);
+      if (!data) {
+        return options.type === "buffer" ? new ArrayBuffer(0) : "";
       }
+
+      // 处理 Blob 类型数据
+      const blobData = data instanceof Blob ? data : new Blob([data]);
+
       switch (options.type) {
-        case "file":
-          return file;
-        case "text":
-          return file.text();
         case "buffer":
-          return file.arrayBuffer();
+          return await blobData.arrayBuffer();
+        case "file":
+          return blobData;
+        case "text":
         default:
-          return file.text();
+          return await blobData.text();
       }
     }
 
     async write(data, options = {}) {
-      const handle = this._handle;
-      const steam = await handle.createWritable();
-      await steam.write(data);
-      await steam.close();
+      // 修改这里，使用 saveCache 替代 setCache
+      await saveCache({
+        cache: this._cache,
+        path: this.path,
+        type: "file",
+        data,
+      });
 
       notify({
         path: this.path,
@@ -370,7 +578,7 @@
     }
   }
 
-  extendFileHandle(FileHandle);
+  extendFileHandle(FileCacheHandle);
 
   class PublicDirHandle {
     async _getByMultiPath(name, options) {
@@ -455,9 +663,15 @@
     Object.defineProperties(DirHandle.prototype, propDescs);
   };
 
-  class DirHandle extends BaseHandle {
+  class DirCacheHandle extends BaseCacheHandle {
     constructor(...args) {
       super(...args);
+
+      ensureCache({
+        cache: this._cache,
+        path: this.path,
+        type: "dir",
+      });
     }
 
     async get(name, options) {
@@ -467,95 +681,83 @@
         return await this._getByMultiPath(name, options);
       }
 
-      // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-      let beforeOriHandle = await this._handle
-        .getFileHandle(name)
-        .catch(() => null);
-      if (!beforeOriHandle) {
-        beforeOriHandle = await this._handle
-          .getDirectoryHandle(name)
-          .catch(() => null);
-      }
+      // 先判断是否存在
+      const targetPath = `${this.path}/${name}`;
 
-      if (!create && !beforeOriHandle) {
-        //   throw new Error(`${name} is not exist`);
-        // 找不到文件或文件夹，返回null
+      // 获取目标路径的缓存数据
+      const { type: cachedType } = await getCache(this._cache, targetPath);
+
+      // 最终创建handle的类型，默认为传入的create，或者已存在的类型
+      let finnalType = create || cachedType;
+
+      if (cachedType) {
+        if (!create) {
+          finnalType = cachedType;
+        } else if (cachedType !== create) {
+          // 如果存在且类型不匹配，则报错
+          throw new Error(
+            `Type mismatch: ${targetPath} is ${cachedType}, not ${create}`
+          );
+        }
+      } else if (!create) {
         return null;
       }
 
-      if (beforeOriHandle) {
-        // 如果存在文件，看是否与 create 参数冲突
-        if (create === "file" && beforeOriHandle.kind !== "file") {
-          throw new Error(`${name} is not a file`);
-        } else if (create === "dir" && beforeOriHandle.kind !== "directory") {
-          throw new Error(`${name} is not a directory`);
-        }
-      } else {
-        // 不存在的话，进行创建
-        // 根据方式获取参数
-        let funcName = "getDirectoryHandle";
-        if (options.create === "file") {
-          funcName = "getFileHandle";
-        }
+      let finalHandle = null;
 
-        beforeOriHandle = await this._handle[funcName](name, {
-          create: true,
+      // 更新目录信息
+      await updateDir({
+        cache: this._cache,
+        path: this.path,
+        add: [name],
+      });
+
+      // 创建对应类型的 handle
+      if (finnalType === "file") {
+        finalHandle = new FileCacheHandle(name, this._cache, {
+          parent: this,
+          root: this.root,
+        });
+      } else if (finnalType === "dir") {
+        finalHandle = new DirCacheHandle(name, this._cache, {
+          parent: this,
+          root: this.root,
         });
       }
 
-      // 根据handle类型返回
-      if (beforeOriHandle.kind === "file") {
-        return new FileHandle(beforeOriHandle, {
-          parent: this,
-          root: this.root || this,
-        });
-      } else if (beforeOriHandle.kind === "directory") {
-        return new DirHandle(beforeOriHandle, {
-          parent: this,
-          root: this.root || this,
-        });
-      }
-
-      return null;
+      return finalHandle;
     }
 
-    // 获取子文件数量
     async length() {
-      let count = 0;
-      // 遍历目录下所有文件和文件夹
-      for await (const [name, handle] of this._handle.entries()) {
-        count++;
-      }
-      return count;
+      const { data } = await getCache(this._cache, this.path);
+      return Array.isArray(data) ? data.length : 0;
     }
 
     async *keys() {
-      for await (let key of this._handle.keys()) {
-        yield key;
+      const { data } = await getCache(this._cache, this.path);
+      if (Array.isArray(data)) {
+        for (const key of data) {
+          yield key;
+        }
       }
     }
   }
 
-  extendDirHandle(DirHandle);
+  extendDirHandle(DirCacheHandle);
 
-  const get$2 = async (path, options) => {
-    // 获取根目录
-    const opfsRoot = await navigator.storage.getDirectory();
-
-    // 解析路径
+  const get$1 = async (path, options) => {
     const pathParts = path.split("/").filter(Boolean);
 
     if (pathParts.length === 0) {
       throw new Error("路径不能为空");
     }
 
-    // 获取根空间名称
     const rootName = pathParts[0];
 
     try {
-      // 尝试获取根目录句柄
-      const rootDir = await opfsRoot.getDirectoryHandle(rootName);
-      const dirHandle = new DirHandle(rootDir);
+      // 尝试获取根目录缓存
+      const cache = await caches.open(rootName);
+      const dirHandle = new DirCacheHandle(rootName, cache);
 
       // 如果只有根目录，直接返回
       if (pathParts.length === 1) {
@@ -578,390 +780,14 @@
     }
   };
 
-  // 主体数据库对象
-  let mainDB = null;
+  // import {
+  //   get as systemHandleGet,
+  //   init as systemHandleInit,
+  // } from "./handle/main.js";
 
-  // 获取数据库
-  const getDB = async () => {
-    if (!mainDB) {
-      mainDB = new Promise((resolve, reject) => {
-        const request = indexedDB.open("noneos_fs_db", 1);
-
-        request.onupgradeneeded = function (event) {
-          const db = event.target.result;
-          const objectStore = db.createObjectStore("files", {
-            keyPath: "id",
-          });
-          objectStore.createIndex("parent", "parent", { unique: false });
-          objectStore.createIndex("name", "name", { unique: false });
-          objectStore.createIndex("parentAndName", ["parent", "name"], {
-            // 父文件夹下只能有一个同名文件夹或文件
-            unique: true,
-          });
-        };
-
-        request.onsuccess = function (event) {
-          const db = event.target.result;
-
-          db.onclose = function () {
-            mainDB = null;
-          };
-
-          resolve(db);
-        };
-
-        request.onerror = function (event) {
-          reject(event.target.error);
-          mainDB = null;
-        };
-      });
-    }
-
-    return mainDB;
-  };
-
-  // 从数据库中获取数据
-  const getData = async ({ indexName, index, method = "get" }) => {
-    const db = await getDB();
-
-    let request = db.transaction(["files"], "readonly").objectStore("files");
-
-    if (indexName) {
-      request = request.index(indexName);
-    }
-
-    return new Promise((resolve, reject) => {
-      request = request[method](index);
-
-      request.onsuccess = function (event) {
-        resolve(event.target.result);
-      };
-
-      request.onerror = function (event) {
-        reject(event.target.error);
-      };
-    });
-  };
-
-  // 向数据库中设置数据
-  const setData = async ({ puts, deletes }) => {
-    const db = await getDB();
-
-    const transaction = db.transaction(["files"], "readwrite");
-
-    const objectStore = transaction.objectStore("files");
-
-    return new Promise((resolve, reject) => {
-      // 存储所有put操作的ID
-      const putIds = [];
-
-      transaction.oncomplete = function () {
-        // 完成时返回所有成功操作的ID
-        resolve(putIds);
-      };
-
-      transaction.onerror = function (event) {
-        reject(event.target.error);
-      };
-
-      puts &&
-        puts.forEach((data) => {
-          objectStore.put(data);
-        });
-
-      deletes &&
-        deletes.forEach((data) => {
-          objectStore.delete(data);
-        });
-    });
-  };
-
-  // 生成随机文件id
-  function getRandomId(length = 10) {
-    const array = new Uint8Array(length);
-    crypto.getRandomValues(array);
-    return Array.from(array, (byte) => ("0" + byte.toString(32)).slice(-2)).join(
-      ""
-    );
-  }
-
-  class BaseDBHandle extends PublicBaseHandle {
-    #name;
-    #dbId;
-
-    constructor({ name, dbId, root, parent }) {
-      super({
-        root,
-        parent,
-      });
-      this.#name = name;
-      this.#dbId = dbId;
-    }
-
-    async id() {
-      return this.#dbId;
-    }
-
-    get _dbid() {
-      return this.#dbId;
-    }
-
-    get name() {
-      return this.#name;
-    }
-
-    isSame(target) {
-      return this.#dbId === target._dbid;
-    }
-
-    async remove() {
-      if (this.kind === "dir") {
-        // 先删除所有子文件
-        for await (let e of this.values()) {
-          await e.remove();
-        }
-      }
-      // 再删除自己
-      await setData({
-        deletes: [this.#dbId],
-      });
-      notify({
-        type: "remove",
-        path: this.path,
-      });
-    }
-  }
-
-  class FileDBHandle extends BaseDBHandle {
-    constructor(...args) {
-      super(...args);
-    }
-
-    async read(options = {}) {
-      // options = {
-      //   type: "text",
-      //   start: "",
-      //   end: "",
-      // };
-      const targetData = await getData({
-        index: this._dbid,
-      });
-
-      let file = targetData.file;
-
-      if (!file) {
-        return null;
-      }
-
-      if (isSafari) {
-        // safari存储的是 arrayBuffer，需要转成file
-        if (targetData.fileInfo) {
-          file = new File([file], this.name, targetData.fileInfo);
-        } else {
-          file = new File([file], this.name);
-        }
-      }
-
-      if (options.start || options.end) {
-        file = file.slice(options.start, options.end);
-      }
-
-      switch (options.type) {
-        case "file":
-          return file;
-        case "text":
-          return file.text();
-        case "buffer":
-          return file.arrayBuffer();
-        default:
-          return file.text();
-      }
-    }
-
-    async write(data, options = {}) {
-      let finalData = data;
-
-      if (!isSafari) {
-        // 将data转换为file，file可能是不同的类型
-        if (
-          typeof data === "string" ||
-          data instanceof ArrayBuffer ||
-          data instanceof Uint8Array
-        ) {
-          finalData = new File([data], this.name, {
-            type: "text/plain",
-          });
-        }
-
-        // 最终不是file类型，直接报错
-        if (!(finalData instanceof File)) {
-          throw new Error("data must be file, string, Uint8Array or ArrayBuffer");
-        }
-      } else {
-        // 如果是safari，就转成 arrayBuffer
-        if (typeof data === "string") {
-          finalData = new TextEncoder().encode(data);
-        } else if (data instanceof Blob) {
-          finalData = await data.arrayBuffer();
-        }
-
-        // 如果不是arrayBuffer，直接报错
-        if (
-          !(finalData instanceof Uint8Array || finalData instanceof ArrayBuffer)
-        ) {
-          throw new Error("data must be file, string, Uint8Array or ArrayBuffer");
-        }
-      }
-
-      const targetData = await getData({
-        index: this._dbid,
-      });
-
-      if (isSafari) {
-        // 带上原始文件信息
-        if (data instanceof File) {
-          targetData.fileInfo = {
-            type: data.type,
-            lastModified: data.lastModified,
-          };
-        }
-      }
-
-      // 写入文件
-      targetData.file = finalData;
-      await setData({ puts: [targetData] });
-
-      notify({
-        path: this.path,
-        type: "write",
-        data,
-        remark: options.remark,
-      });
-    }
-  }
-
-  extendFileHandle(FileDBHandle);
-
-  class DirDBHandle extends BaseDBHandle {
-    constructor(...args) {
-      super(...args);
-    }
-    async get(name, options = {}) {
-      if (name.includes("/")) {
-        return await this._getByMultiPath(name, options);
-      }
-
-      let targetData = await getData({
-        indexName: "parentAndName",
-        index: [this._dbid, name],
-      });
-
-      if (!targetData && !options.create) {
-        return null;
-      }
-
-      // 不存在的话，判断是否需要创建
-      if (
-        !targetData &&
-        (options.create === "file" || options.create === "dir")
-      ) {
-        targetData = {
-          id: getRandomId(),
-          name,
-          parent: this._dbid,
-          type: options.create,
-        };
-
-        await setData({
-          puts: [targetData],
-        });
-      }
-
-      if (targetData.type === "file") {
-        return new FileDBHandle({
-          name: targetData.name,
-          dbId: targetData.id,
-          parent: this,
-          root: this.root,
-        });
-      } else if (targetData.type === "dir") {
-        return new DirDBHandle({
-          name: targetData.name,
-          dbId: targetData.id,
-          parent: this,
-          root: this.root,
-        });
-      }
-
-      return null;
-    }
-
-    async length() {
-      return await getData({
-        indexName: "parent",
-        index: this._dbid,
-        method: "count",
-      });
-    }
-
-    async *keys() {
-      let datas = await getData({
-        indexName: "parent",
-        index: this._dbid,
-        method: "getAll",
-      });
-
-      for (const item of datas) {
-        yield item.name;
-      }
-    }
-  }
-
-  extendDirHandle(DirDBHandle);
-
-  // safari专供的文件系统，因为它的 servers worker 不支持 getDirectoryHandle
-
-  const get$1 = async (path, options) => {
-    // 解析路径
-    const pathParts = path.split("/");
-
-    if (pathParts.length === 0) {
-      throw new Error("路径不能为空");
-    }
-
-    // 获取根空间名称
-    const rootName = pathParts[0];
-
-    // 从数据库中查询对应的文件/目录数据
-    const data = await getData({
-      indexName: "parentAndName",
-      index: ["root", rootName],
-    });
-
-    // 如果数据不存在，返回 null
-    if (!data) {
-      return null;
-    }
-
-    // 根据类型返回对应的 handle
-    const rootHandle = new DirDBHandle({
-      name: data.name,
-      dbId: data.id,
-    });
-
-    if (pathParts.length === 1) {
-      return rootHandle;
-    }
-
-    const target = await rootHandle.get(pathParts.slice(1).join("/"), options);
-
-    return target;
-  };
 
   const get = async (path, options) => {
-    return !isSafari
-      ? get$2(path, options)
-      : get$1(path, options);
+    return get$1(path, options);
   };
 
   // 响应文件相关的请求

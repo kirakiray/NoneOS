@@ -28,6 +28,8 @@ export class FileCacheHandle extends BaseCacheHandle {
     switch (options.type) {
       case "buffer":
         return await blobData.arrayBuffer();
+      case "file":
+        return blobData;
       case "text":
       default:
         return await blobData.text();

@@ -21,8 +21,10 @@
 
         const file1_2 = await get("testDir2/file1.txt");
 
+        const isSame = await file1.isSame(file1_2);
+
         return {
-          assert: someText === text2 && file1_2.isSame(file1),
+          assert: someText === text2 && isSame,
           content: someText + " -- " + text2,
         };
       });

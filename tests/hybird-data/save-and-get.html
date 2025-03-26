@@ -15,7 +15,6 @@
 
       const TEST_DIR = "test-dir10";
       const STORAGE_KEY = "_d1_inited";
-      const WAIT_TIME = 800;
 
       async function initializeData() {
         const testDirectory = await init(TEST_DIR);
@@ -40,7 +39,7 @@
 
             sessionStorage[STORAGE_KEY] = "1";
 
-            await new Promise((res) => setTimeout(res, WAIT_TIME));
+            await new Promise((res) => setTimeout(res, 800));
             location.reload();
 
             return {
