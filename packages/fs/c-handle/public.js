@@ -1,13 +1,9 @@
-// 添加一个保存操作跟踪器
-const savingOperations = new Map();
-
-// 保存
-export const saveCache = async ({ cache, path, data, type }) => {
+// 直接保存，没有使用队列
+const directSaveToCache = async ({ cache, path, data, type }) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   console.log("saveCache start", normalizedPath, "data:", data);
-
   try {
     const content = type === "dir" ? JSON.stringify(data) : data;
     const resp = new Response(content, {
@@ -22,7 +18,27 @@ export const saveCache = async ({ cache, path, data, type }) => {
   }
 };
 
+// 保存
+export const saveCache = async ({ cache, path, data, type }) => {
+  // 规范化路径
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+  return executeInQueue(normalizedPath, async () => {
+    await directSaveToCache({
+      cache,
+      path,
+      data,
+      type,
+    });
+  });
+};
+
+// 获取缓存
 export const getCache = async (cache, path) => {
+  return await directGetCache(cache, path);
+};
+
+export const directGetCache = async (cache, path) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
@@ -64,33 +80,32 @@ export const getCache = async (cache, path) => {
   }
 };
 
-// 添加一个确保操作跟踪器
-const ensureOperations = new Map();
-
 // 确保缓存
 export const ensureCache = async ({ cache, path, type: enType }) => {
   // 规范化路径
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
-  const { type, data } = await getCache(cache, normalizedPath);
+  return executeInQueue(normalizedPath, async () => {
+    const { type, data } = await directGetCache(cache, normalizedPath);
 
-  if (type) {
-    return;
-  }
+    if (type) {
+      return;
+    }
 
-  let finalData = null;
-  if (enType === "dir") {
-    finalData = [];
-  } else if (enType === "file") {
-    finalData = "";
-  }
+    let finalData = null;
+    if (enType === "dir") {
+      finalData = [];
+    } else if (enType === "file") {
+      finalData = "";
+    }
 
-  console.log(`新创建路径: ${normalizedPath}, 类型: ${enType}`);
-  await saveCache({
-    type: enType,
-    cache,
-    data: finalData,
-    path: normalizedPath,
+    console.log(`新创建路径: ${normalizedPath}, 类型: ${enType}`);
+    await directSaveToCache({
+      type: enType,
+      cache,
+      data: finalData,
+      path: normalizedPath,
+    });
   });
 };
 
@@ -100,7 +115,7 @@ export const updateDir = async ({ cache, path, remove, add }) => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
   // 获取当前目录的缓存数据
-  const { data: currentData } = await getCache(cache, normalizedPath);
+  const { data: currentData } = await directGetCache(cache, normalizedPath);
 
   // 如果目录不存在，抛出错误
   if (!currentData) {
@@ -146,4 +161,21 @@ const streamToBlob = async (stream) => {
   }
 
   return finalBlob;
+};
+
+// 队列处理器
+const queue = new Map();
+const executeInQueue = async (key, operation) => {
+  const current = queue.get(key) || Promise.resolve();
+  const next = current.then(async () => {
+    try {
+      return await operation();
+    } finally {
+      if (queue.get(key) === next) {
+        queue.delete(key);
+      }
+    }
+  });
+  queue.set(key, next);
+  return next;
 };
