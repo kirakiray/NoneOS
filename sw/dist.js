@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
   class PublicBaseHandle {
     #parent;
     #root;
@@ -221,48 +222,146 @@
   };
 
   // 查看是否Safari
-  const isSafari = (() => {
+  (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes("safari") && !ua.includes("chrome");
   })();
 
-  class BaseHandle extends PublicBaseHandle {
-    // 对OPFS进行封装
-    #originHandle = null;
-    constructor(dirHandle, options = {}) {
-      super(options);
-      this.#originHandle = dirHandle;
+  // 保存
+  let worker = null;
+  let port = null;
+  let messageId = 0;
+  const callbacks = new Map();
+
+  // 初始化 worker
+  const initWorker = () => {
+    if (worker) return;
+
+
+
+  const workerPath = new URL("./worker.js", (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('dist.js', document.baseURI).href)).href;
+
+    worker = new SharedWorker(workerPath, {
+      name: "cache-worker",
+    });
+
+    port = worker.port;
+    port.start();
+
+    port.onmessage = (e) => {
+      const { id, result, error } = e.data;
+      const callback = callbacks.get(id);
+      if (callback) {
+        if (error) {
+          callback.reject(new Error(error));
+        } else {
+          callback.resolve(result);
+        }
+        callbacks.delete(id);
+      }
+    };
+  };
+
+  initWorker();
+
+  // 发送消息到 worker
+  const sendToWorker = (type, payload) => {
+    initWorker();
+
+    return new Promise((resolve, reject) => {
+      const id = messageId++;
+      callbacks.set(id, { resolve, reject });
+      port.postMessage({ type, id, payload });
+    });
+  };
+
+  // 保存缓存
+  const saveCache = async ({ cache, path, data, type }) => {
+    return sendToWorker("saveCache", {
+      cacheName: cache.name,
+      path,
+      data,
+      type,
+    });
+  };
+
+  // 获取缓存
+  const getCache = async (cache, path) => {
+    return sendToWorker("getCache", {
+      cacheName: cache.name,
+      path,
+    });
+  };
+
+  // 确保缓存
+  const ensureCache = async ({ cache, path, type }) => {
+    return sendToWorker("ensureCache", {
+      cacheName: cache.name,
+      path,
+      type,
+    });
+  };
+
+  // 更新目录
+  const updateDir = async ({ cache, path, remove, add }) => {
+    return sendToWorker("updateDir", {
+      cacheName: cache.name,
+      path,
+      remove,
+      add,
+    });
+  };
+
+  class BaseCacheHandle extends PublicBaseHandle {
+    #cache = null;
+    #name = null;
+
+    constructor(name, cache, options) {
+      const { parent, root } = options || {};
+      super({ parent, root });
+
+      this.#name = name;
+      this.#cache = cache;
     }
 
     async id() {
-      const originHandle = this.#originHandle;
-
-      if (originHandle.getUniqueId) {
-        return await originHandle.getUniqueId();
-      }
-
       return await getHash(this.path);
     }
 
-    get _handle() {
-      return this.#originHandle;
+    get _cache() {
+      return this.#cache;
     }
 
     get name() {
-      return this.#originHandle.name;
+      return this.#name;
     }
 
     async isSame(target) {
-      return this.#originHandle.isSameEntry(target._handle);
+      return (
+        this.#cache[Symbol.toStringTag] === target.#cache[Symbol.toStringTag] &&
+        this.path === target.path
+      );
     }
 
     async remove() {
+      if (this.kind === "dir") {
+        // 先递归删除子目录和文件
+        for await (let e of this.values()) {
+          await e.remove();
+        }
+      }
+
       const parent = this.parent;
 
-      // 最后删除当前目录或文件
-      await parent.#originHandle.removeEntry(this.#originHandle.name, {
-        recursive: true,
+      // 从父目录中移除
+      await updateDir({
+        cache: this._cache,
+        path: parent.path,
+        remove: [this.name],
       });
+
+      // 删除自身缓存
+      await this._cache.delete("/" + this.path);
 
       notify({
         type: "remove",
@@ -326,40 +425,46 @@
     Object.defineProperties(FileHandle.prototype, propDescs);
   };
 
-  class FileHandle extends BaseHandle {
+  class FileCacheHandle extends BaseCacheHandle {
     constructor(...args) {
       super(...args);
+
+      ensureCache({
+        cache: this._cache,
+        path: this.path,
+        type: "file",
+      });
     }
 
-    // 读取文件
     async read(options = {}) {
-      // options = {
-      //   type: "text",
-      //   start: "",
-      //   end: "",
-      // };
+      const { data } = await getCache(this._cache, this.path);
 
-      let file = await this._handle.getFile();
-      if (options.start || options.end) {
-        file = file.slice(options.start, options.end);
+      if (!data) {
+        return options.type === "buffer" ? new ArrayBuffer(0) : "";
       }
+
+      // 处理 Blob 类型数据
+      const blobData = data instanceof Blob ? data : new Blob([data]);
+
       switch (options.type) {
-        case "file":
-          return file;
-        case "text":
-          return file.text();
         case "buffer":
-          return file.arrayBuffer();
+          return await blobData.arrayBuffer();
+        case "file":
+          return blobData;
+        case "text":
         default:
-          return file.text();
+          return await blobData.text();
       }
     }
 
     async write(data, options = {}) {
-      const handle = this._handle;
-      const steam = await handle.createWritable();
-      await steam.write(data);
-      await steam.close();
+      // 修改这里，使用 saveCache 替代 setCache
+      await saveCache({
+        cache: this._cache,
+        path: this.path,
+        type: "file",
+        data,
+      });
 
       notify({
         path: this.path,
@@ -370,7 +475,7 @@
     }
   }
 
-  extendFileHandle(FileHandle);
+  extendFileHandle(FileCacheHandle);
 
   class PublicDirHandle {
     async _getByMultiPath(name, options) {
@@ -454,452 +559,6 @@
 
     Object.defineProperties(DirHandle.prototype, propDescs);
   };
-
-  class DirHandle extends BaseHandle {
-    constructor(...args) {
-      super(...args);
-    }
-
-    async get(name, options) {
-      const { create } = options || {};
-
-      if (name.includes("/")) {
-        return await this._getByMultiPath(name, options);
-      }
-
-      // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
-      let beforeOriHandle = await this._handle
-        .getFileHandle(name)
-        .catch(() => null);
-      if (!beforeOriHandle) {
-        beforeOriHandle = await this._handle
-          .getDirectoryHandle(name)
-          .catch(() => null);
-      }
-
-      if (!create && !beforeOriHandle) {
-        //   throw new Error(`${name} is not exist`);
-        // 找不到文件或文件夹，返回null
-        return null;
-      }
-
-      if (beforeOriHandle) {
-        // 如果存在文件，看是否与 create 参数冲突
-        if (create === "file" && beforeOriHandle.kind !== "file") {
-          throw new Error(`${name} is not a file`);
-        } else if (create === "dir" && beforeOriHandle.kind !== "directory") {
-          throw new Error(`${name} is not a directory`);
-        }
-      } else {
-        // 不存在的话，进行创建
-        // 根据方式获取参数
-        let funcName = "getDirectoryHandle";
-        if (options.create === "file") {
-          funcName = "getFileHandle";
-        }
-
-        beforeOriHandle = await this._handle[funcName](name, {
-          create: true,
-        });
-      }
-
-      // 根据handle类型返回
-      if (beforeOriHandle.kind === "file") {
-        return new FileHandle(beforeOriHandle, {
-          parent: this,
-          root: this.root || this,
-        });
-      } else if (beforeOriHandle.kind === "directory") {
-        return new DirHandle(beforeOriHandle, {
-          parent: this,
-          root: this.root || this,
-        });
-      }
-
-      return null;
-    }
-
-    // 获取子文件数量
-    async length() {
-      let count = 0;
-      // 遍历目录下所有文件和文件夹
-      for await (const [name, handle] of this._handle.entries()) {
-        count++;
-      }
-      return count;
-    }
-
-    async *keys() {
-      for await (let key of this._handle.keys()) {
-        yield key;
-      }
-    }
-  }
-
-  extendDirHandle(DirHandle);
-
-  const get$2 = async (path, options) => {
-    // 获取根目录
-    const opfsRoot = await navigator.storage.getDirectory();
-
-    // 解析路径
-    const pathParts = path.split("/").filter(Boolean);
-
-    if (pathParts.length === 0) {
-      throw new Error("路径不能为空");
-    }
-
-    // 获取根空间名称
-    const rootName = pathParts[0];
-
-    try {
-      // 尝试获取根目录句柄
-      const rootDir = await opfsRoot.getDirectoryHandle(rootName);
-      const dirHandle = new DirHandle(rootDir);
-
-      // 如果只有根目录，直接返回
-      if (pathParts.length === 1) {
-        return dirHandle;
-      }
-
-      // 通过根目录，使用get方法获取剩余路径
-      const remainingPath = pathParts.slice(1).join("/");
-      return await dirHandle.get(remainingPath, options);
-    } catch (error) {
-      if (error.name === "NotFoundError") {
-        throw new Error(
-          `根目录 "${rootName}" 不存在，请先使用 init("${rootName}") 初始化`,
-          {
-            cause: error,
-          }
-        );
-      }
-      throw error;
-    }
-  };
-
-  // 直接保存，没有使用队列
-  const directSaveToCache = async ({ cache, path, data, type }) => {
-    // 规范化路径
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    console.log("saveCache start", normalizedPath, "data:", data);
-    try {
-      const content = type === "dir" ? JSON.stringify(data) : data;
-      const resp = new Response(content, {
-        headers: {
-          "x-type": type,
-          "cache-control": "no-cache",
-        },
-      });
-      await cache.put(normalizedPath, resp);
-    } finally {
-      console.log("saveCache end", normalizedPath, "data:", data);
-    }
-  };
-
-  const directGetCache = async (cache, path) => {
-    // 规范化路径
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    const matched = await cache.match(normalizedPath);
-
-    if (!matched) {
-      return {
-        type: null,
-        data: null,
-      };
-    }
-
-    const type = matched.headers.get("x-type");
-
-    try {
-      if (!matched.body) {
-        return {
-          type,
-          data: matched.body,
-        };
-      }
-      // 获取 readsteam 数据
-      const blob = await streamToBlob(matched.body);
-
-      // 根据类型处理数据
-      const data = type === "dir" ? JSON.parse(await blob.text()) : blob;
-
-      return {
-        type,
-        data,
-      };
-    } catch (error) {
-      console.error("Error processing cache data:", error);
-      return {
-        type: null,
-        data: null,
-        error: error.message,
-      };
-    }
-  };
-
-  // 保存
-  const saveCache = async ({ cache, path, data, type }) => {
-    // 规范化路径
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    return executeInQueue(normalizedPath, async () => {
-      await directSaveToCache({
-        cache,
-        path,
-        data,
-        type,
-      });
-    });
-  };
-
-  // 获取缓存
-  const getCache = async (cache, path) => {
-    // 规范化路径
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    return executeInQueue(normalizedPath, async () => {
-      return await directGetCache(cache, path);
-    });
-  };
-
-  // 确保缓存
-  const ensureCache = async ({ cache, path, type: enType }) => {
-    // 规范化路径
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    return executeInQueue(normalizedPath, async () => {
-      const { type, data } = await directGetCache(cache, normalizedPath);
-
-      if (type) {
-        return;
-      }
-
-      let finalData = null;
-      if (enType === "dir") {
-        finalData = [];
-      } else if (enType === "file") {
-        finalData = "";
-      }
-
-      console.log(`新创建路径: ${normalizedPath}, 类型: ${enType}`);
-      await directSaveToCache({
-        type: enType,
-        cache,
-        data: finalData,
-        path: normalizedPath,
-      });
-    });
-  };
-
-  // 目录添加子目录或子文件信息
-  const updateDir = async ({ cache, path, remove, add }) => {
-    // 规范化路径
-    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-
-    return executeInQueue(normalizedPath, async () => {
-      // 获取当前目录的缓存数据
-      const { data: currentData } = await directGetCache(cache, normalizedPath);
-
-      // 如果目录不存在，抛出错误
-      if (!currentData) {
-        debugger;
-        throw new Error(`目录不存在: ${normalizedPath}`);
-      }
-
-      // 创建目录数据的副本
-      let updatedData = Array.isArray(currentData) ? [...currentData] : [];
-
-      // 处理需要移除的项目
-      if (remove && remove.length > 0) {
-        updatedData = updatedData.filter((item) => !remove.includes(item));
-      }
-
-      // 处理需要添加的项目
-      if (add && add.length > 0) {
-        // 过滤掉已存在的项目，避免重复
-        const newItems = add.filter((item) => !updatedData.includes(item));
-        updatedData = [...updatedData, ...newItems];
-      }
-
-      // 保存更新后的目录数据
-      await directSaveToCache({
-        cache,
-        path: normalizedPath,
-        type: "dir",
-        data: updatedData,
-      });
-
-      return updatedData;
-    });
-  };
-
-  // 将ReadableStream转为Blob
-  const streamToBlob = async (stream) => {
-    const reader = stream.getReader();
-    let finalBlob = new Blob([]);
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      // 为每个数据块创建一个新的 Blob 并与之前的合并
-      finalBlob = new Blob([finalBlob, value]);
-    }
-
-    return finalBlob;
-  };
-
-  // 获取路径的所有父路径
-  const getParentPaths = (path) => {
-    const parts = path.split("/").filter(Boolean);
-    const paths = [];
-    let current = "";
-
-    for (const part of parts.slice(0, -1)) {
-      current += "/" + part;
-      paths.push(current);
-    }
-
-    return paths;
-  };
-
-  // 队列处理器
-  const queue = new Map();
-  const executeInQueue = async (key, operation) => {
-    // 获取所有父路径
-    const parentPaths = getParentPaths(key);
-
-    // 等待所有父路径的操作完成
-    const parentPromises = parentPaths.map(
-      (path) => queue.get(path) || Promise.resolve()
-    );
-    await Promise.all(parentPromises);
-
-    const current = queue.get(key) || Promise.resolve();
-    const next = current.then(async () => {
-      try {
-        return await operation();
-      } finally {
-        if (queue.get(key) === next) {
-          queue.delete(key);
-        }
-      }
-    });
-    queue.set(key, next);
-    return next;
-  };
-
-  class BaseCacheHandle extends PublicBaseHandle {
-    #cache = null;
-    #name = null;
-
-    constructor(name, cache, options) {
-      const { parent, root } = options || {};
-      super({ parent, root });
-
-      this.#name = name;
-      this.#cache = cache;
-    }
-
-    async id() {
-      return await getHash(this.path);
-    }
-
-    get _cache() {
-      return this.#cache;
-    }
-
-    get name() {
-      return this.#name;
-    }
-
-    async isSame(target) {
-      return (
-        this.#cache[Symbol.toStringTag] === target.#cache[Symbol.toStringTag] &&
-        this.path === target.path
-      );
-    }
-
-    async remove() {
-      if (this.kind === "dir") {
-        // 先递归删除子目录和文件
-        for await (let e of this.values()) {
-          await e.remove();
-        }
-      }
-
-      const parent = this.parent;
-
-      // 从父目录中移除
-      await updateDir({
-        cache: this._cache,
-        path: parent.path,
-        remove: [this.name],
-      });
-
-      // 删除自身缓存
-      await this._cache.delete("/" + this.path);
-
-      notify({
-        type: "remove",
-        path: this.path,
-      });
-    }
-  }
-
-  class FileCacheHandle extends BaseCacheHandle {
-    constructor(...args) {
-      super(...args);
-
-      ensureCache({
-        cache: this._cache,
-        path: this.path,
-        type: "file",
-      });
-    }
-
-    async read(options = {}) {
-      const { data } = await getCache(this._cache, this.path);
-
-      if (!data) {
-        return options.type === "buffer" ? new ArrayBuffer(0) : "";
-      }
-
-      // 处理 Blob 类型数据
-      const blobData = data instanceof Blob ? data : new Blob([data]);
-
-      switch (options.type) {
-        case "buffer":
-          return await blobData.arrayBuffer();
-        case "file":
-          return blobData;
-        case "text":
-        default:
-          return await blobData.text();
-      }
-    }
-
-    async write(data, options = {}) {
-      // 修改这里，使用 saveCache 替代 setCache
-      await saveCache({
-        cache: this._cache,
-        path: this.path,
-        type: "file",
-        data,
-      });
-
-      notify({
-        path: this.path,
-        type: "write",
-        data,
-        remark: options.remark,
-      });
-    }
-  }
-
-  extendFileHandle(FileCacheHandle);
 
   class DirCacheHandle extends BaseCacheHandle {
     constructor(...args) {
@@ -1018,21 +677,15 @@
     }
   };
 
-  // safari 不支持 systemHandle，所以被迫重新实现一个虚拟系统
+  // import {
+  //   get as systemHandleGet,
+  //   init as systemHandleInit,
+  // } from "./handle/main.js";
+
+
   const get = async (path, options) => {
-    return !isSafari ? get$2(path, options) : get$1(path, options);
+    return get$1(path, options);
   };
-
-  // // 全量测试 c-handle
-  // import { init as cHandleInit, get as cHandleGet } from "./c-handle/main.js";
-
-  // export const init = async (name) => {
-  //   return cHandleInit(name);
-  // };
-
-  // export const get = async (path, options) => {
-  //   return cHandleGet(path, options);
-  // };
 
   // 响应文件相关的请求
   const resposeFs = (event) => {
