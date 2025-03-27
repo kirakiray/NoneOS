@@ -37,6 +37,7 @@ export const get = async (path, options) => {
 
 export const init = async (name) => {
   const cache = await caches.open(name);
+  cache._name = name;
   return new DirCacheHandle(name, cache);
 };
 

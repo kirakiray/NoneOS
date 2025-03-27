@@ -77,8 +77,6 @@ const initWorker = () => {
   };
 };
 
-initWorker();
-
 // 发送消息到 worker
 const sendToWorker = (type, payload) => {
   initWorker();
@@ -93,7 +91,7 @@ const sendToWorker = (type, payload) => {
 // 保存缓存
 export const saveCache = async ({ cache, path, data, type }) => {
   return sendToWorker("saveCache", {
-    cacheName: cache.name,
+    cacheName: cache._name,
     path,
     data,
     type,
@@ -102,8 +100,12 @@ export const saveCache = async ({ cache, path, data, type }) => {
 
 // 获取缓存
 export const getCache = async (cache, path) => {
+  if (!globalThis.SharedWorker) {
+    return directGetCache(cache, path);
+  }
+
   return sendToWorker("getCache", {
-    cacheName: cache.name,
+    cacheName: cache._name,
     path,
   });
 };
@@ -111,7 +113,7 @@ export const getCache = async (cache, path) => {
 // 确保缓存
 export const ensureCache = async ({ cache, path, type }) => {
   return sendToWorker("ensureCache", {
-    cacheName: cache.name,
+    cacheName: cache._name,
     path,
     type,
   });
@@ -120,7 +122,7 @@ export const ensureCache = async ({ cache, path, type }) => {
 // 更新目录
 export const updateDir = async ({ cache, path, remove, add }) => {
   return sendToWorker("updateDir", {
-    cacheName: cache.name,
+    cacheName: cache._name,
     path,
     remove,
     add,

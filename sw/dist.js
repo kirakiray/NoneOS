@@ -227,6 +227,48 @@
     return ua.includes("safari") && !ua.includes("chrome");
   })();
 
+  const directGetCache = async (cache, path) => {
+    // 规范化路径
+    const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+
+    const matched = await cache.match(normalizedPath);
+
+    if (!matched) {
+      return {
+        type: null,
+        data: null,
+      };
+    }
+
+    const type = matched.headers.get("x-type");
+
+    try {
+      if (!matched.body) {
+        return {
+          type,
+          data: matched.body,
+        };
+      }
+      // 获取 readsteam 数据
+      const blob = await streamToBlob(matched.body);
+
+      // 根据类型处理数据
+      const data = type === "dir" ? JSON.parse(await blob.text()) : blob;
+
+      return {
+        type,
+        data,
+      };
+    } catch (error) {
+      console.error("Error processing cache data:", error);
+      return {
+        type: null,
+        data: null,
+        error: error.message,
+      };
+    }
+  };
+
   // 保存
   let worker = null;
   let port = null;
@@ -237,9 +279,11 @@
   const initWorker = () => {
     if (worker) return;
 
+    if (!globalThis.SharedWorker) {
+      return; // 不支持 SharedWorker, 直接返回
+    }
 
-
-  const workerPath = new URL("./worker.js", (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('dist.js', document.baseURI).href)).href;
+    const workerPath = new URL("./worker.js", (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('dist.js', document.baseURI).href)).href;
 
     worker = new SharedWorker(workerPath, {
       name: "cache-worker",
@@ -262,8 +306,6 @@
     };
   };
 
-  initWorker();
-
   // 发送消息到 worker
   const sendToWorker = (type, payload) => {
     initWorker();
@@ -278,7 +320,7 @@
   // 保存缓存
   const saveCache = async ({ cache, path, data, type }) => {
     return sendToWorker("saveCache", {
-      cacheName: cache.name,
+      cacheName: cache._name,
       path,
       data,
       type,
@@ -287,8 +329,12 @@
 
   // 获取缓存
   const getCache = async (cache, path) => {
+    if (!globalThis.SharedWorker) {
+      return directGetCache(cache, path);
+    }
+
     return sendToWorker("getCache", {
-      cacheName: cache.name,
+      cacheName: cache._name,
       path,
     });
   };
@@ -296,7 +342,7 @@
   // 确保缓存
   const ensureCache = async ({ cache, path, type }) => {
     return sendToWorker("ensureCache", {
-      cacheName: cache.name,
+      cacheName: cache._name,
       path,
       type,
     });
@@ -305,11 +351,26 @@
   // 更新目录
   const updateDir = async ({ cache, path, remove, add }) => {
     return sendToWorker("updateDir", {
-      cacheName: cache.name,
+      cacheName: cache._name,
       path,
       remove,
       add,
     });
+  };
+
+  // 将ReadableStream转为Blob
+  const streamToBlob = async (stream) => {
+    const reader = stream.getReader();
+    let finalBlob = new Blob([]);
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      // 为每个数据块创建一个新的 Blob 并与之前的合并
+      finalBlob = new Blob([finalBlob, value]);
+    }
+
+    return finalBlob;
   };
 
   class BaseCacheHandle extends PublicBaseHandle {
