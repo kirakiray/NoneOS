@@ -1,3 +1,4 @@
+// 备份使用 worker 的版本
 export const directGetCache = async (cache, path) => {
     // 规范化路径
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
