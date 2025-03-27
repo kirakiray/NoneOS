@@ -187,6 +187,16 @@ const getParentPaths = (path) => {
 
 // 队列处理器
 const queue = new Map();
+const channel = new BroadcastChannel("fs-queue-channel");
+
+// 监听其他标签页的队列完成消息
+channel.onmessage = (event) => {
+  const { completedPath } = event.data;
+  if (queue.has(completedPath)) {
+    queue.delete(completedPath);
+  }
+};
+
 const executeInQueue = async (key, operation) => {
   // 获取所有父路径
   const parentPaths = getParentPaths(key);
@@ -204,6 +214,8 @@ const executeInQueue = async (key, operation) => {
     } finally {
       if (queue.get(key) === next) {
         queue.delete(key);
+        // 广播队列完成消息
+        channel.postMessage({ completedPath: key });
       }
     }
   });
