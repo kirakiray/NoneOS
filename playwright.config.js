@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig, devices } from "@playwright/test";
+import path from "path";
 
 /**
  * Read environment variables from file.
@@ -54,7 +55,11 @@ export default defineConfig({
 
     {
       name: "webkit",
-      use: { ...devices["Desktop Safari"] },
+      use: {
+        ...devices["Desktop Safari"],
+        persistent: new URL("userData", import.meta.url).pathname, // 指定用户数据目录
+        headless: false,
+      },
     },
 
     /* Test against mobile viewports. */

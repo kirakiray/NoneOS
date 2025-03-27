@@ -9,69 +9,37 @@
   <body>
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
-      import { init } from "/packages/fs/main.js";
-      import { runTest } from "/tests/runTest.js";
-      import { createData } from "/packages/hybird-data/main.js";
+      setTimeout(async () => {
+        console.log("c1");
+        const c = await caches.open("test-dir103");
+        console.log("c2: ", c);
 
-      const TEST_DIR = "test-dir10";
-      const STORAGE_KEY = "_d1_inited";
+        // BUG: 在safari隐私模式中，只要刷新一次，保存 cache storage的内容就会被清空
+        // 向c中添加一个测试数据
+        const data = {
+          name: "test",
+          age: 18,
+        };
+        await c.put("/ttt", new Response(JSON.stringify(data)));
 
-      async function initializeData() {
-        const testDirectory = await init(TEST_DIR);
-        const testData1 = await testDirectory.get("test-data-1", {
-          create: "dir",
-        });
-        const data1 = await createData(testData1);
-        await data1.ready();
+        // 从c中获取数据
+        let res = await c.match("/ttt");
+        res = await res.clone();
+        console.log("res: ", res);
+        const resData = await res.json();
+        console.log("resData: ", resData);
 
-        return { testData1, data1 };
-      }
+        // // 打印c中的所有key
+        // const keys = await c.keys();
+        // console.log("keys: ", keys);
+        // // 打印c中所有的value
+        // const values = await c.getAll();
+        // console.log("values: ", values);
 
-      await runTest("sub data can save", async () => {
-        try {
-          const { testData1, data1 } = await initializeData();
-
-          if (!sessionStorage[STORAGE_KEY]) {
-            data1.val = "I am data1";
-            data1.subdata = {
-              val: "I am subdata",
-            };
-
-            sessionStorage[STORAGE_KEY] = "1";
-
-            await new Promise((res) => setTimeout(res, 800));
-            location.reload();
-
-            return {
-              assert: false,
-              content: "waiting for save",
-            };
-          }
-
-          if (data1.subdata) {
-            await data1.subdata.ready();
-          }
-
-          const isDataValid =
-            data1.val === "I am data1" && data1.subdata.val === "I am subdata";
-
-          return {
-            assert: isDataValid,
-            content: `check data saved : ${JSON.stringify(data1)}`,
-          };
-        } catch (error) {
-          console.error("Test failed:", error);
-          return {
-            assert: false,
-            content: `Test failed: ${error.message}`,
-          };
-        }
-      });
-
-      const endMessage = document.createElement("h5");
-      endMessage.setAttribute("data-testid", "all-test-completed");
-      endMessage.textContent = "All tests completed";
-      document.body.appendChild(endMessage);
+        // const m = await c.match("/test-dir10");
+        // console.log("m: ", m);
+      }, 100);
     </script>
+    <script type="module" src="./save-and-get.js"></script>
   </body>
 </html>

@@ -125,6 +125,7 @@ export const updateDir = async ({ cache, path, remove, add }) => {
 
     // 如果目录不存在，抛出错误
     if (!currentData) {
+      debugger;
       throw new Error(`目录不存在: ${normalizedPath}`);
     }
 
@@ -170,9 +171,32 @@ const streamToBlob = async (stream) => {
   return finalBlob;
 };
 
+// 获取路径的所有父路径
+const getParentPaths = (path) => {
+  const parts = path.split("/").filter(Boolean);
+  const paths = [];
+  let current = "";
+
+  for (const part of parts.slice(0, -1)) {
+    current += "/" + part;
+    paths.push(current);
+  }
+
+  return paths;
+};
+
 // 队列处理器
 const queue = new Map();
 const executeInQueue = async (key, operation) => {
+  // 获取所有父路径
+  const parentPaths = getParentPaths(key);
+
+  // 等待所有父路径的操作完成
+  const parentPromises = parentPaths.map(
+    (path) => queue.get(path) || Promise.resolve()
+  );
+  await Promise.all(parentPromises);
+
   const current = queue.get(key) || Promise.resolve();
   const next = current.then(async () => {
     try {
