@@ -16,6 +16,7 @@ const initWorker = () => {
     try {
       worker = new SharedWorker(new URL("./fs-worker.js", import.meta.url), {
         name: "fs-worker",
+        type: "module",
       });
       workerPort = worker.port;
 
@@ -100,9 +101,6 @@ export const getCache = async (cache, path) => {
 
 // 确保缓存
 export const ensureCache = async ({ cache, path, type }) => {
-  // 如果在不支持 shared worker 的环境下，直接返回
-  if (!window.SharedWorker) return;
-
   return sendToWorker("ensureCache", { cacheName: cache._name, path, type });
 };
 
