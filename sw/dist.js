@@ -222,10 +222,362 @@
   };
 
   // 查看是否Safari
-  (() => {
+  const isSafari = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes("safari") && !ua.includes("chrome");
   })();
+
+  class BaseHandle extends PublicBaseHandle {
+    // 对OPFS进行封装
+    #originHandle = null;
+    constructor(dirHandle, options = {}) {
+      super(options);
+      this.#originHandle = dirHandle;
+    }
+
+    async id() {
+      const originHandle = this.#originHandle;
+
+      if (originHandle.getUniqueId) {
+        return await originHandle.getUniqueId();
+      }
+
+      return await getHash(this.path);
+    }
+
+    get _handle() {
+      return this.#originHandle;
+    }
+
+    get name() {
+      return this.#originHandle.name;
+    }
+
+    async isSame(target) {
+      return this.#originHandle.isSameEntry(target._handle);
+    }
+
+    async remove() {
+      const parent = this.parent;
+
+      // 最后删除当前目录或文件
+      await parent.#originHandle.removeEntry(this.#originHandle.name, {
+        recursive: true,
+      });
+
+      notify({
+        type: "remove",
+        path: this.path,
+      });
+    }
+  }
+
+  class PublicFileHandle {
+    async file(options) {
+      return this.read({
+        ...options,
+        type: "file",
+      });
+    }
+
+    async text(options) {
+      return this.read({
+        ...options,
+        type: "text",
+      });
+    }
+
+    async buffer(options) {
+      return this.read({
+        ...options,
+        type: "buffer",
+      });
+    }
+
+    async base64(options) {
+      const file = await this.file(options);
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          resolve(reader.result);
+        };
+        reader.onerror = (error) => {
+          reject(error);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async lastModified() {
+      return (await this.file()).lastModified;
+    }
+
+    get kind() {
+      return "file";
+    }
+  }
+
+  // 扩展 FileHandle 的方法
+  const extendFileHandle = async (FileHandle) => {
+    const propDescs = Object.getOwnPropertyDescriptors(
+      PublicFileHandle.prototype
+    );
+    delete propDescs.constructor;
+
+    Object.defineProperties(FileHandle.prototype, propDescs);
+  };
+
+  class FileHandle extends BaseHandle {
+    constructor(...args) {
+      super(...args);
+    }
+
+    // 读取文件
+    async read(options = {}) {
+      // options = {
+      //   type: "text",
+      //   start: "",
+      //   end: "",
+      // };
+
+      let file = await this._handle.getFile();
+      if (options.start || options.end) {
+        file = file.slice(options.start, options.end);
+      }
+      switch (options.type) {
+        case "file":
+          return file;
+        case "text":
+          return file.text();
+        case "buffer":
+          return file.arrayBuffer();
+        default:
+          return file.text();
+      }
+    }
+
+    async write(data, options = {}) {
+      const handle = this._handle;
+      const steam = await handle.createWritable();
+      await steam.write(data);
+      await steam.close();
+
+      notify({
+        path: this.path,
+        type: "write",
+        data,
+        remark: options.remark,
+      });
+    }
+  }
+
+  extendFileHandle(FileHandle);
+
+  class PublicDirHandle {
+    async _getByMultiPath(name, options) {
+      const { create } = options || {};
+
+      const names = name.split("/");
+      let handle = this;
+      while (names.length) {
+        const name = names.shift();
+        let innerCreate;
+        if (create) {
+          if (names.length) {
+            innerCreate = "dir";
+          } else {
+            innerCreate = create;
+          }
+        }
+        handle = await handle.get(name, {
+          create: innerCreate,
+        });
+      }
+
+      return handle;
+    }
+
+    async *entries() {
+      for await (let key of this.keys()) {
+        const handle = await this.get(key);
+        yield [key, handle];
+      }
+    }
+
+    async *values() {
+      for await (let [key, value] of this.entries()) {
+        yield value;
+      }
+    }
+
+    async some(callback) {
+      // 遍历目录，如果回调返回true则提前退出
+      for await (let [key, value] of this.entries()) {
+        if (await callback(value, key, this)) {
+          break;
+        }
+      }
+    }
+
+    async forEach(callback) {
+      // 遍历目录
+      for await (let [key, value] of this.entries()) {
+        await callback(value, key, this);
+      }
+    }
+
+    // 扁平化获取所有的子文件（包括多级子孙代）
+    async flat() {
+      const result = [];
+      // 遍历当前目录下的所有文件和文件夹
+      for await (const [name, handle] of this.entries()) {
+        // 只有非目录类型才加入结果数组
+        if (handle.kind !== "dir") {
+          result.push(handle);
+        } else {
+          // 如果是文件夹，只获取其子文件
+          const children = await handle.flat();
+          result.push(...children);
+        }
+      }
+      return result;
+    }
+
+    get kind() {
+      return "dir";
+    }
+  }
+
+  // 扩展 DirHandle 的方法
+  const extendDirHandle = async (DirHandle) => {
+    const propDescs = Object.getOwnPropertyDescriptors(PublicDirHandle.prototype);
+    delete propDescs.constructor;
+
+    Object.defineProperties(DirHandle.prototype, propDescs);
+  };
+
+  class DirHandle extends BaseHandle {
+    constructor(...args) {
+      super(...args);
+    }
+
+    async get(name, options) {
+      const { create } = options || {};
+
+      if (name.includes("/")) {
+        return await this._getByMultiPath(name, options);
+      }
+
+      // 先尝试获取文件，在尝试获取目录，看有没有同名的文件
+      let beforeOriHandle = await this._handle
+        .getFileHandle(name)
+        .catch(() => null);
+      if (!beforeOriHandle) {
+        beforeOriHandle = await this._handle
+          .getDirectoryHandle(name)
+          .catch(() => null);
+      }
+
+      if (!create && !beforeOriHandle) {
+        //   throw new Error(`${name} is not exist`);
+        // 找不到文件或文件夹，返回null
+        return null;
+      }
+
+      if (beforeOriHandle) {
+        // 如果存在文件，看是否与 create 参数冲突
+        if (create === "file" && beforeOriHandle.kind !== "file") {
+          throw new Error(`${name} is not a file`);
+        } else if (create === "dir" && beforeOriHandle.kind !== "directory") {
+          throw new Error(`${name} is not a directory`);
+        }
+      } else {
+        // 不存在的话，进行创建
+        // 根据方式获取参数
+        let funcName = "getDirectoryHandle";
+        if (options.create === "file") {
+          funcName = "getFileHandle";
+        }
+
+        beforeOriHandle = await this._handle[funcName](name, {
+          create: true,
+        });
+      }
+
+      // 根据handle类型返回
+      if (beforeOriHandle.kind === "file") {
+        return new FileHandle(beforeOriHandle, {
+          parent: this,
+          root: this.root || this,
+        });
+      } else if (beforeOriHandle.kind === "directory") {
+        return new DirHandle(beforeOriHandle, {
+          parent: this,
+          root: this.root || this,
+        });
+      }
+
+      return null;
+    }
+
+    // 获取子文件数量
+    async length() {
+      let count = 0;
+      // 遍历目录下所有文件和文件夹
+      for await (const [name, handle] of this._handle.entries()) {
+        count++;
+      }
+      return count;
+    }
+
+    async *keys() {
+      for await (let key of this._handle.keys()) {
+        yield key;
+      }
+    }
+  }
+
+  extendDirHandle(DirHandle);
+
+  const get$2 = async (path, options) => {
+    // 获取根目录
+    const opfsRoot = await navigator.storage.getDirectory();
+
+    // 解析路径
+    const pathParts = path.split("/").filter(Boolean);
+
+    if (pathParts.length === 0) {
+      throw new Error("路径不能为空");
+    }
+
+    // 获取根空间名称
+    const rootName = pathParts[0];
+
+    try {
+      // 尝试获取根目录句柄
+      const rootDir = await opfsRoot.getDirectoryHandle(rootName);
+      const dirHandle = new DirHandle(rootDir);
+
+      // 如果只有根目录，直接返回
+      if (pathParts.length === 1) {
+        return dirHandle;
+      }
+
+      // 通过根目录，使用get方法获取剩余路径
+      const remainingPath = pathParts.slice(1).join("/");
+      return await dirHandle.get(remainingPath, options);
+    } catch (error) {
+      if (error.name === "NotFoundError") {
+        throw new Error(
+          `根目录 "${rootName}" 不存在，请先使用 init("${rootName}") 初始化`,
+          {
+            cause: error,
+          }
+        );
+      }
+      throw error;
+    }
+  };
 
   // 直接保存，没有使用队列
   const directSaveToCache = async ({ cache, path, data, type }) => {
@@ -642,61 +994,6 @@
     }
   }
 
-  class PublicFileHandle {
-    async file(options) {
-      return this.read({
-        ...options,
-        type: "file",
-      });
-    }
-
-    async text(options) {
-      return this.read({
-        ...options,
-        type: "text",
-      });
-    }
-
-    async buffer(options) {
-      return this.read({
-        ...options,
-        type: "buffer",
-      });
-    }
-
-    async base64(options) {
-      const file = await this.file(options);
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          resolve(reader.result);
-        };
-        reader.onerror = (error) => {
-          reject(error);
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async lastModified() {
-      return (await this.file()).lastModified;
-    }
-
-    get kind() {
-      return "file";
-    }
-  }
-
-  // 扩展 FileHandle 的方法
-  const extendFileHandle = async (FileHandle) => {
-    const propDescs = Object.getOwnPropertyDescriptors(
-      PublicFileHandle.prototype
-    );
-    delete propDescs.constructor;
-
-    Object.defineProperties(FileHandle.prototype, propDescs);
-  };
-
   class FileCacheHandle extends BaseCacheHandle {
     constructor(...args) {
       super(...args);
@@ -748,89 +1045,6 @@
   }
 
   extendFileHandle(FileCacheHandle);
-
-  class PublicDirHandle {
-    async _getByMultiPath(name, options) {
-      const { create } = options || {};
-
-      const names = name.split("/");
-      let handle = this;
-      while (names.length) {
-        const name = names.shift();
-        let innerCreate;
-        if (create) {
-          if (names.length) {
-            innerCreate = "dir";
-          } else {
-            innerCreate = create;
-          }
-        }
-        handle = await handle.get(name, {
-          create: innerCreate,
-        });
-      }
-
-      return handle;
-    }
-
-    async *entries() {
-      for await (let key of this.keys()) {
-        const handle = await this.get(key);
-        yield [key, handle];
-      }
-    }
-
-    async *values() {
-      for await (let [key, value] of this.entries()) {
-        yield value;
-      }
-    }
-
-    async some(callback) {
-      // 遍历目录，如果回调返回true则提前退出
-      for await (let [key, value] of this.entries()) {
-        if (await callback(value, key, this)) {
-          break;
-        }
-      }
-    }
-
-    async forEach(callback) {
-      // 遍历目录
-      for await (let [key, value] of this.entries()) {
-        await callback(value, key, this);
-      }
-    }
-
-    // 扁平化获取所有的子文件（包括多级子孙代）
-    async flat() {
-      const result = [];
-      // 遍历当前目录下的所有文件和文件夹
-      for await (const [name, handle] of this.entries()) {
-        // 只有非目录类型才加入结果数组
-        if (handle.kind !== "dir") {
-          result.push(handle);
-        } else {
-          // 如果是文件夹，只获取其子文件
-          const children = await handle.flat();
-          result.push(...children);
-        }
-      }
-      return result;
-    }
-
-    get kind() {
-      return "dir";
-    }
-  }
-
-  // 扩展 DirHandle 的方法
-  const extendDirHandle = async (DirHandle) => {
-    const propDescs = Object.getOwnPropertyDescriptors(PublicDirHandle.prototype);
-    delete propDescs.constructor;
-
-    Object.defineProperties(DirHandle.prototype, propDescs);
-  };
 
   class DirCacheHandle extends BaseCacheHandle {
     constructor(...args) {
@@ -949,15 +1163,21 @@
     }
   };
 
-  // import {
-  //   get as systemHandleGet,
-  //   init as systemHandleInit,
-  // } from "./handle/main.js";
-
-
+  // safari 不支持 systemHandle，所以被迫重新实现一个虚拟系统
   const get = async (path, options) => {
-    return get$1(path, options);
+    return !isSafari ? get$2(path, options) : get$1(path, options);
   };
+
+  // // 全量测试 c-handle
+  // import { init as cHandleInit, get as cHandleGet } from "./c-handle/main.js";
+
+  // export const init = async (name) => {
+  //   return cHandleInit(name);
+  // };
+
+  // export const get = async (path, options) => {
+  //   return cHandleGet(path, options);
+  // };
 
   // 响应文件相关的请求
   const resposeFs = (event) => {
