@@ -26,6 +26,10 @@ export class HandServer extends Stanz {
     return this;
   }
 
+  get usedUserStore() {
+    return this.#usedUserStore;
+  }
+
   // get serverUrl() {
   //   return this.#serverUrl;
   // }

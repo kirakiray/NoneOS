@@ -1,6 +1,7 @@
 import { Stanz } from "../../libs/stanz/main.js";
 import { getUserStore } from "../user-store.js";
 import { HandServer } from "./handserver.js";
+import * as ways from "./ways/index.js";
 
 // 存储所有连接的客户端端口
 const ports = new Set();
@@ -24,6 +25,18 @@ userStorePms.then(async (userStore) => {
     });
 
     client._onagentdata = (fromUserId, agentData) => {
+      if (agentData.way) {
+        // 直接走way方式处理
+        if (ways[agentData.way]) {
+          ways[agentData.way]({
+            fromUserId,
+            agentData,
+            userDirName,
+            userStore,
+          });
+        }
+      }
+
       ports.forEach((port) => {
         port.postMessage({
           resType: "onagentdata",
