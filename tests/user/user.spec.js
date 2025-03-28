@@ -18,6 +18,11 @@ test.describe("User Tests", () => {
     await testSucceedCount(page, 2);
   });
 
+  test("Invite code tests", async ({ page, browserName }) => {
+    await page.goto("/tests/user/invite-code.html");
+    await testSucceedCount(page, 2);
+  });
+
   test("Agent data transfer tests", async ({ page, browserName }) => {
     // test.skip(browserName === 'webkit', '在 Safari 上跳过此测试');
     await page.goto("/tests/user/agent-data.html");

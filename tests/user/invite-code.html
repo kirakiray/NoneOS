@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invite Code Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { runTest } from "/tests/runTest.js";
+      import { getServers, getUserStore } from "/packages/user/main.js";
+
+      // 测试正常的邀请码流程
+      await runTest("Normal Invite Code Test", async () => {
+        try {
+          // 初始化两个用户
+          const user1 = await getUserStore("user1");
+          const user2 = await getUserStore("user2");
+
+          // 设置用户名，包含浏览器信息以便识别
+          const browserInfo = `${
+            navigator.userAgent.match(
+              /(?:Chrome|Firefox|Safari|Edge|OPR)\/[\d.]+/
+            )[0]
+          }`;
+          user1.userName = `TestUser1-${browserInfo}`;
+          user2.userName = `TestUser2-${browserInfo}`;
+
+          await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
+
+          // 获取用户服务器
+          const user1Server = await getServers("user1");
+          const user2Server = await getServers("user2");
+
+          // 等待服务器连接
+          await user1Server.watchUntil(
+            () =>
+              user1Server.length &&
+              user1Server[0].connectionState === "connected"
+          );
+          await user2Server.watchUntil(
+            () =>
+              user2Server.length &&
+              user2Server[0].connectionState === "connected"
+          );
+
+          // 生成邀请码
+          const inviteCode = Math.random().toString(36).slice(2, 6);
+
+          // 用户1设置邀请码
+          const inviteResult = await user1Server[0].post({
+            type: "invite-code",
+            setInviteCode: inviteCode,
+          });
+
+          // 用户2查找邀请码
+          const findResult = await user2Server[0].post({
+            type: "invite-code",
+            findInviteCode: inviteCode,
+          });
+
+          return {
+            assert: findResult && findResult.authedData,
+            content: {
+              message: "邀请码测试成功",
+              inviteCode,
+              inviteResult,
+              findResult,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试无效的邀请码
+      await runTest("Invalid Invite Code Test", async () => {
+        try {
+          const user2Server = await getServers("user2");
+
+          // 等待服务器连接
+          await user2Server.watchUntil(
+            () =>
+              user2Server.length &&
+              user2Server[0].connectionState === "connected"
+          );
+
+          // 使用一个无效的邀请码
+          const invalidCode = "xxxx";
+
+          // 尝试查找无效邀请码
+          const findResult = await user2Server[0]
+            .post({
+              type: "invite-code",
+              findInviteCode: invalidCode,
+            })
+            .catch((error) => ({
+              success: false,
+              error: error.message,
+            }));
+
+          return {
+            assert: !findResult.success,
+            content: {
+              message: "成功捕获无效邀请码错误",
+              invalidCode,
+              error: findResult.error,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
+    </script>
+  </body>
+</html>
