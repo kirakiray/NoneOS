@@ -218,7 +218,7 @@ let cacheInstance = null;
 // 初始化缓存
 const initCache = async (cacheName) => {
   if (!cacheInstance) {
-    cacheInstance = await caches.open(cacheName || 'fs-cache');
+    cacheInstance = await caches.open(cacheName || "fs-cache");
   }
   return cacheInstance;
 };
@@ -226,46 +226,46 @@ const initCache = async (cacheName) => {
 // 处理来自主线程的消息
 self.onconnect = (event) => {
   const port = event.ports[0];
-  
+
   port.onmessage = async (e) => {
     const { id, action, params } = e.data;
-    
+
     try {
       let result;
       // 确保缓存已初始化
       const cache = await initCache(params?.cacheName);
-      
+
       switch (action) {
-        case 'saveCache':
+        case "saveCache":
           result = await saveCache({ ...params, cache });
           break;
-        case 'getCache':
+        case "getCache":
           result = await getCache(cache, params.path);
           break;
-        case 'ensureCache':
+        case "ensureCache":
           result = await ensureCache({ ...params, cache });
           break;
-        case 'updateDir':
+        case "updateDir":
           result = await updateDir({ ...params, cache });
           break;
         default:
           throw new Error(`未知操作: ${action}`);
       }
-      
+
       port.postMessage({ id, result, success: true });
     } catch (error) {
       console.error(`Worker 错误 (${action}):`, error);
-      port.postMessage({ 
-        id, 
-        error: { 
-          message: error.message, 
-          stack: error.stack 
-        }, 
-        success: false 
+      port.postMessage({
+        id,
+        error: {
+          message: error.message,
+          stack: error.stack,
+        },
+        success: false,
       });
     }
   };
-  
+
   // 通知主线程 worker 已准备好
-  port.postMessage({ type: 'ready' });
+  port.postMessage({ type: "ready" });
 };

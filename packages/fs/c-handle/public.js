@@ -100,6 +100,9 @@ export const getCache = async (cache, path) => {
 
 // 确保缓存
 export const ensureCache = async ({ cache, path, type }) => {
+  // 如果在不支持 shared worker 的环境下，直接返回
+  if (!window.SharedWorker) return;
+
   return sendToWorker("ensureCache", { cacheName: cache._name, path, type });
 };
 
@@ -111,14 +114,4 @@ export const updateDir = async ({ cache, path, remove, add }) => {
     remove,
     add,
   });
-};
-
-// 为了保持兼容性，保留这些函数但不导出
-// 这些函数在 Worker 中实现
-const directSaveToCache = async () => {
-  console.warn("directSaveToCache 已移至 Worker 中，请使用 saveCache");
-};
-
-export const directGetCache = async () => {
-  console.warn("directGetCache 已移至 Worker 中，请使用 getCache");
 };
