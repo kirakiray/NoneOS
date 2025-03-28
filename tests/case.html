@@ -9,8 +9,12 @@
   <body>
     <div id="log"></div>
     <script type="module">
-      import { getServers, getUserStore } from "/packages/user/main.js";
+      import { getServers, getUserStore, on } from "/packages/user/main.js";
       import { getCards, getMyCardData } from "/packages/user/card/main.js";
+
+      on("server-agent-data", (e) => {
+        console.log("server-agent-data: ", e);
+      });
 
       const user1Servers = await getServers("user1");
       const user2Servers = await getServers("user2");

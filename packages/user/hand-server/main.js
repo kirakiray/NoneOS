@@ -1,5 +1,6 @@
 import { Stanz } from "../../libs/stanz/main.js";
 import { getUserStore } from "../user-store.js";
+import { emit } from "../event.js";
 
 // 获取服务器列表
 export const getServers = async (userDirName) => {
@@ -86,6 +87,13 @@ export const getServers = async (userDirName) => {
         if (server && server._onagentdata) {
           server._onagentdata(fromUserId, agentData);
         }
+
+        emit("server-agent-data", {
+          server,
+          fromUserId,
+          data: agentData,
+        });
+
         break;
       }
     }
