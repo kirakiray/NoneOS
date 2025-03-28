@@ -13,7 +13,6 @@ test.describe("User Tests", () => {
   });
 
   test("Handshake server friend finding tests", async ({ page, browserName }) => {
-    // test.skip(browserName === 'webkit', '在 Safari 上跳过此测试');
     await page.goto("/tests/user/handserver.html");
     await testSucceedCount(page, 2);
   });
@@ -24,8 +23,12 @@ test.describe("User Tests", () => {
   });
 
   test("Agent data transfer tests", async ({ page, browserName }) => {
-    // test.skip(browserName === 'webkit', '在 Safari 上跳过此测试');
     await page.goto("/tests/user/agent-data.html");
     await testSucceedCount(page, 6);
+  });
+
+  test("Card handout tests", async ({ page, browserName }) => {
+    await page.goto("/tests/user/card-handout.html");
+    await testSucceedCount(page, 1);
   });
 });

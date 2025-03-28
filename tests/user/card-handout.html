@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card Handout Test</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { runTest } from "/tests/runTest.js";
+      import { getServers, getUserStore } from "/packages/user/main.js";
+      import { getCards, getMyCardData } from "/packages/user/card/main.js";
+
+      // 测试卡片派发功能
+      await runTest("Card Handout Test", async () => {
+        try {
+          // 初始化用户和服务器
+          const user1Servers = await getServers("user1");
+          const user2Servers = await getServers("user2");
+          const user1 = await getUserStore("user1");
+          const user2 = await getUserStore("user2");
+
+          // 获取用户卡片数据
+          const user1Cards = await getCards("user1");
+          const user2Cards = await getCards("user2");
+          const user1carddata = await getMyCardData("user1");
+
+          // 等待服务器连接
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // 用户1发送卡片到用户2
+          await user1Servers[0].post({
+            type: "agent-data",
+            friendId: user2.userid,
+            data: {
+              way: "handoutCard",
+              cardData: user1carddata,
+            },
+          });
+
+          // 等待卡片派发和保存
+          await new Promise((resolve) => setTimeout(resolve, 500));
+
+          // 验证卡片签名
+          const u2Carddata0 = user2Cards[0].toJSON();
+          const signaturesMatch = u2Carddata0.signature === user1carddata.signature;
+
+          return {
+            assert: signaturesMatch,
+            content: {
+              message: "卡片派发测试完成",
+              signaturesMatch,
+              originalSignature: user1carddata.signature,
+              receivedSignature: u2Carddata0.signature,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
+    </script>
+  </body>
+</html>
