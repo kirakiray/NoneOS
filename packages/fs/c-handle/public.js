@@ -1,5 +1,17 @@
 // 文件系统缓存处理的客户端接口
 
+import {
+  initCache,
+  saveCache as oriSaveCache,
+  getCache as oriGetCache,
+  ensureCache as oriEnsureCache,
+  updateDir as oriUpdateDir,
+} from "./fs-util.js";
+
+if (!globalThis.SharedWorker) {
+  initCache();
+}
+
 // 创建一个 Shared Worker 实例
 let worker = null;
 let workerPort = null;
@@ -86,6 +98,10 @@ const sendToWorker = (action, params) => {
 
 // 保存
 export const saveCache = async ({ cache, path, data, type }) => {
+  if (!globalThis.SharedWorker) {
+    return oriSaveCache({ cache, path, data, type });
+  }
+
   return sendToWorker("saveCache", {
     cacheName: cache._name,
     path,
@@ -96,16 +112,25 @@ export const saveCache = async ({ cache, path, data, type }) => {
 
 // 获取缓存
 export const getCache = async (cache, path) => {
+  if (!globalThis.SharedWorker) {
+    return oriGetCache(cache, path);
+  }
   return sendToWorker("getCache", { cacheName: cache._name, path });
 };
 
 // 确保缓存
 export const ensureCache = async ({ cache, path, type }) => {
+  if (!globalThis.SharedWorker) {
+    return oriEnsureCache({ cache, path, type });
+  }
   return sendToWorker("ensureCache", { cacheName: cache._name, path, type });
 };
 
 // 目录添加子目录或子文件信息
 export const updateDir = async ({ cache, path, remove, add }) => {
+  if (!globalThis.SharedWorker) {
+    return oriUpdateDir({ cache, path, remove, add });
+  }
   return sendToWorker("updateDir", {
     cacheName: cache._name,
     path,

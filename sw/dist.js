@@ -1,6 +1,7 @@
 (function () {
   'use strict';
 
+  var _documentCurrentScript = typeof document !== 'undefined' ? document.currentScript : null;
   class PublicBaseHandle {
     #parent;
     #root;
@@ -289,7 +290,7 @@
   };
 
   // 保存
-  const saveCache = async ({ cache, path, data, type }) => {
+  const saveCache$1 = async ({ cache, path, data, type }) => {
     // 规范化路径
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
@@ -304,7 +305,7 @@
   };
 
   // 获取缓存
-  const getCache = async (cache, path) => {
+  const getCache$1 = async (cache, path) => {
     // 规范化路径
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
@@ -314,7 +315,7 @@
   };
 
   // 确保缓存
-  const ensureCache = async ({ cache, path, type: enType }) => {
+  const ensureCache$1 = async ({ cache, path, type: enType }) => {
     // 规范化路径
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
@@ -343,7 +344,7 @@
   };
 
   // 目录添加子目录或子文件信息
-  const updateDir = async ({ cache, path, remove, add }) => {
+  const updateDir$1 = async ({ cache, path, remove, add }) => {
     // 规范化路径
     const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
@@ -353,7 +354,6 @@
 
       // 如果目录不存在，抛出错误
       if (!currentData) {
-        debugger;
         throw new Error(`目录不存在: ${normalizedPath}`);
       }
 
@@ -437,6 +437,151 @@
     });
     queue.set(key, next);
     return next;
+  };
+
+  // 缓存实例
+  let cacheInstance = null;
+
+  // 初始化缓存
+  const initCache = async (cacheName) => {
+    if (!cacheInstance) {
+      cacheInstance = await caches.open("fs-cache");
+    }
+    return cacheInstance;
+  };
+
+  // 文件系统缓存处理的客户端接口
+
+
+  if (!globalThis.SharedWorker) {
+    initCache();
+  }
+
+  // 创建一个 Shared Worker 实例
+  let worker = null;
+  let workerPort = null;
+  let isWorkerReady = false;
+  let messageQueue = [];
+  let messageId = 0;
+  let callbacks = new Map();
+
+  // 初始化 Worker
+  const initWorker = () => {
+    if (worker) return Promise.resolve();
+
+    return new Promise((resolve, reject) => {
+      try {
+        worker = new SharedWorker(new URL("./fs-worker.js", (_documentCurrentScript && _documentCurrentScript.tagName.toUpperCase() === 'SCRIPT' && _documentCurrentScript.src || new URL('dist.js', document.baseURI).href)), {
+          name: "fs-worker",
+          type: "module",
+        });
+        workerPort = worker.port;
+
+        workerPort.onmessage = (event) => {
+          const { id, result, error, success, type } = event.data;
+
+          if (type === "ready") {
+            isWorkerReady = true;
+            processQueue();
+            resolve();
+            return;
+          }
+
+          const callback = callbacks.get(id);
+          if (callback) {
+            if (success) {
+              callback.resolve(result);
+            } else {
+              const err = new Error(error.message);
+              err.stack = error.stack;
+              callback.reject(err);
+            }
+            callbacks.delete(id);
+          }
+        };
+
+        workerPort.onerror = (error) => {
+          console.error("Worker 错误:", error);
+          reject(error);
+        };
+
+        workerPort.start();
+      } catch (error) {
+        console.error("初始化 Worker 失败:", error);
+        reject(error);
+      }
+    });
+  };
+
+  // 处理消息队列
+  const processQueue = () => {
+    if (!isWorkerReady) return;
+
+    while (messageQueue.length > 0) {
+      const message = messageQueue.shift();
+      workerPort.postMessage(message);
+    }
+  };
+
+  // 发送消息到 Worker
+  const sendToWorker = (action, params) => {
+    return new Promise(async (resolve, reject) => {
+      await initWorker();
+
+      const id = messageId++;
+      callbacks.set(id, { resolve, reject });
+
+      const message = { id, action, params };
+
+      if (isWorkerReady) {
+        workerPort.postMessage(message);
+      } else {
+        messageQueue.push(message);
+      }
+    });
+  };
+
+  // 保存
+  const saveCache = async ({ cache, path, data, type }) => {
+    if (!globalThis.SharedWorker) {
+      return saveCache$1({ cache, path, data, type });
+    }
+
+    return sendToWorker("saveCache", {
+      cacheName: cache._name,
+      path,
+      data,
+      type,
+    });
+  };
+
+  // 获取缓存
+  const getCache = async (cache, path) => {
+    if (!globalThis.SharedWorker) {
+      return getCache$1(cache, path);
+    }
+    return sendToWorker("getCache", { cacheName: cache._name, path });
+  };
+
+  // 确保缓存
+  const ensureCache = async ({ cache, path, type }) => {
+    if (!globalThis.SharedWorker) {
+      return ensureCache$1({ cache, path, type });
+    }
+    return sendToWorker("ensureCache", { cacheName: cache._name, path, type });
+  };
+
+  // 目录添加子目录或子文件信息
+  const updateDir = async ({ cache, path, remove, add }) => {
+    if (!globalThis.SharedWorker) {
+      return updateDir$1({ cache, path, remove, add });
+    }
+    return sendToWorker("updateDir", {
+      cacheName: cache._name,
+      path,
+      remove,
+      add,
+    });
   };
 
   class BaseCacheHandle extends PublicBaseHandle {
