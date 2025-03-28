@@ -8,26 +8,31 @@
   </head>
   <body>
     <script type="module">
-      import { getServers } from "/packages/user/main.js";
+      import { getServers, getUserStore } from "/packages/user/main.js";
 
-      const servers = await getServers("user1");
+      const user1Servers = await getServers("user1");
+      const user2Servers = await getServers("user2");
+      const user2 = await getUserStore("user2");
 
-      servers.watchTick(() => {
-        console.log("servers: ", servers.toJSON());
+      await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
+
+      const inviteCode = Math.random().toString(36).slice(2, 6); // 生成6位随机字符串作为邀请码
+
+      // 用户1设置邀请码
+      const inviteResult = await user1Servers[0].post({
+        type: "invite-code",
+        setInviteCode: inviteCode,
       });
 
-      window.servers = servers;
+      console.log("inviteResult: ", inviteResult);
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      const result = await servers[0].post({
-        type: "find-friend",
-        friendId:
-          "1d14d3b31a76eeab220b48f562521f9b023e362119149072dcc02add230351b0",
+      // 查找用户2
+      const findResult = await user2Servers[0].post({
+        type: "invite-code",
+        findInviteCode: inviteCode,
       });
 
-      console.log("result: ", result);
-      console.log("servers: ", servers);
+      console.log("findResult: ", findResult);
     </script>
   </body>
 </html>

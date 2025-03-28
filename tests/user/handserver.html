@@ -15,11 +15,11 @@
       // 测试正常的好友查找流程
       await runTest("Normal Friend Finding Test", async () => {
         try {
-          console.log("a");
+          // console.log("a");
           // 初始化两个用户
           const user1 = await getUserStore("user1");
           const user2 = await getUserStore("user2");
-          console.log("a2");
+          // console.log("a2");
           // 设置用户名，包含浏览器信息以便识别
           const browserInfo = `${
             navigator.userAgent.match(
@@ -34,27 +34,27 @@
           // 获取用户1的握手服务器
           const user1Server = await getServers("user1");
           const user2Server = await getServers("user2");
-          console.log("a3");
+          // console.log("a3");
 
-          user1Server.watch((e) => {
-            console.log("watch: ", e);
-          });
+          // user1Server.watch((e) => {
+          //   console.log("watch: ", e);
+          // });
 
           // 等待服务器连接
-          // await user1Server.watchUntil(
-          //   () =>
-          //     user1Server.length &&
-          //     user1Server[0].connectionState === "connected"
-          // );
-          // await user2Server.watchUntil(
-          //   () =>
-          //     user2Server.length &&
-          //     user2Server[0].connectionState === "connected"
-          // );
+          await user1Server.watchUntil(
+            () =>
+              user1Server.length &&
+              user1Server[0].connectionState === "connected"
+          );
+          await user2Server.watchUntil(
+            () =>
+              user2Server.length &&
+              user2Server[0].connectionState === "connected"
+          );
 
-          console.log("a4");
+          // console.log("a4");
 
-          await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
+          // await new Promise((resolve) => setTimeout(resolve, 200)); // 等待以确保服务器连接稳定
 
           // 查找用户2
           const findResult = await user1Server[0].post({

@@ -4,13 +4,54 @@
     :host {
       display: block;
     }
+
+    .root-item {
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
+    }
+    .no-devices {
+      display: flex;
+      align-items: center;
+      padding-left: 100px;
+      height: 40px;
+      color: #7c7c7c;
+      font-size: 12px;
+    }
   </style>
-  <div>{{val}}</div>
+
+  <p-list>
+    <p-list-item collapse-childs="open" button="suffix">
+      <div style="display: flex; align-items: center">
+        <span class="root-item"> 我的设备 </span>
+        <p-button size="mini" style="margin-left: 60px">添加设备</p-button>
+      </div>
+      <p-list slot="childs">
+        <x-if :value="!devices.length">
+          <div class="no-devices">没有添加设备</div>
+        </x-if>
+        <x-fill :value="devices">
+          <p-list-item>{{$data}}</p-list-item>
+        </x-fill>
+      </p-list>
+    </p-list-item>
+  </p-list>
   <script>
     export default async ({ load }) => {
+      const { getDevices } = await load("/packages/user/main.js");
+      const devices = await getDevices();
+
+      console.log("devices", devices);
+
       return {
         data: {
           val: "my devices",
+          devices: [], // 所有设备
+        },
+        attached() {
+          this.devices = devices;
+        },
+        detached() {
+          this.devices = [];
         },
       };
     };

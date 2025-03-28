@@ -61,8 +61,8 @@ export const getServers = async (userDirName) => {
       case "update": {
         const { servers } = resData;
         mergeServers(__handservers, servers); // 使用新函数
-        addFakeMethods(__handservers, handWorker, cachedTasks);
-        console.log("服务器列表初始化", servers);
+        initFakeMethods(__handservers, handWorker, cachedTasks);
+        // console.log("服务器列表初始化", servers);
         break;
       }
       case "response": {
@@ -102,7 +102,7 @@ export const getServers = async (userDirName) => {
 };
 
 // 给每个对象加上伪装的方法
-const addFakeMethods = (servers, handWorker, cachedTasks) => {
+const initFakeMethods = (servers, handWorker, cachedTasks) => {
   servers.forEach((server) => {
     if (!server.post) {
       Object.defineProperties(server, {

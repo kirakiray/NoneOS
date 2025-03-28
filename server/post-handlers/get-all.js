@@ -1,3 +1,4 @@
+// 获取所有用户信息，管理员专用
 import { activeConnections, authenticatedUsers } from "../client.js";
 
 const mapAuthenticatedUser = ([userid, e]) => ({
@@ -13,14 +14,15 @@ const mapUnauthenticatedUser = (client) => ({
 export default {
   admin: true,
   handler: async () => {
-    const authenticateds = Array.from(authenticatedUsers).map(mapAuthenticatedUser);
+    const authenticateds =
+      Array.from(authenticatedUsers).map(mapAuthenticatedUser);
     const unauthenticateds = Array.from(activeConnections)
-      .filter(e => !e._userId)
+      .filter((e) => !e._userId)
       .map(mapUnauthenticatedUser);
 
     return {
       unauthenticateds,
       authenticateds,
     };
-  }
+  },
 };

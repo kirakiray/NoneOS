@@ -1,7 +1,7 @@
 import { authenticatedUsers } from "../client.js";
 
 export default {
-  handler: async (requestBody) => {
+  handler: async (requestBody, client) => {
     const { friendId } = requestBody;
     const friendData = authenticatedUsers.get(friendId);
 
@@ -11,7 +11,8 @@ export default {
 
     return {
       authedTime: friendData.authedTime,
+      // 返回数据让用户验证
       authedData: friendData.client.authedData,
     };
-  }
+  },
 };

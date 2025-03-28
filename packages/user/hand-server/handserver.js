@@ -17,6 +17,7 @@ export class HandServer extends Stanz {
       serverVersion: null, // 服务器版本
       connectedTime: null, // 连接建立时间
       key: Math.random().toString(36).slice(2), // 随机生成的唯一标识
+      serverUrl: url,
     });
 
     this.#serverUrl = url;
@@ -25,9 +26,9 @@ export class HandServer extends Stanz {
     return this;
   }
 
-  get serverUrl() {
-    return this.#serverUrl;
-  }
+  // get serverUrl() {
+  //   return this.#serverUrl;
+  // }
 
   // 建立WebSocket连接
   connect() {
