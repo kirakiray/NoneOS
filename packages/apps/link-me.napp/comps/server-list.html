@@ -1,4 +1,4 @@
-<template page>
+<template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
@@ -143,9 +143,8 @@
 
       const servers = await getServers();
 
-      console.log(servers.toJSON());
-
       return {
+        tag: "n-server-list",
         data: {
           servers: [],
         },

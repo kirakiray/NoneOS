@@ -23,7 +23,9 @@
     <p-list-item collapse-childs="open" button="suffix">
       <div style="display: flex; align-items: center">
         <span class="root-item"> 我的设备 </span>
-        <p-button size="mini" style="margin-left: 60px">添加设备</p-button>
+        <p-button size="mini" style="margin-left: 60px; z-index: 3">
+          <a href="./add-device.html" olink>添加设备</a>
+        </p-button>
       </div>
       <p-list slot="childs">
         <x-if :value="!devices.length">

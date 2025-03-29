@@ -1,0 +1,80 @@
+<template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="../comps/server-list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface);
+      overflow: auto;
+    }
+    .container {
+      padding: 16px 16px 16px;
+    }
+    h4 {
+      margin: 0;
+      padding: 0;
+      margin-left: 8px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .invite-code {
+      display: inline-block;
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
+      font-family: math;
+      letter-spacing: 2px;
+      font-size: 30px;
+      margin-left: 4px;
+    }
+
+    p {
+      margin: 0;
+      padding: 8px;
+    }
+  </style>
+
+  <div class="container">
+    <div style="display: flex">
+      <p-button size="small" on:click="clickBack" icon variant="text">
+        <n-local-icon name="back"></n-local-icon>
+      </p-button>
+      <h4>添加设备</h4>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center">
+      <p>
+        我的设备码是
+        <n-copy-span class="invite-code">{{inviteCode}}</n-copy-span>
+      </p>
+      <p>
+        <p-text-field sync:value="otherCode" style="width: 320px">
+          <label>另一边设备码</label>
+          <p-button size="small" slot="suffix" attr:disabled="!otherCode">
+            确认
+          </p-button>
+        </p-text-field>
+      </p>
+      <p>
+        在其中一边设备上输入另一边的设备码，即可将其添加为我的设备。设备码不区分大小写。
+      </p>
+      <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
+    </div>
+    <!-- <n-server-list></n-server-list> -->
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          inviteCode: Math.random().toString(36).substring(2, 7).toUpperCase(),
+          otherCode: "",
+        },
+        proto: {
+          clickBack() {
+            this.app.back();
+          },
+        },
+      };
+    };
+  </script>
+</template>
