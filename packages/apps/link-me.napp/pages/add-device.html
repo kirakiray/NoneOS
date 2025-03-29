@@ -2,7 +2,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
-  <l-m src="../comps/server-list.html"></l-m>
+  <l-m src="../comps/finduser-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -11,6 +11,8 @@
     }
     .container {
       padding: 16px 16px 16px;
+      max-width: 800px;
+      margin: 0 auto;
     }
     h4 {
       margin: 0;
@@ -31,7 +33,7 @@
 
     p {
       margin: 0;
-      padding: 8px;
+      padding: 6px;
     }
   </style>
 
@@ -60,7 +62,7 @@
       </p>
       <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
     </div>
-    <!-- <n-server-list></n-server-list> -->
+    <n-finduser-list :self-device-code="inviteCode"></n-finduser-list>
   </div>
   <script>
     export default async ({ load }) => {
@@ -74,6 +76,10 @@
             this.app.back();
           },
         },
+        attached() {
+          // 向服务端发送邀请码
+        },
+        detached() {},
       };
     };
   </script>
