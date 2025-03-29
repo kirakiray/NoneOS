@@ -141,11 +141,11 @@
                   }
 
                   // 设置设备码
-                  const deviceCode = await server.post({
+                  await server.post({
                     type: "invite-code",
                     setInviteCode: this.selfDeviceCode,
                   });
-                  server.__deviceCode = deviceCode;
+                  server.__deviceCode = this.selfDeviceCode;
                 } catch (e) {
                   server.__deviceCode = null;
                 }
@@ -158,6 +158,16 @@
         },
         detached() {
           this.servers = [];
+
+          servers.forEach((server) => {
+            // 清空设备码
+            server.post({
+              type: "invite-code",
+              setInviteCode: 0,
+            });
+
+            clearTimeout(server.__updatetimer);
+          });
         },
       };
     };

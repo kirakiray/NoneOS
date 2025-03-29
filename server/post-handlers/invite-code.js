@@ -32,6 +32,15 @@ export default {
       };
     }
 
+    if (requestBody.setInviteCode === 0) {
+      // 清空邀请码
+      if (client.__inviteCode && invites.get(client.__inviteCode) === client) {
+        // 已经设置过邀请码，删除旧的
+        invites.delete(client.__inviteCode);
+        client.__inviteCode = undefined;
+      }
+    }
+
     if (requestBody.findInviteCode) {
       const inviteCode = requestBody.findInviteCode;
       const inviteClient = invites.get(inviteCode);
