@@ -1,7 +1,7 @@
 import { WebSocketServer } from "ws";
 import { ServerHandClient } from "./client.js";
 
-export const createServer = async (options = {}) => {
+export const initServer = async (options = {}) => {
   const wss = new WebSocketServer({ port: options.port });
 
   wss.on("connection", function connection(ws) {
