@@ -3,6 +3,7 @@
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="../comps/finduser-list.html"></l-m>
+  <l-m src="../comps/user-card.html"></l-m>
   <style>
     :host {
       display: block;
@@ -50,9 +51,14 @@
         <n-copy-span class="invite-code">{{inviteCode}}</n-copy-span>
       </p>
       <p>
-        <p-text-field sync:value="otherCode" style="width: 320px">
+        <p-text-field sync:value="prepareOppoCode" style="width: 320px">
           <label>另一边设备码</label>
-          <p-button size="small" slot="suffix" attr:disabled="!otherCode">
+          <p-button
+            size="small"
+            slot="suffix"
+            attr:disabled="!prepareOppoCode"
+            on:click="clickOppoCode"
+          >
             确认
           </p-button>
         </p-text-field>
@@ -62,16 +68,31 @@
       </p>
       <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
     </div>
-    <n-finduser-list :self-device-code="inviteCode"></n-finduser-list>
+    <x-fill :value="oppoUsers">
+      <n-user-card :authed-data="$data.authedData" style="margin: 8px">
+        <div>serverName:{{$data.serverName}}</div>
+        <div>serverUrl:{{$data.serverUrl}}</div>
+      </n-user-card>
+    </x-fill>
+    <n-finduser-list
+      :oppo-users="oppoUsers"
+      :self-device-code="inviteCode"
+      :opposite-device-code="oppositeDeviceCode"
+    ></n-finduser-list>
   </div>
   <script>
     export default async ({ load }) => {
       return {
         data: {
           inviteCode: Math.random().toString(36).substring(2, 7).toUpperCase(),
-          otherCode: "",
+          prepareOppoCode: "",
+          oppositeDeviceCode: "",
+          oppoUsers: [], // 查找到的目标用户
         },
         proto: {
+          clickOppoCode() {
+            this.oppositeDeviceCode = this.prepareOppoCode;
+          },
           clickBack() {
             this.app.back();
           },

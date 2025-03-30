@@ -12,7 +12,7 @@ export const createServer = async (options = {}) => {
     console.log("新的客户端连接", client);
   });
 
-  console.log("WebSocket 服务器运行在 ws://localhost:5579");
+  console.log("WebSocket 服务器运行在 ws://localhost:" + options.port + "/");
 
   return wss;
 };

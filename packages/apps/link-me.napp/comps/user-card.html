@@ -1,0 +1,28 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+      border: var(--md-sys-color-primary) solid 1px;
+      padding: 8px;
+      border-radius: 16px;
+    }
+    .root-item {
+      font-weight: 600;
+    }
+  </style>
+  <div class="container">
+    <div class="line">userName:{{authedData?.data?.origin.userName}}</div>
+    <slot></slot>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "n-user-card",
+        data: {
+          authedData: {}, // 认证后的数据
+        },
+        proto: {},
+      };
+    };
+  </script>
+</template>

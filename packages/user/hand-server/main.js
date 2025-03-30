@@ -10,10 +10,14 @@ export const getServers = async (userDirName) => {
   // 初始化服务器列表
   if (!selfUserStore.servers || selfUserStore.servers.length === 0) {
     selfUserStore.servers = [];
+    debugger;
     if (location.host.includes("localhost")) {
       // 加入测试地址
       selfUserStore.servers.push({
         url: "ws://localhost:5579/",
+      });
+      selfUserStore.servers.push({
+        url: "ws://localhost:5589/",
       });
 
       await selfUserStore.servers.ready();
