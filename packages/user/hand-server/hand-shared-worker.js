@@ -14,15 +14,21 @@ const servers = new Stanz([]);
 
 // 获取用户数据
 const userStorePms = getUserStore(userDirName);
+
 userStorePms.then(async (userStore) => {
   await userStore.ready(true);
 
-  // 初始化服务器列表
-  userStore.servers.forEach((e) => {
+  const initServersItem = async (e) => {
+    if (e.__client) {
+      return;
+    }
+
     const client = new HandServer({
       store: userStore,
       url: e.url,
     });
+
+    e.__client = client;
 
     client._onagentdata = (fromUserId, agentData) => {
       if (agentData.way) {
@@ -52,7 +58,34 @@ userStorePms.then(async (userStore) => {
     client.connect();
 
     servers.push(client);
+  };
+
+  // 初始化服务器列表
+  userStore.servers.forEach((e) => {
+    initServersItem(e);
   });
+
+  // 监听服务器列表变化
+  userStore.servers.watchTick(() => {
+    // 清理掉不存在的服务器
+    const needRemoveds = servers.filter((e) => {
+      return !userStore.servers.some((e2) => e2.url === e.serverUrl);
+    });
+
+    needRemoveds.forEach((e) => {
+      e._ws.close();
+      const index = servers.indexOf(e);
+      servers.splice(index, 1);
+    });
+
+    // 初始化服务器列表
+    userStore.servers.forEach(async (e) => {
+      if (!e.__client) {
+        await e.ready(true);
+        initServersItem(e);
+      }
+    });
+  }, 100);
 
   console.log("servers", servers);
 

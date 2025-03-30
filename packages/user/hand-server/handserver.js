@@ -26,6 +26,10 @@ export class HandServer extends Stanz {
     return this;
   }
 
+  get _ws() {
+    return this.#webSocket;
+  }
+
   get usedUserStore() {
     return this.#usedUserStore;
   }

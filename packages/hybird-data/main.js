@@ -16,6 +16,11 @@ export class HybirdData extends Stanz {
       dataStatus: "preparing",
     });
 
+    if (!options) {
+      // stanz删除时的错误初始化
+      return;
+    }
+
     if (options.handle) {
       this[SELFHANDLE] = options.handle;
       if (options.isroot) {

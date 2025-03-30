@@ -71,7 +71,7 @@
         </x-if>
         <x-else>
           <x-fill :value="servers" fill-key="serverUrl">
-            <p-list-item button="suffix" collapse-childs="open">
+            <p-list-item button="suffix" collapse-childs="close">
               <div
                 class="status-point"
                 attr:data-status="$data.connectionState"
@@ -128,18 +128,51 @@
                     </n-copy-span>
                   </div>
                 </p-list-item>
+                <p-list-item style="height: 40px">
+                  <div style="padding: 8px 0 0 0; max-width: 300px">
+                    <p-button
+                      size="small"
+                      color="error"
+                      on:click="$host.removeServer($data)"
+                    >
+                      删除该服务器
+                    </p-button>
+                  </div>
+                </p-list-item>
               </p-list>
 
               <i collapse-triangle slot="suffix"></i>
             </p-list-item>
           </x-fill>
+          <p-list-item>
+            <div style="display: flex; width: 100%">
+              <p-text-field
+                size="small"
+                placeholder="新增握手服务器地址"
+                sync:value="newUrl"
+                style="flex: 1"
+              ></p-text-field>
+              <p-button
+                size="small"
+                attr:disabled="!newUrl"
+                on:click="addServer(newUrl)"
+                style="margin-left: 16px"
+              >
+                添加服务器
+              </p-button>
+            </div>
+          </p-list-item>
         </x-else>
       </p-list>
     </p-list-item>
   </p-list>
   <script>
     export default async ({ load }) => {
-      const { getServers } = await load("/packages/user/main.js");
+      const { getServers, addServer, removeServer } = await load(
+        "/packages/user/main.js"
+      );
+
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
 
       const servers = await getServers();
 
@@ -147,6 +180,7 @@
         tag: "n-server-list",
         data: {
           servers: [],
+          newUrl: "",
         },
         proto: {
           ping(item) {
@@ -157,6 +191,37 @@
               return "testing...";
             }
             return new Date(item.connectedTime).toLocaleString();
+          },
+          addServer() {
+            // 确保不会重复添加
+            if (
+              this.servers.find(
+                (item) =>
+                  item.serverUrl.replace(/\/$/, "") ===
+                  this.newUrl.replace(/\/$/, "")
+              )
+            ) {
+              enqueue({
+                content: `不能添加重复的服务器: ${this.newUrl}`,
+                color: "error",
+              });
+              return;
+            }
+
+            addServer(this.newUrl);
+            this.newUrl = "";
+          },
+          async removeServer(item) {
+            const result = await confirm({
+              title: "删除服务器",
+              content: `确定要删除服务器: ${item.serverUrl} 吗?`,
+              yes: "删除",
+              cancel: "取消",
+            });
+
+            if (result) {
+              removeServer(item.serverUrl);
+            }
           },
         },
         attached() {

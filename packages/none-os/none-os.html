@@ -142,6 +142,16 @@
           ], // 程序坞程序数据
           settingData: {},
         },
+        watch: {
+          settingData(settingData) {
+            clearTimeout(this.__setting_timer);
+            this.__setting_timer = setTimeout(() => {
+              const rootPui = $.getRootProvider("pui");
+
+              rootPui.theme = settingData.theme;
+            }, 100);
+          },
+        },
         proto: {
           // 通过右键菜单打开文件
           async openApp(e) {

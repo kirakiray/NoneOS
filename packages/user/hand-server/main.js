@@ -37,16 +37,6 @@ export const getServers = async (userDirName) => {
   // 生成服务器对象数据
   const __handservers = (selfUserStore.__handservers = new Stanz([]));
 
-  // 如果是safari，必须等待 db 完成后，才能初始化worker，不然会因为同时初始化db而很大概率报错
-  if (
-    navigator.userAgent.includes("Safari") &&
-    !navigator.userAgent.includes("Chrome")
-  ) {
-    const { getDB } = await import("/packages/fs/db-handle/db.js");
-    await getDB();
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
-
   const handWorker = (selfUserStore.__handWorker = new SharedWorker(
     new URL(
       "./hand-shared-worker.js?userdir=" + (userDirName || "main"),
@@ -113,6 +103,28 @@ export const getServers = async (userDirName) => {
   return __handservers;
 };
 
+// 添加服务器
+export const addServer = async (url, userDirName) => {
+  const selfUserStore = await getUserStore(userDirName);
+
+  selfUserStore.servers.push({
+    url,
+  });
+};
+
+// 删除服务器
+export const removeServer = async (url, userDirName) => {
+  const selfUserStore = await getUserStore(userDirName);
+
+  const targetIndex = selfUserStore.servers.findIndex(
+    (server) => server.url === url
+  );
+
+  if (targetIndex !== -1) {
+    selfUserStore.servers.splice(targetIndex, 1); // 移除服务器
+  }
+};
+
 // 给每个对象加上伪装的方法
 const initFakeMethods = (servers, handWorker, cachedTasks) => {
   servers.forEach((server) => {
@@ -169,16 +181,21 @@ const mergeServers = (target, source) => {
     }
   });
 
-  // 反向遍历避免索引错位
-  for (let i = target.length - 1; i >= 0; i--) {
-    if (!newKeys.has(target[i].key)) {
-      target.splice(i, 1);
-    }
-  }
-
   // 更新现有服务器数据
   source.forEach((server) => {
     const current = target.find((s) => s.key === server.key);
     current && Object.assign(current, server);
+  });
+
+  // 获取不存在的key
+  const removedKeys = Array.from(currentKeys).filter(
+    (key) => !newKeys.has(key)
+  );
+  // 移除不存在的服务器（保持响应式特性）
+  removedKeys.forEach((key) => {
+    const index = target.findIndex((s) => s.key === key);
+    if (index !== -1) {
+      target.splice(index, 1);
+    }
   });
 };
