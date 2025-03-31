@@ -1,11 +1,20 @@
 <template component>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <style>
     :host {
-      display: inline-block;
+      display: inline-flex;
       border: var(--md-sys-color-primary) solid 1px;
       padding: 8px;
       border-radius: 16px;
     }
+
+    n-id-avatar {
+      height: 50px;
+      margin-right: 16px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
     .root-item {
       font-weight: 600;
     }
@@ -22,14 +31,17 @@
       color: var(--md-sys-color-normal);
     }
   </style>
+
+  <n-id-avatar attr:val="item.userId"></n-id-avatar>
   <div class="container">
     <div class="line"><b>用户名</b>{{item.userName}}</div>
     <div class="line">
       <b>用户ID</b>
       <n-copy-span
         style="max-width: 300px; text-overflow: ellipsis; overflow: hidden"
-        >{{item.userId}}</n-copy-span
       >
+        {{item.userId}}
+      </n-copy-span>
     </div>
     <slot></slot>
   </div>

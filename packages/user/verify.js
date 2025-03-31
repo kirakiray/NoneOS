@@ -15,16 +15,10 @@ export const verifyData = async ({ data, signature }) => {
 
     const result = await verify(JSON.stringify(data), signatureBuffer);
 
-    return {
-      result,
-      data: data.origin,
-    };
+    return result;
   } catch (err) {
-    // base64转换失败时返回验证失败结果
-    return {
-      result: false,
-      data: data.origin,
-      error: "Invalid base64 signature",
-    };
+    // 抛出错误信息
+    console.error(err);
+    return false;
   }
 };

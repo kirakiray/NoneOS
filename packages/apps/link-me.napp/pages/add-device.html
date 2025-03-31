@@ -68,14 +68,12 @@
           </p-button>
         </p-text-field>
       </p>
-      <p>
-        在其中一边设备上输入另一边的设备码，即可将其添加为我的设备。设备码不区分大小写。
-      </p>
+      <p>在其中一边设备上输入另一边的设备码，即可将其添加为我的设备。</p>
       <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
     </div>
     <x-if :value="oppositeDeviceCode">
       <div>
-        <h5>已查找到的用户</h5>
+        <h5>已查找到的设备</h5>
         <x-if :value="!finnalUsers.length">
           <div
             style="
@@ -92,7 +90,15 @@
         </x-if>
         <x-fill :value="finnalUsers">
           <div style="margin: 16px 0">
-            <n-user-card :item="$data"></n-user-card>
+            <n-user-card :item="$data">
+              <p-button
+                size="mini"
+                attr:disabled="$data.posted"
+                on:click="$host.confirmUser($data)"
+              >
+                {{$data.posted ? '等待对方确认' : '确认是该设备'}}
+              </p-button>
+            </n-user-card>
           </div>
         </x-fill>
       </div>
@@ -114,6 +120,9 @@
     export default async ({ load }) => {
       const { verifyData } = await load("/packages/user/verify.js");
       const { getHash } = await load("/packages/fs/util.js");
+      const { on } = await load("/packages/user/main.js");
+      const { getServers } = await load("/packages/user/main.js");
+      const { getMyCardData } = await load("/packages/user/card/main.js");
 
       return {
         data: {
@@ -122,6 +131,7 @@
           oppositeDeviceCode: "",
           oppoUsers: [], // 查找到的目标用户
           finnalUsers: [],
+          waitId: null, // 等待对方确认的临时id
         },
         watch: {
           oppoUsers() {
@@ -129,6 +139,39 @@
           },
         },
         proto: {
+          async confirmUser(item) {
+            const servers = await getServers();
+
+            // 逐个尝试发送数据
+            for (let e of item.serversData) {
+              const { serverName, serverUrl } = e;
+
+              const targetServer = servers.find(
+                (e) => e.serverUrl === serverUrl
+              );
+
+              if (targetServer) {
+                const waitId = Math.random().toString(36).substring(2, 7);
+
+                const result = await targetServer.post({
+                  type: "agent-data",
+                  friendId: item.userId,
+                  data: {
+                    kind: "verify-my-device", // 验证是否我的设备
+                    cardData: await getMyCardData(),
+                    waitId,
+                  },
+                });
+
+                if (result.code == 200) {
+                  // 发送成功
+                  item.posted = true;
+                  this.waitId = waitId;
+                  break;
+                }
+              }
+            }
+          },
           async initFinnalUsers() {
             if (!this.oppoUsers.length) {
               this.finnalUsers = [];
@@ -138,8 +181,9 @@
             const users = [];
             for (const item of this.oppoUsers) {
               const { serverName, authedData } = item;
-              const userId = await getHash(authedData.data.publicKey);
-              const { result, data } = await verifyData(authedData);
+              const { data } = authedData;
+              const userId = await getHash(data.publicKey);
+              const result = await verifyData(authedData);
 
               if (result) {
                 // 验证通过
@@ -147,14 +191,20 @@
 
                 if (targetUser) {
                   // 已经存在
-                  targetUser.serNames.push(serverName);
+                  targetUser.serversData.push(serverName);
                   continue;
                 }
 
                 users.push({
                   userName: data.userName,
                   userId,
-                  serNames: [serverName],
+                  serversData: [
+                    {
+                      serverName,
+                      serverUrl: item.serverUrl,
+                    },
+                  ],
+                  posted: false, // 是否已经发送过邀请请求
                 });
               }
             }
@@ -170,8 +220,34 @@
         },
         attached() {
           // 向服务端发送邀请码
+          this.__cancels = [
+            on("server-agent-data", async ({ server, data, fromUserId }) => {
+              switch (data.kind) {
+                case "verify-my-device": {
+                  const { cardData } = data;
+
+                  const userData = cardData.data;
+
+                  // 验证卡片是否正确
+                  const result = await verifyData(cardData);
+                  const cardUserId = await getHash(cardData.data.publicKey);
+
+                  if (!result || cardUserId !== fromUserId) {
+                    // 不是目标用户发来的数据，直接拒收
+                    return;
+                  }
+
+                  // 验证是否我的设备
+                  debugger;
+                  break;
+                }
+              }
+            }),
+          ];
         },
-        detached() {},
+        detached() {
+          this.__cancels.forEach((e) => e());
+        },
       };
     };
   </script>

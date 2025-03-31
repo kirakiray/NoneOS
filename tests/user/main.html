@@ -72,12 +72,12 @@
           const verifyResult = await verifyData(signedData);
 
           return {
-            assert: verifyResult.result === true,
+            assert: verifyResult === true,
             content: {
               message: "数据验证成功",
               originalData,
-              verifiedData: verifyResult.data,
-              verified: verifyResult.result,
+              verifiedData: signedData.data,
+              verified: verifyResult,
             },
           };
         } catch (error) {
@@ -108,10 +108,8 @@
                 ...signedData,
                 data: {
                   ...signedData.data,
-                  origin: {
-                    message: "Tampered message",
-                    timestamp: Date.now(),
-                  },
+                  message: "Tampered message",
+                  timestamp: Date.now(),
                 },
               },
             },
@@ -129,7 +127,7 @@
                 ...signedData,
                 data: {
                   ...signedData.data,
-                  time: Date.now() + 1000,
+                  signTime: Date.now() + 1000,
                 },
               },
             },
@@ -141,7 +139,7 @@
               const verifyResult = await verifyData(test.data);
               return {
                 name: test.name,
-                verified: verifyResult.result,
+                verified: verifyResult,
               };
             })
           );

@@ -8,7 +8,8 @@ export const auth = async (
   { serverOptions, serverVersion }
 ) => {
   // 验证用户身份
-  const { result, data } = await verifyData(parsedMessage.authedData);
+  const result = await verifyData(parsedMessage.authedData);
+  const { data } = parsedMessage.authedData;
   const { publicKey, time: accountCreationTime } =
     parsedMessage.authedData.data;
 
