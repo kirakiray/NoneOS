@@ -9,9 +9,28 @@
     .root-item {
       font-weight: 600;
     }
+
+    .line {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .line b {
+      margin-right: 8px;
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+    }
   </style>
   <div class="container">
-    <div class="line">userName:{{authedData?.data?.origin.userName}}</div>
+    <div class="line"><b>用户名</b>{{item.userName}}</div>
+    <div class="line">
+      <b>用户ID</b>
+      <n-copy-span
+        style="max-width: 300px; text-overflow: ellipsis; overflow: hidden"
+        >{{item.userId}}</n-copy-span
+      >
+    </div>
     <slot></slot>
   </div>
   <script>
@@ -19,7 +38,7 @@
       return {
         tag: "n-user-card",
         data: {
-          authedData: {}, // 认证后的数据
+          item: {},
         },
         proto: {},
       };

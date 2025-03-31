@@ -6,10 +6,6 @@
 
   <style>
     :host {
-      display: block;
-    }
-
-    .container {
       display: flex;
       justify-content: center;
       align-items: center;
@@ -67,53 +63,52 @@
     }
   </style>
 
-  <div class="container">
-    <div class="avatar">
-      <n-id-avatar attr:val="userData.userid"></n-id-avatar>
-      <!-- <n-local-icon name="avatar" style="font-size: 28px"></n-local-icon> -->
-    </div>
+  <div class="avatar">
+    <n-id-avatar attr:val="userData.userid"></n-id-avatar>
+    <!-- <n-local-icon name="avatar" style="font-size: 28px"></n-local-icon> -->
+  </div>
 
-    <div style>
-      <div class="line">
-        <div class="line-key">
-          <n-desc name="userName" space="linkme"></n-desc>
-        </div>
-        <div class="line-val" style="display: flex">
-          <x-if :value="renameMode">
-            <input
-              id="renameInputer"
-              type="text"
-              sync:value="userName"
-              on:change="renameEnd"
-              on:blur="renameMode = false"
-            />
-          </x-if>
-          <x-else>
-            <div>{{userName}}</div>
-          </x-else>
-
-          <p-button
-            icon
-            size="small"
-            variant="text"
-            on:click="renameMode = true"
-            class:hide="renameMode"
-            style="margin-left: 8px"
-          >
-            <n-local-icon name="edit"></n-local-icon>
-          </p-button>
-        </div>
+  <div style>
+    <div class="line">
+      <div class="line-key">
+        <n-desc name="userName" space="linkme"></n-desc>
       </div>
-      <div class="line">
-        <div class="line-key">
-          <n-desc name="userId" space="linkme"></n-desc>
-        </div>
-        <div class="line-val" style="font-size: 14px">
-          <n-copy-span>{{userData.userid}} </n-copy-span>
-        </div>
+      <div class="line-val" style="display: flex">
+        <x-if :value="renameMode">
+          <input
+            id="renameInputer"
+            type="text"
+            sync:value="userName"
+            on:change="renameEnd"
+            on:blur="renameMode = false"
+          />
+        </x-if>
+        <x-else>
+          <div>{{userName}}</div>
+        </x-else>
+
+        <p-button
+          icon
+          size="small"
+          variant="text"
+          on:click="renameMode = true"
+          class:hide="renameMode"
+          style="margin-left: 8px"
+        >
+          <n-local-icon name="edit"></n-local-icon>
+        </p-button>
+      </div>
+    </div>
+    <div class="line">
+      <div class="line-key">
+        <n-desc name="userId" space="linkme"></n-desc>
+      </div>
+      <div class="line-val" style="font-size: 14px">
+        <n-copy-span>{{userData.userid}} </n-copy-span>
       </div>
     </div>
   </div>
+  
   <script>
     export default async ({ load }) => {
       const selfUserInfo = {};

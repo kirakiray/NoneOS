@@ -21,6 +21,11 @@
       margin-left: 8px;
       color: var(--md-sys-color-primary);
     }
+    h5 {
+      margin: 8px;
+      font-size: 14px;
+      color: var(--md-sys-color-primary);
+    }
 
     .invite-code {
       display: inline-block;
@@ -68,12 +73,37 @@
       </p>
       <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
     </div>
-    <x-fill :value="oppoUsers">
-      <n-user-card :authed-data="$data.authedData" style="margin: 8px">
-        <div>serverName:{{$data.serverName}}</div>
-        <div>serverUrl:{{$data.serverUrl}}</div>
-      </n-user-card>
-    </x-fill>
+    <x-if :value="oppositeDeviceCode">
+      <div>
+        <h5>已查找到的用户</h5>
+        <x-if :value="!finnalUsers.length">
+          <div
+            style="
+              font-size: 12px;
+              color: var(--md-sys-color-normal);
+              height: 30px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            未查找到用户
+          </div>
+        </x-if>
+        <x-fill :value="finnalUsers">
+          <div style="margin: 16px 0">
+            <n-user-card :item="$data"></n-user-card>
+          </div>
+        </x-fill>
+      </div>
+    </x-if>
+
+    <h5>我的信息</h5>
+    <o-page
+      src="./my-info.html"
+      style="margin: 0 0 16px 8px; justify-content: flex-start"
+    ></o-page>
+
     <n-finduser-list
       :oppo-users="oppoUsers"
       :self-device-code="inviteCode"
@@ -82,14 +112,55 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { verifyData } = await load("/packages/user/verify.js");
+      const { getHash } = await load("/packages/fs/util.js");
+
       return {
         data: {
           inviteCode: Math.random().toString(36).substring(2, 7).toUpperCase(),
           prepareOppoCode: "",
           oppositeDeviceCode: "",
           oppoUsers: [], // 查找到的目标用户
+          finnalUsers: [],
+        },
+        watch: {
+          oppoUsers() {
+            this.initFinnalUsers();
+          },
         },
         proto: {
+          async initFinnalUsers() {
+            if (!this.oppoUsers.length) {
+              this.finnalUsers = [];
+              return;
+            }
+
+            const users = [];
+            for (const item of this.oppoUsers) {
+              const { serverName, authedData } = item;
+              const userId = await getHash(authedData.data.publicKey);
+              const { result, data } = await verifyData(authedData);
+
+              if (result) {
+                // 验证通过
+                const targetUser = users.find((e) => e.userId === userId);
+
+                if (targetUser) {
+                  // 已经存在
+                  targetUser.serNames.push(serverName);
+                  continue;
+                }
+
+                users.push({
+                  userName: data.userName,
+                  userId,
+                  serNames: [serverName],
+                });
+              }
+            }
+
+            this.finnalUsers = users;
+          },
           clickOppoCode() {
             this.oppositeDeviceCode = this.prepareOppoCode;
           },
