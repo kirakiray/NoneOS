@@ -17,12 +17,6 @@ export const signData = async (originData, userDirName) => {
 
   await userStore.pair.ready();
 
-  // let data = {
-  //   time: Date.now(),
-  //   origin: originData,
-  //   publicKey: userStore.pair.publicKey,
-  // };
-
   let data = {
     ...originData,
     signTime: Date.now(),

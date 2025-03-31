@@ -25,15 +25,17 @@ setTimeout(() => {
     (f = () => {
       if (puiRootProvider.theme === "dark") {
         $("html").classList.add("theme-dark-mode");
-      } else {
-        $("html").classList.remove("theme-dark-mode");
+      } else if (puiRootProvider.theme === "light") {
+        $("html").classList.remove("theme-light-mode");
       }
 
-      localStorage.__darkmode = puiRootProvider.theme === "dark" ? "1" : "";
+      localStorage.__pui_theme = puiRootProvider.theme || "auto";
     })
   );
 
-  puiRootProvider.theme = !!localStorage.__darkmode ? "dark" : "light";
+  if (!puiRootProvider.theme) {
+    puiRootProvider.theme = localStorage.__pui_theme;
+  }
 
   f();
 }, 0);

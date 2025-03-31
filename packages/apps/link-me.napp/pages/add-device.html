@@ -22,7 +22,7 @@
       color: var(--md-sys-color-primary);
     }
     h5 {
-      margin: 8px;
+      margin: 8px 0 0 8px;
       font-size: 14px;
       color: var(--md-sys-color-primary);
     }
@@ -53,7 +53,7 @@
     <div style="display: flex; flex-direction: column; align-items: center">
       <p>
         我的设备码是
-        <n-copy-span class="invite-code">{{inviteCode}}</n-copy-span>
+        <n-copy-span class="invite-code">{{deviceCode}}</n-copy-span>
       </p>
       <p>
         <p-text-field sync:value="prepareOppoCode" style="width: 320px">
@@ -98,6 +98,32 @@
               >
                 {{$data.posted ? '等待对方确认' : '确认是该设备'}}
               </p-button>
+              <x-if :value="!$data.posted">
+                <p-button
+                  on:click="$host.finnalUsers.splice($index,1)"
+                  variant="text"
+                  size="mini"
+                  attr:disabled="$data.posted"
+                  style="margin-left: 8px"
+                >
+                  不是这个用户
+                </p-button>
+              </x-if>
+            </n-user-card>
+          </div>
+        </x-fill>
+      </div>
+    </x-if>
+
+    <x-if :value="receivingUsers.length">
+      <div>
+        <h5>收到的邀请</h5>
+        <x-fill :value="receivingUsers">
+          <div style="margin: 16px 0">
+            <n-user-card :item="$data">
+              <p-button size="mini" on:click="$host.okUser($data)">
+                确认它是我的设备
+              </p-button>
             </n-user-card>
           </div>
         </x-fill>
@@ -112,7 +138,7 @@
 
     <n-finduser-list
       :oppo-users="oppoUsers"
-      :self-device-code="inviteCode"
+      :self-device-code="deviceCode"
       :opposite-device-code="oppositeDeviceCode"
     ></n-finduser-list>
   </div>
@@ -120,18 +146,20 @@
     export default async ({ load }) => {
       const { verifyData } = await load("/packages/user/verify.js");
       const { getHash } = await load("/packages/fs/util.js");
-      const { on } = await load("/packages/user/main.js");
-      const { getServers } = await load("/packages/user/main.js");
+      const { on, getServers } = await load("/packages/user/main.js");
+      const { signData } = await load("/packages/user/sign.js");
       const { getMyCardData } = await load("/packages/user/card/main.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
 
       return {
         data: {
-          inviteCode: Math.random().toString(36).substring(2, 7).toUpperCase(),
+          deviceCode: Math.random().toString(36).substring(2, 7).toUpperCase(),
           prepareOppoCode: "",
           oppositeDeviceCode: "",
           oppoUsers: [], // 查找到的目标用户
           finnalUsers: [],
           waitId: null, // 等待对方确认的临时id
+          receivingUsers: [], // 正在接收的用户
         },
         watch: {
           oppoUsers() {
@@ -139,6 +167,22 @@
           },
         },
         proto: {
+          // 确认对方是我的设备
+          async okUser(item) {
+            const result = await confirm({
+              content: `确认将 ${item.userName} 添加为我的设备吗？请仔细确认对方身份，添加非本人设备可能导致个人隐私数据泄露。`,
+              yes: "是的",
+            });
+
+            if (!result) {
+              return;
+            }
+
+            // 给目标用户签发证书
+
+            debugger;
+          },
+          // 向目标用户发送确认请求
           async confirmUser(item) {
             const servers = await getServers();
 
@@ -158,7 +202,10 @@
                   friendId: item.userId,
                   data: {
                     kind: "verify-my-device", // 验证是否我的设备
-                    cardData: await getMyCardData(),
+                    cardItem: await getMyCardData(),
+                    inviteItem: await signData({
+                      deviceCode: this.oppositeDeviceCode,
+                    }),
                     waitId,
                   },
                 });
@@ -224,21 +271,34 @@
             on("server-agent-data", async ({ server, data, fromUserId }) => {
               switch (data.kind) {
                 case "verify-my-device": {
-                  const { cardData } = data;
+                  const { cardItem, inviteItem, waitId } = data;
 
-                  const userData = cardData.data;
+                  const userData = cardItem.data;
 
                   // 验证卡片是否正确
-                  const result = await verifyData(cardData);
-                  const cardUserId = await getHash(cardData.data.publicKey);
+                  const cardResult = await verifyData(cardItem);
+                  const inviteResult = await verifyData(inviteItem);
+                  const cardUserId = await getHash(userData.publicKey);
 
-                  if (!result || cardUserId !== fromUserId) {
+                  // 验证是否是目标用户发来的数据
+                  if (
+                    inviteItem.data.publicKey !== cardItem.data.publicKey ||
+                    inviteItem.data.deviceCode !== this.deviceCode ||
+                    !cardResult ||
+                    !inviteResult ||
+                    cardUserId !== fromUserId
+                  ) {
                     // 不是目标用户发来的数据，直接拒收
                     return;
                   }
 
-                  // 验证是否我的设备
-                  debugger;
+                  // 验证通过，展示给用户确认
+                  this.receivingUsers.push({
+                    userName: userData.userName,
+                    userId: cardUserId,
+                    waitId,
+                    __server: server,
+                  });
                   break;
                 }
               }
