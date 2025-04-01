@@ -11,8 +11,9 @@
     <script type="module">
       import { getUserStore, on } from "/packages/user/main.js";
       import {
-        entryDevice,
+        findDevice,
         onEntryDevice,
+        authDevice,
         getDeviceStore,
       } from "/packages/user/device/main.js";
 
@@ -23,37 +24,44 @@
       const user1 = await getUserStore("user1");
       const user2 = await getUserStore("user2");
 
-      const devices = await getDeviceStore("user1");
+      const devices1 = await getDeviceStore("user1");
+      const devices2 = await getDeviceStore("user1");
+
+      // 设备码，用于查找用户
+      const deviceCode = Math.random().toString(36).substring(2, 6);
+      // 验证码，用于判断用户是否目标用户
+      const verifyCode = Math.random().toString(36).substring(2, 6);
 
       // 监听是否有用户向发送添加设备的请求
-      onEntryDevice(
+      await onEntryDevice(
         {
           deviceCode,
-          async confirm(data) {
+          verifyCode,
+          async confirm({ userData, waitingTime }) {
             // 确认对方的设备信息
             // 返回true表示同意，false表示拒绝
             // 这里可以弹出一个对话框，询问对方是否同意
             // 这里也可以直接返回true，不弹出对话框
-            debugger;
+
+            if (
+              userData.userName === user1.userName &&
+              userData.publicKey === user1.pair.publicKey
+            ) {
+              return true;
+            }
           },
         },
         "user2"
       );
 
-      const deviceCode = Math.random().toString(36).substring(2, 6);
+      const users = await findDevice(deviceCode, "user1");
 
-      const result = await entryDevice(
+      // 授权给第一个用户
+      const result = await authDevice(
         {
-          deviceCode,
-          async confirm(data) {
-            // 确认对方的设备信息
-            // 返回true表示同意，false表示拒绝
-            // 这里可以弹出一个对话框，询问对方是否同意
-            // 这里也可以直接返回true，不弹出对话框
-            debugger;
-
-            return true;
-          },
+          userId: users[0].userId,
+          verifyCode,
+          servers: users[0].serversData.map((e) => e.serverUrl),
         },
         "user1"
       );

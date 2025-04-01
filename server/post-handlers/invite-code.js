@@ -56,8 +56,6 @@ export default {
 
     // client.__inviteCode = requestBody.inviteCode;
 
-    return {
-      test: 200,
-    };
+    return null;
   },
 };
