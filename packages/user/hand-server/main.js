@@ -12,6 +12,8 @@ export const getServers = async (userDirName) => {
   if (!selfUserStore.servers || selfUserStore.servers.length === 0) {
     selfUserStore.servers = [];
     if (location.host.includes("localhost")) {
+      await selfUserStore.servers.ready();
+
       // 加入测试地址
       selfUserStore.servers.push({
         url: "ws://localhost:5579/",
@@ -20,11 +22,14 @@ export const getServers = async (userDirName) => {
         url: "ws://localhost:5589/",
       });
 
-      await selfUserStore.servers.ready();
+      await selfUserStore.servers.ready(true);
     } else {
       // TODO: 加入官方推荐的地址
       debugger;
     }
+
+    // 等待300ms，确保数据同步完成
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
   if (selfUserStore.__handservers) {
