@@ -17,7 +17,8 @@ export class HandServer extends Stanz {
       serverVersion: null, // 服务器版本
       connectedTime: null, // 连接建立时间
       key: Math.random().toString(36).slice(2), // 随机生成的唯一标识
-      serverUrl: url,
+      serverUrl: url, // 服务器地址
+      initialized: false, // 是否已初始化一次
     });
 
     this.#serverUrl = url;
@@ -94,6 +95,7 @@ export class HandServer extends Stanz {
             this.connectedTime = Date.now();
             this.initHeartbeat();
             console.log("用户认证成功");
+            this.initialized = true;
             break;
           case "pong":
             // 处理服务器的心跳响应
@@ -154,6 +156,7 @@ export class HandServer extends Stanz {
       webSocket.onclose = () => {
         console.log("WebSocket连接已关闭", this);
         this.connectionState = "disconnected";
+        this.initialized = true;
         this.clearup();
         reject(new Error("连接已关闭"));
       };
@@ -162,6 +165,7 @@ export class HandServer extends Stanz {
       webSocket.onerror = (error) => {
         console.error("WebSocket连接错误:", error);
         this.connectionState = "error";
+        this.initialized = true;
         this.clearup();
         reject(error);
       };

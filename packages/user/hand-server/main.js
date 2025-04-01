@@ -4,6 +4,7 @@ import { emit } from "../event.js";
 
 // 获取服务器列表
 export const getServers = async (userDirName) => {
+  userDirName = userDirName || "main";
   const selfUserStore = await getUserStore(userDirName);
   await selfUserStore.ready(true);
 
@@ -35,11 +36,11 @@ export const getServers = async (userDirName) => {
 
     const handWorker = (selfUserStore.__handWorker = new SharedWorker(
       new URL(
-        "./hand-shared-worker.js?userdir=" + (userDirName || "main"),
+        "./hand-shared-worker.js?userdir=" + userDirName,
         import.meta.url
       ),
       {
-        name: "hand-worker-" + (userDirName || "main"),
+        name: "hand-worker-" + userDirName,
         type: "module",
       }
     ));

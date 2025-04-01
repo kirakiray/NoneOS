@@ -12,6 +12,7 @@
       import { getUserStore, on } from "/packages/user/main.js";
       import {
         entryDevice,
+        onEntryDevice,
         getDeviceStore,
       } from "/packages/user/device/main.js";
 
@@ -24,12 +25,26 @@
 
       const devices = await getDeviceStore("user1");
 
+      // 监听是否有用户向发送添加设备的请求
+      onEntryDevice(
+        {
+          deviceCode,
+          async confirm(data) {
+            // 确认对方的设备信息
+            // 返回true表示同意，false表示拒绝
+            // 这里可以弹出一个对话框，询问对方是否同意
+            // 这里也可以直接返回true，不弹出对话框
+            debugger;
+          },
+        },
+        "user2"
+      );
+
       const deviceCode = Math.random().toString(36).substring(2, 6);
 
       const result = await entryDevice(
         {
-          userId: user2.userId, // 对方的用户id
-          deviceCode, // 服务端的辨识对方的id
+          deviceCode,
           async confirm(data) {
             // 确认对方的设备信息
             // 返回true表示同意，false表示拒绝

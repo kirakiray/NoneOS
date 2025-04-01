@@ -1,6 +1,7 @@
 import { createData } from "/packages/hybird-data/main.js";
 import { get } from "/packages/fs/main.js";
 import { getServers } from "../hand-server/main.js";
+import { on } from "../event.js";
 
 const stores = {};
 
@@ -28,15 +29,31 @@ export const getDeviceStore = async (userDirName) => {
 };
 
 // 添加设备
-// opoUserId 对方用户id
+// deviceCode 设备码
+// confirm 确认信息
 // userDirName 当前用户目录
-export const entryDevice = async (options, userDirName) => {
+export const entryDevice = async ({ deviceCode, confirm }, userDirName) => {
   const devices = await getDeviceStore(userDirName);
-
-  const { userId, deviceCode, confirm } = options;
 
   // 前从服务器查找用户
   const servers = await getServers(userDirName);
 
+  // 等待服务器准备完成
+  await servers.watchUntil(
+    () => servers.every((server) => server.initialized),
+    10000
+  );
+
+  // 向所有服务器发送
+
   debugger;
+};
+
+// 有用户向你发送添加请求
+// deviceCode 设备码
+// confirm 确认信息
+export const onEntryDevice = async ({ deviceCode, confirm }, userDirName) => {
+  return on("server-agent-data", (e) => {
+    debugger;
+  });
 };
