@@ -9,67 +9,41 @@
   <body>
     <div id="log"></div>
     <script type="module">
-      import { getServers, getUserStore, on } from "/packages/user/main.js";
-      import { getCards, getMyCardData } from "/packages/user/card/main.js";
+      import { getUserStore, on } from "/packages/user/main.js";
+      import {
+        entryDevice,
+        getDeviceStore,
+      } from "/packages/user/device/main.js";
 
       on("server-agent-data", (e) => {
         console.log("server-agent-data: ", e);
       });
 
-      const user1Servers = await getServers("user1");
-      const user2Servers = await getServers("user2");
-
       const user1 = await getUserStore("user1");
       const user2 = await getUserStore("user2");
 
-      const user1Cards = await getCards("user1");
-      const user2Cards = await getCards("user2");
+      const devices = await getDeviceStore("user1");
 
-      window.user2Cards = user2Cards;
+      const deviceCode = Math.random().toString(36).substring(2, 6);
 
-      const user1carddata = await getMyCardData("user1");
+      const result = await entryDevice(
+        {
+          userId: user2.userId, // 对方的用户id
+          deviceCode, // 服务端的辨识对方的id
+          async confirm(data) {
+            // 确认对方的设备信息
+            // 返回true表示同意，false表示拒绝
+            // 这里可以弹出一个对话框，询问对方是否同意
+            // 这里也可以直接返回true，不弹出对话框
+            debugger;
 
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 等待以确保服务器连接稳定
-
-      // $("#log").text = JSON.stringify(user2Cards, 2);
-
-      // 尝试派发卡片给目标用户
-      // 用户1发送数据到用户2
-      await user1Servers[0].post({
-        type: "agent-data",
-        friendId: user2.userid,
-        data: {
-          way: "handoutCard", // way: 发送给对方要处理的方式
-          cardData: user1carddata,
+            return true;
+          },
         },
-      });
+        "user1"
+      );
 
-      await new Promise((resolve) => setTimeout(resolve, 500)); // 等待卡片派发和保存
-
-      // $("#log").text = JSON.stringify(user2Cards, 2);
-
-      const u2Carddata0 = user2Cards[0].toJSON();
-
-      // 签名是一样的
-      console.log(u2Carddata0.signature === user1carddata.signature);
-
-      // const inviteCode = Math.random().toString(36).slice(2, 6); // 生成6位随机字符串作为邀请码
-
-      // // 用户1设置邀请码
-      // const inviteResult = await user1Servers[0].post({
-      //   type: "invite-code",
-      //   setInviteCode: inviteCode,
-      // });
-
-      // console.log("inviteResult: ", inviteResult);
-
-      // // 查找用户2
-      // const findResult = await user2Servers[0].post({
-      //   type: "invite-code",
-      //   findInviteCode: inviteCode,
-      // });
-
-      // console.log("findResult: ", findResult);
+      debugger;
     </script>
   </body>
 </html>

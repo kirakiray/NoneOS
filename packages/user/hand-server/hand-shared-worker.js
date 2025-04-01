@@ -12,10 +12,8 @@ const userDirName = new URLSearchParams(location.search).get("userdir");
 // 生成服务器对象数据
 const servers = new Stanz([]);
 
-// 获取用户数据
-const userStorePms = getUserStore(userDirName);
-
-userStorePms.then(async (userStore) => {
+// 初始化用户数据
+const userStorePms = getUserStore(userDirName).then(async (userStore) => {
   await userStore.ready(true);
 
   const initServersItem = async (e) => {
@@ -180,7 +178,7 @@ self.onconnect = async (e) => {
 
   // 初始化服务器列表
   port.postMessage({
-    resType: "update",
+    resType: "init-update",
     resData: {
       servers: servers.toJSON(),
     },

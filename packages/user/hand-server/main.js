@@ -10,7 +10,6 @@ export const getServers = async (userDirName) => {
   // 初始化服务器列表
   if (!selfUserStore.servers || selfUserStore.servers.length === 0) {
     selfUserStore.servers = [];
-    debugger;
     if (location.host.includes("localhost")) {
       // 加入测试地址
       selfUserStore.servers.push({
@@ -21,9 +20,6 @@ export const getServers = async (userDirName) => {
       });
 
       await selfUserStore.servers.ready();
-
-      // TODO: server 应该监听变化，实时更新
-      await new Promise((resolve) => setTimeout(resolve, 500));
     } else {
       // TODO: 加入官方推荐的地址
       debugger;
@@ -34,73 +30,78 @@ export const getServers = async (userDirName) => {
     return selfUserStore.__handservers;
   }
 
-  // 生成服务器对象数据
-  const __handservers = (selfUserStore.__handservers = new Stanz([]));
+  selfUserStore.__handservers = new Promise((resolve, reject) => {
+    const handServers = new Stanz([]);
 
-  const handWorker = (selfUserStore.__handWorker = new SharedWorker(
-    new URL(
-      "./hand-shared-worker.js?userdir=" + (userDirName || "main"),
-      import.meta.url
-    ),
-    {
-      name: "hand-worker-" + (userDirName || "main"),
-      type: "module",
-    }
-  ));
-
-  const cachedTasks = new Map();
-
-  handWorker.port.onmessage = (e) => {
-    const { resType, resData } = e.data;
-    switch (resType) {
-      case "update": {
-        const { servers } = resData;
-        mergeServers(__handservers, servers); // 使用新函数
-        initFakeMethods(__handservers, handWorker, cachedTasks);
-        // console.log("服务器列表初始化", servers);
-        break;
+    const handWorker = (selfUserStore.__handWorker = new SharedWorker(
+      new URL(
+        "./hand-shared-worker.js?userdir=" + (userDirName || "main"),
+        import.meta.url
+      ),
+      {
+        name: "hand-worker-" + (userDirName || "main"),
+        type: "module",
       }
-      case "response": {
-        const { response, taskID, error } = resData;
-        const task = cachedTasks.get(taskID);
+    ));
 
-        if (task) {
-          if (error) {
-            task.reject(error);
-          } else {
-            task.resolve(response);
+    const cachedTasks = new Map();
+
+    handWorker.port.onmessage = (e) => {
+      const { resType, resData } = e.data;
+      switch (resType) {
+        case "init-update":
+        case "update": {
+          const { servers } = resData;
+          mergeServers(handServers, servers); // 使用新函数
+          initFakeMethods(handServers, handWorker, cachedTasks);
+          // console.log("服务器列表初始化", servers);
+          if (resType === "init-update") {
+            resolve(handServers);
+          }
+          break;
+        }
+        case "response": {
+          const { response, taskID, error } = resData;
+          const task = cachedTasks.get(taskID);
+
+          if (task) {
+            if (error) {
+              task.reject(error);
+            } else {
+              task.resolve(response);
+            }
+
+            cachedTasks.delete(taskID);
+          }
+          break;
+        }
+        case "onagentdata": {
+          const { key, fromUserId, agentData } = resData;
+          const server = handServers.find((s) => s.key === key);
+          if (server && server._onagentdata) {
+            server._onagentdata(fromUserId, agentData);
           }
 
-          cachedTasks.delete(taskID);
+          emit("server-agent-data", {
+            server,
+            fromUserId,
+            data: agentData,
+          });
+
+          break;
         }
-        break;
       }
-      case "onagentdata": {
-        const { key, fromUserId, agentData } = resData;
-        const server = __handservers.find((s) => s.key === key);
-        if (server && server._onagentdata) {
-          server._onagentdata(fromUserId, agentData);
-        }
+    };
 
-        emit("server-agent-data", {
-          server,
-          fromUserId,
-          data: agentData,
-        });
-
-        break;
-      }
-    }
-  };
-
-  // 标签关闭时，发送关闭消息
-  window.addEventListener("beforeunload", () => {
-    handWorker.port.postMessage({
-      agentType: "close",
+    // 标签关闭时，发送关闭消息
+    window.addEventListener("beforeunload", () => {
+      handWorker.port.postMessage({
+        agentType: "close",
+      });
     });
   });
 
-  return __handservers;
+  return selfUserStore.__handservers;
 };
 
 // 添加服务器

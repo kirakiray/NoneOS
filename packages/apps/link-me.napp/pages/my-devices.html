@@ -39,8 +39,8 @@
   </p-list>
   <script>
     export default async ({ load }) => {
-      const { getDevices } = await load("/packages/user/main.js");
-      const devices = await getDevices();
+      const { getDeviceStore } = await load("/packages/user/main.js");
+      const devices = await getDeviceStore();
 
       console.log("devices", devices);
 

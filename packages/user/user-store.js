@@ -60,6 +60,11 @@ export const getUserStore = async (userDirName) => {
           return userid;
         },
       },
+      userId: {
+        get() {
+          return userid;
+        },
+      },
     });
 
     return userStore;

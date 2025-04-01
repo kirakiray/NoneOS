@@ -3,7 +3,7 @@ import { createData } from "/packages/hybird-data/main.js";
 import { getUserStore } from "../user-store.js";
 import { signData } from "../sign.js";
 
-let stores = {};
+const stores = {};
 
 // 获取用户卡片数据
 export const getCards = async (userDirName) => {

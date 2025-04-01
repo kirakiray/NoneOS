@@ -89,7 +89,7 @@
           </div>
         </x-if>
         <x-fill :value="finnalUsers">
-          <div style="margin: 16px 0">
+          <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
               <p-button
                 size="mini"
@@ -119,10 +119,14 @@
       <div>
         <h5>收到的邀请</h5>
         <x-fill :value="receivingUsers">
-          <div style="margin: 16px 0">
+          <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
-              <p-button size="mini" on:click="$host.okUser($data)">
-                确认它是我的设备
+              <p-button
+                size="mini"
+                attr:disabled="$data.sended"
+                on:click="$host.okUser($data)"
+              >
+                {{$data.sended? '已发送确认信息' : '确认它是我的设备'}}
               </p-button>
             </n-user-card>
           </div>
@@ -133,7 +137,7 @@
     <h5>我的信息</h5>
     <o-page
       src="./my-info.html"
-      style="margin: 0 0 16px 8px; justify-content: flex-start"
+      style="margin: 8px 0 16px 8px; justify-content: flex-start"
     ></o-page>
 
     <n-finduser-list
@@ -146,10 +150,16 @@
     export default async ({ load }) => {
       const { verifyData } = await load("/packages/user/verify.js");
       const { getHash } = await load("/packages/fs/util.js");
-      const { on, getServers } = await load("/packages/user/main.js");
+      const { on, getServers, getDeviceStore, getUserStore } = await load(
+        "/packages/user/main.js"
+      );
       const { signData } = await load("/packages/user/sign.js");
       const { getMyCardData } = await load("/packages/user/card/main.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
+
+      const devices = await getDeviceStore();
+
+      const selfUserStore = await getUserStore();
 
       return {
         data: {
@@ -158,7 +168,6 @@
           oppositeDeviceCode: "",
           oppoUsers: [], // 查找到的目标用户
           finnalUsers: [],
-          waitId: null, // 等待对方确认的临时id
           receivingUsers: [], // 正在接收的用户
         },
         watch: {
@@ -169,18 +178,37 @@
         proto: {
           // 确认对方是我的设备
           async okUser(item) {
-            const result = await confirm({
+            const confirmResult = await confirm({
               content: `确认将 ${item.userName} 添加为我的设备吗？请仔细确认对方身份，添加非本人设备可能导致个人隐私数据泄露。`,
               yes: "是的",
             });
 
-            if (!result) {
+            if (!confirmResult) {
               return;
             }
 
             // 给目标用户签发证书
+            const certificate = await signData({
+              authTo: item.userId, // 授权给目标用户
+              permission: "Fully", // 完全的授权，代表是本人设备
+              expire: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30天有效期
+            });
 
-            debugger;
+            // 发送证书给目标用户
+            const result = await item.__server.post({
+              type: "agent-data",
+              friendId: item.userId,
+              data: {
+                kind: "verify-my-device-result", // 验证是否我的设备
+                userCard: await getMyCardData(),
+                certificate,
+                targetWaitId: item.waitId,
+              },
+            });
+
+            item.sended = true;
+
+            console.log("给对方签发证书成功", result);
           },
           // 向目标用户发送确认请求
           async confirmUser(item) {
@@ -195,8 +223,11 @@
               );
 
               if (targetServer) {
-                const waitId = Math.random().toString(36).substring(2, 7);
+                const waitId = Math.random().toString(36).substring(2);
 
+                item.__waitId = waitId; // 记录waitId
+
+                // 发送数据
                 const result = await targetServer.post({
                   type: "agent-data",
                   friendId: item.userId,
@@ -213,7 +244,6 @@
                 if (result.code == 200) {
                   // 发送成功
                   item.posted = true;
-                  this.waitId = waitId;
                   break;
                 }
               }
@@ -271,7 +301,7 @@
             on("server-agent-data", async ({ server, data, fromUserId }) => {
               switch (data.kind) {
                 case "verify-my-device": {
-                  const { cardItem, inviteItem, waitId } = data;
+                  const { cardItem, inviteItem } = data;
 
                   const userData = cardItem.data;
 
@@ -296,10 +326,51 @@
                   this.receivingUsers.push({
                     userName: userData.userName,
                     userId: cardUserId,
-                    waitId,
+                    waitId: data.waitId,
                     __server: server,
                   });
                   break;
+                }
+                case "verify-my-device-result": {
+                  // 对方确认了我的设备
+                  const { targetWaitId, certificate, userCard } = data;
+
+                  const targetItem = this.finnalUsers.find(
+                    (e) => e.__waitId === targetWaitId
+                  );
+
+                  if (!targetItem) {
+                    // 没找到等待中的配对设备
+                    return;
+                  }
+
+                  // 验证证书
+                  const certResult = await verifyData(certificate);
+                  const cardResult = await verifyData(userCard);
+                  if (!certResult || !cardResult) {
+                    // 证书验证失败
+                    return;
+                  }
+
+                  // 确保是授权给我的设备
+                  if (certificate.data.authTo !== selfUserStore.userId) {
+                    return;
+                  }
+
+                  // 验证通过，添加设备
+                  const deviceData = {
+                    userCard,
+                    oppoCertificate: certificate,
+                  };
+
+                  devices;
+                  // await addDevice({
+                  //   userId: userCard.data.userId,
+                  //   serverUrl: server.serverUrl,
+                  //   serverName: server.serverName,
+                  //   publicKey: userCard.data.publicKey,
+                  // });
+                  debugger;
                 }
               }
             }),
