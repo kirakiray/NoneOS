@@ -31,4 +31,9 @@ test.describe("User Tests", () => {
     await page.goto("/tests/user/card-handout.html");
     await testSucceedCount(page, 1);
   });
+
+  test("Device addition tests", async ({ page, browserName }) => {
+    await page.goto("/tests/user/add-device.html");
+    await testSucceedCount(page, 1);
+  });
 });
