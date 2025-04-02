@@ -2,7 +2,6 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
-  <l-m src="../comps/finduser-list.html"></l-m>
   <l-m src="../comps/user-card.html"></l-m>
   <style>
     :host {
@@ -53,16 +52,16 @@
     <div style="display: flex; flex-direction: column; align-items: center">
       <p>
         我的设备码是
-        <n-copy-span class="invite-code">{{deviceCode}}</n-copy-span>
+        <n-copy-span class="invite-code">{{finnalCode}}</n-copy-span>
       </p>
       <p>
-        <p-text-field sync:value="prepareOppoCode" style="width: 320px">
+        <p-text-field sync:value="prepareCode" style="width: 320px">
           <label>另一边设备码</label>
           <p-button
             size="small"
             slot="suffix"
-            attr:disabled="!prepareOppoCode"
-            on:click="clickOppoCode"
+            attr:disabled="!prepareCode"
+            on:click="clickCodeConfirm"
           >
             确认
           </p-button>
@@ -74,7 +73,7 @@
     <x-if :value="oppositeDeviceCode">
       <div>
         <h5>已查找到的设备</h5>
-        <x-if :value="!finnalUsers.length">
+        <x-if :value="!oppoUsers.length">
           <div
             style="
               font-size: 12px;
@@ -88,7 +87,7 @@
             未查找到用户
           </div>
         </x-if>
-        <x-fill :value="finnalUsers">
+        <x-fill :value="oppoUsers">
           <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
               <p-button
@@ -98,9 +97,20 @@
               >
                 {{$data.posted ? '等待对方确认' : '确认是该设备'}}
               </p-button>
+              <x-if :value="$data.time">
+                <div
+                  style="
+                    display: inline-block;
+                    font-size: 12px;
+                    color: var(--md-sys-color-primary);
+                  "
+                >
+                  {{$data.time / 1000}}s
+                </div>
+              </x-if>
               <x-if :value="!$data.posted">
                 <p-button
-                  on:click="$host.finnalUsers.splice($index,1)"
+                  on:click="$host.oppoUsers.splice($index,1)"
                   variant="text"
                   size="mini"
                   attr:disabled="$data.posted"
@@ -128,6 +138,17 @@
               >
                 {{$data.sended? '已发送确认信息' : '确认它是我的设备'}}
               </p-button>
+              <x-if :value="$data.time">
+                <div
+                  style="
+                    display: inline-block;
+                    font-size: 12px;
+                    color: var(--md-sys-color-primary);
+                  "
+                >
+                  {{$data.time / 1000}}s
+                </div>
+              </x-if>
             </n-user-card>
           </div>
         </x-fill>
@@ -139,43 +160,74 @@
       src="./my-info.html"
       style="margin: 8px 0 16px 8px; justify-content: flex-start"
     ></o-page>
-
-    <n-finduser-list
-      :oppo-users="oppoUsers"
-      :self-device-code="deviceCode"
-      :opposite-device-code="oppositeDeviceCode"
-    ></n-finduser-list>
   </div>
   <script>
     export default async ({ load }) => {
-      const { verifyData } = await load("/packages/user/verify.js");
-      const { getHash } = await load("/packages/fs/util.js");
-      const { on, getServers, getDeviceStore, getUserStore } = await load(
-        "/packages/user/main.js"
-      );
-      const { signData } = await load("/packages/user/sign.js");
-      const { getMyCardData } = await load("/packages/user/card/main.js");
+      const { findDevice, onEntryDevice, authDevice, getDeviceStore } =
+        await load("/packages/user/device/main.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
 
-      const devices = await getDeviceStore();
-
-      const selfUserStore = await getUserStore();
+      const { getHash } = await load("/packages/fs/util.js");
 
       return {
         data: {
-          deviceCode: Math.random().toString(36).substring(2, 7).toUpperCase(),
-          prepareOppoCode: "",
-          oppositeDeviceCode: "",
-          oppoUsers: [], // 查找到的目标用户
-          finnalUsers: [],
-          receivingUsers: [], // 正在接收的用户
-        },
-        watch: {
-          oppoUsers() {
-            this.initFinnalUsers();
-          },
+          deviceCode: Math.random().toString(36).substring(2, 8), // 当前设备的临时设备码
+          verifyCode: Math.random().toString(36).substring(2, 5), // 用于验证设备的验证码
+          prepareCode: "", // 准备输入的对面的设备码，点击确认后会赋值给 oppositeDeviceCode
+          oppositeDeviceCode: "", // 对面的设备码
+          oppositeVerifyCode: "", // 对面的验证码
+          oppoUsers: [], // 查找到的对面的用户
+          receivingUsers: [], // 收到的邀请
         },
         proto: {
+          get finnalCode() {
+            return this.deviceCode + this.verifyCode;
+          },
+          // 点击了确认按钮
+          async clickCodeConfirm() {
+            // 截取设备码和验证码
+            this.oppositeDeviceCode = this.prepareCode.slice(0, 6);
+            this.oppositeVerifyCode = this.prepareCode.slice(6);
+
+            // 查找设备
+            const devices = await findDevice(this.oppositeDeviceCode);
+
+            this.oppoUsers = devices;
+          },
+          async confirmUser(user) {
+            user.posted = true;
+
+            // 等待时间
+            const waitingTime = 60 * 1000;
+
+            user.time = waitingTime;
+            user._timer = setInterval(() => {
+              user.time -= 1000;
+              if (user.time <= 0) {
+                clearInterval(user._timer);
+
+                // 删除
+                this.oppoUsers.splice(this.oppoUsers.indexOf(user), 1);
+              }
+            }, 1000);
+
+            // 向对方发送授权申请
+            const targetDevice = await authDevice({
+              userId: user.userId,
+              verifyCode: this.oppositeVerifyCode,
+              waitingTime,
+              servers: user.serversData.map((e) => e.serverUrl),
+            });
+
+            if (targetDevice) {
+              // 添加成功，删除
+              this.oppoUsers.splice(this.oppoUsers.indexOf(user), 1);
+              enqueue({
+                color: "success",
+                content: `添加设备 ${targetDevice.userCard.data.userName} 成功`,
+              });
+            }
+          },
           // 确认对方是我的设备
           async okUser(item) {
             const confirmResult = await confirm({
@@ -187,109 +239,17 @@
               return;
             }
 
-            // 给目标用户签发证书
-            const certificate = await signData({
-              authTo: item.userId, // 授权给目标用户
-              permission: "Fully", // 完全的授权，代表是本人设备
-              expire: Date.now() + 1000 * 60 * 60 * 24 * 30, // 30天有效期
+            // 向对方发送确认信息
+            item._resolve(true);
+
+            // 弹出提示
+            enqueue({
+              color: "success",
+              content: `添加设备 ${item.userName} 成功`,
             });
 
-            // 发送证书给目标用户
-            const result = await item.__server.post({
-              type: "agent-data",
-              friendId: item.userId,
-              data: {
-                kind: "verify-my-device-result", // 验证是否我的设备
-                userCard: await getMyCardData(),
-                certificate,
-                targetWaitId: item.waitId,
-              },
-            });
-
-            item.sended = true;
-
-            console.log("给对方签发证书成功", result);
-          },
-          // 向目标用户发送确认请求
-          async confirmUser(item) {
-            const servers = await getServers();
-
-            // 逐个尝试发送数据
-            for (let e of item.serversData) {
-              const { serverName, serverUrl } = e;
-
-              const targetServer = servers.find(
-                (e) => e.serverUrl === serverUrl
-              );
-
-              if (targetServer) {
-                const waitId = Math.random().toString(36).substring(2);
-
-                item.__waitId = waitId; // 记录waitId
-
-                // 发送数据
-                const result = await targetServer.post({
-                  type: "agent-data",
-                  friendId: item.userId,
-                  data: {
-                    kind: "verify-my-device", // 验证是否我的设备
-                    cardItem: await getMyCardData(),
-                    inviteItem: await signData({
-                      deviceCode: this.oppositeDeviceCode,
-                    }),
-                    waitId,
-                  },
-                });
-
-                if (result.code == 200) {
-                  // 发送成功
-                  item.posted = true;
-                  break;
-                }
-              }
-            }
-          },
-          async initFinnalUsers() {
-            if (!this.oppoUsers.length) {
-              this.finnalUsers = [];
-              return;
-            }
-
-            const users = [];
-            for (const item of this.oppoUsers) {
-              const { serverName, authedData } = item;
-              const { data } = authedData;
-              const userId = await getHash(data.publicKey);
-              const result = await verifyData(authedData);
-
-              if (result) {
-                // 验证通过
-                const targetUser = users.find((e) => e.userId === userId);
-
-                if (targetUser) {
-                  // 已经存在
-                  targetUser.serversData.push(serverName);
-                  continue;
-                }
-
-                users.push({
-                  userName: data.userName,
-                  userId,
-                  serversData: [
-                    {
-                      serverName,
-                      serverUrl: item.serverUrl,
-                    },
-                  ],
-                  posted: false, // 是否已经发送过邀请请求
-                });
-              }
-            }
-
-            this.finnalUsers = users;
-          },
-          clickOppoCode() {
-            this.oppositeDeviceCode = this.prepareOppoCode;
+            // 去掉
+            this.receivingUsers.splice(this.receivingUsers.indexOf(item), 1);
           },
           clickBack() {
             this.app.back();
@@ -298,86 +258,62 @@
         attached() {
           // 向服务端发送邀请码
           this.__cancels = [
-            on("server-agent-data", async ({ server, data, fromUserId }) => {
-              switch (data.kind) {
-                case "verify-my-device": {
-                  const { cardItem, inviteItem } = data;
+            onEntryDevice({
+              deviceCode: this.deviceCode,
+              verifyCode: this.verifyCode,
+              confirm: async ({ userData, waitingTime }) => {
+                const userId = await getHash(userData.publicKey);
 
-                  const userData = cardItem.data;
-
-                  // 验证卡片是否正确
-                  const cardResult = await verifyData(cardItem);
-                  const inviteResult = await verifyData(inviteItem);
-                  const cardUserId = await getHash(userData.publicKey);
-
-                  // 验证是否是目标用户发来的数据
-                  if (
-                    inviteItem.data.publicKey !== cardItem.data.publicKey ||
-                    inviteItem.data.deviceCode !== this.deviceCode ||
-                    !cardResult ||
-                    !inviteResult ||
-                    cardUserId !== fromUserId
-                  ) {
-                    // 不是目标用户发来的数据，直接拒收
-                    return;
-                  }
-
-                  // 验证通过，展示给用户确认
-                  this.receivingUsers.push({
-                    userName: userData.userName,
-                    userId: cardUserId,
-                    waitId: data.waitId,
-                    __server: server,
-                  });
-                  break;
+                // 确认用户没有重复
+                if (this.receivingUsers.find((e) => e.userId === userId)) {
+                  return false;
                 }
-                case "verify-my-device-result": {
-                  // 对方确认了我的设备
-                  const { targetWaitId, certificate, userCard } = data;
 
-                  const targetItem = this.finnalUsers.find(
-                    (e) => e.__waitId === targetWaitId
-                  );
+                this.receivingUsers.push({
+                  userId,
+                  userName: userData.userName,
+                  time: waitingTime,
+                });
 
-                  if (!targetItem) {
-                    // 没找到等待中的配对设备
-                    return;
+                const targetItem = this.receivingUsers.find(
+                  (e) => e.userId === userId
+                );
+
+                let resolve;
+                const rePms = new Promise((res) => {
+                  targetItem._resolve = resolve = res;
+                });
+
+                // 定时器
+                targetItem._timer = setInterval(() => {
+                  targetItem.time -= 1000;
+                  if (targetItem.time <= 0) {
+                    clearInterval(targetItem._timer);
+                    // 删除
+                    this.receivingUsers.splice(
+                      this.receivingUsers.indexOf(targetItem),
+                      1
+                    );
+                    resolve(false);
                   }
+                }, 1000);
 
-                  // 验证证书
-                  const certResult = await verifyData(certificate);
-                  const cardResult = await verifyData(userCard);
-                  if (!certResult || !cardResult) {
-                    // 证书验证失败
-                    return;
-                  }
-
-                  // 确保是授权给我的设备
-                  if (certificate.data.authTo !== selfUserStore.userId) {
-                    return;
-                  }
-
-                  // 验证通过，添加设备
-                  const deviceData = {
-                    userCard,
-                    oppoCertificate: certificate,
-                  };
-
-                  devices;
-                  // await addDevice({
-                  //   userId: userCard.data.userId,
-                  //   serverUrl: server.serverUrl,
-                  //   serverName: server.serverName,
-                  //   publicKey: userCard.data.publicKey,
-                  // });
-                  debugger;
-                }
-              }
+                return rePms;
+              },
             }),
           ];
         },
         detached() {
-          this.__cancels.forEach((e) => e());
+          this.__cancels.forEach(async (f) => {
+            if (f instanceof Promise) {
+              f = await f;
+            }
+            f();
+          });
+
+          // 清理timer
+          this.receivingUsers.forEach((e) => clearInterval(e._timer));
+          this.oppoUsers.forEach((e) => clearInterval(e._timer));
         },
       };
     };

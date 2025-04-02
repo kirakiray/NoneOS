@@ -323,7 +323,7 @@ export const onEntryDevice = async (
     })
   );
 
-  return on("server-agent-data", async (event) => {
+  const cancelFunc = on("server-agent-data", async (event) => {
     if (event.data.kind === "verify-my-device") {
       const {
         userCard,
@@ -356,9 +356,11 @@ export const onEntryDevice = async (
         waitingTime,
       });
 
+      // TODO: 添加超时设定
+
       if (confirmResult) {
         let expireTime = Date.now() + 1000 * 60 * 60 * 24 * 30;
-        if (typeof confirmResult === "object") {
+        if (typeof confirmResult === "object" && confirmResult.expire) {
           expireTime = confirmResult.expire;
         }
 
@@ -405,6 +407,25 @@ export const onEntryDevice = async (
       return false;
     }
   });
+
+  return async () => {
+    // 取消监听
+    cancelFunc();
+
+    const servers = await getServers(userDirName);
+
+    servers.forEach((server) => {
+      if (server.connectionState !== "connected") {
+        return;
+      }
+
+      // 清空等待状态
+      server.post({
+        type: "invite-code",
+        setInviteCode: 0,
+      });
+    });
+  };
 };
 
 // 验证证书和用户卡片
