@@ -27,6 +27,9 @@
       const devices1 = await getDeviceStore("user1");
       const devices2 = await getDeviceStore("user1");
 
+      const beforeDevice1Len = devices1.length;
+      const beforeDevice2Len = devices2.length;
+
       // 设备码，用于查找用户
       const deviceCode = Math.random().toString(36).substring(2, 6);
       // 验证码，用于判断用户是否目标用户
@@ -47,6 +50,9 @@
               userData.userName === user1.userName &&
               userData.publicKey === user1.pair.publicKey
             ) {
+              // 模拟等待返回
+              await new Promise((resolve) => setTimeout(resolve, 1000));
+
               return true;
             }
           },
@@ -66,7 +72,9 @@
         "user1"
       );
 
-      debugger;
+      console.log("device: ", devices1[0].uid === result.uid);
+      console.log("len1: ", devices1.length === beforeDevice1Len + 1);
+      console.log("len2: ", devices2.length === beforeDevice2Len + 1);
     </script>
   </body>
 </html>

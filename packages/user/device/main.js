@@ -42,10 +42,7 @@ export const findDevice = async (deviceCode, userDirName) => {
   const servers = await getServers(userDirName);
 
   // 等待服务器准备完成
-  await servers.watchUntil(
-    () => servers.every((server) => server.initialized),
-    10000
-  );
+  await servers.watchUntil(() => servers.every((server) => server.initialized));
 
   // 查找用户
   const oppoUsers = [];
@@ -303,10 +300,7 @@ export const onEntryDevice = async (
   const servers = await getServers(userDirName);
 
   // 等待服务器准备完成
-  await servers.watchUntil(
-    () => servers.every((server) => server.initialized),
-    10000
-  );
+  await servers.watchUntil(() => servers.every((server) => server.initialized));
 
   // 向服务器设置邀请码
   await Promise.all(
@@ -395,12 +389,14 @@ export const onEntryDevice = async (
 
         if (responseResult.code === 200) {
           // 发送成功，将双方的证书保存到自己的设备列表中
-          const deviceStore = await getDeviceStore(userDirName);
+          const deviceData = await addDevice({
+            userDirName,
+            toOppoCertificate: oppoCertificate,
+            toMeCertificate: certificate,
+            userCard,
+          });
 
-          // 保存证书
-          debugger;
-
-          return true;
+          return deviceData;
         }
       }
 
