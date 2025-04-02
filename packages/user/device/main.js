@@ -181,8 +181,10 @@ export const authDevice = async (
       if (result.code === 200) {
         // 发送成功
         tasks.set(taskId, {
-          result: true,
-          error: null,
+          resolve,
+          reject,
+          userDirName,
+          toOppoCertificate: certificate,
         });
 
         // 超时不等
@@ -198,6 +200,92 @@ export const authDevice = async (
   }
 
   return prms;
+};
+
+on("server-agent-data", async (e) => {
+  if (e.data.kind === "response-my-device") {
+    const { userCard, certificate: toMeCertificate, taskId } = e.data;
+
+    // 从tasks中查找
+    const task = tasks.get(taskId);
+    if (!task) {
+      return;
+    }
+    const { resolve, reject, userDirName } = task;
+
+    // 获取自己的id
+    const selfUserStore = await getUserStore(userDirName);
+    const selfUserId = selfUserStore.userId;
+
+    // 验证证书
+    const verifyResult = await verifyDeviceCertificate(
+      toMeCertificate,
+      userCard,
+      selfUserId
+    );
+
+    if (!verifyResult.success) {
+      console.error(verifyResult.error);
+      return;
+    }
+
+    const deviceData = await addDevice({
+      userDirName,
+      toOppoCertificate: task.toOppoCertificate,
+      toMeCertificate,
+      userCard,
+    });
+
+    debugger;
+  }
+});
+
+// 添加设备
+const addDevice = async ({
+  userDirName,
+  toOppoCertificate,
+  toMeCertificate,
+  userCard,
+}) => {
+  const selfUserStore = await getUserStore(userDirName);
+  const selfUserId = selfUserStore.userId;
+
+  // 所有验证通过，将双方的证书保存到自己的设备列表中
+  const deviceStore = await getDeviceStore(userDirName);
+
+  const toOppoUserId = await getHash(toOppoCertificate.data.publicKey);
+
+  // 验证证书是否给我的，是否我授权给对方的
+  if (toMeCertificate.data.authTo !== selfUserId) {
+    throw new Error(`添加设备时发现，证书不是给我的`);
+  }
+
+  if (toOppoUserId !== selfUserId) {
+    throw new Error(`不是我颁发给对方的证书`);
+  }
+
+  const toMeUserId = await getHash(toMeCertificate.data.publicKey);
+
+  // 判断互相授权的用户是否一致
+  if (toMeUserId !== toOppoCertificate.data.authTo) {
+    throw new Error("我颁发给对方证书的Id不一致");
+  }
+
+  // 生成联合证书id
+  const unId = Math.random().toString(36).slice(2);
+
+  // 保存证书
+  deviceStore.push({
+    unId,
+    userCard,
+    toOppoCertificate,
+    toMeCertificate,
+  });
+
+  await deviceStore.ready(true);
+
+  // 查找到目标并返回
+  return deviceStore.find((item) => item.unId === unId);
 };
 
 // 有用户向你发送添加请求
@@ -250,32 +338,15 @@ export const onEntryDevice = async (
         return;
       }
 
-      // 验证证书
-      const verifyResult = await verifyData(certificate);
-      if (!verifyResult) {
-        // 验证失败
-        return;
-      }
-
-      // 验证用户卡片信息
-      const verifyCardResult = await verifyData(userCard);
-      if (!verifyCardResult) {
-        // 验证失败
-        return;
-      }
-
-      // 确保用户卡片的id和证书的id一致
-      if (userCard.data.publicKey !== certificate.data.publicKey) {
-        return;
-      }
-
       const selfUserStore = await getUserStore(userDirName);
+      const verifyResult = await verifyDeviceCertificate(
+        certificate,
+        userCard,
+        selfUserStore.userId
+      );
 
-      // 确保证书是给我的，并且是完全授权
-      if (
-        certificate.data.authTo !== selfUserStore.userId ||
-        certificate.data.permission !== "Fully"
-      ) {
+      if (!verifyResult.success) {
+        console.error(verifyResult.error);
         return;
       }
 
@@ -296,7 +367,7 @@ export const onEntryDevice = async (
 
         // 用户确认通过，开始添加
         // 给目标用户签发证书
-        const certificate = await signData(
+        const oppoCertificate = await signData(
           {
             authTo: userId, // 授权给目标用户
             permission: "Fully", // 完全的授权，代表是本人设备
@@ -305,8 +376,75 @@ export const onEntryDevice = async (
           userDirName
         );
 
-        debugger;
+        // 向目标发送数据
+        const responseResult = await e.server.post({
+          type: "agent-data",
+          friendId: userId,
+          data: {
+            kind: "response-my-device", // 验证是否我的设备
+            userCard: await getMyCardData(userDirName),
+            certificate: oppoCertificate,
+            verifyCode,
+            taskId,
+          },
+        });
+
+        if (responseResult.code === 200) {
+          // 发送成功，将双方的证书保存到自己的设备列表中
+          const deviceStore = await getDeviceStore(userDirName);
+
+          // 保存证书
+          debugger;
+
+          return true;
+        }
       }
+
+      return false;
     }
   });
+};
+
+// 验证证书和用户卡片
+const verifyDeviceCertificate = async (certificate, userCard, selfUserId) => {
+  // 验证证书
+  const verifyResult = await verifyData(certificate);
+  if (!verifyResult) {
+    return {
+      success: false,
+      error: "证书验证失败",
+    };
+  }
+
+  // 验证用户卡片信息
+  const verifyCardResult = await verifyData(userCard);
+  if (!verifyCardResult) {
+    return {
+      success: false,
+      error: "用户卡片验证失败",
+    };
+  }
+
+  // 确保用户卡片的id和证书的id一致
+  if (userCard.data.publicKey !== certificate.data.publicKey) {
+    return {
+      success: false,
+      error: "用户卡片与证书不匹配",
+    };
+  }
+
+  // 确保证书是给我的，并且是完全授权
+  if (
+    certificate.data.authTo !== selfUserId ||
+    certificate.data.permission !== "Fully"
+  ) {
+    return {
+      success: false,
+      error: "证书授权验证失败",
+    };
+  }
+
+  return {
+    success: true,
+  };
 };

@@ -293,7 +293,26 @@ export class HybirdData extends Stanz {
   get _dataid() {
     return this[DATAID];
   }
+
+  toJSON() {
+    const data = Stanz.prototype.toJSON.call(this);
+    removeDataStatus(data);
+    return data;
+  }
 }
+
+// 去除对象和子对象的所有 dataStatus 属性
+export const removeDataStatus = (obj) => {
+  if (obj.dataStatus) {
+    delete obj.dataStatus;
+  }
+
+  Object.values(obj).forEach((value) => {
+    if (value && typeof value === "object") {
+      removeDataStatus(value);
+    }
+  });
+};
 
 export const createData = (handle) => {
   return new HybirdData(
