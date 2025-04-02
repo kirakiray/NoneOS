@@ -5,7 +5,7 @@ const watcherPool = [];
 
 // 重新保存数据
 export const saveData = async (hydata) => {
-  // console.log("saveData: ", hydata);
+  console.log("saveData: ", hydata);
   if (!watcherPool.includes(hydata)) {
     watcherPool.push(hydata);
   }
@@ -76,7 +76,7 @@ const runWriteTask = async () => {
 
   await clearOldData(nextHyData, finnalObj);
 
-  // console.log("runWriteTask", nextHyData);
+  console.log("runWriteTask", nextHyData);
 
   runWriteTask();
 };
