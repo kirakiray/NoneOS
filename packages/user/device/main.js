@@ -8,7 +8,7 @@ import { signData } from "../sign.js";
 import { getMyCardData } from "../card/main.js";
 import { getUserStore } from "../user-store.js";
 
-const stores = {};
+const deviceStoreCache = {};
 
 // 获取所有设备列表
 export const getDeviceStore = async (userDirName) => {
@@ -18,14 +18,14 @@ export const getDeviceStore = async (userDirName) => {
     create: "dir",
   });
 
-  let deviceStorePms = null;
-  if (!stores[userDirName]) {
-    deviceStorePms = stores[userDirName] = createData(devicesDir);
+  let deviceStorePromise = null;
+  if (!deviceStoreCache[userDirName]) {
+    deviceStorePromise = deviceStoreCache[userDirName] = createData(devicesDir);
   } else {
-    deviceStorePms = stores[userDirName];
+    deviceStorePromise = deviceStoreCache[userDirName];
   }
 
-  const deviceStore = await deviceStorePms;
+  const deviceStore = await deviceStorePromise;
 
   // 等待数据准备好
   await deviceStore.ready(true);
@@ -38,37 +38,37 @@ export const getDeviceStore = async (userDirName) => {
 // confirm 确认信息
 // userDirName 当前用户目录
 export const findDevice = async (deviceCode, userDirName) => {
-  // 前从服务器查找用户
+  // 从服务器查找用户
   const servers = await getServers(userDirName);
 
   // 等待服务器准备完成
   await servers.watchUntil(() => servers.every((server) => server.initialized));
 
   // 查找用户
-  const oppoUsers = [];
+  const remoteUsers = [];
   await Promise.all(
     servers.map(async (server) => {
       if (server.connectionState !== "connected") {
         return;
       }
       try {
-        const res = await server.post({
+        const response = await server.post({
           type: "invite-code",
           findInviteCode: deviceCode,
         });
 
-        if (res.findInviteCode) {
+        if (response.findInviteCode) {
           // 查找到用户了
-          const { authedData } = res;
+          const { authedData } = response;
 
-          oppoUsers.push({
+          remoteUsers.push({
             serverName: server.serverName,
             serverUrl: server.serverUrl,
             authedData,
           });
         }
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log(error);
       }
     })
   );
@@ -76,34 +76,34 @@ export const findDevice = async (deviceCode, userDirName) => {
   // 将相同的用户合并，并保留服务器地址和名称
   const mergedUsers = [];
 
-  for (let item of oppoUsers) {
-    const result = await verifyData(item.authedData);
-    if (!result) {
+  for (let userInfo of remoteUsers) {
+    const verificationResult = await verifyData(userInfo.authedData);
+    if (!verificationResult) {
       // 验证失败
       continue;
     }
 
     // 获取用户id
-    const userId = await getHash(item.authedData.data.publicKey);
+    const userId = await getHash(userInfo.authedData.data.publicKey);
 
     // 查找是否已经存在
-    const existUser = mergedUsers.find((user) => user.userId === userId);
-    if (existUser) {
+    const existingUser = mergedUsers.find((user) => user.userId === userId);
+    if (existingUser) {
       // 已经存在
-      existUser.serversData.push({
-        serverName: item.serverName,
-        serverUrl: item.serverUrl,
+      existingUser.serversData.push({
+        serverName: userInfo.serverName,
+        serverUrl: userInfo.serverUrl,
       });
       continue;
     }
 
     mergedUsers.push({
       userId,
-      userName: item.authedData.data.userName,
+      userName: userInfo.authedData.data.userName,
       serversData: [
         {
-          serverName: item.serverName,
-          serverUrl: item.serverUrl,
+          serverName: userInfo.serverName,
+          serverUrl: userInfo.serverUrl,
         },
       ],
     });
@@ -112,7 +112,7 @@ export const findDevice = async (deviceCode, userDirName) => {
   return mergedUsers;
 };
 
-const tasks = new Map();
+const pendingTasks = new Map();
 
 // 授权用户
 export const authDevice = async (
@@ -120,7 +120,7 @@ export const authDevice = async (
     verifyCode, // 验证码
     userId, // 用户id
     expire, // 证书有效期
-    servers: serversUrl, // 服务器地址
+    servers: serverUrls, // 服务器地址
     waitingTime = 1000 * 60, // 等待用户响应的时间，默认1分钟
   },
   userDirName
@@ -141,21 +141,23 @@ export const authDevice = async (
   // 当前任务id
   const taskId = Math.random().toString(36).slice(2);
 
-  let resolve, reject;
-  const prms = new Promise((res, rej) => {
-    resolve = (data) => {
-      clearTimeout(rejectTimer);
-      tasks.delete(taskId);
-      res(data);
+  let resolvePromise, rejectPromise;
+  const authPromise = new Promise((resolve, reject) => {
+    resolvePromise = (data) => {
+      clearTimeout(timeoutTimer);
+      pendingTasks.delete(taskId);
+      resolve(data);
     };
-    reject = rej;
+    rejectPromise = reject;
   });
 
-  let rejectTimer;
+  let timeoutTimer;
 
   // 向目标发送数据
-  for (let url of serversUrl) {
-    const targetServer = servers.find((server) => server.serverUrl === url);
+  for (let serverUrl of serverUrls) {
+    const targetServer = servers.find(
+      (server) => server.serverUrl === serverUrl
+    );
     if (!targetServer) {
       continue;
     }
@@ -177,34 +179,34 @@ export const authDevice = async (
 
       if (result.code === 200) {
         // 发送成功
-        tasks.set(taskId, {
-          resolve,
-          reject,
+        pendingTasks.set(taskId, {
+          resolve: resolvePromise,
+          reject: rejectPromise,
           userDirName,
           toOppoCertificate: certificate,
         });
 
         // 超时不等
-        rejectTimer = setTimeout(() => {
-          tasks.delete(taskId);
-          reject(new Error("发送证书验证超时"));
+        timeoutTimer = setTimeout(() => {
+          pendingTasks.delete(taskId);
+          rejectPromise(new Error("发送证书验证超时"));
         }, waitingTime);
         break;
       }
-    } catch (e) {
-      console.log(e);
+    } catch (error) {
+      console.log(error);
     }
   }
 
-  return prms;
+  return authPromise;
 };
 
-on("server-agent-data", async (e) => {
-  if (e.data.kind === "response-my-device") {
-    const { userCard, certificate: toMeCertificate, taskId } = e.data;
+on("server-agent-data", async (event) => {
+  if (event.data.kind === "response-my-device") {
+    const { userCard, certificate: toMeCertificate, taskId } = event.data;
 
-    // 从tasks中查找
-    const task = tasks.get(taskId);
+    // 从pendingTasks中查找
+    const task = pendingTasks.get(taskId);
     if (!task) {
       return;
     }
@@ -235,8 +237,8 @@ on("server-agent-data", async (e) => {
       });
 
       resolve(deviceData);
-    } catch (err) {
-      reject(err);
+    } catch (error) {
+      reject(error);
     }
   }
 });
@@ -273,11 +275,11 @@ const addDevice = async ({
   }
 
   // 生成联合证书id
-  const unId = Math.random().toString(36).slice(2);
+  const deviceId = Math.random().toString(36).slice(2);
 
   // 保存证书
   deviceStore.push({
-    unId,
+    unId: deviceId,
     userCard,
     toOppoCertificate,
     toMeCertificate,
@@ -286,7 +288,7 @@ const addDevice = async ({
   await deviceStore.ready(true);
 
   // 查找到目标并返回
-  return deviceStore.find((item) => item.unId === unId);
+  return deviceStore.find((item) => item.unId === deviceId);
 };
 
 // 有用户向你发送添加请求
@@ -296,7 +298,7 @@ export const onEntryDevice = async (
   { deviceCode, verifyCode, confirm },
   userDirName
 ) => {
-  // 前从服务器查找用户
+  // 从服务器查找用户
   const servers = await getServers(userDirName);
 
   // 等待服务器准备完成
@@ -315,24 +317,24 @@ export const onEntryDevice = async (
           type: "invite-code",
           setInviteCode: deviceCode,
         });
-      } catch (e) {
-        console.log(e);
+      } catch (error) {
+        console.log(error);
       }
     })
   );
 
-  return on("server-agent-data", async (e) => {
-    if (e.data.kind === "verify-my-device") {
+  return on("server-agent-data", async (event) => {
+    if (event.data.kind === "verify-my-device") {
       const {
         userCard,
         certificate,
-        verifyCode: _verifyCode,
+        verifyCode: receivedVerifyCode,
         taskId,
         waitingTime,
-      } = e.data;
+      } = event.data;
 
       // 确保验证码一致
-      if (verifyCode !== _verifyCode) {
+      if (verifyCode !== receivedVerifyCode) {
         return;
       }
 
@@ -349,35 +351,35 @@ export const onEntryDevice = async (
       }
 
       // 所有验证通过，开始询问用户是否添加
-      const result = await confirm({
+      const confirmResult = await confirm({
         userData: userCard.data,
         waitingTime,
       });
 
-      if (result) {
-        let expire = Date.now() + 1000 * 60 * 60 * 24 * 30;
-        if (typeof result === "object") {
-          expire = result.expire;
+      if (confirmResult) {
+        let expireTime = Date.now() + 1000 * 60 * 60 * 24 * 30;
+        if (typeof confirmResult === "object") {
+          expireTime = confirmResult.expire;
         }
 
         // 计算对方的id
-        const userId = await getHash(userCard.data.publicKey);
+        const remoteUserId = await getHash(userCard.data.publicKey);
 
         // 用户确认通过，开始添加
         // 给目标用户签发证书
         const oppoCertificate = await signData(
           {
-            authTo: userId, // 授权给目标用户
+            authTo: remoteUserId, // 授权给目标用户
             permission: "Fully", // 完全的授权，代表是本人设备
-            expire,
+            expire: expireTime,
           },
           userDirName
         );
 
         // 向目标发送数据
-        const responseResult = await e.server.post({
+        const responseResult = await event.server.post({
           type: "agent-data",
-          friendId: userId,
+          friendId: remoteUserId,
           data: {
             kind: "response-my-device", // 验证是否我的设备
             userCard: await getMyCardData(userDirName),
