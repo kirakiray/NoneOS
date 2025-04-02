@@ -229,14 +229,18 @@ on("server-agent-data", async (e) => {
       return;
     }
 
-    const deviceData = await addDevice({
-      userDirName,
-      toOppoCertificate: task.toOppoCertificate,
-      toMeCertificate,
-      userCard,
-    });
+    try {
+      const deviceData = await addDevice({
+        userDirName,
+        toOppoCertificate: task.toOppoCertificate,
+        toMeCertificate,
+        userCard,
+      });
 
-    debugger;
+      resolve(deviceData);
+    } catch (err) {
+      reject(err);
+    }
   }
 });
 
