@@ -7,6 +7,7 @@ import { getHash } from "/packages/fs/util.js";
 import { signData } from "../sign.js";
 import { getMyCardData } from "../card/main.js";
 import { getUserStore } from "../user-store.js";
+import { encryptMessage } from "../rsa-util.js";
 
 const deviceStoreCache = {};
 
@@ -110,6 +111,7 @@ export const findDevice = async (deviceCode, userDirName) => {
     mergedUsers.push({
       userId,
       userName: userInfo.authedData.data.userName,
+      rsaPublicKey: userInfo.authedData.data.rsaPublicKey, // 加密字段专用公钥
       exited: existingMyDevice && existingMyDevice.unId,
       serversData: [
         {
@@ -131,6 +133,7 @@ export const authDevice = async (
     verifyCode, // 验证码
     userId, // 用户id
     expire, // 证书有效期
+    rsaPublicKey, // 加密字段专用公钥
     servers: serverUrls, // 服务器地址
     waitingTime = 1000 * 60, // 等待用户响应的时间，默认1分钟
   },
@@ -182,7 +185,10 @@ export const authDevice = async (
           kind: "verify-my-device", // 验证是否我的设备
           userCard: await getMyCardData(userDirName),
           certificate,
-          verifyCode,
+          verifyCode: `__rsa_encrypt__${await encryptMessage(
+            rsaPublicKey,
+            verifyCode
+          )}`,
           waitingTime,
           taskId,
         },
@@ -343,6 +349,8 @@ export const onEntryDevice = async (
         taskId,
         waitingTime,
       } = event.data;
+
+      debugger;
 
       // 确保验证码一致
       if (verifyCode !== receivedVerifyCode) {

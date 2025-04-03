@@ -63,6 +63,7 @@
           const result = await authDevice(
             {
               userId: users[0].userId,
+              rsaPublicKey: users[0].rsaPublicKey, // 用于加密 verifyCode 的公钥
               verifyCode,
               servers: users[0].serversData.map((e) => e.serverUrl),
             },

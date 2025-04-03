@@ -1,6 +1,41 @@
-
 import { signData } from "../sign.js";
 import { Stanz } from "../../libs/stanz/main.js";
+import { generateRSAKeyPair, decryptMessage } from "/packages/user/rsa-util.js";
+
+const keyPairPms = generateRSAKeyPair();
+// 遍历agentData的所有value，如果带有 __rsa_encrypt__ 字符串开头，截取后面的内容进行解密
+const decryptObjectData = async (obj, privateKey) => {
+  if (typeof obj !== "object" || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return Promise.all(obj.map((item) => decryptObjectData(item, privateKey)));
+  }
+
+  const newObj = {};
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      const value = obj[key];
+      if (typeof value === "string" && value.startsWith("__rsa_encrypt__")) {
+        try {
+          const decryptedData = await decryptMessage(
+            privateKey,
+            value.slice("__rsa_encrypt__".length)
+          );
+          newObj[key] = decryptedData;
+        } catch (error) {
+          console.error("解密失败:", error);
+          newObj[key] = value;
+        }
+      } else {
+        newObj[key] = value;
+      }
+    }
+  }
+
+  return newObj;
+};
 
 // WebSocket客户端类：负责与服务器建立连接并处理通信
 export class HandServer extends Stanz {
@@ -66,6 +101,8 @@ export class HandServer extends Stanz {
         let messageData = event.data;
         console.log("收到服务器消息:", messageData);
 
+        const keyPair = await keyPairPms;
+
         try {
           messageData = JSON.parse(event.data);
         } catch (error) {
@@ -74,7 +111,7 @@ export class HandServer extends Stanz {
         }
 
         switch (messageData.type) {
-          case "init":
+          case "init": {
             // 保存服务器标识，用于后续身份验证
             this.#serverIdentifier = messageData.mark;
 
@@ -82,6 +119,7 @@ export class HandServer extends Stanz {
             const authenticationData = await this.generateAuthData({
               userName: this.#usedUserStore.userName,
               markid: messageData.mark,
+              rsaPublicKey: keyPair.publicKey,
             });
 
             // 发送认证请求
@@ -90,24 +128,26 @@ export class HandServer extends Stanz {
               authedData: authenticationData,
             });
             break;
-
-          case "authed":
+          }
+          case "authed": {
             this.connectionState = "connected";
             this.connectedTime = Date.now();
             this.initHeartbeat();
             console.log("用户认证成功");
             this.initialized = true;
             break;
-          case "pong":
+          }
+          case "pong": {
             // 处理服务器的心跳响应
             this.delayTime = Date.now() - this._pingTime;
             delete this._pingTime;
             this.pinging = false;
             break;
+          }
           case "error":
             console.error("服务器返回错误:", messageData.error);
             break;
-          case "post-response":
+          case "post-response": {
             // 处理服务器的响应
             const { taskId, data, success } = messageData;
 
@@ -121,14 +161,24 @@ export class HandServer extends Stanz {
               }
             }
             break;
-          case "update-server-info":
+          }
+          case "update-server-info": {
             this.serverName = messageData.data.serverName;
             this.serverVersion = messageData.data.serverVersion;
             break;
+          }
 
-          case "agent-data":
+          case "agent-data": {
             // 处理别的用户通过服务器转发的数据
-            const { fromUserId, data: agentData, agentTaskId } = messageData;
+            let { fromUserId, agentTaskId } = messageData;
+
+            // 检查是否有加密过的数据
+            const agentData = await decryptObjectData(
+              messageData.data,
+              (
+                await keyPair
+              ).privateKey
+            );
 
             try {
               // 再处理数据
@@ -147,6 +197,7 @@ export class HandServer extends Stanz {
               console.error("处理agent数据失败:", error);
             }
             break;
+          }
           default:
             console.warn("未知消息类型:", messageData.type);
             break;
