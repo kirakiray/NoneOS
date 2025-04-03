@@ -14,11 +14,18 @@ export async function generateRSAKeyPair() {
     // 导出公钥（格式为 spki）
     const publicKey = await crypto.subtle.exportKey("spki", keyPair.publicKey);
     // 导出私钥（格式为 pkcs8）
-    const privateKey = await crypto.subtle.exportKey("pkcs8", keyPair.privateKey);
+    const privateKey = await crypto.subtle.exportKey(
+      "pkcs8",
+      keyPair.privateKey
+    );
 
     // 将密钥转换为 base64 字符串
-    const publicKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(publicKey)));
-    const privateKeyBase64 = btoa(String.fromCharCode(...new Uint8Array(privateKey)));
+    const publicKeyBase64 = btoa(
+      String.fromCharCode(...new Uint8Array(publicKey))
+    );
+    const privateKeyBase64 = btoa(
+      String.fromCharCode(...new Uint8Array(privateKey))
+    );
 
     return {
       publicKey: publicKeyBase64,
@@ -30,10 +37,14 @@ export async function generateRSAKeyPair() {
   }
 }
 
-export async function importRSAPublicKey(publicKeyBase64) {
+// 合并导入公钥和加密消息的函数
+export async function encryptMessage(publicKeyBase64, message) {
   try {
-    const binaryKey = Uint8Array.from(atob(publicKeyBase64), c => c.charCodeAt(0));
-    return await crypto.subtle.importKey(
+    // 导入公钥
+    const binaryKey = Uint8Array.from(atob(publicKeyBase64), (c) =>
+      c.charCodeAt(0)
+    );
+    const publicKey = await crypto.subtle.importKey(
       "spki",
       binaryKey,
       {
@@ -43,38 +54,13 @@ export async function importRSAPublicKey(publicKeyBase64) {
       true,
       ["encrypt"]
     );
-  } catch (error) {
-    console.error("RSA公钥导入失败:", error);
-    throw error;
-  }
-}
 
-export async function importRSAPrivateKey(privateKeyBase64) {
-  try {
-    const binaryKey = Uint8Array.from(atob(privateKeyBase64), c => c.charCodeAt(0));
-    return await crypto.subtle.importKey(
-      "pkcs8",
-      binaryKey,
-      {
-        name: "RSA-OAEP",
-        hash: "SHA-256",
-      },
-      true,
-      ["decrypt"]
-    );
-  } catch (error) {
-    console.error("RSA私钥导入失败:", error);
-    throw error;
-  }
-}
-
-export async function encryptMessage(publicKey, message) {
-  try {
+    // 加密消息
     const encoder = new TextEncoder();
     const data = encoder.encode(message);
     const encrypted = await crypto.subtle.encrypt(
       {
-        name: "RSA-OAEP"
+        name: "RSA-OAEP",
       },
       publicKey,
       data
@@ -86,12 +72,31 @@ export async function encryptMessage(publicKey, message) {
   }
 }
 
-export async function decryptMessage(privateKey, encryptedMessage) {
+// 合并导入私钥和解密消息的函数
+export async function decryptMessage(privateKeyBase64, encryptedMessage) {
   try {
-    const encrypted = Uint8Array.from(atob(encryptedMessage), c => c.charCodeAt(0));
+    // 导入私钥
+    const binaryKey = Uint8Array.from(atob(privateKeyBase64), (c) =>
+      c.charCodeAt(0)
+    );
+    const privateKey = await crypto.subtle.importKey(
+      "pkcs8",
+      binaryKey,
+      {
+        name: "RSA-OAEP",
+        hash: "SHA-256",
+      },
+      true,
+      ["decrypt"]
+    );
+
+    // 解密消息
+    const encrypted = Uint8Array.from(atob(encryptedMessage), (c) =>
+      c.charCodeAt(0)
+    );
     const decrypted = await crypto.subtle.decrypt(
       {
-        name: "RSA-OAEP"
+        name: "RSA-OAEP",
       },
       privateKey,
       encrypted

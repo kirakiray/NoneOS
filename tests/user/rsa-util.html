@@ -73,8 +73,6 @@
     <script type="module">
       import {
         generateRSAKeyPair,
-        importRSAPublicKey,
-        importRSAPrivateKey,
         encryptMessage,
         decryptMessage,
       } from "/packages/user/rsa-util.js";
@@ -112,8 +110,8 @@
             throw new Error("请输入要加密的消息");
           }
 
-          const publicKey = await importRSAPublicKey(currentPublicKey);
-          const encrypted = await encryptMessage(publicKey, message);
+          // 直接使用合并后的函数
+          const encrypted = await encryptMessage(currentPublicKey, message);
 
           document.getElementById("encryptedMessage").textContent = encrypted;
           // 自动填充到解密输入框
@@ -136,8 +134,8 @@
             throw new Error("请输入要解密的消息");
           }
 
-          const privateKey = await importRSAPrivateKey(currentPrivateKey);
-          const decrypted = await decryptMessage(privateKey, encryptedMessage);
+          // 直接使用合并后的函数
+          const decrypted = await decryptMessage(currentPrivateKey, encryptedMessage);
 
           document.getElementById("decryptedMessage").textContent = decrypted;
         } catch (error) {
