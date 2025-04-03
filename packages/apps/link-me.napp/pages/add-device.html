@@ -3,6 +3,7 @@
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="../comps/user-card.html"></l-m>
+  <l-m src="../comps/finduser-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -90,35 +91,46 @@
         <x-fill :value="oppoUsers">
           <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
-              <p-button
-                size="mini"
-                attr:disabled="$data.posted"
-                on:click="$host.confirmUser($data)"
-              >
-                {{$data.posted ? '等待对方确认' : '确认是该设备'}}
-              </p-button>
-              <x-if :value="$data.time">
+              <x-if :value="$data.exited">
                 <div
-                  style="
-                    display: inline-block;
-                    font-size: 12px;
-                    color: var(--md-sys-color-primary);
-                  "
+                  style="font-size: 12px; color: var(--md-sys-color-primary)"
                 >
-                  {{$data.time / 1000}}s
+                  该设备已存在
                 </div>
               </x-if>
-              <x-if :value="!$data.posted">
-                <p-button
-                  on:click="$host.oppoUsers.splice($index,1)"
-                  variant="text"
-                  size="mini"
-                  attr:disabled="$data.posted"
-                  style="margin-left: 8px"
-                >
-                  不是这个用户
-                </p-button>
-              </x-if>
+              <x-else>
+                <div>
+                  <p-button
+                    size="mini"
+                    attr:disabled="$data.posted"
+                    on:click="$host.confirmUser($data)"
+                  >
+                    {{$data.posted ? '等待对方确认' : '确认是该设备'}}
+                  </p-button>
+                  <x-if :value="$data.time">
+                    <div
+                      style="
+                        display: inline-block;
+                        font-size: 12px;
+                        color: var(--md-sys-color-primary);
+                      "
+                    >
+                      {{$data.time / 1000}}s
+                    </div>
+                  </x-if>
+                  <x-if :value="!$data.posted">
+                    <p-button
+                      on:click="$host.oppoUsers.splice($index,1)"
+                      variant="text"
+                      size="mini"
+                      attr:disabled="$data.posted"
+                      style="margin-left: 8px"
+                    >
+                      不是这个用户
+                    </p-button>
+                  </x-if>
+                </div>
+              </x-else>
             </n-user-card>
           </div>
         </x-fill>
@@ -160,6 +172,8 @@
       src="./my-info.html"
       style="margin: 8px 0 16px 8px; justify-content: flex-start"
     ></o-page>
+
+    <n-finduser-list></n-finduser-list>
   </div>
   <script>
     export default async ({ load }) => {

@@ -94,12 +94,23 @@ export const findDevice = async (deviceCode, userDirName) => {
         serverName: userInfo.serverName,
         serverUrl: userInfo.serverUrl,
       });
+
       continue;
     }
+
+    // 判断是否已经在我的设备中
+    const myDevices = await getDeviceStore(userDirName);
+    const existingMyDevice = myDevices.find((device) => {
+      return (
+        device.toMeCertificate.data.publicKey ===
+        userInfo.authedData.data.publicKey
+      );
+    });
 
     mergedUsers.push({
       userId,
       userName: userInfo.authedData.data.userName,
+      exited: existingMyDevice && existingMyDevice.unId,
       serversData: [
         {
           serverName: userInfo.serverName,

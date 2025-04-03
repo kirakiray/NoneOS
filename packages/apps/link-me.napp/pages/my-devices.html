@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <style>
     :host {
       display: block;
@@ -47,11 +48,11 @@
             button="suffix"
             collapse-childs="close"
           >
-            <n-local-icon
-              name="device"
+            <n-id-avatar
               slot="prefix"
-              style="display: inline-block; margin-right: 8px"
-            ></n-local-icon>
+              :val="$data.toOppoCertificate.data.authTo"
+              style="height: 20px; border-radius: 3px; overflow: hidden"
+            ></n-id-avatar>
 
             {{$data.userCard.data.userName}}
 
