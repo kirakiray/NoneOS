@@ -33,8 +33,13 @@
           <n-desc name="myDevices" space="linkme"></n-desc>
         </span>
         ({{devices.length}})
-        <p-button size="mini" style="margin-left: 60px; z-index: 3">
-          <a href="./add-device.html" olink>添加设备</a>
+        <p-button
+          size="mini"
+          on:click="clickAddBtn"
+          style="margin-left: 60px; z-index: 3"
+        >
+          <!-- <a href="./add-device.html" olink>添加设备</a> -->
+          添加设备
         </p-button>
       </div>
 
@@ -162,6 +167,10 @@
           devices: [], // 所有设备
         },
         proto: {
+          clickAddBtn(event) {
+            this.emit("click-add-device-btn");
+            event.stopPropagation();
+          },
           async clickDevice(item) {
             const confirmResult = await confirm({
               content: `确认将 ${item.userCard.data.userName} 从我的设备中移除吗?`,

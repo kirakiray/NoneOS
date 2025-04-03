@@ -1,5 +1,6 @@
 <template page>
   <l-m src="../comps/server-list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <style>
     :host {
       display: block;
@@ -28,16 +29,24 @@
       <o-page src="./my-info.html"></o-page>
     </div>
     <div class="part">
-      <o-page src="./my-devices.html"></o-page>
+      <o-page
+        src="./my-devices.html"
+        on:click-add-device-btn="openAddDevice = true"
+      ></o-page>
     </div>
     <div class="part">
       <n-server-list></n-server-list>
     </div>
   </div>
+  <p-dialog :open="openAddDevice" on:click-mask="openAddDevice = false">
+    <o-page src="./add-device.html"></o-page>
+  </p-dialog>
   <script>
     export default async () => {
       return {
-        data: {},
+        data: {
+          openAddDevice: false,
+        },
       };
     };
   </script>

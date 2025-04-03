@@ -3,11 +3,11 @@
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/text-field/text-field.html"></l-m>
   <l-m src="../comps/user-card.html"></l-m>
-  <l-m src="../comps/finduser-list.html"></l-m>
+  <!-- <l-m src="../comps/finduser-list.html"></l-m> -->
   <style>
     :host {
       display: block;
-      background-color: var(--md-sys-color-surface);
+      /* background-color: var(--md-sys-color-surface); */
       overflow: auto;
     }
     .container {
@@ -44,12 +44,12 @@
   </style>
 
   <div class="container">
-    <div style="display: flex">
+    <!-- <div style="display: flex">
       <p-button size="small" on:click="clickBack" icon variant="text">
         <n-local-icon name="back"></n-local-icon>
       </p-button>
       <h4>添加设备</h4>
-    </div>
+    </div> -->
     <div style="display: flex; flex-direction: column; align-items: center">
       <p>
         我的设备码是
@@ -167,20 +167,19 @@
       </div>
     </x-if>
 
-    <h5>我的信息</h5>
+    <!-- <h5>我的信息</h5>
     <o-page
       src="./my-info.html"
       style="margin: 8px 0 16px 8px; justify-content: flex-start"
     ></o-page>
 
-    <n-finduser-list></n-finduser-list>
+    <n-finduser-list></n-finduser-list> -->
   </div>
   <script>
     export default async ({ load }) => {
       const { findDevice, onEntryDevice, authDevice, getDeviceStore } =
         await load("/packages/user/device/main.js");
       const { enqueue, confirm } = await load("/packages/pui/util.js");
-
       const { getHash } = await load("/packages/fs/util.js");
 
       return {
@@ -241,6 +240,10 @@
                 color: "success",
                 content: `添加设备 ${targetDevice.userCard.data.userName} 成功`,
               });
+
+              this.prepareCode = "";
+              this.oppositeDeviceCode = "";
+              this.oppositeVerifyCode = "";
             }
           },
           // 确认对方是我的设备
