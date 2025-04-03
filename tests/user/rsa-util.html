@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RSA 工具演示</title>
+    <style>
+      body {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: Arial, sans-serif;
+      }
+      .container {
+        display: grid;
+        gap: 20px;
+      }
+      .result {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+      textarea {
+        width: 100%;
+        min-height: 100px;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>RSA 加密解密演示</h1>
+
+      <div>
+        <h3>1. 生成密钥对</h3>
+        <button id="generateKeys">生成新的密钥对</button>
+        <div>
+          <h4>公钥：</h4>
+          <div id="publicKey" class="result"></div>
+          <h4>私钥：</h4>
+          <div id="privateKey" class="result"></div>
+        </div>
+      </div>
+
+      <div>
+        <h3>2. 加密消息</h3>
+        <textarea
+          id="messageToEncrypt"
+          placeholder="输入要加密的消息"
+        ></textarea>
+        <button id="encrypt">加密</button>
+        <h4>加密结果：</h4>
+        <div id="encryptedMessage" class="result"></div>
+      </div>
+
+      <div>
+        <h3>3. 解密消息</h3>
+        <textarea
+          id="messageToDecrypt"
+          placeholder="输入要解密的消息"
+        ></textarea>
+        <button id="decrypt">解密</button>
+        <h4>解密结果：</h4>
+        <div id="decryptedMessage" class="result"></div>
+      </div>
+    </div>
+
+    <script type="module">
+      import {
+        generateRSAKeyPair,
+        importRSAPublicKey,
+        importRSAPrivateKey,
+        encryptMessage,
+        decryptMessage,
+      } from "/packages/user/rsa-util.js";
+
+      let currentPublicKey = null;
+      let currentPrivateKey = null;
+
+      // 生成密钥对
+      document
+        .getElementById("generateKeys")
+        .addEventListener("click", async () => {
+          try {
+            const { publicKey, privateKey } = await generateRSAKeyPair();
+
+            document.getElementById("publicKey").textContent = publicKey;
+            document.getElementById("privateKey").textContent = privateKey;
+
+            // 保存当前密钥对
+            currentPublicKey = publicKey;
+            currentPrivateKey = privateKey;
+          } catch (error) {
+            alert("生成密钥对失败：" + error.message);
+          }
+        });
+
+      // 加密消息
+      document.getElementById("encrypt").addEventListener("click", async () => {
+        try {
+          if (!currentPublicKey) {
+            throw new Error("请先生成密钥对");
+          }
+
+          const message = document.getElementById("messageToEncrypt").value;
+          if (!message) {
+            throw new Error("请输入要加密的消息");
+          }
+
+          const publicKey = await importRSAPublicKey(currentPublicKey);
+          const encrypted = await encryptMessage(publicKey, message);
+
+          document.getElementById("encryptedMessage").textContent = encrypted;
+          // 自动填充到解密输入框
+          document.getElementById("messageToDecrypt").value = encrypted;
+        } catch (error) {
+          alert("加密失败：" + error.message);
+        }
+      });
+
+      // 解密消息
+      document.getElementById("decrypt").addEventListener("click", async () => {
+        try {
+          if (!currentPrivateKey) {
+            throw new Error("请先生成密钥对");
+          }
+
+          const encryptedMessage =
+            document.getElementById("messageToDecrypt").value;
+          if (!encryptedMessage) {
+            throw new Error("请输入要解密的消息");
+          }
+
+          const privateKey = await importRSAPrivateKey(currentPrivateKey);
+          const decrypted = await decryptMessage(privateKey, encryptedMessage);
+
+          document.getElementById("decryptedMessage").textContent = decrypted;
+        } catch (error) {
+          alert("解密失败：" + error.message);
+        }
+      });
+    </script>
+  </body>
+</html>
