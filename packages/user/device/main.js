@@ -183,6 +183,7 @@ export const authDevice = async (
         friendId: userId,
         data: {
           kind: "verify-my-device", // 验证是否我的设备
+          __hasEncrypted: true,
           userCard: await getMyCardData(userDirName),
           certificate,
           verifyCode: `__rsa_encrypt__${await encryptMessage(
@@ -350,8 +351,6 @@ export const onEntryDevice = async (
         waitingTime,
       } = event.data;
 
-      debugger;
-
       // 确保验证码一致
       if (verifyCode !== receivedVerifyCode) {
         return;
@@ -405,7 +404,6 @@ export const onEntryDevice = async (
             kind: "response-my-device", // 验证是否我的设备
             userCard: await getMyCardData(userDirName),
             certificate: oppoCertificate,
-            verifyCode,
             taskId,
           },
         });

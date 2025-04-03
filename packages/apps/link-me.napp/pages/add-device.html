@@ -229,6 +229,7 @@
             const targetDevice = await authDevice({
               userId: user.userId,
               verifyCode: this.oppositeVerifyCode,
+              rsaPublicKey: user.rsaPublicKey,
               waitingTime,
               servers: user.serversData.map((e) => e.serverUrl),
             });

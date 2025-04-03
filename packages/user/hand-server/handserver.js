@@ -171,14 +171,19 @@ export class HandServer extends Stanz {
           case "agent-data": {
             // 处理别的用户通过服务器转发的数据
             let { fromUserId, agentTaskId } = messageData;
+            let agentData = messageData.data;
 
-            // 检查是否有加密过的数据
-            const agentData = await decryptObjectData(
-              messageData.data,
-              (
-                await keyPair
-              ).privateKey
-            );
+            if (agentData.__hasEncrypted) {
+              // 检查是否有加密过的数据
+              agentData = await decryptObjectData(
+                messageData.data,
+                (
+                  await keyPair
+                ).privateKey
+              );
+
+              delete agentData.__hasEncrypted;
+            }
 
             try {
               // 再处理数据
