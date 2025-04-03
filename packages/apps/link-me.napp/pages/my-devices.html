@@ -1,5 +1,7 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -17,22 +19,117 @@
       color: #7c7c7c;
       font-size: 12px;
     }
+
+    .device-item:last-child {
+      padding-bottom: 16px;
+    }
   </style>
 
   <p-list>
     <p-list-item collapse-childs="open" button="suffix">
       <div style="display: flex; align-items: center">
-        <span class="root-item"> 我的设备 </span>
+        <span class="root-item">
+          <n-desc name="myDevices" space="linkme"></n-desc> ({{devices.length}})
+        </span>
         <p-button size="mini" style="margin-left: 60px; z-index: 3">
           <a href="./add-device.html" olink>添加设备</a>
         </p-button>
       </div>
+
+      <i collapse-triangle slot="suffix"></i>
       <p-list slot="childs">
         <x-if :value="!devices.length">
           <div class="no-devices">没有添加设备</div>
         </x-if>
         <x-fill :value="devices">
-          <p-list-item>{{$data}}</p-list-item>
+          <p-list-item
+            class="device-item"
+            button="suffix"
+            collapse-childs="close"
+          >
+            <n-local-icon
+              name="device"
+              slot="prefix"
+              style="display: inline-block; margin-right: 8px"
+            ></n-local-icon>
+
+            {{$data.userCard.data.userName}}
+
+            <i collapse-triangle slot="suffix"></i>
+
+            <p-list slot="childs" style="padding-left: 16px">
+              <p-list-item>
+                <n-local-icon
+                  name="id"
+                  slot="prefix"
+                  style="
+                    display: inline-block;
+                    margin-right: 4px;
+                    font-size: 22px;
+                  "
+                ></n-local-icon>
+                <n-copy-span>
+                  {{$data.toOppoCertificate.data.authTo}}
+                </n-copy-span>
+              </p-list-item>
+              <p-list-item collapse-childs="close" button="suffix">
+                <n-local-icon
+                  name="cert"
+                  slot="prefix"
+                  style="
+                    display: inline-block;
+                    margin-right: 4px;
+                    font-size: 22px;
+                  "
+                ></n-local-icon>
+                <n-desc name="toMeCerts" space="linkme"></n-desc>
+                <i collapse-triangle slot="suffix"></i>
+                <p-list slot="childs" style="padding-left: 29px">
+                  <p-list-item>
+                    <n-desc name="issueTime" space="linkme"></n-desc>
+                    :
+                    <n-moment-span
+                      :time="$data.toMeCertificate.data.signTime"
+                    ></n-moment-span>
+                  </p-list-item>
+                  <p-list-item>
+                    <n-desc name="validUntil" space="linkme"></n-desc>:
+                    <n-moment-span
+                      :time="$data.toMeCertificate.data.expire"
+                    ></n-moment-span>
+                  </p-list-item>
+                </p-list>
+              </p-list-item>
+              <p-list-item collapse-childs="close" button="suffix">
+                <n-local-icon
+                  name="cert"
+                  slot="prefix"
+                  style="
+                    display: inline-block;
+                    margin-right: 4px;
+                    font-size: 22px;
+                  "
+                ></n-local-icon>
+                <n-desc name="myCerts" space="linkme"></n-desc>
+                <i collapse-triangle slot="suffix"></i>
+                <p-list slot="childs" style="padding-left: 29px">
+                  <p-list-item>
+                    <n-desc name="issueTime" space="linkme"></n-desc>
+                    :
+                    <n-moment-span
+                      :time="$data.toOppoCertificate.data.signTime"
+                    ></n-moment-span>
+                  </p-list-item>
+                  <p-list-item>
+                    <n-desc name="validUntil" space="linkme"></n-desc>:
+                    <n-moment-span
+                      :time="$data.toOppoCertificate.data.expire"
+                    ></n-moment-span>
+                  </p-list-item>
+                </p-list>
+              </p-list-item>
+            </p-list>
+          </p-list-item>
         </x-fill>
       </p-list>
     </p-list-item>
@@ -48,6 +145,9 @@
         data: {
           val: "my devices",
           devices: [], // 所有设备
+        },
+        proto: {
+          getUserId() {},
         },
         attached() {
           this.devices = devices;
