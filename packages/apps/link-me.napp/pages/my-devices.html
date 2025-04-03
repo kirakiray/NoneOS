@@ -128,6 +128,18 @@
                   </p-list-item>
                 </p-list>
               </p-list-item>
+
+              <p-list-item>
+                <div>
+                  <p-button
+                    color="error"
+                    size="small"
+                    on:click="$host.clickDevice($data)"
+                  >
+                    <n-desc name="deleteDevice" space="linkme"></n-desc>
+                  </p-button>
+                </div>
+              </p-list-item>
             </p-list>
           </p-list-item>
         </x-fill>
@@ -137,6 +149,7 @@
   <script>
     export default async ({ load }) => {
       const { getDeviceStore } = await load("/packages/user/main.js");
+      const { enqueue, confirm } = await load("/packages/pui/util.js");
       const devices = await getDeviceStore();
 
       console.log("devices", devices);
@@ -147,6 +160,24 @@
           devices: [], // 所有设备
         },
         proto: {
+          async clickDevice(item) {
+            const confirmResult = await confirm({
+              content: `确认将 ${item.userCard.data.userName} 从我的设备中移除吗?`,
+              yes: "是的",
+            });
+
+            if (!confirmResult) {
+              return;
+            }
+
+            const targetIndex = this.devices.findIndex(
+              (e) => e.unId === item.unId
+            );
+
+            if (targetIndex > -1) {
+              this.devices.splice(targetIndex, 1);
+            }
+          },
           getUserId() {},
         },
         attached() {
