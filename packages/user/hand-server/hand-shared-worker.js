@@ -41,6 +41,8 @@ const userStorePms = getUserStore(userDirName).then(async (userStore) => {
       //   }
       // }
 
+      // TODO: 在没有交换证书的情况下，只允许签发的请求
+
       ports.forEach((port) => {
         port.postMessage({
           resType: "onagentdata",

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RTCPeerConnection 数据交换示例</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .container {
+        display: flex;
+        gap: 20px;
+      }
+      .peer {
+        flex: 1;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      h2 {
+        margin-top: 0;
+      }
+      button {
+        margin: 5px 0;
+        padding: 8px 12px;
+      }
+      textarea {
+        width: 100%;
+        height: 100px;
+        margin-bottom: 10px;
+      }
+      #status {
+        margin: 20px 0;
+        padding: 10px;
+        background-color: #f0f0f0;
+        border-radius: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WebRTC 数据通道示例</h1>
+    <div id="status">连接状态: 未连接</div>
+
+    <div class="container">
+      <div class="peer" id="localPeer">
+        <h2>本地端</h2>
+        <button id="createOffer">创建连接请求</button>
+        <div>
+          <h3>SDP 信息</h3>
+          <textarea
+            id="localSDP"
+            placeholder="本地 SDP 将显示在这里"
+          ></textarea>
+        </div>
+        <div>
+          <h3>发送消息</h3>
+          <input type="text" id="localMessage" placeholder="输入要发送的消息" />
+          <button id="sendLocal">发送</button>
+        </div>
+        <div>
+          <h3>接收到的消息</h3>
+          <div id="localReceived"></div>
+        </div>
+      </div>
+
+      <div class="peer" id="remotePeer">
+        <h2>远程端</h2>
+        <button id="createAnswer">创建连接应答</button>
+        <div>
+          <h3>SDP 信息</h3>
+          <textarea
+            id="remoteSDP"
+            placeholder="远程 SDP 将显示在这里"
+          ></textarea>
+        </div>
+        <div>
+          <h3>发送消息</h3>
+          <input
+            type="text"
+            id="remoteMessage"
+            placeholder="输入要发送的消息"
+          />
+          <button id="sendRemote">发送</button>
+        </div>
+        <div>
+          <h3>接收到的消息</h3>
+          <div id="remoteReceived"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 创建两个对等连接对象
+      let localConnection = null;
+      let remoteConnection = null;
+
+      // 创建数据通道
+      let localChannel = null;
+      let remoteChannel = null;
+
+      // 获取DOM元素
+      const statusDiv = document.getElementById("status");
+      const createOfferBtn = document.getElementById("createOffer");
+      const createAnswerBtn = document.getElementById("createAnswer");
+      const localSDPTextarea = document.getElementById("localSDP");
+      const remoteSDPTextarea = document.getElementById("remoteSDP");
+      const sendLocalBtn = document.getElementById("sendLocal");
+      const sendRemoteBtn = document.getElementById("sendRemote");
+      const localMessageInput = document.getElementById("localMessage");
+      const remoteMessageInput = document.getElementById("remoteMessage");
+      const localReceivedDiv = document.getElementById("localReceived");
+      const remoteReceivedDiv = document.getElementById("remoteReceived");
+
+      // 初始化连接
+      function initConnections() {
+        // 创建本地连接
+        localConnection = new RTCPeerConnection();
+
+        // 创建数据通道
+        localChannel = localConnection.createDataChannel("messaging-channel");
+        setupDataChannel(localChannel, localReceivedDiv);
+
+        // 监听ICE候选事件
+        localConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            // 在实际应用中，这里应该将ICE候选发送给远程端
+            console.log("本地ICE候选:", event.candidate);
+          } else {
+            // ICE收集完成，显示完整的本地SDP
+            localSDPTextarea.value = JSON.stringify(
+              localConnection.localDescription
+            );
+          }
+        };
+
+        // 创建远程连接
+        remoteConnection = new RTCPeerConnection();
+
+        // 监听数据通道
+        remoteConnection.ondatachannel = (event) => {
+          remoteChannel = event.channel;
+          setupDataChannel(remoteChannel, remoteReceivedDiv);
+        };
+
+        // 监听ICE候选事件
+        remoteConnection.onicecandidate = (event) => {
+          if (event.candidate) {
+            // 在实际应用中，这里应该将ICE候选发送给本地端
+            console.log("远程ICE候选:", event.candidate);
+          } else {
+            // ICE收集完成，显示完整的远程SDP
+            remoteSDPTextarea.value = JSON.stringify(
+              remoteConnection.localDescription
+            );
+          }
+        };
+
+        // 监听连接状态变化
+        localConnection.onconnectionstatechange = updateStatus;
+        remoteConnection.onconnectionstatechange = updateStatus;
+      }
+
+      // 设置数据通道事件
+      function setupDataChannel(channel, outputDiv) {
+        channel.onopen = () => {
+          console.log(`数据通道已打开`);
+          updateStatus();
+        };
+
+        channel.onclose = () => {
+          console.log(`数据通道已关闭`);
+          updateStatus();
+        };
+
+        channel.onmessage = (event) => {
+          const message = event.data;
+          const messageElement = document.createElement("p");
+          messageElement.textContent = `收到: ${message}`;
+          outputDiv.appendChild(messageElement);
+        };
+      }
+
+      // 更新连接状态
+      function updateStatus() {
+        let status = "未连接";
+
+        if (localConnection && remoteConnection) {
+          status = `本地: ${localConnection.connectionState}, 远程: ${remoteConnection.connectionState}`;
+
+          if (localChannel && remoteChannel) {
+            status += `, 本地通道: ${localChannel.readyState}, 远程通道: ${remoteChannel.readyState}`;
+          }
+        }
+
+        statusDiv.textContent = `连接状态: ${status}`;
+      }
+
+      // 创建连接请求
+      createOfferBtn.addEventListener("click", async () => {
+        try {
+          if (!localConnection) {
+            initConnections();
+          }
+
+          const offer = await localConnection.createOffer();
+          await localConnection.setLocalDescription(offer);
+
+          // 在实际应用中，这里应该将offer发送给远程端
+          console.log("创建连接请求:", offer);
+          localSDPTextarea.value = JSON.stringify(offer);
+
+          statusDiv.textContent = "已创建连接请求，等待远程端应答...";
+        } catch (error) {
+          console.error("创建连接请求失败:", error);
+        }
+      });
+
+      // 创建连接应答
+      createAnswerBtn.addEventListener("click", async () => {
+        try {
+          if (!remoteConnection) {
+            initConnections();
+          }
+
+          // 从本地SDP文本框获取offer
+          const offerJSON = JSON.parse(localSDPTextarea.value);
+          const offer = new RTCSessionDescription(offerJSON);
+
+          await remoteConnection.setRemoteDescription(offer);
+          const answer = await remoteConnection.createAnswer();
+          await remoteConnection.setLocalDescription(answer);
+
+          // 在实际应用中，这里应该将answer发送给本地端
+          console.log("创建连接应答:", answer);
+          remoteSDPTextarea.value = JSON.stringify(answer);
+
+          // 将answer设置为本地连接的远程描述
+          const answerJSON = JSON.parse(remoteSDPTextarea.value);
+          const answerObj = new RTCSessionDescription(answerJSON);
+          await localConnection.setRemoteDescription(answerObj);
+
+          statusDiv.textContent = "连接已建立，可以开始发送消息";
+        } catch (error) {
+          console.error("创建连接应答失败:", error);
+        }
+      });
+
+      // 发送本地消息
+      sendLocalBtn.addEventListener("click", () => {
+        const message = localMessageInput.value;
+        if (message && localChannel && localChannel.readyState === "open") {
+          localChannel.send(message);
+
+          const messageElement = document.createElement("p");
+          messageElement.textContent = `发送: ${message}`;
+          localReceivedDiv.appendChild(messageElement);
+
+          localMessageInput.value = "";
+        } else {
+          alert("无法发送消息，请确保连接已建立");
+        }
+      });
+
+      // 发送远程消息
+      sendRemoteBtn.addEventListener("click", () => {
+        const message = remoteMessageInput.value;
+        if (message && remoteChannel && remoteChannel.readyState === "open") {
+          remoteChannel.send(message);
+
+          const messageElement = document.createElement("p");
+          messageElement.textContent = `发送: ${message}`;
+          remoteReceivedDiv.appendChild(messageElement);
+
+          remoteMessageInput.value = "";
+        } else {
+          alert("无法发送消息，请确保连接已建立");
+        }
+      });
+
+      // 初始化状态
+      updateStatus();
+    </script>
+  </body>
+</html>

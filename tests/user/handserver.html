@@ -59,15 +59,15 @@
           // 查找用户2
           const findResult = await user1Server[0].post({
             type: "find-friend",
-            friendId: user2.userid,
+            friendId: user2.userId,
           });
 
           return {
             assert: findResult && findResult.authedData,
             content: {
               message: "好友查找成功",
-              user1Id: user1.userid,
-              user2Id: user2.userid,
+              user1Id: user1.userId,
+              user2Id: user2.userId,
               findResult,
             },
           };

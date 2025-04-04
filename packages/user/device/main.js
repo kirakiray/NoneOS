@@ -341,15 +341,15 @@ export const onEntryDevice = async (
     })
   );
 
-  const cancelFunc = on("server-agent-data", async (event) => {
-    if (event.data.kind === "verify-my-device") {
+  const cancelFunc = on("server-agent-data", async (e) => {
+    if (e.data.kind === "verify-my-device") {
       const {
         userCard,
         certificate,
         verifyCode: receivedVerifyCode,
         taskId,
         waitingTime,
-      } = event.data;
+      } = e.data;
 
       // 确保验证码一致
       if (verifyCode !== receivedVerifyCode) {
@@ -397,7 +397,7 @@ export const onEntryDevice = async (
         );
 
         // 向目标发送数据
-        const responseResult = await event.server.post({
+        const responseResult = await e.server.post({
           type: "agent-data",
           friendId: remoteUserId,
           data: {

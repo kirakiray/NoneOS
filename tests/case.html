@@ -9,72 +9,13 @@
   <body>
     <div id="log"></div>
     <script type="module">
+      import { connect } from "/packages/user/connection/main.js";
       import { getUserStore, on } from "/packages/user/main.js";
-      import {
-        findDevice,
-        onEntryDevice,
-        authDevice,
-        getDeviceStore,
-      } from "/packages/user/device/main.js";
-
-      on("server-agent-data", (e) => {
-        console.log("server-agent-data: ", e);
-      });
 
       const user1 = await getUserStore("user1");
       const user2 = await getUserStore("user2");
 
-      const devices1 = await getDeviceStore("user1");
-      const devices2 = await getDeviceStore("user1");
-
-      const beforeDevice1Len = devices1.length;
-      const beforeDevice2Len = devices2.length;
-
-      // 设备码，用于查找用户
-      const deviceCode = Math.random().toString(36).substring(2, 6);
-      // 验证码，用于判断用户是否目标用户
-      const verifyCode = Math.random().toString(36).substring(2, 6);
-
-      // 监听是否有用户向发送添加设备的请求
-      await onEntryDevice(
-        {
-          deviceCode,
-          verifyCode,
-          async confirm({ userData, waitingTime }) {
-            // 确认对方的设备信息
-            // 返回true表示同意，false表示拒绝
-            // 这里可以弹出一个对话框，询问对方是否同意
-            // 这里也可以直接返回true，不弹出对话框
-
-            if (
-              userData.userName === user1.userName &&
-              userData.publicKey === user1.pair.publicKey
-            ) {
-              // 模拟等待返回
-              await new Promise((resolve) => setTimeout(resolve, 1000));
-
-              return true;
-            }
-          },
-        },
-        "user2"
-      );
-
-      const users = await findDevice(deviceCode, "user1");
-
-      // 授权给第一个用户
-      const result = await authDevice(
-        {
-          userId: users[0].userId,
-          verifyCode,
-          servers: users[0].serversData.map((e) => e.serverUrl),
-        },
-        "user1"
-      );
-
-      console.log("device: ", devices1[0].uid === result.uid);
-      console.log("len1: ", devices1.length === beforeDevice1Len + 1);
-      console.log("len2: ", devices2.length === beforeDevice2Len + 1);
+      debugger;
     </script>
   </body>
 </html>

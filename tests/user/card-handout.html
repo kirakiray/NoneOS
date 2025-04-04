@@ -33,7 +33,7 @@
           // 用户1发送卡片到用户2
           await user1Servers[0].post({
             type: "agent-data",
-            friendId: user2.userid,
+            friendId: user2.userId,
             data: {
               way: "handoutCard",
               cardData: user1carddata,

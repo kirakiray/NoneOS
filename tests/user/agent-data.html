@@ -67,7 +67,7 @@
           // 用户1发送数据到用户2
           const sendResult = await user1Server[0].post({
             type: "agent-data",
-            friendId: user2.userid,
+            friendId: user2.userId,
             data: testData,
           });
 
@@ -111,7 +111,7 @@
           // 用户1发送数据到用户2
           await user1Server[0].post({
             type: "agent-data",
-            friendId: user2.userid,
+            friendId: user2.userId,
             data: testData,
           });
 
@@ -155,7 +155,7 @@
           // 用户1发送数据到用户2
           await user1Server[0].post({
             type: "agent-data",
-            friendId: user2.userid,
+            friendId: user2.userId,
             data: testData,
           });
 
@@ -163,10 +163,10 @@
           await new Promise((resolve) => setTimeout(resolve, 100));
 
           return {
-            assert: receivedData && receivedData.fromUserId === user1.userid,
+            assert: receivedData && receivedData.fromUserId === user1.userId,
             content: {
               message: "发送者ID验证测试完成",
-              expectedId: user1.userid,
+              expectedId: user1.userId,
               actualId: receivedData ? receivedData.fromUserId : null,
             },
           };
@@ -200,7 +200,7 @@
           // 用户1发送数据到用户2
           await user1Server[0].post({
             type: "agent-data",
-            friendId: user2.userid,
+            friendId: user2.userId,
             data: testData,
           });
 
@@ -286,7 +286,7 @@
           // 用户1发送数据到用户2
           const sendResult = await user1Server[0].post({
             type: "agent-data",
-            friendId: user2.userid,
+            friendId: user2.userId,
             data: testData,
           });
 
