@@ -3,6 +3,7 @@ import { Stanz } from "../../libs/stanz/main.js";
 import { generateRSAKeyPair, decryptMessage } from "/packages/user/rsa-util.js";
 
 const keyPairPms = generateRSAKeyPair();
+
 // 遍历agentData的所有value，如果带有 __rsa_encrypt__ 字符串开头，截取后面的内容进行解密
 const decryptObjectData = async (obj, privateKey) => {
   if (typeof obj !== "object" || obj === null) {
