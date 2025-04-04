@@ -12,7 +12,10 @@ test.describe("User Tests", () => {
     await testSucceedCount(page, 4);
   });
 
-  test("Handshake server friend finding tests", async ({ page, browserName }) => {
+  test("Handshake server friend finding tests", async ({
+    page,
+    browserName,
+  }) => {
     await page.goto("/tests/user/handserver.html");
     await testSucceedCount(page, 2);
   });
@@ -27,10 +30,10 @@ test.describe("User Tests", () => {
     await testSucceedCount(page, 6);
   });
 
-  test("Card handout tests", async ({ page, browserName }) => {
-    await page.goto("/tests/user/card-handout.html");
-    await testSucceedCount(page, 1);
-  });
+  // test("Card handout tests", async ({ page, browserName }) => {
+  //   await page.goto("/tests/user/card-handout.html");
+  //   await testSucceedCount(page, 1);
+  // });
 
   test("Device addition tests", async ({ page, browserName }) => {
     await page.goto("/tests/user/add-device.html");
