@@ -4,7 +4,7 @@ import { activeConnections, authenticatedUsers } from "../client.js";
 const mapAuthenticatedUser = ([userid, e]) => ({
   sessionId: e.client.sessionId,
   userInfo: e.client.userInfo,
-  userid: e.client._userId,
+  userId: e.client._userId,
   __inviteCode: e.client.__inviteCode,
 });
 
