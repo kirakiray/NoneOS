@@ -10,12 +10,26 @@
     <div id="log"></div>
     <script type="module">
       import { connect } from "/packages/user/connection/main.js";
-      import { getUserStore, on } from "/packages/user/main.js";
+      import { getUserStore, on, getServers } from "/packages/user/main.js";
 
       const user1 = await getUserStore("user1");
       const user2 = await getUserStore("user2");
 
-      debugger;
+      await getServers("user1");
+      await getServers("user2");
+
+      await new Promise((res) => setTimeout(res, 100));
+
+      // 用 user1 的身份去连接 user2
+      const connection = await connect(
+        {
+          userId: user2.userId,
+          tabId: "user1-tabid-" + Math.random().toString(36).substr(2, 9),
+        },
+        "user1"
+      );
+
+      console.log("connection", connection);
     </script>
   </body>
 </html>

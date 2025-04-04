@@ -92,6 +92,7 @@ export const getServers = async (userDirName) => {
             server,
             fromUserId,
             data: agentData,
+            userDirName,
           });
 
           break;

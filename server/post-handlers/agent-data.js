@@ -14,8 +14,12 @@ export default {
       timeout = DEFAULT_TIMEOUT,
     } = requestBody;
 
-    if (!targetUserId || !data) {
-      throw new Error("缺少必要参数");
+    if (!targetUserId) {
+      throw new Error("缺少 friendId");
+    }
+
+    if (!data) {
+      throw new Error("没有要转发的数据");
     }
 
     // 生成唯一的代理任务ID
