@@ -17,16 +17,16 @@ export class UserConnection extends Stanz {
   #rtcConnections = new Map(); // 存储所有的RTCPeerConnection实例
   #handlers = []; // 存储所有的消息回调函数
   #userId; // 用户ID
-  #localSelfUser; // 所属用户的store
+  #userDirName; // 用户目录名称
   #selfTabId; // 自己的tabId
 
-  constructor({ userId, localSelfUser, selfTabId }) {
+  constructor({ userId, userDirName, selfTabId }) {
     super({
       state: "not-ready", // 连接状态
     });
 
-    this.#localSelfUser = localSelfUser; // 所属用户的store
     this.#userId = userId;
+    this.#userDirName = userDirName;
     this.#selfTabId = selfTabId;
   }
 
@@ -44,46 +44,83 @@ export class UserConnection extends Stanz {
     const rtcConnection = new RTCPeerConnection({
       iceServers,
     });
-    rtcConnection._tabId = tabId;
-    rtcConnection._host = this;
-    rtcConnection._channels = new Map(); // TODO: 疑似可以直接使用 dataChannels 对象
+
+    Object.defineProperties(rtcConnection, {
+      _tabId: {
+        value: tabId,
+      },
+      _host: {
+        value: this,
+      },
+      _channels: {
+        value: new Map(),
+      },
+      getChannel: {
+        value: (label, isCreate) => {
+          let targetChannel = rtcConnection._channels.get(label);
+
+          if (targetChannel) {
+            return targetChannel;
+          }
+
+          if (isCreate) {
+            targetChannel = rtcConnection.createDataChannel(label);
+
+            this.#initChannel(targetChannel, rtcConnection);
+          }
+
+          return targetChannel || null;
+        },
+      },
+    });
 
     this.#rtcConnections.set(tabId, rtcConnection);
 
     rtcConnection.ondatachannel = (e) => {
-      const channel = e.channel;
-      channel.onmessage = (e) => {
-        if (typeof e.data !== "string") {
-          debugger;
-        }
-
-        const data = JSON.parse(e.data);
-        this.#handlers.forEach((fn) => fn(data, rtcConnection._tabId));
-      };
-
-      channel.onclose = () => {
-        channel.onmessage = null;
-        channel.onclose = null;
-        channel.onerror = null;
-        rtcConnection._channels.delete(channel.label);
-      };
-
-      channel.onerror = (e) => {
-        console.error("数据通道错误:", e);
-        channel.close();
-      };
-
-      rtcConnection._channels.set(channel.label, channel);
+      this.#initChannel(e.channel, rtcConnection);
     };
 
-    rtcConnection.onicecandidate = (event) => {
-      if (event.candidate) {
-        // 发送ICE候选给目标用户
-        debugger;
+    rtcConnection.onicecandidate = async (e) => {
+      if (e.candidate) {
+        // 将 candidate 转为字符串发送给目标设备
+        agentData({
+          friendId: this.#userId,
+          userDirName: this.#userDirName,
+          data: {
+            kind: "agent-ice-candidate",
+            candidate: JSON.stringify(e.candidate),
+            tabId: this.#selfTabId,
+          },
+        });
       }
     };
 
     return rtcConnection;
+  }
+
+  #initChannel(channel, rtcConnection) {
+    channel.onmessage = (e) => {
+      if (typeof e.data !== "string") {
+        debugger;
+      }
+
+      const data = JSON.parse(e.data);
+      this.#handlers.forEach((fn) => fn(data, rtcConnection._tabId));
+    };
+
+    channel.onclose = () => {
+      channel.onmessage = null;
+      channel.onclose = null;
+      channel.onerror = null;
+      rtcConnection._channels.delete(channel.label);
+    };
+
+    channel.onerror = (e) => {
+      console.error("数据通道错误:", e);
+      channel.close();
+    };
+
+    rtcConnection._channels.set(channel.label, channel);
   }
 
   get userId() {

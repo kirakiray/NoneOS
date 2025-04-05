@@ -25,7 +25,7 @@ on("server-agent-data", async (e) => {
         // 如果不存在，创建一个新的连接实例
         targetUserConnection = new UserConnection({
           userId: fromUserId,
-          localSelfUser: getUserStore(userDirName),
+          userDirName,
           selfTabId: tabSessionid,
         });
 
@@ -38,6 +38,11 @@ on("server-agent-data", async (e) => {
 
       const connection = targetUserConnection.getConnection(data.tabId);
 
+      // 创建channel（必须要提前创建，不然会导致无法发送 candidata 数据）
+      connection.getChannel("main", true);
+
+      window.aaa = connection;
+
       // 创建offer 和 channel
       const offer = await connection.createOffer();
       connection.setLocalDescription(offer);
@@ -49,10 +54,12 @@ on("server-agent-data", async (e) => {
         data: {
           kind: "response-offer",
           tabId: targetUserConnection.selfTabId,
-          targetTabId: data.tabId,
+          //   targetTabId: data.tabId,
           offer,
         },
       });
+
+      console.log("connect-user-end", data);
       break;
     }
     case "response-offer": {
@@ -70,17 +77,35 @@ on("server-agent-data", async (e) => {
         data: {
           kind: "response-answer",
           tabId: targetUserConnection.selfTabId,
-          targetTabId: data.tabId,
+          //   targetTabId: data.tabId,
           answer,
         },
       });
+      console.log("response-offer-end", data);
       break;
     }
     case "response-answer": {
       const connection = targetUserConnection.getConnection(data.tabId);
       connection.setRemoteDescription(new RTCSessionDescription(data.answer));
+
+      console.log("response-answer-end", data);
       break;
     }
+    case "agent-ice-candidate": {
+      let candidate = JSON.parse(data.candidate);
+      candidate = new RTCIceCandidate(candidate);
+
+      const connection = targetUserConnection.getConnection(data.tabId);
+
+      // 设置远程的ICE候选
+      connection.addIceCandidate(candidate);
+      console.log("ice-candidate-end", data);
+      break;
+    }
+    default:
+      debugger;
+      console.log("未知的消息类型", data.kind);
+      break;
   }
 });
 
@@ -100,7 +125,7 @@ export const connect = ({ userId, selfTabId }, userDirName) => {
   // 创建实例
   targetUserConnection = new UserConnection({
     userId,
-    localSelfUser: getUserStore(userDirName),
+    userDirName,
     selfTabId: selfTabId,
   });
 
