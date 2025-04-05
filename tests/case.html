@@ -9,7 +9,10 @@
   <body>
     <div id="log"></div>
     <script type="module">
-      import { connect } from "/packages/user/connection/main.js";
+      import {
+        connect,
+        getConnectionStore,
+      } from "/packages/user/connection/main.js";
       import { getUserStore, on, getServers } from "/packages/user/main.js";
 
       const user1 = await getUserStore("user1");
@@ -18,13 +21,18 @@
       await getServers("user1");
       await getServers("user2");
 
+      const u1Connections = await getConnectionStore("user1");
+      window.u1Connections = u1Connections;
+      const u2Connections = await getConnectionStore("user2");
+      window.u2Connections = u2Connections;
+
       await new Promise((res) => setTimeout(res, 100));
 
       const user1TabId =
         "user1-tabid-" + Math.random().toString(36).substr(2, 9);
 
       // 用 user1 的身份去连接 user2
-      const connection = connect(
+      const user2Con = connect(
         {
           userId: user2.userId,
           selfTabId: user1TabId,
@@ -32,7 +40,28 @@
         "user1"
       );
 
-      console.log("connection", connection);
+      user2Con.onMsg((e, fromTabCon) => {
+        debugger;
+      });
+
+      // 等待出现 user2 的连接
+      await u2Connections.watchUntil(() => u2Connections.length > 0);
+
+      const u1Con = u2Connections[0];
+
+      u1Con.onMsg((e, tabCon) => {
+        debugger;
+      });
+
+      // 等待可用
+      await u1Con.watchUntil(() => u1Con.state === "ready");
+
+      //  用户2向用户1发送消息
+      u1Con.send({
+        haha: 1,
+      });
+
+      console.log("user2Con", user2Con);
     </script>
   </body>
 </html>

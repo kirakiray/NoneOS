@@ -96,7 +96,17 @@ export class UserConnection extends Stanz {
 
   // 发送消息
   async send(msg, tabId) {
-    const tabConnection = this.tabs.find((tab) => tab.remoteTabId === tabId);
+    let tabConnection;
+
+    if (tabId) {
+      tabConnection = this.tabs.find((tab) => tab.remoteTabId === tabId);
+    } else {
+      // 如果没有指定tabId，则尝试找到可用的连接
+      tabConnection = this.tabs.find(
+        (tab) => tab.state === "connected" || tab.state === "completed"
+      );
+    }
+
     if (tabConnection) {
       return tabConnection.send(msg);
     }
@@ -134,6 +144,8 @@ class TabConnection extends Stanz {
       // "disconnected": 连接暂时断开。
       // "closed": ICE 连接已关闭。
     });
+
+    // channel是否成功
 
     this.#remoteTabId = remoteTabId;
     this.#host = host;
@@ -206,50 +218,61 @@ class TabConnection extends Stanz {
 
   // 初始化数据通道
   #initChannel(channel) {
-    channel.onmessage = (e) => {
-      if (typeof e.data !== "string") {
-        // TODO: 处理非字符串数据
-        debugger;
-      }
+    const promise = new Promise((resolve, reject) => {
+      channel.onmessage = (e) => {
+        if (typeof e.data !== "string") {
+          // TODO: 处理非字符串数据
+          debugger;
+        }
 
-      const data = JSON.parse(e.data);
-      this.#messageHandlers.forEach((fn) => fn(data));
-    };
+        const data = JSON.parse(e.data);
+        this.#messageHandlers.forEach((fn) => fn(data));
+      };
 
-    channel.onclose = () => {
-      channel.onmessage = null;
-      channel.onclose = null;
-      channel.onerror = null;
-      this.#channels.delete(channel.label);
-    };
+      channel.onopen = () => {
+        this.isChannelInit = true;
+        resolve(channel);
+      };
 
-    channel.onerror = (e) => {
-      console.error("数据通道错误:", e);
-      channel.close();
-    };
+      channel.onclose = () => {
+        channel.onmessage = null;
+        channel.onclose = null;
+        channel.onerror = null;
+        this.#channels.delete(channel.label);
+      };
 
-    this.#channels.set(channel.label, channel);
+      channel.onerror = (e) => {
+        console.error("数据通道错误:", e);
+        channel.close();
+        reject(e.error);
+      };
+    });
+
+    this.#channels.set(channel.label, promise);
+
+    return promise;
   }
 
   // 获取或创建数据通道
   getChannel(label, isCreate = false) {
-    let targetChannel = this.#channels.get(label);
+    let finnalChannel = this.#channels.get(label);
 
-    if (targetChannel) {
-      return targetChannel;
+    if (finnalChannel) {
+      return finnalChannel;
     }
 
     if (isCreate) {
-      targetChannel = this.#rtcConnection.createDataChannel(label);
-      this.#initChannel(targetChannel);
+      finnalChannel = this.#rtcConnection.createDataChannel(label);
+      return this.#initChannel(finnalChannel);
     }
 
-    return targetChannel || null;
+    return null;
   }
 
   // 发送消息
   async send(msg) {
-    const channel = this.getChannel("default", true);
+    const channel = await this.getChannel("default", true);
+
     if (channel && channel.readyState === "open") {
       channel.send(typeof msg === "string" ? msg : JSON.stringify(msg));
       return true;
