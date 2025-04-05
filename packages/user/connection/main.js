@@ -5,38 +5,89 @@ import { agentData } from "../hand-server/agent.js";
 
 import { on } from "../event.js";
 
-on("server-agent-data", (e) => {
-  // 转发给本地的用户名
-  const { userDirName } = e;
+on("server-agent-data", async (e) => {
+  const {
+    userDirName, // 转发给本地的用户名
+    fromUserId, // 发送请求的用户ID
+    data,
+  } = e;
 
-  if (e.data.kind === "connect-user") {
-    // 有用户向你发送连接请求，查看是否存在这个用户实例
-    const connectionStore = getConnection(userDirName);
+  // 有用户向你发送连接请求，查看是否存在这个用户实例
+  const connectionStore = getConnection(userDirName);
 
-    let targetUserConnection = connectionStore.find(
-      (e) => e.userId === e.data.userId
-    );
+  let targetUserConnection = connectionStore.find(
+    (e) => e.userId === fromUserId
+  );
 
-    if (!targetUserConnection) {
-      // 如果不存在，创建一个新的连接实例
-      targetUserConnection = new UserConnection({
-        userId: e.fromUserId,
-        selfUser: getUserStore(userDirName),
-        tabId: tabSessionid,
+  switch (data.kind) {
+    case "connect-user": {
+      if (!targetUserConnection) {
+        // 如果不存在，创建一个新的连接实例
+        targetUserConnection = new UserConnection({
+          userId: fromUserId,
+          localSelfUser: getUserStore(userDirName),
+          selfTabId: tabSessionid,
+        });
+
+        // 添加到连接存储
+        connectionStore.push(targetUserConnection);
+      } else {
+        // TODO: 检查对方是否已经连接过你
+        debugger;
+      }
+
+      const connection = targetUserConnection.getConnection(data.tabId);
+
+      // 创建offer 和 channel
+      const offer = await connection.createOffer();
+      connection.setLocalDescription(offer);
+
+      // 响应对方和我进行连接
+      agentData({
+        friendId: fromUserId, // 对方的用户ID
+        userDirName, // 使用本地的用户名目录
+        data: {
+          kind: "response-offer",
+          tabId: targetUserConnection.selfTabId,
+          targetTabId: data.tabId,
+          offer,
+        },
       });
+      break;
+    }
+    case "response-offer": {
+      // 创建连接
+      const connection = targetUserConnection.getConnection(data.tabId);
 
-      // 添加到连接存储
-      connectionStore.push(targetUserConnection);
+      connection.setRemoteDescription(new RTCSessionDescription(data.offer));
+      // 创建answer
+      const answer = await connection.createAnswer();
+      connection.setLocalDescription(answer);
 
-      debugger;
+      agentData({
+        friendId: fromUserId, // 对方的用户ID
+        userDirName, // 使用本地的用户名目录
+        data: {
+          kind: "response-answer",
+          tabId: targetUserConnection.selfTabId,
+          targetTabId: data.tabId,
+          answer,
+        },
+      });
+      break;
+    }
+    case "response-answer": {
+      const connection = targetUserConnection.getConnection(data.tabId);
+      connection.setRemoteDescription(new RTCSessionDescription(data.answer));
+      break;
     }
   }
 });
 
 // 连接目标设备
-export const connect = async ({ userId, tabId }, userDirName) => {
+export const connect = ({ userId, selfTabId }, userDirName) => {
   userDirName = userDirName || "main";
-  tabId = tabId || tabSessionid; // 强制使用当前的tabId
+  selfTabId = selfTabId || tabSessionid; // 强制使用当前的tabId
 
   const connectionStore = getConnection(userDirName);
 
@@ -49,22 +100,20 @@ export const connect = async ({ userId, tabId }, userDirName) => {
   // 创建实例
   targetUserConnection = new UserConnection({
     userId,
-    selfUser: getUserStore(userDirName),
-    selfTab: tabId,
+    localSelfUser: getUserStore(userDirName),
+    selfTabId: selfTabId,
   });
 
   // 添加到连接存储
   connectionStore.push(targetUserConnection);
 
-  // 创建 offer
-  // const offer = await targetUserConnection.createOffer();
-
-  // 通过服务器转发数据
+  // 通知对方和我进行连接
   agentData({
     friendId: userId,
     userDirName,
     data: {
       kind: "connect-user",
+      tabId: targetUserConnection.selfTabId,
     },
   });
 

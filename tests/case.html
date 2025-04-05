@@ -20,11 +20,14 @@
 
       await new Promise((res) => setTimeout(res, 100));
 
+      const user1TabId =
+        "user1-tabid-" + Math.random().toString(36).substr(2, 9);
+
       // 用 user1 的身份去连接 user2
-      const connection = await connect(
+      const connection = connect(
         {
           userId: user2.userId,
-          tabId: "user1-tabid-" + Math.random().toString(36).substr(2, 9),
+          selfTabId: user1TabId,
         },
         "user1"
       );

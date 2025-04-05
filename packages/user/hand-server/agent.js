@@ -4,7 +4,7 @@ import { getServers } from "./main.js";
 export const agentData = async ({
   friendId,
   data,
-  userDirName,
+  userDirName, // 本地存储的用户数据的目录名
   timeout = 5000,
 }) => {
   userDirName = userDirName || "main";

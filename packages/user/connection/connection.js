@@ -1,4 +1,5 @@
 import { Stanz } from "../../libs/stanz/main.js";
+import { agentData } from "../hand-server/agent.js";
 
 // ice服务器
 const iceServers = [
@@ -13,24 +14,28 @@ const iceServers = [
 
 // 和用户建立连接的类
 export class UserConnection extends Stanz {
-  #rtcConnections = new Set(); // 存储所有的RTCPeerConnection实例
+  #rtcConnections = new Map(); // 存储所有的RTCPeerConnection实例
   #handlers = []; // 存储所有的消息回调函数
   #userId; // 用户ID
-  #selfUser; // 所属用户的store
-  #selfTab; // 自己的tabId
+  #localSelfUser; // 所属用户的store
+  #selfTabId; // 自己的tabId
 
-  constructor({ userId, selfUser, selfTab }) {
+  constructor({ userId, localSelfUser, selfTabId }) {
     super({
-      state: "", // 连接状态
+      state: "not-ready", // 连接状态
     });
 
-    this.#selfUser = selfUser; // 所属用户的store
+    this.#localSelfUser = localSelfUser; // 所属用户的store
     this.#userId = userId;
-    this.#selfTab = selfTab;
+    this.#selfTabId = selfTabId;
   }
 
   // 初始化 connection
-  async createConnection(tabId) {
+  getConnection(tabId) {
+    if (!tabId) {
+      throw new Error("缺少 tabId");
+    }
+
     if (this.#rtcConnections.get(tabId)) {
       return this.#rtcConnections.get(tabId);
     }
@@ -39,8 +44,44 @@ export class UserConnection extends Stanz {
     const rtcConnection = new RTCPeerConnection({
       iceServers,
     });
+    rtcConnection._tabId = tabId;
+    rtcConnection._host = this;
+    rtcConnection._channels = new Map(); // TODO: 疑似可以直接使用 dataChannels 对象
 
     this.#rtcConnections.set(tabId, rtcConnection);
+
+    rtcConnection.ondatachannel = (e) => {
+      const channel = e.channel;
+      channel.onmessage = (e) => {
+        if (typeof e.data !== "string") {
+          debugger;
+        }
+
+        const data = JSON.parse(e.data);
+        this.#handlers.forEach((fn) => fn(data, rtcConnection._tabId));
+      };
+
+      channel.onclose = () => {
+        channel.onmessage = null;
+        channel.onclose = null;
+        channel.onerror = null;
+        rtcConnection._channels.delete(channel.label);
+      };
+
+      channel.onerror = (e) => {
+        console.error("数据通道错误:", e);
+        channel.close();
+      };
+
+      rtcConnection._channels.set(channel.label, channel);
+    };
+
+    rtcConnection.onicecandidate = (event) => {
+      if (event.candidate) {
+        // 发送ICE候选给目标用户
+        debugger;
+      }
+    };
 
     return rtcConnection;
   }
@@ -53,8 +94,12 @@ export class UserConnection extends Stanz {
     return Array.from(this.#rtcConnections);
   }
 
+  get selfTabId() {
+    return this.#selfTabId;
+  }
+
   // 发送消息
-  async send(msg, tid) {}
+  async send(msg, tabId) {}
 
   // 绑定消息回调函数，返回一个取消绑定的函数
   onMsg(fn) {
