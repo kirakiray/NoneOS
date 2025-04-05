@@ -54,7 +54,7 @@ export class UserConnection extends Stanz {
 
     // 注册消息处理
     targetTabCon.onMessage((data) => {
-      this.#handlers.forEach((fn) => fn(data, tabId));
+      this.#handlers.forEach((fn) => fn(data, targetTabCon));
     });
 
     return targetTabCon;

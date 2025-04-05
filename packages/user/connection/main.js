@@ -39,7 +39,7 @@ on("server-agent-data", async (e) => {
       const connection = targetUserConnection.getConnection(data.tabId);
 
       // 创建channel（必须要提前创建，不然会导致无法发送 candidata 数据）
-      connection.getChannel("main", true);
+      connection.getChannel("default", true);
 
       window.aaa = connection;
 
