@@ -23,6 +23,7 @@ export class UserConnection extends Stanz {
   constructor({ userId, userDirName, selfTabId }) {
     super({
       state: "not-ready", // 连接状态
+      tabs: [], // 所有的用户网页标签链接
     });
 
     this.#userId = userId;
@@ -36,9 +37,22 @@ export class UserConnection extends Stanz {
       throw new Error("缺少 tabId");
     }
 
-    if (this.#rtcConnections.get(tabId)) {
-      return this.#rtcConnections.get(tabId);
+    // if (this.#rtcConnections.get(tabId)) {
+    //   return this.#rtcConnections.get(tabId);
+    // }
+
+    let targetTabCon = this.tabs.find((e) => e.remoteTabId === tabId);
+
+    if (targetTabCon) {
+      return targetTabCon; // 返回已经存在的connection
     }
+
+    targetTabCon = new TabConnection({
+      remoteTabId: tabId,
+      host: this,
+    });
+
+    this.tabs.push(tabCon);
 
     // 创建rtc连接
     const rtcConnection = new RTCPeerConnection({
@@ -146,4 +160,32 @@ export class UserConnection extends Stanz {
       this.#handlers.splice(this.#handlers.indexOf(fn), 1);
     };
   }
+}
+
+class TabConnection extends Stanz {
+  #remoteTabId; // 远程 tabId
+  #rtcConnection; // rtc连接
+  constructor({ remoteTabId }) {
+    super({
+      state: "new", // 连接状态
+      // "new": 初始状态，尚未开始 ICE 候选交换。
+      // "checking": 正在检查候选以尝试建立连接。
+      // "connected": 至少一个 ICE 候选对已经成功连接。
+      // "completed": 所有 ICE 候选对都已检查完毕，连接完成。
+      // "failed": ICE 候选检查失败。
+      // "disconnected": 连接暂时断开。
+      // "closed": ICE 连接已关闭。
+    });
+
+    this.#remoteTabId = remoteTabId;
+    const rtcConnection = (this.#rtcConnection = new RTCPeerConnection({
+      iceServers,
+    }));
+  }
+
+  get remoteTabId() {
+    return this.#remoteTabId;
+  }
+
+  getChannel(label, isCreate) {}
 }
