@@ -30,6 +30,21 @@ export class UserConnection extends Stanz {
     this.#selfTabId = selfTabId;
   }
 
+  // 更新连接状态
+  #updateConnectionState() {
+    // 检查是否有可用的连接
+    const hasAvailableConnection = this.tabs.some(
+      (tab) => tab.state === "connected" || tab.state === "completed"
+    );
+
+    // 更新状态
+    if (hasAvailableConnection) {
+      this.state = "ready";
+    } else {
+      this.state = "not-ready";
+    }
+  }
+
   // 初始化 connection
   getConnection(tabId) {
     if (!tabId) {
@@ -55,6 +70,13 @@ export class UserConnection extends Stanz {
     // 注册消息处理
     targetTabCon.onMessage((data) => {
       this.#handlers.forEach((fn) => fn(data, targetTabCon));
+    });
+
+    // 监听TabConnection状态变化
+    targetTabCon.watchTick((e) => {
+      if (e.hasModified("state")) {
+        this.#updateConnectionState();
+      }
     });
 
     return targetTabCon;

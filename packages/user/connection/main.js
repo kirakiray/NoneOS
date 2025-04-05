@@ -1,6 +1,6 @@
 import { getConnection } from "./public.js";
 import { UserConnection } from "./connection.js";
-import { tabSessionid, getUserStore } from "../user-store.js";
+import { tabSessionid } from "../user-store.js";
 import { agentData } from "../hand-server/agent.js";
 
 import { on } from "../event.js";
