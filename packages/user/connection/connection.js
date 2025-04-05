@@ -169,7 +169,31 @@ class TabConnection extends Stanz {
     // 监听连接状态变化
     this.#rtcConnection.oniceconnectionstatechange = () => {
       this.state = this.#rtcConnection.iceConnectionState;
+
+      if (this.state === "closed") {
+        // 监听状态变化，当状态为closed时清除所有绑定
+        this.#clearAllBindings();
+      }
     };
+  }
+
+  // 清除所有绑定
+  #clearAllBindings() {
+    // 从host的tabs中移除自身
+    const index = this.#host.tabs.indexOf(this);
+    if (index !== -1) {
+      this.#host.tabs.splice(index, 1);
+    }
+
+    this.#messageHandlers.splice(0, this.#messageHandlers.length);
+    this.#channels.forEach((channel) => {
+      channel.onmessage = null;
+      channel.onclose = null;
+      channel.onerror = null;
+    });
+    this.#rtcConnection.ondatachannel = null;
+    this.#rtcConnection.onicecandidate = null;
+    this.#rtcConnection.oniceconnectionstatechange = null;
   }
 
   get remoteTabId() {
@@ -184,6 +208,7 @@ class TabConnection extends Stanz {
   #initChannel(channel) {
     channel.onmessage = (e) => {
       if (typeof e.data !== "string") {
+        // TODO: 处理非字符串数据
         debugger;
       }
 
