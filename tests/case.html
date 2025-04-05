@@ -32,7 +32,7 @@
         "user1-tabid-" + Math.random().toString(36).substr(2, 9);
 
       // 用 user1 的身份去连接 user2
-      const user2Con = connect(
+      const u1Connections_u2shadow = connect(
         {
           userId: user2.userId,
           selfTabId: user1TabId,
@@ -40,28 +40,27 @@
         "user1"
       );
 
-      user2Con.onMsg((e, fromTabCon) => {
-        debugger;
-      });
-
       // 等待出现 user2 的连接
       await u2Connections.watchUntil(() => u2Connections.length > 0);
 
-      const u1Con = u2Connections[0];
+      const u2Connections_u1shadow = u2Connections[0];
 
-      u1Con.onMsg((e, tabCon) => {
-        debugger;
+      u2Connections_u1shadow.onMsg((data, tabCon) => {
+        console.log("收到用户2的消息", data);
+        console.log("来源确定", tabCon.remoteTabId === user1TabId);
       });
 
-      // 等待可用
-      await u1Con.watchUntil(() => u1Con.state === "ready");
+      // 等待可发送的时刻
+      await u2Connections_u1shadow.watchUntil(
+        () => u2Connections_u1shadow.state === "ready"
+      );
 
-      //  用户2向用户1发送消息
-      u1Con.send({
+      //  用户1向用户2发送消息
+      u1Connections_u2shadow.send({
         haha: 1,
       });
 
-      console.log("user2Con", user2Con);
+      console.log("u1Connections_u2shadow", u1Connections_u2shadow);
     </script>
   </body>
 </html>
