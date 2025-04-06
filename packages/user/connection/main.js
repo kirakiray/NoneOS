@@ -9,15 +9,12 @@ on("server-agent-data", async (e) => {
   const {
     userDirName, // 转发给本地的用户名
     fromUserId, // 发送请求的用户ID
+    // data: signedData,
     data,
   } = e;
 
   // 有用户向你发送连接请求，查看是否存在这个用户实例
   const connectionStore = getConnection(userDirName);
-
-  //   let targetUserConnection = connectionStore.find(
-  //     (e) => e.userId === fromUserId
-  //   );
 
   switch (data.kind) {
     case "connect-user": {

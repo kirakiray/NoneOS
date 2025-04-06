@@ -1,6 +1,8 @@
 import { Stanz } from "../../libs/stanz/main.js";
 import { getUserStore } from "../user-store.js";
 import { emit } from "../event.js";
+import { verifyData } from "../verify.js";
+import { getHash } from "../../fs/util.js";
 
 // 获取服务器列表
 export const getServers = async (userDirName) => {
@@ -84,16 +86,37 @@ export const getServers = async (userDirName) => {
         case "onagentdata": {
           const { key, fromUserId, agentData } = resData;
           const server = handServers.find((s) => s.key === key);
-          if (server && server._onagentdata) {
-            server._onagentdata(fromUserId, agentData);
-          }
 
-          emit("server-agent-data", {
-            server,
-            fromUserId,
-            data: agentData,
-            userDirName,
-          });
+          (async () => {
+            const verResult = await verifyData(agentData);
+
+            if (!verResult) {
+              console.error("验证数据失败，数据被篡改", agentData);
+              return;
+            }
+
+            const signUserId = await getHash(agentData.data.publicKey);
+
+            // 验证来源是否正确
+            if (fromUserId !== signUserId) {
+              console.error(
+                `签名验证失败：发送者ID(${fromUserId})与签名者ID(${signUserId})不匹配`,
+                agentData
+              );
+              return;
+            }
+
+            if (server && server._onagentdata) {
+              server._onagentdata(fromUserId, agentData.data);
+            }
+
+            emit("server-agent-data", {
+              server,
+              fromUserId,
+              data: agentData.data,
+              userDirName,
+            });
+          })();
 
           break;
         }

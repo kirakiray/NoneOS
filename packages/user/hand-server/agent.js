@@ -1,4 +1,5 @@
 import { getServers } from "./main.js";
+import { signData } from "../sign.js";
 
 // 缓存可用服务器列表
 const serverCache = new Map();
@@ -74,12 +75,15 @@ export const agentData = async ({
 
   let targetServer;
 
+  const signedData = await signData(data, userDirName);
+
   for (let e of canUseSers) {
     // 转发请求
     const result = await e.server.post({
       type: "agent-data",
       friendId,
-      data,
+      // data,
+      data: signedData,
     });
 
     if (result.code === 200) {
