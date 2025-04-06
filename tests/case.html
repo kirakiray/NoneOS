@@ -18,6 +18,7 @@
       const user1 = await getUserStore("user1");
       const user2 = await getUserStore("user2");
 
+      // 等待连接握手服务器
       await getServers("user1");
       await getServers("user2");
 
@@ -40,7 +41,7 @@
         "user1"
       );
 
-      // 等待出现 user2 的连接
+      // 等待出现 user2 中的连接user1映射实例对象
       await u2Connections.watchUntil(() => u2Connections.length > 0);
 
       const u2Connections_u1shadow = u2Connections[0];

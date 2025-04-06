@@ -12,6 +12,11 @@ test.describe("User Tests", () => {
     await testSucceedCount(page, 4);
   });
 
+  test("User connection tests", async ({ page }) => {
+    await page.goto("/tests/user/connection.html");
+    await testSucceedCount(page, 2);
+  });
+
   test("Handshake server friend finding tests", async ({
     page,
     browserName,

@@ -172,7 +172,8 @@ class TabConnection extends Stanz {
           data: {
             kind: "agent-ice-candidate",
             candidate: JSON.stringify(e.candidate),
-            tabId: this.#selfTabId,
+            toTabId: this.#remoteTabId, // 发送给目标设备的tabId
+            fromTabId: this.#selfTabId,
           },
         });
       }
