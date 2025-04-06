@@ -87,36 +87,52 @@ export const getServers = async (userDirName) => {
           const { key, fromUserId, agentData } = resData;
           const server = handServers.find((s) => s.key === key);
 
-          (async () => {
-            const verResult = await verifyData(agentData);
+          if (agentData.signature) {
+            // 签名的数据，需要验证
+            (async () => {
+              const verResult = await verifyData(agentData);
 
-            if (!verResult) {
-              console.error("验证数据失败，数据被篡改", agentData);
-              return;
-            }
+              if (!verResult) {
+                console.error("验证数据失败，数据被篡改", agentData);
+                return;
+              }
 
-            const signUserId = await getHash(agentData.data.publicKey);
+              const signUserId = await getHash(agentData.data.publicKey);
 
-            // 验证来源是否正确
-            if (fromUserId !== signUserId) {
-              console.error(
-                `签名验证失败：发送者ID(${fromUserId})与签名者ID(${signUserId})不匹配`,
-                agentData
-              );
-              return;
-            }
+              // 验证来源是否正确
+              if (fromUserId !== signUserId) {
+                console.error(
+                  `签名验证失败：发送者ID(${fromUserId})与签名者ID(${signUserId})不匹配`,
+                  agentData
+                );
+                return;
+              }
 
+              if (server && server._onagentdata) {
+                server._onagentdata(fromUserId, agentData.data);
+              }
+
+              emit("server-agent-data", {
+                server,
+                fromUserId,
+                data: agentData.data,
+                userDirName,
+                signed: true,
+              });
+            })();
+          } else {
             if (server && server._onagentdata) {
-              server._onagentdata(fromUserId, agentData.data);
+              server._onagentdata(fromUserId, agentData);
             }
 
             emit("server-agent-data", {
               server,
               fromUserId,
-              data: agentData.data,
+              data: agentData,
               userDirName,
+              signed: false,
             });
-          })();
+          }
 
           break;
         }

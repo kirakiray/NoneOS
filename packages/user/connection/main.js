@@ -11,7 +11,14 @@ on("server-agent-data", async (e) => {
     fromUserId, // 发送请求的用户ID
     // data: signedData,
     data,
+    signed, // 是签名的数据
   } = e;
+
+  if (!signed) {
+    // 未签名的数据，不处理
+    console.warn("不需要未签名的数据", data);
+    return;
+  }
 
   // 有用户向你发送连接请求，查看是否存在这个用户实例
   const connectionStore = getConnection(userDirName);
