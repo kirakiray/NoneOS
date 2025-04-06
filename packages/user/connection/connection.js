@@ -102,9 +102,10 @@ export class UserConnection extends Stanz {
       tabConnection = this.tabs.find((tab) => tab.remoteTabId === tabId);
     } else {
       // 如果没有指定tabId，则尝试找到可用的连接
-      tabConnection = this.tabs.find(
-        (tab) => tab.state === "connected" || tab.state === "completed"
-      );
+      //   tabConnection = this.tabs.find(
+      //     (tab) => tab.state === "connected" || tab.state === "completed"
+      //   );
+      tabConnection = this.tabs[0]; // 暂时先取第一个
     }
 
     if (tabConnection) {

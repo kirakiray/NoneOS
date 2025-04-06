@@ -27,6 +27,8 @@
           await getServers("user1");
           await getServers("user2");
 
+          await new Promise((res) => setTimeout(res, 200)); // 等待连接握手服务器
+
           // 获取连接存储
           const u1Connections = await getConnectionStore("user1");
           const u2Connections = await getConnectionStore("user2");
