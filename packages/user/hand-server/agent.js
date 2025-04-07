@@ -4,15 +4,8 @@ import { signData } from "../sign.js";
 // 缓存可用服务器列表
 const serverCache = new Map();
 
-// 通过服务端转发数据到目标用户
-export const agentData = async ({
-  friendId,
-  data,
-  userDirName, // 本地存储的用户数据的目录名
-  timeout = 5000,
-}) => {
-  userDirName = userDirName || "main";
-
+// 查找在线用户
+const findOnlineUser = async (friendId, userDirName) => {
   // 检查缓存中是否有可用服务器
   const cacheKey = `${userDirName}:${friendId}`;
   const cachedServers = serverCache.get(cacheKey);
@@ -63,6 +56,20 @@ export const agentData = async ({
     canUseSers = await cachePms;
   }
 
+  return canUseSers;
+};
+
+// 通过服务端转发数据到目标用户
+export const agentData = async ({
+  friendId,
+  data,
+  userDirName, // 本地存储的用户数据的目录名
+  timeout = 5000,
+}) => {
+  userDirName = userDirName || "main";
+
+  const canUseSers = await findOnlineUser(friendId, userDirName);
+
   if (!canUseSers.length) {
     console.error("未查找到目标用户 " + friendId + " 所在的服务器");
     return {
@@ -70,8 +77,6 @@ export const agentData = async ({
       notFindUser: true,
     };
   }
-
-  console.log("cachedServers: ", cachedServers); // TODO: remove this line in pr
 
   let targetServer;
 

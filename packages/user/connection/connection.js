@@ -95,6 +95,14 @@ export class UserConnection extends Stanz {
   async send(msg, tabId) {
     let tabConnection;
 
+    try {
+      await this.watchUntil(() => this.state === "ready", 5000);
+    } catch (error) {
+      throw new Error(`发送请求失败`, {
+        cause: error,
+      });
+    }
+
     if (tabId) {
       tabConnection = this.tabs.find((tab) => tab.remoteTabId === tabId);
     } else {
@@ -106,6 +114,7 @@ export class UserConnection extends Stanz {
     }
 
     if (tabConnection) {
+      debugger;
       return tabConnection.send(msg);
     }
     throw new Error(`未找到tabId为${tabId}的连接`);

@@ -9,59 +9,42 @@
   <body>
     <div id="log"></div>
     <script type="module">
-      import {
-        connect,
-        getConnectionStore,
-      } from "/packages/user/connection/main.js";
+      import { createGet } from "/packages/fs/remote/main.js";
       import { getUserStore, on, getServers } from "/packages/user/main.js";
 
       const user1 = await getUserStore("user1");
-      const user2 = await getUserStore("user2");
-
-      // 等待连接握手服务器
       await getServers("user1");
-      await getServers("user2");
-
-      const u1Connections = await getConnectionStore("user1");
-      window.u1Connections = u1Connections;
-      const u2Connections = await getConnectionStore("user2");
-      window.u2Connections = u2Connections;
 
       await new Promise((res) => setTimeout(res, 100));
 
-      const user1TabId =
-        "user1-tabid-" + Math.random().toString(36).substr(2, 9);
+      // 访问第一个用户的内容
+      const get = createGet(user1.userId);
 
-      // 用 user1 的身份去连接 user2
-      const u1Connections_u2shadow = connect(
-        {
-          userId: user2.userId,
-          selfTabId: user1TabId,
-        },
-        "user1"
-      );
+      const localHandle = await get("local");
 
-      // 等待出现 user2 中的连接user1映射实例对象
-      await u2Connections.watchUntil(() => u2Connections.length > 0);
+      const length = await localHandle.length();
 
-      const u2Connections_u1shadow = u2Connections[0];
+      debugger;
 
-      u2Connections_u1shadow.onMsg((data, tabCon) => {
-        console.log("收到用户2的消息", data);
-        console.log("来源确定", tabCon.remoteTabId === user1TabId);
-      });
+      // import {
+      //   connect,
+      //   getConnectionStore,
+      // } from "/packages/user/connection/main.js";
+      // import { getUserStore, on, getServers } from "/packages/user/main.js";
 
-      // 等待可发送的时刻
-      await u2Connections_u1shadow.watchUntil(
-        () => u2Connections_u1shadow.state === "ready"
-      );
+      // const user1 = await getUserStore("user1");
+      // const user2 = await getUserStore("user2");
 
-      //  用户1向用户2发送消息
-      u1Connections_u2shadow.send({
-        haha: 1,
-      });
+      // // 等待连接握手服务器
+      // await getServers("user1");
+      // await getServers("user2");
 
-      console.log("u1Connections_u2shadow", u1Connections_u2shadow);
+      // const u1Connections = await getConnectionStore("user1");
+      // window.u1Connections = u1Connections;
+      // const u2Connections = await getConnectionStore("user2");
+      // window.u2Connections = u2Connections;
+
+      // await new Promise((res) => setTimeout(res, 100));
     </script>
   </body>
 </html>
