@@ -1,5 +1,6 @@
 import { Stanz } from "../../libs/stanz/main.js";
 import { agentData } from "../hand-server/agent.js";
+import { emit } from "../event.js";
 
 // ice服务器
 const iceServers = [
@@ -96,7 +97,7 @@ export class UserConnection extends Stanz {
     let tabConnection;
 
     try {
-      await this.watchUntil(() => this.state === "ready", 5000);
+      await this.watchUntil(() => this.state === "ready", 10000);
     } catch (error) {
       throw new Error(`发送请求失败`, {
         cause: error,
@@ -114,7 +115,6 @@ export class UserConnection extends Stanz {
     }
 
     if (tabConnection) {
-      debugger;
       return tabConnection.send(msg);
     }
     throw new Error(`未找到tabId为${tabId}的连接`);
@@ -235,6 +235,14 @@ class TabConnection extends Stanz {
 
         const data = JSON.parse(e.data);
         this.#messageHandlers.forEach((fn) => fn(data));
+
+        emit("receive-user-data", {
+          data,
+          tabConnection: this,
+          fromUserId: this.#userId,
+          fromTabId: this.#remoteTabId, // 发送给目标设备的tabId
+          userDirName: this.#userDirName,
+        });
       };
 
       channel.onopen = () => {

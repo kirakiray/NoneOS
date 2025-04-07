@@ -1,5 +1,6 @@
 import { connect } from "../../user/connection/main.js";
 import { RemoteDirHandle } from "./dir.js";
+import "./public.js";
 
 export const createGet = (userId, { userDirName } = {}) => {
   // 基础连接器

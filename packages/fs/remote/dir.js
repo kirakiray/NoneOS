@@ -1,5 +1,6 @@
 import { RemoteBaseHandle } from "./base.js";
 import { extendDirHandle } from "../public/dir.js";
+import { post } from "./public.js";
 
 export class RemoteDirHandle extends RemoteBaseHandle {
   #connection;
@@ -15,12 +16,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   }
 
   async length() {
-    const result = await this.#connection.send({
-      method: "length",
-      path: this.path,
+    return post({
+      connection: this.#connection,
+      data: {
+        method: "length",
+        path: this.path,
+        args: [],
+      },
     });
-
-    debugger;
   }
 
   async *keys() {
