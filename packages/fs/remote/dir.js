@@ -5,10 +5,12 @@ import { post } from "./public.js";
 export class RemoteDirHandle extends RemoteBaseHandle {
   #connection;
   #name;
-  constructor({ root, parent, connection, name }) {
+  #userDirName;
+  constructor({ root, parent, connection, name, userDirName }) {
     super({ root, parent });
     this.#connection = connection;
     this.#name = name;
+    this.#userDirName = userDirName;
   }
 
   async get(path) {
@@ -17,6 +19,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
 
   async length() {
     return post({
+      userDirName: this.#userDirName,
       connection: this.#connection,
       data: {
         method: "length",

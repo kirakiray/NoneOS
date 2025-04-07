@@ -35,6 +35,8 @@ on("receive-user-data", async (e) => {
   } else if (kind === "result") {
     const { taskId, result, error } = data;
 
+    const tasks = getTasks(userDirName);
+
     const targetTask = tasks.get(taskId);
     if (targetTask) {
       if (error) {
@@ -51,10 +53,20 @@ on("receive-user-data", async (e) => {
   }
 });
 
-const tasks = new Map();
+const pools = {};
+
+const getTasks = (userDirName) => {
+  const tasks = pools[userDirName];
+  if (!tasks) {
+    pools[userDirName] = new Map();
+    return pools[userDirName];
+  }
+
+  return tasks;
+};
 
 // 发送数据到对方
-export const post = async ({ data, connection }) => {
+export const post = async ({ data, connection, userDirName }) => {
   const taskId = crypto.randomUUID();
 
   let resolve, reject;
@@ -62,6 +74,11 @@ export const post = async ({ data, connection }) => {
     resolve = _resolve;
     reject = _reject;
   });
+
+  debugger;
+
+  const tasks = getTasks(userDirName);
+
   tasks.set(taskId, {
     resolve,
     reject,

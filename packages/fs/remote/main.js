@@ -3,6 +3,8 @@ import { RemoteDirHandle } from "./dir.js";
 import "./public.js";
 
 export const createGet = (userId, { userDirName } = {}) => {
+  userDirName = userDirName || "main";
+
   // 基础连接器
   const connection = connect({
     userDirName,
@@ -15,6 +17,7 @@ export const createGet = (userId, { userDirName } = {}) => {
     const rootDirHandle = new RemoteDirHandle({
       connection,
       name: pathArr[0],
+      userDirName,
     });
 
     if (pathArr.length === 1) {
