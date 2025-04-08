@@ -2,33 +2,17 @@ import { RemoteBaseHandle } from "./base.js";
 import { extendFileHandle } from "../public/file.js";
 
 export class RemoteFileHandle extends RemoteBaseHandle {
-  constructor(...args) {
-    super(...args);
+  constructor(options) {
+    super(options);
   }
 
   // 读取文件
   async read(options = {}) {
-    return post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "read",
-        path: this.path,
-        args: [options],
-      },
-    });
+    return this._post("read", [options]);
   }
 
   async write(data, options) {
-    return post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "write",
-        path: this.path,
-        args: [data, options],
-      },
-    });
+    return this._post("write", [data, options]);
   }
 }
 

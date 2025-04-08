@@ -17,38 +17,20 @@
 
       await new Promise((res) => setTimeout(res, 100));
 
-      // 访问第一个用户的内容
-      const get = createGet(user1.userId);
+      {
+        // 访问第一个用户的内容
+        const get = createGet(user1.userId);
 
-      const localHandle = await get("local");
+        const localHandle = await get("local/test");
 
-      const length = await localHandle.length();
+        const length = await localHandle.length();
 
-      console.log("length: ", length);
+        console.log("length: ", length);
 
-      for await (let e of localHandle.values()) {
-        console.log("e: ", e);
+        for await (let e of localHandle.values()) {
+          console.log("e: ", e);
+        }
       }
-
-      // import {
-      //   connect,
-      //   getConnectionStore,
-      // } from "/packages/user/connection/main.js";
-      // import { getUserStore, on, getServers } from "/packages/user/main.js";
-
-      // const user1 = await getUserStore("user1");
-      // const user2 = await getUserStore("user2");
-
-      // // 等待连接握手服务器
-      // await getServers("user1");
-      // await getServers("user2");
-
-      // const u1Connections = await getConnectionStore("user1");
-      // window.u1Connections = u1Connections;
-      // const u2Connections = await getConnectionStore("user2");
-      // window.u2Connections = u2Connections;
-
-      // await new Promise((res) => setTimeout(res, 100));
     </script>
   </body>
 </html>

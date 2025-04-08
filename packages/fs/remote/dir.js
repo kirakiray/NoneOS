@@ -4,21 +4,13 @@ import { post } from "./public.js";
 import { RemoteFileHandle } from "./file.js";
 
 export class RemoteDirHandle extends RemoteBaseHandle {
-  constructor(...args) {
-    super(...args);
+  constructor(options) {
+    super(options);
   }
 
   async get(name, options) {
     // 抽取handle信息
-    const handleInfo = await post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "get",
-        path: this.path,
-        args: [name, options],
-      },
-    });
+    const handleInfo = await this._post("get", [name, options]);
 
     if (handleInfo.kind === "dir") {
       return new RemoteDirHandle({
@@ -36,28 +28,11 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   }
 
   async length() {
-    return post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "length",
-        path: this.path,
-        args: [],
-      },
-    });
+    return this._post("length");
   }
 
   async *keys() {
-    const keys = await post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "keys",
-        path: this.path,
-        gen: 1,
-        args: [],
-      },
-    });
+    const keys = await this._post("keys", [], { gen: 1 });
 
     for (let key of keys) {
       yield key;

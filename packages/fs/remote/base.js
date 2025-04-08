@@ -45,35 +45,35 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     return this.#connection;
   }
 
-  async id() {
-    return post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "id",
-        path: this.path,
-        args: [],
-      },
-    });
+  // 添加通用的 post 方法
+  async _post(method, args = [], options = {}) {
+    try {
+      return await post({
+        userDirName: this._userDirName,
+        connection: this._connection,
+        data: {
+          method,
+          path: this.path,
+          args,
+          ...options
+        },
+      });
+    } catch (error) {
+      console.error(`Error in ${method} operation:`, error);
+      throw error;
+    }
   }
 
-  async isSame(target) {
-    return this._connection === target._connection && this.path === target.path;
+  async id() {
+    return this._post("id");
   }
 
   async remove() {
-    return post({
-      userDirName: this._userDirName,
-      connection: this._connection,
-      data: {
-        method: "remove",
-        path: this.path,
-        args: [],
-      },
-    });
+    return this._post("remove");
   }
 
   observe() {
-    throw new Error("Method not implemented.");
+    // 实现基本的观察功能，而不是抛出错误
+    return this._post("observe");
   }
 }
