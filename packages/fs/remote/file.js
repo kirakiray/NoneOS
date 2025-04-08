@@ -7,12 +7,12 @@ export class RemoteFileHandle extends RemoteBaseHandle {
   }
 
   // 读取文件
-  async read(options = {}) {
-    return this._post("read", [options]);
+  async read(...args) {
+    return this._post("read", args);
   }
 
-  async write(data, options) {
-    return this._post("write", [data, options]);
+  async write(...args) {
+    return this._post("write", args);
   }
 }
 

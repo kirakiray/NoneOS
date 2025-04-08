@@ -8,9 +8,9 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     super(options);
   }
 
-  async get(name, options) {
+  async get(...args) {
     // 抽取handle信息
-    const handleInfo = await this._post("get", [name, options]);
+    const handleInfo = await this._post("get", args);
 
     if (handleInfo.kind === "dir") {
       return new RemoteDirHandle({
