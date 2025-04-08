@@ -10,8 +10,10 @@
     <div id="log"></div>
     <script type="module">
       import { createGet } from "/packages/fs/remote/main.js";
+      import { get } from "/packages/fs/main.js";
       import { getUserStore, on, getServers } from "/packages/user/main.js";
 
+      // 当前为测试环境 user1和自身用户是公用一套文件系统，所以才能如下测试
       const user1 = await getUserStore("user1");
       await getServers("user1");
 
@@ -30,6 +32,39 @@
         for await (let e of localHandle.values()) {
           console.log("e: ", e);
         }
+
+        const remoteFileHandle = await localHandle.get("remote1/test1.txt", {
+          create: "file",
+        });
+        // 向对方用户读取和写入文件
+        const text1 = "hello world " + Math.random();
+
+        await remoteFileHandle.write(text1);
+
+        const rHandle2 = await get("local/test/remote1/test1.txt");
+
+        const text2 = await rHandle2.text();
+
+        console.log("result: ", text1 === text2);
+        console.log("isSame: ", await rHandle2.isSame(remoteFileHandle));
+      }
+
+      // 咋当前用户中创建一个文件，尝试让对方来获取这个文件
+      const testHandle2 = await get("local/test/remote2/test2.txt", {
+        create: "file",
+      });
+
+      const text3 = "hello world 2" + Math.random();
+      await testHandle2.write(text3);
+
+      {
+        // 访问第一个用户的内容
+        const get = createGet(user1.userId);
+
+        const t2Handle = await get("local/test/remote2/test2.txt");
+
+        const text4 = await t2Handle.text();
+        console.log("result2: ", text3 === text4);
       }
     </script>
   </body>

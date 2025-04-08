@@ -55,7 +55,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
           method,
           path: this.path,
           args,
-          ...options
+          ...options,
         },
       });
     } catch (error) {
@@ -70,6 +70,12 @@ export class RemoteBaseHandle extends PublicBaseHandle {
 
   async remove() {
     return this._post("remove");
+  }
+
+  async isSame(target) {
+    return (
+      this.#connection === target._connection && this.#path === target.path
+    );
   }
 
   observe() {
