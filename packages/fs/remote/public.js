@@ -13,12 +13,20 @@ on("receive-user-data", async (e) => {
   const { kind } = data;
 
   if (kind === "take") {
-    const { taskId: remoteTaskId, method, path, args } = data;
+    const { taskId: remoteTaskId, method, path, args, gen } = data;
 
     try {
       const handle = await get(path);
 
-      const result = await handle[method](...args);
+      let result;
+      if (gen) {
+        result = [];
+        for await (let item of handle[method](...args)) {
+          result.push(item);
+        }
+      } else {
+        result = await handle[method](...args);
+      }
 
       tabConnection.send({
         kind: "result",
@@ -74,8 +82,6 @@ export const post = async ({ data, connection, userDirName }) => {
     resolve = _resolve;
     reject = _reject;
   });
-
-  debugger;
 
   const tasks = getTasks(userDirName);
 

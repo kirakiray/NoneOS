@@ -26,6 +26,10 @@
 
       console.log("length: ", length);
 
+      for await (let e of localHandle.values()) {
+        console.log("e: ", e);
+      }
+
       // import {
       //   connect,
       //   getConnectionStore,

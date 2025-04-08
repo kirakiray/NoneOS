@@ -97,10 +97,10 @@ export class PublicBaseHandle {
   }
 
   toJSON() {
-    debugger;
     return {
       name: this.name,
       path: this.path,
+      kind: this.kind,
     };
   }
 
