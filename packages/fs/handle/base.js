@@ -9,6 +9,14 @@ export class BaseHandle extends PublicBaseHandle {
     this.#originHandle = dirHandle;
   }
 
+  get _handle() {
+    return this.#originHandle;
+  }
+
+  get name() {
+    return this.#originHandle.name;
+  }
+
   async id() {
     const originHandle = this.#originHandle;
 
@@ -17,14 +25,6 @@ export class BaseHandle extends PublicBaseHandle {
     }
 
     return await getHash(this.path);
-  }
-
-  get _handle() {
-    return this.#originHandle;
-  }
-
-  get name() {
-    return this.#originHandle.name;
   }
 
   async isSame(target) {

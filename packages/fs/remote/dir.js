@@ -24,13 +24,13 @@ export class RemoteDirHandle extends RemoteBaseHandle {
       return new RemoteDirHandle({
         userDirName: this._userDirName,
         connection: this._connection,
-        name: handleInfo.name,
+        path: handleInfo.path,
       });
     } else {
       return new RemoteFileHandle({
         userDirName: this._userDirName,
         connection: this._connection,
-        name: handleInfo.name,
+        path: handleInfo.path,
       });
     }
   }
@@ -66,5 +66,3 @@ export class RemoteDirHandle extends RemoteBaseHandle {
 }
 
 extendDirHandle(RemoteDirHandle);
-
-const createParents = ({ userDirName, connection }) => {};

@@ -16,7 +16,7 @@ export const createGet = (userId, { userDirName } = {}) => {
 
     const rootDirHandle = new RemoteDirHandle({
       connection,
-      name: pathArr[0],
+      path: pathArr[0],
       userDirName,
     });
 

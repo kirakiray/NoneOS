@@ -8,14 +8,28 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
   // 读取文件
   async read(options = {}) {
-    // options = {
-    //   type: "text",
-    //   start: "",
-    //   end: "",
-    // };
+    return post({
+      userDirName: this._userDirName,
+      connection: this._connection,
+      data: {
+        method: "read",
+        path: this.path,
+        args: [options],
+      },
+    });
   }
 
-  async write(data, options = {}) {}
+  async write(data, options) {
+    return post({
+      userDirName: this._userDirName,
+      connection: this._connection,
+      data: {
+        method: "write",
+        path: this.path,
+        args: [data, options],
+      },
+    });
+  }
 }
 
 extendFileHandle(RemoteFileHandle);
