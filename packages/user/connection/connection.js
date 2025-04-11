@@ -40,6 +40,8 @@ export class UserConnection extends Stanz {
       this.state = "ready";
     } else {
       this.state = "not-ready";
+
+      // TODO: 准备清除所有的task等待
     }
   }
 
@@ -228,13 +230,16 @@ class TabConnection extends Stanz {
   #initChannel(channel) {
     const promise = new Promise((resolve, reject) => {
       channel.onmessage = (e) => {
-        if (typeof e.data !== "string") {
-          // TODO: 处理非字符串数据
-          debugger;
-        }
+        let { data } = e;
 
-        const data = JSON.parse(e.data);
-        this.#messageHandlers.forEach((fn) => fn(data));
+        if (typeof data === "string") {
+          try {
+            data = JSON.parse(e.data);
+            this.#messageHandlers.forEach((fn) => fn(data));
+          } catch (err) {
+            data = e.data;
+          }
+        }
 
         emit("receive-user-data", {
           data,
@@ -290,7 +295,16 @@ class TabConnection extends Stanz {
     const channel = await this.getChannel("default", true);
 
     if (channel && channel.readyState === "open") {
-      channel.send(typeof msg === "string" ? msg : JSON.stringify(msg));
+      if (msg instanceof ArrayBuffer || typeof msg === "string") {
+        channel.send(msg);
+      } else if (msg instanceof Blob) {
+        const arrayBuffer = await msg.arrayBuffer();
+        channel.send(arrayBuffer);
+      } else if (msg instanceof Object) {
+        channel.send(JSON.stringify(msg));
+      } else {
+        channel.send(msg);
+      }
       return true;
     }
     return false;

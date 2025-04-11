@@ -1,11 +1,12 @@
 import { on } from "../../user/event.js";
 import { get } from "../main.js";
+import { cacheFile, getChunks } from "../../user/cache/main.js";
 
 on("receive-user-data", async (e) => {
   const {
     userDirName, // 目标本地用户目录名称
     data,
-    // fromUserId, // 消息来源用户ID
+    fromUserId, // 消息来源用户ID
     // fromTabId, // 消息来源TabID
     tabConnection, // 消息来源TabConnection
   } = e;
@@ -18,14 +19,16 @@ on("receive-user-data", async (e) => {
     try {
       const handle = await get(path);
 
+      const reArgs = await fixBlockData(args, { userDirName, fromUserId });
+
       let result;
       if (gen) {
         result = [];
-        for await (let item of handle[method](...args)) {
+        for await (let item of handle[method](...reArgs)) {
           result.push(item);
         }
       } else {
-        result = await handle[method](...args);
+        result = await handle[method](...reArgs);
       }
 
       tabConnection.send({
@@ -90,11 +93,77 @@ export const post = async ({ data, connection, userDirName }) => {
     reject,
   });
 
+  // 查看data内是否包含file或arraybuffer，如果有，将其转为块信息，让对方进行获取
+  const reData = await fileToCacheBlocks(data, { userDirName });
+
+  // 判断总数据输否超出 rtc发送的限制，如果超出限制，分块后进行发送
   connection.send({
     kind: "take",
-    ...data,
+    ...reData,
     taskId,
   });
 
   return promise;
+};
+
+const fixBlockData = async (data, { userDirName, fromUserId }) => {
+  let reData = data;
+
+  if (Array.isArray(data)) {
+    return await Promise.all(
+      data.map((e) => fixBlockData(e, { userDirName, fromUserId }))
+    );
+  }
+
+  if (data && data.__type__) {
+    // 属于中转的数据，从远端进行获取
+    const chunks = await getChunks(data.hashs, {
+      userDirName,
+      fromUserId,
+    });
+
+    // 重新合并为文件
+    reData = new File(chunks, data.name, {
+      type: data.type,
+      lastModified: data.lastModified,
+    });
+  }
+
+  return reData;
+};
+
+// 将文件类型的数据转为块信息
+const fileToCacheBlocks = async (data, { userDirName }) => {
+  let reData = data;
+  if (Array.isArray(data)) {
+    reData = await Promise.all(
+      data.map((e) => fileToCacheBlocks(e, { userDirName }))
+    );
+  } else if (data instanceof File || data instanceof ArrayBuffer) {
+    const chunkHashs = await cacheFile(data, { userDirName });
+
+    if (data instanceof File) {
+      return {
+        __type__: "file",
+        hashs: chunkHashs,
+        type: data.type,
+        name: data.name,
+        lastModified: data.lastModified,
+      };
+    }
+
+    return {
+      __type__: "arraybuffer",
+      hashs: chunkHashs,
+    };
+  } else if (data instanceof Object) {
+    reData = {};
+    await Promise.all(
+      Object.keys(data).map(async (key) => {
+        reData[key] = await fileToCacheBlocks(data[key], { userDirName });
+      })
+    );
+  }
+
+  return reData;
 };

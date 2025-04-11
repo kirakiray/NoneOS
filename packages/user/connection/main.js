@@ -125,9 +125,13 @@ on("server-agent-data", async (e) => {
 });
 
 // 连接目标设备
-export const connect = ({ userId, selfTabId }, userDirName) => {
+export const connect = ({ userId, selfTabId, userDirName }) => {
   userDirName = userDirName || "main";
   selfTabId = selfTabId || tabSessionid; // 强制使用当前的tabId
+
+  if (!userId) {
+    throw new Error("userId is required");
+  }
 
   const connectionStore = getConnection(userDirName);
 

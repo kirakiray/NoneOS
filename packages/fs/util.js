@@ -34,40 +34,53 @@ export const getHash = async (data) => {
 };
 /**
  * 计算文件的分块哈希值
- * @param {File} file - 要计算哈希的文件对象
+ * @param {File|ArrayBuffer} file - 要计算哈希的文件对象或ArrayBuffer
  * @returns {Promise<string[]>} 返回包含所有分块哈希值的数组
  * @description 将文件分割成128KB大小的块，并计算每个块的SHA-256哈希值
  */
-export const calculateFileChunkHashes = async (file) => {
-  const CHUNK_SIZE = 128 * 1024; // 128kb
-
-  // 判断运行环境，使用不同的方式读取文件
-  if (typeof window !== "undefined" && window.FileReader) {
-    // 浏览器环境使用 FileReader
-    const fileReader = new FileReader();
-    return new Promise((resolve, reject) => {
-      fileReader.onload = async (e) => {
-        const buffer = e.target.result;
-        const hashPromises = [];
-        for (let i = 0; i < buffer.byteLength; i += CHUNK_SIZE) {
-          const chunk = buffer.slice(i, i + CHUNK_SIZE);
-          hashPromises.push(getHash(chunk));
-        }
-        resolve(await Promise.all(hashPromises));
-      };
-      fileReader.onerror = reject;
-      fileReader.readAsArrayBuffer(file);
-    });
-  } else {
-    // Node.js 环境直接处理 Buffer
-    const buffer = file instanceof Buffer ? file : Buffer.from(file);
-    const hashPromises = [];
-    for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
-      const chunk = buffer.slice(i, i + CHUNK_SIZE);
-      hashPromises.push(getHash(chunk));
+export const calculateFileChunkHashes = async (
+  file,
+  { callback, chunkSize } = {}
+) => {
+  const CHUNK_SIZE = chunkSize || 128 * 1024; // 128kb
+  // 获取文件的 ArrayBuffer
+  const getBuffer = async (file) => {
+    if (
+      typeof window !== "undefined" &&
+      window.FileReader &&
+      file instanceof Blob
+    ) {
+      return new Promise((resolve, reject) => {
+        const fileReader = new FileReader();
+        fileReader.onload = (e) => resolve(e.target.result);
+        fileReader.onerror = reject;
+        fileReader.readAsArrayBuffer(file);
+      });
     }
-    return Promise.all(hashPromises);
+
+    if (file instanceof ArrayBuffer) return file;
+    if (file instanceof Buffer) return file;
+    return Buffer.from(file);
+  };
+
+  // 处理文件分块并计算哈希
+  const buffer = await getBuffer(file);
+  const hashPromises = [];
+
+  for (let i = 0; i < buffer.byteLength; i += CHUNK_SIZE) {
+    const chunk = buffer.slice(i, i + CHUNK_SIZE);
+    const hash = await getHash(chunk);
+    if (callback) {
+      callback({
+        chunk,
+        chunkHash: hash,
+        chunkIndex: i,
+      });
+    }
+    hashPromises.push(hash);
   }
+
+  return Promise.all(hashPromises);
 };
 
 /**
