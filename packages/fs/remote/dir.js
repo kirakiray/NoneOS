@@ -18,12 +18,15 @@ export class RemoteDirHandle extends RemoteBaseHandle {
         connection: this._connection,
         path: handleInfo.path,
       });
-    } else {
+    } else if (handleInfo.kind === "file") {
       return new RemoteFileHandle({
         userDirName: this._userDirName,
         connection: this._connection,
         path: handleInfo.path,
       });
+    } else {
+      // TODO: 获取类型出错
+      debugger;
     }
   }
 

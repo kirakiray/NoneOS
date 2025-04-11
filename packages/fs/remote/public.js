@@ -31,10 +31,13 @@ on("receive-user-data", async (e) => {
         result = await handle[method](...reArgs);
       }
 
+      // 重新发送转化文件数据
+      const reResult = await fileToCacheBlocks(result, { userDirName });
+
       tabConnection.send({
         kind: "result",
         taskId: remoteTaskId,
-        result,
+        result: reResult,
       });
     } catch (error) {
       tabConnection.send({
@@ -56,7 +59,10 @@ on("receive-user-data", async (e) => {
         return;
       }
 
-      targetTask.resolve(result);
+      // 重新还原块内容
+      const reResult = await fixBlockData(result, { userDirName, fromUserId });
+
+      targetTask.resolve(reResult);
       tasks.delete(taskId);
     } else {
       console.error("未找到对应的任务");
@@ -157,6 +163,10 @@ const fileToCacheBlocks = async (data, { userDirName }) => {
       hashs: chunkHashs,
     };
   } else if (data instanceof Object) {
+    if (data.kind && data.path) {
+      return data;
+    }
+
     reData = {};
     await Promise.all(
       Object.keys(data).map(async (key) => {

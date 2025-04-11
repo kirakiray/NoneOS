@@ -94,9 +94,10 @@
         await remoteFileHandle3.write(text5File);
 
         // 重新读取大文件
-        const reText5 = await remoteFileHandle3.file();
+        // const reText5 = await remoteFileHandle3.file();
+        const reText5 = await remoteFileHandle3.text();
 
-        debugger
+        debugger;
 
         // const rHandle4 = await get("local/test/remote1/test3.txt");
       }
