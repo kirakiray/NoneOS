@@ -22,10 +22,9 @@ export class FileHandle extends BaseHandle {
     switch (options.type) {
       case "file":
         return file;
-      case "text":
-        return file.text();
       case "buffer":
         return file.arrayBuffer();
+      case "text":
       default:
         return file.text();
     }

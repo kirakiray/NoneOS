@@ -94,11 +94,24 @@
 
         await remoteFileHandle3.write(text5File);
 
+        {
+          // 从第二个块开始读取
+          const reText5_1 = await remoteFileHandle3.text({
+            start: 1024 * 128 + 2,
+            end: text5.length - 10,
+          });
+
+          console.log(
+            "result3: ",
+            reText5_1 === text5.slice(1024 * 128 + 2, -10)
+          );
+        }
+
         // 重新读取大文件
         // const reText5 = await remoteFileHandle3.file();
-        const reText5 = await remoteFileHandle3.text();
+        const reText5_2 = await remoteFileHandle3.text();
 
-        console.log("result3: ", text5 === reText5);
+        console.log("result4: ", text5 === reText5_2);
       }
     </script>
   </body>

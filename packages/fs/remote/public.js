@@ -13,30 +13,25 @@ on("receive-user-data", async (e) => {
   let { data } = e;
 
   if (data.kind === "bridge-chunks") {
-    // 大文件块数据中转
     const { hashs, path } = data;
 
-    const chunks = await getChunks(hashs, {
+    const fileChunks = await getChunks(hashs, {
       userDirName,
       fromUserId,
     });
 
-    // 合并为字符串
-    const file = new File(chunks, "a.txt");
-
-    const text = await file.text();
+    const tempFile = new File(fileChunks, "temp.txt");
+    const fileContent = await tempFile.text();
 
     try {
-      console.log("chunks: ", chunks);
-      // 重新转为data
-      const reData = JSON.parse(text);
-      data = reData;
-    } catch (e) {
-      debugger;
-      throw e;
+      // 解析并更新数据
+      data = JSON.parse(fileContent);
+    } catch (error) {
+      throw new Error("数据格式错误", {
+        cause: error,
+      });
     }
   }
-
   const { kind } = data;
 
   if (kind === "take") {
@@ -154,11 +149,22 @@ const fixBlockData = async (data, { userDirName, fromUserId }) => {
       fromUserId,
     });
 
-    // 重新合并为文件
-    reData = new File(chunks, data.name, {
-      type: data.type,
-      lastModified: data.lastModified,
-    });
+    if (data.__type__ === "file") {
+      // 重新合并为文件
+      reData = new File(chunks, data.name, {
+        type: data.type,
+        lastModified: data.lastModified,
+      });
+    } else {
+      reData = new Blob(chunks, {
+        type: data.type,
+        lastModified: data.lastModified,
+      });
+
+      if (data.__type__ === "arraybuffer") {
+        reData = await reData.arrayBuffer();
+      }
+    }
   }
 
   return reData;
@@ -171,7 +177,7 @@ const fileToCacheBlocks = async (data, { userDirName }) => {
     reData = await Promise.all(
       data.map((e) => fileToCacheBlocks(e, { userDirName }))
     );
-  } else if (data instanceof File || data instanceof ArrayBuffer) {
+  } else if (data instanceof Blob || data instanceof ArrayBuffer) {
     const chunkHashs = await cacheFile(data, { userDirName });
 
     if (data instanceof File) {
@@ -180,6 +186,13 @@ const fileToCacheBlocks = async (data, { userDirName }) => {
         hashs: chunkHashs,
         type: data.type,
         name: data.name,
+        lastModified: data.lastModified,
+      };
+    } else if (data instanceof Blob) {
+      return {
+        __type__: "blob",
+        hashs: chunkHashs,
+        type: data.type,
         lastModified: data.lastModified,
       };
     }
