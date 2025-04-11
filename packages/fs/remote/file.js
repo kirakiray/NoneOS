@@ -8,6 +8,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
   // 读取文件
   async read(...args) {
+    // TODO: 如果的fs的 read text，应该优化成获取 file 后，进行二次转换
     return this._post("read", args);
   }
 

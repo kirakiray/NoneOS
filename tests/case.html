@@ -84,6 +84,7 @@
         // 生成5m的随机字符串
         const text5 = Math.random()
           .toString(36)
+          .slice(2)
           .repeat(1024 * 1024 * 1);
 
         // 转为 file 类型
@@ -97,9 +98,7 @@
         // const reText5 = await remoteFileHandle3.file();
         const reText5 = await remoteFileHandle3.text();
 
-        debugger;
-
-        // const rHandle4 = await get("local/test/remote1/test3.txt");
+        console.log("result3: ", text5 === reText5);
       }
     </script>
   </body>

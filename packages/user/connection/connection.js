@@ -1,6 +1,7 @@
 import { Stanz } from "../../libs/stanz/main.js";
 import { agentData } from "../hand-server/agent.js";
 import { emit } from "../event.js";
+import { cacheFile } from "../cache/main.js";
 
 // ice服务器
 const iceServers = [
@@ -294,17 +295,30 @@ class TabConnection extends Stanz {
   async send(msg) {
     const channel = await this.getChannel("default", true);
 
-    if (channel && channel.readyState === "open") {
-      if (msg instanceof ArrayBuffer || typeof msg === "string") {
-        channel.send(msg);
-      } else if (msg instanceof Blob) {
-        const arrayBuffer = await msg.arrayBuffer();
-        channel.send(arrayBuffer);
-      } else if (msg instanceof Object) {
-        channel.send(JSON.stringify(msg));
+    if (channel?.readyState === "open") {
+      // 处理不同类型的消息数据
+      let finnalData;
+      if (msg instanceof Blob) {
+        finnalData = await msg.arrayBuffer();
+      } else if (msg instanceof Object && !(msg instanceof ArrayBuffer)) {
+        finnalData = JSON.stringify(msg);
       } else {
-        channel.send(msg);
+        finnalData = msg;
       }
+
+      if (typeof finnalData === "string" && finnalData.length > 1024 * 256) {
+        // 如果消息数据大于256KB，则将其分割成多个小的消息块
+        const hashs = await cacheFile(finnalData, {
+          userDirName: this.#userDirName,
+        });
+
+        finnalData = JSON.stringify({
+          kind: "bridge-chunks",
+          hashs,
+        });
+      }
+
+      channel.send(finnalData);
       return true;
     }
     return false;

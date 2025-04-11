@@ -5,11 +5,37 @@ import { cacheFile, getChunks } from "../../user/cache/main.js";
 on("receive-user-data", async (e) => {
   const {
     userDirName, // 目标本地用户目录名称
-    data,
     fromUserId, // 消息来源用户ID
     // fromTabId, // 消息来源TabID
     tabConnection, // 消息来源TabConnection
   } = e;
+
+  let { data } = e;
+
+  if (data.kind === "bridge-chunks") {
+    // 大文件块数据中转
+    const { hashs, path } = data;
+
+    const chunks = await getChunks(hashs, {
+      userDirName,
+      fromUserId,
+    });
+
+    // 合并为字符串
+    const file = new File(chunks, "a.txt");
+
+    const text = await file.text();
+
+    try {
+      console.log("chunks: ", chunks);
+      // 重新转为data
+      const reData = JSON.parse(text);
+      data = reData;
+    } catch (e) {
+      debugger;
+      throw e;
+    }
+  }
 
   const { kind } = data;
 

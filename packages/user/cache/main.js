@@ -33,6 +33,7 @@ on("receive-user-data", async (e) => {
         // 直接将块发送回去
         tabConnection.send(chunk);
       }
+
       break;
     }
   }
@@ -178,7 +179,7 @@ export const getChunks = async (
 
         // 哈希正确，添加到存在的块中
         // 获取所有匹配的索引位置
-        const indexes = hashs.reduce((acc, hash, i) => {
+        const indexes = [...hashs].reduce((acc, hash, i) => {
           if (hash === fileName) {
             acc.push(i);
           }
@@ -196,10 +197,10 @@ export const getChunks = async (
         refreshTimer(); // 刷新超时时间
 
         // 判断是否所有块都已经收到
-        if (existsChunks.length === hashs.length) {
+        if (existsChunks.filter((e) => !!e).length === hashs.length) {
           unObs();
-          resolve(existsChunks);
           clearTimeout(timer);
+          resolve(existsChunks);
         }
       });
 
