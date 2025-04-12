@@ -14,8 +14,28 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       file = await this._post("file", []);
     } else {
       // TODO: 如果是通过范围读取，按照128kb块来获取数据后，再裁剪首尾部分
-      debugger;
-      file = await this._post("file", [options]);
+      const chunkSzie = 128 * 1024;
+
+      const reOptions = {
+        end: options.end,
+      };
+
+      if (options.start) {
+        let start = 0;
+
+        for (let i = 0; i <= options.start; i += chunkSzie) {
+          start = i;
+        }
+
+        reOptions.start = start;
+      }
+
+      file = await this._post("file", [reOptions]);
+
+      // 裁剪前面的部份
+      if (options.start) {
+        file = file.slice(options.start - reOptions.start);
+      }
     }
 
     switch (options.type) {

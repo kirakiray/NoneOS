@@ -82,10 +82,13 @@
         });
 
         // 生成5m的随机字符串
-        const text5 = Math.random()
-          .toString(36)
-          .slice(2)
-          .repeat(1024 * 1024 * 1);
+        let text5 = "";
+        for (let i = 0; i < 41; i++) {
+          text5 += Math.random()
+            .toString(36)
+            .slice(2, 8)
+            .repeat(50 * 1024);
+        }
 
         // 转为 file 类型
         const text5File = new File([text5], "test3.txt", {
@@ -93,25 +96,27 @@
         });
 
         await remoteFileHandle3.write(text5File);
-
-        {
-          // 从第二个块开始读取
-          const reText5_1 = await remoteFileHandle3.text({
-            start: 1024 * 128 + 2,
-            end: text5.length - 10,
-          });
-
-          console.log(
-            "result3: ",
-            reText5_1 === text5.slice(1024 * 128 + 2, -10)
-          );
-        }
+        // debugger;
 
         // 重新读取大文件
         // const reText5 = await remoteFileHandle3.file();
         const reText5_2 = await remoteFileHandle3.text();
 
-        console.log("result4: ", text5 === reText5_2);
+        console.log("result4: ", text5 === reText5_2, reText5_2.length);
+
+        {
+          // 从第二个块开始读取
+          const reText5_1 = await remoteFileHandle3.text({
+            start: 1024 * 128 + 3,
+            end: text5.length - 1024 * 128 - 10,
+          });
+
+          console.log(
+            "result3: ",
+            reText5_1 ===
+              text5.slice(1024 * 128 + 3, text5.length - 1024 * 128 - 10)
+          );
+        }
       }
     </script>
   </body>
