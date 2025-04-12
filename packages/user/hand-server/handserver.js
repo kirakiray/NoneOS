@@ -100,7 +100,7 @@ export class HandServer extends Stanz {
       // 接收消息处理
       webSocket.onmessage = async (event) => {
         let messageData = event.data;
-        console.log("收到服务器消息:", messageData);
+        // console.log("收到服务器消息:", messageData);
 
         const keyPair = await keyPairPms;
 

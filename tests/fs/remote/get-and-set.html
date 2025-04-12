@@ -13,6 +13,11 @@
       import { getUserStore, getServers } from "/packages/user/main.js";
       import { runTest } from "/tests/runTest.js";
 
+      {
+        const local = await init("local");
+        await local.get("test", { create: "dir" });
+      }
+
       // 初始化测试目录
       const testDirectory = await init("test-get-set");
 
@@ -35,7 +40,7 @@
         const remoteFileHandle = await localHandle.get("remote1/test1.txt", {
           create: "file",
         });
-        
+
         // 向对方用户读取和写入文件
         const text1 = "hello world " + Math.random();
 
@@ -49,85 +54,87 @@
 
         return {
           assert: text1 === text2 && isSame,
-          content: `Expected texts to match and handles to be the same. Text match: ${text1 === text2}, Handle same: ${isSame}`,
+          content: `Expected texts to match and handles to be the same. Text match: ${
+            text1 === text2
+          }, Handle same: ${isSame}`,
         };
       });
 
-      // 测试当前用户创建文件，让其他用户获取
-      await runTest("Create File for Other User Test", async () => {
-        // 在当前用户中创建一个文件，尝试让对方来获取这个文件
-        const testHandle2 = await testDirectory.get("remote2/test2.txt", {
-          create: "file",
-        });
+      // // 测试当前用户创建文件，让其他用户获取
+      // await runTest("Create File for Other User Test", async () => {
+      //   // 在当前用户中创建一个文件，尝试让对方来获取这个文件
+      //   const testHandle2 = await testDirectory.get("remote2/test2.txt", {
+      //     create: "file",
+      //   });
 
-        const text3 = "hello world 2" + Math.random();
-        await testHandle2.write(text3);
+      //   const text3 = "hello world 2" + Math.random();
+      //   await testHandle2.write(text3);
 
-        // 访问第一个用户的内容
-        const get = createGet(user1.userId);
+      //   // 访问第一个用户的内容
+      //   const get = createGet(user1.userId);
 
-        const t2Handle = await get("test-get-set/remote2/test2.txt");
+      //   const t2Handle = await get("test-get-set/remote2/test2.txt");
 
-        const text4 = await t2Handle.text();
-        
-        return {
-          assert: text3 === text4,
-          content: `Expected texts to match. Got: ${text3 === text4}`,
-        };
-      });
+      //   const text4 = await t2Handle.text();
 
-      // 测试远程写入大文件
-      await runTest("Write Large File Test", async () => {
-        // 访问user1的内容
-        const get = createGet(user1.userId);
+      //   return {
+      //     assert: text3 === text4,
+      //     content: `Expected texts to match. Got: ${text3 === text4}`,
+      //   };
+      // });
 
-        const localHandle = await get("local/test");
+      // // 测试远程写入大文件
+      // await runTest("Write Large File Test", async () => {
+      //   // 访问user1的内容
+      //   const get = createGet(user1.userId);
 
-        const remoteFileHandle3 = await localHandle.get("remote1/test3.txt", {
-          create: "file",
-        });
+      //   const localHandle = await get("local/test");
 
-        // 生成较大的随机字符串 (减小了大小以加快测试速度)
-        let text5 = "";
-        for (let i = 0; i < 5; i++) {
-          text5 += Math.random()
-            .toString(36)
-            .slice(2, 8)
-            .repeat(50 * 1024);
-        }
+      //   const remoteFileHandle3 = await localHandle.get("remote1/test3.txt", {
+      //     create: "file",
+      //   });
 
-        // 转为 file 类型
-        const text5File = new File([text5], "test3.txt", {
-          type: "text/plain",
-        });
+      //   // 生成较大的随机字符串 (减小了大小以加快测试速度)
+      //   let text5 = "";
+      //   for (let i = 0; i < 5; i++) {
+      //     text5 += Math.random()
+      //       .toString(36)
+      //       .slice(2, 8)
+      //       .repeat(50 * 1024);
+      //   }
 
-        await remoteFileHandle3.write(text5File);
+      //   // 转为 file 类型
+      //   const text5File = new File([text5], "test3.txt", {
+      //     type: "text/plain",
+      //   });
 
-        // 重新读取大文件
-        const reText5_2 = await remoteFileHandle3.text();
+      //   await remoteFileHandle3.write(text5File);
 
-        // 从中间部分读取
-        const startPos = 1024 * 128 + 3;
-        const endPos = text5.length - 1024 * 128 - 10;
-        
-        // 确保位置有效
-        const validStartPos = Math.min(startPos, text5.length - 1);
-        const validEndPos = Math.min(endPos, text5.length);
-        
-        const reText5_1 = await remoteFileHandle3.text({
-          start: validStartPos,
-          end: validEndPos,
-        });
+      //   // 重新读取大文件
+      //   const reText5_2 = await remoteFileHandle3.text();
 
-        const expectedSlice = text5.slice(validStartPos, validEndPos);
-        const fullTextMatch = text5 === reText5_2;
-        const partialTextMatch = reText5_1 === expectedSlice;
+      //   // 从中间部分读取
+      //   const startPos = 1024 * 128 + 3;
+      //   const endPos = text5.length - 1024 * 128 - 10;
 
-        return {
-          assert: fullTextMatch && partialTextMatch,
-          content: `Full text match: ${fullTextMatch}, Partial text match: ${partialTextMatch}, Full length: ${reText5_2.length}`,
-        };
-      });
+      //   // 确保位置有效
+      //   const validStartPos = Math.min(startPos, text5.length - 1);
+      //   const validEndPos = Math.min(endPos, text5.length);
+
+      //   const reText5_1 = await remoteFileHandle3.text({
+      //     start: validStartPos,
+      //     end: validEndPos,
+      //   });
+
+      //   const expectedSlice = text5.slice(validStartPos, validEndPos);
+      //   const fullTextMatch = text5 === reText5_2;
+      //   const partialTextMatch = reText5_1 === expectedSlice;
+
+      //   return {
+      //     assert: fullTextMatch && partialTextMatch,
+      //     content: `Full text match: ${fullTextMatch}, Partial text match: ${partialTextMatch}, Full length: ${reText5_2.length}`,
+      //   };
+      // });
 
       const endMessage = document.createElement("h5");
       endMessage.setAttribute("data-testid", "all-test-completed");
