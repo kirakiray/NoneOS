@@ -18,14 +18,21 @@ export class RemoteFileHandle extends RemoteBaseHandle {
         ? Math.floor(options.start / chunkSize) * chunkSize
         : 0;
 
+      const end = options.end
+        ? Math.ceil(options.end / chunkSize) * chunkSize
+        : undefined;
+
       file = await this._post("file", [
         {
           start,
-          end: options.end,
+          end,
         },
       ]);
 
-      // 裁剪前面的部份
+      if (options.end) {
+        file = file.slice(0, file.size - (end - options.end));
+      }
+
       if (options.start) {
         file = file.slice(options.start - start);
       }
@@ -40,6 +47,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
         return file.text();
     }
 
+    // 直接转发读取的方式，没有上面代码更高效
     // return this._post("read", [options]);
   }
 
