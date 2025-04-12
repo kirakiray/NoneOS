@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get and Set Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { createGet } from "/packages/fs/remote/main.js";
+      import { init } from "/packages/fs/main.js";
+      import { getUserStore, getServers } from "/packages/user/main.js";
+      import { runTest } from "/tests/runTest.js";
+
+      // 初始化测试目录
+      const testDirectory = await init("test-get-set");
+
+      // 测试用户存储
+      const user1 = await getUserStore("user1");
+      await getServers("user1");
+
+      await new Promise((res) => setTimeout(res, 100));
+
+      // 测试访问其他用户内容
+      await runTest("Access Other User Content Test", async () => {
+        // 访问user1的内容
+        const get = createGet(user1.userId);
+
+        const localHandle = await get("local/test");
+
+        const length = await localHandle.length();
+        console.log("length: ", length);
+
+        const remoteFileHandle = await localHandle.get("remote1/test1.txt", {
+          create: "file",
+        });
+        
+        // 向对方用户读取和写入文件
+        const text1 = "hello world " + Math.random();
+
+        await remoteFileHandle.write(text1);
+
+        const rHandle2 = await get("local/test/remote1/test1.txt");
+
+        const text2 = await rHandle2.text();
+
+        const isSame = await rHandle2.isSame(remoteFileHandle);
+
+        return {
+          assert: text1 === text2 && isSame,
+          content: `Expected texts to match and handles to be the same. Text match: ${text1 === text2}, Handle same: ${isSame}`,
+        };
+      });
+
+      // 测试当前用户创建文件，让其他用户获取
+      await runTest("Create File for Other User Test", async () => {
+        // 在当前用户中创建一个文件，尝试让对方来获取这个文件
+        const testHandle2 = await testDirectory.get("remote2/test2.txt", {
+          create: "file",
+        });
+
+        const text3 = "hello world 2" + Math.random();
+        await testHandle2.write(text3);
+
+        // 访问第一个用户的内容
+        const get = createGet(user1.userId);
+
+        const t2Handle = await get("test-get-set/remote2/test2.txt");
+
+        const text4 = await t2Handle.text();
+        
+        return {
+          assert: text3 === text4,
+          content: `Expected texts to match. Got: ${text3 === text4}`,
+        };
+      });
+
+      // 测试远程写入大文件
+      await runTest("Write Large File Test", async () => {
+        // 访问user1的内容
+        const get = createGet(user1.userId);
+
+        const localHandle = await get("local/test");
+
+        const remoteFileHandle3 = await localHandle.get("remote1/test3.txt", {
+          create: "file",
+        });
+
+        // 生成较大的随机字符串 (减小了大小以加快测试速度)
+        let text5 = "";
+        for (let i = 0; i < 5; i++) {
+          text5 += Math.random()
+            .toString(36)
+            .slice(2, 8)
+            .repeat(50 * 1024);
+        }
+
+        // 转为 file 类型
+        const text5File = new File([text5], "test3.txt", {
+          type: "text/plain",
+        });
+
+        await remoteFileHandle3.write(text5File);
+
+        // 重新读取大文件
+        const reText5_2 = await remoteFileHandle3.text();
+
+        // 从中间部分读取
+        const startPos = 1024 * 128 + 3;
+        const endPos = text5.length - 1024 * 128 - 10;
+        
+        // 确保位置有效
+        const validStartPos = Math.min(startPos, text5.length - 1);
+        const validEndPos = Math.min(endPos, text5.length);
+        
+        const reText5_1 = await remoteFileHandle3.text({
+          start: validStartPos,
+          end: validEndPos,
+        });
+
+        const expectedSlice = text5.slice(validStartPos, validEndPos);
+        const fullTextMatch = text5 === reText5_2;
+        const partialTextMatch = reText5_1 === expectedSlice;
+
+        return {
+          assert: fullTextMatch && partialTextMatch,
+          content: `Full text match: ${fullTextMatch}, Partial text match: ${partialTextMatch}, Full length: ${reText5_2.length}`,
+        };
+      });
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
+    </script>
+  </body>
+</html>
