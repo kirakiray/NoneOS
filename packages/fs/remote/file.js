@@ -13,31 +13,23 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       // 统一使用file读取，因为性能更好，获取file后在转换操作
       file = await this._post("file", []);
     } else {
-      // TODO: 如果是通过范围读取，按照128kb块来获取数据后，再裁剪首尾部分
-      const chunkSzie = 128 * 1024;
+      const chunkSize = 128 * 1024;
+      const start = options.start
+        ? Math.floor(options.start / chunkSize) * chunkSize
+        : 0;
 
-      const reOptions = {
-        end: options.end,
-      };
-
-      if (options.start) {
-        let start = 0;
-
-        for (let i = 0; i <= options.start; i += chunkSzie) {
-          start = i;
-        }
-
-        reOptions.start = start;
-      }
-
-      file = await this._post("file", [reOptions]);
+      file = await this._post("file", [
+        {
+          start,
+          end: options.end,
+        },
+      ]);
 
       // 裁剪前面的部份
       if (options.start) {
-        file = file.slice(options.start - reOptions.start);
+        file = file.slice(options.start - start);
       }
     }
-
     switch (options.type) {
       case "file":
         return file;
