@@ -58,7 +58,13 @@ export const calculateFileChunkHashes = async (
       return new TextEncoder().encode(file).buffer;
     }
 
-    throw new Error("不支持的文件类型");
+    // 添加对Nodejs Buffer的支持
+    if (file instanceof Buffer) {
+      return file.buffer;
+    }
+
+    console.error("不支持的文件类型: ", typeof file, file);
+    throw new Error("不支持的文件类型: ");
   };
 
   // 处理文件分块并计算哈希

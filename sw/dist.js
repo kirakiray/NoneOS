@@ -101,15 +101,15 @@
     }
 
     toJSON() {
-      debugger;
       return {
         name: this.name,
         path: this.path,
+        kind: this.kind,
       };
     }
 
     // 监听文件系统变化
-    async observe(func) {
+    observe(func) {
       const obj = {
         func,
         handle: this,
@@ -235,6 +235,14 @@
       this.#originHandle = dirHandle;
     }
 
+    get _handle() {
+      return this.#originHandle;
+    }
+
+    get name() {
+      return this.#originHandle.name;
+    }
+
     async id() {
       const originHandle = this.#originHandle;
 
@@ -243,14 +251,6 @@
       }
 
       return await getHash(this.path);
-    }
-
-    get _handle() {
-      return this.#originHandle;
-    }
-
-    get name() {
-      return this.#originHandle.name;
     }
 
     async isSame(target) {
@@ -347,10 +347,9 @@
       switch (options.type) {
         case "file":
           return file;
-        case "text":
-          return file.text();
         case "buffer":
           return file.arrayBuffer();
+        case "text":
         default:
           return file.text();
       }
