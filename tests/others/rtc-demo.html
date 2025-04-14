@@ -101,6 +101,23 @@
       // 创建数据通道
       window.localChannel = null;
       window.remoteChannel = null;
+
+      setTimeout(async () => {
+        const isSafari = /^((?!chrome|android).)*safari/i.test(
+          navigator.userAgent
+        );
+
+        if (isSafari) {
+          // BUG: safari下，必须先请求视频权限，后续的rtc链接才会成功
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
+            // video: true,
+          });
+
+          stream && stream.getTracks().forEach((track) => track.stop());
+        }
+      }, 300);
+
       // 获取DOM元素
       const statusDiv = document.getElementById("status");
       const createOfferBtn = document.getElementById("createOffer");
@@ -214,20 +231,6 @@
             initConnections();
           }
 
-          // BUG: safari下，必须先请求视频权限，后续的rtc链接才会成功
-          const isSafari = /^((?!chrome|android).)*safari/i.test(
-            navigator.userAgent
-          );
-
-          let stream = null;
-
-          if (isSafari) {
-            stream = await navigator.mediaDevices.getUserMedia({
-              audio: true,
-              // video: true,
-            });
-          }
-
           const offer = await localConnection.createOffer();
           await localConnection.setLocalDescription(offer);
 
@@ -236,9 +239,6 @@
           localSDPTextarea.value = JSON.stringify(offer);
 
           statusDiv.textContent = "已创建连接请求，等待远程端应答...";
-
-          // 关闭所有视频轨道
-          stream && stream.getTracks().forEach((track) => track.stop());
         } catch (error) {
           console.error("创建连接请求失败:", error);
         }
