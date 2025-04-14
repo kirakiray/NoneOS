@@ -184,10 +184,10 @@
             data: testData,
           });
 
-          const resultTime = Date.now();
-
           // 等待接收数据
           await dataReceived;
+
+          const resultTime = Date.now();
 
           return {
             assert: resultTime >= agentdatatime,
