@@ -31,7 +31,7 @@ test.describe("User Tests", () => {
   });
 
   test("Agent data transfer tests", async ({ page, browserName }) => {
-    await page.goto("/tests/user/agent-data.html");
+    await page.goto("/tests/user/direct-agent-data.html");
     await testSucceedCount(page, 6);
   });
 
