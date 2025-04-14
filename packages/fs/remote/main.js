@@ -2,12 +2,13 @@ import { connect } from "../../user/connection/main.js";
 import { RemoteDirHandle } from "./dir.js";
 import "./public.js";
 
-export const createGet = (userId, { userDirName } = {}) => {
+export const createGet = (userId, { userDirName, selfTabId } = {}) => {
   userDirName = userDirName || "main";
 
   // 基础连接器
   const connection = connect({
     userDirName,
+    selfTabId,
     userId,
   });
 

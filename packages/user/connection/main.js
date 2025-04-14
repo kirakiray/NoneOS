@@ -151,6 +151,12 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
     connectionStore.push(targetUserConnection);
   }
 
+  // Safari兼容性检查
+  if (typeof RTCPeerConnection === 'undefined') {
+    console.error('当前浏览器不支持WebRTC');
+    return targetUserConnection;
+  }
+
   // 通知对方和我进行连接
   agentData({
     friendId: userId,

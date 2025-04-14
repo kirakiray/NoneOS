@@ -95,12 +95,12 @@
 
     <script>
       // 创建两个对等连接对象
-      let localConnection = null;
-      let remoteConnection = null;
+      window.localConnection = null;
+      window.remoteConnection = null;
 
       // 创建数据通道
-      let localChannel = null;
-      let remoteChannel = null;
+      window.localChannel = null;
+      window.remoteChannel = null;
 
       // 获取DOM元素
       const statusDiv = document.getElementById("status");
@@ -117,8 +117,16 @@
 
       // 初始化连接
       function initConnections() {
+        // 配置 ICE 服务器
+        const configuration = {
+          iceServers: [
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun1.l.google.com:19302" },
+          ],
+        };
+
         // 创建本地连接
-        localConnection = new RTCPeerConnection();
+        localConnection = new RTCPeerConnection(configuration);
 
         // 创建数据通道
         localChannel = localConnection.createDataChannel("messaging-channel");
@@ -138,7 +146,7 @@
         };
 
         // 创建远程连接
-        remoteConnection = new RTCPeerConnection();
+        remoteConnection = new RTCPeerConnection(configuration);
 
         // 监听数据通道
         remoteConnection.ondatachannel = (event) => {
