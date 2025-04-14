@@ -52,17 +52,17 @@ on("server-agent-data", async (e) => {
 
       // 响应对方和我进行连接
       agentData({
-        friendId: fromUserId, // 对方的用户ID
-        userDirName, // 使用本地的用户名目录
+        friendId: fromUserId,
+        userDirName,
         data: {
           kind: "response-offer",
           fromTabId: targetUserConnection.selfTabId,
-          toTabId: data.fromTabId, // 返回给目标设备的tabId
+          toTabId: data.fromTabId,
           offer,
         },
       });
 
-      console.log("connect-user-end", data);
+      console.log(`[WebRTC:连接用户][用户:${fromUserId}] 建立连接：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`, data);
       break;
     }
     case "response-offer": {
@@ -88,7 +88,7 @@ on("server-agent-data", async (e) => {
           answer,
         },
       });
-      console.log("response-offer-end", data);
+      console.log(`[WebRTC:响应连接][用户:${fromUserId}] 创建应答：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`, data);
       break;
     }
     case "response-answer": {
@@ -99,7 +99,7 @@ on("server-agent-data", async (e) => {
       const connection = targetUserConnection.getConnection(data.fromTabId);
       connection.setRemoteDescription(new RTCSessionDescription(data.answer));
 
-      console.log("response-answer-end", data);
+      console.log(`[WebRTC:设置应答][用户:${fromUserId}] 设置远程应答：从 ${data.fromTabId} 到 ${data.toTabId}`, data);
       break;
     }
     case "agent-ice-candidate": {
@@ -114,12 +114,12 @@ on("server-agent-data", async (e) => {
 
       // 设置远程的ICE候选
       connection.addIceCandidate(candidate);
-      console.log("ice-candidate-end", data);
+      console.log(`[WebRTC:ICE候选][用户:${fromUserId}] 添加ICE候选：从 ${data.fromTabId} 到 ${data.toTabId}`, data);
       break;
     }
     default:
       debugger;
-      console.log("未知的消息类型", data.kind);
+      console.log(`[WebRTC:未知][用户:${fromUserId}] 未知的消息类型:`, data.kind, data);
       break;
   }
 });

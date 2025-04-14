@@ -57,6 +57,10 @@ export const getServers = async (userDirName) => {
     handWorker.port.onmessage = (e) => {
       const { resType, resData } = e.data;
       switch (resType) {
+        case "ping": {
+          console.log("ping", e.data);
+          break;
+        }
         case "init-update":
         case "update": {
           const { servers } = resData;

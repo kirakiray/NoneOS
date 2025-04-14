@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Worker Agent Data Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { runTest } from "/tests/runTest.js";
+      import { getServers, getUserStore } from "/packages/user/main.js";
+
+      import { on } from "/packages/user/event.js";
+      import { agentData } from "/packages/user/hand-server/agent.js";
+
+      // 初始化测试环境
+      async function setupTestEnvironment() {
+        // 初始化两个用户
+        const user1 = await getUserStore("user1");
+        const user2 = await getUserStore("user2");
+
+        // 设置用户名，包含浏览器信息以便识别
+        const browserInfo = `${
+          navigator.userAgent.match(
+            /(?:Chrome|Firefox|Safari|Edge|OPR)\/[\d.]+/
+          )[0]
+        }`;
+        user1.userName = `TestUser1-${browserInfo}`;
+        user2.userName = `TestUser2-${browserInfo}`;
+
+        // 获取用户握手服务器
+        await Promise.all([getServers("user1"), getServers("user2")]);
+
+        // 等待系统初始化
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        return { user1, user2 };
+      }
+
+      // 测试用户间数据传输 - 发送成功验证
+      await runTest("Agent Data Send Success Test", async () => {
+        // 初始化两个用户
+        const [user1, user2] = await Promise.all([
+          getUserStore("user1"),
+          getUserStore("user2"),
+        ]);
+
+        await Promise.all([getServers("user1"), getServers("user2")]);
+
+        // 创建数据接收Promise
+        const dataReceived = new Promise((resolve) => {
+          on("server-agent-data", resolve);
+        });
+
+        // 等待系统初始化
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 生成随机测试数据
+        const randomString = Math.random().toString(36).substring(2, 8);
+
+        // user2 向 user1 发送数据
+        await agentData({
+          friendId: user1.userId,
+          userDirName: "user2",
+          data: { randomString },
+        });
+
+        // 等待接收数据
+        const result = await dataReceived;
+
+        // 验证数据传输结果
+        return {
+          assert:
+            result.userDirName === "user1" &&
+            result.fromUserId === user2.userId &&
+            result.data.randomString === randomString,
+          content: result,
+        };
+      });
+
+      // 测试用户间数据传输 - 数据内容验证
+      await runTest("Agent Data Content Test", async () => {
+        try {
+          const { user1, user2 } = await setupTestEnvironment();
+
+          // 创建数据接收Promise
+          const dataReceived = new Promise((resolve) => {
+            on("server-agent-data", resolve);
+          });
+
+          // 生成测试数据
+          const testData = {
+            val: Math.random(),
+            timestamp: Date.now(),
+          };
+
+          // user2 向 user1 发送数据
+          await agentData({
+            friendId: user1.userId,
+            userDirName: "user2",
+            data: testData,
+          });
+
+          // 等待接收数据
+          const result = await dataReceived;
+
+          return {
+            assert:
+              result.userDirName === "user1" &&
+              result.fromUserId === user2.userId &&
+              result.data.val === testData.val,
+            content: {
+              message: "数据内容验证测试完成",
+              sentData: testData,
+              receivedData: result.data,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试向不存在的用户发送数据
+      await runTest("Invalid User Agent Data Test", async () => {
+        try {
+          await setupTestEnvironment();
+
+          const nonExistentUserId = Math.random().toString(16).slice(2);
+
+          // 尝试向不存在的用户发送数据
+          const e = await agentData({
+            friendId: nonExistentUserId,
+            userDirName: "user1",
+            data: { test: "data" },
+          });
+
+          return {
+            assert: !e.result,
+            content: {
+              message: "成功捕获发送到不存在用户的错误",
+              e,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试用户间数据传输 - 时间戳验证
+      await runTest("Agent Data Timestamp Test", async () => {
+        try {
+          const { user1, user2 } = await setupTestEnvironment();
+
+          let agentdatatime;
+
+          // 创建数据接收Promise
+          const dataReceived = new Promise((resolve) => {
+            on("server-agent-data", (data) => {
+              agentdatatime = Date.now();
+              resolve(data);
+            });
+          });
+
+          // 生成测试数据
+          const testData = {
+            val: Math.random(),
+            timestamp: Date.now(),
+          };
+
+          // user2 向 user1 发送数据
+          await agentData({
+            friendId: user1.userId,
+            userDirName: "user2",
+            data: testData,
+          });
+
+          const resultTime = Date.now();
+
+          // 等待接收数据
+          await dataReceived;
+
+          return {
+            assert: resultTime >= agentdatatime,
+            content: {
+              message: "时间戳验证测试完成",
+              agentdatatime,
+              resultTime,
+              timeDifference: resultTime - agentdatatime,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      // 测试用户间数据传输 - 发送者ID验证
+      await runTest("Agent Data Sender ID Test", async () => {
+        try {
+          const { user1, user2 } = await setupTestEnvironment();
+
+          // 创建数据接收Promise
+          const dataReceived = new Promise((resolve) => {
+            on("server-agent-data", resolve);
+          });
+
+          // 生成测试数据
+          const testData = {
+            val: Math.random(),
+            timestamp: Date.now(),
+          };
+
+          // user2 向 user1 发送数据
+          await agentData({
+            friendId: user1.userId,
+            userDirName: "user2",
+            data: testData,
+          });
+
+          // 等待接收数据
+          const result = await dataReceived;
+
+          return {
+            assert: result.fromUserId === user2.userId,
+            content: {
+              message: "发送者ID验证测试完成",
+              expectedId: user2.userId,
+              actualId: result.fromUserId,
+            },
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `测试失败: ${error.message}`,
+          };
+        }
+      });
+
+      const endMessage = document.createElement("h5");
+      endMessage.setAttribute("data-testid", "all-test-completed");
+      endMessage.textContent = "All tests completed";
+      document.body.appendChild(endMessage);
+    </script>
+  </body>
+</html>

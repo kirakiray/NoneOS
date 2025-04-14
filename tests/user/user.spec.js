@@ -30,9 +30,14 @@ test.describe("User Tests", () => {
     await testSucceedCount(page, 2);
   });
 
-  test("Agent data transfer tests", async ({ page, browserName }) => {
+  test("Direct agent data transfer tests", async ({ page, browserName }) => {
     await page.goto("/tests/user/direct-agent-data.html");
     await testSucceedCount(page, 6);
+  });
+
+  test("Worker agent data transfer tests", async ({ page, browserName }) => {
+    await page.goto("/tests/user/worker-agent-data.html");
+    await testSucceedCount(page, 5);
   });
 
   // test("Card handout tests", async ({ page, browserName }) => {

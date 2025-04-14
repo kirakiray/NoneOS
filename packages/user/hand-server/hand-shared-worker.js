@@ -114,11 +114,21 @@ servers.watchTick(() => {
   });
 });
 
+const testId = Math.random().toString(36).slice(2);
+
 self.onconnect = async (e) => {
   const port = e.ports[0];
   ports.add(port);
 
   console.log("连接成功", ports);
+
+  setTimeout(() => {
+    port.postMessage({
+      resType: "ping",
+      userDirName,
+      testId,
+    });
+  }, 1000);
 
   port.onmessage = async (e) => {
     const { atype, adata } = e.data;
