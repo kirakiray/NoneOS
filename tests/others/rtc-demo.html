@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>RTCPeerConnection 数据交换示例</title>
+    <title>RTCPeerConnection 自动连接示例</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -39,16 +39,32 @@
         background-color: #f0f0f0;
         border-radius: 5px;
       }
+      .error-log {
+        margin-top: 20px;
+        padding: 10px;
+        background-color: #ffeeee;
+        border: 1px solid #ffcccc;
+        border-radius: 5px;
+        color: #cc0000;
+        max-height: 200px;
+        overflow-y: auto;
+      }
     </style>
   </head>
   <body>
-    <h1>WebRTC 数据通道示例</h1>
+    <h1>WebRTC 自动连接示例</h1>
     <div id="status">连接状态: 未连接</div>
+    
+    <!-- 添加错误日志区域 -->
+    <div id="errorLog" class="error-log" style="display: none;">
+      <h3>错误日志:</h3>
+      <div id="errorMessages"></div>
+    </div>
 
     <div class="container">
       <div class="peer" id="localPeer">
         <h2>本地端</h2>
-        <button id="createOffer">创建连接请求</button>
+        <button id="createOffer">手动创建连接请求</button>
         <div>
           <h3>SDP 信息</h3>
           <textarea
@@ -69,7 +85,7 @@
 
       <div class="peer" id="remotePeer">
         <h2>远程端</h2>
-        <button id="createAnswer">创建连接应答</button>
+        <button id="createAnswer">手动创建连接应答</button>
         <div>
           <h3>SDP 信息</h3>
           <textarea
@@ -113,83 +129,36 @@
       const remoteMessageInput = document.getElementById("remoteMessage");
       const localReceivedDiv = document.getElementById("localReceived");
       const remoteReceivedDiv = document.getElementById("remoteReceived");
+      const errorLogDiv = document.getElementById("errorLog");
+      const errorMessagesDiv = document.getElementById("errorMessages");
 
-      // 初始化连接
-      function initConnections() {
-        // 配置ICE服务器
-        const configuration = {
-          iceServers: [
-            { urls: "stun:stun.l.google.com:19302" },
-            // 可以添加更多的STUN/TURN服务器
-            // { urls: "turn:你的turn服务器地址", username: "用户名", credential: "密码" }
-          ]
-        };
+      // 添加错误日志函数
+      function logError(source, error) {
+        console.error(`[${source}]`, error);
         
-        // 创建本地连接
-        localConnection = new RTCPeerConnection(configuration);
-
-        // 创建数据通道
-        localChannel = localConnection.createDataChannel("messaging-channel");
-        setupDataChannel(localChannel, localReceivedDiv);
-
-        // 监听ICE候选事件
-        localConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            // 在实际应用中，这里应该将ICE候选发送给远程端
-            console.log("本地ICE候选:", event.candidate);
-          } else {
-            // ICE收集完成，显示完整的本地SDP
-            localSDPTextarea.value = JSON.stringify(
-              localConnection.localDescription
-            );
+        // 显示错误日志区域
+        errorLogDiv.style.display = "block";
+        
+        // 创建错误消息元素
+        const errorElement = document.createElement("div");
+        const timestamp = new Date().toLocaleTimeString();
+        
+        // 格式化错误信息
+        let errorMessage = `[${timestamp}] [${source}] `;
+        if (error instanceof Error) {
+          errorMessage += `${error.name}: ${error.message}`;
+          if (error.stack) {
+            errorMessage += `<br><pre>${error.stack}</pre>`;
           }
-        };
-
-        // 创建远程连接
-        remoteConnection = new RTCPeerConnection(configuration);
-
-        // 监听数据通道
-        remoteConnection.ondatachannel = (event) => {
-          remoteChannel = event.channel;
-          setupDataChannel(remoteChannel, remoteReceivedDiv);
-        };
-
-        // 监听ICE候选事件
-        remoteConnection.onicecandidate = (event) => {
-          if (event.candidate) {
-            // 在实际应用中，这里应该将ICE候选发送给本地端
-            console.log("远程ICE候选:", event.candidate);
-          } else {
-            // ICE收集完成，显示完整的远程SDP
-            remoteSDPTextarea.value = JSON.stringify(
-              remoteConnection.localDescription
-            );
-          }
-        };
-
-        // 监听连接状态变化
-        localConnection.onconnectionstatechange = updateStatus;
-        remoteConnection.onconnectionstatechange = updateStatus;
-      }
-
-      // 设置数据通道事件
-      function setupDataChannel(channel, outputDiv) {
-        channel.onopen = () => {
-          console.log(`数据通道已打开`);
-          updateStatus();
-        };
-
-        channel.onclose = () => {
-          console.log(`数据通道已关闭`);
-          updateStatus();
-        };
-
-        channel.onmessage = (event) => {
-          const message = event.data;
-          const messageElement = document.createElement("p");
-          messageElement.textContent = `收到: ${message}`;
-          outputDiv.appendChild(messageElement);
-        };
+        } else {
+          errorMessage += JSON.stringify(error);
+        }
+        
+        errorElement.innerHTML = errorMessage;
+        errorMessagesDiv.appendChild(errorElement);
+        
+        // 滚动到最新的错误消息
+        errorLogDiv.scrollTop = errorLogDiv.scrollHeight;
       }
 
       // 更新连接状态
@@ -207,6 +176,215 @@
         statusDiv.textContent = `连接状态: ${status}`;
       }
 
+      // 初始化连接
+      function initConnections() {
+        try {
+          // 配置ICE服务器
+          const configuration = {
+            iceServers: [
+              { urls: "stun:stun.l.google.com:19302" },
+              // 可以添加更多的STUN/TURN服务器
+              // { urls: "turn:你的turn服务器地址", username: "用户名", credential: "密码" }
+            ]
+          };
+          
+          // 创建本地连接
+          localConnection = new RTCPeerConnection(configuration);
+          
+          // 监听连接状态变化
+          localConnection.onconnectionstatechange = () => {
+            updateStatus();
+            checkConnectionAndSendMessage();
+            
+            // 记录连接状态变化
+            if (localConnection.connectionState === 'failed' || 
+                localConnection.connectionState === 'disconnected') {
+              logError("本地连接状态", `连接状态变为: ${localConnection.connectionState}`);
+            }
+          };
+          
+          // 监听ICE连接状态变化
+          localConnection.oniceconnectionstatechange = () => {
+            if (localConnection.iceConnectionState === 'failed' || 
+                localConnection.iceConnectionState === 'disconnected') {
+              logError("本地ICE连接", `ICE连接状态变为: ${localConnection.iceConnectionState}`);
+            }
+          };
+
+          // 创建数据通道
+          try {
+            localChannel = localConnection.createDataChannel("messaging-channel");
+            setupDataChannel(localChannel, localReceivedDiv);
+          } catch (error) {
+            logError("创建数据通道", error);
+          }
+
+          // 监听ICE候选事件
+          localConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              // 在实际应用中，这里应该将ICE候选发送给远程端
+              console.log("本地ICE候选:", event.candidate);
+            } else {
+              // ICE收集完成，显示完整的本地SDP
+              try {
+                localSDPTextarea.value = JSON.stringify(
+                  localConnection.localDescription
+                );
+                
+                // 自动将本地SDP传递给远程端并创建应答
+                autoCreateAnswer();
+              } catch (error) {
+                logError("本地ICE收集完成处理", error);
+              }
+            }
+          };
+
+          // 创建远程连接
+          remoteConnection = new RTCPeerConnection(configuration);
+          
+          // 监听连接状态变化
+          remoteConnection.onconnectionstatechange = () => {
+            updateStatus();
+            
+            // 记录连接状态变化
+            if (remoteConnection.connectionState === 'failed' || 
+                remoteConnection.connectionState === 'disconnected') {
+              logError("远程连接状态", `连接状态变为: ${remoteConnection.connectionState}`);
+            }
+          };
+          
+          // 监听ICE连接状态变化
+          remoteConnection.oniceconnectionstatechange = () => {
+            if (remoteConnection.iceConnectionState === 'failed' || 
+                remoteConnection.iceConnectionState === 'disconnected') {
+              logError("远程ICE连接", `ICE连接状态变为: ${remoteConnection.iceConnectionState}`);
+            }
+          };
+
+          // 监听数据通道
+          remoteConnection.ondatachannel = (event) => {
+            try {
+              remoteChannel = event.channel;
+              setupDataChannel(remoteChannel, remoteReceivedDiv);
+            } catch (error) {
+              logError("接收数据通道", error);
+            }
+          };
+
+          // 监听ICE候选事件
+          remoteConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              // 在实际应用中，这里应该将ICE候选发送给本地端
+              console.log("远程ICE候选:", event.candidate);
+            } else {
+              // ICE收集完成，显示完整的远程SDP
+              try {
+                remoteSDPTextarea.value = JSON.stringify(
+                  remoteConnection.localDescription
+                );
+                
+                // 自动将远程SDP设置为本地连接的远程描述
+                autoSetRemoteDescription();
+              } catch (error) {
+                logError("远程ICE收集完成处理", error);
+              }
+            }
+          };
+        } catch (error) {
+          logError("初始化连接", error);
+        }
+      }
+
+      // 设置数据通道事件
+      function setupDataChannel(channel, outputDiv) {
+        channel.onopen = () => {
+          console.log(`数据通道已打开`);
+          updateStatus();
+          checkConnectionAndSendMessage();
+        };
+
+        channel.onclose = () => {
+          console.log(`数据通道已关闭`);
+          updateStatus();
+        };
+
+        channel.onerror = (error) => {
+          logError("数据通道错误", error);
+        };
+
+        channel.onmessage = (event) => {
+          try {
+            const message = event.data;
+            const messageElement = document.createElement("p");
+            messageElement.textContent = `收到: ${message}`;
+            outputDiv.appendChild(messageElement);
+          } catch (error) {
+            logError("处理接收消息", error);
+          }
+        };
+      }
+
+      // 自动创建应答
+      async function autoCreateAnswer() {
+        try {
+          // 从本地SDP文本框获取offer
+          const offerJSON = JSON.parse(localSDPTextarea.value);
+          const offer = new RTCSessionDescription(offerJSON);
+
+          await remoteConnection.setRemoteDescription(offer);
+          const answer = await remoteConnection.createAnswer();
+          await remoteConnection.setLocalDescription(answer);
+
+          console.log("自动创建连接应答:", answer);
+          remoteSDPTextarea.value = JSON.stringify(answer);
+          
+          statusDiv.textContent = "远程端已自动应答，正在建立连接...";
+        } catch (error) {
+          logError("自动创建连接应答", error);
+          statusDiv.textContent = "自动创建连接应答失败，查看错误日志";
+        }
+      }
+
+      // 自动设置远程描述
+      async function autoSetRemoteDescription() {
+        try {
+          const answerJSON = JSON.parse(remoteSDPTextarea.value);
+          const answerObj = new RTCSessionDescription(answerJSON);
+          await localConnection.setRemoteDescription(answerObj);
+          
+          statusDiv.textContent = "连接已自动建立，等待数据通道打开...";
+        } catch (error) {
+          logError("自动设置远程描述", error);
+          statusDiv.textContent = "自动设置远程描述失败，查看错误日志";
+        }
+      }
+
+      // 检查连接并发送自动消息
+      function checkConnectionAndSendMessage() {
+        try {
+          // 检查本地通道是否已打开
+          if (localChannel && localChannel.readyState === "open") {
+            // 发送自动消息
+            setTimeout(() => {
+              try {
+                const autoMessage = "这是一条自动发送的消息！";
+                localChannel.send(autoMessage);
+                
+                const messageElement = document.createElement("p");
+                messageElement.textContent = `自动发送: ${autoMessage}`;
+                localReceivedDiv.appendChild(messageElement);
+                
+                console.log("本地端自动发送消息:", autoMessage);
+              } catch (error) {
+                logError("自动发送消息", error);
+              }
+            }, 1000);
+          }
+        } catch (error) {
+          logError("检查连接状态", error);
+        }
+      }
+
       // 创建连接请求
       createOfferBtn.addEventListener("click", async () => {
         try {
@@ -217,13 +395,13 @@
           const offer = await localConnection.createOffer();
           await localConnection.setLocalDescription(offer);
 
-          // 在实际应用中，这里应该将offer发送给远程端
-          console.log("创建连接请求:", offer);
+          console.log("手动创建连接请求:", offer);
           localSDPTextarea.value = JSON.stringify(offer);
 
-          statusDiv.textContent = "已创建连接请求，等待远程端应答...";
+          statusDiv.textContent = "已手动创建连接请求，等待远程端应答...";
         } catch (error) {
-          console.error("创建连接请求失败:", error);
+          logError("手动创建连接请求", error);
+          statusDiv.textContent = "手动创建连接请求失败，查看错误日志";
         }
       });
 
@@ -242,8 +420,7 @@
           const answer = await remoteConnection.createAnswer();
           await remoteConnection.setLocalDescription(answer);
 
-          // 在实际应用中，这里应该将answer发送给本地端
-          console.log("创建连接应答:", answer);
+          console.log("手动创建连接应答:", answer);
           remoteSDPTextarea.value = JSON.stringify(answer);
 
           // 将answer设置为本地连接的远程描述
@@ -251,41 +428,77 @@
           const answerObj = new RTCSessionDescription(answerJSON);
           await localConnection.setRemoteDescription(answerObj);
 
-          statusDiv.textContent = "连接已建立，可以开始发送消息";
+          statusDiv.textContent = "连接已手动建立，可以开始发送消息";
         } catch (error) {
-          console.error("创建连接应答失败:", error);
+          logError("手动创建连接应答", error);
+          statusDiv.textContent = "手动创建连接应答失败，查看错误日志";
         }
       });
 
       // 发送本地消息
       sendLocalBtn.addEventListener("click", () => {
-        const message = localMessageInput.value;
-        if (message && localChannel && localChannel.readyState === "open") {
-          localChannel.send(message);
+        try {
+          const message = localMessageInput.value;
+          if (message && localChannel && localChannel.readyState === "open") {
+            localChannel.send(message);
 
-          const messageElement = document.createElement("p");
-          messageElement.textContent = `发送: ${message}`;
-          localReceivedDiv.appendChild(messageElement);
+            const messageElement = document.createElement("p");
+            messageElement.textContent = `发送: ${message}`;
+            localReceivedDiv.appendChild(messageElement);
 
-          localMessageInput.value = "";
-        } else {
-          alert("无法发送消息，请确保连接已建立");
+            localMessageInput.value = "";
+          } else {
+            const reason = !message ? "消息为空" : 
+                          !localChannel ? "数据通道未创建" : 
+                          `数据通道状态为 ${localChannel.readyState}`;
+            logError("发送本地消息", `无法发送消息: ${reason}`);
+            alert(`无法发送消息，${reason}`);
+          }
+        } catch (error) {
+          logError("发送本地消息", error);
         }
       });
 
       // 发送远程消息
       sendRemoteBtn.addEventListener("click", () => {
-        const message = remoteMessageInput.value;
-        if (message && remoteChannel && remoteChannel.readyState === "open") {
-          remoteChannel.send(message);
+        try {
+          const message = remoteMessageInput.value;
+          if (message && remoteChannel && remoteChannel.readyState === "open") {
+            remoteChannel.send(message);
 
-          const messageElement = document.createElement("p");
-          messageElement.textContent = `发送: ${message}`;
-          remoteReceivedDiv.appendChild(messageElement);
+            const messageElement = document.createElement("p");
+            messageElement.textContent = `发送: ${message}`;
+            remoteReceivedDiv.appendChild(messageElement);
 
-          remoteMessageInput.value = "";
-        } else {
-          alert("无法发送消息，请确保连接已建立");
+            remoteMessageInput.value = "";
+          } else {
+            const reason = !message ? "消息为空" : 
+                          !remoteChannel ? "数据通道未创建" : 
+                          `数据通道状态为 ${remoteChannel.readyState}`;
+            logError("发送远程消息", `无法发送消息: ${reason}`);
+            alert(`无法发送消息，${reason}`);
+          }
+        } catch (error) {
+          logError("发送远程消息", error);
+        }
+      });
+
+      // 自动启动连接过程
+      window.addEventListener('load', async () => {
+        try {
+          initConnections();
+          
+          // 自动创建offer
+          const offer = await localConnection.createOffer();
+          await localConnection.setLocalDescription(offer);
+          
+          console.log("自动创建连接请求:", offer);
+          localSDPTextarea.value = JSON.stringify(offer);
+          
+          statusDiv.textContent = "正在自动建立连接...";
+        } catch (error) {
+          logError("自动启动连接", error);
+          statusDiv.textContent = "自动建立连接失败，查看错误日志";
         }
       });
 
