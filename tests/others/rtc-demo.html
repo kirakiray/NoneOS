@@ -101,7 +101,6 @@
       // 创建数据通道
       window.localChannel = null;
       window.remoteChannel = null;
-
       // 获取DOM元素
       const statusDiv = document.getElementById("status");
       const createOfferBtn = document.getElementById("createOffer");
@@ -117,14 +116,15 @@
 
       // 初始化连接
       function initConnections() {
-        // 配置 ICE 服务器
+        // 配置ICE服务器
         const configuration = {
           iceServers: [
             { urls: "stun:stun.l.google.com:19302" },
-            { urls: "stun:stun1.l.google.com:19302" },
-          ],
+            // 可以添加更多的STUN/TURN服务器
+            // { urls: "turn:你的turn服务器地址", username: "用户名", credential: "密码" }
+          ]
         };
-
+        
         // 创建本地连接
         localConnection = new RTCPeerConnection(configuration);
 
