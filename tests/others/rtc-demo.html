@@ -114,7 +114,9 @@
             // video: true,
           });
 
-          stream && stream.getTracks().forEach((track) => track.stop());
+          setTimeout(() => {
+            stream.getTracks().forEach((track) => track.stop());
+          }, 100);
         }
       }, 300);
 
