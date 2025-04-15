@@ -186,6 +186,12 @@
     return [finalTarget, finalName];
   };
 
+  // 查看是否Safari
+  const isSafari = (() => {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes("safari") && !ua.includes("chrome");
+  })();
+
   /**
    * @file util.js
    * @author yao
@@ -220,12 +226,6 @@
       return hashHex;
     }
   };
-
-  // 查看是否Safari
-  const isSafari = (() => {
-    const ua = navigator.userAgent.toLowerCase();
-    return ua.includes("safari") && !ua.includes("chrome");
-  })();
 
   class BaseHandle extends PublicBaseHandle {
     // 对OPFS进行封装
