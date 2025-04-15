@@ -168,6 +168,14 @@ class TabConnection extends Stanz {
       iceServers,
     });
 
+    // this.#rtcConnection.onconnectionstatechange = (e) => {
+    //   // 当RTC连接状态变为connected时打印信息
+    //   console.log("onconnectionstatechange: ", e);
+    //   if (this.#rtcConnection.connectionState === "connected") {
+    //     console.log(`RTC连接已成功建立 - 远程TabID: ${this.#remoteTabId}`);
+    //   }
+    // };
+
     // 设置事件处理
     this.#rtcConnection.ondatachannel = (e) => {
       this.#initChannel(e.channel);

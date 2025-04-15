@@ -33,68 +33,66 @@
         return !user1Sers.some((e) => e.connectionState !== "connected");
       });
 
-      await new Promise((res) => setTimeout(res, 1000));
-
       const mainTabId = "user1-tab-" + Math.random().toString(36).slice(2, 8);
 
-      // // 测试访问其他用户内容
-      // await runTest("Access Other User Content Test", async () => {
-      //   // 访问user1的内容
-      //   const get = createGet(user1.userId, {
-      //     userDirName: "main",
-      //     selfTabId: mainTabId,
-      //   });
+      // 测试访问其他用户内容
+      await runTest("Access Other User Content Test", async () => {
+        // 访问user1的内容
+        const get = createGet(user1.userId, {
+          userDirName: "main",
+          selfTabId: mainTabId,
+        });
 
-      //   const localHandle = await get("local/test");
+        const localHandle = await get("local/test");
 
-      //   const length = await localHandle.length();
-      //   console.log("length: ", length);
+        const length = await localHandle.length();
+        console.log("length: ", length);
 
-      //   const remoteFileHandle = await localHandle.get("remote1/test1.txt", {
-      //     create: "file",
-      //   });
+        const remoteFileHandle = await localHandle.get("remote1/test1.txt", {
+          create: "file",
+        });
 
-      //   // 向对方用户读取和写入文件
-      //   const text1 = "hello world " + Math.random();
+        // 向对方用户读取和写入文件
+        const text1 = "hello world " + Math.random();
 
-      //   await remoteFileHandle.write(text1);
+        await remoteFileHandle.write(text1);
 
-      //   const rHandle2 = await get("local/test/remote1/test1.txt");
+        const rHandle2 = await get("local/test/remote1/test1.txt");
 
-      //   const text2 = await rHandle2.text();
+        const text2 = await rHandle2.text();
 
-      //   const isSame = await rHandle2.isSame(remoteFileHandle);
+        const isSame = await rHandle2.isSame(remoteFileHandle);
 
-      //   return {
-      //     assert: text1 === text2 && isSame,
-      //     content: `Expected texts to match and handles to be the same. Text match: ${
-      //       text1 === text2
-      //     }, Handle same: ${isSame}`,
-      //   };
-      // });
+        return {
+          assert: text1 === text2 && isSame,
+          content: `Expected texts to match and handles to be the same. Text match: ${
+            text1 === text2
+          }, Handle same: ${isSame}`,
+        };
+      });
 
-      // // 测试当前用户创建文件，让其他用户获取
-      // await runTest("Create File for Other User Test", async () => {
-      //   // 在当前用户中创建一个文件，尝试让对方来获取这个文件
-      //   const testHandle2 = await testDirectory.get("remote2/test2.txt", {
-      //     create: "file",
-      //   });
+      // 测试当前用户创建文件，让其他用户获取
+      await runTest("Create File for Other User Test", async () => {
+        // 在当前用户中创建一个文件，尝试让对方来获取这个文件
+        const testHandle2 = await testDirectory.get("remote2/test2.txt", {
+          create: "file",
+        });
 
-      //   const text3 = "hello world 2" + Math.random();
-      //   await testHandle2.write(text3);
+        const text3 = "hello world 2" + Math.random();
+        await testHandle2.write(text3);
 
-      //   // 访问第一个用户的内容
-      //   const get = createGet(user1.userId);
+        // 访问第一个用户的内容
+        const get = createGet(user1.userId);
 
-      //   const t2Handle = await get("test-get-set/remote2/test2.txt");
+        const t2Handle = await get("test-get-set/remote2/test2.txt");
 
-      //   const text4 = await t2Handle.text();
+        const text4 = await t2Handle.text();
 
-      //   return {
-      //     assert: text3 === text4,
-      //     content: `Expected texts to match. Got: ${text3 === text4}`,
-      //   };
-      // });
+        return {
+          assert: text3 === text4,
+          content: `Expected texts to match. Got: ${text3 === text4}`,
+        };
+      });
 
       // 测试远程写入大文件
       await runTest("Write Large File Test", async () => {

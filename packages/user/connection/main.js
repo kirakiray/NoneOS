@@ -2,6 +2,7 @@ import { getConnection } from "./public.js";
 import { UserConnection } from "./connection.js";
 import { tabSessionid } from "../user-store.js";
 import { agentData } from "../hand-server/agent.js";
+// import { isSafari } from "../../libs/util/is-safari.js";
 
 import { on } from "../event.js";
 
@@ -62,7 +63,10 @@ on("server-agent-data", async (e) => {
         },
       });
 
-      console.log(`[WebRTC:连接用户][用户:${fromUserId}] 建立连接：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`, data);
+      console.log(
+        `[WebRTC:连接用户][用户:${fromUserId}] 建立连接：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`,
+        data
+      );
       break;
     }
     case "response-offer": {
@@ -88,7 +92,10 @@ on("server-agent-data", async (e) => {
           answer,
         },
       });
-      console.log(`[WebRTC:响应连接][用户:${fromUserId}] 创建应答：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`, data);
+      console.log(
+        `[WebRTC:响应连接][用户:${fromUserId}] 创建应答：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`,
+        data
+      );
       break;
     }
     case "response-answer": {
@@ -99,7 +106,10 @@ on("server-agent-data", async (e) => {
       const connection = targetUserConnection.getConnection(data.fromTabId);
       connection.setRemoteDescription(new RTCSessionDescription(data.answer));
 
-      console.log(`[WebRTC:设置应答][用户:${fromUserId}] 设置远程应答：从 ${data.fromTabId} 到 ${data.toTabId}`, data);
+      console.log(
+        `[WebRTC:设置应答][用户:${fromUserId}] 设置远程应答：从 ${data.fromTabId} 到 ${data.toTabId}`,
+        data
+      );
       break;
     }
     case "agent-ice-candidate": {
@@ -114,15 +124,29 @@ on("server-agent-data", async (e) => {
 
       // 设置远程的ICE候选
       connection.addIceCandidate(candidate);
-      console.log(`[WebRTC:ICE候选][用户:${fromUserId}] 添加ICE候选：从 ${data.fromTabId} 到 ${data.toTabId}`, data);
+      console.log(
+        `[WebRTC:ICE候选][用户:${fromUserId}] 添加ICE候选：从 ${data.fromTabId} 到 ${data.toTabId}`,
+        data
+      );
       break;
     }
     default:
       debugger;
-      console.log(`[WebRTC:未知][用户:${fromUserId}] 未知的消息类型:`, data.kind, data);
+      console.log(
+        `[WebRTC:未知][用户:${fromUserId}] 未知的消息类型:`,
+        data.kind,
+        data
+      );
       break;
   }
 });
+
+// // 和用户连接前，是否已经同意
+// let isAgree = true;
+
+// if (isSafari) {
+//   isAgree = false;
+// }
 
 // 连接目标设备
 export const connect = ({ userId, selfTabId, userDirName }) => {
@@ -132,6 +156,8 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
   if (!userId) {
     throw new Error("userId is required");
   }
+
+  // TODO: safari的情况下，可能需要用户同意才能建立连接
 
   const connectionStore = getConnection(userDirName);
 
@@ -152,8 +178,8 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
   }
 
   // Safari兼容性检查
-  if (typeof RTCPeerConnection === 'undefined') {
-    console.error('当前浏览器不支持WebRTC');
+  if (typeof RTCPeerConnection === "undefined") {
+    console.error("当前浏览器不支持WebRTC");
     return targetUserConnection;
   }
 
