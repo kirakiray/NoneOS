@@ -1,6 +1,7 @@
 import { BaseHandle } from "./base.js";
 import { notify } from "../public/base.js";
 import { extendFileHandle } from "../public/file.js";
+import { isSafari } from "../util.js";
 
 export class FileHandle extends BaseHandle {
   constructor(...args) {
@@ -31,6 +32,35 @@ export class FileHandle extends BaseHandle {
   }
 
   async write(data, options = {}) {
+    // const isSafari = true;
+
+    if (isSafari) {
+      return new Promise(async (resolve, reject) => {
+        // const worker = new Worker(import.meta.resolve("./write-worker.js"));
+        const worker = new Worker("/packages/fs/handle/write-worker.js");
+
+        worker.postMessage({
+          path: this.path,
+          content: data instanceof Blob ? await data.arrayBuffer() : data,
+        });
+        worker.onmessage = async (event) => {
+          const { success, error } = event.data;
+
+          // BUG: 这里需要一个延时，否则写入的文件会丢失
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          if (success) {
+            console.log("文件写入成功！");
+            resolve(true);
+          } else {
+            reject(error);
+          }
+
+          worker.terminate();
+        };
+      });
+    }
+
     const handle = this._handle;
     const steam = await handle.createWritable();
     await steam.write(data);

@@ -33,7 +33,8 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: "on-first-retry",
 
-    // 禁用隐私模式
+    serviceWorkers: "allow",
+
     // launchOptions: {
     //   args: ["--no-sandbox", "--disable-setuid-sandbox"],
     // },
@@ -56,9 +57,10 @@ export default defineConfig({
     {
       name: "webkit",
       use: {
-        ...devices["Desktop Safari"],
-        persistent: new URL("userData", import.meta.url).pathname, // 指定用户数据目录
+        ...devices["iPad Pro 11 landscape"],
+        // ...devices["Desktop Safari"],
         headless: false,
+        // permissions: ["storage-access"],
       },
     },
 

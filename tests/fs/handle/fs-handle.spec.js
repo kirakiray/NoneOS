@@ -1,4 +1,6 @@
-import { test, expect } from "@playwright/test";
+// import { test, expect } from "@playwright/test";
+
+import { test, expect, webkit } from "@playwright/test";
 import { testSucceedCount } from "../../specUtil.js";
 
 test.describe("File System Handle Tests", () => {
@@ -19,7 +21,7 @@ test.describe("File System Handle Tests", () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    await testSucceedCount(page, 4);
+    await testSucceedCount(page, 5);
   });
 
   test("Some test", async ({ page }) => {

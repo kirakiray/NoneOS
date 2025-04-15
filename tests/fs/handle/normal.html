@@ -86,6 +86,27 @@
         };
       });
 
+      // 添加一个写入file的测试
+      await runTest("Write File Test", async () => {
+        const testFile = await testDirectory.get("test-write-file.txt", {
+          create: "file",
+        });
+
+        const content1 = "some text" + Math.random();
+
+        const file = new File([content1], "test-write-file.txt", {
+          type: "text/plain",
+        });
+        await testFile.write(file);
+
+        const content = await testFile.text();
+
+        return {
+          assert: content === content1,
+          content: `Expected file content to be '${content1}', got '${content}'`,
+        };
+      });
+
       const endMessage = document.createElement("h5");
       endMessage.setAttribute("data-testid", "all-test-completed");
       endMessage.textContent = "All tests completed";
