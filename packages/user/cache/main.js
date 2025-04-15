@@ -23,7 +23,6 @@ const initCacheCleanupWorker = () => {
       console.log("来自缓存清理Worker的消息:", e.data);
     };
 
-    console.log("缓存清理Worker已初始化");
     return worker;
   } catch (err) {
     console.error("初始化缓存清理Worker失败:", err);

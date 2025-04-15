@@ -23,14 +23,25 @@
 
       // 测试用户存储
       const user1 = await getUserStore("user1");
-      await getServers("user1");
 
-      await new Promise((res) => setTimeout(res, 100));
+      const mainSers = await getServers("main");
+      const user1Sers = await getServers("user1");
+      await mainSers.watchUntil(() => {
+        return !mainSers.some((e) => e.connectionState !== "connected");
+      });
+      await user1Sers.watchUntil(() => {
+        return !user1Sers.some((e) => e.connectionState !== "connected");
+      });
+
+      const mainTabId = "user1-tab-" + Math.random().toString(36).slice(2, 8);
 
       // 测试访问其他用户内容
       await runTest("Access Other User Content Test", async () => {
         // 访问user1的内容
-        const get = createGet(user1.userId);
+        const get = createGet(user1.userId, {
+          userDirName: "main",
+          selfTabId: mainTabId,
+        });
 
         const localHandle = await get("local/test");
 
