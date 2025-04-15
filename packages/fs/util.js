@@ -1,3 +1,5 @@
+export { isSafari } from "../libs/util/is-safari.js";
+
 /**
  * @file util.js
  * @author yao
@@ -99,9 +101,3 @@ export const getFileHash = async (file) => {
   const hashArray = await calculateFileChunkHashes(file);
   return getHash(hashArray.join(""));
 };
-
-// 查看是否Safari
-export const isSafari = (() => {
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.includes("safari") && !ua.includes("chrome");
-})();
