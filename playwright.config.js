@@ -59,7 +59,6 @@ export default defineConfig({
       use: {
         ...devices["iPad Pro 11 landscape"],
         // ...devices["Desktop Safari"],
-        headless: false,
         // permissions: ["storage-access"],
       },
     },
