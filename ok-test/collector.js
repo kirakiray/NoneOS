@@ -41,6 +41,9 @@ export const init = async (options) => {
     const count = await getCaseCount(path, getCountFn);
 
     const targetWindow = open(path);
+    // 记录测试开始时间
+    const startTime = performance.now();
+    
     // 等待对方发送通知
     await new Promise((resolve) => {
       targetWindow.addEventListener("message", (event) => {
@@ -48,6 +51,8 @@ export const init = async (options) => {
         if (data.type === "test-completed") {
           const casesResult = data.cases;
           const caseTitle = data.title;
+          // 计算测试用时
+          const duration = (performance.now() - startTime).toFixed(2);
 
           targetWindow.close();
 
@@ -63,13 +68,13 @@ export const init = async (options) => {
           resultContainer.style.color = "var(--text-color)";
           resultContainer.style.backgroundColor = "var(--results-bg-color)";
 
-          // 添加标题
+          // 添加标题（修改为包含用时）
           const titleElement = document.createElement("div");
           titleElement.style.padding = "12px 16px";
           titleElement.style.backgroundColor = "var(--background-color)";
           titleElement.style.borderBottom = "1px solid var(--border-color)";
           titleElement.style.fontWeight = "600";
-          titleElement.textContent = `Test Suite: ${caseTitle}`;
+          titleElement.textContent = `Test Suite: ${caseTitle} (${duration}ms)`;  // 添加用时显示
           resultContainer.appendChild(titleElement);
 
           // 查看用例数量是否相等
