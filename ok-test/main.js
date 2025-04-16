@@ -14,6 +14,7 @@ function initTestContainer(title) {
         max-width: 1200px;
         margin: 0 auto;
         background-color: #f8f8f8;
+        color: #333;
       }
       h1 {
         color: #333;
@@ -64,6 +65,44 @@ function initTestContainer(title) {
       }
       .error-message {
         background-color: #ffebee;
+      }
+      
+      /* 暗色模式适配 */
+      @media (prefers-color-scheme: dark) {
+        body {
+          background-color: #121212;
+          color: #e0e0e0;
+        }
+        h1 {
+          color: #e0e0e0;
+          border-bottom: 1px solid #444;
+        }
+        .test-info {
+          color: #aaa;
+        }
+        #results {
+          background-color: #1e1e1e;
+          box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        .success {
+          color: #81c784;
+        }
+        .error {
+          color: #e57373;
+        }
+        .test-case {
+          border-left: 4px solid #444;
+        }
+        .test-case:hover {
+          background-color: #2a2a2a;
+        }
+        .result-content, .error-message {
+          background-color: #2a2a2a;
+          color: #e0e0e0;
+        }
+        .error-message {
+          background-color: #3c2626;
+        }
       }
     </style>
   `;
