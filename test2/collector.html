@@ -6,13 +6,22 @@
     <title>Test Collector</title>
   </head>
   <body>
+    <button data-testid="start">Start</button>
     <script type="module">
       import { init } from "/ok-test/collector.js";
+      const startButton = document.querySelector("[data-testid='start']");
+      startButton.addEventListener("click", async () => {
+        startButton.remove();
 
-      init({
-        cases: ["./fs/handle/normal.ok.html", "./fs/handle/copyto.ok.html"].map(
-          (e) => import.meta.resolve(e) // 修正路径
-        ),
+        const configs = await fetch("./configs.json").then((res) => res.json());
+
+        await init({
+          ...configs,
+        });
+
+        // await init({
+        //   cases: ["./fs/handle/normal.ok.html", "./fs/handle/copyto.ok.html"],
+        // });
       });
     </script>
   </body>
