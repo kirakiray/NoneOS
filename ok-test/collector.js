@@ -44,21 +44,62 @@ export const init = (options) => {
   `;
   document.head.appendChild(style);
 
-  return async () => {
-    for (const path of cases) {
-      // 获取测试用例数量
-      const count = await getCaseCount(path, getCountFn);
+  let runned = false;
 
+  return async () => {
+    if (runned) {
+      console.log("已经执行过了");
+      return;
+    }
+    runned = true;
+    for (const path of cases) {
+      const count = await getCaseCount(path, getCountFn);
       const targetWindow = window.open(
         path,
         "mozillaWindow",
         "width=600,height=800"
       );
-      // 记录测试开始时间
       const startTime = performance.now();
 
       // 等待对方发送通知
       await new Promise((resolve) => {
+        const timer = setTimeout(() => {
+          targetWindow.close();
+
+          // 创建超时错误的结果容器
+          const resultContainer = document.createElement("div");
+          resultContainer.style.margin = "16px";
+          resultContainer.style.padding = "0";
+          resultContainer.style.border = "1px solid var(--border-color)";
+          resultContainer.style.borderRadius = "4px";
+          resultContainer.style.overflow = "hidden";
+          resultContainer.style.fontFamily =
+            "ui-sans-serif, system-ui, sans-serif";
+          resultContainer.style.color = "var(--text-color)";
+          resultContainer.style.backgroundColor = "var(--results-bg-color)";
+
+          // 添加标题
+          const titleElement = document.createElement("div");
+          titleElement.style.padding = "12px 16px";
+          titleElement.style.backgroundColor = "var(--background-color)";
+          titleElement.style.borderBottom = "1px solid var(--border-color)";
+          titleElement.style.fontWeight = "600";
+          titleElement.textContent = `Test Suite: ${path}`;
+          resultContainer.appendChild(titleElement);
+
+          // 添加超时错误信息
+          const errorElement = document.createElement("div");
+          errorElement.style.padding = "12px 16px";
+          errorElement.style.backgroundColor = "var(--error-bg-color)";
+          errorElement.style.color = "var(--error-color)";
+          errorElement.textContent = `Error: Test timed out after ${timeout}ms`;
+          resultContainer.appendChild(errorElement);
+
+          document.body.appendChild(resultContainer);
+
+          resolve();
+        }, timeout);
+
         targetWindow.addEventListener("message", (event) => {
           const { data } = event;
           if (data.type === "test-completed") {
@@ -141,6 +182,7 @@ export const init = (options) => {
             resultContainer.appendChild(resultList);
             document.body.appendChild(resultContainer);
 
+            clearTimeout(timer);
             resolve();
           }
         });
