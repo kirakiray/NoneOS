@@ -16,11 +16,13 @@ export const init = async (options) => {
   // 收集所有测试用例并预先显示
   for (const path of cases) {
     const count = await getCaseCount(path, getCountFn);
-    
+
     // 创建等待状态的测试容器
     const container = createResultContainer();
-    container.appendChild(createTitleElement(`Test Suite: ${path} (等待运行...)`));
-    
+    container.appendChild(
+      createTitleElement(`Test Suite: ${path} (等待运行...)`)
+    );
+
     // 添加等待指示器
     const waitingIndicator = document.createElement("div");
     waitingIndicator.style.padding = "12px 16px";
@@ -29,10 +31,10 @@ export const init = async (options) => {
     waitingIndicator.style.borderBottom = "1px solid var(--border-color)";
     waitingIndicator.textContent = `等待运行 ${count} 个测试用例...`;
     container.appendChild(waitingIndicator);
-    
+
     document.body.appendChild(container);
     testContainers.push(container);
-    
+
     testCases.push({
       path,
       count,
@@ -126,7 +128,7 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
   // 更新容器标题为"正在运行"
   const titleElement = existingContainer.querySelector("div");
   titleElement.textContent = `Test Suite: ${path} (正在运行...)`;
-  
+
   const targetWindow = window.open(path, "testWindow", "width=600,height=800");
   const startTime = performance.now();
 
@@ -134,20 +136,22 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
     const timer = setTimeout(() => {
       targetWindow.close();
 
-      // 移除现有容器
-      document.body.removeChild(existingContainer);
-      
-      const resultContainer = createResultContainer();
-      resultContainer.appendChild(createTitleElement(`Test Suite: ${path} (超时)`));
+      // 清空现有容器内容
+      existingContainer.innerHTML = "";
 
+      // 添加超时标题
+      existingContainer.appendChild(
+        createTitleElement(`Test Suite: ${path} (超时)`)
+      );
+
+      // 添加超时错误信息
       const errorElement = document.createElement("div");
       errorElement.style.padding = "12px 16px";
       errorElement.style.backgroundColor = "var(--error-bg-color)";
       errorElement.style.color = "var(--error-color)";
       errorElement.textContent = `Error: Test timed out after ${timeout}ms`;
-      resultContainer.appendChild(errorElement);
+      existingContainer.appendChild(errorElement);
 
-      document.body.appendChild(resultContainer);
       resolve();
     }, timeout);
 
@@ -160,11 +164,11 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
 
         targetWindow.close();
 
-        // 移除现有容器
-        document.body.removeChild(existingContainer);
-        
-        const resultContainer = createResultContainer();
-        resultContainer.appendChild(
+        // 清空现有容器内容
+        existingContainer.innerHTML = "";
+
+        // 添加完成标题
+        existingContainer.appendChild(
           createTitleElement(`Test Suite: ${caseTitle} (${duration}ms)`)
         );
 
@@ -176,7 +180,7 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
           countError.style.color = "var(--error-color)";
           countError.style.borderBottom = "1px solid var(--border-color)";
           countError.textContent = `Error: Expected ${expectedCount} tests, but ran ${casesResult.length}`;
-          resultContainer.appendChild(countError);
+          existingContainer.appendChild(countError);
         }
 
         // 添加测试结果列表
@@ -214,8 +218,7 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
           resultList.appendChild(listItem);
         });
 
-        resultContainer.appendChild(resultList);
-        document.body.appendChild(resultContainer);
+        existingContainer.appendChild(resultList);
 
         clearTimeout(timer);
         resolve();
