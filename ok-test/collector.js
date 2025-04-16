@@ -1,4 +1,4 @@
-export const init = async (options) => {
+export const init = (options) => {
   const {
     cases, // 测试用例数组
     parallel = 1, // 默认并行数为1
@@ -44,103 +44,109 @@ export const init = async (options) => {
   `;
   document.head.appendChild(style);
 
-  for (const path of cases) {
-    // 获取测试用例数量
-    const count = await getCaseCount(path, getCountFn);
+  return async () => {
+    for (const path of cases) {
+      // 获取测试用例数量
+      const count = await getCaseCount(path, getCountFn);
 
-    const targetWindow = open(path);
-    // 记录测试开始时间
-    const startTime = performance.now();
+      const targetWindow = window.open(
+        path,
+        "mozillaWindow",
+        "width=600,height=800"
+      );
+      // 记录测试开始时间
+      const startTime = performance.now();
 
-    // 等待对方发送通知
-    await new Promise((resolve) => {
-      targetWindow.addEventListener("message", (event) => {
-        const { data } = event;
-        if (data.type === "test-completed") {
-          const casesResult = data.cases;
-          const caseTitle = data.title;
-          // 计算测试用时
-          const duration = (performance.now() - startTime).toFixed(2);
+      // 等待对方发送通知
+      await new Promise((resolve) => {
+        targetWindow.addEventListener("message", (event) => {
+          const { data } = event;
+          if (data.type === "test-completed") {
+            const casesResult = data.cases;
+            const caseTitle = data.title;
+            // 计算测试用时
+            const duration = (performance.now() - startTime).toFixed(2);
 
-          targetWindow.close();
+            targetWindow.close();
 
-          // 创建结果显示容器 - 添加暗黑模式支持
-          const resultContainer = document.createElement("div");
-          resultContainer.style.margin = "16px";
-          resultContainer.style.padding = "0";
-          resultContainer.style.border = "1px solid var(--border-color)";
-          resultContainer.style.borderRadius = "4px";
-          resultContainer.style.overflow = "hidden";
-          resultContainer.style.fontFamily =
-            "ui-sans-serif, system-ui, sans-serif";
-          resultContainer.style.color = "var(--text-color)";
-          resultContainer.style.backgroundColor = "var(--results-bg-color)";
+            // 创建结果显示容器 - 添加暗黑模式支持
+            const resultContainer = document.createElement("div");
+            resultContainer.style.margin = "16px";
+            resultContainer.style.padding = "0";
+            resultContainer.style.border = "1px solid var(--border-color)";
+            resultContainer.style.borderRadius = "4px";
+            resultContainer.style.overflow = "hidden";
+            resultContainer.style.fontFamily =
+              "ui-sans-serif, system-ui, sans-serif";
+            resultContainer.style.color = "var(--text-color)";
+            resultContainer.style.backgroundColor = "var(--results-bg-color)";
 
-          // 添加标题（修改为包含用时）
-          const titleElement = document.createElement("div");
-          titleElement.style.padding = "12px 16px";
-          titleElement.style.backgroundColor = "var(--background-color)";
-          titleElement.style.borderBottom = "1px solid var(--border-color)";
-          titleElement.style.fontWeight = "600";
-          titleElement.textContent = `Test Suite: ${caseTitle} (${duration}ms)`; // 添加用时显示
-          resultContainer.appendChild(titleElement);
+            // 添加标题（修改为包含用时）
+            const titleElement = document.createElement("div");
+            titleElement.style.padding = "12px 16px";
+            titleElement.style.backgroundColor = "var(--background-color)";
+            titleElement.style.borderBottom = "1px solid var(--border-color)";
+            titleElement.style.fontWeight = "600";
+            titleElement.textContent = `Test Suite: ${caseTitle} (${duration}ms)`; // 添加用时显示
+            resultContainer.appendChild(titleElement);
 
-          // 查看用例数量是否相等
-          if (casesResult.length !== count) {
-            const countError = document.createElement("div");
-            countError.style.padding = "12px 16px";
-            countError.style.backgroundColor = "var(--error-bg-color)";
-            countError.style.color = "var(--error-color)";
-            countError.style.borderBottom = "1px solid var(--border-color)";
-            countError.textContent = `Error: Expected ${count} tests, but ran ${casesResult.length}`;
-            resultContainer.appendChild(countError);
-          }
-
-          // 添加测试结果列表
-          const resultList = document.createElement("div");
-          resultList.style.padding = "0";
-
-          casesResult.forEach((e) => {
-            const itemTitle = e.name;
-            const itemStatus = e.status;
-            const listItem = document.createElement("div");
-            listItem.style.padding = "8px 16px";
-            listItem.style.display = "flex";
-            listItem.style.alignItems = "center";
-            listItem.style.borderBottom = "1px solid var(--border-color)";
-
-            if (itemStatus === "error") {
-              listItem.style.backgroundColor = "var(--error-bg-color)";
-              listItem.innerHTML = `
-                <span style="color:var(--error-color); margin-right:8px">✖</span>
-                <span style="flex:1">${itemTitle}</span>
-                <span style="color:var(--error-color)">${
-                  e.error || "Test failed"
-                }</span>
-              `;
-            } else {
-              listItem.style.backgroundColor = "var(--background-color)";
-              listItem.innerHTML = `
-                <span style="color:var(--success-color); margin-right:8px">✓</span>
-                <span style="flex:1">${itemTitle}</span>
-                <span style="color:var(--secondary-text-color)">${
-                  itemStatus === "skipped" ? "skipped" : "passed"
-                }</span>
-              `;
+            // 查看用例数量是否相等
+            if (casesResult.length !== count) {
+              const countError = document.createElement("div");
+              countError.style.padding = "12px 16px";
+              countError.style.backgroundColor = "var(--error-bg-color)";
+              countError.style.color = "var(--error-color)";
+              countError.style.borderBottom = "1px solid var(--border-color)";
+              countError.textContent = `Error: Expected ${count} tests, but ran ${casesResult.length}`;
+              resultContainer.appendChild(countError);
             }
 
-            resultList.appendChild(listItem);
-          });
+            // 添加测试结果列表
+            const resultList = document.createElement("div");
+            resultList.style.padding = "0";
 
-          // 删除 collector.js#L127-154 的重复样式定义
-          resultContainer.appendChild(resultList);
-          document.body.appendChild(resultContainer);
+            casesResult.forEach((e) => {
+              const itemTitle = e.name;
+              const itemStatus = e.status;
+              const listItem = document.createElement("div");
+              listItem.style.padding = "8px 16px";
+              listItem.style.display = "flex";
+              listItem.style.alignItems = "center";
+              listItem.style.borderBottom = "1px solid var(--border-color)";
 
-          resolve();
-        }
+              if (itemStatus === "error") {
+                listItem.style.backgroundColor = "var(--error-bg-color)";
+                listItem.innerHTML = `
+                  <span style="color:var(--error-color); margin-right:8px">✖</span>
+                  <span style="flex:1">${itemTitle}</span>
+                  <span style="color:var(--error-color)">${
+                    e.error || "Test failed"
+                  }</span>
+                `;
+              } else {
+                listItem.style.backgroundColor = "var(--background-color)";
+                listItem.innerHTML = `
+                  <span style="color:var(--success-color); margin-right:8px">✓</span>
+                  <span style="flex:1">${itemTitle}</span>
+                  <span style="color:var(--secondary-text-color)">${
+                    itemStatus === "skipped" ? "skipped" : "passed"
+                  }</span>
+                `;
+              }
+
+              resultList.appendChild(listItem);
+            });
+
+            // 删除 collector.js#L127-154 的重复样式定义
+            resultContainer.appendChild(resultList);
+            document.body.appendChild(resultContainer);
+
+            resolve();
+          }
+        });
       });
-    });
-  }
+    }
+  };
 };
 
 const getCaseCount = async (path, getCountFn) => {

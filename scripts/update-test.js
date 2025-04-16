@@ -26,7 +26,7 @@ async function findOkHtmlFiles(dir) {
 async function updateConfigs() {
   try {
     const okHtmlFiles = await findOkHtmlFiles(".");
-    const configPath = `${join(__dirname, "..", "test2")}/configs.json`;
+    const configPath = `${join(__dirname, "..", "tests")}/configs.json`;
     const config = { cases: okHtmlFiles };
 
     await fs.writeFile(configPath, JSON.stringify(config, null, 2));

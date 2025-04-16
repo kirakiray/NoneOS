@@ -1,0 +1,29 @@
+{
+  "cases": [
+    "../tests/fs/handle/copyto.ok.html",
+    "../tests/fs/handle/fetch.ok.html",
+    "../tests/fs/handle/flat.ok.html",
+    "../tests/fs/handle/move-to.ok.html",
+    "../tests/fs/handle/normal.ok.html",
+    "../tests/fs/handle/observe-tabs.ok.html",
+    "../tests/fs/handle/observe.ok.html",
+    "../tests/fs/handle/remove.ok.html",
+    "../tests/fs/handle/some.ok.html",
+    "../tests/fs/handle/values.ok.html",
+    "../tests/fs/handle/write-and-get.ok.html",
+    "../tests/fs/remote/get-and-set.ok.html",
+    "../tests/fs/util/get-file-hash.ok.html",
+    "../tests/fs/util/get-hash.ok.html",
+    "../tests/hybird-data/change-file.ok.html",
+    "../tests/hybird-data/save-and-get.ok.html",
+    "../tests/user/add-device.ok.html",
+    "../tests/user/connection.ok.html",
+    "../tests/user/direct-agent-data.ok.html",
+    "../tests/user/handserver.ok.html",
+    "../tests/user/invite-code.ok.html",
+    "../tests/user/main.ok.html",
+    "../tests/user/rsa-util.ok.html",
+    "../tests/user/util.ok.html",
+    "../tests/user/worker-agent-data.ok.html"
+  ]
+}
