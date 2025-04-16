@@ -12,12 +12,17 @@ export const init = async (options) => {
       margin: 0;
       padding: 0;
       height:100%;
+      box-sizing: border-box;
+      padding-top: 1px;
       --background-color: #f8f8f8;
       --text-color: #333;
       --border-color: #ddd;
       --secondary-text-color: #666;
       --results-bg-color: white;
       --shadow-color: rgba(0, 0, 0, 0.05);
+      --success-color: #2da44e;
+      --error-color: #d1242f;
+      --error-bg-color: #fff4f4;
       background-color: var(--background-color);
       color: var(--text-color);
     }
@@ -30,6 +35,9 @@ export const init = async (options) => {
         --secondary-text-color: #aaa;
         --results-bg-color: #1e1e1e;
         --shadow-color: rgba(0, 0, 0, 0.2);
+        --success-color: #81c784;
+        --error-color: #e57373;
+        --error-bg-color: #3c2626;
       }
     }
     test-container{height:100%;}
@@ -43,7 +51,7 @@ export const init = async (options) => {
     const targetWindow = open(path);
     // 记录测试开始时间
     const startTime = performance.now();
-    
+
     // 等待对方发送通知
     await new Promise((resolve) => {
       targetWindow.addEventListener("message", (event) => {
@@ -58,7 +66,7 @@ export const init = async (options) => {
 
           // 创建结果显示容器 - 添加暗黑模式支持
           const resultContainer = document.createElement("div");
-          resultContainer.style.margin = "20px 0";
+          resultContainer.style.margin = "16px";
           resultContainer.style.padding = "0";
           resultContainer.style.border = "1px solid var(--border-color)";
           resultContainer.style.borderRadius = "4px";
@@ -74,7 +82,7 @@ export const init = async (options) => {
           titleElement.style.backgroundColor = "var(--background-color)";
           titleElement.style.borderBottom = "1px solid var(--border-color)";
           titleElement.style.fontWeight = "600";
-          titleElement.textContent = `Test Suite: ${caseTitle} (${duration}ms)`;  // 添加用时显示
+          titleElement.textContent = `Test Suite: ${caseTitle} (${duration}ms)`; // 添加用时显示
           resultContainer.appendChild(titleElement);
 
           // 查看用例数量是否相等
@@ -124,34 +132,7 @@ export const init = async (options) => {
             resultList.appendChild(listItem);
           });
 
-          // 添加全局样式变量
-          const style = document.createElement("style");
-          style.textContent = `
-            :root {
-              --background-color: #f8f8f8;
-              --text-color: #333;
-              --border-color: #e5e5e5;
-              --secondary-text-color: #666;
-              --results-bg-color: white;
-              --success-color: #2da44e;
-              --error-color: #d1242f;
-              --error-bg-color: #fff4f4;
-            }
-            @media (prefers-color-scheme: dark) {
-              :root {
-                --background-color: #121212;
-                --text-color: #e0e0e0;
-                --border-color: #444;
-                --secondary-text-color: #aaa;
-                --results-bg-color: #1e1e1e;
-                --success-color: #81c784;
-                --error-color: #e57373;
-                --error-bg-color: #3c2626;
-              }
-            }
-          `;
-          document.head.appendChild(style);
-
+          // 删除 collector.js#L127-154 的重复样式定义
           resultContainer.appendChild(resultList);
           document.body.appendChild(resultContainer);
 

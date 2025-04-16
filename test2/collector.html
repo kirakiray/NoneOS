@@ -10,7 +10,7 @@
       import { init } from "/ok-test/collector.js";
 
       init({
-        cases: ["./fs/normal.ok.html", "./fs/copyto.ok.html"].map(
+        cases: ["./fs/handle/normal.ok.html", "./fs/handle/copyto.ok.html"].map(
           (e) => import.meta.resolve(e) // 修正路径
         ),
       });

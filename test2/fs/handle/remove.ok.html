@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Remove Method Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-remove");
+
+      // 测试 remove 方法的使用
+      await test("Test Handle remove method", async () => {
+        // 创建测试文件和目录结构
+        const file1 = await testDir.get("file1.txt", { create: "file" });
+        const subDir = await testDir.get("subDir", { create: "dir" });
+        const file2 = await testDir.get("subDir/file2.txt", { create: "file" });
+
+        // 写入一些内容
+        await file1.write("file1 content");
+        await file2.write("file2 content");
+
+        // 测试删除单个文件
+        await file1.remove();
+        const file1Exists = await testDir.get("file1.txt");
+
+        // 测试删除包含文件的目录
+        await subDir.remove();
+        const subDirExists = await testDir.get("subDir");
+
+        // 验证结果
+        const results = {
+          fileRemoved: file1Exists === null,
+          dirRemoved: subDirExists === null,
+        };
+
+        return {
+          assert: results.fileRemoved && results.dirRemoved,
+          content: `File removed: ${results.fileRemoved}, Directory removed: ${results.dirRemoved}`,
+        };
+      });
+
+      // 测试删除后重新创建
+      await test("Test create after remove", async () => {
+        // 创建新文件
+        const newFile = await testDir.get("file1.txt", { create: "file" });
+        await newFile.write("new content");
+
+        // 验证新文件
+        const content = await newFile.read();
+
+        return {
+          assert: content === "new content",
+          content: `New file content: ${content}`,
+        };
+      });
+    </script>
+  </body>
+</html>

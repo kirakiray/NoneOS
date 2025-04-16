@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fetch Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir3");
+
+      // 测试文件创建、写入和fetch获取
+      await test("Create, Write and Fetch File", async () => {
+        const file1 = await testDir.get("file1.txt", { create: "file" });
+        const someText = "Write some text " + Math.random();
+        await file1.write(someText);
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        const content = await fetch("/$test-dir3/file1.txt").then((e) =>
+          e.text()
+        );
+
+        return {
+          assert: content === someText,
+          content: `Expected: ${someText}, Got: ${content}`,
+        };
+      });
+    </script>
+  </body>
+</html>
