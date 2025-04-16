@@ -19,46 +19,67 @@ export const init = async (options) => {
           const casesResult = data.cases;
           const caseTitle = data.title;
 
-          // 收到通知，关闭窗口
           targetWindow.close();
 
-          // 创建结果显示容器
+          // 创建结果显示容器 - Playwright风格
           const resultContainer = document.createElement("div");
-          resultContainer.style.margin = "20px";
-          resultContainer.style.padding = "15px";
-          resultContainer.style.border = "1px solid #ddd";
-          resultContainer.style.borderRadius = "5px";
+          resultContainer.style.margin = "20px 0";
+          resultContainer.style.padding = "0";
+          resultContainer.style.border = "1px solid #e5e5e5";
+          resultContainer.style.borderRadius = "4px";
+          resultContainer.style.overflow = "hidden";
+          resultContainer.style.fontFamily =
+            "ui-sans-serif, system-ui, sans-serif";
 
-          // 添加标题
-          const titleElement = document.createElement("h3");
-          titleElement.textContent = `测试套件: ${caseTitle}`;
+          // 添加标题 - Playwright风格
+          const titleElement = document.createElement("div");
+          titleElement.style.padding = "12px 16px";
+          titleElement.style.backgroundColor = "#f8f8f8";
+          titleElement.style.borderBottom = "1px solid #e5e5e5";
+          titleElement.style.fontWeight = "600";
+          titleElement.textContent = `Test Suite: ${caseTitle}`;
           resultContainer.appendChild(titleElement);
 
           // 查看用例数量是否相等
           if (casesResult.length !== count) {
             const countError = document.createElement("div");
-            countError.style.color = "red";
-            countError.textContent = `错误: 预期 ${count} 个测试用例，实际运行了 ${casesResult.length} 个`;
+            countError.style.padding = "12px 16px";
+            countError.style.backgroundColor = "#fff4f4";
+            countError.style.color = "#d1242f";
+            countError.style.borderBottom = "1px solid #ffd8d8";
+            countError.textContent = `Error: Expected ${count} tests, but ran ${casesResult.length}`;
             resultContainer.appendChild(countError);
           }
 
           // 添加测试结果列表
-          const resultList = document.createElement("ul");
+          const resultList = document.createElement("div");
+          resultList.style.padding = "0";
 
-          // 查看用例是否出错
           casesResult.forEach((e) => {
             const itemTitle = e.name;
             const itemStatus = e.status;
-            const listItem = document.createElement("li");
+            const listItem = document.createElement("div");
+            listItem.style.padding = "8px 16px";
+            listItem.style.display = "flex";
+            listItem.style.alignItems = "center";
+            listItem.style.borderBottom = "1px solid #f0f0f0";
 
             if (itemStatus === "error") {
-              listItem.style.color = "red";
-              listItem.textContent = `❌ ${itemTitle}: ${
-                e.error || "测试失败"
-              }`;
+              listItem.style.backgroundColor = "#fff4f4";
+              listItem.innerHTML = `
+                <span style="color:#d1242f; margin-right:8px">✖</span>
+                <span style="flex:1">${itemTitle}</span>
+                <span style="color:#d1242f">${e.error || "Test failed"}</span>
+              `;
             } else {
-              listItem.style.color = "green";
-              listItem.textContent = `✓ ${itemTitle}`;
+              listItem.style.backgroundColor = "#f8f8f8";
+              listItem.innerHTML = `
+                <span style="color:#2da44e; margin-right:8px">✓</span>
+                <span style="flex:1">${itemTitle}</span>
+                <span style="color:#656d76">${
+                  itemStatus === "skipped" ? "skipped" : "passed"
+                }</span>
+              `;
             }
 
             resultList.appendChild(listItem);
