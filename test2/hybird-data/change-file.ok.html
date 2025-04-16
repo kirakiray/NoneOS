@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Change File Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init, get } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+      import { createData } from "/packages/hybird-data/main.js";
+
+      const TEST_DIR = "test-dir10";
+      const WAIT_TIME = 500;
+
+      // 初始化测试目录
+      const testDirectory = await init(TEST_DIR);
+
+      async function initializeTestData() {
+        const testData2 = await testDirectory.get("test-data-2", {
+          create: "dir",
+        });
+        const data2 = await createData(testData2);
+        await data2.ready();
+
+        return { testData2, data2 };
+      }
+
+      // 测试父目录是否相同
+      await test("sub data can save", async () => {
+        try {
+          const { testData2, data2 } = await initializeTestData();
+
+          if (!data2.sub) {
+            data2.sub = {
+              val: "I am sub",
+            };
+          }
+
+          await data2.sub.ready();
+
+          await new Promise((res) => setTimeout(res, WAIT_TIME));
+
+          const targetFile = await get(
+            `${TEST_DIR}/test-data-2/${data2.sub._dataid}/_d`
+          );
+
+          const oldVal = data2.sub.val;
+          const newVal = `change val: ${Date.now()}`;
+
+          // 修改内容后重新写入
+          const fileText = await targetFile.text();
+          const fileObj = JSON.parse(fileText);
+          fileObj.val = newVal;
+          await targetFile.write(JSON.stringify(fileObj));
+
+          await new Promise((res) => setTimeout(res, WAIT_TIME));
+
+          return {
+            assert: oldVal !== data2.sub.val && data2.sub.val === fileObj.val,
+            content: "auto update data ok",
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `Test failed: ${error.message}`,
+          };
+        }
+      });
+    </script>
+  </body>
+</html>

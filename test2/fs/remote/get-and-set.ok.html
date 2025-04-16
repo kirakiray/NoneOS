@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get and Set Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { createGet } from "/packages/fs/remote/main.js";
+      import { init } from "/packages/fs/main.js";
+      import { getUserStore, getServers } from "/packages/user/main.js";
+      import { test } from "/ok-test/main.js";
+
+      {
+        const local = await init("local");
+        await local.get("test", { create: "dir" });
+      }
+
+      // 初始化测试目录
+      const testDirectory = await init("test-get-set");
+
+      // 测试用户存储
+      const user1 = await getUserStore("user1");
+
+      const mainSers = await getServers("main");
+      const user1Sers = await getServers("user1");
+      await mainSers.watchUntil(() => {
+        return !mainSers.some((e) => e.connectionState !== "connected");
+      });
+      await user1Sers.watchUntil(() => {
+        return !user1Sers.some((e) => e.connectionState !== "connected");
+      });
+
+      const mainTabId = "user1-tab-" + Math.random().toString(36).slice(2, 8);
+
+      // 测试访问其他用户内容
+      await test("Access Other User Content Test", async () => {
+        // 访问user1的内容
+        const get = createGet(user1.userId, {
+          userDirName: "main",
+          selfTabId: mainTabId,
+        });
+
+        const localHandle = await get("local/test");
+
+        const length = await localHandle.length();
+        console.log("length: ", length);
+
+        const remoteFileHandle = await localHandle.get("remote1/test1.txt", {
+          create: "file",
+        });
+
+        const text1 = "hello world " + Math.random();
+
+        await remoteFileHandle.write(text1);
+
+        const rHandle2 = await get("local/test/remote1/test1.txt");
+
+        const text2 = await rHandle2.text();
+
+        const isSame = await rHandle2.isSame(remoteFileHandle);
+
+        return {
+          assert: text1 === text2 && isSame,
+          content: `Expected texts to match and handles to be the same. Text match: ${
+            text1 === text2
+          }, Handle same: ${isSame}`,
+        };
+      });
+
+      // 测试当前用户创建文件，让其他用户获取
+      await test("Create File for Other User Test", async () => {
+        const testHandle2 = await testDirectory.get("remote2/test2.txt", {
+          create: "file",
+        });
+
+        const text3 = "hello world 2" + Math.random();
+        await testHandle2.write(text3);
+
+        const get = createGet(user1.userId);
+
+        const t2Handle = await get("test-get-set/remote2/test2.txt");
+
+        const text4 = await t2Handle.text();
+
+        return {
+          assert: text3 === text4,
+          content: `Expected texts to match. Got: ${text3 === text4}`,
+        };
+      });
+
+      // 测试远程写入大文件
+      await test("Write Large File Test", async () => {
+        const get = createGet(user1.userId);
+
+        const localHandle = await get("local/test");
+
+        const remoteFileHandle3 = await localHandle.get("remote1/test3.txt", {
+          create: "file",
+        });
+
+        let text5 = "";
+        for (let i = 0; i < 5; i++) {
+          text5 += Math.random()
+            .toString(36)
+            .slice(2, 8)
+            .repeat(50 * 1024);
+        }
+
+        const text5File = new File([text5], "test3.txt", {
+          type: "text/plain",
+        });
+
+        await remoteFileHandle3.write(text5File);
+
+        const reText5_2 = await remoteFileHandle3.text();
+
+        const startPos = 1024 * 128 + 3;
+        const endPos = text5.length - 1024 * 128 - 10;
+
+        const validStartPos = Math.min(startPos, text5.length - 1);
+        const validEndPos = Math.min(endPos, text5.length);
+
+        const reText5_1 = await remoteFileHandle3.text({
+          start: validStartPos,
+          end: validEndPos,
+        });
+
+        const expectedSlice = text5.slice(validStartPos, validEndPos);
+        const fullTextMatch = text5 === reText5_2;
+        const partialTextMatch = reText5_1 === expectedSlice;
+
+        return {
+          assert: fullTextMatch && partialTextMatch,
+          content: `Full text match: ${fullTextMatch}, Partial text match: ${partialTextMatch}, Full length: ${reText5_2.length}`,
+        };
+      });
+    </script>
+  </body>
+</html>

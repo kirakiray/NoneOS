@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Save And Get Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+
+      await test("Cache Storage Test", async () => {
+        const c = await caches.open("test-dir103");
+
+        // 向c中添加一个测试数据
+        const data = {
+          name: "test",
+          age: 18,
+        };
+        await c.put("/ttt", new Response(JSON.stringify(data)));
+
+        // 从c中获取数据
+        let res = await c.match("/ttt");
+        res = await res.clone();
+        const resData = await res.json();
+
+        return {
+          assert: resData.name === "test" && resData.age === 18,
+          content: `Cache storage test completed: ${JSON.stringify(resData)}`,
+        };
+      });
+    </script>
+  </body>
+</html>
