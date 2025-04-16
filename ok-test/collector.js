@@ -11,14 +11,33 @@ export const init = async (options) => {
 
   let hasRun = false;
   const testCases = [];
+  const testContainers = []; // 存储测试容器引用
 
-  // 收集所有测试用例
+  // 收集所有测试用例并预先显示
   for (const path of cases) {
     const count = await getCaseCount(path, getCountFn);
+    
+    // 创建等待状态的测试容器
+    const container = createResultContainer();
+    container.appendChild(createTitleElement(`Test Suite: ${path} (等待运行...)`));
+    
+    // 添加等待指示器
+    const waitingIndicator = document.createElement("div");
+    waitingIndicator.style.padding = "12px 16px";
+    waitingIndicator.style.backgroundColor = "var(--background-color)";
+    waitingIndicator.style.color = "var(--secondary-text-color)";
+    waitingIndicator.style.borderBottom = "1px solid var(--border-color)";
+    waitingIndicator.textContent = `等待运行 ${count} 个测试用例...`;
+    container.appendChild(waitingIndicator);
+    
+    document.body.appendChild(container);
+    testContainers.push(container);
+    
     testCases.push({
       path,
       count,
-      runCase: () => runTestCase(path, count, timeout),
+      container, // 保存容器引用
+      runCase: () => runTestCase(path, count, timeout, container),
     });
   }
 
@@ -103,7 +122,11 @@ const createTitleElement = (title) => {
 };
 
 // 运行测试用例
-const runTestCase = async (path, expectedCount, timeout) => {
+const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
+  // 更新容器标题为"正在运行"
+  const titleElement = existingContainer.querySelector("div");
+  titleElement.textContent = `Test Suite: ${path} (正在运行...)`;
+  
   const targetWindow = window.open(path, "testWindow", "width=600,height=800");
   const startTime = performance.now();
 
@@ -111,8 +134,11 @@ const runTestCase = async (path, expectedCount, timeout) => {
     const timer = setTimeout(() => {
       targetWindow.close();
 
+      // 移除现有容器
+      document.body.removeChild(existingContainer);
+      
       const resultContainer = createResultContainer();
-      resultContainer.appendChild(createTitleElement(`Test Suite: ${path}`));
+      resultContainer.appendChild(createTitleElement(`Test Suite: ${path} (超时)`));
 
       const errorElement = document.createElement("div");
       errorElement.style.padding = "12px 16px";
@@ -134,6 +160,9 @@ const runTestCase = async (path, expectedCount, timeout) => {
 
         targetWindow.close();
 
+        // 移除现有容器
+        document.body.removeChild(existingContainer);
+        
         const resultContainer = createResultContainer();
         resultContainer.appendChild(
           createTitleElement(`Test Suite: ${caseTitle} (${duration}ms)`)
