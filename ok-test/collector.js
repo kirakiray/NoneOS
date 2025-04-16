@@ -1,4 +1,4 @@
-export const init = (options) => {
+export const init = async (options) => {
   const {
     cases, // 测试用例数组
     parallel = 1, // 默认并行数为1
@@ -6,6 +6,38 @@ export const init = (options) => {
     timeout = 5000, // 超时时间，单位毫秒
   } = options;
 
+  // 添加样式
+  addStyles();
+
+  let hasRun = false;
+  const testCases = [];
+
+  // 收集所有测试用例
+  for (const path of cases) {
+    const count = await getCaseCount(path, getCountFn);
+    testCases.push({
+      path,
+      count,
+      runCase: () => runTestCase(path, count, timeout),
+    });
+  }
+
+  // 返回执行函数
+  return async () => {
+    if (hasRun) {
+      console.log("已经执行过了");
+      return;
+    }
+    hasRun = true;
+
+    for (let testCase of testCases) {
+      await testCase.runCase();
+    }
+  };
+};
+
+// 添加样式函数
+const addStyles = () => {
   const style = document.createElement("style");
   style.textContent = `
     html,body {
@@ -43,152 +75,124 @@ export const init = (options) => {
     test-container{height:100%;}
   `;
   document.head.appendChild(style);
+};
 
-  let runned = false;
+// 创建结果容器
+const createResultContainer = () => {
+  const container = document.createElement("div");
+  container.style.margin = "16px";
+  container.style.padding = "0";
+  container.style.border = "1px solid var(--border-color)";
+  container.style.borderRadius = "4px";
+  container.style.overflow = "hidden";
+  container.style.fontFamily = "ui-sans-serif, system-ui, sans-serif";
+  container.style.color = "var(--text-color)";
+  container.style.backgroundColor = "var(--results-bg-color)";
+  return container;
+};
 
-  return async () => {
-    if (runned) {
-      console.log("已经执行过了");
-      return;
-    }
-    runned = true;
-    for (const path of cases) {
-      const count = await getCaseCount(path, getCountFn);
-      const targetWindow = window.open(
-        path,
-        "mozillaWindow",
-        "width=600,height=800"
-      );
-      const startTime = performance.now();
+// 创建标题元素
+const createTitleElement = (title) => {
+  const titleElement = document.createElement("div");
+  titleElement.style.padding = "12px 16px";
+  titleElement.style.backgroundColor = "var(--background-color)";
+  titleElement.style.borderBottom = "1px solid var(--border-color)";
+  titleElement.style.fontWeight = "600";
+  titleElement.textContent = title;
+  return titleElement;
+};
 
-      // 等待对方发送通知
-      await new Promise((resolve) => {
-        const timer = setTimeout(() => {
-          targetWindow.close();
+// 运行测试用例
+const runTestCase = async (path, expectedCount, timeout) => {
+  const targetWindow = window.open(path, "testWindow", "width=600,height=800");
+  const startTime = performance.now();
 
-          // 创建超时错误的结果容器
-          const resultContainer = document.createElement("div");
-          resultContainer.style.margin = "16px";
-          resultContainer.style.padding = "0";
-          resultContainer.style.border = "1px solid var(--border-color)";
-          resultContainer.style.borderRadius = "4px";
-          resultContainer.style.overflow = "hidden";
-          resultContainer.style.fontFamily =
-            "ui-sans-serif, system-ui, sans-serif";
-          resultContainer.style.color = "var(--text-color)";
-          resultContainer.style.backgroundColor = "var(--results-bg-color)";
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => {
+      targetWindow.close();
 
-          // 添加标题
-          const titleElement = document.createElement("div");
-          titleElement.style.padding = "12px 16px";
-          titleElement.style.backgroundColor = "var(--background-color)";
-          titleElement.style.borderBottom = "1px solid var(--border-color)";
-          titleElement.style.fontWeight = "600";
-          titleElement.textContent = `Test Suite: ${path}`;
-          resultContainer.appendChild(titleElement);
+      const resultContainer = createResultContainer();
+      resultContainer.appendChild(createTitleElement(`Test Suite: ${path}`));
 
-          // 添加超时错误信息
-          const errorElement = document.createElement("div");
-          errorElement.style.padding = "12px 16px";
-          errorElement.style.backgroundColor = "var(--error-bg-color)";
-          errorElement.style.color = "var(--error-color)";
-          errorElement.textContent = `Error: Test timed out after ${timeout}ms`;
-          resultContainer.appendChild(errorElement);
+      const errorElement = document.createElement("div");
+      errorElement.style.padding = "12px 16px";
+      errorElement.style.backgroundColor = "var(--error-bg-color)";
+      errorElement.style.color = "var(--error-color)";
+      errorElement.textContent = `Error: Test timed out after ${timeout}ms`;
+      resultContainer.appendChild(errorElement);
 
-          document.body.appendChild(resultContainer);
+      document.body.appendChild(resultContainer);
+      resolve();
+    }, timeout);
 
-          resolve();
-        }, timeout);
+    targetWindow.addEventListener("message", (event) => {
+      const { data } = event;
+      if (data.type === "test-completed") {
+        const casesResult = data.cases;
+        const caseTitle = data.title;
+        const duration = (performance.now() - startTime).toFixed(2);
 
-        targetWindow.addEventListener("message", (event) => {
-          const { data } = event;
-          if (data.type === "test-completed") {
-            const casesResult = data.cases;
-            const caseTitle = data.title;
-            // 计算测试用时
-            const duration = (performance.now() - startTime).toFixed(2);
+        targetWindow.close();
 
-            targetWindow.close();
+        const resultContainer = createResultContainer();
+        resultContainer.appendChild(
+          createTitleElement(`Test Suite: ${caseTitle} (${duration}ms)`)
+        );
 
-            // 创建结果显示容器 - 添加暗黑模式支持
-            const resultContainer = document.createElement("div");
-            resultContainer.style.margin = "16px";
-            resultContainer.style.padding = "0";
-            resultContainer.style.border = "1px solid var(--border-color)";
-            resultContainer.style.borderRadius = "4px";
-            resultContainer.style.overflow = "hidden";
-            resultContainer.style.fontFamily =
-              "ui-sans-serif, system-ui, sans-serif";
-            resultContainer.style.color = "var(--text-color)";
-            resultContainer.style.backgroundColor = "var(--results-bg-color)";
+        // 检查测试用例数量
+        if (casesResult.length !== expectedCount) {
+          const countError = document.createElement("div");
+          countError.style.padding = "12px 16px";
+          countError.style.backgroundColor = "var(--error-bg-color)";
+          countError.style.color = "var(--error-color)";
+          countError.style.borderBottom = "1px solid var(--border-color)";
+          countError.textContent = `Error: Expected ${expectedCount} tests, but ran ${casesResult.length}`;
+          resultContainer.appendChild(countError);
+        }
 
-            // 添加标题（修改为包含用时）
-            const titleElement = document.createElement("div");
-            titleElement.style.padding = "12px 16px";
-            titleElement.style.backgroundColor = "var(--background-color)";
-            titleElement.style.borderBottom = "1px solid var(--border-color)";
-            titleElement.style.fontWeight = "600";
-            titleElement.textContent = `Test Suite: ${caseTitle} (${duration}ms)`; // 添加用时显示
-            resultContainer.appendChild(titleElement);
+        // 添加测试结果列表
+        const resultList = document.createElement("div");
+        resultList.style.padding = "0";
 
-            // 查看用例数量是否相等
-            if (casesResult.length !== count) {
-              const countError = document.createElement("div");
-              countError.style.padding = "12px 16px";
-              countError.style.backgroundColor = "var(--error-bg-color)";
-              countError.style.color = "var(--error-color)";
-              countError.style.borderBottom = "1px solid var(--border-color)";
-              countError.textContent = `Error: Expected ${count} tests, but ran ${casesResult.length}`;
-              resultContainer.appendChild(countError);
-            }
+        casesResult.forEach((testCase) => {
+          const { name, status, error } = testCase;
+          const listItem = document.createElement("div");
+          listItem.style.padding = "8px 16px";
+          listItem.style.display = "flex";
+          listItem.style.alignItems = "center";
+          listItem.style.borderBottom = "1px solid var(--border-color)";
 
-            // 添加测试结果列表
-            const resultList = document.createElement("div");
-            resultList.style.padding = "0";
-
-            casesResult.forEach((e) => {
-              const itemTitle = e.name;
-              const itemStatus = e.status;
-              const listItem = document.createElement("div");
-              listItem.style.padding = "8px 16px";
-              listItem.style.display = "flex";
-              listItem.style.alignItems = "center";
-              listItem.style.borderBottom = "1px solid var(--border-color)";
-
-              if (itemStatus === "error") {
-                listItem.style.backgroundColor = "var(--error-bg-color)";
-                listItem.innerHTML = `
-                  <span style="color:var(--error-color); margin-right:8px">✖</span>
-                  <span style="flex:1">${itemTitle}</span>
-                  <span style="color:var(--error-color)">${
-                    e.error || "Test failed"
-                  }</span>
-                `;
-              } else {
-                listItem.style.backgroundColor = "var(--background-color)";
-                listItem.innerHTML = `
-                  <span style="color:var(--success-color); margin-right:8px">✓</span>
-                  <span style="flex:1">${itemTitle}</span>
-                  <span style="color:var(--secondary-text-color)">${
-                    itemStatus === "skipped" ? "skipped" : "passed"
-                  }</span>
-                `;
-              }
-
-              resultList.appendChild(listItem);
-            });
-
-            // 删除 collector.js#L127-154 的重复样式定义
-            resultContainer.appendChild(resultList);
-            document.body.appendChild(resultContainer);
-
-            clearTimeout(timer);
-            resolve();
+          if (status === "error") {
+            listItem.style.backgroundColor = "var(--error-bg-color)";
+            listItem.innerHTML = `
+              <span style="color:var(--error-color); margin-right:8px">✖</span>
+              <span style="flex:1">${name}</span>
+              <span style="color:var(--error-color)">${
+                error || "Test failed"
+              }</span>
+            `;
+          } else {
+            listItem.style.backgroundColor = "var(--background-color)";
+            listItem.innerHTML = `
+              <span style="color:var(--success-color); margin-right:8px">✓</span>
+              <span style="flex:1">${name}</span>
+              <span style="color:var(--secondary-text-color)">${
+                status === "skipped" ? "skipped" : "passed"
+              }</span>
+            `;
           }
+
+          resultList.appendChild(listItem);
         });
-      });
-    }
-  };
+
+        resultContainer.appendChild(resultList);
+        document.body.appendChild(resultContainer);
+
+        clearTimeout(timer);
+        resolve();
+      }
+    });
+  });
 };
 
 const getCaseCount = async (path, getCountFn) => {

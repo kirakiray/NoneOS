@@ -13,7 +13,7 @@
 
       const configs = await fetch("./configs.json").then((res) => res.json());
 
-      const func = init({
+      const func = await init({
         ...configs,
       });
 
