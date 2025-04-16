@@ -12,15 +12,14 @@ export class TestContainer extends HTMLElement {
   render(title) {
     this.shadowRoot.innerHTML = `
       <style>
-        /* 定义颜色变量 */
-        :host {
+        /* :host {
           --background-color: #f8f8f8;
           --text-color: #333;
           --border-color: #ddd;
           --secondary-text-color: #666;
           --results-bg-color: white;
           --shadow-color: rgba(0, 0, 0, 0.05);
-        }
+        } */
 
         :host {
           display: block;
@@ -51,8 +50,8 @@ export class TestContainer extends HTMLElement {
           padding: 16px;
         }
         
-        /* 暗色模式适配 */
-        @media (prefers-color-scheme: dark) {
+        
+        /* @media (prefers-color-scheme: dark) {
           :host {
             --background-color: #121212;
             --text-color: #e0e0e0;
@@ -61,7 +60,7 @@ export class TestContainer extends HTMLElement {
             --results-bg-color: #1e1e1e;
             --shadow-color: rgba(0, 0, 0, 0.2);
           }
-        }
+        } */
       </style>
       <h1>${title}</h1>
       <div class="test-info">UA: ${navigator.userAgent}</div>

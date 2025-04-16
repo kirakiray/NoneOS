@@ -23,6 +23,8 @@
 
         const directoryD = await testDirectory.get("a/b/c/d");
 
+        throw new Error("test");
+
         const isSame = await fileParentDir.isSame(directoryD);
 
         return {

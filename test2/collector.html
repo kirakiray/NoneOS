@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Collector</title>
+  </head>
+  <body>
+    <script type="module">
+      import { init } from "/ok-test/collector.js";
+
+      init({
+        cases: ["./fs/normal.ok.html", "./fs/copyto.ok.html"].map(
+          (e) => import.meta.resolve(e) // 修正路径
+        ),
+      });
+    </script>
+  </body>
+</html>
