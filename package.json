@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "static": "node scripts/static-server & node server/test-server.js & node server/test-server2.js",
+    "update-test": "node scripts/update-test.js && node scripts/generate-specs.js",
     "test": "npx playwright test",
     "bu": "npm run build-sw && npm run build-sw-min && npm run buhash && npm run zippkg",
     "zippkg": "node scripts/zipPackages.js",
