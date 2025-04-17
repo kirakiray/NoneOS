@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-test("normal Test", async ({ page }) => {
-  await page.goto("tests/fs/handle/normal.ok.html");
+test("copy-to Test", async ({ page }) => {
+  await page.goto("tests/fs/handle/copy-to.ok.html");
 
   // 每个案例记得更新这个值
-  const count = 5;
+  const count = 4;
 
   // 等待出现 All tests completed 元素
   await page.getByTestId("test-completion-notification").click();

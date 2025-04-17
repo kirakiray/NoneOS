@@ -54,14 +54,16 @@ export default defineConfig({
       use: { ...devices["Desktop Firefox"] },
     },
 
-    {
-      name: "webkit",
-      use: {
-        ...devices["iPad Pro 11 landscape"],
-        // ...devices["Desktop Safari"],
-        // permissions: ["storage-access"],
-      },
-    },
+    // playwright中的 webkit 不支持 storage-access 权限，因此无法使用
+    // 解决方法：使用自带的 Safari 浏览器，打开 http://localhost:5559/tests/collector.html 进行测试
+    // {
+    //   name: "webkit",
+    //   use: {
+    //     ...devices["iPad Pro 11 landscape"],
+    //     // ...devices["Desktop Safari"],
+    //     // permissions: ["storage-access"],
+    //   },
+    // },
 
     /* Test against mobile viewports. */
     // {
