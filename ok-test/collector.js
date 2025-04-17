@@ -20,7 +20,7 @@ export const init = async (options) => {
     // 创建等待状态的测试容器
     const container = createResultContainer();
     container.appendChild(
-      createTitleElement(`Test Suite: ${path} (等待运行...)`)
+      createTitleElement(`Test Suite: ${path} (等待运行...)`, path)
     );
 
     // 添加等待指示器
@@ -113,13 +113,26 @@ const createResultContainer = () => {
 };
 
 // 创建标题元素
-const createTitleElement = (title) => {
+const createTitleElement = (title, path) => {
   const titleElement = document.createElement("div");
   titleElement.style.padding = "12px 16px";
   titleElement.style.backgroundColor = "var(--background-color)";
   titleElement.style.borderBottom = "1px solid var(--border-color)";
   titleElement.style.fontWeight = "600";
   titleElement.textContent = title;
+
+  if (path) {
+    const link = document.createElement("a");
+    link.href = path;
+    link.target = "_blank";
+    link.textContent = "查看详情";
+    link.style.marginLeft = "8px";
+    link.style.color = "var(--secondary-text-color)";
+    link.style.textDecoration = "none";
+    link.style.fontSize = "14px";
+    link.style.fontWeight = "normal";
+    titleElement.appendChild(link);
+  }
   return titleElement;
 };
 
@@ -141,7 +154,7 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
 
       // 添加超时标题
       existingContainer.appendChild(
-        createTitleElement(`Test Suite: ${path} (超时)`)
+        createTitleElement(`Test Suite: ${path} (超时)`, path)
       );
 
       // 添加超时错误信息
@@ -169,7 +182,7 @@ const runTestCase = async (path, expectedCount, timeout, existingContainer) => {
 
         // 添加完成标题
         existingContainer.appendChild(
-          createTitleElement(`Test Suite: ${caseTitle} (${duration}ms)`)
+          createTitleElement(`Test Suite: ${caseTitle} (${duration}ms)`, path)
         );
 
         // 检查测试用例数量
