@@ -33,31 +33,43 @@
       await test("sub data can save", async () => {
         try {
           const { testData2, data2 } = await initializeTestData();
+          console.log('初始化测试数据完成:', { testData2, data2 });
 
           if (!data2.sub) {
             data2.sub = {
               val: "I am sub",
             };
+            console.log('创建子数据对象:', data2.sub);
           }
 
           await data2.sub.ready();
+          console.log('子数据对象准备就绪');
 
           await new Promise((res) => setTimeout(res, WAIT_TIME));
+          console.log('等待时间完成:', WAIT_TIME);
 
           const targetFile = await get(
             `${TEST_DIR}/test-data-2/${data2.sub._dataid}/_d`
           );
+          console.log('获取目标文件:', targetFile);
 
           const oldVal = data2.sub.val;
           const newVal = `change val: ${Date.now()}`;
+          console.log('准备更新值:', { oldVal, newVal });
 
           // 修改内容后重新写入
           const fileText = await targetFile.text();
+          console.log('读取文件内容:', fileText);
+          
           const fileObj = JSON.parse(fileText);
+          console.log('解析文件对象:', fileObj);
+          
           fileObj.val = newVal;
           await targetFile.write(JSON.stringify(fileObj));
+          console.log('文件内容已更新');
 
           await new Promise((res) => setTimeout(res, WAIT_TIME));
+          console.log('最终等待时间完成');
 
           return {
             assert: oldVal !== data2.sub.val && data2.sub.val === fileObj.val,

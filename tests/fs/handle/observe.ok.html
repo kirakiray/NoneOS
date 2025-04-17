@@ -17,31 +17,40 @@
       // 测试文件变化监听
       await test("Test file change observation", async () => {
         const events = [];
+        console.log("开始文件变化观察测试");
 
         // 创建观察者
         const unobserve = await testDir.observe((event) => {
+          console.log("收到文件变化事件:", event);
           events.push(event);
         });
+        console.log("已创建观察者");
 
         // 创建文件并写入内容
         const file = await testDir.get("test.txt", { create: "file" });
-        await file.write("Hello");
+        await file.write("Hello " + Math.random());
+        console.log("已创建并写入测试文件");
 
         // 等待事件触发
         await new Promise((resolve) => setTimeout(resolve, 100));
+        console.log("第一次等待事件完成");
 
         // 移除文件
         await file.remove();
+        console.log("已移除测试文件");
 
         // 等待事件触发
         await new Promise((resolve) => setTimeout(resolve, 100));
+        console.log("第二次等待事件完成");
 
         // 取消观察
         unobserve();
+        console.log("已取消观察");
 
         // 再次创建文件（这次不应该触发事件）
         const file2 = await testDir.get("test2.txt", { create: "file" });
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        console.log("已完成最终测试（创建新文件）");
 
         return {
           assert: events.length === 2,

@@ -51,6 +51,12 @@ export class FileHandle extends BaseHandle {
 
           if (success) {
             console.log("文件写入成功！");
+            notify({
+              path: this.path,
+              type: "write",
+              data,
+              remark: options.remark,
+            });
             resolve(true);
           } else {
             reject(error);
