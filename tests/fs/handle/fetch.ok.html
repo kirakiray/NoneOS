@@ -17,14 +17,19 @@
       // 测试文件创建、写入和fetch获取
       await test("Create, Write and Fetch File", async () => {
         const file1 = await testDir.get("file1.txt", { create: "file" });
+        console.log("文件创建成功: file1.txt");
+
         const someText = "Write some text " + Math.random();
         await file1.write(someText);
+        console.log("文件写入成功，内容: " + someText);
 
         await new Promise((resolve) => setTimeout(resolve, 300));
+        console.log("等待300ms完成");
 
         const content = await fetch("/$test-dir3/file1.txt").then((e) =>
           e.text()
         );
+        console.log("文件内容获取成功: " + content);
 
         return {
           assert: content === someText,

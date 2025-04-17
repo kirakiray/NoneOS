@@ -1,5 +1,3 @@
-import { get } from "../packages/fs/main.js";
-
 // 响应文件相关的请求
 const resposeFs = (event) => {
   const { request } = event;
@@ -8,17 +6,42 @@ const resposeFs = (event) => {
   const paths = pathname.split("/");
   const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");
 
+  // 改用直接的 opfs 读取文件方法
   event.respondWith(
     (async () => {
       try {
-        const fileHandle = await get(filepath);
+        const opfsRoot = await navigator.storage.getDirectory();
+
+        const paths = filepath.split("/");
+        let currentPath = "";
+        let currentDir = opfsRoot;
+        while (paths.length > 1) {
+          const dirName = paths.shift();
+          currentPath += `${dirName}/`;
+          const dirHandle = await currentDir
+            .getDirectoryHandle(dirName)
+            .catch(() => null);
+          if (!dirHandle) {
+            throw new Error(`目录 ${currentPath} 不存在`);
+          }
+          currentDir = dirHandle;
+        }
+
+        // 获取文件
+        const fileHandle = await currentDir
+          .getFileHandle(paths[0])
+          .catch(() => null);
+
+        if (!fileHandle) {
+          throw new Error(`文件 ${filepath} 不存在`);
+        }
 
         const prefix = pathname.split(".").pop();
 
         const headers = {};
         headers["Content-Type"] = getContentType(prefix);
 
-        return new Response(await fileHandle.file(), {
+        return new Response(await fileHandle.getFile(), {
           status: 200,
           headers,
         });
