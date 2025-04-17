@@ -93,15 +93,9 @@ export async function test(testName, testFn, options = { stringify: true }) {
 
   // 设置新的计时器，如果300毫秒内没有再次执行test方法，则添加完成元素
   testCompletionTimer = setTimeout(() => {
-    const completionElement = document.createElement("div");
+    const completionElement = document.createElement("button");
     completionElement.textContent = "Test execution completed";
-    completionElement.style.padding = "10px";
-    completionElement.style.backgroundColor = "#e6f7ff";
-    completionElement.style.border = "1px solid #91d5ff";
-    completionElement.style.borderRadius = "4px";
-    completionElement.style.margin = "10px 0";
-    completionElement.style.display = "none";
-    completionElement.dataset.testCompleted = "1";
+    completionElement.dataset.testid = "test-completion-notification";
     document.body.appendChild(completionElement);
     testCompletionTimer = null;
 

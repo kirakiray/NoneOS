@@ -1,18 +1,15 @@
 import { test, expect } from "@playwright/test";
 
 test("should write and read file correctly", async ({ page }) => {
-  await page.goto("tests/fs/handle/write-and-get.html");
+  await page.goto("tests/fs/handle/normal.ok.html");
 
-  const count = 3;
+  const count = 5;
 
-  // 等待出现测试用例执行完成
-  await page.waitForSelector(".test-case");
-
-  // 等待出现 All tests completed 的 h5 元素
-  await await page.getByTestId("all-test-completed").click();
+  // 等待出现 All tests completed 元素
+  await page.getByTestId("test-completion-notification").click();
 
   // 获取所有测试用例
-  const testCases = await page.$$(".test-case");
+  const testCases = await page.$$("test-case");
 
   // 验证测试用例数量
   expect(await testCases.length).toBe(count);
