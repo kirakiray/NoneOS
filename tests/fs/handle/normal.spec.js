@@ -1,8 +1,9 @@
 import { test, expect } from "@playwright/test";
 
-test("should write and read file correctly", async ({ page }) => {
+test("Normal Test", async ({ page }) => {
   await page.goto("tests/fs/handle/normal.ok.html");
 
+  // 每个案例记得更新这个值
   const count = 5;
 
   // 等待出现 All tests completed 元素
