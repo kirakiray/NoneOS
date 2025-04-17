@@ -1,6 +1,6 @@
 {
   "cases": [
-    "../tests/fs/handle/copyto.ok.html",
+    "../tests/fs/handle/copy-to.ok.html",
     "../tests/fs/handle/fetch.ok.html",
     "../tests/fs/handle/flat.ok.html",
     "../tests/fs/handle/move-to.ok.html",
