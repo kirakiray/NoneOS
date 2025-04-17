@@ -82,8 +82,12 @@ export async function test(testName, testFn, options = { stringify: true }) {
       throw new Error(errorContent);
     }
   } catch (error) {
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
     testCase.setAttribute("status", "error");
-    testCase.setAttribute("error", error.stack || error.toString());
+    testCase.setAttribute(
+      "error",
+      isSafari ? error.toString() : error.stack || error.toString()
+    );
     itemData.status = "error";
     itemData.content = error.stack || error.toString();
     console.error(error);
