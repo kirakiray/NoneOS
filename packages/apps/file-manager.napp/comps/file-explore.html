@@ -206,6 +206,7 @@
             // sources: [], // 源地址
           },
           apps: [], // 所有可用的应用列表
+          userId: null, // 访问目录的用户id
         },
         proto: {
           async createDir() {
@@ -417,6 +418,8 @@
               }
             })
             .filter((e) => e);
+
+          console.log("userId: ", this.userId);
         },
         detached() {
           this.spaceData = {};

@@ -6,15 +6,20 @@
       height: 100%;
     }
   </style>
-  <n-file-explore :path="path" :search="search"></n-file-explore>
+  <n-file-explore
+    :path="path"
+    :search="search"
+    :user-id="userId"
+  ></n-file-explore>
   <script>
     export const parent = "../tool-layout.html";
 
     export default async ({ load, query }) => {
+      
       return {
         data: {
           path: query.path || "local",
-          userId: query.userid || undefined,
+          userId: query.userid || "",
           search: "",
         },
         proto: {
