@@ -5,6 +5,7 @@
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <style>
     :host {
       display: block;
@@ -64,46 +65,23 @@
           <p-list slot="childs">
             <x-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
-                <n-user-state
-                  :userid="$data.userId"
+                <n-id-avatar
+                  :val="$data.userId"
                   slot="prefix"
-                  sync:state="$data.state"
-                  watch:accessible-dirs="$data.paths"
-                  update-access
-                  style="display: none"
-                >
-                </n-user-state>
-                <n-local-icon
-                  slot="prefix"
-                  name="user"
-                  style="padding-left: 8px"
-                ></n-local-icon>
-                {{$data.name}}
-                <x-if
-                  :value="$data.state === 'disconnected' || $data.state === 'closed' || $data.state === 'error'"
-                >
-                  <n-local-icon
-                    name="disconnected"
-                    slot="suffix"
-                    style="font-size: 16px"
-                    on:click="$host.connectUser($data)"
-                  >
-                  </n-local-icon>
-                </x-if>
-                <x-else-if :value="$data.state === 'connected'">
-                  <i collapse-triangle slot="suffix"></i>
-                  <p-list slot="childs" style="--padding-left: 16px">
-                    <x-fill :value="$data.paths" name="path-item"></x-fill>
-                  </p-list>
-                </x-else-if>
-                <x-else>
-                  <n-local-icon
-                    name="loading"
-                    slot="suffix"
-                    style="font-size: 18px; color: var(--md-sys-color-primary)"
-                  >
-                  </n-local-icon>
-                </x-else>
+                  style="
+                    width: 20px;
+                    height: 20px;
+                    margin: 0 8px;
+                    border-radius: 3px;
+                    overflow: hidden;
+                  "
+                ></n-id-avatar>
+                {{$data.userName}}
+
+                <i collapse-triangle slot="suffix"></i>
+                <p-list slot="childs" style="--padding-left: 16px">
+                  <x-fill :value="$data.dirs" name="path-item"></x-fill>
+                </p-list>
               </p-list-item>
             </x-fill>
             <x-if :value="!remotes.length">
@@ -126,7 +104,7 @@
   <template name="path-item">
     <p-list-item
       button
-      attr:active-item="$data.path === $host.selectedRootName"
+      attr:active-item="$data.path === $host.selectedRootName && $data.userId === $host.selectedUserId"
       on:click="$host.clickTab($data)"
     >
       <n-local-icon
@@ -141,24 +119,23 @@
     <div slot="title">{{dialogData.title}}</div>
     <div>{{dialogData.content}}</div>
   </p-dialog>
-  <!-- <n-task-viewer on:task-done="taskDone"></n-task-viewer> -->
 
   <script>
-    // import { getRemotes } from "/packages/fs/r-handle/index.js";
-
     export default async ({ load, url }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { getRemotes } = await load(
+        "/packages/fs/remote/util/get-remotes.js"
+      );
       // const { addTask } = await load("/packages/fs/task/main.js");
       const { setSpace, getText, onChangeLang, getLang } = await load(
         "/packages/i18n/data.js"
       );
 
-      // const { connectUser } = await load("/packages/core/user-connect/main.js");
-
       await setSpace("files", new URL("./lang", url).href);
 
       return {
         data: {
+          // 本地展示的菜单目录
           locals: [
             // {
             //   name: "虚拟本地",
@@ -179,7 +156,8 @@
             //   path: "$origin:local",
             // },
           ],
-          selectedRootName: null,
+          selectedRootName: null, // 选中的目录的名称
+          selectedUserId: undefined, // 选中的目录的用户id
           remotes: [], // 远端设备
           showErrorDialog: false,
           dialogData: {
@@ -188,11 +166,6 @@
           },
         },
         proto: {
-          // async connectUser(item) {
-          //   connectUser({
-          //     userId: item.userId,
-          //   });
-          // },
           openDialog(e) {
             this.showErrorDialog = true;
             this.dialogData.title = e.data.title;
@@ -202,11 +175,17 @@
             this.app.current.refreshFiles();
           },
           clickTab(data) {
-            if (data.path === this.selectedRootName) {
+            if (
+              data.path === this.selectedRootName &&
+              this.selectedUserId === data.userId
+            ) {
               return;
             }
             this.selectedRootName = data.path;
-            this.app.current.goto(`./explore.html?path=${data.path}`);
+            this.selectedUserId = data.userId;
+            this.app.current.goto(
+              `./explore.html?path=${data.path}&userid=${data.userId}`
+            );
           },
           refreashLocals() {
             this.locals = [
@@ -248,6 +227,7 @@
 
             const rootName = e.data.path.split("/")[0];
             this.selectedRootName = rootName;
+            this.selectedUserId = e.data.userId;
           });
 
           this.on("task-complete", async (e) => {
@@ -275,14 +255,8 @@
           });
 
           this.refreashLocals();
-          // const remotes = await getRemotes();
-          // this.remotes = remotes.map((e) => {
-          //   console.log(e);
-          //   return {
-          //     ...e,
-          //     state: "disconnected",
-          //   };
-          // });
+
+          this.remotes = await getRemotes();
         },
         attached() {
           this._cancel = onChangeLang((lang) => {

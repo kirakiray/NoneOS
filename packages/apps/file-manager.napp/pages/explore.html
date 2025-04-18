@@ -14,6 +14,7 @@
       return {
         data: {
           path: query.path || "local",
+          userId: query.userid || undefined,
           search: "",
         },
         proto: {
@@ -26,6 +27,7 @@
           this.emit("go-page", {
             data: {
               path: this.path,
+              userId: this.userId,
             },
           });
         },
