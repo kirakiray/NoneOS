@@ -104,7 +104,7 @@
   <template name="path-item">
     <p-list-item
       button
-      attr:active-item="$data.path === $host.selectedRootName && $data.userId === $host.selectedUserId"
+      attr:active-item="$data.path === $host.selectedRootName"
       on:click="$host.clickTab($data)"
     >
       <n-local-icon
@@ -157,7 +157,6 @@
             // },
           ],
           selectedRootName: null, // 选中的目录的名称
-          selectedUserId: undefined, // 选中的目录的用户id
           remotes: [], // 远端设备
           showErrorDialog: false,
           dialogData: {
@@ -175,17 +174,11 @@
             this.app.current.refreshFiles();
           },
           clickTab(data) {
-            if (
-              data.path === this.selectedRootName &&
-              this.selectedUserId === data.userId
-            ) {
+            if (data.path === this.selectedRootName) {
               return;
             }
             this.selectedRootName = data.path;
-            this.selectedUserId = data.userId;
-            this.app.current.goto(
-              `./explore.html?path=${data.path}&userid=${data.userId}`
-            );
+            this.app.current.goto(`./explore.html?path=${data.path}`);
           },
           refreashLocals() {
             this.locals = [
@@ -231,7 +224,6 @@
 
             const rootName = e.data.path.split("/")[0];
             this.selectedRootName = rootName;
-            this.selectedUserId = e.data.userId;
           });
 
           this.on("task-complete", async (e) => {

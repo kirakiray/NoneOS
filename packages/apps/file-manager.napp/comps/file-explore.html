@@ -207,19 +207,8 @@
             // sources: [], // 源地址
           },
           apps: [], // 所有可用的应用列表
-          userId: null, // 访问目录的用户id
         },
         proto: {
-          async getHandle(path) {
-            // return get(path);
-            let finnalGet = get;
-
-            if (this.userId) {
-              finnalGet = createGet(this.userId);
-            }
-
-            return await finnalGet(path);
-          },
           async createDir() {
             debugger;
           },
@@ -322,7 +311,7 @@
           },
 
           async clickRemove() {
-            const targetHandle = await this.getHandle(`${this.path}`);
+            const targetHandle = await get(`${this.path}`);
 
             await deleteHandle(this.selecteds.map((e) => e.path));
 
@@ -348,9 +337,9 @@
           async refreshFiles() {
             this.loading = true;
 
-            const handle = await this.getHandle(
-              decodeURIComponent(this.path)
-            ).catch((err) => err);
+            const handle = await get(decodeURIComponent(this.path)).catch(
+              (err) => err
+            );
 
             if (handle instanceof Error) {
               this.errorStr = handle.toString();
@@ -400,7 +389,7 @@
               return;
             }
 
-            const handle = await this.getHandle(targetPath);
+            const handle = await get(targetPath);
             await handle.moveTo(newName);
 
             this.refreshFiles();
@@ -429,8 +418,6 @@
               }
             })
             .filter((e) => e);
-
-          console.log("userId: ", this.userId);
         },
         detached() {
           this.spaceData = {};
