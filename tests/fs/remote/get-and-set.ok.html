@@ -9,7 +9,7 @@
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
       import { createGet } from "/packages/fs/remote/main.js";
-      import { init } from "/packages/fs/main.js";
+      import { init, get } from "/packages/fs/main.js";
       import { getUserStore, getServers } from "/packages/user/main.js";
       import { test } from "/ok-test/main.js";
 
@@ -135,6 +135,23 @@
         return {
           assert: fullTextMatch && partialTextMatch,
           content: `Full text match: ${fullTextMatch}, Partial text match: ${partialTextMatch}, Full length: ${reText5_2.length}`,
+        };
+      });
+      await test("Test Global Remote File Handle Retrieval", async () => {
+        // 因为两个用户在一个设备内，所以才能这样写
+        const remoteFileHandle = await get(
+          `${user1.userId}:local/test/remote1/test1.txt`
+        );
+
+        const localFileHandle = await get(`local/test/remote1/test1.txt`);
+
+        const contentMatches =
+          (await remoteFileHandle.text()) === (await localFileHandle.text());
+
+        return {
+          assert:
+            contentMatches && !(await remoteFileHandle.isSame(localFileHandle)),
+          content: `Content matches: ${contentMatches}, File handles are different`,
         };
       });
     </script>

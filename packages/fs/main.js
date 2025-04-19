@@ -1,32 +1,20 @@
-export { get, init } from "./handle/main.js";
+export { init } from "./handle/main.js";
+import { get as systemHandleGet } from "./handle/main.js";
+import { createGet } from "./remote/main.js";
 
-// import {
-//   get as systemHandleGet,
-//   init as systemHandleInit,
-// } from "./handle/main.js";
+export const get = async (path, options) => {
+  // 判断是否有远端用户的目录引用
+  const pathArr = path.split("/");
+  const rootName = pathArr[0];
+  if (rootName.includes(":")) {
+    const [userId, reRootName] = rootName.split(":");
 
-// import { init as cHandleInit, get as cHandleGet } from "./c-handle/main.js";
+    // 远端用户的目录引用
+    const remoteGet = createGet(userId);
+    const rePath = [reRootName, ...pathArr.slice(1)].join("/");
 
-// // import { init as dbHandleInit, get as dbHandleGet } from "./db-handle/main.js";
+    return remoteGet(rePath, options);
+  }
 
-// import { isSafari } from "./util.js";
-
-// export const init = async (name) => {
-//   return !isSafari ? systemHandleInit(name) : cHandleInit(name);
-// };
-
-// // safari 不支持 systemHandle，所以被迫重新实现一个虚拟系统
-// export const get = async (path, options) => {
-//   return !isSafari ? systemHandleGet(path, options) : cHandleGet(path, options);
-// };
-
-// // 全量测试 c-handle
-// import { init as cHandleInit, get as cHandleGet } from "./c-handle/main.js";
-
-// export const init = async (name) => {
-//   return cHandleInit(name);
-// };
-
-// export const get = async (path, options) => {
-//   return cHandleGet(path, options);
-// };
+  return systemHandleGet(path, options);
+};
