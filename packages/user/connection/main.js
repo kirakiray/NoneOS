@@ -92,10 +92,10 @@ on("server-agent-data", async (e) => {
           answer,
         },
       });
-      console.log(
-        `[WebRTC:响应连接][用户:${fromUserId}] 创建应答：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`,
-        data
-      );
+      // console.log(
+      //   `[WebRTC:响应连接][用户:${fromUserId}] 创建应答：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`,
+      //   data
+      // );
       break;
     }
     case "response-answer": {
