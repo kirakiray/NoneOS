@@ -46,6 +46,10 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { getRemotes } = await load(
+        "/packages/fs/remote/util/get-remotes.js"
+      );
+
       return {
         tag: "n-bottom-address",
         data: {
@@ -60,6 +64,8 @@
               return;
             }
 
+            const remotes = await getRemotes();
+
             const arr = [];
 
             path.split("/").forEach((e, index) => {
@@ -73,10 +79,13 @@
                     const [mark, rootName] = e.split(":");
                     const userId = mark.split("-")[1];
 
+                    const targetDevice = remotes.find(
+                      (e) => e.userId === userId
+                    );
+
                     arr.push({
-                      name: "remote-aa",
+                      name: targetDevice ? targetDevice.userName : userId,
                       kind: "user",
-                      // path: e,
                       userId,
                       remoteRoot: 1,
                     });
