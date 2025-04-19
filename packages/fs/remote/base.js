@@ -6,18 +6,28 @@ export class RemoteBaseHandle extends PublicBaseHandle {
   #path;
   #connection;
   #userDirName;
-  constructor({ path, connection, userDirName }) {
+  #remoteUserId;
+  constructor({ path, connection, userDirName, remoteUserId }) {
     super({});
     this.#path = path;
     this.#connection = connection;
     this.#userDirName = userDirName;
+    this.#remoteUserId = remoteUserId;
   }
 
   get name() {
     return this.#path.split("/").pop();
   }
 
+  get remoteUserId() {
+    return this.#remoteUserId;
+  }
+
   get path() {
+    if (this.#remoteUserId) {
+      return `${this.#remoteUserId}:${this.#path}`;
+    }
+
     return this.#path;
   }
 
@@ -53,7 +63,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
         connection: this._connection,
         data: {
           method,
-          path: this.path,
+          path: this.#path,
           args,
           ...options,
         },

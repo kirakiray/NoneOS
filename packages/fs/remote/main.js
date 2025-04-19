@@ -19,6 +19,7 @@ export const createGet = (userId, { userDirName, selfTabId } = {}) => {
       connection,
       path: pathArr[0],
       userDirName,
+      remoteUserId: userId,
     });
 
     if (pathArr.length === 1) {

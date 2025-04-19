@@ -17,12 +17,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
         userDirName: this._userDirName,
         connection: this._connection,
         path: handleInfo.path,
+        remoteUserId: this.remoteUserId,
       });
     } else if (handleInfo.kind === "file") {
       return new RemoteFileHandle({
         userDirName: this._userDirName,
         connection: this._connection,
         path: handleInfo.path,
+        remoteUserId: this.remoteUserId,
       });
     } else {
       // TODO: 获取类型出错
