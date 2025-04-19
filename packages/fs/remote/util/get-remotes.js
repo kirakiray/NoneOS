@@ -13,7 +13,7 @@ export const getRemotes = async ({ userDirName } = {}) => {
       dirs: [
         {
           name: "local",
-          path: `${userId}:local`,
+          path: `$user-${userId}:local`,
         },
       ],
     };

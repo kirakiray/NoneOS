@@ -7,7 +7,12 @@ export const get = async (path, options) => {
   const pathArr = path.split("/");
   const rootName = pathArr[0];
   if (rootName.includes(":")) {
-    const [userId, reRootName] = rootName.split(":");
+    const [mark, reRootName] = rootName.split(":");
+
+    let userId;
+    if (mark.startsWith("$user-")) {
+      userId = mark.split("-")[1];
+    }
 
     // 远端用户的目录引用
     const remoteGet = createGet(userId);

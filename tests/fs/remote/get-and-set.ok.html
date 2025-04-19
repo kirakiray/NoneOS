@@ -140,7 +140,7 @@
       await test("Test Global Remote File Handle Retrieval", async () => {
         // 因为两个用户在一个设备内，所以才能这样写
         const remoteFileHandle = await get(
-          `${user1.userId}:local/test/remote1/test1.txt`
+          `$user-${user1.userId}:local/test/remote1/test1.txt`
         );
 
         const localFileHandle = await get(`local/test/remote1/test1.txt`);

@@ -25,7 +25,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
 
   get path() {
     if (this.#remoteUserId) {
-      return `${this.#remoteUserId}:${this.#path}`;
+      return `$user-${this.#remoteUserId}:${this.#path}`;
     }
 
     return this.#path;
@@ -83,9 +83,10 @@ export class RemoteBaseHandle extends PublicBaseHandle {
   }
 
   async isSame(target) {
-    return (
-      this.#connection === target._connection && this.#path === target.path
-    );
+    return this.path === target.path;
+    // return (
+    //   this.#connection === target._connection && this.#path === target.path
+    // );
   }
 
   observe() {
