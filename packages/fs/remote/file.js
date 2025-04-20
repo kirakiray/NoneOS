@@ -54,6 +54,10 @@ export class RemoteFileHandle extends RemoteBaseHandle {
   async write(...args) {
     return this._post("write", args);
   }
+
+  async lastModified() {
+    return this._post("lastModified");
+  }
 }
 
 extendFileHandle(RemoteFileHandle);

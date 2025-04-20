@@ -9,6 +9,8 @@ const selfUsers = {};
 // 添加 tabSessionID
 export const tabSessionid = Math.random().toString(36).slice(2);
 
+globalThis.tabSessionid = tabSessionid;
+
 // 确保已经初始化了用户
 export const getUserStore = async (userDirName) => {
   // 需要系统目录

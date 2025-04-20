@@ -48,7 +48,15 @@ export const extendFileHandle = async (FileHandle) => {
   const propDescs = Object.getOwnPropertyDescriptors(
     PublicFileHandle.prototype
   );
+
   delete propDescs.constructor;
+
+  // 去掉已经存在的
+  for (let key in propDescs) {
+    if (key in FileHandle.prototype) {
+      delete propDescs[key];
+    }
+  }
 
   Object.defineProperties(FileHandle.prototype, propDescs);
 };

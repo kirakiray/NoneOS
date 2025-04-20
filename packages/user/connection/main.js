@@ -75,6 +75,10 @@ on("server-agent-data", async (e) => {
       const targetUserConnection = connectionStore.find(
         (e) => e.userId === fromUserId && data.toTabId === e.selfTabId
       );
+      if (!targetUserConnection) {
+        // 属于是其他tab的连接
+        return;
+      }
 
       // 创建连接
       const connection = targetUserConnection.getConnection(data.fromTabId);
@@ -106,6 +110,10 @@ on("server-agent-data", async (e) => {
       const targetUserConnection = connectionStore.find(
         (e) => e.userId === fromUserId && data.toTabId === e.selfTabId
       );
+      if (!targetUserConnection) {
+        // 属于是其他tab的连接
+        return;
+      }
 
       const connection = targetUserConnection.getConnection(data.fromTabId);
       connection.setRemoteDescription(new RTCSessionDescription(data.answer));
@@ -122,6 +130,11 @@ on("server-agent-data", async (e) => {
       const targetUserConnection = connectionStore.find(
         (e) => e.userId === fromUserId && data.toTabId === e.selfTabId
       );
+
+      if (!targetUserConnection) {
+        // 属于是其他tab的连接
+        return;
+      }
 
       let candidate = JSON.parse(data.candidate);
       candidate = new RTCIceCandidate(candidate);

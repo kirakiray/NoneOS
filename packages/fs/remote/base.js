@@ -82,6 +82,10 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     return this._post("remove");
   }
 
+  async size() {
+    return this._post("size");
+  }
+
   async isSame(target) {
     return this.path === target.path;
     // return (

@@ -78,5 +78,12 @@ export const extendDirHandle = async (DirHandle) => {
   const propDescs = Object.getOwnPropertyDescriptors(PublicDirHandle.prototype);
   delete propDescs.constructor;
 
+  // 去掉已经存在的方法
+  for (let key in propDescs) {
+    if (key in DirHandle.prototype) {
+      delete propDescs[key];
+    }
+  }
+
   Object.defineProperties(DirHandle.prototype, propDescs);
 };
