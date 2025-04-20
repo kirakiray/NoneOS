@@ -64,7 +64,9 @@ on("server-agent-data", async (e) => {
       });
 
       console.log(
-        `[WebRTC:连接用户][用户:${fromUserId}] 建立连接：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`,
+        `[WebRTC:连接用户][用户:${fromUserId.slice(-5)}] 建立连接：从 ${
+          targetUserConnection.selfTabId
+        } 到 ${data.fromTabId}`,
         data
       );
       break;
@@ -92,10 +94,12 @@ on("server-agent-data", async (e) => {
           answer,
         },
       });
-      // console.log(
-      //   `[WebRTC:响应连接][用户:${fromUserId}] 创建应答：从 ${targetUserConnection.selfTabId} 到 ${data.fromTabId}`,
-      //   data
-      // );
+      console.log(
+        `[WebRTC:响应连接][用户:${fromUserId.slice(-5)}] 创建应答：从 ${
+          targetUserConnection.selfTabId
+        } 到 ${data.fromTabId}`,
+        data
+      );
       break;
     }
     case "response-answer": {
@@ -107,7 +111,9 @@ on("server-agent-data", async (e) => {
       connection.setRemoteDescription(new RTCSessionDescription(data.answer));
 
       console.log(
-        `[WebRTC:设置应答][用户:${fromUserId}] 设置远程应答：从 ${data.fromTabId} 到 ${data.toTabId}`,
+        `[WebRTC:设置应答][用户:${fromUserId.slice(-5)}] 设置远程应答：从 ${
+          data.fromTabId
+        } 到 ${data.toTabId}`,
         data
       );
       break;
@@ -125,7 +131,9 @@ on("server-agent-data", async (e) => {
       // 设置远程的ICE候选
       connection.addIceCandidate(candidate);
       console.log(
-        `[WebRTC:ICE候选][用户:${fromUserId}] 添加ICE候选：从 ${data.fromTabId} 到 ${data.toTabId}`,
+        `[WebRTC:ICE候选][用户:${fromUserId.slice(-5)}] 添加ICE候选：从 ${
+          data.fromTabId
+        } 到 ${data.toTabId}`,
         data
       );
       break;
@@ -133,7 +141,7 @@ on("server-agent-data", async (e) => {
     default:
       debugger;
       console.log(
-        `[WebRTC:未知][用户:${fromUserId}] 未知的消息类型:`,
+        `[WebRTC:未知][用户:${fromUserId.slice(-5)}] 未知的消息类型:`,
         data.kind,
         data
       );
@@ -191,6 +199,13 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
       kind: "connect-user",
       fromTabId: selfTabId, // 从哪个tabId连接过去
     },
+  }).then((resp) => {
+    if (!resp.result) {
+      if (resp.notFindUser) {
+        // 没有找到用户
+        targetUserConnection.state = "not-find-user";
+      }
+    }
   });
 
   return targetUserConnection;

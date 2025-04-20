@@ -13,6 +13,22 @@ export const createGet = (userId, { userDirName, selfTabId } = {}) => {
   });
 
   return async (path, options) => {
+    try {
+      // 等待连接建立
+      await connection.watchUntil(
+        () =>
+          connection.state === "ready" || connection.state === "not-find-user",
+        10000
+      );
+    } catch (e) {
+      console.error(e);
+      throw new Error("请求超时，无法连接到该设备");
+    }
+
+    if (connection.state === "not-find-user") {
+      throw new Error(`Not find user ${userId}`);
+    }
+
     const pathArr = path.split("/");
 
     const rootDirHandle = new RemoteDirHandle({
