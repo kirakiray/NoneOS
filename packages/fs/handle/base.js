@@ -28,6 +28,9 @@ export class BaseHandle extends PublicBaseHandle {
   }
 
   async isSame(target) {
+    if (!target._handle) {
+      return false;
+    }
     return this.#originHandle.isSameEntry(target._handle);
   }
 
