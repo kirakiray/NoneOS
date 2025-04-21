@@ -15,13 +15,14 @@ const deviceStoreCache = {};
 export const getDeviceStore = async (userDirName) => {
   userDirName = userDirName || "main";
 
-  const devicesDir = await get(`system/devices/${userDirName}`, {
-    create: "dir",
-  });
-
   let deviceStorePromise = null;
   if (!deviceStoreCache[userDirName]) {
-    deviceStorePromise = deviceStoreCache[userDirName] = createData(devicesDir);
+    deviceStoreCache[userDirName] = deviceStorePromise = get(
+      `system/devices/${userDirName}`,
+      {
+        create: "dir",
+      }
+    ).then((devicesDir) => createData(devicesDir));
   } else {
     deviceStorePromise = deviceStoreCache[userDirName];
   }

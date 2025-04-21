@@ -1,6 +1,7 @@
 import { on } from "../../user/event.js";
 import { get } from "../main.js";
 import { cacheFile, getChunks } from "../../user/cache/main.js";
+import { getDeviceStore } from "../../user/device/main.js";
 
 on("receive-user-data", async (e) => {
   const {
@@ -12,7 +13,21 @@ on("receive-user-data", async (e) => {
 
   let { data } = e;
 
+  // 查看是否是自己匹配过的设备
+  const deviceStore = await getDeviceStore(userDirName);
+
+  const isMyDevice = deviceStore.find(
+    (e) => e.toOppoCertificate.data.authTo === fromUserId
+  );
+
+  if (!isMyDevice) {
+    // 不是自己匹配过的设备，直接返回
+    console.error("检测到未授权设备请求文件数据，用户ID:", fromUserId);
+    return;
+  }
+
   if (data.kind === "bridge-chunks") {
+    // 大体积的数据，需要提前组装
     const { hashs, path } = data;
 
     const fileChunks = await getChunks(hashs, {
