@@ -29,9 +29,9 @@
     }
   </style>
   <div class="container">
-    <p-provider :theme="theme === 'dark' ? 'light' : 'dark'">
-      <slot></slot>
-    </p-provider>
+    <!-- <p-provider :theme="theme === 'dark' ? 'light' : 'dark'"> -->
+    <slot></slot>
+    <!-- </p-provider> -->
   </div>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
@@ -49,6 +49,9 @@
       watch: {
         color(color) {
           setMainColor(this, color || "normal");
+        },
+        theme(theme) {
+          console.log("theme: ", theme);
         },
       },
     };
