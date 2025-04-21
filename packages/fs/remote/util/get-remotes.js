@@ -1,5 +1,5 @@
 import { getDeviceStore } from "../../../user/device/main.js";
-import { getConnections } from "../../../user/connection/public.js";
+import { getConnectionStore } from "../../../user/connection/main.js";
 
 const remotes = {};
 
@@ -14,7 +14,7 @@ export const getRemotes = async ({ userDirName } = {}) => {
   // 获取已经授权的设备
   const deviceStore = await getDeviceStore(userDirName);
 
-  const connects = await getConnections(userDirName);
+  const connects = await getConnectionStore(userDirName);
   console.log("connects: ", connects);
 
   const arr = deviceStore.map((e) => {

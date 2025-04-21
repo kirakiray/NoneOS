@@ -2,7 +2,6 @@ import { getConnections } from "./public.js";
 import { UserConnection } from "./connection.js";
 import { tabSessionid } from "../user-store.js";
 import { agentData } from "../hand-server/agent.js";
-// import { isSafari } from "../../libs/util/is-safari.js";
 
 import { on } from "../event.js";
 
@@ -169,8 +168,7 @@ on("server-agent-data", async (e) => {
 //   isAgree = false;
 // }
 
-// 连接目标设备
-export const connect = ({ userId, selfTabId, userDirName }) => {
+export const getConnection = ({ userId, selfTabId, userDirName }) => {
   userDirName = userDirName || "main";
   selfTabId = selfTabId || tabSessionid; // 强制使用当前的tabId
 
@@ -203,6 +201,17 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
     console.error("当前浏览器不支持WebRTC");
     return targetUserConnection;
   }
+
+  return targetUserConnection;
+};
+
+// 连接目标设备
+export const connect = ({ userId, selfTabId, userDirName }) => {
+  const targetUserConnection = getConnection({
+    userId,
+    selfTabId,
+    userDirName,
+  });
 
   targetUserConnection.connect();
 

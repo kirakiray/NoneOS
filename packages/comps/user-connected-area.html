@@ -5,14 +5,13 @@
     }
   </style>
   <l-m src="/packages/pui/button/button.html"></l-m>
-  <p-button size="mini" on:click="linkUser">连接</p-button>
+  <x-if :value="connection.state === 'not-ready'">
+    <p-button size="mini" on:click="linkUser">连接</p-button>
+  </x-if>
+  {{connection.state}}
   <script>
     export default async ({ load }) => {
-      const { getConnectionStore, connect } = await load(
-        "/packages/user/connection/main.js"
-      );
-
-      const connections = await getConnectionStore();
+      const { getConnection } = await load("/packages/user/connection/main.js");
 
       return {
         tag: "user-connected-area",
@@ -21,28 +20,18 @@
           userId: null,
         },
         data: {
-          user: {}, // 当前用户
-          connections: [], // 所有用户连接
+          connection: {}, // 当前用户
         },
         proto: {
           async linkUser() {
-            const user = connect({
-              userId: this.userId,
-            });
-
-            debugger;
+            this.connection.connect();
           },
         },
         attached() {
-          this.connections = connections;
-
-          // 监听用户是否出现
-          // this._wid = connections.watchTick(() => {});
+          this.connection = getConnection({ userId: this.userId });
         },
         detached() {
-          this.connections = [];
-          this.user = {};
-          // this._wid && connections.unwatch(this._wid);
+          this.connection = {};
         },
       };
     };

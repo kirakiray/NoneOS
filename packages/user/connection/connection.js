@@ -143,7 +143,7 @@ export class UserConnection extends Stanz {
       if (!resp.result) {
         if (resp.notFindUser) {
           // 没有找到用户
-          targetUserConnection.state = "not-find-user";
+          this.state = "not-find-user";
         }
       }
 
