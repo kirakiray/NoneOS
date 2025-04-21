@@ -19,16 +19,16 @@
       } from "/packages/user/device/main.js";
 
       // 监听服务器代理数据
-      on("server-agent-data", (e) => {
-        console.log("server-agent-data: ", e);
-      });
+      // on("server-agent-data", (e) => {
+      //   console.log("server-agent-data: ", e);
+      // });
 
       await test("Device Addition Test", async () => {
         const user1 = await getUserStore("user1");
         const user2 = await getUserStore("user2");
 
         const devices1 = await getDeviceStore("user1");
-        const devices2 = await getDeviceStore("user1");
+        const devices2 = await getDeviceStore("user2");
 
         const beforeDevice1Len = devices1.length;
         const beforeDevice2Len = devices2.length;
@@ -47,7 +47,7 @@
                 userData.userName === user1.userName &&
                 userData.publicKey === user1.pair.publicKey
               ) {
-                await new Promise((resolve) => setTimeout(resolve, 1000));
+                await new Promise((resolve) => setTimeout(resolve, 200));
                 return true;
               }
               return false;

@@ -103,6 +103,9 @@ export const findDevice = async (deviceCode, userDirName) => {
     // 判断是否已经在我的设备中
     const myDevices = await getDeviceStore(userDirName);
     const existingMyDevice = myDevices.find((device) => {
+      if (!device.toMeCertificate) {
+        return false;
+      }
       return (
         device.toMeCertificate.data.publicKey ===
         userInfo.authedData.data.publicKey

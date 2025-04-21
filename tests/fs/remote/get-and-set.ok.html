@@ -13,6 +13,14 @@
       import { getUserStore, getServers } from "/packages/user/main.js";
       import { test } from "/ok-test/main.js";
 
+      import { on } from "/packages/user/main.js";
+      import {
+        findDevice,
+        onEntryDevice,
+        authDevice,
+        getDeviceStore,
+      } from "/packages/user/device/main.js";
+
       {
         const local = await init("local");
         await local.get("test", { create: "dir" });
@@ -34,6 +42,63 @@
       });
 
       const mainTabId = "user1-tab-" + Math.random().toString(36).slice(2, 8);
+
+      // 先给对方配对，交换证书
+      {
+        const user1 = await getUserStore("user1");
+        const user2 = await getUserStore("main");
+
+        const devices1 = await getDeviceStore("user1");
+        const devices2 = await getDeviceStore("main");
+
+        const hasDevice = devices2.find((e) => {
+          return e.toMeCertificate.data.publicKey === user1.pair.publicKey;
+        });
+
+        if (!hasDevice) {
+          // 执行授权仪式
+
+          const beforeDevice1Len = devices1.length;
+          const beforeDevice2Len = devices2.length;
+
+          // 生成设备码和验证码
+          const deviceCode = Math.random().toString(36).substring(2, 6);
+          const verifyCode = Math.random().toString(36).substring(2, 6);
+
+          // 设置设备监听
+          await onEntryDevice(
+            {
+              deviceCode,
+              verifyCode,
+              async confirm({ userData, waitingTime }) {
+                if (
+                  userData.userName === user1.userName &&
+                  userData.publicKey === user1.pair.publicKey
+                ) {
+                  await new Promise((resolve) => setTimeout(resolve, 200));
+                  return true;
+                }
+                return false;
+              },
+            },
+            "main"
+          );
+
+          // 查找并授权设备
+          const users = await findDevice(deviceCode, "user1");
+          const result = await authDevice(
+            {
+              userId: users[0].userId,
+              rsaPublicKey: users[0].rsaPublicKey,
+              verifyCode,
+              servers: users[0].serversData.map((e) => e.serverUrl),
+            },
+            "user1"
+          );
+        }
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
 
       // 测试访问其他用户内容
       await test("Access Other User Content Test", async () => {

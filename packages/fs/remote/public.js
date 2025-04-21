@@ -16,8 +16,8 @@ on("receive-user-data", async (e) => {
   // 查看是否是自己匹配过的设备
   const deviceStore = await getDeviceStore(userDirName);
 
-  const isMyDevice = deviceStore.find(
-    (e) => e.toOppoCertificate.data.authTo === fromUserId
+  const isMyDevice = deviceStore.find((e) =>
+    e.toOppoCertificate ? e.toOppoCertificate.data.authTo === fromUserId : false
   );
 
   if (!isMyDevice) {
