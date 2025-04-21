@@ -180,6 +180,29 @@ export const getChunks = async (
         }, 1000 * 15);
       };
 
+      let receivedChunks = 0; // 已接收的块数量
+      let sentChunks = 0; // 已发送的块数量
+      const needToSent = [...unexsteChunks];
+
+      // 发送块数据
+      // 每次发送是个块的数据
+      const sendChunkData = (count = 10) => {
+        count = Math.min(count, needToSent.length);
+
+        sentChunks += count;
+
+        if (count <= 0) {
+          return;
+        }
+
+        // 向目标发送请求
+        connection.send({
+          kind: "get-chunks",
+          // 对未存在的块数组进行去重
+          hashs: needToSent.splice(0, count),
+        });
+      };
+
       // 监听块是否有收到
       const unObs = chunksDir.observe(async (opts) => {
         const { path, type, data } = opts;
@@ -192,6 +215,7 @@ export const getChunks = async (
 
         // 判断是否想要的块
         if (!unexsteChunks.includes(fileName)) {
+          // 别的地方存储的块，不处理
           return;
         }
 
@@ -226,6 +250,13 @@ export const getChunks = async (
           );
         }
 
+        receivedChunks++;
+
+        if (receivedChunks >= sentChunks) {
+          // 已经收到的块数量大于等于已经发送的块数量，则继续发送
+          sendChunkData();
+        }
+
         refreshTimer(); // 刷新超时时间
 
         // 判断是否所有块都已经收到
@@ -236,12 +267,7 @@ export const getChunks = async (
         }
       });
 
-      // 向目标发送请求
-      connection.send({
-        kind: "get-chunks",
-        // 对未存在的块数组进行去重
-        hashs: [...new Set(unexsteChunks)],
-      });
+      sendChunkData();
     });
   }
 
