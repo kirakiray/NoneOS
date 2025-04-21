@@ -5,13 +5,23 @@
     }
   </style>
   <l-m src="/packages/pui/button/button.html"></l-m>
-  <x-if :value="connection.state === 'not-ready'">
-    <p-button size="mini" on:click="linkUser">连接</p-button>
+  <x-if :value="connection.state === 'ready'">
+    <div
+      style="
+        width: 8px;
+        height: 8px;
+        background-color: var(--md-sys-color-success);
+        border-radius: 6px;
+      "
+    ></div>
   </x-if>
-  {{connection.state}}
+  <x-else :value="connection.state === 'not-ready'">
+    <p-button size="mini" on:click="linkUser">连接</p-button>
+  </x-else>
   <script>
     export default async ({ load }) => {
       const { getConnection } = await load("/packages/user/connection/main.js");
+      const { enqueue } = await load("/packages/pui/util.js");
 
       return {
         tag: "user-connected-area",
@@ -24,7 +34,14 @@
         },
         proto: {
           async linkUser() {
-            this.connection.connect();
+            const e = await this.connection.connect();
+
+            if (e.notFindUser) {
+              enqueue({
+                content: "找不到用户" + this.connection.userId,
+                color: "error",
+              });
+            }
           },
         },
         attached() {
