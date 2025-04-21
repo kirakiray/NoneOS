@@ -3,6 +3,7 @@
   "virLocal": "虚拟空间",
   "apps": "应用",
   "empty": "无",
+  "notConnected": "未连接",
   "otherDevice": "其他设备",
   "searchWithCurrent": "在当前设备中搜索",
   "clickToPaste": "点击 <n-local-icon name='paste'></n-local-icon> 进行粘贴。",

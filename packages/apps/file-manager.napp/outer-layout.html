@@ -6,6 +6,7 @@
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-connected-area.html"></l-m>
   <style>
     :host {
       display: block;
@@ -78,9 +79,25 @@
                 ></n-id-avatar>
                 {{$data.userName}}
 
-                <i collapse-triangle slot="suffix"></i>
+                <!-- <i collapse-triangle slot="suffix"></i> -->
+                <user-connected-area
+                  slot="suffix"
+                  :user-id="$data.userId"
+                  style="position: relative; z-index: 4"
+                ></user-connected-area>
                 <p-list slot="childs" style="--padding-left: 16px">
                   <x-fill :value="$data.dirs" name="path-item"></x-fill>
+                  <!-- <x-if :value="!$data.dirs.length">
+                    <div
+                      style="
+                        padding-left: 32px;
+                        font-size: 12px;
+                        color: var(--md-sys-color-normal);
+                      "
+                    >
+                      <n-desc space="files" name="notConnected"></n-desc>
+                    </div>
+                  </x-if> -->
                 </p-list>
               </p-list-item>
             </x-fill>
@@ -247,16 +264,16 @@
           });
 
           this.refreashLocals();
-
-          this.remotes = await getRemotes();
         },
-        attached() {
+        async attached() {
           this._cancel = onChangeLang((lang) => {
             this.refreashLocals();
           });
+          this.remotes = await getRemotes();
         },
         detached() {
           this._cancel && this._cancel();
+          this.remotes = [];
         },
       };
     };

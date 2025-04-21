@@ -123,6 +123,34 @@ export class UserConnection extends Stanz {
     throw new Error(`未找到tabId为${tabId}的连接`);
   }
 
+  // 向对方发送连接请求
+  connect() {
+    if (this.state === "ready") {
+      return;
+    }
+
+    this.state = "connecting";
+
+    // 检查是否有可用的连接
+    return agentData({
+      friendId: this.#userId,
+      userDirName: this.#userDirName,
+      data: {
+        kind: "connect-user",
+        fromTabId: this.#selfTabId, // 从哪个tabId连接过去
+      },
+    }).then((resp) => {
+      if (!resp.result) {
+        if (resp.notFindUser) {
+          // 没有找到用户
+          targetUserConnection.state = "not-find-user";
+        }
+      }
+
+      return resp;
+    });
+  }
+
   // 绑定消息回调函数，返回一个取消绑定的函数
   onMsg(fn) {
     this.#handlers.push(fn);

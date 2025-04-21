@@ -1,4 +1,4 @@
-import { getConnection } from "./public.js";
+import { getConnections } from "./public.js";
 import { UserConnection } from "./connection.js";
 import { tabSessionid } from "../user-store.js";
 import { agentData } from "../hand-server/agent.js";
@@ -22,7 +22,7 @@ on("server-agent-data", async (e) => {
   }
 
   // 有用户向你发送连接请求，查看是否存在这个用户实例
-  const connectionStore = getConnection(userDirName);
+  const connectionStore = getConnections(userDirName);
 
   switch (data.kind) {
     case "connect-user": {
@@ -180,7 +180,7 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
 
   // TODO: safari的情况下，可能需要用户同意才能建立连接
 
-  const connectionStore = getConnection(userDirName);
+  const connectionStore = getConnections(userDirName);
 
   let targetUserConnection = connectionStore.find(
     (e) => e.userId === userId && e.selfTabId === selfTabId
@@ -204,27 +204,12 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
     return targetUserConnection;
   }
 
-  // 通知对方和我进行连接
-  agentData({
-    friendId: userId,
-    userDirName,
-    data: {
-      kind: "connect-user",
-      fromTabId: selfTabId, // 从哪个tabId连接过去
-    },
-  }).then((resp) => {
-    if (!resp.result) {
-      if (resp.notFindUser) {
-        // 没有找到用户
-        targetUserConnection.state = "not-find-user";
-      }
-    }
-  });
+  targetUserConnection.connect();
 
   return targetUserConnection;
 };
 
 // 获取连接存储
 export const getConnectionStore = (userDirName) => {
-  return getConnection(userDirName);
+  return getConnections(userDirName);
 };
