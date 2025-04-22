@@ -40,7 +40,7 @@
     </div>
     <div class="line" style="display: flex">
       <div style="flex: 1"></div>
-      <p-button attr:disabled="!newUrl">确认</p-button>
+      <p-button attr:disabled="!newUrl" on:click="clickAdd">确认</p-button>
     </div>
   </p-dialog>
 
@@ -52,6 +52,18 @@
           showDialog: false,
           newUrl: "",
           logoUrl: "",
+        },
+        proto: {
+          clickAdd() {
+            this.emit("add-web", {
+              data: {
+                url: this.newUrl,
+                logoUrl: this.logoUrl,
+              },
+            });
+
+            this.showDialog = false;
+          },
         },
       };
     };

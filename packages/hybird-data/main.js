@@ -314,12 +314,16 @@ export const removeDataStatus = (obj) => {
   });
 };
 
-export const createData = (handle) => {
-  return new HybirdData(
+export const createData = async (handle) => {
+  const data = new HybirdData(
     {},
     {
       handle,
       isroot: true,
     }
   );
+
+  await data.ready();
+
+  return data;
 };

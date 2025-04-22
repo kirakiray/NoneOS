@@ -69,6 +69,9 @@
         },
         proto: {
           get cardName() {
+            if (!this.url) {
+              return;
+            }
             return new URL(this.url).host;
           },
         },

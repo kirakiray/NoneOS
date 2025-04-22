@@ -152,6 +152,7 @@
     export default async ({ load }) => {
       const { getLang } = await load("/packages/i18n/data.js");
       const { focusBarAppItem } = await load("../util.js");
+      const { get } = await load("/packages/fs/main.js");
 
       return {
         tag: "n-app-frame",

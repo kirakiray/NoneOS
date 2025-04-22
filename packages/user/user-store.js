@@ -29,8 +29,6 @@ export const getUserStore = async (userDirName) => {
     // 生成主体对象
     const userStore = await createData(userHandle);
 
-    await userStore.ready();
-
     let userid;
 
     // 没有对钥，代表还未初始化

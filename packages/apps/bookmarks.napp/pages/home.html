@@ -21,7 +21,10 @@
   </style>
 
   <div class="tool-container">
-    <n-bookmark-add-btn style="margin-left: auto"></n-bookmark-add-btn>
+    <n-bookmark-add-btn
+      style="margin-left: auto"
+      on:add-web="addWeb"
+    ></n-bookmark-add-btn>
   </div>
 
   <div class="main">
@@ -31,46 +34,54 @@
         :logo-url="$data.logoUrl"
       ></n-bookmark-card>
     </x-fill>
+    <x-if :value="!cards.length">
+      <div>没有数据</div>
+    </x-if>
   </div>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { createData } = await load("/packages/hybird-data/main.js");
+
       return {
         data: {
           cards: [
-            {
-              url: "htts://baidu.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
-            },
-            {
-              url: "https://myzaker.com",
-              logoUrl:
-                "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
-            },
-            {
-              url: "https://google.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-            },
+            // {
+            //   url: "htts://baidu.com",
+            //   logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
+            // },
+            // {
+            //   url: "https://myzaker.com",
+            //   logoUrl:
+            //     "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
+            // },
+            // {
+            //   url: "https://google.com",
+            //   logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+            // },
           ],
         },
         proto: {
-          async readMarks() {
-            // 获取书签数据
-            // const bObj = get("bookmarks");
-            // const others = await bObj.others();
-            // const self = await bObj.self();
+          async addWeb({ data }) {
+            const { url } = data;
 
-            // // 获取所有数据
-            // const list = await self.data();
-
-            // const list = await get({
-            //   type: "bookmarks",
-            //   target: "self",
-            //   selector: {
-            //     age: { $gt: 20, $lt: 30 }, // 年龄大于20且小于30
-            //     name: { $eq: "John" }, // 名字等于'John'
-            //   },
-            // });
+            this.cards.push({
+              url,
+            });
           },
+        },
+        async attached() {
+          const app = this.app;
+
+          // 获取专属文件句柄
+          const handle = await app.dedicatedHandle();
+
+          const mainData = await createData(handle);
+
+          if (!mainData.cards) {
+            mainData.cards = [];
+          }
+
+          this.cards = mainData.cards;
         },
       };
     };

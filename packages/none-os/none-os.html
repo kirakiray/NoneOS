@@ -110,6 +110,7 @@
   <script>
     export default async ({ load }) => {
       const { init } = await load("/packages/fs/main.js");
+      await load("./init.js");
 
       // 初始化几个重要目录
       await init("local"); // 用户的本地数据
