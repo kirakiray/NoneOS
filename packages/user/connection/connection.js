@@ -229,7 +229,17 @@ class TabConnection extends Stanz {
     this.#rtcConnection.oniceconnectionstatechange = () => {
       this.state = this.#rtcConnection.iceConnectionState;
 
-      if (this.state === "closed") {
+      if (this.state === "connected") {
+        // 主动发送根目录信息
+        this.send({
+          kind: "update-roots",
+          dirs: [
+            {
+              name: "local",
+            },
+          ],
+        });
+      } else if (this.state === "closed") {
         // 监听状态变化，当状态为closed时清除所有绑定
         this.#clearAllBindings();
       }
