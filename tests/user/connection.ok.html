@@ -10,7 +10,10 @@
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
       import { test } from "/ok-test/main.js";
-      import { connect, getConnectionStore } from "/packages/user/connection/main.js";
+      import {
+        connect,
+        getConnectionStore,
+      } from "/packages/user/connection/main.js";
       import { getUserStore, getServers } from "/packages/user/main.js";
 
       await test("用户连接测试", async () => {
@@ -34,7 +37,8 @@
         const u2Connections = await getConnectionStore("user2");
 
         // 生成唯一的标签ID
-        const user1TabId = "user1-tabid-" + Math.random().toString(36).substr(2, 9);
+        const user1TabId =
+          "user1-tabid-" + Math.random().toString(36).substr(2, 9);
 
         // 用户1连接到用户2
         const u1Connections_u2shadow = connect({
@@ -51,6 +55,10 @@
         let receivedMessage = null;
         const messagePromise = new Promise((resolve) => {
           u2Connections_u1shadow.onMsg((data, tabCon) => {
+            if (data && data.kind === "update-roots") {
+              return;
+            }
+
             receivedMessage = data;
             resolve(data);
           });
