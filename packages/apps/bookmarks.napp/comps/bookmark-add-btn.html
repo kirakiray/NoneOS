@@ -55,9 +55,14 @@
         },
         proto: {
           clickAdd() {
+            let url = this.newUrl;
+            if (!url.startsWith("http")) {
+              url = "https://" + url;
+            }
+
             this.emit("add-web", {
               data: {
-                url: this.newUrl,
+                url,
                 logoUrl: this.logoUrl,
               },
             });
