@@ -1,6 +1,8 @@
 <template page>
   <l-m src="../comps/bookmark-card.html"></l-m>
   <l-m src="../comps/bookmark-add-btn.html"></l-m>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -20,24 +22,30 @@
     }
   </style>
 
-  <div class="tool-container">
-    <n-bookmark-add-btn
-      style="margin-left: auto"
-      on:add-web="addWeb"
-    ></n-bookmark-add-btn>
-  </div>
-
-  <div class="main">
-    <x-fill :value="cards">
-      <n-bookmark-card
-        :url="$data.url"
-        :logo-url="$data.logoUrl"
-      ></n-bookmark-card>
-    </x-fill>
-    <x-if :value="!cards.length">
-      <div>没有数据</div>
-    </x-if>
-  </div>
+  <n-horsp-pannel>
+    <div slot="left" style="height: 100%">
+      <p-list>
+        <p-list-item>我的书签</p-list-item>
+      </p-list>
+    </div>
+    <div class="tool-container">
+      <n-bookmark-add-btn
+        style="margin-left: auto"
+        on:add-web="addWeb"
+      ></n-bookmark-add-btn>
+    </div>
+    <div class="main">
+      <x-fill :value="cards">
+        <n-bookmark-card
+          :url="$data.url"
+          :logo-url="$data.logoUrl"
+        ></n-bookmark-card>
+      </x-fill>
+      <x-if :value="!cards.length">
+        <div>没有数据</div>
+      </x-if>
+    </div>
+  </n-horsp-pannel>
   <script>
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");

@@ -22,6 +22,7 @@
     export default async ({ load }) => {
       const { getConnection } = await load("/packages/user/connection/main.js");
       const { enqueue } = await load("/packages/pui/util.js");
+      const { getUserName } = await load("/packages/util/get-user-info.js");
 
       return {
         tag: "user-connected-area",
@@ -38,7 +39,8 @@
 
             if (e.notFindUser) {
               enqueue({
-                content: "找不到用户" + this.connection.userId,
+                content:
+                  "找不到用户" + (await getUserName(this.connection.userId)),
                 color: "error",
               });
             }

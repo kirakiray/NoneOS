@@ -29,6 +29,8 @@ Object.defineProperties($.fn, {
       }
       const mark = getAppMark(this[0]);
 
+      const { getRemotes } = await load("/packages/util/get-remotes.js");
+
       // 从远端设备中获取handle
       debugger;
     },
