@@ -25,7 +25,15 @@
   <n-horsp-pannel>
     <div slot="left" style="height: 100%">
       <p-list>
-        <p-list-item>我的书签</p-list-item>
+        <x-fill :value="list">
+          <p-list-item
+            button
+            attr:active-item="$data.userId === $host.currentId"
+            on:click="$host.clickItem($data)"
+          >
+            {{$data.title}}
+          </p-list-item>
+        </x-fill>
       </p-list>
     </div>
     <div class="tool-container">
@@ -35,13 +43,13 @@
       ></n-bookmark-add-btn>
     </div>
     <div class="main">
-      <x-fill :value="cards">
+      <x-fill :value="currentCards">
         <n-bookmark-card
           :url="$data.url"
           :logo-url="$data.logoUrl"
         ></n-bookmark-card>
       </x-fill>
-      <x-if :value="!cards.length">
+      <x-if :value="!currentCards.length">
         <div>没有数据</div>
       </x-if>
     </div>
@@ -52,21 +60,24 @@
 
       return {
         data: {
-          cards: [
-            // {
-            //   url: "htts://baidu.com",
-            //   logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
-            // },
-            // {
-            //   url: "https://myzaker.com",
-            //   logoUrl:
-            //     "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
-            // },
-            // {
-            //   url: "https://google.com",
-            //   logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-            // },
-          ],
+          list: [], // 所有的用户数据
+          currentId: "100", // 当前tab的用户id
+          currentCards: [], // 当前显示的数据
+          // currentCards: [
+          //   // {
+          //   //   url: "htts://baidu.com",
+          //   //   logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
+          //   // },
+          //   // {
+          //   //   url: "https://myzaker.com",
+          //   //   logoUrl:
+          //   //     "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
+          //   // },
+          //   // {
+          //   //   url: "https://google.com",
+          //   //   logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+          //   // },
+          // ],
         },
         proto: {
           async addWeb({ data }) {
@@ -75,6 +86,22 @@
             this.cards.push({
               url,
             });
+          },
+          clickItem(item) {
+            this.currentId = item.userId;
+            this.refreshCurrentCards();
+          },
+          refreshCurrentCards() {
+            const { currentId } = this;
+            const currentCards = this.list.find(
+              (item) => item.userId === currentId
+            )?.cards;
+
+            if (!currentCards) {
+              this.currentCards = [];
+              return;
+            }
+            this.currentCards = currentCards;
           },
         },
         async attached() {
@@ -90,17 +117,48 @@
             mainData.cards = [];
           }
 
-          if (this.ele.isConnected) {
-            this.cards = mainData.cards;
-          }
-
           // 获取远端的数据
           const remotes = await app.dedicatedRemoteHandle();
 
-          debugger;
+          const remotesList = [];
+
+          await Promise.all(
+            remotes.map(async (remote) => {
+              if (!remote.hasData) {
+                return;
+              }
+
+              const targetData = await createData(remote.handle);
+
+              remotesList.push({
+                title: remote.userName,
+                userId: remote.userId,
+                isMe: false,
+                _targetData: targetData,
+                cards: targetData.cards,
+              });
+            })
+          );
+
+          if (this.ele.isConnected) {
+            const list = [
+              {
+                title: "我的书签",
+                userId: "100",
+                isMe: true,
+                cards: mainData.cards,
+              },
+              ...remotesList,
+            ];
+
+            this.list = list;
+
+            this.refreshCurrentCards();
+          }
         },
         detached() {
-          this.cards = [];
+          this.list = [];
+          this.currentCards = [];
         },
       };
     };
