@@ -140,9 +140,7 @@
   <script>
     export default async ({ load, url }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { getRemotes } = await load(
-        "/packages/fs/remote/util/get-remotes.js"
-      );
+      const { getRemotes } = await load("/packages/util/get-remotes.js");
       // const { addTask } = await load("/packages/fs/task/main.js");
       const { setSpace, getText, onChangeLang, getLang } = await load(
         "/packages/i18n/data.js"

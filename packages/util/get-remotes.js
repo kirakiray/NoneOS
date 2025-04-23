@@ -1,7 +1,7 @@
-import { getDeviceStore } from "../../../user/device/main.js";
-import { on } from "../../../user/event.js";
-import { getConnection } from "../../../user/connection/main.js";
-import { Stanz } from "/packages/libs/stanz/main.js";
+import { getDeviceStore } from "../user/device/main.js";
+import { on } from "../user/event.js";
+import { getConnection } from "../user/connection/main.js";
+import { Stanz } from "../libs/stanz/main.js";
 
 on("receive-user-data", async (e) => {
   const {

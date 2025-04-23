@@ -46,9 +46,7 @@
   </div>
   <script>
     export default async ({ load }) => {
-      const { getRemotes } = await load(
-        "/packages/fs/remote/util/get-remotes.js"
-      );
+      const { getRemotes } = await load("/packages/util/get-remotes.js");
 
       return {
         tag: "n-bottom-address",
