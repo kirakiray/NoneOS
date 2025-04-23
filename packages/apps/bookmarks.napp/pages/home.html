@@ -90,7 +90,17 @@
             mainData.cards = [];
           }
 
-          this.cards = mainData.cards;
+          if (this.ele.isConnected) {
+            this.cards = mainData.cards;
+          }
+
+          // 获取远端的数据
+          const remotes = await app.dedicatedRemoteHandle();
+
+          debugger;
+        },
+        detached() {
+          this.cards = [];
         },
       };
     };

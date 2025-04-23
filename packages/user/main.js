@@ -14,3 +14,8 @@ export {
 
 // 添加 tabSessionID
 export const tabSessionid = Math.random().toString(36).slice(2);
+
+export const init = async () => {
+  await getServers(); // 获取服务器列表，可以连接握手服务器
+  await getDeviceStore();
+};

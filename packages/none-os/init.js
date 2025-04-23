@@ -32,7 +32,7 @@ Object.defineProperties($.fn, {
       const { getRemotes } = await load("/packages/util/get-remotes.js");
 
       // 从远端设备中获取handle
-      debugger;
+    //   debugger;
     },
   },
 });
