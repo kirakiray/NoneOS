@@ -44,12 +44,13 @@ const updataRemotes = async ({ userDirName } = {}) => {
 
     // 遍历tabs获取dirs
     connection.tabs.forEach((tab) => {
-      tab._dirs.forEach((dir) => {
-        dirs.push({
-          name: dir.name,
-          path: `$user-${userId}:${dir.name}`,
+      tab._dirs &&
+        tab._dirs.forEach((dir) => {
+          dirs.push({
+            name: dir.name,
+            path: `$user-${userId}:${dir.name}`,
+          });
         });
-      });
     });
 
     if (dirs.length) {

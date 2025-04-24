@@ -75,7 +75,7 @@ export class FileHandle extends BaseHandle {
     notify({
       path: this.path,
       type: "write",
-      data,
+      // data,
       remark: options.remark,
     });
   }

@@ -205,7 +205,7 @@ export const getChunks = async (
 
       // 监听块是否有收到
       const unObs = chunksDir.observe(async (opts) => {
-        const { path, type, data } = opts;
+        const { path, type } = opts;
         if (type !== "write") {
           return;
         }
@@ -218,6 +218,8 @@ export const getChunks = async (
           // 别的地方存储的块，不处理
           return;
         }
+
+        const data = await (await get(path)).buffer();
 
         // 重新计算块的哈希是否正确
         const fileHash = await getHash(data);
