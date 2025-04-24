@@ -22,6 +22,10 @@ on("receive-user-data", async (e) => {
 
     // 更新远程目录
     updataRemotes({ userDirName });
+  } else if (kind === "close") {
+    tabConnection.close();
+    // 主动关闭无法触发onconnectionstatechange事件，需要手动触发
+    tabConnection.rtcConnection.onconnectionstatechange({});
   }
 });
 

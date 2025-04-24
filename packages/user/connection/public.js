@@ -2,6 +2,8 @@ import { Stanz } from "../../libs/stanz/main.js";
 
 const connections = {};
 
+globalThis.connections = connections;
+
 export const getConnections = (userDirName) => {
   userDirName = userDirName || "main";
   if (connections[userDirName]) {

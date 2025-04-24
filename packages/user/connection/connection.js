@@ -65,6 +65,7 @@ export class UserConnection extends Stanz {
       userDirName: this.#userDirName,
       selfTabId: this.#selfTabId,
     });
+    allConnections.add(targetTabCon);
 
     this.tabs.push(targetTabCon);
 
@@ -161,6 +162,19 @@ export class UserConnection extends Stanz {
   }
 }
 
+const allConnections = new Set();
+
+// 页面刷新前，发送信息通知对面
+if (typeof window === "object") {
+  window.addEventListener("beforeunload", () => {
+    allConnections.forEach((connection) => {
+      connection.send({
+        kind: "close",
+      });
+    });
+  });
+}
+
 class TabConnection extends Stanz {
   #remoteTabId; // 远程 tabId
   #rtcConnection; // rtc连接
@@ -196,14 +210,6 @@ class TabConnection extends Stanz {
       iceServers,
     });
 
-    // this.#rtcConnection.onconnectionstatechange = (e) => {
-    //   // 当RTC连接状态变为connected时打印信息
-    //   console.log("onconnectionstatechange: ", e);
-    //   if (this.#rtcConnection.connectionState === "connected") {
-    //     console.log(`RTC连接已成功建立 - 远程TabID: ${this.#remoteTabId}`);
-    //   }
-    // };
-
     // 设置事件处理
     this.#rtcConnection.ondatachannel = (e) => {
       this.#initChannel(e.channel);
@@ -226,8 +232,10 @@ class TabConnection extends Stanz {
     };
 
     // 监听连接状态变化
-    this.#rtcConnection.oniceconnectionstatechange = () => {
-      this.state = this.#rtcConnection.iceConnectionState;
+    this.#rtcConnection.onconnectionstatechange = (e) => {
+      this.state = this.#rtcConnection.connectionState;
+
+      console.log("this.state: ", this.state);
 
       if (this.state === "connected") {
         // 主动发送根目录信息
@@ -244,6 +252,28 @@ class TabConnection extends Stanz {
         this.#clearAllBindings();
       }
     };
+
+    // 监听连接状态变化
+    // this.#rtcConnection.oniceconnectionstatechange = () => {
+    //   this.state = this.#rtcConnection.iceConnectionState;
+
+    //   console.log("this.state: ", this.state);
+
+    //   if (this.state === "connected") {
+    //     // 主动发送根目录信息
+    //     this.send({
+    //       kind: "update-roots",
+    //       dirs: [
+    //         {
+    //           name: "local",
+    //         },
+    //       ],
+    //     });
+    //   } else if (this.state === "closed") {
+    //     // 监听状态变化，当状态为closed时清除所有绑定
+    //     this.#clearAllBindings();
+    //   }
+    // };
   }
 
   // 清除所有绑定
@@ -262,7 +292,9 @@ class TabConnection extends Stanz {
     });
     this.#rtcConnection.ondatachannel = null;
     this.#rtcConnection.onicecandidate = null;
+    this.#rtcConnection.onconnectionstatechange = null;
     this.#rtcConnection.oniceconnectionstatechange = null;
+    allConnections.delete(this);
   }
 
   get remoteTabId() {
@@ -383,10 +415,12 @@ class TabConnection extends Stanz {
 
   // 关闭连接
   close() {
-    this.#channels.forEach((channel) => channel.close());
+    // this.#channels.forEach((channel) => {
+    //   channel.close();
+    // });
     this.#channels.clear();
     this.#rtcConnection.close();
-    this.state = "closed";
+    // this.state = "closed";
   }
 
   // 以下是中转方法

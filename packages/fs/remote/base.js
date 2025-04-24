@@ -94,7 +94,9 @@ export class RemoteBaseHandle extends PublicBaseHandle {
   }
 
   observe() {
+    // debugger;
     // 实现基本的观察功能，而不是抛出错误
-    return this._post("observe");
+    // return this._post("observe");
+    console.warn("Cannot use observe method in remote handle");
   }
 }
