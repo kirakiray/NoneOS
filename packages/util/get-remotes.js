@@ -25,7 +25,9 @@ on("receive-user-data", async (e) => {
   } else if (kind === "close") {
     tabConnection.close();
     // 主动关闭无法触发onconnectionstatechange事件，需要手动触发
-    tabConnection.rtcConnection.onconnectionstatechange({});
+    tabConnection.rtcConnection.dispatchEvent(
+      new Event("connectionstatechange")
+    );
   }
 });
 

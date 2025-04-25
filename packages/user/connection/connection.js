@@ -232,7 +232,7 @@ class TabConnection extends Stanz {
     };
 
     // 监听连接状态变化
-    this.#rtcConnection.onconnectionstatechange = (e) => {
+    this.#rtcConnection.addEventListener("connectionstatechange", () => {
       this.state = this.#rtcConnection.connectionState;
 
       console.log("this.state: ", this.state);
@@ -251,7 +251,7 @@ class TabConnection extends Stanz {
         // 监听状态变化，当状态为closed时清除所有绑定
         this.#clearAllBindings();
       }
-    };
+    });
 
     // 监听连接状态变化
     // this.#rtcConnection.oniceconnectionstatechange = () => {
