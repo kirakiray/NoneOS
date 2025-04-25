@@ -44,32 +44,19 @@ const updataRemotes = async ({ userDirName } = {}) => {
   for (let e of selfRemotes) {
     const { userId } = e;
     const connection = await getConnection({ userDirName, userId });
-
-    const dirs = [];
-
-    // 遍历tabs获取dirs
-    connection.tabs.forEach((tab) => {
-      tab._dirs &&
-        tab._dirs.forEach((dir) => {
-          dirs.push({
-            name: dir.name,
-            path: `$user-${userId}:${dir.name}`,
-          });
-        });
-    });
-
-    if (dirs.length) {
-      // 去重复
-      const reDirs = [];
-      dirs.forEach((e) => {
-        if (!reDirs.some((e2) => e2.path === e.path)) {
-          reDirs.push(e);
-        }
-      });
-
-      e.dirs = reDirs;
-      return;
-    }
+    // 从所有tabs中收集目录信息
+    const dirs = connection.tabs
+      .flatMap((tab) =>
+        (tab._dirs || []).map((dir) => ({
+          name: dir.name,
+          path: `$user-${userId}:${dir.name}`,
+        }))
+      )
+      // 使用Set去重
+      .filter(
+        (dir, index, self) =>
+          index === self.findIndex((d) => d.path === dir.path)
+      );
 
     e.dirs = dirs;
   }
