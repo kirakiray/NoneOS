@@ -28,6 +28,9 @@ on("receive-user-data", async (e) => {
     tabConnection.rtcConnection.dispatchEvent(
       new Event("connectionstatechange")
     );
+
+    // 更新远程目录
+    updataRemotes({ userDirName });
   }
 });
 
@@ -65,7 +68,10 @@ const updataRemotes = async ({ userDirName } = {}) => {
       });
 
       e.dirs = reDirs;
+      return;
     }
+
+    e.dirs = dirs;
   }
 };
 
