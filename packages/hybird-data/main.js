@@ -89,7 +89,7 @@ export class HybirdData extends Stanz {
       });
     });
 
-    cancelObs = handle.observe((e) => {
+    cancelObs = await handle.observe((e) => {
       if (e.type !== "write") {
         return;
       }

@@ -164,7 +164,7 @@ export const getChunks = async (
 
     await connection.watchUntil(() => connection.state === "ready");
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       //  超时监听
       let timer;
 
@@ -204,7 +204,7 @@ export const getChunks = async (
       };
 
       // 监听块是否有收到
-      const unObs = chunksDir.observe(async (opts) => {
+      const unObs = await chunksDir.observe(async (opts) => {
         const { path, type } = opts;
         if (type !== "write") {
           return;

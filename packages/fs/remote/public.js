@@ -2,6 +2,7 @@ import { on } from "../../user/event.js";
 import { get } from "../main.js";
 import { cacheFile, getChunks } from "../../user/cache/main.js";
 import { getDeviceStore } from "../../user/device/main.js";
+import "./obs.js";
 
 on("receive-user-data", async (e) => {
   const {
@@ -71,18 +72,18 @@ on("receive-user-data", async (e) => {
       const reResult = await fileToCacheBlocks(result, { userDirName });
 
       tabConnection.send({
-        kind: "result",
+        kind: "user-result",
         taskId: remoteTaskId,
         result: reResult,
       });
     } catch (error) {
       tabConnection.send({
-        kind: "result",
+        kind: "user-result",
         taskId: remoteTaskId,
         error: error.stack || error.toString(),
       });
     }
-  } else if (kind === "result") {
+  } else if (kind === "user-result") {
     const { taskId, result, error } = data;
 
     const tasks = getTasks(userDirName);

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get and Set Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { createGet } from "/packages/fs/remote/main.js";
+      import { init, get } from "/packages/fs/main.js";
+      import { getUserStore, getServers } from "/packages/user/main.js";
+      import { test } from "/ok-test/main.js";
+
+      import { on } from "/packages/user/main.js";
+      import {
+        findDevice,
+        onEntryDevice,
+        authDevice,
+        getDeviceStore,
+      } from "/packages/user/device/main.js";
+
+      {
+        const local = await init("local");
+        await local.get("test", { create: "dir" });
+      }
+
+      // 初始化测试目录
+      const testDirectory = await init("test-get-set");
+
+      // 测试用户存储
+      const user1 = await getUserStore("user1");
+
+      const mainSers = await getServers("main");
+      const user1Sers = await getServers("user1");
+      await mainSers.watchUntil(() => {
+        return !mainSers.some((e) => e.connectionState !== "connected");
+      });
+      await user1Sers.watchUntil(() => {
+        return !user1Sers.some((e) => e.connectionState !== "connected");
+      });
+
+      const mainTabId = "user1-tab-" + Math.random().toString(36).slice(2, 8);
+
+      // 先给对方配对，交换证书
+      {
+        const user1 = await getUserStore("user1");
+        const user2 = await getUserStore("main");
+
+        const devices1 = await getDeviceStore("user1");
+        const devices2 = await getDeviceStore("main");
+
+        const hasDevice = devices2.find((e) => {
+          return e.toMeCertificate.data.publicKey === user1.pair.publicKey;
+        });
+
+        if (!hasDevice) {
+          // 执行授权仪式
+
+          const beforeDevice1Len = devices1.length;
+          const beforeDevice2Len = devices2.length;
+
+          // 生成设备码和验证码
+          const deviceCode = Math.random().toString(36).substring(2, 6);
+          const verifyCode = Math.random().toString(36).substring(2, 6);
+
+          // 设置设备监听
+          await onEntryDevice(
+            {
+              deviceCode,
+              verifyCode,
+              async confirm({ userData, waitingTime }) {
+                if (
+                  userData.userName === user1.userName &&
+                  userData.publicKey === user1.pair.publicKey
+                ) {
+                  await new Promise((resolve) => setTimeout(resolve, 200));
+                  return true;
+                }
+                return false;
+              },
+            },
+            "main"
+          );
+
+          // 查找并授权设备
+          const users = await findDevice(deviceCode, "user1");
+          const result = await authDevice(
+            {
+              userId: users[0].userId,
+              rsaPublicKey: users[0].rsaPublicKey,
+              verifyCode,
+              servers: users[0].serversData.map((e) => e.serverUrl),
+            },
+            "user1"
+          );
+
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+      }
+
+      // 测试访问其他用户内容
+      await test("Test Remote Directory Observation", async () => {
+        // 访问user1的内容
+        const remoteAccessor = createGet(user1.userId, {
+          userDirName: "main",
+          selfTabId: mainTabId,
+        });
+
+        // 访问本地目录
+        const localDirectory = await get("local/test/test-obs", {
+          create: "dir",
+        });
+
+        // 访问远程目录，因为是测试账户，所以和本地目录内容一致
+        const remoteDirectory = await remoteAccessor("local/test/test-obs", {
+          create: "dir",
+        });
+
+        // 创建本地测试文件
+        const localFile = await localDirectory.get("test-file-1.txt", {
+          create: "file",
+        });
+
+        // 获取远程文件引用
+        const remoteFile = await remoteDirectory.get("test-file-1.txt");
+
+        // 设置远程目录变化监听器
+        let resolveObservation;
+        const observationPromise = new Promise((resolve) => {
+          resolveObservation = resolve;
+        });
+
+        let count = 0;
+
+        const unsubscribe = await remoteDirectory.observe((event) => {
+          resolveObservation(event);
+          count++;
+        });
+
+        // 写入本地文件，触发远程观察
+        await localFile.write(`Hello World! ${new Date().toLocaleString()}`);
+
+        // 等待远程目录变化事件
+        const observationEvent = await observationPromise;
+
+        // 取消远端观察
+        await unsubscribe();
+
+        // 再次写入，是不会触发 remoteDirectory.observe 的，因为已经取消了
+        await localFile.write(`Hello World! ${new Date().toLocaleString()}`);
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        return {
+          assert:
+            observationEvent.path === remoteFile.path &&
+            observationEvent.type === "write" &&
+            count === 1,
+          content: `observationEvent.path: ${observationEvent.path}`,
+        };
+      });
+    </script>
+  </body>
+</html>

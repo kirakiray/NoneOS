@@ -188,17 +188,15 @@ class TabConnection extends Stanz {
   constructor({ remoteTabId, host, userId, userDirName, selfTabId }) {
     super({
       state: "new", // 连接状态
-      // "new": 初始状态，尚未开始 ICE 候选交换。
-      // "checking": 正在检查候选以尝试建立连接。
-      // "connected": 至少一个 ICE 候选对已经成功连接。
-      // "completed": 所有 ICE 候选对都已检查完毕，连接完成。
-      // "failed": ICE 候选检查失败。
-      // "disconnected": 连接暂时断开。
-      // "closed": ICE 连接已关闭。
+      // new - 刚刚创建了一个 RTCPeerConnection 对象，并且尚未建立任何连接。
+      // connecting - 正在尝试建立一个连接。这可能涉及到正在进行的信令交换、ICE候选收集等过程。
+      // connected - 连接已经成功建立，媒体数据可以开始传输。
+      // disconnected - 连接暂时丢失。尽管底层的网络连接可能已经中断，但如果网络状况改善，连接有可能自动恢复。
+      // failed - 尝试建立连接失败，通常是由于网络问题或不兼容的媒体配置。
+      // closed - 连接已经被用户主动关闭，或者因为错误而被关闭。
     });
 
     // channel是否成功
-
     this.#remoteTabId = remoteTabId;
     this.#host = host;
     this.#userId = userId;
@@ -252,28 +250,13 @@ class TabConnection extends Stanz {
         this.#clearAllBindings();
       }
     });
+  }
 
-    // 监听连接状态变化
-    // this.#rtcConnection.oniceconnectionstatechange = () => {
-    //   this.state = this.#rtcConnection.iceConnectionState;
+  #needCloses = [];
 
-    //   console.log("this.state: ", this.state);
-
-    //   if (this.state === "connected") {
-    //     // 主动发送根目录信息
-    //     this.send({
-    //       kind: "update-roots",
-    //       dirs: [
-    //         {
-    //           name: "local",
-    //         },
-    //       ],
-    //     });
-    //   } else if (this.state === "closed") {
-    //     // 监听状态变化，当状态为closed时清除所有绑定
-    //     this.#clearAllBindings();
-    //   }
-    // };
+  // 当连接关闭时
+  whenClosed(func) {
+    this.#needCloses.push(func);
   }
 
   // 清除所有绑定
@@ -295,6 +278,9 @@ class TabConnection extends Stanz {
     this.#rtcConnection.onconnectionstatechange = null;
     this.#rtcConnection.oniceconnectionstatechange = null;
     allConnections.delete(this);
+
+    this.#needCloses.forEach((fn) => fn());
+    this.#needCloses.splice(0, this.#needCloses.length);
   }
 
   get remoteTabId() {

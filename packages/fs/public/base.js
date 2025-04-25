@@ -105,11 +105,12 @@ export class PublicBaseHandle {
   }
 
   // 监听文件系统变化
-  observe(func) {
+  async observe(func) {
     const obj = {
       func,
       handle: this,
     };
+    
     observers.add(obj);
 
     return () => {

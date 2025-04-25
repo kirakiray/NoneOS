@@ -88,15 +88,50 @@ export class RemoteBaseHandle extends PublicBaseHandle {
 
   async isSame(target) {
     return this.path === target.path;
-    // return (
-    //   this.#connection === target._connection && this.#path === target.path
-    // );
   }
 
-  observe() {
-    // debugger;
-    // 实现基本的观察功能，而不是抛出错误
-    // return this._post("observe");
-    console.warn("Cannot use observe method in remote handle");
+  async observe(func) {
+    const item = {
+      path: this.#path,
+      finnalPath: this.path,
+      func,
+      itemId: Math.random().toString(36).slice(2),
+    };
+
+    const result = await post({
+      userDirName: this._userDirName,
+      connection: this._connection,
+      data: {
+        kind: "obs-fs",
+        path: this.#path,
+        itemId: item.itemId,
+      },
+    });
+
+    if (result !== true) {
+      const error = new Error(`observe failed: ` + result);
+      console.warn(error, this);
+      throw error;
+    }
+
+    localRemoteObsPool.set(item.itemId, item);
+
+    return () => {
+      localRemoteObsPool.delete(item.itemId);
+
+      // 取消观察
+      return post({
+        userDirName: this._userDirName,
+        connection: this._connection,
+        data: {
+          kind: "un-obs-fs",
+          path: this.#path,
+          itemId: item.itemId,
+        },
+      });
+    };
   }
 }
+
+// 本地观察池
+export const localRemoteObsPool = new Map();
