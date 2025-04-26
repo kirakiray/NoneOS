@@ -47,4 +47,8 @@ export class BaseHandle extends PublicBaseHandle {
       path: this.path,
     });
   }
+
+  get _mark() {
+    return "system";
+  }
 }

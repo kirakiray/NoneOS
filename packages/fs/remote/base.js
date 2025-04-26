@@ -131,6 +131,10 @@ export class RemoteBaseHandle extends PublicBaseHandle {
       });
     };
   }
+
+  get _mark() {
+    return "remote";
+  }
 }
 
 // 本地观察池

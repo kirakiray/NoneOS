@@ -113,7 +113,7 @@
           const mainData = await createData(handle);
 
           if (!mainData.cards) {
-            // 初始化数据
+            // 初始化本地数据
             mainData.cards = [];
           }
 
@@ -147,6 +147,7 @@
                 userId: "100",
                 isMe: true,
                 cards: mainData.cards,
+                _targetData: mainData,
               },
               ...remotesList,
             ];
@@ -157,6 +158,11 @@
           }
         },
         detached() {
+          // 数据注销
+          this.list.forEach((e) => {
+            e._targetData && e._targetData.disconnect();
+          });
+
           this.list = [];
           this.currentCards = [];
         },

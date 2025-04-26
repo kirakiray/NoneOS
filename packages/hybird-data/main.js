@@ -22,6 +22,11 @@ export class HybirdData extends Stanz {
     }
 
     if (options.handle) {
+      if (options.handle._mark === "remote") {
+        // 代表是远程handle
+        console.log("remote handle", options.handle);
+      }
+
       this[SELFHANDLE] = options.handle;
       if (options.isroot) {
         this._initRoot().then(() => {
@@ -88,6 +93,7 @@ export class HybirdData extends Stanz {
         saveData(watchOpt.target);
       });
     });
+    // }, 50);
 
     cancelObs = await handle.observe((e) => {
       if (e.type !== "write") {

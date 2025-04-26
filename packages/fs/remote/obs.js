@@ -37,8 +37,6 @@ on("receive-user-data", async (e) => {
     if (!tabConnection.__obs_cancel) {
       // 当整个连接关闭时，取消所有文件监听
       const obsLinsten = (tabConnection.__obs_cancel = () => {
-        debugger;
-
         // 关闭连接，取消所有文件监听
         obsArr.forEach((e) => {
           e.cancel();
