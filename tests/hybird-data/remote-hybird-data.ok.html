@@ -162,6 +162,29 @@
           content: `observationEvent.path: ${observationEvent.path}`,
         };
       });
+
+      // await test("Hybird Data with Remote Handle", async () => {
+      //   // 访问user1的内容
+      //   const remoteAccessor = createGet(user1.userId, {
+      //     userDirName: "main",
+      //     selfTabId: mainTabId,
+      //   });
+
+      //   // 访问本地目录
+      //   const localDirectory = await get("local/test/test-remote-hybird", {
+      //     create: "dir",
+      //   });
+
+      //   // 访问远程目录，因为是测试账户，所以和本地目录内容一致
+      //   const remoteDirectory = await remoteAccessor(
+      //     "local/test/test-remote-hybird"
+      //   );
+
+      //   return {
+      //     assert: true,
+      //     content: "Hybird Data with Remote Handle",
+      //   };
+      // });
     </script>
   </body>
 </html>

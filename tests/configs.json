@@ -15,6 +15,7 @@
     "../tests/fs/util/get-file-hash.ok.html",
     "../tests/fs/util/get-hash.ok.html",
     "../tests/hybird-data/change-file.ok.html",
+    "../tests/hybird-data/remote-hybird-data.ok.html",
     "../tests/hybird-data/save-and-get.ok.html",
     "../tests/user/add-device.ok.html",
     "../tests/user/connection.ok.html",
