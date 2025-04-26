@@ -165,80 +165,100 @@
 
       import { createData } from "/packages/hybird-data/main.js";
       await test("Hybrid Data Remote Sync Test", async () => {
-        // Access user1's content
+        // user1的远程访问器
         const remoteAccessor = createGet(user1.userId, {
           useLocalUserDirName: "main",
           selfTabId: mainTabId,
         });
 
-        // Access local directory
+        // 访问本地目录
         const localDirectory = await get("local/test/test-remote-hybird", {
           create: "dir",
         });
 
-        // Access remote directory, since it's a test account, content is same as local
+        // 访问远程目录，因为是测试账户，所以内容与本地相同
         const remoteDirectory = await remoteAccessor(
           "local/test/test-remote-hybird"
         );
 
-        // Create local hybrid data instance
+        // 创建本地混合数据实例
         const localHybridData = await createData(localDirectory);
 
-        // Generate initial test content
-        const initialContent = "Initial Content - " + Math.random().toString(32).slice(2);
+        // 生成初始测试内容
+        const initialContent =
+          "Initial Content - " + Math.random().toString(32).slice(2);
         localHybridData.val = initialContent;
 
-        // Wait for data to be ready
+        // 等待数据就绪
         await localHybridData.ready();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Create remote hybrid data instance
+        // 创建远程混合数据实例
         const remoteHybridData = await createData(remoteDirectory);
 
-        // Verify initial sync status
-        const initialSyncCheck = 
-          localHybridData.val === remoteHybridData.val && 
+        // 验证初始同步状态
+        const initialSyncCheck =
+          localHybridData.val === remoteHybridData.val &&
           remoteHybridData.val === initialContent;
 
         if (!initialSyncCheck) {
-          throw new Error("Initial sync check failed: Local data does not match remote data");
+          throw new Error(
+            "Initial sync check failed: Local data does not match remote data"
+          );
         }
 
-        // Remote data modification test
-        const remoteModification = "Remote Modification - " + Math.random().toString(32).slice(2);
+        // 远程数据修改测试
+        const remoteModification =
+          "Remote Modification - " + Math.random().toString(32).slice(2);
         remoteHybridData.val = remoteModification;
 
         await remoteHybridData.ready();
         await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // Verify remote modification sync status
-        const remoteSyncCheck = 
-          localHybridData.val === remoteHybridData.val && 
+        // 验证远程修改同步状态
+        const remoteSyncCheck =
+          localHybridData.val === remoteHybridData.val &&
           remoteHybridData.val === remoteModification;
 
         if (!remoteSyncCheck) {
-          throw new Error("Remote modification sync check failed: Local data not synced with remote changes");
+          throw new Error(
+            "Remote modification sync check failed: Local data not synced with remote changes"
+          );
         }
 
-        // Local data modification test
-        const localModification = "Local Modification - " + Math.random().toString(32).slice(2);
+        // 本地数据修改测试
+        const localModification =
+          "Local Modification - " + Math.random().toString(32).slice(2);
         localHybridData.val = localModification;
-        
+
         await localHybridData.ready();
         await new Promise((resolve) => setTimeout(resolve, 100));
-        
-        // Verify local modification sync status
-        const localSyncCheck = 
-          localHybridData.val === remoteHybridData.val && 
+
+        // 验证本地修改同步状态
+        const localSyncCheck =
+          localHybridData.val === remoteHybridData.val &&
           remoteHybridData.val === localModification;
 
         if (!localSyncCheck) {
-          throw new Error("Local modification sync check failed: Remote data not synced with local changes");
+          throw new Error(
+            "Local modification sync check failed: Remote data not synced with local changes"
+          );
         }
-
         return {
           assert: initialSyncCheck && remoteSyncCheck && localSyncCheck,
-          content: "Hybrid data remote sync test completed",
+          content: `
+Initial sync test:
+- initialSyncCheck: ${initialSyncCheck}
+- Initial content: ${initialContent}
+
+Remote modification test:
+- remoteSyncCheck : ${remoteSyncCheck}
+- Modified content: ${remoteModification}
+
+Local modification test:
+- localSyncCheck: ${localSyncCheck}
+- Modified content: ${localModification}
+          `.trim(),
         };
       });
     </script>
