@@ -163,28 +163,83 @@
         };
       });
 
-      // await test("Hybird Data with Remote Handle", async () => {
-      //   // 访问user1的内容
-      //   const remoteAccessor = createGet(user1.userId, {
-      //     useLocalUserDirName: "main",
-      //     selfTabId: mainTabId,
-      //   });
+      import { createData } from "/packages/hybird-data/main.js";
 
-      //   // 访问本地目录
-      //   const localDirectory = await get("local/test/test-remote-hybird", {
-      //     create: "dir",
-      //   });
+      await test("Hybird Data with Remote Handle", async () => {
+        // 访问user1的内容
+        const remoteAccessor = createGet(user1.userId, {
+          useLocalUserDirName: "main",
+          selfTabId: mainTabId,
+        });
 
-      //   // 访问远程目录，因为是测试账户，所以和本地目录内容一致
-      //   const remoteDirectory = await remoteAccessor(
-      //     "local/test/test-remote-hybird"
-      //   );
+        // 访问本地目录
+        const localDirectory = await get("local/test/test-remote-hybird", {
+          create: "dir",
+        });
 
-      //   return {
-      //     assert: true,
-      //     content: "Hybird Data with Remote Handle",
-      //   };
-      // });
+        // 访问远程目录，因为是测试账户，所以和本地目录内容一致
+        const remoteDirectory = await remoteAccessor(
+          "local/test/test-remote-hybird"
+        );
+
+        const localData = await createData(localDirectory);
+
+        const text1 = "Hello World! - " + Math.random().toString(32).slice(2);
+
+        localData.val = text1;
+
+        // 等待数据准备就绪
+        await localData.ready();
+
+        await new Promise((res) => setTimeout(res, 100));
+
+        const remoteData = await createData(remoteDirectory);
+
+        // 查看两个数据是否一致
+        const assert1 =
+          localData.val === remoteData.val && remoteData.val === text1;
+
+        if (!assert1) {
+          throw new Error("localData.val !== remoteData.val");
+        }
+
+        // 通过远端修改数据
+        const change1 = "change 1 - " + Math.random().toString(32).slice(2);
+        remoteData.val = change1;
+
+        await remoteData.ready();
+        await new Promise((res) => setTimeout(res, 100));
+
+        // 查看两个数据是否一致
+        const assert2 =
+          localData.val === remoteData.val && remoteData.val === change1;
+
+        if (!assert2) {
+          throw new Error(
+            "After remote change: localData.val !== remoteData.val"
+          );
+        }
+
+        // 反向修改
+        const change2 = "change 2 - " + Math.random().toString(32).slice(2);
+        localData.val = change2;
+        await localData.ready();
+        await new Promise((res) => setTimeout(res, 100));
+        // 查看两个数据是否一致
+        const assert3 =
+          localData.val === remoteData.val && remoteData.val === change2;
+
+        if (!assert3) {
+          throw new Error(
+            "After local change: localData.val !== remoteData.val"
+          );
+        }
+
+        return {
+          assert: assert1 && assert2 && assert3,
+          content: "Hybird Data with Remote Handle",
+        };
+      });
     </script>
   </body>
 </html>
