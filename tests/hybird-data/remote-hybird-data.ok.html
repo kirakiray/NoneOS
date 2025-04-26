@@ -135,8 +135,9 @@
         let count = 0;
 
         const unsubscribe = await remoteDirectory.observe((event) => {
-          resolveObservation(event);
           count++;
+          resolveObservation && resolveObservation(event);
+          resolveObservation = null;
         });
 
         // 写入本地文件，触发远程观察
