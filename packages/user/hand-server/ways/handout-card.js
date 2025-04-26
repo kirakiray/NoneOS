@@ -4,12 +4,12 @@ import { getCards } from "../../card/main.js";
 export const handoutCard = async ({
   fromUserId,
   agentData,
-  userDirName,
+  useLocalUserDirName,
   userStore,
 }) => {
   const { cardData } = agentData;
 
-  const cards = await getCards(userDirName);
+  const cards = await getCards(useLocalUserDirName);
 
   await cards.ready(true); // 确认卡牌数据已经加载完毕
 

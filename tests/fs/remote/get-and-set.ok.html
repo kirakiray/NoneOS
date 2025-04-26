@@ -104,7 +104,7 @@
       await test("Access Other User Content Test", async () => {
         // 访问user1的内容
         const get = createGet(user1.userId, {
-          userDirName: "main",
+          useLocalUserDirName: "main",
           selfTabId: mainTabId,
         });
 

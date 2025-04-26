@@ -44,7 +44,7 @@
         const u1Connections_u2shadow = connect({
           userId: user2.userId,
           selfTabId: user1TabId,
-          userDirName: "user1",
+          useLocalUserDirName: "user1",
         });
 
         // 等待用户2中出现用户1的连接映射
@@ -132,13 +132,13 @@
         const connection1 = connect({
           userId: user4.userId,
           selfTabId: tab1Id,
-          userDirName: "user3",
+          useLocalUserDirName: "user3",
         });
 
         const connection2 = connect({
           userId: user4.userId,
           selfTabId: tab2Id,
-          userDirName: "user3",
+          useLocalUserDirName: "user3",
         });
 
         // 等待连接就绪

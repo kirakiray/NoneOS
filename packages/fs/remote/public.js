@@ -6,7 +6,7 @@ import "./obs.js";
 
 on("receive-user-data", async (e) => {
   const {
-    userDirName, // 目标本地用户目录名称
+    useLocalUserDirName, // 目标本地用户目录名称
     fromUserId, // 消息来源用户ID
     // fromTabId, // 消息来源TabID
     tabConnection, // 消息来源TabConnection
@@ -15,7 +15,7 @@ on("receive-user-data", async (e) => {
   let { data } = e;
 
   // 查看是否是自己匹配过的设备
-  const deviceStore = await getDeviceStore(userDirName);
+  const deviceStore = await getDeviceStore(useLocalUserDirName);
 
   const isMyDevice = deviceStore.find((e) =>
     e.toOppoCertificate ? e.toOppoCertificate.data.authTo === fromUserId : false
@@ -32,7 +32,7 @@ on("receive-user-data", async (e) => {
     const { hashs, path } = data;
 
     const fileChunks = await getChunks(hashs, {
-      userDirName,
+      useLocalUserDirName,
       fromUserId,
     });
 
@@ -56,7 +56,7 @@ on("receive-user-data", async (e) => {
     try {
       const handle = await get(path);
 
-      const reArgs = await fixBlockData(args, { userDirName, fromUserId });
+      const reArgs = await fixBlockData(args, { useLocalUserDirName, fromUserId });
 
       let result;
       if (gen) {
@@ -69,7 +69,7 @@ on("receive-user-data", async (e) => {
       }
 
       // 重新发送转化文件数据
-      const reResult = await fileToCacheBlocks(result, { userDirName });
+      const reResult = await fileToCacheBlocks(result, { useLocalUserDirName });
 
       tabConnection.send({
         kind: "user-result",
@@ -86,7 +86,7 @@ on("receive-user-data", async (e) => {
   } else if (kind === "user-result") {
     const { taskId, result, error } = data;
 
-    const tasks = getTasks(userDirName);
+    const tasks = getTasks(useLocalUserDirName);
 
     const targetTask = tasks.get(taskId);
     if (targetTask) {
@@ -97,7 +97,7 @@ on("receive-user-data", async (e) => {
       }
 
       // 重新还原块内容
-      const reResult = await fixBlockData(result, { userDirName, fromUserId });
+      const reResult = await fixBlockData(result, { useLocalUserDirName, fromUserId });
 
       targetTask.resolve(reResult);
       tasks.delete(taskId);
@@ -109,18 +109,18 @@ on("receive-user-data", async (e) => {
 
 const pools = {};
 
-const getTasks = (userDirName) => {
-  const tasks = pools[userDirName];
+const getTasks = (useLocalUserDirName) => {
+  const tasks = pools[useLocalUserDirName];
   if (!tasks) {
-    pools[userDirName] = new Map();
-    return pools[userDirName];
+    pools[useLocalUserDirName] = new Map();
+    return pools[useLocalUserDirName];
   }
 
   return tasks;
 };
 
 // 发送数据到对方
-export const post = async ({ data, connection, userDirName }) => {
+export const post = async ({ data, connection, useLocalUserDirName }) => {
   const taskId = crypto.randomUUID();
 
   let resolve, reject;
@@ -129,7 +129,7 @@ export const post = async ({ data, connection, userDirName }) => {
     reject = _reject;
   });
 
-  const tasks = getTasks(userDirName);
+  const tasks = getTasks(useLocalUserDirName);
 
   tasks.set(taskId, {
     resolve,
@@ -137,7 +137,7 @@ export const post = async ({ data, connection, userDirName }) => {
   });
 
   // 查看data内是否包含file或arraybuffer，如果有，将其转为块信息，让对方进行获取
-  const reData = await fileToCacheBlocks(data, { userDirName });
+  const reData = await fileToCacheBlocks(data, { useLocalUserDirName });
 
   // 判断总数据输否超出 rtc发送的限制，如果超出限制，分块后进行发送
   connection.send({
@@ -149,19 +149,19 @@ export const post = async ({ data, connection, userDirName }) => {
   return promise;
 };
 
-const fixBlockData = async (data, { userDirName, fromUserId }) => {
+const fixBlockData = async (data, { useLocalUserDirName, fromUserId }) => {
   let reData = data;
 
   if (Array.isArray(data)) {
     return await Promise.all(
-      data.map((e) => fixBlockData(e, { userDirName, fromUserId }))
+      data.map((e) => fixBlockData(e, { useLocalUserDirName, fromUserId }))
     );
   }
 
   if (data && data.__type__) {
     // 属于中转的数据，从远端进行获取
     const chunks = await getChunks(data.hashs, {
-      userDirName,
+      useLocalUserDirName,
       fromUserId,
     });
 
@@ -187,14 +187,14 @@ const fixBlockData = async (data, { userDirName, fromUserId }) => {
 };
 
 // 将文件类型的数据转为块信息
-const fileToCacheBlocks = async (data, { userDirName }) => {
+const fileToCacheBlocks = async (data, { useLocalUserDirName }) => {
   let reData = data;
   if (Array.isArray(data)) {
     reData = await Promise.all(
-      data.map((e) => fileToCacheBlocks(e, { userDirName }))
+      data.map((e) => fileToCacheBlocks(e, { useLocalUserDirName }))
     );
   } else if (data instanceof Blob || data instanceof ArrayBuffer) {
-    const chunkHashs = await cacheFile(data, { userDirName });
+    const chunkHashs = await cacheFile(data, { useLocalUserDirName });
 
     if (data instanceof File) {
       return {
@@ -225,7 +225,7 @@ const fileToCacheBlocks = async (data, { userDirName }) => {
     reData = {};
     await Promise.all(
       Object.keys(data).map(async (key) => {
-        reData[key] = await fileToCacheBlocks(data[key], { userDirName });
+        reData[key] = await fileToCacheBlocks(data[key], { useLocalUserDirName });
       })
     );
   }

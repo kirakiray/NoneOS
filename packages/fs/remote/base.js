@@ -5,13 +5,13 @@ import { RemoteDirHandle } from "./dir.js";
 export class RemoteBaseHandle extends PublicBaseHandle {
   #path;
   #connection;
-  #userDirName;
+  #useLocalUserDirName;
   #remoteUserId;
-  constructor({ path, connection, userDirName, remoteUserId }) {
+  constructor({ path, connection, useLocalUserDirName, remoteUserId }) {
     super({});
     this.#path = path;
     this.#connection = connection;
-    this.#userDirName = userDirName;
+    this.#useLocalUserDirName = useLocalUserDirName;
     this.#remoteUserId = remoteUserId;
   }
 
@@ -35,7 +35,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     return new RemoteDirHandle({
       path: this.#path.split("/").slice(0, -1).join("/"),
       connection: this.#connection,
-      userDirName: this.#userDirName,
+      useLocalUserDirName: this.#useLocalUserDirName,
     });
   }
 
@@ -43,12 +43,12 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     return new RemoteDirHandle({
       path: this.#path.split("/")[0],
       connection: this.#connection,
-      userDirName: this.#userDirName,
+      useLocalUserDirName: this.#useLocalUserDirName,
     });
   }
 
-  get _userDirName() {
-    return this.#userDirName;
+  get _useLocalUserDirName() {
+    return this.#useLocalUserDirName;
   }
 
   get _connection() {
@@ -59,7 +59,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
   async _post(method, args = [], options = {}) {
     try {
       return await post({
-        userDirName: this._userDirName,
+        useLocalUserDirName: this._useLocalUserDirName,
         connection: this._connection,
         data: {
           method,
@@ -99,7 +99,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     };
 
     const result = await post({
-      userDirName: this._userDirName,
+      useLocalUserDirName: this._useLocalUserDirName,
       connection: this._connection,
       data: {
         kind: "obs-fs",
@@ -121,7 +121,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
 
       // 取消观察
       return post({
-        userDirName: this._userDirName,
+        useLocalUserDirName: this._useLocalUserDirName,
         connection: this._connection,
         data: {
           kind: "un-obs-fs",

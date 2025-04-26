@@ -4,12 +4,12 @@ import { localRemoteObsPool } from "./base.js";
 
 export const observerStorage = {};
 
-export const getObserverData = ({ fromUserId, userDirName }) => {
-  userDirName = userDirName || "main";
-  let observerList = observerStorage[`${userDirName}-${fromUserId}`];
+export const getObserverData = ({ fromUserId, useLocalUserDirName }) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
+  let observerList = observerStorage[`${useLocalUserDirName}-${fromUserId}`];
 
   if (!observerList) {
-    observerList = observerStorage[`${userDirName}-${fromUserId}`] = [];
+    observerList = observerStorage[`${useLocalUserDirName}-${fromUserId}`] = [];
   }
 
   return observerList;
@@ -17,7 +17,7 @@ export const getObserverData = ({ fromUserId, userDirName }) => {
 
 on("receive-user-data", async (e) => {
   const {
-    userDirName, // 目标本地用户目录名称
+    useLocalUserDirName, // 目标本地用户目录名称
     fromUserId, // 消息来源用户ID
     // fromTabId, // 消息来源TabID
     tabConnection, // 消息来源TabConnection
@@ -31,7 +31,7 @@ on("receive-user-data", async (e) => {
     // 观察文件变动
     const obsArr = getObserverData({
       fromUserId,
-      userDirName,
+      useLocalUserDirName,
     });
 
     if (!tabConnection.__obs_cancel) {
@@ -86,7 +86,7 @@ on("receive-user-data", async (e) => {
     // 观察文件变动
     const obsArr = getObserverData({
       fromUserId,
-      userDirName,
+      useLocalUserDirName,
     });
 
     const targetIndex = obsArr.findIndex((e) => e.itemId === data.itemId);

@@ -12,19 +12,19 @@ import { encryptMessage } from "../rsa-util.js";
 const deviceStoreCache = {};
 
 // 获取所有设备列表
-export const getDeviceStore = async (userDirName) => {
-  userDirName = userDirName || "main";
+export const getDeviceStore = async (useLocalUserDirName) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
 
   let deviceStorePromise = null;
-  if (!deviceStoreCache[userDirName]) {
-    deviceStoreCache[userDirName] = deviceStorePromise = get(
-      `system/devices/${userDirName}`,
+  if (!deviceStoreCache[useLocalUserDirName]) {
+    deviceStoreCache[useLocalUserDirName] = deviceStorePromise = get(
+      `system/devices/${useLocalUserDirName}`,
       {
         create: "dir",
       }
     ).then((devicesDir) => createData(devicesDir));
   } else {
-    deviceStorePromise = deviceStoreCache[userDirName];
+    deviceStorePromise = deviceStoreCache[useLocalUserDirName];
   }
 
   const deviceStore = await deviceStorePromise;
@@ -38,10 +38,10 @@ export const getDeviceStore = async (userDirName) => {
 // 添加设备
 // deviceCode 设备码
 // confirm 确认信息
-// userDirName 当前用户目录
-export const findDevice = async (deviceCode, userDirName) => {
+// useLocalUserDirName 当前用户目录
+export const findDevice = async (deviceCode, useLocalUserDirName) => {
   // 从服务器查找用户
-  const servers = await getServers(userDirName);
+  const servers = await getServers(useLocalUserDirName);
 
   // 等待服务器准备完成
   await servers.watchUntil(() => servers.every((server) => server.initialized));
@@ -101,7 +101,7 @@ export const findDevice = async (deviceCode, userDirName) => {
     }
 
     // 判断是否已经在我的设备中
-    const myDevices = await getDeviceStore(userDirName);
+    const myDevices = await getDeviceStore(useLocalUserDirName);
     const existingMyDevice = myDevices.find((device) => {
       if (!device.toMeCertificate) {
         return false;
@@ -141,7 +141,7 @@ export const authDevice = async (
     servers: serverUrls, // 服务器地址
     waitingTime = 1000 * 60, // 等待用户响应的时间，默认1分钟
   },
-  userDirName
+  useLocalUserDirName
 ) => {
   // 给目标用户签发证书
   const certificate = await signData(
@@ -150,11 +150,11 @@ export const authDevice = async (
       permission: "Fully", // 完全的授权，代表是本人设备
       expire: expire || Date.now() + 1000 * 60 * 60 * 24 * 30, // 30天有效期
     },
-    userDirName
+    useLocalUserDirName
   );
 
   // 查找用户所在的服务器
-  const servers = await getServers(userDirName);
+  const servers = await getServers(useLocalUserDirName);
 
   // 当前任务id
   const taskId = Math.random().toString(36).slice(2);
@@ -188,7 +188,7 @@ export const authDevice = async (
         data: {
           kind: "verify-my-device", // 验证是否我的设备
           __hasEncrypted: true,
-          userCard: await getMyCardData(userDirName),
+          userCard: await getMyCardData(useLocalUserDirName),
           certificate,
           verifyCode: `__rsa_encrypt__${await encryptMessage(
             rsaPublicKey,
@@ -204,7 +204,7 @@ export const authDevice = async (
         pendingTasks.set(taskId, {
           resolve: resolvePromise,
           reject: rejectPromise,
-          userDirName,
+          useLocalUserDirName,
           toOppoCertificate: certificate,
         });
 
@@ -232,10 +232,10 @@ on("server-agent-data", async (event) => {
     if (!task) {
       return;
     }
-    const { resolve, reject, userDirName } = task;
+    const { resolve, reject, useLocalUserDirName } = task;
 
     // 获取自己的id
-    const selfUserStore = await getUserStore(userDirName);
+    const selfUserStore = await getUserStore(useLocalUserDirName);
     const selfUserId = selfUserStore.userId;
 
     // 验证证书
@@ -252,7 +252,7 @@ on("server-agent-data", async (event) => {
 
     try {
       const deviceData = await addDevice({
-        userDirName,
+        useLocalUserDirName,
         toOppoCertificate: task.toOppoCertificate,
         toMeCertificate,
         userCard,
@@ -267,16 +267,16 @@ on("server-agent-data", async (event) => {
 
 // 添加设备
 const addDevice = async ({
-  userDirName,
+  useLocalUserDirName,
   toOppoCertificate,
   toMeCertificate,
   userCard,
 }) => {
-  const selfUserStore = await getUserStore(userDirName);
+  const selfUserStore = await getUserStore(useLocalUserDirName);
   const selfUserId = selfUserStore.userId;
 
   // 所有验证通过，将双方的证书保存到自己的设备列表中
-  const deviceStore = await getDeviceStore(userDirName);
+  const deviceStore = await getDeviceStore(useLocalUserDirName);
 
   const toOppoUserId = await getHash(toOppoCertificate.data.publicKey);
 
@@ -318,10 +318,10 @@ const addDevice = async ({
 // confirm 确认信息
 export const onEntryDevice = async (
   { deviceCode, verifyCode, confirm },
-  userDirName
+  useLocalUserDirName
 ) => {
   // 从服务器查找用户
-  const servers = await getServers(userDirName);
+  const servers = await getServers(useLocalUserDirName);
 
   // 等待服务器准备完成
   await servers.watchUntil(() => servers.every((server) => server.initialized));
@@ -360,7 +360,7 @@ export const onEntryDevice = async (
         return;
       }
 
-      const selfUserStore = await getUserStore(userDirName);
+      const selfUserStore = await getUserStore(useLocalUserDirName);
       const verifyResult = await verifyDeviceCertificate(
         certificate,
         userCard,
@@ -397,7 +397,7 @@ export const onEntryDevice = async (
             permission: "Fully", // 完全的授权，代表是本人设备
             expire: expireTime,
           },
-          userDirName
+          useLocalUserDirName
         );
 
         // 向目标发送数据
@@ -406,7 +406,7 @@ export const onEntryDevice = async (
           friendId: remoteUserId,
           data: {
             kind: "response-my-device", // 验证是否我的设备
-            userCard: await getMyCardData(userDirName),
+            userCard: await getMyCardData(useLocalUserDirName),
             certificate: oppoCertificate,
             taskId,
           },
@@ -415,7 +415,7 @@ export const onEntryDevice = async (
         if (responseResult.code === 200) {
           // 发送成功，将双方的证书保存到自己的设备列表中
           const deviceData = await addDevice({
-            userDirName,
+            useLocalUserDirName,
             toOppoCertificate: oppoCertificate,
             toMeCertificate: certificate,
             userCard,
@@ -433,7 +433,7 @@ export const onEntryDevice = async (
     // 取消监听
     cancelFunc();
 
-    const servers = await getServers(userDirName);
+    const servers = await getServers(useLocalUserDirName);
 
     servers.forEach((server) => {
       if (server.connectionState !== "connected") {

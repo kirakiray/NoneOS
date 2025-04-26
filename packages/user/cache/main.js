@@ -35,7 +35,7 @@ initCacheCleanupWorker();
 
 on("receive-user-data", async (e) => {
   const {
-    userDirName, // 目标本地用户目录名称
+    useLocalUserDirName, // 目标本地用户目录名称
     data,
     fromUserId, // 消息来源用户ID
     // fromTabId, // 消息来源TabID
@@ -47,7 +47,7 @@ on("receive-user-data", async (e) => {
 
     // 二进制类型的数据，直接写入到cache中
     cacheFile(data, {
-      userDirName,
+      useLocalUserDirName,
     });
     return;
   }
@@ -58,7 +58,7 @@ on("receive-user-data", async (e) => {
     case "get-chunks": {
       const { hashs } = data;
       const chunks = await getChunks(hashs, {
-        userDirName,
+        useLocalUserDirName,
       });
 
       for (let chunk of chunks) {
@@ -75,18 +75,18 @@ on("receive-user-data", async (e) => {
 export const cacheFile = async (
   file,
   {
-    userDirName, // 本地的用户目录
+    useLocalUserDirName, // 本地的用户目录
     chunkSize = 128 * 1024, // 块的大小
   }
 ) => {
-  userDirName = userDirName || "main";
+  useLocalUserDirName = useLocalUserDirName || "main";
 
   // 获取缓存用的文件夹
-  const chunksDir = await get(`local/caches/${userDirName}/chunks`, {
+  const chunksDir = await get(`local/caches/${useLocalUserDirName}/chunks`, {
     create: "dir",
   });
 
-  const infosDir = await get(`local/caches/${userDirName}/infos`, {
+  const infosDir = await get(`local/caches/${useLocalUserDirName}/infos`, {
     create: "dir",
   });
 
@@ -129,14 +129,14 @@ export const cacheFile = async (
 export const getChunks = async (
   hashs,
   {
-    userDirName, // 本地的用户目录
+    useLocalUserDirName, // 本地的用户目录
     fromUserId, // 如果本地找不到，则从这个用户请求
   }
 ) => {
-  userDirName = userDirName || "main";
+  useLocalUserDirName = useLocalUserDirName || "main";
 
   // 获取缓存用的文件夹
-  const chunksDir = await get(`local/caches/${userDirName}/chunks`, {
+  const chunksDir = await get(`local/caches/${useLocalUserDirName}/chunks`, {
     create: "dir",
   });
 
@@ -160,7 +160,7 @@ export const getChunks = async (
 
   // 如果存在不存在的块数据，则向目标用户请求
   if (unexsteChunks.length && fromUserId) {
-    const connection = await connect({ userId: fromUserId, userDirName });
+    const connection = await connect({ userId: fromUserId, useLocalUserDirName });
 
     await connection.watchUntil(() => connection.state === "ready");
 
@@ -228,7 +228,7 @@ export const getChunks = async (
           // 哈希不正确，删除块
           chunksDir.get(fileName).then((handle) => {
             console.warn(
-              `可能被恶意写入，删除 ${userDirName} 用户目录的块 ${fileName}`
+              `可能被恶意写入，删除 ${useLocalUserDirName} 用户目录的块 ${fileName}`
             );
             handle && handle.remove();
           });

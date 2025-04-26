@@ -7,13 +7,13 @@ import { HandServer } from "./handserver.js";
 const ports = new Set();
 
 // 获取userdirname
-const userDirName = new URLSearchParams(location.search).get("userdir");
+const useLocalUserDirName = new URLSearchParams(location.search).get("userdir");
 
 // 生成服务器对象数据
 const servers = new Stanz([]);
 
 // 初始化用户数据
-const userStorePms = getUserStore(userDirName).then(async (userStore) => {
+const userStorePms = getUserStore(useLocalUserDirName).then(async (userStore) => {
   await userStore.ready(true);
 
   const initServersItem = async (e) => {
@@ -35,7 +35,7 @@ const userStorePms = getUserStore(userDirName).then(async (userStore) => {
       //     ways[agentData.way]({
       //       fromUserId,
       //       agentData,
-      //       userDirName,
+      //       useLocalUserDirName,
       //       userStore,
       //     });
       //   }
@@ -125,7 +125,7 @@ self.onconnect = async (e) => {
   setTimeout(() => {
     port.postMessage({
       resType: "ping",
-      userDirName,
+      useLocalUserDirName,
       testId,
     });
   }, 1000);

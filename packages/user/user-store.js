@@ -12,17 +12,17 @@ export const tabSessionid = Math.random().toString(36).slice(2);
 globalThis.tabSessionid = tabSessionid;
 
 // 确保已经初始化了用户
-export const getUserStore = async (userDirName) => {
+export const getUserStore = async (useLocalUserDirName) => {
   // 需要系统目录
   await init("system");
 
-  userDirName = userDirName || "main";
-  if (selfUsers[userDirName]) {
-    return selfUsers[userDirName];
+  useLocalUserDirName = useLocalUserDirName || "main";
+  if (selfUsers[useLocalUserDirName]) {
+    return selfUsers[useLocalUserDirName];
   }
 
-  return (selfUsers[userDirName] = (async () => {
-    const userHandle = await get(`system/users/${userDirName}`, {
+  return (selfUsers[useLocalUserDirName] = (async () => {
+    const userHandle = await get(`system/users/${useLocalUserDirName}`, {
       create: "dir",
     });
 

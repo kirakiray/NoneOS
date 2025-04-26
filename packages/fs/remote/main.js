@@ -2,12 +2,12 @@ import { connect } from "../../user/connection/main.js";
 import { RemoteDirHandle } from "./dir.js";
 import "./public.js";
 
-export const createGet = (userId, { userDirName, selfTabId } = {}) => {
-  userDirName = userDirName || "main";
+export const createGet = (userId, { useLocalUserDirName, selfTabId } = {}) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
 
   // 基础连接器
   const connection = connect({
-    userDirName,
+    useLocalUserDirName,
     selfTabId,
     userId,
   });
@@ -34,7 +34,7 @@ export const createGet = (userId, { userDirName, selfTabId } = {}) => {
     const rootDirHandle = new RemoteDirHandle({
       connection,
       path: pathArr[0],
-      userDirName,
+      useLocalUserDirName,
       remoteUserId: userId,
     });
 

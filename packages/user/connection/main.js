@@ -7,7 +7,7 @@ import { on } from "../event.js";
 
 on("server-agent-data", async (e) => {
   const {
-    userDirName, // 转发给本地的用户名
+    useLocalUserDirName, // 转发给本地的用户名
     fromUserId, // 发送请求的用户ID
     // data: signedData,
     data,
@@ -21,7 +21,7 @@ on("server-agent-data", async (e) => {
   }
 
   // 有用户向你发送连接请求，查看是否存在这个用户实例
-  const connectionStore = getConnections(userDirName);
+  const connectionStore = getConnections(useLocalUserDirName);
 
   switch (data.kind) {
     case "connect-user": {
@@ -33,7 +33,7 @@ on("server-agent-data", async (e) => {
         // 如果不存在，创建一个新的连接实例
         targetUserConnection = new UserConnection({
           userId: fromUserId,
-          userDirName,
+          useLocalUserDirName,
           selfTabId: tabSessionid,
         });
 
@@ -53,7 +53,7 @@ on("server-agent-data", async (e) => {
       // 响应对方和我进行连接
       agentData({
         friendId: fromUserId,
-        userDirName,
+        useLocalUserDirName,
         data: {
           kind: "response-offer",
           fromTabId: targetUserConnection.selfTabId,
@@ -89,7 +89,7 @@ on("server-agent-data", async (e) => {
 
       agentData({
         friendId: fromUserId, // 对方的用户ID
-        userDirName, // 使用本地的用户名目录
+        useLocalUserDirName, // 使用本地的用户名目录
         data: {
           kind: "response-answer",
           toTabId: data.fromTabId,
@@ -168,8 +168,8 @@ on("server-agent-data", async (e) => {
 //   isAgree = false;
 // }
 
-export const getConnection = ({ userId, selfTabId, userDirName }) => {
-  userDirName = userDirName || "main";
+export const getConnection = ({ userId, selfTabId, useLocalUserDirName }) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
   selfTabId = selfTabId || tabSessionid; // 强制使用当前的tabId
 
   if (!userId) {
@@ -178,7 +178,7 @@ export const getConnection = ({ userId, selfTabId, userDirName }) => {
 
   // TODO: safari的情况下，可能需要用户同意才能建立连接
 
-  const connectionStore = getConnections(userDirName);
+  const connectionStore = getConnections(useLocalUserDirName);
 
   let targetUserConnection = connectionStore.find(
     (e) => e.userId === userId && e.selfTabId === selfTabId
@@ -188,7 +188,7 @@ export const getConnection = ({ userId, selfTabId, userDirName }) => {
     // 创建实例
     targetUserConnection = new UserConnection({
       userId,
-      userDirName,
+      useLocalUserDirName,
       selfTabId: selfTabId,
     });
 
@@ -206,11 +206,11 @@ export const getConnection = ({ userId, selfTabId, userDirName }) => {
 };
 
 // 连接目标设备
-export const connect = ({ userId, selfTabId, userDirName }) => {
+export const connect = ({ userId, selfTabId, useLocalUserDirName }) => {
   const targetUserConnection = getConnection({
     userId,
     selfTabId,
-    userDirName,
+    useLocalUserDirName,
   });
 
   targetUserConnection.connect();
@@ -219,6 +219,6 @@ export const connect = ({ userId, selfTabId, userDirName }) => {
 };
 
 // 获取连接存储
-export const getConnectionStore = (userDirName) => {
-  return getConnections(userDirName);
+export const getConnectionStore = (useLocalUserDirName) => {
+  return getConnections(useLocalUserDirName);
 };

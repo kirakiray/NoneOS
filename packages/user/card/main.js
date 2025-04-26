@@ -6,17 +6,17 @@ import { signData } from "../sign.js";
 const stores = {};
 
 // 获取用户卡片数据
-export const getCards = async (userDirName) => {
-  userDirName = userDirName || "main";
-  const cardsDir = await get(`system/cards/${userDirName}`, {
+export const getCards = async (useLocalUserDirName) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
+  const cardsDir = await get(`system/cards/${useLocalUserDirName}`, {
     create: "dir",
   });
   let cardStorePms = null;
 
-  if (!stores[userDirName]) {
-    cardStorePms = stores[userDirName] = createData(cardsDir);
+  if (!stores[useLocalUserDirName]) {
+    cardStorePms = stores[useLocalUserDirName] = createData(cardsDir);
   } else {
-    cardStorePms = stores[userDirName];
+    cardStorePms = stores[useLocalUserDirName];
   }
 
   const cardStore = await cardStorePms;
@@ -27,15 +27,15 @@ export const getCards = async (userDirName) => {
 };
 
 // 获取自己的用户卡片数据
-export const getMyCardData = async (userDirName) => {
-  userDirName = userDirName || "main";
-  const storeData = await getUserStore(userDirName);
+export const getMyCardData = async (useLocalUserDirName) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
+  const storeData = await getUserStore(useLocalUserDirName);
 
   const data = await signData(
     {
       userName: storeData.userName,
     },
-    userDirName
+    useLocalUserDirName
   );
 
   return data;

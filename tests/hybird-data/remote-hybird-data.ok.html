@@ -104,7 +104,7 @@
       await test("Test Remote Directory Observation", async () => {
         // 访问user1的内容
         const remoteAccessor = createGet(user1.userId, {
-          userDirName: "main",
+          useLocalUserDirName: "main",
           selfTabId: mainTabId,
         });
 
@@ -166,7 +166,7 @@
       // await test("Hybird Data with Remote Handle", async () => {
       //   // 访问user1的内容
       //   const remoteAccessor = createGet(user1.userId, {
-      //     userDirName: "main",
+      //     useLocalUserDirName: "main",
       //     selfTabId: mainTabId,
       //   });
 

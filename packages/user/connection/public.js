@@ -4,13 +4,13 @@ const connections = {};
 
 globalThis.connections = connections;
 
-export const getConnections = (userDirName) => {
-  userDirName = userDirName || "main";
-  if (connections[userDirName]) {
-    return connections[userDirName];
+export const getConnections = (useLocalUserDirName) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
+  if (connections[useLocalUserDirName]) {
+    return connections[useLocalUserDirName];
   }
 
-  return (connections[userDirName] = new Stanz({}));
+  return (connections[useLocalUserDirName] = new Stanz({}));
 };
 
 // 注意，不能加上这个逻辑，会导致用户无法再次连接成功，即使已经刷新页面

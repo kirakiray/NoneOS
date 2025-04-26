@@ -14,14 +14,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
 
     if (handleInfo.kind === "dir") {
       return new RemoteDirHandle({
-        userDirName: this._userDirName,
+        useLocalUserDirName: this._useLocalUserDirName,
         connection: this._connection,
         path: handleInfo.path,
         remoteUserId: this.remoteUserId,
       });
     } else if (handleInfo.kind === "file") {
       return new RemoteFileHandle({
-        userDirName: this._userDirName,
+        useLocalUserDirName: this._useLocalUserDirName,
         connection: this._connection,
         path: handleInfo.path,
         remoteUserId: this.remoteUserId,

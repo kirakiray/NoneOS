@@ -5,9 +5,9 @@ import { signData } from "../sign.js";
 const serverCache = new Map();
 
 // 查找在线用户
-const findOnlineUser = async (friendId, userDirName) => {
+const findOnlineUser = async (friendId, useLocalUserDirName) => {
   // 检查缓存中是否有可用服务器
-  const cacheKey = `${userDirName}:${friendId}`;
+  const cacheKey = `${useLocalUserDirName}:${friendId}`;
   const cachedServers = serverCache.get(cacheKey);
 
   let canUseSers = [];
@@ -20,7 +20,7 @@ const findOnlineUser = async (friendId, userDirName) => {
       const canUseSers = [];
 
       // 缓存不存在或已过期，重新查找服务器
-      const servers = await getServers(userDirName);
+      const servers = await getServers(useLocalUserDirName);
 
       // 并行查找用户是否在线
       await Promise.all(
@@ -63,12 +63,12 @@ const findOnlineUser = async (friendId, userDirName) => {
 export const agentData = async ({
   friendId,
   data,
-  userDirName, // 本地存储的用户数据的目录名
+  useLocalUserDirName, // 本地存储的用户数据的目录名
   timeout = 5000,
 }) => {
-  userDirName = userDirName || "main";
+  useLocalUserDirName = useLocalUserDirName || "main";
 
-  const canUseSers = await findOnlineUser(friendId, userDirName);
+  const canUseSers = await findOnlineUser(friendId, useLocalUserDirName);
 
   if (!canUseSers.length) {
     console.error("未查找到目标用户 " + friendId + " 所在的服务器");
@@ -80,7 +80,7 @@ export const agentData = async ({
 
   let targetServer;
 
-  const signedData = await signData(data, userDirName);
+  const signedData = await signData(data, useLocalUserDirName);
 
   for (let e of canUseSers) {
     // 转发请求

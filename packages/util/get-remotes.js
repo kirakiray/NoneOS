@@ -5,7 +5,7 @@ import { Stanz } from "../libs/stanz/main.js";
 
 on("receive-user-data", async (e) => {
   const {
-    userDirName, // 目标本地用户目录名称
+    useLocalUserDirName, // 目标本地用户目录名称
     fromUserId, // 消息来源用户ID
     // fromTabId, // 消息来源TabID
     tabConnection, // 消息来源TabConnection
@@ -21,7 +21,7 @@ on("receive-user-data", async (e) => {
     tabConnection._dirs = dirs;
 
     // 更新远程目录
-    updataRemotes({ userDirName });
+    updataRemotes({ useLocalUserDirName });
   } else if (kind === "close") {
     tabConnection.close();
     // 主动关闭无法触发onconnectionstatechange事件，需要手动触发
@@ -30,7 +30,7 @@ on("receive-user-data", async (e) => {
     );
 
     // 更新远程目录
-    updataRemotes({ userDirName });
+    updataRemotes({ useLocalUserDirName });
   }
 });
 
@@ -38,12 +38,12 @@ on("receive-user-data", async (e) => {
 const remotes = {};
 
 // 更新远程文件目录
-const updataRemotes = async ({ userDirName } = {}) => {
-  const selfRemotes = await getRemotes({ userDirName });
+const updataRemotes = async ({ useLocalUserDirName } = {}) => {
+  const selfRemotes = await getRemotes({ useLocalUserDirName });
 
   for (let e of selfRemotes) {
     const { userId } = e;
-    const connection = await getConnection({ userDirName, userId });
+    const connection = await getConnection({ useLocalUserDirName, userId });
     // 从所有tabs中收集目录信息
     const dirs = connection.tabs
       .flatMap((tab) =>
@@ -63,15 +63,15 @@ const updataRemotes = async ({ userDirName } = {}) => {
 };
 
 // 获取所有远程文件目录
-export const getRemotes = async ({ userDirName } = {}) => {
-  userDirName = userDirName || "main";
+export const getRemotes = async ({ useLocalUserDirName } = {}) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
 
-  if (remotes[userDirName]) {
-    return remotes[userDirName];
+  if (remotes[useLocalUserDirName]) {
+    return remotes[useLocalUserDirName];
   }
 
   // 获取已经授权的设备
-  const deviceStore = await getDeviceStore(userDirName);
+  const deviceStore = await getDeviceStore(useLocalUserDirName);
 
   const arr = deviceStore.map((e) => {
     const userId = e.toOppoCertificate.data.authTo;
@@ -88,7 +88,7 @@ export const getRemotes = async ({ userDirName } = {}) => {
     };
   });
 
-  return (remotes[userDirName] = new Stanz(arr));
+  return (remotes[useLocalUserDirName] = new Stanz(arr));
 };
 
 export default getRemotes;

@@ -37,7 +37,7 @@
         // user2 向 user1 发送数据
         await agentData({
           friendId: user1.userId,
-          userDirName: "user2",
+          useLocalUserDirName: "user2",
           data: { randomString },
         });
 
@@ -46,7 +46,7 @@
 
         return {
           assert:
-            result.userDirName === "user1" &&
+            result.useLocalUserDirName === "user1" &&
             result.fromUserId === user2.userId &&
             result.data.randomString === randomString,
           content: result,
@@ -75,7 +75,7 @@
         // user2 向 user1 发送数据
         await agentData({
           friendId: user1.userId,
-          userDirName: "user2",
+          useLocalUserDirName: "user2",
           data: testData,
         });
 
@@ -84,7 +84,7 @@
 
         return {
           assert:
-            result.userDirName === "user1" &&
+            result.useLocalUserDirName === "user1" &&
             result.fromUserId === user2.userId &&
             result.data.val === testData.val,
           content: {
@@ -104,7 +104,7 @@
         // 尝试向不存在的用户发送数据
         const e = await agentData({
           friendId: nonExistentUserId,
-          userDirName: "user1",
+          useLocalUserDirName: "user1",
           data: { test: "data" },
         });
 
@@ -143,7 +143,7 @@
         // user2 向 user1 发送数据
         await agentData({
           friendId: user1.userId,
-          userDirName: "user2",
+          useLocalUserDirName: "user2",
           data: testData,
         });
 

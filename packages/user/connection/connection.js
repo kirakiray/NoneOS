@@ -15,17 +15,17 @@ const iceServers = [
 export class UserConnection extends Stanz {
   #handlers = []; // 存储所有的消息回调函数
   #userId; // 用户ID
-  #userDirName; // 用户目录名称
+  #useLocalUserDirName; // 用户目录名称
   #selfTabId; // 自己的tabId
 
-  constructor({ userId, userDirName, selfTabId }) {
+  constructor({ userId, useLocalUserDirName, selfTabId }) {
     super({
       state: "not-ready", // 连接状态
       tabs: [], // 所有的用户网页标签链接
     });
 
     this.#userId = userId;
-    this.#userDirName = userDirName;
+    this.#useLocalUserDirName = useLocalUserDirName;
     this.#selfTabId = selfTabId;
   }
 
@@ -62,7 +62,7 @@ export class UserConnection extends Stanz {
       remoteTabId: tabId,
       host: this,
       userId: this.#userId,
-      userDirName: this.#userDirName,
+      useLocalUserDirName: this.#useLocalUserDirName,
       selfTabId: this.#selfTabId,
     });
     allConnections.add(targetTabCon);
@@ -135,7 +135,7 @@ export class UserConnection extends Stanz {
     // 检查是否有可用的连接
     return agentData({
       friendId: this.#userId,
-      userDirName: this.#userDirName,
+      useLocalUserDirName: this.#useLocalUserDirName,
       data: {
         kind: "connect-user",
         fromTabId: this.#selfTabId, // 从哪个tabId连接过去
@@ -181,11 +181,11 @@ class TabConnection extends Stanz {
   #channels = new Map(); // 存储所有的数据通道
   #messageHandlers = []; // 消息处理函数
   #userId; // 用户ID
-  #userDirName; // 用户目录名称
+  #useLocalUserDirName; // 用户目录名称
   #selfTabId; // 自己的tabId
   #host; // 宿主UserConnection实例
 
-  constructor({ remoteTabId, host, userId, userDirName, selfTabId }) {
+  constructor({ remoteTabId, host, userId, useLocalUserDirName, selfTabId }) {
     super({
       state: "new", // 连接状态
       // new - 刚刚创建了一个 RTCPeerConnection 对象，并且尚未建立任何连接。
@@ -200,7 +200,7 @@ class TabConnection extends Stanz {
     this.#remoteTabId = remoteTabId;
     this.#host = host;
     this.#userId = userId;
-    this.#userDirName = userDirName;
+    this.#useLocalUserDirName = useLocalUserDirName;
     this.#selfTabId = selfTabId;
 
     // 创建rtc连接
@@ -218,7 +218,7 @@ class TabConnection extends Stanz {
         // 将 candidate 转为字符串发送给目标设备
         agentData({
           friendId: this.#userId,
-          userDirName: this.#userDirName,
+          useLocalUserDirName: this.#useLocalUserDirName,
           data: {
             kind: "agent-ice-candidate",
             candidate: JSON.stringify(e.candidate),
@@ -311,7 +311,7 @@ class TabConnection extends Stanz {
           tabConnection: this,
           fromUserId: this.#userId,
           fromTabId: this.#remoteTabId, // 发送给目标设备的tabId
-          userDirName: this.#userDirName,
+          useLocalUserDirName: this.#useLocalUserDirName,
         });
       };
 
@@ -373,7 +373,7 @@ class TabConnection extends Stanz {
       if (typeof finnalData === "string" && finnalData.length > 1024 * 256) {
         // 如果消息数据大于256KB，则将其分割成多个小的消息块
         const hashs = await cacheFile(finnalData, {
-          userDirName: this.#userDirName,
+          useLocalUserDirName: this.#useLocalUserDirName,
         });
 
         finnalData = JSON.stringify({

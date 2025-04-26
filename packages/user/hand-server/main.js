@@ -5,9 +5,9 @@ import { verifyData } from "../verify.js";
 import { getHash } from "../../fs/util.js";
 
 // 获取服务器列表
-export const getServers = async (userDirName) => {
-  userDirName = userDirName || "main";
-  const selfUserStore = await getUserStore(userDirName);
+export const getServers = async (useLocalUserDirName) => {
+  useLocalUserDirName = useLocalUserDirName || "main";
+  const selfUserStore = await getUserStore(useLocalUserDirName);
   await selfUserStore.ready(true);
 
   // 初始化服务器列表
@@ -43,11 +43,11 @@ export const getServers = async (userDirName) => {
 
     const handWorker = (selfUserStore.__handWorker = new SharedWorker(
       new URL(
-        "./hand-shared-worker.js?userdir=" + userDirName,
+        "./hand-shared-worker.js?userdir=" + useLocalUserDirName,
         import.meta.url
       ),
       {
-        name: "hand-worker-" + userDirName,
+        name: "hand-worker-" + useLocalUserDirName,
         type: "module",
       }
     ));
@@ -120,7 +120,7 @@ export const getServers = async (userDirName) => {
                 server,
                 fromUserId,
                 data: agentData.data,
-                userDirName,
+                useLocalUserDirName,
                 signed: true,
               });
             })();
@@ -133,7 +133,7 @@ export const getServers = async (userDirName) => {
               server,
               fromUserId,
               data: agentData,
-              userDirName,
+              useLocalUserDirName,
               signed: false,
             });
           }
@@ -155,8 +155,8 @@ export const getServers = async (userDirName) => {
 };
 
 // 添加服务器
-export const addServer = async (url, userDirName) => {
-  const selfUserStore = await getUserStore(userDirName);
+export const addServer = async (url, useLocalUserDirName) => {
+  const selfUserStore = await getUserStore(useLocalUserDirName);
 
   selfUserStore.servers.push({
     url,
@@ -164,8 +164,8 @@ export const addServer = async (url, userDirName) => {
 };
 
 // 删除服务器
-export const removeServer = async (url, userDirName) => {
-  const selfUserStore = await getUserStore(userDirName);
+export const removeServer = async (url, useLocalUserDirName) => {
+  const selfUserStore = await getUserStore(useLocalUserDirName);
 
   const targetIndex = selfUserStore.servers.findIndex(
     (server) => server.url === url

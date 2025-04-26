@@ -3,16 +3,16 @@ import { createSigner } from "./util.js";
 import { getUserStore } from "./user-store.js";
 
 // 用自身账户生成带签名的数据
-export const signData = async (originData, userDirName) => {
+export const signData = async (originData, useLocalUserDirName) => {
   // 需要系统目录
   await init("system");
 
   let userStore;
-  if (!userDirName || typeof userDirName === "string") {
+  if (!useLocalUserDirName || typeof useLocalUserDirName === "string") {
     // 获取私钥准备签名
-    userStore = await getUserStore(userDirName);
-  } else if (typeof userDirName === "object" && userDirName.pair) {
-    userStore = userDirName;
+    userStore = await getUserStore(useLocalUserDirName);
+  } else if (typeof useLocalUserDirName === "object" && useLocalUserDirName.pair) {
+    userStore = useLocalUserDirName;
   }
 
   await userStore.pair.ready();
