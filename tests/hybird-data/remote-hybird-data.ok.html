@@ -164,80 +164,81 @@
       });
 
       import { createData } from "/packages/hybird-data/main.js";
-
-      await test("Hybird Data with Remote Handle", async () => {
-        // 访问user1的内容
+      await test("Hybrid Data Remote Sync Test", async () => {
+        // Access user1's content
         const remoteAccessor = createGet(user1.userId, {
           useLocalUserDirName: "main",
           selfTabId: mainTabId,
         });
 
-        // 访问本地目录
+        // Access local directory
         const localDirectory = await get("local/test/test-remote-hybird", {
           create: "dir",
         });
 
-        // 访问远程目录，因为是测试账户，所以和本地目录内容一致
+        // Access remote directory, since it's a test account, content is same as local
         const remoteDirectory = await remoteAccessor(
           "local/test/test-remote-hybird"
         );
 
-        const localData = await createData(localDirectory);
+        // Create local hybrid data instance
+        const localHybridData = await createData(localDirectory);
 
-        const text1 = "Hello World! - " + Math.random().toString(32).slice(2);
+        // Generate initial test content
+        const initialContent = "Initial Content - " + Math.random().toString(32).slice(2);
+        localHybridData.val = initialContent;
 
-        localData.val = text1;
+        // Wait for data to be ready
+        await localHybridData.ready();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // 等待数据准备就绪
-        await localData.ready();
+        // Create remote hybrid data instance
+        const remoteHybridData = await createData(remoteDirectory);
 
-        await new Promise((res) => setTimeout(res, 100));
+        // Verify initial sync status
+        const initialSyncCheck = 
+          localHybridData.val === remoteHybridData.val && 
+          remoteHybridData.val === initialContent;
 
-        const remoteData = await createData(remoteDirectory);
-
-        // 查看两个数据是否一致
-        const assert1 =
-          localData.val === remoteData.val && remoteData.val === text1;
-
-        if (!assert1) {
-          throw new Error("localData.val !== remoteData.val");
+        if (!initialSyncCheck) {
+          throw new Error("Initial sync check failed: Local data does not match remote data");
         }
 
-        // 通过远端修改数据
-        const change1 = "change 1 - " + Math.random().toString(32).slice(2);
-        remoteData.val = change1;
+        // Remote data modification test
+        const remoteModification = "Remote Modification - " + Math.random().toString(32).slice(2);
+        remoteHybridData.val = remoteModification;
 
-        await remoteData.ready();
-        await new Promise((res) => setTimeout(res, 100));
+        await remoteHybridData.ready();
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
-        // 查看两个数据是否一致
-        const assert2 =
-          localData.val === remoteData.val && remoteData.val === change1;
+        // Verify remote modification sync status
+        const remoteSyncCheck = 
+          localHybridData.val === remoteHybridData.val && 
+          remoteHybridData.val === remoteModification;
 
-        if (!assert2) {
-          throw new Error(
-            "After remote change: localData.val !== remoteData.val"
-          );
+        if (!remoteSyncCheck) {
+          throw new Error("Remote modification sync check failed: Local data not synced with remote changes");
         }
 
-        // 反向修改
-        const change2 = "change 2 - " + Math.random().toString(32).slice(2);
-        localData.val = change2;
-        await localData.ready();
-        await new Promise((res) => setTimeout(res, 100));
-        // 查看两个数据是否一致
-        const assert3 =
-          localData.val === remoteData.val && remoteData.val === change2;
+        // Local data modification test
+        const localModification = "Local Modification - " + Math.random().toString(32).slice(2);
+        localHybridData.val = localModification;
+        
+        await localHybridData.ready();
+        await new Promise((resolve) => setTimeout(resolve, 100));
+        
+        // Verify local modification sync status
+        const localSyncCheck = 
+          localHybridData.val === remoteHybridData.val && 
+          remoteHybridData.val === localModification;
 
-        if (!assert3) {
-          throw new Error(
-            "After local change: localData.val !== remoteData.val"
-          );
+        if (!localSyncCheck) {
+          throw new Error("Local modification sync check failed: Remote data not synced with local changes");
         }
 
         return {
-          assert: assert1 && assert2 && assert3,
-          content: "Hybird Data with Remote Handle",
+          assert: initialSyncCheck && remoteSyncCheck && localSyncCheck,
+          content: "Hybrid data remote sync test completed",
         };
       });
     </script>
