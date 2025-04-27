@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { get } from "../fs/main.js";
+      import { createData } from "./main.js";
+
+      const handle = await get("local/test/hydata-2", {
+        create: "dir",
+      });
+
+      const data = await createData(handle);
+
+      // console.log(data);
+      console.log(data.toJSON());
+
+      debugger;
+
+      // // 设置数据
+      // data.val = "Set val " + Math.random().toString(32).slice(2);
+
+      // // 添加子对象
+      // data.sub = {
+      //   val: "Set sub val " + Math.random().toString(32).slice(2),
+      // };
+    </script>
+  </body>
+</html>
