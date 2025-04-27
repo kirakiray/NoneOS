@@ -17,17 +17,23 @@
       const data = await createData(handle);
 
       // console.log(data);
-      console.log(data.toJSON());
 
-      debugger;
+      // data.push({
+      //   hah: Date.now().toLocaleString().slice(6),
+      // });
+
+      console.log(data.toJSON());
 
       // // 设置数据
       // data.val = "Set val " + Math.random().toString(32).slice(2);
 
-      // // 添加子对象
-      // data.sub = {
-      //   val: "Set sub val " + Math.random().toString(32).slice(2),
-      // };
+      // 添加或替换子对象
+      data.sub = {
+        val: "Set sub val " + Math.random().toString(32).slice(2),
+        dbsub: {
+          val2: "Set sub val2 " + Math.random().toString(32).slice(2),
+        },
+      };
     </script>
   </body>
 </html>

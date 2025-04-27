@@ -54,6 +54,7 @@ export class HybirdData extends Stanz {
 
       this.#initRoot();
     } else {
+      // TODO: 不明白的情况
       debugger;
     }
   }
@@ -124,7 +125,9 @@ export class HybirdData extends Stanz {
     const wid = this.watchTick((watchs) => {
       // 过滤掉非set操作
       const reWatchs = Array.from(watchs).filter(
-        (e) => e.type === "set" && !reservedKeys.includes(e.name)
+        (e) =>
+          (e.type === "set" && !reservedKeys.includes(e.name)) ||
+          e.type === "array"
       );
 
       if (!reWatchs.length) {
@@ -150,9 +153,7 @@ export class HybirdData extends Stanz {
   }
 
   async ready() {
-    return this.watchUntil(() => {
-      return this.dataStatus === "ok";
-    });
+    return this.watchUntil(() => this.dataStatus === "ok");
   }
 
   get __OriginStanz() {
@@ -161,6 +162,10 @@ export class HybirdData extends Stanz {
 
   get _root() {
     return this.#root || this;
+  }
+
+  get _rootMapper() {
+    return this._root.#rootMapper;
   }
 
   get _dataId() {
