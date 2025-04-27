@@ -76,43 +76,35 @@ const removeData = async (oldData, exitedData) => {
 
   // 从根上获取该对象
   const targetData = rootMapper.get(dataId);
-
-  const finnalFunc = async () => {
-    // 标记为需要删除
+  // 删除数据及其关联对象的具体实现
+  const deleteDataAndRelated = async () => {
     targetData.__needRemove = true;
 
     // 删除子对象
-    await Promise.all(
-      Array.from(Object.entries(targetData)).map(async ([key, val]) => {
-        if (typeof val === "object") {
-          return removeData(`${Identification}${val._dataId}`, exitedData);
-        }
-      })
-    );
+    const childDeletions = Object.entries(targetData)
+      .filter(([_, val]) => typeof val === "object")
+      .map(([_, val]) =>
+        removeData(`${Identification}${val._dataId}`, exitedData)
+      );
 
-    // 没有被使用，删除
+    await Promise.all(childDeletions);
+
+    // 清理数据
     rootMapper.delete(dataId);
 
     const fileHandle = await targetData._spaceHandle.get(dataId);
-
     if (fileHandle) {
       await fileHandle.remove();
     }
   };
 
-  if (!targetData.owner.size) {
-    finnalFunc();
-  } else {
-    // TODO: 有被使用，确认一下是否在其他子对象上；如果不在，删除
+  // 检查是否可以删除数据
+  const canDelete =
+    !targetData.owner.size ||
+    Array.from(targetData.owner).every((owner) => owner.__needRemove);
 
-    // 确认owner是否准备被删除
-    const exitedArr = Array.from(targetData.owner).filter(
-      (e) => !e.__needRemove
-    );
-
-    if (!exitedArr.length) {
-      finnalFunc();
-    }
+  if (canDelete) {
+    await deleteDataAndRelated();
   }
 };
 
