@@ -78,7 +78,7 @@ const removeData = async (oldData, exitedData) => {
   const targetData = rootMapper.get(dataId);
   // 删除数据及其关联对象的具体实现
   const deleteDataAndRelated = async () => {
-    targetData.__needRemove = true;
+    targetData[NEEDREMOVEDATA] = true;
 
     // 删除子对象
     const childDeletions = Object.entries(targetData)
@@ -101,11 +101,13 @@ const removeData = async (oldData, exitedData) => {
   // 检查是否可以删除数据
   const canDelete =
     !targetData.owner.size ||
-    Array.from(targetData.owner).every((owner) => owner.__needRemove);
+    Array.from(targetData.owner).every((owner) => owner[NEEDREMOVEDATA]);
 
   if (canDelete) {
     await deleteDataAndRelated();
   }
 };
+
+const NEEDREMOVEDATA = Symbol("needRemoveData");
 
 export const getRandomId = () => Math.random().toString(36).slice(2);

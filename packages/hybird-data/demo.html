@@ -22,18 +22,20 @@
       //   hah: Date.now().toLocaleString().slice(6),
       // });
 
-      console.log(data.toJSON());
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      console.log(data.toJSON(), data);
 
       // // 设置数据
       // data.val = "Set val " + Math.random().toString(32).slice(2);
 
       // 添加或替换子对象
-      data.sub = {
-        val: "Set sub val " + Math.random().toString(32).slice(2),
-        dbsub: {
-          val2: "Set sub val2 " + Math.random().toString(32).slice(2),
-        },
-      };
+      // data.sub = {
+      //   val: "Set sub val " + Math.random().toString(32).slice(2),
+      //   dbsub: {
+      //     val2: "Set sub val2 " + Math.random().toString(32).slice(2),
+      //   },
+      // };
     </script>
   </body>
 </html>
