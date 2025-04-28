@@ -138,7 +138,7 @@ export class HybirdData extends Stanz {
       return;
     }
 
-    const rootMapper = this.#rootMapper;
+    const rootMapper = this._rootMapper;
 
     if (typeof value === "string" && value.startsWith(Identification)) {
       const dataId = value.replace(Identification, "");
@@ -208,13 +208,13 @@ export class HybirdData extends Stanz {
     // 处理删除的情况
     const allKeys = Object.keys(this);
     const exitedKeys = Object.keys(data);
-    const deleteKeys = allKeys.filter((e) => !exitedKeys.includes(e));
+    const deleteKeys = allKeys.filter(
+      (e) => !exitedKeys.includes(e) && !reservedKeys.includes(e)
+    );
 
     if (deleteKeys.length) {
       deleteKeys.forEach((e) => delete this[e]);
     }
-
-    debugger;
 
     this.dataStatus = "ok";
   }
