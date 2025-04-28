@@ -2,6 +2,8 @@ export const reservedKeys = ["dataStatus", "_dataId", "_spaceHandle"];
 
 export const Identification = "__dataid__";
 
+import { HybirdData } from "./hybird-data.js";
+
 // 保存数据
 export const saveData = async (hydata) => {
   hydata.dataStatus = "saving";
@@ -15,7 +17,7 @@ export const saveData = async (hydata) => {
       }
 
       // 如果是对象，递归处理
-      if (typeof value === "object") {
+      if (value !== null && typeof value === "object") {
         await saveData(value);
         finnalData[key] = `${Identification}${value._dataId}`;
         return;
@@ -99,9 +101,24 @@ const removeData = async (oldData, exitedData) => {
   };
 
   // 检查是否可以删除数据
-  const canDelete =
-    !targetData.owner.size ||
-    Array.from(targetData.owner).every((owner) => owner[NEEDREMOVEDATA]);
+  // let canDelete =
+  //   !targetData.owner.size ||
+  //   Array.from(targetData.owner).every((owner) => owner[NEEDREMOVEDATA]);
+
+  let canDelete = true;
+
+  if (targetData.owner.size) {
+    // 如果存在一个未被删除的owner，那么不能删除数据
+    if (
+      Array.from(targetData.owner).some((e) => {
+        return e instanceof HybirdData && !e[NEEDREMOVEDATA];
+      })
+    ) {
+      canDelete = false;
+    }
+  }
+
+  debugger;
 
   if (canDelete) {
     await deleteDataAndRelated();

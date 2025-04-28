@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Document</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
   </head>
   <body>
     <script type="module">
@@ -26,16 +27,23 @@
 
       console.log(data.toJSON(), data);
 
-      // // 设置数据
-      // data.val = "Set val " + Math.random().toString(32).slice(2);
+      // 设置数据
+      data.val = "Set val " + Math.random().toString(32).slice(2);
 
       // 添加或替换子对象
-      // data.sub = {
-      //   val: "Set sub val " + Math.random().toString(32).slice(2),
-      //   dbsub: {
-      //     val2: "Set sub val2 " + Math.random().toString(32).slice(2),
-      //   },
-      // };
+      data.sub = {
+        val: "Set sub val " + Math.random().toString(32).slice(2),
+        dbsub: {
+          val2: "Set sub val2 " + Math.random().toString(32).slice(2),
+        },
+      };
+
+      // const data3 = $.stanz({});
+
+      // data3.sub = data.sub;
+
+      // // 置空对象
+      // data.sub = null;
     </script>
   </body>
 </html>
