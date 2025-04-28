@@ -101,10 +101,6 @@ const removeData = async (oldData, exitedData) => {
   };
 
   // 检查是否可以删除数据
-  // let canDelete =
-  //   !targetData.owner.size ||
-  //   Array.from(targetData.owner).every((owner) => owner[NEEDREMOVEDATA]);
-
   let canDelete = true;
 
   if (targetData.owner.size) {
@@ -117,8 +113,6 @@ const removeData = async (oldData, exitedData) => {
       canDelete = false;
     }
   }
-
-  debugger;
 
   if (canDelete) {
     await deleteDataAndRelated();

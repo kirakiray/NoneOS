@@ -59,39 +59,6 @@ export class HybirdData extends Stanz {
     }
   }
 
-  // 根据写入本地的data，进行初始化
-  async #initData(data) {
-    await Promise.all(
-      Object.entries(data).map(async ([key, value]) => {
-        if (typeof value === "string" && value.startsWith(Identification)) {
-          const dataId = value.replace(Identification, "");
-
-          // 读取本地的handle文件
-          const subHandle = await this._spaceHandle.get(dataId);
-
-          if (!subHandle) {
-            // 没有找到对应的handle文件
-            return;
-          }
-
-          const subText = await subHandle.text();
-          const subData = JSON.parse(subText);
-
-          const subHyData = new HybirdData(subData, {
-            _dataId: dataId,
-            owner: this,
-          });
-
-          this[key] = subHyData; // 设置数据，这里会触发set，从而触发保存数据的逻辑
-
-          return;
-        }
-
-        this[key] = value;
-      })
-    );
-  }
-
   // 初始化根对象的
   async #initRoot() {
     let handle = await this._spaceHandle.get(this.#dataId, {
@@ -119,7 +86,14 @@ export class HybirdData extends Stanz {
       }
 
       // 通过修改handle的数据重新刷新数据
-      debugger;
+      const modifyDataId = e.path.replace(/.+\//, "");
+      let targetData = this._rootMapper.get(modifyDataId);
+
+      if (modifyDataId === "_root") {
+        targetData = this._root;
+      }
+
+      targetData.reload(); // 从handle中重新加载数据
     });
 
     const wid = this.watchTick((watchs) => {
@@ -149,6 +123,99 @@ export class HybirdData extends Stanz {
     });
 
     // 根节点初始化完成
+    this.dataStatus = "ok";
+  }
+
+  // 根据本地的data，进行初始化数据；会将子对象进行初始化
+  async #initData(data) {
+    await Promise.all(
+      Object.entries(data).map(([key, value]) => this.#setData(key, value))
+    );
+  }
+
+  async #setData(key, value) {
+    if (reservedKeys.includes(key)) {
+      return;
+    }
+
+    const rootMapper = this.#rootMapper;
+
+    if (typeof value === "string" && value.startsWith(Identification)) {
+      const dataId = value.replace(Identification, "");
+
+      // 查看是否已经存在
+      const exited = rootMapper.get(dataId);
+      if (exited) {
+        if (exited === this[key]) {
+          return;
+        }
+
+        this[key] = exited;
+        return;
+      }
+
+      // 读取本地的handle文件
+      const subHandle = await this._spaceHandle.get(dataId);
+
+      if (!subHandle) {
+        // 没有找到对应的handle文件
+        return;
+      }
+
+      const subText = await subHandle.text();
+      const subData = JSON.parse(subText);
+
+      const subHyData = new HybirdData(subData, {
+        _dataId: dataId,
+        owner: this,
+      });
+
+      this[key] = subHyData; // 设置数据，这里会触发set，从而触发保存数据的逻辑
+      return;
+    }
+
+    if (this[key] !== value) {
+      this[key] = value;
+    }
+  }
+
+  async reload() {
+    this.dataStatus = "preparing";
+
+    const handle = await this._spaceHandle.get(this.#dataId);
+
+    if (!handle) {
+      // 没有找到对应的handle文件
+      console.warn("Data has been deleted", this);
+      // this.revoke();
+      return;
+    }
+
+    const text = await handle.text();
+    if (!text) {
+      // 没有找到对应的handle文件
+      console.warn("Data has been deleted", this);
+      return;
+    }
+
+    const data = JSON.parse(text);
+
+    // 根据对象数据进行修正
+    await Promise.all(
+      Object.entries(data).map(([key, value]) => this.#setData(key, value))
+    );
+
+    // 处理删除的情况
+    const allKeys = Object.keys(this);
+    const exitedKeys = Object.keys(data);
+    const deleteKeys = allKeys.filter((e) => !exitedKeys.includes(e));
+
+    if (deleteKeys.length) {
+      deleteKeys.forEach((e) => delete this[e]);
+    }
+
+    debugger;
+
     this.dataStatus = "ok";
   }
 
