@@ -167,8 +167,9 @@ export class HybirdData extends Stanz {
         return;
       }
 
+      const subText = await subHandle.text();
+
       try {
-        const subText = await subHandle.text();
         const subData = JSON.parse(subText);
 
         const subHyData = new HybirdData(subData, {
@@ -179,7 +180,7 @@ export class HybirdData extends Stanz {
         this[key] = subHyData; // 设置数据，这里会触发set，从而触发保存数据的逻辑
       } catch (e) {
         console.error(
-          new Error(`Data parsing error, file content: ${subText}`, {
+          new Error(`Data parsing error, file content: \`${subText}\``, {
             cause: e,
           })
         );

@@ -13,25 +13,20 @@
       import { test } from "/ok-test/main.js";
       import { createData } from "/packages/hybird-data/main.js";
 
-      const TEST_DIR = "test-dir10";
-      const WAIT_TIME = 500;
+      const WAIT_TIME = 100;
 
       // 初始化测试目录
-      const testDirectory = await init(TEST_DIR);
+      await init("local");
 
-      async function initializeTestData() {
-        const testData2 = await testDirectory.get("test-data-2", {
-          create: "dir",
-        });
-        const data2 = await createData(testData2);
-
-        return { testData2, data2 };
-      }
+      const testDirectory = await get("local/test", { create: "dir" });
 
       // 测试父目录是否相同
       await test("sub data can save", async () => {
         try {
-          const { testData2, data2 } = await initializeTestData();
+          const testData2 = await testDirectory.get("test-data-2", {
+            create: "dir",
+          });
+          const data2 = await createData(testData2);
           console.log("初始化测试数据完成:", { testData2, data2 });
 
           if (!data2.sub) {
@@ -48,7 +43,7 @@
           console.log("等待时间完成:", WAIT_TIME);
 
           const targetFile = await get(
-            `${TEST_DIR}/test-data-2/${data2.sub._dataId}`
+            `local/test/test-data-2/${data2.sub._dataId}`
           );
           console.log("获取目标文件:", targetFile);
 
@@ -81,6 +76,36 @@
             content: `Test failed: ${error.message}`,
           };
         }
+      });
+
+      test("array change data", async () => {
+        const testData = await testDirectory.get("test-data-3", {
+          create: "dir",
+        });
+
+        const data1 = await createData(testData);
+        window.data1 = data1; // 暴露给window，方便调试
+        console.log("data1 xid:", data1._xid);
+        const data2 = await createData(testData);
+        window.data2 = data2; // 暴露给window，方便调试
+        console.log("data2 xid:", data2._xid);
+
+        // data1.val = Math.random();
+        const subval = "sub val - " + Math.random();
+        data1.splice(0, 100, {
+          subval,
+        });
+
+        await new Promise((res) => setTimeout(res, 100));
+        await data1.ready(true);
+        await data2.ready(true);
+
+        const assert2 = data1[0].subval === data2[0].subval;
+
+        return {
+          assert: assert2 && data1[0].subval === subval,
+          content: `数组数据同步测试 - 断言结果:${assert2}, data1[0].subval:${data1[0].subval}, 数组第一项值:${data1[0].subval}, 期望值:${subval}`,
+        };
       });
     </script>
   </body>

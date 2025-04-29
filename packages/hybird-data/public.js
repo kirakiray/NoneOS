@@ -50,7 +50,8 @@ export const realSaveData = async (hydata) => {
       // 如果是对象，递归处理
       if (value !== null && typeof value === "object") {
         // await saveData(value);
-        saveData(value);
+        // saveData(value);
+        await realSaveData(value);
         finnalData[key] = `${Identification}${value._dataId}`;
         return;
       }
@@ -68,6 +69,11 @@ export const realSaveData = async (hydata) => {
   } else {
     // 监听数据变化，实时写入到 handle 中
     fileHandle = await hydata._spaceHandle.get(hydata._dataId);
+  }
+
+  if (!fileHandle) {
+    console.warn("fileHandle not found", hydata._dataId); // eslint-disable-line no-cons
+    return;
   }
 
   const oldText = await fileHandle.text();
