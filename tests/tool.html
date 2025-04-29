@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>清除数据</title>
+  </head>
+  <body>
+    <button id="clearall">Clear All</button>
+    <script>
+      const clearAll = async () => {
+        // 清除本地所有的opfs数据
+        const handle = await navigator.storage.getDirectory();
+        let count = 0;
+        for await (const e of handle.values()) {
+          count++;
+          await removeHandle(e);
+        }
+        console.log("清除完成 :", count); // eslint-disable-line no-cons
+      };
+
+      const removeHandle = async (handle) => {
+        if (handle.kind === "directory") {
+          for await (const e of handle.values()) {
+            await removeHandle(e);
+          }
+          await handle.remove();
+        } else {
+          await handle.remove();
+        }
+      };
+
+      document.querySelector("#clearall").addEventListener("click", clearAll);
+    </script>
+  </body>
+</html>

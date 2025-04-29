@@ -108,7 +108,9 @@ export class HybirdData extends Stanz {
         return;
       }
 
-      saveData(this);
+      watchs.forEach((watcher) => {
+        saveData(watcher.target); // 保存数据
+      });
     });
 
     Object.defineProperties(this, {
@@ -128,9 +130,12 @@ export class HybirdData extends Stanz {
 
   // 根据本地的data，进行初始化数据；会将子对象进行初始化
   async #initData(data) {
+    // 初始化不触发watch
+    this.__unupdate = 1;
     await Promise.all(
       Object.entries(data).map(([key, value]) => this.#setData(key, value))
     );
+    delete this.__unupdate;
   }
 
   async #setData(key, value) {
@@ -219,8 +224,24 @@ export class HybirdData extends Stanz {
     this.dataStatus = "ok";
   }
 
-  async ready() {
-    return this.watchUntil(() => this.dataStatus === "ok");
+  // 确认当前对象已经初始化完成
+  async ready(isReadyAll) {
+    if (this.dataStatus !== "ok") {
+      await this.watchUntil(() => this.dataStatus === "ok", 3000);
+    }
+
+    if (isReadyAll) {
+      // 监听所有子级对象
+      await Promise.all(
+        Object.values(this).map(async (value) => {
+          if (value instanceof HybirdData) {
+            await value.ready(true);
+          }
+        })
+      );
+    }
+
+    return true;
   }
 
   get __OriginStanz() {

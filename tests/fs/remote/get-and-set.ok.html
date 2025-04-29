@@ -51,6 +51,9 @@
         const devices1 = await getDeviceStore("user1");
         const devices2 = await getDeviceStore("main");
 
+        await devices1.ready(true);
+        await devices2.ready(true);
+
         const hasDevice = devices2.find((e) => {
           return e.toMeCertificate.data.publicKey === user1.pair.publicKey;
         });
@@ -83,6 +86,8 @@
             },
             "main"
           );
+
+          await new Promise((resolve) => setTimeout(resolve, 200));
 
           // 查找并授权设备
           const users = await findDevice(deviceCode, "user1");

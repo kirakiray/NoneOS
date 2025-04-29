@@ -23,6 +23,74 @@
       //   hah: Date.now().toLocaleString().slice(6),
       // });
 
+      // data.obj = {
+      //   val: "111",
+      // };
+
+      // // 立刻被替换掉
+      // data.obj = {
+      //   val: "222",
+      // };
+
+      const obj = {
+        unId: "hbpjrakzzrn",
+        userCard: {
+          data: {
+            userName: "user-b668",
+            signTime: 1745904119975,
+            publicKey:
+              "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoIFJtkKzcKsV+1HACBRSqqFnRTH0+4+kf5GuSjDlbVWJUMWHvumWjW+tAB/mVl6LVhf0SyeiGl/jWqe+dvkEUg==",
+          },
+          signature:
+            "kIjim53i96KpEr3eeylD6IFdbHVNqhaWeBOUJQgN7oKhtTedfCW6fkMnOEb3tMPH9LOJqyeLrONcK0MiVSaaOA==",
+        },
+        toOppoCertificate: {
+          data: {
+            authTo:
+              "da5aeb993b8bbd775e1b2e794a01fe86b668825b3f16a5b730a338f18373cd3a",
+            permission: "Fully",
+            expire: 1748496120185,
+            signTime: 1745904120186,
+            publicKey:
+              "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAElfchK/vWJtGl8zL+9hgcNCYFRfxZf1NoaIi9DWMSfyNRp4S/GMKtW6Z2efShOXKEozwkMzR1Ar3eLN0Ca6X9Fg==",
+          },
+          signature:
+            "9JJlIGhoxD4L80D1Eg5ZHDJ3T1Fia7Q3Jcm7bSrLpZsbdO+DyWZDxcRbhCnMBVzGXBOhbiqTnZQahMhYYsKNKA==",
+        },
+        toMeCertificate: {
+          data: {
+            authTo:
+              "d54c39a451bfb6e7b7409f533a362f8f32f3d68f5ca33fa15fa4b4a26d7c6008",
+            permission: "Fully",
+            expire: 1748496119972,
+            signTime: 1745904119973,
+            publicKey:
+              "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEoIFJtkKzcKsV+1HACBRSqqFnRTH0+4+kf5GuSjDlbVWJUMWHvumWjW+tAB/mVl6LVhf0SyeiGl/jWqe+dvkEUg==",
+          },
+          signature:
+            "NF7s9FgZ2+Q0ekdddmuzikBl/siU/afsKh+OfjOC45AT3TJYbxfzZ6Dq9AhMaRgVCCudVtwMCB8JJNA82tP0YQ==",
+        },
+      };
+
+      if (!data.length) {
+        data.push(obj);
+      }
+
+      // if (!data.length) {
+      //   data.push({
+      //     a: 1,
+      //     b: 2,
+      //     c: {
+      //       d: 3,
+      //       e: 4,
+      //       f: {
+      //         g: 5,
+      //         h: 6,
+      //       },
+      //     },
+      //   });
+      // }
+
       await new Promise((resolve) => setTimeout(resolve, 200));
 
       console.log(data.toJSON(), data);

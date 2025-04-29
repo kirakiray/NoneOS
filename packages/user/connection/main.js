@@ -16,7 +16,7 @@ on("server-agent-data", async (e) => {
 
   if (!signed) {
     // 未签名的数据，不处理
-    console.warn("不需要未签名的数据", data);
+    console.warn("不接受未签名的数据", data);
     return;
   }
 

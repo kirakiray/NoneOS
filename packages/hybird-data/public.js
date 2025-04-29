@@ -4,8 +4,39 @@ export const Identification = "__dataid__";
 
 import { HybirdData } from "./hybird-data.js";
 
-// 保存数据
+// 需要保存的对象
+const needSaves = [];
+
+let saving = false;
 export const saveData = async (hydata) => {
+  if (needSaves.includes(hydata)) {
+    // 已经在保存队列中，不需要重复添加
+    return;
+  }
+
+  needSaves.push(hydata);
+
+  if (saving) {
+    return;
+  }
+
+  saving = true;
+
+  while (needSaves.length) {
+    const data = needSaves.shift();
+    await realSaveData(data);
+  }
+
+  saving = false;
+};
+
+// 保存数据
+export const realSaveData = async (hydata) => {
+  if (hydata.dataStatus !== "ok") {
+    console.log("not saving: ", hydata.dataStatus);
+    await hydata.ready();
+  }
+
   hydata.dataStatus = "saving";
 
   const finnalData = {};
@@ -18,7 +49,8 @@ export const saveData = async (hydata) => {
 
       // 如果是对象，递归处理
       if (value !== null && typeof value === "object") {
-        await saveData(value);
+        // await saveData(value);
+        saveData(value);
         finnalData[key] = `${Identification}${value._dataId}`;
         return;
       }
@@ -53,12 +85,17 @@ export const saveData = async (hydata) => {
     remark: `writedby-${hydata._root.xid}`,
   });
 
+  console.log("savedata end", hydata); // eslint-disable-line no-cons
+
   if (oldText) {
     // 根据旧的数据，删除掉没有使用的对象文件
     const oldData = JSON.parse(oldText);
     const oldValues = Object.values(oldData);
     const newValues = Object.values(finnalData);
     const deleteValues = oldValues.filter((val) => !newValues.includes(val)); // 已被删除的value
+
+    console.log("deleteValues", deleteValues); // eslint-disable-line no-cons
+
     if (deleteValues.length) {
       await Promise.all(deleteValues.map((e) => removeData(e, hydata)));
     }
