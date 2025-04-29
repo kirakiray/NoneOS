@@ -265,60 +265,60 @@
         };
       });
 
-      //       await test("Hybrid Data Remote Sync Array Test", async () => {
-      //         // user1的远程访问器
-      //         const remoteAccessor = createGet(user1.userId, {
-      //           useLocalUserDirName: "main",
-      //           selfTabId: mainTabId,
-      //         });
+      // await test("Hybrid Data Remote Sync Array Test", async () => {
+      //   // user1的远程访问器
+      //   const remoteAccessor = createGet(user1.userId, {
+      //     useLocalUserDirName: "main",
+      //     selfTabId: mainTabId,
+      //   });
 
-      //         // 访问本地目录
-      //         const localDirectory = await get("local/test/test-remote-hybird2", {
-      //           create: "dir",
-      //         });
+      //   // 访问本地目录
+      //   const localDirectory = await get("local/test/test-remote-hybird2", {
+      //     create: "dir",
+      //   });
 
-      //         // 访问远程目录，因为是测试账户，所以内容与本地相同
-      //         const remoteDirectory = await remoteAccessor(
-      //           "local/test/test-remote-hybird2"
-      //         );
+      //   // 访问远程目录，因为是测试账户，所以内容与本地相同
+      //   const remoteDirectory = await remoteAccessor(
+      //     "local/test/test-remote-hybird2"
+      //   );
 
-      //         // 创建本地混合数据实例
-      //         const localHybridData = await createData(localDirectory);
-      //         window.localHybridData = localHybridData;
+      //   // 创建本地混合数据实例
+      //   const localHybridData = await createData(localDirectory);
+      //   window.localHybridData = localHybridData;
 
-      //         // 创建远程混合数据实例
-      //         const remoteHybridData = await createData(remoteDirectory);
-      //         window.remoteHybridData = remoteHybridData;
+      //   // 创建远程混合数据实例
+      //   const remoteHybridData = await createData(remoteDirectory);
+      //   window.remoteHybridData = remoteHybridData;
 
-      //         const val1 = "test - " + Math.random().toString(32).slice(2);
+      //   const val1 = "test - " + Math.random().toString(32).slice(2);
 
-      //         // 从远端对象添加数组数据
-      //         // remoteHybridData.push({
-      //         //   val: val1,
-      //         // });
-      //         remoteHybridData.splice(0, 100, {
-      //           val: val1,
-      //         });
+      //   // 从远端对象添加数组数据
+      //   // remoteHybridData.push({
+      //   //   val: val1,
+      //   // });
+      //   remoteHybridData.splice(0, 100, {
+      //     val: val1,
+      //   });
 
-      //         await new Promise((resolve) => setTimeout(resolve, 1000));
+      //   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      //         await remoteHybridData.ready(true);
-      //         await localHybridData.ready(true);
+      //   await remoteHybridData.ready(true);
+      //   await localHybridData.ready(true);
 
-      //         // 检查本地数据是否同步
-      //         const assert1 =
-      //           localHybridData.length === 1 && localHybridData[0].val === val1;
+      //   // 检查本地数据是否同步
+      //   const assert1 =
+      //     localHybridData.length === 1 && localHybridData[0].val === val1;
 
-      //         return {
-      //           assert: assert1,
-      //           content: `
+      //   return {
+      //     assert: assert1,
+      //     content: `
       // Remote array sync test:
       // - Array length check: ${localHybridData.length === 1}
       // - First item value check: ${localHybridData[0].val === val1}
       // - Value: ${val1}
       //           `.trim(),
-      //         };
-      //       });
+      //   };
+      // });
     </script>
   </body>
 </html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hybrid Data File Count Test</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { get, init } from "/packages/fs/main.js";
+      import { createData } from "/packages/hybird-data/main.js";
+
+      await init("local");
+
+      await test("test file count", async () => {
+        const handle = await get("local/test/test-file-count", {
+          create: "dir",
+        });
+
+        const data = await createData(handle);
+
+        data.sub = {
+          val: "Set sub val " + Math.random().toString(32).slice(2),
+          obj1: {
+            val: "111",
+          },
+          obj2: {
+            val: "222",
+          },
+        };
+
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        // 检查目录中的文件数量是否符合预期
+        const fileCount = await handle.length();
+
+        // 预期应该有4个对象（数据文件）
+        return {
+          assert: fileCount === 4,
+          content: `File count is ${fileCount}, expected 4`,
+        };
+      });
+
+      await test("test file count changes after data clearing", async () => {
+        const directoryHandle = await get("local/test/test-file-count-2", {
+          create: "dir",
+        });
+
+        const hybridData = await createData(directoryHandle);
+
+        // 初始化测试数据结构
+        hybridData.sub = {
+          val: "Set sub val " + Math.random().toString(32).slice(2),
+          testObject1: {
+            val: "333",
+          },
+          testObject2: {
+            val: "444",
+          },
+        };
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        const initialFileCount = await directoryHandle.length();
+
+        // 直接清空，查看文件数量
+        hybridData.sub = null;
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 检查目录中的文件数量是否符合预期
+        const finalFileCount = await directoryHandle.length();
+
+        // 预期应该有4个对象（数据文件）
+        return {
+          assert: initialFileCount == 4 && finalFileCount === 1,
+          content: `File count changed from ${initialFileCount} to ${finalFileCount}, expected from 4 to 1`,
+        };
+      });
+
+      await test("test file count changes after object override", async () => {
+        const testDirHandle = await get("local/test/test-file-count-3", {
+          create: "dir",
+        });
+
+        const hybridStore = await createData(testDirHandle);
+
+        // 初始化测试数据结构
+        hybridStore.sub = {
+          val: "Set sub val " + Math.random().toString(32).slice(2),
+          nestedObj1: {
+            val: "444",
+          },
+          nestedObj2: {
+            val: "555",
+          },
+        };
+
+        // 用简单对象覆盖原有的复杂对象结构
+        hybridStore.sub = {
+          val: "sub",
+        };
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 检查目录中的文件数量是否符合预期
+        const resultFileCount = await testDirHandle.length();
+
+        // 预期应该有2个对象（数据文件）- 根对象和sub对象
+        return {
+          assert: resultFileCount === 2,
+          content: "File count should be 2 (root object and sub object)",
+        };
+      });
+
+      await test("test file count changes after data clearing and copying in stanz data", async () => {
+        const testDirHandle = await get("local/test/test-file-count-4", {
+          create: "dir",
+        });
+
+        const hybridStore = await createData(testDirHandle);
+
+        // 初始化测试数据结构
+        hybridStore.sub = {
+          val: "Set sub val " + Math.random().toString(32).slice(2),
+          nestedObj1: {
+            val: "444",
+          },
+          nestedObj2: {
+            val: "555",
+          },
+        };
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        const initialFileCount = await testDirHandle.length();
+
+        const tempStore = $.stanz({});
+        tempStore.sub = hybridStore.sub;
+
+        // 清空对象
+        hybridStore.sub = null;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        // 检查目录中的文件数量是否符合预期
+        const resultFileCount = await testDirHandle.length();
+
+        // 预期应该有1个对象（根数据文件）
+        return {
+          assert: initialFileCount === 4 && resultFileCount === 1,
+          content: `File count changed from ${initialFileCount} to ${resultFileCount}, expected from 4 to 1`,
+        };
+      });
+    </script>
+  </body>
+</html>

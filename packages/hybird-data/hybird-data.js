@@ -93,7 +93,7 @@ export class HybirdData extends Stanz {
         targetData = this._root;
       }
 
-      targetData.reload(); // 从handle中重新加载数据
+      targetData && targetData.reload(); // 从handle中重新加载数据
     });
 
     const wid = this.watchTick((watchs) => {
