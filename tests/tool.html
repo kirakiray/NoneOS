@@ -12,22 +12,13 @@
         // 清除本地所有的opfs数据
         const handle = await navigator.storage.getDirectory();
         let count = 0;
-        for await (const e of handle.values()) {
+        for await (const e of handle.keys()) {
           count++;
-          await removeHandle(e);
+          await handle.removeEntry(e, {
+            recursive: true,
+          });
         }
-        console.log("清除完成 :", count); // eslint-disable-line no-cons
-      };
-
-      const removeHandle = async (handle) => {
-        if (handle.kind === "directory") {
-          for await (const e of handle.values()) {
-            await removeHandle(e);
-          }
-          await handle.remove();
-        } else {
-          await handle.remove();
-        }
+        document.write(`清除完成: ${count}`);
       };
 
       document.querySelector("#clearall").addEventListener("click", clearAll);

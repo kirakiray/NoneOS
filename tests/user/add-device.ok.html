@@ -9,6 +9,7 @@
   <body>
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
+      import { init, get } from "/packages/fs/main.js";
       import { test } from "/ok-test/main.js";
       import { getUserStore, on } from "/packages/user/main.js";
       import {
@@ -17,6 +18,10 @@
         authDevice,
         getDeviceStore,
       } from "/packages/user/device/main.js";
+
+      {
+        await init("local");
+      }
 
       // 监听服务器代理数据
       // on("server-agent-data", (e) => {
@@ -47,7 +52,7 @@
                 userData.userName === user1.userName &&
                 userData.publicKey === user1.pair.publicKey
               ) {
-                await new Promise((resolve) => setTimeout(resolve, 200));
+                await new Promise((resolve) => setTimeout(resolve, 100));
                 return true;
               }
               return false;
