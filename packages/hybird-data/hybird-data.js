@@ -167,15 +167,24 @@ export class HybirdData extends Stanz {
         return;
       }
 
-      const subText = await subHandle.text();
-      const subData = JSON.parse(subText);
+      try {
+        const subText = await subHandle.text();
+        const subData = JSON.parse(subText);
 
-      const subHyData = new HybirdData(subData, {
-        _dataId: dataId,
-        owner: this,
-      });
+        const subHyData = new HybirdData(subData, {
+          _dataId: dataId,
+          owner: this,
+        });
 
-      this[key] = subHyData; // 设置数据，这里会触发set，从而触发保存数据的逻辑
+        this[key] = subHyData; // 设置数据，这里会触发set，从而触发保存数据的逻辑
+      } catch (e) {
+        console.error(
+          new Error(`Data parsing error, file content: ${subText}`, {
+            cause: e,
+          })
+        );
+      }
+
       return;
     }
 

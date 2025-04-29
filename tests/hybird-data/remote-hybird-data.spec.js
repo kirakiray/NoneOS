@@ -4,7 +4,7 @@ test("remote-hybird-data Test", async ({ page }) => {
   await page.goto("tests/hybird-data/remote-hybird-data.ok.html");
 
   // 每个案例记得更新这个值
-  const count = 2;
+  const count = 3;
 
   // 等待出现 All tests completed 元素
   await page.getByTestId("test-completion-notification").click();

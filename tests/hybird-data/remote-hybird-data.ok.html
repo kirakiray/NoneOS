@@ -12,7 +12,7 @@
       import { init, get } from "/packages/fs/main.js";
       import { getUserStore, getServers } from "/packages/user/main.js";
       import { test } from "/ok-test/main.js";
-
+      import { createData } from "/packages/hybird-data/main.js";
       import { on } from "/packages/user/main.js";
       import {
         findDevice,
@@ -102,170 +102,70 @@
         }
       }
 
-      // 测试访问其他用户内容
-      await test("Test Remote Directory Observation", async () => {
-        // 访问user1的内容
-        const remoteAccessor = createGet(user1.userId, {
-          useLocalUserDirName: "main",
-          selfTabId: mainTabId,
-        });
+      // // 测试访问其他用户内容
+      // await test("Test Remote Directory Observation", async () => {
+      //   // 访问user1的内容
+      //   const remoteAccessor = createGet(user1.userId, {
+      //     useLocalUserDirName: "main",
+      //     selfTabId: mainTabId,
+      //   });
 
-        // 访问本地目录
-        const localDirectory = await get("local/test/test-obs", {
-          create: "dir",
-        });
+      //   // 访问本地目录
+      //   const localDirectory = await get("local/test/test-obs", {
+      //     create: "dir",
+      //   });
 
-        // 访问远程目录，因为是测试账户，所以和本地目录内容一致
-        const remoteDirectory = await remoteAccessor("local/test/test-obs", {
-          create: "dir",
-        });
+      //   // 访问远程目录，因为是测试账户，所以和本地目录内容一致
+      //   const remoteDirectory = await remoteAccessor("local/test/test-obs", {
+      //     create: "dir",
+      //   });
 
-        // 创建本地测试文件
-        const localFile = await localDirectory.get("test-file-1.txt", {
-          create: "file",
-        });
+      //   // 创建本地测试文件
+      //   const localFile = await localDirectory.get("test-file-1.txt", {
+      //     create: "file",
+      //   });
 
-        // 获取远程文件引用
-        const remoteFile = await remoteDirectory.get("test-file-1.txt");
+      //   // 获取远程文件引用
+      //   const remoteFile = await remoteDirectory.get("test-file-1.txt");
 
-        // 设置远程目录变化监听器
-        let resolveObservation;
-        const observationPromise = new Promise((resolve) => {
-          resolveObservation = resolve;
-        });
+      //   // 设置远程目录变化监听器
+      //   let resolveObservation;
+      //   const observationPromise = new Promise((resolve) => {
+      //     resolveObservation = resolve;
+      //   });
 
-        let count = 0;
+      //   let count = 0;
 
-        const unsubscribe = await remoteDirectory.observe((event) => {
-          count++;
-          resolveObservation && resolveObservation(event);
-          resolveObservation = null;
-        });
+      //   const unsubscribe = await remoteDirectory.observe((event) => {
+      //     count++;
+      //     resolveObservation && resolveObservation(event);
+      //     resolveObservation = null;
+      //   });
 
-        // 写入本地文件，触发远程观察
-        await localFile.write(`Hello World! ${new Date().toLocaleString()}`);
+      //   // 写入本地文件，触发远程观察
+      //   await localFile.write(`Hello World! ${new Date().toLocaleString()}`);
 
-        // 等待远程目录变化事件
-        const observationEvent = await observationPromise;
+      //   // 等待远程目录变化事件
+      //   const observationEvent = await observationPromise;
 
-        // 取消远端观察
-        await unsubscribe();
+      //   // 取消远端观察
+      //   await unsubscribe();
 
-        // 再次写入，是不会触发 remoteDirectory.observe 的，因为已经取消了
-        await localFile.write(`Hello World! ${new Date().toLocaleString()}`);
+      //   // 再次写入，是不会触发 remoteDirectory.observe 的，因为已经取消了
+      //   await localFile.write(`Hello World! ${new Date().toLocaleString()}`);
 
-        await new Promise((resolve) => setTimeout(resolve, 300));
+      //   await new Promise((resolve) => setTimeout(resolve, 300));
 
-        return {
-          assert:
-            observationEvent.path === remoteFile.path &&
-            observationEvent.type === "write" &&
-            count === 1,
-          content: `observationEvent.path: ${observationEvent.path}`,
-        };
-      });
+      //   return {
+      //     assert:
+      //       observationEvent.path === remoteFile.path &&
+      //       observationEvent.type === "write" &&
+      //       count === 1,
+      //     content: `observationEvent.path: ${observationEvent.path}`,
+      //   };
+      // });
 
-      import { createData } from "/packages/hybird-data/main.js";
-      await test("Hybrid Data Remote Sync Test", async () => {
-        // user1的远程访问器
-        const remoteAccessor = createGet(user1.userId, {
-          useLocalUserDirName: "main",
-          selfTabId: mainTabId,
-        });
-
-        // 访问本地目录
-        const localDirectory = await get("local/test/test-remote-hybird", {
-          create: "dir",
-        });
-
-        // 访问远程目录，因为是测试账户，所以内容与本地相同
-        const remoteDirectory = await remoteAccessor(
-          "local/test/test-remote-hybird"
-        );
-
-        // 创建本地混合数据实例
-        const localHybridData = await createData(localDirectory);
-
-        // 生成初始测试内容
-        const initialContent =
-          "Initial Content - " + Math.random().toString(32).slice(2);
-        localHybridData.val = initialContent;
-
-        // 等待数据就绪
-        await localHybridData.ready();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // 创建远程混合数据实例
-        const remoteHybridData = await createData(remoteDirectory);
-
-        // 验证初始同步状态
-        const initialSyncCheck =
-          localHybridData.val === remoteHybridData.val &&
-          remoteHybridData.val === initialContent;
-
-        if (!initialSyncCheck) {
-          throw new Error(
-            "Initial sync check failed: Local data does not match remote data"
-          );
-        }
-
-        // 远程数据修改测试
-        const remoteModification =
-          "Remote Modification - " + Math.random().toString(32).slice(2);
-        remoteHybridData.val = remoteModification;
-
-        await remoteHybridData.ready();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // 验证远程修改同步状态
-        const remoteSyncCheck =
-          localHybridData.val === remoteHybridData.val &&
-          remoteHybridData.val === remoteModification;
-
-        if (!remoteSyncCheck) {
-          debugger;
-          throw new Error(
-            "Remote modification sync check failed: Local data not synced with remote changes"
-          );
-        }
-
-        // 本地数据修改测试
-        const localModification =
-          "Local Modification - " + Math.random().toString(32).slice(2);
-        localHybridData.val = localModification;
-
-        await localHybridData.ready();
-        await new Promise((resolve) => setTimeout(resolve, 100));
-
-        // 验证本地修改同步状态
-        const localSyncCheck =
-          localHybridData.val === remoteHybridData.val &&
-          remoteHybridData.val === localModification;
-
-        if (!localSyncCheck) {
-          throw new Error(
-            "Local modification sync check failed: Remote data not synced with local changes"
-          );
-        }
-        return {
-          assert: initialSyncCheck && remoteSyncCheck && localSyncCheck,
-          content: `
-      Initial sync test:
-      - initialSyncCheck: ${initialSyncCheck}
-      - Initial content: ${initialContent}
-
-      Remote modification test:
-      - remoteSyncCheck : ${remoteSyncCheck}
-      - Modified content: ${remoteModification}
-
-      Local modification test:
-      - localSyncCheck: ${localSyncCheck}
-      - Modified content: ${localModification}
-                `.trim(),
-        };
-      });
-
-      // await test("Hybrid Data Remote Sync Array Test", async () => {
+      // await test("Hybrid Data Remote Sync Test", async () => {
       //   // user1的远程访问器
       //   const remoteAccessor = createGet(user1.userId, {
       //     useLocalUserDirName: "main",
@@ -273,52 +173,151 @@
       //   });
 
       //   // 访问本地目录
-      //   const localDirectory = await get("local/test/test-remote-hybird2", {
+      //   const localDirectory = await get("local/test/test-remote-hybird", {
       //     create: "dir",
       //   });
 
       //   // 访问远程目录，因为是测试账户，所以内容与本地相同
       //   const remoteDirectory = await remoteAccessor(
-      //     "local/test/test-remote-hybird2"
+      //     "local/test/test-remote-hybird"
       //   );
 
       //   // 创建本地混合数据实例
       //   const localHybridData = await createData(localDirectory);
-      //   window.localHybridData = localHybridData;
+
+      //   // 生成初始测试内容
+      //   const initialContent =
+      //     "Initial Content - " + Math.random().toString(32).slice(2);
+      //   localHybridData.val = initialContent;
+
+      //   // 等待数据就绪
+      //   await localHybridData.ready();
+      //   await new Promise((resolve) => setTimeout(resolve, 100));
 
       //   // 创建远程混合数据实例
       //   const remoteHybridData = await createData(remoteDirectory);
-      //   window.remoteHybridData = remoteHybridData;
 
-      //   const val1 = "test - " + Math.random().toString(32).slice(2);
+      //   // 验证初始同步状态
+      //   const initialSyncCheck =
+      //     localHybridData.val === remoteHybridData.val &&
+      //     remoteHybridData.val === initialContent;
 
-      //   // 从远端对象添加数组数据
-      //   // remoteHybridData.push({
-      //   //   val: val1,
-      //   // });
-      //   remoteHybridData.splice(0, 100, {
-      //     val: val1,
-      //   });
+      //   if (!initialSyncCheck) {
+      //     throw new Error(
+      //       "Initial sync check failed: Local data does not match remote data"
+      //     );
+      //   }
 
-      //   await new Promise((resolve) => setTimeout(resolve, 1000));
+      //   // 远程数据修改测试
+      //   const remoteModification =
+      //     "Remote Modification - " + Math.random().toString(32).slice(2);
+      //   remoteHybridData.val = remoteModification;
 
-      //   await remoteHybridData.ready(true);
-      //   await localHybridData.ready(true);
+      //   await remoteHybridData.ready();
+      //   await new Promise((resolve) => setTimeout(resolve, 100));
 
-      //   // 检查本地数据是否同步
-      //   const assert1 =
-      //     localHybridData.length === 1 && localHybridData[0].val === val1;
+      //   // 验证远程修改同步状态
+      //   const remoteSyncCheck =
+      //     localHybridData.val === remoteHybridData.val &&
+      //     remoteHybridData.val === remoteModification;
 
+      //   if (!remoteSyncCheck) {
+      //     debugger;
+      //     throw new Error(
+      //       "Remote modification sync check failed: Local data not synced with remote changes"
+      //     );
+      //   }
+
+      //   // 本地数据修改测试
+      //   const localModification =
+      //     "Local Modification - " + Math.random().toString(32).slice(2);
+      //   localHybridData.val = localModification;
+
+      //   await localHybridData.ready();
+      //   await new Promise((resolve) => setTimeout(resolve, 100));
+
+      //   // 验证本地修改同步状态
+      //   const localSyncCheck =
+      //     localHybridData.val === remoteHybridData.val &&
+      //     remoteHybridData.val === localModification;
+
+      //   if (!localSyncCheck) {
+      //     throw new Error(
+      //       "Local modification sync check failed: Remote data not synced with local changes"
+      //     );
+      //   }
       //   return {
-      //     assert: assert1,
+      //     assert: initialSyncCheck && remoteSyncCheck && localSyncCheck,
       //     content: `
-      // Remote array sync test:
-      // - Array length check: ${localHybridData.length === 1}
-      // - First item value check: ${localHybridData[0].val === val1}
-      // - Value: ${val1}
+      // Initial sync test:
+      // - initialSyncCheck: ${initialSyncCheck}
+      // - Initial content: ${initialContent}
+
+      // Remote modification test:
+      // - remoteSyncCheck : ${remoteSyncCheck}
+      // - Modified content: ${remoteModification}
+
+      // Local modification test:
+      // - localSyncCheck: ${localSyncCheck}
+      // - Modified content: ${localModification}
       //           `.trim(),
       //   };
       // });
+
+      await test("Hybrid Data Remote Sync Array Test", async () => {
+        // user1的远程访问器
+        const remoteAccessor = createGet(user1.userId, {
+          useLocalUserDirName: "main",
+          selfTabId: mainTabId,
+        });
+
+        // 访问本地目录
+        const localDirectory = await get("local/test/test-remote-hybird2", {
+          create: "dir",
+        });
+
+        // 访问远程目录，因为是测试账户，所以内容与本地相同
+        const remoteDirectory = await remoteAccessor(
+          "local/test/test-remote-hybird2"
+        );
+
+        // 创建本地混合数据实例
+        const localHybridData = await createData(localDirectory);
+        window.localHybridData = localHybridData;
+
+        // 创建远程混合数据实例
+        const remoteHybridData = await createData(remoteDirectory);
+        window.remoteHybridData = remoteHybridData;
+
+        const val1 = "test - " + Math.random().toString(32).slice(2);
+
+        // 从远端对象添加数组数据
+        // remoteHybridData.push({
+        //   val: val1,
+        // });
+        remoteHybridData.splice(0, 100, {
+          val: val1,
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        await remoteHybridData.ready(true);
+        await localHybridData.ready(true);
+
+        // 检查本地数据是否同步
+        const assert1 =
+          localHybridData.length === 1 && localHybridData[0].val === val1;
+
+        return {
+          assert: assert1,
+          content: `
+      Remote array sync test:
+      - Array length check: ${localHybridData.length === 1}
+      - First item value check: ${localHybridData[0].val === val1}
+      - Value: ${val1}
+                `.trim(),
+        };
+      });
     </script>
   </body>
 </html>

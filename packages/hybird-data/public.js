@@ -115,6 +115,12 @@ const removeData = async (oldData, exitedData) => {
 
   // 从根上获取该对象
   const targetData = rootMapper.get(dataId);
+
+  if (!targetData) {
+    console.log("targetData not found", dataId); // eslint-disable-line no-cons
+    return;
+  }
+
   // 删除数据及其关联对象的具体实现
   const deleteDataAndRelated = async () => {
     targetData[NEEDREMOVEDATA] = true;

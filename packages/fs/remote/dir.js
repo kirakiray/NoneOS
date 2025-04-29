@@ -12,6 +12,10 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     // 抽取handle信息
     const handleInfo = await this._post("get", args);
 
+    if (!handleInfo) {
+      return null;
+    }
+
     if (handleInfo.kind === "dir") {
       return new RemoteDirHandle({
         useLocalUserDirName: this._useLocalUserDirName,
