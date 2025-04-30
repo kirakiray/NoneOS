@@ -30,10 +30,14 @@
 
     .main {
       position: relative;
-      display: flex;
-      flex-wrap: wrap;
+      /* max-width: 1200px;
+      margin: 0 auto; */
+      /* display: flex;
+      flex-wrap: wrap; */
       /* justify-content: center; */
-      padding: 0 80px;
+
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
       --block-size: 80px;
     }
 
@@ -42,8 +46,7 @@
       flex-direction: column;
       align-items: center;
       padding-top: 8px;
-      margin: 24px;
-      width: 120px;
+      margin: 0 16px 16px;
       height: 132px;
       border-radius: 32px;
       cursor: pointer;
@@ -95,58 +98,60 @@
 
     @container (width < 600px) {
       .main {
-        padding: 0 40px;
-        align-items: center;
-        justify-content: center;
+        /* padding: 0 40px; */
+        /* align-items: center;
+        justify-content: center; */
         --block-size: 40px;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
       }
       .app-block {
         padding-top: 8px;
         margin: 8px;
-        width: 120px;
         height: 80px;
         border-radius: 12px;
       }
       .app-name {
-        width: 100px;
+        width: 100%;
       }
     }
   </style>
   <p-provider theme="dark">
-    <div class="container">
-      <div class="top">
-        <p-text-field
-          attr:placeholder="searchPlaceText"
-          sync:value="searchText"
-          on:click="$event.stopPropagation()"
-        >
-          <n-local-icon
-            name="search"
-            slot="prefix"
-            style="display: block; margin-right: 4px; font-size: 24px"
-          ></n-local-icon>
-        </p-text-field>
-      </div>
-      <div class="main">
-        <x-fill :value="apps" fill-key="url">
-          <div
-            class="app-block"
-            class:hide="$data.hide"
-            on:click="$host.clickApp($data)"
+    <div style="max-width: 1200px; margin: 0 auto">
+      <div class="container">
+        <div class="top">
+          <p-text-field
+            attr:placeholder="searchPlaceText"
+            sync:value="searchText"
+            on:click="$event.stopPropagation()"
           >
-            <div class="icon">
-              <img attr:src="$data.icon.url" />
+            <n-local-icon
+              name="search"
+              slot="prefix"
+              style="display: block; margin-right: 4px; font-size: 24px"
+            ></n-local-icon>
+          </p-text-field>
+        </div>
+        <div class="main">
+          <x-fill :value="apps" fill-key="url">
+            <div
+              class="app-block"
+              class:hide="$data.hide"
+              on:click="$host.clickApp($data)"
+            >
+              <div class="icon">
+                <img attr:src="$data.icon.url" />
+              </div>
+              <div class="app-name" class:midsize="$data.realName.length > 10">
+                {{$data.realName || $data.name}}
+              </div>
             </div>
-            <div class="app-name" class:midsize="$data.realName.length > 10">
-              {{$data.realName || $data.name}}
+          </x-fill>
+          <x-if :value="isEmpty">
+            <div class="empty-content">
+              <n-desc space="app-select" name="emptyTips"></n-desc>
             </div>
-          </div>
-        </x-fill>
-        <x-if :value="isEmpty">
-          <div class="empty-content">
-            <n-desc space="app-select" name="emptyTips"></n-desc>
-          </div>
-        </x-if>
+          </x-if>
+        </div>
       </div>
     </div>
   </p-provider>
