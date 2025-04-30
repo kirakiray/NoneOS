@@ -54,7 +54,7 @@
   </style>
   <div class="card">
     <div class="logo-line">
-      <img attr:src="logoUrl" />
+      <img attr:src="finnalLogoUrl" />
     </div>
     <div class="url-line">{{cardName}}</div>
     <a attr:href="url" target="_blank"></a>
@@ -73,6 +73,12 @@
               return;
             }
             return new URL(this.url).host;
+          },
+          get finnalLogoUrl() {
+            if (this.logoUrl) {
+              return this.logoUrl;
+            }
+            return new URL(this.url).origin + "/favicon.ico";
           },
         },
       };

@@ -1,15 +1,15 @@
 {
-  "name": "Bookmarks",
+  "name": "Web Favorites",
   "icon": "icon.svg",
   "i18n": {
     "cn": {
-      "name": "我的书签"
+      "name": "网页收藏夹"
     },
     "en": {
-      "name": "Bookmarks"
+      "name": "Web Favorites"
     },
     "ja": {
-      "name": "Bookmarks"
+      "name": "Web Favorites"
     }
   }
 }

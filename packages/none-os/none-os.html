@@ -195,7 +195,15 @@
                 }
               });
 
-              const dataStr = JSON.stringify(this.barApps);
+              const dataStr = JSON.stringify(
+                this.barApps.filter((e) => {
+                  if (e.appStatus === "closing") {
+                    return false;
+                  }
+
+                  return true;
+                })
+              );
 
               if (sessionStorage.__noneos_apps !== dataStr) {
                 sessionStorage.__noneos_apps = dataStr;

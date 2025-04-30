@@ -74,7 +74,7 @@ export class HybirdData extends Stanz {
       await this.#initData(data); // 初始化数据，包括递归初始化子对象，以及设置value
     }
 
-    const cancel = this._spaceHandle.observe((e) => {
+    const cancel = await this._spaceHandle.observe((e) => {
       if (e.type !== "write") {
         // 不是写入事件
         return;
@@ -118,8 +118,8 @@ export class HybirdData extends Stanz {
       disconnect: {
         value() {
           this.unwatch(wid);
-          cancel();
           this.revoke(); // 彻底销毁数据
+          cancel();
         },
       },
     });
