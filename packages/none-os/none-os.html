@@ -61,24 +61,24 @@
     }
   </style>
   <o-provider name="clipboard">
-    <p-provider attr:theme="settingData.theme">
-      <div class="container" attr:os-bar-dir="settingData.dockDirection">
-        <div class="bar">
-          <none-os-bar
-            :apps="barApps"
-            :dir="settingData.dockDirection"
-            sync:active-home="showHomeApp"
-          ></none-os-bar>
-        </div>
-        <div class="main" on:open-app="openApp">
-          <x-fill :value="barApps">
-            <n-app-frame :item="$data" attr:data-appid="$data.appid">
-              <o-app attr:src="$data.configUrl"></o-app>
-            </n-app-frame>
-          </x-fill>
-        </div>
+    <!-- <p-provider attr:theme="settingData.theme"> -->
+    <div class="container" attr:os-bar-dir="settingData.dockDirection">
+      <div class="bar">
+        <none-os-bar
+          :apps="barApps"
+          :dir="settingData.dockDirection"
+          sync:active-home="showHomeApp"
+        ></none-os-bar>
       </div>
-    </p-provider>
+      <div class="main" on:open-app="openApp">
+        <x-fill :value="barApps">
+          <n-app-frame :item="$data" attr:data-appid="$data.appid">
+            <o-app attr:src="$data.configUrl"></o-app>
+          </n-app-frame> 
+        </x-fill>
+      </div>
+    </div>
+    <!-- </p-provider> -->
 
     <n-home-app-frame sync:show-home-app="showHomeApp">
       <o-app
