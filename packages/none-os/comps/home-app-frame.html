@@ -68,6 +68,11 @@
           bool && this.$("o-app") && this.$("o-app").emit("active-app");
         },
       },
+      ready() {
+        this.on("click-app", () => {
+          this.showHomeApp = false;
+        });
+      },
     };
   </script>
 </template>

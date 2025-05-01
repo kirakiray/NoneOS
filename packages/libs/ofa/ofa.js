@@ -1,4 +1,4 @@
-//! ofa.js - v4.5.31 https://github.com/kirakiray/ofa.js  (c) 2018-2025 YAO
+//! ofa.js - v4.5.33 https://github.com/kirakiray/ofa.js  (c) 2018-2025 YAO
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -934,16 +934,12 @@
     return reval;
   };
 
+  // 当数据被移除时，清除 owner 数据
   const clearOwner = (targetData, owner) => {
     if (isxdata(targetData)) {
       const index = targetData._owner.indexOf(owner);
       if (index > -1) {
         targetData._owner.splice(index, 1);
-        if (targetData.__chear_owner) {
-          targetData.__chear_owner({
-            oldOwner: owner,
-          });
-        }
       } else {
         const err = getErr("error_no_owner");
         console.warn(err, {
@@ -3252,6 +3248,10 @@ try{
           const vals = arrayData.slice();
           const valsKeys = new Set(
             vals.map((e) => {
+              if (!e) {
+                return;
+              }
+
               const val = e[keyName];
               return val === undefined ? e : val;
             })
@@ -3464,7 +3464,7 @@ try{
     revokes.push(revoke);
 
     $ele.__item = itemData;
-    $ele.ele._data_xid = $data[keyName] || $data;
+    $ele.ele._data_xid = $data?.[keyName] || $data;
 
     return $ele;
   };
@@ -3591,6 +3591,29 @@ try{
         target = target.parent;
         parents.push(target);
       }
+      return parents;
+    }
+
+    parentsUntil(expr) {
+      const allParents = this.parents;
+      const parents = [];
+
+      const exprIsObj = typeof expr === "object";
+
+      while (allParents.length) {
+        const target = allParents.shift();
+
+        if (exprIsObj) {
+          if (target === expr || target.ele === expr) {
+            break;
+          }
+        } else if (meetsEle(target.ele, expr)) {
+          break;
+        }
+
+        parents.push(target);
+      }
+
       return parents;
     }
 
@@ -6606,7 +6629,7 @@ ${scriptContent}`;
     },
   });
 
-  const version = "ofa.js@4.5.31";
+  const version = "ofa.js@4.5.33";
   $.version = version.replace("ofa.js@", "");
 
   if (document.currentScript) {

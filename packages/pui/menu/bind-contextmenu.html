@@ -19,6 +19,9 @@
           area: null,
           autoClose: null,
         },
+        data: {
+          _target: null,
+        },
         ready() {
           this.shadow.on("slotchange", () => {
             // 防止菜单内的右键触发
@@ -56,17 +59,30 @@
             this.forEach((menu) => {
               const contextmenuSelector = menu.attr("contextmenu-selector");
               if (menu.is("p-menu")) {
-                if (contextmenuSelector && $target.is(contextmenuSelector)) {
-                  targetMenu = menu;
+                if (contextmenuSelector) {
+                  if ($target.is(contextmenuSelector)) {
+                    // 判断是否自身
+                    targetMenu = menu;
+                    this._target = $target;
+                  } else {
+                    $target.parentsUntil(this).some((el) => {
+                      if (el.is(contextmenuSelector)) {
+                        targetMenu = menu;
+                        this._target = el;
+                        return true;
+                      }
+                    });
+                  }
                 }
-
-                // menu.open = "off";
               }
             });
 
             if (!targetMenu) {
-              // 保底菜单元素
-              targetMenu = this.$("p-menu");
+              if (onlyMenu) {
+                onlyMenu.open = "off";
+              }
+              this._target = null;
+              return;
             }
 
             if (onlyMenu && onlyMenu !== targetMenu) {
@@ -78,10 +94,12 @@
 
             const { offsetX, offsetY, clientX, clientY } = e;
 
+            const currentRect = e.currentTarget.getBoundingClientRect();
+
             Object.assign(targetMenu.style, {
               position: "absolute",
-              left: `${offsetX}px`,
-              top: `${offsetY}px`,
+              left: `${clientX - currentRect.x}px`,
+              top: `${clientY - currentRect.y}px`,
             });
 
             // 获取安全容器的尺寸和位置
