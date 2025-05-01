@@ -255,7 +255,7 @@
             const data = target._data;
             if (!data) return;
 
-            const appUrl = data.configUrl.replace(/(.+\.napp).+/, "$1");
+            const appUrl = data.configUrl.replace(/(.+\.napp\/).+/, "$1");
 
             window.open(appUrl);
           },

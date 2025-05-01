@@ -127,6 +127,64 @@
     }
   };
 
+  async function resposePkg(event) {
+    const { request } = event;
+    const { pathname, origin, searchParams } = new URL(request.url);
+
+    if (/\.napp\/$/.test(pathname)) {
+      respNapp(event);
+      return;
+    }
+  }
+
+  const respNapp = async (event) => {
+    const { request } = event;
+    const { pathname, origin, searchParams } = new URL(request.url);
+
+    event.respondWith(
+      (async () => {
+        // 获取应用名
+        let appName = "App";
+        try {
+          const appData = await fetch(`${pathname}app.json`).then((e) =>
+            e.json()
+          );
+
+          appName =
+            appData.name ||
+            pathname
+              .split("/")
+              .filter((e) => /\.napp$/.test(e))
+              .slice(-1)[0]
+              .replace(/\.napp$/, "");
+        } catch (e) {}
+
+        const content = `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${appName}</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/libs/ofa/router.min.js"></script>
+  </head>
+  <body>
+    <o-router fix-body>
+      <o-app src="./app-config.js"></o-app>
+    </o-router>
+  </body>
+</html>`;
+
+        return new Response(content, {
+          status: 200,
+          headers: {
+            "content-type": "text/html; charset=utf-8",
+          },
+        });
+      })()
+    );
+  };
+
   self.addEventListener("fetch", (event) => {
     const { request } = event;
     const { pathname, origin, searchParams } = new URL(request.url);
@@ -136,6 +194,9 @@
       // 请求本地文件，会$开头
       if (/^\/\$/.test(pathname)) {
         resposeFs(event);
+      } else if (/^\/packages/.test(pathname)) {
+        // 访问包目录
+        resposePkg(event);
       }
     }
   });

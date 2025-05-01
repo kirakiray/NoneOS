@@ -1,20 +1,6 @@
-// let swText = await fetch("/sw.js").then((res) => res.text());
-
-// // 去除swText中的js备注代码
-// swText = swText.replace(/(\/\*[\s\S]*?\*\/)|(\/\/[\s\S]*?\n)/g, "");
-
-// let options = {};
-// // 根据内容注册sw
-// if (swText.includes("import ")) {
-//   options = {
-//     type: "module",
-//   };
-// }
-
-// const registration = navigator.serviceWorker.register("/sw.js", {
-//   type: "module",
-// });
-const registration = navigator.serviceWorker.register("/sw.js");
+const registration = navigator.serviceWorker.register("/sw.js", {
+  // type: "module",
+});
 
 setTimeout(async () => {
   try {
