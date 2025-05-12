@@ -55,11 +55,11 @@
     >
       <n-apps-icon attr:active="activeHome"></n-apps-icon>
     </n-bar-btn>
-    <x-fill :value="apps">
+    <o-fill :value="apps">
       <n-bar-btn :status="$data.appStatus" on:click="$host.clickItem($data)">
         <img attr:src="$data.icon.url" />
       </n-bar-btn>
-    </x-fill>
+    </o-fill>
     <!-- <n-bar-btn :name="aa">
       <img attr:src="icon" />
     </n-bar-btn>

@@ -71,7 +71,7 @@
           </div>
         </o-if>
         <o-else>
-          <x-fill :value="servers" fill-key="serverUrl">
+          <o-fill :value="servers" fill-key="serverUrl">
             <p-list-item button="suffix" collapse-childs="open">
               <div
                 class="status-point"
@@ -93,7 +93,7 @@
               </div>
               <div secondary>{{$data.serverUrl}}</div>
             </p-list-item>
-          </x-fill>
+          </o-fill>
         </o-else>
       </p-list>
     </p-list-item>

@@ -162,7 +162,7 @@
             </p-menu-item>
           </p-menu>
           <div class="main">
-            <x-fill :value="apps" fill-key="url">
+            <o-fill :value="apps" fill-key="url">
               <div
                 class="app-block"
                 :_data="$data"
@@ -179,7 +179,7 @@
                   {{$data.realName || $data.name}}
                 </div>
               </div>
-            </x-fill>
+            </o-fill>
             <o-if :value="isEmpty">
               <div class="empty-content">
                 <n-desc space="app-select" name="emptyTips"></n-desc>

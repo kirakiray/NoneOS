@@ -29,7 +29,7 @@
   </style>
   <n-horsp-pannel>
     <p-list slot="left">
-      <x-fill :value="roots" fill-key="name">
+      <o-fill :value="roots" fill-key="name">
         <p-list-item
           button
           attr:active-item="$data.path === $host.currentPath"
@@ -38,7 +38,7 @@
           <img attr:src="$data.icon" slot="prefix" />
           {{$data.name}}
         </p-list-item>
-      </x-fill>
+      </o-fill>
     </p-list>
     <slot></slot>
   </n-horsp-pannel>

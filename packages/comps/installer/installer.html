@@ -137,14 +137,14 @@
       </div>
 
       <p-list>
-        <x-fill :value="steps">
+        <o-fill :value="steps">
           <p-list-item
             class:active="$host.step == $index"
             attr:disabled="$host.step < $index"
           >
             {{$data.name}}
           </p-list-item>
-        </x-fill>
+        </o-fill>
       </p-list>
     </div>
     <div class="main">

@@ -89,7 +89,7 @@
           <n-local-icon name="open-file" slot="prefix"></n-local-icon>
           <n-desc name="openWith" space="files"></n-desc>
           <p-menu>
-            <x-fill :value="apps">
+            <o-fill :value="apps">
               <p-menu-item on:click="$host.openWith($data)">
                 <img
                   attr:src="$data.icon"
@@ -98,7 +98,7 @@
                 />
                 {{$data.name}}
               </p-menu-item>
-            </x-fill>
+            </o-fill>
           </p-menu>
         </p-menu-item>
         <hr />

@@ -32,7 +32,7 @@
     }
   </style>
   <div class="container">
-    <x-fill :value="pathArr" fill-key="path">
+    <o-fill :value="pathArr" fill-key="path">
       <div
         class="block"
         on:click="$host.clickBlock($index,$data)"
@@ -42,7 +42,7 @@
         <n-handle-block :kind="$data.kind" :name="$data.name"></n-handle-block>
         <div class="mark"></div>
       </div>
-    </x-fill>
+    </o-fill>
   </div>
   <script>
     export default async ({ load }) => {

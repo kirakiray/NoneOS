@@ -25,7 +25,7 @@
   <n-horsp-pannel>
     <div slot="left" style="height: 100%">
       <p-list>
-        <x-fill :value="list">
+        <o-fill :value="list">
           <p-list-item
             button
             attr:active-item="$data.userId === $host.currentId"
@@ -33,7 +33,7 @@
           >
             {{$data.title}}
           </p-list-item>
-        </x-fill>
+        </o-fill>
       </p-list>
     </div>
     <div class="tool-container">
@@ -43,12 +43,12 @@
       ></n-bookmark-add-btn>
     </div>
     <div class="main">
-      <x-fill :value="currentCards">
+      <o-fill :value="currentCards">
         <n-bookmark-card
           :url="$data.url"
           :logo-url="$data.logoUrl"
         ></n-bookmark-card>
-      </x-fill>
+      </o-fill>
       <o-if :value="!currentCards.length">
         <div>没有数据</div>
       </o-if>

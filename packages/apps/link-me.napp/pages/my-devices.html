@@ -48,7 +48,7 @@
         <o-if :value="!devices.length">
           <div class="no-devices">没有添加设备</div>
         </o-if>
-        <x-fill :value="devices">
+        <o-fill :value="devices">
           <p-list-item
             class="device-item"
             button="suffix"
@@ -154,7 +154,7 @@
               </p-list-item>
             </p-list>
           </p-list-item>
-        </x-fill>
+        </o-fill>
       </p-list>
     </p-list-item>
   </p-list>

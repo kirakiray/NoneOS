@@ -71,11 +71,11 @@
         ></none-os-bar>
       </div>
       <div class="main" on:open-app="openApp">
-        <x-fill :value="barApps">
+        <o-fill :value="barApps">
           <n-app-frame :item="$data" attr:data-appid="$data.appid">
             <o-app attr:src="$data.configUrl"></o-app>
           </n-app-frame>
-        </x-fill>
+        </o-fill>
       </div>
     </div>
     <!-- </p-provider> -->

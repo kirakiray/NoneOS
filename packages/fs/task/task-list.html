@@ -61,7 +61,7 @@
   </style>
 
   <p-list>
-    <x-fill :value="tasks">
+    <o-fill :value="tasks">
       <p-list-item
         button
         on:click="$data.showViewer = true"
@@ -113,7 +113,7 @@
           </p-button>
         </o-if>
       </p-list-item>
-    </x-fill>
+    </o-fill>
   </p-list>
   <script>
     export default async ({ load }) => {

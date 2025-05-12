@@ -120,7 +120,7 @@
     </div>
     <div style="position: relative; margin-top: 0.5px">
       <div class="stripe-bg"></div>
-      <x-fill :value="files" fill-key="x-id">
+      <o-fill :value="files" fill-key="x-id">
         <div
           class="file-item"
           on:dblclick="$host.open($data)"
@@ -165,7 +165,7 @@
             {{$host.getKind($data.kind)}}
           </div>
         </div>
-      </x-fill>
+      </o-fill>
     </div>
   </div>
   <o-if :value="noMatch">

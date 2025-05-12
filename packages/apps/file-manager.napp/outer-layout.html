@@ -55,7 +55,7 @@
           </span>
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
-            <x-fill :value="locals" name="path-item"> </x-fill>
+            <o-fill :value="locals" name="path-item"> </o-fill>
           </p-list>
         </p-list-item>
         <p-list-item collapse-childs="open" button="suffix">
@@ -64,7 +64,7 @@
           </span>
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
-            <x-fill :value="remotes">
+            <o-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
                 <n-id-avatar
                   :val="$data.userId"
@@ -86,10 +86,10 @@
                   style="position: relative; z-index: 4"
                 ></user-connected-area>
                 <p-list slot="childs" style="--padding-left: 16px">
-                  <x-fill :value="$data.dirs" name="path-item"></x-fill>
+                  <o-fill :value="$data.dirs" name="path-item"></o-fill>
                 </p-list>
               </p-list-item>
-            </x-fill>
+            </o-fill>
             <o-if :value="!remotes.length">
               <p-list-item>
                 <div style="text-align: center; color: #7d7d7d">

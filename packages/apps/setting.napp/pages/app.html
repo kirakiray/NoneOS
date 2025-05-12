@@ -15,7 +15,7 @@
       <n-desc space="setting" name="apps"></n-desc>
     </h5>
     <p-list style="max-width: 600px; padding-right: 8px">
-      <x-fill :value="apps">
+      <o-fill :value="apps">
         <p-list-item button>
           <img attr:src="$data.icon" height="25" slot="prefix" />
           {{$data.name}}
@@ -29,7 +29,7 @@
             </div>
           </o-if>
         </p-list-item>
-      </x-fill>
+      </o-fill>
     </p-list>
   </div>
   <script>

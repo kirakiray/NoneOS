@@ -70,7 +70,7 @@
           </div>
         </o-if>
         <o-else>
-          <x-fill :value="servers" fill-key="serverUrl">
+          <o-fill :value="servers" fill-key="serverUrl">
             <p-list-item button="suffix" collapse-childs="close">
               <div
                 class="status-point"
@@ -143,7 +143,7 @@
 
               <i toggle-collapse triangle slot="suffix"></i>
             </p-list-item>
-          </x-fill>
+          </o-fill>
           <p-list-item>
             <div style="display: flex; width: 100%">
               <p-input

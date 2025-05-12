@@ -89,7 +89,7 @@
             未查找到用户
           </div>
         </o-if>
-        <x-fill :value="oppoUsers">
+        <o-fill :value="oppoUsers">
           <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
               <o-if :value="$data.exited">
@@ -134,14 +134,14 @@
               </o-else>
             </n-user-card>
           </div>
-        </x-fill>
+        </o-fill>
       </div>
     </o-if>
 
     <o-if :value="receivingUsers.length">
       <div>
         <h5>收到的邀请</h5>
-        <x-fill :value="receivingUsers">
+        <o-fill :value="receivingUsers">
           <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
               <p-button
@@ -164,7 +164,7 @@
               </o-if>
             </n-user-card>
           </div>
-        </x-fill>
+        </o-fill>
       </div>
     </o-if>
 
