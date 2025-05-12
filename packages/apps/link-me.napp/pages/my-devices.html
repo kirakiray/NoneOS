@@ -43,7 +43,7 @@
         </p-button>
       </div>
 
-      <i collapse-triangle slot="suffix"></i>
+      <i toggle-collapse triangle slot="suffix"></i>
       <p-list slot="childs">
         <x-if :value="!devices.length">
           <div class="no-devices">没有添加设备</div>
@@ -67,7 +67,7 @@
 
             {{$data.userCard.data.userName}}
 
-            <i collapse-triangle slot="suffix"></i>
+            <i toggle-collapse triangle slot="suffix"></i>
 
             <p-list slot="childs" style="padding-left: 16px">
               <p-list-item>
@@ -95,7 +95,7 @@
                   "
                 ></n-local-icon>
                 <n-desc name="toMeCerts" space="linkme"></n-desc>
-                <i collapse-triangle slot="suffix"></i>
+                <i toggle-collapse triangle slot="suffix"></i>
                 <p-list slot="childs" style="padding-left: 29px">
                   <p-list-item>
                     <n-desc name="issueTime" space="linkme"></n-desc>
@@ -123,7 +123,7 @@
                   "
                 ></n-local-icon>
                 <n-desc name="myCerts" space="linkme"></n-desc>
-                <i collapse-triangle slot="suffix"></i>
+                <i toggle-collapse triangle slot="suffix"></i>
                 <p-list slot="childs" style="padding-left: 29px">
                   <p-list-item>
                     <n-desc name="issueTime" space="linkme"></n-desc>

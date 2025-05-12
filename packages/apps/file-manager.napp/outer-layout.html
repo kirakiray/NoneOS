@@ -53,7 +53,7 @@
           <span style="font-size: 13px; font-weight: 600">
             <n-desc space="files" name="currentStorage"></n-desc>
           </span>
-          <i collapse-triangle slot="suffix"></i>
+          <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
             <x-fill :value="locals" name="path-item"> </x-fill>
           </p-list>
@@ -62,7 +62,7 @@
           <span style="font-size: 13px; font-weight: 600">
             <n-desc space="files" name="otherDevice"></n-desc>
           </span>
-          <i collapse-triangle slot="suffix"></i>
+          <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
             <x-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
@@ -79,7 +79,7 @@
                 ></n-id-avatar>
                 {{$data.userName}}
 
-                <!-- <i collapse-triangle slot="suffix"></i> -->
+                <!-- <i toggle-collapse triangle slot="suffix"></i> -->
                 <user-connected-area
                   slot="suffix"
                   :user-id="$data.userId"
