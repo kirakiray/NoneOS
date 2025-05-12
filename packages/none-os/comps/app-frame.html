@@ -374,31 +374,31 @@
                   let newAppTop = appTop + diffY;
                   let newAppLeft = appLeft + diffX;
 
-                  let needAnime = false; // 主动修正定位时，需要添加动画
+                  // let needAnime = false; // 主动修正定位时，需要添加动画
 
-                  if (newAppTop < -20) {
-                    newAppTop = 0;
-                    needAnime = 1;
-                  } else if (newAppTop > parentRect.height - 80) {
-                    newAppTop = parentRect.height - 80;
-                    needAnime = 1;
-                  }
+                  // if (newAppTop < -20) {
+                  //   newAppTop = 0;
+                  //   needAnime = 1;
+                  // } else if (newAppTop > parentRect.height - 80) {
+                  //   newAppTop = parentRect.height - 80;
+                  //   needAnime = 1;
+                  // }
 
-                  if (newAppLeft + 80 > parentRect.width) {
-                    newAppLeft = parentRect.width - 80;
-                    needAnime = 1;
-                  } else if (newAppLeft + selfRect.width < 120) {
-                    newAppLeft = -1 * selfRect.width + 120;
-                    needAnime = 1;
-                  }
+                  // if (newAppLeft + 80 > parentRect.width) {
+                  //   newAppLeft = parentRect.width - 80;
+                  //   needAnime = 1;
+                  // } else if (newAppLeft + selfRect.width < 120) {
+                  //   newAppLeft = -1 * selfRect.width + 120;
+                  //   needAnime = 1;
+                  // }
 
-                  if (needAnime) {
-                    this.classList.add("in-anime");
+                  // if (needAnime) {
+                  //   this.classList.add("in-anime");
 
-                    setTimeout(() => {
-                      this.classList.remove("in-anime");
-                    }, 300);
-                  }
+                  //   setTimeout(() => {
+                  //     this.classList.remove("in-anime");
+                  //   }, 300);
+                  // }
 
                   Object.assign(this.item, {
                     left: newAppLeft,
