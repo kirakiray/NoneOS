@@ -162,7 +162,7 @@
           <n-desc space="setting" name="themeDesc"></n-desc>
         </div>
         <p-select slot="suffix" sync:value="settingData.theme" size="small">
-          <o-fill :value="themeOptions" fill-key="value">
+          <o-fill :value="themeOptions">
             <p-option attr:value="$data.value">{{$data.name}}</p-option>
           </o-fill>
         </p-select>
@@ -184,7 +184,7 @@
           size="small"
           sync:value="settingData.dockDirection"
         >
-          <o-fill :value="dirOptions" fill-key="value">
+          <o-fill :value="dirOptions">
             <p-option attr:value="$data.value">{{$data.name}}</p-option>
           </o-fill>
         </p-select>

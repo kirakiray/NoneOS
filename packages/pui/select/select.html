@@ -130,12 +130,16 @@
       data: {
         value: "",
         infocus: false,
+        targetOptionText: "",
       },
       watch: {
         defaultValue(val) {
           if (val) {
             this.value = val;
           }
+        },
+        value() {
+          this.refreshTargetOptionText();
         },
       },
       proto: {
@@ -155,18 +159,22 @@
           return null;
         },
 
-        get targetOptionText() {
-          const target = this.find((e) => {
-            if (e.tag === "p-option" && e.value === this.value) {
-              return true;
+        refreshTargetOptionText() {
+          clearTimeout(this._refreshTextTimer);
+          this._refreshTextTimer = setTimeout(() => {
+            const target = this.all("p-option").find((e) => {
+              if (e.tag === "p-option" && e.value === this.value) {
+                return true;
+              }
+            });
+
+            if (target) {
+              this.targetOptionText = target.text || target.value;
+              return;
             }
-          });
 
-          if (target) {
-            return target.text || target.value;
-          }
-
-          return "";
+            this.targetOptionText = "";
+          }, 10);
         },
 
         focus() {
@@ -188,6 +196,8 @@
             });
             selector.html = "";
             selector.push(frag);
+
+            this.refreshTargetOptionText();
           });
         },
       },
