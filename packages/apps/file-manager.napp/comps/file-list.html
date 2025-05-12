@@ -92,11 +92,20 @@
     }
   </style>
 
-  <style>
-    .container {
-      --s-bg: var(data(sqColor));
-    }
-  </style>
+  <match-var pui-real-theme="light">
+    <style>
+      .container {
+        --s-bg: var(--md-ref-palette-normal95);
+      }
+    </style>
+  </match-var>
+  <match-var pui-real-theme="dark">
+    <style>
+      .container {
+        --s-bg: var(--md-ref-palette-normal10);
+      }
+    </style>
+  </match-var>
 
   <div class="container">
     <div class="file-item head">
@@ -164,7 +173,6 @@
       {{spaceData.noMatch}}
     </div>
   </o-if>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
   <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>
   <style id="clipboard-style"></style>
@@ -178,7 +186,6 @@
         tag: "n-file-list",
         data: {
           files: [],
-          theme: null,
           clipboard: {},
           needRename: null, // 需要重命名的文件
           search: "", // 搜索内容
@@ -282,17 +289,6 @@
                 composed: true,
               });
             }
-          },
-          get sqColor() {
-            if (
-              this.theme === "dark" ||
-              (this.theme === "auto" &&
-                matchMedia("(prefers-color-scheme: dark)").matches)
-            ) {
-              return "--md-ref-palette-normal10";
-            }
-
-            return "--md-ref-palette-normal95";
           },
 
           async selectItem(data, event) {
