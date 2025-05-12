@@ -67,26 +67,26 @@
         on:click="$data.showViewer = true"
         attr:done="$data.done"
       >
-        <x-if :value="$data.error">
+        <o-if :value="$data.error">
           <n-local-icon
             name="error"
             slot="prefix"
             class="mainicon"
             style="color: var(--md-sys-color-error)"
           ></n-local-icon>
-        </x-if>
-        <x-else-if :value="$data.icon">
+        </o-if>
+        <o-else-if :value="$data.icon">
           <n-local-icon
             attr:name="$data.icon"
             slot="prefix"
             class="mainicon"
           ></n-local-icon>
-        </x-else-if>
+        </o-else-if>
         <div :html="$data.name"></div>
-        <x-if :value="$data.error">
+        <o-if :value="$data.error">
           <div secondary>{{$data.error}}</div>
-        </x-if>
-        <x-else>
+        </o-if>
+        <o-else>
           <div secondary>
             <p-progress
               attr:color="$data.color"
@@ -98,9 +98,9 @@
               "
             ></p-progress>
           </div>
-        </x-else>
+        </o-else>
 
-        <x-if :value="$data.error">
+        <o-if :value="$data.error">
           <p-button
             on:click="$data.done = true"
             slot="suffix"
@@ -111,7 +111,7 @@
           >
             <n-local-icon name="close"></n-local-icon>
           </p-button>
-        </x-if>
+        </o-if>
       </p-list-item>
     </x-fill>
   </p-list>

@@ -87,27 +87,16 @@
                 ></user-connected-area>
                 <p-list slot="childs" style="--padding-left: 16px">
                   <x-fill :value="$data.dirs" name="path-item"></x-fill>
-                  <!-- <x-if :value="!$data.dirs.length">
-                    <div
-                      style="
-                        padding-left: 32px;
-                        font-size: 12px;
-                        color: var(--md-sys-color-normal);
-                      "
-                    >
-                      <n-desc space="files" name="notConnected"></n-desc>
-                    </div>
-                  </x-if> -->
                 </p-list>
               </p-list-item>
             </x-fill>
-            <x-if :value="!remotes.length">
+            <o-if :value="!remotes.length">
               <p-list-item>
                 <div style="text-align: center; color: #7d7d7d">
                   <n-desc space="files" name="empty"></n-desc>
                 </div>
               </p-list-item>
-            </x-if>
+            </o-if>
           </p-list>
         </p-list-item>
       </p-list>

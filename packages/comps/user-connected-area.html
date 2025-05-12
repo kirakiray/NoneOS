@@ -5,7 +5,7 @@
     }
   </style>
   <l-m src="/packages/pui/button/button.html"></l-m>
-  <x-if :value="connection.state === 'ready'">
+  <o-if :value="connection.state === 'ready'">
     <div
       style="
         width: 8px;
@@ -14,10 +14,10 @@
         border-radius: 6px;
       "
     ></div>
-  </x-if>
-  <x-else :value="connection.state === 'not-ready'">
+  </o-if>
+  <o-else :value="connection.state === 'not-ready'">
     <p-button size="mini" on:click="linkUser">连接</p-button>
-  </x-else>
+  </o-else>
   <script>
     export default async ({ load }) => {
       const { getConnection } = await load("/packages/user/connection/main.js");

@@ -55,7 +55,7 @@
       height: 20px;
     }
 
-    .top > p-button {
+    .top p-button {
       margin: 2px;
     }
 
@@ -106,7 +106,7 @@
       <p-button size="small" icon variant="text" on:click="clickMin">
         <n-local-icon name="min"></n-local-icon>
       </p-button>
-      <x-if :value="item.appStatus === 'max'">
+      <o-if :value="item.appStatus === 'max'">
         <p-button
           size="small"
           icon
@@ -115,8 +115,8 @@
         >
           <n-local-icon name="multi"></n-local-icon>
         </p-button>
-      </x-if>
-      <x-if :value="item.appStatus !== 'max'">
+      </o-if>
+      <o-else>
         <p-button
           size="small"
           icon
@@ -125,7 +125,7 @@
         >
           <n-local-icon name="max"></n-local-icon>
         </p-button>
-      </x-if>
+      </o-else>
       <p-button size="small" icon variant="text" on:click="clickClose">
         <n-local-icon name="close"></n-local-icon>
       </p-button>

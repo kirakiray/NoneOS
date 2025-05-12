@@ -77,12 +77,12 @@
       ></n-file-list>
       <p-menu class="main-menu" contextmenu-selector="n-file-list">
         <p-menu-item on:click="clickMenuItem('open')">
-          <x-if :value="isFolder">
+          <o-if :value="isFolder">
             <n-local-icon name="open-folder" slot="prefix"></n-local-icon>
-          </x-if>
-          <x-else>
+          </o-if>
+          <o-else>
             <n-local-icon name="open-file" slot="prefix"></n-local-icon>
-          </x-else>
+          </o-else>
           <n-desc name="open" space="files"></n-desc>
         </p-menu-item>
         <p-menu-item attr:disabled="isFolder">
@@ -129,7 +129,7 @@
       </p-menu>
 
       <p-menu class="main-menu" contextmenu-selector=".other-area">
-        <x-if :value="clipboard?.sources?.length">
+        <o-if :value="clipboard?.sources?.length">
           <p-menu-item
             attr:disabled="!clipboard?.sources?.length"
             on:click="clickPaste"
@@ -138,7 +138,7 @@
             <n-desc name="paste" space="files"></n-desc>
           </p-menu-item>
           <hr />
-        </x-if>
+        </o-if>
         <p-menu-item on:click="app.current.refreshFiles()">
           <n-local-icon name="reload" slot="prefix"></n-local-icon>
 
@@ -160,17 +160,17 @@
         </p-menu-item>
       </p-menu>
     </p-bind-contextmenu>
-    <x-if :value="loading">
+    <o-if :value="loading">
       <div class="center-box">
         <p-progress type="circle"></p-progress>
       </div>
-    </x-if>
-    <x-else-if :value="errorStr">
+    </o-if>
+    <o-else-if :value="errorStr">
       <div class="center-box">{{errorStr}}</div>
-    </x-else-if>
-    <x-else-if :value="files.length === 0 && !loading">
+    </o-else-if>
+    <o-else-if :value="files.length === 0 && !loading">
       <div class="center-box">{{spaceData.emptyDir}}</div>
-    </x-else-if>
+    </o-else-if>
   </div>
 
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>

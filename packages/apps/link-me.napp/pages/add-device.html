@@ -72,10 +72,10 @@
       <p>在其中一边设备上输入另一边的设备码，即可将其添加为我的设备。</p>
       <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
     </div>
-    <x-if :value="oppositeDeviceCode">
+    <o-if :value="oppositeDeviceCode">
       <div>
         <h5>已查找到的设备</h5>
-        <x-if :value="!oppoUsers.length">
+        <o-if :value="!oppoUsers.length">
           <div
             style="
               font-size: 12px;
@@ -88,18 +88,18 @@
           >
             未查找到用户
           </div>
-        </x-if>
+        </o-if>
         <x-fill :value="oppoUsers">
           <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
-              <x-if :value="$data.exited">
+              <o-if :value="$data.exited">
                 <div
                   style="font-size: 12px; color: var(--md-sys-color-primary)"
                 >
                   该设备已存在
                 </div>
-              </x-if>
-              <x-else>
+              </o-if>
+              <o-else>
                 <div>
                   <p-button
                     size="mini"
@@ -108,7 +108,7 @@
                   >
                     {{$data.posted ? '等待对方确认' : '确认是该设备'}}
                   </p-button>
-                  <x-if :value="$data.time">
+                  <o-if :value="$data.time">
                     <div
                       style="
                         display: inline-block;
@@ -118,8 +118,8 @@
                     >
                       {{$data.time / 1000}}s
                     </div>
-                  </x-if>
-                  <x-if :value="!$data.posted">
+                  </o-if>
+                  <o-if :value="!$data.posted">
                     <p-button
                       on:click="$host.oppoUsers.splice($index,1)"
                       variant="text"
@@ -129,16 +129,16 @@
                     >
                       不是这个用户
                     </p-button>
-                  </x-if>
+                  </o-if>
                 </div>
-              </x-else>
+              </o-else>
             </n-user-card>
           </div>
         </x-fill>
       </div>
-    </x-if>
+    </o-if>
 
-    <x-if :value="receivingUsers.length">
+    <o-if :value="receivingUsers.length">
       <div>
         <h5>收到的邀请</h5>
         <x-fill :value="receivingUsers">
@@ -151,7 +151,7 @@
               >
                 {{$data.sended? '已发送确认信息' : '确认它是我的设备'}}
               </p-button>
-              <x-if :value="$data.time">
+              <o-if :value="$data.time">
                 <div
                   style="
                     display: inline-block;
@@ -161,12 +161,12 @@
                 >
                   {{$data.time / 1000}}s
                 </div>
-              </x-if>
+              </o-if>
             </n-user-card>
           </div>
         </x-fill>
       </div>
-    </x-if>
+    </o-if>
 
     <!-- <h5>我的信息</h5>
     <o-page

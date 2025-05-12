@@ -74,7 +74,7 @@
       <n-desc space="setting" name="system"></n-desc>
     </h5>
     <div class="list">
-      <x-if :value="useOnline">
+      <o-if :value="useOnline">
         <p-list-item radius>
           <n-local-icon name="version" slot="prefix"></n-local-icon>
           <n-desc space="setting" name="sversion"></n-desc>
@@ -89,27 +89,27 @@
             </a>
           </p-button>
         </p-list-item>
-      </x-if>
-      <x-else>
+      </o-if>
+      <o-else>
         <p-list-item radius>
           <n-local-icon name="version" slot="prefix"></n-local-icon>
           <n-desc space="setting" name="sversion"></n-desc>
           <div class="item-tips">{{osVersion}}</div>
-          <x-if :value="onlineVersion === osVersion">
+          <o-if :value="onlineVersion === osVersion">
             <div slot="suffix">
               <n-desc space="setting" name="alreadyLates"></n-desc>
             </div>
-          </x-if>
-          <x-else-if :value="onlineVersion">
+          </o-if>
+          <o-else-if :value="onlineVersion">
             <p-button size="small" slot="suffix">
               <a href="/install">
                 <n-desc space="setting" name="updateTo"></n-desc>
                 {{onlineVersion}}
               </a>
             </p-button>
-          </x-else-if>
+          </o-else-if>
         </p-list-item>
-      </x-else>
+      </o-else>
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
 

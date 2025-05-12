@@ -19,7 +19,7 @@
         <p-list-item button>
           <img attr:src="$data.icon" height="25" slot="prefix" />
           {{$data.name}}
-          <x-if :value="$data.accept">
+          <o-if :value="$data.accept">
             <div secondary>
               <n-desc
                 space="setting"
@@ -27,7 +27,7 @@
                 attr:data-ext="$host.getSecondText($data)"
               ></n-desc>
             </div>
-          </x-if>
+          </o-if>
         </p-list-item>
       </x-fill>
     </p-list>

@@ -111,7 +111,7 @@
   </div>
 
   <div class="bottom-area" class:hide="!clipboard?.sources?.length">
-    <x-if :value="clipboard?.sources?.length">
+    <o-if :value="clipboard?.sources?.length">
       {{clipboardText}},
       <n-desc space="files" name="clickToPaste" set-type="html"></n-desc>
       <p-button
@@ -121,7 +121,7 @@
       >
         {{spaceData.clickToCancel}}
       </p-button>
-    </x-if>
+    </o-if>
   </div>
 
   <div class="address">

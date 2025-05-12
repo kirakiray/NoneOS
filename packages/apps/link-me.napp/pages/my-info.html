@@ -74,7 +74,7 @@
         <n-desc name="userName" space="linkme"></n-desc>
       </div>
       <div class="line-val" style="display: flex">
-        <x-if :value="renameMode">
+        <o-if :value="renameMode">
           <input
             id="renameInputer"
             type="text"
@@ -82,10 +82,10 @@
             on:change="renameEnd"
             on:blur="renameMode = false"
           />
-        </x-if>
-        <x-else>
+        </o-if>
+        <o-else>
           <div>{{userName}}</div>
-        </x-else>
+        </o-else>
 
         <p-button
           icon

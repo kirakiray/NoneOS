@@ -159,11 +159,11 @@
       </x-fill>
     </div>
   </div>
-  <x-if :value="noMatch">
+  <o-if :value="noMatch">
     <div style="text-align: center; font-size: 14px; padding-top: 16px">
       {{spaceData.noMatch}}
     </div>
-  </x-if>
+  </o-if>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
   <o-consumer name="rename-file" watch:need-rename="needRename"></o-consumer>

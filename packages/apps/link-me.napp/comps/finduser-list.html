@@ -58,7 +58,7 @@
       <i toggle-collapse triangle slot="suffix"></i>
 
       <p-list slot="childs">
-        <x-if :value="!servers.length">
+        <o-if :value="!servers.length">
           <div
             style="
               line-height: 80px;
@@ -69,8 +69,8 @@
           >
             <n-desc name="noServer" space="linkme"></n-desc>
           </div>
-        </x-if>
-        <x-else>
+        </o-if>
+        <o-else>
           <x-fill :value="servers" fill-key="serverUrl">
             <p-list-item button="suffix" collapse-childs="open">
               <div
@@ -94,7 +94,7 @@
               <div secondary>{{$data.serverUrl}}</div>
             </p-list-item>
           </x-fill>
-        </x-else>
+        </o-else>
       </p-list>
     </p-list-item>
   </p-list>

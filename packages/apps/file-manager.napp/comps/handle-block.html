@@ -33,18 +33,18 @@
     }
   </style>
   <div class="icon">
-    <x-if :value="kind === 'user'">
+    <o-if :value="kind === 'user'">
       <img src="../sources/list-user.svg" />
-    </x-if>
-    <x-else-if :value="isTask">
+    </o-if>
+    <o-else-if :value="isTask">
       <img src="../sources/list-task.svg" />
-    </x-else-if>
-    <x-else-if :value="kind === 'dir'">
+    </o-else-if>
+    <o-else-if :value="kind === 'dir'">
       <img src="../sources/list-folder.svg" />
-    </x-else-if>
-    <x-else>
+    </o-else-if>
+    <o-else>
       <img src="../sources/list-file.svg" />
-    </x-else>
+    </o-else>
   </div>
   <div class="name">
     <div style="flex-shrink: 0">
