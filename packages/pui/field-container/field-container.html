@@ -5,11 +5,6 @@
       --main-color: var(--md-sys-color-error);
     } */
   </style>
-  <!-- <style id="default-style">
-    :host {
-      display: none !important;
-    }
-  </style> -->
   <div
     class="field-container"
     attr:variant="variant"
@@ -34,8 +29,8 @@
     <slot name="helper"></slot>
   </div>
   <script>
-    import "../commons/init.js";
-    
+    import "../public/init.js";
+
     export default {
       tag: "p-field-container",
       attrs: {
@@ -55,10 +50,6 @@
             ).html = `:host{ --main-color: var(--md-sys-color-${color})}`;
           }
         },
-      },
-      proto: {},
-      loaded() {
-        // this.shadow.$("#default-style").remove();
       },
     };
   </script>

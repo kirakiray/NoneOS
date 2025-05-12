@@ -59,7 +59,7 @@
   </style>
   <link rel="stylesheet" href="./menu.css" />
 
-  <x-if :value="isChild">
+  <o-if :value="isChild">
     <style>
       :host {
         position: absolute;
@@ -69,9 +69,9 @@
         white-space: nowrap;
       }
     </style>
-  </x-if>
+  </o-if>
 
-  <x-if :value="theme === 'dark'">
+  <match-var pui-real-theme="dark">
     <style>
       :host {
         background-color: var(--pui-bg-dark, var(--md-ref-palette-normal10));
@@ -80,8 +80,8 @@
         border-top: var(--md-ref-palette-normal30) solid 1px;
       }
     </style>
-  </x-if>
-  <x-else-if :value="theme === 'light'">
+  </match-var>
+  <match-var pui-real-theme="light">
     <style>
       :host {
         background-color: var(--md-sys-color-surface);
@@ -90,55 +90,28 @@
         --wave-color: rgba(0, 0, 0, 0.1);
       }
     </style>
-  </x-else-if>
-  <x-else>
-    <style>
-      @media (prefers-color-scheme: light) {
-        :host {
-          background-color: var(--md-sys-color-surface);
-        }
-        .container {
-          --wave-color: rgba(0, 0, 0, 0.1);
-        }
-      }
+  </match-var>
 
-      @media (prefers-color-scheme: dark) {
-        :host {
-          background-color: var(--pui-bg-dark, var(--md-ref-palette-normal10));
-        }
-        ::slotted(hr) {
-          border-top: var(--md-ref-palette-normal30) solid 1px;
-        }
-      }
-    </style>
-  </x-else>
-  <style init-style>
-    :host {
-      display: none;
-    }
-  </style>
   <div class="container" part="container">
     <slot></slot>
-    <x-if :value="isChild">
+    <o-if :value="isChild">
       <div class="safearea"></div>
-    </x-if>
+    </o-if>
   </div>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
-    import "../commons/init.js";
+    export default async ({ load }) => {
+      await load("./menu.css");
+      await load("../public/init.js");
 
-    export default {
-      tag: "p-menu",
-      attrs: {
-        open: null,
-      },
-      data: {
-        theme: "light",
-        isChild: false,
-      },
-      loaded() {
-        this.shadow.$("[init-style]").remove();
-      },
+      return {
+        tag: "p-menu",
+        attrs: {
+          open: null,
+        },
+        data: {
+          isChild: false,
+        },
+      };
     };
   </script>
 </template>

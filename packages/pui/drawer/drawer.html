@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="../dialog/mask.html"></l-m>
   <style>
     :host {
       display: block;
@@ -112,10 +113,9 @@
       }
     }
   </style>
-  <l-m src="../dialog/mask.html"></l-m>
 
   <div class="container" attr:anchor="anchor">
-    <p-mask sync:open="open" sync:mask-id="maskId" on:click-mask="clickMask">
+    <p-mask sync:open="open" on:click-mask="clickMask">
       <div class="main" part="main">
         <div class="inner" class:showall="open">
           <slot></slot>
@@ -124,18 +124,16 @@
     </p-mask>
   </div>
   <script>
-    import "../commons/init.js";
-    
+    import "../public/init.js";
+
     export default {
       tag: "p-drawer",
       attrs: {
         anchor: "left",
         autoClose: null,
-        // dialogNotMobile: null,
       },
       data: {
         open: false,
-        maskId: 1000,
       },
       proto: {
         clickMask() {

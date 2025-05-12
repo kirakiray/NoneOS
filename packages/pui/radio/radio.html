@@ -5,7 +5,6 @@
       vertical-align: top;
     }
     .container {
-      /* display: inline-flex; */
       display: flex;
       justify-content: center;
       align-items: center;
@@ -57,6 +56,7 @@
       box-sizing: border-box;
       border-radius: 13px;
       border: var(--md-sys-color-on-normal-container) solid 2px;
+      transition: all ease 0.2s;
     }
     .point {
       width: 0;
@@ -110,6 +110,13 @@
       width: 13px;
       height: 13px;
     }
+
+    /* 悬停效果 */
+    @media (hover: hover) {
+      .container:hover .radio {
+        border-color: var(--md-sys-color-primary);
+      }
+    }
   </style>
   <div
     class="container"
@@ -118,6 +125,10 @@
     class:infocus="infocus"
     attr:placement="placement"
     attr:size="size"
+    role="radio"
+    attr:aria-checked="checked ? 'true' : 'false'"
+    attr:aria-disabled="isDisabled ? 'true' : 'false'"
+    attr:tabindex="isDisabled ? '-1' : '0'"
   >
     <div class="radio-con">
       <div class="radio">
@@ -132,29 +143,29 @@
       attr:disabled="disabled"
       on:focus="infocus = true"
       on:blur="infocus = null"
-      on:change="changeFakeradio"
+      on:change="changeFakeRadio"
       :checked="checked"
+      attr:name="radioName"
     />
   </div>
   <script>
-    import "../commons/init.js";
-    
+    import "../public/init.js";
+
     export default {
       tag: "p-radio",
       attrs: {
-        size: null,
-        disabled: null,
-        // checked: null,
-        value: null,
-        // placement: "start",
-        placement: null,
+        size: null, // 尺寸：small, 默认, large
+        disabled: null, // 禁用状态
+        value: null, // 单选框的值
+        name: null, // 单选框组名称
+        placement: null, // 标签位置：start(默认), top, bottom, end
       },
       data: {
         checked: false,
         infocus: null,
       },
       proto: {
-        changeFakeradio(e) {
+        changeFakeRadio(e) {
           if (e.target.checked) {
             this.clickCheck();
           }
@@ -162,21 +173,31 @@
         get isDisabled() {
           return typeof this.disabled === "string";
         },
+        get radioName() {
+          return this.name || "";
+        },
         clickCheck() {
           if (this.isDisabled) {
             return;
           }
           this.checked = true;
-          this.emit("checked-p-radio");
+          this.emit("change");
         },
       },
-      attached() {
-        this.emit("add-p-radio");
-      },
+      attached() {},
       ready() {
+        // 初始化时同步checked属性
         if (this.attr("checked") !== null) {
           this.checked = true;
         }
+
+        // 添加键盘支持
+        this.on("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            this.clickCheck();
+          }
+        });
 
         this.on("click", (e) => this.clickCheck(e));
       },

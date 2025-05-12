@@ -1,0 +1,59 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <o-if :value="!inframe">
+    <p-button-group size="small">
+      <p-button
+        attr:variant="value === 'auto' ? 'contained' : 'outlined'"
+        on:click="changeTheme('auto')"
+      >
+        Auto
+      </p-button>
+      <p-button
+        attr:variant="value === 'light' ? 'contained' : 'outlined'"
+        on:click="changeTheme('light')"
+      >
+        Light
+      </p-button>
+      <p-button
+        attr:variant="value === 'dark' ? 'contained' : 'outlined'"
+        on:click="changeTheme('dark')"
+      >
+        Dark
+      </p-button>
+    </p-button-group>
+  </o-if>
+  <o-else>
+    <p-button>
+      <a attr:href="selfHref" target="_blank"> Open In New Tab </a>
+    </p-button>
+  </o-else>
+  <script>
+    export default async ({ load }) => {
+      await load("../../button/group.html");
+
+      return {
+        tag: "p-theme-selector",
+        data: {
+          value: "",
+          inframe: window !== top,
+          selfHref: location.href,
+        },
+        proto: {
+          changeTheme(value) {
+            this.value = value;
+            const provider = this.getProvider("pui");
+            provider.theme = value;
+          },
+        },
+        attached() {
+          const provider = this.getProvider("pui");
+          this.value = provider.theme;
+        },
+      };
+    };
+  </script>
+</template>

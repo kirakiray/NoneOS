@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>开关 Switch</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .switch-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./switch.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础开关</h3>
+      <div class="switch-row">
+        <p-switch>默认开关</p-switch>
+        <p-switch checked>默认选中</p-switch>
+        <p-switch disabled>禁用状态</p-switch>
+        <p-switch checked disabled>禁用且选中</p-switch>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>开关尺寸</h3>
+      <div class="switch-row">
+        <p-switch size="small">小尺寸</p-switch>
+        <p-switch>默认尺寸</p-switch>
+        <p-switch size="large">大尺寸</p-switch>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>表单集成</h3>
+      <div id="demo-form">
+        <div class="switch-row">
+          <p-switch name="darkmode">启用深色模式</p-switch>
+        </div>
+        <div class="switch-row">
+          <p-switch name="notifications" checked> 接收通知 </p-switch>
+        </div>
+        <button type="button" onclick="submitForm()">提交表单</button>
+      </div>
+      <div id="form-result" style="margin-top: 10px"></div>
+      <script>
+        function submitForm() {
+          const switches = $.all("#demo-form p-switch");
+          let result = "表单值：<br>";
+
+          switches.forEach((sw) => {
+            result += `${sw.attr("name")}: ${
+              sw.checked ? sw.value : "未选中"
+            }<br>`;
+          });
+
+          document.getElementById("form-result").innerHTML = result;
+        }
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>事件监听</h3>
+      <div class="switch-row">
+        <p-switch id="event-demo">切换开关</p-switch>
+        <span id="event-result">当前状态: 未选择</span>
+      </div>
+      <script>
+        const eventDemo = $("#event-demo");
+        const eventResult = $("#event-result");
+
+        eventDemo.on("change", () => {
+          console.log(eventDemo.value, eventDemo.checked);
+          eventResult.text = `当前状态: checked: ${eventDemo.checked} - value: ${eventDemo.value}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>修正默认值</h3>
+      <div class="switch-row">
+        <p-switch
+          id="event-demo2"
+          checked-value="打开了"
+          unchecked-value="关闭了哈"
+          >切换开关</p-switch
+        >
+        <span id="event-result2">当前状态: 未选择</span>
+      </div>
+      <script>
+        const eventDemo2 = $("#event-demo2");
+        const eventResult2 = $("#event-result2");
+
+        eventDemo2.on("change", () => {
+          eventResult2.text = `当前状态: ${eventDemo2.value}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>动态控制</h3>
+      <div class="switch-row">
+        <button onclick="toggleAll(true)">全部开启</button>
+        <button onclick="toggleAll(false)">全部关闭</button>
+        <button onclick="toggleDisabled()">切换禁用状态</button>
+      </div>
+      <div class="switch-row" id="dynamic-switches">
+        <p-switch>开关 1</p-switch>
+        <p-switch>开关 2</p-switch>
+        <p-switch>开关 3</p-switch>
+      </div>
+      <script>
+        function toggleAll(state) {
+          const switches = $.all("#dynamic-switches p-switch");
+          switches.forEach((sw) => {
+            sw.checked = state;
+          });
+        }
+
+        function toggleDisabled() {
+          const switches = $.all("#dynamic-switches p-switch");
+          switches.forEach((sw) => {
+            if (sw.attr("disabled") !== null) {
+              sw.attr("disabled", null);
+            } else {
+              sw.attr("disabled", "");
+            }
+          });
+        }
+      </script>
+    </div>
+  </body>
+</html>

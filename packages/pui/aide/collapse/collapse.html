@@ -1,0 +1,85 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      position: relative;
+      --duration: 0.3s;
+      transition: all ease 0s;
+    }
+
+    :host([hide]) {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .container {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .content {
+      padding-top: 1px;
+    }
+  </style>
+  <div class="container">
+    <div class="content">
+      <slot></slot>
+    </div>
+  </div>
+  <script>
+    export default {
+      tag: "p-collapse",
+      attrs: {
+        hide: null,
+      },
+      proto: {
+        _refreshHeight(height) {
+          if (this.hide !== null) {
+            this.style.height = "0px";
+            return;
+          }
+          if (height) {
+            this.style.height = height + "px";
+            return;
+          }
+          this.style.height = this.shadow.$(".content").ele.scrollHeight + "px";
+        },
+      },
+      watch: {
+        hide(isHidden) {
+          if (this._isInitialized) {
+            this.style["transition-duration"] = "var(--duration)";
+            this.on("transitionend", () => {
+              this.style["transition-duration"] = "";
+            });
+          }
+
+          this._refreshHeight();
+
+          this._isInitialized = true;
+        },
+      },
+      attached() {
+        const _resizeObserver = (this._resizeObserver = new ResizeObserver(
+          (entries) => {
+            for (let entry of entries) {
+              const contentRect = entry.contentRect;
+              this._refreshHeight(contentRect.height);
+            }
+          }
+        ));
+
+        _resizeObserver.observe(this.shadow.$(".content").ele);
+      },
+      detached() {
+        if (this._resizeObserver) {
+          this._resizeObserver.disconnect();
+        }
+      },
+    };
+  </script>
+</template>

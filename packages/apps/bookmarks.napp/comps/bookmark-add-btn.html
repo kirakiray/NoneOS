@@ -2,7 +2,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
-  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
   <style>
     :host {
       display: block;
@@ -29,14 +29,14 @@
   <p-dialog :open="showDialog" on:click-mask="showDialog = false">
     <div slot="title">添加网页</div>
     <div class="line">
-      <p-text-field sync:value="newUrl">
+      <p-input sync:value="newUrl">
         <label>网址</label>
-      </p-text-field>
+      </p-input>
     </div>
     <div class="line">
-      <p-text-field sync:value="logoUrl">
+      <p-input sync:value="logoUrl">
         <label>logo地址</label>
-      </p-text-field>
+      </p-input>
     </div>
     <div class="line" style="display: flex">
       <div style="flex: 1"></div>

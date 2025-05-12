@@ -97,11 +97,6 @@
           return this.shadow.$(".container");
         },
       },
-      watch: {
-        activeItem() {
-          this.emit("tab-active-change");
-        },
-      },
       ready() {
         this.on("click", () => {
           this.emit("click-tab-item");

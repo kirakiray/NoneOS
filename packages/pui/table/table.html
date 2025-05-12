@@ -33,70 +33,79 @@
     <slot></slot>
   </div>
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default {
       tag: "p-table",
-      data: {},
+      data: {
+        // 添加初始数据结构
+        _tableId: null,
+        _resizeFun: null,
+        __refreshStyleTimer: null,
+        __currentStyle: null,
+      },
       proto: {
-        refreshSlefStyle() {
+        refreshSelfStyle() {
           clearTimeout(this.__refreshStyleTimer);
           this.__refreshStyleTimer = setTimeout(() => {
-            // const headRow = this.$("p-table-row[head]");
-            const headRow = this.$("p-table-row");
-            if (!headRow) {
+            console.log("refreshSelfStyle");
+            const headRows = this.$("p-table-row");
+            if (!headRows || !headRows.length) {
               return;
             }
+
             let styleStr = "";
-            const cellLength = headRow.length;
+            const cellLength = headRows.length;
             const { width } = this;
-            // reload width
+            // 计算单元格宽度
             const cellWidth = width / cellLength;
 
             styleStr += `p-table[data-table-id="${this._tableId}"] p-table-cell{flex:1 1 ${cellWidth}px;}`;
 
-            headRow.forEach((e, index) => {
+            for (let i = 0; i < headRows.length; i++) {
+              const row = headRows[i];
               let colStyle = "";
 
-              if (e.align) {
-                let jc = "";
+              if (row.align) {
+                let justifyContent = "";
 
-                switch (e.align) {
+                switch (row.align) {
                   case "center":
-                    jc = "center";
+                    justifyContent = "center";
                     break;
                   case "right":
-                    jc = "flex-end";
+                    justifyContent = "flex-end";
                     break;
                   case "left":
-                    jc = "flex-start";
+                    justifyContent = "flex-start";
                     break;
                 }
 
-                colStyle += `text-align:${e.align};justify-content:${jc};`;
+                colStyle += `text-align:${row.align};justify-content:${justifyContent};`;
               }
 
-              if (e.basis !== null) {
-                colStyle += `flex:0 0 ${fixPx(e.basis)};`;
+              if (row.basis !== null) {
+                colStyle += `flex:0 0 ${fixPx(row.basis)};`;
               }
 
-              if (e.grow !== null) {
-                colStyle += `flex-grow:${e.grow};`;
+              if (row.grow !== null) {
+                colStyle += `flex-grow:${row.grow};`;
               }
 
-              if (e.shrink !== null) {
-                colStyle += `flex-shrink:${e.shrink};`;
+              if (row.shrink !== null) {
+                colStyle += `flex-shrink:${row.shrink};`;
               }
 
-              if (e.minWidth !== null) {
-                colStyle += `min-width:${fixPx(e.minWidth)};`;
-              }
-              if (e.maxWidth !== null) {
-                colStyle += `max-width:${fixPx(e.maxWidth)};`;
+              if (row.minWidth !== null) {
+                colStyle += `min-width:${fixPx(row.minWidth)};`;
               }
 
-              const isStickyLeft = e.stickyLeft !== null;
-              const isStickyRight = e.stickyRight !== null;
+              if (row.maxWidth !== null) {
+                colStyle += `max-width:${fixPx(row.maxWidth)};`;
+              }
+
+              const isStickyLeft = row.stickyLeft !== null;
+              const isStickyRight = row.stickyRight !== null;
 
               if (isStickyLeft || isStickyRight) {
                 colStyle += "position:sticky;z-index:2;";
@@ -125,56 +134,69 @@
               if (colStyle) {
                 styleStr += `p-table[data-table-id="${
                   this._tableId
-                }"] p-table-cell:nth-child(${index + 1}){${colStyle}}`;
+                }"] p-table-cell:nth-child(${i + 1}){${colStyle}}`;
               }
-            });
+            }
 
             this.__currentStyle.html = styleStr;
 
-            setTimeout(() => {
-              // Calculate row width
+            // 使用 requestAnimationFrame 代替 setTimeout
+            requestAnimationFrame(() => {
+              // 计算行宽度
               let rowWidth = 0;
-              this.$("p-table-row").forEach((e) => {
-                rowWidth += e.width;
-              });
+              const tableRows = this.$("p-table-row");
+
+              if (tableRows && tableRows.length) {
+                for (let i = 0; i < tableRows.length; i++) {
+                  const row = tableRows[i];
+                  if (row && row.width) {
+                    rowWidth += row.width;
+                  }
+                }
+              }
 
               this.__currentStyle.html += `p-table[data-table-id="${this._tableId}"] {--table-row-width:${rowWidth}px;}`;
-            }, 50);
+            });
           }, 30);
         },
       },
       ready() {
         const tid = (this._tableId = Math.random().toString(32).slice(2));
         this.attr("data-table-id", tid);
-
-        this.on("change-cell-prop", () => {
-          this.refreshSlefStyle();
-        });
       },
       attached() {
         const currentStyle = $(`<style table-id="${this._tableId}"></style>`);
         this.__currentStyle = currentStyle;
-        const par = this.root.$("head") || this.root;
-        par.push(currentStyle);
+        const parentElement = this.root.$("head") || this.root;
+        parentElement.push(currentStyle);
 
-        window.addEventListener(
-          "resize",
-          (this._resizeFun = (e) => {
-            this.refreshSlefStyle();
-          })
-        );
+        this._resizeFun = () => {
+          this.refreshSelfStyle();
+        };
+
+        window.addEventListener("resize", this._resizeFun);
       },
       detached() {
         clearTimeout(this.__refreshStyleTimer);
-        this.__currentStyle.remove();
+        if (this.__currentStyle) {
+          this.__currentStyle.remove();
+        }
 
-        window.removeEventListener("resize", this._resizeFun);
+        if (this._resizeFun) {
+          window.removeEventListener("resize", this._resizeFun);
+          this._resizeFun = null;
+        }
       },
       loaded() {
-        this.refreshSlefStyle();
+        this.refreshSelfStyle();
       },
     };
 
+    /**
+     * 修复像素值，如果只是数字则添加px单位
+     * @param {string|number} val - 要处理的值
+     * @return {string} 处理后的值
+     */
     const fixPx = (val) => {
       if (/\d$/.test(val)) {
         return val + "px";

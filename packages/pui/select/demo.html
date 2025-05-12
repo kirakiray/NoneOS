@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Select 组件演示</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .field-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+        align-items: flex-start;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+      p-select {
+        width: 220px;
+      }
+      .result-display {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: var(--md-sys-color-surface);
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./select.html"></l-m>
+    <l-m src="../button/button.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+    <h3>基础用法</h3>
+    <div class="field-row">
+      <p-select>
+        <label>选择水果</label>
+        <p-option value="apple">苹果</p-option>
+        <p-option value="banana">香蕉</p-option>
+        <p-option value="orange">橙子</p-option>
+        <p-option value="grape">葡萄</p-option>
+      </p-select>
+      <p-select placeholder="请选择一个城市">
+        <label>选择城市</label>
+        <p-option value="beijing">北京</p-option>
+        <p-option value="shanghai">上海</p-option>
+        <p-option value="guangzhou">广州</p-option>
+        <p-option value="shenzhen">深圳</p-option>
+      </p-select>
+      <p-select placeholder="请选择一个城市" default-value="guangzhou">
+        <label>默认选择</label>
+        <p-option value="beijing">北京</p-option>
+        <p-option value="shanghai">上海</p-option>
+        <p-option value="guangzhou">广州</p-option>
+        <p-option value="shenzhen">深圳</p-option>
+      </p-select>
+    </div>
+
+    <div class="demo-section">
+      <h3>不同变体 (variant)</h3>
+      <div class="field-row">
+        <p-select>
+          <label>默认边框样式</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+        </p-select>
+        <p-select variant="filled">
+          <label>填充样式</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+        </p-select>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>不同尺寸</h3>
+      <div class="field-row">
+        <p-select size="small">
+          <label>小尺寸</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+
+        <p-select>
+          <label>默认尺寸</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+
+        <p-select size="large">
+          <label>大尺寸</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+      </div>
+
+      <div class="field-row">
+        <p-select size="small" variant="filled">
+          <label>小尺寸 (填充)</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+
+        <p-select variant="filled">
+          <label>默认尺寸 (填充)</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+
+        <p-select size="large" variant="filled">
+          <label>大尺寸 (填充)</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>事件监听示例</h3>
+      <div class="field-row">
+        <p-select id="event-demo">
+          <label>选择内容</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+        <div class="result-display" id="event-result">选择值:</div>
+      </div>
+
+      <script>
+        const eventDemo = $("#event-demo");
+        const eventResult = $("#event-result");
+
+        eventDemo.on("change", (e) => {
+          eventResult.text = `选择值: ${eventDemo.value}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>方法调用示例</h3>
+      <div class="field-row">
+        <p-select id="method-demo" default-value="2">
+          <label>方法演示</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+          <p-option value="3">选项 3</p-option>
+        </p-select>
+        <p-button onclick="focusDemo()">聚焦</p-button>
+        <p-button onclick="clearDemo()">清空</p-button>
+        <p-button onclick="getValueDemo()">获取值</p-button>
+      </div>
+      <script>
+        const focusDemo = () => {
+          $("#method-demo").focus();
+        };
+        const clearDemo = () => {
+          $("#method-demo").value = "";
+        };
+        const getValueDemo = () => {
+          alert($("#method-demo").value);
+        };
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>其他属性示例</h3>
+      <div class="field-row">
+        <p-select hanglabel>
+          <label>悬挂标签</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+        </p-select>
+        <p-select placeholder="请选择...">
+          <label>占位符文本</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+        </p-select>
+        <p-select disabled default-value="1">
+          <label>禁用状态</label>
+          <p-option value="1">选项 1</p-option>
+          <p-option value="2">选项 2</p-option>
+        </p-select>
+      </div>
+    </div>
+  </body>
+</html>

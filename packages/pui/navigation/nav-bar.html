@@ -32,7 +32,7 @@
       }
     </style>
   </inject-host>
-  <x-if :value="theme === 'dark'">
+  <match-var pui-real-theme="dark">
     <style>
       :host {
         background-color: var(
@@ -42,22 +42,19 @@
         color: var(--md-ref-palette-normal80);
       }
     </style>
-  </x-if>
+  </match-var>
   <div class="container" part="container">
     <slot></slot>
   </div>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default {
       tag: "p-nav-bar",
       attrs: {
         autoActive: null,
       },
-      data: {
-        theme: "light",
-      },
+      data: {},
       proto: {
         set activeId(val) {
           if (this.autoActive === null) {

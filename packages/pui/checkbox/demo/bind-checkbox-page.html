@@ -1,0 +1,45 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+
+    p-checkbox {
+      margin: 8px;
+    }
+  </style>
+  <div>
+    <o-fill :value="arr">
+      <p-checkbox :value="$data.value" sync:checked="$data.checked">
+        {{$data.name}}
+      </p-checkbox>
+    </o-fill>
+    <div>{{arr}}</div>
+  </div>
+  <script>
+    export default {
+      data: {
+        arr: [
+          {
+            id: 1,
+            name: "111",
+            value: "one",
+            checked: false,
+          },
+          {
+            id: 2,
+            name: "222",
+            value: "two",
+            checked: false,
+          },
+          {
+            id: 3,
+            name: "333",
+            value: "three",
+            checked: false,
+          },
+        ],
+      },
+    };
+  </script>
+</template>

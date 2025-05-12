@@ -170,7 +170,7 @@
     </style>
   </inject-host>
 
-  <x-if :value="theme==='dark'">
+  <match-var pui-real-theme="dark">
     <style>
       .navbar {
         background-color: var(
@@ -186,13 +186,10 @@
         );
       }
     </style>
-  </x-if>
+  </match-var>
   <div class="container">
     <div class="navbar">
       <slot name="nav"></slot>
-      <!-- <div style="margin-top: auto">
-        <slot name="nav-bottom"></slot>
-      </div> -->
     </div>
     <div class="drawer">
       <div class="drawer-inner">
@@ -221,18 +218,15 @@
       </div>
     </div>
   </div>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default {
       tag: "p-nav-layout",
       attrs: {
         openDrawer: null,
       },
-      data: {
-        theme: "light",
-      },
+      data: {},
       proto: {},
     };
   </script>

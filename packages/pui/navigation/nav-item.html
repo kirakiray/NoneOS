@@ -110,16 +110,16 @@
         <span>
           <slot name="icon"></slot>
         </span>
-        <x-if :value="disabled === null">
+        <o-if :value="disabled === null">
           <p-wave></p-wave>
-        </x-if>
+        </o-if>
       </div>
     </div>
     <slot></slot>
   </div>
   <script>
-    import "../commons/init.js";
-    import bindClick from "../button/bind-item-click.js";
+    import "../public/init.js";
+    import { bindClick } from "../public/util.js";
 
     export default {
       tag: "p-nav-item",

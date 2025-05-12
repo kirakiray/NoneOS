@@ -4,7 +4,6 @@
       display: inline-block;
     }
     .container {
-      /* display: inline-flex; */
       display: flex;
       vertical-align: center;
       justify-content: center;
@@ -43,19 +42,17 @@
       justify-content: center;
       align-items: center;
       box-sizing: border-box;
-      /* padding-right: 8px; */
-      /* padding: 8px; */
     }
     .checkbox {
       display: flex;
       justify-content: center;
       align-items: center;
       box-sizing: border-box;
-      width: 24px;
-      height: 24px;
+      width: 18px;
+      height: 18px;
       border-radius: 3px;
       border: var(--md-sys-color-on-normal-container) solid 2px;
-      transition: background-color ease 0.1s;
+      transition: all ease 0.2s;
     }
     .container.checked .checkbox,
     .container.indeterminate .checkbox {
@@ -100,11 +97,6 @@
       height: 0;
       padding: 0;
       margin: 0;
-    }
-
-    .checkbox {
-      width: 18px;
-      height: 18px;
     }
 
     .point:before {
@@ -184,28 +176,12 @@
       height: 3px;
     }
 
-    /* .container.indeterminate .checkbox {
-      border-color: var(--md-sys-color-primary);
-      background-color: var(--md-sys-color-primary);
-    } */
-
-    /* .container[size="large"] .checkbox {
-      width: 28px;
-      height: 28px;
+    /* 悬停效果 */
+    @media (hover: hover) {
+      .container:hover .checkbox {
+        border-color: var(--md-sys-color-primary);
+      }
     }
-    .container[size="large"] .point:before {
-      left: 5px;
-      bottom: 4px;
-      width: 2px;
-      height: 10px;
-    }
-
-    .container[size="large"] .point:after {
-      left: 14px;
-      top: 3.5px;
-      width: 2px;
-      height: 18px;
-    } */
   </style>
   <div
     class="container"
@@ -215,6 +191,10 @@
     class:indeterminate="indeterminate !== null"
     attr:size="size"
     attr:placement="placement"
+    role="checkbox"
+    attr:aria-checked="indeterminate !== null ? 'mixed' : checked ? 'true' : 'false'"
+    attr:aria-disabled="isDisabled ? 'true' : 'false'"
+    attr:tabindex="isDisabled ? '-1' : '0'"
   >
     <div class="checkbox-con">
       <div class="checkbox">
@@ -227,24 +207,23 @@
     <input
       type="checkbox"
       attr:disabled="disabled"
+      attr:checked="checked ? 'checked' : null"
       on:focus="infocus = true"
       on:blur="infocus = null"
       on:change="changeFakeCheckbox"
     />
   </div>
   <script>
-    import "../commons/init.js";
-    
+    import "../public/init.js";
+
     export default {
       tag: "p-checkbox",
       attrs: {
-        size: null,
-        disabled: null,
-        // checked: null,
-        value: null,
-        indeterminate: null,
-        // placement: "start",
-        placement: null,
+        size: null, // 尺寸：small, 默认, large
+        disabled: null, // 禁用状态
+        value: null, // 值
+        indeterminate: null, // 不确定状态
+        placement: null, // 标签位置：start(默认), top, bottom, end
       },
       data: {
         infocus: null,
@@ -253,7 +232,6 @@
       proto: {
         changeFakeCheckbox(e) {
           this.checked = e.target.checked;
-          this.emit("checked-p-checkbox");
           this.emit("change");
         },
         get isDisabled() {
@@ -270,23 +248,32 @@
 
           this.checked = !this.checked;
 
-          this.emit("checked-p-checkbox");
+          // 同步更新真实的checkbox输入
+          this.shadow.$("input[type='checkbox']").checked = this.checked;
+
           this.emit("change");
+        },
+        // 设置不确定状态
+        setIndeterminate(value) {
+          this.indeterminate = value ? true : null;
         },
       },
       ready() {
-        if (typeof this.checked === "string") {
+        // 初始化时同步checked属性
+        if (typeof this.checked === "string" || this.attr("checked") !== null) {
+          this.checked = true;
           this.shadow.$("input[type='checkbox']").checked = true;
         }
 
-        this.on("click", (e) => this.clickCheck(e));
+        // 添加键盘支持
+        this.on("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            this.clickCheck();
+          }
+        });
 
-        if (this.attr("checked") !== null) {
-          this.checked = true;
-        }
-      },
-      attached() {
-        this.emit("add-p-checkbox");
+        this.on("click", (e) => this.clickCheck(e));
       },
     };
   </script>

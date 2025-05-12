@@ -71,8 +71,7 @@
     </div>
   </div>
   <script>
-    import "../commons/init.js";
-    import dialogUtil from "./command.js";
+    import "../public/init.js";
 
     let total = 1001;
 
@@ -80,15 +79,15 @@
       tag: "p-mask",
       data: {
         open: false,
-        maskId: dialogUtil.maskId,
+        maskId: total,
       },
       watch: {
         open(val) {
           clearTimeout(this._timer);
           if (val) {
-            if (this.maskId <= dialogUtil.maskId) {
-              dialogUtil.maskId = dialogUtil.maskId + 2;
-              this.maskId = dialogUtil.maskId;
+            if (this.maskId <= total) {
+              total = total + 2;
+              this.maskId = total;
             }
             this.shadow.$(".inner").style.visibility = "";
           } else {

@@ -24,83 +24,104 @@
       width: 0;
       height: 0;
       background-color: var(--wave-color, rgba(223, 223, 223, 0.3));
-      transition: all ease 0.7s, opacity ease 1s;
+      transition: all ease-out 0.7s, opacity ease 1s;
       border-radius: 50%;
       pointer-events: none;
+      will-change: transform, opacity, width, height;
     }
-    /* .wave.active {
-      width: 150%;
-      height: 150%;
-      opacity: 0;
-    } */
   </style>
   <div
     class="container"
-    on:mousedown="clickCon"
+    on:mousedown="handleStart"
     on:mouseup="cancelWave"
     on:mouseleave="cancelWave"
-  >
-    <!-- <div class="wave"></div> -->
-  </div>
+    on:touchstart="handleStart"
+    on:touchend="cancelWave"
+    on:touchcancel="cancelWave"
+  ></div>
   <script>
-    import "../commons/init.js";
-    
     export default {
       tag: "p-wave",
       attrs: {
         disabled: null,
+        duration: "500",
+        color: null,
       },
       proto: {
-        cancelWave(e) {
+        cancelWave() {
           const $target = this.shadow.$(".wave:not(.pass)");
           if ($target) {
             $target.classList.add("pass");
             $target.css.opacity = 0;
             setTimeout(() => {
               $target.remove();
-            }, 700);
+            }, parseInt(this.duration) || 700);
           }
         },
-        clickCon(e) {
+
+        handleStart(e) {
           if (this.disabled !== null) {
             return;
           }
 
-          const waveEl = $(`<div class="wave"></div>`);
+          if ("ontouchstart" in window && e.type.includes("mouse")) {
+            // 如果支持触摸事件，跳过鼠标事件处理
+            return;
+          }
+
+          // 处理触摸事件
+          const event = e.type.startsWith("touch") ? e.touches[0] : e;
           const container = this.shadow.$(".container");
+          const rect = container.ele.getBoundingClientRect();
+
+          // 计算相对于容器的点击位置
+          const offsetX = event.clientX - rect.left;
+          const offsetY = event.clientY - rect.top;
+
+          this.createWave(container, offsetX, offsetY);
+        },
+
+        createWave(container, offsetX, offsetY) {
+          const waveEl = $(`<div class="wave"></div>`);
           container.push(waveEl);
+
+          // 应用自定义颜色
+          if (this.color) {
+            waveEl.css.backgroundColor = this.color;
+          }
+
+          // 继承父元素的边框半径
           const radius = $(this.ele.offsetParent).css.borderRadius;
           container.css.borderRadius = radius;
 
-          const { offsetX, offsetY } = e;
-
+          // 设置初始位置
           Object.assign(waveEl.css, {
             left: offsetX + "px",
             top: offsetY + "px",
           });
 
-          const { clientWidth, clientHeight } = e.target;
+          const { clientWidth, clientHeight } = container.ele;
 
-          setTimeout(() => {
-            const maxSize = Math.sqrt(clientWidth ** 2 + clientHeight ** 2) * 2;
-
+          // 使用 requestAnimationFrame 优化性能
+          requestAnimationFrame(() => {
+            const maxSize =
+              Math.sqrt(clientWidth ** 2 + clientHeight ** 2) * 2 * 1.2;
             const left = offsetX - maxSize / 2;
             const top = offsetY - maxSize / 2;
-
-            // console.log(left, top, maxSize);
 
             Object.assign(waveEl.css, {
               left: left + "px",
               top: top + "px",
               width: maxSize + "px",
               height: maxSize + "px",
+              transitionDuration: `${parseInt(this.duration) || 700}ms`,
             });
-          }, 5);
+          });
         },
       },
       ready() {
         this.on("click", (e) => {
-          if (this.host.length === 1 && this.host[0].tag === "a") {
+          if (this.host && this.host.length === 1 && this.host[0].tag === "a") {
             e.stopPropagation();
             this.host[0].ele.click();
           }

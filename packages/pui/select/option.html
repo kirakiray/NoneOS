@@ -1,0 +1,39 @@
+<template component>
+  <style>
+    :host {
+      display: none;
+    }
+  </style>
+  <slot on:slotchange="updateChange"></slot>
+  <script>
+    export default {
+      tag: "p-option",
+      attrs: {
+        value: null,
+        disabled: null,
+      },
+      watch: {
+        value(value) {
+          this.updateChange();
+        },
+        disabled(disabled) {
+          this.updateChange();
+        },
+      },
+      proto: {
+        updateChange() {
+          clearTimeout(this._changeTimeout);
+          this._changeTimeout = setTimeout(() => {
+            this.emit("change-option");
+          }, 0);
+        },
+      },
+      attached() {
+        this.updateChange();
+      },
+      detached() {
+        this.updateChange();
+      },
+    };
+  </script>
+</template>

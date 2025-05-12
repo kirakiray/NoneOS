@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>button group</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.min.js"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../group.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>按钮组基本用法</h3>
+      <p-button-group>
+        <p-button>按钮1</p-button>
+        <p-button>按钮2</p-button>
+        <p-button>按钮3</p-button>
+      </p-button-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>按钮组颜色 (color)</h3>
+      <p-button-group color="primary">
+        <p-button>首页</p-button>
+        <p-button>产品</p-button>
+        <p-button>关于</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group color="error">
+        <p-button>删除</p-button>
+        <p-button>清空</p-button>
+        <p-button>重置</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group color="success">
+        <p-button>保存</p-button>
+        <p-button>提交</p-button>
+        <p-button>发布</p-button>
+      </p-button-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>按钮组变体 (variant)</h3>
+      <p-button-group variant="contained">
+        <p-button>Contained 1</p-button>
+        <p-button>Contained 2</p-button>
+        <p-button>Contained 3</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group variant="outlined">
+        <p-button>Outlined 1</p-button>
+        <p-button>Outlined 2</p-button>
+        <p-button>Outlined 3</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group variant="text">
+        <p-button>Text 1</p-button>
+        <p-button>Text 2</p-button>
+        <p-button>Text 3</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group variant="tonal">
+        <p-button>Tonal 1</p-button>
+        <p-button>Tonal 2</p-button>
+        <p-button>Tonal 3</p-button>
+      </p-button-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>按钮组尺寸 (size)</h3>
+      <p-button-group size="mini">
+        <p-button>Mini 1</p-button>
+        <p-button>Mini 2</p-button>
+        <p-button>Mini 3</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group size="small">
+        <p-button>Small 1</p-button>
+        <p-button>Small 2</p-button>
+        <p-button>Small 3</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group>
+        <p-button>默认 1</p-button>
+        <p-button>默认 2</p-button>
+        <p-button>默认 3</p-button>
+      </p-button-group>
+      <br /><br />
+      <p-button-group size="large">
+        <p-button>Large 1</p-button>
+        <p-button>Large 2</p-button>
+        <p-button>Large 3</p-button>
+      </p-button-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>禁用状态 (disabled)</h3>
+      <p-button-group>
+        <p-button>可用 1</p-button>
+        <p-button disabled>禁用 2</p-button>
+        <p-button>可用 3</p-button>
+      </p-button-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>组合示例</h3>
+      <p-button-group variant="contained" color="primary" size="small">
+        <p-button>
+          <span slot="prefix">◀</span>
+          上一页
+        </p-button>
+        <p-button>当前页</p-button>
+        <p-button>
+          下一页
+          <span slot="suffix">▶</span>
+        </p-button>
+      </p-button-group>
+    </div>
+  </body>
+</html>

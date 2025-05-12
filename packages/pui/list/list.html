@@ -10,11 +10,12 @@
         padding-bottom: 0;
       }
 
-      p-list-item[collapse-childs="open"] > [collapse-triangle] {
+      p-list-item[collapse-childs="open"] > [triangle] {
         transform: rotateZ(-90deg);
       }
 
-      p-list-item [collapse-triangle]:empty:after {
+      p-list-item [triangle]:empty:after {
+        /* 加大点击区域 */
         display: block;
         content: "";
         position: absolute;
@@ -41,25 +42,25 @@
       border-bottom: var(--md-sys-color-normal) solid 0.5px;
     }
   </style>
-  <x-if :value="theme === 'dark'">
+
+  <match-var pui-real-theme="dark">
     <style>
       :host {
         background-color: var(--list-dark-bg-color);
       }
     </style>
-  </x-if>
+  </match-var>
+
   <slot></slot>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default {
       tag: "p-list",
-      data: {
-        theme: "light",
-      },
+      data: {},
       ready() {
         this.on("click", (e) => {
+          // 防止点击了list导致的item折叠事件
           e.stopPropagation();
         });
       },

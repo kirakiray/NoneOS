@@ -185,14 +185,14 @@
   </style>
 
   <div class="container" class:infocus="infocus">
-    <div class="switch" class:checked="value">
+    <div class="switch" class:checked="checked">
       <span class="slider">
         <div class="mark"></div>
       </span>
       <div class="border"></div>
       <input
         type="checkbox"
-        sync:checked="value"
+        sync:checked="checked"
         on:focus="infocus = true"
         on:blur="infocus = false"
         attr:disabled="disabled"
@@ -203,7 +203,7 @@
     <slot></slot>
   </div>
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default {
       tag: "p-switch",
@@ -212,24 +212,33 @@
         size: null,
         // color: null,
         disabled: null,
+        checkedValue: "on",
+        uncheckedValue: "off",
       },
       data: {
-        value: false,
+        value: null,
         infocus: false,
       },
       proto: {
         get checked() {
-          return this.value;
+          return this.value === this.checkedValue;
         },
         set checked(val) {
-          this.value = !!val;
+          if (val) {
+            this.value = this.checkedValue;
+          } else {
+            this.value = this.uncheckedValue;
+          }
         },
         clickSwitch(e) {
           if (this.disabled !== null) {
             e.stopImmediatePropagation();
             return;
           }
-          this.value = !this.value;
+          this.value =
+            this.value === this.checkedValue
+              ? this.uncheckedValue
+              : this.checkedValue;
           this.emit("change");
         },
       },
@@ -238,7 +247,9 @@
       },
       attached() {
         if (this.attr("checked") !== null) {
-          this.value = true;
+          this.value = this.checkedValue;
+        } else {
+          this.value = this.uncheckedValue;
         }
       },
     };

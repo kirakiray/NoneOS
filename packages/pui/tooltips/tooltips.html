@@ -1,107 +1,125 @@
 <template component>
   <style>
     :host {
-      display: contents;
+      display: inline-block;
     }
 
-    p-placement::part(container) {
-      color: var(--tips-color, var(--md-sys-color-normal-container));
-      background-color: var(
-        --tips-bg-color,
-        var(--md-sys-color-on-normal-container)
-      );
-      pointer-events: none;
-      visibility: hidden;
-      opacity: 0;
+    .tips {
+      display: block;
+      padding: 4px;
       font-size: 12px;
-      line-height: 1.3em;
-      border-radius: var(--pui-border-radius);
+      line-height: 1.2em;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-normal-container);
       white-space: nowrap;
-      /* z-index: var(--tips-index, 10); */
+      border-radius: var(--pui-border-radius);
+      box-shadow: var(--contained-shadow);
+      transition: all ease 0.3s;
+      opacity: 0;
+      transform: scale(0);
     }
 
-    :host([plain]) p-placement::part(container) {
-      color: inherit;
-      margin: 0;
-      padding: 0;
-    }
-
-    p-placement.open::part(container) {
+    .tips.open {
       opacity: 1;
+      transform: scale(1);
       pointer-events: auto;
-      visibility: visible;
+    }
+
+    p-placement {
+      display: inherit;
+    }
+
+    p-placement::part(tips-container) {
+      pointer-events: none;
+    }
+
+    :host([plain]) {
+      .tips {
+        background-color: transparent;
+        box-shadow: none;
+      }
     }
   </style>
-  <slot></slot>
-  <p-placement class:open="open" attr:placement="placement" :event="event">
-    <slot name="tips"></slot>
+  <p-placement attr:placement="placement" part="placement">
+    <slot></slot>
+    <div slot="tips" class="tips" class:open="open">
+      <slot name="tips"></slot>
+    </div>
   </p-placement>
   <script>
-    import "../commons/init.js";
-    
+    import "../public/init.js";
+
     export default async ({ load }) => {
-      await load("./placement.html");
+      await load("../aide/placement/placement.html");
 
       return {
         tag: "p-tooltips",
         attrs: {
           placement: null,
-          event: null,
+          event: "hover",
         },
         data: {
           open: false,
         },
         watch: {
-          open() {
-            if (this.open) {
-              this._refresh();
-            }
-          },
-          event() {
-            this.shadow.$("p-placement")._init({
-              self: this,
-              open: () => {
-                this.openTips();
-              },
-              close: () => {
-                this.closeTips();
-              },
-            });
+          event(event) {
+            this.initEvent();
           },
         },
         proto: {
-          openTips() {
-            let isDisabled = false;
-            this.forEach((element) => {
-              if (element.attr("slot") === null && element.disabled) {
-                isDisabled = true;
-              }
-            });
-            if (!isDisabled) {
-              this.open = true;
+          initEvent() {
+            if (this._cancel) {
+              this._cancel();
+              this._cancel = null;
             }
-          },
-          closeTips() {
-            this.open = false;
-          },
-          _refresh() {
-            const placement = this.shadow.$("p-placement");
-            if (!placement._refreshPosition) {
-              return;
+
+            if (this.event === "hover") {
+              let f1, f2;
+              this.on(
+                "mouseenter",
+                (f1 = (e) => {
+                  this.open = true;
+                })
+              );
+              this.on(
+                "mouseleave",
+                (f2 = () => {
+                  this.open = false;
+                })
+              );
+
+              this._cancel = () => {
+                this.off("mouseenter", f1);
+                this.off("mouseleave", f2);
+              };
+            } else if (this.event === "click") {
+              let f;
+              this.on(
+                "click",
+                (f = (e) => {
+                  if (e.target === this.ele) {
+                    return;
+                  }
+
+                  const target = $(e.target);
+                  const paths = [...target.parentsUntil(this), target];
+
+                  if (!paths.some((e) => e.attr("slot") === "tips")) {
+                    // 不是通过 tips 触发的事件
+                    this.open = !this.open;
+                  }
+                })
+              );
+              this._cancel = () => {
+                this.off("click", f);
+              };
             }
-            placement._refreshPosition(this.$(':not([slot="tips"])'));
           },
         },
-        ready() {
+        attached() {
           if (this.attr("opened") !== null) {
             this.open = true;
           }
-        },
-        attached() {
-          this._refresh();
-        },
-        loaded() {
-          this._refresh();
         },
       };
     };

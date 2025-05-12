@@ -1,0 +1,164 @@
+<template component>
+  <l-m src="../field-container/field-container.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+      position: relative;
+      vertical-align: top;
+    }
+    textarea {
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: calc(100% - 10px);
+      padding: 0 0;
+      margin: 0;
+      border: none;
+      outline: none;
+      background-color: transparent;
+      font-size: inherit;
+      resize: none;
+      font-family: inherit;
+      line-height: 1.2em;
+      color: var(--md-sys-color-on-normal-container);
+    }
+    .fake-input {
+      display: block;
+      font-family: inherit;
+      width: 100%;
+      opacity: 0;
+      padding: 10px 0 0;
+      line-height: 1.2em;
+      overflow: hidden;
+      white-space: pre-wrap;
+      pointer-events: none;
+    }
+
+    /* 错误状态样式 */
+    :host([error]) ::slotted(label),
+    :host([error]) ::slotted([slot="helper"]) {
+      color: var(--md-sys-color-error);
+    }
+
+    :host([error]) p-field-container::part(border) {
+      border-color: var(--md-sys-color-error);
+    }
+
+    :host([error]) p-field-container::part(bottom-line) {
+      border-color: var(--md-sys-color-error);
+    }
+
+    :host([error]) p-field-container::part(bottom-line)::before {
+      background-color: var(--md-sys-color-error);
+    }
+
+    /* 禁用状态样式 */
+    :host([disabled]) textarea {
+      cursor: not-allowed;
+    }
+  </style>
+  <p-field-container
+    :hang-label="isHangLable"
+    :variant="variant"
+    :active="infocus ? '' : null"
+    :size="size"
+    :fix-position="infocus || value ? '' : null"
+    :disabled="disabled"
+    :color="color"
+  >
+    <textarea
+      sync:value="value"
+      on:focus="infocus = true"
+      on:blur="infocus = false"
+      on:change="emit('change')"
+      on:input="changeTextarea($event.target.value); emit('input', $event)"
+      attr:disabled="disabled"
+      attr:placeholder="placeholder"
+      attr:maxlength="maxlength"
+      attr:readonly="readonly"
+    ></textarea>
+    <div
+      class="fake-input"
+      :style.height="rows ? `${rows * 1.2}em` : ''"
+      :style.max-height="maxRows ? `${maxRows * 1.2}em` : ''"
+      :style.min-height="minRows ? `${minRows * 1.2}em` : ''"
+    ></div>
+    <slot name="suffix" slot="suffix"></slot>
+    <slot></slot>
+    <slot name="prefix" slot="prefix"></slot>
+    <slot name="helper" slot="helper"></slot>
+  </p-field-container>
+  <script>
+    import "../public/init.js";
+
+    export default {
+      tag: "p-textarea",
+      attrs: {
+        hanglabel: null,
+        name: null,
+        error: null,
+        variant: null,
+        maxRows: null,
+        minRows: null,
+        rows: null,
+        disabled: null,
+        defaultValue: null,
+        autofocus: null,
+        size: null,
+        placeholder: null,
+        maxlength: null,
+        readonly: null,
+        color: null,
+      },
+      data: {
+        value: "",
+        infocus: false,
+      },
+      watch: {
+        autofocus(val) {
+          if (val !== null) {
+            setTimeout(() => {
+              this.shadow.$("textarea")?.ele.focus();
+            }, 150);
+          }
+        },
+        value(value) {
+          this.changeTextarea(value);
+          this.emit("value-change", value);
+        },
+      },
+      proto: {
+        get isHangLable() {
+          if (this.hanglabel !== null) {
+            return 1;
+          }
+
+          if (this.infocus || !!this.value) {
+            return 1;
+          }
+
+          if (this.placeholder) {
+            return 1;
+          }
+
+          return null;
+        },
+        changeTextarea(value) {
+          const fakeInput = this.shadow.$(".fake-input");
+          if (fakeInput) {
+            fakeInput.text = value + " ";
+          }
+        },
+        focus() {
+          this.shadow.$("textarea")?.ele.focus();
+        },
+      },
+      attached() {
+        if (this.defaultValue !== null) {
+          this.value = this.defaultValue;
+        }
+      },
+    };
+  </script>
+</template>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dialog 对话框演示</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        font-family: sans-serif;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 8px 16px;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../dialog.html"></l-m>
+    <l-m src="../../button/button.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h2>基础对话框</h2>
+      <p-button id="show-dialog-btn">显示对话框</p-button>
+
+      <!-- auto-close 代表点击遮罩层时关闭对话框 -->
+      <p-dialog id="basic-dialog" auto-close>
+        <span slot="title">对话框标题</span>
+        <div>
+          <p>这里是对话框的内容区域</p>
+          <p>可以放置任何HTML内容</p>
+        </div>
+        <div slot="bottom">
+          <p-button type="primary" id="okbtn">确定</p-button>
+          <p-button color="error" variant="text" id="cancelbtn">取消</p-button>
+        </div>
+      </p-dialog>
+    </div>
+
+    <script>
+      const dialog = $("#basic-dialog");
+
+      $("#show-dialog-btn").on("click", () => {
+        dialog.open = true;
+      });
+
+      $("#okbtn").on("click", () => {
+        dialog.open = false;
+        console.log("确定");
+      });
+
+      $("#cancelbtn").on("click", () => {
+        dialog.open = false;
+        console.log("取消");
+      });
+    </script>
+  </body>
+</html>

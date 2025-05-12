@@ -19,9 +19,6 @@
           area: null,
           autoClose: null,
         },
-        data: {
-          _target: null,
-        },
         ready() {
           this.shadow.on("slotchange", () => {
             // 防止菜单内的右键触发
@@ -52,28 +49,28 @@
             const $target = $(e.target);
             e.preventDefault();
             e.stopPropagation();
-
             // 目标菜单元素
             let targetMenu;
 
             this.forEach((menu) => {
-              const contextmenuSelector = menu.attr("contextmenu-selector");
+              const contextmenuSelector =
+                menu.attr("contextmenu-selector") || "p-bind-contextmenu";
               if (menu.is("p-menu")) {
                 if (contextmenuSelector) {
                   if ($target.is(contextmenuSelector)) {
                     // 判断是否自身
                     targetMenu = menu;
-                    this._target = $target;
                   } else {
                     $target.parentsUntil(this).some((el) => {
                       if (el.is(contextmenuSelector)) {
                         targetMenu = menu;
-                        this._target = el;
                         return true;
                       }
                     });
                   }
                 }
+
+                // menu.open = "off";
               }
             });
 
@@ -81,7 +78,6 @@
               if (onlyMenu) {
                 onlyMenu.open = "off";
               }
-              this._target = null;
               return;
             }
 

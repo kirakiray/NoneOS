@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>遮罩层 Mask 演示</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        font-family: sans-serif;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 8px 16px;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../mask.html"></l-m>
+    <l-m src="../../button/button.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h2>基础遮罩层</h2>
+      <p-button id="show-mask-btn">显示遮罩层</p-button>
+      <!-- <p-button id="hide-mask-btn">隐藏遮罩层</p-button> -->
+
+      <p-mask id="basic-mask">
+        <div
+          style="
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            color: red;
+          "
+        >
+          <h3>这是一个弹窗内容</h3>
+          <p>点击遮罩层可以关闭</p>
+        </div>
+      </p-mask>
+    </div>
+
+    <script>
+      const mask = $("#basic-mask");
+
+      $("#show-mask-btn").on("click", () => {
+        mask.open = true;
+      });
+
+      //   $("#hide-mask-btn").on("click", () => {
+      //     mask.open = false;
+      //   });
+
+      mask.on("click-mask", () => {
+        mask.open = false;
+      });
+    </script>
+  </body>
+</html>

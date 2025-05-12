@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resize Observer 演示</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, sans-serif;
+      }
+      .demo-section {
+        margin-bottom: 30px;
+      }
+      .demo-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface, #f5f5f5);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+      .resizable-box {
+        border: 2px solid #ccc;
+        padding: 10px;
+        resize: both;
+        overflow: auto;
+        min-width: 100px;
+        min-height: 100px;
+        width: 200px;
+        height: 150px;
+        position: relative;
+      }
+      .info-panel {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: var(--md-sys-color-surface, #f5f5f5);
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .control-panel {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+      button {
+        padding: 5px 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background-color: #f0f0f0;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #e0e0e0;
+      }
+      .size-label {
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        font-size: 12px;
+        color: #666;
+      }
+
+      resize-observer {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./resize-observer.html"></l-m>
+
+    <h2>Resize Observer 组件演示</h2>
+    <p>
+      这个组件封装了浏览器的 ResizeObserver
+      API，提供了一种简单的方式来监听元素尺寸变化。
+    </p>
+
+    <div class="demo-section">
+      <h3>基础用法</h3>
+      <p>拖动右下角调整大小，观察尺寸变化：</p>
+      <div class="demo-container">
+        <div class="resizable-box" id="basic-demo">
+          <div class="size-label" id="basic-size">200 x 150</div>
+          <resize-observer id="basic-observer"></resize-observer>
+        </div>
+        <div class="info-panel" id="basic-info">尺寸变化信息将显示在这里</div>
+      </div>
+
+      <div class="code-block">
+        <pre>
+&lt;div class="resizable-box"&gt;
+  &lt;resize-observer&gt;&lt;/resize-observer&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  const observer = $("resize-observer");
+  observer.on("size-change", (e) => {
+    console.log("尺寸变化:", e.data);
+  });
+&lt;/script&gt;</pre
+        >
+      </div>
+
+      <script>
+        const basicObserver = $("#basic-observer");
+        const basicInfo = $("#basic-info");
+        const basicSize = $("#basic-size");
+
+        basicObserver.on("size-change", (e) => {
+          const { width, height } = e.data;
+          basicSize.text = `${Math.round(width)} x ${Math.round(height)}`;
+          basicInfo.html = `
+            <div>宽度: ${Math.round(width)}px</div>
+            <div>高度: ${Math.round(height)}px</div>
+            <div>时间: ${new Date().toLocaleTimeString()}</div>
+          `;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>使用延迟（防抖）</h3>
+      <p>设置 time 属性为 500ms，减少触发频率：</p>
+      <div class="demo-container">
+        <div class="resizable-box" id="debounce-demo">
+          <div class="size-label" id="debounce-size">200 x 150</div>
+          <resize-observer id="debounce-observer" time="500"></resize-observer>
+        </div>
+        <div class="info-panel" id="debounce-info">
+          尺寸变化信息将显示在这里（500ms 延迟）
+        </div>
+      </div>
+
+      <div class="code-block">
+        <pre>&lt;resize-observer time="500"&gt;&lt;/resize-observer&gt;</pre>
+      </div>
+
+      <script>
+        const debounceObserver = $("#debounce-observer");
+        const debounceInfo = $("#debounce-info");
+        const debounceSize = $("#debounce-size");
+
+        debounceObserver.on("size-change", (e) => {
+          const { width, height } = e.data;
+          debounceSize.text = `${Math.round(width)} x ${Math.round(height)}`;
+          debounceInfo.html = `
+            <div>宽度: ${Math.round(width)}px</div>
+            <div>高度: ${Math.round(height)}px</div>
+            <div>时间: ${new Date().toLocaleTimeString()}</div>
+            <div><strong>注意：</strong> 500ms 防抖后触发</div>
+          `;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>启用/禁用观察</h3>
+      <p>可以通过 disabled 属性控制是否观察尺寸变化：</p>
+      <div class="demo-container">
+        <div class="resizable-box" id="toggle-demo">
+          <div class="size-label" id="toggle-size">200 x 150</div>
+          <resize-observer id="toggle-observer"></resize-observer>
+        </div>
+        <div>
+          <div class="info-panel" id="toggle-info">
+            尺寸变化信息将显示在这里
+          </div>
+          <div class="control-panel">
+            <button id="enable-btn">启用观察</button>
+            <button id="disable-btn">禁用观察</button>
+            <button id="refresh-btn">刷新观察</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block">
+        <pre>
+&lt;resize-observer id="myObserver"&gt;&lt;/resize-observer&gt;
+
+&lt;script&gt;
+  // 禁用观察
+  $("#myObserver").disabled = true;
+  
+  // 启用观察
+  $("#myObserver").disabled = false;
+  
+  // 手动刷新观察
+  $("#myObserver").refresh();
+&lt;/script&gt;</pre
+        >
+      </div>
+
+      <script>
+        const toggleObserver = $("#toggle-observer");
+        const toggleInfo = $("#toggle-info");
+        const toggleSize = $("#toggle-size");
+        const enableBtn = $("#enable-btn");
+        const disableBtn = $("#disable-btn");
+        const refreshBtn = $("#refresh-btn");
+
+        toggleObserver.on("size-change", (e) => {
+          const { width, height } = e.data;
+          toggleSize.text = `${Math.round(width)} x ${Math.round(height)}`;
+          toggleInfo.html = `
+            <div>宽度: ${Math.round(width)}px</div>
+            <div>高度: ${Math.round(height)}px</div>
+            <div>时间: ${new Date().toLocaleTimeString()}</div>
+            <div>状态: ${toggleObserver.disabled ? "已禁用" : "已启用"}</div>
+          `;
+        });
+
+        enableBtn.on("click", () => {
+          toggleObserver.disabled = false;
+          toggleInfo.html += `<div>观察已启用</div>`;
+        });
+
+        disableBtn.on("click", () => {
+          toggleObserver.disabled = true;
+          toggleInfo.html += `<div>观察已禁用</div>`;
+        });
+
+        refreshBtn.on("click", () => {
+          toggleObserver.refresh();
+          toggleInfo.html += `<div>观察已刷新</div>`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>多元素观察</h3>
+      <p>可以在多个元素上使用 resize-observer：</p>
+      <div class="demo-container">
+        <div
+          class="resizable-box"
+          style="background-color: rgba(255, 200, 200, 0.3)"
+        >
+          <div class="size-label" id="multi-size1">元素 1</div>
+          <resize-observer id="multi-observer1"></resize-observer>
+        </div>
+        <div
+          class="resizable-box"
+          style="background-color: rgba(200, 255, 200, 0.3)"
+        >
+          <div class="size-label" id="multi-size2">元素 2</div>
+          <resize-observer id="multi-observer2"></resize-observer>
+        </div>
+        <div class="info-panel" id="multi-info">调整任意元素大小查看变化</div>
+      </div>
+
+      <script>
+        const multiInfo = $("#multi-info");
+        const multiObserver1 = $("#multi-observer1");
+        const multiObserver2 = $("#multi-observer2");
+        const multiSize1 = $("#multi-size1");
+        const multiSize2 = $("#multi-size2");
+
+        multiObserver1.on("size-change", (e) => {
+          const { width, height } = e.data;
+          multiSize1.text = `${Math.round(width)} x ${Math.round(height)}`;
+          multiInfo.html = `
+            <div>元素 1 尺寸变化:</div>
+            <div>宽度: ${Math.round(width)}px</div>
+            <div>高度: ${Math.round(height)}px</div>
+            <div>时间: ${new Date().toLocaleTimeString()}</div>
+          `;
+        });
+
+        multiObserver2.on("size-change", (e) => {
+          const { width, height } = e.data;
+          multiSize2.text = `${Math.round(width)} x ${Math.round(height)}`;
+          multiInfo.html = `
+            <div>元素 2 尺寸变化:</div>
+            <div>宽度: ${Math.round(width)}px</div>
+            <div>高度: ${Math.round(height)}px</div>
+            <div>时间: ${new Date().toLocaleTimeString()}</div>
+          `;
+        });
+      </script>
+    </div>
+  </body>
+</html>

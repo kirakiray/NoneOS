@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>单选框 radio</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .radio-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../radio.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础复选框</h3>
+      <div class="radio-row">
+        <p-radio>默认复选框</p-radio>
+        <p-radio checked>默认选中</p-radio>
+        <p-radio disabled>禁用状态</p-radio>
+        <p-radio checked disabled>禁用且选中</p-radio>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>复选框尺寸</h3>
+      <div class="radio-row">
+        <p-radio size="small">小尺寸</p-radio>
+        <p-radio>默认尺寸</p-radio>
+        <p-radio size="large">大尺寸</p-radio>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>标签位置</h3>
+      <div class="radio-row">
+        <p-radio>默认位置 (start)</p-radio>
+        <p-radio placement="top">顶部</p-radio>
+        <p-radio placement="bottom">底部</p-radio>
+        <p-radio placement="end">末尾</p-radio>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>表单集成</h3>
+      <div id="demo-form">
+        <div class="radio-row">
+          <p-radio name="agree" value="yes">我同意服务条款</p-radio>
+        </div>
+        <div class="radio-row">
+          <p-radio name="newsletter" value="subscribe"> 订阅新闻邮件 </p-radio>
+        </div>
+        <button type="button" onclick="submitForm()">提交表单</button>
+      </div>
+      <div id="form-result" style="margin-top: 10px"></div>
+      <script>
+        function submitForm() {
+          const radioes = $.all("#demo-form p-radio");
+          let result = "表单值：<br>";
+
+          radioes.forEach((cb) => {
+            result += `${cb.attr("name")}: ${
+              cb.checked ? cb.value : "未选中"
+            }<br>`;
+          });
+
+          document.getElementById("form-result").innerHTML = result;
+        }
+      </script>
+    </div>
+
+    <o-page src="./bind-radio-page.html"></o-page>
+  </body>
+</html>

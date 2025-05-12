@@ -5,6 +5,7 @@
     :host {
       display: block;
       --item-radio: 30px;
+      --carousel-transition: all ease 0.4s;
     }
     .container {
       position: relative;
@@ -56,7 +57,7 @@
   <inject-host>
     <style>
       p-carousel[add-anime] > * {
-        transition: all ease 0.4s;
+        transition: var(--carousel-transition, all ease 0.4s);
       }
 
       p-carousel[in-focus-mode] > [focus] {
@@ -73,8 +74,8 @@
     <button on:focus="onFocus" on:blur="onBlur">carousel</button>
   </div>
   <script>
-    import "../commons/init.js";
-    
+    import "../public/init.js";
+
     export default {
       tag: "p-carousel",
       attrs: {
@@ -339,94 +340,91 @@
             }, 50);
           }, 50);
         },
-      },
-      ready() {
-        // 触控逻辑
-        let startX = null;
-        let startTime = null;
-        this.on("touchstart", (e) => {
+        // 优化触控处理函数
+        _handleTouchStart(e) {
           const point = e?.changedTouches[0] || e.targetTouches[0];
-          startX = point.screenX;
-          startTime = Date.now();
+          this._startX = point.screenX;
+          this._startTime = Date.now();
           clearTimeout(this._autoplayTimer);
-        });
-        this.on("touchmove", (e) => {
-          const point = e?.changedTouches[0] || e.targetTouches[0];
-          const diffX = point.screenX - startX;
+        },
 
-          let newIndex = this.currentId - diffX / 200;
-          // const notRun = newIndex < 0 || newIndex >= this.length - 1;
+        _handleTouchMove(e) {
+          const point = e?.changedTouches[0] || e.targetTouches[0];
+          const diffX = point.screenX - this._startX;
+          const sensitivity = parseInt(this.sensitivity) || 200;
+
+          let newIndex = this.currentId - diffX / sensitivity;
           const notRun = newIndex < 0 || newIndex >= this.length - 1;
 
-          if (notRun) {
-            this.attr("add-anime", "");
-          } else {
-            this.attr("add-anime", null);
-          }
-
+          this.attr("add-anime", notRun ? "" : null);
           this.render(newIndex);
-        });
-        this.on("touchend", (e) => {
+        },
+
+        _handleTouchEnd(e) {
           const point = e?.changedTouches[0] || e.targetTouches[0];
-          const diffX = point.screenX - startX;
-          const diffTime = Date.now() - startTime;
+          const diffX = point.screenX - this._startX;
+          const diffTime = Date.now() - this._startTime;
+          const sensitivity = parseInt(this.sensitivity) || 200;
 
-          let newIndex = this.currentId - diffX / 200;
-
+          let newIndex = this.currentId - diffX / sensitivity;
           this.attr("add-anime", "");
 
           if (diffTime < 200 && Math.abs(diffX) >= 20) {
-            if (diffX < 0) {
-              this.render(++this.currentId);
-            } else {
-              this.render(--this.currentId);
-            }
-
+            this.currentId =
+              diffX < 0 ? this.currentId + 1 : this.currentId - 1;
+            this.render(this.currentId);
+            this._play();
             return;
           }
 
-          this.render((this.currentId = Math.round(newIndex)));
+          this.currentId = Math.round(newIndex);
+          this.render(this.currentId);
           this._play();
-        });
+        },
 
-        // 滚轮逻辑
-        let diffWidth = 0;
-        let timer;
-
-        this.on("wheel", (e) => {
+        // 优化滚轮处理函数
+        _handleWheel(e) {
           if (Math.abs(e.deltaX) > 0) {
             e.preventDefault();
           }
 
-          diffWidth += e.deltaX;
+          this._diffWidth = (this._diffWidth || 0) + e.deltaX;
+          const sensitivity = parseInt(this.sensitivity) || 200;
 
-          let newIndex = this.currentId + diffWidth / 500;
-          // const notRun = newIndex < 0 || newIndex >= this.length - 1;
+          let newIndex = this.currentId + this._diffWidth / (sensitivity * 2.5);
           const notRun = newIndex < 0 || newIndex >= this._lastVisId;
 
-          if (notRun) {
-            this.attr("add-anime", "");
-          } else {
-            this.attr("add-anime", null);
-          }
-
+          this.attr("add-anime", notRun ? "" : null);
           this.render(newIndex);
+
           clearTimeout(this._autoplayTimer);
-          clearTimeout(timer);
-          timer = setTimeout(
+          clearTimeout(this._wheelTimer);
+
+          this._wheelTimer = setTimeout(
             () => {
               this.attr("add-anime", "");
-              diffWidth = 0;
-              this.render(
-                (this.currentId = Math.round(
-                  newIndex > this._lastVisId ? this._lastVisId : newIndex
-                ))
+              this._diffWidth = 0;
+              this.currentId = Math.round(
+                newIndex > this._lastVisId ? this._lastVisId : newIndex
               );
+              this.render(this.currentId);
               this._play();
             },
             notRun ? 0 : 100
           );
-        });
+        },
+      },
+      ready() {
+        // 触控逻辑
+        this._startX = null;
+        this._startTime = null;
+        this.on("touchstart", this._handleTouchStart.bind(this));
+        this.on("touchmove", this._handleTouchMove.bind(this));
+        this.on("touchend", this._handleTouchEnd.bind(this));
+
+        // 滚轮逻辑
+        this._diffWidth = 0;
+        this.on("wheel", this._handleWheel.bind(this));
       },
       attached() {
         const ro = (this._ro = new ResizeObserver(async () => {

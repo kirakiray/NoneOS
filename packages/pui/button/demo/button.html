@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>button</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.min.js"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../button.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>按钮变体 (variant)</h3>
+      <div class="button-row">
+        <p-button variant="contained">默认 Contained</p-button>
+        <p-button variant="outlined">Outlined</p-button>
+        <p-button variant="text">Text</p-button>
+        <p-button variant="tonal">Tonal</p-button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>按钮尺寸 (size)</h3>
+      <div class="button-row">
+        <p-button size="mini">Mini 尺寸</p-button>
+        <p-button size="small">Small 尺寸</p-button>
+        <p-button>默认尺寸</p-button>
+        <p-button size="large">Large 尺寸</p-button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>按钮颜色 (color)</h3>
+      <div class="button-row">
+        <p-button>默认颜色</p-button>
+        <p-button color="primary">Primary</p-button>
+        <p-button color="error">Error</p-button>
+        <p-button color="success">Success</p-button>
+        <p-button color="normal">Normal</p-button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>禁用状态 (disabled)</h3>
+      <div class="button-row">
+        <p-button disabled>禁用按钮</p-button>
+        <p-button variant="outlined" disabled>禁用 Outlined</p-button>
+        <p-button variant="text" disabled>禁用 Text</p-button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>图标按钮 (icon)</h3>
+      <div class="button-row">
+        <p-button icon>+</p-button>
+        <p-button icon size="small">-</p-button>
+        <p-button icon size="large">×</p-button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>前缀和后缀插槽</h3>
+      <div class="button-row">
+        <p-button>
+          <span slot="prefix">👈</span>
+          带前缀
+        </p-button>
+        <p-button>
+          带后缀
+          <span slot="suffix">👉</span>
+        </p-button>
+        <p-button>
+          <span slot="prefix">🔍</span>
+          搜索
+          <span slot="suffix">🔎</span>
+        </p-button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>组合示例</h3>
+      <div class="button-row">
+        <p-button variant="contained" color="primary" size="large">
+          <span slot="prefix">✓</span>
+          提交表单
+        </p-button>
+        <p-button variant="outlined" color="error">
+          <span slot="prefix">✗</span>
+          取消操作
+        </p-button>
+        <p-button variant="text" color="success" size="small">
+          查看更多
+          <span slot="suffix">→</span>
+        </p-button>
+      </div>
+    </div>
+  </body>
+</html>

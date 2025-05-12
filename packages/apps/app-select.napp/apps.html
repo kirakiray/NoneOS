@@ -1,7 +1,7 @@
 <template page>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
-  <l-m src="/packages/pui/text-field/text-field.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
   <style>
@@ -26,7 +26,7 @@
       height: 160px;
     }
 
-    .top p-text-field {
+    .top p-input {
       width: 300px;
     }
 
@@ -131,7 +131,7 @@
     <div style="max-width: 1200px; margin: 0 auto">
       <div class="container">
         <div class="top">
-          <p-text-field
+          <p-input
             attr:placeholder="searchPlaceText"
             sync:value="searchText"
             on:click="$event.stopPropagation()"
@@ -141,7 +141,7 @@
               slot="prefix"
               style="display: block; margin-right: 4px; font-size: 24px"
             ></n-local-icon>
-          </p-text-field>
+          </p-input>
         </div>
         <p-bind-contextmenu auto-close>
           <p-menu

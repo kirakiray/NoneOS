@@ -1,0 +1,83 @@
+<template component>
+  <style>
+    :host {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tips {
+      position: absolute;
+    }
+
+    /* 底部定位 */
+    :host([placement="bottom"]) .tips {
+      left: 50%;
+      top: 100%;
+      transform: translate(-50%, 0);
+    }
+    :host([placement="bottom-start"]) .tips {
+      left: 0;
+      top: 100%;
+    }
+    :host([placement="bottom-end"]) .tips {
+      right: 0;
+      top: 100%;
+    }
+
+    /* 顶部定位 */
+    :host([placement="top"]) .tips {
+      left: 50%;
+      bottom: 100%;
+      transform: translate(-50%, 0);
+    }
+    :host([placement="top-start"]) .tips {
+      left: 0;
+      bottom: 100%;
+    }
+    :host([placement="top-end"]) .tips {
+      right: 0;
+      bottom: 100%;
+    }
+
+    /* 左侧定位 */
+    :host([placement="left"]) .tips {
+      right: 100%;
+      top: 50%;
+      transform: translate(0, -50%);
+    }
+    :host([placement="left-start"]) .tips {
+      right: 100%;
+      top: 0;
+    }
+    :host([placement="left-end"]) .tips {
+      right: 100%;
+      bottom: 0;
+    }
+
+    /* 右侧定位 */
+    :host([placement="right"]) .tips {
+      left: 100%;
+      top: 50%;
+      transform: translate(0, -50%);
+    }
+    :host([placement="right-start"]) .tips {
+      left: 100%;
+      top: 0;
+    }
+    :host([placement="right-end"]) .tips {
+      left: 100%;
+      bottom: 0;
+    }
+  </style>
+  <slot></slot>
+  <div class="tips" part="tips-container">
+    <slot name="tips"></slot>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "p-placement",
+      };
+    };
+  </script>
+</template>

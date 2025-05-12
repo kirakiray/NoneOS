@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抽屉组件演示</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        font-family: sans-serif;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 8px 16px;
+        margin-right: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../drawer/drawer.html"></l-m>
+    <l-m src="../button/button.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h2>基础抽屉</h2>
+      <p-button id="left-btn">左侧抽屉</p-button>
+      <p-button id="right-btn">右侧抽屉</p-button>
+      <p-button id="top-btn">顶部抽屉</p-button>
+      <p-button id="bottom-btn">底部抽屉</p-button>
+
+      <p-drawer id="left-drawer" auto-close anchor="left">
+        <h3>左侧抽屉内容</h3>
+        <p>这是一个左侧抽屉的示例内容</p>
+      </p-drawer>
+
+      <p-drawer id="right-drawer" auto-close anchor="right">
+        <h3>右侧抽屉内容</h3>
+        <p>这是一个右侧抽屉的示例内容</p>
+      </p-drawer>
+
+      <p-drawer id="top-drawer" auto-close anchor="top">
+        <h3>顶部抽屉内容</h3>
+        <p>这是一个顶部抽屉的示例内容</p>
+      </p-drawer>
+
+      <p-drawer id="bottom-drawer" auto-close anchor="bottom">
+        <h3>底部抽屉内容</h3>
+        <p>这是一个底部抽屉的示例内容</p>
+      </p-drawer>
+    </div>
+
+    <script>
+      $("#left-btn").on("click", () => ($("#left-drawer").open = true));
+      $("#right-btn").on("click", () => ($("#right-drawer").open = true));
+      $("#top-btn").on("click", () => ($("#top-drawer").open = true));
+      $("#bottom-btn").on("click", () => ($("#bottom-drawer").open = true));
+    </script>
+  </body>
+</html>

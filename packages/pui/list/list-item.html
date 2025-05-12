@@ -1,6 +1,6 @@
 <template component>
   <l-m src="../wave/wave.html"></l-m>
-  <l-m src="../collapse/collapse.html"></l-m>
+  <l-m src="../aide/collapse/collapse.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -10,7 +10,6 @@
       --wave-color: var(--md-ref-palette-translucent-primary60);
       background-color: transparent;
       overflow: hidden;
-      /* border-bottom: red solid 1px; */
     }
 
     .main {
@@ -103,12 +102,12 @@
       margin: calc(var(--pui-space-y) / 2) 0;
     }
 
-    ::slotted([collapse-triangle]) {
+    ::slotted([triangle]) {
       cursor: pointer;
       transition: all ease 0.2s;
     }
 
-    ::slotted([collapse-triangle]:empty) {
+    ::slotted([triangle]:empty) {
       position: relative;
       border-right: 5px solid var(--md-sys-color-normal);
       border-top: 5px solid transparent;
@@ -142,12 +141,12 @@
       <slot name="suffix"></slot>
     </div>
     <div class="fake-mask"></div>
-    <x-if :value="button !== null && disabled === null">
+    <o-if :value="button !== null && disabled === null">
       <p-wave style="z-index: 2"></p-wave>
-    </x-if>
+    </o-if>
   </div>
 
-  <x-if :value="button !== null">
+  <o-if :value="button !== null">
     <button
       class="fake-button"
       attr:disabled="disabled"
@@ -155,19 +154,18 @@
       on:blur="blurFakeBtn"
       part="fake-button"
     ></button>
-  </x-if>
+  </o-if>
 
-  <x-if :value="collapseChilds !== null">
+  <o-if :value="collapseChilds !== null">
     <p-collapse :hide="collapseChilds === 'open' ? null : ''">
       <slot name="childs"></slot>
     </p-collapse>
-  </x-if>
-  <x-else>
+  </o-if>
+  <o-else>
     <slot name="childs"></slot>
-  </x-else>
+  </o-else>
   <script>
-    import "../commons/init.js";
-    import bindClick from "../button/bind-item-click.js";
+    import { bindClick } from "../public/util.js";
 
     export default {
       tag: "p-list-item",
@@ -235,7 +233,7 @@
             return;
           }
 
-          if (e.target.attributes.hasOwnProperty("collapse-triangle")) {
+          if (e.target.attributes.hasOwnProperty("toggle-collapse")) {
             this.clickTriangle(e);
             return;
           }

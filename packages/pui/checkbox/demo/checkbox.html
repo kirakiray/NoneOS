@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>复选框 Checkbox</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .checkbox-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../checkbox.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础复选框</h3>
+      <div class="checkbox-row">
+        <p-checkbox>默认复选框</p-checkbox>
+        <p-checkbox checked>默认选中</p-checkbox>
+        <p-checkbox disabled>禁用状态</p-checkbox>
+        <p-checkbox checked disabled>禁用且选中</p-checkbox>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>复选框尺寸</h3>
+      <div class="checkbox-row">
+        <p-checkbox size="small">小尺寸</p-checkbox>
+        <p-checkbox>默认尺寸</p-checkbox>
+        <p-checkbox size="large">大尺寸</p-checkbox>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>标签位置</h3>
+      <div class="checkbox-row">
+        <p-checkbox>默认位置 (start)</p-checkbox>
+        <p-checkbox placement="top">顶部</p-checkbox>
+        <p-checkbox placement="bottom">底部</p-checkbox>
+        <p-checkbox placement="end">末尾</p-checkbox>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>不确定状态</h3>
+      <div class="checkbox-row">
+        <p-checkbox id="indeterminate-demo" indeterminate
+          >不确定状态</p-checkbox
+        >
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>表单集成</h3>
+      <div id="demo-form">
+        <div class="checkbox-row">
+          <p-checkbox name="agree" value="yes">我同意服务条款</p-checkbox>
+        </div>
+        <div class="checkbox-row">
+          <p-checkbox name="newsletter" value="subscribe">
+            订阅新闻邮件
+          </p-checkbox>
+        </div>
+        <button type="button" onclick="submitForm()">提交表单</button>
+      </div>
+      <div id="form-result" style="margin-top: 10px"></div>
+      <script>
+        function submitForm() {
+          const checkboxes = $.all("#demo-form p-checkbox");
+          let result = "表单值：<br>";
+
+          checkboxes.forEach((cb) => {
+            result += `${cb.attr("name")}: ${
+              cb.checked ? cb.value : "未选中"
+            }<br>`;
+          });
+
+          document.getElementById("form-result").innerHTML = result;
+        }
+      </script>
+    </div>
+
+    <o-page src="./bind-checkbox-page.html"></o-page>
+  </body>
+</html>
