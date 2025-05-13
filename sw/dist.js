@@ -167,6 +167,7 @@
     <title>${appName}</title>
     <script src="/packages/libs/ofa/ofa.js"></script>
     <script src="/packages/libs/ofa/router.min.js"></script>
+    <script src="/packages/pui/public/init.js" type="module"></script>
   </head>
   <body>
     <o-router fix-body>
