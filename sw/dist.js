@@ -141,6 +141,8 @@
     const { request } = event;
     const { pathname, origin, searchParams } = new URL(request.url);
 
+    let iconName = "icon.svg";
+
     event.respondWith(
       (async () => {
         // 获取应用名
@@ -149,6 +151,8 @@
           const appData = await fetch(`${pathname}app.json`).then((e) =>
             e.json()
           );
+
+          iconName = appData.icon || iconName;
 
           appName =
             appData.name ||
@@ -165,6 +169,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${appName}</title>
+    <link rel="icon" href="./${iconName}">
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
     <script src="/packages/libs/ofa/ofa.js"></script>
     <script src="/packages/libs/ofa/router.min.js"></script>
     <script src="/packages/pui/public/init.js" type="module"></script>

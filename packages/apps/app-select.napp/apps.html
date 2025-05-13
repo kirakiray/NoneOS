@@ -278,7 +278,7 @@
 
               window.open(
                 appUrl,
-                "noneos app",
+                appUrl.replace(/\//g, "-").replace(/^-/, "").replace(/-$/, ""),
                 `left=${left},top=${top},width=${width},height=${height}`
               );
               return;
