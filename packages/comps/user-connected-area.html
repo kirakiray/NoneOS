@@ -16,12 +16,12 @@
     ></div>
   </o-if>
   <o-else :value="connection.state === 'not-ready'">
-    <p-button size="mini" on:click="linkUser">连接</p-button>
+    <p-button size="mini" on:click="linkUser">Connect</p-button>
   </o-else>
   <script>
     export default async ({ load }) => {
       const { getConnection } = await load("/packages/user/connection/main.js");
-      const { enqueue } = await load("/packages/pui/util.js");
+      const { toast } = await load("/packages/pui/util.js");
       const { getUserName } = await load("/packages/util/get-user-info.js");
 
       return {
@@ -38,9 +38,9 @@
             const e = await this.connection.connect();
 
             if (e.notFindUser) {
-              enqueue({
+              toast({
                 content:
-                  "找不到用户" + (await getUserName(this.connection.userId)),
+                  "User not found: " + (await getUserName(this.connection.userId)),
                 color: "error",
               });
             }

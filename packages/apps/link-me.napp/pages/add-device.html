@@ -180,7 +180,7 @@
     export default async ({ load }) => {
       const { findDevice, onEntryDevice, authDevice, getDeviceStore } =
         await load("/packages/user/device/main.js");
-      const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { toast, confirm } = await load("/packages/pui/util.js");
       const { getHash } = await load("/packages/fs/util.js");
 
       return {
@@ -237,7 +237,7 @@
             if (targetDevice) {
               // 添加成功，删除
               this.oppoUsers.splice(this.oppoUsers.indexOf(user), 1);
-              enqueue({
+              toast({
                 color: "success",
                 content: `添加设备 ${targetDevice.userCard.data.userName} 成功`,
               });
@@ -262,7 +262,7 @@
             item._resolve(true);
 
             // 弹出提示
-            enqueue({
+            toast({
               color: "success",
               content: `添加设备 ${item.userName} 成功`,
             });

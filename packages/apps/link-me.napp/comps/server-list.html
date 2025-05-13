@@ -172,7 +172,7 @@
         "/packages/user/main.js"
       );
 
-      const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { toast, confirm } = await load("/packages/pui/util.js");
 
       const servers = await getServers();
 
@@ -201,7 +201,7 @@
                   this.newUrl.replace(/\/$/, "")
               )
             ) {
-              enqueue({
+              toast({
                 content: `不能添加重复的服务器: ${this.newUrl}`,
                 color: "error",
               });

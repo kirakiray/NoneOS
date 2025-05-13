@@ -161,7 +161,7 @@
   <script>
     export default async ({ load }) => {
       const { getDeviceStore } = await load("/packages/user/main.js");
-      const { enqueue, confirm } = await load("/packages/pui/util.js");
+      const { toast, confirm } = await load("/packages/pui/util.js");
       const devices = await getDeviceStore();
 
       console.log("devices", devices);
