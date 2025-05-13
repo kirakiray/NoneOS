@@ -60,10 +60,12 @@
                   if ($target.is(contextmenuSelector)) {
                     // 判断是否自身
                     targetMenu = menu;
+                    this._target = $target;
                   } else {
                     $target.parentsUntil(this).some((el) => {
                       if (el.is(contextmenuSelector)) {
                         targetMenu = menu;
+                        this._target = el;
                         return true;
                       }
                     });
@@ -78,6 +80,8 @@
               if (onlyMenu) {
                 onlyMenu.open = "off";
               }
+
+              this._target = null;
               return;
             }
 
