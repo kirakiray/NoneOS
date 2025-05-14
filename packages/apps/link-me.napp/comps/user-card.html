@@ -35,9 +35,11 @@
 
   <n-id-avatar attr:val="item.userId"></n-id-avatar>
   <div class="container">
-    <div class="line"><b>用户名</b>{{item.userName}}</div>
     <div class="line">
-      <b>用户ID</b>
+      <b> <n-desc name="userName" space="linkme"></n-desc> </b>{{item.userName}}
+    </div>
+    <div class="line">
+      <b> <n-desc name="userId" space="linkme"></n-desc></b>
       <n-copy-span
         style="max-width: 300px; text-overflow: ellipsis; overflow: hidden"
       >
