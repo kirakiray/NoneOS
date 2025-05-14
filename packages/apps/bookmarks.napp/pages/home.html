@@ -1,8 +1,6 @@
 <template page>
   <l-m src="../comps/bookmark-card.html"></l-m>
   <l-m src="../comps/bookmark-add-btn.html"></l-m>
-  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
-  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -12,6 +10,7 @@
       display: flex;
       padding: 16px;
       max-width: 800px;
+      margin: 0 auto;
     }
 
     .main {
@@ -22,38 +21,24 @@
     }
   </style>
 
-  <n-horsp-pannel>
-    <div slot="left" style="height: 100%">
-      <p-list>
-        <o-fill :value="list">
-          <p-list-item
-            button
-            attr:active-item="$data.userId === $host.currentId"
-            on:click="$host.clickItem($data)"
-          >
-            {{$data.title}}
-          </p-list-item>
-        </o-fill>
-      </p-list>
-    </div>
-    <div class="tool-container">
-      <n-bookmark-add-btn
-        style="margin-left: auto"
-        on:add-web="addWeb"
-      ></n-bookmark-add-btn>
-    </div>
-    <div class="main">
-      <o-fill :value="currentCards">
-        <n-bookmark-card
-          :url="$data.url"
-          :logo-url="$data.logoUrl"
-        ></n-bookmark-card>
-      </o-fill>
-      <o-if :value="!currentCards.length">
-        <div>没有数据</div>
-      </o-if>
-    </div>
-  </n-horsp-pannel>
+  <div class="tool-container">
+    <n-bookmark-add-btn
+      style="margin-left: auto"
+      on:add-web="addWeb"
+    ></n-bookmark-add-btn>
+  </div>
+  <div class="main">
+    <o-fill :value="currentCards">
+      <n-bookmark-card
+        :url="$data.url"
+        :logo-url="$data.logoUrl"
+      ></n-bookmark-card>
+    </o-fill>
+    <o-if :value="!currentCards.length">
+      <div>没有数据</div>
+    </o-if>
+  </div>
+
   <script>
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");
@@ -110,60 +95,18 @@
           // 获取专属文件句柄
           const handle = await app.dedicatedHandle();
 
-          const mainData = await createData(handle);
+          const dataHandle = await handle.get("data", {
+            create: "dir",
+          });
+
+          const mainData = await createData(dataHandle);
 
           if (!mainData.cards) {
             // 初始化本地数据
             mainData.cards = [];
           }
-
-          // 获取远端的数据
-          const remotes = await app.dedicatedRemoteHandle();
-
-          const remotesList = [];
-
-          await Promise.all(
-            remotes.map(async (remote) => {
-              if (!remote.hasData) {
-                return;
-              }
-
-              const targetData = await createData(remote.handle);
-
-              remotesList.push({
-                title: remote.userName,
-                userId: remote.userId,
-                isMe: false,
-                _targetData: targetData,
-                cards: targetData.cards,
-              });
-            })
-          );
-
-          if (this.ele.isConnected) {
-            const list = [
-              {
-                title: "我的书签",
-                userId: "100",
-                isMe: true,
-                cards: mainData.cards,
-                _targetData: mainData,
-              },
-              ...remotesList,
-            ];
-
-            this.list = list;
-
-            this.refreshCurrentCards();
-          }
         },
         detached() {
-          // 数据注销
-          this.list.forEach((e) => {
-            e._targetData && e._targetData.disconnect();
-          });
-
-          this.list = [];
           this.currentCards = [];
         },
       };

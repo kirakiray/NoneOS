@@ -110,6 +110,7 @@
 
   <script>
     export default async ({ load }) => {
+      await load("/packages/pui/public/init.js");
       const { init } = await load("/packages/fs/main.js");
       await load("./init.js");
 
