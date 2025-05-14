@@ -45,36 +45,38 @@
   </style>
 
   <div class="container">
-    <!-- <div style="display: flex">
-      <p-button size="small" on:click="clickBack" icon variant="text">
-        <n-local-icon name="back"></n-local-icon>
-      </p-button>
-      <h4>添加设备</h4>
-    </div> -->
     <div style="display: flex; flex-direction: column; align-items: center">
       <p>
-        我的设备码是
+        <n-desc name="add.myCode" space="linkme"></n-desc>
         <n-copy-span class="invite-code">{{finnalCode}}</n-copy-span>
       </p>
       <p>
         <p-input sync:value="prepareCode" style="width: 320px">
-          <label>另一边设备码</label>
+          <label>
+            <n-desc name="add.anotherCode" space="linkme"></n-desc>
+          </label>
           <p-button
             size="small"
             slot="suffix"
             attr:disabled="!prepareCode"
             on:click="clickCodeConfirm"
           >
-            确认
+            <n-desc name="ok" space="linkme"></n-desc>
           </p-button>
         </p-input>
       </p>
-      <p>在其中一边设备上输入另一边的设备码，即可将其添加为我的设备。</p>
-      <p>通过验证两个设备是否属于同一用户，实现设备间的快速数据同步。</p>
+      <p>
+        <n-desc name="add.desc1" space="linkme"></n-desc>
+      </p>
+      <p>
+        <n-desc name="add.desc2" space="linkme"></n-desc>
+      </p>
     </div>
     <o-if :value="oppositeDeviceCode">
       <div>
-        <h5>已查找到的设备</h5>
+        <h5>
+          <n-desc name="add.foundDevice" space="linkme"></n-desc>
+        </h5>
         <o-if :value="!oppoUsers.length">
           <div
             style="
@@ -86,7 +88,7 @@
               justify-content: center;
             "
           >
-            未查找到用户
+            <n-desc name="add.notFoundUser" space="linkme"></n-desc>
           </div>
         </o-if>
         <o-fill :value="oppoUsers">
@@ -96,7 +98,7 @@
                 <div
                   style="font-size: 12px; color: var(--md-sys-color-primary)"
                 >
-                  该设备已存在
+                  <n-desc name="add.deviceExited" space="linkme"></n-desc>
                 </div>
               </o-if>
               <o-else>
@@ -106,7 +108,15 @@
                     attr:disabled="$data.posted"
                     on:click="$host.confirmUser($data)"
                   >
-                    {{$data.posted ? '等待对方确认' : '确认是该设备'}}
+                    <o-if :value="$data.posted">
+                      <n-desc name="add.waitForConfirm" space="linkme"></n-desc>
+                    </o-if>
+                    <o-else>
+                      <n-desc
+                        name="add.confirmIsMyDevice"
+                        space="linkme"
+                      ></n-desc>
+                    </o-else>
                   </p-button>
                   <o-if :value="$data.time">
                     <div
@@ -127,7 +137,7 @@
                       attr:disabled="$data.posted"
                       style="margin-left: 8px"
                     >
-                      不是这个用户
+                      <n-desc name="add.notMyDevice" space="linkme"></n-desc>
                     </p-button>
                   </o-if>
                 </div>
@@ -140,7 +150,9 @@
 
     <o-if :value="receivingUsers.length">
       <div>
-        <h5>收到的邀请</h5>
+        <h5>
+          <n-desc name="add.receivingDevice" space="linkme"></n-desc>
+        </h5>
         <o-fill :value="receivingUsers">
           <div style="margin: 8px 0 16px 0">
             <n-user-card :item="$data">
@@ -149,7 +161,12 @@
                 attr:disabled="$data.sended"
                 on:click="$host.okUser($data)"
               >
-                {{$data.sended? '已发送确认信息' : '确认它是我的设备'}}
+                <o-if :value="$data.sended">
+                  <n-desc name="add.confirmationSent" space="linkme"></n-desc>
+                </o-if>
+                <o-else>
+                  <n-desc name="add.confirmedDevice" space="linkme"></n-desc>
+                </o-else>
               </p-button>
               <o-if :value="$data.time">
                 <div
@@ -167,14 +184,6 @@
         </o-fill>
       </div>
     </o-if>
-
-    <!-- <h5>我的信息</h5>
-    <o-page
-      src="./my-info.html"
-      style="margin: 8px 0 16px 8px; justify-content: flex-start"
-    ></o-page>
-
-    <n-finduser-list></n-finduser-list> -->
   </div>
   <script>
     export default async ({ load }) => {

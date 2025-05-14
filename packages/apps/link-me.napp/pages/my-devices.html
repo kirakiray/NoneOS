@@ -3,6 +3,7 @@
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/i18n/component.html"></l-m>
   <style>
     :host {
       display: block;
@@ -12,6 +13,7 @@
       color: var(--md-sys-color-primary);
       font-weight: bold;
     }
+
     .no-devices {
       display: flex;
       align-items: center;
@@ -38,8 +40,7 @@
           on:click="clickAddBtn"
           style="margin-left: 60px; z-index: 3"
         >
-          <!-- <a href="./add-device.html" olink>添加设备</a> -->
-          添加设备
+          <n-desc space="linkme" name="addDevice"></n-desc>
         </p-button>
       </div>
 
