@@ -39,6 +39,8 @@
     "inputSideCode": "输入另一个设备的设备码",
     "desc5": "请认真确认信息无误后，才进行操作，防止添加了错误的设备。"
   },
+  "addHandServer": "新增握手服务器地址",
+  "addServer": "添加服务器",
   "userId": "用户ID",
   "userName": "用户名",
   "linkState": "连接状态",

@@ -40,6 +40,8 @@
     "desc5": "Please carefully check the information before proceeding to prevent adding the wrong device.",
     "confirmDevice": "Confirm Device"
   },
+  "addHandServer": "Add Handshake Server Address",
+  "addServer": "Add Server",
   "userId": "User ID",
   "userName": "User Name",
   "linkState": "Connection Status",
