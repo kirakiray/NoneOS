@@ -84,6 +84,7 @@
                     arr.push({
                       name: targetDevice ? targetDevice.userName : userId,
                       kind: "user",
+                      path: "root-user",
                       userId,
                       remoteRoot: 1,
                     });
@@ -105,6 +106,7 @@
               });
             });
 
+            console.log("arr: ", arr);
             this.pathArr = arr;
           },
         },
