@@ -1,42 +1,61 @@
 <template page>
   <l-m src="../comps/bookmark-card.html"></l-m>
-  <l-m src="../comps/bookmark-add-btn.html"></l-m>
+  <l-m src="../comps/bm-add-card.html"></l-m>
   <style>
     :host {
-      display: block;
+      position: relative;
+      display: flex !important;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      background: url(/packages/others/default-bg.jpg) no-repeat;
+      background-size: cover;
+      background-position: center;
     }
 
     .tool-container {
       display: flex;
       padding: 16px;
+      height: 100px;
+      width: 100%;
       max-width: 800px;
       margin: 0 auto;
     }
 
     .main {
+      position: relative;
+      flex: 1;
+    }
+
+    .main-inner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      max-height: 100%;
       display: flex;
-      justify-content: center;
-      align-items: center;
       flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+      overflow: auto;
     }
   </style>
 
-  <div class="tool-container">
-    <n-bookmark-add-btn
-      style="margin-left: auto"
-      on:add-web="addWeb"
-    ></n-bookmark-add-btn>
-  </div>
+  <div class="tool-container"></div>
+
   <div class="main">
-    <o-fill :value="currentCards">
-      <n-bookmark-card
-        :url="$data.url"
-        :logo-url="$data.logoUrl"
-      ></n-bookmark-card>
-    </o-fill>
-    <o-if :value="!currentCards.length">
-      <div>没有数据</div>
-    </o-if>
+    <div class="main-inner">
+      <o-fill :value="currentCards">
+        <n-bookmark-card
+          :url="$data.url"
+          :logo-url="$data.logoUrl"
+        ></n-bookmark-card>
+      </o-fill>
+      <o-if :value="!currentCards.length">
+        <div>没有数据</div>
+      </o-if>
+      <bm-add-card on:add-web="addWeb"></bm-add-card>
+    </div>
   </div>
 
   <script>
@@ -46,23 +65,30 @@
       return {
         data: {
           list: [], // 所有的用户数据
-          currentId: "100", // 当前tab的用户id
-          currentCards: [], // 当前显示的数据
-          // currentCards: [
-          //   // {
-          //   //   url: "htts://baidu.com",
-          //   //   logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
-          //   // },
-          //   // {
-          //   //   url: "https://myzaker.com",
-          //   //   logoUrl:
-          //   //     "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
-          //   // },
-          //   // {
-          //   //   url: "https://google.com",
-          //   //   logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-          //   // },
-          // ],
+          // currentCards: [], // 当前显示的数据
+          currentCards: [
+            {
+              url: "htts://baidu.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
+            },
+            {
+              url: "https://myzaker.com",
+              logoUrl:
+                "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
+            },
+            {
+              url: "https://google.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+            },
+            {
+              url: "https://google.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+            },
+            {
+              url: "https://google.com",
+              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+            },
+          ],
         },
         proto: {
           async addWeb({ data }) {
@@ -72,28 +98,10 @@
               url,
             });
           },
-          clickItem(item) {
-            this.currentId = item.userId;
-            this.refreshCurrentCards();
-          },
-          refreshCurrentCards() {
-            const { currentId } = this;
-            const currentCards = this.list.find(
-              (item) => item.userId === currentId
-            )?.cards;
-
-            if (!currentCards) {
-              this.currentCards = [];
-              return;
-            }
-            this.currentCards = currentCards;
-          },
         },
         async attached() {
-          const app = this.app;
-
           // 获取专属文件句柄
-          const handle = await app.dedicatedHandle();
+          const handle = await this.app.dedicatedHandle();
 
           const dataHandle = await handle.get("data", {
             create: "dir",

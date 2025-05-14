@@ -1,0 +1,49 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .card {
+      position: relative;
+      margin: 16px;
+      padding: 8px 0 16px;
+      width: 200px;
+      height: 132px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+      text-align: center;
+      cursor: pointer;
+      transition: all ease 0.2s;
+      box-shadow: var(--contained-shadow);
+    }
+
+    .card {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 500;
+      font-size: 50px;
+    }
+
+    .card:hover {
+      box-shadow: var(--contained-hover-shadow);
+    }
+
+    .card:active {
+      box-shadow: var(--contained-active-shadow);
+    }
+  </style>
+  <div class="card">+</div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "bm-add-card",
+        data: {},
+        proto: {},
+      };
+    };
+  </script>
+</template>
