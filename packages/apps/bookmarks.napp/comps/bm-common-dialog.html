@@ -11,7 +11,7 @@
 
     .main {
       min-width: 80vw;
-      min-height: 50vh;
+      min-height: 30vh;
     }
 
     .form-line {
@@ -41,12 +41,14 @@
           <label>标题（选填）</label>
         </p-input>
       </div>
-      <h4>组定义缩略图</h4>
-      <bm-img-selector
-        sync:type="logoType"
-        sync:custom-pic="customPic"
-        :weburl="url"
-      ></bm-img-selector>
+      <o-if :value="isValidUrl">
+        <h4>组定义缩略图</h4>
+        <bm-img-selector
+          sync:type="logoType"
+          sync:custom-pic="customPic"
+          :weburl="url"
+        ></bm-img-selector>
+      </o-if>
     </div>
     <div slot="bottom">
       <p-button variant="outlined" on:click="open = false">取消</p-button>
@@ -54,20 +56,36 @@
     </div>
   </p-dialog>
   <script>
-    export default {
-      tag: "bm-common-dialog",
-      data: {
-        open: false,
-        url: "",
-        webTitle: "",
-        logoType: "default",
-        customPic: "",
-      },
-      proto: {
-        clickSave() {
-          this.emit("click-save");
+    export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+
+      return {
+        tag: "bm-common-dialog",
+        data: {
+          open: false,
+          url: "",
+          webTitle: "",
+          logoType: "default",
+          customPic: "",
         },
-      },
+        proto: {
+          get isValidUrl() {
+            const arr = this.url.split(".");
+            return arr.length >= 2 && !!arr[arr.length - 1].trim();
+          },
+          clickSave() {
+            if (!this.isValidUrl) {
+              toast({
+                content: `"${this.url}" 不正确，请输入正确的网址`,
+                color: "error",
+              });
+              return;
+            }
+
+            this.emit("click-save");
+          },
+        },
+      };
     };
   </script>
 </template>
