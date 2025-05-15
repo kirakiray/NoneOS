@@ -1,0 +1,105 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .block {
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 180px;
+      height: 110px;
+      border-radius: 10px;
+      border: var(--md-sys-color-normal) 1px solid;
+      cursor: pointer;
+      transition: all ease 0.1s;
+    }
+
+    .block.active {
+      border: var(--md-sys-color-primary) 2px solid;
+      cursor: default;
+    }
+
+    .block img {
+      max-width: 100px;
+      max-height: 60px;
+    }
+
+    .block-title {
+      font-size: 12px;
+      margin-top: 6px;
+    }
+  </style>
+  <div class="container">
+    <div
+      class="block"
+      class:active="type === 'default'"
+      on:click="type = 'default'"
+    >
+      <img attr:src="defaultPic" />
+      <div class="block-title">默认</div>
+    </div>
+    <div
+      class="block"
+      class:active="type === 'custom'"
+      on:click="type = 'custom'"
+    >
+      <div class="block-title">填写图片地址</div>
+    </div>
+    <div
+      class="block"
+      class:active="type === 'upload'"
+      on:click="type = 'upload'"
+    >
+      <div class="block-title">上传图片</div>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "bm-img-selector",
+        data: {
+          type: "default",
+          weburl: "", // 目标网址
+          value: "", // 最终的图片地址
+          defaultPic: "", // 默认图片地址
+        },
+        watch: {
+          weburl(val) {
+            console.log(val);
+            clearTimeout(this._timer);
+            this._timer = setTimeout(() => {
+              this.refreshDefaultPic();
+            }, 300);
+          },
+        },
+        proto: {
+          refreshDefaultPic() {
+            try {
+              let weburl = this.weburl;
+
+              if (!/^http/.test(weburl)) {
+                weburl = `https://${weburl}`;
+              }
+
+              const urlObj = new URL(weburl);
+              const { origin } = urlObj;
+
+              this.defaultPic = `${origin}/favicon.ico`;
+              return;
+            } catch (err) {}
+
+            this.defaultPic = "";
+          },
+        },
+      };
+    };
+  </script>
+</template>

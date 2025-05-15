@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./bm-img-selector.html"></l-m>
 
   <style>
     :host {
@@ -30,21 +31,22 @@
     <div slot="title">添加新标签</div>
     <div class="main">
       <div class="form-line">
-        <p-input sync:value="url">
+        <p-input sync:value="url" style="flex: 2">
           <label
             >网址
             <b style="color: var(--md-sys-color-error)">*</b>
           </label>
         </p-input>
-      </div>
-      <div class="form-line">
         <p-input sync:value="webTitle">
           <label>标题（选填）</label>
         </p-input>
-        <p-input sync:value="logoUrl" style="flex: 2">
-          <label>Logo地址（选填，可粘贴图片）</label>
-        </p-input>
       </div>
+      <h4>组定义缩略图</h4>
+      <bm-img-selector
+        sync:value="logoUrl"
+        sync:type="logoUrlType"
+        :weburl="url"
+      ></bm-img-selector>
     </div>
     <div slot="bottom">
       <p-button variant="outlined" on:click="open = false">取消</p-button>
@@ -59,6 +61,7 @@
         url: "",
         webTitle: "",
         logoUrl: "",
+        logoUrlType: "default",
       },
       proto: {
         clickSave() {
