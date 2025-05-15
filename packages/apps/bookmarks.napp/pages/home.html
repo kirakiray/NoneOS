@@ -106,6 +106,11 @@
             data.logoType = this.dialogData.logoType;
             data.customPic = this.dialogData.customPic;
 
+            if (data.logoType === "default") {
+              // 选择的是默认图片，清除其余两项
+              data.customPic = "";
+            }
+
             this.dialogData.open = false;
 
             // 清空弹窗数据
