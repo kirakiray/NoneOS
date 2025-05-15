@@ -55,12 +55,13 @@
       z-index: 2;
     }
   </style>
-  <div class="card">
+  <div class="card" on:click="openWeb()">
+    <!-- <div class="card"> -->
     <div class="logo-line">
       <img attr:src="finnalLogoUrl" />
     </div>
     <div class="url-line">{{cardName}}</div>
-    <a attr:href="item.url" target="_blank"></a>
+    <!-- <a attr:href="item.url" target="_blank"></a> -->
   </div>
   <script>
     export default async () => {
@@ -73,8 +74,35 @@
             // logoType: "", // logo类型 default custom
             // customPic: "", // 自定义logo地址
           },
+          inNewTab: false,
         },
         proto: {
+          // 打开网页
+          openWeb(target) {
+            const a = document.createElement("a");
+
+            let url = this.item.url;
+
+            if (!/^http/.test(url)) {
+              url = `https://${url}`;
+            }
+
+            a.href = url;
+
+            if (!target) {
+              if (this.inNewTab) {
+                // 在独立的tab上，直接自身打开
+                a.target = "_self";
+              } else {
+                a.target = "_blank";
+              }
+            } else if (target === "blank") {
+              a.target = "_blank";
+            }
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          },
           get cardName() {
             if (this.item.webTitle) {
               return this.item.webTitle;
@@ -95,6 +123,9 @@
               return new URL(this.item.url).origin + "/favicon.ico";
             }
           },
+        },
+        attached() {
+          this.inNewTab = $("o-app") === this.app;
         },
         detached() {
           this.item = {};

@@ -57,6 +57,11 @@
   <div class="main">
     <p-bind-contextmenu class="main-inner" auto-close>
       <p-menu contextmenu-selector="n-bookmark-card">
+        <p-menu-item on:click="newTabOpen">
+          <n-local-icon name="tab-app" slot="prefix"></n-local-icon>
+          新标签打开
+        </p-menu-item>
+        <hr />
         <p-menu-item on:click="editItem">
           <n-local-icon name="edit" slot="prefix"></n-local-icon>
           编辑网页
@@ -97,6 +102,12 @@
           },
         },
         proto: {
+          newTabOpen() {
+            const { _target } = this.shadow.$("p-bind-contextmenu");
+            const data = _target.item;
+
+            _target.openWeb("blank");
+          },
           saveEditedData() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target.item;
