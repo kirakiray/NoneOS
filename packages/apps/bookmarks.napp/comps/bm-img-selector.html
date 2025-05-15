@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="/packages/pui/input/input.html"></l-m>
   <style>
     :host {
       display: block;
@@ -43,14 +44,19 @@
       class:active="type === 'default'"
       on:click="type = 'default'"
     >
-      <img attr:src="defaultPic" />
-      <div class="block-title">默认</div>
+      <o-if :value="defaultPic">
+        <img attr:src="defaultPic" />
+      </o-if>
+      <div class="block-title">默认缩略图</div>
     </div>
     <div
       class="block"
       class:active="type === 'custom'"
       on:click="type = 'custom'"
     >
+      <o-if :value="customPic">
+        <img attr:src="customPic" />
+      </o-if>
       <div class="block-title">填写图片地址</div>
     </div>
     <div
@@ -61,6 +67,15 @@
       <div class="block-title">上传图片</div>
     </div>
   </div>
+
+  <o-if :value="type === 'custom'">
+    <div style="margin-top: 16px">
+      <p-input sync:value="customPic">
+        <label>填写自定义缩略图地址</label>
+      </p-input>
+    </div>
+  </o-if>
+
   <script>
     export default async ({ load }) => {
       return {
@@ -68,19 +83,36 @@
         data: {
           type: "default",
           weburl: "", // 目标网址
-          value: "", // 最终的图片地址
+        //   value: "", // 最终的图片地址
           defaultPic: "", // 默认图片地址
+          customPic: "", // 自定义图片地址
         },
         watch: {
           weburl(val) {
-            console.log(val);
             clearTimeout(this._timer);
             this._timer = setTimeout(() => {
               this.refreshDefaultPic();
             }, 300);
           },
+          //   customPic() {
+          //     this.refreshValue();
+          //   },
+          //   defaultPic() {
+          //     this.refreshValue();
+          //   },
         },
         proto: {
+          //   refreshValue() {
+          //     if (this.type === "custom") {
+          //       this.value = this.customPic;
+          //     } else if (this.type === "default") {
+          //       this.value = this.defaultPic;
+          //     }
+          //   },
+          //   changeType(type) {
+          //     this.type = type;
+          //     this.refreshValue();
+          //   },
           refreshDefaultPic() {
             try {
               let weburl = this.weburl;

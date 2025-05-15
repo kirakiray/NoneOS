@@ -67,12 +67,7 @@
         </p-menu-item>
       </p-menu>
       <o-fill :value="cards">
-        <n-bookmark-card
-          :url="$data.url"
-          :title="$data.title"
-          :logo-url="$data.logoUrl"
-          :_data="$data"
-        ></n-bookmark-card>
+        <n-bookmark-card :item="$data"></n-bookmark-card>
       </o-fill>
       <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
     </p-bind-contextmenu>
@@ -82,7 +77,6 @@
     sync:open="dialogData.open"
     sync:url="dialogData.url"
     sync:web-title="dialogData.webTitle"
-    sync:logo-url="dialogData.logoUrl"
     on:click-save="saveEditedData"
   ></bm-common-dialog>
   <script>
@@ -96,35 +90,35 @@
             open: false,
             url: "",
             webTitle: "",
-            logoUrl: "",
+            logoType: "",
           },
         },
         proto: {
           saveEditedData() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
-            const data = _target._data;
+            const data = _target.item;
 
             data.url = this.dialogData.url;
             data.title = this.dialogData.webTitle;
-            data.logoUrl = this.dialogData.logoUrl;
 
             this.dialogData.open = false;
           },
           async editItem() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
-            const data = _target._data;
+            const data = _target.item;
+
+            debugger;
 
             this.dialogData = {
               open: true,
               url: data.url,
               webTitle: data.title,
-              logoUrl: data.logoUrl,
             };
           },
 
           async deleteItem() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
-            const data = _target._data;
+            const data = _target.item;
 
             // 查找并删除
             const targetIndex = this.cards.findIndex((item) => item === data);
@@ -134,9 +128,7 @@
             }
           },
           async addWeb({ data }) {
-            const { url, logoUrl, title } = data;
-
-            this.cards.push({ logoUrl, title, url });
+            this.cards.push({ ...data });
           },
         },
         async attached() {
@@ -149,6 +141,8 @@
 
           const mainData = await createData(dataHandle);
 
+          await mainData.ready(true);
+
           if (!mainData.cards) {
             // 初始化本地数据
             mainData.cards = [];
@@ -156,7 +150,6 @@
 
           this.cards = mainData.cards;
 
-          await mainData.ready(true);
           console.log(this.cards.toJSON());
         },
         detached() {

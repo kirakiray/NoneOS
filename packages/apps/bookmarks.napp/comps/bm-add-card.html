@@ -41,8 +41,8 @@
   <bm-common-dialog
     sync:open="open"
     sync:url="url"
-    sync:logo-url="logoUrl"
     sync:web-title="webTitle"
+    sync:custom-pic="customPic"
     on:click-save="clickSave"
   ></bm-common-dialog>
 
@@ -56,11 +56,20 @@
           open: true,
           url: "",
           webTitle: "",
-          logoUrl: "",
+          customPic: "",
           cards: [], // 当前显示的数据
         },
         proto: {
           clickSave() {
+            const arr = this.url.split(".");
+            if (arr.length < 2) {
+              toast({
+                content: `"${this.url}" 不正确，请输入正确的网址`,
+                color: "error",
+              });
+              return;
+            }
+
             let url = this.url;
 
             if (!url.startsWith("http")) {
@@ -80,7 +89,8 @@
               data: {
                 title: this.webTitle,
                 url,
-                logoUrl: this.logoUrl,
+                customPic: this.customPic,
+                logoType: this.logoType,
               },
             });
 

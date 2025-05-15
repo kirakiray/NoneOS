@@ -43,8 +43,8 @@
       </div>
       <h4>组定义缩略图</h4>
       <bm-img-selector
-        sync:value="logoUrl"
-        sync:type="logoUrlType"
+        sync:type="logoType"
+        sync:custom-pic="customPic"
         :weburl="url"
       ></bm-img-selector>
     </div>
@@ -60,8 +60,8 @@
         open: false,
         url: "",
         webTitle: "",
-        logoUrl: "",
-        logoUrlType: "default",
+        logoType: "default",
+        customPic: "",
       },
       proto: {
         clickSave() {

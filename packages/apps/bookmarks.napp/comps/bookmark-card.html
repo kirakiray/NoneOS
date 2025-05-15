@@ -40,7 +40,7 @@
     .logo-line img {
       display: block;
       max-width: 80%;
-      max-height: 80%;
+      max-height: 90px;
     }
     .url-line {
       font-size: 12px;
@@ -60,34 +60,38 @@
       <img attr:src="finnalLogoUrl" />
     </div>
     <div class="url-line">{{cardName}}</div>
-    <a attr:href="url" target="_blank"></a>
+    <a attr:href="item.url" target="_blank"></a>
   </div>
   <script>
     export default async () => {
       return {
         tag: "n-bookmark-card",
         data: {
-          url: "",
-          logoUrl: "",
-          title: "",
+          item: {
+            // url:""  // 网页地址
+            // title: "", // 网页标题
+          },
         },
         proto: {
           get cardName() {
-            if (this.title) {
-              return this.title;
+            if (this.item.title) {
+              return this.item.title;
             }
 
-            if (!this.url) {
-              return;
+            if (this.item.url) {
+              return new URL(this.item.url).host;
             }
-            return new URL(this.url).host;
+
+            return "";
           },
           get finnalLogoUrl() {
-            if (this.logoUrl) {
-              return this.logoUrl;
+            if (this.item.url) {
+              return new URL(this.item.url).origin + "/favicon.ico";
             }
-            return new URL(this.url).origin + "/favicon.ico";
           },
+        },
+        detached() {
+          this.item = {};
         },
       };
     };
