@@ -10,7 +10,8 @@
     }
 
     .main {
-      min-width: 80vw;
+      width: 80vw;
+      max-width: 800px;
       min-height: 30vh;
     }
 
@@ -24,6 +25,12 @@
     }
     .form-line p-input:first-child {
       margin-left: 0;
+    }
+
+    @media screen and (max-width: 540px) {
+      .main {
+        width: auto;
+      }
     }
   </style>
 

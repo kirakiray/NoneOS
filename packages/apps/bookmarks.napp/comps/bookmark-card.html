@@ -90,6 +90,7 @@
             a.href = url;
 
             if (!target) {
+              // 没有指定打开方式，根据当前的情况决定
               if (this.inNewTab) {
                 // 在独立的tab上，直接自身打开
                 a.target = "_self";
