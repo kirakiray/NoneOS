@@ -1,6 +1,10 @@
 <template page>
   <l-m src="../comps/bookmark-card.html"></l-m>
   <l-m src="../comps/bm-add-card.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="/packages/pui/menu/menu-area.html"></l-m>
+  <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -39,23 +43,38 @@
       align-items: flex-start;
       overflow: auto;
     }
+
+    p-menu-item > n-local-icon {
+      display: block;
+      margin-right: 8px;
+      color: var(--md-sys-color-primary);
+    }
   </style>
 
   <div class="tool-container"></div>
 
   <div class="main">
-    <div class="main-inner">
-      <o-fill :value="currentCards">
+    <p-bind-contextmenu class="main-inner" auto-close>
+      <p-menu contextmenu-selector="n-bookmark-card">
+        <p-menu-item on:click="deleteItem">
+          <n-local-icon name="delete" slot="prefix"></n-local-icon>
+          删除网页
+        </p-menu-item>
+        <p-menu-item on:click="editItem">
+          <n-local-icon name="edit" slot="prefix"></n-local-icon>
+          编辑网页
+        </p-menu-item>
+      </p-menu>
+      <o-fill :value="cards">
         <n-bookmark-card
           :url="$data.url"
+          :title="$data.title"
           :logo-url="$data.logoUrl"
+          :_data="$data"
         ></n-bookmark-card>
       </o-fill>
-      <o-if :value="!currentCards.length">
-        <div>没有数据</div>
-      </o-if>
       <bm-add-card on:add-web="addWeb"></bm-add-card>
-    </div>
+    </p-bind-contextmenu>
   </div>
 
   <script>
@@ -65,38 +84,52 @@
       return {
         data: {
           list: [], // 所有的用户数据
-          // currentCards: [], // 当前显示的数据
-          currentCards: [
-            {
-              url: "htts://baidu.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
-            },
-            {
-              url: "https://myzaker.com",
-              logoUrl:
-                "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
-            },
-            {
-              url: "https://google.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-            },
-            {
-              url: "https://google.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-            },
-            {
-              url: "https://google.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-            },
-          ],
+          cards: [], // 当前显示的数据
+          // cards: [
+          //   {
+          //     url: "htts://baidu.com",
+          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
+          //   },
+          //   {
+          //     url: "https://myzaker.com",
+          //     logoUrl:
+          //       "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
+          //   },
+          //   {
+          //     url: "https://google.com",
+          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+          //   },
+          //   {
+          //     url: "https://google.com",
+          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+          //   },
+          //   {
+          //     url: "https://google.com",
+          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+          //   },
+          // ],
         },
         proto: {
-          async addWeb({ data }) {
-            const { url } = data;
+          async editItem() {
+            const { _target } = this.shadow.$("p-bind-contextmenu");
+            const data = _target._data;
+          },
 
-            this.currentCards.push({
-              url,
-            });
+          async deleteItem() {
+            const { _target } = this.shadow.$("p-bind-contextmenu");
+            const data = _target._data;
+
+            // 查找并删除
+            const targetIndex = this.cards.findIndex((item) => item === data);
+
+            if (targetIndex > -1) {
+              this.cards.splice(targetIndex, 1);
+            }
+          },
+          async addWeb({ data }) {
+            const { url, logoUrl, title } = data;
+
+            this.cards.push({ logoUrl, title, url });
           },
         },
         async attached() {
@@ -113,9 +146,14 @@
             // 初始化本地数据
             mainData.cards = [];
           }
+
+          this.cards = mainData.cards;
+
+          await mainData.ready(true);
+          console.log(this.cards.toJSON());
         },
         detached() {
-          this.currentCards = [];
+          this.cards = [];
         },
       };
     };

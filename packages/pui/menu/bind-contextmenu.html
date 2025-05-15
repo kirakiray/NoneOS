@@ -4,6 +4,11 @@
       display: block;
       position: relative;
     }
+
+    ::slotted(p-menu) {
+      position: absolute;
+      z-index: 2;
+    }
   </style>
   <slot></slot>
   <script>

@@ -1,6 +1,8 @@
 <template component>
   <style>
     :host {
+      position: relative;
+      z-index: 1;
       display: block;
       align-self: flex-start;
     }
@@ -67,9 +69,14 @@
         data: {
           url: "",
           logoUrl: "",
+          title: "",
         },
         proto: {
           get cardName() {
+            if (this.title) {
+              return this.title;
+            }
+
             if (!this.url) {
               return;
             }

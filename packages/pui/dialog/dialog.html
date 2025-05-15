@@ -4,8 +4,6 @@
     :host {
       display: block;
       font-size: 14px;
-      container-type: inline-size;
-      container-name: dialog-container;
     }
     .main {
       box-sizing: border-box;
@@ -64,7 +62,7 @@
   </style>
 
   <style>
-    @container dialog-container (max-width: data(autoToMobileWidth)) {
+    @media screen and (max-width: data(autoToMobileWidth)) {
       p-mask {
         --container-init-transform: translate(0, 100px);
       }
