@@ -77,12 +77,12 @@
       ></n-file-list>
       <p-menu class="main-menu" contextmenu-selector="n-file-list">
         <p-menu-item on:click="clickMenuItem('open')">
-          <o-if :value="isFolder">
+          <x-if :value="isFolder">
             <n-local-icon name="open-folder" slot="prefix"></n-local-icon>
-          </o-if>
-          <o-else>
+          </x-if>
+          <x-else>
             <n-local-icon name="open-file" slot="prefix"></n-local-icon>
-          </o-else>
+          </x-else>
           <n-desc name="open" space="files"></n-desc>
         </p-menu-item>
         <p-menu-item attr:disabled="isFolder">

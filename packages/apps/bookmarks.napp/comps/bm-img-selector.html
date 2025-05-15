@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -15,8 +16,8 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      width: 180px;
-      height: 110px;
+      width: 200px;
+      height: 120px;
       border-radius: 10px;
       border: var(--md-sys-color-normal) 1px solid;
       cursor: pointer;
@@ -57,6 +58,9 @@
       <o-if :value="customPic">
         <img attr:src="customPic" />
       </o-if>
+      <o-else>
+        <n-local-icon name="link" style="font-size: 30px"></n-local-icon>
+      </o-else>
       <div class="block-title">填写图片地址</div>
     </div>
     <div
@@ -64,7 +68,19 @@
       class:active="type === 'upload'"
       on:click="type = 'upload'"
     >
-      <div class="block-title">上传图片</div>
+      <o-if :value="!selectedPic">
+        <n-local-icon name="upload" style="font-size: 30px"></n-local-icon>
+      </o-if>
+      <o-else>
+        <img attr:src="selectedPic" />
+      </o-else>
+      <p-button
+        size="small"
+        variant="text"
+        style="margin-top: 6px"
+        on:click="shadow.$('#fileInputer').ele.click()"
+        >选择图片</p-button
+      >
     </div>
   </div>
 
@@ -76,16 +92,27 @@
     </div>
   </o-if>
 
+  <input
+    id="fileInputer"
+    type="file"
+    accept=".jpg,.jpeg,.png"
+    on:change="changeFile"
+    style="display: none"
+  />
+
   <script>
     export default async ({ load }) => {
+      const { getFileHash } = await load("/packages/fs/util.js");
+
       return {
         tag: "bm-img-selector",
         data: {
           type: "default",
           weburl: "", // 目标网址
-        //   value: "", // 最终的图片地址
+          //   value: "", // 最终的图片地址
           defaultPic: "", // 默认图片地址
           customPic: "", // 自定义图片地址
+          selectedPic: "", // 上传的图片地址
         },
         watch: {
           weburl(val) {
@@ -94,25 +121,36 @@
               this.refreshDefaultPic();
             }, 300);
           },
-          //   customPic() {
-          //     this.refreshValue();
-          //   },
-          //   defaultPic() {
-          //     this.refreshValue();
-          //   },
         },
         proto: {
-          //   refreshValue() {
-          //     if (this.type === "custom") {
-          //       this.value = this.customPic;
-          //     } else if (this.type === "default") {
-          //       this.value = this.defaultPic;
-          //     }
-          //   },
-          //   changeType(type) {
-          //     this.type = type;
-          //     this.refreshValue();
-          //   },
+          async changeFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const hash = await getFileHash(file);
+
+            if (this?.app?.dedicatedHandle) {
+              // 写入到应用文件夹下
+              const appDataHandle = await this.app.dedicatedHandle();
+
+              // 判断是否存在
+              const sourcesDir = await appDataHandle.get("sources", {
+                create: "dir",
+              });
+
+              const fileHandle = await sourcesDir.get(
+                `${hash}.${file.name.split(".").slice(-1)[0]}`,
+                {
+                  create: "file",
+                }
+              );
+
+              // 保存文件
+              await fileHandle.write(file);
+
+              this.selectedPic = `/$${fileHandle.path}`;
+            }
+          },
           refreshDefaultPic() {
             try {
               let weburl = this.weburl;

@@ -68,7 +68,7 @@
                     this._target = $target;
                   } else {
                     $target.parentsUntil(this).some((el) => {
-                      if (el.is(contextmenuSelector)) {
+                      if (el.tag && el.is(contextmenuSelector)) {
                         targetMenu = menu;
                         this._target = el;
                         return true;

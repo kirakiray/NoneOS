@@ -18,7 +18,15 @@
       background-position: center;
     }
 
+    .tool {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+    }
+
     .tool-container {
+      box-sizing: border-box;
       display: flex;
       padding: 16px;
       height: 100px;
@@ -35,10 +43,9 @@
     .main-inner {
       position: absolute;
       left: 0;
-      top: 0;
+      top: 100px;
       width: 100%;
-      max-height: 100%;
-      min-height: 50vh;
+      min-height: 300px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
@@ -53,13 +60,17 @@
     }
   </style>
 
-  <div class="tool-container"></div>
+  <!-- <div class="tool-container"></div> -->
+
+  <div class="tool">
+    <div class="tool-container"></div>
+  </div>
 
   <div class="main">
     <p-bind-contextmenu class="main-inner" auto-close>
       <p-menu contextmenu-selector="n-bookmark-card">
         <p-menu-item on:click="newTabOpen">
-          <n-local-icon name="tab-app" slot="prefix"></n-local-icon>
+          <n-local-icon name="tab-group" slot="prefix"></n-local-icon>
           新标签打开
         </p-menu-item>
         <hr />
@@ -85,6 +96,7 @@
     sync:web-title="dialogData.webTitle"
     sync:logo-type="dialogData.logoType"
     sync:custom-pic="dialogData.customPic"
+    sync:selected-pic="dialogData.selectedPic"
     on:click-save="saveEditedData"
   ></bm-common-dialog>
   <script>
@@ -100,6 +112,7 @@
             webTitle: "",
             logoType: "",
             customPic: "",
+            selectedPic: "",
           },
         },
         proto: {
@@ -117,10 +130,12 @@
             data.webTitle = this.dialogData.webTitle;
             data.logoType = this.dialogData.logoType;
             data.customPic = this.dialogData.customPic;
+            data.selectedPic = this.dialogData.selectedPic;
 
             if (data.logoType === "default") {
               // 选择的是默认图片，清除其余两项
               data.customPic = "";
+              data.selectedPic = "";
             }
 
             this.dialogData.open = false;
@@ -131,6 +146,7 @@
               webTitle: "",
               logoType: "",
               customPic: "",
+              selectedPic: "",
             });
           },
           async editItem() {
@@ -143,6 +159,7 @@
               webTitle: data.webTitle,
               logoType: data.logoType || "default",
               customPic: data.customPic,
+              selectedPic: data.selectedPic,
             };
           },
 

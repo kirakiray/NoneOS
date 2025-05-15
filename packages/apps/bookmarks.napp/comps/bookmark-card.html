@@ -73,6 +73,7 @@
             // webTitle: "", // 网页标题
             // logoType: "", // logo类型 default custom
             // customPic: "", // 自定义logo地址
+            // selectedPic: "", // 选中的logo文件地址
           },
           inNewTab: false,
         },
@@ -118,6 +119,10 @@
           get finnalLogoUrl() {
             if (this.item.logoType === "custom") {
               return this.item.customPic;
+            }
+
+            if (this.item.logoType === "upload") {
+              return this.item.selectedPic;
             }
 
             if (this.item.url) {
