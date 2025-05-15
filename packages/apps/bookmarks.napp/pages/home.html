@@ -1,6 +1,7 @@
 <template page>
   <l-m src="../comps/bookmark-card.html"></l-m>
   <l-m src="../comps/bm-add-card.html"></l-m>
+  <l-m src="../comps/bm-common-dialog.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
   <l-m src="/packages/pui/menu/menu-area.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
@@ -56,13 +57,13 @@
   <div class="main">
     <p-bind-contextmenu class="main-inner" auto-close>
       <p-menu contextmenu-selector="n-bookmark-card">
-        <p-menu-item on:click="deleteItem">
-          <n-local-icon name="delete" slot="prefix"></n-local-icon>
-          删除网页
-        </p-menu-item>
         <p-menu-item on:click="editItem">
           <n-local-icon name="edit" slot="prefix"></n-local-icon>
           编辑网页
+        </p-menu-item>
+        <p-menu-item on:click="deleteItem">
+          <n-local-icon name="delete" slot="prefix"></n-local-icon>
+          删除网页
         </p-menu-item>
       </p-menu>
       <o-fill :value="cards">
@@ -73,46 +74,52 @@
           :_data="$data"
         ></n-bookmark-card>
       </o-fill>
-      <bm-add-card on:add-web="addWeb"></bm-add-card>
+      <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
     </p-bind-contextmenu>
   </div>
 
+  <bm-common-dialog
+    sync:open="dialogData.open"
+    sync:url="dialogData.url"
+    sync:web-title="dialogData.webTitle"
+    sync:logo-url="dialogData.logoUrl"
+    on:click-save="saveEditedData"
+  ></bm-common-dialog>
   <script>
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");
 
       return {
         data: {
-          list: [], // 所有的用户数据
           cards: [], // 当前显示的数据
-          // cards: [
-          //   {
-          //     url: "htts://baidu.com",
-          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
-          //   },
-          //   {
-          //     url: "https://myzaker.com",
-          //     logoUrl:
-          //       "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
-          //   },
-          //   {
-          //     url: "https://google.com",
-          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-          //   },
-          //   {
-          //     url: "https://google.com",
-          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-          //   },
-          //   {
-          //     url: "https://google.com",
-          //     logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
-          //   },
-          // ],
+          dialogData: {
+            open: false,
+            url: "",
+            webTitle: "",
+            logoUrl: "",
+          },
         },
         proto: {
+          saveEditedData() {
+            const { _target } = this.shadow.$("p-bind-contextmenu");
+            const data = _target._data;
+
+            data.url = this.dialogData.url;
+            data.title = this.dialogData.webTitle;
+            data.logoUrl = this.dialogData.logoUrl;
+
+            this.dialogData.open = false;
+          },
           async editItem() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target._data;
+
+            this.dialogData = {
+              open: true,
+              url: data.url,
+              webTitle: data.title,
+              logoUrl: data.logoUrl,
+            };
           },
 
           async deleteItem() {

@@ -1,7 +1,5 @@
 <template component>
-  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
-  <l-m src="/packages/pui/input/input.html"></l-m>
-  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./bm-common-dialog.html"></l-m>
   <style>
     :host {
       display: block;
@@ -38,52 +36,20 @@
     .card:active {
       box-shadow: var(--contained-active-shadow);
     }
-    .main {
-      min-width: 80vw;
-      min-height: 50vh;
-    }
-
-    .form-line {
-      padding: 8px 0;
-      display: flex;
-    }
-    .form-line p-input {
-      flex: 1;
-      margin-left: 8px;
-    }
-    .form-line p-input:first-child {
-      margin-left: 0;
-    }
   </style>
   <div class="card" on:click="open = true">+</div>
-  <p-dialog :open="open" on:click-mask="open = false">
-    <div slot="title">添加新标签</div>
-    <div class="main">
-      <div class="form-line">
-        <p-input sync:value="url">
-          <label
-            >网址
-            <b style="color: var(--md-sys-color-error)">*</b>
-          </label>
-        </p-input>
-      </div>
-      <div class="form-line">
-        <p-input sync:value="webTitle">
-          <label>标题（选填）</label>
-        </p-input>
-        <p-input sync:value="logoUrl" style="flex: 2">
-          <!-- <label>Logo地址（选填，可粘贴地址）</label> -->
-          <label>Logo地址（选填，可粘贴图片）</label>
-        </p-input>
-      </div>
-    </div>
-    <div slot="bottom">
-      <p-button variant="outlined" on:click="open = false">取消</p-button>
-      <p-button on:click="clickSave">保存</p-button>
-    </div>
-  </p-dialog>
+  <bm-common-dialog
+    sync:open="open"
+    sync:url="url"
+    sync:logo-url="logoUrl"
+    sync:web-title="webTitle"
+    on:click-save="clickSave"
+  ></bm-common-dialog>
+
   <script>
     export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+
       return {
         tag: "bm-add-card",
         data: {
@@ -91,6 +57,7 @@
           url: "",
           webTitle: "",
           logoUrl: "",
+          cards: [], // 当前显示的数据
         },
         proto: {
           clickSave() {
@@ -98,6 +65,15 @@
 
             if (!url.startsWith("http")) {
               url = "https://" + url;
+            }
+
+            // 判断是否有相同的网页
+            if (this.cards.find((item) => item.url === url)) {
+              toast({
+                content: "已经存在相同的网页",
+                color: "error",
+              });
+              return;
             }
 
             this.emit("add-web", {
