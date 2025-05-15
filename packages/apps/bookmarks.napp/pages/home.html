@@ -77,6 +77,8 @@
     sync:open="dialogData.open"
     sync:url="dialogData.url"
     sync:web-title="dialogData.webTitle"
+    sync:logo-type="dialogData.logoType"
+    sync:custom-pic="dialogData.customPic"
     on:click-save="saveEditedData"
   ></bm-common-dialog>
   <script>
@@ -91,6 +93,7 @@
             url: "",
             webTitle: "",
             logoType: "",
+            customPic: "",
           },
         },
         proto: {
@@ -99,20 +102,30 @@
             const data = _target.item;
 
             data.url = this.dialogData.url;
-            data.title = this.dialogData.webTitle;
+            data.webTitle = this.dialogData.webTitle;
+            data.logoType = this.dialogData.logoType;
+            data.customPic = this.dialogData.customPic;
 
             this.dialogData.open = false;
+
+            // 清空弹窗数据
+            Object.assign(this.dialogData, {
+              url: "",
+              webTitle: "",
+              logoType: "",
+              customPic: "",
+            });
           },
           async editItem() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target.item;
 
-            debugger;
-
             this.dialogData = {
               open: true,
               url: data.url,
-              webTitle: data.title,
+              webTitle: data.webTitle,
+              logoType: data.logoType || "default",
+              customPic: data.customPic,
             };
           },
 

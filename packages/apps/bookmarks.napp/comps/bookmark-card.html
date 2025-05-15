@@ -69,13 +69,13 @@
         data: {
           item: {
             // url:""  // 网页地址
-            // title: "", // 网页标题
+            // webTitle: "", // 网页标题
           },
         },
         proto: {
           get cardName() {
-            if (this.item.title) {
-              return this.item.title;
+            if (this.item.webTitle) {
+              return this.item.webTitle;
             }
 
             if (this.item.url) {
@@ -85,6 +85,10 @@
             return "";
           },
           get finnalLogoUrl() {
+            if (this.item.logoType === "custom") {
+              return this.item.customPic;
+            }
+
             if (this.item.url) {
               return new URL(this.item.url).origin + "/favicon.ico";
             }
