@@ -75,6 +75,7 @@
           webTitle: "",
           logoType: "default",
           customPic: "",
+          selectedPic: "",
         },
         proto: {
           get isValidUrl() {
@@ -85,6 +86,22 @@
             if (!this.isValidUrl) {
               toast({
                 content: `"${this.url}" 不正确，请输入正确的网址`,
+                color: "error",
+              });
+              return;
+            }
+
+            if (this.logoType === "upload" && !this.customPic) {
+              toast({
+                content: "请选择图片",
+                color: "error",
+              });
+              return;
+            }
+
+            if (this.logoType === "custom" && !this.customPic.trim()) {
+              toast({
+                content: "请输入自定义缩略图地址",
                 color: "error",
               });
               return;

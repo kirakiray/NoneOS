@@ -44,6 +44,7 @@
     sync:web-title="webTitle"
     sync:logo-type="logoType"
     sync:custom-pic="customPic"
+    sync:selected-pic="selectedPic"
     on:click-save="clickSave"
   ></bm-common-dialog>
 
@@ -58,6 +59,7 @@
           url: "",
           webTitle: "",
           customPic: "",
+          selectedPic: "",
           logoType: "default",
           cards: [], // 当前显示的数据
         },
@@ -78,19 +80,12 @@
               return;
             }
 
-            if (this.logoType === "custom" && !this.customPic.trim()) {
-              toast({
-                content: "请输入自定义缩略图地址",
-                color: "error",
-              });
-              return;
-            }
-
             this.emit("add-web", {
               data: {
                 webTitle: this.webTitle,
                 url,
                 customPic: this.customPic,
+                selectedPic: this.selectedPic,
                 logoType: this.logoType,
               },
             });
@@ -99,6 +94,7 @@
             this.url = "";
             this.webTitle = "";
             this.customPic = "";
+            this.selectedPic = "";
             this.logoType = "default";
 
             this.open = false;
