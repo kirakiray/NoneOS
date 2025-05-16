@@ -61,15 +61,40 @@
       height: 100%;
       z-index: 2;
     }
+
+    .deleteing-mask {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      position: absolute;
+      font-size: 14px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      border-radius: 8px;
+      background-color: rgba(120, 120, 120, 0.7);
+    }
   </style>
+
   <div class="card" on:click="openWeb()">
     <!-- <div class="card"> -->
     <div class="logo-line">
       <bm-img :src="finnalLogoUrl"></bm-img>
     </div>
     <div class="url-line">{{cardName}}</div>
-    <!-- <a attr:href="item.url" target="_blank"></a> -->
+
+    <o-if :value="isDelete && isDelete >= 0">
+      <div class="deleteing-mask" on:click="revokeDelete">
+        {{isDelete}}秒后删除
+        <br />
+        点击可撤销
+      </div>
+    </o-if>
   </div>
+
   <script>
     export default async () => {
       return {
@@ -84,8 +109,28 @@
             // selectedPic: "", // 选中的logo文件地址
           },
           inNewTab: false,
+          isDelete: null, // 是否进入删除模式，最终反应到倒计时上
+          // _delete: null, // 删除的函数
+        },
+        watch: {
+          isDelete(time) {
+            clearTimeout(this._deleteTimer);
+            if (time > 0) {
+              this._deleteTimer = setTimeout(() => {
+                this.isDelete--;
+              }, 1000);
+            }
+
+            if (time === 0) {
+              this._delete && this._delete();
+            }
+          },
         },
         proto: {
+          revokeDelete(e) {
+            e.stopPropagation();
+            this.isDelete = null;
+          },
           // 打开网页
           openWeb(target) {
             const a = document.createElement("a");
