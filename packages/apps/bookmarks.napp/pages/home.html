@@ -9,8 +9,6 @@
   <style>
     :host {
       position: relative;
-      display: flex !important;
-      flex-direction: column;
       width: 100%;
       height: 100%;
       background: url(/packages/others/default-bg.jpg) no-repeat;
@@ -36,21 +34,22 @@
     }
 
     .main {
-      position: relative;
-      flex: 1;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      box-sizing: border-box;
+      padding-top: 160px;
+      overflow: auto;
     }
 
     .main-inner {
-      position: absolute;
-      left: 0;
-      top: 100px;
-      width: 100%;
-      min-height: 300px;
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
       align-items: flex-start;
-      overflow: auto;
     }
 
     p-menu-item > n-local-icon {
@@ -66,29 +65,29 @@
     <div class="tool-container"></div>
   </div>
 
-  <div class="main">
-    <p-bind-contextmenu class="main-inner" auto-close>
-      <p-menu contextmenu-selector="n-bookmark-card">
-        <p-menu-item on:click="newTabOpen">
-          <n-local-icon name="tab-group" slot="prefix"></n-local-icon>
-          新标签打开
-        </p-menu-item>
-        <hr />
-        <p-menu-item on:click="editItem">
-          <n-local-icon name="edit" slot="prefix"></n-local-icon>
-          编辑网页
-        </p-menu-item>
-        <p-menu-item on:click="deleteItem">
-          <n-local-icon name="delete" slot="prefix"></n-local-icon>
-          删除网页
-        </p-menu-item>
-      </p-menu>
+  <p-bind-contextmenu class="main" auto-close>
+    <p-menu contextmenu-selector="n-bookmark-card">
+      <p-menu-item on:click="newTabOpen">
+        <n-local-icon name="tab-group" slot="prefix"></n-local-icon>
+        新标签打开
+      </p-menu-item>
+      <hr />
+      <p-menu-item on:click="editItem">
+        <n-local-icon name="edit" slot="prefix"></n-local-icon>
+        编辑网页
+      </p-menu-item>
+      <p-menu-item on:click="deleteItem">
+        <n-local-icon name="delete" slot="prefix"></n-local-icon>
+        删除网页
+      </p-menu-item>
+    </p-menu>
+    <div class="main-inner">
       <o-fill :value="cards">
         <n-bookmark-card :item="$data"></n-bookmark-card>
       </o-fill>
       <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
-    </p-bind-contextmenu>
-  </div>
+    </div>
+  </p-bind-contextmenu>
 
   <bm-common-dialog
     sync:open="dialogData.open"
