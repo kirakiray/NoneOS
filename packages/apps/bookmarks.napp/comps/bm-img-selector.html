@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="./bm-img.html"></l-m>
   <style>
     :host {
       display: block;
@@ -43,6 +44,11 @@
       font-size: 12px;
       margin-top: 6px;
     }
+
+    bm-img {
+      width: 100px;
+      height: 60px;
+    }
   </style>
   <div class="container">
     <div
@@ -51,7 +57,7 @@
       on:click="type = 'default'"
     >
       <o-if :value="defaultPic">
-        <img attr:src="defaultPic" />
+        <bm-img attr:src="defaultPic"></bm-img>
       </o-if>
       <div class="block-title">默认缩略图</div>
     </div>
@@ -61,7 +67,7 @@
       on:click="type = 'custom'"
     >
       <o-if :value="customPic">
-        <img attr:src="customPic" />
+        <bm-img attr:src="customPic"></bm-img>
       </o-if>
       <o-else>
         <n-local-icon name="link" style="font-size: 30px"></n-local-icon>
@@ -77,7 +83,7 @@
         <n-local-icon name="upload" style="font-size: 30px"></n-local-icon>
       </o-if>
       <o-else>
-        <img attr:src="selectedPic" />
+        <bm-img attr:src="selectedPic"></bm-img>
       </o-else>
       <p-button
         size="small"
@@ -97,7 +103,7 @@
           on:click="$host.defaultPic = $data.src"
           class:active="$data.src === $host.defaultPic"
         >
-          <img attr:src="$data.src" />
+          <bm-img attr:src="$data.src"></bm-img>
         </div>
       </o-fill>
     </div>

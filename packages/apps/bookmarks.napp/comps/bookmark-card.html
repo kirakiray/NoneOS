@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="./bm-img.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -41,11 +42,16 @@
       display: block;
       max-width: 80%;
       max-height: 90px;
-      /* height: 90px; */
     }
     .url-line {
       font-size: 12px;
     }
+
+    bm-img {
+      width: 120px;
+      height: 80px;
+    }
+
     a {
       display: block;
       position: absolute;
@@ -59,7 +65,7 @@
   <div class="card" on:click="openWeb()">
     <!-- <div class="card"> -->
     <div class="logo-line">
-      <img attr:src="finnalLogoUrl" />
+      <bm-img :src="finnalLogoUrl"></bm-img>
     </div>
     <div class="url-line">{{cardName}}</div>
     <!-- <a attr:href="item.url" target="_blank"></a> -->

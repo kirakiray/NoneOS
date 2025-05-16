@@ -1,0 +1,36 @@
+<template component>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: contain;
+    }
+
+    img {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+  <style id="targetStyle"></style>
+  <img attr:src="src" />
+  <script>
+    export default {
+      tag: "bm-img",
+      attrs: {
+        src: null,
+        w: null,
+        h: null,
+      },
+      watch: {
+        src(src) {
+          this.shadow.$("#targetStyle").text = `:host{
+            background-image:url(${src});
+          }`;
+        },
+      },
+    };
+  </script>
+</template>
