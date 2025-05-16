@@ -41,6 +41,7 @@
       display: block;
       max-width: 80%;
       max-height: 90px;
+      /* height: 90px; */
     }
     .url-line {
       font-size: 12px;
@@ -130,9 +131,9 @@
               return this.item.selectedPic;
             }
 
-            if (this.item.url) {
-              return new URL(this.item.url).origin + "/favicon.ico";
-            }
+            // if (this.item.url) {
+            //   return new URL(this.item.url).origin + "/favicon.ico";
+            // }
           },
         },
         attached() {
