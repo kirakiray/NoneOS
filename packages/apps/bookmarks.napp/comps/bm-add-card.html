@@ -43,6 +43,7 @@
     sync:url="url"
     sync:web-title="webTitle"
     sync:logo-type="logoType"
+    sync:default-pic="defaultPic"
     sync:custom-pic="customPic"
     sync:selected-pic="selectedPic"
     on:click-save="clickSave"
@@ -58,6 +59,7 @@
           open: false,
           url: "",
           webTitle: "",
+          defaultPic: "",
           customPic: "",
           selectedPic: "",
           logoType: "default",
@@ -84,6 +86,7 @@
               data: {
                 webTitle: this.webTitle,
                 url,
+                defaultPic: this.defaultPic,
                 customPic: this.customPic,
                 selectedPic: this.selectedPic,
                 logoType: this.logoType,
@@ -93,6 +96,7 @@
             // 清空数据
             this.url = "";
             this.webTitle = "";
+            this.defaultPic = "";
             this.customPic = "";
             this.selectedPic = "";
             this.logoType = "default";

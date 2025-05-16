@@ -52,6 +52,7 @@
         <h4>组定义缩略图</h4>
         <bm-img-selector
           sync:type="logoType"
+          sync:default-pic="defaultPic"
           sync:custom-pic="customPic"
           sync:selected-pic="selectedPic"
           :weburl="url"
@@ -74,6 +75,7 @@
           url: "",
           webTitle: "",
           logoType: "default",
+          defaultPic: "",
           customPic: "",
           selectedPic: "",
         },

@@ -95,6 +95,7 @@
     sync:url="dialogData.url"
     sync:web-title="dialogData.webTitle"
     sync:logo-type="dialogData.logoType"
+    sync:default-pic="dialogData.defaultPic"
     sync:custom-pic="dialogData.customPic"
     sync:selected-pic="dialogData.selectedPic"
     on:click-save="saveEditedData"
@@ -111,6 +112,7 @@
             url: "",
             webTitle: "",
             logoType: "",
+            defaultPic: "",
             customPic: "",
             selectedPic: "",
           },
@@ -129,11 +131,13 @@
             data.url = this.dialogData.url;
             data.webTitle = this.dialogData.webTitle;
             data.logoType = this.dialogData.logoType;
+            data.defaultPic = this.dialogData.defaultPic;
             data.customPic = this.dialogData.customPic;
             data.selectedPic = this.dialogData.selectedPic;
 
             if (data.logoType === "default") {
               // 选择的是默认图片，清除其余两项
+              data.defaultPic = "";
               data.customPic = "";
               data.selectedPic = "";
             }
@@ -145,6 +149,7 @@
               url: "",
               webTitle: "",
               logoType: "",
+              defaultPic: "",
               customPic: "",
               selectedPic: "",
             });
@@ -158,6 +163,7 @@
               url: data.url,
               webTitle: data.webTitle,
               logoType: data.logoType || "default",
+              defaultPic: data.defaultPic,
               customPic: data.customPic,
               selectedPic: data.selectedPic,
             };
