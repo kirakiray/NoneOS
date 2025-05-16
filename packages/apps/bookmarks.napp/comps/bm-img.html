@@ -1,8 +1,12 @@
 <template component>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       position: relative;
-      display: block;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       background-repeat: no-repeat;
       background-position: center;
       background-size: contain;
@@ -15,7 +19,38 @@
     }
   </style>
   <style id="targetStyle"></style>
-  <img attr:src="src" />
+  <o-if :value="!loaded">
+    <p-progress type="circle" variant="indeterminate"></p-progress>
+  </o-if>
+  <o-if :value="iserror">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <n-local-icon
+        name="error"
+        style="
+          display: block;
+          font-size: 30px;
+          color: var(--md-sys-color-error);
+        "
+      ></n-local-icon>
+      <div
+        style="
+          text-align: center;
+          font-size: 12px;
+          color: var(--md-sys-color-error);
+        "
+      >
+        Load Failed
+      </div>
+    </div>
+  </o-if>
+  <img attr:src="src" on:load="onload" on:error="onerror" />
   <script>
     export default {
       tag: "bm-img",
@@ -24,11 +59,25 @@
         w: null,
         h: null,
       },
+      data: {
+        loaded: false,
+        iserror: false,
+      },
       watch: {
         src(src) {
           this.shadow.$("#targetStyle").text = `:host{
             background-image:url(${src});
           }`;
+        },
+      },
+      proto: {
+        onload(e) {
+          this.loaded = true;
+          this.iserror = false;
+        },
+        onerror(e) {
+          this.iserror = true;
+          this.loaded = true;
         },
       },
     };
