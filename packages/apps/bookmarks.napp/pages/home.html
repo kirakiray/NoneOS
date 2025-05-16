@@ -12,7 +12,8 @@
       position: relative;
       width: 100%;
       height: 100%;
-      background: url(/packages/others/default-bg.jpg) no-repeat;
+      background: url(/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg)
+        no-repeat;
       background-size: cover;
       background-position: center;
     }
@@ -79,6 +80,10 @@
         <n-local-icon name="edit" slot="prefix"></n-local-icon>
         编辑网页
       </p-menu-item>
+      <p-menu-item on:click="clickCopyLink">
+        <n-local-icon name="copy" slot="prefix"></n-local-icon>
+        复制网址
+      </p-menu-item>
       <p-menu-item on:click="deleteItem">
         <n-local-icon name="delete" slot="prefix"></n-local-icon>
         删除网页
@@ -106,6 +111,7 @@
   <script>
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");
+      const { toast } = await load("/packages/pui/util.js");
 
       return {
         data: {
@@ -121,6 +127,17 @@
           },
         },
         proto: {
+          clickCopyLink() {
+            const { _target } = this.shadow.$("p-bind-contextmenu");
+            const data = _target.item;
+
+            // 复制网址
+            copyTextToClipboard(data.url);
+            toast({
+              content: "复制成功",
+              color: "success",
+            });
+          },
           newTabOpen() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target.item;
@@ -216,5 +233,14 @@
         },
       };
     };
+
+    function copyTextToClipboard(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
   </script>
 </template>

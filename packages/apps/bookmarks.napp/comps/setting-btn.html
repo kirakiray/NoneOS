@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,6 +38,29 @@
       width: 100%;
       height: 100%;
     }
+
+    .main p-list-item {
+      border-radius: 0 16px 16px 0;
+      margin: 4px 0;
+      overflow: hidden;
+    }
+
+    .main p-list-item n-local-icon {
+      display: block;
+      margin-right: 6px;
+      font-size: 18px;
+      color: var(--md-sys-color-primary);
+    }
+
+    h4 {
+      margin: 0 0 8px;
+    }
+
+    @media screen and (max-width: 540px) {
+      .main {
+        height: 80vh;
+      }
+    }
   </style>
   <p-button icon on:click="open = true">
     <n-local-icon name="menu"></n-local-icon>
@@ -46,8 +70,76 @@
     <div slot="title">设置</div>
     <div class="main">
       <n-horsp-pannel>
-        <div slot="left">left</div>
-        main
+        <div slot="left">
+          <p-list>
+            <p-list-item
+              button
+              attr:active-item="activeName === 'display'"
+              on:click="activeName = 'display'"
+            >
+              <n-local-icon name="dial" slot="prefix"></n-local-icon>
+              显示设置
+            </p-list-item>
+            <p-list-item
+              button
+              attr:active-item="activeName === 'function'"
+              on:click="activeName = 'function'"
+            >
+              <n-local-icon name="function-add" slot="prefix"></n-local-icon>
+              书签功能
+            </p-list-item>
+
+            <p-list-item
+              button
+              attr:active-item="activeName === 'sync'"
+              on:click="activeName = 'sync'"
+            >
+              <n-local-icon name="sync" slot="prefix"></n-local-icon>
+              同步数据
+            </p-list-item>
+
+            <p-list-item
+              button
+              attr:active-item="activeName === 'about'"
+              on:click="activeName = 'about'"
+            >
+              <n-local-icon name="about" slot="prefix"></n-local-icon>
+              关于Bookmarks
+            </p-list-item>
+          </p-list>
+        </div>
+        <o-if :value="activeName === 'display'">
+          <div>
+            <h4>书签尺寸</h4>
+            <div>书签宽度</div>
+            <div>书签高度</div>
+
+            <h4>背景设置</h4>
+            <div>更换图片</div>
+            <div>背景图的对齐模式</div>
+            <div>背景显示模式</div>
+            <div>是否平铺</div>
+            <div>
+              背景底色（当系统黑夜模式时显示什么颜色，白天模式什么颜色。）
+            </div>
+            <div>系统自带的背景选择</div>
+            <div>感谢，图片来自unsplsh的具体地址</div>
+          </div>
+        </o-if>
+        <o-else-if :value="activeName === 'function'">
+          <div>在书签上显示点击次数</div>
+          <div>清空点击次数</div>
+          <div>排序：自定义排序，按照点击次数靠前显示</div>
+          <div>顺便在面板上显示统计的点击次数</div>
+        </o-else-if>
+        <o-else-if :value="activeName === 'sync'">
+          <div>可以同步到手机，和其他的电脑</div>
+          <div>导出数据</div>
+          <div>导入数据</div>
+        </o-else-if>
+        <o-else-if :value="activeName === 'about'">
+          <div>基于NoneOS开发的一个书签管理工具。</div>
+        </o-else-if>
       </n-horsp-pannel>
     </div>
   </p-dialog>
@@ -57,7 +149,8 @@
       return {
         tag: "bm-setting-btn",
         data: {
-          open: false,
+          open: true,
+          activeName: "display",
         },
       };
     };
