@@ -35,7 +35,14 @@
   </style>
 
   <p-dialog :open="open" on:click-mask="open = false">
-    <div slot="title">添加新标签</div>
+    <div slot="title">
+      <o-if :value="editmode">
+        <div>编辑网页</div>
+      </o-if>
+      <o-else>
+        <div>添加新网页</div>
+      </o-else>
+    </div>
     <div class="main">
       <div class="form-line">
         <p-input sync:value="url" style="flex: 2">
@@ -70,6 +77,9 @@
 
       return {
         tag: "bm-common-dialog",
+        attrs: {
+          editmode: null,
+        },
         data: {
           open: false,
           url: "",
