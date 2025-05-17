@@ -12,10 +12,11 @@
       position: relative;
       width: 100%;
       height: 100%;
-      background: url(/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg)
-        no-repeat;
-      background-size: cover;
-      background-position: center;
+      /* background: url(/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg); */
+      /* background-repeat: no-repeat; */
+      /* background-size: cover; */
+      /* background-position: center; */
+      background-color: var(--bg-color);
     }
 
     .tool {
@@ -73,17 +74,17 @@
 
   <style>
     :host {
-      --card-width: data(sizeSetting.width);
-      --card-img-height: data(sizeSetting.height);
-      --card-space: data(sizeSetting.space);
-      --max-width: data(sizeSetting.containerMaxWidth);
+      --card-width: data(setting.width);
+      --card-img-height: data(setting.height);
+      --card-space: data(setting.space);
+      --max-width: data(setting.containerMaxWidth);
     }
   </style>
 
   <div class="tool">
     <div class="tool-container">
       <bm-setting-btn
-        :size-setting="sizeSetting"
+        :setting="setting"
         style="margin-left: auto"
       ></bm-setting-btn>
     </div>
@@ -145,11 +146,44 @@
             customPic: "",
             selectedPic: "",
           },
-          sizeSetting: {
+          setting: {
             width: 200,
             height: 80,
             space: 16,
             containerMaxWidth: 1200,
+            bgurl:
+              "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg",
+            bgsize: "cover",
+            bgrepeat: "no-repeat",
+            bgposition: "center center",
+            bgcolor: "transparent", // 黑夜模式下的背景色
+          },
+        },
+        watch: {
+          setting() {
+            if (this._oldbgurl !== this.setting.bgurl) {
+              this.css.backgroundImage = `url(${this.setting.bgurl})`;
+              this._oldbgurl = this.setting.bgurl;
+            }
+
+            if (this._oldbgsize !== this.setting.bgsize) {
+              this.css.backgroundSize = this.setting.bgsize;
+              this._oldbgsize = this.setting.bgsize;
+            }
+
+            if (this._oldbgrepeat !== this.setting.bgrepeat) {
+              this.css.backgroundRepeat = this.setting.bgrepeat;
+              this._oldbgrepeat = this.setting.bgrepeat;
+            }
+
+            if (this._oldbgposition !== this.setting.bgposition) {
+              this.css.backgroundPosition = this.setting.bgposition;
+              this._oldbgposition = this.setting.bgposition;
+            }
+            if (this._oldbgcolor !== this.setting.bgcolor) {
+              this.css.backgroundColor = this.setting.bgcolor;
+              this._oldbgcolor = this.setting.bgcolor;
+            }
           },
         },
         proto: {

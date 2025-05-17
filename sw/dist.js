@@ -4,7 +4,8 @@
   // 响应文件相关的请求
   const resposeFs = (event) => {
     const { request } = event;
-    const { pathname, origin, searchParams } = new URL(request.url);
+    let { pathname, origin, searchParams } = new URL(request.url);
+    pathname = decodeURIComponent(pathname);
 
     const paths = pathname.split("/");
     const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");
@@ -175,6 +176,12 @@
     <script src="/packages/libs/ofa/router.min.js"></script>
     <script src="/packages/pui/public/init.js" type="module"></script>
     <script src="/packages/none-os/init.js" type="module"></script>
+    <style>
+      body{
+        background-color: var(--md-sys-color-surface);
+        color: var(--md-sys-color-on-surface);
+      }
+    </style>
   </head>
   <body>
     <o-router fix-body>

@@ -1,7 +1,8 @@
 // 响应文件相关的请求
 const resposeFs = (event) => {
   const { request } = event;
-  const { pathname, origin, searchParams } = new URL(request.url);
+  let { pathname, origin, searchParams } = new URL(request.url);
+  pathname = decodeURIComponent(pathname);
 
   const paths = pathname.split("/");
   const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");

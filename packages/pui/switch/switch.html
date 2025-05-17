@@ -246,7 +246,7 @@
         this.on("click", (e) => this.clickSwitch(e));
       },
       attached() {
-        if (this.attr("checked") !== null) {
+        if (this.checked || this.attr("checked") !== null) {
           this.value = this.checkedValue;
         } else {
           this.value = this.uncheckedValue;
