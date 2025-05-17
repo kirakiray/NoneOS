@@ -2,6 +2,7 @@
   <l-m src="../comps/bookmark-card.html"></l-m>
   <l-m src="../comps/bm-add-card.html"></l-m>
   <l-m src="../comps/bm-common-dialog.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
   <l-m src="/packages/pui/menu/menu-area.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
@@ -17,6 +18,16 @@
       /* background-size: cover; */
       /* background-position: center; */
       background-color: var(--bg-color);
+      animation: fadein ease 0.2s;
+    }
+
+    @keyframes fadein {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
     }
 
     .tool {
@@ -111,10 +122,19 @@
       </p-menu-item>
     </p-menu>
     <div class="main-inner">
-      <o-fill :value="cards">
-        <n-bookmark-card :item="$data"></n-bookmark-card>
-      </o-fill>
-      <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+      <o-if :value="cards.dataStatus !== 'ok'">
+        <p-progress
+          type="circle"
+          variant="indeterminate"
+          style="--circle-size: 80"
+        ></p-progress>
+      </o-if>
+      <o-else>
+        <o-fill :value="cards">
+          <n-bookmark-card :item="$data"></n-bookmark-card>
+        </o-fill>
+        <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+      </o-else>
     </div>
   </p-bind-contextmenu>
 
@@ -151,8 +171,7 @@
             height: 80,
             space: 16,
             containerMaxWidth: 1200,
-            bgurl:
-              "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg",
+            // bgurl:"/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg", // 如果更换过背景图，初始进入时会有闪屏，所以先注释
             bgsize: "cover",
             bgrepeat: "no-repeat",
             bgposition: "center center",
@@ -162,7 +181,11 @@
         watch: {
           setting() {
             if (this._oldbgurl !== this.setting.bgurl) {
-              this.css.backgroundImage = `url(${this.setting.bgurl})`;
+              if (this.setting.bgurl) {
+                this.css.backgroundImage = `url(${this.setting.bgurl})`;
+              } else {
+                this.css.backgroundImage = "";
+              }
               this._oldbgurl = this.setting.bgurl;
             }
 
@@ -277,7 +300,7 @@
 
           const mainData = await createData(dataHandle);
 
-          await mainData.ready(true);
+          await mainData.ready();
 
           if (!mainData.cards) {
             // 初始化本地数据
@@ -286,7 +309,26 @@
 
           this.cards = mainData.cards;
 
-          console.log(this.cards.toJSON());
+          const settingHandle = await handle.get("setting", {
+            create: "dir",
+          });
+
+          const settingData = await createData(settingHandle);
+          await settingData.ready(true);
+
+          // 判断是否有设置
+          if (!settingData.width) {
+            // 初始化设置
+            Object.assign(settingData, this.setting);
+          }
+
+          this.setting = settingData;
+
+          if (!this.setting.bgurl) {
+            // 设置默认背景图
+            this.setting.bgurl =
+              "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg";
+          }
         },
         detached() {
           this.cards = [];

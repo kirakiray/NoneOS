@@ -51,6 +51,12 @@ export const respNapp = async (event) => {
         background-color: var(--md-sys-color-surface);
         color: var(--md-sys-color-on-surface);
       }
+
+      body {
+        font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
+          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
+          Segoe UI Emoji;
+      }
     </style>
   </head>
   <body>
