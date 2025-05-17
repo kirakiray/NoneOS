@@ -56,7 +56,10 @@
 
     h4 {
       font-size: 16px;
-      margin: 0 0 8px;
+      margin: 24px 0 8px;
+    }
+    h4:first-child {
+      margin-top: 0;
     }
 
     @media screen and (max-width: 540px) {
@@ -129,7 +132,6 @@
         <o-if :value="activeName === 'display'">
           <div>
             <h4>书签尺寸</h4>
-            <!-- <div>恢复默认尺寸</div> -->
             <div class="inputer-line">
               块宽度
               <p-slider
@@ -139,7 +141,7 @@
                 max="300"
               >
               </p-slider>
-              <p-input sync:value="sizeSetting.width" size="small"></p-input>
+              <p-input readonly sync:value="sizeSetting.width" size="small"></p-input>
             </div>
             <div class="inputer-line">
               块高度
@@ -150,18 +152,18 @@
                 max="150"
               >
               </p-slider>
-              <p-input sync:value="sizeSetting.height" size="small"></p-input>
+              <p-input readonly sync:value="sizeSetting.height" size="small"></p-input>
             </div>
             <div class="inputer-line">
               块间隔
               <p-slider
                 no-bubble
                 sync:value="sizeSetting.space"
-                min="8"
+                min="2"
                 max="40"
               >
               </p-slider>
-              <p-input sync:value="sizeSetting.space" size="small"></p-input>
+              <p-input readonly sync:value="sizeSetting.space" size="small"></p-input>
             </div>
             <div class="inputer-line">
               容器宽度
@@ -172,13 +174,16 @@
                 max="2400"
               >
               </p-slider>
-              <p-input
+              <p-input readonly
                 sync:value="sizeSetting.containerMaxWidth"
                 size="small"
               ></p-input>
             </div>
-
-            <!-- <h4>背景设置</h4>
+            <p-button size="small" on:click="resetSize" style="margin-top: 8px">
+              恢复默认尺寸
+            </p-button>
+            <h4>背景设置</h4>
+            <!--
             <div>更换图片</div>
             <div>背景图的对齐模式</div>
             <div>背景显示模式</div>
@@ -216,10 +221,20 @@
           open: true,
           activeName: "display",
           sizeSetting: {
-            width: 100,
-            height: 100,
+            width: 200,
+            height: 80,
             space: 16,
-            containerMaxWidth: 800,
+            containerMaxWidth: 1200,
+          },
+        },
+        proto: {
+          resetSize() {
+            Object.assign(this.sizeSetting, {
+              width: 200,
+              height: 80,
+              space: 16,
+              containerMaxWidth: 1200,
+            });
           },
         },
       };

@@ -64,8 +64,10 @@
       color: var(--md-sys-color-primary);
     }
 
-    n-bookmark-card {
-      margin: 16px;
+    n-bookmark-card,
+    bm-add-card {
+      /* margin: 16px; */
+      margin: calc(var(--card-space) * 1px);
     }
   </style>
 
@@ -73,6 +75,7 @@
     :host {
       --card-width: data(sizeSetting.width);
       --card-img-height: data(sizeSetting.height);
+      --card-space: data(sizeSetting.space);
       --max-width: data(sizeSetting.containerMaxWidth);
     }
   </style>
@@ -145,7 +148,7 @@
           sizeSetting: {
             width: 200,
             height: 80,
-            space: 20,
+            space: 16,
             containerMaxWidth: 1200,
           },
         },
