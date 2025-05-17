@@ -31,7 +31,8 @@
       padding: 16px;
       height: 100px;
       width: 100%;
-      max-width: 1200px;
+      /* max-width: 1200px; */
+      max-width: calc(var(--max-width, 1200) * 1px);
       margin: 0 auto;
     }
 
@@ -48,7 +49,8 @@
     }
 
     .main-inner {
-      max-width: 1200px;
+      /* max-width: 1200px; */
+      max-width: calc(var(--max-width, 1200) * 1px);
       margin: 0 auto;
       display: flex;
       flex-wrap: wrap;
@@ -61,11 +63,26 @@
       margin-right: 8px;
       color: var(--md-sys-color-primary);
     }
+
+    n-bookmark-card {
+      margin: 16px;
+    }
+  </style>
+
+  <style>
+    :host {
+      --card-width: data(sizeSetting.width);
+      --card-img-height: data(sizeSetting.height);
+      --max-width: data(sizeSetting.containerMaxWidth);
+    }
   </style>
 
   <div class="tool">
     <div class="tool-container">
-      <bm-setting-btn style="margin-left: auto"></bm-setting-btn>
+      <bm-setting-btn
+        :size-setting="sizeSetting"
+        style="margin-left: auto"
+      ></bm-setting-btn>
     </div>
   </div>
 
@@ -124,6 +141,12 @@
             defaultPic: "",
             customPic: "",
             selectedPic: "",
+          },
+          sizeSetting: {
+            width: 200,
+            height: 80,
+            space: 20,
+            containerMaxWidth: 1200,
           },
         },
         proto: {

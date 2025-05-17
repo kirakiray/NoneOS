@@ -10,9 +10,10 @@
     }
     .card {
       position: relative;
-      margin: 16px;
-      padding: 8px;
-      width: 200px;
+      /* margin: 16px; */
+      padding: 8px 0;
+      /* width: 200px; */
+      width: calc(var(--card-width) * 1px);
       box-sizing: border-box;
       border-radius: 8px;
       color: var(--md-sys-color-on-normal-container);
@@ -35,22 +36,21 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100px;
+      padding: 10px 0;
+      /* min-height: 100px; */
+      min-height: calc(var(--card-img-height) * 1px);
       font-size: 32px;
       font-weight: 500;
-    }
-    .logo-line img {
-      display: block;
-      max-width: 80%;
-      max-height: 90px;
     }
     .url-line {
       font-size: 12px;
     }
 
-    bm-img {
-      width: 120px;
-      height: 80px;
+    .logo-line bm-img {
+      width: calc(100% - 8px);
+      max-width: 120px;
+      /* height: 80px; */
+      height: calc(var(--card-img-height) * 1px);
     }
 
     a {
@@ -81,7 +81,6 @@
   </style>
 
   <div class="card" on:click="openWeb()">
-    <!-- <div class="card"> -->
     <div class="logo-line">
       <bm-img :src="finnalLogoUrl"></bm-img>
     </div>
