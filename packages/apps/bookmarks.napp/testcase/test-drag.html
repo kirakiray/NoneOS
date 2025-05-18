@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>书签拖拽排序测试</title>
+    <style>
+      .bookmark-list {
+        width: 100%;
+        margin: 20px auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .bookmark-item {
+        padding: 10px;
+        background-color: #f0f0f0;
+        border: 1px solid #ddd;
+        cursor: move;
+        min-width: 100px;
+      }
+      .bookmark-item.dragging {
+        opacity: 0.5;
+        background-color: #d0d0d0;
+      }
+      .bookmark-item.over {
+        border-left: 2px solid #4caf50;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bookmark-list" id="bookmarkList">
+      <div class="bookmark-item" draggable="true" data-id="1">书签 1</div>
+      <div class="bookmark-item" draggable="true" data-id="2">书签 2</div>
+      <div class="bookmark-item" draggable="true" data-id="3">书签 3</div>
+      <div class="bookmark-item" draggable="true" data-id="4">书签 4</div>
+      <div class="bookmark-item" draggable="true" data-id="5">书签 5</div>
+      <div class="bookmark-item" draggable="true" data-id="6">书签 6</div>
+      <div class="bookmark-item" draggable="true" data-id="7">书签 7</div>
+      <div class="bookmark-item" draggable="true" data-id="8">书签 8</div>
+      <div class="bookmark-item" draggable="true" data-id="9">书签 9</div>
+      <div class="bookmark-item" draggable="true" data-id="10">书签 10</div>
+      <div class="bookmark-item" draggable="true" data-id="11">书签 11</div>
+      <div class="bookmark-item" draggable="true" data-id="12">书签 12</div>
+      <div class="bookmark-item" draggable="true" data-id="13">书签 13</div>
+      <div class="bookmark-item" draggable="true" data-id="14">书签 14</div>
+      <div class="bookmark-item" draggable="true" data-id="15">书签 15</div>
+    </div>
+
+    <script>
+      const bookmarkList = document.getElementById("bookmarkList");
+      let draggedItem = null;
+
+      // 为每个书签项添加拖拽事件监听器
+      document.querySelectorAll(".bookmark-item").forEach((item) => {
+        item.addEventListener("dragstart", function (e) {
+          draggedItem = this;
+          setTimeout(() => {
+            this.classList.add("dragging");
+          }, 0);
+          e.dataTransfer.setData("text/plain", this.dataset.id);
+        });
+
+        item.addEventListener("dragend", function () {
+          this.classList.remove("dragging");
+        });
+
+        item.addEventListener("dragover", function (e) {
+          e.preventDefault();
+          const bounding = this.getBoundingClientRect();
+          const offset = bounding.x + bounding.width / 2;
+          if (e.clientX < offset) {
+            this.classList.add("over");
+          } else {
+            this.classList.remove("over");
+          }
+        });
+
+        item.addEventListener("dragleave", function () {
+          this.classList.remove("over");
+        });
+
+        item.addEventListener("drop", function (e) {
+          e.preventDefault();
+          this.classList.remove("over");
+
+          if (draggedItem !== this) {
+            const bounding = this.getBoundingClientRect();
+            const offset = bounding.x + bounding.width / 2;
+
+            if (e.clientX < offset) {
+              bookmarkList.insertBefore(draggedItem, this);
+            } else {
+              bookmarkList.insertBefore(draggedItem, this.nextSibling);
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
