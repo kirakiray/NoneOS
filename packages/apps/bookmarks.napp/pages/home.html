@@ -309,6 +309,8 @@
 
           await mainData.ready();
 
+          this.app._mainData = mainData;
+
           if (!mainData.cards) {
             // 初始化本地数据
             mainData.cards = [];
@@ -316,16 +318,17 @@
 
           this.cards = mainData.cards;
 
-          const settingHandle = await handle.get("setting", {
-            create: "dir",
-          });
+          // 获取配置数据
+          if (!mainData.setting) {
+            mainData.setting = {};
+          }
 
-          const settingData = await createData(settingHandle);
+          const settingData = mainData.setting;
           await settingData.ready(true);
 
-          // 判断是否有设置
+          // 判断是否有设置数据
           if (!settingData.width) {
-            // 初始化设置
+            // 初始化设置数据
             Object.assign(settingData, this.setting);
           }
 

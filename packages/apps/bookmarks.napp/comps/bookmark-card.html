@@ -87,7 +87,7 @@
     }
   </style>
 
-  <div class="card" on:click="openWeb()">
+  <div class="card" on:click="openWeb(null,$event)">
     <div class="logo-line">
       <bm-img :src="finnalLogoUrl"></bm-img>
     </div>
@@ -95,7 +95,9 @@
       {{cardName}}
       <o-if :value="showClickCount">
         -
-        <span style="color: var(--md-sys-color-primary)">0</span>
+        <span style="color: var(--md-sys-color-primary)">
+          {{item.count || 0}}
+        </span>
       </o-if>
     </div>
 
@@ -147,7 +149,32 @@
             this.isDelete = null;
           },
           // 打开网页
-          openWeb(target) {
+          openWeb(target, event) {
+            if (!target && event) {
+              // 主动点击触发的，查看是否有键盘按了meta键
+              if (event.metaKey) {
+                target = "blank";
+              }
+            }
+
+            if (target !== "blank") {
+              // 防止短时间内重复点击
+              if (
+                this._lastClickTime &&
+                Date.now() - this._lastClickTime < 1000
+              ) {
+                return;
+              }
+
+              this._lastClickTime = Date.now();
+            }
+
+            if (!this.item.count) {
+              this.item.count = 1;
+            } else {
+              this.item.count++;
+            }
+
             const a = document.createElement("a");
 
             let url = this.item.url;

@@ -325,7 +325,12 @@
           </div>
           <h4>访问统计</h4>
           <div style="color: var(--md-sys-color-normal)">还在开发中...</div>
-          <p-button size="small" variant="outlined" style="margin: 8px 0 0 1px">
+          <p-button
+            size="small"
+            variant="outlined"
+            on:click="clearClickCount"
+            style="margin: 8px 0 0 1px"
+          >
             清空点击次数
           </p-button>
         </o-else-if>
@@ -344,6 +349,8 @@
 
   <script>
     export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
       return {
         tag: "bm-setting-btn",
         data: {
@@ -377,6 +384,25 @@
           },
         },
         proto: {
+          async clearClickCount() {
+            const result = await confirm({
+              title: "确认清空点击次数？",
+              content: "清空后无法恢复",
+              yes: "清空",
+              cancel: "取消",
+            });
+
+            if (!result) {
+              return;
+            }
+
+            
+
+            toast({
+              content: "清空成功",
+              color: "success",
+            });
+          },
           async changeBgImg(e) {
             const file = e.target?.files[0];
 
