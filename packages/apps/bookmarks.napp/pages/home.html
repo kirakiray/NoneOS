@@ -7,6 +7,7 @@
   <l-m src="/packages/pui/menu/menu-area.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="../comps/bm-drag-container.html"></l-m>
   <l-m src="../comps/setting-btn.html"></l-m>
   <style>
     :host {
@@ -64,10 +65,6 @@
       /* max-width: 1200px; */
       max-width: calc(var(--max-width, 1200) * 1px);
       margin: 0 auto;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      align-items: flex-start;
     }
 
     p-menu-item > n-local-icon {
@@ -130,14 +127,17 @@
         ></p-progress>
       </o-if>
       <o-else>
-        <o-fill :value="cards">
-          <n-bookmark-card
-            :item="$data"
-            :show-card-title="$host.setting.showCardTitle"
-            :show-click-count="$host.setting.showClickCount"
-          ></n-bookmark-card>
-        </o-fill>
-        <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+        <bm-drag-container on:change-order="changeOrder">
+          <o-fill :value="cards">
+            <n-bookmark-card
+              draggable="true"
+              :item="$data"
+              :show-card-title="$host.setting.showCardTitle"
+              :show-click-count="$host.setting.showClickCount"
+            ></n-bookmark-card>
+          </o-fill>
+          <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+        </bm-drag-container>
       </o-else>
     </div>
   </p-bind-contextmenu>
@@ -217,6 +217,24 @@
           },
         },
         proto: {
+          changeOrder(e) {
+            const { from, to } = e.data;
+
+            // 更新数据
+            const dragStartElIndex = this.cards.indexOf(from);
+            if (dragStartElIndex < 0 && !this.cards.includes(to)) {
+              // 找不到数据，不处理
+              return;
+            }
+
+            // 先移除
+            this.cards.splice(dragStartElIndex, 1);
+
+            // 插入到目标位置
+            const targetIndex = this.cards.indexOf(to);
+
+            this.cards.splice(targetIndex, 0, from);
+          },
           clickCopyLink() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target.item;

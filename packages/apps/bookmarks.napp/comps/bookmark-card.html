@@ -6,7 +6,7 @@
       z-index: 1;
       display: block;
       align-self: flex-start;
-      overflow: hidden;
+      /* overflow: hidden; */
     }
     .card {
       position: relative;
@@ -109,6 +109,8 @@
       </div>
     </o-if>
   </div>
+
+  <slot></slot>
 
   <script>
     export default async () => {

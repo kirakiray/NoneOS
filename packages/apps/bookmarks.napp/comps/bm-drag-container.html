@@ -1,0 +1,105 @@
+<template component>
+  <style>
+    :host {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: flex-start;
+    }
+  </style>
+  <inject-host>
+    <style>
+      bm-drag-container n-bookmark-card.dragging {
+        opacity: 0.5;
+      }
+
+      bm-drag-container n-bookmark-card::before {
+        position: absolute;
+        display: block;
+        content: "";
+        left: -6px;
+        width: 3px;
+        border-radius: 3px;
+        height: 100%;
+        background-color: var(--md-sys-color-primary);
+        opacity: 0;
+      }
+
+      bm-drag-container n-bookmark-card.overing::before {
+        opacity: 1;
+      }
+    </style>
+  </inject-host>
+  <slot></slot>
+  <script>
+    export default {
+      tag: "bm-drag-container",
+      data: {
+        _cards: null, // 当前填充的卡片数据
+      },
+      ready() {
+        let dragStartEl = null;
+
+        this.on("dragstart", (e) => {
+          const target = $(e.target);
+          dragStartEl = target;
+          if (target.tag === "n-bookmark-card") {
+            target.classList.add("dragging");
+          }
+          console.log("dragstart", e.target);
+        });
+
+        this.on("dragend", (e) => {
+          const target = $(e.target);
+          if (target.tag === "n-bookmark-card") {
+            target.classList.remove("dragging");
+          }
+        });
+
+        // 进入的目标
+        let overTarget = null;
+
+        this.on("dragover", (e) => {
+          e.preventDefault();
+          const target = $(e.target);
+          if (target.tag === "n-bookmark-card" && overTarget !== target) {
+            overTarget = target;
+            overTarget.classList.add("overing");
+          }
+        });
+
+        this.on("dragleave", (e) => {
+          const target = $(e.target);
+          if (target.tag === "n-bookmark-card") {
+            target.classList.remove("overing");
+
+            if (overTarget === target) {
+              overTarget = null;
+            }
+          }
+        });
+
+        this.on("drop", (e) => {
+          overTarget.classList.remove("overing");
+          overTarget = null;
+          e.preventDefault();
+          const target = $(e.target);
+          if (target.tag === "n-bookmark-card") {
+            console.log("drop", e.target);
+
+            if (dragStartEl !== target) {
+              // 将target移动到dragStartEl之前
+
+              this.emit("change-order", {
+                data: {
+                  from: dragStartEl.item,
+                  to: target.item,
+                },
+              });
+            }
+          }
+        });
+      },
+    };
+  </script>
+</template>
