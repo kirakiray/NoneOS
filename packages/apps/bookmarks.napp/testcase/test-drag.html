@@ -50,50 +50,61 @@
       const bookmarkList = document.getElementById("bookmarkList");
       let draggedItem = null;
 
-      // 为每个书签项添加拖拽事件监听器
-      document.querySelectorAll(".bookmark-item").forEach((item) => {
-        item.addEventListener("dragstart", function (e) {
-          draggedItem = this;
+      // 在父容器上绑定拖拽事件
+      bookmarkList.addEventListener("dragstart", function (e) {
+        if (e.target.classList.contains("bookmark-item")) {
+          draggedItem = e.target;
           setTimeout(() => {
-            this.classList.add("dragging");
+            e.target.classList.add("dragging");
           }, 0);
-          e.dataTransfer.setData("text/plain", this.dataset.id);
-        });
+          e.dataTransfer.setData("text/plain", e.target.dataset.id);
+        }
+      });
 
-        item.addEventListener("dragend", function () {
-          this.classList.remove("dragging");
-        });
+      bookmarkList.addEventListener("dragend", function (e) {
+        if (e.target.classList.contains("bookmark-item")) {
+          e.target.classList.remove("dragging");
+        }
+      });
 
-        item.addEventListener("dragover", function (e) {
-          e.preventDefault();
-          const bounding = this.getBoundingClientRect();
+      bookmarkList.addEventListener("dragover", function (e) {
+        e.preventDefault();
+        const targetItem = e.target.closest(".bookmark-item");
+        if (targetItem) {
+          const bounding = targetItem.getBoundingClientRect();
           const offset = bounding.x + bounding.width / 2;
           if (e.clientX < offset) {
-            this.classList.add("over");
+            targetItem.classList.add("over");
           } else {
-            this.classList.remove("over");
+            targetItem.classList.remove("over");
           }
-        });
+        }
+      });
 
-        item.addEventListener("dragleave", function () {
-          this.classList.remove("over");
-        });
+      bookmarkList.addEventListener("dragleave", function (e) {
+        const targetItem = e.target.closest(".bookmark-item");
+        if (targetItem) {
+          targetItem.classList.remove("over");
+        }
+      });
 
-        item.addEventListener("drop", function (e) {
-          e.preventDefault();
-          this.classList.remove("over");
+      bookmarkList.addEventListener("drop", function (e) {
+        e.preventDefault();
+        const targetItem = e.target.closest(".bookmark-item");
+        if (targetItem) {
+          targetItem.classList.remove("over");
 
-          if (draggedItem !== this) {
-            const bounding = this.getBoundingClientRect();
+          if (draggedItem && draggedItem !== targetItem) {
+            const bounding = targetItem.getBoundingClientRect();
             const offset = bounding.x + bounding.width / 2;
 
             if (e.clientX < offset) {
-              bookmarkList.insertBefore(draggedItem, this);
+              bookmarkList.insertBefore(draggedItem, targetItem);
             } else {
-              bookmarkList.insertBefore(draggedItem, this.nextSibling);
+              bookmarkList.insertBefore(draggedItem, targetItem.nextSibling);
             }
           }
-        });
+        }
       });
     </script>
   </body>
