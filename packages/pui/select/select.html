@@ -191,7 +191,7 @@
               const option = $("<option></option>");
               option.value = e.value;
               option.text = e.text;
-              option.disabled = e.disabled;
+              option.disabled = e.disabled !== null ? true : false;
               frag.push(option);
             });
             selector.html = "";

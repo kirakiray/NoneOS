@@ -44,6 +44,13 @@
     }
     .url-line {
       font-size: 12px;
+      line-height: 18px;
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
+    .url-line.hide {
+      opacity: 0;
+      line-height: 0px;
     }
 
     .logo-line bm-img {
@@ -84,7 +91,13 @@
     <div class="logo-line">
       <bm-img :src="finnalLogoUrl"></bm-img>
     </div>
-    <div class="url-line">{{cardName}}</div>
+    <div class="url-line" class:hide="!showCardTitle">
+      {{cardName}}
+      <o-if :value="showClickCount">
+        -
+        <span style="color: var(--md-sys-color-primary)">0</span>
+      </o-if>
+    </div>
 
     <o-if :value="isDelete && isDelete >= 0">
       <div class="deleteing-mask" on:click="revokeDelete">
@@ -108,6 +121,8 @@
             // customPic: "", // 自定义logo地址
             // selectedPic: "", // 选中的logo文件地址
           },
+          showCardTitle: true, // 显示标题
+          showClickCount: false, // 显示点击次数
           inNewTab: false,
           isDelete: null, // 是否进入删除模式，最终反应到倒计时上
           // _delete: null, // 删除的函数

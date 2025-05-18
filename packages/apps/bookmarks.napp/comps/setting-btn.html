@@ -301,10 +301,33 @@
           </div>
         </o-if>
         <o-else-if :value="activeName === 'function'">
-          <div>在书签上显示点击次数</div>
-          <div>清空点击次数</div>
-          <div>排序：自定义排序，按照点击次数靠前显示</div>
-          <div>顺便在面板上显示统计的点击次数</div>
+          <h4>基础功能</h4>
+          <div style="padding: 8px 0">
+            <p-select sync:value="setting.sort">
+              <label>书签排序</label>
+              <p-option value="custom">手动排序</p-option>
+              <p-option value="click" disabled>根据点击排序</p-option>
+              <p-option value="name" disabled>按名称排序(A-Z)</p-option>
+            </p-select>
+          </div>
+          <div style="padding: 8px 0">
+            <p-switch sync:checked="setting.showCardTitle">
+              显示书签标题
+            </p-switch>
+          </div>
+          <div style="padding: 8px 0">
+            <p-switch
+              attr:disabled="!setting.showCardTitle"
+              sync:checked="setting.showClickCount"
+            >
+              显示点击次数
+            </p-switch>
+          </div>
+          <h4>访问统计</h4>
+          <div style="color: var(--md-sys-color-normal)">还在开发中...</div>
+          <p-button size="small" variant="outlined" style="margin: 8px 0 0 1px">
+            清空点击次数
+          </p-button>
         </o-else-if>
         <o-else-if :value="activeName === 'sync'">
           <div>可以同步到手机，和其他的电脑</div>
@@ -320,12 +343,13 @@
   </p-dialog>
 
   <script>
-    export default async () => {
+    export default async ({ load }) => {
       return {
         tag: "bm-setting-btn",
         data: {
-          open: false,
-          activeName: "display",
+          open: true,
+          // activeName: "display",
+          activeName: "function",
           setting: {
             width: 200,
             height: 80,
@@ -336,6 +360,7 @@
             bgrepeat: "",
             bgposition: "",
             bgcolor: "", // 背景色
+            sort: "custom", // 排序方式
           },
           isBgColorTransparent: "on",
         },
