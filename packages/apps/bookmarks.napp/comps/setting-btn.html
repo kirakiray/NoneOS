@@ -220,7 +220,7 @@
                   background-repeat: no-repeat;
                   background-position: center center;
                 "
-                :style.background-image="`url(${setting.bgurl})`"
+                :style.background-image="`url(${setting.bgurl || ''})`"
                 :style.background-color="setting.bgcolor"
               ></div>
               <div>

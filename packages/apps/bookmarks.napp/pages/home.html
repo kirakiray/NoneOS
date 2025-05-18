@@ -18,7 +18,7 @@
       /* background-size: cover; */
       /* background-position: center; */
       background-color: var(--bg-color);
-      animation: fadein ease 0.2s;
+      animation: fadein ease 0.5s;
     }
 
     @keyframes fadein {
@@ -122,7 +122,7 @@
       </p-menu-item>
     </p-menu>
     <div class="main-inner">
-      <o-if :value="cards.dataStatus !== 'ok'">
+      <o-if :value="cards.dataStatus === 'preparing'">
         <p-progress
           type="circle"
           variant="indeterminate"
