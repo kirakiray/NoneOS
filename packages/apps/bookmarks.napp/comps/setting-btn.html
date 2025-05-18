@@ -395,8 +395,11 @@
             if (!result) {
               return;
             }
-
-            
+            this.app._mainData.cards.forEach((e) => {
+              if (e.count) {
+                e.count = 0;
+              }
+            });
 
             toast({
               content: "清空成功",
