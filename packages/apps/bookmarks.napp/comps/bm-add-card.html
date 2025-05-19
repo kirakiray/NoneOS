@@ -40,12 +40,7 @@
   <div class="card" on:click="open = true">+</div>
   <bm-common-dialog
     sync:open="open"
-    sync:url="url"
-    sync:web-title="webTitle"
-    sync:logo-type="logoType"
-    sync:default-pic="defaultPic"
-    sync:custom-pic="customPic"
-    sync:selected-pic="selectedPic"
+    :item="item"
     on:click-save="clickSave"
   ></bm-common-dialog>
 
@@ -57,17 +52,19 @@
         tag: "bm-add-card",
         data: {
           open: false,
-          url: "",
-          webTitle: "",
-          defaultPic: "",
-          customPic: "",
-          selectedPic: "",
-          logoType: "default",
           cards: [], // 当前显示的数据
+          item: {
+            url: "",
+            webTitle: "",
+            defaultPic: "",
+            customPic: "",
+            selectedPic: "",
+            logoType: "default",
+          },
         },
         proto: {
           clickSave() {
-            let url = this.url;
+            let url = this.item.url;
 
             if (!url.startsWith("http")) {
               url = "https://" + url;
@@ -84,22 +81,19 @@
 
             this.emit("add-web", {
               data: {
-                webTitle: this.webTitle,
-                url,
-                defaultPic: this.defaultPic,
-                customPic: this.customPic,
-                selectedPic: this.selectedPic,
-                logoType: this.logoType,
+                ...this.item,
               },
             });
 
             // 清空数据
-            this.url = "";
-            this.webTitle = "";
-            this.defaultPic = "";
-            this.customPic = "";
-            this.selectedPic = "";
-            this.logoType = "default";
+            Object.assign(this.item, {
+              url: "",
+              webTitle: "",
+              defaultPic: "",
+              customPic: "",
+              selectedPic: "",
+              logoType: "default",
+            });
 
             this.open = false;
           },

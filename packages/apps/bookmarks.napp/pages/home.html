@@ -145,12 +145,7 @@
   <bm-common-dialog
     editmode="1"
     sync:open="dialogData.open"
-    sync:url="dialogData.url"
-    sync:web-title="dialogData.webTitle"
-    sync:logo-type="dialogData.logoType"
-    sync:default-pic="dialogData.defaultPic"
-    sync:custom-pic="dialogData.customPic"
-    sync:selected-pic="dialogData.selectedPic"
+    :item="dialogData.item"
     on:click-save="saveEditedData"
   ></bm-common-dialog>
   <script>
@@ -163,12 +158,14 @@
           cards: [], // 当前显示的数据
           dialogData: {
             open: false,
-            url: "",
-            webTitle: "",
-            logoType: "",
-            defaultPic: "",
-            customPic: "",
-            selectedPic: "",
+            item: {
+              url: "",
+              webTitle: "",
+              logoType: "",
+              defaultPic: "",
+              customPic: "",
+              selectedPic: "",
+            },
           },
           setting: {
             width: 200,
@@ -256,12 +253,7 @@
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target.item;
 
-            data.url = this.dialogData.url;
-            data.webTitle = this.dialogData.webTitle;
-            data.logoType = this.dialogData.logoType;
-            data.defaultPic = this.dialogData.defaultPic;
-            data.customPic = this.dialogData.customPic;
-            data.selectedPic = this.dialogData.selectedPic;
+            Object.assign(data, this.dialogData.item);
 
             if (data.logoType === "default") {
               // 选择的是默认图片，清除其余两项
@@ -272,7 +264,7 @@
             this.dialogData.open = false;
 
             // 清空弹窗数据
-            Object.assign(this.dialogData, {
+            Object.assign(this.dialogData.item, {
               url: "",
               webTitle: "",
               logoType: "",
@@ -287,12 +279,9 @@
 
             this.dialogData = {
               open: true,
-              url: data.url,
-              webTitle: data.webTitle,
-              logoType: data.logoType || "default",
-              defaultPic: data.defaultPic,
-              customPic: data.customPic,
-              selectedPic: data.selectedPic,
+              item: {
+                ...data.toJSON(), // 复制对象，不然会直接修改本体数据
+              },
             };
           },
 

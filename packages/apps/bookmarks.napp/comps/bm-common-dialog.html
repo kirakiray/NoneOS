@@ -45,24 +45,24 @@
     </div>
     <div class="main">
       <div class="form-line">
-        <p-input sync:value="url" style="flex: 2">
+        <p-input sync:value="item.url" style="flex: 2">
           <label
             >网址
             <b style="color: var(--md-sys-color-error)">*</b>
           </label>
         </p-input>
-        <p-input sync:value="webTitle">
+        <p-input sync:value="item.webTitle">
           <label>标题（选填）</label>
         </p-input>
       </div>
       <o-if :value="isValidUrl">
         <h4>组定义缩略图</h4>
         <bm-img-selector
-          sync:type="logoType"
-          sync:default-pic="defaultPic"
-          sync:custom-pic="customPic"
-          sync:selected-pic="selectedPic"
-          :weburl="url"
+          sync:type="item.logoType"
+          sync:default-pic="item.defaultPic"
+          sync:custom-pic="item.customPic"
+          sync:selected-pic="item.selectedPic"
+          :weburl="item.url"
         ></bm-img-selector>
       </o-if>
     </div>
@@ -82,28 +82,30 @@
         },
         data: {
           open: false,
-          url: "",
-          webTitle: "",
-          logoType: "default",
-          defaultPic: "",
-          customPic: "",
-          selectedPic: "",
+          item: {
+            url: "",
+            webTitle: "",
+            logoType: "default",
+            defaultPic: "",
+            customPic: "",
+            selectedPic: "",
+          },
         },
         proto: {
           get isValidUrl() {
-            const arr = this.url.split(".");
+            const arr = this.item.url.split(".");
             return arr.length >= 2 && !!arr[arr.length - 1].trim();
           },
           clickSave() {
             if (!this.isValidUrl) {
               toast({
-                content: `"${this.url}" 不正确，请输入正确的网址`,
+                content: `"${this.item.url}" 不正确，请输入正确的网址`,
                 color: "error",
               });
               return;
             }
 
-            if (this.logoType === "upload" && !this.selectedPic) {
+            if (this.item.logoType === "upload" && !this.item.selectedPic) {
               toast({
                 content: "请选择图片",
                 color: "error",
@@ -111,7 +113,10 @@
               return;
             }
 
-            if (this.logoType === "custom" && !this.customPic.trim()) {
+            if (
+              this.item.logoType === "custom" &&
+              !this.item.customPic.trim()
+            ) {
               toast({
                 content: "请输入自定义缩略图地址",
                 color: "error",
