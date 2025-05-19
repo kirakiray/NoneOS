@@ -216,31 +216,20 @@
         uncheckedValue: "off",
       },
       data: {
-        checked: false,
         value: null,
         infocus: false,
       },
-      watch: {
-        checked(checked) {
-          this.value = this.checked ? this.checkedValue : this.uncheckedValue;
+      proto: {
+        get checked() {
+          return this.value === this.checkedValue;
         },
-        value(value) {
-          if (this.checked !== (value === this.checkedValue)) {
-            this.checked = value === this.checkedValue;
+        set checked(val) {
+          if (val) {
+            this.value = this.checkedValue;
+          } else {
+            this.value = this.uncheckedValue;
           }
         },
-      },
-      proto: {
-        // get checked() {
-        //   return this.value === this.checkedValue;
-        // },
-        // set checked(val) {
-        //   if (val) {
-        //     this.value = this.checkedValue;
-        //   } else {
-        //     this.value = this.uncheckedValue;
-        //   }
-        // },
         clickSwitch(e) {
           if (this.disabled !== null) {
             e.stopImmediatePropagation();

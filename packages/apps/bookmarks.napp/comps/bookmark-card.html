@@ -91,9 +91,9 @@
     <div class="logo-line">
       <bm-img :src="finnalLogoUrl"></bm-img>
     </div>
-    <div class="url-line" class:hide="!showCardTitle">
+    <div class="url-line" class:hide="showCardTitle === 'off'">
       {{cardName}}
-      <o-if :value="showClickCount">
+      <o-if :value="showClickCount === 'on'">
         -
         <span style="color: var(--md-sys-color-primary)">
           {{item.count || 0}}
@@ -125,8 +125,8 @@
             // customPic: "", // 自定义logo地址
             // selectedPic: "", // 选中的logo文件地址
           },
-          showCardTitle: true, // 显示标题
-          showClickCount: false, // 显示点击次数
+          showCardTitle: "on", // 显示标题
+          showClickCount: "off", // 显示点击次数
           inNewTab: false,
           isDelete: null, // 是否进入删除模式，最终反应到倒计时上
           // _delete: null, // 删除的函数

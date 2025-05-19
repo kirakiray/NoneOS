@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/slider/slider.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="/packages/pui/color-picker/color-picker.html"></l-m>
   <style>
     :host {
       display: block;
@@ -282,21 +283,19 @@
               </o-if>
             </div>
 
-            <div class="bg-opts" style="height: 52px">
-              <p-switch
-                sync:value="isBgColorTransparent"
-                style="margin-right: 16px"
+            <div
+              class="bg-opts"
+              style="display: flex; align-items: flex-start; margin-top: 16px"
+            >
+              <span style="display: inline-block; padding-top: 8px"
+                >背景色</span
               >
-                不使用背景色
-              </p-switch>
-              <o-if :value="isBgColorTransparent === 'off'">
-                <p-input type="color" hanglabel sync:value="setting.bgcolor">
-                  <label>背景色</label>
-                </p-input>
-              </o-if>
+              <p-color-picker
+                sync:value="setting.bgcolor"
+                style="margin-left: 8px"
+              ></p-color-picker>
             </div>
             <!--
-            <div>TODO: 系统自带的背景选择</div>
             <div>感谢，图片来自unsplsh的具体地址</div> -->
           </div>
         </o-if>
@@ -311,14 +310,14 @@
             </p-select>
           </div>
           <div style="padding: 8px 0">
-            <p-switch sync:checked="setting.showCardTitle">
+            <p-switch sync:value="setting.showCardTitle">
               显示书签标题
             </p-switch>
           </div>
           <div style="padding: 8px 0">
             <p-switch
-              attr:disabled="!setting.showCardTitle"
-              sync:checked="setting.showClickCount"
+              attr:disabled="setting.showCardTitle === 'off'"
+              sync:value="setting.showClickCount"
             >
               显示点击次数
             </p-switch>
@@ -368,19 +367,6 @@
             bgposition: "",
             bgcolor: "", // 背景色
             sort: "custom", // 排序方式
-          },
-          isBgColorTransparent: "on",
-        },
-        watch: {
-          isBgColorTransparent(val) {
-            if (val === "on") {
-              setTimeout(() => {
-                // bug: 绑定系统着色器会导致无法将颜色改为透明，所以这里异步修改
-                this.setting.bgcolor = "transparent";
-              }, 10);
-            } else {
-              this.setting.bgcolor = "#1b1b1b";
-            }
           },
         },
         proto: {
@@ -448,7 +434,6 @@
             });
           },
         },
-        attached() {},
       };
     };
   </script>

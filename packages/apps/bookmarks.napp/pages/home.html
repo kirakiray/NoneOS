@@ -179,10 +179,10 @@
             bgsize: "cover",
             bgrepeat: "no-repeat",
             bgposition: "center center",
-            bgcolor: "transparent", // 黑夜模式下的背景色
+            bgcolor: "rgba(0, 0, 0, 0)", // 背景色
             sort: "custom", // 排序方式
-            showClickCount: false, // 显示点击次数
-            showCardTitle: true, // 显示标题
+            showClickCount: "off", // 显示点击次数
+            showCardTitle: "on", // 显示标题
           },
         },
         watch: {
@@ -333,6 +333,8 @@
             // 初始化本地数据
             mainData.cards = [];
           }
+
+          window.mainData = mainData;
 
           this.cards = mainData.cards;
 
