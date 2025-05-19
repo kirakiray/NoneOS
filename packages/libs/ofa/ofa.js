@@ -1,4 +1,4 @@
-//! ofa.js - v4.6.2 https://github.com/kirakiray/ofa.js  (c) 2018-2025 YAO
+//! ofa.js - v4.6.3 https://github.com/kirakiray/ofa.js  (c) 2018-2025 YAO
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -819,6 +819,9 @@
       _revoke: {
         value: revoke,
       },
+      __init_is_array: {
+        value: Array.isArray(data),
+      },
     });
 
     Object.keys(data).forEach((key) => {
@@ -884,6 +887,8 @@
       let isPureArray = true;
       let maxId = -1;
 
+      const initIsArray = this.__init_is_array;
+
       Object.keys(this).forEach((k) => {
         let val = this[k];
 
@@ -906,8 +911,12 @@
       if (isPureArray) {
         obj.length = maxId + 1;
         obj = Array.from(obj);
-      }
 
+        if (!obj.length && !initIsArray) {
+          // 初始化不是数组，就是对象
+          obj = {};
+        }
+      }
       const xid = this.xid;
       defineProperties$2(obj, {
         xid: {
@@ -7165,13 +7174,9 @@ ${scriptContent}`;
           const currentKeyVal = renderedItem.$data[keyName];
 
           if (currentKeyVal === undefined || currentKeyVal === null) {
-            const err = new Error(
-              `o-fill - The key value cannot be empty: ${keyName} - ${currentKeyVal}`
+            throw new Error(
+              "o-fill - The key value cannot be empty: " + currentKeyVal
             );
-
-            console.log(err, this);
-
-            throw err;
           }
 
           // 不存在的id，需要删除
@@ -7280,7 +7285,7 @@ ${scriptContent}`;
     },
   });
 
-  const version = "ofa.js@4.6.2";
+  const version = "ofa.js@4.6.3";
   $.version = version.replace("ofa.js@", "");
 
   let isDebug = false;
