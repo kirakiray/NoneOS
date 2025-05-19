@@ -75,6 +75,8 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
 
+      const { defaultItemData } = await load("../common/default-item-data.js");
+
       return {
         tag: "bm-common-dialog",
         attrs: {
@@ -83,12 +85,7 @@
         data: {
           open: false,
           item: {
-            url: "",
-            webTitle: "",
-            logoType: "default",
-            defaultPic: "",
-            customPic: "",
-            selectedPic: "",
+            ...defaultItemData,
           },
         },
         proto: {

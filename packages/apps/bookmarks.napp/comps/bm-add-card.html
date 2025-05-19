@@ -45,21 +45,17 @@
   ></bm-common-dialog>
 
   <script>
+    import defaultItemData from "../common/default-item-data.js";
+
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
-
       return {
         tag: "bm-add-card",
         data: {
           open: false,
           cards: [], // 当前显示的数据
           item: {
-            url: "",
-            webTitle: "",
-            defaultPic: "",
-            customPic: "",
-            selectedPic: "",
-            logoType: "default",
+            ...defaultItemData,
           },
         },
         proto: {
@@ -67,7 +63,7 @@
             let url = this.item.url;
 
             if (!url.startsWith("http")) {
-              url = "https://" + url;
+              this.item.url = url = "https://" + url;
             }
 
             // 判断是否有相同的网页
@@ -87,12 +83,7 @@
 
             // 清空数据
             Object.assign(this.item, {
-              url: "",
-              webTitle: "",
-              defaultPic: "",
-              customPic: "",
-              selectedPic: "",
-              logoType: "default",
+              ...defaultItemData,
             });
 
             this.open = false;

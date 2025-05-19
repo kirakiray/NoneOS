@@ -153,18 +153,15 @@
       const { createData } = await load("/packages/hybird-data/main.js");
       const { toast } = await load("/packages/pui/util.js");
 
+      const { defaultItemData } = await load("../common/default-item-data.js");
+
       return {
         data: {
           cards: [], // 当前显示的数据
           dialogData: {
             open: false,
             item: {
-              url: "",
-              webTitle: "",
-              logoType: "",
-              defaultPic: "",
-              customPic: "",
-              selectedPic: "",
+              ...defaultItemData,
             },
           },
           setting: {
@@ -265,12 +262,7 @@
 
             // 清空弹窗数据
             Object.assign(this.dialogData.item, {
-              url: "",
-              webTitle: "",
-              logoType: "",
-              defaultPic: "",
-              customPic: "",
-              selectedPic: "",
+              ...defaultItemData,
             });
           },
           async editItem() {
@@ -290,7 +282,7 @@
             const data = _target.item;
 
             // 让目标进入删除状态
-            _target.isDelete = 5;
+            _target.isDelete = 3;
             _target._delete = () => {
               // 查找并删除
               const targetIndex = this.cards.findIndex((item) => item === data);
