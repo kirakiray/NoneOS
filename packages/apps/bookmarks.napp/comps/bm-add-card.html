@@ -87,10 +87,16 @@
               }
             }
 
+            const data = {
+              ...this.item,
+            };
+
+            if (data.type === "folder") {
+              data.cards = [];
+            }
+
             this.emit("add-web", {
-              data: {
-                ...this.item,
-              },
+              data,
             });
 
             // 清空数据

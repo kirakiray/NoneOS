@@ -78,6 +78,7 @@
             size="small"
             variant="text"
             on:click="clickToType('folder')"
+            color="success"
             style="margin-left: 8px"
           >
             <n-local-icon
@@ -114,13 +115,17 @@
               <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
+          <p-input sync:value="item.webTitle">
+            <label> 标题 （选填） </label>
+          </p-input>
         </o-if>
-        <p-input sync:value="item.webTitle">
-          <label>
-            标题
-            <o-if :value="item.type === 'page'"> （选填） </o-if>
-          </label>
-        </p-input>
+        <o-else-if :value="item.type === 'folder'">
+          <p-input sync:value="item.webTitle">
+            <label>
+              标题 <b style="color: var(--md-sys-color-error)">*</b>
+            </label>
+          </p-input>
+        </o-else-if>
       </div>
       <o-if :value="isValidUrl && item.type === 'page'">
         <h4>组定义缩略图</h4>

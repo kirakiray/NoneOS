@@ -99,7 +99,7 @@
     </div>
     <div class="url-line" class:hide="showCardTitle === 'off'">
       {{cardName}}
-      <o-if :value="showClickCount === 'on'">
+      <o-if :value="showClickCount === 'on' && item.type !== 'folder'">
         -
         <span style="color: var(--md-sys-color-primary)">
           {{item.count || 0}}
@@ -210,7 +210,7 @@
               document.body.removeChild(a);
             } else if (this.item.type === "folder") {
               // 属于文件夹类型
-              debugger;
+              this.emit("open-folder", { data: this.item });
             }
           },
           get cardName() {

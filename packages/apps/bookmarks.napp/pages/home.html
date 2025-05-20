@@ -41,8 +41,8 @@
     .tool-container {
       box-sizing: border-box;
       display: flex;
+      align-items: center;
       padding: 16px;
-      height: 100px;
       width: 100%;
       /* max-width: 1200px; */
       max-width: calc(var(--max-width, 1200) * 1px);
@@ -78,6 +78,34 @@
       /* margin: 16px; */
       margin: calc(var(--card-space) * 1px);
     }
+
+    .breadcrumbs {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .breadcrumbs n-local-icon {
+      display: block;
+      margin-right: 4px;
+      font-size: 18px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .breadcrumbs .breadcrumbs-block {
+      display: flex;
+      align-items: center;
+      margin-right: 16px;
+    }
+
+    .breadcrumbs .breadcrumbs-block:after {
+      display: inline-block;
+      margin-left: 16px;
+      content: "/";
+    }
+    .breadcrumbs .breadcrumbs-block:last-child:after {
+      display: none;
+    }
   </style>
 
   <style>
@@ -91,6 +119,23 @@
 
   <div class="tool">
     <div class="tool-container">
+      <div class="breadcrumbs">
+        <o-fill :value="paths">
+          <div class="breadcrumbs-block">
+            <n-local-icon name="folder"></n-local-icon>
+            {{$data.name}}
+          </div>
+        </o-fill>
+        <!-- <div class="breadcrumbs-block">
+          <n-local-icon name="folder"></n-local-icon>
+          A
+        </div>
+        <div class="breadcrumbs-block">
+          <n-local-icon name="folder"></n-local-icon>
+          B
+        </div> -->
+      </div>
+
       <bm-setting-btn
         :setting="setting"
         style="margin-left: auto"
@@ -127,7 +172,10 @@
         ></p-progress>
       </o-if>
       <o-else>
-        <bm-drag-container on:change-order="changeOrder">
+        <bm-drag-container
+          on:change-order="changeOrder"
+          on:open-folder="openFolder"
+        >
           <o-fill :value="cards">
             <n-bookmark-card
               draggable="true"
@@ -157,6 +205,12 @@
 
       return {
         data: {
+          // 当前目录路径
+          paths: [
+            {
+              name: "Root",
+            },
+          ],
           cards: [], // 当前显示的数据
           dialogData: {
             open: false,
@@ -240,6 +294,15 @@
               color: "success",
             });
           },
+          openFolder(e) {
+            const folderItem = e.data;
+
+            this.paths.push({
+              name: folderItem.webTitle,
+            });
+
+            this.cards = folderItem.cards;
+          },
           newTabOpen() {
             const { _target } = this.shadow.$("p-bind-contextmenu");
             const data = _target.item;
@@ -293,7 +356,6 @@
             };
           },
           async addWeb({ data }) {
-            debugger
             this.cards.push({ ...data });
           },
         },
@@ -313,7 +375,7 @@
 
           setTimeout(() => {
             console.log(mainData.toJSON());
-          }, 100);
+          }, 400);
 
           if (!mainData.cards) {
             // 初始化本地数据
