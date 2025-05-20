@@ -80,6 +80,8 @@
     }
 
     .breadcrumbs {
+      position: relative;
+      z-index: 2;
       display: flex;
       align-items: center;
       font-size: 14px;
@@ -96,6 +98,7 @@
       display: flex;
       align-items: center;
       margin-right: 16px;
+      cursor: pointer;
     }
 
     .breadcrumbs .breadcrumbs-block:after {
@@ -103,6 +106,10 @@
       margin-left: 16px;
       content: "/";
     }
+    .breadcrumbs .breadcrumbs-block:last-child {
+      cursor: default;
+    }
+
     .breadcrumbs .breadcrumbs-block:last-child:after {
       display: none;
     }
@@ -121,19 +128,14 @@
     <div class="tool-container">
       <div class="breadcrumbs">
         <o-fill :value="paths">
-          <div class="breadcrumbs-block">
+          <div
+            class="breadcrumbs-block"
+            on:click="$host.clickBread($data,$index)"
+          >
             <n-local-icon name="folder"></n-local-icon>
             {{$data.name}}
           </div>
         </o-fill>
-        <!-- <div class="breadcrumbs-block">
-          <n-local-icon name="folder"></n-local-icon>
-          A
-        </div>
-        <div class="breadcrumbs-block">
-          <n-local-icon name="folder"></n-local-icon>
-          B
-        </div> -->
       </div>
 
       <bm-setting-btn
@@ -265,6 +267,22 @@
           },
         },
         proto: {
+          clickBread(data, index) {
+            // 点击最后一个不反应
+            if (index === this.paths.length - 1) {
+              return;
+            }
+
+            this.paths.splice(index + 1);
+
+            if (index === 0) {
+              // 点击根目录
+              this.cards = this.app._mainData.cards;
+              return;
+            }
+
+            this.cards = this.paths[index]._cards;
+          },
           changeOrder(e) {
             const { from, to } = e.data;
 
@@ -299,6 +317,7 @@
 
             this.paths.push({
               name: folderItem.webTitle,
+              _cards: folderItem.cards,
             });
 
             this.cards = folderItem.cards;

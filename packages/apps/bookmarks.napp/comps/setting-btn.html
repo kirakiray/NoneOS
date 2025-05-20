@@ -381,11 +381,21 @@
             if (!result) {
               return;
             }
-            this.app._mainData.cards.forEach((e) => {
-              if (e.count) {
-                e.count = 0;
+
+            // 清空数量
+            const clearCount = async (cards) => {
+              for (let e of cards) {
+                if (e.type === "folder") {
+                  await clearCount(e.cards);
+                } else {
+                  if (e.count) {
+                    e.count = 0;
+                  }
+                }
               }
-            });
+            };
+
+            await clearCount(this.app._mainData.cards);
 
             toast({
               content: "清空成功",
