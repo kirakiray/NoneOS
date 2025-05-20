@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./bm-img.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -89,7 +90,12 @@
 
   <div class="card" on:click="openWeb(null,$event)">
     <div class="logo-line">
-      <bm-img :src="finnalLogoUrl"></bm-img>
+      <o-if :value="item.type === 'folder'">
+        <n-local-icon name="folder"></n-local-icon>
+      </o-if>
+      <o-else>
+        <bm-img :src="finnalLogoUrl"></bm-img>
+      </o-else>
     </div>
     <div class="url-line" class:hide="showCardTitle === 'off'">
       {{cardName}}
@@ -152,55 +158,60 @@
           },
           // 打开网页
           openWeb(target, event) {
-            if (!target && event) {
-              // 主动点击触发的，查看是否有键盘按了meta键
-              if (event.metaKey) {
-                target = "blank";
-              }
-            }
-
-            if (target !== "blank") {
-              // 防止短时间内重复点击
-              if (
-                this._lastClickTime &&
-                Date.now() - this._lastClickTime < 1000
-              ) {
-                return;
+            if (this.item.type === "page") {
+              if (!target && event) {
+                // 主动点击触发的，查看是否有键盘按了meta键
+                if (event.metaKey) {
+                  target = "blank";
+                }
               }
 
-              this._lastClickTime = Date.now();
-            }
+              if (target !== "blank") {
+                // 防止短时间内重复点击
+                if (
+                  this._lastClickTime &&
+                  Date.now() - this._lastClickTime < 1000
+                ) {
+                  return;
+                }
 
-            if (!this.item.count) {
-              this.item.count = 1;
-            } else {
-              this.item.count++;
-            }
+                this._lastClickTime = Date.now();
+              }
 
-            const a = document.createElement("a");
-
-            let url = this.item.url;
-
-            if (!/^http/.test(url)) {
-              url = `https://${url}`;
-            }
-
-            a.href = url;
-
-            if (!target) {
-              // 没有指定打开方式，根据当前的情况决定
-              if (this.inNewTab) {
-                // 在独立的tab上，直接自身打开
-                a.target = "_self";
+              if (!this.item.count) {
+                this.item.count = 1;
               } else {
+                this.item.count++;
+              }
+
+              const a = document.createElement("a");
+
+              let url = this.item.url;
+
+              if (!/^http/.test(url)) {
+                url = `https://${url}`;
+              }
+
+              a.href = url;
+
+              if (!target) {
+                // 没有指定打开方式，根据当前的情况决定
+                if (this.inNewTab) {
+                  // 在独立的tab上，直接自身打开
+                  a.target = "_self";
+                } else {
+                  a.target = "_blank";
+                }
+              } else if (target === "blank") {
                 a.target = "_blank";
               }
-            } else if (target === "blank") {
-              a.target = "_blank";
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            } else if (this.item.type === "folder") {
+              // 属于文件夹类型
+              debugger;
             }
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
           },
           get cardName() {
             if (this.item.webTitle) {

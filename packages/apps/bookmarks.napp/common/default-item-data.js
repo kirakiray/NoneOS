@@ -1,4 +1,5 @@
 export const defaultItemData = {
+  type: "page", // 类型 page folder
   url: "", // 网页地址
   webTitle: "", // 网页标题
   logoType: "default", // logo类型 default custom

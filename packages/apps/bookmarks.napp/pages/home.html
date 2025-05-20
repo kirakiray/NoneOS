@@ -293,6 +293,7 @@
             };
           },
           async addWeb({ data }) {
+            debugger
             this.cards.push({ ...data });
           },
         },
@@ -309,6 +310,10 @@
           await mainData.ready();
 
           this.app._mainData = mainData;
+
+          setTimeout(() => {
+            console.log(mainData.toJSON());
+          }, 100);
 
           if (!mainData.cards) {
             // 初始化本地数据

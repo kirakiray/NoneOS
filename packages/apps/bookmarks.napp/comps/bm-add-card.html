@@ -60,19 +60,31 @@
         },
         proto: {
           clickSave() {
-            let url = this.item.url;
+            if (this.item.type === "page") {
+              let url = this.item.url;
 
-            if (!url.startsWith("http")) {
-              this.item.url = url = "https://" + url;
-            }
+              if (!url.startsWith("http")) {
+                this.item.url = url = "https://" + url;
+              }
 
-            // 判断是否有相同的网页
-            if (this.cards.find((item) => item.url === url)) {
-              toast({
-                content: "已经存在相同的网页",
-                color: "error",
-              });
-              return;
+              // 判断是否有相同的网页
+              if (this.cards.find((item) => item.url === url)) {
+                toast({
+                  content: "已经存在相同的网页",
+                  color: "error",
+                });
+                return;
+              }
+            } else if (this.item.type === "folder") {
+              if (
+                this.cards.find((item) => item.webTitle === this.item.webTitle)
+              ) {
+                toast({
+                  content: "已经存在同名的网页或网页夹",
+                  color: "error",
+                });
+                return;
+              }
             }
 
             this.emit("add-web", {
