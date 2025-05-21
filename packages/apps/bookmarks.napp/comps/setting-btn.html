@@ -70,7 +70,6 @@
         height: 80vh;
       }
     }
-
   </style>
   <p-button icon on:click="open = true">
     <n-local-icon name="menu"></n-local-icon>
@@ -154,21 +153,6 @@
       return {
         tag: "bm-setting-btn",
         data: {
-          open: false,
-          activeName: "display",
-          // activeName: "sync",
-          setting: {
-            width: 200,
-            height: 80,
-            space: 16,
-            containerMaxWidth: 1200,
-            bgurl: "", // 背景图片地址
-            bgsize: "",
-            bgrepeat: "",
-            bgposition: "",
-            bgcolor: "", // 背景色
-            sort: "custom", // 排序方式
-          },
         },
         proto: {},
       };

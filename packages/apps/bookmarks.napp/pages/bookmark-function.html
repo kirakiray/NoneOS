@@ -40,56 +40,60 @@
     清空点击次数
   </p-button>
   <script>
-    export default {
-      data: {
-        setting: {
-          sort: "custom", // 排序方式
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
+      return {
+        data: {
+          setting: {
+            sort: "custom", // 排序方式
+          },
         },
-      },
-      proto: {
-        async clearClickCount() {
-          const result = await confirm({
-            title: "确认清空点击次数？",
-            content: "清空后无法恢复",
-            yes: "清空",
-            cancel: "取消",
-          });
+        proto: {
+          async clearClickCount() {
+            const result = await confirm({
+              title: "确认清空点击次数？",
+              content: "清空后无法恢复",
+              yes: "清空",
+              cancel: "取消",
+            });
 
-          if (!result) {
-            return;
-          }
+            if (!result) {
+              return;
+            }
 
-          // 清空数量
-          const clearCount = async (cards) => {
-            for (let e of cards) {
-              if (e.type === "folder") {
-                await clearCount(e.cards);
-              } else {
-                if (e.count) {
-                  e.count = 0;
+            // 清空数量
+            const clearCount = async (cards) => {
+              for (let e of cards) {
+                if (e.type === "folder") {
+                  await clearCount(e.cards);
+                } else {
+                  if (e.count) {
+                    e.count = 0;
+                  }
                 }
               }
-            }
-          };
+            };
 
+            const mainData = await this.app._mainData;
+
+            await clearCount(mainData.cards);
+
+            toast({
+              content: "清空成功",
+              color: "success",
+            });
+          },
+        },
+        async attached() {
           const mainData = await this.app._mainData;
 
-          await clearCount(mainData.cards);
-
-          toast({
-            content: "清空成功",
-            color: "success",
-          });
+          this.setting = mainData.setting;
         },
-      },
-      async attached() {
-        const mainData = await this.app._mainData;
-
-        this.setting = mainData.setting;
-      },
-      detached() {
-        this.setting = {};
-      },
+        detached() {
+          this.setting = {};
+        },
+      };
     };
   </script>
 </template>
