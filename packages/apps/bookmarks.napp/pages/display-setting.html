@@ -1,4 +1,5 @@
 <template page>
+  <link rel="stylesheet" href="../common/common.css" />
   <style>
     :host {
       display: block;
@@ -12,7 +13,7 @@
     h4:first-of-type {
       margin-top: 0;
     }
-    
+
     .inputer-line {
       margin-top: 8px;
       display: flex;
@@ -46,26 +47,26 @@
     }
   </style>
   <div>
-    <h4>尺寸设置</h4>
-    <div class="inputer-line">
+    <h4 class="hide-in-mobile">尺寸设置</h4>
+    <div class="inputer-line hide-in-mobile">
       块宽度
       <p-slider no-bubble sync:value="setting.width" min="100" max="300">
       </p-slider>
       <p-input readonly sync:value="setting.width" size="small"></p-input>
     </div>
-    <div class="inputer-line">
+    <div class="inputer-line hide-in-mobile">
       块高度
       <p-slider no-bubble sync:value="setting.height" min="50" max="150">
       </p-slider>
       <p-input readonly sync:value="setting.height" size="small"></p-input>
     </div>
-    <div class="inputer-line">
+    <div class="inputer-line hide-in-mobile">
       块间隔
       <p-slider no-bubble sync:value="setting.space" min="2" max="40">
       </p-slider>
       <p-input readonly sync:value="setting.space" size="small"></p-input>
     </div>
-    <div class="inputer-line">
+    <div class="inputer-line hide-in-mobile">
       容器宽度
       <p-slider
         no-bubble
@@ -80,7 +81,12 @@
         size="small"
       ></p-input>
     </div>
-    <p-button size="small" on:click="resetSize" style="margin-top: 8px">
+    <p-button
+      size="small"
+      on:click="resetSize"
+      class="hide-in-mobile"
+      style="margin-top: 8px"
+    >
       恢复默认尺寸
     </p-button>
     <h4>背景设置</h4>

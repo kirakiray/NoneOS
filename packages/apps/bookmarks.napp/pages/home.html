@@ -9,6 +9,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="../comps/bm-drag-container.html"></l-m>
   <l-m src="../comps/setting-btn.html"></l-m>
+  <link rel="stylesheet" href="../common/common.css" />
   <style>
     :host {
       position: relative;
@@ -49,17 +50,6 @@
       margin: 0 auto;
     }
 
-    @media screen and (max-width: 540px) {
-      .tool {
-        background-color: var(--md-sys-color-on-normal);
-        z-index: 2;
-      }
-
-      .tool-container {
-        padding: 8px 16px;
-      }
-    }
-
     .main {
       position: absolute;
       left: 0;
@@ -70,6 +60,21 @@
       box-sizing: border-box;
       padding-top: 160px;
       overflow: auto;
+    }
+
+    @media screen and (max-width: 540px) {
+      .tool {
+        background-color: var(--md-sys-color-on-normal);
+        z-index: 2;
+      }
+
+      .tool-container {
+        padding: 8px 16px;
+      }
+
+      .main {
+        padding-top: 66px;
+      }
     }
 
     .main-inner {
@@ -88,6 +93,14 @@
     bm-add-card {
       /* margin: 16px; */
       margin: calc(var(--card-space) * 1px);
+    }
+
+    @media screen and (max-width: 540px) {
+      n-bookmark-card,
+      bm-add-card {
+        /* margin: 16px; */
+        margin: 4px 8px;
+      }
     }
 
     .breadcrumbs {
@@ -198,6 +211,7 @@
         >
           <o-if :value="paths.length > 1">
             <p-button
+              class="hide-in-mobile"
               icon
               on:click="clickBack"
               style="position: absolute; top: -36px"

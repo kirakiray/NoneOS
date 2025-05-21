@@ -36,6 +36,13 @@
     .card:active {
       box-shadow: var(--contained-active-shadow);
     }
+
+    @media screen and (max-width: 540px) {
+      .card {
+        width: 80vw;
+        height: 78px;
+      }
+    }
   </style>
   <div class="card" on:click="open = true">+</div>
   <bm-common-dialog
