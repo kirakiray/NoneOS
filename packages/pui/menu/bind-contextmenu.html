@@ -97,6 +97,13 @@
             targetMenu.open = "";
             onlyMenu = targetMenu;
 
+            this.emit("open-menu", {
+              data: {
+                target: this._target,
+                menu: targetMenu,
+              },
+            });
+
             const { offsetX, offsetY, clientX, clientY } = e;
 
             const currentRect = e.currentTarget.getBoundingClientRect();
