@@ -1,0 +1,95 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+    h4 {
+      font-size: 16px;
+      margin: 24px 0 8px;
+    }
+  </style>
+
+  <h4>基础功能</h4>
+  <div style="padding: 8px 0">
+    <p-select sync:value="setting.sort">
+      <label>书签排序</label>
+      <p-option value="custom">手动排序</p-option>
+      <p-option value="click" disabled>根据点击排序</p-option>
+      <p-option value="name" disabled>按名称排序(A-Z)</p-option>
+    </p-select>
+  </div>
+  <div style="padding: 8px 0">
+    <p-switch sync:value="setting.showCardTitle"> 显示书签标题 </p-switch>
+  </div>
+  <div style="padding: 8px 0">
+    <p-switch
+      attr:disabled="setting.showCardTitle === 'off'"
+      sync:value="setting.showClickCount"
+    >
+      显示点击次数
+    </p-switch>
+  </div>
+  <h4>访问统计</h4>
+  <div style="color: var(--md-sys-color-normal)">还在开发中...</div>
+  <p-button
+    size="small"
+    variant="outlined"
+    on:click="clearClickCount"
+    style="margin: 8px 0 0 1px"
+  >
+    清空点击次数
+  </p-button>
+  <script>
+    export default {
+      data: {
+        setting: {
+          sort: "custom", // 排序方式
+        },
+      },
+      proto: {
+        async clearClickCount() {
+          const result = await confirm({
+            title: "确认清空点击次数？",
+            content: "清空后无法恢复",
+            yes: "清空",
+            cancel: "取消",
+          });
+
+          if (!result) {
+            return;
+          }
+
+          // 清空数量
+          const clearCount = async (cards) => {
+            for (let e of cards) {
+              if (e.type === "folder") {
+                await clearCount(e.cards);
+              } else {
+                if (e.count) {
+                  e.count = 0;
+                }
+              }
+            }
+          };
+
+          const mainData = await this.app._mainData;
+
+          await clearCount(mainData.cards);
+
+          toast({
+            content: "清空成功",
+            color: "success",
+          });
+        },
+      },
+      async attached() {
+        const mainData = await this.app._mainData;
+
+        this.setting = mainData.setting;
+      },
+      detached() {
+        this.setting = {};
+      },
+    };
+  </script>
+</template>

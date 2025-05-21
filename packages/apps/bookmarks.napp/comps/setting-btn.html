@@ -71,37 +71,6 @@
       }
     }
 
-    .inputer-line {
-      margin-top: 8px;
-      display: flex;
-      align-items: center;
-    }
-
-    .inputer-line p-input {
-      width: 56px;
-      margin-left: 16px;
-    }
-
-    .inputer-line p-slider {
-      margin-left: 16px;
-    }
-
-    .bg-opts {
-      display: flex;
-      align-items: center;
-      flex-wrap: wrap;
-      margin-top: 4px;
-    }
-
-    .bg-opts p-select,
-    .bg-opts p-input {
-      display: inline-block;
-      min-width: 100px;
-      margin: 12px 12px 0 0;
-    }
-    .bg-opts p-input {
-      min-width: 160px;
-    }
   </style>
   <p-button icon on:click="open = true">
     <n-local-icon name="menu"></n-local-icon>
@@ -150,196 +119,28 @@
           </p-list>
         </div>
         <o-if :value="activeName === 'display'">
-          <div>
-            <h4>尺寸设置</h4>
-            <div class="inputer-line">
-              块宽度
-              <p-slider
-                no-bubble
-                sync:value="setting.width"
-                min="100"
-                max="300"
-              >
-              </p-slider>
-              <p-input
-                readonly
-                sync:value="setting.width"
-                size="small"
-              ></p-input>
-            </div>
-            <div class="inputer-line">
-              块高度
-              <p-slider
-                no-bubble
-                sync:value="setting.height"
-                min="50"
-                max="150"
-              >
-              </p-slider>
-              <p-input
-                readonly
-                sync:value="setting.height"
-                size="small"
-              ></p-input>
-            </div>
-            <div class="inputer-line">
-              块间隔
-              <p-slider no-bubble sync:value="setting.space" min="2" max="40">
-              </p-slider>
-              <p-input
-                readonly
-                sync:value="setting.space"
-                size="small"
-              ></p-input>
-            </div>
-            <div class="inputer-line">
-              容器宽度
-              <p-slider
-                no-bubble
-                sync:value="setting.containerMaxWidth"
-                min="800"
-                max="2400"
-              >
-              </p-slider>
-              <p-input
-                readonly
-                sync:value="setting.containerMaxWidth"
-                size="small"
-              ></p-input>
-            </div>
-            <p-button size="small" on:click="resetSize" style="margin-top: 8px">
-              恢复默认尺寸
-            </p-button>
-            <h4>背景设置</h4>
-            <div style="display: flex; align-items: flex-end">
-              <div
-                style="
-                  width: 100px;
-                  height: 60px;
-                  border: var(--md-sys-color-primary) solid 1px;
-                  background-size: contain;
-                  background-repeat: no-repeat;
-                  background-position: center center;
-                "
-                :style.background-image="`url(${setting.bgurl || ''})`"
-                :style.background-color="setting.bgcolor"
-              ></div>
-              <div>
-                <o-if :value="setting.bgurl !== defaultBgurl">
-                  <div>
-                    <p-button
-                      size="small"
-                      on:click="setting.bgurl = defaultBgurl"
-                      style="margin-left: 8px"
-                    >
-                      还原默认背景图
-                    </p-button>
-                  </div>
-                </o-if>
-
-                <div>
-                  <p-button
-                    size="small"
-                    on:click="shadow.$('#bgimgInputer').ele.click()"
-                    style="margin-left: 8px; margin-top: 4px"
-                  >
-                    更换背景图
-                  </p-button>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    style="display: none"
-                    id="bgimgInputer"
-                    on:change="changeBgImg"
-                  />
-                </div>
-              </div>
-            </div>
-            <div class="bg-opts">
-              <p-select size="small" sync:value="setting.bgposition">
-                <label>背景对齐</label>
-                <p-option value="center top">上中</p-option>
-                <p-option value="center center">正中</p-option>
-                <p-option value="center bottom">下中</p-option>
-                <p-option value="left top">左上方</p-option>
-                <p-option value="left center">左中</p-option>
-                <p-option value="left bottom">左下方</p-option>
-                <p-option value="right top">右上方</p-option>
-                <p-option value="right center">右中</p-option>
-                <p-option value="right bottom">右下方</p-option>
-              </p-select>
-              <p-select size="small" sync:value="setting.bgsize">
-                <label>背景显示模式</label>
-                <p-option value="cover">填充满（可能裁剪）</p-option>
-                <p-option value="contain">完整显示（可能留白）</p-option>
-                <p-option value="auto">原始尺寸</p-option>
-              </p-select>
-              <o-if :value="setting.bgsize !== 'cover'">
-                <p-select size="small" sync:value="setting.bgrepeat">
-                  <label>背景平铺</label>
-                  <p-option value="no-repeat">不平铺</p-option>
-                  <p-option value="repeat">平铺</p-option>
-                </p-select>
-              </o-if>
-            </div>
-
-            <div
-              class="bg-opts"
-              style="display: flex; align-items: flex-start; margin-top: 16px"
-            >
-              <span style="display: inline-block; padding-top: 8px"
-                >背景色</span
-              >
-              <p-color-picker
-                sync:value="setting.bgcolor"
-                style="margin-left: 8px"
-              ></p-color-picker>
-            </div>
-            <!--
-            <div>感谢，图片来自unsplsh的具体地址</div> -->
-          </div>
+          <o-page src="../pages/display-setting.html"></o-page>
         </o-if>
         <o-else-if :value="activeName === 'function'">
-          <h4>基础功能</h4>
-          <div style="padding: 8px 0">
-            <p-select sync:value="setting.sort">
-              <label>书签排序</label>
-              <p-option value="custom">手动排序</p-option>
-              <p-option value="click" disabled>根据点击排序</p-option>
-              <p-option value="name" disabled>按名称排序(A-Z)</p-option>
-            </p-select>
-          </div>
-          <div style="padding: 8px 0">
-            <p-switch sync:value="setting.showCardTitle">
-              显示书签标题
-            </p-switch>
-          </div>
-          <div style="padding: 8px 0">
-            <p-switch
-              attr:disabled="setting.showCardTitle === 'off'"
-              sync:value="setting.showClickCount"
-            >
-              显示点击次数
-            </p-switch>
-          </div>
-          <h4>访问统计</h4>
-          <div style="color: var(--md-sys-color-normal)">还在开发中...</div>
-          <p-button
-            size="small"
-            variant="outlined"
-            on:click="clearClickCount"
-            style="margin: 8px 0 0 1px"
-          >
-            清空点击次数
-          </p-button>
+          <o-page src="../pages/bookmark-function.html"></o-page>
         </o-else-if>
         <o-else-if :value="activeName === 'sync'">
-          <div>可以同步到手机，和其他的电脑</div>
-          <div>导出数据</div>
-          <div>导入数据</div>
+          <o-page src="../pages/sync-page.html"></o-page>
         </o-else-if>
         <o-else-if :value="activeName === 'about'">
-          <div>基于NoneOS开发的一个书签管理工具。</div>
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+            "
+          >
+            <img src="../icon.svg" width="80" />
+            <h3>Web Favorites</h3>
+            <div>基于NoneOS开发的一个书签管理工具。</div>
+          </div>
         </o-else-if>
         <div style="height: 32px"></div>
       </n-horsp-pannel>
@@ -369,81 +170,7 @@
             sort: "custom", // 排序方式
           },
         },
-        proto: {
-          async clearClickCount() {
-            const result = await confirm({
-              title: "确认清空点击次数？",
-              content: "清空后无法恢复",
-              yes: "清空",
-              cancel: "取消",
-            });
-
-            if (!result) {
-              return;
-            }
-
-            // 清空数量
-            const clearCount = async (cards) => {
-              for (let e of cards) {
-                if (e.type === "folder") {
-                  await clearCount(e.cards);
-                } else {
-                  if (e.count) {
-                    e.count = 0;
-                  }
-                }
-              }
-            };
-
-            await clearCount(this.app._mainData.cards);
-
-            toast({
-              content: "清空成功",
-              color: "success",
-            });
-          },
-          async changeBgImg(e) {
-            const file = e.target?.files[0];
-
-            if (!file) {
-              return;
-            }
-
-            // 写入到应用文件夹下
-            const appDataHandle = await this.app.dedicatedHandle();
-
-            const bgDir = await appDataHandle.get("bgimg", {
-              create: "dir",
-            });
-
-            // 删除已存在的背景图
-            if ((await bgDir.length()) > 0) {
-              for await (let e of bgDir.values()) {
-                await e.remove();
-              }
-            }
-
-            const fileHandle = await bgDir.get(`${file.name}`, {
-              create: "file",
-            });
-
-            await fileHandle.write(file);
-
-            this.setting.bgurl = `/$${fileHandle.path}`;
-          },
-          get defaultBgurl() {
-            return "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg";
-          },
-          resetSize() {
-            // 修正尺寸参数
-            Object.assign(this.setting, {
-              width: 200,
-              height: 80,
-              space: 16,
-              containerMaxWidth: 1200,
-            });
-          },
-        },
+        proto: {},
       };
     };
   </script>

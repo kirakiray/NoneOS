@@ -267,7 +267,7 @@
           },
         },
         proto: {
-          clickBread(data, index) {
+          async clickBread(data, index) {
             // 点击最后一个不反应
             if (index === this.paths.length - 1) {
               return;
@@ -276,8 +276,10 @@
             this.paths.splice(index + 1);
 
             if (index === 0) {
+              const mainData = await this.app._mainData;
+
               // 点击根目录
-              this.cards = this.app._mainData.cards;
+              this.cards = mainData.cards;
               return;
             }
 
@@ -379,6 +381,9 @@
           },
         },
         async attached() {
+          let resolve;
+          this.app._mainData = new Promise((r) => (resolve = r));
+
           // 获取专属文件句柄
           const handle = await this.app.dedicatedHandle();
 
@@ -390,7 +395,7 @@
 
           await mainData.ready();
 
-          this.app._mainData = mainData;
+          // this.app._mainData = mainData;
 
           setTimeout(() => {
             console.log(mainData.toJSON());
@@ -425,6 +430,9 @@
               settingData[key] = this.setting[key];
             }
           }
+
+          // 设置主数据
+          resolve(mainData);
 
           this.setting = settingData;
 

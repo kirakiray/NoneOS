@@ -1,0 +1,31 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+    h4 {
+      font-size: 16px;
+      margin: 24px 0 8px;
+    }
+  </style>
+  <h4>其他设备</h4>
+
+  <h4>本地操作</h4>
+  <p-button>导出数据</p-button>
+  <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
+    导出所有书签数据到本地文件，以便备份和迁移使用。
+  </div>
+  <p-button>导入数据</p-button>
+  <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
+    将备份的数据导入到当前设备。
+  </div>
+  <p-button>清空数据</p-button>
+  <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
+    清空当前设备上的所有书签数据。
+  </div>
+  <script>
+    export default {
+      data: {},
+    };
+  </script>
+</template>
