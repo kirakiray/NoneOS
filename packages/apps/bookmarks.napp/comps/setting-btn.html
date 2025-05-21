@@ -76,7 +76,15 @@
   </p-button>
 
   <p-dialog :open="open" on:click-mask="open = false">
-    <div slot="title">设置</div>
+    <div slot="title" style="position: relative">设置</div>
+    <p-button
+      icon
+      variant="text"
+      on:click="open = false"
+      style="position: absolute; right: 16px; top: 16px; font-size: 26px"
+    >
+      <n-local-icon name="close"></n-local-icon>
+    </p-button>
     <div class="main">
       <n-horsp-pannel>
         <div slot="left">
