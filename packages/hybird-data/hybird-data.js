@@ -275,11 +275,20 @@ export class HybirdData extends Stanz {
   }
 
   toJSON() {
-    const obj = {};
+    let obj = {};
+
+    let isArray = true;
+    let maxIndex = 0;
 
     Object.entries(this).forEach(([key, value]) => {
       if (reservedKeys.includes(key)) {
         return;
+      }
+
+      if (/\D/.test(key)) {
+        isArray = false;
+      } else {
+        maxIndex = Math.max(maxIndex, parseInt(key));
       }
 
       if (value instanceof HybirdData) {
@@ -289,6 +298,11 @@ export class HybirdData extends Stanz {
 
       obj[key] = value;
     });
+
+    if (isArray) {
+      obj.length = maxIndex + 1;
+      obj = Array.from(obj);
+    }
 
     return obj;
   }

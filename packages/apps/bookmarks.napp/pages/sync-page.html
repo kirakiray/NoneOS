@@ -11,22 +11,100 @@
   <h4>其他设备</h4>
 
   <h4>本地操作</h4>
-  <p-button>导出数据</p-button>
+  <p-button on:click="clickOutput">导出数据</p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    导出所有书签数据到本地文件，以便备份和迁移使用。
+    将所有书签数据（包含访问记录和个性化设置）导出至本地文件，方便您进行数据备份与迁移。
   </div>
-  <p-button>导入数据</p-button>
+  <p-button on:click="clickInput">导入数据</p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    将备份的数据导入到当前设备。
+    将备份的数据文件导入到当前设备。
   </div>
+  <input
+    style="display: none"
+    id="inputer"
+    type="file"
+    accept="application/json"
+    on:change="inputChange"
+  />
   <p-button>清空数据</p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     清空当前设备上的所有书签数据。
   </div>
   <script>
-    export default {
-      data: {},
-      proto: {},
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
+      return {
+        data: {},
+        proto: {
+          async clickInput() {
+            const mainData = await this.app._mainData;
+            await mainData.ready(true);
+
+            // 查看是否已经有数据，有的话提示覆盖
+            const res = await confirm({
+              content: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
+              yes: "覆盖",
+              cancel: "取消",
+            });
+
+            if (!res) return;
+
+            // 先选择文件
+            this.shadow.$("#inputer").ele.click();
+          },
+          inputChange(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            e.target.value = "";
+            const reader = new FileReader();
+            reader.readAsText(file);
+            reader.onload = async (e) => {
+              try {
+                const data = JSON.parse(e.target.result);
+                // 验证导入数据的格式
+                if (!data || typeof data !== "object") {
+                  throw new Error("导入的数据格式不正确");
+                }
+
+                const mainData = await this.app._mainData;
+                await mainData.ready(true);
+
+                mainData.cards.splice(0, mainData.cards.length, ...data.cards);
+                Object.assign(mainData.setting, data.setting);
+
+                toast({
+                  content: "导入成功",
+                  color: "success",
+                });
+              } catch (err) {
+                toast({
+                  content: `导入失败: ${err.message}`,
+                  color: "error",
+                });
+                console.error("数据导入错误:", err);
+              }
+            };
+          },
+          async clickOutput() {
+            const mainData = await this.app._mainData;
+            await mainData.ready(true);
+
+            const data = JSON.stringify(mainData);
+
+            const blob = new Blob([data], { type: "application/json" });
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = "bookmarks.json";
+            a.click();
+            toast({
+              content: "导出成功",
+              color: "success",
+            });
+            URL.revokeObjectURL(a.href); // 释放URL对象
+          },
+        },
+      };
     };
   </script>
 </template>
