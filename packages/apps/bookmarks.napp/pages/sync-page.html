@@ -11,7 +11,9 @@
   <h4>其他设备</h4>
 
   <h4>本地操作</h4>
-  <p-button on:click="clickOutput">导出数据</p-button>
+  <p-button on:click="clickOutput" attr:disabled="!cardsLength">
+    导出数据
+  </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     将所有书签数据（包含访问记录和个性化设置）导出至本地文件，方便您进行数据备份与迁移。
   </div>
@@ -26,7 +28,7 @@
     accept="application/json"
     on:change="inputChange"
   />
-  <p-button>清空数据</p-button>
+  <p-button on:click="clickClear">清空数据</p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     清空当前设备上的所有书签数据。
   </div>
@@ -35,20 +37,24 @@
       const { toast, confirm } = await load("/packages/pui/util.js");
 
       return {
-        data: {},
+        data: {
+          cardsLength: 0,
+        },
         proto: {
           async clickInput() {
             const mainData = await this.app._mainData;
             await mainData.ready(true);
 
-            // 查看是否已经有数据，有的话提示覆盖
-            const res = await confirm({
-              content: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
-              yes: "覆盖",
-              cancel: "取消",
-            });
+            if (this.cardsLength) {
+              // 查看是否已经有数据，有的话提示覆盖
+              const res = await confirm({
+                content: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
+                yes: "覆盖",
+                cancel: "取消",
+              });
 
-            if (!res) return;
+              if (!res) return;
+            }
 
             // 先选择文件
             this.shadow.$("#inputer").ele.click();
@@ -72,7 +78,7 @@
 
                 mainData.cards.splice(0, mainData.cards.length, ...data.cards);
                 Object.assign(mainData.setting, data.setting);
-
+                this.cardsLength = mainData.cards.length;
                 toast({
                   content: "导入成功",
                   color: "success",
@@ -103,6 +109,30 @@
             });
             URL.revokeObjectURL(a.href); // 释放URL对象
           },
+          async clickClear() {
+            const mainData = await this.app._mainData;
+            await mainData.ready(true);
+            const res = await confirm({
+              title: "清空数据",
+              content:
+                "此操作将永久删除所有数据且无法恢复，建议您先导出备份。确定要清空全部数据吗？",
+              yes: "清空",
+              cancel: "取消",
+            });
+            if (!res) return;
+            mainData.cards.splice(0, mainData.cards.length);
+            this.cardsLength = 0;
+            toast({
+              content: "清空成功",
+              color: "success",
+            });
+          },
+        },
+        async attached() {
+          const mainData = await this.app._mainData;
+          await mainData.ready();
+          await mainData.cards.ready();
+          this.cardsLength = mainData.cards.length;
         },
       };
     };
