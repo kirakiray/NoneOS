@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/comps/device-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -6,10 +7,11 @@
     h4 {
       font-size: 16px;
       margin: 24px 0 8px;
+      color: var(--md-sys-color-primary);
     }
   </style>
   <h4>其他设备</h4>
-
+  <n-device-list></n-device-list>
   <h4>本地操作</h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
     导出数据
@@ -28,7 +30,9 @@
     accept="application/json"
     on:change="inputChange"
   />
-  <p-button on:click="clickClear">清空数据</p-button>
+  <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength"
+    >清空数据</p-button
+  >
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     清空当前设备上的所有书签数据。
   </div>
@@ -113,6 +117,7 @@
             const mainData = await this.app._mainData;
             await mainData.ready(true);
             const res = await confirm({
+              color: "error",
               title: "清空数据",
               content:
                 "此操作将永久删除所有数据且无法恢复，建议您先导出备份。确定要清空全部数据吗？",

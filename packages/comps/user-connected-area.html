@@ -40,7 +40,8 @@
             if (e.notFindUser) {
               toast({
                 content:
-                  "User not found: " + (await getUserName(this.connection.userId)),
+                  "User not found: " +
+                  (await getUserName(this.connection.userId)),
                 color: "error",
               });
             }

@@ -22,15 +22,18 @@ export const getDeviceStore = async (useLocalUserDirName) => {
       {
         create: "dir",
       }
-    ).then((devicesDir) => createData(devicesDir));
+    ).then(async (devicesDir) => {
+      const data = await createData(devicesDir);
+
+      await data.ready(true);
+
+      return data;
+    });
   } else {
     deviceStorePromise = deviceStoreCache[useLocalUserDirName];
   }
 
   const deviceStore = await deviceStorePromise;
-
-  // 等待数据准备好
-  await deviceStore.ready(true);
 
   return deviceStore;
 };
