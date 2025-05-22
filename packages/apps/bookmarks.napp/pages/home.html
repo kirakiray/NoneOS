@@ -7,6 +7,7 @@
   <l-m src="/packages/pui/menu/menu-area.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="../comps/bm-drag-container.html"></l-m>
   <l-m src="../comps/setting-btn.html"></l-m>
   <link rel="stylesheet" href="../common/common.css" />
@@ -151,6 +152,16 @@
   <div class="tool">
     <div class="tool-container">
       <div class="breadcrumbs">
+        <p-select
+          size="small"
+          sync:value="usedUserId"
+          on:change="changeUser"
+          style="margin-right: 16px"
+        >
+          <o-fill :value="usersOpts">
+            <p-option attr:value="$data.userId">{{$data.userName}}</p-option>
+          </o-fill>
+        </p-select>
         <o-fill :value="paths">
           <div
             class="breadcrumbs-block"
@@ -245,9 +256,15 @@
       const { toast } = await load("/packages/pui/util.js");
 
       const { defaultItemData } = await load("../common/default-item-data.js");
+      const { getUserName } = await load("/packages/util/get-user-info.js");
+      const { getUserStore } = await load("/packages/user/user-store.js");
+
+      const selfUserStore = await getUserStore();
 
       return {
         data: {
+          usersOpts: [], // 可以访问的远端设备
+          usedUserId: "", // 当前标签使用中的用户id
           // 当前目录路径
           paths: [
             {
@@ -309,6 +326,56 @@
           },
         },
         proto: {
+          async changeUser(e) {
+            // 切换用户
+            const value = $(e.target).value;
+
+            const handle = await this.app.dedicatedHandle();
+            const backupHandle = await handle.get("backup");
+
+            if (!backupHandle) {
+              return;
+            }
+
+            const targetHandle = await backupHandle.get(`${value}.json`);
+
+            if (!targetHandle) {
+              return;
+            }
+
+            let data = await targetHandle.text();
+            data = JSON.parse(data);
+            this.cards = data.cards;
+          },
+          async loadBackupUserOptions() {
+            const handle = await this.app.dedicatedHandle();
+
+            const backupHandle = await handle.get("backup");
+
+            if (!backupHandle) {
+              return;
+            }
+
+            const options = [
+              {
+                // userName: `本机设备(${selfUserStore.userName})`,
+                userName: `本机设备`,
+                userId: selfUserStore.userId,
+              },
+            ];
+
+            for await (let item of backupHandle.values()) {
+              const userId = item.name.replace(/\.json$/, "");
+              const userName = await getUserName(userId);
+              options.push({
+                userName,
+                userId,
+              });
+            }
+
+            this.usersOpts = options;
+            this.usedUserId = this.usersOpts[0].userId;
+          },
           async clickBack() {
             if (this.paths.length === 2) {
               this.paths.splice(1);
@@ -503,6 +570,8 @@
           resolve(mainData);
 
           this.setting = settingData;
+
+          this.loadBackupUserOptions();
 
           if (!this.setting.bgurl) {
             // 设置默认背景图
