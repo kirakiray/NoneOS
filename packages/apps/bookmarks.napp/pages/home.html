@@ -476,8 +476,6 @@
             mainData.cards = [];
           }
 
-          window.mainData = mainData;
-
           this.cards = mainData.cards;
 
           // 获取配置数据
@@ -513,7 +511,13 @@
           }
         },
         detached() {
+          this.app._mainData &&
+            this.app._mainData.then((data) => {
+              this.app._mainData = null;
+              data.disconnect();
+            });
           this.cards = [];
+          this.setting = {};
         },
       };
     };

@@ -21,7 +21,7 @@ Object.defineProperties($.fn, {
   },
   // 获取远端设备同属app的专属handle
   dedicatedRemoteHandle: {
-    async value() {
+    async value(targetUserId) {
       if (this.tag !== "o-app") {
         throw new Error(
           "dedicatedRemoteHandle can only be used on o-app component"
@@ -41,37 +41,48 @@ Object.defineProperties($.fn, {
             userId: remote.userId,
           });
 
-          await connection.watchUntil(
-            () =>
-              connection.state === "ready" ||
-              connection.state === "not-find-user"
-          );
+          // 等待连接成功
+          await connection
+            .watchUntil(
+              () =>
+                connection.state === "ready" ||
+                connection.state === "not-find-user"
+            )
+            .catch(() => null);
 
           return connection; // 返回连接对象或其他标识
         })
       );
 
-      const remoteHandles = [];
-
       const { get } = await load("/packages/fs/main.js");
       const { getUserName } = await load("/packages/util/get-user-info.js");
 
-      // 从远端设备中获取handle
-      await Promise.all(
+      // 从已连接的设备中并行获取handle和用户信息
+      const remoteHandles = await Promise.all(
         conns.map(async (connection) => {
-          if (connection.state === "ready") {
-            const handle = await get(
-              `$user-${connection.userId}:local/dedicated/${mark}`
-            );
+          // 获取远程用户的用户名
+          const userName = await getUserName(connection.userId);
 
-            // 添加远端的handle
-            remoteHandles.push({
-              userName: await getUserName(connection.userId),
+          if (connection.state !== "ready") {
+            return {
+              userName,
               userId: connection.userId,
-              handle,
-              hasData: (await handle.length()) > 0, // 存在这个应用的数据
-            });
+              handle: null,
+              hasData: false,
+            };
           }
+
+          // 获取远程用户的专属handle
+          const handle = await get(
+            `$user-${connection.userId}:local/dedicated/${mark}`
+          );
+
+          return {
+            userName,
+            userId: connection.userId,
+            handle,
+            hasData: (await handle.length()) > 0,
+          };
         })
       );
 

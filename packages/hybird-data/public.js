@@ -170,4 +170,12 @@ const removeData = async (oldData, exitedData) => {
 
 const NEEDREMOVEDATA = Symbol("needRemoveData");
 
-export const getRandomId = () => Math.random().toString(36).slice(2);
+export const getRandomId = () => {
+  try {
+    if (crypto?.randomUUID) {
+      return crypto.randomUUID();
+    }
+  } catch (err) {}
+
+  return Math.random().toString(36).slice(2);
+};

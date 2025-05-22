@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/comps/device-list.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -44,19 +45,62 @@
     export default async ({ load }) => {
       const { getConnection } = await load("/packages/user/connection/main.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
+      const { createData } = await load("/packages/hybird-data/main.js");
 
       return {
         data: {
           cardsLength: 0,
         },
         proto: {
+          // 点击了目标用户item
           async clickDeviceItem(e) {
             const { item } = e.data;
             const targetUserId = item.toOppoCertificate.data.authTo;
-            const connection = await getConnection({ userId: targetUserId });
+            // 从远端获取对应应用目录
+            const remoteHandles = await this.app.dedicatedRemoteHandle();
 
-            // 点击后连接对方
-            connection.connect();
+            const targetRemoteHandle = remoteHandles.find((remote) => {
+              return remote.userId === targetUserId;
+            });
+
+            // 从文件夹中获取数据
+            const remoteDataHandle = await targetRemoteHandle.handle.get(
+              "data"
+            );
+
+            const remoteBookmarkData = await createData(remoteDataHandle);
+
+            // 等待全部数据加载完成
+            await remoteBookmarkData.ready(true);
+
+            // 保存一份数据
+            const bookmarkBackupData = remoteBookmarkData.toJSON();
+
+            // 销毁数据
+            remoteBookmarkData.disconnect();
+
+            // 保存到本地专属目录
+            const localAppHandle = await this.app.dedicatedHandle();
+
+            const bookmarkBackupDirHandle = await localAppHandle.get("backup", {
+              create: "dir",
+            });
+
+            const backupFileHandle = await bookmarkBackupDirHandle.get(
+              `${targetUserId}.json`,
+              {
+                create: "file",
+              }
+            );
+
+            await backupFileHandle.write(JSON.stringify(bookmarkBackupData));
+
+            toast({
+              content: `备份 ${targetRemoteHandle.userName} 的网页标签数据成功`,
+              color: "success",
+            });
+
+            console.log("bookmarkBackupData: ", bookmarkBackupData);
           },
           async clickInput() {
             const mainData = await this.app._mainData;

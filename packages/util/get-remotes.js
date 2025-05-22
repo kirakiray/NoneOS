@@ -70,6 +70,8 @@ export const getRemotes = async ({ useLocalUserDirName } = {}) => {
     return remotes[useLocalUserDirName];
   }
 
+  remotes[useLocalUserDirName] = new Stanz([]);
+
   // 获取已经授权的设备
   const deviceStore = await getDeviceStore(useLocalUserDirName);
 
@@ -88,7 +90,9 @@ export const getRemotes = async ({ useLocalUserDirName } = {}) => {
     };
   });
 
-  return (remotes[useLocalUserDirName] = new Stanz(arr));
+  remotes[useLocalUserDirName].splice(0, 0, ...arr);
+
+  return remotes[useLocalUserDirName];
 };
 
 export default getRemotes;
