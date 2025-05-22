@@ -56,7 +56,7 @@
         proto: {
           // 点击了目标用户item
           async clickDeviceItem(e) {
-            const { item } = e.data;
+            const { item, itemEl } = e.data;
             const targetUserId = item.toOppoCertificate.data.authTo;
             // 从远端获取对应应用目录
             const remoteHandles = await this.app.dedicatedRemoteHandle();
@@ -64,6 +64,11 @@
             const targetRemoteHandle = remoteHandles.find((remote) => {
               return remote.userId === targetUserId;
             });
+
+            // 列表山的时间元素
+            const shadowTimeEl = itemEl.$('[slot="suffix"]');
+
+            shadowTimeEl && (shadowTimeEl.text = "Loading...");
 
             // 本地保存的专属目录
             const localAppHandle = await this.app.dedicatedHandle();
@@ -96,6 +101,11 @@
               if (data) {
                 const backupData = JSON.parse(data);
                 if (backupData.cardsLastModified === cardsLastModified) {
+                  shadowTimeEl &&
+                    (shadowTimeEl.text = new Date(
+                      cardsLastModified
+                    ).toLocaleString());
+
                   toast({
                     content: `${targetRemoteHandle.userName} 的网页标签数据已是最新`,
                     color: "success",
@@ -121,18 +131,11 @@
               color: "success",
             });
 
-            {
-              // 更新列表上的时间
-              const shadowEl = this.shadow
-                .$("n-device-list")
-                .shadow.$(`[data-user-id="${targetRemoteHandle.userId}"]`);
-
-              if (shadowEl) {
-                shadowEl.$('[slot="suffix"]').text = new Date(
-                  cardsLastModified
-                ).toLocaleString();
-              }
-            }
+            // 更新列表上的时间
+            shadowTimeEl &&
+              (shadowTimeEl.text = new Date(
+                cardsLastModified
+              ).toLocaleString());
 
             console.log("bookmarkBackupData: ", bookmarkBackupData);
           },

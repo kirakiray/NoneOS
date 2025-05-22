@@ -14,7 +14,7 @@
         class="device-item"
         attr:data-user-id="$data.toOppoCertificate.data.authTo"
         button
-        on:click="$host.clickDevice($event,$data)"
+        on:click="$host.clickDevice($event,$data,$ele)"
       >
         <n-user-state
           attr:user-id="$data.toOppoCertificate.data.authTo"
@@ -45,10 +45,11 @@
           devices: [],
         },
         proto: {
-          clickDevice(e, data) {
+          clickDevice(e, data, ele) {
             this.emit("click-device", {
               data: {
                 item: data,
+                itemEl: ele,
               },
             });
           },
