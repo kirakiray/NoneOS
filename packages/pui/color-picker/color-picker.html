@@ -621,6 +621,10 @@
           return { h, s, v };
         },
         setColor(value) {
+          if (!value) {
+            return;
+          }
+          
           if (value.startsWith("#")) {
             this.hexValue = value;
             this.updateFromHex();
