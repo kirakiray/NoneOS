@@ -472,8 +472,6 @@
 
           // 防止重复触发
           if (this._lastColor !== value) {
-            console.log(value);
-
             // Emit change event
             this.emit("change", {
               data: {
@@ -624,7 +622,7 @@
           if (!value) {
             return;
           }
-          
+
           if (value.startsWith("#")) {
             this.hexValue = value;
             this.updateFromHex();

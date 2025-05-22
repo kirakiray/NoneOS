@@ -8,6 +8,7 @@
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="../comps/bm-drag-container.html"></l-m>
   <l-m src="../comps/setting-btn.html"></l-m>
   <link rel="stylesheet" href="../common/common.css" />
@@ -158,7 +159,19 @@
           on:change="changeUser"
           style="margin-right: 16px"
         >
-          <o-fill :value="usersOpts">
+          <n-id-avatar
+            :val="usedUserId"
+            slot="prefix"
+            style="
+              display: block;
+              width: 16px;
+              height: 16px;
+              margin-right: 4px;
+              border-radius: 3px;
+              overflow: hidden;
+            "
+          ></n-id-avatar>
+          <o-fill :value="allDatas">
             <p-option attr:value="$data.userId">{{$data.userName}}</p-option>
           </o-fill>
         </p-select>
@@ -190,7 +203,10 @@
         新标签页打开
       </p-menu-item>
       <hr />
-      <p-menu-item on:click="editItem">
+      <p-menu-item
+        on:click="editItem"
+        attr:disabled="localSelfUserId !== usedUserId"
+      >
         <n-local-icon name="edit" slot="prefix"></n-local-icon>
         编辑网页
       </p-menu-item>
@@ -201,7 +217,10 @@
         <n-local-icon name="copy" slot="prefix"></n-local-icon>
         复制网址
       </p-menu-item>
-      <p-menu-item on:click="deleteItem">
+      <p-menu-item
+        on:click="deleteItem"
+        attr:disabled="localSelfUserId !== usedUserId"
+      >
         <n-local-icon name="delete" slot="prefix"></n-local-icon>
         删除网页
       </p-menu-item>
@@ -238,7 +257,10 @@
               :show-click-count="$host.setting.showClickCount"
             ></n-bookmark-card>
           </o-fill>
-          <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+          <o-if :value="localSelfUserId === usedUserId">
+            <!-- 只有本地数据才可以编辑 -->
+            <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+          </o-if>
         </bm-drag-container>
       </o-else>
     </div>
@@ -264,7 +286,10 @@
       return {
         data: {
           usersOpts: [], // 可以访问的远端设备
-          usedUserId: "", // 当前标签使用中的用户id
+          // usedUserId: null, // 当前标签使用中的用户id
+          usedUserId: selfUserStore.userId, // 当前标签使用中的用户id
+          localSelfUserId: selfUserStore.userId, // 本机设备用户id
+          allDatas: [], // 所有数据
           // 当前目录路径
           paths: [
             {
@@ -330,23 +355,21 @@
             // 切换用户
             const value = $(e.target).value;
 
-            const handle = await this.app.dedicatedHandle();
-            const backupHandle = await handle.get("backup");
+            const targetItem = this.allDatas.find((e) => e.userId === value);
 
-            if (!backupHandle) {
+            if (!targetItem) {
               return;
             }
 
-            const targetHandle = await backupHandle.get(`${value}.json`);
-
-            if (!targetHandle) {
-              return;
-            }
-
-            let data = await targetHandle.text();
-            data = JSON.parse(data);
-            this.cards = data.cards;
+            this.usedUserId = value;
+            this.paths = [
+              {
+                name: "Root",
+              },
+            ];
+            this.cards = targetItem._mainData.cards;
           },
+          // 加载本地备份的用户数据
           async loadBackupUserOptions() {
             const handle = await this.app.dedicatedHandle();
 
@@ -356,30 +379,35 @@
               return;
             }
 
-            const options = [
-              {
-                // userName: `本机设备(${selfUserStore.userName})`,
-                userName: `本机设备`,
-                userId: selfUserStore.userId,
-              },
-            ];
-
             for await (let item of backupHandle.values()) {
               const userId = item.name.replace(/\.json$/, "");
               const userName = await getUserName(userId);
-              options.push({
+
+              const data = {};
+
+              try {
+                let fdata = await item.text();
+                fdata = JSON.parse(fdata);
+                Object.assign(data, fdata);
+              } catch (err) {
+                console.warn(err);
+              }
+
+              this.allDatas.push({
                 userName,
                 userId,
+                _mainData: data,
               });
             }
-
-            this.usersOpts = options;
-            this.usedUserId = this.usersOpts[0].userId;
           },
           async clickBack() {
             if (this.paths.length === 2) {
               this.paths.splice(1);
-              const mainData = await this.app._mainData;
+
+              const mainData = this.allDatas.find(
+                (e) => e.userId === this.usedUserId
+              )._mainData;
+              
               // 点击根目录
               this.cards = mainData.cards;
               return;
@@ -534,10 +562,6 @@
 
           // this.app._mainData = mainData;
 
-          setTimeout(() => {
-            console.log(mainData.toJSON());
-          }, 400);
-
           if (!mainData.cards) {
             // 初始化本地数据
             mainData.cards = [];
@@ -570,6 +594,16 @@
           resolve(mainData);
 
           this.setting = settingData;
+
+          // 保存初始的数据
+          this.allDatas = [
+            {
+              userId: selfUserStore.userId,
+              // userName: selfUserStore.userName,
+              userName: "本机设备",
+              _mainData: mainData,
+            },
+          ];
 
           this.loadBackupUserOptions();
 

@@ -319,14 +319,14 @@
 
           if (this.item.type === "folder") {
             // 属于文件夹类型，获取小截图
-            await this.item.ready();
+            this.item.ready && (await this.item.ready());
             const { cards } = this.item;
-            await cards.ready();
+            cards.ready && (await cards.ready());
 
             this.smallScreenshots = (
               await Promise.all(
                 cards.map(async (e) => {
-                  await e.ready();
+                  e.ready && (await e.ready());
 
                   if (e.logoType === "default") {
                     return e.defaultPic;
