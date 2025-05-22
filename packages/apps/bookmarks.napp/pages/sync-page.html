@@ -15,7 +15,7 @@
     }
   </style>
   <h4>其他设备</h4>
-  <n-device-list></n-device-list>
+  <n-device-list on:click-device="clickDeviceItem"></n-device-list>
   <h4>本地操作</h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
     导出数据
@@ -42,6 +42,7 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { getConnection } = await load("/packages/user/connection/main.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
 
       return {
@@ -49,6 +50,14 @@
           cardsLength: 0,
         },
         proto: {
+          async clickDeviceItem(e) {
+            const { item } = e.data;
+            const targetUserId = item.toOppoCertificate.data.authTo;
+            const connection = await getConnection({ userId: targetUserId });
+
+            // 点击后连接对方
+            connection.connect();
+          },
           async clickInput() {
             const mainData = await this.app._mainData;
             await mainData.ready(true);

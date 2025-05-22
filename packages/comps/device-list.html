@@ -10,9 +10,13 @@
   </style>
   <p-list>
     <o-fill :value="devices">
-      <p-list-item class="device-item" button>
+      <p-list-item
+        class="device-item"
+        button
+        on:click="$host.clickDevice($event,$data)"
+      >
         <n-user-state
-          attr:user-id="$data.toMeCertificate.data.authTo"
+          attr:user-id="$data.toOppoCertificate.data.authTo"
           slot="prefix"
         ></n-user-state>
         <n-id-avatar
@@ -25,7 +29,6 @@
             overflow: hidden;
           "
         ></n-id-avatar>
-
         {{$data.userCard.data.userName}}
       </p-list-item>
     </o-fill>
@@ -39,6 +42,15 @@
         tag: "n-device-list",
         data: {
           devices: [],
+        },
+        proto: {
+          clickDevice(e, data) {
+            this.emit("click-device", {
+              data: {
+                item: data,
+              },
+            });
+          },
         },
         attached() {
           this.devices = devices;
