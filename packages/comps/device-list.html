@@ -12,6 +12,7 @@
     <o-fill :value="devices">
       <p-list-item
         class="device-item"
+        attr:data-user-id="$data.toOppoCertificate.data.authTo"
         button
         on:click="$host.clickDevice($event,$data)"
       >

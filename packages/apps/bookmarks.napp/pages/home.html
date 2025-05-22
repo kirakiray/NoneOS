@@ -407,7 +407,7 @@
               const mainData = this.allDatas.find(
                 (e) => e.userId === this.usedUserId
               )._mainData;
-              
+
               // 点击根目录
               this.cards = mainData.cards;
               return;
@@ -567,7 +567,32 @@
             mainData.cards = [];
           }
 
+          window.mainData = mainData;
+
           this.cards = mainData.cards;
+
+          let ingoredFirst = false;
+          mainData.watchTick((e) => {
+            if (e.hasModified("cards")) {
+              if (!ingoredFirst) {
+                ingoredFirst = true;
+                // 忽略第一次修改
+                return;
+              }
+
+              // 忽略dataStatus和count的修改
+              const usefullModified = Array.from(e).filter((item) => {
+                return item.name !== "dataStatus" && item.name !== "count";
+              });
+
+              if (usefullModified.length === 0) {
+                return;
+              }
+
+              // 更新时间
+              mainData.cardsLastModified = Date.now();
+            }
+          }, 500);
 
           // 获取配置数据
           if (!mainData.setting) {

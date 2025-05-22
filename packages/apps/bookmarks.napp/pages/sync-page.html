@@ -1,6 +1,5 @@
 <template page>
   <l-m src="/packages/comps/device-list.html"></l-m>
-  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -17,7 +16,7 @@
   </style>
   <h4>其他设备</h4>
   <div style="font-size: 12px; margin-bottom: 4px">
-    点击后可更新设备的标签数据到本地。
+    点击设备后可将其书签数据同步到当前本地，请确保目标设备已连接网络。
   </div>
   <n-device-list on:click-device="clickDeviceItem"></n-device-list>
   <h4>本地操作</h4>
@@ -66,23 +65,7 @@
               return remote.userId === targetUserId;
             });
 
-            // 从文件夹中获取数据
-            const remoteDataHandle = await targetRemoteHandle.handle.get(
-              "data"
-            );
-
-            const remoteBookmarkData = await createData(remoteDataHandle);
-
-            // 等待全部数据加载完成
-            await remoteBookmarkData.ready(true);
-
-            // 保存一份数据
-            const bookmarkBackupData = remoteBookmarkData.toJSON();
-
-            // 销毁数据
-            remoteBookmarkData.disconnect();
-
-            // 保存到本地专属目录
+            // 本地保存的专属目录
             const localAppHandle = await this.app.dedicatedHandle();
 
             const bookmarkBackupDirHandle = await localAppHandle.get("backup", {
@@ -96,12 +79,60 @@
               }
             );
 
+            // 从文件夹中获取数据
+            const remoteDataHandle = await targetRemoteHandle.handle.get(
+              "data"
+            );
+
+            const remoteBookmarkData = await createData(remoteDataHandle);
+
+            await remoteBookmarkData.ready();
+
+            const { cardsLastModified } = remoteBookmarkData;
+
+            {
+              // 查看是否有更新
+              const data = await backupFileHandle.text();
+              if (data) {
+                const backupData = JSON.parse(data);
+                if (backupData.cardsLastModified === cardsLastModified) {
+                  toast({
+                    content: `${targetRemoteHandle.userName} 的网页标签数据已是最新`,
+                    color: "success",
+                  });
+                  return;
+                }
+              }
+            }
+
+            // 等待全部数据加载完成
+            await remoteBookmarkData.ready(true);
+
+            // 保存一份数据
+            const bookmarkBackupData = remoteBookmarkData.toJSON();
+
+            // 销毁数据
+            remoteBookmarkData.disconnect();
+
             await backupFileHandle.write(JSON.stringify(bookmarkBackupData));
 
             toast({
               content: `备份 ${targetRemoteHandle.userName} 的网页标签数据成功`,
               color: "success",
             });
+
+            {
+              // 更新列表上的时间
+              const shadowEl = this.shadow
+                .$("n-device-list")
+                .shadow.$(`[data-user-id="${targetRemoteHandle.userId}"]`);
+
+              if (shadowEl) {
+                shadowEl.$('[slot="suffix"]').text = new Date(
+                  cardsLastModified
+                ).toLocaleString();
+              }
+            }
 
             console.log("bookmarkBackupData: ", bookmarkBackupData);
           },
@@ -198,6 +229,39 @@
           await mainData.ready();
           await mainData.cards.ready();
           this.cardsLength = mainData.cards.length;
+
+          setTimeout(async () => {
+            // 更新列表上
+            const localAppHandle = await this.app.dedicatedHandle();
+
+            const bookmarkBackupDirHandle = await localAppHandle.get("backup");
+
+            if (!bookmarkBackupDirHandle) {
+              return;
+            }
+
+            const cached = [];
+            for await (let handle of bookmarkBackupDirHandle.values()) {
+              const text = await handle.text();
+              const data = JSON.parse(text);
+
+              const userId = handle.name.replace(".json", "");
+              const { cardsLastModified } = data;
+
+              if (cardsLastModified) {
+                const shadowEl = this.shadow
+                  .$("n-device-list")
+                  .shadow.$(`[data-user-id="${userId}"]`);
+
+                // 添加更新时间
+                shadowEl.push(
+                  `<div slot="suffix">${new Date(
+                    cardsLastModified
+                  ).toLocaleString()}</div>`
+                );
+              }
+            }
+          }, 500);
         },
       };
     };
