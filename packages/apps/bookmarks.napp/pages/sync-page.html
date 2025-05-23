@@ -89,10 +89,10 @@
 
             if (!targetRemoteHandle.handle) {
               shadowTimeEl &&
-                (shadowTimeEl.text = getText("noData", "bookmarks"));
+                (shadowTimeEl.text = getText("syncFailed", "bookmarks"));
 
               toast({
-                content: getText("noData", "bookmarks"),
+                content: getText("syncFailed", "bookmarks"),
                 color: "error",
               });
               return;

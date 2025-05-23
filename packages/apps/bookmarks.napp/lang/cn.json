@@ -86,6 +86,7 @@
   "bookmarksPrivacyDesc": "数据完全存储在本地NoneOS系统中，无需担心隐私安全问题。让您的书签管理更加安心可靠。",
   "noSync": "未同步",
   "noData": "暂无数据",
+  "syncFailed": "同步失败",
   "save": "保存",
   "switchToNewFolder": "切换到创建文件夹",
   "switchToNewWeb": "切换到创建网页"
