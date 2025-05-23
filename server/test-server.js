@@ -1,4 +1,5 @@
-import { initServer } from "./main.js";
+import { initServer } from "./dist.js";
+// import { initServer } from "./main.js";
 
 const wss = initServer({
   port: 5579,
