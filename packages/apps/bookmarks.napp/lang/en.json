@@ -60,5 +60,16 @@
   "backgroundTile": "Background Tile",
   "noTile": "No Tile",
   "tile": "Tile",
-  "backgroundColor": "Background Color"
+  "backgroundColor": "Background Color",
+  "openInNewTab": "Open in New Tab",
+  "copyUrl": "Copy URL",
+  "deleteWeb": "Delete Web Page",
+  "defaultThumbnail": "Default Thumbnail",
+  "enterImageUrl": "Enter Image URL",
+  "selectImage": "Select Image",
+  "customThumbnail": "Custom Thumbnail",
+  "webpage": "Web Page",
+  "webfolder": "Web Folder",
+  "bookmarksDesc": "A simple and elegant bookmark management tool developed based on NoneOS.",
+  "bookmarksPrivacyDesc": "Data is completely stored in the local NoneOS system, no need to worry about privacy and security issues. Make your bookmark management more secure and reliable."
 }

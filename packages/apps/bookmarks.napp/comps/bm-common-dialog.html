@@ -135,7 +135,7 @@
         </o-else-if>
       </div>
       <o-if :value="isValidUrl && item.type === 'page'">
-        <h4>组定义缩略图</h4>
+        <h4><n-desc name="customThumbnail" space="bookmarks"></n-desc></h4>
         <bm-img-selector
           sync:type="item.logoType"
           sync:default-pic="item.defaultPic"
@@ -185,7 +185,7 @@
             // Object.assign(this.item, defaultItemData);
           },
           get itemTypeText() {
-            return this.item.type === "page" ? "网页" : "网页夹";
+            return this.item.type === "page" ? getText("webpage", "bookmarks") : getText("webfolder", "bookmarks");
           },
           get isValidUrl() {
             const arr = this.item.url.split(".");

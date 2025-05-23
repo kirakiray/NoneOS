@@ -76,7 +76,7 @@
   </p-button>
 
   <p-dialog :open="open" on:click-mask="open = false">
-    <div slot="title" style="position: relative">设置</div>
+    <div slot="title" style="position: relative"><n-desc name="settings" space="bookmarks"></n-desc></div>
     <p-button
       icon
       variant="text"
@@ -95,7 +95,7 @@
               on:click="activeName = 'display'"
             >
               <n-local-icon name="dial" slot="prefix"></n-local-icon>
-              显示设置
+              <n-desc name="displaySettings" space="bookmarks"></n-desc>
             </p-list-item>
             <p-list-item
               button
@@ -121,7 +121,7 @@
               on:click="activeName = 'about'"
             >
               <n-local-icon name="about" slot="prefix"></n-local-icon>
-              关于Bookmarks
+              <n-desc name="aboutBookmarks" space="bookmarks"></n-desc>
             </p-list-item>
           </p-list>
         </div>
@@ -146,9 +146,9 @@
           >
             <img src="../icon.svg" width="80" />
             <h3>Web Favorites</h3>
-            <div>一款简洁优雅的书签管理工具，基于NoneOS开发。</div>
+            <div><n-desc name="bookmarksDesc" space="bookmarks"></n-desc></div>
             <div>
-              数据完全存储在本地NoneOS系统中，无需担心隐私安全问题。让您的书签管理更加安心可靠。
+              <n-desc name="bookmarksPrivacyDesc" space="bookmarks"></n-desc>
             </div>
           </div>
         </o-else-if>

@@ -59,7 +59,7 @@
       <o-if :value="defaultPic">
         <bm-img attr:src="defaultPic"></bm-img>
       </o-if>
-      <div class="block-title">默认缩略图</div>
+      <div class="block-title"><n-desc name="defaultThumbnail" space="bookmarks"></n-desc></div>
     </div>
     <div
       class="block"
@@ -72,7 +72,7 @@
       <o-else>
         <n-local-icon name="link" style="font-size: 30px"></n-local-icon>
       </o-else>
-      <div class="block-title">填写图片地址</div>
+      <div class="block-title"><n-desc name="enterImageUrl" space="bookmarks"></n-desc></div>
     </div>
     <div
       class="block"
@@ -90,7 +90,7 @@
         variant="text"
         style="margin-top: 6px"
         on:click="shadow.$('#fileInputer').ele.click()"
-        >选择图片</p-button
+        ><n-desc name="selectImage" space="bookmarks"></n-desc></p-button
       >
     </div>
   </div>
@@ -112,7 +112,7 @@
   <o-if :value="type === 'custom'">
     <div style="margin-top: 16px">
       <p-input sync:value="customPic">
-        <label>填写自定义缩略图地址</label>
+        <label><n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc></label>
       </p-input>
     </div>
   </o-if>

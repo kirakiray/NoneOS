@@ -60,5 +60,16 @@
   "backgroundTile": "背景平铺",
   "noTile": "不平铺",
   "tile": "平铺",
-  "backgroundColor": "背景色"
+  "backgroundColor": "背景色",
+  "openInNewTab": "新标签页打开",
+  "copyUrl": "复制网址",
+  "deleteWeb": "删除网页",
+  "defaultThumbnail": "默认缩略图",
+  "enterImageUrl": "填写图片地址",
+  "selectImage": "选择图片",
+  "customThumbnail": "自定义缩略图",
+  "webpage": "网页",
+  "webfolder": "网页夹",
+  "bookmarksDesc": "一款简洁优雅的书签管理工具，基于NoneOS开发。",
+  "bookmarksPrivacyDesc": "数据完全存储在本地NoneOS系统中，无需担心隐私安全问题。让您的书签管理更加安心可靠。"
 }

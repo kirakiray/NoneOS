@@ -60,5 +60,16 @@
   "backgroundTile": "背景タイル",
   "noTile": "タイルなし",
   "tile": "タイル",
-  "backgroundColor": "背景色"
+  "backgroundColor": "背景色",
+  "openInNewTab": "新しいタブで開く",
+  "copyUrl": "URLをコピー",
+  "deleteWeb": "ウェブページを削除",
+  "defaultThumbnail": "デフォルトサムネイル",
+  "enterImageUrl": "画像URLを入力",
+  "selectImage": "画像を選択",
+  "customThumbnail": "カスタムサムネイル",
+  "webpage": "ウェブページ",
+  "webfolder": "ウェブフォルダ",
+  "bookmarksDesc": "NoneOSをベースに開発されたシンプルでエレガントなブックマーク管理ツール。",
+  "bookmarksPrivacyDesc": "データはローカルのNoneOSシステムに完全に保存され、プライバシーとセキュリティの問題を心配する必要はありません。より安全で信頼性の高いブックマーク管理を実現します。"
 }
