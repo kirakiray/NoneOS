@@ -55,11 +55,13 @@
                 if (this.html !== val) {
                   this.html = val;
                   this.emit("change-desc-text");
+                  this.emit("change");
                 }
               } else {
                 if (this.text !== val) {
                   this.text = val;
                   this.emit("change-desc-text");
+                  this.emit("change");
                 }
               }
             }, 50);

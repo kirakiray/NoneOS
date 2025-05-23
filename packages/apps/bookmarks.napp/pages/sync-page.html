@@ -26,7 +26,9 @@
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     <n-desc name="exportDataDesc" space="bookmarks"></n-desc>
   </div>
-  <p-button on:click="clickInput"><n-desc name="importData" space="bookmarks"></n-desc></p-button>
+  <p-button on:click="clickInput"
+    ><n-desc name="importData" space="bookmarks"></n-desc
+  ></p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     <n-desc name="importDataDesc" space="bookmarks"></n-desc>
   </div>
@@ -38,8 +40,8 @@
     on:change="inputChange"
   />
   <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength"
-    ><n-desc name="clearData" space="bookmarks"></n-desc></p-button
-  >
+    ><n-desc name="clearData" space="bookmarks"></n-desc
+  ></p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
     <n-desc name="clearDataDesc" space="bookmarks"></n-desc>
   </div>
@@ -247,23 +249,29 @@
 
             const cached = [];
             for await (let handle of bookmarkBackupDirHandle.values()) {
-              const text = await handle.text();
-              const data = JSON.parse(text);
+              try {
+                const text = await handle.text();
+                const data = JSON.parse(text);
 
-              const userId = handle.name.replace(".json", "");
-              const { cardsLastModified } = data;
+                const userId = handle.name.replace(".json", "");
+                const { cardsLastModified } = data;
 
-              if (cardsLastModified) {
-                const shadowEl = this.shadow
-                  .$("n-device-list")
-                  .shadow.$(`[data-user-id="${userId}"]`);
+                if (cardsLastModified) {
+                  const shadowEl = this.shadow
+                    .$("n-device-list")
+                    .shadow.$(`[data-user-id="${userId}"]`);
 
-                // 添加更新时间
-                shadowEl.push(
-                  `<div slot="suffix">${new Date(
-                    cardsLastModified
-                  ).toLocaleString()}</div>`
-                );
+                  // 添加更新时间
+                  shadowEl.push(
+                    `<div slot="suffix">${new Date(
+                      cardsLastModified
+                    ).toLocaleString()}</div>`
+                  );
+                }
+              } catch (err) {
+                // 处理文件读取或解析错误
+                console.error("处理备份文件时出错:", err);
+                continue;
               }
             }
 

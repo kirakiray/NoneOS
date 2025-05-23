@@ -28,6 +28,11 @@
           }, 10);
         },
       },
+      ready() {
+        this.on("change", () => {
+          this.updateChange();
+        });
+      },
       attached() {
         this._oriPar = this.parent;
         this.updateChange();
