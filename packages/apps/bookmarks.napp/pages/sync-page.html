@@ -87,6 +87,17 @@
               }
             );
 
+            if (!targetRemoteHandle.handle) {
+              shadowTimeEl &&
+                (shadowTimeEl.text = getText("noData", "bookmarks"));
+
+              toast({
+                content: getText("noData", "bookmarks"),
+                color: "error",
+              });
+              return;
+            }
+
             // 从文件夹中获取数据
             const remoteDataHandle = await targetRemoteHandle.handle.get(
               "data"
@@ -110,7 +121,9 @@
                     ).toLocaleString());
 
                   toast({
-                    content: getText("syncLatest", "bookmarks", {userName: targetRemoteHandle.userName}),
+                    content: getText("syncLatest", "bookmarks", {
+                      userName: targetRemoteHandle.userName,
+                    }),
                     color: "success",
                   });
                   return;
@@ -130,7 +143,9 @@
             await backupFileHandle.write(JSON.stringify(bookmarkBackupData));
 
             toast({
-              content: getText("syncSuccess", "bookmarks", {userName: targetRemoteHandle.userName}),
+              content: getText("syncSuccess", "bookmarks", {
+                userName: targetRemoteHandle.userName,
+              }),
               color: "success",
             });
 
@@ -188,7 +203,9 @@
                 });
               } catch (err) {
                 toast({
-                  content: getText("importFailed", "bookmarks", {error: err.message}),
+                  content: getText("importFailed", "bookmarks", {
+                    error: err.message,
+                  }),
                   color: "error",
                 });
                 console.error("数据导入错误:", err);
@@ -283,7 +300,9 @@
             items.forEach((e) => {
               const hasTime = e.$('[slot="suffix"]');
               if (!hasTime) {
-                e.push(`<div slot="suffix">未同步</div>`);
+                e.push(
+                  `<div slot="suffix">${getText("noSync", "bookmarks")}</div>`
+                );
               }
             });
           }, 500);

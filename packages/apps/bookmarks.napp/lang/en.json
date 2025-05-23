@@ -82,5 +82,7 @@
   "importSuccess": "Import successful",
   "importFailed": "Import failed: {error}",
   "exportSuccess": "Export successful",
-  "clearConfirm": "This will permanently delete all data and cannot be recovered. We recommend exporting a backup first. Are you sure you want to clear all data?"
+  "clearConfirm": "This will permanently delete all data and cannot be recovered. We recommend exporting a backup first. Are you sure you want to clear all data?",
+  "noSync": "Not synced",
+  "noData": "No data"
 }

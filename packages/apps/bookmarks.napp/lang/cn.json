@@ -82,5 +82,7 @@
   "webpage": "网页",
   "webfolder": "网页夹",
   "bookmarksDesc": "一款简洁优雅的书签管理工具，基于NoneOS开发。",
-  "bookmarksPrivacyDesc": "数据完全存储在本地NoneOS系统中，无需担心隐私安全问题。让您的书签管理更加安心可靠。"
+  "bookmarksPrivacyDesc": "数据完全存储在本地NoneOS系统中，无需担心隐私安全问题。让您的书签管理更加安心可靠。",
+  "noSync": "未同步",
+  "noData": "暂无数据"
 }
