@@ -50,6 +50,7 @@
       const { getConnection } = await load("/packages/user/connection/main.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { createData } = await load("/packages/hybird-data/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -109,7 +110,7 @@
                     ).toLocaleString());
 
                   toast({
-                    content: `${targetRemoteHandle.userName} 的网页标签数据已是最新`,
+                    content: getText("syncLatest", "bookmarks", {userName: targetRemoteHandle.userName}),
                     color: "success",
                   });
                   return;
@@ -129,7 +130,7 @@
             await backupFileHandle.write(JSON.stringify(bookmarkBackupData));
 
             toast({
-              content: `备份 ${targetRemoteHandle.userName} 的网页标签数据成功`,
+              content: getText("syncSuccess", "bookmarks", {userName: targetRemoteHandle.userName}),
               color: "success",
             });
 
@@ -150,9 +151,9 @@
             if (this.cardsLength) {
               // 查看是否已经有数据，有的话提示覆盖
               const res = await confirm({
-                content: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
-                yes: "覆盖",
-                cancel: "取消",
+                content: getText("importConfirm", "bookmarks"),
+                yes: getText("overwrite", "bookmarks"),
+                cancel: getText("cancel", "bookmarks"),
               });
 
               if (!res) return;
@@ -182,12 +183,12 @@
                 Object.assign(mainData.setting, data.setting);
                 this.cardsLength = mainData.cards.length;
                 toast({
-                  content: "导入成功",
+                  content: getText("importSuccess", "bookmarks"),
                   color: "success",
                 });
               } catch (err) {
                 toast({
-                  content: `导入失败: ${err.message}`,
+                  content: getText("importFailed", "bookmarks", {error: err.message}),
                   color: "error",
                 });
                 console.error("数据导入错误:", err);
@@ -206,7 +207,7 @@
             a.download = "bookmarks.json";
             a.click();
             toast({
-              content: "导出成功",
+              content: getText("exportSuccess", "bookmarks"),
               color: "success",
             });
             URL.revokeObjectURL(a.href); // 释放URL对象
@@ -216,17 +217,16 @@
             await mainData.ready(true);
             const res = await confirm({
               color: "error",
-              title: "清空数据",
-              content:
-                "此操作将永久删除所有数据且无法恢复，建议您先导出备份。确定要清空全部数据吗？",
-              yes: "清空",
-              cancel: "取消",
+              title: getText("clearData", "bookmarks"),
+              content: getText("clearConfirm", "bookmarks"),
+              yes: getText("clear", "bookmarks"),
+              cancel: getText("cancel", "bookmarks"),
             });
             if (!res) return;
             mainData.cards.splice(0, mainData.cards.length);
             this.cardsLength = 0;
             toast({
-              content: "清空成功",
+              content: getText("clearSuccess", "bookmarks"),
               color: "success",
             });
           },
