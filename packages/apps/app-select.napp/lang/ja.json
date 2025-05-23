@@ -1,4 +1,7 @@
 {
-  "searchPlace": "アプリを検索",
-  "emptyTips": "検索条件に一致するアプリはありません"
+  "searchPlace": "検索",
+  "emptyTips": "該当なし",
+  "runApp": "実行",
+  "openInNewTab": "新規タブ",
+  "openInNewWindow": "新規ウィンドウ"
 }

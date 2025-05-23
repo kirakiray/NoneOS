@@ -1,4 +1,7 @@
 {
   "searchPlace": "Search Applications",
-  "emptyTips": "No applications match the search criteria"
+  "emptyTips": "No applications match the search criteria",
+  "runApp": "Run application",
+  "openInNewTab": "Open in new tab",
+  "openInNewWindow": "Open in new window"
 }

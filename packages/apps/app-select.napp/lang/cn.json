@@ -1,4 +1,7 @@
 {
   "searchPlace": "搜索应用",
-  "emptyTips": "没有符合搜索条件应用"
+  "emptyTips": "没有符合搜索条件应用",
+  "runApp": "运行应用",
+  "openInNewTab": "新标签打开",
+  "openInNewWindow": "新窗口打开"
 }

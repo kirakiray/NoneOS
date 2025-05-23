@@ -150,15 +150,15 @@
           >
             <p-menu-item on:click="clickRunItem">
               <n-local-icon name="tab-app" slot="prefix"></n-local-icon>
-              运行应用
+              <n-desc name="runApp" space="app-select"></n-desc>
             </p-menu-item>
             <p-menu-item on:click="clickRunInNewTab($event,'new-tab')">
               <n-local-icon name="tab" slot="prefix"></n-local-icon>
-              新标签打开
+              <n-desc name="openInNewTab" space="app-select"></n-desc>
             </p-menu-item>
             <p-menu-item on:click="clickRunInNewTab($event,'new-window')">
               <n-local-icon name="tab-group" slot="prefix"></n-local-icon>
-              新窗口打开
+              <n-desc name="openInNewWindow" space="app-select"></n-desc>
             </p-menu-item>
           </p-menu>
           <div class="main">
