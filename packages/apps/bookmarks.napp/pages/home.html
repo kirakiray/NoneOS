@@ -228,7 +228,7 @@
       </p-menu-item>
     </p-menu>
     <div class="main-inner">
-      <o-if :value="cards.dataStatus === 'preparing'">
+      <o-if :value="cards?.dataStatus === 'preparing'">
         <p-progress
           type="circle"
           variant="indeterminate"
@@ -264,6 +264,11 @@
             <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
           </o-if>
         </bm-drag-container>
+        <o-if :value="!cards?.length && localSelfUserId !== usedUserId">
+          <div style="text-align: center">
+            <n-desc name="noData" space="bookmarks"></n-desc>
+          </div>
+        </o-if>
       </o-else>
     </div>
   </p-bind-contextmenu>
@@ -522,7 +527,14 @@
             const _target = this._menuTarget;
             const data = _target.item;
 
-            Object.assign(data, this.dialogData.item);
+            const newData = { ...this.dialogData.item };
+
+            if (newData.type === "folder") {
+              // 文件夹类型忽略cards属性
+              delete newData.cards;
+            }
+
+            Object.assign(data, newData);
 
             if (data.logoType === "default") {
               // 选择的是默认图片，清除其余两项
@@ -582,6 +594,8 @@
           });
 
           const mainData = await createData(dataHandle);
+
+          window._mainData = mainData;
 
           await mainData.ready();
 

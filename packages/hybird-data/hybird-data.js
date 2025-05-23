@@ -6,11 +6,14 @@ import {
   Identification,
 } from "./public.js";
 
+const ROOTMAPPER = Symbol("rootMapper");
+const ROOTSPACEHANDLE = Symbol("rootSpaceHandle");
+
 export class HybirdData extends Stanz {
   #dataId;
   #root;
-  #rootSpaceHandle = null;
-  #rootMapper = null;
+  // [ROOTSPACEHANDLE] = null;
+  // [ROOTMAPPER] = null;
   constructor(data, options) {
     super({
       dataStatus: "preparing",
@@ -27,7 +30,7 @@ export class HybirdData extends Stanz {
 
       this.#root = owner.#root || owner;
       this.#dataId = options._dataId; // 继承旧的id
-      this.#root.#rootMapper.set(this.#dataId, this); // 将数据添加到root对象中
+      this.#root[ROOTMAPPER].set(this.#dataId, this); // 将数据添加到root对象中
 
       // 初始化设置数据
       this.#initData(data).then((e) => (this.dataStatus = "ok"));
@@ -37,7 +40,7 @@ export class HybirdData extends Stanz {
 
       this.#root = owner.#root || owner;
       this.#dataId = getRandomId(); // 随机生成一个id
-      this.#root.#rootMapper.set(this.#dataId, this); // 将数据添加到root对象中
+      this.#root[ROOTMAPPER].set(this.#dataId, this); // 将数据添加到root对象中
 
       // 合并数据
       Object.assign(this, data);
@@ -48,9 +51,9 @@ export class HybirdData extends Stanz {
       this.dataStatus = "ok";
     } else if (options.handle) {
       // 从文件夹中获取数据，代表是root对象
-      this.#rootSpaceHandle = options.handle;
+      this[ROOTSPACEHANDLE] = options.handle;
       this.#dataId = "_root";
-      this.#rootMapper = new Map();
+      this[ROOTMAPPER] = new Map();
 
       this.#initRoot();
     } else {
@@ -263,7 +266,7 @@ export class HybirdData extends Stanz {
   }
 
   get _rootMapper() {
-    return this._root.#rootMapper;
+    return this._root[ROOTMAPPER];
   }
 
   get _dataId() {
@@ -271,7 +274,7 @@ export class HybirdData extends Stanz {
   }
 
   get _spaceHandle() {
-    return this.#rootSpaceHandle || this.#root.#rootSpaceHandle;
+    return this[ROOTSPACEHANDLE] || this.#root[ROOTSPACEHANDLE];
   }
 
   toJSON() {
