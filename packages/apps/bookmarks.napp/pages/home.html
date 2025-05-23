@@ -285,7 +285,6 @@
 
       return {
         data: {
-          usersOpts: [], // 可以访问的远端设备
           // usedUserId: null, // 当前标签使用中的用户id
           usedUserId: selfUserStore.userId, // 当前标签使用中的用户id
           localSelfUserId: selfUserStore.userId, // 本机设备用户id
@@ -393,11 +392,34 @@
                 console.warn(err);
               }
 
+              // 查看是否已存在，已存在就更新 _mainData
+
+              const target = this.allDatas.find((e) => e.userId === userId);
+
+              if (target) {
+                target._mainData = data;
+                continue;
+              }
+
               this.allDatas.push({
                 userName,
                 userId,
                 _mainData: data,
               });
+            }
+
+            // 更新卡片
+            const target = this.allDatas.find(
+              (e) => e.userId === this.usedUserId
+            );
+
+            if (target) {
+              this.cards = target._mainData.cards;
+              this.paths = [
+                {
+                  name: "Root",
+                },
+              ];
             }
           },
           async clickBack() {

@@ -131,6 +131,8 @@
               color: "success",
             });
 
+            this.app.current?.loadBackupUserOptions();
+
             // 更新列表上的时间
             shadowTimeEl &&
               (shadowTimeEl.text = new Date(
@@ -264,6 +266,18 @@
                 );
               }
             }
+
+            // 列表内未存在的代表没有备份过
+            const items = this.shadow
+              .$("n-device-list")
+              .shadow.all("p-list-item");
+
+            items.forEach((e) => {
+              const hasTime = e.$('[slot="suffix"]');
+              if (!hasTime) {
+                e.push(`<div slot="suffix">未同步</div>`);
+              }
+            });
           }, 500);
         },
       };
