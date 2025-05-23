@@ -278,6 +278,7 @@
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");
       const { toast } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       const { defaultItemData } = await load("../common/default-item-data.js");
       const { getUserName } = await load("/packages/util/get-user-info.js");
@@ -294,7 +295,7 @@
           // 当前目录路径
           paths: [
             {
-              name: "Root",
+              name: getText("rootDirectory", "bookmarks"),
             },
           ],
           cards: [], // 当前显示的数据
@@ -365,7 +366,7 @@
             this.usedUserId = value;
             this.paths = [
               {
-                name: "Root",
+                name: "根目录",
               },
             ];
             this.cards = targetItem._mainData.cards;
@@ -419,7 +420,7 @@
               this.cards = target._mainData.cards;
               this.paths = [
                 {
-                  name: "Root",
+                  name: getText("rootDirectory", "bookmarks"),
                 },
               ];
             }
@@ -495,7 +496,7 @@
             // 复制网址
             copyTextToClipboard(data.url);
             toast({
-              content: "复制成功",
+              content: getText("copySuccess", "bookmarks"),
               color: "success",
             });
           },
@@ -649,7 +650,7 @@
             {
               userId: selfUserStore.userId,
               // userName: selfUserStore.userName,
-              userName: "本机设备",
+              userName: getText("localDevice", "bookmarks"),
               _mainData: mainData,
             },
           ];
