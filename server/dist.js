@@ -1,12 +1,6 @@
 import { WebSocketServer } from 'ws';
 import { readFile } from 'node:fs/promises';
 
-// 查看是否Safari
-(() => {
-  const ua = navigator.userAgent.toLowerCase();
-  return ua.includes("safari") && !ua.includes("chrome");
-})();
-
 /**
  * @file util.js
  * @author yao

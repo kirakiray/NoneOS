@@ -1,5 +1,3 @@
-export { isSafari } from "../libs/util/is-safari.js";
-
 /**
  * @file util.js
  * @author yao
