@@ -14,27 +14,35 @@
     }
   </style>
 
-  <h4>基础功能</h4>
+  <h4><n-desc name="basicFunctions" space="bookmarks"></n-desc></h4>
   <div style="padding: 8px 0">
     <p-select sync:value="setting.sort">
-      <label>书签排序</label>
-      <p-option value="custom">手动排序</p-option>
-      <p-option value="click" disabled>根据点击排序</p-option>
-      <p-option value="name" disabled>按名称排序(A-Z)</p-option>
+      <label><n-desc name="bookmarkSort" space="bookmarks"></n-desc></label>
+      <p-option value="custom"
+        ><n-desc name="manualSort" space="bookmarks"></n-desc
+      ></p-option>
+      <p-option value="click" disabled
+        ><n-desc name="clickSort" space="bookmarks"></n-desc
+      ></p-option>
+      <p-option value="name" disabled
+        ><n-desc name="nameSort" space="bookmarks"></n-desc
+      ></p-option>
     </p-select>
   </div>
   <div style="padding: 8px 0">
-    <p-switch sync:value="setting.showCardTitle"> 显示书签标题 </p-switch>
+    <p-switch sync:value="setting.showCardTitle">
+      <n-desc name="showBookmarkTitle" space="bookmarks"></n-desc>
+    </p-switch>
   </div>
   <div style="padding: 8px 0">
     <p-switch
       attr:disabled="setting.showCardTitle === 'off'"
       sync:value="setting.showClickCount"
     >
-      显示点击次数
+      <n-desc name="showClickCount" space="bookmarks"></n-desc>
     </p-switch>
   </div>
-  <h4>访问统计</h4>
+  <h4><n-desc name="accessStatistics" space="bookmarks"></n-desc></h4>
   <!-- <div style="color: var(--md-sys-color-normal)">还在开发中...</div> -->
   <p-button
     size="small"
@@ -42,11 +50,12 @@
     on:click="clearClickCount"
     style="margin: 8px 0 0 1px"
   >
-    清空点击次数
+    <n-desc name="clearClickCount" space="bookmarks"></n-desc>
   </p-button>
   <script>
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -57,10 +66,11 @@
         proto: {
           async clearClickCount() {
             const result = await confirm({
-              title: "确认清空点击次数？",
-              content: "清空后无法恢复",
-              yes: "清空",
-              cancel: "取消",
+              // title: this.$t("bookmarks.confirmClearClickCount"),
+              title: getText("confirmClearClickCount", "bookmarks"),
+              content: getText("clearClickCountWarning", "bookmarks"),
+              yes: getText("clear", "bookmarks"),
+              cancel: getText("cancel", "bookmarks"),
             });
 
             if (!result) {
@@ -85,7 +95,7 @@
             await clearCount(mainData.cards);
 
             toast({
-              content: "清空成功",
+              content: getText("clearSuccess", "bookmarks"),
               color: "success",
             });
           },

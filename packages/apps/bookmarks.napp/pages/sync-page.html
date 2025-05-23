@@ -14,21 +14,21 @@
       margin-top: 0;
     }
   </style>
-  <h4>其他设备</h4>
+  <h4><n-desc name="otherDevices" space="bookmarks"></n-desc></h4>
   <div style="font-size: 12px; margin-bottom: 4px">
-    点击设备后可将其书签数据同步到当前本地，请确保目标设备已连接网络。
+    <n-desc name="syncTips" space="bookmarks"></n-desc>
   </div>
   <n-device-list on:click-device="clickDeviceItem"></n-device-list>
-  <h4>本地操作</h4>
+  <h4><n-desc name="localOperations" space="bookmarks"></n-desc></h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
-    导出数据
+    <n-desc name="exportData" space="bookmarks"></n-desc>
   </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    将所有书签数据（包含访问记录和个性化设置）导出至本地文件，方便您进行数据备份与迁移。
+    <n-desc name="exportDataDesc" space="bookmarks"></n-desc>
   </div>
-  <p-button on:click="clickInput">导入数据</p-button>
+  <p-button on:click="clickInput"><n-desc name="importData" space="bookmarks"></n-desc></p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    将备份的数据文件导入到当前设备。
+    <n-desc name="importDataDesc" space="bookmarks"></n-desc>
   </div>
   <input
     style="display: none"
@@ -38,10 +38,10 @@
     on:change="inputChange"
   />
   <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength"
-    >清空数据</p-button
+    ><n-desc name="clearData" space="bookmarks"></n-desc></p-button
   >
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    清空当前设备上的所有书签数据。
+    <n-desc name="clearDataDesc" space="bookmarks"></n-desc>
   </div>
   <script>
     export default async ({ load }) => {

@@ -66,10 +66,14 @@
       </div>
 
       <o-if :value="editmode">
-        <div>编辑{{itemTypeText}}</div>
+        <div>
+          <n-desc name="edit" space="bookmarks"></n-desc>{{itemTypeText}}
+        </div>
       </o-if>
       <o-else>
-        <div>添加新{{itemTypeText}}</div>
+        <div>
+          <n-desc name="addNew" space="bookmarks"></n-desc>{{itemTypeText}}
+        </div>
       </o-else>
 
       <o-if :value="!editmode">
@@ -86,7 +90,7 @@
               name="folder"
               style="display: block; margin-right: 6px"
             ></n-local-icon>
-            切换到新建网页夹
+            <n-desc name="switchToNewFolder" space="bookmarks"></n-desc>
           </p-button>
         </o-if>
         <o-else>
@@ -101,7 +105,7 @@
               name="link"
               style="display: block; margin-right: 6px"
             ></n-local-icon>
-            切换到新建网页
+            <n-desc name="switchToNewWeb" space="bookmarks"></n-desc>
           </p-button>
         </o-else>
       </o-if>
@@ -111,18 +115,21 @@
         <o-if :value="item.type === 'page'">
           <p-input sync:value="item.url" style="flex: 2">
             <label>
-              网址
+              <n-desc name="url" space="bookmarks"></n-desc>
               <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
           <p-input sync:value="item.webTitle">
-            <label> 标题 （选填） </label>
+            <label>
+              <n-desc name="titleOptional" space="bookmarks"></n-desc>
+            </label>
           </p-input>
         </o-if>
         <o-else-if :value="item.type === 'folder'">
           <p-input sync:value="item.webTitle">
             <label>
-              标题 <b style="color: var(--md-sys-color-error)">*</b>
+              <n-desc name="title" space="bookmarks"></n-desc>
+              <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
         </o-else-if>
@@ -139,13 +146,18 @@
       </o-if>
     </div>
     <div slot="bottom">
-      <p-button variant="outlined" on:click="clickClose">取消</p-button>
-      <p-button on:click="clickSave">保存</p-button>
+      <p-button variant="outlined" on:click="clickClose"
+        ><n-desc name="cancel" space="bookmarks"></n-desc
+      ></p-button>
+      <p-button on:click="clickSave"
+        ><n-desc name="save" space="bookmarks"></n-desc
+      ></p-button>
     </div>
   </p-dialog>
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       const { defaultItemData } = await load("../common/default-item-data.js");
 
@@ -204,7 +216,7 @@
                 !this.item.customPic.trim()
               ) {
                 toast({
-                  content: "请输入自定义缩略图地址",
+                  content: getText("enterCustomThumbnailUrl", "bookmarks"),
                   color: "error",
                 });
                 return;
@@ -213,7 +225,7 @@
               // 文件夹类型
               if (!this.item.webTitle.trim()) {
                 toast({
-                  content: "请输入文件夹名称",
+                  content: getText("enterFolderName", "bookmarks"),
                   color: "error",
                 });
                 return;

@@ -39,7 +39,7 @@
     .bg-opts p-select,
     .bg-opts p-input {
       display: inline-block;
-      min-width: 100px;
+      min-width: 160px;
       margin: 12px 12px 0 0;
     }
     .bg-opts p-input {
@@ -47,27 +47,27 @@
     }
   </style>
   <div>
-    <h4 class="hide-in-mobile">尺寸设置</h4>
+    <h4 class="hide-in-mobile"><n-desc name="sizeSettings" space="bookmarks"></n-desc></h4>
     <div class="inputer-line hide-in-mobile">
-      块宽度
+      <n-desc name="blockWidth" space="bookmarks"></n-desc>
       <p-slider no-bubble sync:value="setting.width" min="100" max="300">
       </p-slider>
       <p-input readonly sync:value="setting.width" size="small"></p-input>
     </div>
     <div class="inputer-line hide-in-mobile">
-      块高度
+      <n-desc name="blockHeight" space="bookmarks"></n-desc>
       <p-slider no-bubble sync:value="setting.height" min="50" max="150">
       </p-slider>
       <p-input readonly sync:value="setting.height" size="small"></p-input>
     </div>
     <div class="inputer-line hide-in-mobile">
-      块间隔
+      <n-desc name="blockSpacing" space="bookmarks"></n-desc>
       <p-slider no-bubble sync:value="setting.space" min="2" max="40">
       </p-slider>
       <p-input readonly sync:value="setting.space" size="small"></p-input>
     </div>
     <div class="inputer-line hide-in-mobile">
-      容器宽度
+      <n-desc name="containerWidth" space="bookmarks"></n-desc>
       <p-slider
         no-bubble
         sync:value="setting.containerMaxWidth"
@@ -87,9 +87,9 @@
       class="hide-in-mobile"
       style="margin-top: 8px"
     >
-      恢复默认尺寸
+      <n-desc name="restoreDefaultSize" space="bookmarks"></n-desc>
     </p-button>
-    <h4>背景设置</h4>
+    <h4><n-desc name="backgroundSettings" space="bookmarks"></n-desc></h4>
     <div style="display: flex; align-items: flex-end">
       <div
         style="
@@ -111,7 +111,7 @@
               on:click="setting.bgurl = defaultBgurl"
               style="margin-left: 8px"
             >
-              还原默认背景图
+              <n-desc name="restoreDefaultBackground" space="bookmarks"></n-desc>
             </p-button>
           </div>
         </o-if>
@@ -122,7 +122,7 @@
             on:click="shadow.$('#bgimgInputer').ele.click()"
             style="margin-left: 8px; margin-top: 4px"
           >
-            更换背景图
+            <n-desc name="changeBackground" space="bookmarks"></n-desc>
           </p-button>
           <input
             type="file"
@@ -136,28 +136,28 @@
     </div>
     <div class="bg-opts">
       <p-select size="small" sync:value="setting.bgposition">
-        <label>背景对齐</label>
-        <p-option value="center top">上中</p-option>
-        <p-option value="center center">正中</p-option>
-        <p-option value="center bottom">下中</p-option>
-        <p-option value="left top">左上方</p-option>
-        <p-option value="left center">左中</p-option>
-        <p-option value="left bottom">左下方</p-option>
-        <p-option value="right top">右上方</p-option>
-        <p-option value="right center">右中</p-option>
-        <p-option value="right bottom">右下方</p-option>
+        <label><n-desc name="backgroundAlign" space="bookmarks"></n-desc></label>
+        <p-option value="center top"><n-desc name="topCenter" space="bookmarks"></n-desc></p-option>
+        <p-option value="center center"><n-desc name="center" space="bookmarks"></n-desc></p-option>
+        <p-option value="center bottom"><n-desc name="bottomCenter" space="bookmarks"></n-desc></p-option>
+        <p-option value="left top"><n-desc name="topLeft" space="bookmarks"></n-desc></p-option>
+        <p-option value="left center"><n-desc name="leftCenter" space="bookmarks"></n-desc></p-option>
+        <p-option value="left bottom"><n-desc name="bottomLeft" space="bookmarks"></n-desc></p-option>
+        <p-option value="right top"><n-desc name="topRight" space="bookmarks"></n-desc></p-option>
+        <p-option value="right center"><n-desc name="rightCenter" space="bookmarks"></n-desc></p-option>
+        <p-option value="right bottom"><n-desc name="bottomRight" space="bookmarks"></n-desc></p-option>
       </p-select>
       <p-select size="small" sync:value="setting.bgsize">
-        <label>背景显示模式</label>
-        <p-option value="cover">填充满（可能裁剪）</p-option>
-        <p-option value="contain">完整显示（可能留白）</p-option>
-        <p-option value="auto">原始尺寸</p-option>
+        <label><n-desc name="backgroundDisplayMode" space="bookmarks"></n-desc></label>
+        <p-option value="cover"><n-desc name="fillMode" space="bookmarks"></n-desc></p-option>
+        <p-option value="contain"><n-desc name="fitMode" space="bookmarks"></n-desc></p-option>
+        <p-option value="auto"><n-desc name="originalSize" space="bookmarks"></n-desc></p-option>
       </p-select>
       <o-if :value="setting.bgsize !== 'cover'">
         <p-select size="small" sync:value="setting.bgrepeat">
-          <label>背景平铺</label>
-          <p-option value="no-repeat">不平铺</p-option>
-          <p-option value="repeat">平铺</p-option>
+          <label><n-desc name="backgroundTile" space="bookmarks"></n-desc></label>
+          <p-option value="no-repeat"><n-desc name="noTile" space="bookmarks"></n-desc></p-option>
+          <p-option value="repeat"><n-desc name="tile" space="bookmarks"></n-desc></p-option>
         </p-select>
       </o-if>
     </div>
@@ -166,7 +166,7 @@
       class="bg-opts"
       style="display: flex; align-items: flex-start; margin-top: 16px"
     >
-      <span style="display: inline-block; padding-top: 8px">背景色</span>
+      <span style="display: inline-block; padding-top: 8px"><n-desc name="backgroundColor" space="bookmarks"></n-desc></span>
       <p-color-picker
         sync:value="setting.bgcolor"
         style="margin-left: 8px"

@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/i18n/component.html"></l-m>
   <l-m src="../comps/bookmark-card.html"></l-m>
   <l-m src="../comps/bm-add-card.html"></l-m>
   <l-m src="../comps/bm-common-dialog.html"></l-m>
@@ -208,7 +209,8 @@
         attr:disabled="localSelfUserId !== usedUserId"
       >
         <n-local-icon name="edit" slot="prefix"></n-local-icon>
-        编辑网页
+        <!-- 编辑网页 -->
+        <n-desc name="editWeb" space="bookmarks"></n-desc>
       </p-menu-item>
       <p-menu-item
         on:click="clickCopyLink"
@@ -668,6 +670,9 @@
             });
           this.cards = [];
           this.setting = {};
+        },
+        ready() {
+          // 添加语言包
         },
       };
     };
