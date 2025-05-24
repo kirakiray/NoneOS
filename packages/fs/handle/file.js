@@ -1,7 +1,7 @@
 import { BaseHandle } from "./base.js";
 import { notify } from "../public/base.js";
 import { extendFileHandle } from "../public/file.js";
-import { isSafari } from "../util.js";
+import isSafari from "../../libs/util/is-safari.js";
 
 export class FileHandle extends BaseHandle {
   constructor(...args) {

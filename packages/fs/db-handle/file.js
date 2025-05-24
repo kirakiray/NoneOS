@@ -2,7 +2,7 @@ import { BaseDBHandle } from "./base.js";
 import { notify } from "../public/base.js";
 import { extendFileHandle } from "../public/file.js";
 import { getData, setData } from "./db.js";
-import { isSafari } from "../util.js";
+import isSafari from "../../libs/util/is-safari.js";
 
 export class FileDBHandle extends BaseDBHandle {
   constructor(...args) {
