@@ -17,22 +17,28 @@ export const getServers = async (useLocalUserDirName) => {
       await selfUserStore.servers.ready();
 
       // 加入测试地址
-      selfUserStore.servers.push({
-        url: "ws://localhost:5579/",
-      });
-      selfUserStore.servers.push({
-        url: "ws://localhost:5589/",
-      });
+      selfUserStore.servers.push(
+        {
+          url: "ws://localhost:5579/",
+        },
+        {
+          url: "ws://localhost:5589/",
+        }
+      );
 
       await selfUserStore.servers.ready(true);
     } else {
       // 加入正式地址
-      selfUserStore.servers.push({
-        url: "wss://hand-ca.tutous.com",
-      });
-      selfUserStore.servers.push({
-        url: "wss://hand-cn.tutous.com:812",
-      });
+      selfUserStore.servers.push(
+        {
+          url: "wss://hand-ca.tutous.com",
+        },
+        {
+          url: "wss://hand-cn.tutous.com:812",
+        }
+      );
+
+      await selfUserStore.servers.ready(true);
     }
 
     // 等待300ms，确保数据同步完成
