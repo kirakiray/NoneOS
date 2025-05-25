@@ -192,13 +192,20 @@
             return new Date(item.connectedTime).toLocaleString();
           },
           addServer() {
+            let { newUrl } = this;
+
+            if (!/:\/\//.test(newUrl)) {
+              newUrl = `wss://${newUrl}`;
+            }
+
+            const { origin: newOrigin } = new URL(newUrl);
             // 确保不会重复添加
             if (
-              this.servers.find(
-                (item) =>
-                  item.serverUrl.replace(/\/$/, "") ===
-                  this.newUrl.replace(/\/$/, "")
-              )
+              this.servers.some((item) => {
+                const { origin } = new URL(item.serverUrl);
+
+                return newOrigin === origin;
+              })
             ) {
               toast({
                 content: `不能添加重复的服务器: ${this.newUrl}`,
@@ -207,7 +214,7 @@
               return;
             }
 
-            addServer(this.newUrl);
+            addServer(newUrl);
             this.newUrl = "";
           },
           async removeServer(item) {
