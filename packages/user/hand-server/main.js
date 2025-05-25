@@ -26,8 +26,13 @@ export const getServers = async (useLocalUserDirName) => {
 
       await selfUserStore.servers.ready(true);
     } else {
-      // TODO: 加入官方推荐的地址
-      debugger;
+      // 加入正式地址
+      selfUserStore.servers.push({
+        url: "wss://hand-ca.tutous.com",
+      });
+      selfUserStore.servers.push({
+        url: "wss://hand-cn.tutous.com:812",
+      });
     }
 
     // 等待300ms，确保数据同步完成
