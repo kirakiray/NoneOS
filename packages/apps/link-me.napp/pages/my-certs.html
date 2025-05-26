@@ -9,22 +9,73 @@
       color: var(--md-sys-color-primary);
       font-weight: bold;
     }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      padding-left: 16px;
+    }
+
+    .info-item n-copy-span {
+      flex: 1;
+      margin-left: 8px;
+      max-width: 280px;
+    }
   </style>
   <p-list>
     <p-list-item button="suffix" collapse-childs="close">
       <span class="root-item">本地证书</span>
       <i toggle-collapse triangle slot="suffix"></i>
       <p-list slot="childs">
-        <p-list-item>
-          <n-local-icon name="cert" slot="prefix"></n-local-icon>
-        </p-list-item>
+        <o-fill :value="certs">
+          <p-list-item button="suffix" collapse-childs="close">
+            <n-local-icon
+              name="cert"
+              slot="prefix"
+              style="
+                display: block;
+                margin-right: 8px;
+                color: var(--md-sys-color-primary);
+              "
+            ></n-local-icon>
+            {{$data.data.name}}
+
+            <i toggle-collapse triangle slot="suffix"></i>
+            <p-list slot="childs">
+              <p-list-item>
+                <div class="info-item">类型 {{$data.data.type}}</div>
+              </p-list-item>
+              <p-list-item>
+                <div class="info-item">
+                  公钥
+                  <n-copy-span> {{$data.data.publicKey}} </n-copy-span>
+                </div>
+              </p-list-item>
+              <p-list-item>
+                <div class="info-item">
+                  签名
+                  <n-copy-span> {{$data.signature}} </n-copy-span>
+                </div>
+              </p-list-item>
+            </p-list>
+          </p-list-item>
+        </o-fill>
       </p-list>
     </p-list-item>
   </p-list>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
       return {
-        data: {},
+        data: {
+          certs: [],
+        },
+        async attached() {
+          const rootCerts = await load("/packages/user/cert/root-certs.json");
+
+          console.log("rootCerts", rootCerts);
+
+          this.certs = rootCerts;
+        },
       };
     };
   </script>
