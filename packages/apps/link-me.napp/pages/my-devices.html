@@ -47,7 +47,9 @@
       <i toggle-collapse triangle slot="suffix"></i>
       <p-list slot="childs">
         <o-if :value="!devices.length">
-          <div class="no-devices">没有添加设备</div>
+          <div class="no-devices">
+            <n-desc name="noOtherDevices" space="linkme"></n-desc>
+          </div>
         </o-if>
         <o-fill :value="devices">
           <p-list-item

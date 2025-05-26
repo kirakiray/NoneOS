@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>安装或更新系统</title>
     <script src="/packages/libs/ofa/ofa.js"></script>
-    <script src="/packages/pui/init.js" type="module"></script>
-    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
-    <link rel="stylesheet" href="/packages/others/colors.css" />
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
     <style>
       html,
       body {
@@ -31,10 +29,10 @@
           <div step-name>欢迎</div>
           <o-page src="/install/pages/welcome.html"></o-page>
         </n-installer-page>
-        <!-- <n-installer-page>
+        <n-installer-page>
           <div step-name>使用协议</div>
-          <o-page src="./pages/agreement.html"></o-page>
-        </n-installer-page> -->
+          <o-page src="/install/pages/agreement.html"></o-page>
+        </n-installer-page>
     </p-provider>
     <script type="module"  >
       import { setSpace } from "/packages/i18n/data.js";

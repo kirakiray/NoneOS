@@ -11,11 +11,16 @@ export const signData = async (originData, useLocalUserDirName) => {
   if (!useLocalUserDirName || typeof useLocalUserDirName === "string") {
     // 获取私钥准备签名
     userStore = await getUserStore(useLocalUserDirName);
-  } else if (typeof useLocalUserDirName === "object" && useLocalUserDirName.pair) {
+  } else if (
+    typeof useLocalUserDirName === "object" &&
+    useLocalUserDirName.pair
+  ) {
     userStore = useLocalUserDirName;
   }
 
-  await userStore.pair.ready();
+  if (userStore.pair.ready) {
+    await userStore.pair.ready();
+  }
 
   let data = {
     ...originData,

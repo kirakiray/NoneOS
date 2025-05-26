@@ -149,6 +149,7 @@ export const authDevice = async (
   // 给目标用户签发证书
   const certificate = await signData(
     {
+      type: "device", // 标注是设备类型的授权
       authTo: userId, // 授权给目标用户
       permission: "Fully", // 完全的授权，代表是本人设备
       expire: expire || Date.now() + 1000 * 60 * 60 * 24 * 30, // 30天有效期
@@ -396,6 +397,7 @@ export const onEntryDevice = async (
         // 给目标用户签发证书
         const oppoCertificate = await signData(
           {
+            type: "device", // 标注是设备类型的授权
             authTo: remoteUserId, // 授权给目标用户
             permission: "Fully", // 完全的授权，代表是本人设备
             expire: expireTime,
