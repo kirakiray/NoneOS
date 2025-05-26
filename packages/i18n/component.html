@@ -35,11 +35,12 @@
             }
 
             clearTimeout(this._c_timer);
+            clearTimeout(this._match_timer);
             this._c_timer = setTimeout(() => {
               if (!space[this.space]) {
                 return;
               }
-              
+
               let val = space[this.space].get(this.name);
 
               if (/\{.+\}/.test(val)) {
@@ -49,6 +50,11 @@
                     const key = e.replace("{", "").replace("}", "").trim();
                     val = val.replace(e, this.data[key]);
                   });
+
+                // 带有自定义内容，轮询执行
+                this._match_timer = setTimeout(() => {
+                  this.changeName();
+                }, 100);
               }
 
               if (this.setType === "html") {
@@ -81,26 +87,30 @@
           });
 
           // 选择要观察变动的目标节点
-          const targetNode = this.ele;
+          // const targetNode = this.ele;
 
-          const observer = (this._attrObs = new MutationObserver(
-            (mutationsList) => {
-              this.changeName();
-            }
-          ));
+          // BUG: MutationObserver 并不能监听 data-* 属性的变化
+          // const observer = (this._attrObs = new MutationObserver(
+          //   (mutationsList) => {
+          //     this.changeName();
+          //   }
+          // ));
 
-          // 开始观察目标节点
-          observer.observe(targetNode, {
-            attributes: true,
-          });
+          // // 开始观察目标节点
+          // observer.observe(targetNode, {
+          //   attributes: true,
+          // });
         },
         detached() {
+          clearTimeout(this._c_timer);
+          clearTimeout(this._match_timer);
+          console.log("detached: ", this.ele);
           if (this._wid) {
             space.unwatch(this._wid);
           }
-          if (this._attrObs) {
-            this._attrObs.disconnect();
-          }
+          // if (this._attrObs) {
+          //   this._attrObs.disconnect();
+          // }
         },
       };
     };

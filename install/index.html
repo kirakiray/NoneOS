@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Install NoneOS</title>
-    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
     <link rel="stylesheet" href="/packages/pui/css/colors.css" />
     <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
     <style>
@@ -51,22 +51,38 @@
     <div class="loading">Loading...</div>
     <n-installer
       appicon="/packages/others/logo.png"
-      step="0"
+      step="2"
       style="background-image: url(/packages/others/default-bg.jpg)"
     >
-      <div install-name>NoneOS Install</div>
+      <div install-name>
+        <n-desc name="install" space="installer"></n-desc>
+      </div>
       <n-installer-page>
-        <div step-name>欢迎</div>
+        <div step-name>
+          <n-desc name="welcome" space="installer"></n-desc>
+        </div>
         <o-page src="/install/pages/welcome.html"></o-page>
       </n-installer-page>
       <n-installer-page>
-        <div step-name>使用协议</div>
+        <div step-name>
+          <n-desc name="agreement" space="installer"></n-desc>
+        </div>
         <o-page src="/install/pages/agreement.html"></o-page>
       </n-installer-page>
       <n-installer-page>
-        <div step-name>安装</div>
+        <div step-name>
+          <n-desc name="startInstall" space="installer"></n-desc>
+        </div>
         <template>
           <o-page src="/install/pages/install-os.html"></o-page>
+        </template>
+      </n-installer-page>
+      <n-installer-page>
+        <div step-name>
+          <n-desc name="installEnd" space="installer"></n-desc>
+        </div>
+        <template>
+          <o-page src="/install/pages/installed.html"></o-page>
         </template>
       </n-installer-page>
     </n-installer>
@@ -75,6 +91,8 @@
       setSpace("installer", "/install/lang");
 
       const load = lm(import.meta);
+      $(".loading").text = `Loading 0/3`;
+      await load("/packages/i18n/component.html");
       await load("/packages/pui/public/init.js");
       $(".loading").text = `Loading 1/3`;
       await load("/packages/pui/provider/provider.html");

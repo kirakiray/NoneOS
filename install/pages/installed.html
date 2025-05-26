@@ -1,0 +1,20 @@
+<template page>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+  安装完成
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          files: [],
+        },
+      };
+    };
+  </script>
+</template>

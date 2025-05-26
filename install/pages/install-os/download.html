@@ -1,0 +1,90 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <p-progress variant="determinate" type="circle"></p-progress>
+  <n-desc
+    name="p3.readList"
+    space="installer"
+    attr:data-source-name="sourceName"
+  ></n-desc>
+  <script>
+    const sources = [
+      {
+        name: "jsdelivr",
+        hashesJSON:
+          "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/dist/hashes.json",
+        pkgPath:
+          "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/dist/packages.zip",
+      },
+      {
+        name: "github",
+        hashesJSON: "https://kirakiray.github.io/NoneOS/dist/hashes.json",
+        pkgPath: "https://kirakiray.github.io/NoneOS/dist/packages.zip",
+      },
+      {
+        name: "Current Website",
+        hashesJSON: "/dist/hashes.json",
+        pkgPath: "/dist/packages.zip",
+      },
+    ];
+
+    export default async ({ load }) => {
+      return {
+        data: {
+          sourceName: "",
+          // files: [], // 所有文件列表
+        },
+        proto: {
+          async getSignList() {
+            const data = await load("/package.json");
+            const newestVersion = data.version;
+
+            const reSources = [...sources];
+            let finnalFiles = []; // 最终的文件列表
+
+            while (reSources.length) {
+              const source = reSources.shift();
+              this.sourceName = source.name;
+
+              await new Promise((resolve) => {
+                setTimeout(resolve, 1000);
+              });
+
+              try {
+                const { version, files } = await fetch(source.hashesJSON)
+                  .then((e) => e.json())
+                  .catch((e) => {
+                    return {};
+                  });
+
+                if (version !== newestVersion) {
+                  // 不是最新版，跳过
+                  continue;
+                }
+
+                finnalFiles = files;
+                debugger;
+              } catch (err) {
+                continue;
+              }
+            }
+
+            if (!finnalFiles.length) {
+              throw new Error("无法获取签名列表");
+            }
+
+            this.files.push(...finnalFiles);
+
+            this.emit("download-ok");
+          },
+        },
+        attached() {
+          this.getSignList();
+        },
+      };
+    };
+  </script>
+</template>

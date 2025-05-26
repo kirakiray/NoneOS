@@ -9,14 +9,27 @@
       overflow: auto;
     }
   </style>
-  安装中...
+  <!-- <o-if :value="installStep === 0"> -->
+    <o-page
+      src="./install-os/download.html"
+      :files="files"
+      on:download-ok="installStep++"
+    ></o-page>
+  <!-- </o-if> -->
   <script>
-    export default async () => {
+    export default async ({ load }) => {
       return {
-        data: {},
-        proto: {},
-        attached() {
-          console.log("attached install");
+        data: {
+          installStep: 0,
+          files: [], // 等待安装的文件列表
+        },
+        proto: {
+          downloadOK() {
+            debugger;
+          },
+        },
+        async attached() {
+          console.log("install start install");
         },
       };
     };
