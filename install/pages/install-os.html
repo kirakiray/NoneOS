@@ -1,0 +1,24 @@
+<template page>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+  </style>
+  安装中...
+  <script>
+    export default async () => {
+      return {
+        data: {},
+        proto: {},
+        attached() {
+          console.log("attached install");
+        },
+      };
+    };
+  </script>
+</template>
