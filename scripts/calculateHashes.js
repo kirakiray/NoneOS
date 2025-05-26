@@ -16,7 +16,7 @@ async function getAllFiles(dir) {
     const fullPath = path.join(dir, entry.name);
     // 跳过 demo 目录
     if (entry.isDirectory()) {
-      if (entry.name === 'demo') {
+      if (entry.name === "demo") {
         continue;
       }
       files.push(...(await getAllFiles(fullPath)));
@@ -35,6 +35,11 @@ async function calculateAllHashes() {
     const results = [];
 
     for (const filePath of files) {
+      // 忽略 node_modules 和 DS_Store 文件
+      if (filePath.includes("node_modules") || filePath.includes("DS_Store")) {
+        continue;
+      }
+
       const fileContent = await fs.readFile(filePath);
       const fileStats = await fs.stat(filePath);
 
