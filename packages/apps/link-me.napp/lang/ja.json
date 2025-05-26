@@ -51,5 +51,9 @@
   "connectTime": "接続成功時間",
   "delayTime": "遅延時間",
   "ping": "遅延テスト",
-  "serverUrl": "サーバーアドレス"
+  "serverUrl": "サーバーアドレス",
+  "localCert": "ローカル証明書",
+  "certType": "タイプ",
+  "publicKey": "公開鍵",
+  "signature": "署名"
 }

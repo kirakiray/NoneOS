@@ -51,5 +51,9 @@
   "connectTime": "Connection success time",
   "delayTime": "Delay time",
   "ping": "Test delay",
-  "serverUrl": "Server address"
+  "serverUrl": "Server address",
+  "localCert": "Local certificate",
+  "certType": "Type",
+  "publicKey": "Public key",
+  "signature": "Signature"
 }

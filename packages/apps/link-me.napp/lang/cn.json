@@ -50,5 +50,9 @@
   "connectTime": "连接成功时间",
   "delayTime": "延迟时间",
   "ping": "测试延迟",
-  "serverUrl": "服务器地址"
+  "serverUrl": "服务器地址",
+  "localCert": "本地证书",
+  "certType": "类型",
+  "publicKey": "公钥",
+  "signature": "签名"
 }

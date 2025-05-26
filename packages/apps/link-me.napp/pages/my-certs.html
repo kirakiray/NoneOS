@@ -13,7 +13,7 @@
     .info-item {
       display: flex;
       align-items: center;
-      padding-left: 16px;
+      padding-left: 32px;
     }
 
     .info-item n-copy-span {
@@ -24,7 +24,10 @@
   </style>
   <p-list>
     <p-list-item button="suffix" collapse-childs="close">
-      <span class="root-item">本地证书</span>
+      <!-- <span class="root-item">本地证书</span> -->
+      <span class="root-item">
+        <n-desc name="localCert" space="linkme"></n-desc
+      ></span>
       <i toggle-collapse triangle slot="suffix"></i>
       <p-list slot="childs">
         <o-fill :value="certs">
@@ -43,17 +46,20 @@
             <i toggle-collapse triangle slot="suffix"></i>
             <p-list slot="childs">
               <p-list-item>
-                <div class="info-item">类型 {{$data.data.type}}</div>
+                <div class="info-item">
+                  <n-desc name="certType" space="linkme"></n-desc>
+                  {{$data.data.type}}
+                </div>
               </p-list-item>
               <p-list-item>
                 <div class="info-item">
-                  公钥
+                  <n-desc name="publicKey" space="linkme"></n-desc>
                   <n-copy-span> {{$data.data.publicKey}} </n-copy-span>
                 </div>
               </p-list-item>
               <p-list-item>
                 <div class="info-item">
-                  签名
+                  <n-desc name="signature" space="linkme"></n-desc>
                   <n-copy-span> {{$data.signature}} </n-copy-span>
                 </div>
               </p-list-item>
@@ -70,11 +76,9 @@
           certs: [],
         },
         async attached() {
-          const rootCerts = await load("/packages/user/cert/root-certs.json");
+          const rootCert = await load("/packages/user/cert/root-cert.json");
 
-          console.log("rootCerts", rootCerts);
-
-          this.certs = rootCerts;
+          this.certs = [rootCert];
         },
       };
     };
