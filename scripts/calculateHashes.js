@@ -58,19 +58,52 @@ async function calculateAllHashes() {
     const packageJson = JSON.parse(await fs.readFile(packageJsonPath, "utf-8"));
 
     // 将结果写入 JSON 文件，包含版本信息
-    const outputPath = path.join(__dirname, "../dist/", "hashes.json");
     const finalResults = {
       version: packageJson.version,
       files: results,
     };
-    // await fs.writeFile(outputPath, JSON.stringify(finalResults, null, 2));
-    await fs.writeFile(outputPath, JSON.stringify(finalResults));
 
-    console.log(`已完成所有文件的哈希值计算，结果保存在: ${outputPath}`);
     console.log(`共处理 ${results.length} 个文件`);
+
+    return finalResults;
   } catch (error) {
     console.error("计算哈希值时发生错误:", error);
   }
 }
 
-calculateAllHashes();
+import { signDataByPair } from "../scripts/sign-data.js";
+
+import { createRequire } from "node:module";
+const require = createRequire(import.meta.url);
+let rootJSON = null;
+
+try {
+  rootJSON = require("../rootkeys/root.json");
+} catch (err) {
+  console.error("没有 root.json");
+}
+
+const main = async () => {
+  const outputPath = path.join(__dirname, "../dist/", "hashes.json");
+  const result = await calculateAllHashes();
+
+  let finnalResult = {
+    data: result,
+  };
+
+  if (rootJSON) {
+    finnalResult = await signDataByPair(
+      { ...result },
+      {
+        publicKey: rootJSON.public,
+        privateKey: rootJSON.private,
+      }
+    );
+  }
+
+  await fs.writeFile(outputPath, JSON.stringify(finnalResult));
+  // await fs.writeFile(outputPath, JSON.stringify(result, null, 2));
+  console.log(`已完成所有文件的哈希值计算，结果保存在: ${outputPath}`);
+};
+
+main();

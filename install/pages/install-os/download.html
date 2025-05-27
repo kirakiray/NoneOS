@@ -22,6 +22,22 @@
       font-size: 20px;
     }
   </style>
+  <o-if :value="!rootOK">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <n-local-icon
+        name="error"
+        style="color: var(--md-sys-color-error); font-size: 38px"
+      ></n-local-icon>
+      <div style="margin-top: 8px">根证书验证失败，无法下载文件列表</div>
+    </div>
+  </o-if>
   <p-progress variant="determinate" type="circle"></p-progress>
   <p-list>
     <o-fill :value="tasks">
@@ -51,6 +67,13 @@
               style="color: var(--md-sys-color-error)"
             ></n-local-icon>
             从 {{$data.name}} 下载文件列表失败
+          </o-else-if>
+          <o-else-if :value="$data.status === 'verify-failed'">
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            从 {{$data.name}} 下载文件列表的签名验证失败
           </o-else-if>
           <o-else>
             <n-local-icon
@@ -85,12 +108,17 @@
     ];
 
     export default async ({ load }) => {
+      const { verifyData } = await load("/packages/user/verify.js");
+      const rootCert = await load("/packages/user/cert/root-cert.json");
+      const rootOK = await verifyData(rootCert).catch(() => false);
+
       return {
         data: {
           currentSource: {},
           // files: [], // 所有文件列表
           tasks: [],
           currentPkgPath: "",
+          rootOK,
         },
         proto: {
           async getSignList() {
@@ -118,9 +146,23 @@
               });
 
               try {
-                const { version, files } = await fetch(source.hashesJSON).then(
-                  (e) => e.json()
+                const result = await fetch(source.hashesJSON).then((e) =>
+                  e.json()
                 );
+
+                // 验证数据签名是否正确
+                const verifyResult = await verifyData(result);
+
+                if (
+                  !verifyResult ||
+                  rootCert.data.publicKey !== result.data.publicKey
+                ) {
+                  // 数据签名验证失败，或不是根证书的公钥
+                  target.status = "verify-failed";
+                  continue;
+                }
+
+                const { version, files } = result.data;
 
                 if (version !== newestVersion) {
                   target.status = "version-failed";
@@ -154,7 +196,9 @@
           },
         },
         attached() {
-          this.getSignList();
+          if (rootOK) {
+            this.getSignList();
+          }
         },
       };
     };
