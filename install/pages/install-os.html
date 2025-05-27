@@ -9,13 +9,11 @@
       overflow: auto;
     }
   </style>
-  <!-- <o-if :value="installStep === 0"> -->
-    <o-page
-      src="./install-os/download.html"
-      :files="files"
-      on:download-ok="installStep++"
-    ></o-page>
-  <!-- </o-if> -->
+  <o-page
+    src="./install-os/download.html"
+    :files="files"
+    on:download-ok="installStep++"
+  ></o-page>
   <script>
     export default async ({ load }) => {
       return {

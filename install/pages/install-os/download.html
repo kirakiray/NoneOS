@@ -1,15 +1,68 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    .item-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .item-line n-local-icon,
+    .item-line p-progress {
+      display: block;
+      margin-right: 4px;
+      --circle-size: 20;
+      font-size: 20px;
+    }
   </style>
   <p-progress variant="determinate" type="circle"></p-progress>
-  <n-desc
-    name="p3.readList"
-    space="installer"
-    attr:data-source-name="sourceName"
-  ></n-desc>
+  <p-list>
+    <o-fill :value="tasks">
+      <p-list-item>
+        <div class="item-line">
+          <o-if :value="$data.status === 'pending'">
+            <p-progress type="circle"></p-progress>
+            正在从 {{$data.name}} 下载文件列表...
+          </o-if>
+          <o-else-if :value="$data.status === 'success'">
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            从 {{$data.name}} 下载文件列表成功
+          </o-else-if>
+          <o-else-if :value="$data.status === 'version-failed'">
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            从 {{$data.name}} 下载文件列表版本号不匹配
+          </o-else-if>
+          <o-else-if :value="$data.status === 'download-failed'">
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            从 {{$data.name}} 下载文件列表失败
+          </o-else-if>
+          <o-else>
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            {{$data.desc}}
+          </o-else>
+        </div>
+      </p-list-item>
+    </o-fill>
+  </p-list>
   <script>
     const sources = [
       {
@@ -34,8 +87,10 @@
     export default async ({ load }) => {
       return {
         data: {
-          sourceName: "",
+          currentSource: {},
           // files: [], // 所有文件列表
+          tasks: [],
+          currentPkgPath: "",
         },
         proto: {
           async getSignList() {
@@ -45,40 +100,57 @@
             const reSources = [...sources];
             let finnalFiles = []; // 最终的文件列表
 
+            let source;
             while (reSources.length) {
-              const source = reSources.shift();
-              this.sourceName = source.name;
+              source = reSources.shift();
+              this.currentSource = source;
+
+              this.tasks.push({
+                name: source.name,
+                status: "pending",
+                progress: 0,
+              });
+
+              const target = this.tasks.slice(-1)[0];
 
               await new Promise((resolve) => {
-                setTimeout(resolve, 1000);
+                setTimeout(resolve, 200);
               });
 
               try {
-                const { version, files } = await fetch(source.hashesJSON)
-                  .then((e) => e.json())
-                  .catch((e) => {
-                    return {};
-                  });
+                const { version, files } = await fetch(source.hashesJSON).then(
+                  (e) => e.json()
+                );
 
                 if (version !== newestVersion) {
+                  target.status = "version-failed";
                   // 不是最新版，跳过
                   continue;
                 }
 
                 finnalFiles = files;
-                debugger;
+
+                target.status = "success";
               } catch (err) {
+                target.status = "download-failed";
                 continue;
               }
             }
 
             if (!finnalFiles.length) {
-              throw new Error("无法获取签名列表");
+              this.tasks.push({
+                status: "failed",
+                desc: "无法获取有效的签名列表",
+              });
+              return;
             }
 
             this.files.push(...finnalFiles);
 
-            this.emit("download-ok");
+            this.downloadPkg();
+          },
+          async downloadPkg() {
+            debugger;
           },
         },
         attached() {
