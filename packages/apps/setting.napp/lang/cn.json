@@ -3,7 +3,7 @@
   "systemSetting": "系统设置",
   "system": "系统",
   "sversion": "系统版本",
-  "onlineVer": "在线版本",
+  "onlineVer": "在线版本 {version}，离线状态下系统将不可用",
   "gotoInstall": "去安装",
   "alreadyLates": "已经是最新版",
   "updateTo": "更新到",

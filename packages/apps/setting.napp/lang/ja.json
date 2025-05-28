@@ -3,7 +3,7 @@
   "systemSetting": "設定",
   "system": "システム",
   "sversion": "バージョン",
-  "onlineVer": "オンライン",
+  "onlineVer": "オンライン版 {version}、オフライン状態ではシステムが利用できません",
   "gotoInstall": "インストール",
   "alreadyLates": "最新版",
   "updateTo": "更新",

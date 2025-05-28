@@ -3,7 +3,7 @@
   "systemSetting": "System Settings",
   "system": "System",
   "sversion": "Version",
-  "onlineVer": "Online Version",
+  "onlineVer": "Online version {version}, system will be unavailable when offline",
   "gotoInstall": "Install",
   "alreadyLates": "Latest Version",
   "updateTo": "Update to",

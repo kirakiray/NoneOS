@@ -80,8 +80,11 @@
           <n-desc space="setting" name="sversion"></n-desc>
 
           <div class="item-tips">
-            <n-desc space="setting" name="onlineVer"></n-desc>
-            {{onlineVersion}}
+            <n-desc
+              space="setting"
+              name="onlineVer"
+              attr:data-version="onlineVersion"
+            ></n-desc>
           </div>
           <p-button size="small" slot="suffix">
             <a href="/install">
