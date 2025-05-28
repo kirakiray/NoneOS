@@ -122,14 +122,14 @@
           sessionStorage.onlineVersion = data.version;
 
           // 读取本地的文件
-          const localPkg = await get("packages/package.json");
+          const localPkg = await get("packages/hashes.json");
 
           if (localPkg) {
-            let data = await localPkg.text();
-            data = JSON.parse(data);
+            let result = await localPkg.text();
+            result = JSON.parse(result);
 
             this.isupdate = true;
-            this.localVersion = data.version;
+            this.localVersion = result.data.version;
           }
         },
         detached() {

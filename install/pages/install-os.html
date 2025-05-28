@@ -259,6 +259,7 @@
           files: [], // 所有文件列表
           tasks: [],
           rootOK,
+          _hashes: null,
         },
         proto: {
           async getSignList() {
@@ -289,6 +290,8 @@
                 const result = await fetch(source.hashesJSON).then((e) =>
                   e.json()
                 );
+
+                this._hashes = result;
 
                 // 验证数据签名是否正确
                 const verifyResult = await verifyData(result);
@@ -464,26 +467,29 @@
               ).toFixed(0);
             }
             {
-              // 写入 index.html 和 package.json
-              // 并行获取 index.html 和 package.json
+              // 写入 index.html 和 hashes.json
               const fetchOpts = {
                 cache: "no-store",
                 headers: { "Cache-Control": "no-cache" },
               };
-              const [indexFile, packageFile] = await Promise.all([
-                fetch("/index.html", fetchOpts).then((e) => e.blob()),
-                fetch("/package.json", fetchOpts).then((e) => e.blob()),
-              ]);
+
+              const indexFile = await fetch("/index.html", fetchOpts).then(
+                (e) => e.text()
+              );
 
               const indexFileHandle = await packagesDir.get("index.html", {
                 create: "file",
               });
 
               await indexFileHandle.write(indexFile);
-              const packageFileHandle = await packagesDir.get("package.json", {
+
+              const hashesFileHandle = await packagesDir.get("hashes.json", {
                 create: "file",
               });
-              await packageFileHandle.write(packageFile);
+
+              await hashesFileHandle.write(
+                JSON.stringify(this._hashes, null, 2)
+              );
             }
 
             // 下一步
