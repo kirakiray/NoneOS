@@ -1,61 +1,32 @@
 (function () {
   'use strict';
 
-  // 响应文件相关的请求
-  const resposeFs = (event) => {
-    const { request } = event;
-    let { pathname, origin, searchParams } = new URL(request.url);
-    pathname = decodeURIComponent(pathname);
+  // 读取文件
+  const getFile = async (filepath) => {
+    const opfsRoot = await navigator.storage.getDirectory();
 
-    const paths = pathname.split("/");
-    const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");
+    const paths = filepath.split("/");
+    let currentPath = "";
+    let currentDir = opfsRoot;
+    while (paths.length > 1) {
+      const dirName = paths.shift();
+      currentPath += `${dirName}/`;
+      const dirHandle = await currentDir
+        .getDirectoryHandle(dirName)
+        .catch(() => null);
+      if (!dirHandle) {
+        throw new Error(`目录 ${currentPath} 不存在`);
+      }
+      currentDir = dirHandle;
+    }
+    // 获取文件
+    const fileHandle = await currentDir.getFileHandle(paths[0]).catch(() => null);
 
-    // 改用直接的 opfs 读取文件方法
-    event.respondWith(
-      (async () => {
-        try {
-          const opfsRoot = await navigator.storage.getDirectory();
+    if (!fileHandle) {
+      throw new Error(`文件 ${filepath} 不存在`);
+    }
 
-          const paths = filepath.split("/");
-          let currentPath = "";
-          let currentDir = opfsRoot;
-          while (paths.length > 1) {
-            const dirName = paths.shift();
-            currentPath += `${dirName}/`;
-            const dirHandle = await currentDir
-              .getDirectoryHandle(dirName)
-              .catch(() => null);
-            if (!dirHandle) {
-              throw new Error(`目录 ${currentPath} 不存在`);
-            }
-            currentDir = dirHandle;
-          }
-
-          // 获取文件
-          const fileHandle = await currentDir
-            .getFileHandle(paths[0])
-            .catch(() => null);
-
-          if (!fileHandle) {
-            throw new Error(`文件 ${filepath} 不存在`);
-          }
-
-          const prefix = pathname.split(".").pop();
-
-          const headers = {};
-          headers["Content-Type"] = getContentType(prefix);
-
-          return new Response(await fileHandle.getFile(), {
-            status: 200,
-            headers,
-          });
-        } catch (err) {
-          return new Response(err.stack || err.toString(), {
-            status: 400,
-          });
-        }
-      })()
-    );
+    return fileHandle;
   };
 
   const getContentType = (prefix) => {
@@ -128,6 +99,39 @@
     }
   };
 
+  // 响应文件相关的请求
+  const resposeFs = (event) => {
+    const { request } = event;
+    let { pathname, origin, searchParams } = new URL(request.url);
+    pathname = decodeURIComponent(pathname);
+
+    const paths = pathname.split("/");
+    const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");
+
+    // 改用直接的 opfs 读取文件方法
+    event.respondWith(
+      (async () => {
+        try {
+          // 获取文件
+          const fileHandle = await getFile(filepath);
+
+          const prefix = pathname.split(".").pop();
+
+          return new Response(await fileHandle.getFile(), {
+            status: 200,
+            headers: {
+              "Content-Type": getContentType(prefix),
+            },
+          });
+        } catch (err) {
+          return new Response(err.stack || err.toString(), {
+            status: 400,
+          });
+        }
+      })()
+    );
+  };
+
   async function resposePkg(event) {
     const { request } = event;
     const { pathname, origin, searchParams } = new URL(request.url);
@@ -136,7 +140,35 @@
       respNapp(event);
       return;
     }
+
+    // 尝试从本地获取
+    event.respondWith(
+      (async () => {
+        const file = await getFileWithPkg(pathname);
+        const prefix = pathname.split(".").pop();
+
+        return new Response(file, {
+          status: 200,
+          headers: {
+            "Content-Type": getContentType(prefix),
+          },
+        });
+      })()
+    );
   }
+
+  const getFileWithPkg = async (pathname) => {
+    pathname = pathname.replace(/^\//, "");
+    let file;
+    try {
+      // 先尝试本地的，如果本地没有，再从网络获取
+      file = await getFile(pathname);
+      file = await file.getFile();
+    } catch (e) {
+      file = await fetch(pathname).then((e) => e.blob());
+    }
+    return file;
+  };
 
   const respNapp = async (event) => {
     const { request } = event;
@@ -149,9 +181,9 @@
         // 获取应用名
         let appName = "App";
         try {
-          const appData = await fetch(`${pathname}app.json`).then((e) =>
-            e.json()
-          );
+          const appFile = await getFileWithPkg(`${pathname}app.json`);
+          let appData = await appFile.text();
+          appData = JSON.parse(appData);
 
           iconName = appData.icon || iconName;
 
