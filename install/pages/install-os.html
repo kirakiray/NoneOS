@@ -463,6 +463,28 @@
                 100
               ).toFixed(0);
             }
+            {
+              // 写入 index.html 和 package.json
+              // 并行获取 index.html 和 package.json
+              const fetchOpts = {
+                cache: "no-store",
+                headers: { "Cache-Control": "no-cache" },
+              };
+              const [indexFile, packageFile] = await Promise.all([
+                fetch("/index.html", fetchOpts).then((e) => e.blob()),
+                fetch("/package.json", fetchOpts).then((e) => e.blob()),
+              ]);
+
+              const indexFileHandle = await packagesDir.get("index.html", {
+                create: "file",
+              });
+
+              await indexFileHandle.write(indexFile);
+              const packageFileHandle = await packagesDir.get("package.json", {
+                create: "file",
+              });
+              await packageFileHandle.write(packageFile);
+            }
 
             // 下一步
             setTimeout(() => {
