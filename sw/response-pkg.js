@@ -1,12 +1,44 @@
+import { getContentType, getFile } from "./util.js";
+
 export default async function resposePkg(event) {
   const { request } = event;
-  const { pathname, origin, searchParams } = new URL(request.url);
+  const { pathname: urlPathname, origin, searchParams } = new URL(request.url);
 
-  if (/\.napp\/$/.test(pathname)) {
+  if (/\.napp\/$/.test(urlPathname)) {
     respNapp(event);
     return;
   }
+
+  const pathname = urlPathname.replace(/^\//, "");
+
+  // 尝试从本地获取
+  event.respondWith(
+    (async () => {
+      let file;
+
+      try {
+        file = await getFile(pathname);
+        file = await file.getFile();
+      } catch (e) {
+        file = await fetch(pathname).then((e) => e.blob());
+      }
+      const prefix = pathname.split(".").pop();
+
+      return new Response(file, {
+        status: 200,
+        headers: {
+          "Content-Type": getContentType(prefix),
+        },
+      });
+    })()
+  );
 }
+
+// const getPkgFile = async (pathname) => {
+//   const res = await fetch(pathname);
+//   const file = await res.blob();
+//   return file;
+// };
 
 export const respNapp = async (event) => {
   const { request } = event;
