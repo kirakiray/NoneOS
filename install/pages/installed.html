@@ -31,6 +31,13 @@
         data: {
           files: [],
         },
+        attached() {
+          if (window.__useOnlinePkgTimer) {
+            // 转换为本地包
+            clearInterval(window.__useOnlinePkgTimer);
+            fetch("/package-use-local");
+          }
+        },
       };
     };
   </script>

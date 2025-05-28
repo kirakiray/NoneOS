@@ -1,5 +1,6 @@
 import resposeFs from "./response-fs.js";
 import responsePkg from "./response-pkg.js";
+import configs from "./config.js";
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
@@ -15,7 +16,24 @@ self.addEventListener("fetch", (event) => {
       responsePkg(event);
     }
   }
+
+  if (pathname === "/package-use-online") {
+    // 3秒内packages的请求使用在线的模式
+    clearTimeout(packageUseOnlineTimer);
+    configs.packageUseOnline = true;
+    event.respondWith(new Response("package use online"));
+    packageUseOnlineTimer = setTimeout(() => {
+      configs.packageUseOnline = false;
+    }, 3000);
+  } else if (pathname === "/package-use-local") {
+    // 直接关闭packages默认使用在线的模式
+    clearTimeout(packageUseOnlineTimer);
+    configs.packageUseOnline = false;
+    event.respondWith(new Response("package use local"));
+  }
 });
+
+let packageUseOnlineTimer;
 
 self.addEventListener("install", () => {
   self.skipWaiting();

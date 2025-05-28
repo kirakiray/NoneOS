@@ -1,4 +1,5 @@
 import { getContentType, getFile } from "./util.js";
+import configs from "./config.js";
 
 export default async function resposePkg(event) {
   const { request } = event;
@@ -6,6 +7,11 @@ export default async function resposePkg(event) {
 
   if (/\.napp\/$/.test(pathname)) {
     respNapp(event);
+    return;
+  }
+
+  if (configs.packageUseOnline) {
+    console.log("package use online", pathname);
     return;
   }
 
@@ -29,6 +35,9 @@ const getFileWithPkg = async (pathname) => {
   pathname = pathname.replace(/^\//, "");
   let file;
   try {
+    if (configs.packageUseOnline) {
+      throw new Error("");
+    }
     // 先尝试本地的，如果本地没有，再从网络获取
     file = await getFile(pathname);
     file = await file.getFile();

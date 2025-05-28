@@ -4,6 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Install NoneOS</title>
+
+    <script>
+      fetch("/package-use-online");
+      window.__useOnlinePkgTimer = setInterval(() => {
+        fetch("/package-use-online");
+      }, 2000);
+    </script>
+
     <script src="/packages/libs/ofa/ofa.js#debug"></script>
     <link rel="stylesheet" href="/packages/pui/css/colors.css" />
     <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
