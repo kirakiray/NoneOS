@@ -36,6 +36,23 @@
             // 转换为本地包
             clearInterval(window.__useOnlinePkgTimer);
             fetch("/package-use-local");
+
+            // 判断本地是否有注册 service worker，有的话进行更新
+            if ("serviceWorker" in navigator) {
+              navigator.serviceWorker
+                .getRegistrations()
+                .then((registrations) => {
+                  return Promise.all(
+                    registrations.map((registration) => {
+                      return registration.update();
+                    })
+                  );
+                })
+                .then(() => {
+                  // 注销成功
+                  console.log("Service worker updated");
+                });
+            }
           }
         },
       };
