@@ -225,11 +225,11 @@
       return {
         data: {
           settingData: {},
-          lang: localStorage.getItem("_lang") || "en",
+          lang: "en",
           osVersion: "Loading",
           onlineVersion: "",
           theme: "",
-          useOnline: true,
+          useOnline: false,
           modeText: "",
           dirOptions: [],
           themeOptions: [],
@@ -277,13 +277,13 @@
             return "toolbar-auto";
           },
           async refreshVersion() {
-            const pgFile = await get("packages/package.json");
+            const hashesFile = await get("packages/hashes.json");
 
-            if (pgFile) {
-              let data = await pgFile.text();
-              data = JSON.parse(data);
+            if (hashesFile) {
+              let result = await hashesFile.text();
+              result = JSON.parse(result);
 
-              this.osVersion = data.version;
+              this.osVersion = result.data.version;
             }
 
             const data = await fetch("/package.json")

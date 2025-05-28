@@ -132,12 +132,21 @@
     );
   };
 
+  const configs = {
+    packageUseOnline: false, // 包是否使用在线文件
+  };
+
   async function resposePkg(event) {
     const { request } = event;
     const { pathname, origin, searchParams } = new URL(request.url);
 
     if (/\.napp\/$/.test(pathname)) {
       respNapp(event);
+      return;
+    }
+
+    if (configs.packageUseOnline) {
+      console.log("package use online", pathname);
       return;
     }
 
@@ -161,6 +170,9 @@
     pathname = pathname.replace(/^\//, "");
     let file;
     try {
+      if (configs.packageUseOnline) {
+        throw new Error("");
+      }
       // 先尝试本地的，如果本地没有，再从网络获取
       file = await getFile(pathname);
       file = await file.getFile();
@@ -247,12 +259,55 @@
       // 请求本地文件，会$开头
       if (/^\/\$/.test(pathname)) {
         resposeFs(event);
-      } else if (/^\/packages/.test(pathname)) {
+      } else if (!configs.packageUseOnline && /^\/packages/.test(pathname)) {
         // 访问包目录
         resposePkg(event);
       }
     }
+
+    if (!configs.packageUseOnline && pathname === "/") {
+      // 尝试从packages中获取index.html
+      event.respondWith(
+        (async () => {
+          try {
+            // 获取文件
+            const fileHandle = await getFile("packages/index.html");
+
+            if (fileHandle) {
+              // 优先使用本地文件
+              return new Response(await fileHandle.getFile(), {
+                headers: {
+                  "Content-Type": "text/html;charset=utf-8",
+                },
+              });
+            }
+          } catch (err) {
+            console.error(err);
+          }
+
+          // 直接返回index.html
+          return fetch(request);
+        })()
+      );
+    }
+
+    if (pathname === "/package-use-online") {
+      // 3秒内packages的请求使用在线的模式
+      clearTimeout(packageUseOnlineTimer);
+      configs.packageUseOnline = true;
+      event.respondWith(new Response("package use online"));
+      packageUseOnlineTimer = setTimeout(() => {
+        configs.packageUseOnline = false;
+      }, 3000);
+    } else if (pathname === "/package-use-local") {
+      // 直接关闭packages默认使用在线的模式
+      clearTimeout(packageUseOnlineTimer);
+      configs.packageUseOnline = false;
+      event.respondWith(new Response("package use local"));
+    }
   });
+
+  let packageUseOnlineTimer;
 
   self.addEventListener("install", () => {
     self.skipWaiting();
