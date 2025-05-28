@@ -2,26 +2,17 @@ import { getContentType, getFile } from "./util.js";
 
 export default async function resposePkg(event) {
   const { request } = event;
-  const { pathname: urlPathname, origin, searchParams } = new URL(request.url);
+  const { pathname, origin, searchParams } = new URL(request.url);
 
-  if (/\.napp\/$/.test(urlPathname)) {
+  if (/\.napp\/$/.test(pathname)) {
     respNapp(event);
     return;
   }
 
-  const pathname = urlPathname.replace(/^\//, "");
-
   // 尝试从本地获取
   event.respondWith(
     (async () => {
-      let file;
-
-      try {
-        file = await getFile(pathname);
-        file = await file.getFile();
-      } catch (e) {
-        file = await fetch(pathname).then((e) => e.blob());
-      }
+      const file = await getFileWithPkg(pathname);
       const prefix = pathname.split(".").pop();
 
       return new Response(file, {
@@ -34,11 +25,18 @@ export default async function resposePkg(event) {
   );
 }
 
-// const getPkgFile = async (pathname) => {
-//   const res = await fetch(pathname);
-//   const file = await res.blob();
-//   return file;
-// };
+const getFileWithPkg = async (pathname) => {
+  pathname = pathname.replace(/^\//, "");
+  let file;
+  try {
+    // 先尝试本地的，如果本地没有，再从网络获取
+    file = await getFile(pathname);
+    file = await file.getFile();
+  } catch (e) {
+    file = await fetch(pathname).then((e) => e.blob());
+  }
+  return file;
+};
 
 export const respNapp = async (event) => {
   const { request } = event;
@@ -51,9 +49,9 @@ export const respNapp = async (event) => {
       // 获取应用名
       let appName = "App";
       try {
-        const appData = await fetch(`${pathname}app.json`).then((e) =>
-          e.json()
-        );
+        const appFile = await getFileWithPkg(`${pathname}app.json`);
+        let appData = await appFile.text();
+        appData = JSON.parse(appData);
 
         iconName = appData.icon || iconName;
 
