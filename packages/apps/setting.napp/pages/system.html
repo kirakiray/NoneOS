@@ -98,19 +98,19 @@
           <n-local-icon name="version" slot="prefix"></n-local-icon>
           <n-desc space="setting" name="sversion"></n-desc>
           <div class="item-tips">{{osVersion}}</div>
-          <o-if :value="onlineVersion === osVersion">
+          <x-if :value="onlineVersion === osVersion">
             <div slot="suffix">
               <n-desc space="setting" name="alreadyLates"></n-desc>
             </div>
-          </o-if>
-          <o-else-if :value="onlineVersion">
+          </x-if>
+          <x-else-if :value="onlineVersion">
             <p-button size="small" slot="suffix">
               <a href="/install">
                 <n-desc space="setting" name="updateTo"></n-desc>
                 {{onlineVersion}}
               </a>
             </p-button>
-          </o-else-if>
+          </x-else-if>
         </p-list-item>
       </o-else>
       <p-list-item radius>
@@ -286,12 +286,12 @@
               this.osVersion = result.data.version;
             }
 
-            const data = await fetch("/package.json")
+            const onlineHashes = await fetch("/dist/hashes.json")
               .then((e) => e.json())
               .catch(() => null);
 
-            if (data) {
-              this.onlineVersion = data.version;
+            if (onlineHashes) {
+              this.onlineVersion = onlineHashes.data.version;
             }
           },
         },
