@@ -5,9 +5,26 @@
       display: flex;
       justify-content: center;
       align-items: center;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    h1 {
+      font-size: 24px;
     }
   </style>
-  安装完成
+  <n-local-icon
+    name="succeed"
+    style="color: var(--md-sys-color-success); font-size: 60px"
+  ></n-local-icon>
+  <h1>
+    <n-desc name="installSucceed" space="installer"></n-desc>
+  </h1>
+  <p-button>
+    <a href="/">
+      <n-desc name="entrySystem" space="installer"></n-desc>
+    </a>
+  </p-button>
   <script>
     export default async ({ load }) => {
       return {

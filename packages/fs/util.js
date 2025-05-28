@@ -59,7 +59,7 @@ export const calculateFileChunkHashes = async (
     }
 
     // 添加对Nodejs Buffer的支持
-    if (file instanceof Buffer) {
+    if (typeof Buffer !== "undefined" && file instanceof Buffer) {
       return file.buffer;
     }
 

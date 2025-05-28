@@ -24,6 +24,10 @@
       --circle-size: 20;
       font-size: 20px;
     }
+
+    .item-line p-progress {
+      --progress-animation: none;
+    }
   </style>
   <o-if :value="!rootOK">
     <div
@@ -78,13 +82,78 @@
             ></n-local-icon>
             从 {{$data.name}} 下载文件列表的签名验证失败
           </o-else-if>
-          <o-else-if :value="$data.status === 'downloading'">
+          <o-else-if
+            :value="$data.status === 'downloading' && $data.progress != 100"
+          >
             <p-progress
               type="circle"
               variant="determinate"
               :value="$data.progress"
             ></p-progress>
             正在从 {{$data.name}} 下载压缩包... ({{$data.progress}}%)
+          </o-else-if>
+          <o-else-if
+            :value="$data.status === 'downloading' && $data.progress=== 100"
+          >
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            从 {{$data.name}} 下载压缩包成功
+          </o-else-if>
+          <o-else-if :value="$data.status === 'unzipping'">
+            <p-progress
+              type="circle"
+              variant="determinate"
+              :value="$data.progress"
+            ></p-progress>
+            正在解压系统文件...
+          </o-else-if>
+          <o-else-if :value="$data.status === 'unzip-success'">
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            解压系统文件成功
+          </o-else-if>
+          <o-else-if
+            :value="$data.status === 'verifying' && $data.progress != 100"
+          >
+            <p-progress
+              type="circle"
+              variant="determinate"
+              :value="$data.progress"
+            ></p-progress>
+            正在校验文件是否被篡改...({{$data.progress}}%)
+          </o-else-if>
+          <o-else-if
+            :value="$data.status ==='verifying' && $data.progress=== 100"
+          >
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            文件系统完整性校验通过
+          </o-else-if>
+          <o-else-if :value="$data.status ==='writing'">
+            <o-if :value="$data.progress !== 100">
+              <p-progress
+                type="circle"
+                variant="determinate"
+                :color="$data.isDelete ? 'error' : 'primary'"
+                :value="$data.progress"
+              ></p-progress>
+            </o-if>
+            请不要关闭页面，
+            <o-if :value="$data.isDelete"> 删除旧文件... </o-if>
+            <o-else-if :value="!$data.isDelete && $data.progress == 100">
+              <n-local-icon
+                name="succeed"
+                style="color: var(--md-sys-color-success)"
+              ></n-local-icon>
+              写入系统文件成功
+            </o-else-if>
+            <o-else> 正在写入系统文件... ({{$data.progress}}%)</o-else>
           </o-else-if>
           <o-else>
             <n-local-icon
@@ -118,10 +187,21 @@
       },
     ];
 
+    if (
+      location.host.split(".").length === 1 &&
+      location.host.includes("localhost")
+    ) {
+      // 本地环境下，只保留当前网站
+      sources.splice(0, 2);
+    }
+
     export default async ({ load }) => {
       const { verifyData } = await load("/packages/user/verify.js");
       const rootCert = await load("/packages/user/cert/root-cert.json");
       const rootOK = await verifyData(rootCert).catch(() => false);
+      const { unzip } = await load("/packages/libs/zip/main.js");
+      const { getFileHash } = await load("/packages/fs/util.js");
+      const { get } = await load("/packages/fs/main.js");
 
       return {
         data: {
@@ -219,6 +299,110 @@
             );
 
             console.log(target, zipFile);
+            this.unzipFile(zipFile);
+          },
+          async unzipFile(zipFile) {
+            // 下载文件
+            this.tasks.push({
+              name: this.currentSource.name,
+              status: "unzipping",
+            });
+            const target = this.tasks.slice(-1)[0];
+
+            const files = await unzip(zipFile);
+
+            target.status = "unzip-success";
+
+            this.verifyFiles(files);
+          },
+          async verifyFiles(files) {
+            // 验证文件
+            this.tasks.push({
+              status: "verifying",
+              progress: 0,
+            });
+
+            const target = this.tasks.slice(-1)[0];
+
+            if (files.length !== this.files.length) {
+              this.tasks.push({
+                status: "failed",
+                desc: `解压后的文件数量与签名列表不匹配 ${files.length} - ${this.files.length}`,
+              });
+              return;
+            }
+
+            let count = 0;
+
+            for (let item of files) {
+              const hash = await getFileHash(item.file);
+              const exitedFilesItem = this.files.find(
+                (e) => e.path === item.path
+              );
+
+              if (!exitedFilesItem) {
+                this.tasks.push({
+                  status: "failed",
+                  desc: `文件 ${item.path} 不存在于签名列表`,
+                });
+              }
+
+              if (exitedFilesItem.hash !== hash) {
+                this.tasks.push({
+                  status: "failed",
+                  desc: `文件 ${item.path} 被篡改`,
+                });
+                break;
+              }
+
+              count++;
+              target.progress = +((count / this.files.length) * 100).toFixed(0);
+            }
+
+            this.writeFiles(files);
+          },
+          async writeFiles(files) {
+            // 写入文件
+            this.tasks.push({
+              status: "writing",
+              isDelete: true,
+              progress: 0,
+            });
+
+            const target = this.tasks.slice(-1)[0];
+
+            const packagesDir = await get("packages");
+
+            const subLen = await packagesDir.length();
+            let subCount = 0;
+            if (subLen) {
+              for await (let item of packagesDir.values()) {
+                subCount++;
+                await item.remove();
+                target.progress = +((subCount / subLen) * 100).toFixed(2);
+              }
+            }
+
+            target.isDelete = false;
+
+            let writeCount = 0;
+
+            for (let item of files) {
+              const fileHandle = await packagesDir.get(item.path, {
+                create: "file",
+              });
+              await fileHandle.write(item.file);
+              writeCount++;
+              target.progress = +(
+                (writeCount / this.files.length) *
+                100
+              ).toFixed(0);
+            }
+
+            // 下一步
+            setTimeout(() => {
+              $("n-installer").step++;
+            }, 500);
           },
         },
         attached() {
