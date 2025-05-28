@@ -251,6 +251,7 @@
       const { unzip } = await load("/packages/libs/zip/main.js");
       const { getFileHash } = await load("/packages/fs/util.js");
       const { get } = await load("/packages/fs/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       return {
         data: {
@@ -321,7 +322,7 @@
             if (!finnalFiles.length) {
               this.tasks.push({
                 status: "failed",
-                desc: "无法获取有效的签名列表",
+                desc: getText("install_os.failed_get_sign_list", "installer"),
               });
               return;
             }
@@ -376,7 +377,14 @@
             if (files.length !== this.files.length) {
               this.tasks.push({
                 status: "failed",
-                desc: `解压后的文件数量与签名列表不匹配 ${files.length} - ${this.files.length}`,
+                desc: getText(
+                  "install_os.failed_unzip_file_count_mismatch",
+                  "installer",
+                  {
+                    filesLength: files.length,
+                    thisFilesLength: this.files.length,
+                  }
+                ),
               });
               return;
             }
@@ -392,14 +400,22 @@
               if (!exitedFilesItem) {
                 this.tasks.push({
                   status: "failed",
-                  desc: `文件 ${item.path} 不存在于签名列表`,
+                  desc: getText(
+                    "install_os.failed_file_not_exist",
+                    "installer",
+                    { path: item.path }
+                  ),
                 });
               }
 
               if (exitedFilesItem.hash !== hash) {
                 this.tasks.push({
                   status: "failed",
-                  desc: `文件 ${item.path} 被篡改`,
+                  desc: getText(
+                    "install_os.failed_file_tampered",
+                    "installer",
+                    { path: item.path }
+                  ),
                 });
                 break;
               }
