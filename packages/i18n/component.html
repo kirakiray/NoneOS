@@ -104,7 +104,6 @@
         detached() {
           clearTimeout(this._c_timer);
           clearTimeout(this._match_timer);
-          console.log("detached: ", this.ele);
           if (this._wid) {
             space.unwatch(this._wid);
           }

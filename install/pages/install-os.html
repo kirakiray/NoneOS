@@ -42,7 +42,9 @@
         name="error"
         style="color: var(--md-sys-color-error); font-size: 38px"
       ></n-local-icon>
-      <div style="margin-top: 8px">根证书验证失败，无法下载文件列表</div>
+      <div style="margin-top: 8px">
+        <n-desc space="installer" name="install_os.root_cert_failed"></n-desc>
+      </div>
     </div>
   </o-if>
   <p-progress variant="determinate" type="circle"></p-progress>
@@ -52,35 +54,55 @@
         <div class="item-line">
           <o-if :value="$data.status === 'pending'">
             <p-progress type="circle"></p-progress>
-            正在从 {{$data.name}} 下载文件列表...
+            <n-desc
+              space="installer"
+              name="install_os.download_list_pending"
+              attr:data-name="$data.name"
+            ></n-desc>
           </o-if>
           <o-else-if :value="$data.status === 'success'">
             <n-local-icon
               name="succeed"
               style="color: var(--md-sys-color-success)"
             ></n-local-icon>
-            从 {{$data.name}} 下载文件列表成功
+            <n-desc
+              space="installer"
+              name="install_os.download_list_success"
+              attr:data-name="$data.name"
+            ></n-desc>
           </o-else-if>
           <o-else-if :value="$data.status === 'version-failed'">
             <n-local-icon
               name="error"
               style="color: var(--md-sys-color-error)"
             ></n-local-icon>
-            从 {{$data.name}} 下载文件列表版本号不匹配
+            <n-desc
+              space="installer"
+              name="install_os.download_list_version_failed"
+              attr:data-name="$data.name"
+            ></n-desc>
           </o-else-if>
           <o-else-if :value="$data.status === 'download-failed'">
             <n-local-icon
               name="error"
               style="color: var(--md-sys-color-error)"
             ></n-local-icon>
-            从 {{$data.name}} 下载文件列表失败
+            <n-desc
+              space="installer"
+              name="install_os.download_list_download_failed"
+              attr:data-name="$data.name"
+            ></n-desc>
           </o-else-if>
           <o-else-if :value="$data.status === 'verify-failed'">
             <n-local-icon
               name="error"
               style="color: var(--md-sys-color-error)"
             ></n-local-icon>
-            从 {{$data.name}} 下载文件列表的签名验证失败
+            <n-desc
+              space="installer"
+              name="install_os.download_list_verify_failed"
+              attr:data-name="$data.name"
+            ></n-desc>
           </o-else-if>
           <o-else-if
             :value="$data.status === 'downloading' && $data.progress != 100"
@@ -90,16 +112,25 @@
               variant="determinate"
               :value="$data.progress"
             ></p-progress>
-            正在从 {{$data.name}} 下载压缩包... ({{$data.progress}}%)
+            <n-desc
+              space="installer"
+              name="install_os.download_pkg_downloading"
+              attr:data-name="$data.name"
+              attr:data-progress="$data.progress"
+            ></n-desc>
           </o-else-if>
           <o-else-if
-            :value="$data.status === 'downloading' && $data.progress=== 100"
+            :value="$data.status === 'downloading' && $data.progress === 100"
           >
             <n-local-icon
               name="succeed"
               style="color: var(--md-sys-color-success)"
             ></n-local-icon>
-            从 {{$data.name}} 下载压缩包成功
+            <n-desc
+              space="installer"
+              name="install_os.download_pkg_success"
+              attr:data-name="$data.name"
+            ></n-desc>
           </o-else-if>
           <o-else-if :value="$data.status === 'unzipping'">
             <p-progress
@@ -107,14 +138,14 @@
               variant="determinate"
               :value="$data.progress"
             ></p-progress>
-            正在解压系统文件...
+            <n-desc space="installer" name="install_os.unzipping"></n-desc>
           </o-else-if>
           <o-else-if :value="$data.status === 'unzip-success'">
             <n-local-icon
               name="succeed"
               style="color: var(--md-sys-color-success)"
             ></n-local-icon>
-            解压系统文件成功
+            <n-desc space="installer" name="install_os.unzip_success"></n-desc>
           </o-else-if>
           <o-else-if
             :value="$data.status === 'verifying' && $data.progress != 100"
@@ -124,18 +155,22 @@
               variant="determinate"
               :value="$data.progress"
             ></p-progress>
-            正在校验文件是否被篡改...({{$data.progress}}%)
+            <n-desc
+              space="installer"
+              name="install_os.verifying"
+              attr:data-progress="$data.progress"
+            ></n-desc>
           </o-else-if>
           <o-else-if
-            :value="$data.status ==='verifying' && $data.progress=== 100"
+            :value="$data.status === 'verifying' && $data.progress === 100"
           >
             <n-local-icon
               name="succeed"
               style="color: var(--md-sys-color-success)"
             ></n-local-icon>
-            文件系统完整性校验通过
+            <n-desc space="installer" name="install_os.verify_success"></n-desc>
           </o-else-if>
-          <o-else-if :value="$data.status ==='writing'">
+          <o-else-if :value="$data.status === 'writing'">
             <o-if :value="$data.progress !== 100">
               <p-progress
                 type="circle"
@@ -144,16 +179,30 @@
                 :value="$data.progress"
               ></p-progress>
             </o-if>
-            请不要关闭页面，
-            <o-if :value="$data.isDelete"> 删除旧文件... </o-if>
-            <o-else-if :value="!$data.isDelete && $data.progress == 100">
+            <n-desc space="installer" name="install_os.writing_prefix"></n-desc>
+            <o-if :value="$data.isDelete">
+              <n-desc
+                space="installer"
+                name="install_os.writing_delete"
+              ></n-desc>
+            </o-if>
+            <o-else-if :value="!$data.isDelete && $data.progress === 100">
               <n-local-icon
                 name="succeed"
                 style="color: var(--md-sys-color-success)"
               ></n-local-icon>
-              写入系统文件成功
+              <n-desc
+                space="installer"
+                name="install_os.writing_success"
+              ></n-desc>
             </o-else-if>
-            <o-else> 正在写入系统文件... ({{$data.progress}}%)</o-else>
+            <o-else>
+              <n-desc
+                space="installer"
+                name="install_os.writing_progress"
+                attr:data-progress="$data.progress"
+              ></n-desc>
+            </o-else>
           </o-else-if>
           <o-else>
             <n-local-icon
