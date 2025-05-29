@@ -11,8 +11,9 @@
     "title": "NoneOSへようこそ",
     "updateTitle": "NoneOSを更新",
     "updateTo": "<span class='os-version'>{localVersion}</span> から <span class='os-version'>{onlineVersion}</span> に更新",
-    "desc1": "ブラウザで動作するデスクトップOSで、すべてのデバイスを接続できます。",
-    "desc2": "安全、シンプル、使いやすい。",
+    "desc1": "ブラウザ上で動作するデスクトップオペレーティングシステム。",
+    "desc2": "純粋な静的ウェブコンテナで、クロスシステムのデータ転送が可能。",
+    "desc3": "すべてのデバイスを接続するのを支援し、安全でシンプル、使いやすい。",
     "closeAlert": "ご利用ありがとうございました。（ウィンドウが閉じない場合は、手動で閉じてください）"
   },
   "install_os": {

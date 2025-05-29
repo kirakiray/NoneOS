@@ -11,8 +11,9 @@
     "title": "Welcome to NoneOS",
     "updateTitle": "Update your NoneOS",
     "updateTo": "Update from <span class='os-version'>{localVersion}</span> to <span class='os-version'>{onlineVersion}</span>",
-    "desc1": "A browser-based desktop operating system that connects all your devices together.",
-    "desc2": "Secure, simple and easy to use.",
+    "desc1": "A browser-based desktop operating system.",
+    "desc2": "A pure static web container that enables cross-system data transfer.",
+    "desc3": "Helps connect all your devices, secure, simple and easy to use.",
     "closeAlert": "Thank you for your support, goodbye. (If the window does not close, please close it manually)"
   },
   "install_os": {
