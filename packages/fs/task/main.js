@@ -197,7 +197,7 @@ export const moveHandle = async (froms, to) => {
 };
 
 // 导出文件
-export const exportHandle = async (paths) => {
+export const exportHandle = async (paths, zipFileName) => {
   const taskItem = addTaskItem({
     icon: "file",
     name: getText("exporting", "fs-task"),
@@ -233,8 +233,11 @@ export const exportHandle = async (paths) => {
           flatFileHandles.map(async (item) => {
             const file = await item.file();
 
-            // 修正最终地址
-            const fixedPath = item.path.replace(afterPath + "/", "");
+            let fixedPath = item.path;
+            if (afterPath) {
+              // 修正最终地址
+              fixedPath = item.path.replace(afterPath + "/", "");
+            }
 
             files.push({
               path: fixedPath,
@@ -251,7 +254,23 @@ export const exportHandle = async (paths) => {
 
   const finnalFile = await zips(files);
 
-  downloadFile(finnalFile);
+  let currentTime = new Date();
+  currentTime =
+    currentTime.getMonth() +
+    1 +
+    "-" +
+    currentTime.getDate() +
+    "-" +
+    currentTime.getHours() +
+    "-" +
+    currentTime.getMinutes() +
+    "-" +
+    currentTime.getSeconds();
+
+  downloadFile(
+    finnalFile,
+    zipFileName ? `${zipFileName}.zip` : `noneos-${currentTime}.zip`
+  );
 
   taskItem.name = getText("exportSuccess", "fs-task");
   setTimeout(() => {
@@ -260,11 +279,11 @@ export const exportHandle = async (paths) => {
 };
 
 // 下载文件
-const downloadFile = async (finnalFile) => {
+const downloadFile = async (finnalFile, filename) => {
   const url = URL.createObjectURL(finnalFile);
   const aEle = document.createElement("a");
   aEle.href = url;
-  aEle.download = finnalFile.name;
+  aEle.download = filename || finnalFile.name;
   aEle.click();
   setTimeout(() => {
     URL.revokeObjectURL(url);

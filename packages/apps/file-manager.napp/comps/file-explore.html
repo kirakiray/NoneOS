@@ -231,7 +231,12 @@
             return this.selecteds.some((e) => e.kind === "dir");
           },
           exportFiles() {
-            exportHandle(this.selecteds.map((e) => e.path));
+            const fileName =
+              this.selecteds.length === 1 ? this.selecteds[0].name : null;
+            exportHandle(
+              this.selecteds.map((e) => e.path),
+              fileName
+            );
           },
           async clickImportFile() {
             // 导入文件

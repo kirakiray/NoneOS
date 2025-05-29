@@ -12,7 +12,7 @@ self.addEventListener("fetch", (event) => {
     // 请求本地文件，会$开头
     if (/^\/\$/.test(pathname)) {
       resposeFs(event);
-    } else if (!configs.packageUseOnline && /^\/packages/.test(pathname)) {
+    } else if (/^\/packages/.test(pathname)) {
       // 访问包目录
       responsePkg(event);
     }
