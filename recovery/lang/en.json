@@ -1,0 +1,17 @@
+{
+  "title": "System Recovery Mode",
+  "desc1": "When you cannot access the virtual system normally, you can export system data here to prevent data loss.",
+  "export_all_data": "Export All Data",
+  "export_user_data": "Export User Data Only",
+  "export_local_data": "Export Local Data Only",
+  "desc2": "After completing data export, you can try to clear all system data and restart the browser, then re-access the virtual system.",
+  "import_data": "Import Data",
+  "clear_system_data": "Clear System Data",
+  "import_success_toast": "Data has been successfully imported, please restart the browser for the new configuration to take effect",
+  "import_error_toast": "The selected file content is incorrect, please select another file",
+  "confirm_title": "Clear System Data",
+  "confirm_content": "Are you sure you want to clear system data? This operation cannot be undone.",
+  "confirm_yes": "Clear",
+  "confirm_cancel": "Cancel",
+  "clear_success_toast": "System data has been cleared, please refresh the page"
+}

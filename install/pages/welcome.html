@@ -96,10 +96,7 @@
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
-
       const settingData = await getSetting();
-
-      console.log("settingData: ", settingData);
 
       return {
         data: {

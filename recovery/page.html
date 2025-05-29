@@ -1,4 +1,6 @@
 <template page>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -13,6 +15,7 @@
       padding: 16px;
       width: 100%;
       height: 100%;
+      text-align: center;
     }
 
     p-button {
@@ -22,23 +25,37 @@
   <l-m src="/packages/i18n/component.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <div class="main">
-    <h1>系统恢复模式</h1>
-    <p>当您无法正常访问虚拟系统时，可以在此处导出系统数据以防数据丢失。</p>
+    <h1><n-desc space="recovery" name="title"></n-desc></h1>
+
+    <p-select sync:value="settingData.lang" style="margin-top: 16px">
+      <n-local-icon
+        name="lang"
+        slot="prefix"
+        style="display: inline-block; margin-right: 8px"
+      ></n-local-icon>
+      <p-option value="en">English</p-option>
+      <p-option value="cn">中文</p-option>
+      <p-option value="ja">日本語</p-option>
+    </p-select>
+
+    <p><n-desc space="recovery" name="desc1"></n-desc></p>
     <div>
-      <p-button on:click="clickExportAllBtn()"> 导出所有数据 </p-button>
+      <p-button on:click="clickExportAllBtn()">
+        <n-desc space="recovery" name="export_all_data"></n-desc>
+      </p-button>
       <p-button variant="outlined" on:click="clickExportAllBtn('system')">
-        只导出用户数据
+        <n-desc space="recovery" name="export_user_data"></n-desc>
       </p-button>
       <p-button variant="outlined" on:click="clickExportAllBtn('local')">
-        只导出Local数据
+        <n-desc space="recovery" name="export_local_data"></n-desc>
       </p-button>
     </div>
     <p>
-      完成数据导出后，您可以尝试清除所有系统数据并重启浏览器，然后重新访问虚拟系统。
+      <n-desc space="recovery" name="desc2"></n-desc>
     </p>
     <div>
       <p-button on:click="shadow.$('#fileInputer').ele.click()">
-        导入数据
+        <n-desc space="recovery" name="import_data"></n-desc>
       </p-button>
       <input
         type="file"
@@ -48,19 +65,28 @@
         style="display: none"
       />
       <p-button on:click="clickRemoveBtn" color="error" variant="outlined">
-        清除系统数据
+        <n-desc space="recovery" name="clear_system_data"></n-desc>
       </p-button>
     </div>
   </div>
   <script>
+    import { setSpace, getText } from "/packages/i18n/data.js";
+    setSpace("recovery", "/recovery/lang");
+
     export default async ({ load }) => {
       const { exportHandle } = await load("/packages/fs/task/main.js");
       const { confirm, toast } = await load("/packages/pui/util.js");
       const { unzip } = await load("/packages/libs/zip/main.js");
       const { get } = await load("/packages/fs/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
 
       return {
-        data: {},
+        data: {
+          settingData: {},
+        },
         proto: {
           async changeFile(e) {
             const file = e.target.files[0];
@@ -81,13 +107,14 @@
                 })
               );
 
-              toast("数据已成功导入，请重启浏览器以使新的配置生效");
+              toast(getText("import_success_toast", "recovery"));
               return;
             }
 
-            toast("选择的文件内容有误，请重新选择文件");
+            toast(getText("import_error_toast", "recovery"));
           },
           clickExportAllBtn(target) {
+            debugger;
             if (target) {
               exportHandle(
                 [target],
@@ -105,10 +132,10 @@
           },
           async clickRemoveBtn() {
             const result = await confirm({
-              title: "清除系统数据",
-              content: "您确定要清除系统数据吗？此操作无法撤销。",
-              yes: "清除",
-              cancel: "取消",
+              title: getText("confirm_title", "recovery"),
+              content: getText("confirm_content", "recovery"),
+              yes: getText("confirm_yes", "recovery"),
+              cancel: getText("confirm_cancel", "recovery"),
             });
 
             if (!result) return;
@@ -122,8 +149,14 @@
             }
 
             // 提示用户刷新页面
-            toast("系统数据已清除，请刷新页面");
+            toast(getText("clear_success_toast", "recovery"));
           },
+        },
+        attached() {
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
         },
       };
     };
