@@ -29,43 +29,9 @@
           Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
           Segoe UI Emoji;
       }
-      .main {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column;
-        box-sizing: border-box;
-        padding: 16px;
-        width: 100%;
-        height: 100%;
-      }
     </style>
   </head>
   <body>
-    <l-m src="/packages/pui/button/button.html"></l-m>
-    <div class="main">
-      <h1>系统恢复模式</h1>
-      <p>当您无法正常访问虚拟系统时，可以在此处导出系统数据以防数据丢失。</p>
-      <div>
-        <p-button id="export-btn">导出本地存储数据</p-button>
-      </div>
-      <p>
-        完成数据导出后，您可以尝试清除所有系统数据并重启浏览器，然后重新访问虚拟系统。
-      </p>
-      <p-button color="error" variant="outlined">清除系统数据</p-button>
-    </div>
-    <script type="module">
-      const load = lm(import.meta);
-      const { exportHandle } = await load("/packages/fs/task/main.js");
-
-      const exportBtn = $("#export-btn");
-      exportBtn.on("click", () => {
-        exportHandle(
-          ["local"],
-          "noneos-local-backup-" +
-            new Date().toLocaleString().replace(/[\/ :]/g, "-")
-        );
-      });
-    </script>
+    <o-page src="./page.html"></o-page>
   </body>
 </html>

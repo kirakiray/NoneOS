@@ -11,7 +11,7 @@ export default async function resposePkg(event) {
   }
 
   if (configs.packageUseOnline) {
-    console.log("package use online", pathname);
+    // console.log("package use online", pathname);
     return;
   }
 

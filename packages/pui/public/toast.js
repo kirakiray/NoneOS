@@ -76,7 +76,7 @@ export async function toast(opts) {
   opts = fixOpts(opts);
   Object.assign(defaults, opts);
 
-  const el = $(`<p-snackbar style="pointer-events:auto;">
+  const el = $(`<p-snackbar color="primary" style="pointer-events:auto;">
   ${defaults.content}
   <div style="flex:1;" class="snackbar-holder"></div>
   <p-button class="snackbar-close" size="small" variant="text" icon style="margin-left: 4px">✕

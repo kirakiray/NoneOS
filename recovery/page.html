@@ -1,0 +1,82 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      box-sizing: border-box;
+      padding: 16px;
+      width: 100%;
+      height: 100%;
+    }
+
+    p-button {
+      margin: 0 4px;
+    }
+  </style>
+  <l-m src="/packages/i18n/component.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <div class="main">
+    <h1>系统恢复模式</h1>
+    <p>当您无法正常访问虚拟系统时，可以在此处导出系统数据以防数据丢失。</p>
+    <div>
+      <p-button id="export-btn" on:click="clickExportBtn"
+        >导出所有数据</p-button
+      >
+      <p-button variant="outlined">只导出用户数据</p-button>
+      <p-button variant="outlined">只导出Local数据</p-button>
+    </div>
+    <p>
+      完成数据导出后，您可以尝试清除所有系统数据并重启浏览器，然后重新访问虚拟系统。
+    </p>
+    <div>
+      <p-button> 导入数据 </p-button>
+      <p-button id="remove-bgn" color="error" variant="outlined">
+        清除系统数据
+      </p-button>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { exportHandle } = await load("/packages/fs/task/main.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
+
+      return {
+        data: {},
+        proto: {
+          clickExportBtn() {
+            exportHandle(
+              ["local", "system"],
+              "noneos-backup-" +
+                new Date().toLocaleString().replace(/[\/ :]/g, "-")
+            );
+          },
+          async clickRemoveBtn() {
+            const result = await confirm({
+              title: "清除系统数据",
+              content: "您确定要清除系统数据吗？此操作无法撤销。",
+              yes: "清除",
+              cancel: "取消",
+            });
+
+            if (!result) return;
+
+            // 删除本地OPFS的数据
+            const rootDirs = navigator.storage.getDirectory();
+            for await (const dir of rootDirs) {
+              await dir.removeRecursively();
+            }
+
+            // 提示用户刷新页面
+            toast("系统数据已清除，请刷新页面");
+          },
+        },
+      };
+    };
+  </script>
+</template>

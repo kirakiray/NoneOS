@@ -146,7 +146,7 @@
     }
 
     if (configs.packageUseOnline) {
-      console.log("package use online", pathname);
+      // console.log("package use online", pathname);
       return;
     }
 
@@ -259,7 +259,7 @@
       // 请求本地文件，会$开头
       if (/^\/\$/.test(pathname)) {
         resposeFs(event);
-      } else if (!configs.packageUseOnline && /^\/packages/.test(pathname)) {
+      } else if (/^\/packages/.test(pathname)) {
         // 访问包目录
         resposePkg(event);
       }
