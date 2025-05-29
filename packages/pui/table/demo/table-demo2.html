@@ -1,0 +1,55 @@
+<template page>
+  <l-m src="../../button/button.html"></l-m>
+  <l-m src="../table.html"></l-m>
+  <div>
+    <p-table step="0.5" style="height: 300px">
+      <p-table-row head sticky>
+        <p-table-cell basis="150">Name</p-table-cell>
+        <p-table-cell min-width="120">Mobile</p-table-cell>
+        <p-table-cell min-width="230">Birth</p-table-cell>
+        <p-table-cell min-width="100" sticky-left sticky-right
+          >Money</p-table-cell
+        >
+        <p-table-cell min-width="100">Level</p-table-cell>
+        <p-table-cell min-width="200">Address</p-table-cell>
+        <p-table-cell align="center" basis="100">Operate</p-table-cell>
+      </p-table-row>
+      <o-fill :value="users">
+        <p-table-row>
+          <p-table-cell>{{$data.user_name}}</p-table-cell>
+          <p-table-cell>{{$data.mobile}}</p-table-cell>
+          <p-table-cell>{{$data.birth}}</p-table-cell>
+          <p-table-cell>{{$data.money}}</p-table-cell>
+          <p-table-cell>{{$data.level}}</p-table-cell>
+          <p-table-cell>{{$data.address}}</p-table-cell>
+          <p-table-cell>
+            <p-button
+              color="error"
+              size="small"
+              variant="text"
+              on:click="$host.removeItem($index)"
+              >Delete</p-button
+            >
+          </p-table-cell>
+        </p-table-row>
+      </o-fill>
+    </p-table>
+  </div>
+  <script>
+    export default {
+      data: {
+        users: [],
+      },
+      proto: {
+        removeItem(index) {
+          this.users.splice(index, 1);
+        },
+      },
+      async ready() {
+        const data = await fetch("./data2.json").then((e) => e.json());
+
+        this.users = data;
+      },
+    };
+  </script>
+</template>

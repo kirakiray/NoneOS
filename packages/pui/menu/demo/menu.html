@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>菜单使用</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.8/iconify-icon.min.js"></script>
+  </head>
+  <body>
+    <l-m src="../menu.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <br /><br />
+
+    <p-menu>
+      <p-menu-item id="targetItem">Cut</p-menu-item>
+      <p-menu-item>Copy</p-menu-item>
+      <p-menu-item>Paste</p-menu-item>
+      <hr />
+      <p-menu-item>Clipboard</p-menu-item>
+    </p-menu>
+
+    <script>
+      $("#targetItem").on("click", () => {
+        console.log("click cut");
+      });
+    </script>
+    <p-menu>
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        Cut
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon
+        >Copy</p-menu-item
+      >
+      <p-menu-item disabled id="targetItem2">
+        <iconify-icon icon="clarity:paste-line" slot="prefix"></iconify-icon
+        >Paste</p-menu-item
+      >
+      <hr />
+      <p-menu-item>
+        <iconify-icon
+          icon="fluent:board-28-regular"
+          slot="prefix"
+        ></iconify-icon
+        >Clipboard</p-menu-item
+      >
+    </p-menu>
+
+    <script>
+      $("#targetItem2").on("click", () => {
+        console.log("click cut");
+      });
+    </script>
+    <p-menu style="width: 200px">
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        Cut
+        <span slot="suffix"> ⌘X </span>
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+        Copy
+        <span slot="suffix"> ⌘C </span>
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="clarity:paste-line" slot="prefix"></iconify-icon>
+        Paste
+        <span slot="suffix"> ⌘V </span>
+      </p-menu-item>
+      <hr />
+      <p-menu-item>
+        <iconify-icon
+          icon="fluent:board-28-regular"
+          slot="prefix"
+        ></iconify-icon>
+        Clipboard
+      </p-menu-item>
+    </p-menu>
+    <p-menu style="width: 150px">
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        Cut
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon
+        >Copy</p-menu-item
+      >
+      <p-menu-item>
+        <iconify-icon icon="clarity:paste-line" slot="prefix"></iconify-icon
+        >Paste Paste Paste Paste</p-menu-item
+      >
+      <hr />
+      <p-menu-item>
+        <iconify-icon
+          icon="fluent:board-28-regular"
+          slot="prefix"
+        ></iconify-icon
+        >Clipboard</p-menu-item
+      >
+    </p-menu>
+
+    <p-menu style="height: 200px; overflow-y: auto">
+      <p-menu-item>Item1</p-menu-item>
+      <p-menu-item>Item2</p-menu-item>
+      <p-menu-item>Item3</p-menu-item>
+      <p-menu-item>Item4</p-menu-item>
+      <p-menu-item>Item5</p-menu-item>
+      <p-menu-item>Item6</p-menu-item>
+      <p-menu-item>Item7</p-menu-item>
+      <p-menu-item>Item8</p-menu-item>
+      <p-menu-item>Item9</p-menu-item>
+    </p-menu>
+
+    <p-menu>
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        item1
+      </p-menu-item>
+      <p-menu-item id="targetItem3">
+        <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+        item2
+        <p-menu style="width: 150px">
+          <p-menu-item>
+            <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+            item2-1
+          </p-menu-item>
+          <p-menu-item>
+            <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+            item2-2
+            <p-menu>
+              <p-menu-item>
+                <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+                item2-2-1
+              </p-menu-item>
+              <p-menu-item>
+                <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+                item2-2-2
+              </p-menu-item>
+            </p-menu>
+          </p-menu-item>
+          <p-menu-item>
+            <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+            item2-3
+          </p-menu-item>
+        </p-menu>
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        item3
+      </p-menu-item>
+    </p-menu>
+
+    <script>
+      $("#targetItem3").on("click", () => {
+        console.log("targetItem3");
+      });
+    </script>
+
+    <br />
+
+    <br />
+    <br />
+    <br />
+    <p-menu class="test-open">
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        Cut
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+        Copy
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="clarity:paste-line" slot="prefix"></iconify-icon>
+        Paste
+      </p-menu-item>
+      <hr />
+      <p-menu-item>
+        <iconify-icon
+          icon="fluent:board-28-regular"
+          slot="prefix"
+        ></iconify-icon
+        >Clipboard</p-menu-item
+      >
+    </p-menu>
+
+    <p-menu class="test-open" style="width: 200px">
+      <p-menu-item>
+        <iconify-icon icon="tabler:cut" slot="prefix"></iconify-icon>
+        Cut
+        <span slot="suffix"> ⌘X </span>
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="bx:copy" slot="prefix"></iconify-icon>
+        Copy
+        <span slot="suffix"> ⌘C </span>
+      </p-menu-item>
+      <p-menu-item>
+        <iconify-icon icon="clarity:paste-line" slot="prefix"></iconify-icon>
+        Paste
+        <span slot="suffix"> ⌘V </span>
+      </p-menu-item>
+      <hr />
+      <p-menu-item>
+        <iconify-icon
+          icon="fluent:board-28-regular"
+          slot="prefix"
+        ></iconify-icon
+        >Clipboard</p-menu-item
+      >
+    </p-menu>
+    <br />
+    <script>
+      setInterval(() => {
+        $.all(".test-open").forEach((e) => {
+          e.open = e.open !== "off" ? "off" : "on";
+        });
+      }, 2000);
+    </script>
+  </body>
+</html>

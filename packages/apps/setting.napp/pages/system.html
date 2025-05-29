@@ -58,7 +58,8 @@
     }
 
     n-local-icon[name="moon"],
-    n-local-icon[name="sun"] {
+    n-local-icon[name="sun"],
+    n-local-icon[name="light-dark-loop"] {
       color: rgb(255, 208, 0);
     }
 
@@ -73,14 +74,17 @@
       <n-desc space="setting" name="system"></n-desc>
     </h5>
     <div class="list">
-      <x-if :value="useOnline">
+      <o-if :value="useOnline">
         <p-list-item radius>
           <n-local-icon name="version" slot="prefix"></n-local-icon>
           <n-desc space="setting" name="sversion"></n-desc>
 
           <div class="item-tips">
-            <n-desc space="setting" name="onlineVer"></n-desc>
-            {{onlineVersion}}
+            <n-desc
+              space="setting"
+              name="onlineVer"
+              attr:data-version="onlineVersion"
+            ></n-desc>
           </div>
           <p-button size="small" slot="suffix">
             <a href="/install">
@@ -88,8 +92,8 @@
             </a>
           </p-button>
         </p-list-item>
-      </x-if>
-      <x-else>
+      </o-if>
+      <o-else>
         <p-list-item radius>
           <n-local-icon name="version" slot="prefix"></n-local-icon>
           <n-desc space="setting" name="sversion"></n-desc>
@@ -108,7 +112,7 @@
             </p-button>
           </x-else-if>
         </p-list-item>
-      </x-else>
+      </o-else>
       <p-list-item radius>
         <n-local-icon name="lang" slot="prefix"></n-local-icon>
 
@@ -116,13 +120,13 @@
         <p-select
           size="small"
           slot="suffix"
-          sync:value="lang"
-          on:change="changeLang"
+          sync:value="settingData.lang"
+          on:change="reloadOptions"
           style="margin-right: 8px"
         >
-          <option value="cn">简体中文</option>
-          <option value="en">English</option>
-          <option value="ja">日本語</option>
+          <p-option value="cn">简体中文</p-option>
+          <p-option value="en">English</p-option>
+          <p-option value="ja">日本語</p-option>
         </p-select>
       </p-list-item>
       <p-list-item radius>
@@ -131,7 +135,7 @@
         <div class="item-tips">
           <n-desc space="setting" name="restartTips"></n-desc>
         </div>
-        <p-button slot="suffix" size="small" on:click="reloadSystem">
+        <p-button slot="suffix" size="small" on:click="location.reload(true)">
           <n-desc space="setting" name="restart"></n-desc>
         </p-button>
       </p-list-item>
@@ -140,30 +144,31 @@
       <n-desc space="setting" name="appearance"></n-desc>
     </h5>
     <div class="list">
-      <p-list-item button="suffix" radius>
+      <p-list-item radius>
         <n-local-icon
           name="moon"
           slot="prefix"
-          class:hide="!darkMode"
+          class:hide="settingData.theme !== 'dark'"
+        ></n-local-icon>
+        <n-local-icon
+          name="light-dark-loop"
+          slot="prefix"
+          class:hide="settingData.theme !== 'auto'"
         ></n-local-icon>
         <n-local-icon
           name="sun"
           slot="prefix"
-          class:hide="darkMode"
+          class:hide="settingData.theme !== 'light'"
         ></n-local-icon>
-        <n-desc space="setting" name="darkMode"></n-desc>
+        <n-desc name="systemTheme" space="setting"></n-desc>
         <div class="item-tips">
-          <n-desc
-            space="setting"
-            name="modeTips"
-            attr:data-mode="modeText"
-          ></n-desc>
+          <n-desc space="setting" name="themeDesc"></n-desc>
         </div>
-        <p-switch
-          slot="suffix"
-          sync:value="darkMode"
-          on:change="refreshModeText()"
-        ></p-switch>
+        <p-select slot="suffix" sync:value="settingData.theme" size="small">
+          <o-fill :value="themeOptions">
+            <p-option attr:value="$data.value">{{$data.name}}</p-option>
+          </o-fill>
+        </p-select>
       </p-list-item>
     </div>
     <h5>
@@ -172,7 +177,7 @@
     <div class="list">
       <p-list-item radius>
         <n-local-icon
-          attr:name="'toolbar-' + bardir"
+          attr:name="dockDir"
           slot="prefix"
           style="font-size: 26px"
         ></n-local-icon>
@@ -180,12 +185,11 @@
         <p-select
           slot="suffix"
           size="small"
-          :value="bardir"
-          on:change="changeDir"
+          sync:value="settingData.dockDirection"
         >
-          <x-fill :value="dirOptions" fill-key="value">
-            <option attr:value="$data.value">{{$data.name}}</option>
-          </x-fill>
+          <o-fill :value="dirOptions">
+            <p-option attr:value="$data.value">{{$data.name}}</p-option>
+          </o-fill>
         </p-select>
       </p-list-item>
       <p-list-item>
@@ -206,105 +210,102 @@
   <script>
     export const parent = "../outer.html";
 
-    export default async ({ load }) => {
-      const { storage } = await load("/packages/libs/ever-cache/main.js");
+    export default async ({ load, url }) => {
       const { get } = await load("/packages/fs/main.js");
 
-      const { configs } = await load("/packages/none-os/configs.js");
-      const { changeLang, getText } = await load("/packages/i18n/data.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const { createGetText, setSpace } = await load("/packages/i18n/data.js");
 
-      const useOnline = !!(await storage.getItem("use-online")); // 使用在线版
+      await setSpace("setting", new URL("../lang", url).href);
+
+      const settingData = await getSetting();
+
+      const getText = createGetText("setting");
 
       return {
         data: {
-          lang: localStorage.getItem("_lang") || "en",
-          darkMode: false,
+          settingData: {},
+          lang: "en",
           osVersion: "Loading",
           onlineVersion: "",
           theme: "",
-          bardir: configs.barDirection, // 程序坞的方向
-          useOnline,
+          useOnline: false,
           modeText: "",
-          dirOptions: [
-            // {
-            //   name: "左侧",
-            //   value: "left",
-            // },
-            // {
-            //   name: "底部",
-            //   value: "bottom",
-            // },
-          ],
+          dirOptions: [],
+          themeOptions: [],
         },
-        watch: {
-          theme(theme) {
-            if (theme === null) {
-              return;
-            }
-
-            this.darkMode = theme === "dark";
-          },
-          darkMode(bool) {
-            const puiRoot = $.getRootProvider("pui");
-            puiRoot.theme = bool ? "dark" : "light";
-          },
-          bardir(val) {
-            configs.barDirection = val;
-          },
-        },
+        watch: {},
         proto: {
-          refreshModeText() {
+          reloadOptions() {
             setTimeout(() => {
-              this.modeText = this.darkMode
-                ? getText("light", "setting")
-                : getText("dark", "setting");
-
               this.dirOptions = [
                 {
-                  name: getText("dirLeft", "setting"),
+                  name: getText("dirAuto"),
+                  value: "auto",
+                },
+                {
+                  name: getText("dirLeft"),
                   value: "left",
                 },
                 {
-                  name: getText("dirBottom", "setting"),
+                  name: getText("dirBottom"),
                   value: "bottom",
+                },
+              ];
+
+              this.themeOptions = [
+                {
+                  name: getText("themeAuto"),
+                  value: "auto",
+                },
+                {
+                  name: getText("dark"),
+                  value: "dark",
+                },
+                {
+                  name: getText("light"),
+                  value: "light",
                 },
               ];
             }, 50);
           },
-          changeLang(e) {
-            changeLang($(e.target).value);
-            this.refreshModeText();
-          },
-          async reloadSystem() {
-            location.reload();
-          },
-          async changeDir(e) {
-            // 改变程序坞的方向
-            const dir = $(e.target).value;
-            this.bardir = dir;
-          },
-          async refreshVersion() {
-            const pgFile = await get("packages/package.json");
-
-            if (pgFile) {
-              let data = await pgFile.text();
-              data = JSON.parse(data);
-
-              this.osVersion = data.version;
+          get dockDir() {
+            if (this?.settingData?.dockDirection) {
+              return "toolbar-" + this.settingData?.dockDirection;
             }
 
-            const data = await fetch("/package.json")
+            return "toolbar-auto";
+          },
+          async refreshVersion() {
+            const hashesFile = await get("packages/hashes.json");
+
+            if (hashesFile) {
+              let result = await hashesFile.text();
+              result = JSON.parse(result);
+
+              this.osVersion = result.data.version;
+            } else {
+              this.useOnline = true;
+            }
+
+            const onlineHashes = await fetch("/dist/hashes.json")
               .then((e) => e.json())
               .catch(() => null);
 
-            if (data) {
-              this.onlineVersion = data.version;
+            if (onlineHashes) {
+              this.onlineVersion = onlineHashes.data.version;
             }
           },
         },
         ready() {
           this.refreshVersion();
-          this.refreshModeText();
+        },
+        attached() {
+          this.settingData = settingData;
+          this.reloadOptions();
+        },
+        detached() {
+          this.settingData = {};
         },
       };
     };

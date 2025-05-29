@@ -1,5 +1,5 @@
 <template component>
-  <l-m src="../provider/provider.html"></l-m>
+  <l-m src="../aide/reverse-theme/reverse-theme.html"></l-m>
   <style>
     :host {
       display: inline-block;
@@ -15,8 +15,10 @@
         calc(var(--pui-space-y) * 2) calc(var(--pui-space-x) * 2);
       min-width: 200px;
       min-height: 30px;
-      color: var(--pui-main-color-container);
-      background-color: var(--pui-on-main-color-container);
+      color: var(--pui-on-main-color);
+      background-color: var(--pui-main-color);
+      /* color: var(--pui-main-color-container);
+      background-color: var(--pui-on-main-color-container); */
       border-radius: var(--pui-border-radius);
     }
 
@@ -28,24 +30,22 @@
       margin-left: 8px;
     }
   </style>
+
   <div class="container">
-    <p-provider :theme="theme === 'dark' ? 'light' : 'dark'">
+    <p-reverse-theme>
       <slot></slot>
-    </p-provider>
+    </p-reverse-theme>
   </div>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>
-    import "../commons/init.js";
-    import { setMainColor } from "../commons/util.js";
+    import "../public/init.js";
+    import { setMainColor } from "../public/util.js";
 
     export default {
       tag: "p-snackbar",
       attrs: {
         color: null,
       },
-      data: {
-        theme: "",
-      },
+      data: {},
       watch: {
         color(color) {
           setMainColor(this, color || "normal");

@@ -1,0 +1,242 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .root-item {
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
+    }
+    .status-point {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-normal);
+    }
+    [data-status="connected"] {
+      background-color: var(--md-sys-color-success);
+    }
+    [data-status="disconnected"],
+    [data-status="error"],
+    [data-status="closed"] {
+      background-color: var(--md-sys-color-error);
+    }
+
+    .server-item-list p-list-item {
+      margin-left: 20px;
+      --pui-space-y: 2px;
+    }
+
+    .server-item-list p-list-item::part(main) {
+      height: 22px;
+    }
+
+    [data-connection-status="disconnected"],
+    [data-connection-status="error"],
+    [data-connection-status="closed"] {
+      color: var(--md-sys-color-error);
+    }
+    [data-connection-status="connected"] {
+      color: var(--md-sys-color-success);
+    }
+  </style>
+
+  <p-list>
+    <p-list-item radius collapse-childs="open" button="suffix">
+      <div>
+        <span class="root-item">
+          <n-desc name="handServer" space="linkme"></n-desc>
+        </span>
+        ({{servers.length}})
+      </div>
+      <i toggle-collapse triangle slot="suffix"></i>
+
+      <p-list slot="childs">
+        <o-if :value="!servers.length">
+          <div
+            style="
+              line-height: 80px;
+              font-size: 12px;
+              text-align: center;
+              color: #7c7c7c;
+            "
+          >
+            <n-desc name="noServer" space="linkme"></n-desc>
+          </div>
+        </o-if>
+        <o-else>
+          <o-fill :value="servers" fill-key="serverUrl">
+            <p-list-item button="suffix" collapse-childs="close">
+              <div
+                class="status-point"
+                attr:data-status="$data.connectionState"
+                slot="prefix"
+              ></div>
+              <div>
+                {{$data.serverName}}
+
+                <span style="color: #7c7c7c; font-size: 12px; margin-left: 4px">
+                  Version: {{$data.serverVersion}}
+                </span>
+              </div>
+              <div secondary>{{$data.serverUrl}}</div>
+              <p-list slot="childs" class="server-item-list">
+                <p-list-item>
+                  <div>
+                    <n-desc name="serverName" space="linkme"></n-desc>
+                    : {{$data.serverName}}
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <div>
+                    <n-desc name="linkState" space="linkme"></n-desc>
+                    :
+                    <span attr:data-connection-status="$data.connectionState">
+                      {{$data.connectionState}}
+                    </span>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <n-desc name="connectTime" space="linkme"></n-desc>
+                  : {{ $host.getItemTime($data); }}
+                </p-list-item>
+                <p-list-item>
+                  <div>
+                    <n-desc name="delayTime" space="linkme"></n-desc>
+                    : {{$data.delayTime}} ms
+                    <p-button
+                      size="mini"
+                      variant="text"
+                      on:click="$host.ping($data)"
+                      style="margin-left: 4px"
+                    >
+                      <n-desc name="ping" space="linkme"></n-desc>
+                    </p-button>
+                  </div>
+                </p-list-item>
+                <p-list-item>
+                  <div style="display: flex; align-items: center">
+                    <n-desc name="serverUrl" space="linkme"></n-desc>
+                    :
+                    <n-copy-span style="margin-left: 8px">
+                      {{$data.serverUrl}}
+                    </n-copy-span>
+                  </div>
+                </p-list-item>
+                <p-list-item style="height: 40px">
+                  <div style="padding: 8px 0 0 0; max-width: 300px">
+                    <p-button
+                      size="small"
+                      color="error"
+                      on:click="$host.removeServer($data)"
+                    >
+                      删除该服务器
+                    </p-button>
+                  </div>
+                </p-list-item>
+              </p-list>
+
+              <i toggle-collapse triangle slot="suffix"></i>
+            </p-list-item>
+          </o-fill>
+          <p-list-item>
+            <div style="display: flex; width: 100%">
+              <p-input size="small" sync:value="newUrl" style="flex: 1">
+                <label>
+                  <n-desc name="addHandServer" space="linkme"></n-desc>
+                </label>
+              </p-input>
+              <p-button
+                size="small"
+                attr:disabled="!newUrl"
+                on:click="addServer(newUrl)"
+                style="margin-left: 16px"
+              >
+                <n-desc name="addServer" space="linkme"></n-desc>
+              </p-button>
+            </div>
+          </p-list-item>
+        </o-else>
+      </p-list>
+    </p-list-item>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { getServers, addServer, removeServer } = await load(
+        "/packages/user/main.js"
+      );
+
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
+      const servers = await getServers();
+
+      return {
+        tag: "n-server-list",
+        data: {
+          servers: [],
+          newUrl: "",
+        },
+        proto: {
+          ping(item) {
+            item.ping();
+          },
+          getItemTime(item) {
+            if (item.pinging) {
+              return "testing...";
+            }
+            return new Date(item.connectedTime).toLocaleString();
+          },
+          addServer() {
+            let { newUrl } = this;
+
+            if (!/:\/\//.test(newUrl)) {
+              newUrl = `wss://${newUrl}`;
+            }
+
+            const { origin: newOrigin } = new URL(newUrl);
+            // 确保不会重复添加
+            if (
+              this.servers.some((item) => {
+                const { origin } = new URL(item.serverUrl);
+
+                return newOrigin === origin;
+              })
+            ) {
+              toast({
+                content: `不能添加重复的服务器: ${this.newUrl}`,
+                color: "error",
+              });
+              return;
+            }
+
+            addServer(newUrl);
+            this.newUrl = "";
+          },
+          async removeServer(item) {
+            const result = await confirm({
+              title: "删除服务器",
+              content: `确定要删除服务器: ${item.serverUrl} 吗?`,
+              yes: "删除",
+              cancel: "取消",
+            });
+
+            if (result) {
+              removeServer(item.serverUrl);
+            }
+          },
+        },
+        attached() {
+          this.servers = servers;
+        },
+        detached() {
+          this.servers = [];
+        },
+      };
+    };
+  </script>
+</template>

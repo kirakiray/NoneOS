@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flat Method Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-flat");
+
+      // 测试 flat 方法的使用
+      await test("Test DirHandle flat method", async () => {
+        // 创建嵌套的目录和文件结构
+        const file1 = await testDir.get("file1.txt", { create: "file" });
+        const subDir1 = await testDir.get("subDir1", { create: "dir" });
+        const file2 = await testDir.get("subDir1/file2.txt", {
+          create: "file",
+        });
+        const subDir2 = await testDir.get("subDir1/subDir2", { create: "dir" });
+        const file3 = await testDir.get("subDir1/subDir2/file3.txt", {
+          create: "file",
+        });
+
+        // 写入一些内容以区分文件
+        await file1.write("root file");
+        await file2.write("level 1 file");
+        await file3.write("level 2 file");
+
+        // 使用 flat 获取所有文件
+        const allFiles = await testDir.flat();
+
+        // 读取所有文件内容
+        const fileContents = await Promise.all(
+          allFiles.map(async (file) => ({
+            path: file.path,
+            content: await file.read(),
+          }))
+        );
+
+        // 验证结果
+        const expectedPaths = [
+          "test-dir-flat/file1.txt",
+          "test-dir-flat/subDir1/file2.txt",
+          "test-dir-flat/subDir1/subDir2/file3.txt",
+        ];
+
+        const isMatch = fileContents.every(
+          (file) =>
+            expectedPaths.includes(file.path) && file.content.includes("file")
+        );
+
+        return {
+          assert: isMatch && allFiles.length === 3,
+          content: `Found ${allFiles.length} files:\n${fileContents
+            .map((f) => `${f.path}: ${f.content}`)
+            .join("\n")}`,
+        };
+      });
+    </script>
+  </body>
+</html>

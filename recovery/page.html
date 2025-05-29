@@ -1,0 +1,164 @@
+<template page>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .main {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      box-sizing: border-box;
+      padding: 16px;
+      width: 100%;
+      height: 100%;
+      text-align: center;
+    }
+
+    p-button {
+      margin: 0 4px;
+    }
+  </style>
+  <l-m src="/packages/i18n/component.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <div class="main">
+    <h1><n-desc space="recovery" name="title"></n-desc></h1>
+
+    <p-select sync:value="settingData.lang" style="margin-top: 16px">
+      <n-local-icon
+        name="lang"
+        slot="prefix"
+        style="display: inline-block; margin-right: 8px"
+      ></n-local-icon>
+      <p-option value="en">English</p-option>
+      <p-option value="cn">中文</p-option>
+      <p-option value="ja">日本語</p-option>
+    </p-select>
+
+    <p><n-desc space="recovery" name="desc1"></n-desc></p>
+    <div>
+      <p-button on:click="clickExportAllBtn()">
+        <n-desc space="recovery" name="export_all_data"></n-desc>
+      </p-button>
+      <p-button variant="outlined" on:click="clickExportAllBtn('system')">
+        <n-desc space="recovery" name="export_user_data"></n-desc>
+      </p-button>
+      <p-button variant="outlined" on:click="clickExportAllBtn('local')">
+        <n-desc space="recovery" name="export_local_data"></n-desc>
+      </p-button>
+    </div>
+    <p>
+      <n-desc space="recovery" name="desc2"></n-desc>
+    </p>
+    <div>
+      <p-button on:click="shadow.$('#fileInputer').ele.click()">
+        <n-desc space="recovery" name="import_data"></n-desc>
+      </p-button>
+      <input
+        type="file"
+        id="fileInputer"
+        accept=".zip"
+        on:change="changeFile"
+        style="display: none"
+      />
+      <p-button on:click="clickRemoveBtn" color="error" variant="outlined">
+        <n-desc space="recovery" name="clear_system_data"></n-desc>
+      </p-button>
+    </div>
+  </div>
+  <script>
+    import { setSpace, getText } from "/packages/i18n/data.js";
+    setSpace("recovery", "/recovery/lang");
+
+    export default async ({ load }) => {
+      const { exportHandle } = await load("/packages/fs/task/main.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
+      const { unzip } = await load("/packages/libs/zip/main.js");
+      const { get } = await load("/packages/fs/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      return {
+        data: {
+          settingData: {},
+        },
+        proto: {
+          async changeFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            e.target.value = "";
+
+            const files = await unzip(file);
+
+            // 同时带有 system 和 local 文件夹的zip文件，才属于原来的备份文件
+            if (
+              files.some((e) => /^system/.test(e.path)) ||
+              files.some((e) => /^local/.test(e.path))
+            ) {
+              await Promise.all(
+                files.map(async (e) => {
+                  const fileHandle = await get(e.path, { create: "file" });
+                  await fileHandle.write(e.file);
+                })
+              );
+
+              toast(getText("import_success_toast", "recovery"));
+              return;
+            }
+
+            toast(getText("import_error_toast", "recovery"));
+          },
+          clickExportAllBtn(target) {
+            debugger;
+            if (target) {
+              exportHandle(
+                [target],
+                `noneos-${target}-${new Date()
+                  .toLocaleString()
+                  .replace(/[\/ :]/g, "-")}`
+              );
+            } else {
+              exportHandle(
+                ["local", "system"],
+                "noneos-backup-" +
+                  new Date().toLocaleString().replace(/[\/ :]/g, "-")
+              );
+            }
+          },
+          async clickRemoveBtn() {
+            const result = await confirm({
+              title: getText("confirm_title", "recovery"),
+              content: getText("confirm_content", "recovery"),
+              yes: getText("confirm_yes", "recovery"),
+              cancel: getText("confirm_cancel", "recovery"),
+            });
+
+            if (!result) return;
+
+            // 删除本地OPFS的数据
+            const rootDirs = await navigator.storage.getDirectory();
+            for await (const [name, dir] of rootDirs.entries()) {
+              await rootDirs.removeEntry(name, {
+                recursive: true,
+              });
+            }
+
+            // 提示用户刷新页面
+            toast(getText("clear_success_toast", "recovery"));
+          },
+        },
+        attached() {
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
+        },
+      };
+    };
+  </script>
+</template>

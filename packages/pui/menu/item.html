@@ -116,9 +116,9 @@
     on:mouseenter="enterItem"
     on:mouseleave="leaveItem"
   >
-    <x-if :value="typeof disabled === 'string'">
+    <o-if :value="typeof disabled === 'string'">
       <div class="interdict" on:click="$event.stopImmediatePropagation()"></div>
-    </x-if>
+    </o-if>
     <p-wave></p-wave>
     <div class="prefix" part="prefix">
       <slot name="prefix"></slot>
@@ -130,7 +130,7 @@
     <div class="triangle"></div>
   </div>
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default {
       tag: "p-menu-item",

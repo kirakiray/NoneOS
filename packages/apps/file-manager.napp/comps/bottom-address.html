@@ -1,0 +1,131 @@
+<template component>
+  <l-m src="./handle-block.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+    }
+    .block {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+    .mark {
+      margin: 0 8px;
+      width: 0;
+      height: 0;
+      border-top: transparent solid 5px;
+      border-bottom: transparent solid 5px;
+      border-left: var(--md-sys-color-normal) solid 5px;
+    }
+    .block:last-child {
+      cursor: default;
+    }
+    .block:last-child .mark {
+      display: none;
+    }
+
+    .remote-root {
+      cursor: default;
+    }
+  </style>
+  <div class="container">
+    <o-fill :value="pathArr" fill-key="path">
+      <div
+        class="block"
+        on:click="$host.clickBlock($index,$data)"
+        attr:title="$data.path"
+        class:remote-root="$data.remoteRoot"
+      >
+        <n-handle-block :kind="$data.kind" :name="$data.name"></n-handle-block>
+        <div class="mark"></div>
+      </div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { getRemotes } = await load("/packages/util/get-remotes.js");
+
+      return {
+        tag: "n-bottom-address",
+        data: {
+          path: "",
+          pathArr: [],
+        },
+        watch: {
+          async path(path) {
+            let pathStr = "";
+
+            if (!path) {
+              return;
+            }
+
+            const remotes = await getRemotes();
+
+            const arr = [];
+
+            path.split("/").forEach((e, index) => {
+              pathStr += `${e}/`;
+
+              if (index === 0) {
+                if (e.includes(":")) {
+                  // 协议模式
+                  if (e.startsWith("$user-")) {
+                    // 用户模式
+                    const [mark, rootName] = e.split(":");
+                    const userId = mark.split("-")[1];
+
+                    const targetDevice = remotes.find(
+                      (e) => e.userId === userId
+                    );
+
+                    arr.push({
+                      name: targetDevice ? targetDevice.userName : userId,
+                      kind: "user",
+                      path: "root-user",
+                      userId,
+                      remoteRoot: 1,
+                    });
+
+                    arr.push({
+                      name: rootName,
+                      kind: "dir",
+                      path: e,
+                    });
+                    return;
+                  }
+                }
+              }
+
+              arr.push({
+                kind: "dir",
+                name: e,
+                path: pathStr.replace(/\/$/, ""),
+              });
+            });
+
+            console.log("arr: ", arr);
+            this.pathArr = arr;
+          },
+        },
+        proto: {
+          clickBlock(index, data) {
+            const isLasted = this.pathArr.length - 1 === index;
+            if (isLasted || data.remoteRoot) {
+              return;
+            }
+
+            this.emit("click-address", {
+              bubbles: false,
+              data: {
+                newPath: data.path,
+              },
+            });
+          },
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,0 +1,114 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+    h4 {
+      font-size: 16px;
+      margin: 24px 0 8px;
+      color: var(--md-sys-color-primary);
+    }
+
+    h4:first-of-type {
+      margin-top: 0;
+    }
+  </style>
+
+  <h4><n-desc name="basicFunctions" space="bookmarks"></n-desc></h4>
+  <div style="padding: 8px 0">
+    <p-select sync:value="setting.sort">
+      <label><n-desc name="bookmarkSort" space="bookmarks"></n-desc></label>
+      <p-option value="custom"
+        ><n-desc name="manualSort" space="bookmarks"></n-desc
+      ></p-option>
+      <p-option value="click" disabled
+        ><n-desc name="clickSort" space="bookmarks"></n-desc
+      ></p-option>
+      <p-option value="name" disabled
+        ><n-desc name="nameSort" space="bookmarks"></n-desc
+      ></p-option>
+    </p-select>
+  </div>
+  <div style="padding: 8px 0">
+    <p-switch sync:value="setting.showCardTitle">
+      <n-desc name="showBookmarkTitle" space="bookmarks"></n-desc>
+    </p-switch>
+  </div>
+  <div style="padding: 8px 0">
+    <p-switch
+      attr:disabled="setting.showCardTitle === 'off'"
+      sync:value="setting.showClickCount"
+    >
+      <n-desc name="showClickCount" space="bookmarks"></n-desc>
+    </p-switch>
+  </div>
+  <h4><n-desc name="accessStatistics" space="bookmarks"></n-desc></h4>
+  <!-- <div style="color: var(--md-sys-color-normal)">还在开发中...</div> -->
+  <p-button
+    size="small"
+    variant="outlined"
+    on:click="clearClickCount"
+    style="margin: 8px 0 0 1px"
+  >
+    <n-desc name="clearClickCount" space="bookmarks"></n-desc>
+  </p-button>
+  <script>
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      return {
+        data: {
+          setting: {
+            sort: "custom", // 排序方式
+          },
+        },
+        proto: {
+          async clearClickCount() {
+            const result = await confirm({
+              // title: this.$t("bookmarks.confirmClearClickCount"),
+              title: getText("confirmClearClickCount", "bookmarks"),
+              content: getText("clearClickCountWarning", "bookmarks"),
+              yes: getText("clear", "bookmarks"),
+              cancel: getText("cancel", "bookmarks"),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            // 清空数量
+            const clearCount = async (cards) => {
+              for (let e of cards) {
+                if (e.type === "folder") {
+                  await clearCount(e.cards);
+                } else {
+                  if (e.count) {
+                    e.count = 0;
+                  }
+                }
+              }
+            };
+
+            const mainData = await this.app._mainData;
+
+            await clearCount(mainData.cards);
+
+            toast({
+              content: getText("clearSuccess", "bookmarks"),
+              color: "success",
+            });
+          },
+        },
+        async attached() {
+          const mainData = await this.app._mainData;
+
+          this.setting = mainData.setting;
+        },
+        detached() {
+          this.setting = {};
+        },
+      };
+    };
+  </script>
+</template>

@@ -11,9 +11,8 @@
   </style>
   <o-provider
     name="pui"
-    sync:theme="theme"
-    class:theme-dark-mode="theme === 'dark'"
-    class:theme-light-mode="theme === 'light'"
+    class:theme-dark-mode="theme === 'dark' ? true : false"
+    class:theme-light-mode="theme === 'light'? true : false"
   >
     <slot></slot>
   </o-provider>
@@ -21,7 +20,7 @@
     export default {
       tag: "p-provider",
       attrs: {
-        theme: "light",
+        theme: "auto",
       },
     };
   </script>

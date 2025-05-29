@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>单选框组 Radio Group</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+      .result-display {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: var(--md-sys-color-surface);
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../group.html"></l-m>
+    <l-m src="../radio.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础单选框组</h3>
+      <p-radio-group id="basic-group">
+        <p-radio value="apple">苹果</p-radio>
+        <p-radio value="banana">香蕉</p-radio>
+        <p-radio value="orange">橙子</p-radio>
+      </p-radio-group>
+      <div class="result-display" id="basic-result">选中值: null</div>
+      <script>
+        const basicGroup = $("#basic-group");
+        basicGroup.on("change", (e) => {
+          $("#basic-result").text = `选中值: ${JSON.stringify(
+            basicGroup.value
+          )}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>默认选中值</h3>
+      <p-radio-group id="basic-group2" default-value="banana">
+        <p-radio value="apple">苹果</p-radio>
+        <p-radio value="banana">香蕉</p-radio>
+        <p-radio value="orange">橙子</p-radio>
+      </p-radio-group>
+
+      <div class="result-display" id="basic-result2">选中值: null</div>
+      <script>
+        const basicGroup2 = $("#basic-group2");
+        basicGroup2.on("change", (e) => {
+          $("#basic-result2").text = `选中值: ${JSON.stringify(
+            basicGroup2.value
+          )}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>禁用状态</h3>
+      <p-radio-group>
+        <p-radio value="apple" disabled>苹果</p-radio>
+        <p-radio value="banana" disabled>香蕉</p-radio>
+        <p-radio value="orange" disabled>橙子</p-radio>
+      </p-radio-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>动态控制</h3>
+      <p-radio-group id="dynamic-group">
+        <p-radio value="apple">苹果</p-radio>
+        <p-radio value="banana">香蕉</p-radio>
+        <p-radio value="orange">橙子</p-radio>
+        <p-radio value="grape">葡萄</p-radio>
+      </p-radio-group>
+      <div style="margin-top: 10px">
+        <p-button onclick="selectApple()">选择苹果</p-button>
+        <p-button onclick="selectBanana()">选择香蕉</p-button>
+        <p-button onclick="selectNone()">取消选择</p-button>
+      </div>
+      <div class="result-display" id="dynamic-result">选中值: null</div>
+      <script>
+        const dynamicGroup = $("#dynamic-group");
+
+        function selectApple() {
+          dynamicGroup.value = "apple";
+        }
+
+        function selectBanana() {
+          dynamicGroup.value = "banana";
+        }
+
+        function selectNone() {
+          dynamicGroup.value = null;
+        }
+
+        dynamicGroup.on("change", (e) => {
+          $("#dynamic-result").text = `选中值: ${JSON.stringify(
+            dynamicGroup.value
+          )}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>表单集成</h3>
+      <form id="radio-form">
+        <p>选择您喜欢的水果：</p>
+        <p-radio-group name="favorite-fruit" id="form-group">
+          <p-radio value="apple">苹果</p-radio>
+          <p-radio value="banana">香蕉</p-radio>
+          <p-radio value="orange">橙子</p-radio>
+        </p-radio-group>
+        <button type="button" onclick="submitRadioForm()">提交</button>
+      </form>
+      <div class="result-display" id="form-result">表单未提交</div>
+      <script>
+        function submitRadioForm() {
+          const formGroup = $("#form-group");
+          $("#form-result").text = `您选择的水果是：${formGroup.value || "未选择"}`;
+        }
+      </script>
+    </div>
+  </body>
+</html>

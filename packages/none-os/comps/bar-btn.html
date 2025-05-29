@@ -2,7 +2,7 @@
   <style>
     :host {
       display: block;
-      /* background-color: rgba(255, 0, 0, 0.251); */
+      border-radius: 50%;
     }
     .container {
       position: relative;
@@ -11,17 +11,62 @@
       align-items: center;
       width: 50px;
       height: 50px;
+      /* background-color: red; */
       cursor: pointer;
+      animation: icon-contianer-fadein ease 0.3s;
+      animation-fill-mode: both;
     }
-    .icon {
-      height: 30px;
-      /* width: 100%; */
-      /* background-color: blue; */
+
+    @keyframes icon-contianer-fadein {
+      0% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+      }
+
+      100% {
+        width: 50px;
+        height: 50px;
+        opacity: 1;
+      }
+    }
+
+    .container[status="closing"] {
+      animation: icon-contianer-fadeout ease 0.3s;
+      animation-fill-mode: both;
+    }
+
+    @keyframes icon-contianer-fadeout {
+      0% {
+        width: 50px;
+        height: 50px;
+        opacity: 1;
+      }
+
+      100% {
+        width: 0;
+        height: 0;
+        opacity: 0;
+      }
+    }
+
+    :host([no-anime]) .container {
+      animation: none;
+    }
+
+    ::slotted(img) {
+      margin-top: -8px;
+      height: 26px;
+      transition: transform ease 0.2s;
+    }
+
+    .container:hover ::slotted(img) {
+      transform: scale(1.1);
     }
 
     .bottom-line {
       position: absolute;
-      bottom: 6px;
+      bottom: 10px;
       /* width: 16px; */
       width: 0;
       height: 2px;
@@ -53,15 +98,14 @@
       background-color: var(--md-sys-color-primary);
     }
   </style>
-  <div class="container">
-    <img class="icon" attr:src="icon" />
+  <div class="container" attr:status="status">
+    <slot></slot>
     <div class="bottom-line" attr:status="status"></div>
   </div>
   <script>
     export default {
       tag: "n-bar-btn",
       data: {
-        icon: null,
         name: "",
         status: null,
         focus: null,

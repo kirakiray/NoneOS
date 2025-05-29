@@ -1,0 +1,83 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    import "../public/init.js";
+
+    export default {
+      tag: "p-checkbox-group",
+      attrs: {
+        name: null,
+      },
+      data: {
+        value: [],
+      },
+      watch: {
+        value(e) {
+          this.emit("change");
+
+          this._valueToCheckbox();
+        },
+      },
+      proto: {
+        _valueToCheckbox() {
+          this.all("p-checkbox").forEach((e) => {
+            const value = e.value || e.attr("value") || e.text.trim();
+            if (this.value.includes(value)) {
+              e.checked = true;
+            } else {
+              e.checked = false;
+            }
+          });
+        },
+        _checkboxToValue() {
+          let value = [];
+          this.all("p-checkbox").forEach((e) => {
+            if (e.checked) {
+              value.push(e.value !== null ? e.value : e.text);
+            }
+          });
+
+          // 判断两个数组内容是否相等，不想等就更新
+          if (JSON.stringify(this.value) !== JSON.stringify(value)) {
+            this.value.splice(0, this.value.length, ...value);
+          }
+        },
+      },
+      ready() {
+        if (this.value) {
+          this.all("p-checkbox").forEach((e) => {
+            const value = e.attr("value") || e.text;
+            if (value === this.value) {
+              e.checked = "";
+            }
+          });
+        }
+        this.on("change", (e) => {
+          if (e.target === this.ele) {
+            // 防止死循环
+            return;
+          }
+
+          this._checkboxToValue();
+        });
+      },
+      attached() {
+        $.nextTick(() => {
+          const defaultValue = this.attr("default-value");
+
+          if (defaultValue) {
+            this.value = defaultValue.split(",");
+            this._valueToCheckbox();
+          }
+        });
+
+        this._checkboxToValue();
+      },
+    };
+  </script>
+</template>

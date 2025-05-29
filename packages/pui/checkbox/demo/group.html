@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>复选框组 Checkbox Group</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+      .result-display {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: var(--md-sys-color-surface);
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="../group.html"></l-m>
+    <l-m src="../checkbox.html"></l-m>
+    <l-m src="../../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础复选框组</h3>
+      <p-checkbox-group id="basic-group">
+        <p-checkbox value="apple">苹果</p-checkbox>
+        <p-checkbox value="banana">香蕉</p-checkbox>
+        <p-checkbox value="orange">橙子</p-checkbox>
+      </p-checkbox-group>
+      <div class="result-display" id="basic-result">选中值: []</div>
+      <script>
+        const basicGroup = $("#basic-group");
+        basicGroup.on("change", (e) => {
+          $("#basic-result").text = `选中值: ${JSON.stringify(
+            basicGroup.value
+          )}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>默认选中值</h3>
+      <p-checkbox-group id="basic-group2" default-value="banana,orange">
+        <p-checkbox value="apple">苹果</p-checkbox>
+        <p-checkbox value="banana">香蕉</p-checkbox>
+        <p-checkbox value="orange">橙子</p-checkbox>
+      </p-checkbox-group>
+
+      <div class="result-display" id="basic-result2">选中值: []</div>
+      <script>
+        const basicGroup2 = $("#basic-group2");
+        basicGroup2.on("change", (e) => {
+          $("#basic-result2").text = `选中值: ${JSON.stringify(
+            basicGroup2.value
+          )}`;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>禁用状态</h3>
+      <p-checkbox-group>
+        <p-checkbox value="apple" disabled>苹果</p-checkbox>
+        <p-checkbox value="banana" disabled>香蕉</p-checkbox>
+        <p-checkbox value="orange" disabled>橙子</p-checkbox>
+      </p-checkbox-group>
+    </div>
+
+    <div class="demo-section">
+      <h3>动态控制</h3>
+      <p-checkbox-group id="dynamic-group">
+        <p-checkbox value="apple">苹果</p-checkbox>
+        <p-checkbox value="banana">香蕉</p-checkbox>
+        <p-checkbox value="orange">橙子</p-checkbox>
+        <p-checkbox value="grape">葡萄</p-checkbox>
+      </p-checkbox-group>
+      <div style="margin-top: 10px">
+        <p-button onclick="selectAll()">全选</p-button>
+        <p-button onclick="selectNone()">取消全选</p-button>
+        <p-button onclick="selectFruits()">选择苹果和香蕉</p-button>
+      </div>
+      <div class="result-display" id="dynamic-result">选中值: []</div>
+      <script>
+        const dynamicGroup = $("#dynamic-group");
+
+        function selectAll() {
+          dynamicGroup.value = ["apple", "banana", "orange", "grape"];
+        }
+
+        function selectNone() {
+          dynamicGroup.value = [];
+        }
+
+        function selectFruits() {
+          dynamicGroup.value = ["apple", "banana"];
+        }
+
+        dynamicGroup.on("change", (e) => {
+          $("#dynamic-result").text = `选中值: ${JSON.stringify(
+            dynamicGroup.value
+          )}`;
+        });
+      </script>
+    </div>
+  </body>
+</html>

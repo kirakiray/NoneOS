@@ -1,0 +1,268 @@
+<template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/drawer/drawer.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/fs/task/task-list.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-connected-area.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+      background-color: var(--md-sys-color-surface);
+    }
+
+    p-list-item::part(main) {
+      margin: 2px 0;
+      border-radius: 0 20px 20px 0;
+      overflow: hidden;
+    }
+
+    p-list-item[active-item]::part(main) {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+
+    n-local-icon[slot="prefix"] {
+      display: block;
+      font-size: 18px;
+      margin-right: 8px;
+    }
+
+    h5 {
+      margin: 0;
+      padding: 4px 8px;
+    }
+
+    .left-con {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .left-bottom {
+      margin-top: auto;
+    }
+  </style>
+  <n-horsp-pannel on:open-dialog="openDialog">
+    <div slot="left" class="left-con">
+      <p-list>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">
+            <n-desc space="files" name="currentStorage"></n-desc>
+          </span>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <o-fill :value="locals" name="path-item"> </o-fill>
+          </p-list>
+        </p-list-item>
+        <p-list-item collapse-childs="open" button="suffix">
+          <span style="font-size: 13px; font-weight: 600">
+            <n-desc space="files" name="otherDevice"></n-desc>
+          </span>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <o-fill :value="remotes">
+              <p-list-item collapse-childs="open" button="suffix">
+                <n-id-avatar
+                  :val="$data.userId"
+                  slot="prefix"
+                  style="
+                    width: 20px;
+                    height: 20px;
+                    margin: 0 8px;
+                    border-radius: 3px;
+                    overflow: hidden;
+                  "
+                ></n-id-avatar>
+                {{$data.userName}}
+
+                <!-- <i toggle-collapse triangle slot="suffix"></i> -->
+                <user-connected-area
+                  slot="suffix"
+                  :user-id="$data.userId"
+                  style="position: relative; z-index: 4"
+                ></user-connected-area>
+                <p-list slot="childs" style="--padding-left: 16px">
+                  <o-fill :value="$data.dirs" name="path-item"></o-fill>
+                </p-list>
+              </p-list-item>
+            </o-fill>
+            <o-if :value="!remotes.length">
+              <p-list-item>
+                <div style="text-align: center; color: #7d7d7d">
+                  <n-desc space="files" name="empty"></n-desc>
+                </div>
+              </p-list-item>
+            </o-if>
+          </p-list>
+        </p-list-item>
+      </p-list>
+      <div class="left-bottom">
+        <n-task-list></n-task-list>
+      </div>
+    </div>
+    <slot></slot>
+  </n-horsp-pannel>
+
+  <template name="path-item">
+    <p-list-item
+      button
+      attr:active-item="$data.path === $host.selectedRootName"
+      on:click="$host.clickTab($data)"
+    >
+      <n-local-icon
+        slot="prefix"
+        attr:name="$data.icon || 'folder'"
+        style="padding-left: var(--padding-left, 8px)"
+      ></n-local-icon>
+      {{$data.name}}
+    </p-list-item>
+  </template>
+  <p-dialog :open="showErrorDialog" on:click-mask="showErrorDialog=false">
+    <div slot="title">{{dialogData.title}}</div>
+    <div>{{dialogData.content}}</div>
+  </p-dialog>
+
+  <script>
+    export default async ({ load, url }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { getRemotes } = await load("/packages/util/get-remotes.js");
+      // const { addTask } = await load("/packages/fs/task/main.js");
+      const { setSpace, getText, onChangeLang, getLang } = await load(
+        "/packages/i18n/data.js"
+      );
+
+      await setSpace("files", new URL("./lang", url).href);
+
+      return {
+        data: {
+          // 本地展示的菜单目录
+          locals: [
+            // {
+            //   name: "虚拟本地",
+            //   path: "local",
+            // },
+            // {
+            //   name: "应用",
+            //   path: "apps",
+            //   icon: "apps",
+            // },
+            // {
+            //   name: "依赖包",
+            //   path: "packages",
+            //   icon: "safe",
+            // },
+            // {
+            //   name: "高速盘(test)",
+            //   path: "$origin:local",
+            // },
+          ],
+          selectedRootName: null, // 选中的目录的名称
+          remotes: [], // 远端设备
+          showErrorDialog: false,
+          dialogData: {
+            title: "",
+            content: "",
+          },
+        },
+        proto: {
+          openDialog(e) {
+            this.showErrorDialog = true;
+            this.dialogData.title = e.data.title;
+            this.dialogData.content = e.data.content;
+          },
+          taskDone(e) {
+            this.app.current.refreshFiles();
+          },
+          clickTab(data) {
+            if (data.path === this.selectedRootName) {
+              return;
+            }
+            this.selectedRootName = data.path;
+            this.app.current.goto(`./explore.html?path=${data.path}`);
+          },
+          refreashLocals() {
+            this.locals = [
+              {
+                name: getText("virLocal", "files"),
+                path: "local",
+              },
+              {
+                name: getText("apps", "files"),
+                path: "apps",
+                icon: "apps",
+              },
+              {
+                name: "Packages",
+                path: "packages",
+                icon: "safe",
+              },
+              {
+                name: "System",
+                path: "system",
+                icon: "safe",
+              },
+            ];
+          },
+        },
+        async ready() {
+          const isSafari =
+            navigator.userAgent.includes("Safari") &&
+            !navigator.userAgent.includes("Chrome");
+          if (isSafari) {
+            // safari不允许写入本地盘
+            this.locals = this.locals.filter((e) => {
+              return !/^\$origin/.test(e.path);
+            });
+          }
+
+          this.on("go-page", (e) => {
+            e.stopPropagation();
+
+            const rootName = e.data.path.split("/")[0];
+            this.selectedRootName = rootName;
+          });
+
+          this.on("task-complete", async (e) => {
+            this.app.current.refreshFiles();
+          });
+
+          // 双击任务目录后触发的事件
+          this.on("open-task", async (e) => {
+            e.stopPropagation();
+            const configData = await get(`${e.data.path}/task.json`);
+
+            if (configData) {
+              let data = await configData.text();
+              data = JSON.parse(data);
+
+              // await addTask({
+              //   type: data.type,
+              //   from: data.from,
+              //   to: data.to,
+              //   paused: true,
+              // });
+
+              this.app.current.refreshFiles();
+            }
+          });
+
+          this.refreashLocals();
+        },
+        async attached() {
+          this._cancel = onChangeLang((lang) => {
+            this.refreashLocals();
+          });
+          this.remotes = await getRemotes();
+        },
+        detached() {
+          this._cancel && this._cancel();
+          this.remotes = [];
+        },
+      };
+    };
+  </script>
+</template>

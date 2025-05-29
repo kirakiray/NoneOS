@@ -16,42 +16,80 @@
     b {
       color: var(--md-sys-color-primary);
     }
+
+    p-list-item {
+      height: 42px;
+      animation: item-fadein ease 0.3s;
+      animation-fill-mode: both;
+    }
+
+    @keyframes item-fadein {
+      0% {
+        opacity: 0;
+        height: 0px;
+        transform: translate(-100%, 0px);
+      }
+
+      40% {
+        opacity: 0;
+        height: 42px;
+        transform: translate(-100%, 0px);
+      }
+
+      100% {
+        opacity: 1;
+        height: 42px;
+        transform: translate(0px, 0px);
+      }
+    }
+
+    p-list-item[done] {
+      animation: item-fadeout ease 0.3s;
+      animation-delay: 1.5s;
+      animation-fill-mode: both;
+    }
+    @keyframes item-fadeout {
+      0% {
+        height: 42px;
+        opacity: 1;
+      }
+      100% {
+        height: 0px;
+        opacity: 0;
+      }
+    }
   </style>
 
   <p-list>
-    <x-fill :value="tasks">
-      <p-list-item button on:click="$data.showViewer=true">
-        <x-if :value="$data.error">
+    <o-fill :value="tasks">
+      <p-list-item
+        button
+        on:click="$data.showViewer = true"
+        attr:done="$data.done"
+      >
+        <o-if :value="$data.error">
           <n-local-icon
             name="error"
             slot="prefix"
             class="mainicon"
             style="color: var(--md-sys-color-error)"
           ></n-local-icon>
-        </x-if>
-        <x-else-if :value="$data.type === 'copy'">
+        </o-if>
+        <o-else-if :value="$data.icon">
           <n-local-icon
-            name="copy"
+            attr:name="$data.icon"
             slot="prefix"
             class="mainicon"
           ></n-local-icon>
-        </x-else-if>
-        <x-else-if :value="$data.type === 'delete'">
-          <n-local-icon
-            name="delete"
-            slot="prefix"
-            class="mainicon"
-            style="color: var(--md-sys-color-error)"
-          ></n-local-icon>
-        </x-else-if>
-        <div :html="$data.tips"></div>
-        <x-if :value="$data.error">
+        </o-else-if>
+        <div :html="$data.name"></div>
+        <o-if :value="$data.error">
           <div secondary>{{$data.error}}</div>
-        </x-if>
-        <x-else>
+        </o-if>
+        <o-else>
           <div secondary>
             <p-progress
-              attr:color="$host.getColor($data)"
+              attr:color="$data.color"
               :value="$data.precentage * 100"
               style="
                 --line-size: 2px;
@@ -60,11 +98,11 @@
               "
             ></p-progress>
           </div>
-        </x-else>
+        </o-else>
 
-        <x-if :value="$data.error">
+        <o-if :value="$data.error">
           <p-button
-            on:click="$host.closeItem($data)"
+            on:click="$data.done = true"
             slot="suffix"
             icon
             size="small"
@@ -73,13 +111,13 @@
           >
             <n-local-icon name="close"></n-local-icon>
           </p-button>
-        </x-if>
+        </o-if>
       </p-list-item>
-    </x-fill>
+    </o-fill>
   </p-list>
   <script>
     export default async ({ load }) => {
-      const { tasks } = await load("./main.js");
+      const { tasks } = await load("./base.js");
       const { getText } = await load("/packages/i18n/data.js");
 
       return {
@@ -87,23 +125,7 @@
         data: {
           tasks: [],
         },
-        proto: {
-          closeItem(item) {
-            const index = tasks.indexOf(item);
-            if (index > -1) {
-              this.tasks.splice(index, 1);
-            }
-          },
-          getColor(data) {
-            if (data.step == 1) {
-              return "primary";
-            } else if (data.step == 2) {
-              return "success";
-            } else if (data.step == 3) {
-              return "error";
-            }
-          },
-        },
+        proto: {},
         attached() {
           this.tasks = tasks;
         },

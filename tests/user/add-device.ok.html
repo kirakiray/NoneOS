@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Device Addition Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init, get } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+      import { getUserStore, on } from "/packages/user/main.js";
+      import {
+        findDevice,
+        onEntryDevice,
+        authDevice,
+        getDeviceStore,
+      } from "/packages/user/device/main.js";
+
+      {
+        await init("local");
+      }
+
+      // 监听服务器代理数据
+      // on("server-agent-data", (e) => {
+      //   console.log("server-agent-data: ", e);
+      // });
+
+      await test("Device Addition Test", async () => {
+        const user1 = await getUserStore("user1");
+        const user2 = await getUserStore("user2");
+
+        const devices1 = await getDeviceStore("user1");
+        const devices2 = await getDeviceStore("user2");
+
+        const beforeDevice1Len = devices1.length;
+        const beforeDevice2Len = devices2.length;
+
+        // 生成设备码和验证码
+        const deviceCode = Math.random().toString(36).substring(2, 6);
+        const verifyCode = Math.random().toString(36).substring(2, 6);
+
+        // 设置设备监听
+        await onEntryDevice(
+          {
+            deviceCode,
+            verifyCode,
+            async confirm({ userData, waitingTime }) {
+              if (
+                userData.userName === user1.userName &&
+                userData.publicKey === user1.pair.publicKey
+              ) {
+                await new Promise((resolve) => setTimeout(resolve, 100));
+                return true;
+              }
+              return false;
+            },
+          },
+          "user2"
+        );
+
+        // 查找并授权设备
+        const users = await findDevice(deviceCode, "user1");
+        const result = await authDevice(
+          {
+            userId: users[0].userId,
+            rsaPublicKey: users[0].rsaPublicKey,
+            verifyCode,
+            servers: users[0].serversData.map((e) => e.serverUrl),
+          },
+          "user1"
+        );
+
+        // 验证结果
+        const deviceMatched = devices1[0].uid === result.uid;
+        const device1LenCorrect = devices1.length === beforeDevice1Len + 1;
+        const device2LenCorrect = devices2.length === beforeDevice2Len + 1;
+
+        return {
+          assert: deviceMatched && device1LenCorrect && device2LenCorrect,
+          content: {
+            message: "设备添加测试完成",
+            deviceMatched,
+            device1LenCorrect,
+            device2LenCorrect,
+            deviceCode,
+            verifyCode,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

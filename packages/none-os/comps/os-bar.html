@@ -1,0 +1,88 @@
+<template component>
+  <link rel="stylesheet" href="../public.css" />
+  <l-m src="./apps-icon.html"></l-m>
+  <l-m src="./bar-btn.html"></l-m>
+  <l-m src="./bar-time.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    @media (min-aspect-ratio: 1/1) {
+      .main {
+        flex-direction: column;
+      }
+    }
+
+    .main {
+      display: flex;
+      /* flex-direction: column; */
+      justify-content: center;
+      align-items: center;
+      border-radius: 30px;
+    }
+
+    .main[dir="bottom"] {
+      flex-direction: row;
+    }
+
+    .main[dir="left"] {
+      flex-direction: column;
+    }
+
+    n-bar-btn {
+      margin: 4px;
+    }
+
+    n-bar-btn img {
+      animation: icon-img-fadein ease 0.3s;
+    }
+
+    @keyframes icon-img-fadein {
+      0% {
+        height: 0;
+      }
+      100% {
+        height: 30px;
+      }
+    }
+  </style>
+  <div class="main frosted-glass" attr:dir="dir">
+    <n-bar-btn
+      on:click="activeHome = !activeHome"
+      no-anime
+      style="background-color: var(--barbtn-bg)"
+    >
+      <n-apps-icon attr:active="activeHome"></n-apps-icon>
+    </n-bar-btn>
+    <o-fill :value="apps">
+      <n-bar-btn :status="$data.appStatus" on:click="$host.clickItem($data)">
+        <img attr:src="$data.icon.url" />
+      </n-bar-btn>
+    </o-fill>
+    <n-bar-time></n-bar-time>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { focusBarAppItem } = await load("../util.js");
+
+      return {
+        tag: "none-os-bar",
+        data: {
+          activeHome: false,
+          apps: [],
+          dir: "",
+        },
+        proto: {
+          clickItem(item) {
+            if (item.appStatus === "min") {
+              item.appStatus = item._oldAppStatus || "normal";
+            }
+
+            focusBarAppItem(item, this.apps);
+          },
+        },
+      };
+    };
+  </script>
+</template>

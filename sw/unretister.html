@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>unregister sw</title>
+  </head>
+  <body>
+    <div id="log">准备开始</div>
+    <script>
+      navigator.serviceWorker.getRegistrations().then(function (registrations) {
+        for (let registration of registrations) {
+          document.getElementById("log").innerHTML = "开始住校";
+          // 对每个注册进行注销操作
+          registration.unregister().then(function (boolean) {
+            document.getElementById("log").innerHTML = "注销成功";
+            // console.log("注销成功:", boolean);
+          });
+        }
+      });
+    </script>
+  </body>
+</html>

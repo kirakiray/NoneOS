@@ -1,0 +1,61 @@
+[border-area],
+[border-point] {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  /* background-color: red; */
+  z-index: 2;
+}
+
+[border-area="top"],
+[border-area="bottom"] {
+  width: 100%;
+  cursor: ns-resize;
+}
+
+[border-area="left"],
+[border-area="right"] {
+  height: 100%;
+  cursor: ew-resize;
+}
+
+[border-area="top"],
+[border-area="left"] {
+  left: 0;
+  top: 0;
+}
+
+[border-area="bottom"],
+[border-area="right"] {
+  right: 0;
+  bottom: 0;
+}
+
+[border-point] {
+  z-index: 3;
+  /* background-color: blue; */
+}
+
+[border-point="top-left"] {
+  left: 0;
+  top: 0;
+  cursor: nwse-resize;
+}
+
+[border-point="top-right"] {
+  right: 0;
+  top: 0;
+  cursor: nesw-resize;
+}
+
+[border-point="bottom-left"] {
+  left: 0;
+  bottom: 0;
+  cursor: nesw-resize;
+}
+
+[border-point="bottom-right"] {
+  right: 0;
+  bottom: 0;
+  cursor: nwse-resize;
+}

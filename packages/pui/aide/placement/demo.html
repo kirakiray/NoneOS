@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>placement</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"></script>
+    <style>
+      .par {
+        display: inline-block;
+        margin: 30px;
+        width: 300px;
+        height: 300px;
+        border: red solid 1px;
+        overflow: auto;
+
+        button {
+          width: 100px;
+          height: 60px;
+        }
+
+        [slot="tips"] {
+          padding: 4px;
+          width: 130px;
+          white-space: nowrap;
+          background-color: rgba(148, 137, 60, 0.526);
+        }
+
+        .in-par {
+          padding: 180px 260px 180px 180px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./placement.html"></l-m>
+    <l-m src="../develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <h2>底部定位 (Bottom)</h2>
+    <!-- <div class="par">
+      <div class="in-par">
+        <p-placement>
+          <button>I am Button</button>
+          <div slot="tips">默认</div>
+        </p-placement>
+      </div>
+    </div> -->
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="bottom">
+          <button>I am Button</button>
+          <div slot="tips">Bottom</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="bottom-start">
+          <button>I am Button</button>
+          <div slot="tips">Bottom Start</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="bottom-end">
+          <button>I am Button</button>
+          <div slot="tips">Bottom End</div>
+        </p-placement>
+      </div>
+    </div>
+
+    <h2>顶部定位 (Top)</h2>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="top">
+          <button>I am Button</button>
+          <div slot="tips">Top</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="top-start">
+          <button>I am Button</button>
+          <div slot="tips">Top Start</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="top-end">
+          <button>I am Button</button>
+          <div slot="tips">Top End</div>
+        </p-placement>
+      </div>
+    </div>
+
+    <h2>左侧定位 (Left)</h2>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="left">
+          <button>I am Button</button>
+          <div slot="tips">Left</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="left-start">
+          <button>I am Button</button>
+          <div slot="tips">Left Start</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="left-end">
+          <button>I am Button</button>
+          <div slot="tips">Left End</div>
+        </p-placement>
+      </div>
+    </div>
+
+    <h2>右侧定位 (Right)</h2>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="right">
+          <button>I am Button</button>
+          <div slot="tips">Right</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="right-start">
+          <button>I am Button</button>
+          <div slot="tips">Right Start</div>
+        </p-placement>
+      </div>
+    </div>
+    <div class="par">
+      <div class="in-par">
+        <p-placement placement="right-end">
+          <button>I am Button</button>
+          <div slot="tips">Right End</div>
+        </p-placement>
+      </div>
+    </div>
+  </body>
+</html>

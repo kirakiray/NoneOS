@@ -1,21 +1,25 @@
-import { get as dbGet } from "./handle/index.js";
-import { get as originGet, showPicker } from "./o-handle/index.js";
-import { get as remoteGet } from "./r-handle/index.js";
+export { init } from "./handle/main.js";
+import { get as systemHandleGet } from "./handle/main.js";
+import { createGet } from "./remote/main.js";
 
-export const origin = {
-  get: originGet,
-  showPicker,
-};
-
-// 根据首个地址，选取特定的
 export const get = async (path, options) => {
-  if (/^\$remote:/.test(path)) {
-    return remoteGet(path, options);
+  // 判断是否有远端用户的目录引用
+  const pathArr = path.split("/");
+  const rootName = pathArr[0];
+  if (rootName.includes(":")) {
+    const [mark, reRootName] = rootName.split(":");
+
+    let userId;
+    if (mark.startsWith("$user-")) {
+      userId = mark.split("-")[1];
+    }
+
+    // 远端用户的目录引用
+    const remoteGet = createGet(userId);
+    const rePath = [reRootName, ...pathArr.slice(1)].join("/");
+
+    return remoteGet(rePath, options);
   }
 
-  if (/^\$origin:/.test(path)) {
-    return originGet(path, options);
-  }
-
-  return dbGet(path, options);
+  return systemHandleGet(path, options);
 };

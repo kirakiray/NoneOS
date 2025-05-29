@@ -1,0 +1,62 @@
+<template component>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <style>
+    :host {
+      display: inline-flex;
+      border: var(--md-sys-color-primary) solid 1px;
+      padding: 8px;
+      border-radius: 16px;
+    }
+
+    n-id-avatar {
+      height: 50px;
+      width: 50px;
+      margin-right: 16px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .root-item {
+      font-weight: 600;
+    }
+
+    .line {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .line b {
+      margin-right: 8px;
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+    }
+  </style>
+
+  <n-id-avatar attr:val="item.userId"></n-id-avatar>
+  <div class="container">
+    <div class="line">
+      <b> <n-desc name="userName" space="linkme"></n-desc> </b>{{item.userName}}
+    </div>
+    <div class="line">
+      <b> <n-desc name="userId" space="linkme"></n-desc></b>
+      <n-copy-span
+        style="max-width: 300px; text-overflow: ellipsis; overflow: hidden"
+      >
+        {{item.userId}}
+      </n-copy-span>
+    </div>
+    <slot></slot>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "n-user-card",
+        data: {
+          item: {},
+        },
+        proto: {},
+      };
+    };
+  </script>
+</template>

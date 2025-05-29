@@ -1,41 +1,94 @@
 <template component>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
-  <l-m src="/packages/pui/button/button.html"></l-m>
-  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
-  <l-m src="./none-os-core.html"></l-m>
-  <link rel="stylesheet" href="./public.css" />
+  <l-m src="./comps/os-bar.html"></l-m>
+  <l-m src="./comps/app-frame.html"></l-m>
+  <l-m src="./comps/home-app-frame.html"></l-m>
   <style>
     :host {
       display: block;
       width: 100%;
       height: 100%;
-      background-image: url(../others/default-bg.jpg);
+      background-image: url(/packages/others/default-bg.jpg);
       background-size: cover;
       background-position: center;
-      background-repeat: no-repeat;
-      -webkit-user-select: none;
-      user-select: none;
-      overflow: hidden;
     }
-    .installing-container {
+
+    .container {
       display: flex;
-      align-items: center;
-      justify-content: center;
       width: 100%;
       height: 100%;
     }
-  </style>
 
-  <x-if :value="theme === 'dark'">
-    <style>
+    .container[os-bar-dir="left"] {
+      flex-direction: row;
+    }
+
+    .container[os-bar-dir="bottom"] {
+      flex-direction: column-reverse;
+    }
+
+    @media (max-aspect-ratio: 1/1) {
+      .container[os-bar-dir="auto"] {
+        flex-direction: column-reverse;
+      }
+    }
+    .bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      z-index: 190001;
+    }
+
+    .main {
+      position: relative;
+      flex: 1;
+    }
+
+    @media (prefers-color-scheme: light) {
+      :host {
+        --frosted-glass-bg: rgba(255, 255, 255, 0.7);
+        --frosted-shadow-color: rgba(0, 0, 0, 0.1);
+        --barbtn-bg: rgba(255, 255, 255, 0.4);
+      }
+    }
+    @media (prefers-color-scheme: dark) {
       :host {
         --frosted-glass-bg: rgba(50, 50, 50, 0.7);
         --frosted-shadow-color: rgba(255, 255, 255, 0.1);
         --barbtn-bg: rgba(100, 100, 100, 0.4);
       }
-    </style>
-  </x-if>
-  <x-else>
+    }
+  </style>
+  <o-provider name="clipboard">
+    <!-- <p-provider attr:theme="settingData.theme"> -->
+    <div class="container" attr:os-bar-dir="settingData.dockDirection">
+      <div class="bar">
+        <none-os-bar
+          :apps="barApps"
+          :dir="settingData.dockDirection"
+          sync:active-home="showHomeApp"
+        ></none-os-bar>
+      </div>
+      <div class="main" on:open-app="openApp">
+        <o-fill :value="barApps">
+          <n-app-frame :item="$data" attr:data-appid="$data.appid">
+            <o-app attr:src="$data.configUrl"></o-app>
+          </n-app-frame>
+        </o-fill>
+      </div>
+    </div>
+    <!-- </p-provider> -->
+
+    <n-home-app-frame sync:show-home-app="showHomeApp">
+      <o-app
+        src="/packages/apps/app-select.napp/app-config.js"
+        on:click-app="runApp"
+      ></o-app>
+    </n-home-app-frame>
+  </o-provider>
+
+  <match-var pui-real-theme="light">
     <style>
       :host {
         --frosted-glass-bg: rgba(255, 255, 255, 0.7);
@@ -43,71 +96,195 @@
         --barbtn-bg: rgba(255, 255, 255, 0.4);
       }
     </style>
-  </x-else>
+  </match-var>
 
-  <x-if :value="step === 2">
-    <none-os-core></none-os-core>
-  </x-if>
-  <p-dialog :open="step === 1">
-    <div slot="title">Install</div>
-    <div>
-      It is detected that you have not installed NoneOS, do you want to install
-      it?
-    </div>
-    <p-button slot="bottom" on:click="gotoInstall">Install NoneOS</p-button>
-    <p-button slot="bottom" variant="text" on:click="useOnline">
-      Use the online version
-    </p-button>
-  </p-dialog>
-  <o-consumer name="pui" watch:theme="theme"></o-consumer>
+  <match-var pui-real-theme="dark">
+    <style>
+      :host {
+        --frosted-glass-bg: rgba(50, 50, 50, 0.7);
+        --frosted-shadow-color: rgba(255, 255, 255, 0.1);
+        --barbtn-bg: rgba(100, 100, 100, 0.4);
+      }
+    </style>
+  </match-var>
+
   <script>
     export default async ({ load }) => {
-      const { get } = await load("../fs/handle/index.js");
-      const { storage } = await load("/packages/libs/ever-cache/main.js");
+      await load("/packages/pui/public/init.js");
+      const { init } = await load("/packages/fs/main.js");
+      await load("./init.js");
+
+      // 初始化几个重要目录
+      await init("local"); // 用户的本地数据
+      await init("apps"); // 应用目录
+      await init("packages"); // 运行虚拟系统的文件
+      await init("system"); // 存储系统初始化数据，这个目录不要暴露给用户
+
+      load("/packages/util/get-remotes.js"); // 初始化远端接收逻辑
+      load("/packages/user/main.js").then(({ init }) => {
+        init();
+      }); // 初始化服务端相关连接
+
+      const { initHistory } = await load("./init-history.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const { runApp, openApp, focusBarAppItem } = await load("./util.js");
+      const settingData = await getSetting();
 
       return {
         tag: "none-os",
         data: {
-          count: 0,
-          len: 0,
-          installVal: 0,
-          version: "",
-          theme: "light",
-          installOK: false,
-          step: null, // 1:询问使用的版本 2:进入使用core系统
+          showHomeApp: false, // 显示首页应用
+          barApps: [
+            // {
+            //   icon: data.icon, // 应用图标
+            //   appData: data.appData, // 应用json的数据
+            //   configUrl: data.configUrl, // 应用配置js的地址
+            //   zIndex: 1, // 窗口的层级
+            //   appid: data.appid, // 应用id
+            //   top: 0, // 窗口定位相关的数据
+            //   left: 0,
+            //   width: 200,
+            //   height: 200,
+            //   appStatus: 'normal' // min normal max
+            // },
+          ], // 程序坞程序数据
+          settingData: {},
+        },
+        watch: {
+          settingData(settingData) {
+            clearTimeout(this.__setting_timer);
+            this.__setting_timer = setTimeout(() => {
+              const rootPui = $.getRootProvider("pui");
+
+              rootPui.theme = settingData.theme;
+            }, 100);
+          },
         },
         proto: {
-          gotoInstall() {
-            location.href = "/install";
-          },
-          async useOnline() {
-            await storage.setItem("use-online", 1);
-            this.step = 2;
-          },
-        },
-        async ready() {
-          fetch("/package.json")
-            .then((e) => e.json())
-            .catch(() => null)
-            .then((pgjson) => {
-              if (pgjson) {
-                this.version = pgjson.version;
-              }
+          // 通过右键菜单打开文件
+          async openApp(e) {
+            const result = await openApp({
+              noneos: this,
+              appConfigUrl: e.data.app,
+              filepath: e.data.path,
             });
 
-          const useOnline = await storage.getItem("use-online");
-
-          // 判断本地是否安装
-          const pgFile = await get("packages/package.json");
-          // 没有安装且不是在线模式，跳转到安装页面
-          if (!pgFile && !useOnline) {
-            if (location.hostname === "localhost") {
-              this.step = 1;
-            } else {
-              location.href = "/install";
+            if (e.data.callback) {
+              e.data.callback(result);
             }
-          } else {
-            this.step = 2;
+          },
+          runApp(e) {
+            runApp({
+              data: e.data,
+              noneos: this,
+            });
+          },
+          saveAppData() {
+            clearTimeout(this._save_timer);
+            this._save_timer = setTimeout(() => {
+              // 应用的路由
+              const appsRouters = this.barApps.map((e) => {
+                const appFrameEle = this.shadow.$(
+                  `n-app-frame[data-appid="${e.appid}"]`
+                );
+
+                if (appFrameEle) {
+                  return [
+                    e.appid,
+                    appFrameEle.$("o-app").routers,
+                    appFrameEle.$("o-app")._forwards,
+                  ];
+                }
+              });
+
+              const dataStr = JSON.stringify(
+                this.barApps.filter((e) => {
+                  if (e.appStatus === "closing") {
+                    return false;
+                  }
+
+                  return true;
+                })
+              );
+
+              if (sessionStorage.__noneos_apps !== dataStr) {
+                sessionStorage.__noneos_apps = dataStr;
+              }
+
+              // 存储路由数据
+              const routerStr = JSON.stringify(appsRouters);
+              if (sessionStorage.__noneos_apps_routers !== routerStr) {
+                sessionStorage.__noneos_apps_routers = routerStr;
+              }
+            }, 100);
+          },
+        },
+        attached() {
+          {
+            if (sessionStorage.__noneos_apps) {
+              const sessionApps = JSON.parse(sessionStorage.__noneos_apps);
+              this.barApps = sessionApps;
+            }
+
+            // 加载路由数据
+            if (sessionStorage.__noneos_apps_routers) {
+              setTimeout(() => {
+                const sessionAppsRouters = JSON.parse(
+                  sessionStorage.__noneos_apps_routers
+                );
+                sessionAppsRouters.forEach((cached) => {
+                  if (!cached) {
+                    return;
+                  }
+
+                  const [appid, routers, _forwards] = cached;
+                  const appEle = this.shadow.$(
+                    `n-app-frame[data-appid="${appid}"]`
+                  );
+                  if (appEle) {
+                    appEle.$("o-app").routers = routers;
+                  }
+
+                  if (_forwards && _forwards.length) {
+                    appEle
+                      .$("o-app")
+                      .watchUntil(() => appEle.$("o-app").appIsReady)
+                      .then(() => {
+                        appEle.$("o-app")._forwards = _forwards;
+                      });
+                  }
+                });
+              }, 0);
+            }
+
+            // 监听应用的变化，将数据存储到sessionStorage中，刷新页面的时候，重新加载数据
+            this.barApps.watchTick(() => {
+              this.saveAppData();
+            });
+          }
+
+          {
+            // 监听路由变化，对应用修正
+            this._cancelHistory = initHistory({
+              getCurrentFrame: () => {
+                return this.shadow
+                  .all("n-app-frame")
+                  .sort((a, b) => b.item.zIndex - a.item.zIndex)[0];
+              },
+              onpopstate: () => {
+                this.saveAppData();
+              },
+            }).then((cancel) => {
+              this._cancelHistory = cancel;
+            });
+          }
+
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
+          if (this._cancelHistory) {
+            this._cancelHistory();
           }
         },
       };

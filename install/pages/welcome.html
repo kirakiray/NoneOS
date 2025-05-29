@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
@@ -33,7 +34,7 @@
     }
   </style>
   <div class="container">
-    <x-if :value="isupdate">
+    <o-if :value="isupdate">
       <h2>
         <n-desc space="installer" name="p2.updateTitle"></n-desc>
       </h2>
@@ -47,28 +48,29 @@
           set-type="html"
         ></n-desc>
       </p>
-    </x-if>
-    <x-else>
+    </o-if>
+    <o-else>
       <h2>
         <n-desc space="installer" name="p2.title"></n-desc>
         <span class="os-version">{{onlineVersion}}</span>
       </h2>
       <p><n-desc space="installer" name="p2.desc1"></n-desc></p>
       <p><n-desc space="installer" name="p2.desc2"></n-desc></p>
-    </x-else>
+      <p><n-desc space="installer" name="p2.desc3"></n-desc></p>
+    </o-else>
 
-    <p-select sync:value="lang" on:change="changeLang" style="margin-top: 16px">
+    <p-select sync:value="settingData.lang" style="margin-top: 16px">
       <n-local-icon
         name="lang"
         slot="prefix"
         style="display: inline-block; margin-right: 8px"
       ></n-local-icon>
-      <option value="en">English</option>
-      <option value="cn">中文</option>
-      <option value="ja">日本語</option>
+      <p-option value="en">English</p-option>
+      <p-option value="cn">中文</p-option>
+      <p-option value="ja">日本語</p-option>
     </p-select>
 
-    <x-if :value="localVersion === onlineVersion">
+    <o-if :value="localVersion === onlineVersion">
       <p-button
         on:click="nextStep"
         variant="outlined"
@@ -76,60 +78,60 @@
       >
         <n-desc space="installer" name="reinstall"></n-desc>
       </p-button>
-    </x-if>
-    <x-else>
+    </o-if>
+    <o-else>
       <p-button on:click="nextStep" style="margin-top: 24px; width: 200px">
         <n-desc space="installer" name="nextStep"></n-desc>
       </p-button>
-    </x-else>
+    </o-else>
 
-    <x-if :value="localVersion === onlineVersion">
+    <o-if :value="localVersion === onlineVersion">
       <p-button style="margin-top: 16px; width: 200px">
         <a href="/">
           <n-desc space="installer" name="entrySystemDirectly"></n-desc>
         </a>
       </p-button>
-    </x-if>
+    </o-if>
   </div>
   <script>
     export default async ({ load }) => {
-      const { get, inited } = await load("/packages/fs/handle/index.js");
-
-      const { changeLang } = await load("/packages/i18n/data.js");
+      const { get } = await load("/packages/fs/main.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
 
       return {
         data: {
-          lang: localStorage.getItem("_lang") || "en",
           isupdate: false, // 是否是更新
           onlineVersion: "",
           localVersion: "",
+          settingData: {},
         },
         proto: {
           nextStep() {
             $("n-installer").step++;
           },
-          changeLang(e) {
-            changeLang($(e.target).value);
-          },
         },
         async attached() {
-          await inited;
-          
+          this.settingData = settingData;
+
           const data = await load("/package.json");
           this.onlineVersion = data.version;
 
           sessionStorage.onlineVersion = data.version;
 
           // 读取本地的文件
-          const localPkg = await get("packages/package.json");
+          const localPkg = await get("packages/hashes.json");
 
           if (localPkg) {
-            let data = await localPkg.text();
-            data = JSON.parse(data);
+            let result = await localPkg.text();
+            result = JSON.parse(result);
 
             this.isupdate = true;
-            this.localVersion = data.version;
+            this.localVersion = result.data.version;
           }
+        },
+        detached() {
+          this.settingData = {};
         },
       };
     };

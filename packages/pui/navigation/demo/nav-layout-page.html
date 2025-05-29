@@ -1,0 +1,120 @@
+<template page>
+  <l-m src="../nav-layout.html"></l-m>
+  <l-m src="../nav-bar.html"></l-m>
+  <l-m src="../../list/list.html"></l-m>
+  <l-m src="/packages/aide/develop/demo-blocks.html"></l-m>
+  <style>
+    @media screen and (min-width: 600px) {
+      p-nav-layout::part(drawer-mask) {
+        display: none;
+      }
+    }
+  </style>
+  <p-nav-layout
+    attr:open-drawer="openDrawer ? '' : null"
+    on:click-drawer-mask="openDrawer = false"
+  >
+    <div slot="top" style="display: flex; align-items: center">
+      <button
+        class="drawer-btn"
+        on:click="openDrawer = !openDrawer"
+        style="margin: 0 auto 10px 10px"
+      >
+        展开
+      </button>
+      <div style="margin: 0 16px">固定顶部的内容，放在top容器上。</div>
+      <!-- <button on:click="clickTips">Tips</button> -->
+      <textarea
+        name=""
+        id=""
+        cols="30"
+        rows="2"
+        style="display: block; margin: 0 16px 10px 0"
+      ></textarea>
+    </div>
+
+    <button slot="drawer" on:click="openDrawer = false" style="width: 80px">
+      close
+    </button>
+
+    <p-list slot="drawer">
+      <p-list-item> Headline 1</p-list-item>
+      <p-list-item> Headline 2</p-list-item>
+      <p-list-item button="suffix" collapse-childs>
+        Headline 3
+        <i toggle-collapse triangle slot="suffix"></i>
+        <p-list slot="childs">
+          <p-list-item> Headline 3-1</p-list-item>
+          <p-list-item collapse-childs>
+            3-2 (click right triangle)
+            <i toggle-collapse triangle slot="suffix"></i>
+            <p-list slot="childs">
+              <p-list-item> Headline 3-2-1</p-list-item>
+              <p-list-item> Headline 3-2-2</p-list-item>
+            </p-list>
+          </p-list-item>
+          <p-list-item> Headline 3-3</p-list-item>
+          <p-list-item> Headline 3-4</p-list-item>
+        </p-list>
+      </p-list-item>
+      <p-list-item> Headline 4</p-list-item>
+    </p-list>
+
+    <o-if :value="activeId == 0">
+      <demo-blocks before-text="Home" fadein></demo-blocks>
+    </o-if>
+    <o-else-if :value="activeId == 1">
+      <demo-blocks before-text="Movies" fadein></demo-blocks>
+    </o-else-if>
+    <o-else-if :value="activeId == 2">
+      <demo-blocks before-text="Photos" fadein></demo-blocks>
+    </o-else-if>
+    <o-else>
+      <demo-blocks before-text="Musics" fadein></demo-blocks>
+    </o-else>
+    <p-nav-bar
+      slot="nav"
+      auto-active
+      on:change="activeId = $event.data.activeId"
+    >
+      <p-nav-item>
+        Home
+        <iconify-icon icon="material-symbols:home" slot="icon"></iconify-icon>
+      </p-nav-item>
+      <p-nav-item active-item>
+        <iconify-icon
+          icon="fluent:movies-and-tv-16-filled"
+          slot="icon"
+        ></iconify-icon>
+        Movies
+      </p-nav-item>
+      <p-nav-item>
+        <iconify-icon icon="material-symbols:photo" slot="icon"></iconify-icon>
+        Photos
+      </p-nav-item>
+      <p-nav-item>
+        <iconify-icon icon="mingcute:music-fill" slot="icon"></iconify-icon>
+        Musics
+      </p-nav-item>
+    </p-nav-bar>
+    <div slot="left-bottom">
+      <p-theme-selector></p-theme-selector>
+    </div>
+  </p-nav-layout>
+  <script>
+    import toast from "../../public/toast.js";
+
+    export default {
+      data: {
+        activeId: "0",
+        openDrawer: false,
+      },
+      watch: {
+        activeId(val) {
+          console.log("activeId", val);
+        },
+      },
+      proto: {},
+    };
+  </script>
+</template>

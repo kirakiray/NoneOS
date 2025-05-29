@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Values Method Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-values");
+
+      // 测试 values 方法的使用
+      await test("Test DirHandle values method", async () => {
+        // 创建测试文件和目录结构
+        const file1 = await testDir.get("file1.txt", { create: "file" });
+        const file2 = await testDir.get("file2.txt", { create: "file" });
+        const subDir = await testDir.get("subDir", { create: "dir" });
+
+        // 写入一些内容
+        await file1.write("content1");
+        await file2.write("content2");
+
+        // 收集所有的 handle
+        const handles = [];
+        for await (const handle of testDir.values()) {
+          handles.push({
+            kind: handle.kind,
+            name: handle.name,
+          });
+        }
+
+        // 验证结果
+        const expectedHandles = [
+          { kind: "file", name: "file1.txt" },
+          { kind: "file", name: "file2.txt" },
+          { kind: "dir", name: "subDir" },
+        ];
+
+        // 对比两个数组是否完全匹配
+        const isMatch =
+          handles.length === expectedHandles.length &&
+          handles.every((h) =>
+            expectedHandles.find((e) => e.name === h.name && e.kind === h.kind)
+          );
+
+        return {
+          assert: isMatch && handles.length === 3,
+          content: `Expected ${handles.length} handles: ${JSON.stringify(
+            handles
+          )}`,
+        };
+      });
+    </script>
+  </body>
+</html>

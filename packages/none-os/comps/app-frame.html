@@ -1,0 +1,455 @@
+<template component>
+  <link rel="stylesheet" href="../public.css" />
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <link rel="stylesheet" href="./app-frame.css" />
+  <style>
+    :host {
+      display: block;
+      position: absolute;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .top {
+      display: flex;
+      height: 34px;
+    }
+
+    .main {
+      flex: 1;
+      position: relative;
+    }
+
+    .innerMain {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      transform: translate(0, 0);
+    }
+
+    ::slotted(o-app) {
+      width: 100%;
+      height: 100%;
+    }
+
+    .app-info {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      font-size: 14px;
+      /* background-color: red; */
+    }
+
+    .app-info img {
+      margin-left: 8px;
+      height: 20px;
+    }
+
+    .top p-button {
+      margin: 2px;
+    }
+
+    :host([app-status="max"]) {
+      width: 100% !important;
+      height: 100% !important;
+      top: 0 !important;
+      left: 0 !important;
+    }
+
+    :host([app-status="max"]) .container {
+      border-radius: 0;
+    }
+
+    :host([app-status="min"]) {
+      transform-origin: 0 50%;
+      transform: scale(0);
+      opacity: 0;
+    }
+
+    :host([app-status="closing"]) {
+      animation: app-close ease 0.3s;
+      animation-fill-mode: both;
+    }
+
+    @keyframes app-close {
+      0% {
+        transform-origin: 50% 100%;
+        opacity: 1;
+        transform: scale(1);
+      }
+      100% {
+        transform-origin: 50% -10%;
+        opacity: 0;
+        transform: scale(0);
+      }
+    }
+  </style>
+  <div class="container frosted-glass">
+    <div class="top">
+      <div
+        class="app-info"
+        on:dblclick="item.appStatus = item.appStatus === 'max' ? 'normal' : 'max'"
+      >
+        <img attr:src="item.icon.url" />
+        <span style="margin-left: 8px"> {{appName}} </span>
+      </div>
+      <p-button size="small" icon variant="text" on:click="clickMin">
+        <n-local-icon name="min"></n-local-icon>
+      </p-button>
+      <o-if :value="item.appStatus === 'max'">
+        <p-button
+          size="small"
+          icon
+          variant="text"
+          on:click="item.appStatus = 'normal'"
+        >
+          <n-local-icon name="multi"></n-local-icon>
+        </p-button>
+      </o-if>
+      <o-else>
+        <p-button
+          size="small"
+          icon
+          variant="text"
+          on:click="item.appStatus = 'max'"
+        >
+          <n-local-icon name="max"></n-local-icon>
+        </p-button>
+      </o-else>
+      <p-button size="small" icon variant="text" on:click="clickClose">
+        <n-local-icon name="close"></n-local-icon>
+      </p-button>
+    </div>
+    <div class="main">
+      <div class="innerMain">
+        <slot></slot>
+      </div>
+    </div>
+  </div>
+
+  <div on:mousedown="borderMouseDown">
+    <div border-area="top" resize-top="1"></div>
+    <div border-area="bottom" resize-bottom="1"></div>
+    <div border-area="left" resize-left="1"></div>
+    <div border-area="right" resize-right="1"></div>
+    <div border-point="top-left" resize-top="1" resize-left="1"></div>
+    <div border-point="top-right" resize-top="1" resize-right="1"></div>
+    <div border-point="bottom-left" resize-bottom="1" resize-left="1"></div>
+    <div border-point="bottom-right" resize-bottom="1" resize-right="1"></div>
+  </div>
+
+  <script>
+    export default async ({ load }) => {
+      const { getLang } = await load("/packages/i18n/data.js");
+      const { focusBarAppItem } = await load("../util.js");
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        tag: "n-app-frame",
+        data: {
+          item: {},
+        },
+        watch: {
+          item() {
+            const { item } = this;
+
+            Object.assign(this.style, {
+              top: `${item.top}px`,
+              left: `${item.left}px`,
+              width: `${item.width}px`,
+              height: `${item.height}px`,
+            });
+
+            if (item.appStatus !== this.attr("app-status")) {
+              // 切换窗口大小的时候，需要添加动画；动画结束后去除动画，用于切换窗口大小位移；
+              this.style.transition = "all ease 0.25s";
+              clearTimeout(this._transtimer);
+              this._transtimer = setTimeout(() => {
+                this.style.transition = "";
+              }, 300);
+
+              requestAnimationFrame(() => {
+                this.attr("app-status", this.item.appStatus);
+              });
+            }
+
+            this.style.zIndex = item.zIndex;
+          },
+        },
+        proto: {
+          clickMin() {
+            this.item._oldAppStatus = this.item.appStatus;
+            this.item.appStatus = "min";
+          },
+          async clickClose() {
+            this.$("o-app").emit("app-close");
+
+            // 如果是在noneos组件内，定时删除窗口
+            if (this.host.is("none-os")) {
+              this.item.appStatus = "closing";
+              setTimeout(() => {
+                const itemIndex = this.host.barApps.findIndex(
+                  (e) => e === this.item
+                );
+
+                if (itemIndex > -1) {
+                  this.host.barApps.splice(itemIndex, 1);
+                }
+              }, 300);
+            }
+          },
+          get appName() {
+            const lang = getLang();
+            const appData = this?.item?.appData;
+
+            if (appData.i18n) {
+              const currentData = appData.i18n[lang];
+
+              if (currentData && currentData.name) {
+                return currentData.name;
+              }
+            }
+
+            return appData.name;
+          },
+          borderMouseDown(e) {
+            if (this.__oldResize) {
+              this.__oldResize();
+            }
+
+            const resizeTop = !!e.target.getAttribute("resize-top");
+            const resizeLeft = !!e.target.getAttribute("resize-left");
+            const resizeBottom = !!e.target.getAttribute("resize-bottom");
+            const resizeRight = !!e.target.getAttribute("resize-right");
+
+            let startX = e.clientX,
+              startY = e.clientY;
+
+            let moveFunc, leaveFunc, upFunc;
+
+            // 获取初始定位和尺寸数据
+            const startTop = this.item.top;
+            const startLeft = this.item.left;
+            const startWidth = this.item.width;
+            const startHeight = this.item.height;
+
+            // 修改后的定位数据
+            let reTop = startTop;
+            let reLeft = startLeft;
+            let reWidth = startWidth;
+            let reHeight = startHeight;
+
+            $("body").on(
+              "mousemove",
+              (moveFunc = (e) => {
+                const diffX = e.clientX - startX;
+                const diffY = e.clientY - startY;
+
+                if (resizeTop) {
+                  reTop = startTop + diffY;
+                  reHeight = startHeight - diffY;
+                }
+
+                if (resizeLeft) {
+                  reLeft = startLeft + diffX;
+                  reWidth = startWidth - diffX;
+                }
+
+                if (resizeBottom) {
+                  reHeight = startHeight + diffY;
+                }
+
+                if (resizeRight) {
+                  reWidth = startWidth + diffX;
+                }
+
+                Object.assign(this.style, {
+                  top: `${reTop}px`,
+                  left: `${reLeft}px`,
+                  width: `${reWidth}px`,
+                  height: `${reHeight}px`,
+                });
+
+                // console.log("diffX: ", diffX);
+                // console.log("diffY: ", diffY);
+              })
+            );
+
+            const mouseEnd = (this.__oldResize = () => {
+              // 设置最终尺寸和定位数据
+              Object.assign(this.item, {
+                top: reTop,
+                left: reLeft,
+                width: reWidth,
+                height: reHeight,
+              });
+
+              $("body").off("mousemove", moveFunc);
+              $("body").off("mouseup", mouseEnd);
+              $("body").off("mouseleave", mouseEnd);
+              this.__oldResize = null;
+            });
+
+            $("body").on("mouseup", mouseEnd);
+            $("body").on("mouseleave", mouseEnd);
+          },
+          back() {
+            this.$("o-app").back();
+          },
+          forward() {
+            this.$("o-app").forward();
+          },
+        },
+        attached() {
+          {
+            // 聚焦修正
+            this.on("mousedown", () => {
+              focusBarAppItem(this.item, this.host.barApps);
+            });
+          }
+          {
+            // 窗口改动监听
+
+            // 创建一个ResizeObserver实例
+            const resizeObserver = (this.__resobs = new ResizeObserver(
+              (entries) => {
+                this.all(`o-page`).forEach((page) => {
+                  if (page.onresize) {
+                    page.onresize();
+                  }
+                });
+              }
+            ));
+
+            // 开始观察element
+            resizeObserver.observe(this.ele);
+          }
+
+          {
+            // 拖拽的初始化逻辑
+            const topEle = this.shadow.$(".top .app-info");
+
+            let startX, startY;
+            let moveFunc, upFunc, leaveFunc;
+
+            // 拖动逻辑
+            topEle.on("mousedown", (e) => {
+              if (this.item.appStatus !== "normal") {
+                return;
+              }
+
+              if (this._oldClear) {
+                this._oldClear();
+              }
+
+              if (this.appStatus === "max") {
+                return;
+              }
+
+              startX = e.clientX;
+              startY = e.clientY;
+
+              const { top: appTop, left: appLeft } = this.item;
+
+              const parentRect = this.parent.ele.getBoundingClientRect();
+              const selfRect = this.ele.getBoundingClientRect();
+
+              const clearBind = (this._oldClear = (e) => {
+                if (e) {
+                  const { clientX, clientY } = e;
+
+                  const diffX = clientX - startX;
+                  const diffY = clientY - startY;
+
+                  let newAppTop = appTop + diffY;
+                  let newAppLeft = appLeft + diffX;
+
+                  // let needAnime = false; // 主动修正定位时，需要添加动画
+
+                  // if (newAppTop < -20) {
+                  //   newAppTop = 0;
+                  //   needAnime = 1;
+                  // } else if (newAppTop > parentRect.height - 80) {
+                  //   newAppTop = parentRect.height - 80;
+                  //   needAnime = 1;
+                  // }
+
+                  // if (newAppLeft + 80 > parentRect.width) {
+                  //   newAppLeft = parentRect.width - 80;
+                  //   needAnime = 1;
+                  // } else if (newAppLeft + selfRect.width < 120) {
+                  //   newAppLeft = -1 * selfRect.width + 120;
+                  //   needAnime = 1;
+                  // }
+
+                  // if (needAnime) {
+                  //   this.classList.add("in-anime");
+
+                  //   setTimeout(() => {
+                  //     this.classList.remove("in-anime");
+                  //   }, 300);
+                  // }
+
+                  Object.assign(this.item, {
+                    left: newAppLeft,
+                    top: newAppTop,
+                  });
+                }
+
+                $("body").off("mousemove", moveFunc);
+                $("body").off("mouseup", upFunc);
+                $("body").off("mouseleave", leaveFunc);
+              });
+
+              $("body").on(
+                "mousemove",
+                (moveFunc = (e) => {
+                  const { clientX, clientY } = e;
+
+                  const diffX = clientX - startX;
+                  const diffY = clientY - startY;
+
+                  Object.assign(this.style, {
+                    left: appLeft + diffX + "px",
+                    top: appTop + diffY + "px",
+                  });
+                })
+              );
+
+              $("body").on(
+                "mouseup",
+                (upFunc = (e) => {
+                  const { clientX, clientY } = e;
+
+                  clearBind(e);
+                })
+              );
+
+              $("body").on(
+                "mouseleave",
+                (leaveFunc = (e) => {
+                  clearBind(e);
+                })
+              );
+            });
+          }
+        },
+        detached() {
+          if (this.__resobs) {
+            this.__resobs.disconnect();
+          }
+        },
+      };
+    };
+  </script>
+</template>

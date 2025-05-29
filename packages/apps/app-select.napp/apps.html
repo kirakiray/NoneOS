@@ -1,0 +1,330 @@
+<template page>
+  <l-m src="/packages/pui/provider/provider.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      color: #fff;
+      height: 100%;
+    }
+    .container {
+      display: flex;
+      /* justify-content: center;
+      align-items: center; */
+      flex-direction: column;
+      height: 100%;
+      container-type: inline-size;
+    }
+
+    .top {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 160px;
+    }
+
+    .top p-input {
+      width: 300px;
+    }
+
+    .main {
+      position: relative;
+      /* max-width: 1200px;
+      margin: 0 auto; */
+      /* display: flex;
+      flex-wrap: wrap; */
+      /* justify-content: center; */
+
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      --block-size: 80px;
+    }
+
+    .main > p-bind-contextmenu {
+      display: block;
+    }
+
+    p-bind-contextmenu n-local-icon {
+      display: block;
+      margin-right: 8px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .app-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 8px;
+      margin: 0 16px 16px;
+      height: 132px;
+      border-radius: 32px;
+      cursor: pointer;
+      transition: all ease 0.2s;
+      overflow: hidden;
+    }
+
+    .app-block.hide {
+      width: 0;
+      margin-left: 0;
+      margin-right: 0;
+      padding-left: 0;
+      padding-right: 0;
+      opacity: 0;
+    }
+
+    .app-block:hover {
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+
+    .app-block .icon {
+      width: var(--block-size);
+      height: var(--block-size);
+    }
+
+    .app-block .icon img {
+      width: 100%;
+      max-width: var(--block-size);
+      max-height: var(--block-size);
+    }
+    .app-name {
+      width: var(--block-size);
+      margin-top: 8px;
+      text-align: center;
+      line-height: 1.2em;
+    }
+
+    .midsize {
+      font-size: 14px;
+    }
+
+    .empty-content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      text-align: center;
+    }
+
+    @container (width < 600px) {
+      .main {
+        /* padding: 0 40px; */
+        /* align-items: center;
+        justify-content: center; */
+        --block-size: 40px;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      }
+      .app-block {
+        padding-top: 8px;
+        margin: 8px;
+        height: 80px;
+        border-radius: 12px;
+      }
+      .app-name {
+        width: 100%;
+      }
+    }
+  </style>
+  <p-provider theme="dark">
+    <div style="max-width: 1200px; margin: 0 auto">
+      <div class="container">
+        <div class="top">
+          <p-input
+            attr:placeholder="searchPlaceText"
+            sync:value="searchText"
+            on:click="$event.stopPropagation()"
+          >
+            <n-local-icon
+              name="search"
+              slot="prefix"
+              style="display: block; margin-right: 4px; font-size: 24px"
+            ></n-local-icon>
+          </p-input>
+        </div>
+        <p-bind-contextmenu auto-close>
+          <p-menu
+            contextmenu-selector=".app-block"
+            style="position: absolute; z-index: 3; "
+          >
+            <p-menu-item on:click="clickRunItem">
+              <n-local-icon name="tab-app" slot="prefix"></n-local-icon>
+              <n-desc name="runApp" space="app-select"></n-desc>
+            </p-menu-item>
+            <p-menu-item on:click="clickRunInNewTab($event,'new-tab')">
+              <n-local-icon name="tab" slot="prefix"></n-local-icon>
+              <n-desc name="openInNewTab" space="app-select"></n-desc>
+            </p-menu-item>
+            <p-menu-item on:click="clickRunInNewTab($event,'new-window')">
+              <n-local-icon name="tab-group" slot="prefix"></n-local-icon>
+              <n-desc name="openInNewWindow" space="app-select"></n-desc>
+            </p-menu-item>
+          </p-menu>
+          <div class="main">
+            <o-fill :value="apps" fill-key="configUrl">
+              <div
+                class="app-block"
+                :_data="$data"
+                class:hide="$data.hide"
+                on:click="$host.clickApp($data)"
+              >
+                <div class="icon">
+                  <img attr:src="$data.icon.url" />
+                </div>
+                <div
+                  class="app-name"
+                  class:midsize="$data.realName.length > 10"
+                >
+                  {{$data.realName || $data.name}}
+                </div>
+              </div>
+            </o-fill>
+            <o-if :value="isEmpty">
+              <div class="empty-content">
+                <n-desc space="app-select" name="emptyTips"></n-desc>
+              </div>
+            </o-if>
+          </div>
+        </p-bind-contextmenu>
+      </div>
+    </div>
+  </p-provider>
+  <script>
+    export default async ({ load, url }) => {
+      // 默认应用
+      const { getAppBase, getApps } = await load("/packages/none-os/app.js");
+      const { setSpace, getText, onChangeLang, getLang } = await load(
+        "/packages/i18n/data.js"
+      );
+
+      await setSpace("app-select", new URL("./lang", url).href);
+
+      return {
+        data: {
+          apps: [
+            // {
+            //   name: "文件管理",
+            //   icon: {
+            //     url: "/packages/files/icon.svg",
+            //   },
+            //   url: "/packages/files/app-config.js",
+            //   // status: "background",
+            //   // status: "running",
+            // },
+          ],
+          searchText: "",
+          searchPlaceText: getText("searchPlace", "app-select"),
+          isEmpty: false,
+        },
+        watch: {
+          searchText(text) {
+            if (!text) {
+              this.isEmpty = false;
+              this.apps.forEach((e) => (e.hide = null));
+              return;
+            }
+
+            let isEmpty = true;
+
+            text = text.toLowerCase();
+
+            this.apps.forEach((e) => {
+              if (e.name.toLowerCase().includes(text)) {
+                e.hide = null;
+                isEmpty = false;
+              } else {
+                // 不符合的隐藏
+                e.hide = true;
+              }
+            });
+
+            this.isEmpty = isEmpty;
+          },
+        },
+        proto: {
+          clickRunItem(e) {
+            const target = this.shadow.$("p-bind-contextmenu")._target;
+
+            const data = target._data;
+            if (!data) return;
+
+            this.emit("click-app", {
+              data: data.toJSON(),
+            });
+          },
+          clickRunInNewTab(e, type) {
+            const target = this.shadow.$("p-bind-contextmenu")._target;
+
+            const data = target._data;
+            if (!data) return;
+
+            const appUrl = data.configUrl.replace(/(.+\.napp\/).+/, "$1");
+
+            if (type === "new-window") {
+              window.screen.width;
+
+              let width = window.screen.width / 2;
+              let height = window.screen.height / 2;
+              if (width > 1200) {
+                width = 1200;
+              }
+              if (height > 800) {
+                height = 800;
+              }
+
+              let top = (window.screen.height - height) / 2;
+              let left = (window.screen.width - width) / 2;
+
+              window.open(
+                appUrl,
+                appUrl.replace(/\//g, "-").replace(/^-/, "").replace(/-$/, ""),
+                `left=${left},top=${top},width=${width},height=${height}`
+              );
+              return;
+            }
+
+            window.open(appUrl);
+          },
+          clickApp(data) {
+            this.emit("click-app", {
+              data: data.toJSON(),
+            });
+          },
+          async refreshApps() {
+            const apps = await getApps();
+
+            const currentLang = getLang();
+
+            apps.forEach((app) => {
+              const { appData } = app;
+              app.realName = app.name;
+
+              if (appData.i18n) {
+                const currentData = appData.i18n[currentLang];
+
+                if (currentData && currentData.name) {
+                  app.realName = currentData.name;
+                }
+              }
+            });
+
+            this.apps = apps;
+          },
+        },
+        async ready() {
+          this.refreshApps();
+        },
+        attached() {
+          this._cancel = onChangeLang(() => {
+            this.searchPlaceText = getText("searchPlace", "app-select");
+            this.refreshApps();
+          });
+        },
+        detached() {
+          this._cancel && this._cancel();
+        },
+      };
+    };
+  </script>
+</template>

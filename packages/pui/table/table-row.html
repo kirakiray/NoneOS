@@ -26,13 +26,13 @@
       z-index: 3;
     }
   </style>
-  <x-if :value="head!== null">
+  <o-if :value="head!== null">
     <style>
       ::slotted(p-table-cell) {
         font-weight: 600;
       }
     </style>
-  </x-if>
+  </o-if>
   <div class="container">
     <slot></slot>
   </div>
@@ -50,13 +50,6 @@
         set scrollLeft(val) {
           this.shadow.$(".container").ele.scrollLeft = val;
         },
-      },
-      ready() {
-        this.on("change-cell-align", (e) => {
-          if (this.head === null) {
-            e.stopImmediatePropagation();
-          }
-        });
       },
     };
   </script>

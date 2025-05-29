@@ -1,0 +1,59 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <o-if :value="connection.state === 'ready'">
+    <div
+      style="
+        width: 8px;
+        height: 8px;
+        background-color: var(--md-sys-color-success);
+        border-radius: 6px;
+      "
+    ></div>
+  </o-if>
+  <o-else :value="connection.state === 'not-ready'">
+    <p-button size="mini" on:click="linkUser">Connect</p-button>
+  </o-else>
+  <script>
+    export default async ({ load }) => {
+      const { getConnection } = await load("/packages/user/connection/main.js");
+      const { toast } = await load("/packages/pui/util.js");
+      const { getUserName } = await load("/packages/util/get-user-info.js");
+
+      return {
+        tag: "user-connected-area",
+        attrs: {
+          // 用户id
+          userId: null,
+        },
+        data: {
+          connection: {}, // 当前用户
+        },
+        proto: {
+          async linkUser() {
+            const e = await this.connection.connect();
+
+            if (e.notFindUser) {
+              toast({
+                content:
+                  "User not found: " +
+                  (await getUserName(this.connection.userId)),
+                color: "error",
+              });
+            }
+          },
+        },
+        attached() {
+          this.connection = getConnection({ userId: this.userId });
+        },
+        detached() {
+          this.connection = {};
+        },
+      };
+    };
+  </script>
+</template>

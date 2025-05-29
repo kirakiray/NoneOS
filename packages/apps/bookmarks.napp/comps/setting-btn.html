@@ -1,0 +1,174 @@
+<template component>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/slider/slider.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="/packages/pui/color-picker/color-picker.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      user-select: none;
+    }
+
+    .main {
+      position: relative;
+      width: 80vw;
+      height: 50vh;
+      max-width: 800px;
+    }
+
+    .form-line {
+      padding: 8px 0;
+      display: flex;
+    }
+    .form-line p-input {
+      flex: 1;
+      margin-left: 8px;
+    }
+    .form-line p-input:first-child {
+      margin-left: 0;
+    }
+
+    @media screen and (max-width: 540px) {
+      .main {
+        width: auto;
+      }
+    }
+
+    n-horsp-pannel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .main p-list-item {
+      border-radius: 0 16px 16px 0;
+      margin: 4px 0;
+      overflow: hidden;
+    }
+
+    .main p-list-item n-local-icon {
+      display: block;
+      margin-right: 6px;
+      font-size: 18px;
+      color: var(--md-sys-color-primary);
+    }
+
+    h4 {
+      font-size: 16px;
+      margin: 24px 0 8px;
+    }
+    h4:first-child {
+      margin-top: 0;
+    }
+
+    @media screen and (max-width: 540px) {
+      .main {
+        height: 80vh;
+      }
+    }
+  </style>
+  <p-button icon on:click="open = true">
+    <n-local-icon name="menu"></n-local-icon>
+  </p-button>
+
+  <p-dialog :open="open" on:click-mask="open = false">
+    <div slot="title" style="position: relative"><n-desc name="settings" space="bookmarks"></n-desc></div>
+    <p-button
+      icon
+      variant="text"
+      on:click="open = false"
+      style="position: absolute; right: 16px; top: 16px; font-size: 26px"
+    >
+      <n-local-icon name="close"></n-local-icon>
+    </p-button>
+    <div class="main">
+      <n-horsp-pannel>
+        <div slot="left">
+          <p-list>
+            <p-list-item
+              button
+              attr:active-item="activeName === 'display'"
+              on:click="activeName = 'display'"
+            >
+              <n-local-icon name="dial" slot="prefix"></n-local-icon>
+              <n-desc name="displaySettings" space="bookmarks"></n-desc>
+            </p-list-item>
+            <p-list-item
+              button
+              attr:active-item="activeName === 'function'"
+              on:click="activeName = 'function'"
+            >
+              <n-local-icon name="function-add" slot="prefix"></n-local-icon>
+              <n-desc name="functionSettings" space="bookmarks"></n-desc>
+            </p-list-item>
+
+            <p-list-item
+              button
+              attr:active-item="activeName === 'sync'"
+              on:click="activeName = 'sync'"
+            >
+              <n-local-icon name="sync" slot="prefix"></n-local-icon>
+              <n-desc name="syncSettings" space="bookmarks"></n-desc>
+            </p-list-item>
+
+            <p-list-item
+              button
+              attr:active-item="activeName === 'about'"
+              on:click="activeName = 'about'"
+            >
+              <n-local-icon name="about" slot="prefix"></n-local-icon>
+              <n-desc name="aboutBookmarks" space="bookmarks"></n-desc>
+            </p-list-item>
+          </p-list>
+        </div>
+        <o-if :value="activeName === 'display'">
+          <o-page src="../pages/display-setting.html"></o-page>
+        </o-if>
+        <o-else-if :value="activeName === 'function'">
+          <o-page src="../pages/bookmark-function.html"></o-page>
+        </o-else-if>
+        <o-else-if :value="activeName === 'sync'">
+          <o-page src="../pages/sync-page.html"></o-page>
+        </o-else-if>
+        <o-else-if :value="activeName === 'about'">
+          <div
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              text-align: center;
+            "
+          >
+            <img src="../icon.svg" width="80" />
+            <h3>Web Favorites</h3>
+            <div><n-desc name="bookmarksDesc" space="bookmarks"></n-desc></div>
+            <div>
+              <n-desc name="bookmarksPrivacyDesc" space="bookmarks"></n-desc>
+            </div>
+          </div>
+        </o-else-if>
+        <div style="height: 32px"></div>
+      </n-horsp-pannel>
+    </div>
+  </p-dialog>
+
+  <script>
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
+      return {
+        tag: "bm-setting-btn",
+        data: {
+          open: false,
+          activeName: "display",
+          // activeName: "sync",
+        },
+      };
+    };
+  </script>
+</template>

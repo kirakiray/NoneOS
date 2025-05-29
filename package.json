@@ -1,16 +1,20 @@
 {
-  "name": "NoneOS",
-  "version": "2.2.23",
+  "name": "noneos",
+  "version": "3.0.0",
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static": "node scripts/static-server",
+    "static": "node scripts/static-server & node server/test-server.js & node server/test-server2.js",
+    "update-test": "node scripts/update-test.js && node scripts/generate-specs.js",
     "test": "npx playwright test",
-    "build-sw": "rollup packages/sw/main.js --file packages/sw/dist.js --format iife",
-    "build-sw-min": "rollup packages/sw/main.js --file packages/sw/dist.min.js --format iife --plugin terser",
-    "bu": "npm run build-sw && npm run build-sw-min && node scripts/build.js && npm run buhash",
-    "update": "node scripts/update.js",
-    "buhash": "node scripts/buhash.js"
+    "bu": "npm run build-sw && npm run build-sw-min && npm run build-server && npm run buhash && npm run zippkg && npm run update-test",
+    "zippkg": "node scripts/zipPackages.js",
+    "buhash": "node scripts/calculateHashes.js",
+    "build-sw": "rollup sw/main.js --file sw/dist.js --format iife",
+    "build-sw-min": "rollup sw/main.js --file sw/dist.min.js --format iife --plugin terser",
+    "build-server": "rollup server/main.js --file server/dist.js --sourcemap",
+    "hand": "nodemon --inspect server/test-server.js",
+    "dev": "node scripts/static-server & nodemon --inspect server/test-server.js & nodemon server/test-server2.js"
   },
   "repository": {
     "type": "git",
@@ -23,13 +27,13 @@
   },
   "homepage": "https://github.com/kirakiray/NoneOS#readme",
   "devDependencies": {
-    "@playwright/test": "^1.48.0",
+    "@playwright/test": "^1.50.1",
     "@rollup/plugin-terser": "^0.4.4",
-    "@types/node": "^22.7.5",
-    "archiver": "^7.0.1",
+    "@types/node": "^22.13.9",
+    "jszip": "^3.10.1",
     "koa": "^2.15.3",
     "koa-static": "^5.0.0",
     "noneos-handshake": "^0.3.0",
-    "rollup": "^4.24.0"
+    "rollup": "^4.35.0"
   }
 }

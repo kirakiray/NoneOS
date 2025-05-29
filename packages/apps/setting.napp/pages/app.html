@@ -15,11 +15,11 @@
       <n-desc space="setting" name="apps"></n-desc>
     </h5>
     <p-list style="max-width: 600px; padding-right: 8px">
-      <x-fill :value="apps">
+      <o-fill :value="apps">
         <p-list-item button>
           <img attr:src="$data.icon" height="25" slot="prefix" />
           {{$data.name}}
-          <x-if :value="$data.accept">
+          <o-if :value="$data.accept">
             <div secondary>
               <n-desc
                 space="setting"
@@ -27,9 +27,9 @@
                 attr:data-ext="$host.getSecondText($data)"
               ></n-desc>
             </div>
-          </x-if>
+          </o-if>
         </p-list-item>
-      </x-fill>
+      </o-fill>
     </p-list>
   </div>
   <script>
@@ -50,15 +50,13 @@
           async initApps() {
             const apps = await getApps();
 
-            console.log("apps: ", apps);
-
             this.apps = apps.map((app) => {
-              const { configData } = app;
+              const { appData } = app;
 
               let { name } = app;
 
-              if (configData.i18n) {
-                const currentLangData = configData.i18n[getLang()];
+              if (appData.i18n) {
+                const currentLangData = appData.i18n[getLang()];
 
                 if (currentLangData && currentLangData.name) {
                   name = currentLangData.name;
@@ -68,8 +66,8 @@
               return {
                 name,
                 icon: app.icon.url,
-                url: app.url.replace("/app-config.js", ""),
-                accept: configData.accept,
+                url: app.configUrl,
+                accept: appData.accept,
               };
             });
           },

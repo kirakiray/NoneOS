@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GetHash Function Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { getHash } from "/packages/fs/util.js";
+      import { test } from "/ok-test/main.js";
+
+      // Test string input
+      await test("Test String Input", async () => {
+        const content = await getHash("Hello, World!");
+
+        return {
+          assert:
+            content ===
+            "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f",
+          content,
+        };
+      });
+
+      // Test empty string
+      await test("Test Empty String", async () => {
+        const content = await getHash("");
+
+        return {
+          assert:
+            content ===
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          content,
+        };
+      });
+
+      // Test Blob input
+      await test("Test Blob Input", async () => {
+        const blob = new Blob(["Test Blob Content"], {
+          type: "text/plain",
+        });
+
+        const content = await getHash(blob);
+
+        return {
+          assert:
+            content ===
+            "9f634430702b96598ef75225eb371ace8c1461e56fc9c55d9ed4b4a8b997b10a",
+          content,
+        };
+      });
+
+      // Test ArrayBuffer input
+      await test("Test ArrayBuffer Input", async () => {
+        const buffer = new TextEncoder().encode("Test Buffer").buffer;
+        const content = await getHash(buffer);
+        return {
+          assert:
+            content ===
+            "6976d91affad9df9ede28e08ed345fe6590a4e970b7f8dfd412835d794aeba25",
+          content,
+        };
+      });
+    </script>
+  </body>
+</html>

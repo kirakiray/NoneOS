@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.min.js"
+       ></script>
+  </head>
+  <body>
+    <l-m src="./provider.html"></l-m>
+    <l-m src="../button/button.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div
+      style="
+        border: #aaa solid 1px;
+        margin: 8px;
+        padding: 16px;
+        background-color: var(--md-sys-color-surface);
+      "
+    >
+      <p-button>I am Button</p-button>
+    </div>
+
+    <p-provider theme="light">
+      <div
+        style="
+          border: #aaa solid 1px;
+          margin: 8px;
+          padding: 16px;
+          background-color: var(--md-sys-color-surface);
+        "
+      >
+        <p-button>I am Button</p-button>
+      </div>
+    </p-provider>
+    <p-provider theme="dark">
+      <div
+        style="
+          border: #aaa solid 1px;
+          margin: 8px;
+          padding: 16px;
+          background-color: var(--md-sys-color-surface);
+        "
+      >
+        <p-button>I am Button</p-button>
+      </div>
+    </p-provider>
+  </body>
+</html>

@@ -1,0 +1,205 @@
+<template component>
+  <!-- more: https://www.figma.com/community/plugin/1034969338659738588/material-theme-builder -->
+  <style>
+    .color-container {
+      display: flex;
+    }
+    .color-block {
+      text-align: center;
+      font-size: 16px;
+      width: 50px;
+      height: 100px;
+      margin: 10px 1px;
+    }
+
+    .code {
+      padding: 10px;
+      font-size: 12px;
+      border: #aaa solid 1px;
+    }
+  </style>
+  <div>color-wheel</div>
+
+  <x-fill :value="colors">
+    <div>
+      <b>{{$data.name}}</b>
+      <br />
+      <div class="color-container">
+        <x-fill name="color-block" :value="$data.arr"> </x-fill>
+      </div>
+    </div>
+  </x-fill>
+
+  <button on:click="clickCopy">Copy</button>
+  <template name="color-block">
+    <div
+      class="color-block"
+      :css.background-color="$data.bgcolor"
+      :css.color="$data.tone <= 50 ? 'white' : ''"
+    >
+      {{$data.tone}}
+    </div>
+  </template>
+
+  <br />
+  <div class="code">
+    <b>theme code:</b>
+    <pre><div>{{getCode()}}</div></pre>
+  </div>
+
+  <script>
+    import { Hct, getColors } from "/packages/public/mcu-ts/index.js";
+    const points = [100, 98, 95, 90, 80, 70, 60, 50, 40, 30, 20, 10, 6, 0];
+
+    const primary = getColors("#0079d0", points);
+    const error = getColors("#fb4747", points);
+    const success = getColors("#396a25", points);
+    const normal = getColors("#000000", points);
+
+    const getTokenCode = (colors) => {
+      let cssStr = "";
+
+      // add base tokens
+      colors.forEach(({ name, arr }) => {
+        cssStr += `\n/* ${name} */\n`;
+        arr.forEach((e) => {
+          cssStr += `--md-ref-palette-${name}${e.tone}: ${e.bgcolor};\n`;
+        });
+      });
+
+      cssStr += `\n/* translucent */\n`;
+      // Add translucent color
+      colors.forEach(({ name, arr }) => {
+        arr.forEach((e) => {
+          if (e.tone == 60 || e.tone == 50) {
+            cssStr += `--md-ref-palette-translucent-${name}${
+              e.tone
+            }: ${convertToRGBA(e.bgcolor)};\n`;
+          }
+        });
+      });
+
+      return cssStr;
+    };
+
+    const addTypeCode = (colors, isDark) => {
+      let cssStr = "";
+
+      colors.forEach((e) => {
+        if (!isDark) {
+          cssStr += `\n--md-sys-color-${e.name}: var(--md-ref-palette-${e.name}40);
+--md-sys-color-on-${e.name}: var(--md-ref-palette-${e.name}100);
+--md-sys-color-${e.name}-container: var(--md-ref-palette-${e.name}90);
+--md-sys-color-on-${e.name}-container: var(--md-ref-palette-${e.name}10);`;
+        } else {
+          cssStr += `\n--md-sys-color-${e.name}: var(--md-ref-palette-${e.name}80);
+--md-sys-color-on-${e.name}: var(--md-ref-palette-${e.name}20);
+--md-sys-color-${e.name}-container: var(--md-ref-palette-${e.name}30);
+--md-sys-color-on-${e.name}-container: var(--md-ref-palette-${e.name}90);`;
+        }
+      });
+
+      if (!isDark) {
+        cssStr += `
+--md-sys-color-surface: var(--md-ref-palette-normal98);
+--md-sys-color-on-surface: var(--md-ref-palette-normal10);
+        `;
+      } else {
+        cssStr += `
+--md-sys-color-surface: var(--md-ref-palette-normal6);
+--md-sys-color-on-surface: var(--md-ref-palette-normal90);
+        `;
+      }
+
+      return cssStr;
+    };
+
+    export default {
+      tag: "color-wheel",
+      data: {
+        colors: [],
+      },
+      proto: {
+        clickCopy() {
+          var tempTextArea = document.createElement("textarea");
+          Object.assign(tempTextArea.style, {
+            position: "absolute",
+            width: 0,
+            height: 0,
+            overflow: "hidden",
+          });
+          tempTextArea.value = this.getCode();
+          document.body.appendChild(tempTextArea);
+
+          tempTextArea.select();
+          document.execCommand("copy");
+          document.body.removeChild(tempTextArea);
+        },
+        getCode() {
+          if (!this.colors.length) {
+            return "";
+          }
+
+          let cssStr = "";
+
+          // add base tokens
+          const tokenCode = getTokenCode(this.colors);
+
+          cssStr += `html{${tokenCode}}`;
+
+          // add color type code
+          // light
+          const lightCode = addTypeCode(this.colors);
+          cssStr += `\nhtml,.theme-light-mode{${lightCode}\n}`;
+
+          // dark
+          const darkCode = addTypeCode(this.colors, true);
+          cssStr += `\nhtml.dark,.theme-dark-mode{${darkCode}\n}`;
+
+          return cssStr;
+        },
+      },
+      ready() {
+        const colors = [];
+        Object.entries({
+          primary,
+          error,
+          success,
+          normal,
+        }).forEach(([name, values]) => {
+          const obj = {
+            name,
+            arr: values.map((color, i) => {
+              return {
+                bgcolor: color,
+                tone: points[i],
+              };
+            }),
+          };
+
+          colors.push(obj);
+        });
+
+        this.colors = colors;
+      },
+    };
+
+    export function convertToRGBA(colorString, opacity = 20) {
+      if (colorString.startsWith("#")) {
+        const hexColor = colorString.slice(1);
+        const red = parseInt(hexColor.slice(0, 2), 16);
+        const green = parseInt(hexColor.slice(2, 4), 16);
+        const blue = parseInt(hexColor.slice(4, 6), 16);
+
+        const rgbaColor = `rgba(${red}, ${green}, ${blue}, ${opacity / 100})`;
+        return rgbaColor;
+      } else if (colorString.startsWith("rgb")) {
+        return colorString
+          .replace("rgb", "rgba")
+          .replace(")", `, ${opacity / 100})`);
+      } else {
+        return "";
+      }
+    }
+  </script>
+</template>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Badge</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.min.js"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 10px;
+        align-items: center;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .badge-container {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background-color: #f0f0f0;
+        border-radius: 4px;
+      }
+      .badge-container p-badge {
+        position: absolute;
+        top: -5px;
+        right: -5px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./badge.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础徽章</h3>
+      <div class="badge-row">
+        <p-badge>1</p-badge>
+        <p-badge>99</p-badge>
+        <p-badge>999+</p-badge>
+        <p-badge>新</p-badge>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>空徽章（小圆点）</h3>
+      <div class="badge-row">
+        <p-badge></p-badge>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>隐藏徽章</h3>
+      <div class="badge-row">
+        <p-badge hide>1</p-badge>
+        <button id="toggleBtn">切换显示/隐藏</button>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>徽章应用场景</h3>
+      <div class="badge-row">
+        <div class="badge-container">
+          <span>图标</span>
+          <p-badge>8</p-badge>
+        </div>
+
+        <div class="badge-container">
+          <span>消息</span>
+          <p-badge>99+</p-badge>
+        </div>
+
+        <div class="badge-container">
+          <span>提醒</span>
+          <p-badge></p-badge>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 切换徽章显示/隐藏的示例
+      const toggleBtn = $("#toggleBtn");
+      const hiddenBadge = $("p-badge[hide]");
+
+      toggleBtn.on("click", () => {
+        if (hiddenBadge.hide) {
+          hiddenBadge.hide = null;
+        } else {
+          hiddenBadge.hide = 1;
+        }
+      });
+    </script>
+  </body>
+</html>

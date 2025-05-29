@@ -1,17 +1,24 @@
 <template component>
+  <l-m src="./bm-img.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
+      position: relative;
+      z-index: 1;
       display: block;
+      align-self: flex-start;
+      /* overflow: hidden; */
     }
     .card {
       position: relative;
-      margin: 16px;
-      padding: 8px;
-      width: 200px;
+      /* margin: 16px; */
+      padding: 8px 0;
+      /* width: 200px; */
+      width: calc(var(--card-width) * 1px);
       box-sizing: border-box;
       border-radius: 8px;
-      color: var(--md-sys-color-on-normal);
-      background-color: var(--md-sys-color-normal);
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-normal-container);
       text-align: center;
       cursor: pointer;
       transition: all ease 0.2s;
@@ -27,21 +34,34 @@
     }
 
     .logo-line {
+      position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100px;
+      padding: 10px 0;
+      /* min-height: 100px; */
+      min-height: calc(var(--card-img-height) * 1px);
       font-size: 32px;
       font-weight: 500;
     }
-    .logo-line img {
-      display: block;
-      max-width: 80%;
-      max-height: 80%;
-    }
     .url-line {
       font-size: 12px;
+      line-height: 18px;
+      overflow: hidden;
+      transition: all ease 0.3s;
     }
+    .url-line.hide {
+      opacity: 0;
+      line-height: 0px;
+    }
+
+    .logo-line bm-img {
+      width: calc(100% - 8px);
+      max-width: 120px;
+      /* height: 80px; */
+      height: calc(var(--card-img-height) * 1px);
+    }
+
     a {
       display: block;
       position: absolute;
@@ -51,26 +71,279 @@
       height: 100%;
       z-index: 2;
     }
+
+    .deleteing-mask {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #ffffff;
+      position: absolute;
+      font-size: 14px;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      border-radius: 8px;
+      background-color: rgba(120, 120, 120, 0.7);
+    }
+
+    .creenshots {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+    }
+
+    .screenshots-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .creenshots bm-img {
+      width: 43px;
+      height: 43px;
+      border: var(--md-sys-color-primary) solid 1px;
+      border-radius: 5px;
+    }
+
+    @media screen and (max-width: 540px) {
+      .main {
+        padding-top: 80px;
+      }
+      .card {
+        display: flex;
+        align-items: center;
+        width: 80vw;
+        min-height: auto;
+      }
+
+      .logo-line {
+        min-height: auto;
+        /* padding: 0;
+        margin: 0; */
+
+        width: 80px;
+        height: 36px;
+        margin-right: 16px;
+        margin-left: 16px;
+      }
+
+      .screenshots-inner {
+        gap: 2px;
+      }
+
+      .creenshots bm-img {
+        width: 14px;
+        height: 14px;
+        border: var(--md-sys-color-primary) solid 1px;
+        border-radius: 5px;
+      }
+    }
   </style>
-  <div class="card">
+
+  <div class="card" on:click="openWeb(null,$event)">
     <div class="logo-line">
-      <img attr:src="logoUrl" />
+      <o-if :value="item.type === 'folder'">
+        <o-if :value="smallScreenshots.length">
+          <div class="creenshots">
+            <div class="screenshots-inner">
+              <x-fill :value="smallScreenshots">
+                <bm-img :src="$data"></bm-img>
+              </x-fill>
+            </div>
+          </div>
+        </o-if>
+        <o-else>
+          <n-local-icon name="folder"></n-local-icon>
+        </o-else>
+      </o-if>
+      <o-else>
+        <bm-img :src="finnalLogoUrl"></bm-img>
+      </o-else>
     </div>
-    <div class="url-line">{{cardName}}</div>
-    <a attr:href="url" target="_blank"></a>
+    <div class="url-line" class:hide="showCardTitle === 'off'">
+      {{cardName}}
+      <o-if :value="showClickCount === 'on' && item.type !== 'folder'">
+        -
+        <span style="color: var(--md-sys-color-primary)">
+          {{item.count || 0}}
+        </span>
+      </o-if>
+    </div>
+
+    <o-if :value="isDelete && isDelete >= 0">
+      <div class="deleteing-mask" on:click="revokeDelete">
+        {{isDelete}}秒后删除
+        <br />
+        点击可取消删除操作
+      </div>
+    </o-if>
   </div>
+
+  <slot></slot>
+
   <script>
     export default async () => {
       return {
         tag: "n-bookmark-card",
         data: {
-          url: "",
-          logoUrl: "",
+          item: {
+            // url:""  // 网页地址
+            // webTitle: "", // 网页标题
+            // logoType: "", // logo类型 default custom
+            // defaultPic: "", // 默认logo文件地址，default类型下使用
+            // customPic: "", // 自定义logo地址
+            // selectedPic: "", // 选中的logo文件地址
+          },
+          showCardTitle: "on", // 显示标题
+          showClickCount: "off", // 显示点击次数
+          inNewTab: false,
+          isDelete: null, // 是否进入删除模式，最终反应到倒计时上
+          // _delete: null, // 删除的函数
+          smallScreenshots: [], // 目录状态下的小截图地址
+        },
+        watch: {
+          isDelete(time) {
+            clearTimeout(this._deleteTimer);
+            if (time > 0) {
+              this._deleteTimer = setTimeout(() => {
+                this.isDelete--;
+              }, 1000);
+            }
+
+            if (time === 0) {
+              this._delete && this._delete();
+            }
+          },
         },
         proto: {
-          get cardName() {
-            return new URL(this.url).host;
+          revokeDelete(e) {
+            e.stopPropagation();
+            this.isDelete = null;
           },
+          // 打开网页
+          openWeb(target, event) {
+            if (this.item.type === "page") {
+              if (!target && event) {
+                // 主动点击触发的，查看是否有键盘按了meta键
+                if (event.metaKey) {
+                  target = "blank";
+                }
+              }
+
+              if (target !== "blank") {
+                // 防止短时间内重复点击
+                if (
+                  this._lastClickTime &&
+                  Date.now() - this._lastClickTime < 1000
+                ) {
+                  return;
+                }
+
+                this._lastClickTime = Date.now();
+              }
+
+              if (!this.item.count) {
+                this.item.count = 1;
+              } else {
+                this.item.count++;
+              }
+
+              const a = document.createElement("a");
+
+              let url = this.item.url;
+
+              if (!/^http/.test(url)) {
+                url = `https://${url}`;
+              }
+
+              a.href = url;
+
+              if (!target) {
+                // 没有指定打开方式，根据当前的情况决定
+                if (this.inNewTab) {
+                  // 在独立的tab上，直接自身打开
+                  a.target = "_self";
+                } else {
+                  a.target = "_blank";
+                }
+              } else if (target === "blank") {
+                a.target = "_blank";
+              }
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+            } else if (this.item.type === "folder") {
+              // 属于文件夹类型
+              this.emit("open-folder", { data: this.item });
+            }
+          },
+          get cardName() {
+            if (this.item.webTitle) {
+              return this.item.webTitle;
+            }
+
+            if (this.item.url) {
+              return new URL(this.item.url).host;
+            }
+
+            return "";
+          },
+          get finnalLogoUrl() {
+            if (this.item.logoType === "default" && this.item.defaultPic) {
+              return this.item.defaultPic;
+            }
+
+            if (this.item.logoType === "custom") {
+              return this.item.customPic;
+            }
+
+            if (this.item.logoType === "upload") {
+              return this.item.selectedPic;
+            }
+
+            // if (this.item.url) {
+            //   return new URL(this.item.url).origin + "/favicon.ico";
+            // }
+          },
+        },
+        async attached() {
+          this.inNewTab = $("o-app") === this.app;
+
+          if (this.item.type === "folder") {
+            // 属于文件夹类型，获取小截图
+            this.item.ready && (await this.item.ready());
+            const { cards } = this.item;
+            cards.ready && (await cards.ready());
+
+            this.smallScreenshots = (
+              await Promise.all(
+                cards.map(async (e) => {
+                  e.ready && (await e.ready());
+
+                  if (e.logoType === "default") {
+                    return e.defaultPic;
+                  }
+                  if (e.logoType === "custom") {
+                    return e.customPic;
+                  }
+                  if (e.logoType === "upload") {
+                    return e.selectedPic;
+                  }
+                })
+              )
+            ).filter((e) => !!e);
+          }
+        },
+        detached() {
+          this.item = {};
         },
       };
     };

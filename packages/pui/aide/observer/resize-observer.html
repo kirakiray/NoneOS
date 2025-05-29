@@ -1,0 +1,69 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+      vertical-align: top;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default {
+      tag: "resize-observer",
+      attrs: {
+        time: 0, // 防抖时间
+        disabled: null,
+      },
+      attached() {
+        this._initObserver();
+      },
+      watch: {
+        disabled(val) {
+          if (val) {
+            this._disconnectObserver();
+          } else {
+            this._initObserver();
+          }
+        },
+      },
+      proto: {
+        _initObserver() {
+          if (this.disabled || this._ro) return;
+
+          const ro = (this._ro = new ResizeObserver((entries) => {
+            clearTimeout(this._timer);
+            this._timer = setTimeout(() => {
+              this.emit("size-change", {
+                bubbles: false,
+                data: {
+                  entries,
+                  target: this.ele,
+                  width: this.ele.offsetWidth,
+                  height: this.ele.offsetHeight,
+                },
+              });
+            }, this.time);
+          }));
+
+          ro.observe(this.ele);
+        },
+
+        _disconnectObserver() {
+          clearTimeout(this._timer);
+          if (this._ro) {
+            this._ro.disconnect();
+            this._ro = null;
+          }
+        },
+
+        // 公开方法：手动触发重新观察
+        refresh() {
+          this._disconnectObserver();
+          this._initObserver();
+        },
+      },
+      detached() {
+        this._disconnectObserver();
+      },
+    };
+  </script>
+</template>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Collector</title>
+  </head>
+  <body>
+    <button data-testid="start">Start</button>
+    <script type="module">
+      import { init } from "/ok-test/collector.js";
+      const startButton = document.querySelector("[data-testid='start']");
+
+      const configs = await fetch("./configs.json").then((res) => res.json());
+
+      const func = await init({
+        ...configs,
+      });
+
+      startButton.addEventListener("click", async () => {
+        startButton.remove();
+
+        func();
+
+        // await init({
+        //   cases: ["./fs/handle/normal.ok.html", "./fs/handle/copyto.ok.html"],
+        // });
+      });
+    </script>
+  </body>
+</html>

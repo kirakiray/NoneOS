@@ -1,0 +1,86 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .root-item {
+      color: var(--md-sys-color-primary);
+      font-weight: bold;
+    }
+
+    .info-item {
+      display: flex;
+      align-items: center;
+      padding-left: 32px;
+    }
+
+    .info-item n-copy-span {
+      flex: 1;
+      margin-left: 8px;
+      max-width: 280px;
+    }
+  </style>
+  <p-list>
+    <p-list-item button="suffix" collapse-childs="close">
+      <!-- <span class="root-item">本地证书</span> -->
+      <span class="root-item">
+        <n-desc name="localCert" space="linkme"></n-desc
+      ></span>
+      <i toggle-collapse triangle slot="suffix"></i>
+      <p-list slot="childs">
+        <o-fill :value="certs">
+          <p-list-item button="suffix" collapse-childs="close">
+            <n-local-icon
+              name="cert"
+              slot="prefix"
+              style="
+                display: block;
+                margin-right: 8px;
+                color: var(--md-sys-color-primary);
+              "
+            ></n-local-icon>
+            {{$data.data.name}}
+
+            <i toggle-collapse triangle slot="suffix"></i>
+            <p-list slot="childs">
+              <p-list-item>
+                <div class="info-item">
+                  <n-desc name="certType" space="linkme"></n-desc>
+                  {{$data.data.type}}
+                </div>
+              </p-list-item>
+              <p-list-item>
+                <div class="info-item">
+                  <n-desc name="publicKey" space="linkme"></n-desc>
+                  <n-copy-span> {{$data.data.publicKey}} </n-copy-span>
+                </div>
+              </p-list-item>
+              <p-list-item>
+                <div class="info-item">
+                  <n-desc name="signature" space="linkme"></n-desc>
+                  <n-copy-span> {{$data.signature}} </n-copy-span>
+                </div>
+              </p-list-item>
+            </p-list>
+          </p-list-item>
+        </o-fill>
+      </p-list>
+    </p-list-item>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          certs: [],
+        },
+        async attached() {
+          const rootCert = await load("/packages/user/cert/root-cert.json");
+
+          this.certs = [rootCert];
+        },
+      };
+    };
+  </script>
+</template>

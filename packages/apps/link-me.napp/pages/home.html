@@ -1,35 +1,55 @@
 <template page>
-  <l-m src="/packages/pui/table/table.html"></l-m>
-  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
-  <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="../comps/server-list.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <style>
     :host {
       display: block;
       background-color: var(--md-sys-color-surface);
+      overflow: auto;
+    }
+    .container {
+      padding: 32px 16px 16px;
     }
 
-    .container {
-      /* display: flex;
-      flex-direction: column;
+    .part {
+      display: flex;
+      align-items: center;
       justify-content: center;
-      align-items: center; */
-      padding: 16px;
+    }
+
+    .part o-page,
+    n-server-list {
+      width: 100%;
       max-width: 800px;
-      margin: 0 auto;
+      margin: 8px auto 0 auto;
     }
   </style>
-
   <div class="container">
-    <o-page src="../subs/my-info.html"></o-page>
-    <o-page src="../subs/my-device.html"></o-page>
-    <o-page src="../subs/hand-servers.html" style="margin-top: 8px"></o-page>
+    <div class="part">
+      <o-page src="./my-info.html"></o-page>
+    </div>
+    <div class="part">
+      <o-page
+        src="./my-devices.html"
+        on:click-add-device-btn="openAddDevice = true"
+      ></o-page>
+    </div>
+    <div class="part">
+      <n-server-list></n-server-list>
+    </div>
+    <div class="part">
+      <o-page src="./my-certs.html"></o-page>
+    </div>
   </div>
+  <p-dialog :open="openAddDevice" on:click-mask="openAddDevice = false">
+    <o-page src="./add-device.html"></o-page>
+  </p-dialog>
   <script>
-    export default async ({ load }) => {
+    export default async () => {
       return {
-        data: {},
-        watch: {},
-        proto: {},
+        data: {
+          openAddDevice: false,
+        },
       };
     };
   </script>

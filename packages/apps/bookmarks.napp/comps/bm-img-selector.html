@@ -1,0 +1,226 @@
+<template component>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="./bm-img.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      gap: 10px;
+    }
+
+    .block {
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      width: 200px;
+      height: 120px;
+      border-radius: 10px;
+      border: var(--md-sys-color-normal) 1px solid;
+      cursor: pointer;
+      transition: all ease 0.1s;
+    }
+
+    .block.small {
+      width: 150px;
+      height: 90px;
+    }
+
+    .block.active {
+      border: var(--md-sys-color-primary) 2px solid;
+      cursor: default;
+    }
+
+    .block img {
+      max-width: 100px;
+      max-height: 60px;
+    }
+
+    .block-title {
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    bm-img {
+      width: 100px;
+      height: 60px;
+    }
+  </style>
+  <div class="container">
+    <div
+      class="block"
+      class:active="type === 'default'"
+      on:click="type = 'default'"
+    >
+      <o-if :value="defaultPic">
+        <bm-img attr:src="defaultPic"></bm-img>
+      </o-if>
+      <div class="block-title"><n-desc name="defaultThumbnail" space="bookmarks"></n-desc></div>
+    </div>
+    <div
+      class="block"
+      class:active="type === 'custom'"
+      on:click="type = 'custom'"
+    >
+      <o-if :value="customPic">
+        <bm-img attr:src="customPic"></bm-img>
+      </o-if>
+      <o-else>
+        <n-local-icon name="link" style="font-size: 30px"></n-local-icon>
+      </o-else>
+      <div class="block-title"><n-desc name="enterImageUrl" space="bookmarks"></n-desc></div>
+    </div>
+    <div
+      class="block"
+      class:active="type === 'upload'"
+      on:click="type = 'upload'"
+    >
+      <o-if :value="!selectedPic">
+        <n-local-icon name="upload" style="font-size: 30px"></n-local-icon>
+      </o-if>
+      <o-else>
+        <bm-img attr:src="selectedPic"></bm-img>
+      </o-else>
+      <p-button
+        size="small"
+        variant="text"
+        style="margin-top: 6px"
+        on:click="shadow.$('#fileInputer').ele.click()"
+        ><n-desc name="selectImage" space="bookmarks"></n-desc></p-button
+      >
+    </div>
+  </div>
+
+  <o-if :value="type === 'default'">
+    <div class="container" style="margin-top: 16px">
+      <o-fill :value="defaultsImgs" fill-key="src">
+        <div
+          class="block small"
+          on:click="$host.defaultPic = $data.src"
+          class:active="$data.src === $host.defaultPic"
+        >
+          <bm-img attr:src="$data.src"></bm-img>
+        </div>
+      </o-fill>
+    </div>
+  </o-if>
+
+  <o-if :value="type === 'custom'">
+    <div style="margin-top: 16px">
+      <p-input sync:value="customPic">
+        <label><n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc></label>
+      </p-input>
+    </div>
+  </o-if>
+
+  <input
+    id="fileInputer"
+    type="file"
+    accept="image/*"
+    on:change="changeFile"
+    style="display: none"
+  />
+
+  <script>
+    export default async ({ load }) => {
+      const { getFileHash } = await load("/packages/fs/util.js");
+
+      return {
+        tag: "bm-img-selector",
+        data: {
+          type: "default",
+          defaultsImgs: [], // 默认的图片列表
+          weburl: "", // 目标网址
+          //   value: "", // 最终的图片地址
+          defaultPic: "", // 默认图片地址
+          customPic: "", // 自定义图片地址
+          selectedPic: "", // 上传的图片地址
+        },
+        watch: {
+          weburl(val) {
+            clearTimeout(this._timer);
+            this._timer = setTimeout(() => {
+              this.refreshDefaultPic();
+            }, 300);
+          },
+        },
+        proto: {
+          async changeFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const hash = await getFileHash(file);
+
+            if (this?.app?.dedicatedHandle) {
+              // 写入到应用文件夹下
+              const appDataHandle = await this.app.dedicatedHandle();
+
+              // 判断是否存在
+              const sourcesDir = await appDataHandle.get("sources", {
+                create: "dir",
+              });
+
+              const fileHandle = await sourcesDir.get(
+                `${hash}.${file.name.split(".").slice(-1)[0]}`,
+                {
+                  create: "file",
+                }
+              );
+
+              // 保存文件
+              await fileHandle.write(file);
+
+              this.selectedPic = `/$${fileHandle.path}`;
+            }
+          },
+          async refreshDefaultPic() {
+            let urlObj;
+            try {
+              let weburl = this.weburl;
+
+              if (!/^http/.test(weburl)) {
+                weburl = `https://${weburl}`;
+              }
+
+              urlObj = new URL(weburl);
+              const { origin } = urlObj;
+
+              this.defaultsImgs = [
+                {
+                  src: `${origin}/favicon.ico`,
+                },
+              ];
+
+              // 先默认选择第一个
+              if (!this.defaultPic) {
+                this.defaultPic = this.defaultsImgs[0].src;
+              }
+            } catch (error) {
+              // console.error("Failed to parse URL:", error);
+              this.defaultsImgs = [];
+            }
+
+            if (urlObj) {
+              // 尝试从 logo-lib 中获取
+              const logoLib = await fetch(
+                "https://kirakiray.github.io/logo-lib/source.json"
+              ).then((e) => e.json());
+
+              const targetCached = logoLib[urlObj.host];
+
+              if (targetCached) {
+                this.defaultsImgs.push({
+                  src: `https://kirakiray.github.io/logo-lib/source/${urlObj.host}.${targetCached.format}`,
+                });
+              }
+            }
+          },
+        },
+      };
+    };
+  </script>
+</template>

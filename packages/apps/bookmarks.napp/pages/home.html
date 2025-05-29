@@ -1,78 +1,704 @@
 <template page>
+  <l-m src="/packages/i18n/component.html"></l-m>
   <l-m src="../comps/bookmark-card.html"></l-m>
-  <l-m src="../comps/bookmark-add-btn.html"></l-m>
+  <l-m src="../comps/bm-add-card.html"></l-m>
+  <l-m src="../comps/bm-common-dialog.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="/packages/pui/menu/menu-area.html"></l-m>
+  <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="../comps/bm-drag-container.html"></l-m>
+  <l-m src="../comps/setting-btn.html"></l-m>
+  <link rel="stylesheet" href="../common/common.css" />
   <style>
     :host {
-      display: block;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      /* background: url(/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg); */
+      /* background-repeat: no-repeat; */
+      /* background-size: cover; */
+      /* background-position: center; */
+      background-color: var(--bg-color);
+      animation: fadein ease 0.5s;
+    }
+
+    @keyframes fadein {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+
+    .tool {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
     }
 
     .tool-container {
+      box-sizing: border-box;
       display: flex;
+      align-items: center;
       padding: 16px;
-      max-width: 800px;
+      width: 100%;
+      /* max-width: 1200px; */
+      max-width: calc(var(--max-width, 1200) * 1px);
+      margin: 0 auto;
     }
 
     .main {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      min-height: 300px;
+      box-sizing: border-box;
+      padding-top: 160px;
+      overflow: auto;
+    }
+
+    @media screen and (max-width: 540px) {
+      .tool {
+        background-color: var(--md-sys-color-on-normal);
+        z-index: 2;
+      }
+
+      .tool-container {
+        padding: 8px 16px;
+      }
+
+      .main {
+        padding-top: 66px;
+      }
+    }
+
+    .main-inner {
+      /* max-width: 1200px; */
+      max-width: calc(var(--max-width, 1200) * 1px);
+      margin: 0 auto;
+    }
+
+    p-menu-item > n-local-icon {
+      display: block;
+      margin-right: 8px;
+      color: var(--md-sys-color-primary);
+    }
+
+    n-bookmark-card,
+    bm-add-card {
+      /* margin: 16px; */
+      margin: calc(var(--card-space) * 1px);
+    }
+
+    @media screen and (max-width: 540px) {
+      n-bookmark-card,
+      bm-add-card {
+        /* margin: 16px; */
+        margin: 4px 8px;
+      }
+    }
+
+    .breadcrumbs {
+      position: relative;
+      z-index: 2;
       display: flex;
-      justify-content: center;
       align-items: center;
-      flex-wrap: wrap;
+      font-size: 14px;
+    }
+
+    .breadcrumbs n-local-icon {
+      display: block;
+      margin-right: 4px;
+      font-size: 18px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .breadcrumbs .breadcrumbs-block {
+      display: flex;
+      align-items: center;
+      margin-right: 16px;
+      cursor: pointer;
+    }
+
+    .breadcrumbs .breadcrumbs-block:after {
+      display: inline-block;
+      margin-left: 16px;
+      content: "/";
+    }
+    .breadcrumbs .breadcrumbs-block:last-child {
+      cursor: default;
+    }
+
+    .breadcrumbs .breadcrumbs-block:last-child:after {
+      display: none;
     }
   </style>
 
-  <div class="tool-container">
-    <n-bookmark-add-btn style="margin-left: auto"></n-bookmark-add-btn>
+  <style>
+    :host {
+      --card-width: data(setting.width);
+      --card-img-height: data(setting.height);
+      --card-space: data(setting.space);
+      --max-width: data(setting.containerMaxWidth);
+    }
+  </style>
+
+  <div class="tool">
+    <div class="tool-container">
+      <div class="breadcrumbs">
+        <p-select
+          size="small"
+          sync:value="usedUserId"
+          on:change="changeUser"
+          style="margin-right: 16px"
+        >
+          <n-id-avatar
+            :val="usedUserId"
+            slot="prefix"
+            style="
+              display: block;
+              width: 16px;
+              height: 16px;
+              margin-right: 4px;
+              border-radius: 3px;
+              overflow: hidden;
+            "
+          ></n-id-avatar>
+          <o-fill :value="allDatas">
+            <p-option attr:value="$data.userId">{{$data.userName}}</p-option>
+          </o-fill>
+        </p-select>
+        <o-fill :value="paths">
+          <div
+            class="breadcrumbs-block"
+            on:click="$host.clickBread($data,$index)"
+          >
+            <n-local-icon name="folder"></n-local-icon>
+            {{$data.name}}
+          </div>
+        </o-fill>
+      </div>
+
+      <bm-setting-btn
+        :setting="setting"
+        style="margin-left: auto"
+      ></bm-setting-btn>
+    </div>
   </div>
 
-  <div class="main">
-    <x-fill :value="cards">
-      <n-bookmark-card
-        :url="$data.url"
-        :logo-url="$data.logoUrl"
-      ></n-bookmark-card>
-    </x-fill>
-  </div>
+  <p-bind-contextmenu class="main" auto-close on:open-menu="openMenu">
+    <p-menu contextmenu-selector="n-bookmark-card">
+      <p-menu-item
+        on:click="newTabOpen"
+        attr:disabled="menuTargetType !== 'page'"
+      >
+        <n-local-icon name="tab" slot="prefix"></n-local-icon>
+        <n-desc name="openInNewTab" space="bookmarks"></n-desc>
+      </p-menu-item>
+      <hr />
+      <p-menu-item
+        on:click="editItem"
+        attr:disabled="localSelfUserId !== usedUserId"
+      >
+        <n-local-icon name="edit" slot="prefix"></n-local-icon>
+        <n-desc name="editWeb" space="bookmarks"></n-desc>
+        <!-- 编辑网页 -->
+      </p-menu-item>
+      <p-menu-item
+        on:click="clickCopyLink"
+        attr:disabled="menuTargetType !== 'page'"
+      >
+        <n-local-icon name="copy" slot="prefix"></n-local-icon>
+        <n-desc name="copyUrl" space="bookmarks"></n-desc>
+      </p-menu-item>
+      <p-menu-item
+        on:click="deleteItem"
+        attr:disabled="localSelfUserId !== usedUserId"
+      >
+        <n-local-icon name="delete" slot="prefix"></n-local-icon>
+        <n-desc name="deleteWeb" space="bookmarks"></n-desc>
+      </p-menu-item>
+    </p-menu>
+    <div class="main-inner">
+      <o-if :value="cards?.dataStatus === 'preparing'">
+        <p-progress
+          type="circle"
+          variant="indeterminate"
+          style="--circle-size: 80"
+        ></p-progress>
+      </o-if>
+      <o-else>
+        <bm-drag-container
+          on:change-order="changeOrder"
+          on:open-folder="openFolder"
+          style="position: relative"
+        >
+          <o-if :value="paths.length > 1">
+            <p-button
+              class="hide-in-mobile"
+              icon
+              on:click="clickBack"
+              style="position: absolute; top: -36px"
+            >
+              <n-local-icon name="back"></n-local-icon>
+            </p-button>
+          </o-if>
+          <o-fill :value="cards">
+            <n-bookmark-card
+              draggable="true"
+              :item="$data"
+              :show-card-title="$host.setting.showCardTitle"
+              :show-click-count="$host.setting.showClickCount"
+            ></n-bookmark-card>
+          </o-fill>
+          <o-if :value="localSelfUserId === usedUserId">
+            <!-- 只有本地数据才可以编辑 -->
+            <bm-add-card on:add-web="addWeb" :cards="cards"></bm-add-card>
+          </o-if>
+        </bm-drag-container>
+        <o-if :value="!cards?.length && localSelfUserId !== usedUserId">
+          <div style="text-align: center">
+            <n-desc name="noData" space="bookmarks"></n-desc>
+          </div>
+        </o-if>
+      </o-else>
+    </div>
+  </p-bind-contextmenu>
+
+  <bm-common-dialog
+    editmode="1"
+    sync:open="dialogData.open"
+    :item="dialogData.item"
+    on:click-save="saveEditedData"
+  ></bm-common-dialog>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { createData } = await load("/packages/hybird-data/main.js");
+      const { toast } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      const { defaultItemData } = await load("../common/default-item-data.js");
+      const { getUserName } = await load("/packages/util/get-user-info.js");
+      const { getUserStore } = await load("/packages/user/user-store.js");
+
+      const selfUserStore = await getUserStore();
+
       return {
         data: {
-          cards: [
+          // usedUserId: null, // 当前标签使用中的用户id
+          usedUserId: selfUserStore.userId, // 当前标签使用中的用户id
+          localSelfUserId: selfUserStore.userId, // 本机设备用户id
+          allDatas: [], // 所有数据
+          // 当前目录路径
+          paths: [
             {
-              url: "htts://baidu.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/baidu.svg",
-            },
-            {
-              url: "https://myzaker.com",
-              logoUrl:
-                "https://zkres.myzaker.com/webres/pWeb/zaker/www/dist/css/img/logo_festival@2x.png",
-            },
-            {
-              url: "https://google.com",
-              logoUrl: "https://cdn.worldvectorlogo.com/logos/google.svg",
+              name: getText("rootDirectory", "bookmarks"),
             },
           ],
+          cards: [], // 当前显示的数据
+          dialogData: {
+            open: false,
+            item: {
+              ...defaultItemData,
+            },
+          },
+          menuTargetType: null,
+          setting: {
+            width: 200,
+            height: 80,
+            space: 16,
+            containerMaxWidth: 1200,
+            // bgurl:"/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg", // 如果更换过背景图，初始进入时会有闪屏，所以先注释
+            bgsize: "cover",
+            bgrepeat: "no-repeat",
+            bgposition: "center center",
+            bgcolor: "rgba(0, 0, 0, 0)", // 背景色
+            sort: "custom", // 排序方式
+            showClickCount: "off", // 显示点击次数
+            showCardTitle: "on", // 显示标题
+          },
+        },
+        watch: {
+          setting() {
+            if (this._oldbgurl !== this.setting.bgurl) {
+              if (this.setting.bgurl) {
+                this.css.backgroundImage = `url(${this.setting.bgurl})`;
+              } else {
+                this.css.backgroundImage = "";
+              }
+              this._oldbgurl = this.setting.bgurl;
+            }
+
+            if (this._oldbgsize !== this.setting.bgsize) {
+              this.css.backgroundSize = this.setting.bgsize;
+              this._oldbgsize = this.setting.bgsize;
+            }
+
+            if (this._oldbgrepeat !== this.setting.bgrepeat) {
+              this.css.backgroundRepeat = this.setting.bgrepeat;
+              this._oldbgrepeat = this.setting.bgrepeat;
+            }
+
+            if (this._oldbgposition !== this.setting.bgposition) {
+              this.css.backgroundPosition = this.setting.bgposition;
+              this._oldbgposition = this.setting.bgposition;
+            }
+            if (this._oldbgcolor !== this.setting.bgcolor) {
+              this.css.backgroundColor = this.setting.bgcolor;
+              this._oldbgcolor = this.setting.bgcolor;
+            }
+          },
         },
         proto: {
-          async readMarks() {
-            // 获取书签数据
-            // const bObj = get("bookmarks");
-            // const others = await bObj.others();
-            // const self = await bObj.self();
+          async changeUser(e) {
+            // 切换用户
+            const value = $(e.target).value;
 
-            // // 获取所有数据
-            // const list = await self.data();
+            const targetItem = this.allDatas.find((e) => e.userId === value);
 
-            // const list = await get({
-            //   type: "bookmarks",
-            //   target: "self",
-            //   selector: {
-            //     age: { $gt: 20, $lt: 30 }, // 年龄大于20且小于30
-            //     name: { $eq: "John" }, // 名字等于'John'
-            //   },
-            // });
+            if (!targetItem) {
+              return;
+            }
+
+            this.usedUserId = value;
+            this.paths = [
+              {
+                name: "根目录",
+              },
+            ];
+            this.cards = targetItem._mainData.cards;
           },
+          // 加载本地备份的用户数据
+          async loadBackupUserOptions() {
+            const handle = await this.app.dedicatedHandle();
+
+            const backupHandle = await handle.get("backup");
+
+            if (!backupHandle) {
+              return;
+            }
+
+            for await (let item of backupHandle.values()) {
+              const userId = item.name.replace(/\.json$/, "");
+              const userName = await getUserName(userId);
+
+              const data = {};
+
+              try {
+                let fdata = await item.text();
+                fdata = JSON.parse(fdata);
+                Object.assign(data, fdata);
+              } catch (err) {
+                console.warn(err);
+              }
+
+              // 查看是否已存在，已存在就更新 _mainData
+
+              const target = this.allDatas.find((e) => e.userId === userId);
+
+              if (target) {
+                target._mainData = data;
+                continue;
+              }
+
+              this.allDatas.push({
+                userName,
+                userId,
+                _mainData: data,
+              });
+            }
+
+            // 更新卡片
+            const target = this.allDatas.find(
+              (e) => e.userId === this.usedUserId
+            );
+
+            if (target) {
+              this.cards = target._mainData.cards;
+              this.paths = [
+                {
+                  name: getText("rootDirectory", "bookmarks"),
+                },
+              ];
+            }
+          },
+          async clickBack() {
+            if (this.paths.length === 2) {
+              this.paths.splice(1);
+
+              const mainData = this.allDatas.find(
+                (e) => e.userId === this.usedUserId
+              )._mainData;
+
+              // 点击根目录
+              this.cards = mainData.cards;
+              return;
+            }
+
+            if (this.paths.length > 1) {
+              const len = this.paths.length;
+              this.paths.splice(len - 1);
+              this.cards = this.paths[len - 2]._cards;
+            }
+          },
+          async clickBread(data, index) {
+            // 点击最后一个不反应
+            if (index === this.paths.length - 1) {
+              return;
+            }
+
+            this.paths.splice(index + 1);
+
+            if (index === 0) {
+              const mainData = await this.app._mainData;
+
+              // 点击根目录
+              this.cards = mainData.cards;
+              return;
+            }
+
+            this.cards = this.paths[index]._cards;
+          },
+          openMenu(e) {
+            const {
+              data: { target, menu },
+            } = e;
+
+            this.menuTargetType = target.item.type;
+            this._menuTarget = target;
+          },
+          changeOrder(e) {
+            const { from, to } = e.data;
+
+            // 更新数据
+            const dragStartElIndex = this.cards.indexOf(from);
+            if (dragStartElIndex < 0 && !this.cards.includes(to)) {
+              // 找不到数据，不处理
+              return;
+            }
+
+            // 先移除
+            this.cards.splice(dragStartElIndex, 1);
+
+            // 插入到目标位置
+            const targetIndex = this.cards.indexOf(to);
+
+            this.cards.splice(targetIndex, 0, from);
+          },
+          clickCopyLink() {
+            // const { _target } = this.shadow.$("p-bind-contextmenu");
+            const _target = this._menuTarget;
+            const data = _target.item;
+
+            // 复制网址
+            copyTextToClipboard(data.url);
+            toast({
+              content: getText("copySuccess", "bookmarks"),
+              color: "success",
+            });
+          },
+          openFolder(e) {
+            const folderItem = e.data;
+
+            this.paths.push({
+              name: folderItem.webTitle,
+              _cards: folderItem.cards,
+            });
+
+            this.cards = folderItem.cards;
+          },
+          newTabOpen() {
+            // const { _target } = this.shadow.$("p-bind-contextmenu");
+            const _target = this._menuTarget;
+            const data = _target.item;
+
+            _target.openWeb("blank");
+          },
+          saveEditedData() {
+            // const { _target } = this.shadow.$("p-bind-contextmenu");
+            const _target = this._menuTarget;
+            const data = _target.item;
+
+            const newData = { ...this.dialogData.item };
+
+            if (newData.type === "folder") {
+              // 文件夹类型忽略cards属性
+              delete newData.cards;
+            }
+
+            Object.assign(data, newData);
+
+            if (data.logoType === "default") {
+              // 选择的是默认图片，清除其余两项
+              data.customPic = "";
+              data.selectedPic = "";
+            }
+
+            this.dialogData.open = false;
+
+            // 清空弹窗数据
+            Object.assign(this.dialogData.item, {
+              ...defaultItemData,
+            });
+          },
+          async editItem() {
+            // const { _target } = this.shadow.$("p-bind-contextmenu");
+            const _target = this._menuTarget;
+            const data = _target.item;
+
+            this.dialogData = {
+              open: true,
+              item: {
+                ...data.toJSON(), // 复制对象，不然会直接修改本体数据
+              },
+            };
+          },
+
+          async deleteItem() {
+            // const { _target } = this.shadow.$("p-bind-contextmenu");
+            const _target = this._menuTarget;
+            const data = _target.item;
+
+            // 让目标进入删除状态
+            _target.isDelete = 3;
+            _target._delete = () => {
+              // 查找并删除
+              const targetIndex = this.cards.findIndex((item) => item === data);
+
+              if (targetIndex > -1) {
+                this.cards.splice(targetIndex, 1);
+              }
+            };
+          },
+          async addWeb({ data }) {
+            this.cards.push({ ...data });
+          },
+        },
+        async attached() {
+          let resolve;
+          this.app._mainData = new Promise((r) => (resolve = r));
+
+          // 获取专属文件句柄
+          const handle = await this.app.dedicatedHandle();
+
+          const dataHandle = await handle.get("data", {
+            create: "dir",
+          });
+
+          const mainData = await createData(dataHandle);
+
+          window._mainData = mainData;
+
+          await mainData.ready();
+
+          // this.app._mainData = mainData;
+
+          if (!mainData.cards) {
+            // 初始化本地数据
+            mainData.cards = [];
+          }
+
+          window.mainData = mainData;
+
+          this.cards = mainData.cards;
+
+          let ingoredFirst = false;
+          mainData.watchTick((e) => {
+            if (e.hasModified("cards")) {
+              if (!ingoredFirst) {
+                ingoredFirst = true;
+                // 忽略第一次修改
+                return;
+              }
+
+              // 忽略dataStatus和count的修改
+              const usefullModified = Array.from(e).filter((item) => {
+                return item.name !== "dataStatus" && item.name !== "count";
+              });
+
+              if (usefullModified.length === 0) {
+                return;
+              }
+
+              // 更新时间
+              mainData.cardsLastModified = Date.now();
+            }
+          }, 500);
+
+          // 获取配置数据
+          if (!mainData.setting) {
+            mainData.setting = {};
+          }
+
+          const settingData = mainData.setting;
+          await settingData.ready(true);
+
+          // 判断是否有设置数据
+          if (!settingData.width) {
+            // 初始化设置数据
+            Object.assign(settingData, this.setting);
+          }
+
+          // 遍历默认设定，看是否有新的配置项目
+          for (const key in this.setting) {
+            if (!(key in settingData)) {
+              settingData[key] = this.setting[key];
+            }
+          }
+
+          // 设置主数据
+          resolve(mainData);
+
+          this.setting = settingData;
+
+          // 保存初始的数据
+          this.allDatas = [
+            {
+              userId: selfUserStore.userId,
+              // userName: selfUserStore.userName,
+              userName: getText("localDevice", "bookmarks"),
+              _mainData: mainData,
+            },
+          ];
+
+          this.loadBackupUserOptions();
+
+          if (!this.setting.bgurl) {
+            // 设置默认背景图
+            this.setting.bgurl =
+              "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg";
+          }
+        },
+        detached() {
+          this.app._mainData &&
+            this.app._mainData.then((data) => {
+              this.app._mainData = null;
+              data.disconnect();
+            });
+          this.cards = [];
+          this.setting = {};
+        },
+        ready() {
+          // 添加语言包
         },
       };
     };
+
+    function copyTextToClipboard(text) {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
   </script>
 </template>

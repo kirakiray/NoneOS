@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>标签 Chip</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js#debug"
+       ></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      .code-block {
+        background-color: var(--md-sys-color-surface);
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+        font-family: monospace;
+      }
+      .chip-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+      .result-display {
+        margin-top: 10px;
+        padding: 8px;
+        background-color: var(--md-sys-color-surface);
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./chip.html"></l-m>
+    <l-m src="../button/button.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础标签</h3>
+      <div class="chip-container">
+        <p-chip>基础标签</p-chip>
+        <p-chip>标签二</p-chip>
+        <p-chip>标签三</p-chip>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>样式变体</h3>
+      <div class="chip-container">
+        <p-chip>默认标签</p-chip>
+        <p-chip tonal>填充标签</p-chip>
+        <p-chip elevated>阴影标签</p-chip>
+        <p-chip tonal elevated>填充阴影标签</p-chip>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>带图标的标签</h3>
+      <div class="chip-container">
+        <p-chip>
+          <iconify-icon
+            slot="prefix"
+            icon="material-symbols:face"
+          ></iconify-icon>
+          带前缀图标
+        </p-chip>
+        <p-chip>
+          带后缀图标
+          <iconify-icon
+            slot="suffix"
+            icon="material-symbols:close"
+          ></iconify-icon>
+        </p-chip>
+        <p-chip tonal>
+          <iconify-icon
+            slot="prefix"
+            icon="material-symbols:favorite"
+          ></iconify-icon>
+          双侧图标
+          <iconify-icon
+            slot="suffix"
+            icon="material-symbols:delete"
+          ></iconify-icon>
+        </p-chip>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>不同颜色的标签</h3>
+      <div class="chip-container">
+        <p-chip>默认颜色</p-chip>
+        <p-chip color="primary">主色</p-chip>
+        <p-chip color="error">错误色</p-chip>
+        <p-chip color="success">成功色</p-chip>
+        <p-chip color="normal">灰色</p-chip>
+      </div>
+      <div class="chip-container">
+        <p-chip tonal>默认填充</p-chip>
+        <p-chip tonal color="primary">主色填充</p-chip>
+        <p-chip tonal color="error">错误色填充</p-chip>
+        <p-chip tonal color="success">成功色填充</p-chip>
+        <p-chip tonal color="normal">灰色填充</p-chip>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>可点击标签</h3>
+      <div class="chip-container">
+        <p-chip button id="click-chip">点击我</p-chip>
+        <p-chip button tonal>
+          <iconify-icon
+            slot="prefix"
+            icon="material-symbols:thumb-up"
+          ></iconify-icon>
+          点赞
+        </p-chip>
+        <p-chip button elevated>
+          分享
+          <iconify-icon
+            slot="suffix"
+            icon="material-symbols:share"
+          ></iconify-icon>
+        </p-chip>
+      </div>
+      <div class="result-display" id="click-result">点击结果: 未点击</div>
+      <script>
+        const clickChip = $("#click-chip");
+        clickChip.on("click", (e) => {
+          $("#click-result").text = `点击结果: 标签被点击了！`;
+          setTimeout(() => {
+            $("#click-result").text = `点击结果: 未点击`;
+          }, 2000);
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>禁用状态</h3>
+      <div class="chip-container">
+        <p-chip disabled>禁用标签</p-chip>
+        <p-chip disabled tonal>禁用填充标签</p-chip>
+        <p-chip disabled button>禁用可点击标签</p-chip>
+        <p-chip disabled tonal>
+          <iconify-icon
+            slot="prefix"
+            icon="material-symbols:block"
+          ></iconify-icon>
+          禁用带图标标签
+        </p-chip>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>可删除标签</h3>
+      <div class="chip-container" id="deletable-container">
+        <p-chip id="chip1">
+          标签一
+          <iconify-icon
+            slot="suffix"
+            button
+            id="delete1"
+            icon="material-symbols:close"
+          ></iconify-icon>
+        </p-chip>
+        <p-chip id="chip2" tonal>
+          标签二
+          <iconify-icon
+            slot="suffix"
+            button
+            id="delete2"
+            icon="material-symbols:close"
+          ></iconify-icon>
+        </p-chip>
+        <p-chip id="chip3" elevated>
+          标签三
+          <iconify-icon
+            slot="suffix"
+            button
+            id="delete3"
+            icon="material-symbols:close"
+          ></iconify-icon>
+        </p-chip>
+      </div>
+      <p-button id="restore-btn">恢复所有标签</p-button>
+      <script>
+        const container = $("#deletable-container");
+        const chips = [$("#chip1"), $("#chip2"), $("#chip3")];
+        const deletedChips = [];
+
+        $("#delete1").on("click", (e) => {
+          e.stopPropagation();
+          deletedChips.push($("#chip1"));
+          $("#chip1").remove();
+        });
+
+        $("#delete2").on("click", (e) => {
+          e.stopPropagation();
+          deletedChips.push($("#chip2"));
+          $("#chip2").remove();
+        });
+
+        $("#delete3").on("click", (e) => {
+          e.stopPropagation();
+          deletedChips.push($("#chip3"));
+          $("#chip3").remove();
+        });
+
+        $("#restore-btn").on("click", () => {
+          deletedChips.forEach((chip) => {
+            container.push(chip);
+          });
+          deletedChips.length = 0;
+        });
+      </script>
+    </div>
+
+    <div class="demo-section">
+      <h3>动态创建标签</h3>
+      <div>
+        <p-button id="add-chip-btn">添加标签</p-button>
+        <p-button id="clear-chips-btn">清空标签</p-button>
+      </div>
+      <div
+        class="chip-container"
+        id="dynamic-container"
+        style="padding: 8px"
+      ></div>
+      <script>
+        const dynamicContainer = $("#dynamic-container");
+        let chipCount = 0;
+
+        $("#add-chip-btn").on("click", () => {
+          chipCount++;
+          const colors = ["primary", "error", "success", "normal"];
+          const randomColor = colors[Math.floor(Math.random() * colors.length)];
+          const isTonal = Math.random() > 0.5;
+
+          const chip = $("<p-chip></p-chip>");
+          chip.text = `标签 ${chipCount}`;
+          chip.attr("color", randomColor);
+          if (isTonal) {
+            chip.attr("tonal", "");
+          }
+
+          dynamicContainer.push(chip);
+        });
+
+        $("#clear-chips-btn").on("click", () => {
+          dynamicContainer.html = "";
+          chipCount = 0;
+        });
+      </script>
+    </div>
+  </body>
+</html>

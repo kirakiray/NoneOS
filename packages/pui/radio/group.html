@@ -1,0 +1,91 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    import "../public/init.js";
+
+    export default {
+      tag: "p-radio-group",
+      attrs: {
+        name: null,
+      },
+      data: {
+        value: null,
+      },
+      watch: {
+        value(e) {
+          this.emit("change");
+          this._valueToRadio();
+        },
+      },
+      proto: {
+        _valueToRadio() {
+          this.all("p-radio").forEach((e) => {
+            const value = e.value || e.attr("value") || e.text.trim();
+            if (this.value === value) {
+              e.checked = true;
+            } else {
+              e.checked = false;
+            }
+          });
+        },
+        _radioToValue() {
+          let value = null;
+          this.all("p-radio").forEach((e) => {
+            if (e.checked) {
+              value = e.value !== null ? e.value : e.text.trim();
+            }
+          });
+
+          // 只有当值不同时才更新
+          if (this.value !== value) {
+            this.value = value;
+          }
+        },
+      },
+      ready() {
+        // 设置所有单选框的name属性
+        if (this.name) {
+          this.all("p-radio").forEach((e) => {
+            e.name = this.name;
+          });
+        }
+
+        this.on("change", (e) => {
+          if (e.target === this.ele) {
+            // 防止死循环
+            return;
+          }
+
+          // 当单选框状态变化时，更新其他单选框状态
+          const target = $(e.target);
+          if (target.tag === "p-radio" && target.checked) {
+            this.all("p-radio").forEach((radio) => {
+              if (radio !== target) {
+                radio.checked = false;
+              }
+            });
+          }
+
+          this._radioToValue();
+        });
+      },
+      attached() {
+        $.nextTick(() => {
+          const defaultValue = this.attr("default-value");
+
+          if (defaultValue) {
+            this.value = defaultValue;
+            this._valueToRadio();
+          }
+        });
+
+        this._radioToValue();
+      },
+    };
+  </script>
+</template>

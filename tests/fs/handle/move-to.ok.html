@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoveTo Method Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+
+      // 初始化测试目录
+      const testDir = await init("test-dir-move");
+
+      // 测试移动单个文件
+      await test("Test move single file", async () => {
+        // 创建源文件
+        const sourceFile = await testDir.get("source.txt", { create: "file" });
+        await sourceFile.write("Hello, World!");
+
+        // 创建目标目录
+        const targetDir = await testDir.get("target", { create: "dir" });
+
+        // 移动文件
+        const movedFile = await sourceFile.moveTo(targetDir, "moved.txt");
+
+        // 验证移动后的文件内容和源文件是否存在
+        const content = await movedFile.read();
+        const oldFile = await testDir.get("source.txt");
+
+        return {
+          assert: content === "Hello, World!" && oldFile === null,
+          content: `Moved file content: ${content}, Original file exists: ${
+            oldFile !== null
+          }`,
+        };
+      });
+
+      // 测试移动目录及其内容
+      await test("Test move directory with contents", async () => {
+        // 创建源目录结构
+        const sourceDir = await testDir.get("sourceDir", { create: "dir" });
+        const file1 = await sourceDir.get("file1.txt", { create: "file" });
+        const subDir = await sourceDir.get("subDir", { create: "dir" });
+        const file2 = await subDir.get("file2.txt", { create: "file" });
+
+        // 写入测试内容
+        await file1.write("Content 1");
+        await file2.write("Content 2");
+
+        // 移动整个目录
+        const targetDir = await testDir.get("targetDir", { create: "dir" });
+        const movedDir = await sourceDir.moveTo(targetDir);
+
+        // 验证移动后的目录结构
+        const movedFile1 = await movedDir.get("file1.txt");
+        const movedSubDir = await movedDir.get("subDir");
+        const movedFile2 = await movedSubDir.get("file2.txt");
+
+        // 验证原目录是否已被删除
+        const oldDir = await testDir.get("sourceDir");
+
+        const content1 = await movedFile1.read();
+        const content2 = await movedFile2.read();
+
+        return {
+          assert:
+            content1 === "Content 1" &&
+            content2 === "Content 2" &&
+            oldDir === null,
+          content: `Moved structure verified:\nfile1: ${content1}\nfile2: ${content2}\nOriginal directory exists: ${
+            oldDir !== null
+          }`,
+        };
+      });
+
+      // 测试在同一目录中移动（重命名）
+      await test("Test move with rename in same directory", async () => {
+        const sourceFile = await testDir.get("original.txt", {
+          create: "file",
+        });
+        await sourceFile.write("Original content");
+
+        // 在同一目录下移动（重命名）
+        const movedFile = await sourceFile.moveTo("renamed.txt");
+        const content = await movedFile.read();
+        const oldFile = await testDir.get("original.txt");
+
+        return {
+          assert: content === "Original content" && oldFile === null,
+          content: `Renamed file content: ${content}, Original file exists: ${
+            oldFile !== null
+          }`,
+        };
+      });
+
+      // 测试错误情况
+      await test("Test move error cases", async () => {
+        const sourceDir = await testDir.get("sourceDir2", { create: "dir" });
+        const targetDir = await testDir.get("sourceDir2/subDir", {
+          create: "dir",
+        });
+
+        try {
+          await sourceDir.moveTo(targetDir);
+          return {
+            assert: false,
+            content:
+              "Should not be able to move directory into its subdirectory",
+          };
+        } catch (error) {
+          return {
+            assert: error.message.includes("Cannot move"),
+            content: `Expected error caught: ${error.message}`,
+          };
+        }
+      });
+    </script>
+  </body>
+</html>

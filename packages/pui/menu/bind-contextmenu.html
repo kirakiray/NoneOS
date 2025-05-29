@@ -4,6 +4,11 @@
       display: block;
       position: relative;
     }
+
+    ::slotted(p-menu) {
+      position: absolute;
+      z-index: 2;
+    }
   </style>
   <slot></slot>
   <script>
@@ -49,15 +54,27 @@
             const $target = $(e.target);
             e.preventDefault();
             e.stopPropagation();
-
             // 目标菜单元素
             let targetMenu;
 
             this.forEach((menu) => {
-              const contextmenuSelector = menu.attr("contextmenu-selector");
+              const contextmenuSelector =
+                menu.attr("contextmenu-selector") || "p-bind-contextmenu";
               if (menu.is("p-menu")) {
-                if (contextmenuSelector && $target.is(contextmenuSelector)) {
-                  targetMenu = menu;
+                if (contextmenuSelector) {
+                  if ($target.is(contextmenuSelector)) {
+                    // 判断是否自身
+                    targetMenu = menu;
+                    this._target = $target;
+                  } else {
+                    $target.parentsUntil(this).some((el) => {
+                      if (el.tag && el.is(contextmenuSelector)) {
+                        targetMenu = menu;
+                        this._target = el;
+                        return true;
+                      }
+                    });
+                  }
                 }
 
                 // menu.open = "off";
@@ -65,8 +82,12 @@
             });
 
             if (!targetMenu) {
-              // 保底菜单元素
-              targetMenu = this.$("p-menu");
+              if (onlyMenu) {
+                onlyMenu.open = "off";
+              }
+
+              this._target = null;
+              return;
             }
 
             if (onlyMenu && onlyMenu !== targetMenu) {
@@ -76,12 +97,21 @@
             targetMenu.open = "";
             onlyMenu = targetMenu;
 
+            this.emit("open-menu", {
+              data: {
+                target: this._target,
+                menu: targetMenu,
+              },
+            });
+
             const { offsetX, offsetY, clientX, clientY } = e;
+
+            const currentRect = e.currentTarget.getBoundingClientRect();
 
             Object.assign(targetMenu.style, {
               position: "absolute",
-              left: `${offsetX}px`,
-              top: `${offsetY}px`,
+              left: `${clientX - currentRect.x}px`,
+              top: `${clientY - currentRect.y}px`,
             });
 
             // 获取安全容器的尺寸和位置

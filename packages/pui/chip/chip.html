@@ -14,15 +14,14 @@
       border-radius: 8px;
       font-weight: 500;
       padding: 0 calc(var(--pui-space-x) * 1.5);
-      color: var(--md-sys-color-on-primary-container);
-      /* background-color: transparent; */
-      border: var(--md-ref-palette-normal50) solid 1px;
+      color: var(--pui-main-color);
+      border: var(--pui-on-main-color-container) solid 1px;
       user-select: none;
     }
 
     :host([tonal]) {
       border: none;
-      background-color: var(--md-sys-color-primary-container);
+      background-color: var(--pui-main-color-container);
     }
 
     :host([elevated]) {
@@ -58,23 +57,27 @@
     :host([button]) {
       cursor: pointer;
     }
+    :host([disabled]) {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
   </style>
-  <x-if :value="button !== null">
+  <o-if :value="button !== null && disabled === null">
     <p-wave></p-wave>
-  </x-if>
+  </o-if>
   <slot name="prefix"></slot>
   <slot></slot>
   <slot name="suffix"></slot>
-  <x-if></x-if>
   <script>
-    import "../commons/init.js";
-    import { setMainColor } from "../commons/util.js";
+    import "../public/init.js";
+    import { setMainColor } from "../public/util.js";
 
     export default {
       tag: "p-chip",
       attrs: {
         color: null,
         button: null,
+        disabled: null,
       },
       watch: {
         color(color) {
@@ -84,7 +87,9 @@
       data: {},
       ready() {
         this.on("click", (e) => {
-            
+          if (this.disabled !== null) {
+            e.stopPropagation();
+          }
         });
       },
     };

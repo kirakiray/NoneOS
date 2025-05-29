@@ -1,0 +1,24 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <p>haha: {{val}}</p>
+  <p>
+    <button on:click="nextPage">下一页</button>
+  </p>
+  <script>
+    export default {
+      data: {
+        val: "I am Page1",
+      },
+      proto: {
+        nextPage() {
+          const installers = this.parents.filter((e) => e.is("n-installer"));
+          installers[0].step++;
+        },
+      },
+    };
+  </script>
+</template>

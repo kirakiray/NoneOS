@@ -1,5 +1,7 @@
+import { Stanz } from "../../libs/stanz/main.js";
+
 // 所有任务
-export const tasks = $.stanz([]);
+export const tasks = new Stanz([]);
 
 // 检测到完成的任务，进行清除
 tasks.watchTick(() => {
@@ -17,12 +19,14 @@ tasks.watchTick(() => {
   }
 }, 500);
 
-export const addTaskData = (opts) => {
+export const addTaskItem = (opts) => {
   const tid = Math.random().toString(32).slice(3);
 
   tasks.push({
     tid,
-    tips: "",
+    name: "", // 显示的内容
+    icon: "file", // 任务图标
+    color: "primary", // 进度条和左侧图标颜色
     ...opts,
     done: false, // 任务是否已经完成
   });

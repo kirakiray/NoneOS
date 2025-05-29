@@ -1,0 +1,541 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+    }
+
+    .item-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
+    .item-line n-local-icon,
+    .item-line p-progress {
+      display: block;
+      margin-right: 4px;
+      --circle-size: 20;
+      font-size: 20px;
+    }
+
+    .item-line p-progress {
+      --progress-animation: none;
+    }
+  </style>
+  <o-if :value="!rootOK">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <n-local-icon
+        name="error"
+        style="color: var(--md-sys-color-error); font-size: 38px"
+      ></n-local-icon>
+      <div style="margin-top: 8px">
+        <n-desc space="installer" name="install_os.root_cert_failed"></n-desc>
+      </div>
+    </div>
+  </o-if>
+  <p-progress variant="determinate" type="circle"></p-progress>
+  <p-list>
+    <o-fill :value="tasks">
+      <p-list-item>
+        <div class="item-line">
+          <o-if :value="$data.status === 'pending'">
+            <p-progress type="circle"></p-progress>
+            <n-desc
+              space="installer"
+              name="install_os.download_list_pending"
+              attr:data-name="$data.name"
+            ></n-desc>
+          </o-if>
+          <o-else-if :value="$data.status === 'success'">
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            <n-desc
+              space="installer"
+              name="install_os.download_list_success"
+              attr:data-name="$data.name"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if :value="$data.status === 'version-failed'">
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            <n-desc
+              space="installer"
+              name="install_os.download_list_version_failed"
+              attr:data-name="$data.name"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if :value="$data.status === 'download-failed'">
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            <n-desc
+              space="installer"
+              name="install_os.download_list_download_failed"
+              attr:data-name="$data.name"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if :value="$data.status === 'verify-failed'">
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            <n-desc
+              space="installer"
+              name="install_os.download_list_verify_failed"
+              attr:data-name="$data.name"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if
+            :value="$data.status === 'downloading' && $data.progress != 100"
+          >
+            <p-progress
+              type="circle"
+              variant="determinate"
+              :value="$data.progress"
+            ></p-progress>
+            <n-desc
+              space="installer"
+              name="install_os.download_pkg_downloading"
+              attr:data-name="$data.name"
+              attr:data-progress="$data.progress"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if
+            :value="$data.status === 'downloading' && $data.progress === 100"
+          >
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            <n-desc
+              space="installer"
+              name="install_os.download_pkg_success"
+              attr:data-name="$data.name"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if :value="$data.status === 'unzipping'">
+            <p-progress
+              type="circle"
+              variant="determinate"
+              :value="$data.progress"
+            ></p-progress>
+            <n-desc space="installer" name="install_os.unzipping"></n-desc>
+          </o-else-if>
+          <o-else-if :value="$data.status === 'unzip-success'">
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            <n-desc space="installer" name="install_os.unzip_success"></n-desc>
+          </o-else-if>
+          <o-else-if
+            :value="$data.status === 'verifying' && $data.progress != 100"
+          >
+            <p-progress
+              type="circle"
+              variant="determinate"
+              :value="$data.progress"
+            ></p-progress>
+            <n-desc
+              space="installer"
+              name="install_os.verifying"
+              attr:data-progress="$data.progress"
+            ></n-desc>
+          </o-else-if>
+          <o-else-if
+            :value="$data.status === 'verifying' && $data.progress === 100"
+          >
+            <n-local-icon
+              name="succeed"
+              style="color: var(--md-sys-color-success)"
+            ></n-local-icon>
+            <n-desc space="installer" name="install_os.verify_success"></n-desc>
+          </o-else-if>
+          <o-else-if :value="$data.status === 'writing'">
+            <o-if :value="$data.progress !== 100">
+              <p-progress
+                type="circle"
+                variant="determinate"
+                :color="$data.isDelete ? 'error' : 'primary'"
+                :value="$data.progress"
+              ></p-progress>
+            </o-if>
+            <n-desc space="installer" name="install_os.writing_prefix"></n-desc>
+            <o-if :value="$data.isDelete">
+              <n-desc
+                space="installer"
+                name="install_os.writing_delete"
+              ></n-desc>
+            </o-if>
+            <o-else-if :value="!$data.isDelete && $data.progress === 100">
+              <n-local-icon
+                name="succeed"
+                style="color: var(--md-sys-color-success)"
+              ></n-local-icon>
+              <n-desc
+                space="installer"
+                name="install_os.writing_success"
+              ></n-desc>
+            </o-else-if>
+            <o-else>
+              <n-desc
+                space="installer"
+                name="install_os.writing_progress"
+                attr:data-progress="$data.progress"
+              ></n-desc>
+            </o-else>
+          </o-else-if>
+          <o-else>
+            <n-local-icon
+              name="error"
+              style="color: var(--md-sys-color-error)"
+            ></n-local-icon>
+            {{$data.desc}}
+          </o-else>
+        </div>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <script>
+    const sources = [
+      {
+        name: "jsdelivr",
+        hashesJSON:
+          "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/dist/hashes.json",
+        pkgPath:
+          "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/dist/packages.zip",
+      },
+      {
+        name: "github",
+        hashesJSON: "https://kirakiray.github.io/NoneOS/dist/hashes.json",
+        pkgPath: "https://kirakiray.github.io/NoneOS/dist/packages.zip",
+      },
+      {
+        name: "Current Website",
+        hashesJSON: "/dist/hashes.json",
+        pkgPath: "/dist/packages.zip",
+      },
+    ];
+
+    if (
+      location.host.split(".").length === 1 &&
+      location.host.includes("localhost")
+    ) {
+      // 本地环境下，只保留当前网站
+      sources.splice(0, 2);
+    }
+
+    export default async ({ load }) => {
+      const { verifyData } = await load("/packages/user/verify.js");
+      const rootCert = await load("/packages/user/cert/root-cert.json");
+      const rootOK = await verifyData(rootCert).catch(() => false);
+      const { unzip } = await load("/packages/libs/zip/main.js");
+      const { getFileHash } = await load("/packages/fs/util.js");
+      const { get } = await load("/packages/fs/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      return {
+        data: {
+          currentSource: {}, // 当前匹配好的原对象
+          files: [], // 所有文件列表
+          tasks: [],
+          rootOK,
+          _hashes: null,
+        },
+        proto: {
+          async getSignList() {
+            const data = await load("/package.json");
+            const newestVersion = data.version;
+
+            const reSources = [...sources];
+            let finnalFiles = []; // 最终的文件列表
+
+            let source;
+            while (reSources.length) {
+              source = reSources.shift();
+              this.currentSource = source;
+
+              this.tasks.push({
+                name: source.name,
+                status: "pending",
+                progress: 0,
+              });
+
+              const target = this.tasks.slice(-1)[0];
+
+              await new Promise((resolve) => {
+                setTimeout(resolve, 200);
+              });
+
+              try {
+                const result = await fetch(source.hashesJSON).then((e) =>
+                  e.json()
+                );
+
+                this._hashes = result;
+
+                // 验证数据签名是否正确
+                const verifyResult = await verifyData(result);
+
+                if (
+                  !verifyResult ||
+                  rootCert.data.publicKey !== result.data.publicKey
+                ) {
+                  // 数据签名验证失败，或不是根证书的公钥
+                  target.status = "verify-failed";
+                  continue;
+                }
+
+                const { version, files } = result.data;
+
+                if (version !== newestVersion) {
+                  target.status = "version-failed";
+                  // 不是最新版，跳过
+                  continue;
+                }
+
+                finnalFiles = files;
+
+                target.status = "success";
+              } catch (err) {
+                target.status = "download-failed";
+                continue;
+              }
+            }
+
+            if (!finnalFiles.length) {
+              this.tasks.push({
+                status: "failed",
+                desc: getText("install_os.failed_get_sign_list", "installer"),
+              });
+              return;
+            }
+
+            this.files.push(...finnalFiles);
+
+            this.downloadPkg();
+          },
+          async downloadPkg() {
+            // 下载文件
+            this.tasks.push({
+              name: this.currentSource.name,
+              status: "downloading",
+              progress: 0,
+            });
+
+            const target = this.tasks.slice(-1)[0];
+
+            const zipFile = await downloadFileWithProgress(
+              this.currentSource.pkgPath,
+              (e) => {
+                target.progress = e;
+              }
+            );
+
+            console.log(target, zipFile);
+            this.unzipFile(zipFile);
+          },
+          async unzipFile(zipFile) {
+            // 下载文件
+            this.tasks.push({
+              name: this.currentSource.name,
+              status: "unzipping",
+            });
+            const target = this.tasks.slice(-1)[0];
+
+            const files = await unzip(zipFile);
+
+            target.status = "unzip-success";
+
+            this.verifyFiles(files);
+          },
+          async verifyFiles(files) {
+            // 验证文件
+            this.tasks.push({
+              status: "verifying",
+              progress: 0,
+            });
+
+            const target = this.tasks.slice(-1)[0];
+
+            if (files.length !== this.files.length) {
+              this.tasks.push({
+                status: "failed",
+                desc: getText(
+                  "install_os.failed_unzip_file_count_mismatch",
+                  "installer",
+                  {
+                    filesLength: files.length,
+                    thisFilesLength: this.files.length,
+                  }
+                ),
+              });
+              return;
+            }
+
+            let count = 0;
+
+            for (let item of files) {
+              const hash = await getFileHash(item.file);
+              const exitedFilesItem = this.files.find(
+                (e) => e.path === item.path
+              );
+
+              if (!exitedFilesItem) {
+                this.tasks.push({
+                  status: "failed",
+                  desc: getText(
+                    "install_os.failed_file_not_exist",
+                    "installer",
+                    { path: item.path }
+                  ),
+                });
+              }
+
+              if (exitedFilesItem.hash !== hash) {
+                this.tasks.push({
+                  status: "failed",
+                  desc: getText(
+                    "install_os.failed_file_tampered",
+                    "installer",
+                    { path: item.path }
+                  ),
+                });
+                break;
+              }
+
+              count++;
+              target.progress = +((count / this.files.length) * 100).toFixed(0);
+            }
+
+            this.writeFiles(files);
+          },
+          async writeFiles(files) {
+            // 写入文件
+            this.tasks.push({
+              status: "writing",
+              isDelete: true,
+              progress: 0,
+            });
+
+            const target = this.tasks.slice(-1)[0];
+
+            const packagesDir = await get("packages");
+
+            const subLen = await packagesDir.length();
+            let subCount = 0;
+            if (subLen) {
+              for await (let item of packagesDir.values()) {
+                subCount++;
+                await item.remove();
+                target.progress = +((subCount / subLen) * 100).toFixed(2);
+              }
+            }
+
+            target.isDelete = false;
+
+            let writeCount = 0;
+
+            for (let item of files) {
+              const fileHandle = await packagesDir.get(item.path, {
+                create: "file",
+              });
+              await fileHandle.write(item.file);
+              writeCount++;
+              target.progress = +(
+                (writeCount / this.files.length) *
+                100
+              ).toFixed(0);
+            }
+            {
+              // 写入 index.html 和 hashes.json
+              const fetchOpts = {
+                cache: "no-store",
+                headers: { "Cache-Control": "no-cache" },
+              };
+
+              const indexFile = await fetch("/index.html", fetchOpts).then(
+                (e) => e.text()
+              );
+
+              const indexFileHandle = await packagesDir.get("index.html", {
+                create: "file",
+              });
+
+              await indexFileHandle.write(indexFile);
+
+              const hashesFileHandle = await packagesDir.get("hashes.json", {
+                create: "file",
+              });
+
+              await hashesFileHandle.write(
+                JSON.stringify(this._hashes, null, 2)
+              );
+            }
+
+            // 下一步
+            setTimeout(() => {
+              $("n-installer").step++;
+            }, 500);
+          },
+        },
+        attached() {
+          if (rootOK) {
+            this.getSignList();
+          }
+        },
+      };
+    };
+
+    function downloadFileWithProgress(url, onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open("GET", url, true);
+        xhr.responseType = "blob";
+
+        xhr.onprogress = function (event) {
+          if (event.lengthComputable && onProgress) {
+            const percentComplete = +(
+              (event.loaded / event.total) *
+              100
+            ).toFixed(2);
+            onProgress(percentComplete);
+          }
+        };
+
+        xhr.onload = function () {
+          if (xhr.status === 200) {
+            resolve(xhr.response); // 解析为 Blob 对象
+          } else {
+            reject(new Error(`Download failed with status ${xhr.status}`));
+          }
+        };
+
+        xhr.onerror = function () {
+          reject(new Error("Request failed"));
+        };
+
+        xhr.send();
+      });
+    }
+  </script>
+</template>

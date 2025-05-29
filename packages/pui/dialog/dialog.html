@@ -6,6 +6,7 @@
       font-size: 14px;
     }
     .main {
+      position: relative;
       box-sizing: border-box;
       padding: calc(var(--pui-space-y) * 6) calc(var(--pui-space-x) * 4);
       border-radius: var(--dialog-border-radius, 30px);
@@ -13,6 +14,7 @@
       width: var(--dialog-width, auto);
       min-width: 320px;
       --label-bg: var(--md-sys-color-on-normal);
+      transition: transform 0.3s ease;
     }
     .tltle {
       display: flex;
@@ -58,65 +60,32 @@
     .showall.main > * {
       opacity: 1;
     }
+  </style>
 
-    .close-btn {
-      display: none;
-      cursor: pointer;
-      margin-right: calc(var(--pui-space-x) * 3);
+  <style>
+    @media screen and (max-width: data(autoToMobileWidth)) {
+      p-mask {
+        --container-init-transform: translate(0, 100px);
+      }
+      .main {
+        width: 100%;
+        border-radius: 0;
+        border-top-left-radius: var(--dialog-border-radius, 30px);
+        border-top-right-radius: var(--dialog-border-radius, 30px);
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        transform: translateY(100%);
+      }
+      .showall.main {
+        transform: translateY(0);
+      }
     }
   </style>
 
-  <x-if :value="autoFullscreen !== null">
-    <style>
-      @media screen and (max-width: 600px) {
-        .main {
-          height: 100%;
-          width: 100%;
-          border-radius: 0;
-        }
-
-        .close-btn {
-          display: block;
-        }
-
-        .content {
-          max-height: calc(100vh - 150px);
-        }
-      }
-    </style>
-  </x-if>
-
-  <style :html="fstyle"></style>
-
-  <x-if :value="noMask === null">
-    <p-mask
-      sync:open="open"
-      sync:mask-id="maskId"
-      on:click-mask="emit('click-mask',{bubbles:false})"
-    >
-      <div class="main" class:showall="open" part="main">
-        <div class="tltle">
-          <span
-            class="close-btn"
-            on:click="emit('click-close',{bubbles:false})"
-          >
-            ✕
-          </span>
-          <slot name="title"></slot>
-        </div>
-        <div class="content" part="content"><slot></slot></div>
-        <div class="bottom">
-          <slot name="bottom"></slot>
-        </div>
-      </div>
-    </p-mask>
-  </x-if>
-  <x-else-if :value="open">
-    <div class="main showall" part="main">
+  <p-mask sync:open="open" on:click-mask="clickMask">
+    <div class="main" class:showall="open" part="main">
       <div class="tltle">
-        <span class="close-btn" on:click="emit('click-close',{bubbles:false})"
-          >✕</span
-        >
         <slot name="title"></slot>
       </div>
       <div class="content" part="content"><slot></slot></div>
@@ -124,34 +93,31 @@
         <slot name="bottom"></slot>
       </div>
     </div>
-  </x-else-if>
+  </p-mask>
 
   <script>
-    import "../commons/init.js";
+    import "../public/init.js";
 
     export default async ({ load }) => {
-      load("./mask.html");
+      await load("./mask.html");
 
       return {
         tag: "p-dialog",
         attrs: {
-          autoFullscreen: null,
-          autoclose: null,
-          noMask: null,
+          autoClose: null,
+          autoToMobileWidth: "540px",
         },
         data: {
-          maskId: 100,
           open: false,
-          fstyle: "",
         },
-        proto: {},
         watch: {
           open(val) {
             if (val) {
+              // 修正弹窗后焦点问题
               let targetInput = this.$("[autofocus]");
 
               if (!targetInput) {
-                targetInput = this.$("p-text-field");
+                targetInput = this.$("p-input,p-textarea");
               }
 
               if (!targetInput) {
@@ -160,6 +126,12 @@
 
               targetInput && targetInput.focus && targetInput.focus();
             }
+          },
+        },
+        proto: {
+          clickMask() {
+            this.autoClose !== null && (this.open = false);
+            this.emit("click-mask", { bubbles: false });
           },
         },
       };

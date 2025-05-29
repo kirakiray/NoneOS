@@ -1,0 +1,241 @@
+<template component>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="./bm-img-selector.html"></l-m>
+  <l-m src="/packages/pui/button/group.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .main {
+      width: 80vw;
+      max-width: 800px;
+      min-height: 30vh;
+    }
+
+    .form-line {
+      padding: 8px 0;
+      display: flex;
+    }
+    .form-line p-input {
+      flex: 1;
+      margin-left: 8px;
+    }
+    .form-line p-input:first-child {
+      margin-left: 0;
+    }
+
+    @media screen and (max-width: 540px) {
+      .main {
+        width: auto;
+      }
+    }
+
+    .dialog-title-icon {
+      display: flex;
+      align-items: center;
+      width: 24px;
+      height: 24px;
+      margin-right: 12px;
+      transition: all ease 0.2s;
+    }
+    .dialog-title-icon.hide {
+      width: 0;
+      opacity: 0;
+      margin-right: 0;
+    }
+  </style>
+
+  <p-dialog :open="open" on:click-mask="clickClose">
+    <div slot="title" style="display: flex; align-items: center">
+      <div class="dialog-title-icon" class:hide="item.type !== 'page'">
+        <n-local-icon
+          name="link"
+          style="color: var(--md-sys-color-primary)"
+        ></n-local-icon>
+      </div>
+      <div class="dialog-title-icon" class:hide="item.type !== 'folder'">
+        <n-local-icon
+          name="folder"
+          style="color: var(--md-sys-color-success)"
+        ></n-local-icon>
+      </div>
+
+      <o-if :value="editmode">
+        <div>
+          <n-desc name="edit" space="bookmarks"></n-desc>{{itemTypeText}}
+        </div>
+      </o-if>
+      <o-else>
+        <div>
+          <n-desc name="addNew" space="bookmarks"></n-desc>{{itemTypeText}}
+        </div>
+      </o-else>
+
+      <o-if :value="!editmode">
+        <o-if :value="item.type === 'page'">
+          <p-button
+            size="small"
+            variant="text"
+            on:click="clickToType('folder')"
+            color="success"
+            style="margin-left: 8px"
+          >
+            <n-local-icon
+              slot="prefix"
+              name="folder"
+              style="display: block; margin-right: 6px"
+            ></n-local-icon>
+            <n-desc name="switchToNewFolder" space="bookmarks"></n-desc>
+          </p-button>
+        </o-if>
+        <o-else>
+          <p-button
+            size="small"
+            variant="text"
+            on:click="clickToType('page')"
+            style="margin-left: 8px"
+          >
+            <n-local-icon
+              slot="prefix"
+              name="link"
+              style="display: block; margin-right: 6px"
+            ></n-local-icon>
+            <n-desc name="switchToNewWeb" space="bookmarks"></n-desc>
+          </p-button>
+        </o-else>
+      </o-if>
+    </div>
+    <div class="main">
+      <div class="form-line">
+        <o-if :value="item.type === 'page'">
+          <p-input sync:value="item.url" style="flex: 2">
+            <label>
+              <n-desc name="url" space="bookmarks"></n-desc>
+              <b style="color: var(--md-sys-color-error)">*</b>
+            </label>
+          </p-input>
+          <p-input sync:value="item.webTitle">
+            <label>
+              <n-desc name="titleOptional" space="bookmarks"></n-desc>
+            </label>
+          </p-input>
+        </o-if>
+        <o-else-if :value="item.type === 'folder'">
+          <p-input sync:value="item.webTitle">
+            <label>
+              <n-desc name="title" space="bookmarks"></n-desc>
+              <b style="color: var(--md-sys-color-error)">*</b>
+            </label>
+          </p-input>
+        </o-else-if>
+      </div>
+      <o-if :value="isValidUrl && item.type === 'page'">
+        <h4><n-desc name="customThumbnail" space="bookmarks"></n-desc></h4>
+        <bm-img-selector
+          sync:type="item.logoType"
+          sync:default-pic="item.defaultPic"
+          sync:custom-pic="item.customPic"
+          sync:selected-pic="item.selectedPic"
+          :weburl="item.url"
+        ></bm-img-selector>
+      </o-if>
+    </div>
+    <div slot="bottom">
+      <p-button variant="outlined" on:click="clickClose"
+        ><n-desc name="cancel" space="bookmarks"></n-desc
+      ></p-button>
+      <p-button on:click="clickSave"
+        ><n-desc name="save" space="bookmarks"></n-desc
+      ></p-button>
+    </div>
+  </p-dialog>
+  <script>
+    export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
+
+      const { defaultItemData } = await load("../common/default-item-data.js");
+
+      return {
+        tag: "bm-common-dialog",
+        attrs: {
+          editmode: null,
+        },
+        data: {
+          open: false,
+          item: {
+            ...defaultItemData,
+          },
+        },
+        proto: {
+          clickToType(type) {
+            this.item.type = type;
+            this.item.webTitle = "";
+            this.item.url = "";
+          },
+          clickClose() {
+            // 还原数据
+            this.open = false;
+
+            // Object.assign(this.item, defaultItemData);
+          },
+          get itemTypeText() {
+            return this.item.type === "page" ? getText("webpage", "bookmarks") : getText("webfolder", "bookmarks");
+          },
+          get isValidUrl() {
+            const arr = this.item.url.split(".");
+            return arr.length >= 2 && !!arr[arr.length - 1].trim();
+          },
+          clickSave() {
+            if (this.item.type === "page") {
+              // 页面类型
+
+              if (!this.isValidUrl) {
+                toast({
+                  content: `"${this.item.url}" 不正确，请输入正确的网址`,
+                  color: "error",
+                });
+                return;
+              }
+
+              if (this.item.logoType === "upload" && !this.item.selectedPic) {
+                toast({
+                  content: "请选择图片",
+                  color: "error",
+                });
+                return;
+              }
+
+              if (
+                this.item.logoType === "custom" &&
+                !this.item.customPic.trim()
+              ) {
+                toast({
+                  content: getText("enterCustomThumbnailUrl", "bookmarks"),
+                  color: "error",
+                });
+                return;
+              }
+            } else if (this.item.type === "folder") {
+              // 文件夹类型
+              if (!this.item.webTitle.trim()) {
+                toast({
+                  content: getText("enterFolderName", "bookmarks"),
+                  color: "error",
+                });
+                return;
+              }
+            }
+
+            this.emit("click-save");
+          },
+        },
+      };
+    };
+  </script>
+</template>

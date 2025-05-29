@@ -2,91 +2,64 @@
   <style>
     :host {
       display: block;
-    }
-    .point {
-      display: none;
-      width: 8px;
-      height: 8px;
-      border-radius: 5px;
-      background-color: #7c7c7c;
+      width: 6px;
+      height: 6px;
     }
 
-    [data-state="connected"] {
+    .circle {
+      width: inherit;
+      height: inherit;
+      border-radius: 50%;
+      /* background-color: var(--md-sys-color-normal); */
+    }
+
+    .circle[state="not-ready"] {
+      background-color: var(--md-sys-color-normal);
+    }
+
+    .circle[state="connecting"] {
+      background-color: var(--md-sys-color-primary);
+    }
+
+    .circle[state="ready"] {
       background-color: var(--md-sys-color-success);
     }
-    [data-state="disconnected"],
-    [data-state="error"],
-    [data-state="closed"] {
+
+    .circle[state="not-find-user"] {
       background-color: var(--md-sys-color-error);
     }
-
-    :host([show-point]) .point {
-      display: block;
-    }
   </style>
-
-  <style>
-    ::slotted([show-with]) {
-      display: none;
-    }
-    ::slotted([show-with~="data(state)"]) {
-      display: block;
-    }
-  </style>
-  <div class="point" attr:data-state="state"></div>
-  <slot></slot>
+  <div class="circle" attr:state="connection.state"></div>
   <script>
     export default async ({ load }) => {
-      const { users } = await load("/packages/core/main.js");
+      const { getConnection } = await load("/packages/user/connection/main.js");
+      const { getDeviceStore } = await load("/packages/user/main.js");
+      const devices = await getDeviceStore();
 
       return {
         tag: "n-user-state",
+        data: {},
         attrs: {
-          state: null, // 用户的连接状态
-          updateAccess: null,
+          userId: null,
         },
         data: {
-          userid: null, // 用户的id
-          accessibleDirs: [], // 可访问的路径
-        },
-        proto: {
-          refreshState() {
-            const targetUser = users.find(
-              (user) => user.userId === this.userid
-            );
-
-            if (targetUser && this.updateAccess !== null) {
-              if (!targetUser.accessibleDirs) {
-                if (this.accessibleDirs.length) {
-                  this.accessibleDirs = [];
-                }
-              } else if (
-                JSON.stringify(targetUser.accessibleDirs) !==
-                JSON.stringify(this.accessibleDirs)
-              ) {
-                this.accessibleDirs = targetUser.accessibleDirs.toJSON();
-              }
-            }
-
-            if (targetUser) {
-              this.state = targetUser.state;
-            } else {
-              this.state = "disconnected";
-            }
-          },
+          connection: {},
         },
         watch: {
-          userid() {
-            this.refreshState();
+          userId(userId) {
+            if (!userId) {
+              this.connection = {};
+              return;
+            }
+
+            this.connection = getConnection({ userId });
           },
         },
         attached() {
-          this._wid = users.watchTick((e) => {
-            this.refreshState();
-          }, 100);
+          //   this.connection = getConnection({ userId: this.userId });
         },
         detached() {
-          users.unwatch(this._wid);
+          this.connection = {};
         },
       };
     };

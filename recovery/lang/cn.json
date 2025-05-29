@@ -1,0 +1,17 @@
+{
+  "title": "系统恢复模式",
+  "desc1": "当您无法正常访问虚拟系统时，可以在此处导出系统数据以防数据丢失。",
+  "export_all_data": "导出所有数据",
+  "export_user_data": "只导出用户数据",
+  "export_local_data": "只导出Local数据",
+  "desc2": "完成数据导出后，您可以尝试清除所有系统数据并重启浏览器，然后重新访问虚拟系统。",
+  "import_data": "导入数据",
+  "clear_system_data": "清除系统数据",
+  "import_success_toast": "数据已成功导入，请重启浏览器以使新的配置生效",
+  "import_error_toast": "选择的文件内容有误，请重新选择文件",
+  "confirm_title": "清除系统数据",
+  "confirm_content": "您确定要清除系统数据吗？此操作无法撤销。",
+  "confirm_yes": "清除",
+  "confirm_cancel": "取消",
+  "clear_success_toast": "系统数据已清除，请刷新页面"
+}

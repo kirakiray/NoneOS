@@ -1,0 +1,120 @@
+<template component>
+  <l-m src="./bm-common-dialog.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .card {
+      position: relative;
+      padding: 8px 0 16px;
+      width: 200px;
+      /* height: 132px; */
+      height: calc(calc(var(--card-img-height) + 52) * 1px);
+      box-sizing: border-box;
+      border-radius: 8px;
+      color: var(--md-sys-color-on-primary-container);
+      background-color: var(--md-sys-color-primary-container);
+      text-align: center;
+      cursor: pointer;
+      transition: all ease 0.2s;
+      box-shadow: var(--contained-shadow);
+    }
+
+    .card {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 500;
+      font-size: 50px;
+    }
+
+    .card:hover {
+      box-shadow: var(--contained-hover-shadow);
+    }
+
+    .card:active {
+      box-shadow: var(--contained-active-shadow);
+    }
+
+    @media screen and (max-width: 540px) {
+      .card {
+        width: 80vw;
+        height: 78px;
+      }
+    }
+  </style>
+  <div class="card" on:click="open = true">+</div>
+  <bm-common-dialog
+    sync:open="open"
+    :item="item"
+    on:click-save="clickSave"
+  ></bm-common-dialog>
+
+  <script>
+    import defaultItemData from "../common/default-item-data.js";
+
+    export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+      return {
+        tag: "bm-add-card",
+        data: {
+          open: false,
+          cards: [], // 当前显示的数据
+          item: {
+            ...defaultItemData,
+          },
+        },
+        proto: {
+          clickSave() {
+            if (this.item.type === "page") {
+              let url = this.item.url;
+
+              if (!url.startsWith("http")) {
+                this.item.url = url = "https://" + url;
+              }
+
+              // 判断是否有相同的网页
+              if (this.cards.find((item) => item.url === url)) {
+                toast({
+                  content: "已经存在相同的网页",
+                  color: "error",
+                });
+                return;
+              }
+            } else if (this.item.type === "folder") {
+              if (
+                this.cards.find((item) => item.webTitle === this.item.webTitle)
+              ) {
+                toast({
+                  content: "已经存在同名的网页或网页夹",
+                  color: "error",
+                });
+                return;
+              }
+            }
+
+            const data = {
+              ...this.item,
+            };
+
+            if (data.type === "folder") {
+              data.cards = [];
+            }
+
+            this.emit("add-web", {
+              data,
+            });
+
+            // 清空数据
+            Object.assign(this.item, {
+              ...defaultItemData,
+            });
+
+            this.open = false;
+          },
+        },
+      };
+    };
+  </script>
+</template>

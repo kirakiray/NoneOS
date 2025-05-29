@@ -40,19 +40,6 @@
       color: var(--pui-on-main-color-container);
     }
 
-    :host([elevated]) .container {
-      box-shadow: var(--contained-shadow);
-    }
-    @media (hover: hover) {
-      :host([elevated]) .container:hover {
-        box-shadow: var(--contained-hover-shadow);
-      }
-    }
-
-    :host([elevated]) .container:active {
-      box-shadow: var(--contained-active-shadow);
-    }
-
     .fake-border {
       display: block;
       content: "";
@@ -141,7 +128,6 @@
       display: block;
       box-sizing: border-box;
       position: absolute;
-      z-index: 1;
       border-radius: var(--pui-border-radius);
       left: 0;
       top: 0;
@@ -227,44 +213,45 @@
     <p-wave attr:disabled="disabled" style="z-index: 2"></p-wave>
   </button>
   <script>
-    import "../commons/init.js";
-    import { setMainColor } from "../commons/util.js";
-    import bindClick from "./bind-item-click.js";
+    export default async ({ load }) => {
+      await load("../public/init.js");
+      
+      const { setMainColor, bindClick } = await load("../public/util.js");
 
-    export default {
-      tag: "p-button",
-      attrs: {
-        variant: "contained",
-        elevated: null,
-        size: null,
-        color: null,
-        disabled: null,
-        icon: null,
-        autofocus: null,
-      },
-      watch: {
-        autofocus(val) {
-          if (val !== null) {
-            setTimeout(() => {
-              this.shadow.$("button").ele.focus();
-            }, 50);
-          }
+      return {
+        tag: "p-button",
+        attrs: {
+          variant: "contained",
+          size: null,
+          color: null,
+          disabled: null,
+          icon: null,
+          autofocus: null,
         },
-        color(color) {
-          setMainColor(this, color);
+        watch: {
+          autofocus(val) {
+            if (val !== null) {
+              requestAnimationFrame(() => {
+                this.shadow.$("button").ele.focus();
+              });
+            }
+          },
+          color(color) {
+            setMainColor(this, color);
+          },
         },
-      },
-      proto: {
-        click() {
-          this.ele.click();
+        proto: {
+          click() {
+            this.ele.click();
+          },
+          focus() {
+            this.shadow.$("button").ele.focus();
+          },
         },
-        focus() {
-          this.shadow.$("button").ele.focus();
+        ready() {
+          bindClick(this);
         },
-      },
-      ready() {
-        bindClick(this);
-      },
+      };
     };
   </script>
 </template>

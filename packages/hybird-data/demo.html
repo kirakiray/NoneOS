@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { get } from "../fs/main.js";
+      import { createData } from "./main.js";
+
+      const handle = await get("local/test/hydata-10", {
+        create: "dir",
+      });
+
+      const data1 = await createData(handle);
+      const data2 = await createData(handle);
+
+      data1.splice(0, 100, {
+        val: Math.random().toString(32).slice(6),
+      });
+
+      data1.a = Math.random().toString(32).slice(6);
+      await new Promise((r) => setTimeout(r, 1000)); // wait for 1s
+
+      console.log(data1.toJSON());
+      console.log(data2.toJSON());
+    </script>
+  </body>
+</html>

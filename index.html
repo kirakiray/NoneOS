@@ -2,16 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NoneOS</title>
-    <link rel="shortcut icon" href="/logo.png" />
-    <link rel="apple-touch-icon" href="/logo.png" />
-    <script src="/packages/libs/ofa/ofa.js" debug></script>
-    <script src="/packages/libs/ofa/ofa-error-zh.js"></script>
-    <link rel="stylesheet" href="/packages/pui/css/public.css" pui-theme-link />
-    <link rel="stylesheet" href="/packages/others/colors.css" />
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
     <style>
       html,
       body {
@@ -21,13 +15,23 @@
         height: 100%;
         overflow: hidden;
       }
+
+      body {
+        font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
+          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
+          Segoe UI Emoji;
+      }
+
+      #snackbar-container {
+        box-sizing: border-box;
+        padding-bottom: 40px;
+      }
     </style>
   </head>
   <body>
-    <l-m src="./packages/none-os/none-os.html"></l-m>
+    <o-root-provider name="pui"></o-root-provider>
+    <l-m src="/packages/none-os/none-os.html"></l-m>
     <none-os></none-os>
-    <script>
-      navigator.serviceWorker.register("/sw.js");
-    </script>
+    <script src="sw/register.js" type="module"></script>
   </body>
 </html>

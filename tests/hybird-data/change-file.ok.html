@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Change File Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { init, get } from "/packages/fs/main.js";
+      import { test } from "/ok-test/main.js";
+      import { createData } from "/packages/hybird-data/main.js";
+
+      const WAIT_TIME = 100;
+
+      // 初始化测试目录
+      await init("local");
+
+      const testDirectory = await get("local/test", { create: "dir" });
+
+      // 测试父目录是否相同
+      await test("sub data can save", async () => {
+        try {
+          const testData2 = await testDirectory.get("test-data-2", {
+            create: "dir",
+          });
+          const data2 = await createData(testData2);
+          console.log("初始化测试数据完成:", { testData2, data2 });
+
+          if (!data2.sub) {
+            data2.sub = {
+              val: "I am sub",
+            };
+            console.log("创建子数据对象:", data2.sub);
+          }
+
+          await data2.sub.ready();
+          console.log("子数据对象准备就绪");
+
+          await new Promise((res) => setTimeout(res, WAIT_TIME));
+          console.log("等待时间完成:", WAIT_TIME);
+
+          const targetFile = await get(
+            `local/test/test-data-2/${data2.sub._dataId}`
+          );
+          console.log("获取目标文件:", targetFile);
+
+          const oldVal = data2.sub.val;
+          const newVal = `change val: ${Date.now()}`;
+          console.log("准备更新值:", { oldVal, newVal });
+
+          // 修改内容后重新写入
+          const fileText = await targetFile.text();
+          console.log("读取文件内容:", fileText);
+
+          const fileObj = JSON.parse(fileText);
+          console.log("解析文件对象:", fileObj);
+
+          fileObj.val = newVal;
+          await targetFile.write(JSON.stringify(fileObj));
+          console.log("文件内容已更新");
+
+          await new Promise((res) => setTimeout(res, WAIT_TIME));
+          console.log("最终等待时间完成");
+
+          return {
+            assert: oldVal !== data2.sub.val && data2.sub.val === fileObj.val,
+            content: "auto update data ok",
+          };
+        } catch (error) {
+          console.error("Test failed:", error);
+          return {
+            assert: false,
+            content: `Test failed: ${error.message}`,
+          };
+        }
+      });
+
+      await test("array change data", async () => {
+        const testData = await testDirectory.get("test-data-3", {
+          create: "dir",
+        });
+
+        const data1 = await createData(testData);
+        window.data1 = data1; // 暴露给window，方便调试
+        console.log("data1 xid:", data1._xid);
+        const data2 = await createData(testData);
+        window.data2 = data2; // 暴露给window，方便调试
+        console.log("data2 xid:", data2._xid);
+
+        // data1.val = Math.random();
+        const subval = "sub val - " + Math.random();
+        data1.splice(0, 100, {
+          subval,
+        });
+
+        await new Promise((res) => setTimeout(res, 100));
+        await data1.ready(true);
+        await data2.ready(true);
+
+        const assert2 = data1[0].subval === data2[0].subval;
+
+        return {
+          assert: assert2 && data1[0].subval === subval,
+          content: `数组数据同步测试 - 断言结果:${assert2}, data1[0].subval:${data1[0].subval}, 数组第一项值:${data1[0].subval}, 期望值:${subval}`,
+        };
+      });
+    </script>
+  </body>
+</html>

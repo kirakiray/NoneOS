@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card 卡片</title>
+    <script
+      src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.1/dist/ofa.js"
+       ></script>
+    <style>
+      body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+      .demo-section {
+        margin-bottom: 20px;
+      }
+      .card-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+      h3 {
+        margin-bottom: 10px;
+      }
+      p-card {
+        width: 300px;
+      }
+      img {
+        width: 100%;
+        height: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./card.html"></l-m>
+    <l-m src="../aide/develop/theme-selector.html"></l-m>
+
+    <p-theme-selector></p-theme-selector>
+
+    <div class="demo-section">
+      <h3>基础卡片样式</h3>
+      <div class="card-row">
+        <p-card elevated>
+          <h3>带阴影卡片 (elevated)</h3>
+          <p>这是一个带阴影效果的卡片，使用 elevated 属性。</p>
+          <p>卡片内容可以包含多个段落和其他元素。</p>
+        </p-card>
+
+        <p-card filled>
+          <h3>填充卡片 (filled)</h3>
+          <p>这是一个带填充背景的卡片，使用 filled 属性。</p>
+          <p>填充颜色使用主题的 primary-container 颜色。</p>
+        </p-card>
+
+        <p-card outlined>
+          <h3>边框卡片 (outlined)</h3>
+          <p>这是一个带边框的卡片，使用 outlined 属性。</p>
+          <p>边框颜色使用主题的 primary-container 颜色。</p>
+        </p-card>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>带图片的卡片</h3>
+      <div class="card-row">
+        <p-card elevated>
+          <img slot="pic" src="https://picsum.photos/300/150" alt="随机图片" />
+          <h3>带图片的卡片</h3>
+          <p>卡片可以通过 pic 插槽添加图片内容。</p>
+          <p>图片会自动应用与卡片相同的圆角效果。</p>
+        </p-card>
+
+        <p-card filled>
+          <img slot="pic" src="https://picsum.photos/300/150?random=2" alt="随机图片" />
+          <h3>填充样式带图片</h3>
+          <p>这是一个带填充背景和图片的卡片示例。</p>
+        </p-card>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>不同标题级别</h3>
+      <div class="card-row">
+        <p-card elevated>
+          <h1>H1 标题</h1>
+          <h2>H2 标题</h2>
+          <h3>H3 标题</h3>
+          <h4>H4 标题</h4>
+          <h5>H5 标题</h5>
+          <p>卡片支持不同级别的标题样式。</p>
+        </p-card>
+      </div>
+    </div>
+
+    <div class="demo-section">
+      <h3>主题适配</h3>
+      <p>卡片组件会自动适配当前主题（亮色/暗色）。使用上方的主题选择器切换查看效果。</p>
+      <div class="card-row">
+        <p-provider theme="light">
+          <p-card elevated>
+            <h3>亮色主题卡片</h3>
+            <p>这个卡片强制使用亮色主题。</p>
+          </p-card>
+        </p-provider>
+
+        <p-provider theme="dark">
+          <p-card elevated>
+            <h3>暗色主题卡片</h3>
+            <p>这个卡片强制使用暗色主题。</p>
+          </p-card>
+        </p-provider>
+      </div>
+    </div>
+  </body>
+</html>
