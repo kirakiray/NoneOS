@@ -284,6 +284,8 @@
               result = JSON.parse(result);
 
               this.osVersion = result.data.version;
+            } else {
+              this.useOnline = true;
             }
 
             const onlineHashes = await fetch("/dist/hashes.json")
