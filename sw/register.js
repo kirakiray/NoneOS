@@ -1,5 +1,5 @@
 const registration = navigator.serviceWorker.register("/sw.js", {
-  type: "module",
+  // type: "module",
 });
 
 setTimeout(async () => {
