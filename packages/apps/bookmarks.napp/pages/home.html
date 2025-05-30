@@ -595,18 +595,16 @@
 
           const mainData = await createData(dataHandle);
 
-          window._mainData = mainData;
+          await mainData.ready(true);
 
-          await mainData.ready();
-
-          // this.app._mainData = mainData;
+          this.app._mainData = mainData;
 
           if (!mainData.cards) {
             // 初始化本地数据
             mainData.cards = [];
-          }
 
-          window.mainData = mainData;
+            await mainData.ready(true);
+          }
 
           this.cards = mainData.cards;
 

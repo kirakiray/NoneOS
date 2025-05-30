@@ -236,13 +236,13 @@
       },
     ];
 
-    // if (
-    //   location.host.split(".").length === 1 &&
-    //   location.host.includes("localhost")
-    // ) {
-    //   // 本地环境下，只保留当前网站
-    //   sources.splice(0, 2);
-    // }
+    if (
+      location.host.split(".").length === 1 &&
+      location.host.includes("localhost")
+    ) {
+      // 本地环境下，只保留当前网站
+      sources.splice(0, 2);
+    }
 
     export default async ({ load }) => {
       const { verifyData } = await load("/packages/user/verify.js");
