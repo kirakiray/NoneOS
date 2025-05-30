@@ -74,13 +74,18 @@
       <p-button
         on:click="nextStep"
         variant="outlined"
+        attr:disabled="!!disabledMsg"
         style="margin-top: 24px; width: 200px"
       >
         <n-desc space="installer" name="reinstall"></n-desc>
       </p-button>
     </o-if>
     <o-else>
-      <p-button on:click="nextStep" style="margin-top: 24px; width: 200px">
+      <p-button
+        attr:disabled="!!disabledMsg"
+        on:click="nextStep"
+        style="margin-top: 24px; width: 200px"
+      >
         <n-desc space="installer" name="nextStep"></n-desc>
       </p-button>
     </o-else>
@@ -93,14 +98,27 @@
       </p-button>
     </o-if>
 
-    <p style="font-size: 12px; margin-top: 26px">
-      <n-desc name="tryToRecovery" space="installer"></n-desc>
-      <p-button size="mini" variant="text">
-        <a href="/recovery/">
-          <n-desc name="gotoRecovery" space="installer"></n-desc>
-        </a>
-      </p-button>
-    </p>
+    <o-if :value="!disabledMsg">
+      <p style="font-size: 12px; margin-top: 26px">
+        <n-desc name="tryToRecovery" space="installer"></n-desc>
+        <p-button size="mini" variant="text">
+          <a href="/recovery/">
+            <n-desc name="gotoRecovery" space="installer"></n-desc>
+          </a>
+        </p-button>
+      </p>
+    </o-if>
+    <o-else>
+      <div
+        style="
+          color: var(--md-sys-color-primary);
+          font-size: 14px;
+          padding-top: 8px;
+        "
+      >
+        {{disabledMsg}}
+      </div>
+    </o-else>
   </div>
 
   <script>
@@ -115,6 +133,8 @@
           onlineVersion: "",
           localVersion: "",
           settingData: {},
+          safariVersion: "",
+          disabledMsg: "",
         },
         proto: {
           nextStep() {
@@ -133,6 +153,37 @@
 
           // 读取本地的文件
           const localPkg = await get("packages/hashes.json");
+
+          // 如果当前是 safari 浏览器，获取浏览器版本号
+          if (
+            navigator.userAgent.indexOf("Safari") !== -1 &&
+            !navigator.userAgent.includes("Chrome")
+          ) {
+            const safariVersion =
+              navigator.userAgent.match(/([\d.]+) Safari\//)[1];
+
+            this.safariVersion = safariVersion;
+
+            let versionNum = 0;
+
+            safariVersion.split(".").forEach((item, index) => {
+              if (index === 0) {
+                versionNum += parseInt(item) * 1000000;
+              } else if (index === 1) {
+                versionNum += parseInt(item) * 1000;
+              } else if (index === 2) {
+                versionNum += parseInt(item) * 1;
+              }
+            });
+
+            // 如果 safari 版本号小于 18.3.1，禁用按钮
+            if (versionNum < 18003001) {
+              this.disabledMsg =
+                "This version of Safari is not supported. Please upgrade to Safari 18.3.1 or later.";
+            }
+
+            console.log("safariVersion: ", safariVersion, versionNum);
+          }
 
           if (localPkg) {
             let result = await localPkg.text();
