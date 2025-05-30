@@ -105,7 +105,7 @@
 
   <script>
     export default async ({ load }) => {
-      const { get } = await load("/packages/fs/main.js");
+      const { get, init } = await load("/packages/fs/main.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
@@ -128,6 +128,8 @@
           this.onlineVersion = data.version;
 
           sessionStorage.onlineVersion = data.version;
+
+          await init("packages");
 
           // 读取本地的文件
           const localPkg = await get("packages/hashes.json");

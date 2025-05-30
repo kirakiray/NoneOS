@@ -1,5 +1,7 @@
-import { get } from "/packages/fs/main.js";
+import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
+
+await init("system");
 
 // 创造主体数据对象
 const settingData = await createData(
