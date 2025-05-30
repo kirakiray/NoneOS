@@ -14,7 +14,8 @@
     "build-sw-min": "rollup sw/main.js --file sw/dist.min.js --format iife --plugin terser",
     "build-server": "rollup server/main.js --file server/dist.js --sourcemap",
     "hand": "nodemon --inspect server/test-server.js",
-    "dev": "node scripts/static-server & nodemon --inspect server/test-server.js & nodemon server/test-server2.js"
+    "dev": "node scripts/static-server & nodemon --inspect server/test-server.js & nodemon server/test-server2.js",
+    "ci-test": "node scripts/ci-test.js"
   },
   "repository": {
     "type": "git",
@@ -34,9 +35,8 @@
     "koa": "^2.15.3",
     "koa-static": "^5.0.0",
     "noneos-handshake": "^0.3.0",
-    "rollup": "^4.35.0"
-  },
-  "dependencies": {
+    "rollup": "^4.35.0",
+    "ws": "^8.18.2",
     "shelljs": "^0.10.0"
   }
 }
