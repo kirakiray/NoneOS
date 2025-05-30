@@ -92,7 +92,17 @@
         </a>
       </p-button>
     </o-if>
+
+    <p style="font-size: 12px; margin-top: 26px">
+      <n-desc name="tryToRecovery" space="installer"></n-desc>
+      <p-button size="mini" variant="text">
+        <a href="/recovery/">
+          <n-desc name="gotoRecovery" space="installer"></n-desc>
+        </a>
+      </p-button>
+    </p>
   </div>
+
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");

@@ -40,5 +40,7 @@
   "disagree": "Disagree",
   "agreenAndInstall": "Agree and Install",
   "installSucceed": "NoneOS installed successfully",
-  "entrySystem": "Enter System"
+  "entrySystem": "Enter System",
+  "tryToRecovery": "If the system cannot be installed, you can try",
+  "gotoRecovery": "Enter recovery mode"
 }

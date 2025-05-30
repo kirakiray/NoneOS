@@ -40,5 +40,7 @@
   "disagree": "不同意",
   "agreenAndInstall": "同意并安装",
   "installSucceed": "NoneOS安装成功",
-  "entrySystem": "进入系统"
+  "entrySystem": "进入系统",
+  "tryToRecovery": "如果无法安装系统，可尝试",
+  "gotoRecovery": "进入恢复模式"
 }
