@@ -40,5 +40,7 @@
   "disagree": "同意しない",
   "agreenAndInstall": "同意してインストール",
   "installSucceed": "NoneOSのインストールが成功しました",
-  "entrySystem": "システムに入る"
+  "entrySystem": "システムに入る",
+  "tryToRecovery": "システムがインストールできない場合、試すことができます",
+  "gotoRecovery": "リカバリーモードに入る"
 }

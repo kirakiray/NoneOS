@@ -1,14 +1,10 @@
 // @ts-check
 import { defineConfig, devices } from "@playwright/test";
-import path from "path";
 
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
  */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 /**
  * @see https://playwright.dev/docs/test-configuration
@@ -87,9 +83,13 @@ export default defineConfig({
   ],
 
   /* Run your local dev server before starting the tests */
-  webServer: {
-    command: "npm run static",
-    url: "http://localhost:5559",
-    reuseExistingServer: !process.env.CI,
-  },
+  // 启动本地开发服务器配置
+  // webServer: {
+  //   // 启动服务器的命令，需要确保package.json中有对应的script
+  //   command: "npm run static",
+  //   // 服务器地址
+  //   url: "http://localhost:5559",
+  //   // 非CI环境下复用已存在的服务器
+  //   reuseExistingServer: !process.env.CI,
+  // },
 });

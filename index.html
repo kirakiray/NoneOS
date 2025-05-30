@@ -32,6 +32,25 @@
     <o-root-provider name="pui"></o-root-provider>
     <l-m src="/packages/none-os/none-os.html"></l-m>
     <none-os></none-os>
-    <script src="sw/register.js" type="module"></script>
+    <script type="module">
+      const load = lm(import.meta);
+      (async () => {
+        const { get } = await load("/packages/fs/main.js");
+
+        try {
+          const hashes = await get("packages/hashes.json");
+
+          if (!hashes) {
+            location.href = "/install";
+          }
+        } catch (err) {
+          location.href = "/install";
+          return;
+        }
+
+        load("/sw/register.js");
+      })();
+    </script>
+    <!-- <script src="sw/register.js" type="module"></script> -->
   </body>
 </html>
