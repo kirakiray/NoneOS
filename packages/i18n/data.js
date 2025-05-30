@@ -1,10 +1,10 @@
 import { getSetting } from "../none-os/setting.js";
 import { Stanz } from "/packages/libs/stanz/main.js";
 
-const settingData = await getSetting();
-
-const load = lm(import.meta);
-load("./component.html");
+(() => {
+  const load = lm(import.meta);
+  load("./component.html");
+})();
 
 // 多语言的存储主体对象
 export const space = new Stanz({});
@@ -54,32 +54,40 @@ export const getSpaceData = (name, isWaitSpace) => {
 };
 
 // 获取当前语言
-export const getLang = () => settingData.lang;
+// export const getLang = () => settingData.lang;
 
 const listeners = [];
 
-let oldLang = settingData.lang;
-settingData.watchTick(async () => {
-  if (oldLang === settingData.lang) {
-    return;
-  }
+let oldLang = null;
+export const getLang = () => oldLang;
+
+(async () => {
+  const settingData = await getSetting();
 
   oldLang = settingData.lang;
 
-  // 切换语言后，修正语言包
-  await Promise.all(
-    Object.entries(spacePath).map(async ([key, path]) => {
-      const data = await fetch(`${path}/${settingData.lang}.json`).then((e) =>
-        e.json()
-      );
+  settingData.watchTick(async () => {
+    if (oldLang === settingData.lang) {
+      return;
+    }
 
-      Object.assign(space[key], data);
-    })
-  );
+    oldLang = settingData.lang;
 
-  // 触发监听器
-  listeners.forEach((e) => e());
-});
+    // 切换语言后，修正语言包
+    await Promise.all(
+      Object.entries(spacePath).map(async ([key, path]) => {
+        const data = await fetch(`${path}/${settingData.lang}.json`).then((e) =>
+          e.json()
+        );
+
+        Object.assign(space[key], data);
+      })
+    );
+
+    // 触发监听器
+    listeners.forEach((e) => e());
+  });
+})();
 
 // 监听语言切换
 export const onChangeLang = (func) => {
@@ -97,6 +105,8 @@ export const setSpace = async (name, path) => {
   if (!space[name]) {
     space[name] = {};
   }
+
+  const settingData = await getSetting();
 
   const langData = await fetch(`${path}/${settingData.lang}.json`)
     .then((e) => e.json())
