@@ -281,13 +281,14 @@
   ></bm-common-dialog>
   <script>
     export default async ({ load }) => {
-      const { createData } = await load("/packages/hybird-data/main.js");
-      const { toast } = await load("/packages/pui/util.js");
-      const { getText } = await load("/packages/i18n/data.js");
-
+      // const { createData } = await load("/packages/hybird-data/main.js");
+      // const { toast } = await load("/packages/pui/util.js");
+      const { getText, setSpace } = await load("/packages/i18n/data.js");
       const { defaultItemData } = await load("../common/default-item-data.js");
       const { getUserName } = await load("/packages/util/get-user-info.js");
       const { getUserStore } = await load("/packages/user/user-store.js");
+
+      setSpace("bookmarks", "/packages/apps/bookmarks.napp/lang");
 
       const selfUserStore = await getUserStore();
 
@@ -299,9 +300,9 @@
           allDatas: [], // 所有数据
           // 当前目录路径
           paths: [
-            {
-              name: getText("rootDirectory", "bookmarks"),
-            },
+            // {
+            //   name: getText("rootDirectory", "bookmarks"),
+            // },
           ],
           cards: [], // 当前显示的数据
           dialogData: {
@@ -593,9 +594,7 @@
             create: "dir",
           });
 
-          const mainData = await createData(dataHandle);
-
-          window._mainData = mainData;
+          // const mainData = await createData(dataHandle);
 
           await mainData.ready();
 

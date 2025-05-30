@@ -6,13 +6,13 @@ let mainDataPms;
 
 // 获取系统配置对象
 export const getSetting = async () => {
-  await init("system");
-
   if (mainDataPms) {
     return mainDataPms;
   }
 
   mainDataPms = (async () => {
+    await init("system");
+
     // 创造主体数据对象
     const settingData = await createData(
       await get("system/setting", {
