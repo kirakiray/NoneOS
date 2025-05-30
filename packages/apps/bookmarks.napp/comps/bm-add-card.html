@@ -52,9 +52,8 @@
   ></bm-common-dialog>
 
   <script>
-    import defaultItemData from "../common/default-item-data.js";
-
     export default async ({ load }) => {
+      const { defaultItemData } = load("../common/default-item-data.js");
       const { toast } = await load("/packages/pui/util.js");
       return {
         tag: "bm-add-card",
