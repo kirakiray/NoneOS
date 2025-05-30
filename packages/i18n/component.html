@@ -24,6 +24,10 @@
             if (this.article !== null) {
               const path = spacePath[this.space];
 
+              if (!path) {
+                return;
+              }
+
               if (this.name) {
                 fetch(`${path}/${this.name}/${getLang()}.html`)
                   .then((e) => e.text())

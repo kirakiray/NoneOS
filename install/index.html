@@ -110,10 +110,27 @@
       </n-installer-page>
     </n-installer>
     <script type="module">
-      import { setSpace } from "/packages/i18n/data.js";
+      const load = lm(import.meta);
+
+      await new Promise((r) => {
+        setTimeout(r, 200);
+      });
+
+      const { init } = await load("/packages/fs/main.js");
+
+      // 初始化几个重要目录
+      await init("local"); // 用户的本地数据
+      await init("apps"); // 应用目录
+      await init("packages"); // 运行虚拟系统的文件
+      await init("system"); // 存储系统初始化数据，这个目录不要暴露给用户
+
+      await new Promise((r) => {
+        setTimeout(r, 300);
+      });
+
+      const { setSpace } = await load("/packages/i18n/data.js");
       setSpace("installer", "/install/lang");
 
-      const load = lm(import.meta);
       $(".loading").text = `Loading 0/3`;
       await load("/packages/i18n/component.html");
       await load("/packages/pui/public/init.js");

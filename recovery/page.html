@@ -148,6 +148,13 @@
               });
             }
 
+            // 清除所有注册的 service worker
+            await Promise.all(
+              (
+                await navigator.serviceWorker.getRegistrations()
+              ).map((registration) => registration.unregister())
+            );
+
             // 提示用户刷新页面
             toast(getText("clear_success_toast", "recovery"));
           },
