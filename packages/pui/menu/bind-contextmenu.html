@@ -50,6 +50,51 @@
             }
           });
 
+          const isSafari =
+            navigator.userAgent.includes("Safari") &&
+            !navigator.userAgent.includes("Chrome");
+
+          if (isSafari && "ontouchstart" in window) {
+            // 尝试修复移动端safari下无法触发contextmenu的问题
+
+            // 处理移动端长按事件
+            this.ele.addEventListener("touchstart", (e) => {
+              let touchTimer;
+
+              const { target } = e;
+
+              // 开始计时
+              touchTimer = setTimeout(() => {
+                e.preventDefault();
+
+                //   模拟长按事件;
+                const longPressEvent = new Event("contextmenu", {
+                  bubbles: true,
+                  cancelable: true,
+                });
+                const touchpoint = e.touches[0];
+                [
+                  "clientX",
+                  "clientY",
+                  "pageX",
+                  "pageY",
+                  "screenX",
+                  "screenY",
+                ].forEach((key) => (longPressEvent[key] = touchpoint[key]));
+                target.dispatchEvent(longPressEvent);
+              }, 200); // 600毫秒视为长按
+
+              // 触摸结束时清除计时器
+              this.ele.addEventListener(
+                "touchend",
+                () => {
+                  clearTimeout(touchTimer);
+                },
+                { once: true }
+              );
+            });
+          }
+
           this.on("contextmenu", (e) => {
             const $target = $(e.target);
             e.preventDefault();
