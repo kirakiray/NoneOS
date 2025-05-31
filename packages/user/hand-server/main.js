@@ -31,10 +31,10 @@ export const getServers = async (useLocalUserDirName) => {
       // 加入正式地址
       selfUserStore.servers.push(
         {
-          url: "wss://hand-ca.tutous.com",
+          url: "wss://hand-cn.tutous.com:812",
         },
         {
-          url: "wss://hand-cn.tutous.com:812",
+          url: "wss://hand-ca.tutous.com",
         }
       );
 
