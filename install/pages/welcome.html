@@ -141,11 +141,23 @@
       <div style="max-width: 90vw">
         <ul style="text-align: left; margin: 0; padding-left: 20px">
           <li>
-            NoneOS深度基于 OPFS（Origin Private File System）开发，由于旧版本的
-            Safari 浏览器对 OPFS API 支持不完善，无法保证文件系统的正常运行
+            <n-desc
+              name="welcome_page.safari_opfs_issue"
+              space="installer"
+            ></n-desc>
           </li>
-          <li>在进行大量文件读取操作时，容易导致浏览器页面崩溃或无响应</li>
-          <li>Safari 对新的异步模块加载机制支持较差，经常会造成系统不稳定</li>
+          <li>
+            <n-desc
+              name="welcome_page.file_read_crash"
+              space="installer"
+            ></n-desc>
+          </li>
+          <li>
+            <n-desc
+              name="welcome_page.async_module_issue"
+              space="installer"
+            ></n-desc>
+          </li>
         </ul>
       </div>
     </p-dialog>
