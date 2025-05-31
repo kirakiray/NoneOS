@@ -42,5 +42,7 @@
   "installSucceed": "NoneOS安装成功",
   "entrySystem": "进入系统",
   "tryToRecovery": "如果无法安装系统，可尝试",
-  "gotoRecovery": "进入恢复模式"
+  "gotoRecovery": "进入恢复模式",
+  "safariVersionEarlier": "您当前使用的 Safari ({safariVersion}) 版本较低。为了获得最佳体验，您需要将 Safari 升级至 18.5.0 或更高版本，或使用其他主流浏览器。",
+  "whyUnuseInOldSafari": "为什么在旧版 Safari 中无法使用？"
 }

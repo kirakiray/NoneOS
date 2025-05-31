@@ -1,7 +1,9 @@
 <template page>
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/libs/ofa/body-ghost.min.js"></l-m>
   <style>
     :host {
       display: block;
@@ -118,14 +120,45 @@
       >
         {{disabledMsg}}
       </div>
+      <o-if :value="unuseInSafari">
+        <p-button
+          variant="text"
+          size="small"
+          on:click="safariDialog = true"
+          style="margin-top: 4px"
+        >
+          <n-desc name="whyUnuseInOldSafari" space="installer"></n-desc>
+        </p-button>
+      </o-if>
     </o-else>
   </div>
+
+  <body-ghost>
+    <p-dialog :open="safariDialog" on:click-mask="safariDialog = false">
+      <div slot="title">
+        <n-desc name="whyUnuseInOldSafari" space="installer"></n-desc>
+      </div>
+      <div style="max-width: 90vw">
+        <ul style="text-align: left; margin: 0; padding-left: 20px">
+          <li>
+            NoneOS深度基于 OPFS（Origin Private File System）开发，由于旧版本的
+            Safari 浏览器对 OPFS API 支持不完善，无法保证文件系统的正常运行
+          </li>
+          <li>在进行大量文件读取操作时，容易导致浏览器页面崩溃或无响应</li>
+          <li>Safari 对新的异步模块加载机制支持较差，经常会造成系统不稳定</li>
+        </ul>
+      </div>
+    </p-dialog>
+  </body-ghost>
 
   <script>
     export default async ({ load }) => {
       const { get, init } = await load("/packages/fs/main.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
+      const { getText, setSpace } = await load("/packages/i18n/data.js");
+
+      setSpace("installer", "/install/lang");
 
       return {
         data: {
@@ -135,6 +168,8 @@
           settingData: {},
           safariVersion: "",
           disabledMsg: "",
+          unuseInSafari: false, // 是否在当前 safari 浏览器下使用
+          safariDialog: false, // 是否显示 safari 浏览器提示框
         },
         proto: {
           nextStep() {
@@ -177,9 +212,11 @@
             });
 
             // 如果 safari 版本号小于 18.5.0，禁用按钮
-            if (versionNum < 18005000) {
-              this.disabledMsg =
-                "This version of Safari is not supported. Please upgrade to Safari 18.3.1 or later.";
+            if (versionNum < 18006000) {
+              this.disabledMsg = getText("safariVersionEarlier", "installer", {
+                safariVersion,
+              });
+              this.unuseInSafari = true;
             }
 
             console.log("safariVersion: ", safariVersion, versionNum);
