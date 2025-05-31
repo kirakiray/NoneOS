@@ -4,12 +4,31 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Install NoneOS</title>
-
     <script>
-      fetch("/package-use-online");
-      window.__useOnlinePkgTimer = setInterval(() => {
+      {
         fetch("/package-use-online");
-      }, 2000);
+        let count = 1;
+        window.__useOnlinePkgTimer = setInterval(() => {
+          const check = () => {
+            if (count > 2) {
+              clearInterval(window.__useOnlinePkgTimer);
+              window.__useOnlinePkgTimer = null;
+            }
+          };
+
+          fetch("/package-use-online")
+            .then((e) => {
+              if (/^4/.test(e.status)) {
+                count++;
+                check();
+              }
+            })
+            .catch((e) => {
+              count++;
+              check();
+            });
+        }, 2000);
+      }
     </script>
 
     <script src="/packages/libs/ofa/ofa.js#debug"></script>

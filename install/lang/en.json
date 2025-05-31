@@ -42,5 +42,12 @@
   "installSucceed": "NoneOS installed successfully",
   "entrySystem": "Enter System",
   "tryToRecovery": "If the system cannot be installed, you can try",
-  "gotoRecovery": "Enter recovery mode"
+  "gotoRecovery": "Enter recovery mode",
+  "safariVersionEarlier": "Your current Safari version ({safariVersion}) is too old. For the best experience, please upgrade Safari to 18.5.0 or higher, or use another mainstream browser.",
+  "whyUnuseInOldSafari": "Why can't it be used in older Safari versions?",
+  "welcome_page": {
+    "safari_opfs_issue": "NoneOS is deeply developed based on OPFS (Origin Private File System). Due to incomplete OPFS API support in older versions of Safari browsers, normal operation of the file system cannot be guaranteed",
+    "file_read_crash": "When performing large file read operations, it can easily cause the browser page to crash or become unresponsive",
+    "async_module_issue": "Safari has poor support for the new asynchronous module loading mechanism, often causing system instability"
+  }
 }
