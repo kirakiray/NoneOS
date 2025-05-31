@@ -47,7 +47,7 @@ export class FileHandle extends BaseHandle {
           const { success, error } = event.data;
 
           // BUG: 这里需要一个延时，否则写入的文件会丢失
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 1));
 
           if (success) {
             console.log("文件写入成功！");
