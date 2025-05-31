@@ -76,7 +76,7 @@
       <p-button
         on:click="nextStep"
         variant="outlined"
-        attr:disabled="!!disabledMsg"
+        attr:disabled="!!unuseInSafari"
         style="margin-top: 24px; width: 200px"
       >
         <n-desc space="installer" name="reinstall"></n-desc>
@@ -84,7 +84,7 @@
     </o-if>
     <o-else>
       <p-button
-        attr:disabled="!!disabledMsg"
+        attr:disabled="!!unuseInSafari"
         on:click="nextStep"
         style="margin-top: 24px; width: 200px"
       >
@@ -100,7 +100,7 @@
       </p-button>
     </o-if>
 
-    <o-if :value="!disabledMsg">
+    <o-if :value="!unuseInSafari">
       <p style="font-size: 12px; margin-top: 26px">
         <n-desc name="tryToRecovery" space="installer"></n-desc>
         <p-button size="mini" variant="text">
@@ -110,7 +110,8 @@
         </p-button>
       </p>
     </o-if>
-    <o-else>
+
+    <o-if :value="unuseInSafari">
       <div
         style="
           color: var(--md-sys-color-primary);
@@ -118,19 +119,21 @@
           padding-top: 8px;
         "
       >
-        {{disabledMsg}}
+        <n-desc
+          name="safariVersionEarlier"
+          space="installer"
+          attr:data-safari-version="safariVersion"
+        ></n-desc>
       </div>
-      <o-if :value="unuseInSafari">
-        <p-button
-          variant="text"
-          size="small"
-          on:click="safariDialog = true"
-          style="margin-top: 4px"
-        >
-          <n-desc name="whyUnuseInOldSafari" space="installer"></n-desc>
-        </p-button>
-      </o-if>
-    </o-else>
+      <p-button
+        variant="text"
+        size="small"
+        on:click="safariDialog = true"
+        style="margin-top: 4px"
+      >
+        <n-desc name="whyUnuseInOldSafari" space="installer"></n-desc>
+      </p-button>
+    </o-if>
   </div>
 
   <body-ghost>
@@ -179,7 +182,6 @@
           localVersion: "",
           settingData: {},
           safariVersion: "",
-          disabledMsg: "",
           unuseInSafari: false, // 是否在当前 safari 浏览器下使用
           safariDialog: false, // 是否显示 safari 浏览器提示框
         },
@@ -224,10 +226,7 @@
             });
 
             // 如果 safari 版本号小于 18.5.0，禁用按钮
-            if (versionNum < 18006000) {
-              this.disabledMsg = getText("safariVersionEarlier", "installer", {
-                safariVersion,
-              });
+            if (versionNum < 18005000) {
               this.unuseInSafari = true;
             }
 

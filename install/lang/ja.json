@@ -42,5 +42,12 @@
   "installSucceed": "NoneOSのインストールが成功しました",
   "entrySystem": "システムに入る",
   "tryToRecovery": "システムがインストールできない場合、試すことができます",
-  "gotoRecovery": "リカバリーモードに入る"
+  "gotoRecovery": "リカバリーモードに入る",
+  "safariVersionEarlier": "現在使用中のSafari ({safariVersion}) のバージョンが古いです。最適な体験を得るためには、Safariを18.5.0以上にアップグレードするか、他の主流ブラウザを使用してください。",
+  "whyUnuseInOldSafari": "なぜ古いSafariでは使用できないのですか？",
+  "welcome_page": {
+    "safari_opfs_issue": "NoneOSはOPFS（Origin Private File System）を基に深く開発されていますが、古いバージョンのSafariブラウザではOPFS APIのサポートが不完全なため、ファイルシステムの正常な動作を保証できません",
+    "file_read_crash": "大量のファイル読み取り操作を行うと、ブラウザページがクラッシュしたり応答しなくなったりする可能性があります",
+    "async_module_issue": "Safariは新しい非同期モジュール読み込みメカニズムのサポートが弱く、システムが不安定になることがよくあります"
+  }
 }
