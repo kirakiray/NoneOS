@@ -103,7 +103,7 @@
         async attached() {
           const mainData = await this.app._mainData;
 
-          this.setting = mainData.setting;
+          mainData && (this.setting = mainData.setting);
         },
         detached() {
           this.setting = {};
