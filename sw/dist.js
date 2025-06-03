@@ -134,6 +134,7 @@
 
   const configs = {
     packageUseOnline: false, // 包是否使用在线文件
+    debugMode: false, // 调试模式
   };
 
   async function resposePkg(event) {
@@ -145,7 +146,7 @@
       return;
     }
 
-    if (configs.packageUseOnline) {
+    if (configs.packageUseOnline || configs.debugMode) {
       // console.log("package use online", pathname);
       return;
     }
@@ -170,7 +171,7 @@
     pathname = pathname.replace(/^\//, "");
     let file;
     try {
-      if (configs.packageUseOnline) {
+      if (configs.packageUseOnline || configs.debugMode) {
         throw new Error("");
       }
       // 先尝试本地的，如果本地没有，再从网络获取
@@ -265,7 +266,7 @@
       }
     }
 
-    if (!configs.packageUseOnline && pathname === "/") {
+    if (pathname === "/" && !configs.packageUseOnline && !configs.debugMode) {
       // 尝试从packages中获取index.html
       event.respondWith(
         (async () => {
@@ -304,6 +305,17 @@
       clearTimeout(packageUseOnlineTimer);
       configs.packageUseOnline = false;
       event.respondWith(new Response("package use local"));
+    } else if (pathname === "/open-debug-mode") {
+      // 打开调试模式
+      configs.debugMode = true;
+      event.respondWith(new Response("debug mode open"));
+    } else if (pathname === "/close-debug-mode") {
+      // 关闭调试模式
+      configs.debugMode = false;
+      event.respondWith(new Response("debug mode close"));
+    } else if (pathname === "/get-configs") {
+      // 获取配置
+      event.respondWith(new Response(JSON.stringify(configs)));
     }
   });
 

@@ -18,7 +18,7 @@ self.addEventListener("fetch", (event) => {
     }
   }
 
-  if (!configs.packageUseOnline && pathname === "/") {
+  if (pathname === "/" && !configs.packageUseOnline && !configs.debugMode) {
     // 尝试从packages中获取index.html
     event.respondWith(
       (async () => {
@@ -57,6 +57,17 @@ self.addEventListener("fetch", (event) => {
     clearTimeout(packageUseOnlineTimer);
     configs.packageUseOnline = false;
     event.respondWith(new Response("package use local"));
+  } else if (pathname === "/open-debug-mode") {
+    // 打开调试模式
+    configs.debugMode = true;
+    event.respondWith(new Response("debug mode open"));
+  } else if (pathname === "/close-debug-mode") {
+    // 关闭调试模式
+    configs.debugMode = false;
+    event.respondWith(new Response("debug mode close"));
+  } else if (pathname === "/get-configs") {
+    // 获取配置
+    event.respondWith(new Response(JSON.stringify(configs)));
   }
 });
 
