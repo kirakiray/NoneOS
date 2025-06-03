@@ -1,3 +1,4 @@
+// 将数据通过服务端转发到目标用户
 import { getServers } from "./main.js";
 import { signData } from "../sign.js";
 
