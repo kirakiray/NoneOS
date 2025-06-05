@@ -4,6 +4,9 @@ import { emit } from "../event.js";
 import { verifyData } from "../verify.js";
 import { getHash } from "../../fs/util.js";
 import { HandServer } from "./handserver.js";
+import { servers, initServers } from "./init-servers.js";
+
+let initedServers = false;
 
 // 获取服务器列表
 export const getServers = async (useLocalUserDirName) => {
@@ -46,28 +49,12 @@ export const getServers = async (useLocalUserDirName) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
-  if (selfUserStore.__handservers) {
-    return selfUserStore.__handservers;
+  if (!initedServers) {
+    initedServers = true;
+    initServers(useLocalUserDirName);
   }
 
-  selfUserStore.__handservers = new Promise((resolve, reject) => {
-    const servers = new Stanz([]);
-    selfUserStore.servers.forEach((serverInfo) => {
-      const client1 = new HandServer({
-        store: selfUserStore,
-        url: serverInfo.url,
-      });
-
-      // 发起连接
-      client1.connect();
-
-      servers.push(client1);
-    });
-
-    resolve(servers);
-  });
-
-  return selfUserStore.__handservers;
+  return servers;
 };
 
 // 添加服务器

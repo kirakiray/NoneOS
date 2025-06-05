@@ -26,7 +26,14 @@ export function bindClick(_this, success) {
       return;
     }
 
-    const notSlotEls = _this.filter((e) => e.is(`:not([slot])`));
+    const notSlotEls = _this.filter((e) => {
+      if (e.tag === "o-if" || e.tag === "o-else" || e.tag === "o-else-if") {
+        return false;
+      }
+
+      return e.is(`:not([slot])`);
+    });
+
     if (notSlotEls.length === 1 && notSlotEls[0].tag === "a") {
       if (e.target.tagName === "A") {
         return;

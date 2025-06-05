@@ -263,6 +263,7 @@ export class HandServer extends Stanz {
     this.pinging = true;
 
     this._pingTime = Date.now();
+
     this.sendMessage({
       type: "ping",
     });
