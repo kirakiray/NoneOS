@@ -29,6 +29,33 @@ Object.defineProperties($.fn, {
       }
       const mark = getAppMark(this[0]);
 
+      const { getServers } = await load("/packages/user/hand-server/main.js");
+
+      const servers = await getServers();
+
+      // 确保有服务器在线
+      await Promise.all(
+        servers.map((server) => {
+          if (
+            server.connectionState === "disconnected" ||
+            server.connectionState === "error"
+          ) {
+            server.connect();
+          }
+
+          return server.ready().catch(() => null);
+        })
+      );
+
+      // 确保 servers 是否有一个能用的
+      const usableServer = servers.find(
+        (server) => server.connectionState === "connected"
+      );
+
+      if (!usableServer) {
+        throw new Error("No usable server found");
+      }
+
       const { getRemotes } = await load("/packages/util/get-remotes.js");
       const { connect } = await load("/packages/user/connection/main.js");
 

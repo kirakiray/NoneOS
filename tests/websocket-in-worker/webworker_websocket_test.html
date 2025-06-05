@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebWorker WebSocket测试</title>
+  </head>
+  <body>
+    <h1>WebWorker中WebSocket测试</h1>
+    <div id="output"></div>
+
+    <script>
+      // 创建Web Worker
+      const worker = new Worker("worker.js", {
+        type: "module",
+      });
+
+      // 接收来自Worker的消息
+      worker.onmessage = function (e) {
+        document.getElementById("output").innerHTML += e.data + "<br>";
+      };
+
+      // 启动Worker
+      worker.postMessage("start");
+    </script>
+  </body>
+</html>

@@ -279,6 +279,27 @@ export class HandServer extends Stanz {
   // 发送消息到服务器
   sendMessage(data) {
     this.#webSocket.send(JSON.stringify(data));
+
+    // if (
+    //   this.connectionState === "connected" ||
+    //   this.connectionState === "verifying"
+    // ) {
+    //   this.#webSocket.send(JSON.stringify(data));
+    // } else {
+    //   return this.watchUntil(() => this.connectionState === "connected", 8000)
+    //     .then(() => {
+    //       this.#webSocket.send(JSON.stringify(data));
+    //     })
+    //     .catch((err) => {
+    //       const error = new Error("发送数据失败", {
+    //         cause: err,
+    //       });
+
+    //       console.warn(error, data);
+
+    //       throw error;
+    //     });
+    // }
   }
 
   async ready() {
