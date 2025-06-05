@@ -2,6 +2,9 @@
 import { Stanz } from "../../libs/stanz/main.js";
 import { HandServer } from "./handserver.js";
 import { getUserStore } from "../user-store.js";
+import { emit } from "../event.js";
+import { verifyData } from "../verify.js";
+import { getHash } from "../../fs/util.js";
 
 export const servers = new Stanz([]);
 
@@ -11,14 +14,57 @@ export const initServers = async (useLocalUserDirName) => {
   await selfUserStore.ready(true);
 
   selfUserStore.servers.forEach((serverInfo) => {
-    const client = new HandServer({
+    const server = new HandServer({
       store: selfUserStore,
       url: serverInfo.url,
     });
 
-    // 发起连接
-    client.connect();
+    server._onagentdata = (fromUserId, agentData) => {
+      console.log("server._onagentdata", agentData);
 
-    servers.push(client);
+      if (agentData.signature) {
+        // 签名的数据，需要验证
+        (async () => {
+          const verResult = await verifyData(agentData);
+
+          if (!verResult) {
+            console.error("验证数据失败，数据被篡改", agentData);
+            return;
+          }
+
+          const signUserId = await getHash(agentData.data.publicKey);
+
+          // 验证来源是否正确
+          if (fromUserId !== signUserId) {
+            console.error(
+              `签名验证失败：发送者ID(${fromUserId})与签名者ID(${signUserId})不匹配`,
+              agentData
+            );
+            return;
+          }
+
+          emit("server-agent-data", {
+            server,
+            fromUserId,
+            data: agentData.data,
+            useLocalUserDirName,
+            signed: true,
+          });
+        })();
+      } else {
+        emit("server-agent-data", {
+          server,
+          fromUserId,
+          data: agentData,
+          useLocalUserDirName,
+          signed: false,
+        });
+      }
+    };
+
+    // 发起连接
+    server.connect();
+
+    servers.push(server);
   });
 };

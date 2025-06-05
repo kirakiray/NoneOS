@@ -174,6 +174,8 @@ export class HandServer extends Stanz {
             let { fromUserId, agentTaskId } = messageData;
             let agentData = messageData.data;
 
+            console.log("agent-data", agentData);
+
             if (agentData.__hasEncrypted) {
               // 检查是否有加密过的数据
               agentData = await decryptObjectData(
