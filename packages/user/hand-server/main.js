@@ -1,6 +1,5 @@
 import { getUserStore } from "../user-store.js";
-// import { servers, initServers, serverPool } from "./init-servers.js";
-import { initServers, serverPool } from "./init-servers.js";
+import { initServers } from "./init-servers.js";
 
 // 获取服务器列表
 export const getServers = async (useLocalUserDirName) => {
@@ -43,13 +42,7 @@ export const getServers = async (useLocalUserDirName) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
-  if (serverPool[useLocalUserDirName]) {
-    return serverPool[useLocalUserDirName];
-  }
-
-  await initServers(useLocalUserDirName);
-
-  return serverPool[useLocalUserDirName];
+  return await initServers(useLocalUserDirName);
 };
 
 // 添加服务器
