@@ -13,11 +13,13 @@ export const initServers = async (useLocalUserDirName) => {
   const selfUserStore = await getUserStore(useLocalUserDirName);
   await selfUserStore.ready(true);
 
-  selfUserStore.servers.forEach((serverInfo) => {
+  const initServersItem = async (serverInfo) => {
     const server = new HandServer({
       store: selfUserStore,
       url: serverInfo.url,
     });
+
+    serverInfo.__client = server;
 
     server._onagentdata = (fromUserId, agentData) => {
       console.log("server._onagentdata", agentData);
@@ -65,6 +67,37 @@ export const initServers = async (useLocalUserDirName) => {
     // 发起连接
     server.connect();
 
+    return server;
+  };
+
+  selfUserStore.servers.forEach(async (serverInfo) => {
+    const server = await initServersItem(serverInfo);
+
     servers.push(server);
   });
+
+  // 监听服务器列表变化
+  selfUserStore.servers.watchTick(() => {
+    // 清理掉不存在的服务器
+    const needRemoveds = servers.filter((e) => {
+      return !selfUserStore.servers.some((e2) => e2.url === e.serverUrl);
+    });
+
+    needRemoveds.forEach((e) => {
+      e._ws.close();
+      const index = servers.indexOf(e);
+      servers.splice(index, 1);
+    });
+
+    // 初始化服务器列表
+    selfUserStore.servers.forEach(async (e) => {
+      if (!e.__client) {
+        await e.ready(true);
+        const server = await initServersItem(e);
+        servers.push(server);
+      }
+    });
+  }, 100);
 };
+
+// wss://hand2.tutous.com:55793
