@@ -106,5 +106,3 @@ export const initServers = async (useLocalUserDirName) => {
     });
   }, 100);
 };
-
-// wss://hand2.tutous.com:55793

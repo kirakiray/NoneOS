@@ -47,7 +47,7 @@ export const getServers = async (useLocalUserDirName) => {
     return serverPool[useLocalUserDirName];
   }
 
-  initServers(useLocalUserDirName);
+  await initServers(useLocalUserDirName);
 
   return serverPool[useLocalUserDirName];
 };
