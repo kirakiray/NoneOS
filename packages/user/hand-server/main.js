@@ -1,12 +1,6 @@
-import { Stanz } from "../../libs/stanz/main.js";
 import { getUserStore } from "../user-store.js";
-import { emit } from "../event.js";
-import { verifyData } from "../verify.js";
-import { getHash } from "../../fs/util.js";
-import { HandServer } from "./handserver.js";
-import { servers, initServers } from "./init-servers.js";
-
-let initedServers = false;
+// import { servers, initServers, serverPool } from "./init-servers.js";
+import { initServers, serverPool } from "./init-servers.js";
 
 // 获取服务器列表
 export const getServers = async (useLocalUserDirName) => {
@@ -49,12 +43,13 @@ export const getServers = async (useLocalUserDirName) => {
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
 
-  if (!initedServers) {
-    initedServers = true;
-    initServers(useLocalUserDirName);
+  if (serverPool[useLocalUserDirName]) {
+    return serverPool[useLocalUserDirName];
   }
 
-  return servers;
+  initServers(useLocalUserDirName);
+
+  return serverPool[useLocalUserDirName];
 };
 
 // 添加服务器

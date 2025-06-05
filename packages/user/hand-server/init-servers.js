@@ -6,10 +6,17 @@ import { emit } from "../event.js";
 import { verifyData } from "../verify.js";
 import { getHash } from "../../fs/util.js";
 
-export const servers = new Stanz([]);
+export const serverPool = {};
 
 export const initServers = async (useLocalUserDirName) => {
   useLocalUserDirName = useLocalUserDirName || "main";
+
+  let servers = serverPool[useLocalUserDirName];
+  if (!servers) {
+    servers = new Stanz([]);
+    serverPool[useLocalUserDirName] = servers;
+  }
+
   const selfUserStore = await getUserStore(useLocalUserDirName);
   await selfUserStore.ready(true);
 
