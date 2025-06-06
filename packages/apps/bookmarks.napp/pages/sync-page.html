@@ -61,9 +61,17 @@
           async clickDeviceItem(e) {
             const { item, itemEl } = e.data;
             const targetUserId = item.toOppoCertificate.data.authTo;
-            // 从远端获取对应应用目录
-            const remoteHandles = await this.app.dedicatedRemoteHandle();
-
+            let remoteHandles;
+            try {
+              // 从远端获取对应应用目录
+              remoteHandles = await this.app.dedicatedRemoteHandle();
+            } catch (err) {
+              toast({
+                content: err.toString(),
+                color: "error",
+              });
+              return;
+            }
             const targetRemoteHandle = remoteHandles.find((remote) => {
               return remote.userId === targetUserId;
             });

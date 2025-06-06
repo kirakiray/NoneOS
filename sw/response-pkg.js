@@ -10,7 +10,7 @@ export default async function resposePkg(event) {
     return;
   }
 
-  if (configs.packageUseOnline) {
+  if (configs.packageUseOnline || configs.debugMode) {
     // console.log("package use online", pathname);
     return;
   }
@@ -35,7 +35,7 @@ const getFileWithPkg = async (pathname) => {
   pathname = pathname.replace(/^\//, "");
   let file;
   try {
-    if (configs.packageUseOnline) {
+    if (configs.packageUseOnline || configs.debugMode) {
       throw new Error("");
     }
     // 先尝试本地的，如果本地没有，再从网络获取

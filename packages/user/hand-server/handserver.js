@@ -174,6 +174,8 @@ export class HandServer extends Stanz {
             let { fromUserId, agentTaskId } = messageData;
             let agentData = messageData.data;
 
+            console.log("agent-data", agentData);
+
             if (agentData.__hasEncrypted) {
               // 检查是否有加密过的数据
               agentData = await decryptObjectData(
@@ -255,14 +257,17 @@ export class HandServer extends Stanz {
     this._heartbeatTimer = setInterval(() => this.ping(), 30000);
   }
 
-  ping() {
-    if (this._pingTime) {
+  async ping() {
+    if (this.pinging) {
       return;
     }
 
     this.pinging = true;
 
+    await this.connect();
+
     this._pingTime = Date.now();
+
     this.sendMessage({
       type: "ping",
     });
@@ -276,6 +281,27 @@ export class HandServer extends Stanz {
   // 发送消息到服务器
   sendMessage(data) {
     this.#webSocket.send(JSON.stringify(data));
+
+    // if (
+    //   this.connectionState === "connected" ||
+    //   this.connectionState === "verifying"
+    // ) {
+    //   this.#webSocket.send(JSON.stringify(data));
+    // } else {
+    //   return this.watchUntil(() => this.connectionState === "connected", 8000)
+    //     .then(() => {
+    //       this.#webSocket.send(JSON.stringify(data));
+    //     })
+    //     .catch((err) => {
+    //       const error = new Error("发送数据失败", {
+    //         cause: err,
+    //       });
+
+    //       console.warn(error, data);
+
+    //       throw error;
+    //     });
+    // }
   }
 
   async ready() {

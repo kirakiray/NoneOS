@@ -47,7 +47,9 @@
     }
   </style>
   <div>
-    <h4 class="hide-in-mobile"><n-desc name="sizeSettings" space="bookmarks"></n-desc></h4>
+    <h4 class="hide-in-mobile">
+      <n-desc name="sizeSettings" space="bookmarks"></n-desc>
+    </h4>
     <div class="inputer-line hide-in-mobile">
       <n-desc name="blockWidth" space="bookmarks"></n-desc>
       <p-slider no-bubble sync:value="setting.width" min="100" max="300">
@@ -111,7 +113,10 @@
               on:click="setting.bgurl = defaultBgurl"
               style="margin-left: 8px"
             >
-              <n-desc name="restoreDefaultBackground" space="bookmarks"></n-desc>
+              <n-desc
+                name="restoreDefaultBackground"
+                space="bookmarks"
+              ></n-desc>
             </p-button>
           </div>
         </o-if>
@@ -136,28 +141,62 @@
     </div>
     <div class="bg-opts">
       <p-select size="small" sync:value="setting.bgposition">
-        <label><n-desc name="backgroundAlign" space="bookmarks"></n-desc></label>
-        <p-option value="center top"><n-desc name="topCenter" space="bookmarks"></n-desc></p-option>
-        <p-option value="center center"><n-desc name="center" space="bookmarks"></n-desc></p-option>
-        <p-option value="center bottom"><n-desc name="bottomCenter" space="bookmarks"></n-desc></p-option>
-        <p-option value="left top"><n-desc name="topLeft" space="bookmarks"></n-desc></p-option>
-        <p-option value="left center"><n-desc name="leftCenter" space="bookmarks"></n-desc></p-option>
-        <p-option value="left bottom"><n-desc name="bottomLeft" space="bookmarks"></n-desc></p-option>
-        <p-option value="right top"><n-desc name="topRight" space="bookmarks"></n-desc></p-option>
-        <p-option value="right center"><n-desc name="rightCenter" space="bookmarks"></n-desc></p-option>
-        <p-option value="right bottom"><n-desc name="bottomRight" space="bookmarks"></n-desc></p-option>
+        <label
+          ><n-desc name="backgroundAlign" space="bookmarks"></n-desc
+        ></label>
+        <p-option value="center top"
+          ><n-desc name="topCenter" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="center center"
+          ><n-desc name="center" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="center bottom"
+          ><n-desc name="bottomCenter" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="left top"
+          ><n-desc name="topLeft" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="left center"
+          ><n-desc name="leftCenter" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="left bottom"
+          ><n-desc name="bottomLeft" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="right top"
+          ><n-desc name="topRight" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="right center"
+          ><n-desc name="rightCenter" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="right bottom"
+          ><n-desc name="bottomRight" space="bookmarks"></n-desc
+        ></p-option>
       </p-select>
       <p-select size="small" sync:value="setting.bgsize">
-        <label><n-desc name="backgroundDisplayMode" space="bookmarks"></n-desc></label>
-        <p-option value="cover"><n-desc name="fillMode" space="bookmarks"></n-desc></p-option>
-        <p-option value="contain"><n-desc name="fitMode" space="bookmarks"></n-desc></p-option>
-        <p-option value="auto"><n-desc name="originalSize" space="bookmarks"></n-desc></p-option>
+        <label
+          ><n-desc name="backgroundDisplayMode" space="bookmarks"></n-desc
+        ></label>
+        <p-option value="cover"
+          ><n-desc name="fillMode" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="contain"
+          ><n-desc name="fitMode" space="bookmarks"></n-desc
+        ></p-option>
+        <p-option value="auto"
+          ><n-desc name="originalSize" space="bookmarks"></n-desc
+        ></p-option>
       </p-select>
       <o-if :value="setting.bgsize !== 'cover'">
         <p-select size="small" sync:value="setting.bgrepeat">
-          <label><n-desc name="backgroundTile" space="bookmarks"></n-desc></label>
-          <p-option value="no-repeat"><n-desc name="noTile" space="bookmarks"></n-desc></p-option>
-          <p-option value="repeat"><n-desc name="tile" space="bookmarks"></n-desc></p-option>
+          <label
+            ><n-desc name="backgroundTile" space="bookmarks"></n-desc
+          ></label>
+          <p-option value="no-repeat"
+            ><n-desc name="noTile" space="bookmarks"></n-desc
+          ></p-option>
+          <p-option value="repeat"
+            ><n-desc name="tile" space="bookmarks"></n-desc
+          ></p-option>
         </p-select>
       </o-if>
     </div>
@@ -166,7 +205,9 @@
       class="bg-opts"
       style="display: flex; align-items: flex-start; margin-top: 16px"
     >
-      <span style="display: inline-block; padding-top: 8px"><n-desc name="backgroundColor" space="bookmarks"></n-desc></span>
+      <span style="display: inline-block; padding-top: 8px"
+        ><n-desc name="backgroundColor" space="bookmarks"></n-desc
+      ></span>
       <p-color-picker
         sync:value="setting.bgcolor"
         style="margin-left: 8px"
@@ -237,7 +278,7 @@
       async attached() {
         const mainData = await this.app._mainData;
 
-        this.setting = mainData.setting;
+        mainData && (this.setting = mainData.setting);
       },
       detached() {
         this.setting = {};

@@ -1,3 +1,4 @@
+// 将数据通过服务端转发到目标用户
 import { getServers } from "./main.js";
 import { signData } from "../sign.js";
 
@@ -25,10 +26,22 @@ const findOnlineUser = async (friendId, useLocalUserDirName) => {
       // 并行查找用户是否在线
       await Promise.all(
         servers.map(async (server) => {
-          await server.watchUntil(
-            () => server.connectionState === "connected",
-            5000
-          );
+          try {
+            await server.watchUntil(
+              () => server.connectionState === "connected",
+              5000
+            );
+          } catch (error) {
+            const err = new Error(
+              `服务器不在线: ${server.serverName}(${server.serverUrl})`,
+              {
+                cause: error,
+              }
+            );
+            // 超时后忽略
+            console.error(err);
+            return;
+          }
 
           const result = await server
             .post({

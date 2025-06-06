@@ -675,12 +675,12 @@
               "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg";
           }
         },
-        detached() {
-          this.app._mainData &&
-            this.app._mainData.then((data) => {
-              this.app._mainData = null;
-              data.disconnect();
-            });
+        async detached() {
+          if (this.app._mainData) {
+            const mainData = await this.app._mainData;
+            mainData.disconnect();
+            this.app._mainData = null;
+          }
           this.cards = [];
           this.setting = {};
         },
