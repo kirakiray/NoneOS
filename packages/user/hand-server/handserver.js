@@ -257,12 +257,14 @@ export class HandServer extends Stanz {
     this._heartbeatTimer = setInterval(() => this.ping(), 30000);
   }
 
-  ping() {
-    if (this._pingTime) {
+  async ping() {
+    if (this.pinging) {
       return;
     }
 
     this.pinging = true;
+
+    await this.connect();
 
     this._pingTime = Date.now();
 
