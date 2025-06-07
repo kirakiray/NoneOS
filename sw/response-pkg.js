@@ -78,6 +78,8 @@ export const respNapp = async (event) => {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="full-screen" content="yes">
+    <meta name="apple-touch-fullscreen" content="yes">
     <title>${appName}</title>
     <link rel="icon" href="./${iconName}">
     <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
