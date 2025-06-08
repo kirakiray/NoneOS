@@ -114,18 +114,18 @@
       font-size: 14px;
     }
 
-    .breadcrumbs n-local-icon {
-      display: block;
-      margin-right: 4px;
-      font-size: 18px;
-      color: var(--md-sys-color-primary);
-    }
-
     .breadcrumbs .breadcrumbs-block {
       display: flex;
       align-items: center;
       margin-right: 16px;
       cursor: pointer;
+    }
+
+    .breadcrumbs-block n-local-icon {
+      display: block;
+      margin-right: 4px;
+      font-size: 18px;
+      color: var(--md-sys-color-primary);
     }
 
     .breadcrumbs .breadcrumbs-block:after {
@@ -139,6 +139,19 @@
 
     .breadcrumbs .breadcrumbs-block:last-child:after {
       display: none;
+    }
+
+    n-local-icon.syncing {
+      display: block;
+      animation: syncing linear 1s infinite;
+    }
+    @keyframes syncing {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(-360deg);
+      }
     }
   </style>
 
@@ -176,6 +189,19 @@
             <p-option attr:value="$data.userId">{{$data.userName}}</p-option>
           </o-fill>
         </p-select>
+
+        <p-button
+          slot="suffix"
+          icon
+          size="small"
+          variant="outlined"
+          attr:disabled="syncing"
+          on:click="syncData"
+          style="margin-right: 8px; font-size: 12px"
+        >
+          <n-local-icon name="sync" class:syncing="syncing"></n-local-icon>
+        </p-button>
+
         <o-fill :value="paths">
           <div
             class="breadcrumbs-block"
@@ -325,6 +351,7 @@
             showClickCount: "off", // 显示点击次数
             showCardTitle: "on", // 显示标题
           },
+          syncing: false, // 正在同步用户数据中
         },
         watch: {
           setting() {
@@ -358,6 +385,12 @@
           },
         },
         proto: {
+          async syncData() {
+            this.syncing = true;
+
+            // 同步用户数据
+            
+          },
           async changeUser(e) {
             // 切换用户
             const value = $(e.target).value;

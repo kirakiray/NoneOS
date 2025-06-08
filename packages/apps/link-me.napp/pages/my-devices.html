@@ -4,6 +4,7 @@
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/i18n/component.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -57,6 +58,11 @@
             button="suffix"
             collapse-childs="close"
           >
+            <n-user-state
+              attr:user-id="$data.toOppoCertificate.data.authTo"
+              slot="prefix"
+            ></n-user-state>
+
             <n-id-avatar
               slot="prefix"
               :val="$data.toOppoCertificate.data.authTo"
