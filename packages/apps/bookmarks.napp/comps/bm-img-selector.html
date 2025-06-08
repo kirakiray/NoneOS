@@ -250,11 +250,14 @@
                 "https://kirakiray.github.io/logo-lib/source.json"
               ).then((e) => e.json());
 
-              const targetCached = logoLib[urlObj.host];
+              const targetCached = logoLib[urlObj.host.replace(/^www\./, "")];
 
               if (targetCached) {
                 this.defaultsImgs.push({
-                  src: `https://kirakiray.github.io/logo-lib/source/${urlObj.host}.${targetCached.format}`,
+                  src: `https://kirakiray.github.io/logo-lib/source/${urlObj.host.replace(
+                    /^www\./,
+                    ""
+                  )}.${targetCached.format}`,
                 });
               }
             }
@@ -307,7 +310,7 @@
                 toast("已成功粘贴图片");
               } else {
                 toast({
-                  color: "error", 
+                  color: "error",
                   content: "粘贴失败：请确保粘贴的是图片或SVG内容",
                 });
               }
