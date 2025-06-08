@@ -136,6 +136,17 @@
     </div>
   </o-if>
 
+  <o-if :value="type === 'paste-image'">
+    <p-input
+      placeholder="请在此处粘贴图片，也可以粘贴 svg 字符串"
+      on:focus="focusInPasteInputer = true"
+      on:blur="focusInPasteInputer = false"
+      sync:value="pasterVal"
+      style="margin-top: 16px"
+    >
+    </p-input>
+  </o-if>
+
   <input
     id="fileInputer"
     type="file"
@@ -147,6 +158,7 @@
   <script>
     export default async ({ load }) => {
       const { getFileHash } = await load("/packages/fs/util.js");
+      const { toast } = await load("/packages/pui/util.js");
 
       return {
         tag: "bm-img-selector",
@@ -159,6 +171,8 @@
           customPic: "", // 自定义图片地址
           selectedPic: "", // 上传的图片地址
           pastePic: "", // 粘贴的图片
+          focusInPasteInputer: false, // 是否在粘贴输入框中
+          pasterVal: "",
         },
         watch: {
           weburl(val) {
@@ -251,11 +265,13 @@
             "paste",
             (this._pasteFunc = async (event) => {
               // 在粘贴模式下才能使用
-              if (this.type !== "paste-image") {
+              if (this.type !== "paste-image" || !this.focusInPasteInputer) {
                 return;
               }
 
               const clipboardItems = event.clipboardData.items;
+
+              let pasteSucceed = false;
 
               for (let i = 0; i < clipboardItems.length; i++) {
                 const item = clipboardItems[i];
@@ -265,8 +281,40 @@
 
                   const fileHandle = await this.saveFileInLocal(blob);
                   this.pastePic = `/$${fileHandle.path}`;
+                  pasteSucceed = true;
+                  break;
+                } else if (item.type.startsWith("text")) {
+                  // 判断是否svg
+                  const text = await new Promise((resolve) => {
+                    item.getAsString(resolve);
+                  });
+
+                  if (/^<svg/.test(text)) {
+                    const fileHandle = await this.saveFileInLocal(
+                      new File([text], Date.now() + ".svg", {
+                        type: "image/svg+xml",
+                      })
+                    );
+                    this.pastePic = `/$${fileHandle.path}`;
+
+                    pasteSucceed = true;
+                    break;
+                  }
                 }
               }
+
+              if (pasteSucceed) {
+                toast("已成功粘贴图片");
+              } else {
+                toast({
+                  color: "error", 
+                  content: "粘贴失败：请确保粘贴的是图片或SVG内容",
+                });
+              }
+
+              setTimeout(() => {
+                this.pasterVal = "";
+              }, 100);
             })
           );
         },
