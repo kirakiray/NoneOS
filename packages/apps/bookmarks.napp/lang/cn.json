@@ -93,5 +93,9 @@
   "syncError": "同步数据失败",
   "noImagePasted": "您没有粘贴图片",
   "invalidUrl": "{url}不正确，请输入正确的网址",
-  "pleaseSelectImage": "请选择图片"
+  "pleaseSelectImage": "请选择图片",
+  "directPasteImage": "直接粘贴图片",
+  "pasteLabel": " 请在此处粘贴图片，也可以粘贴 svg 字符串",
+  "pasteSucceed": "已成功粘贴图片",
+  "pasteFail": "粘贴失败：请确保粘贴的是图片或SVG内容"
 }
