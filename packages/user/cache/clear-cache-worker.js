@@ -70,17 +70,22 @@ const startCacheCleanupService = async () => {
   setInterval(cleanupCache, 60 * 1000);
 };
 
+let startTimer = setTimeout(() => {
+  startCacheCleanupService();
+}, 3000);
+
 // 监听连接
-self.onconnect = function(e) {
+self.onconnect = function (e) {
   const port = e.ports[0];
-  
-  port.onmessage = function(e) {
-    if (e.data === 'start') {
+
+  port.onmessage = function (e) {
+    if (e.data === "start") {
+      clearTimeout(startTimer);
       // 启动缓存清理服务
       startCacheCleanupService();
-      port.postMessage('缓存清理服务已启动');
+      port.postMessage("缓存清理服务已启动");
     }
   };
-  
+
   port.start();
 };

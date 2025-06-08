@@ -7,25 +7,41 @@ const wokerPath = import.meta.resolve("./clear-cache-worker.js");
 
 // 初始化缓存清理 Worker
 const initCacheCleanupWorker = () => {
-  if (!globalThis.SharedWorker) {
-    return;
+  if (globalThis.SharedWorker) {
+    try {
+      const worker = new SharedWorker(wokerPath, {
+        name: "cacheCleanupWorker",
+        type: "module",
+      });
+      worker.port.start();
+      worker.port.postMessage("start");
+
+      worker.port.onmessage = (e) => {
+        console.log("来自缓存清理Worker的消息:", e.data);
+      };
+
+      return worker;
+    } catch (err) {
+      console.error("初始化缓存清理SharedWorker失败:", err);
+    }
+  } else {
+    console.warn("SharedWorker 不可用，尝试使用 WebWorker。");
+    return initWebWorkerFallback();
   }
+};
 
+const initWebWorkerFallback = () => {
   try {
-    const worker = new SharedWorker(wokerPath, {
-      name: "cacheCleanupWorker",
-      type: "module",
-    });
-    worker.port.start();
-    worker.port.postMessage("start");
+    const worker = new Worker(wokerPath, { type: "module" });
+    worker.postMessage("start");
 
-    worker.port.onmessage = (e) => {
-      console.log("来自缓存清理Worker的消息:", e.data);
+    worker.onmessage = (e) => {
+      console.log("来自缓存清理WebWorker的消息:", e.data);
     };
 
     return worker;
   } catch (err) {
-    console.error("初始化缓存清理Worker失败:", err);
+    console.error("初始化缓存清理WebWorker失败:", err);
     return null;
   }
 };
@@ -160,7 +176,10 @@ export const getChunks = async (
 
   // 如果存在不存在的块数据，则向目标用户请求
   if (unexsteChunks.length && fromUserId) {
-    const connection = await connect({ userId: fromUserId, useLocalUserDirName });
+    const connection = await connect({
+      userId: fromUserId,
+      useLocalUserDirName,
+    });
 
     await connection.watchUntil(() => connection.state === "ready");
 
