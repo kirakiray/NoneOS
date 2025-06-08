@@ -7,6 +7,10 @@ const wokerPath = import.meta.resolve("./clear-cache-worker.js");
 
 // 初始化缓存清理 Worker
 const initCacheCleanupWorker = () => {
+  if (!globalThis.window) {
+    // 非浏览器环境，不启动缓存清理服务
+    return;
+  }
   if (globalThis.SharedWorker) {
     try {
       const worker = new SharedWorker(wokerPath, {
