@@ -309,6 +309,10 @@
               return this.item.selectedPic;
             }
 
+            if (this.item.logoType === "paste-image") {
+              return this.item.pastePic;
+            }
+
             // if (this.item.url) {
             //   return new URL(this.item.url).origin + "/favicon.ico";
             // }
@@ -336,6 +340,9 @@
                   }
                   if (e.logoType === "upload") {
                     return e.selectedPic;
+                  }
+                  if (e.logoType === "paste-image") {
+                    return e.pastePic;
                   }
                 })
               )

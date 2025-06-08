@@ -114,18 +114,18 @@
       font-size: 14px;
     }
 
-    .breadcrumbs n-local-icon {
-      display: block;
-      margin-right: 4px;
-      font-size: 18px;
-      color: var(--md-sys-color-primary);
-    }
-
     .breadcrumbs .breadcrumbs-block {
       display: flex;
       align-items: center;
       margin-right: 16px;
       cursor: pointer;
+    }
+
+    .breadcrumbs-block n-local-icon {
+      display: block;
+      margin-right: 4px;
+      font-size: 18px;
+      color: var(--md-sys-color-primary);
     }
 
     .breadcrumbs .breadcrumbs-block:after {
@@ -139,6 +139,19 @@
 
     .breadcrumbs .breadcrumbs-block:last-child:after {
       display: none;
+    }
+
+    n-local-icon.syncing {
+      display: block;
+      animation: syncing linear 1s infinite;
+    }
+    @keyframes syncing {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(-360deg);
+      }
     }
   </style>
 
@@ -176,6 +189,19 @@
             <p-option attr:value="$data.userId">{{$data.userName}}</p-option>
           </o-fill>
         </p-select>
+
+        <p-button
+          slot="suffix"
+          icon
+          size="small"
+          variant="outlined"
+          attr:disabled="syncing"
+          on:click="clickSyncData"
+          style="margin-right: 8px; font-size: 12px"
+        >
+          <n-local-icon name="sync" class:syncing="syncing"></n-local-icon>
+        </p-button>
+
         <o-fill :value="paths">
           <div
             class="breadcrumbs-block"
@@ -325,6 +351,7 @@
             showClickCount: "off", // 显示点击次数
             showCardTitle: "on", // 显示标题
           },
+          syncing: false, // 正在同步用户数据中
         },
         watch: {
           setting() {
@@ -358,6 +385,80 @@
           },
         },
         proto: {
+          async clickSyncData() {
+            this.syncing = true;
+
+            // 同步用户数据
+            let remoteHandles;
+
+            try {
+              remoteHandles = await this.app.dedicatedRemoteHandle();
+            } catch (err) {
+              toast({
+                content: getText("syncError", "bookmarks"),
+                color: "error",
+              });
+              this.syncing = false;
+              return;
+            }
+
+            // 本地保存的专属目录
+            const localAppHandle = await this.app.dedicatedHandle();
+            const bookmarkBackupDirHandle = await localAppHandle.get("backup", {
+              create: "dir",
+            });
+
+            for (let item of remoteHandles) {
+              try {
+                const { handle, userId, userName, hasData } = item;
+
+                if (!hasData) {
+                  continue;
+                }
+
+                const remoteDataHandle = await handle.get("data");
+                const remoteBookmarkData = await createData(remoteDataHandle);
+                await remoteBookmarkData.ready(true); // 等待全部数据加载完成
+                const { cardsLastModified } = remoteBookmarkData;
+
+                const backupFileHandle = await bookmarkBackupDirHandle.get(
+                  `${userId}.json`,
+                  {
+                    create: "file",
+                  }
+                );
+
+                // 查看是否有更新
+                const data = await backupFileHandle.text();
+                if (data) {
+                  const backupData = JSON.parse(data);
+
+                  if (backupData.cardsLastModified === cardsLastModified) {
+                    // 数据没有发生变动
+                    remoteBookmarkData.disconnect();
+                    continue;
+                  }
+
+                  // 保存一份数据
+                  const bookmarkBackupData = remoteBookmarkData.toJSON();
+
+                  // 销毁数据
+                  remoteBookmarkData.disconnect();
+
+                  // 备份到本地
+                  await backupFileHandle.write(
+                    JSON.stringify(bookmarkBackupData)
+                  );
+                }
+              } catch (err) {
+                // 同步单个用户数据出错,继续同步下一个
+                console.warn("同步用户数据出错:", err);
+                continue;
+              }
+            }
+
+            this.syncing = false;
+          },
           async changeUser(e) {
             // 切换用户
             const value = $(e.target).value;
@@ -371,7 +472,7 @@
             this.usedUserId = value;
             this.paths = [
               {
-                name: "根目录",
+                name: getText("rootDirectory", "bookmarks"),
               },
             ];
             this.cards = targetItem._mainData.cards;
@@ -537,9 +638,10 @@
             Object.assign(data, newData);
 
             if (data.logoType === "default") {
-              // 选择的是默认图片，清除其余两项
+              // 选择的是默认图片，清除其余项
               data.customPic = "";
               data.selectedPic = "";
+              data.pastePic = "";
             }
 
             this.dialogData.open = false;
