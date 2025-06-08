@@ -89,7 +89,9 @@
       <o-else>
         <bm-img attr:src="pastePic"></bm-img>
       </o-else>
-      <div class="block-title">直接粘贴图片</div>
+      <div class="block-title">
+        <n-desc name="directPasteImage" space="bookmarks"></n-desc>
+      </div>
     </div>
     <div
       class="block"
@@ -129,21 +131,23 @@
   <o-if :value="type === 'custom'">
     <div style="margin-top: 16px">
       <p-input sync:value="customPic">
-        <label
-          ><n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc
-        ></label>
+        <label>
+          <n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc>
+        </label>
       </p-input>
     </div>
   </o-if>
 
   <o-if :value="type === 'paste-image'">
     <p-input
-      placeholder="请在此处粘贴图片，也可以粘贴 svg 字符串"
       on:focus="focusInPasteInputer = true"
       on:blur="focusInPasteInputer = false"
       sync:value="pasterVal"
       style="margin-top: 16px"
     >
+      <label>
+        <n-desc name="pasteLabel" space="bookmarks"></n-desc>
+      </label>
     </p-input>
   </o-if>
 
@@ -159,6 +163,7 @@
     export default async ({ load }) => {
       const { getFileHash } = await load("/packages/fs/util.js");
       const { toast } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
 
       return {
         tag: "bm-img-selector",
@@ -307,11 +312,12 @@
               }
 
               if (pasteSucceed) {
-                toast("已成功粘贴图片");
+                // toast("已成功粘贴图片");
+                toast(getText("pasteSucceed", "bookmarks"));
               } else {
                 toast({
                   color: "error",
-                  content: "粘贴失败：请确保粘贴的是图片或SVG内容",
+                  content: getText("pasteFail", "bookmarks"),
                 });
               }
 

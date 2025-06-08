@@ -200,7 +200,9 @@
 
               if (!this.isValidUrl) {
                 toast({
-                  content: `"${this.item.url}" 不正确，请输入正确的网址`,
+                  content: `${getText("invalidUrl", "bookmarks", {
+                    url: this.item.url,
+                  })}`,
                   color: "error",
                 });
                 return;
@@ -208,7 +210,7 @@
 
               if (this.item.logoType === "upload" && !this.item.selectedPic) {
                 toast({
-                  content: "请选择图片",
+                  content: getText("pleaseSelectImage", "bookmarks"),
                   color: "error",
                 });
                 return;
@@ -219,7 +221,7 @@
                 !this.item.pastePic.trim()
               ) {
                 toast({
-                  content: "您没有粘贴图片",
+                  content: getText("noImagePasted", "bookmarks"),
                   color: "error",
                 });
                 return;
