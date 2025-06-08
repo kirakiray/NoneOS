@@ -85,5 +85,6 @@
   "clearConfirm": "This will permanently delete all data and cannot be recovered. We recommend exporting a backup first. Are you sure you want to clear all data?",
   "noSync": "Not synced",
   "noData": "No data",
-  "syncFailed": "Synchronization failed"
+  "syncFailed": "Synchronization failed",
+  "syncError": "Failed to synchronize data"
 }

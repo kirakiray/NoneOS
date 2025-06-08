@@ -89,5 +89,6 @@
   "syncFailed": "同步失败",
   "save": "保存",
   "switchToNewFolder": "切换到创建文件夹",
-  "switchToNewWeb": "切换到创建网页"
+  "switchToNewWeb": "切换到创建网页",
+  "syncError": "同步数据失败"
 }

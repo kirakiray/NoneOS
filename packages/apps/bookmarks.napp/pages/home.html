@@ -389,7 +389,18 @@
             this.syncing = true;
 
             // 同步用户数据
-            const remoteHandles = await this.app.dedicatedRemoteHandle();
+            let remoteHandles;
+
+            try {
+              remoteHandles = await this.app.dedicatedRemoteHandle();
+            } catch (err) {
+              toast({
+                content: getText("syncError", "bookmarks"),
+                color: "error",
+              });
+              this.syncing = false;
+              return;
+            }
 
             // 本地保存的专属目录
             const localAppHandle = await this.app.dedicatedHandle();
@@ -398,45 +409,51 @@
             });
 
             for (let item of remoteHandles) {
-              const { handle, userId, userName, hasData } = item;
+              try {
+                const { handle, userId, userName, hasData } = item;
 
-              if (!hasData) {
-                continue;
-              }
-
-              const remoteDataHandle = await handle.get("data");
-              const remoteBookmarkData = await createData(remoteDataHandle);
-              await remoteBookmarkData.ready(true); // 等待全部数据加载完成
-              const { cardsLastModified } = remoteBookmarkData;
-
-              const backupFileHandle = await bookmarkBackupDirHandle.get(
-                `${userId}.json`,
-                {
-                  create: "file",
-                }
-              );
-
-              // 查看是否有更新
-              const data = await backupFileHandle.text();
-              if (data) {
-                const backupData = JSON.parse(data);
-
-                if (backupData.cardsLastModified === cardsLastModified) {
-                  // 数据没有发生变动
-                  remoteBookmarkData.disconnect();
+                if (!hasData) {
                   continue;
                 }
 
-                // 保存一份数据
-                const bookmarkBackupData = remoteBookmarkData.toJSON();
+                const remoteDataHandle = await handle.get("data");
+                const remoteBookmarkData = await createData(remoteDataHandle);
+                await remoteBookmarkData.ready(true); // 等待全部数据加载完成
+                const { cardsLastModified } = remoteBookmarkData;
 
-                // 销毁数据
-                remoteBookmarkData.disconnect();
-
-                // 备份到本地
-                await backupFileHandle.write(
-                  JSON.stringify(bookmarkBackupData)
+                const backupFileHandle = await bookmarkBackupDirHandle.get(
+                  `${userId}.json`,
+                  {
+                    create: "file",
+                  }
                 );
+
+                // 查看是否有更新
+                const data = await backupFileHandle.text();
+                if (data) {
+                  const backupData = JSON.parse(data);
+
+                  if (backupData.cardsLastModified === cardsLastModified) {
+                    // 数据没有发生变动
+                    remoteBookmarkData.disconnect();
+                    continue;
+                  }
+
+                  // 保存一份数据
+                  const bookmarkBackupData = remoteBookmarkData.toJSON();
+
+                  // 销毁数据
+                  remoteBookmarkData.disconnect();
+
+                  // 备份到本地
+                  await backupFileHandle.write(
+                    JSON.stringify(bookmarkBackupData)
+                  );
+                }
+              } catch (err) {
+                // 同步单个用户数据出错,继续同步下一个
+                console.warn("同步用户数据出错:", err);
+                continue;
               }
             }
 
