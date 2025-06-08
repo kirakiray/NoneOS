@@ -90,5 +90,8 @@
   "save": "保存",
   "switchToNewFolder": "切换到创建文件夹",
   "switchToNewWeb": "切换到创建网页",
-  "syncError": "同步数据失败"
+  "syncError": "同步数据失败",
+  "noImagePasted": "您没有粘贴图片",
+  "invalidUrl": "{url}不正确，请输入正确的网址",
+  "pleaseSelectImage": "请选择图片"
 }

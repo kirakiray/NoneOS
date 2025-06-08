@@ -129,21 +129,21 @@
   <o-if :value="type === 'custom'">
     <div style="margin-top: 16px">
       <p-input sync:value="customPic">
-        <label
-          ><n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc
-        ></label>
+        <label>
+          <n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc>
+        </label>
       </p-input>
     </div>
   </o-if>
 
   <o-if :value="type === 'paste-image'">
     <p-input
-      placeholder="请在此处粘贴图片，也可以粘贴 svg 字符串"
       on:focus="focusInPasteInputer = true"
       on:blur="focusInPasteInputer = false"
       sync:value="pasterVal"
       style="margin-top: 16px"
     >
+      <label> 请在此处粘贴图片，也可以粘贴 svg 字符串 </label>
     </p-input>
   </o-if>
 
