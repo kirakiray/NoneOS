@@ -196,7 +196,7 @@
           size="small"
           variant="outlined"
           attr:disabled="syncing"
-          on:click="syncData"
+          on:click="clickSyncData"
           style="margin-right: 8px; font-size: 12px"
         >
           <n-local-icon name="sync" class:syncing="syncing"></n-local-icon>
@@ -385,11 +385,62 @@
           },
         },
         proto: {
-          async syncData() {
+          async clickSyncData() {
             this.syncing = true;
 
             // 同步用户数据
-            
+            const remoteHandles = await this.app.dedicatedRemoteHandle();
+
+            // 本地保存的专属目录
+            const localAppHandle = await this.app.dedicatedHandle();
+            const bookmarkBackupDirHandle = await localAppHandle.get("backup", {
+              create: "dir",
+            });
+
+            for (let item of remoteHandles) {
+              const { handle, userId, userName, hasData } = item;
+
+              if (!hasData) {
+                continue;
+              }
+
+              const remoteDataHandle = await handle.get("data");
+              const remoteBookmarkData = await createData(remoteDataHandle);
+              await remoteBookmarkData.ready(true); // 等待全部数据加载完成
+              const { cardsLastModified } = remoteBookmarkData;
+
+              const backupFileHandle = await bookmarkBackupDirHandle.get(
+                `${userId}.json`,
+                {
+                  create: "file",
+                }
+              );
+
+              // 查看是否有更新
+              const data = await backupFileHandle.text();
+              if (data) {
+                const backupData = JSON.parse(data);
+
+                if (backupData.cardsLastModified === cardsLastModified) {
+                  // 数据没有发生变动
+                  remoteBookmarkData.disconnect();
+                  continue;
+                }
+
+                // 保存一份数据
+                const bookmarkBackupData = remoteBookmarkData.toJSON();
+
+                // 销毁数据
+                remoteBookmarkData.disconnect();
+
+                // 备份到本地
+                await backupFileHandle.write(
+                  JSON.stringify(bookmarkBackupData)
+                );
+              }
+            }
+
+            this.syncing = false;
           },
           async changeUser(e) {
             // 切换用户
