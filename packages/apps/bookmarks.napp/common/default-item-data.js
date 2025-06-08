@@ -7,6 +7,7 @@ export const defaultItemData = {
   defaultPic: "", // 默认logo文件地址，default类型下使用
   customPic: "", // 自定义logo地址
   selectedPic: "", // 选中的logo文件地址
+  pastePic: "", // 粘贴的logo文件
 };
 
 export default defaultItemData;

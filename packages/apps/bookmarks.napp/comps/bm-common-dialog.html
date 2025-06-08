@@ -141,6 +141,7 @@
           sync:default-pic="item.defaultPic"
           sync:custom-pic="item.customPic"
           sync:selected-pic="item.selectedPic"
+          sync:paste-pic="item.pastePic"
           :weburl="item.url"
         ></bm-img-selector>
       </o-if>
@@ -185,7 +186,9 @@
             // Object.assign(this.item, defaultItemData);
           },
           get itemTypeText() {
-            return this.item.type === "page" ? getText("webpage", "bookmarks") : getText("webfolder", "bookmarks");
+            return this.item.type === "page"
+              ? getText("webpage", "bookmarks")
+              : getText("webfolder", "bookmarks");
           },
           get isValidUrl() {
             const arr = this.item.url.split(".");
@@ -206,6 +209,17 @@
               if (this.item.logoType === "upload" && !this.item.selectedPic) {
                 toast({
                   content: "请选择图片",
+                  color: "error",
+                });
+                return;
+              }
+
+              if (
+                this.item.logoType === "paste-image" &&
+                !this.item.pastePic.trim()
+              ) {
+                toast({
+                  content: "您没有粘贴图片",
                   color: "error",
                 });
                 return;

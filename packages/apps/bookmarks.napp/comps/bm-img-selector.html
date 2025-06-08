@@ -31,7 +31,7 @@
     }
 
     .block.active {
-      border: var(--md-sys-color-primary) 2px solid;
+      outline: var(--md-sys-color-primary) 2px solid;
       cursor: default;
     }
 
@@ -59,7 +59,9 @@
       <o-if :value="defaultPic">
         <bm-img attr:src="defaultPic"></bm-img>
       </o-if>
-      <div class="block-title"><n-desc name="defaultThumbnail" space="bookmarks"></n-desc></div>
+      <div class="block-title">
+        <n-desc name="defaultThumbnail" space="bookmarks"></n-desc>
+      </div>
     </div>
     <div
       class="block"
@@ -72,7 +74,22 @@
       <o-else>
         <n-local-icon name="link" style="font-size: 30px"></n-local-icon>
       </o-else>
-      <div class="block-title"><n-desc name="enterImageUrl" space="bookmarks"></n-desc></div>
+      <div class="block-title">
+        <n-desc name="enterImageUrl" space="bookmarks"></n-desc>
+      </div>
+    </div>
+    <div
+      class="block"
+      class:active="type === 'paste-image'"
+      on:click="type = 'paste-image'"
+    >
+      <o-if :value="!pastePic">
+        <n-local-icon name="paste" style="font-size: 30px"></n-local-icon>
+      </o-if>
+      <o-else>
+        <bm-img attr:src="pastePic"></bm-img>
+      </o-else>
+      <div class="block-title">直接粘贴图片</div>
     </div>
     <div
       class="block"
@@ -90,8 +107,8 @@
         variant="text"
         style="margin-top: 6px"
         on:click="shadow.$('#fileInputer').ele.click()"
-        ><n-desc name="selectImage" space="bookmarks"></n-desc></p-button
-      >
+        ><n-desc name="selectImage" space="bookmarks"></n-desc
+      ></p-button>
     </div>
   </div>
 
@@ -112,7 +129,9 @@
   <o-if :value="type === 'custom'">
     <div style="margin-top: 16px">
       <p-input sync:value="customPic">
-        <label><n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc></label>
+        <label
+          ><n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc
+        ></label>
       </p-input>
     </div>
   </o-if>
@@ -139,6 +158,7 @@
           defaultPic: "", // 默认图片地址
           customPic: "", // 自定义图片地址
           selectedPic: "", // 上传的图片地址
+          pastePic: "", // 粘贴的图片
         },
         watch: {
           weburl(val) {
@@ -149,10 +169,7 @@
           },
         },
         proto: {
-          async changeFile(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
+          async saveFileInLocal(file) {
             const hash = await getFileHash(file);
 
             if (this?.app?.dedicatedHandle) {
@@ -174,8 +191,17 @@
               // 保存文件
               await fileHandle.write(file);
 
+              return fileHandle;
+
               this.selectedPic = `/$${fileHandle.path}`;
             }
+          },
+          async changeFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const fileHandle = await this.saveFileInLocal(file);
+            this.selectedPic = `/$${fileHandle.path}`;
           },
           async refreshDefaultPic() {
             let urlObj;
@@ -219,6 +245,35 @@
               }
             }
           },
+        },
+        attached() {
+          document.addEventListener(
+            "paste",
+            (this._pasteFunc = async (event) => {
+              // 在粘贴模式下才能使用
+              if (this.type !== "paste-image") {
+                return;
+              }
+
+              const clipboardItems = event.clipboardData.items;
+
+              for (let i = 0; i < clipboardItems.length; i++) {
+                const item = clipboardItems[i];
+                // 检查是否为图片
+                if (item.type.startsWith("image/")) {
+                  const blob = item.getAsFile(); // 获取图片的Blob对象
+
+                  const fileHandle = await this.saveFileInLocal(blob);
+                  this.pastePic = `/$${fileHandle.path}`;
+                }
+              }
+            })
+          );
+        },
+        detached() {
+          if (this._pasteFunc) {
+            document.removeEventListener("paste", this._pasteFunc);
+          }
         },
       };
     };
