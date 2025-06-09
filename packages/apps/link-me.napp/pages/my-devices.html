@@ -170,6 +170,7 @@
   <script>
     export default async ({ load }) => {
       const { getDeviceStore } = await load("/packages/user/main.js");
+      const { getText } = await load("/packages/i18n/data.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
       const devices = await getDeviceStore();
 
@@ -187,8 +188,10 @@
           },
           async clickDevice(item) {
             const confirmResult = await confirm({
-              content: `确认将 ${item.userCard.data.userName} 从我的设备中移除吗?`,
-              yes: "是的",
+              content: getText("removeUserTips", "linkme", {
+                userName: item.userCard.data.userName,
+              }),
+              yes: getText("yes", "linkme"),
             });
 
             if (!confirmResult) {

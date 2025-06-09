@@ -54,5 +54,9 @@
   "localCert": "本地证书",
   "certType": "类型",
   "publicKey": "公钥",
-  "signature": "签名"
+  "signature": "签名",
+  "addUserTips": "确认将 {userName} 添加为我的设备吗？请仔细确认对方身份，添加非本人设备可能导致个人隐私数据泄露。",
+  "removeUserTips": "确认将 {userName} 从我的设备中移除吗?",
+  "yes": "是的",
+  "addUserSucceed": "添加设备 {userName} 成功"
 }

@@ -12,7 +12,7 @@
   "settings": "Settings",
   "displaySettings": "Display settings",
   "functionSettings": "Function settings",
-  "syncSettings": "Sync settings",
+  "syncSettings": "Sync Data",
   "aboutBookmarks": "About Bookmarks",
   "otherDevices": "Other devices",
   "syncTips": "Click on a device to sync its bookmark data to the current local device. Please ensure the target device is connected to the network.",

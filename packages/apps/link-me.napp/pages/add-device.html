@@ -190,6 +190,7 @@
       const { findDevice, onEntryDevice, authDevice, getDeviceStore } =
         await load("/packages/user/device/main.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getText } = await load("/packages/i18n/data.js");
       const { getHash } = await load("/packages/fs/util.js");
 
       return {
@@ -259,8 +260,10 @@
           // 确认对方是我的设备
           async okUser(item) {
             const confirmResult = await confirm({
-              content: `确认将 ${item.userName} 添加为我的设备吗？请仔细确认对方身份，添加非本人设备可能导致个人隐私数据泄露。`,
-              yes: "是的",
+              content: getText("addUserTips", "linkme", {
+                userName: item.userName,
+              }),
+              yes: getText("yes", "linkme"),
             });
 
             if (!confirmResult) {
@@ -273,7 +276,9 @@
             // 弹出提示
             toast({
               color: "success",
-              content: `添加设备 ${item.userName} 成功`,
+              content: getText("addUserSucceed", "linkme", {
+                userName: item.userName,
+              }),
             });
 
             // 去掉

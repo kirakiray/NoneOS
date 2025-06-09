@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NoneOS チュートリアル</title>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" />
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
+    <link rel="stylesheet" href="/tutorial/sources/markdown.css" />
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/pui/public/init.js" type="module"></script>
+    <style>
+      body {
+        color: var(--md-sys-color-on-surface);
+        background-color: var(--md-sys-color-surface);
+      }
+      article {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        max-width: 800px;
+        margin: 0 auto !important;
+        padding: 16px;
+      }
+      video {
+        max-width: 100%;
+        margin: 20px 0;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+    <!-- Google tag (gtag.js) -->
+    <script
+      async
+      src="https://www.googletagmanager.com/gtag/js?id=G-PRC5EFJFW1"
+    ></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", "G-PRC5EFJFW1");
+    </script>
+  </head>
+  <body>
+    <article class="markdown-body">
+      <div>
+        <a href="../en/">English</a> |
+        <a href="../cn/">中文</a>
+      </div>
+      <h1>NoneOS</h1>
+      <p>
+        NoneOSへようこそ。これはブラウザベースの仮想オペレーティングシステムです。複数のデバイスで独立した仮想システムインスタンスを作成し、ピアツーピア技術を介してこれらのシステム間のシームレスな接続を実現できます。すべてのデータ相互作用は、集中型サーバーを経由せずにデバイス間で直接行われます。
+      </p>
+
+      <h2>NoneOS機能概要</h2>
+      <p>
+        システムには複数の組み込みユーティリティがあります。以下の機能から体験を開始できます：
+      </p>
+
+      <h3>パーソナライズされたナビゲーションホームページ</h3>
+      <ol>
+        <li>
+          左または下部の円形アイコンをクリックしてアプリケーションリストを展開
+        </li>
+        <li>ウェブお気に入りを右クリックし、「新しいタブで開く」を選択</li>
+        <li>このページをブラウザのホームページに設定</li>
+      </ol>
+      <p>
+        正常にペアリングされた仮想システム間では、左上の同期ボタンをクリックして他のデバイスを選択し、そのお気に入りコンテンツを表示できます。
+      </p>
+      <video src="../sources/web-favorites.mp4" controls></video>
+
+      <h3>デバイス間ファイル転送</h3>
+      <p>
+        「ファイルマネージャー」アプリケーションでは、ペアリングされたデバイス間で直接ファイルを転送できます。実際のシステムから仮想システムにファイルをインポートしてから転送することをサポートします。
+      </p>
+      <video src="../sources/file.mp4" controls></video>
+
+      <h2>デバイスペアリングガイド</h2>
+      <p>デバイスペアリングを通じてピアツーピアデータ接続を確立：</p>
+      <ol>
+        <li>両方のデバイスにNoneOSがインストールされていることを確認</li>
+        <li>
+          両方のデバイスで：
+          <ul>
+            <li>アプリケーションリストを開く</li>
+            <li>「LinkMe」アプリケーションを起動</li>
+            <li>「デバイスを追加」ボタンをクリック</li>
+          </ul>
+        </li>
+        <li>ペアリングコードを交換して入力</li>
+        <li>両方がペアリングを確認</li>
+        <li>ペアリング成功後にデバイス識別子が表示</li>
+      </ol>
+      <video src="../sources/add-devices.mp4" controls></video>
+    </article>
+  </body>
+</html>

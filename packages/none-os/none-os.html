@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
+  <l-m src="/packages/comps/tutorial-block.html"></l-m>
   <l-m src="./comps/os-bar.html"></l-m>
   <l-m src="./comps/app-frame.html"></l-m>
   <l-m src="./comps/home-app-frame.html"></l-m>
@@ -61,7 +62,6 @@
     }
   </style>
   <o-provider name="clipboard">
-    <!-- <p-provider attr:theme="settingData.theme"> -->
     <div class="container" attr:os-bar-dir="settingData.dockDirection">
       <div class="bar">
         <none-os-bar
@@ -76,9 +76,9 @@
             <o-app attr:src="$data.configUrl"></o-app>
           </n-app-frame>
         </o-fill>
+        <n-tutorial-block></n-tutorial-block>
       </div>
     </div>
-    <!-- </p-provider> -->
 
     <n-home-app-frame sync:show-home-app="showHomeApp">
       <o-app
