@@ -1,0 +1,200 @@
+<template component>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: inline-block;
+      user-select: none;
+    }
+
+    .container {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      padding: 8px;
+      margin: 16px;
+    }
+
+    .container.active {
+      outline: var(--md-sys-color-primary) solid 1px;
+      border-radius: 6px;
+      background-color: var(--md-ref-palette-translucent-primary60);
+    }
+
+    .icon {
+      font-size: 30px;
+    }
+
+    .name {
+      font-size: 14px;
+      line-height: 1.4em;
+    }
+
+    .hide {
+      display: none !important;
+    }
+  </style>
+  <div
+    class="container"
+    class:active="active"
+    class:hide="settingData.hideTutorial"
+    on:click="clickItem"
+    on:contextmenu="contextMenu"
+    on:dblclick="openWeb"
+  >
+    <div class="icon">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="1em"
+        height="1em"
+        viewBox="0 0 24 24"
+      >
+        <g fill="none">
+          <path
+            fill="#66e1ff"
+            d="M19.792 19.792V9.407a1.526 1.526 0 0 0-1.528-1.532H5.737a1.527 1.527 0 0 0-1.529 1.532v10.385z"
+          />
+          <path
+            fill="#c2f3ff"
+            d="M18.408 7.884c-.048 0-.092-.006-.144-.006H5.737a1.527 1.527 0 0 0-1.529 1.529v10.385H6.5z"
+          />
+          <path
+            stroke="#191919"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M9.25 7.875H5.737a1.527 1.527 0 0 0-1.529 1.532v10.385h15.584v-5.959"
+            stroke-width="1"
+          />
+          <path
+            fill="#fff"
+            stroke="#191919"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M22.542 19.792a2.75 2.75 0 0 1-2.75 2.75H4.209a2.75 2.75 0 0 1-2.75-2.75z"
+            stroke-width="1"
+          />
+          <path
+            fill="#ffef5e"
+            stroke="#191919"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M16.98 1.458a5.46 5.46 0 0 0-5.438 5.559a5.45 5.45 0 0 0 .716 2.927l-1.633 3.431l3.43-1.633A5.559 5.559 0 1 0 16.98 1.457"
+            stroke-width="1"
+          />
+          <path
+            stroke="#191919"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M15.667 6.042a1.376 1.376 0 1 1 1.375 1.375"
+            stroke-width="1"
+          />
+          <path
+            stroke="#191919"
+            d="M17.042 9.25a.23.23 0 1 1 0-.458m0 .458a.23.23 0 1 0 0-.458"
+            stroke-width="1"
+          />
+        </g>
+      </svg>
+    </div>
+    <div class="name">
+      <o-if :value="settingData.lang === 'cn'"> 使用教程 </o-if>
+      <o-else-if :value="settingData.lang === 'ja'"> チュートリアル </o-else-if>
+      <o-else> Tutorial </o-else>
+    </div>
+    <p-menu
+      attr:open="openMenu"
+      style="position: absolute; left: 50px; top: 80px; white-space: nowrap"
+    >
+      <p-menu-item on:click="openWeb">
+        <n-local-icon
+          name="tab"
+          slot="prefix"
+          style="
+            display: block;
+            margin-right: 6px;
+            color: var(--md-sys-color-primary);
+          "
+        ></n-local-icon>
+        <o-if :value="settingData.lang === 'cn'"> 打开 </o-if>
+        <o-else-if :value="settingData.lang === 'ja'"> 開く </o-else-if>
+        <o-else> Open </o-else>
+      </p-menu-item>
+      <p-menu-item on:click="clickHide">
+        <n-local-icon
+          name="close"
+          slot="prefix"
+          style="
+            display: block;
+            margin-right: 6px;
+            color: var(--md-sys-color-primary);
+          "
+        ></n-local-icon>
+        <o-if :value="settingData.lang === 'cn'"> 隐藏 </o-if>
+        <o-else-if :value="settingData.lang === 'ja'"> 隠す </o-else-if>
+        <o-else> Hide </o-else>
+      </p-menu-item>
+    </p-menu>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      window.settingData = settingData;
+
+      return {
+        tag: "n-tutorial-block",
+        data: {
+          active: false,
+          name: "Tutorial",
+          settingData: {},
+          openMenu: "off",
+        },
+        proto: {
+          clickItem(e) {
+            e.stopPropagation();
+            this.active = !this.active;
+          },
+          contextMenu(event) {
+            this.active = true;
+            event.preventDefault();
+            this.openMenu = "on";
+          },
+          openWeb() {
+            if (settingData.lang === "cn") {
+              window.open("/tutorial/cn/index.html");
+            } else if (settingData.lang === "ja") {
+              window.open("/tutorial/ja/index.html");
+            } else {
+              window.open("/tutorial/en/index.html");
+            }
+            this.openMenu = "off";
+            this.active = false;
+          },
+          clickHide() {
+            this.openMenu = "off";
+            this.active = false;
+            setTimeout(() => {
+              this.settingData.hideTutorial = true;
+            }, 300);
+          },
+        },
+        attached() {
+          document.body.addEventListener(
+            "click",
+            (this._bindFunc = () => {
+              this.active = false;
+              this.openMenu = "off";
+            })
+          );
+          this.settingData = settingData;
+        },
+        detached() {
+          document.body.removeEventListener("click", this._bindFunc);
+          this.settingData = {};
+        },
+      };
+    };
+  </script>
+</template>
