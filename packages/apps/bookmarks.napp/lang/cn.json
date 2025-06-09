@@ -12,7 +12,7 @@
   "settings": "设置",
   "displaySettings": "显示设置",
   "functionSettings": "功能设置",
-  "syncSettings": "同步设置",
+  "syncSettings": "同步数据",
   "aboutBookmarks": "关于Bookmarks",
   "otherDevices": "其他设备",
   "syncTips": "点击设备后可将其书签数据同步到当前本地，请确保目标设备已连接网络。",

@@ -12,7 +12,7 @@
   "settings": "設定",
   "displaySettings": "表示設定",
   "functionSettings": "機能設定",
-  "syncSettings": "同期設定",
+  "syncSettings": "データの同期",
   "aboutBookmarks": "Bookmarksについて",
   "otherDevices": "他のデバイス",
   "syncTips": "デバイスをクリックすると、そのブックマークデータを現在のローカルデバイスに同期します。対象デバイスがネットワークに接続されていることを確認してください。",
