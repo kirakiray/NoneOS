@@ -39,7 +39,7 @@ export const getServers = async (useLocalUserDirName) => {
             url: "wss://hand-cn.tutous.com:812",
           },
           {
-            url: "wss://hand-ca.tutous.com",
+            url: "wss://hand-us1.tutous.com",
           }
         );
 
