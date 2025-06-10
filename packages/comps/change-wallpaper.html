@@ -6,9 +6,6 @@
 
     .container {
       display: flex;
-      padding: 8px 0;
-      border: var(--md-sys-color-primary) soild 2px;
-      border-radius: 6px;
     }
 
     .block {
@@ -18,13 +15,19 @@
       background-size: cover;
       background-position: center;
       border-radius: 6px;
-      border: var(--md-sys-color-primary) soild 1px;
+      border: var(--md-sys-color-primary) solid 1px;
+    }
+
+    .block.active {
+      border: var(--md-sys-color-success) solid 1px;
+      outline: var(--md-sys-color-success) solid 2px;
     }
   </style>
   <div class="container">
     <o-fill :value="imgs">
       <div
         class="block"
+        class:active="settingData.wallpaper === $data.name"
         :style.background-image="`url(${$data.onlineUrl})`"
       ></div>
     </o-fill>
@@ -32,11 +35,26 @@
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      if (!settingData.wallpaper) {
+        // 判断本地已有背景属性
+        const bg = await get("local/bg/bg.json").catch(() => null);
+        let bgData = await bg.text();
+        bgData = JSON.parse(bgData);
+
+        const firstItem = Object.entries(bgData)[0];
+
+        // 没有设置背景的情况下，设置第一张图为默认背景
+        settingData.wallpaper = firstItem[0];
+      }
 
       return {
         tag: "n-change-wallpaper",
         data: {
           imgs: [],
+          settingData: {},
         },
         proto: {
           async loadWallpaper() {
@@ -51,9 +69,15 @@
 
             const imgs = [];
             Object.entries(data).forEach(([name, data]) => {
+              let previewUrl = name.split(".");
+              previewUrl[0] = previewUrl[0] + "-preview";
+              previewUrl = previewUrl.join(".");
+
               imgs.push({
                 name,
-                onlineUrl: `https://kirakiray.github.io/NoneOS/others/bg/${name}`,
+                onlineUrl: location.host.includes("localhost")
+                  ? `/others/bg/${name}`
+                  : `https://kirakiray.github.io/NoneOS/others/bg/${name}`,
                 ...data,
               });
             });
@@ -62,6 +86,10 @@
         },
         attached() {
           this.loadWallpaper();
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
         },
       };
     };
