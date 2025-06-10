@@ -59,5 +59,6 @@
   "addUserTips": "{userName} を私のデバイスとして追加してもよろしいですか？ 相手の身元をよく確認してください。自分のものではないデバイスを追加すると、個人情報の漏洩につながる可能性があります。",
   "removeUserTips": "{userName} を私のデバイスから削除してもよろしいですか？",
   "yes": "はい",
-  "addUserSucceed": "デバイス {userName} を追加しました。"
+  "addUserSucceed": "デバイス {userName} を追加しました。",
+  "deleteServer": "このサーバーを削除する"
 }

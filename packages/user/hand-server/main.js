@@ -39,16 +39,18 @@ export const getServers = async (useLocalUserDirName) => {
             url: "wss://hand-cn.tutous.com:812",
           },
           {
-            url: "wss://hand-ca.tutous.com",
+            url: "wss://hand-us1.tutous.com",
           }
         );
 
         await selfUserStore.servers.ready(true);
       }
-
-      // 等待300ms，确保数据同步完成
-      await new Promise((resolve) => setTimeout(resolve, 300));
     }
+
+    await selfUserStore.servers.ready(true);
+
+    // 等待100ms，确保数据同步完成
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     resolve(await initServers(useLocalUserDirName));
   }));
