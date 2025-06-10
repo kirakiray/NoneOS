@@ -9,6 +9,7 @@
     .container {
       display: flex;
       flex-direction: column;
+      --s-bg: var(--md-sys-color-surface-variant);
     }
 
     .file-item {
@@ -33,7 +34,7 @@
       font-weight: bold;
       z-index: 2;
       border-bottom: var(--md-ref-palette-translucent-normal60) solid 1px;
-      background-color: var(--md-sys-color-surface);
+      background-color: var(--md-sys-color-surface-variant);
     }
 
     .file-item:hover {
@@ -91,21 +92,6 @@
       background-size: 34px 68px;
     }
   </style>
-
-  <match-var pui-real-theme="light">
-    <style>
-      .container {
-        --s-bg: var(--md-ref-palette-normal95);
-      }
-    </style>
-  </match-var>
-  <match-var pui-real-theme="dark">
-    <style>
-      .container {
-        --s-bg: var(--md-ref-palette-normal10);
-      }
-    </style>
-  </match-var>
 
   <div class="container">
     <div class="file-item head">
