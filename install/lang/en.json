@@ -35,7 +35,10 @@
     "failed_get_sign_list": "Unable to get valid signature list",
     "failed_unzip_file_count_mismatch": "Unzipped file count does not match signature list {filesLength} - {thisFilesLength}",
     "failed_file_not_exist": "File {path} does not exist in signature list",
-    "failed_file_tampered": "File {path} has been tampered with"
+    "failed_file_tampered": "File {path} has been tampered with",
+    "download_bg_loading": "Downloading and writing background image",
+    "download_bg_success": "Background image written successfully",
+    "download_bg_failed": "Failed to download background image"
   },
   "disagree": "Disagree",
   "agreenAndInstall": "Agree and Install",

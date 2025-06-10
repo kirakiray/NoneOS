@@ -35,7 +35,10 @@
     "failed_get_sign_list": "无法获取有效的签名列表",
     "failed_unzip_file_count_mismatch": "解压后的文件数量与签名列表不匹配 {filesLength} - {thisFilesLength}",
     "failed_file_not_exist": "文件 {path} 不存在于签名列表",
-    "failed_file_tampered": "文件 {path} 被篡改"
+    "failed_file_tampered": "文件 {path} 被篡改",
+    "download_bg_loading": "正在下载并写入背景图",
+    "download_bg_success": "写入背景图成功",
+    "download_bg_failed": "下载背景图失败"
   },
   "disagree": "不同意",
   "agreenAndInstall": "同意并安装",

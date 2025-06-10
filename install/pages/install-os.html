@@ -210,21 +210,30 @@
                 name="loading"
                 style="color: var(--md-sys-color-primary)"
               ></n-local-icon>
-              正在下载并写入背景图
+              <n-desc
+                space="installer"
+                name="install_os.download_bg_loading"
+              ></n-desc>
             </o-if>
             <o-else-if :value="$data.step === 'ok'">
               <n-local-icon
                 name="succeed"
                 style="color: var(--md-sys-color-success)"
               ></n-local-icon>
-              写入背景图成功
+              <n-desc
+                space="installer"
+                name="install_os.download_bg_success"
+              ></n-desc>
             </o-else-if>
             <o-else>
               <n-local-icon
                 name="error"
                 style="color: var(--md-sys-color-error)"
               ></n-local-icon>
-              下载背景图失败
+              <n-desc
+                space="installer"
+                name="install_os.download_bg_failed"
+              ></n-desc>
             </o-else>
           </o-else-if>
           <o-else>

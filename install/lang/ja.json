@@ -35,7 +35,10 @@
     "failed_get_sign_list": "有効な署名リストを取得できません",
     "failed_unzip_file_count_mismatch": "解凍されたファイル数が署名リストと一致しません {filesLength} - {thisFilesLength}",
     "failed_file_not_exist": "ファイル {path} は署名リストに存在しません",
-    "failed_file_tampered": "ファイル {path} が改ざんされています"
+    "failed_file_tampered": "ファイル {path} が改ざんされました",
+    "download_bg_loading": "背景画像をダウンロードして書き込み中",
+    "download_bg_success": "背景画像の書き込みに成功しました",
+    "download_bg_failed": "背景画像のダウンロードに失敗しました"
   },
   "disagree": "同意しない",
   "agreenAndInstall": "同意してインストール",
