@@ -16,11 +16,13 @@
       background-position: center;
       border-radius: 6px;
       border: var(--md-sys-color-primary) solid 1px;
+      cursor: pointer;
     }
 
     .block.active {
-      border: var(--md-sys-color-success) solid 1px;
-      outline: var(--md-sys-color-success) solid 2px;
+      border: #fff solid 1px;
+      outline: var(--md-sys-color-primary) solid 3px;
+      cursor: default;
     }
   </style>
   <div class="container">
@@ -28,7 +30,8 @@
       <div
         class="block"
         class:active="settingData.wallpaper === $data.name"
-        :style.background-image="`url(${$data.onlineUrl})`"
+        :style.background-image="`url(${$data.previewUrl})`"
+        on:click="$host.clickItem($data)"
       ></div>
     </o-fill>
   </div>
@@ -57,6 +60,9 @@
           settingData: {},
         },
         proto: {
+          async clickItem(item) {
+            this.settingData.wallpaper = item.name;
+          },
           async loadWallpaper() {
             const bgJsonFile = await get("local/bg/bg.json").catch(() => null);
 
@@ -75,6 +81,9 @@
 
               imgs.push({
                 name,
+                previewUrl: location.host.includes("localhost")
+                  ? `/others/bg/${previewUrl}`
+                  : `: location.host.includes("localhost")`,
                 onlineUrl: location.host.includes("localhost")
                   ? `/others/bg/${name}`
                   : `https://kirakiray.github.io/NoneOS/others/bg/${name}`,
