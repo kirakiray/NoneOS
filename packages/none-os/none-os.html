@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/provider/provider.html"></l-m>
   <l-m src="/packages/comps/tutorial-block.html"></l-m>
+  <l-m src="/packages/comps/desktop-bg.html"></l-m>
   <l-m src="./comps/os-bar.html"></l-m>
   <l-m src="./comps/app-frame.html"></l-m>
   <l-m src="./comps/home-app-frame.html"></l-m>
@@ -9,9 +10,6 @@
       display: block;
       width: 100%;
       height: 100%;
-      background-image: url(/others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg);
-      background-size: cover;
-      background-position: center;
     }
 
     .container {
@@ -61,6 +59,7 @@
       }
     }
   </style>
+  <n-desktop-bg></n-desktop-bg>
   <o-provider name="clipboard">
     <div class="container" attr:os-bar-dir="settingData.dockDirection">
       <div class="bar">

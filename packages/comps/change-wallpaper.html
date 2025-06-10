@@ -1,0 +1,69 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .container {
+      display: flex;
+      padding: 8px 0;
+      border: var(--md-sys-color-primary) soild 2px;
+      border-radius: 6px;
+    }
+
+    .block {
+      margin-right: 8px;
+      width: 80px;
+      height: 80px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 6px;
+      border: var(--md-sys-color-primary) soild 1px;
+    }
+  </style>
+  <div class="container">
+    <o-fill :value="imgs">
+      <div
+        class="block"
+        :style.background-image="`url(${$data.onlineUrl})`"
+      ></div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        tag: "n-change-wallpaper",
+        data: {
+          imgs: [],
+        },
+        proto: {
+          async loadWallpaper() {
+            const bgJsonFile = await get("local/bg/bg.json").catch(() => null);
+
+            if (!bgJsonFile) {
+              return;
+            }
+
+            let data = await bgJsonFile.text();
+            data = JSON.parse(data);
+
+            const imgs = [];
+            Object.entries(data).forEach(([name, data]) => {
+              imgs.push({
+                name,
+                onlineUrl: `https://kirakiray.github.io/NoneOS/others/bg/${name}`,
+                ...data,
+              });
+            });
+            this.imgs = imgs;
+          },
+        },
+        attached() {
+          this.loadWallpaper();
+        },
+      };
+    };
+  </script>
+</template>
