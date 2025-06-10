@@ -45,10 +45,12 @@ export const getServers = async (useLocalUserDirName) => {
 
         await selfUserStore.servers.ready(true);
       }
-
-      // 等待300ms，确保数据同步完成
-      await new Promise((resolve) => setTimeout(resolve, 300));
     }
+
+    await selfUserStore.servers.ready(true);
+
+    // 等待100ms，确保数据同步完成
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     resolve(await initServers(useLocalUserDirName));
   }));

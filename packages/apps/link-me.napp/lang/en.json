@@ -59,5 +59,6 @@
   "addUserTips": "Are you sure you want to add {userName} as my device? Please carefully confirm the other party's identity. Adding a device that is not yours may lead to the leakage of personal privacy data.",
   "removeUserTips": "Are you sure you want to remove {userName} from my device?",
   "yes": "Yes",
-  "addUserSucceed": "Added device {userName} successfully"
+  "addUserSucceed": "Added device {userName} successfully",
+  "deleteServer": "Delete this server"
 }
