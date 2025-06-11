@@ -1,0 +1,19 @@
+<template page>
+  <style>
+    :host {
+      display: flex !important;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+  <h1>{{val}}</h1>
+  <script>
+    export default async () => {
+      return {
+        data: {
+          val: "Hello World!! 👋",
+        },
+      };
+    };
+  </script>
+</template>

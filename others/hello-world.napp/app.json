@@ -1,0 +1,16 @@
+{
+  "name": "Hello World",
+  "icon": "icon.svg",
+  "config": "app-config.js",
+  "i18n": {
+    "cn": {
+      "name": "你好世界"
+    },
+    "en": {
+      "name": "Hello World"
+    },
+    "ja": {
+      "name": "こんにちは世界"
+    }
+  }
+}
