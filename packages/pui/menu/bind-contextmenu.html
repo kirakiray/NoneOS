@@ -234,6 +234,7 @@
                 menu.open = "off";
               });
 
+              $("html").off("click", this._bindFn);
               $("html").off("mouseup", this._bindFn);
               this._bindFn = null;
             };
@@ -245,6 +246,7 @@
         detached() {
           if (this._bindFn) {
             $("html").off("mouseup", this._bindFn);
+            $("html").off("click", this._bindFn);
           }
         },
       };
