@@ -1,0 +1,17 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>{{val}}</div>
+  <script>
+    export default async () => {
+      return {
+        data: {
+          val: "Hello World",
+        },
+      };
+    };
+  </script>
+</template>
