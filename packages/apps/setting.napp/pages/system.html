@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/comps/change-wallpaper.html"></l-m>
   <style>
     :host {
       display: block;
@@ -192,19 +193,23 @@
           </o-fill>
         </p-select>
       </p-list-item>
-      <p-list-item>
+      <!-- <p-list-item>
         <n-local-icon
           name="wallpaper"
           slot="prefix"
           style="font-size: 26px"
         ></n-local-icon>
         <n-desc space="setting" name="desktopPic"></n-desc>
-        <div class="item-tips">others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg</div>
-        <p-button slot="suffix" size="small" disabled>
+        <div class="item-tips">daniel-leone-g30P1zcOzXo-unsplash.jpg</div>
+        <p-button slot="suffix" size="small">
           <n-desc space="setting" name="change"></n-desc>
         </p-button>
-      </p-list-item>
+      </p-list-item> -->
     </div>
+    <h5>
+      <n-desc space="setting" name="desktopPic"></n-desc>
+    </h5>
+    <n-change-wallpaper></n-change-wallpaper>
   </div>
   <o-consumer name="pui" watch:theme="theme"></o-consumer>
   <script>

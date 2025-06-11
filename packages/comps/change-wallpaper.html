@@ -1,0 +1,120 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .container {
+      display: flex;
+    }
+
+    .block {
+      margin-right: 8px;
+      width: 80px;
+      height: 80px;
+      background-size: cover;
+      background-position: center;
+      border-radius: 6px;
+      border: var(--md-sys-color-primary) solid 1px;
+      cursor: pointer;
+    }
+
+    .block.active {
+      border: #fff solid 1px;
+      outline: var(--md-sys-color-primary) solid 3px;
+      cursor: default;
+    }
+  </style>
+  <div class="container">
+    <o-fill :value="imgs">
+      <div
+        class="block"
+        class:active="settingData.wallpaper === $data.name"
+        :style.background-image="`url(${$data.imgUrl})`"
+        on:click="$host.clickItem($data)"
+        attr:title="$data.from"
+      ></div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      if (!settingData.wallpaper) {
+        // 判断本地已有背景属性
+        const bg = await get("local/bg/bg.json").catch(() => null);
+        let bgData = await bg.text();
+        bgData = JSON.parse(bgData);
+
+        const firstItem = Object.entries(bgData)[0];
+
+        // 没有设置背景的情况下，设置第一张图为默认背景
+        settingData.wallpaper = firstItem[0];
+      }
+
+      return {
+        tag: "n-change-wallpaper",
+        data: {
+          imgs: [],
+          settingData: {},
+        },
+        proto: {
+          async clickItem(item) {
+            this.settingData.wallpaper = item.name;
+          },
+          async loadWallpaper() {
+            const bgJsonFile = await get("local/bg/bg.json").catch(() => null);
+
+            if (!bgJsonFile) {
+              return;
+            }
+
+            let data = await bgJsonFile.text();
+            data = JSON.parse(data);
+
+            Object.entries(data).forEach(async ([name, data]) => {
+              // 判断是否有下载到本地
+              let bgFileHandle = await get(`local/bg/${name}`).catch(
+                () => null
+              );
+              if (!bgFileHandle || (await bgFileHandle.size()) === 0) {
+                // 不存在，则先下到本地
+                const file = await fetch(
+                  `https://kirakiray.github.io/others/bg/${name}`
+                )
+                  .catch(() => fetch(`/others/bg/${name}`))
+                  .then((e) => e.blob())
+                  .catch(() => null);
+
+                if (!file) {
+                  return;
+                }
+
+                bgFileHandle = await get(`local/bg/${name}`, {
+                  create: "file",
+                });
+
+                await bgFileHandle.write(file);
+              }
+
+              this.imgs.push({
+                name,
+                imgUrl: `/$local/bg/${name}`,
+                from: data.from,
+              });
+            });
+          },
+        },
+        attached() {
+          this.loadWallpaper();
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
+        },
+      };
+    };
+  </script>
+</template>

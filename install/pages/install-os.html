@@ -204,6 +204,38 @@
               ></n-desc>
             </o-else>
           </o-else-if>
+          <o-else-if :value="$data.status === 'download-bg'">
+            <o-if :value="$data.step === 'loading'">
+              <n-local-icon
+                name="loading"
+                style="color: var(--md-sys-color-primary)"
+              ></n-local-icon>
+              <n-desc
+                space="installer"
+                name="install_os.download_bg_loading"
+              ></n-desc>
+            </o-if>
+            <o-else-if :value="$data.step === 'ok'">
+              <n-local-icon
+                name="succeed"
+                style="color: var(--md-sys-color-success)"
+              ></n-local-icon>
+              <n-desc
+                space="installer"
+                name="install_os.download_bg_success"
+              ></n-desc>
+            </o-else-if>
+            <o-else>
+              <n-local-icon
+                name="error"
+                style="color: var(--md-sys-color-error)"
+              ></n-local-icon>
+              <n-desc
+                space="installer"
+                name="install_os.download_bg_failed"
+              ></n-desc>
+            </o-else>
+          </o-else-if>
           <o-else>
             <n-local-icon
               name="error"
@@ -223,16 +255,19 @@
           "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/dist/hashes.json",
         pkgPath:
           "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/dist/packages.zip",
+        bg: "https://cdn.jsdelivr.net/gh/kirakiray/NoneOS@main/others/bg/",
       },
       {
         name: "github",
         hashesJSON: "https://kirakiray.github.io/NoneOS/dist/hashes.json",
         pkgPath: "https://kirakiray.github.io/NoneOS/dist/packages.zip",
+        bg: "https://kirakiray.github.io/NoneOS/others/bg/",
       },
       {
         name: "Current Website",
         hashesJSON: "/dist/hashes.json",
         pkgPath: "/dist/packages.zip",
+        bg: "/others/bg/",
       },
     ];
 
@@ -491,6 +526,53 @@
               await hashesFileHandle.write(
                 JSON.stringify(this._hashes, null, 2)
               );
+            }
+
+            this.tasks.push({
+              status: "download-bg",
+              step: "loading",
+            });
+
+            const downloadBgtarget = this.tasks.slice(-1)[0];
+
+            // 下载壁纸
+            try {
+              const bgJson = await fetch(
+                this.currentSource.bg + "bg.json"
+              ).then((e) => e.json());
+
+              // 写入 bg.json
+              const bgJsonHandle = await get("local/bg/bg.json", {
+                create: "file",
+              });
+              await bgJsonHandle.write(JSON.stringify(bgJson, null, 2));
+
+              // 将文件下载下来
+              // for (let [name, data] of Object.entries(bgJson)) {
+              // 确保下载第一个图片
+              const [name, data] = Object.entries(bgJson)[0];
+
+              // 看看本地是否存在文件
+              let fileHandle = await get("local/bg/" + name, {
+                create: "file",
+              });
+
+              const size = await fileHandle.size();
+
+              if (!size) {
+                // 不存在，下载并存入图片
+                const imgFile = await fetch(this.currentSource.bg + name).then(
+                  (e) => e.blob()
+                );
+
+                await fileHandle.write(imgFile);
+              }
+
+              downloadBgtarget.step = "ok";
+
+              // }
+            } catch (err) {
+              downloadBgtarget.step = "fail";
             }
 
             // 下一步
