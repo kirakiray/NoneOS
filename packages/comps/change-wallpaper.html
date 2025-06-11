@@ -30,7 +30,7 @@
       <div
         class="block"
         class:active="settingData.wallpaper === $data.name"
-        :style.background-image="`url(${$data.previewUrl})`"
+        :style.background-image="`url(${$data.imgUrl})`"
         on:click="$host.clickItem($data)"
       ></div>
     </o-fill>
@@ -73,24 +73,36 @@
             let data = await bgJsonFile.text();
             data = JSON.parse(data);
 
-            const imgs = [];
-            Object.entries(data).forEach(([name, data]) => {
-              let previewUrl = name.split(".");
-              previewUrl[0] = previewUrl[0] + "-preview";
-              previewUrl = previewUrl.join(".");
+            Object.entries(data).forEach(async ([name, data]) => {
+              // 判断是否有下载到本地
+              let bgFileHandle = await get(`local/bg/${name}`).catch(
+                () => null
+              );
+              if (!bgFileHandle || (await bgFileHandle.size()) === 0) {
+                // 不存在，则先下到本地
+                const file = await fetch(
+                  `https://kirakiray.github.io/others/bg/${name}`
+                )
+                  .catch(() => fetch(`/others/bg/${name}`))
+                  .then((e) => e.blob())
+                  .catch(() => null);
 
-              imgs.push({
+                if (!file) {
+                  return;
+                }
+
+                bgFileHandle = await get(`local/bg/${name}`, {
+                  create: "file",
+                });
+
+                await bgFileHandle.write(file);
+              }
+
+              this.imgs.push({
                 name,
-                previewUrl: location.host.includes("localhost")
-                  ? `/others/bg/${previewUrl}`
-                  : `: location.host.includes("localhost")`,
-                onlineUrl: location.host.includes("localhost")
-                  ? `/others/bg/${name}`
-                  : `https://kirakiray.github.io/NoneOS/others/bg/${name}`,
-                ...data,
+                imgUrl: `/$local/bg/${name}`,
               });
             });
-            this.imgs = imgs;
           },
         },
         attached() {

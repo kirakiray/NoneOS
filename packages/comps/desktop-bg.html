@@ -26,15 +26,41 @@
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
+      const { get } = await load("/packages/fs/main.js");
+
       return {
         tag: "n-desktop-bg",
         data: {
           settingData: {},
-          bgurl: `/others/bg/${settingData.wallpaper}`,
+          bgurl: ``,
         },
         watch: {
           async ["settingData.wallpaper"]() {
-            this.bgurl = `/others/bg/${this.settingData.wallpaper}`;
+            this.changePaper();
+          },
+        },
+        proto: {
+          async changePaper() {
+            if (!this.settingData.wallpaper) {
+              return;
+            }
+
+            // 判断本地是否有背景图片
+            const bgFile = await get(
+              `local/bg/${this.settingData.wallpaper}`
+            ).catch(() => null);
+
+            console.log(
+              "this.settingData.wallpaper: ",
+              this.settingData.wallpaper,
+              bgFile
+            );
+
+            if (bgFile) {
+              this.bgurl = `/$local/bg/${this.settingData.wallpaper}`;
+            } else {
+              this.bgurl = `/others/bg/${this.settingData.wallpaper}`;
+            }
           },
         },
         attached() {
