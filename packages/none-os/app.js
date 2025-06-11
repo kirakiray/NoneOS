@@ -24,9 +24,17 @@ export const getApps = async () => {
   const appsDir = await get("apps");
   if (appsDir) {
     for await (let appDir of appsDir.values()) {
-      const appFullData = await getFullAppData(`/$apps/${appDir.name}`);
+      if (appDir.kind !== "dir") {
+        continue;
+      }
 
-      defaults.push(appFullData);
+      try {
+        const appFullData = await getFullAppData(`/$apps/${appDir.name}`);
+
+        defaults.push(appFullData);
+      } catch (err) {
+        console.warn(`"/$apps/${appDir.name}" 不是应用`);
+      }
     }
   }
 
