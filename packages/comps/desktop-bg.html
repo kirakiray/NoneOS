@@ -15,7 +15,7 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background-image: url(/others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg);
+      background-image: url(https://kirakiray.github.io/NoneOS/others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg);
       background-size: cover;
       background-position: center;
     }
@@ -32,7 +32,8 @@
         tag: "n-desktop-bg",
         data: {
           settingData: {},
-          bgurl: ``,
+          // bgurl: `others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg`,
+          bgurl: `https://kirakiray.github.io/NoneOS/others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg`,
         },
         watch: {
           async ["settingData.wallpaper"]() {
@@ -60,6 +61,7 @@
               this.bgurl = `/$local/bg/${this.settingData.wallpaper}`;
             } else {
               this.bgurl = `/others/bg/${this.settingData.wallpaper}`;
+              // this.bgurl = `https://kirakiray.github.io/NoneOS/others/bg/${this.settingData.wallpaper}`;
             }
           },
         },
