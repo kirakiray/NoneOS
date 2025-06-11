@@ -1,3 +1,5 @@
+import { get } from "../fs/main.js";
+
 // 系统默认的apps
 const defaultAppsPaths = [
   "/packages/apps/setting.napp",
@@ -11,11 +13,22 @@ const defaultAppsPaths = [
 // 获取所有app数组
 export const getApps = async () => {
   const defaults = [];
+
   await Promise.all(
     defaultAppsPaths.map(async (path, index) => {
       defaults[index] = await getFullAppData(path);
     })
   );
+
+  // 查看 apps 目录
+  const appsDir = await get("apps");
+  if (appsDir) {
+    for await (let appDir of appsDir.values()) {
+      const appFullData = await getFullAppData(`/$apps/${appDir.name}`);
+
+      defaults.push(appFullData);
+    }
+  }
 
   return [...defaults];
 };
