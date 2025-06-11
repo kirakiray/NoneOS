@@ -32,6 +32,7 @@
         class:active="settingData.wallpaper === $data.name"
         :style.background-image="`url(${$data.imgUrl})`"
         on:click="$host.clickItem($data)"
+        attr:title="$data.from"
       ></div>
     </o-fill>
   </div>
@@ -101,6 +102,7 @@
               this.imgs.push({
                 name,
                 imgUrl: `/$local/bg/${name}`,
+                from: data.from,
               });
             });
           },
