@@ -28,3 +28,11 @@ npm install
 npm run static
 ```
 1. Visit: `http://localhost:5559/`
+
+## How to Create an Application?
+
+NoneOS adopts an advanced Web micro-application architecture, with each application built on the powerful ofa.js framework. Developers can easily create their own applications by simply importing the application directory (such as the example application `others/hello-world.napp`) into the system's "Apps" folder to quickly deploy and run it.
+
+We are currently writing more detailed development documentation. In the meantime, developers can:
+- Refer to the official ofa.js documentation to understand the framework features.
+- Check the example applications under the `packages/apps` directory as a reference for development.

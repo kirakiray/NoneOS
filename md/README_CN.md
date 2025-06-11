@@ -26,3 +26,11 @@ npm install
 npm run static
 ```
 4. 访问: `http://localhost:5559/`
+
+## 如何创建应用？
+
+NoneOS采用先进的Web微应用架构，每个应用都基于强大的ofa.js框架构建。开发者可以轻松创建自己的应用，只需将应用目录（如示例应用`others/hello-world.napp`）导入到系统的"应用"文件夹即可快速部署和运行。
+
+我们正在编写更详细的开发文档。在此期间，开发者可以：
+- 参考ofa.js官方文档了解框架特性
+- 查看`packages/apps`目录下的示例应用作为开发参考
