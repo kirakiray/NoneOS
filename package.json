@@ -16,7 +16,7 @@
     "hand": "nodemon --inspect server/test-server.js",
     "dev": "node scripts/static-server & nodemon --inspect server/test-server.js & nodemon server/test-server2.js",
     "ci-test": "node scripts/ci-test.js",
-    "server-debug": "bun --inspect server2/static.js"
+    "server-debug": "bun --watch --inspect server2/test-server.js"
   },
   "repository": {
     "type": "git",
