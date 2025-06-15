@@ -1,0 +1,50 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+    .inputer {
+      display: block;
+    }
+    .placeholder {
+      position: absolute;
+      padding: 4px;
+      color: var(--md-sys-color-normal);
+      pointer-events: none;
+      padding-left: 12px;
+    }
+    .inputer-content {
+      display: block;
+      padding: 4px 8px;
+    }
+    .hide {
+      opacity: 0;
+    }
+  </style>
+  <div class="inputer">
+    <span class="placeholder" class:hide="value">
+      输入文本，按 "/" 启用指令
+    </span>
+    <div class="inputer-content" contenteditable on:input="handleInput"></div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-new",
+        data: {
+          type: "",
+          value: "",
+        },
+        proto: {
+          handleInput(e) {
+            let content = e.target.innerHTML.trim();
+            if (content === "<br>") {
+              content = "";
+            }
+            this.value = content;
+          },
+        },
+      };
+    };
+  </script>
+</template>

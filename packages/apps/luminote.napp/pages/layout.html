@@ -1,0 +1,45 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+      background-color: var(--md-sys-color-surface-variant);
+    }
+
+    .container {
+      display: flex;
+      height: 100%;
+    }
+
+    .main {
+      flex: 1;
+    }
+
+    .left {
+      width: 200px;
+      /* border-right: red solid 1px; */
+    }
+
+    /* .right {
+      width: 200px;
+      border-left: blue solid 1px;
+    } */
+  </style>
+
+  <div class="container">
+    <div class="left"></div>
+    <div class="main">
+      <slot></slot>
+    </div>
+    <div class="right"></div>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        data: {
+          title: "灵析笔记",
+        },
+      };
+    };
+  </script>
+</template>

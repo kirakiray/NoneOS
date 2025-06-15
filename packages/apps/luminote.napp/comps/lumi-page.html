@@ -1,0 +1,24 @@
+<template component>
+  <l-m src="./lumi-new.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      max-width: 800px;
+      border: var(--md-sys-color-normal) solid 1px;
+      border-radius: 8px;
+    }
+  </style>
+  <div class="container">
+    <lumi-new></lumi-new>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "lumi-page",
+        data: {
+          contents: [],
+        },
+      };
+    };
+  </script>
+</template>

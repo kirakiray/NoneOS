@@ -1,16 +1,21 @@
 <template page>
+  <l-m src="../comps/lumi-page.html"></l-m>
   <style>
     :host {
       display: block;
+      box-sizing: border-box;
+      padding: 16px;
+      height: 100%;
     }
   </style>
-  我是首页 <br />
-  <div>{{title}}</div>
+  <lumi-page></lumi-page>
   <script>
+    export const parent = "./layout.html";
+
     export default async () => {
       return {
         data: {
-          title: "灵释笔记",
+          title: "灵析笔记",
         },
       };
     };
