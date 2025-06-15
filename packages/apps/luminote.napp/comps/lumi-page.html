@@ -66,10 +66,12 @@
 
             setTimeout(() => {
               const fillEl = this.shadow.$("#lumi-fill-el");
+
+              // 获取对上的一个元素
               const lastBlock = fillEl[fillEl.length - 1];
 
-              // 焦点放在最后
-              focusAndSetCursorAtEnd(lastBlock.editor.ele);
+              // 文本焦点放在最后
+              focusAndSetCursorAtEnd(lastBlock.editorElement);
             }, 1);
           },
         },
