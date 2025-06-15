@@ -1,12 +1,25 @@
 <template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
+      /* background-color: rgba(255, 0, 0, 0.3); */
     }
     .inputer {
+      position: relative;
       display: block;
       max-width: 800px;
       margin: 0 auto;
+    }
+    .menu-btn {
+      position: absolute;
+      top: 4px;
+      left: -30px;
+      opacity: 0;
+    }
+    :host(:hover) .menu-btn {
+      opacity: 1;
     }
     .placeholder {
       position: absolute;
@@ -24,10 +37,13 @@
       display: block;
       padding: 8px;
       line-height: 1.4em;
-      /* outline: none; */
+      outline: none;
     }
   </style>
   <div class="inputer">
+    <p-button icon class="menu-btn" size="small" variant="text">
+      <n-local-icon name="menu"></n-local-icon>
+    </p-button>
     <span class="placeholder" class:show="inFocus && !value">
       输入文本，按 "/" 启用指令
     </span>
@@ -35,7 +51,7 @@
       class="inputer-content"
       contenteditable
       on:input="handleInput"
-      on:keypress="handleKeyPress"
+      on:keydown="handleKeyDown"
       :html="value"
       on:focus="inFocus = true"
       on:blur="inFocus = false"
@@ -61,15 +77,23 @@
             }
             this.value = content;
           },
-          handleKeyPress(e) {
+          handleKeyDown(e) {
             if (e.key === "Enter" && !e.shiftKey) {
               // 会车，直接在下面新增一个
               e.preventDefault();
               this.emit("enter", {
                 bubbles: false,
               });
+            } else if (e.key === "Backspace" && !this.value.trim()) {
+              // 在没有内容时按了返回，等于清空内容
+              this.emit("delete", {
+                bubbles: false,
+              });
             }
           },
+        },
+        attached() {
+          this.on("click", (e) => e.stopPropagation());
         },
       };
     };
