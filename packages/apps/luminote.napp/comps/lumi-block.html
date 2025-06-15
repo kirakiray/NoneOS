@@ -5,6 +5,8 @@
     }
     .inputer {
       display: block;
+      max-width: 800px;
+      margin: 0 auto;
     }
     .placeholder {
       position: absolute;
@@ -33,6 +35,7 @@
       class="inputer-content"
       contenteditable
       on:input="handleInput"
+      on:keypress="handleKeyPress"
       :html="value"
       on:focus="inFocus = true"
       on:blur="inFocus = false"
@@ -48,12 +51,24 @@
           inFocus: false,
         },
         proto: {
+          focus() {
+            this.shadow.$(".inputer-content").ele.focus();
+          },
           handleInput(e) {
             let content = e.target.innerHTML.trim();
             if (content === "<br>") {
               content = "";
             }
             this.value = content;
+          },
+          handleKeyPress(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+              // 会车，直接在下面新增一个
+              e.preventDefault();
+              this.emit("enter", {
+                bubbles: false,
+              });
+            }
           },
         },
       };

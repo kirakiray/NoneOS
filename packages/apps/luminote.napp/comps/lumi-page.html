@@ -4,13 +4,16 @@
     :host {
       display: block;
       margin: 0 auto;
-      max-width: 800px;
     }
   </style>
   <div class="container">
     <div style="height: 100px"></div>
-    <o-fill :value="contents">
-      <lumi-block :type="$data.type" sync:value="$data.value"></lumi-block>
+    <o-fill id="lumi-fill-el" :value="contents">
+      <lumi-block
+        :type="$data.type"
+        sync:value="$data.value"
+        on:enter="$host.handleEnter($data,$index)"
+      ></lumi-block>
     </o-fill>
   </div>
   <script>
@@ -36,6 +39,22 @@
               value: "",
             },
           ],
+        },
+        proto: {
+          async handleEnter(data, index) {
+            const insData = $.stanz({
+              type: "paragraph",
+              value: "",
+            });
+
+            const finnalIndex = index + 1;
+
+            this.contents.splice(finnalIndex, 0, insData);
+
+            setTimeout(() => {
+              this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
+            }, 10);
+          },
         },
       };
     };
