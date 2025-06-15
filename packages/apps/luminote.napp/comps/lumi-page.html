@@ -1,22 +1,41 @@
 <template component>
-  <l-m src="./lumi-new.html"></l-m>
+  <l-m src="./lumi-block.html"></l-m>
   <style>
     :host {
       display: block;
+      margin: 0 auto;
       max-width: 800px;
-      border: var(--md-sys-color-normal) solid 1px;
-      border-radius: 8px;
     }
   </style>
   <div class="container">
-    <lumi-new></lumi-new>
+    <div style="height: 100px"></div>
+    <o-fill :value="contents">
+      <lumi-block :type="$data.type" sync:value="$data.value"></lumi-block>
+    </o-fill>
   </div>
   <script>
     export default async () => {
       return {
         tag: "lumi-page",
         data: {
-          contents: [],
+          contents: [
+            {
+              type: "paragraph",
+              value: "aaa",
+            },
+            {
+              type: "paragraph",
+              value: "bbb",
+            },
+            {
+              type: "paragraph",
+              value: "ccc",
+            },
+            {
+              type: "paragraph",
+              value: "",
+            },
+          ],
         },
       };
     };

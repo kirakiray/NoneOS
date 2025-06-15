@@ -12,17 +12,19 @@
     }
 
     .main {
+      position: relative;
       flex: 1;
+      height: 100%;
     }
 
     .left {
       width: 200px;
-      /* border-right: red solid 1px; */
+      border-right: #aaa solid 1px;
     }
 
     /* .right {
       width: 200px;
-      border-left: blue solid 1px;
+      border-left: #bbb solid 1px;
     } */
   </style>
 
@@ -31,7 +33,7 @@
     <div class="main">
       <slot></slot>
     </div>
-    <div class="right"></div>
+    <!-- <div class="right"></div> -->
   </div>
   <script>
     export default async () => {

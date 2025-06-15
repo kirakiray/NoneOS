@@ -12,28 +12,40 @@
       color: var(--md-sys-color-normal);
       pointer-events: none;
       padding-left: 12px;
+      opacity: 0;
+      transition: opacity ease 0.1s;
+    }
+    .placeholder.show {
+      opacity: 1;
     }
     .inputer-content {
       display: block;
-      padding: 4px 8px;
-    }
-    .hide {
-      opacity: 0;
+      padding: 8px;
+      line-height: 1.4em;
+      /* outline: none; */
     }
   </style>
   <div class="inputer">
-    <span class="placeholder" class:hide="value">
+    <span class="placeholder" class:show="inFocus && !value">
       输入文本，按 "/" 启用指令
     </span>
-    <div class="inputer-content" contenteditable on:input="handleInput"></div>
+    <div
+      class="inputer-content"
+      contenteditable
+      on:input="handleInput"
+      :html="value"
+      on:focus="inFocus = true"
+      on:blur="inFocus = false"
+    ></div>
   </div>
   <script>
     export default async ({ load }) => {
       return {
-        tag: "lumi-new",
+        tag: "lumi-block",
         data: {
           type: "",
           value: "",
+          inFocus: false,
         },
         proto: {
           handleInput(e) {
