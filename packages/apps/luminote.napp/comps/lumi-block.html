@@ -91,6 +91,9 @@
               });
             }
           },
+          get editor() {
+            return this.shadow.$(".inputer-content");
+          },
         },
         attached() {
           this.on("click", (e) => e.stopPropagation());

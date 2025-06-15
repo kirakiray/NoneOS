@@ -59,15 +59,18 @@
 
             setTimeout(() => {
               this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
-            }, 10);
+            }, 1);
           },
           async handleDelete(data, index) {
             this.contents.splice(index, 1);
 
             setTimeout(() => {
               const fillEl = this.shadow.$("#lumi-fill-el");
-              fillEl[fillEl.length - 1].focus();
-            }, 10);
+              const lastBlock = fillEl[fillEl.length - 1];
+
+              // 焦点放在最后
+              focusAndSetCursorAtEnd(lastBlock.editor.ele);
+            }, 1);
           },
         },
         attached() {
@@ -82,5 +85,17 @@
         },
       };
     };
+
+    function focusAndSetCursorAtEnd(element) {
+      element.focus();
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      range.selectNodeContents(element);
+      range.collapse(false);
+
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   </script>
 </template>
