@@ -68,10 +68,10 @@
               const fillEl = this.shadow.$("#lumi-fill-el");
 
               // 获取对上的一个元素
-              const lastBlock = fillEl[fillEl.length - 1];
+              const prevBlock = fillEl[index - 1];
 
               // 文本焦点放在最后
-              focusAndSetCursorAtEnd(lastBlock.editorElement);
+              focusAndSetCursorAtEnd(prevBlock.editorElement);
             }, 1);
           },
         },
