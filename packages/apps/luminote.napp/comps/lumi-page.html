@@ -19,6 +19,7 @@
         sync:value="$data.value"
         on:enter="$host.handleEnter($data,$index)"
         on:delete="$host.handleDelete($data,$index)"
+        on:drop="$host.handleDrop($data,$index,$event)"
       ></lumi-block>
     </o-fill>
   </div>
@@ -73,6 +74,25 @@
               // 文本焦点放在最后
               focusAndSetCursorAtEnd(prevBlock.editorElement);
             }, 1);
+          },
+          handleDrop(data, index, event) {
+            if (!event.data) {
+              // 会触发两次
+              return;
+            }
+
+            const { sourceData } = event.data;
+
+            // 查看元数据是不是在contents上，是的话相当于剪切
+            const sourceIndex = this.contents.indexOf(sourceData);
+
+            if (sourceIndex !== -1) {
+              this.contents.splice(sourceIndex, 1);
+            }
+
+            const currentIndex = this.contents.indexOf(data);
+
+            this.contents.splice(currentIndex + 1, 0, sourceData);
           },
         },
         attached() {
