@@ -37,8 +37,8 @@
     }
     .inputer-content {
       display: block;
-      padding: 8px;
-      line-height: 1.4em;
+      padding: 6px 8px;
+      line-height: 1.6em;
       outline: none;
     }
 
@@ -84,6 +84,20 @@
     .dragovering-mark.show {
       opacity: 1;
     }
+
+    .left-menu {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 2;
+    }
+
+    .left-menu n-local-icon {
+      display: block;
+      margin-right: 8px;
+      font-size: 16px;
+      color: var(--md-sys-color-primary);
+    }
   </style>
   <div
     class="inputer"
@@ -98,11 +112,61 @@
         variant="text"
         on:mousedown="handleMousedown"
         on:mouseup="handleMouseup"
+        on:click="handleClickLeftMenu"
       >
         <n-local-icon name="menu"></n-local-icon>
       </p-button>
       <div class="inputer-tips">拖拽或点击</div>
     </div>
+
+    <p-menu attr:open="leftMenuOpen ? 'on' : 'off'" class="left-menu">
+      <p-menu-item>
+        <n-local-icon name="exchange" slot="prefix"></n-local-icon>
+        更改组件
+
+        <p-menu>
+          <p-menu-item active-item>
+            <n-local-icon name="p" slot="prefix"></n-local-icon>
+            段落
+          </p-menu-item>
+          <p-menu-item>
+            <n-local-icon name="h1" slot="prefix"></n-local-icon>
+            大标题
+          </p-menu-item>
+          <p-menu-item>
+            <n-local-icon name="h2" slot="prefix"></n-local-icon>
+            中标题
+          </p-menu-item>
+          <p-menu-item>
+            <n-local-icon name="h3" slot="prefix"></n-local-icon>
+            小标题
+          </p-menu-item>
+        </p-menu>
+      </p-menu-item>
+      <p-menu-item>
+        <n-local-icon name="color" slot="prefix"></n-local-icon>
+        更改颜色
+      </p-menu-item>
+      <hr />
+      <p-menu-item>
+        <n-local-icon name="copy" slot="prefix"></n-local-icon>
+        拷贝
+      </p-menu-item>
+      <p-menu-item>
+        <n-local-icon name="duplicate" slot="prefix"></n-local-icon>
+        创建副本
+      </p-menu-item>
+      <p-menu-item>
+        <n-local-icon name="delete" slot="prefix"></n-local-icon>
+        删除
+      </p-menu-item>
+      <hr />
+      <p-menu-item>
+        <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
+        润色
+      </p-menu-item>
+    </p-menu>
+
     <span class="placeholder" class:show="inFocus && !value">
       输入文本，按 "/" 启用指令
     </span>
@@ -118,9 +182,21 @@
     <div class="dragovering-mark" class:show="dragovering"></div>
   </div>
   <script>
+    // 焦点中的元素
     let oldFocus = null;
 
+    // 打开的左侧菜单元素
+    let oldOpenedLeftMenuEl = null;
+
+    // 拖拽中的元素
     let dragStartEl = null;
+
+    document.body.addEventListener("click", () => {
+      if (oldOpenedLeftMenuEl) {
+        oldOpenedLeftMenuEl.leftMenuOpen = false;
+        oldOpenedLeftMenuEl = null;
+      }
+    });
 
     export default async ({ load }) => {
       return {
@@ -130,10 +206,20 @@
           value: "",
           inFocus: false,
           dragovering: false,
+          leftMenuOpen: false,
         },
         proto: {
           focus() {
             this.shadow.$(".inputer-content").ele.focus();
+          },
+          handleClickLeftMenu() {
+            this.leftMenuOpen = !this.leftMenuOpen;
+
+            if (oldOpenedLeftMenuEl) {
+              oldOpenedLeftMenuEl.leftMenuOpen = false;
+            }
+
+            oldOpenedLeftMenuEl = this;
           },
           handleMousedown() {
             let startFunc, endFunc;
@@ -214,16 +300,24 @@
                 // dragStartEl,
               },
             });
-
-            console.log("drop", e);
           },
         },
         attached() {
-          this.on("click", (e) => e.stopPropagation());
+          this.on("click", (e) => {
+            e.stopPropagation();
+            if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
+              oldOpenedLeftMenuEl.leftMenuOpen = false;
+              oldOpenedLeftMenuEl = null;
+            }
+          });
         },
         detached() {
           if (oldFocus === this) {
             oldFocus = null;
+          }
+
+          if (oldOpenedLeftMenuEl === this) {
+            oldOpenedLeftMenuEl = null;
           }
         },
       };
