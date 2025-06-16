@@ -125,19 +125,31 @@
         更改组件
 
         <p-menu>
-          <p-menu-item active-item>
+          <p-menu-item
+            attr:active-item="type === 'paragraph'"
+            on:click="handleChangeType('paragraph')"
+          >
             <n-local-icon name="p" slot="prefix"></n-local-icon>
             段落
           </p-menu-item>
-          <p-menu-item>
+          <p-menu-item
+            attr:active-item="type === 'h1'"
+            on:click="handleChangeType('h1')"
+          >
             <n-local-icon name="h1" slot="prefix"></n-local-icon>
             大标题
           </p-menu-item>
-          <p-menu-item>
+          <p-menu-item
+            attr:active-item="type === 'h2'"
+            on:click="handleChangeType('h2')"
+          >
             <n-local-icon name="h2" slot="prefix"></n-local-icon>
             中标题
           </p-menu-item>
-          <p-menu-item>
+          <p-menu-item
+            attr:active-item="type === 'h3'"
+            on:click="handleChangeType('h3')"
+          >
             <n-local-icon name="h3" slot="prefix"></n-local-icon>
             小标题
           </p-menu-item>
@@ -202,20 +214,28 @@
       return {
         tag: "lumi-block",
         data: {
-          type: "",
+          type: "paragraph",
           value: "",
           inFocus: false,
           dragovering: false,
           leftMenuOpen: false,
+          childs: [], // 子元素
+        },
+        watch: {
+          type(type) {},
         },
         proto: {
+          handleChangeType(type) {
+            this.type = type;
+            this.leftMenuOpen = false;
+          },
           focus() {
             this.shadow.$(".inputer-content").ele.focus();
           },
           handleClickLeftMenu() {
             this.leftMenuOpen = !this.leftMenuOpen;
 
-            if (oldOpenedLeftMenuEl) {
+            if (oldOpenedLeftMenuEl !== this) {
               oldOpenedLeftMenuEl.leftMenuOpen = false;
             }
 
