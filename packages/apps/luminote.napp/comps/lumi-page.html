@@ -4,7 +4,6 @@
     :host {
       display: block;
       margin: 0 auto;
-      /* background-color: rgba(0, 128, 0, 0.3); */
     }
     .container {
       display: flex;
@@ -107,7 +106,7 @@
             const fillEl = this.shadow.$("#lumi-fill-el");
 
             if (fillEl.length > 1) {
-              fillEl[fillEl.length - 1].focus();
+              focusAndSetCursorAtEnd(fillEl[fillEl.length - 1].editorElement);
             }
           });
         },
