@@ -1,0 +1,38 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    [type="h1"] {
+      font-size: 30px;
+      font-weight: 600;
+    }
+    [type="h2"] {
+      font-size: 24px;
+      font-weight: 600;
+    }
+    [type="h3"] {
+      font-size: 20px;
+      font-weight: 600;
+    }
+  </style>
+  <div attr:type="type">
+    <slot></slot>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-fake",
+        data: {
+          type: "",
+        },
+        watch: {
+          type(type) {
+            // 当使用自定义组件的时候，在这里添加
+          },
+        },
+      };
+    };
+  </script>
+</template>

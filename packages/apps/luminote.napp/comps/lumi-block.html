@@ -2,6 +2,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="./lumi-fake.html"></l-m>
   <style>
     :host {
       display: block;
@@ -98,9 +99,14 @@
       font-size: 16px;
       color: var(--md-sys-color-primary);
     }
+
+    .openedmenu {
+      background-color: var(--md-ref-palette-translucent-primary60);
+    }
   </style>
   <div
     class="inputer"
+    class:openedmenu="leftMenuOpen"
     on:dragover="handleDargover"
     on:dragleave="dragovering = false"
     on:drop="handleDrop"
@@ -182,15 +188,17 @@
     <span class="placeholder" class:show="inFocus && !value">
       输入文本，按 "/" 启用指令
     </span>
-    <div
-      class="inputer-content"
-      class:dragovering="dragovering"
-      contenteditable
-      on:input="handleInput"
-      on:keydown="handleKeyDown"
-      :html="value"
-      on:focus="handleFocus"
-    ></div>
+    <lumi-fake :type="type">
+      <div
+        class="inputer-content"
+        class:dragovering="dragovering"
+        contenteditable
+        on:input="handleInput"
+        on:keydown="handleKeyDown"
+        :html="value"
+        on:focus="handleFocus"
+      ></div>
+    </lumi-fake>
     <div class="dragovering-mark" class:show="dragovering"></div>
   </div>
   <script>
@@ -200,14 +208,19 @@
     // 打开的左侧菜单元素
     let oldOpenedLeftMenuEl = null;
 
-    // 拖拽中的元素
-    let dragStartEl = null;
-
-    document.body.addEventListener("click", () => {
+    // 清除左侧菜单
+    const clearLeftMenu = () => {
       if (oldOpenedLeftMenuEl) {
         oldOpenedLeftMenuEl.leftMenuOpen = false;
         oldOpenedLeftMenuEl = null;
       }
+    };
+
+    // 拖拽中的元素
+    let dragStartEl = null;
+
+    document.body.addEventListener("click", () => {
+      clearLeftMenu();
     });
 
     export default async ({ load }) => {
@@ -221,9 +234,6 @@
           leftMenuOpen: false,
           childs: [], // 子元素
         },
-        watch: {
-          type(type) {},
-        },
         proto: {
           handleChangeType(type) {
             this.type = type;
@@ -235,8 +245,8 @@
           handleClickLeftMenu() {
             this.leftMenuOpen = !this.leftMenuOpen;
 
-            if (oldOpenedLeftMenuEl !== this) {
-              oldOpenedLeftMenuEl.leftMenuOpen = false;
+            if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
+              clearLeftMenu();
             }
 
             oldOpenedLeftMenuEl = this;
@@ -247,6 +257,7 @@
             this.on(
               "dragstart",
               (startFunc = (e) => {
+                clearLeftMenu();
                 dragStartEl = this;
                 console.log("dragstart", e);
               })
@@ -270,6 +281,9 @@
             if (oldFocus) {
               oldFocus.inFocus = false;
             }
+
+            clearLeftMenu();
+
             this.inFocus = true;
             oldFocus = this;
           },
@@ -326,8 +340,7 @@
           this.on("click", (e) => {
             e.stopPropagation();
             if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
-              oldOpenedLeftMenuEl.leftMenuOpen = false;
-              oldOpenedLeftMenuEl = null;
+              clearLeftMenu();
             }
           });
         },
