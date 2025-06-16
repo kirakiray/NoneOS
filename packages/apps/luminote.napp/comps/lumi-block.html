@@ -12,12 +12,14 @@
       position: relative;
       display: block;
       max-width: 800px;
-      margin: 0 auto;
+      margin: 1px auto;
+      /* background-color: red; */
     }
     .menu-btn {
       display: inline-block;
       position: absolute;
-      top: 4px;
+      /* top: 4px; */
+      /* top: 20%; */
       left: -30px;
       opacity: 0;
     }
@@ -227,7 +229,7 @@
       return {
         tag: "lumi-block",
         data: {
-          type: "paragraph",
+          type: "",
           value: "",
           inFocus: false,
           dragovering: false,
@@ -348,6 +350,8 @@
           if (oldFocus === this) {
             oldFocus = null;
           }
+
+          console.log("detached: ", this);
 
           if (oldOpenedLeftMenuEl === this) {
             oldOpenedLeftMenuEl = null;
