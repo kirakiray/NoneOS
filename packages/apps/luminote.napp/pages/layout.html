@@ -76,7 +76,7 @@
         </p-list-item>
       </p-list>
     </div>
-    <div class="main">
+    <div class="main" on:active-article="handleActiveArticle">
       <slot></slot>
     </div>
     <!-- <div class="right"></div> -->
@@ -93,10 +93,13 @@
         },
         proto: {
           handleClickArticle(data) {
-            debugger;
+            this.app.goto(`./pages/note.html?article_id=${data._dataId}`);
           },
           handleAddNote(e) {
             e.stopPropagation();
+          },
+          handleActiveArticle(e) {
+            this.currentArticleDataId = e.data.articleId;
           },
         },
         attached() {
@@ -141,7 +144,6 @@
               ];
             }
 
-            // this.currentArticleDataId = articleData.main[0]._dataId;
             this.app._articleData = articleData;
 
             this.articles = articleData.main;

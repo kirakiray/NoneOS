@@ -12,14 +12,22 @@
       /* background-color: rgba(0, 0, 255, 0.3); */
     }
   </style>
-  <div></div>
-  <lumi-page style="height: 100%"></lumi-page>
+  <div>首页</div>
+  <!-- <lumi-page style="height: 100%"></lumi-page> -->
   <script>
     export const parent = "./layout.html";
 
     export default async () => {
       return {
         data: {},
+        attached() {
+          this.emit("active-article", {
+            composed: true,
+            data: {
+              articleId: null,
+            },
+          });
+        },
       };
     };
   </script>

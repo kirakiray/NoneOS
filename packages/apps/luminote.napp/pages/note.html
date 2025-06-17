@@ -18,10 +18,20 @@
     export const parent = "./layout.html";
 
     export default async ({ load, query }) => {
-      debugger;
+      const { article_id } = query;
 
       return {
-        data: {},
+        data: {
+          articleId: article_id,
+        },
+        attached() {
+          this.emit("active-article", {
+            composed: true,
+            data: {
+              articleId: article_id,
+            },
+          });
+        },
       };
     };
   </script>
