@@ -23,7 +23,9 @@
       return {
         data: {
           articleId: article_id,
-          itemData: {},
+          itemData: {
+            title: "loading...",
+          },
         },
         proto: {
           async loadArticle() {

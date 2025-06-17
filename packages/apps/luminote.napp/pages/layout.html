@@ -47,15 +47,19 @@
       margin-right: 8px;
       font-size: 18px;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
 
   <p-bind-contextmenu
     auto-close
-    on:open-menu="openSideArticleItemMenu"
+    on:click-item="handleClickMenuItem"
     style="height: 100%"
   >
     <p-menu contextmenu-selector=".article-list-item">
-      <p-menu-item>
+      <p-menu-item data-type="addNote">
         <n-local-icon
           name="add-note"
           slot="prefix"
@@ -63,7 +67,7 @@
         ></n-local-icon>
         添加子笔记
       </p-menu-item>
-      <p-menu-item>
+      <p-menu-item data-type="removeNote">
         <n-local-icon
           name="delete"
           slot="prefix"
@@ -96,13 +100,17 @@
           </p-list-item>
           <p-list-item
             button
-            attr:active-item="currentArticleDataId == 'home'"
-            on:click="clickHome"
+            attr:active-item="currentArticleDataId === 'home'"
+            on:click="goto('./home.html')"
           >
             <n-local-icon name="home" slot="prefix"></n-local-icon>
             主页
           </p-list-item>
-          <p-list-item button disabled>
+          <p-list-item
+            button
+            attr:active-item="currentArticleDataId === 'recycles'"
+            on:click="goto('./recycles.html')"
+          >
             <n-local-icon name="recycle" slot="prefix"></n-local-icon>
             回收站
           </p-list-item>
@@ -154,6 +162,8 @@
       <template name="list-item">
         <p-list-item
           class="article-list-item"
+          attr:data-id="$data._dataId"
+          class:hide="$data.removed"
           button
           attr:active-item=" $data._dataId === $host.currentArticleDataId"
           on:click="$host.handleClickArticle($data)"
@@ -181,15 +191,32 @@
           currentArticleDataId: null,
         },
         proto: {
-          openSideArticleItemMenu() {
-            // debugger;
+          async handleClickMenuItem(e) {
+            const { selected, menuItem } = e.data;
+
+            const type = menuItem.data.type;
+            const data = selected.__item.$data;
+
+            switch (type) {
+              case "removeNote":
+                debugger;
+                const { main } = await this.app._articleData;
+
+                data.removed = true; // 标识已删除
+                data.removedTime = Date.now();
+
+                break;
+              case "addNote":
+                debugger;
+                break;
+            }
+
+            console.log("selected: ", selected.ele);
+            console.log("menuItem: ", menuItem.ele);
           },
-          clickItemMenu(data, event) {
-            event.stopPropagation();
-          },
-          clickHome() {
-            this.goto("./home.html");
-          },
+          // clickItemMenu(data, event) {
+          //   event.stopPropagation();
+          // },
           handleClickArticle(data) {
             this.goto(`./note.html?article_id=${data._dataId}`);
           },
@@ -213,10 +240,13 @@
         attached() {
           this.app._articleData &&
             this.app._articleData.then((articleData) => {
+              window.articles = articleData.main;
               this.articles = articleData.main;
             });
         },
         detached() {
+          this.articles = {};
+
           this.app._articleData &&
             this.app._articleData.then((articleData) => {
               articleData.disconnect();

@@ -195,6 +195,10 @@
           this.slotchange();
         });
 
+        this.on("mousedown", (e) => {
+          e.__is_item_mousedown = true; // 标识
+        });
+
         this.on("click", (e) => {
           e.stopPropagation();
           this.emit("click-menu-item", {

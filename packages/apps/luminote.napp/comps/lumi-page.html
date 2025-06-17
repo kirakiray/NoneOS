@@ -24,14 +24,17 @@
   </style>
   <div class="container">
     <div style="height: 100px"></div>
-    <input
-      class="title"
-      type="text"
-      sync:value="itemData.title"
-      on:click="$event.stopPropagation()"
-      style="margin-bottom: 16px"
-      placeholder="页面标题"
-    />
+    <div style="margin: 0 auto; max-width: 800px; width: 100%">
+      <input
+        id="title"
+        class="title"
+        type="text"
+        sync:value="itemData.title"
+        on:click="$event.stopPropagation()"
+        style="margin-bottom: 16px"
+        placeholder="页面标题"
+      />
+    </div>
     <o-fill id="lumi-fill-el" :value="itemData.content">
       <lumi-block
         sync:type="$data.type"

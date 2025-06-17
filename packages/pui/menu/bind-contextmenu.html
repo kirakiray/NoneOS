@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="./menu.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,6 +38,31 @@
             });
           });
         },
+        proto: {
+          // 绑定全局的取消函数
+          bindBodyCancels() {
+            if (this._clearFunc) {
+              $("html").off("mousedown", this._clearFunc);
+              this._clearFunc = null;
+            }
+
+            this._clearFunc = (e) => {
+              if (e.__is_item_mousedown) {
+                return;
+              }
+
+              this.all("p-menu").forEach((menu) => {
+                menu.open = "off";
+              });
+
+              $("html").off("mousedown", this._clearFunc);
+              this._clearFunc = null;
+            };
+
+            // 点击外部环境后，取消菜单绑定
+            $("html").on("mousedown", this._clearFunc);
+          },
+        },
         attached() {
           this.all("p-menu").forEach((e) => (e.open = "off"));
 
@@ -48,6 +74,14 @@
             ) {
               this.all("p-menu").forEach((e) => (e.open = "off"));
             }
+
+            this.emit("click-item", {
+              bubbles: false,
+              data: {
+                selected: this._target,
+                menuItem: $(e.target),
+              },
+            });
           });
 
           const isSafari =
@@ -113,14 +147,6 @@
                     this._target = $target;
                   } else {
                     $target.parentsUntil(this).some((el) => {
-                      if (
-                        el.tag === "o-if" ||
-                        el.tag === "o-else" ||
-                        el.tag === "o-else-if"
-                      ) {
-                        return;
-                      }
-
                       if (el.tag && el.is(contextmenuSelector)) {
                         targetMenu = menu;
                         this._target = el;
@@ -147,7 +173,7 @@
               onlyMenu.open = "off";
             }
 
-            targetMenu.open = "";
+            targetMenu.open = "on";
             onlyMenu = targetMenu;
 
             this.emit("open-menu", {
@@ -156,6 +182,8 @@
                 menu: targetMenu,
               },
             });
+
+            this.bindBodyCancels();
 
             const { offsetX, offsetY, clientX, clientY } = e;
 
@@ -227,28 +255,9 @@
               }
             });
           });
-
-          if (!this._bindFn) {
-            this._bindFn = () => {
-              this.all("p-menu").forEach((menu) => {
-                menu.open = "off";
-              });
-
-              // $("html").off("click", this._bindFn);
-              // $("html").off("mousedown", this._bindFn);
-              // this._bindFn = null;
-            };
-
-            // 点击外部环境后，取消菜单绑定
-            // $("html").on("click", this._bindFn);
-            $("html").on("mousedown", this._bindFn);
-          }
         },
         detached() {
-          if (this._bindFn) {
-            // $("html").off("click", this._bindFn);
-            $("html").off("mousedown", this._bindFn);
-          }
+          this._clearFunc && this._clearFunc();
         },
       };
     };

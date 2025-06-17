@@ -1,0 +1,92 @@
+<template page>
+  <l-m src="/packages/pui/card/card.html"></l-m>
+  <style>
+    :host {
+      box-sizing: border-box;
+      padding: 16px 42px;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 250px);
+      gap: 16px;
+    }
+
+    .card {
+      padding: 16px;
+      border: var(--md-sys-color-primary) solid 1px;
+      border-radius: 6px;
+    }
+  </style>
+  <div style="margin: 0 auto; max-width: 800px; width: 100%">
+    <h1>回收站</h1>
+    <div class="container">
+      <o-fill :value="removeds">
+        <p-card elevated>
+          <h3>{{$data.item.title || '无标题'}}</h3>
+          <p>{{$data.item.content[0].value}}</p>
+          <p>...</p>
+        </p-card>
+      </o-fill>
+    </div>
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      const { findArticle } = await load("../util/find-article-data.js");
+
+      return {
+        data: {
+          removeds: [],
+        },
+        proto: {
+          async loadRemovedArticles() {
+            await new Promise((res) => setTimeout(res, 100));
+
+            const articleData = await this.app._articleData;
+
+            await articleData.ready();
+
+            const removeds = await findRemovedArticles(articleData.main);
+
+            this.removeds = removeds;
+          },
+        },
+        attached() {
+          this.loadRemovedArticles();
+          this.emit("active-article", {
+            composed: true,
+            data: {
+              articleId: "recycles",
+            },
+          });
+        },
+        detached() {
+          // 清除内容
+          this.removeds.splice(0, 10000);
+        },
+      };
+    };
+
+    // 查找被删除的文章
+    const findRemovedArticles = async (content) => {
+      const removeds = [];
+
+      for (let item of content) {
+        if (item.removed) {
+          removeds.push({
+            item,
+          });
+        }
+      }
+
+      return removeds;
+    };
+  </script>
+</template>
