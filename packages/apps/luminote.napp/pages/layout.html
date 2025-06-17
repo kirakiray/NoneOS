@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <style>
     :host {
       display: block;
@@ -39,11 +40,24 @@
       <div style="height: 80px"></div>
       <p-list>
         <p-list-item collapse-childs="open" button="suffix">
-          <n-local-icon
+          <!-- <n-local-icon
             name="persion"
             slot="prefix"
-            style="display: block; margin-right: 4px; font-size: 18px"
-          ></n-local-icon>
+          ></n-local-icon> -->
+          <n-id-avatar
+            val="self"
+            slot="prefix"
+            style="
+              display: block;
+              margin-right: 8px;
+              font-size: 18px;
+              width: 20px;
+              height: 20px;
+              border-radius: 4px;
+              overflow: hidden;
+              box-shadow: var(--md-sys-color-primary) 0 0 5px;
+            "
+          ></n-id-avatar>
           我的笔记
           <i toggle-collapse slot="suffix" style="display: none"></i>
           <p-button
