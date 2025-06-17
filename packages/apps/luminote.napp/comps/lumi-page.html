@@ -50,14 +50,12 @@
         },
         proto: {
           async handleEnter(data, index) {
-            const insData = $.stanz({
+            const finnalIndex = index + 1;
+
+            this.content.splice(finnalIndex, 0, {
               type: "paragraph",
               value: "",
             });
-
-            const finnalIndex = index + 1;
-
-            this.content.splice(finnalIndex, 0, insData);
 
             setTimeout(() => {
               this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
