@@ -182,14 +182,17 @@
             this.$("p-menu").open = "off";
           }
         },
-      },
-      ready() {
-        this.shadow.$("slot[data-main]").on("slotchange", () => {
+        slotchange() {
           this.hasMenu = !!this.$("p-menu");
           this.all("p-menu").forEach((e) => {
             e.open = "off";
             e.isChild = true;
           });
+        },
+      },
+      ready() {
+        this.shadow.$("slot[data-main]").on("slotchange", () => {
+          this.slotchange();
         });
 
         this.on("click", (e) => {
@@ -198,6 +201,9 @@
             data: e.target,
           });
         });
+      },
+      attached() {
+        this.slotchange();
       },
     };
   </script>

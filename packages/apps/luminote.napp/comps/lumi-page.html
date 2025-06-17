@@ -53,6 +53,9 @@
           },
         },
         proto: {
+          focusTitle() {
+            focusAndSetCursorAtEnd(this.shadow.$(".title").ele);
+          },
           async handleEnter(data, index) {
             const finnalIndex = index + 1;
 
