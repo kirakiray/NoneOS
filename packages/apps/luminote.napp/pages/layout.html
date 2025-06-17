@@ -1,4 +1,7 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -18,8 +21,11 @@
     }
 
     .left {
-      width: 200px;
-      border-right: #aaa solid 1px;
+      width: 260px;
+      /* color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-normal-container); */
+      border-right: var(--md-sys-color-normal-container) solid 1px;
+      /* border-right: #aaa solid 1px; */
     }
 
     /* .right {
@@ -29,17 +35,103 @@
   </style>
 
   <div class="container">
-    <div class="left"></div>
+    <div class="left">
+      <div style="height: 80px"></div>
+      <p-list>
+        <p-list-item collapse-childs="open" button="suffix">
+          <n-local-icon
+            name="persion"
+            slot="prefix"
+            style="display: block; margin-right: 4px; font-size: 18px"
+          ></n-local-icon>
+          我的笔记
+          <i toggle-collapse slot="suffix" style="display: none"></i>
+          <p-button
+            size="small"
+            icon
+            slot="suffix"
+            variant="text"
+            on:click="handleAddNote"
+            style="z-index: 3; position: absolute; right: 16px"
+          >
+            <n-local-icon name="add"></n-local-icon>
+          </p-button>
+
+          <p-list slot="childs" style="padding-left: 16px">
+            <o-fill :value="articles" fill-key="articleId">
+              <p-list-item
+                button
+                attr:active-item=" $data._dataId === $host.currentArticleDataId"
+              >
+                <n-local-icon
+                  name="article"
+                  slot="prefix"
+                  style="display: block; margin-right: 4px; font-size: 18px"
+                ></n-local-icon>
+                {{$data.title}}
+              </p-list-item>
+            </o-fill>
+          </p-list>
+        </p-list-item>
+      </p-list>
+    </div>
     <div class="main">
       <slot></slot>
     </div>
     <!-- <div class="right"></div> -->
   </div>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { createData } = await load("/packages/hybird-data/main.js");
+
       return {
         data: {
           title: "灵析笔记",
+          articles: [],
+          currentArticleDataId: null,
+        },
+        proto: {
+          handleAddNote(e) {
+            e.stopPropagation();
+          },
+        },
+        attached() {
+          this._article = (async () => {
+            // 获取专属文件句柄
+            const handle = await this.app.dedicatedHandle();
+
+            // 获取文章专属目录
+            const articleHandle = await handle.get("article", {
+              create: "dir",
+            });
+
+            const articleData = await createData(articleHandle);
+            await articleData.ready(true); // 准备完成
+
+            if (!articleData.main) {
+              // 尝试测试用的文章
+              articleData.main = [
+                {
+                  title: "示范页面",
+                },
+              ];
+            }
+
+            this.currentArticleDataId = articleData.main[0]._dataId;
+            this.app._articleData = articleData;
+
+            this.articles = articleData.main;
+
+            console.log("articleData:", articleData);
+
+            return articleData;
+          })();
+        },
+        detached() {
+          this._article &&
+            this._article.then((articleData) => {
+              articleData.disconnect();
+            });
         },
       };
     };
