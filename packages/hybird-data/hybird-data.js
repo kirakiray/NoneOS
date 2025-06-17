@@ -55,7 +55,9 @@ export class HybirdData extends Stanz {
       this.#dataId = "_root";
       this[ROOTMAPPER] = new Map();
 
-      this.#initRoot();
+      this.#initRoot({
+        saveDebounce: options.saveDebounce,
+      });
     } else {
       // TODO: 不明白的情况
       debugger;
@@ -63,7 +65,7 @@ export class HybirdData extends Stanz {
   }
 
   // 初始化根对象的
-  async #initRoot() {
+  async #initRoot(options = {}) {
     let handle = await this._spaceHandle.get(this.#dataId, {
       create: "file",
     });
@@ -114,7 +116,7 @@ export class HybirdData extends Stanz {
       watchs.forEach((watcher) => {
         saveData(watcher.target); // 保存数据
       });
-    });
+    }, options.saveDebounce || 0);
 
     Object.defineProperties(this, {
       // 注销监听

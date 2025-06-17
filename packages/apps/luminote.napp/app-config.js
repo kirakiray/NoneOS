@@ -33,7 +33,9 @@ export default async ({ load }) => {
           create: "dir",
         });
 
-        const articleData = await createData(articleHandle);
+        const articleData = await createData(articleHandle, {
+          saveDebounce: 500,
+        });
         await articleData.ready(true); // 准备完成
 
         if (!articleData.main) {
