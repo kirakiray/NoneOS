@@ -9,6 +9,10 @@ Object.defineProperties($.fn, {
         throw new Error("dedicatedHandle can only be used on o-app component");
       }
 
+      if (!this.length) {
+        await new Promise((resolve) => setTimeout(resolve, 100)); // 获取文件数据依赖第一个page元素的src
+      }
+
       const mark = getAppMark(this);
 
       const { get } = await load("/packages/fs/main.js");
@@ -21,12 +25,16 @@ Object.defineProperties($.fn, {
   },
   // 获取远端设备同属app的专属handle
   dedicatedRemoteHandle: {
-    async value(targetUserId) {
+    async value() {
       if (this.tag !== "o-app") {
         throw new Error(
           "dedicatedRemoteHandle can only be used on o-app component"
         );
       }
+      if (!this.length) {
+        await new Promise((resolve) => setTimeout(resolve, 100)); // 获取文件数据依赖第一个page元素的src
+      }
+
       const mark = getAppMark(this);
 
       const { getServers } = await load("/packages/user/hand-server/main.js");
@@ -121,11 +129,7 @@ Object.defineProperties($.fn, {
 const getAppMark = (app) => {
   const firstPage = app[0];
 
-  const { baseURI } = app.ele;
-
-  const appConfigUrl = baseURI.replace(/#.+/, "");
-
-  const nappArr = appConfigUrl.split("/").filter((e) => e.endsWith(".napp"));
+  const nappArr = firstPage.src.split("/").filter((e) => e.endsWith(".napp"));
   const mark = nappArr.map((e) => e.replace(/\.napp$/, "")).join("-");
   return mark;
 };
