@@ -9,7 +9,7 @@ Object.defineProperties($.fn, {
         throw new Error("dedicatedHandle can only be used on o-app component");
       }
 
-      const mark = getAppMark(this[0]);
+      const mark = getAppMark(this);
 
       const { get } = await load("/packages/fs/main.js");
 
@@ -27,7 +27,7 @@ Object.defineProperties($.fn, {
           "dedicatedRemoteHandle can only be used on o-app component"
         );
       }
-      const mark = getAppMark(this[0]);
+      const mark = getAppMark(this);
 
       const { getServers } = await load("/packages/user/hand-server/main.js");
 
@@ -119,7 +119,13 @@ Object.defineProperties($.fn, {
 });
 
 const getAppMark = (app) => {
-  const nappArr = app.src.split("/").filter((e) => e.endsWith(".napp"));
+  const firstPage = app[0];
+
+  const { baseURI } = app.ele;
+
+  const appConfigUrl = baseURI.replace(/#.+/, "");
+
+  const nappArr = appConfigUrl.split("/").filter((e) => e.endsWith(".napp"));
   const mark = nappArr.map((e) => e.replace(/\.napp$/, "")).join("-");
   return mark;
 };

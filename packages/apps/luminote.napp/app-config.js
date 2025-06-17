@@ -23,6 +23,8 @@ export default async ({ load }) => {
   return {
     ready() {
       this._articleData = (async () => {
+        // await new Promise((res) => setTimeout(res, 100));
+
         // 获取专属文件句柄
         const handle = await this.dedicatedHandle();
 

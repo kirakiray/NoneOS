@@ -13,7 +13,7 @@
     }
   </style>
   <div></div>
-  <lumi-page style="height: 100%"></lumi-page>
+  <lumi-page :content="content" style="height: 100%"></lumi-page>
   <script>
     export const parent = "./layout.html";
 
@@ -23,12 +23,20 @@
       return {
         data: {
           articleId: article_id,
+          content: [],
         },
         proto: {
           async loadArticle() {
             const articleData = await this.app._articleData;
 
-            debugger;
+            // 查找对应文章
+            const target = articleData.main.find((e) => {
+              return e._dataId === article_id;
+            });
+
+            if (target) {
+              this.content = target.content;
+            }
           },
         },
         attached() {
