@@ -56,6 +56,13 @@
           focusTitle() {
             focusAndSetCursorAtEnd(this.shadow.$(".title").ele);
           },
+          focusLast() {
+            setTimeout(() => {
+              focusAndSetCursorAtEnd(
+                this.shadow.$("#lumi-fill-el").slice(-1)[0].editorElement
+              );
+            }, 100);
+          },
           async handleEnter(data, index) {
             const finnalIndex = index + 1;
 
