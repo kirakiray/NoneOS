@@ -57,25 +57,32 @@
             <n-local-icon name="add"></n-local-icon>
           </p-button>
 
-          <p-list slot="childs" style="padding-left: 16px">
-            <o-fill :value="articles" fill-key="articleId">
-              <p-list-item
-                button
-                attr:active-item=" $data._dataId === $host.currentArticleDataId"
-                on:click="$host.handleClickArticle($data)"
-              >
-                <n-local-icon
-                  name="article"
-                  slot="prefix"
-                  style="display: block; margin-right: 4px; font-size: 18px"
-                ></n-local-icon>
-                {{$data.title}}
-              </p-list-item>
-            </o-fill>
+          <p-list slot="childs" style="--ladder-left: 8px">
+            <o-fill
+              :value="articles"
+              name="list-item"
+              fill-key="_dataId"
+            ></o-fill>
           </p-list>
         </p-list-item>
       </p-list>
     </div>
+
+    <template name="list-item">
+      <p-list-item
+        button
+        attr:active-item=" $data._dataId === $host.currentArticleDataId"
+        on:click="$host.handleClickArticle($data)"
+      >
+        <n-local-icon
+          name="article"
+          slot="prefix"
+          style="display: block; margin-right: 4px; font-size: 18px"
+        ></n-local-icon>
+        {{$data.title}}
+      </p-list-item>
+    </template>
+
     <div class="main" on:active-article="handleActiveArticle">
       <slot></slot>
     </div>
