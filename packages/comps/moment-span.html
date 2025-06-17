@@ -25,8 +25,9 @@
     refresh();
 
     export default async ({ load }) => {
-      const { getLang } = await load("/packages/i18n/data.js");
-      if (getLang() === "cn") {
+      const { getLangAsync } = await load("/packages/i18n/data.js");
+
+      if ((await getLangAsync()) === "cn") {
         await load("/packages/libs/moment/zh-cn.js");
         moment.locale("zh-cn");
       }

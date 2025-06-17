@@ -61,6 +61,12 @@ const listeners = [];
 let oldLang = null;
 export const getLang = () => oldLang;
 
+export const getLangAsync = async () => {
+  const settingData = await getSetting();
+
+  return settingData.lang;
+};
+
 (async () => {
   const settingData = await getSetting();
 

@@ -1,5 +1,8 @@
 <template page>
   <l-m src="/packages/pui/card/card.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
   <style>
     :host {
       box-sizing: border-box;
@@ -22,6 +25,12 @@
       border: var(--md-sys-color-primary) solid 1px;
       border-radius: 6px;
     }
+
+    n-local-icon {
+      display: block;
+      margin-right: 2px;
+      font-size: 16px;
+    }
   </style>
   <div style="margin: 0 auto; max-width: 800px; width: 100%">
     <h1>回收站</h1>
@@ -29,8 +38,35 @@
       <o-fill :value="removeds">
         <p-card elevated>
           <h3>{{$data.item.title || '无标题'}}</h3>
+          <div style="font-size: 12px">
+            删除时间:
+            <n-moment-span
+              :time="$data.item.removedTime"
+              style="color: var(--md-sys-color-error)"
+            ></n-moment-span>
+          </div>
           <p>{{$data.item.content[0].value}}</p>
           <p>...</p>
+          <div style="display: flex">
+            <p-button
+              size="small"
+              variant="outlined"
+              on:click="$host.clickRevert($data,$index)"
+              style="margin: 0 8px 0 auto"
+            >
+              <n-local-icon name="revert" slot="prefix"></n-local-icon>
+              还原
+            </p-button>
+            <p-button
+              size="small"
+              color="error"
+              variant="outlined"
+              on:click="$host.clickRemove($data,$index)"
+            >
+              <n-local-icon name="delete" slot="prefix"></n-local-icon>
+              彻底删除
+            </p-button>
+          </div>
         </p-card>
       </o-fill>
     </div>
@@ -39,13 +75,42 @@
     export const parent = "./layout.html";
 
     export default async ({ load }) => {
-      const { findArticle } = await load("../util/find-article-data.js");
+      // const { findArticle } = await load("../util/find-article-data.js");
+      const { confirm } = await load("/packages/pui/util.js");
 
       return {
         data: {
           removeds: [],
         },
         proto: {
+          async clickRevert(data, index) {
+            data.item.removed = undefined;
+            data.item.removedTime = undefined;
+
+            // 从removeds中也删除
+            this.removeds.splice(index, 1);
+          },
+          async clickRemove(data, index) {
+            const result = await confirm({
+              content: `确认要删除 "${data.item.title}"？该操作不可撤销。`,
+              color: "error",
+              yes: "是的，删除",
+              cancel: "先不要",
+            });
+
+            if (!result) {
+              return;
+            }
+
+            // 彻底删除
+            const targetIndex = data._parent.findIndex((e) => e === data.item);
+            if (targetIndex > -1) {
+              data._parent.splice(targetIndex, 1);
+            }
+
+            // 从removeds中也删除
+            this.removeds.splice(index, 1);
+          },
           async loadRemovedArticles() {
             await new Promise((res) => setTimeout(res, 100));
 
@@ -81,6 +146,7 @@
       for (let item of content) {
         if (item.removed) {
           removeds.push({
+            _parent: content,
             item,
           });
         }
