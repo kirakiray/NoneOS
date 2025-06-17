@@ -24,6 +24,13 @@
         data: {
           articleId: article_id,
         },
+        proto: {
+          async loadArticle() {
+            const articleData = await this.app._articleData;
+
+            debugger;
+          },
+        },
         attached() {
           this.emit("active-article", {
             composed: true,
@@ -31,6 +38,8 @@
               articleId: article_id,
             },
           });
+
+          this.loadArticle();
         },
       };
     };
