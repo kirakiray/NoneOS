@@ -62,6 +62,7 @@
               <p-list-item
                 button
                 attr:active-item=" $data._dataId === $host.currentArticleDataId"
+                on:click="$host.handleClickArticle($data)"
               >
                 <n-local-icon
                   name="article"
@@ -91,6 +92,9 @@
           currentArticleDataId: null,
         },
         proto: {
+          handleClickArticle(data) {
+            debugger;
+          },
           handleAddNote(e) {
             e.stopPropagation();
           },
@@ -113,11 +117,31 @@
               articleData.main = [
                 {
                   title: "示范页面",
+                  content: [
+                    {
+                      type: "h1",
+                      value: "基本的文本编辑功能：加粗、斜体、下划线和插入图片",
+                    },
+                    {
+                      type: "paragraph",
+                      value:
+                        "您可以通过继承 TextEditor 类来扩展这个编辑器的功能，或者直接使用它作为一个简单的富文本编辑器。",
+                    },
+                    {
+                      type: "paragraph",
+                      value:
+                        "如果您需要添加更多功能，比如字体大小、颜色选择、列表等，可以在工具栏中添加相应的按钮，并在 handleToolbarAction 方法中实现相应的功能。",
+                    },
+                    {
+                      type: "paragraph",
+                      value: "",
+                    },
+                  ],
                 },
               ];
             }
 
-            this.currentArticleDataId = articleData.main[0]._dataId;
+            // this.currentArticleDataId = articleData.main[0]._dataId;
             this.app._articleData = articleData;
 
             this.articles = articleData.main;

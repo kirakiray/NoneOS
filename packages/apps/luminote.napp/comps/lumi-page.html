@@ -12,7 +12,7 @@
   </style>
   <div class="container">
     <div style="height: 100px"></div>
-    <o-fill id="lumi-fill-el" :value="contents">
+    <o-fill id="lumi-fill-el" :value="content">
       <lumi-block
         sync:type="$data.type"
         sync:value="$data.value"
@@ -27,7 +27,7 @@
       return {
         tag: "lumi-page",
         data: {
-          contents: [
+          content: [
             {
               type: "h1",
               value: "基本的文本编辑功能：加粗、斜体、下划线和插入图片",
@@ -57,14 +57,14 @@
 
             const finnalIndex = index + 1;
 
-            this.contents.splice(finnalIndex, 0, insData);
+            this.content.splice(finnalIndex, 0, insData);
 
             setTimeout(() => {
               this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
             }, 1);
           },
           async handleDelete(data, index) {
-            this.contents.splice(index, 1);
+            this.content.splice(index, 1);
 
             setTimeout(() => {
               const fillEl = this.shadow.$("#lumi-fill-el");
@@ -84,21 +84,21 @@
 
             const { sourceData } = event.data;
 
-            // 查看元数据是不是在contents上，是的话相当于剪切
-            const sourceIndex = this.contents.indexOf(sourceData);
+            // 查看元数据是不是在content上，是的话相当于剪切
+            const sourceIndex = this.content.indexOf(sourceData);
 
             if (sourceIndex !== -1) {
-              this.contents.splice(sourceIndex, 1);
+              this.content.splice(sourceIndex, 1);
             }
 
-            const currentIndex = this.contents.indexOf(data);
+            const currentIndex = this.content.indexOf(data);
 
-            this.contents.splice(currentIndex + 1, 0, sourceData);
+            this.content.splice(currentIndex + 1, 0, sourceData);
           },
         },
         attached() {
-          this.contents.watchTick(() => {
-            console.log("contents: ", this.contents.toJSON());
+          this.content.watchTick(() => {
+            console.log("content: ", this.content.toJSON());
           });
 
           this.on("click", (e) => {
