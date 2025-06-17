@@ -9,10 +9,30 @@
       display: flex;
       flex-direction: column;
     }
+
+    .title {
+      font-size: 40px;
+      font-weight: 700;
+      margin: 0 6px;
+      outline: none;
+      background-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      border: none;
+      color: inherit;
+    }
   </style>
   <div class="container">
     <div style="height: 100px"></div>
-    <o-fill id="lumi-fill-el" :value="content">
+    <input
+      class="title"
+      type="text"
+      sync:value="itemData.title"
+      on:click="$event.stopPropagation()"
+      style="margin-bottom: 16px"
+      placeholder="页面标题"
+    />
+    <o-fill id="lumi-fill-el" :value="itemData.content">
       <lumi-block
         sync:type="$data.type"
         sync:value="$data.value"
@@ -27,13 +47,16 @@
       return {
         tag: "lumi-page",
         data: {
-          content: [],
+          itemData: {
+            // title: "",
+            // content: [],
+          },
         },
         proto: {
           async handleEnter(data, index) {
             const finnalIndex = index + 1;
 
-            this.content.splice(finnalIndex, 0, {
+            this.itemData.content.splice(finnalIndex, 0, {
               type: "paragraph",
               value: "",
             });
@@ -43,7 +66,7 @@
             }, 1);
           },
           async handleDelete(data, index) {
-            this.content.splice(index, 1);
+            this.itemData.content.splice(index, 1);
 
             setTimeout(() => {
               const fillEl = this.shadow.$("#lumi-fill-el");
@@ -64,22 +87,18 @@
             const { sourceData } = event.data;
 
             // 查看元数据是不是在content上，是的话相当于剪切
-            const sourceIndex = this.content.indexOf(sourceData);
+            const sourceIndex = this.itemData.content.indexOf(sourceData);
 
             if (sourceIndex !== -1) {
-              this.content.splice(sourceIndex, 1);
+              this.itemData.content.splice(sourceIndex, 1);
             }
 
-            const currentIndex = this.content.indexOf(data);
+            const currentIndex = this.itemData.content.indexOf(data);
 
-            this.content.splice(currentIndex + 1, 0, sourceData);
+            this.itemData.content.splice(currentIndex + 1, 0, sourceData);
           },
         },
         attached() {
-          this.content.watchTick(() => {
-            console.log("content: ", this.content.toJSON());
-          });
-
           this.on("click", (e) => {
             // 最后面聚焦
             const fillEl = this.shadow.$("#lumi-fill-el");
@@ -88,6 +107,9 @@
               focusAndSetCursorAtEnd(fillEl[fillEl.length - 1].editorElement);
             }
           });
+        },
+        detached() {
+          this.itemData = {}; // 清除绑定
         },
       };
     };

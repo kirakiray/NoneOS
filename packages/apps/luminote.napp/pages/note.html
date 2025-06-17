@@ -13,7 +13,7 @@
     }
   </style>
   <div></div>
-  <lumi-page :content="content" style="height: 100%"></lumi-page>
+  <lumi-page :item-data="itemData" style="height: 100%"></lumi-page>
   <script>
     export const parent = "./layout.html";
 
@@ -23,7 +23,7 @@
       return {
         data: {
           articleId: article_id,
-          content: [],
+          itemData: {},
         },
         proto: {
           async loadArticle() {
@@ -34,9 +34,7 @@
               return e._dataId === article_id;
             });
 
-            if (target) {
-              this.content = target.content;
-            }
+            this.itemData = target;
           },
         },
         attached() {
@@ -48,6 +46,9 @@
           });
 
           this.loadArticle();
+        },
+        detached() {
+          this.itemData = {};
         },
       };
     };

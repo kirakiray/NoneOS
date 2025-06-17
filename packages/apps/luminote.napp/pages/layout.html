@@ -162,6 +162,16 @@
           },
           handleAddNote(e) {
             e.stopPropagation();
+
+            this.articles.push({
+              title: "",
+              content: [
+                {
+                  type: "paragraph",
+                  value: "asdasdasd",
+                },
+              ],
+            });
           },
           handleActiveArticle(e) {
             this.currentArticleDataId = e.data.articleId;
