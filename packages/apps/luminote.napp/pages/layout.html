@@ -23,6 +23,7 @@
 
     .left {
       width: 260px;
+      padding: 0 8px;
       /* color: var(--md-sys-color-on-normal-container);
       background-color: var(--md-sys-color-normal-container); */
       border-right: var(--md-sys-color-normal-container) solid 1px;
@@ -33,17 +34,60 @@
       width: 200px;
       border-left: #bbb solid 1px;
     } */
+
+    p-list-item {
+      border-radius: 16px;
+      margin: 2px 0;
+    }
+
+    p-list-item > n-local-icon[slot="prefix"] {
+      display: block;
+      margin-right: 8px;
+      font-size: 18px;
+    }
   </style>
 
   <div class="container">
     <div class="left">
-      <div style="height: 80px"></div>
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          font-size: 18px;
+          font-weight: bold;
+          margin: 12px 4px;
+        "
+      >
+        <img
+          src="../icon.svg"
+          style="display: block; height: 36px; margin-right: 6px"
+        />
+        Luminote
+      </div>
+      <p-list style="margin-bottom: 18px">
+        <p-list-item button>
+          <n-local-icon name="search" slot="prefix"></n-local-icon>
+          搜索
+        </p-list-item>
+        <p-list-item
+          button
+          attr:active-item="currentArticleDataId == 'home'"
+          on:click="clickHome"
+        >
+          <n-local-icon name="home" slot="prefix"></n-local-icon>
+          主页
+        </p-list-item>
+        <p-list-item button>
+          <n-local-icon name="recycle" slot="prefix"></n-local-icon>
+          回收站
+        </p-list-item>
+        <p-list-item button>
+          <n-local-icon name="config" slot="prefix"></n-local-icon>
+          设置
+        </p-list-item>
+      </p-list>
       <p-list>
         <p-list-item collapse-childs="open" button="suffix">
-          <!-- <n-local-icon
-            name="persion"
-            slot="prefix"
-          ></n-local-icon> -->
           <n-id-avatar
             val="self"
             slot="prefix"
@@ -110,8 +154,11 @@
           currentArticleDataId: null,
         },
         proto: {
+          clickHome() {
+            this.goto("./home.html");
+          },
           handleClickArticle(data) {
-            this.app.goto(`./pages/note.html?article_id=${data._dataId}`);
+            this.goto(`./note.html?article_id=${data._dataId}`);
           },
           handleAddNote(e) {
             e.stopPropagation();
