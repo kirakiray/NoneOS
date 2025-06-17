@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <style>
     :host {
       display: block;
@@ -40,112 +41,138 @@
       margin: 2px 0;
     }
 
-    p-list-item > n-local-icon[slot="prefix"] {
+    p-list-item > n-local-icon[slot="prefix"],
+    p-menu-item > n-local-icon[slot="prefix"] {
       display: block;
       margin-right: 8px;
       font-size: 18px;
     }
   </style>
 
-  <div class="container">
-    <div class="left">
-      <div
-        style="
-          display: flex;
-          align-items: center;
-          font-size: 18px;
-          font-weight: bold;
-          margin: 12px 4px;
-        "
-      >
-        <img
-          src="../icon.svg"
-          style="display: block; height: 36px; margin-right: 6px"
-        />
-        Luminote
-      </div>
-      <p-list style="margin-bottom: 18px">
-        <p-list-item button disabled>
-          <n-local-icon name="search" slot="prefix"></n-local-icon>
-          搜索
-        </p-list-item>
-        <p-list-item
-          button
-          attr:active-item="currentArticleDataId == 'home'"
-          on:click="clickHome"
-        >
-          <n-local-icon name="home" slot="prefix"></n-local-icon>
-          主页
-        </p-list-item>
-        <p-list-item button disabled>
-          <n-local-icon name="recycle" slot="prefix"></n-local-icon>
-          回收站
-        </p-list-item>
-        <p-list-item button disabled>
-          <n-local-icon name="config" slot="prefix"></n-local-icon>
-          设置
-        </p-list-item>
-      </p-list>
-      <p-list>
-        <p-list-item collapse-childs="open" button="suffix">
-          <n-id-avatar
-            val="self"
-            slot="prefix"
-            style="
-              display: block;
-              margin-right: 8px;
-              font-size: 18px;
-              width: 20px;
-              height: 20px;
-              border-radius: 4px;
-              overflow: hidden;
-              box-shadow: var(--md-sys-color-primary) 0 0 5px;
-            "
-          ></n-id-avatar>
-          我的笔记
-          <i toggle-collapse slot="suffix" style="display: none"></i>
-          <p-button
-            size="small"
-            icon
-            slot="suffix"
-            variant="text"
-            on:click="handleAddNote"
-            style="z-index: 3; position: absolute; right: 16px"
-          >
-            <n-local-icon name="add"></n-local-icon>
-          </p-button>
-
-          <p-list slot="childs" style="--ladder-left: 8px">
-            <o-fill
-              :value="articles"
-              name="list-item"
-              fill-key="_dataId"
-            ></o-fill>
-          </p-list>
-        </p-list-item>
-      </p-list>
-    </div>
-
-    <template name="list-item">
-      <p-list-item
-        button
-        attr:active-item=" $data._dataId === $host.currentArticleDataId"
-        on:click="$host.handleClickArticle($data)"
-      >
+  <p-bind-contextmenu
+    auto-close
+    on:open-menu="openSideArticleItemMenu"
+    style="height: 100%"
+  >
+    <p-menu contextmenu-selector=".article-list-item">
+      <p-menu-item>
         <n-local-icon
-          name="article"
+          name="add-note"
           slot="prefix"
-          style="display: block; margin-right: 4px; font-size: 18px"
+          style="color: var(--md-sys-color-primary)"
         ></n-local-icon>
-        {{$data.title || '未命名页面'}}
-      </p-list-item>
-    </template>
+        添加子笔记
+      </p-menu-item>
+      <p-menu-item>
+        <n-local-icon
+          name="delete"
+          slot="prefix"
+          style="color: var(--md-sys-color-error)"
+        ></n-local-icon>
+        移动到回收站
+      </p-menu-item>
+    </p-menu>
+    <div class="container">
+      <div class="left">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 12px 4px;
+          "
+        >
+          <img
+            src="../icon.svg"
+            style="display: block; height: 36px; margin-right: 6px"
+          />
+          Luminote
+        </div>
+        <p-list style="margin-bottom: 18px">
+          <p-list-item button disabled>
+            <n-local-icon name="search" slot="prefix"></n-local-icon>
+            搜索
+          </p-list-item>
+          <p-list-item
+            button
+            attr:active-item="currentArticleDataId == 'home'"
+            on:click="clickHome"
+          >
+            <n-local-icon name="home" slot="prefix"></n-local-icon>
+            主页
+          </p-list-item>
+          <p-list-item button disabled>
+            <n-local-icon name="recycle" slot="prefix"></n-local-icon>
+            回收站
+          </p-list-item>
+          <p-list-item button disabled>
+            <n-local-icon name="config" slot="prefix"></n-local-icon>
+            设置
+          </p-list-item>
+        </p-list>
+        <p-list>
+          <p-list-item collapse-childs="open" button="suffix">
+            <n-id-avatar
+              val="self"
+              slot="prefix"
+              style="
+                display: block;
+                margin-right: 8px;
+                font-size: 18px;
+                width: 20px;
+                height: 20px;
+                border-radius: 4px;
+                overflow: hidden;
+                box-shadow: var(--md-sys-color-primary) 0 0 5px;
+              "
+            ></n-id-avatar>
+            我的笔记
+            <i toggle-collapse slot="suffix" style="display: none"></i>
+            <p-button
+              size="small"
+              icon
+              slot="suffix"
+              variant="text"
+              on:click="handleAddNote"
+              style="z-index: 3; position: absolute; right: 16px"
+            >
+              <n-local-icon name="add"></n-local-icon>
+            </p-button>
 
-    <div class="main" on:active-article="handleActiveArticle">
-      <slot></slot>
+            <p-list slot="childs" style="--ladder-left: 8px">
+              <o-fill
+                :value="articles"
+                name="list-item"
+                fill-key="_dataId"
+              ></o-fill>
+            </p-list>
+          </p-list-item>
+        </p-list>
+      </div>
+
+      <template name="list-item">
+        <p-list-item
+          class="article-list-item"
+          button
+          attr:active-item=" $data._dataId === $host.currentArticleDataId"
+          on:click="$host.handleClickArticle($data)"
+        >
+          <n-local-icon
+            name="article"
+            slot="prefix"
+            style="display: block; margin-right: 4px; font-size: 18px"
+          ></n-local-icon>
+          {{$data.title || '未命名页面'}}
+        </p-list-item>
+      </template>
+
+      <div class="main" on:active-article="handleActiveArticle">
+        <slot></slot>
+      </div>
+      <!-- <div class="right"></div> -->
     </div>
-    <!-- <div class="right"></div> -->
-  </div>
+  </p-bind-contextmenu>
   <script>
     export default async ({ load }) => {
       return {
@@ -154,6 +181,12 @@
           currentArticleDataId: null,
         },
         proto: {
+          openSideArticleItemMenu() {
+            // debugger;
+          },
+          clickItemMenu(data, event) {
+            event.stopPropagation();
+          },
           clickHome() {
             this.goto("./home.html");
           },

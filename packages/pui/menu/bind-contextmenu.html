@@ -7,7 +7,7 @@
 
     ::slotted(p-menu) {
       position: absolute;
-      z-index: 2;
+      z-index: 3;
     }
   </style>
   <slot></slot>
@@ -234,19 +234,20 @@
                 menu.open = "off";
               });
 
-              $("html").off("click", this._bindFn);
-              $("html").off("mouseup", this._bindFn);
-              this._bindFn = null;
+              // $("html").off("click", this._bindFn);
+              // $("html").off("mousedown", this._bindFn);
+              // this._bindFn = null;
             };
 
             // 点击外部环境后，取消菜单绑定
-            $("html").on("click", this._bindFn);
+            // $("html").on("click", this._bindFn);
+            $("html").on("mousedown", this._bindFn);
           }
         },
         detached() {
           if (this._bindFn) {
-            $("html").off("mouseup", this._bindFn);
-            $("html").off("click", this._bindFn);
+            // $("html").off("click", this._bindFn);
+            $("html").off("mousedown", this._bindFn);
           }
         },
       };
