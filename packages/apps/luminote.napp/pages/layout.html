@@ -242,17 +242,18 @@
           handleActiveArticle(e) {
             this.currentArticleDataId = e.data.articleId;
           },
+          async reloadProject() {
+            const articleData = (await this.app.getCurrentProject()).data;
+            // window.articles = articleData.main;
+            this.articles = articleData.main;
+            this.currentProjectName = articleData.projectName;
+          },
         },
         ready() {
           this.attr("layout-page", "");
         },
         attached() {
-          (async () => {
-            const articleData = (await this.app.getCurrentProject()).data;
-            window.articles = articleData.main;
-            this.articles = articleData.main;
-            this.currentProjectName = articleData.projectName;
-          })();
+          this.reloadProject();
         },
         detached() {
           this.articles = {};

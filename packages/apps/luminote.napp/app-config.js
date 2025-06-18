@@ -17,7 +17,7 @@ export const pageAnime = {
 
 export const allowForward = true;
 
-import { createData } from "/packages/hybird-data/main.js";
+import { createData, loadData } from "/packages/hybird-data/main.js";
 
 const exitedProject = {};
 
@@ -26,7 +26,30 @@ let currentDirName = "start";
 export default {
   proto: {
     // 获取已经存在的项目名
-    async getExistProjects() {},
+    async getExistProjects() {
+      // 获取专属文件句柄
+      const rootHandle = await this.dedicatedHandle();
+
+      const arr = [];
+
+      for await (let [dirName, item] of rootHandle.entries()) {
+        const articleDirHandle = await item.get("article");
+
+        // 获取项目数据
+        const data = await loadData({
+          level: 1,
+          handle: articleDirHandle,
+        });
+
+        arr.push({
+          projectName: data.projectName,
+          creationtime: data.creationtime,
+          dirName,
+        });
+      }
+
+      return arr;
+    },
 
     // 获取项目
     getProject(dirName) {
@@ -87,6 +110,7 @@ export default {
         return {
           data: articleData,
           handle: projectHandle,
+          dirName,
         };
       })());
     },
@@ -107,9 +131,62 @@ export default {
     },
 
     // 创建一个项目
-    async createProject() {
+    async createProject({ projectName }) {
+      // 项目目录名
+      const dirName = `luminote-project-${Math.random().toString(32).slice(2)}`;
+
       // 获取专属文件句柄
-      const handle = await this.dedicatedHandle();
+      const rootHandle = await this.dedicatedHandle();
+
+      // 获取目标项目目录handle
+      const projectHandle = await rootHandle.get(dirName, {
+        create: "dir",
+      });
+
+      // 获取文章专属目录
+      const articleHandle = await projectHandle.get("article", {
+        create: "dir",
+      });
+
+      // 生成 article 数据
+      const articleData = await createData(articleHandle, {
+        saveDebounce: 500, // 数据变动后，500毫秒保存一次
+      });
+
+      await articleData.ready(true); // 准备完成
+
+      if (!articleData.main) {
+        articleData.projectName = projectName
+          ? projectName
+          : "Project " + new Date().toLocaleString().replace(/[\/ :]/g, "-");
+        articleData.creationtime = Date.now();
+
+        // main 为主体的文章数据
+        articleData.main = [
+          {
+            title: "示范页面",
+            creationtime: Date.now(),
+            content: [
+              {
+                type: "paragraph",
+                value: "这是一个示范页面。",
+              },
+              {
+                type: "paragraph",
+                value: "",
+              },
+            ],
+          },
+        ];
+
+        await articleData.ready(true);
+      }
+
+      return {
+        data: articleData,
+        handle: projectHandle,
+        dirName,
+      };
     },
 
     // 释放所有已加载项目的内存资源

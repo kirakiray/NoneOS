@@ -32,7 +32,7 @@
 
   <h4>操作</h4>
   <div style="margin-bottom: 16px; max-width: 380px">
-    <p-input sync:value="projectName">
+    <p-input sync:value="projectName" maxlength="38">
       <label>当前项目名</label>
       <p-button
         variant="text"
@@ -65,7 +65,7 @@
     <p-list-item button>aaaa</p-list-item>
   </p-list>
   <div class="button-line" style="margin-top: 16px">
-    <p-button>创建新项目</p-button>
+    <p-button on:click="clickCreate">创建新项目</p-button>
     <p-button variant="outlined">导入新项目</p-button>
   </div>
 
@@ -94,20 +94,61 @@
   <script>
     export const parent = "./layout.html";
 
-    export default async () => {
+    export default async ({ load }) => {
+      const { prompt, toast } = await load("/packages/pui/util.js");
+
       return {
         data: {
           projectName: "",
           currentName: "",
           creationtime: "",
+          existProjects: [], // 已经存在的项目
         },
         proto: {
+          async clickCreate() {
+            const result = await prompt({
+              title: "创建新项目",
+              label: "请输入项目名",
+              yes: "创建",
+              cancel: "取消",
+            });
+
+            if (result === false) {
+              return;
+            }
+
+            if (!result.trim()) {
+              toast({
+                content: `无效的项目名: "${result}"`,
+              });
+              return;
+            }
+
+            // 创建一个新项目
+            const newProject = await this.app.createProject({
+              projectName: result,
+            });
+
+            debugger;
+          },
           async submitRename() {
             const articleData = await this.app.getCurrentProject();
             this.parent.currentProjectName =
               this.currentName =
               articleData.data.projectName =
                 this.projectName;
+          },
+          async reloadProject() {
+            const articleData = await this.app.getCurrentProject();
+
+            this.currentName = this.projectName = articleData.data.projectName;
+            this.creationtime = articleData.data.creationtime;
+          },
+          // 展示已经存在的项目
+          async reloadExistProjects() {
+            const exists = await this.app.getExistProjects();
+
+            debugger;
           },
         },
         attached() {
@@ -118,12 +159,8 @@
             },
           });
 
-          (async () => {
-            const articleData = await this.app.getCurrentProject();
-
-            this.currentName = this.projectName = articleData.data.projectName;
-            this.creationtime = articleData.data.creationtime;
-          })();
+          this.reloadProject();
+          this.reloadExistProjects();
         },
         detached() {},
       };
