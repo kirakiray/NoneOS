@@ -32,6 +32,7 @@
         sync:value="itemData.title"
         on:click="$event.stopPropagation()"
         style="margin-bottom: 16px"
+        on:keydown="titleKeyDown"
         placeholder="页面标题"
       />
     </div>
@@ -56,6 +57,11 @@
           },
         },
         proto: {
+          titleKeyDown(e) {
+            if (e.key === "Enter") {
+              this.focusLast();
+            }
+          },
           focusTitle() {
             focusAndSetCursorAtEnd(this.shadow.$(".title").ele);
           },
@@ -64,7 +70,7 @@
               focusAndSetCursorAtEnd(
                 this.shadow.$("#lumi-fill-el").slice(-1)[0].editorElement
               );
-            }, 100);
+            }, 30);
           },
           async handleEnter(data, index) {
             const finnalIndex = index + 1;

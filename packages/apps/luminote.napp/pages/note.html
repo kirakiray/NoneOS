@@ -42,7 +42,9 @@
             if (!target.title) {
               this.shadow.$("lumi-page").focusTitle();
             } else {
-              this.shadow.$("lumi-page").focusLast();
+              setTimeout(() => {
+                this.shadow.$("lumi-page").focusLast();
+              }, 30);
             }
           },
         },
