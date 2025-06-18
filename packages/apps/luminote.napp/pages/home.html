@@ -35,34 +35,36 @@
     还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
   </p>
 
-  <h4>操作</h4>
-  <div style="margin-bottom: 16px; max-width: 380px">
-    <p-input sync:value="projectName" maxlength="38">
-      <label>当前项目名</label>
-      <p-button
-        variant="text"
-        slot="suffix"
-        attr:disabled="projectName === currentName"
-        size="small"
-        on:click="submitRename"
+  <o-if :value="currentName">
+    <h4>操作</h4>
+    <div style="margin-bottom: 16px; max-width: 380px">
+      <p-input sync:value="projectName" maxlength="38">
+        <label>当前项目名</label>
+        <p-button
+          variant="text"
+          slot="suffix"
+          attr:disabled="projectName === currentName"
+          size="small"
+          on:click="submitRename"
+        >
+          重命名项目
+        </p-button>
+      </p-input>
+      <div
+        style="
+          color: var(--md-sys-color-normal);
+          font-size: 12px;
+          margin-top: 8px;
+        "
       >
-        重命名项目
-      </p-button>
-    </p-input>
-    <div
-      style="
-        color: var(--md-sys-color-normal);
-        font-size: 12px;
-        margin-top: 8px;
-      "
-    >
-      项目创建时间:
-      <n-moment-span :time="creationtime"></n-moment-span>
+        项目创建时间:
+        <n-moment-span :time="creationtime"></n-moment-span>
+      </div>
     </div>
-  </div>
-  <div class="button-line" style="margin-top: 8px">
-    <p-button variant="outlined" disabled>导出该项目</p-button>
-  </div>
+    <div class="button-line" style="margin-top: 8px">
+      <p-button variant="outlined" disabled>导出该项目</p-button>
+    </div>
+  </o-if>
 
   <h4>切换项目</h4>
   <p-list style="max-height: 300px">
@@ -215,9 +217,12 @@
           async reloadProject() {
             const articleData = await this.app.getCurrentProject();
 
-            this.currentName = this.projectName = articleData.data.projectName;
-            this.currentDirName = articleData.dirName;
-            this.creationtime = articleData.data.creationtime;
+            if (!(articleData instanceof Error)) {
+              this.currentName = this.projectName =
+                articleData.data.projectName;
+              this.currentDirName = articleData.dirName;
+              this.creationtime = articleData.data.creationtime;
+            }
           },
           // 展示已经存在的项目
           async reloadExistProjects() {

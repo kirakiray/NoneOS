@@ -244,9 +244,12 @@
           },
           async reloadProject() {
             const articleData = (await this.app.getCurrentProject()).data;
-            // window.articles = articleData.main;
-            this.articles = articleData.main;
-            this.currentProjectName = articleData.projectName;
+
+            if (articleData) {
+              // window.articles = articleData.main;
+              this.articles = articleData.main;
+              this.currentProjectName = articleData.projectName;
+            }
           },
         },
         ready() {
