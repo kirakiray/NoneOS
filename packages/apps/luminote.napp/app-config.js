@@ -104,7 +104,24 @@ export default {
 
     // 删除项目
     async deleteProject(dirName) {
-      debugger;
+      // 清除绑定
+      if (exitedProject[dirName]) {
+        const projectItem = await exitedProject[dirName];
+        await projectItem.data.disconnect();
+        delete exitedProject[dirName];
+      }
+
+      // 删除目录
+      const rootHandle = await this.dedicatedHandle();
+      const targetHandle = await rootHandle.get(dirName);
+
+      await targetHandle.remove();
+
+      if (dirName === currentDirName) {
+        // 当前页，直接清除
+        currentDirName = "";
+        this.$("o-page").reloadProject();
+      }
     },
 
     // 创建一个项目
