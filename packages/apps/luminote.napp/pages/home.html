@@ -124,12 +124,12 @@
         },
         proto: {
           async switchProject(data) {
-            await this.app.changeCurrentProject(data.dirName);
+            const result = await this.app.changeCurrentProject(data.dirName);
 
             this.reloadExistProjects();
             this.reloadProject();
 
-            toast(`切换到 "${data.projectName}" 成功`);
+            toast(`切换到 "${result.projectName}" 成功`);
           },
           async clickCreate() {
             const result = await prompt({
@@ -155,7 +155,14 @@
               projectName: result,
             });
 
-            debugger;
+            toast({
+              content: `创建 "${newProject.projectName}" 成功`,
+              color: "success",
+            });
+
+            this.switchProject({
+              dirName: newProject.dirName,
+            });
           },
           async submitRename() {
             const articleData = await this.app.getCurrentProject();

@@ -35,17 +35,21 @@ export default {
       for await (let [dirName, item] of rootHandle.entries()) {
         const articleDirHandle = await item.get("article");
 
-        // 获取项目数据
-        const data = await loadData({
-          level: 1,
-          handle: articleDirHandle,
-        });
+        try {
+          // 获取项目数据
+          const data = await loadData({
+            level: 1,
+            handle: articleDirHandle,
+          });
 
-        arr.push({
-          projectName: data.projectName,
-          creationtime: data.creationtime,
-          dirName,
-        });
+          arr.push({
+            projectName: data.projectName,
+            creationtime: data.creationtime,
+            dirName,
+          });
+        } catch (err) {
+          continue;
+        }
       }
 
       return arr;
@@ -65,53 +69,20 @@ export default {
         // 获取专属文件句柄
         const rootHandle = await this.dedicatedHandle();
 
-        // 获取目标项目目录handle
-        const projectHandle = await rootHandle.get(dirName, {
-          create: "dir",
-        });
+        // 掉过初始化的project项目
+        if (dirName !== "start") {
+          // 获取目标项目目录handle
+          const projectHandle = await rootHandle.get(dirName);
 
-        // 获取文章专属目录
-        const articleHandle = await projectHandle.get("article", {
-          create: "dir",
-        });
-
-        // 生成 article 数据
-        const articleData = await createData(articleHandle, {
-          saveDebounce: 500, // 数据变动后，500毫秒保存一次
-        });
-
-        await articleData.ready(true); // 准备完成
-
-        if (!articleData.main) {
-          articleData.projectName = "Project " + dirName;
-          articleData.creationtime = Date.now();
-
-          // main 为主体的文章数据
-          articleData.main = [
-            {
-              title: "示范页面",
-              creationtime: Date.now(),
-              content: [
-                {
-                  type: "paragraph",
-                  value: "这是一个示范页面。",
-                },
-                {
-                  type: "paragraph",
-                  value: "",
-                },
-              ],
-            },
-          ];
-
-          await articleData.ready(true);
+          if (!projectHandle) {
+            exitedProject[dirName] = null;
+            return new Error(`不存在项目文件夹 "${dirName}"`);
+          }
         }
 
-        return {
-          data: articleData,
-          handle: projectHandle,
+        return (exitedProject[dirName] = this.createProject({
           dirName,
-        };
+        }));
       })());
     },
 
@@ -127,6 +98,8 @@ export default {
 
       // 刷新所有页面的数据
       this.$("o-page").reloadProject();
+
+      return targetProject;
     },
 
     // 删除项目
@@ -135,9 +108,10 @@ export default {
     },
 
     // 创建一个项目
-    async createProject({ projectName }) {
+    async createProject({ projectName, dirName }) {
       // 项目目录名
-      const dirName = `luminote-project-${Math.random().toString(32).slice(2)}`;
+      dirName =
+        dirName || `luminote-project-${Math.random().toString(32).slice(2)}`;
 
       // 获取专属文件句柄
       const rootHandle = await this.dedicatedHandle();
@@ -180,13 +154,23 @@ export default {
         ];
 
         await articleData.ready(true);
+
+        // 等待保存数据
+        await new Promise((res) => setTimeout(res, 600));
       }
 
-      return {
+      const redata = {
         data: articleData,
         handle: projectHandle,
+        projectName: articleData.projectName,
         dirName,
       };
+
+      if (!exitedProject[dirName]) {
+        exitedProject[dirName] = redata;
+      }
+
+      return redata;
     },
 
     // 释放所有已加载项目的内存资源
