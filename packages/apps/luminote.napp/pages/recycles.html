@@ -3,6 +3,8 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       box-sizing: border-box;
@@ -69,6 +71,23 @@
           </div>
         </p-card>
       </o-fill>
+
+      <o-if :value="loading">
+        <p-progress type="circle"></p-progress>
+      </o-if>
+      <o-else-if :value="!removeds.length">
+        <div
+          style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+            color: var(--md-sys-color-normal);
+          "
+        >
+          没有被删除的笔记
+        </div>
+      </o-else-if>
     </div>
   </div>
   <script>
@@ -80,6 +99,7 @@
 
       return {
         data: {
+          loading: true,
           removeds: [],
         },
         proto: {
@@ -121,6 +141,8 @@
             const removeds = await findRemovedArticles(articleData.main);
 
             this.removeds = removeds;
+
+            this.loading = false;
           },
         },
         attached() {

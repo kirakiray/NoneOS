@@ -1,5 +1,8 @@
 <template page>
   <l-m src="../comps/lumi-page.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+
   <style>
     :host {
       box-sizing: border-box;
@@ -9,11 +12,42 @@
       top: 0;
       width: 100%;
       height: 100%;
-      /* background-color: rgba(0, 0, 255, 0.3); */
     }
   </style>
-  <div>首页</div>
-  <!-- <lumi-page style="height: 100%"></lumi-page> -->
+  <h1>首页</h1>
+  <p>
+    欢迎使用
+    Luminote！这是一款强大的知识管理工具，它能帮助你有条理地梳理思路。通过逐层拆解内容，你可以将复杂的知识体系转化为清晰明了的笔记。
+  </p>
+  <p>
+    配置本地 AI 后，Luminote
+    还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
+  </p>
+
+  <h4>操作</h4>
+  <div style="margin-bottom: 16px; max-width: 380px">
+    <p-input>
+      <label>当前项目名</label>
+      <p-button variant="outlined" slot="suffix">重命名项目</p-button>
+    </p-input>
+  </div>
+
+  <div style="display: flex">
+    <p-button style="margin-right: 8px">创建新项目</p-button>
+    <p-button>切换项目</p-button>
+  </div>
+  <div>
+    <h4>最近访问</h4>
+  </div>
+
+  <div>
+    <h4>配置AI</h4>
+  </div>
+
+  <div>
+    <h4>查看使用技巧</h4>
+  </div>
+
   <script>
     export const parent = "./layout.html";
 
