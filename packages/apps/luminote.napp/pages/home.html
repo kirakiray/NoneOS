@@ -209,6 +209,8 @@
               this.currentName =
               articleData.data.projectName =
                 this.projectName;
+
+            toast("重命名成功");
           },
           async reloadProject() {
             const articleData = await this.app.getCurrentProject();

@@ -21,7 +21,7 @@ import { createData, loadData } from "/packages/hybird-data/main.js";
 
 const exitedProject = {};
 
-let currentDirName = "start";
+let currentDirName = localStorage.__luminote_before_opened_dirname || "start";
 
 export default {
   proto: {
@@ -95,6 +95,7 @@ export default {
       const targetProject = await this.getProject(dirName);
 
       currentDirName = dirName;
+      localStorage.__luminote_before_opened_dirname = dirName;
 
       // 刷新所有页面的数据
       this.$("o-page").reloadProject();
