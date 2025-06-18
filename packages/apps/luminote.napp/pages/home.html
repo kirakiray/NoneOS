@@ -19,6 +19,10 @@
     .button-line p-button {
       margin-right: 2px;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
   <h1>首页</h1>
   <p>
@@ -61,8 +65,21 @@
   </div> -->
 
   <h4>切换项目</h4>
-  <p-list>
-    <p-list-item button>aaaa</p-list-item>
+  <p-list style="max-height: 300px">
+    <o-fill :value="existProjects">
+      <p-list-item
+        button
+        on:click="$host.switchProject($data)"
+        class:hide="$host.currentDirName === $data.dirName"
+        style="max-width: 380px"
+      >
+        {{$data.projectName}}
+        <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
+        <div slot="suffix" style="font-size: 12px; color: #7c7c7c">
+          创建时间: <n-moment-span :time="$data.creationtime"></n-moment-span>
+        </div>
+      </p-list-item>
+    </o-fill>
   </p-list>
   <div class="button-line" style="margin-top: 16px">
     <p-button on:click="clickCreate">创建新项目</p-button>
@@ -102,9 +119,18 @@
           projectName: "",
           currentName: "",
           creationtime: "",
+          currentDirName: "",
           existProjects: [], // 已经存在的项目
         },
         proto: {
+          async switchProject(data) {
+            await this.app.changeCurrentProject(data.dirName);
+
+            this.reloadExistProjects();
+            this.reloadProject();
+
+            toast(`切换到 "${data.projectName}" 成功`);
+          },
           async clickCreate() {
             const result = await prompt({
               title: "创建新项目",
@@ -142,13 +168,16 @@
             const articleData = await this.app.getCurrentProject();
 
             this.currentName = this.projectName = articleData.data.projectName;
+            this.currentDirName = articleData.dirName;
             this.creationtime = articleData.data.creationtime;
           },
           // 展示已经存在的项目
           async reloadExistProjects() {
             const exists = await this.app.getExistProjects();
 
-            debugger;
+            console.log("exists: ", exists);
+
+            this.existProjects = exists;
           },
         },
         attached() {

@@ -121,8 +121,12 @@ export default {
     },
 
     async changeCurrentProject(dirName) {
-      // 当前项目
-      debugger;
+      const targetProject = await this.getProject(dirName);
+
+      currentDirName = dirName;
+
+      // 刷新所有页面的数据
+      this.$("o-page").reloadProject();
     },
 
     // 删除项目
@@ -167,10 +171,6 @@ export default {
             title: "示范页面",
             creationtime: Date.now(),
             content: [
-              {
-                type: "paragraph",
-                value: "这是一个示范页面。",
-              },
               {
                 type: "paragraph",
                 value: "",
