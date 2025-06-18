@@ -135,7 +135,9 @@
                 box-shadow: var(--md-sys-color-primary) 0 0 5px;
               "
             ></n-id-avatar>
-            我的笔记
+            <span style="color: var(--md-sys-color-primary)">
+              {{currentProjectName}}
+            </span>
             <i toggle-collapse slot="suffix" style="display: none"></i>
             <p-button
               size="small"
@@ -189,6 +191,7 @@
         data: {
           articles: [],
           currentArticleDataId: null,
+          currentProjectName: "Loading...",
         },
         proto: {
           async handleClickMenuItem(e) {
@@ -238,11 +241,15 @@
             this.currentArticleDataId = e.data.articleId;
           },
         },
+        ready() {
+          this.attr("layout-page", "");
+        },
         attached() {
           (async () => {
             const articleData = (await this.app.getCurrentProject()).data;
             window.articles = articleData.main;
             this.articles = articleData.main;
+            this.currentProjectName = articleData.projectName;
           })();
         },
         detached() {

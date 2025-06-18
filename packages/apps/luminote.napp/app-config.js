@@ -60,7 +60,7 @@ export default {
         await articleData.ready(true); // 准备完成
 
         if (!articleData.main) {
-          articleData.projectName = "项目-" + dirName;
+          articleData.projectName = "Project " + dirName;
           articleData.creationtime = Date.now();
 
           // main 为主体的文章数据
