@@ -29,7 +29,7 @@
         },
         proto: {
           async loadArticle() {
-            const articleData = await this.app._articleData;
+            const articleData = (await this.app.getCurrentProject()).data;
 
             // 查找对应文章
             const target = articleData.main.find((e) => {

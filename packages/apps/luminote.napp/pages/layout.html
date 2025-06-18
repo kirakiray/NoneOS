@@ -199,7 +199,9 @@
 
             switch (type) {
               case "removeNote":
-                const { main } = await this.app._articleData;
+                const articleData = (await this.app.getCurrentProject()).data;
+
+                const { main } = articleData;
 
                 data.removed = true; // 标识已删除
                 data.removedTime = Date.now();
@@ -237,11 +239,11 @@
           },
         },
         attached() {
-          this.app._articleData &&
-            this.app._articleData.then((articleData) => {
-              window.articles = articleData.main;
-              this.articles = articleData.main;
-            });
+          (async () => {
+            const articleData = (await this.app.getCurrentProject()).data;
+            window.articles = articleData.main;
+            this.articles = articleData.main;
+          })();
         },
         detached() {
           this.articles = {};

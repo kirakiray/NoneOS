@@ -134,7 +134,7 @@
           async loadRemovedArticles() {
             await new Promise((res) => setTimeout(res, 100));
 
-            const articleData = await this.app._articleData;
+            const articleData = (await this.app.getCurrentProject()).data;
 
             await articleData.ready();
 

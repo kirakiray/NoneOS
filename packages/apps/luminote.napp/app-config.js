@@ -21,6 +21,8 @@ import { createData } from "/packages/hybird-data/main.js";
 
 const exitedProject = {};
 
+let currentDirName = "start";
+
 export default {
   proto: {
     // 获取已经存在的项目名
@@ -89,6 +91,16 @@ export default {
       })());
     },
 
+    async getCurrentProject() {
+      // 获取当前项目
+      return this.getProject(currentDirName);
+    },
+
+    async changeCurrentProject(dirName) {
+      // 当前项目
+      debugger;
+    },
+
     // 删除项目
     async deleteProject(dirName) {
       debugger;
@@ -99,59 +111,18 @@ export default {
       // 获取专属文件句柄
       const handle = await this.dedicatedHandle();
     },
+
     // 释放所有已加载项目的内存资源
     async revokeAllProject() {
       debugger;
 
-      Object.values(exitedProject).forEach((e) => {
-        e.data.disconnect();
+      Object.values(exitedProject).forEach(async (e) => {
+        const item = await e;
+        item.data.disconnect();
       });
     },
   },
-  ready() {
-    this._articleData = (async () => {
-      // await new Promise((res) => setTimeout(res, 100));
-
-      const project = await this.getProject("start");
-
-      return project.data;
-
-      // 获取专属文件句柄
-      // const handle = await this.dedicatedHandle();
-
-      // // 获取文章专属目录
-      // const articleHandle = await handle.get("article", {
-      //   create: "dir",
-      // });
-
-      // const articleData = await createData(articleHandle, {
-      //   saveDebounce: 500,
-      // });
-
-      // await articleData.ready(true); // 准备完成
-
-      // if (!articleData.main) {
-      //   // 尝试测试用的文章
-      //   articleData.main = [
-      //     {
-      //       title: "示范页面",
-      //       content: [
-      //         {
-      //           type: "paragraph",
-      //           value: "这是一个示范页面。",
-      //         },
-      //         {
-      //           type: "paragraph",
-      //           value: "",
-      //         },
-      //       ],
-      //     },
-      //   ];
-      // }
-
-      // return articleData;
-    })();
-  },
+  ready() {},
 };
 
 // import { setSpace } from "/packages/i18n/data.js";
