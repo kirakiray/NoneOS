@@ -13,6 +13,10 @@
       width: 100%;
       height: 100%;
     }
+
+    .button-line p-button {
+      margin-right: 2px;
+    }
   </style>
   <h1>首页</h1>
   <p>
@@ -28,24 +32,42 @@
   <div style="margin-bottom: 16px; max-width: 380px">
     <p-input>
       <label>当前项目名</label>
-      <p-button variant="outlined" slot="suffix">重命名项目</p-button>
+      <p-button variant="text" slot="suffix" disabled size="small">
+        重命名项目
+      </p-button>
     </p-input>
   </div>
-
-  <div style="display: flex">
-    <p-button style="margin-right: 8px">创建新项目</p-button>
-    <p-button>切换项目</p-button>
+  <div class="button-line" style="margin-top: 8px">
+    <p-button variant="outlined">导出该项目</p-button>
+    <p-button variant="outlined" color="error">删除该项目</p-button>
   </div>
+
+  <h4>切换项目</h4>
+  <div class="button-line">
+    <p-button>创建新项目</p-button>
+    <p-button variant="outlined">导入新项目</p-button>
+  </div>
+
   <div>
     <h4>最近访问</h4>
+    <div style="color: var(--md-sys-color-normal)">准备中...</div>
   </div>
 
   <div>
     <h4>配置AI</h4>
+    <div style="color: var(--md-sys-color-normal)">准备中...</div>
   </div>
 
   <div>
     <h4>查看使用技巧</h4>
+    <div style="color: var(--md-sys-color-normal)">准备中...</div>
+  </div>
+
+  <h4>打包项目</h4>
+  <div class="button-line">
+    <p-button variant="outlined" disabled>打包为网站</p-button>
+    <p-button variant="outlined" disabled>打包为markdown</p-button>
+    <p-button variant="outlined" disabled>打包为llms.txt</p-button>
   </div>
 
   <script>

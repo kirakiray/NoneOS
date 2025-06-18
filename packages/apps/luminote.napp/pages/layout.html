@@ -246,10 +246,8 @@
         detached() {
           this.articles = {};
 
-          this.app._articleData &&
-            this.app._articleData.then((articleData) => {
-              articleData.disconnect();
-            });
+          // TODO: 清除所有已经载入的 hybird data
+          this.revokeAllProject();
         },
       };
     };
