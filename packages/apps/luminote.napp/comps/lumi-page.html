@@ -76,7 +76,7 @@
 
             setTimeout(() => {
               this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
-            }, 1);
+            }, 10);
           },
           async handleDelete(data, index) {
             this.itemData.content.splice(index, 1);
@@ -89,7 +89,7 @@
 
               // 文本焦点放在最后
               focusAndSetCursorAtEnd(prevBlock.editorElement);
-            }, 1);
+            }, 10);
           },
           handleDrop(data, index, event) {
             if (!event.data) {
@@ -138,12 +138,15 @@
       };
     };
 
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
     function focusAndSetCursorAtEnd(element) {
-      if (!element) {
+      element.focus();
+
+      if (isSafari) {
         return;
       }
-
-      element.focus();
+      // TODO: safari 有bug，无法对焦到最后
       const range = document.createRange();
       const selection = window.getSelection();
 

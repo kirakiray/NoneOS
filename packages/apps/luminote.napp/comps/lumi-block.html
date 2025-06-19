@@ -128,13 +128,13 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 3px;
       height: 50px;
     }
 
     .dot {
-      width: 3px;
-      height: 3px;
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
       background-color: var(--md-sys-color-primary);
       animation: bounce 1.4s infinite ease-in-out;
@@ -246,7 +246,10 @@
       <span class="placeholder" class:show="inFocus && !itemData.value">
         输入文本，默认使用段落组件。按 "/" 切换组件
       </span>
-      <o-if :value="itemData.type && itemData.type !== 'article'">
+      <o-if
+        :value="itemData.type && itemData.type !== 'article'"
+        on:rendered="renderedEditor = true"
+      >
         <lumi-fake :type="itemData.type">
           <div
             class="inputer-content"
@@ -309,6 +312,8 @@
       clearLeftMenu();
     });
 
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
     export default async ({ load }) => {
       return {
         tag: "lumi-block",
@@ -319,16 +324,22 @@
           dragovering: false,
           leftMenuOpen: false,
           childs: [], // 子元素
+          renderedEditor: false, // 是否已经渲染了编辑器
         },
         proto: {
           handleChangeType(type) {
             this.itemData.type = type;
             this.leftMenuOpen = false;
           },
-          focus() {
-            setTimeout(() => {
-              this.shadow.$(".inputer-content").ele.focus();
-            }, 10);
+          async focus() {
+            await this.watchTick(() => this.renderedEditor);
+
+            setTimeout(
+              () => {
+                this.shadow.$(".inputer-content").ele.focus();
+              },
+              isSafari ? 100 : 10
+            );
           },
           handleClickLeftMenu() {
             this.leftMenuOpen = !this.leftMenuOpen;
