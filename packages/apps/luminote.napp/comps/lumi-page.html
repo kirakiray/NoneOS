@@ -34,25 +34,14 @@
         placeholder="页面标题"
       />
     </div>
-    <div id="lumi-fill-el">
-      <o-fill :value="itemData.content" fill-key="_dataId">
-        <lumi-block
-          :item-data="$data"
-          on:enter="$host.handleEnter($data,$index)"
-          on:delete="$host.handleDelete($data,$index)"
-          on:drop="$host.handleDrop($data,$index,$event)"
-        ></lumi-block>
-
-        <!-- <div
-          :item-data="$data"
-          on:enter="$host.handleEnter($data,$index)"
-          on:delete="$host.handleDelete($data,$index)"
-          on:drop="$host.handleDrop($data,$index,$event)"
-        >
-          {{$data.type}} - {{$data.value}}
-        </div> -->
-      </o-fill>
-    </div>
+    <o-fill id="lumi-fill-el" :value="itemData.content" fill-key="_dataId">
+      <lumi-block
+        :item-data="$data"
+        on:enter="$host.handleEnter($data,$index)"
+        on:delete="$host.handleDelete($data,$index)"
+        on:drop="$host.handleDrop($data,$index,$event)"
+      ></lumi-block>
+    </o-fill>
   </div>
   <script>
     export default async () => {

@@ -279,7 +279,7 @@
     </div>
   </o-if>
   <o-else>
-    <div class="inputer" style="margin: 16px auto;align-items: flex-start;">
+    <div class="inputer" style="margin: 16px auto; align-items: flex-start">
       <div class="dot-loading">
         <div class="dot"></div>
         <div class="dot"></div>
@@ -464,6 +464,7 @@
       }
     };
 
+    // 按顺序渲染组件，防止页面卡顿
     const runBlock = async () => {
       running = true;
 
@@ -471,7 +472,7 @@
 
       current.loading = false;
 
-      await new Promise((res) => setTimeout(res, 10)); // 延迟加载
+      await new Promise((res) => setTimeout(res, 0)); // 异步渲染组件
 
       if (blocks.length) {
         runBlock();
