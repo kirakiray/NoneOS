@@ -189,17 +189,28 @@
     <span class="placeholder" class:show="inFocus && !value">
       输入文本，默认使用段落组件。按 "/" 切换组件
     </span>
-    <lumi-fake :type="type">
-      <div
-        class="inputer-content"
-        class:dragovering="dragovering"
-        contenteditable
-        on:input="handleInput"
-        on:keydown="handleKeyDown"
-        :html="value"
-        on:focus="handleFocus"
-      ></div>
-    </lumi-fake>
+    <o-if :value="type && type !== 'article'">
+      <lumi-fake :type="type">
+        <div
+          class="inputer-content"
+          class:dragovering="dragovering"
+          contenteditable
+          on:input="handleInput"
+          on:keydown="handleKeyDown"
+          :html="value"
+          on:focus="handleFocus"
+        ></div>
+      </lumi-fake>
+    </o-if>
+    <o-if :value="type === 'article'">
+      <div style="display: flex; align-items: center; min-height: 37px">
+        <n-local-icon
+          name="article"
+          style="display: block; margin-right: 4px; font-size: 18px"
+        ></n-local-icon>
+        a
+      </div>
+    </o-if>
     <div class="dragovering-mark" class:show="dragovering"></div>
   </div>
   <script>
@@ -310,7 +321,7 @@
             }
           },
           get editorElement() {
-            return this.shadow.$(".inputer-content").ele;
+            return this.shadow?.$(".inputer-content")?.ele;
           },
           handleDargover(e) {
             e.preventDefault();

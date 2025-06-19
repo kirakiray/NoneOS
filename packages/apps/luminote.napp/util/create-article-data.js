@@ -1,7 +1,7 @@
 export const createArticleData = (data) => {
   return {
-    title: "",
     type: "article",
+    title: "",
     ...data,
     creationtime: Date.now(),
     content: [

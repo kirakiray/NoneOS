@@ -134,6 +134,10 @@
     };
 
     function focusAndSetCursorAtEnd(element) {
+      if (!element) {
+        return;
+      }
+      
       element.focus();
       const range = document.createRange();
       const selection = window.getSelection();
