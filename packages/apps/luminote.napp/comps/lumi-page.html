@@ -6,8 +6,8 @@
       margin: 0 auto;
     }
     .container {
-      display: flex;
-      flex-direction: column;
+      height: 100%;
+      overflow: auto;
     }
 
     .title {
@@ -36,7 +36,7 @@
         placeholder="页面标题"
       />
     </div>
-    <o-fill id="lumi-fill-el" :value="itemData.content">
+    <o-fill id="lumi-fill-el" :value="itemData.content" fill-key="_dataId">
       <lumi-block
         :item-data="$data"
         sync:type="$data.type"
