@@ -21,7 +21,9 @@ import { createData, loadData } from "/packages/hybird-data/main.js";
 
 const exitedProject = {};
 
-let currentDirName = localStorage.__luminote_before_opened_dirname || "start";
+// let currentDirName = localStorage.__luminote_before_opened_dirname || "start";
+let __start_resolve;
+let currentDirName = new Promise((resolve) => (__start_resolve = resolve));
 
 export default {
   proto: {
@@ -33,6 +35,10 @@ export default {
       const arr = [];
 
       for await (let [dirName, item] of rootHandle.entries()) {
+        if (item.kind === "file") {
+          continue;
+        }
+
         const articleDirHandle = await item.get("article");
 
         try {
@@ -88,14 +94,24 @@ export default {
 
     async getCurrentProject() {
       // 获取当前项目
-      return this.getProject(currentDirName);
+      return this.getProject(await currentDirName);
     },
 
     async changeCurrentProject(dirName) {
       const targetProject = await this.getProject(dirName);
 
-      currentDirName = dirName;
-      localStorage.__luminote_before_opened_dirname = dirName;
+      currentDirName = Promise.resolve(dirName);
+
+      {
+        // 记录打开的项目地址
+        const rootHandle = await this.dedicatedHandle();
+
+        let beforeOpenedProject = await rootHandle.get("_before_open", {
+          create: "file",
+        });
+
+        await beforeOpenedProject.write(dirName);
+      }
 
       // 刷新所有页面的数据
       this.$("o-page").reloadProject();
@@ -117,12 +133,6 @@ export default {
       const targetHandle = await rootHandle.get(dirName);
 
       await targetHandle.remove();
-
-      if (dirName === currentDirName) {
-        // 当前页，直接清除
-        currentDirName = "";
-        this.$("o-page").reloadProject();
-      }
     },
 
     // 创建一个项目
@@ -201,7 +211,24 @@ export default {
       });
     },
   },
-  ready() {},
+  ready() {
+    (async () => {
+      const rootHandle = await this.dedicatedHandle();
+
+      let beforeOpenedProject = await rootHandle.get("_before_open", {
+        create: "file",
+      });
+
+      beforeOpenedProject = await beforeOpenedProject.text();
+
+      if (!beforeOpenedProject) {
+        // 如果不存在，相当于等于 start
+        beforeOpenedProject = "start";
+      }
+
+      __start_resolve(beforeOpenedProject);
+    })();
+  },
 };
 
 // import { setSpace } from "/packages/i18n/data.js";

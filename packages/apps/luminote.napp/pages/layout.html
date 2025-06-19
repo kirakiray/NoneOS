@@ -59,7 +59,7 @@
     style="height: 100%"
   >
     <p-menu contextmenu-selector=".article-list-item">
-      <p-menu-item data-type="addNote">
+      <p-menu-item data-type="addSubNote">
         <n-local-icon
           name="add-note"
           slot="prefix"
@@ -212,7 +212,7 @@
                 // 如果当前是回收站，刷新回收站内容
 
                 break;
-              case "addNote":
+              case "addSubNote":
                 debugger;
                 break;
             }
@@ -238,6 +238,10 @@
                 },
               ],
             });
+
+            const target = this.articles.slice(-1)[0];
+
+            this.handleClickArticle(target);
           },
           handleActiveArticle(e) {
             this.currentArticleDataId = e.data.articleId;
