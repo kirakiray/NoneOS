@@ -13,9 +13,10 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      width: 100%;
       max-width: 800px;
       margin: 1px auto;
-      /* background-color: red; */
+      /* background-color: rgba(255, 128, 0, 0.3); */
     }
     .menu-btn {
       display: inline-block;
@@ -122,6 +123,41 @@
         transform: translate(0, 0);
       }
     } */
+
+    .dot-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 50px;
+    }
+
+    .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-primary);
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
   </style>
   <o-if :value="!loading">
     <div
@@ -146,6 +182,7 @@
       </div>
 
       <!-- TODO: menu组件重复使用导致渲染变慢，需要优化 -->
+      <!-- <o-if :value="leftMenuOpen"> -->
       <p-menu attr:open="leftMenuOpen ? 'on' : 'off'" class="left-menu">
         <p-menu-item>
           <n-local-icon name="exchange" slot="prefix"></n-local-icon>
@@ -204,6 +241,7 @@
           润色
         </p-menu-item>
       </p-menu>
+      <!-- </o-if> -->
 
       <span class="placeholder" class:show="inFocus && !itemData.value">
         输入文本，默认使用段落组件。按 "/" 切换组件
@@ -240,6 +278,15 @@
       <div class="dragovering-mark" class:show="dragovering"></div>
     </div>
   </o-if>
+  <o-else>
+    <div class="inputer" style="margin: 16px auto;align-items: flex-start;">
+      <div class="dot-loading">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </o-else>
   <script>
     // 焦点中的元素
     let oldFocus = null;
@@ -388,6 +435,11 @@
           addLoadingTask(this);
         },
         detached() {
+          if (blocks.includes(this)) {
+            const index = blocks.indexOf(this);
+            blocks.splice(index, 1);
+          }
+
           if (oldFocus === this) {
             oldFocus = null;
           }
@@ -397,11 +449,6 @@
           }
 
           this.itemData = {};
-
-          if (blocks.includes(this)) {
-            const index = blocks.indexOf(this);
-            blocks.splice(index, 1);
-          }
         },
       };
     };
@@ -424,7 +471,7 @@
 
       current.loading = false;
 
-      await new Promise((res) => setTimeout(res, 30)); // 延迟加载
+      await new Promise((res) => setTimeout(res, 10)); // 延迟加载
 
       if (blocks.length) {
         runBlock();
