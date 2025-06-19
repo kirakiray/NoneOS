@@ -135,28 +135,28 @@
         更改组件
         <p-menu open="off">
           <p-menu-item
-            attr:active-item="type === 'paragraph'"
+            attr:active-item="itemData.type === 'paragraph'"
             on:click="handleChangeType('paragraph')"
           >
             <n-local-icon name="p" slot="prefix"></n-local-icon>
             段落
           </p-menu-item>
           <p-menu-item
-            attr:active-item="type === 'h1'"
+            attr:active-item="itemData.type === 'h1'"
             on:click="handleChangeType('h1')"
           >
             <n-local-icon name="h1" slot="prefix"></n-local-icon>
             大标题
           </p-menu-item>
           <p-menu-item
-            attr:active-item="type === 'h2'"
+            attr:active-item="itemData.type === 'h2'"
             on:click="handleChangeType('h2')"
           >
             <n-local-icon name="h2" slot="prefix"></n-local-icon>
             中标题
           </p-menu-item>
           <p-menu-item
-            attr:active-item="type === 'h3'"
+            attr:active-item="itemData.type === 'h3'"
             on:click="handleChangeType('h3')"
           >
             <n-local-icon name="h3" slot="prefix"></n-local-icon>
@@ -191,8 +191,8 @@
     <span class="placeholder" class:show="inFocus && !value">
       输入文本，默认使用段落组件。按 "/" 切换组件
     </span>
-    <o-if :value="type && type !== 'article'">
-      <lumi-fake :type="type">
+    <o-if :value="itemData.type && itemData.type !== 'article'">
+      <lumi-fake :type="itemData.type">
         <div
           class="inputer-content"
           class:dragovering="dragovering"
@@ -204,7 +204,7 @@
         ></div>
       </lumi-fake>
     </o-if>
-    <o-if :value="type === 'article'">
+    <o-if :value="itemData.type === 'article'">
       <div
         style="
           display: flex;
@@ -249,7 +249,6 @@
         tag: "lumi-block",
         data: {
           itemData: {},
-          type: "",
           value: "",
           inFocus: false,
           dragovering: false,
@@ -258,11 +257,13 @@
         },
         proto: {
           handleChangeType(type) {
-            this.type = type;
+            this.itemData.type = type;
             this.leftMenuOpen = false;
           },
           focus() {
-            this.shadow.$(".inputer-content").ele.focus();
+            setTimeout(() => {
+              this.shadow.$(".inputer-content").ele.focus();
+            }, 10);
           },
           handleClickLeftMenu() {
             this.leftMenuOpen = !this.leftMenuOpen;
