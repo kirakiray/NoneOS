@@ -38,6 +38,8 @@
 
             this.itemData = target;
 
+            window.currentArticle = target;
+
             // 如果没有标题，则对焦标题；如果有标题，则对焦最后一个元素
             if (!target.title) {
               this.shadow.$("lumi-page").focusTitle();

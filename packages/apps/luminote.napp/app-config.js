@@ -1,3 +1,5 @@
+import { createArticleData } from "./util/create-article-data.js";
+
 export const home = "./pages/home.html";
 
 export const pageAnime = {
@@ -168,18 +170,7 @@ export default {
         articleData.creationtime = Date.now();
 
         // main 为主体的文章数据
-        articleData.main = [
-          {
-            title: "示范页面",
-            creationtime: Date.now(),
-            content: [
-              {
-                type: "paragraph",
-                value: "",
-              },
-            ],
-          },
-        ];
+        articleData.main = [createArticleData({ title: "示范页面" })];
 
         await articleData.ready(true);
 

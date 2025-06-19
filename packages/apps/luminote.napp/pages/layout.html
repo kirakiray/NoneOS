@@ -187,6 +187,11 @@
   </p-bind-contextmenu>
   <script>
     export default async ({ load }) => {
+      const { findArticle } = await load("../util/find-article-data.js");
+      const { createArticleData } = await load(
+        "../util/create-article-data.js"
+      );
+
       return {
         data: {
           articles: [],
@@ -201,19 +206,22 @@
             const data = selected.__item.$data;
 
             switch (type) {
+              case "addSubNote":
+                const targetArticle = await findArticle(
+                  this.app,
+                  this.currentArticleDataId
+                );
+
+                targetArticle.content.push(createArticleData());
+
+                break;
               case "removeNote":
-                const articleData = (await this.app.getCurrentProject()).data;
-
-                const { main } = articleData;
-
                 data.removed = true; // 标识已删除
                 data.removedTime = Date.now();
 
                 // 如果当前是回收站，刷新回收站内容
-
-                break;
-              case "addSubNote":
                 debugger;
+
                 break;
             }
 
@@ -229,15 +237,7 @@
           handleAddNote(e) {
             e.stopPropagation();
 
-            this.articles.push({
-              title: "",
-              content: [
-                {
-                  type: "paragraph",
-                  value: "",
-                },
-              ],
-            });
+            this.articles.push(createArticleData());
 
             const target = this.articles.slice(-1)[0];
 
