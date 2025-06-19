@@ -188,7 +188,7 @@
       </p-menu-item>
     </p-menu>
 
-    <span class="placeholder" class:show="inFocus && !value">
+    <span class="placeholder" class:show="inFocus && !itemData.value">
       输入文本，默认使用段落组件。按 "/" 切换组件
     </span>
     <o-if :value="itemData.type && itemData.type !== 'article'">
@@ -199,7 +199,7 @@
           contenteditable
           on:input="handleInput"
           on:keydown="handleKeyDown"
-          :html="value"
+          :html="itemData.value"
           on:focus="handleFocus"
         ></div>
       </lumi-fake>
@@ -249,7 +249,6 @@
         tag: "lumi-block",
         data: {
           itemData: {},
-          value: "",
           inFocus: false,
           dragovering: false,
           leftMenuOpen: false,
@@ -315,7 +314,7 @@
             if (content === "<br>") {
               content = "";
             }
-            this.value = content;
+            this.itemData.value = content;
           },
           handleKeyDown(e) {
             if (e.key === "Enter" && !e.shiftKey) {
@@ -324,7 +323,7 @@
               this.emit("enter", {
                 bubbles: false,
               });
-            } else if (e.key === "Backspace" && !this.value.trim()) {
+            } else if (e.key === "Backspace" && !this.itemData.value.trim()) {
               // 在没有内容时按了返回，等于清空内容
               this.emit("delete", {
                 bubbles: false,
