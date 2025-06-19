@@ -38,6 +38,7 @@
     </div>
     <o-fill id="lumi-fill-el" :value="itemData.content">
       <lumi-block
+        :item-data="$data"
         sync:type="$data.type"
         sync:value="$data.value"
         on:enter="$host.handleEnter($data,$index)"
@@ -118,9 +119,20 @@
           },
         },
         attached() {
-          this.on("click", (e) => {
+          this.on("click", async (e) => {
             // 最后面聚焦
             const fillEl = this.shadow.$("#lumi-fill-el");
+
+            // 判断最后一个是不是空白，不是的话加一个
+            const lastItem = this.itemData.content.slice(-1)[0];
+            if (lastItem.value !== "" || lastItem.type === "article") {
+              this.itemData.content.push({
+                type: "paragraph",
+                value: "",
+              });
+
+              await new Promise((res) => setTimeout(res, 30));
+            }
 
             if (fillEl.length > 1) {
               focusAndSetCursorAtEnd(fillEl[fillEl.length - 1].editorElement);
@@ -137,7 +149,7 @@
       if (!element) {
         return;
       }
-      
+
       element.focus();
       const range = document.createRange();
       const selection = window.getSelection();

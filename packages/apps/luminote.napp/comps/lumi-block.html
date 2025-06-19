@@ -10,7 +10,9 @@
     }
     .inputer {
       position: relative;
-      display: block;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       max-width: 800px;
       margin: 1px auto;
       /* background-color: red; */
@@ -203,7 +205,14 @@
       </lumi-fake>
     </o-if>
     <o-if :value="type === 'article'">
-      <div style="display: flex; align-items: center; min-height: 37px">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          min-height: 37px;
+          margin-left: 7px;
+        "
+      >
         <n-local-icon
           name="article"
           style="display: block; margin-right: 4px; font-size: 18px"
@@ -239,6 +248,7 @@
       return {
         tag: "lumi-block",
         data: {
+          itemData: {},
           type: "",
           value: "",
           inFocus: false,
@@ -364,6 +374,8 @@
           if (oldOpenedLeftMenuEl === this) {
             oldOpenedLeftMenuEl = null;
           }
+
+          this.itemData = {};
         },
       };
     };
