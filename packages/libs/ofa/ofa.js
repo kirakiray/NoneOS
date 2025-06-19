@@ -7096,6 +7096,8 @@ ${scriptContent}`;
 
         this.__oldTempName = tempName;
 
+        console.time("o-fill-refreshView");
+
         if (!this.length) {
           // 没有子元素，优化性能的添加方式
           const frag = document.createDocumentFragment();
@@ -7117,6 +7119,9 @@ ${scriptContent}`;
           }
 
           this.ele.appendChild(frag);
+          
+          console.timeEnd("o-fill-refreshView");
+          console.log("fill-1",this.value);
           return;
         }
 
@@ -7207,6 +7212,9 @@ ${scriptContent}`;
             refreshKeyVals();
           }
         }
+
+        console.timeEnd("o-fill-refreshView");
+        console.log("fill-2",this.value);
       },
     },
     ready() {
