@@ -37,7 +37,7 @@
     } */
 
     p-list-item {
-      border-radius: 16px;
+      /* border-radius: 16px; */
       margin: 2px 0;
     }
 
@@ -135,9 +135,17 @@
                 box-shadow: var(--md-sys-color-primary) 0 0 5px;
               "
             ></n-id-avatar>
-            <span style="color: var(--md-sys-color-primary)">
+            <div
+              style="
+                color: var(--md-sys-color-primary);
+                max-width: 80%;
+                text-overflow: ellipsis;
+                overflow: hidden;
+                white-space: nowrap;
+              "
+            >
               {{currentProjectName}}
-            </span>
+            </div>
             <i toggle-collapse slot="suffix" style="display: none"></i>
             <p-button
               size="small"
@@ -168,14 +176,25 @@
           class:hide="$data.removed"
           button
           attr:active-item=" $data._dataId === $host.currentArticleDataId"
-          on:click="$host.handleClickArticle($data)"
+          collapse-childs="open"
+          on:click="$host.handleClickArticle($data,$event)"
         >
           <n-local-icon
             name="article"
             slot="prefix"
             style="display: block; margin-right: 4px; font-size: 18px"
           ></n-local-icon>
+
           {{$data.title || '未命名页面'}}
+
+          <i
+            slot="suffix"
+            size="mini"
+            toggle-collapse
+            style="z-index: 3; display: block"
+            triangle
+            class:hide="!$host.getSubArticles($data).length"
+          ></i>
 
           <p-list slot="childs">
             <o-fill
@@ -239,10 +258,10 @@
             console.log("selected: ", selected.ele);
             console.log("menuItem: ", menuItem.ele);
           },
-          // clickItemMenu(data, event) {
-          //   event.stopPropagation();
-          // },
-          handleClickArticle(data) {
+          handleClickArticle(data, event) {
+            if ($(event.target).attr("toggle-collapse") !== null) {
+              return;
+            }
             this.goto(`./note.html?article_id=${data._dataId}`);
           },
           handleAddNote(e) {
