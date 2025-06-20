@@ -175,7 +175,15 @@
             slot="prefix"
             style="display: block; margin-right: 4px; font-size: 18px"
           ></n-local-icon>
-          {{$data.title || '未命名页面'}} {{$host.hasSubArticle($data)}}
+          {{$data.title || '未命名页面'}}
+
+          <p-list slot="childs">
+            <o-fill
+              :value="$host.getSubArticles($data)"
+              name="list-item"
+              fill-key="_dataId"
+            ></o-fill>
+          </p-list>
         </p-list-item>
       </template>
 
@@ -199,8 +207,8 @@
           currentProjectName: "Loading...",
         },
         proto: {
-          async hasSubArticle(data) {
-            console.log("hasSubArticle");
+          getSubArticles(data) {
+            return data.content.filter((e) => e.type === "article");
           },
           async handleClickMenuItem(e) {
             const { selected, menuItem } = e.data;
@@ -253,7 +261,7 @@
             const articleData = (await this.app.getCurrentProject()).data;
 
             if (articleData) {
-              // window.articles = articleData.main;
+              window.articles = articleData.main;
               this.articles = articleData.main;
               this.currentProjectName = articleData.projectName;
             }
