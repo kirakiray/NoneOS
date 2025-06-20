@@ -94,7 +94,7 @@
     .left-menu {
       position: absolute;
       left: 0;
-      top: 0;
+      top: 36px;
       z-index: 2;
     }
 
@@ -108,21 +108,6 @@
     .openedmenu {
       background-color: var(--md-ref-palette-translucent-primary60);
     }
-
-    /* .left-menu {
-      animation: leftmenuAnime ease 0.3s;
-    }
-
-    @keyframes leftmenuAnime {
-      0% {
-        opacity: 0;
-        transform: translate(15px, 0);
-      }
-      100% {
-        opacity: 1;
-        transform: translate(0, 0);
-      }
-    } */
 
     .dot-loading {
       display: flex;
@@ -183,7 +168,7 @@
 
       <!-- menu组件重复使用导致渲染变慢，所以改为在使用的时候才打开 -->
       <o-if :value="leftMenuOpen">
-        <p-menu attr:open="leftMenuOpen ? 'on' : 'off'" class="left-menu" direct-animation>
+        <p-menu open="'on'" class="left-menu" direct-animation>
           <p-menu-item>
             <n-local-icon name="exchange" slot="prefix"></n-local-icon>
             更改组件
