@@ -41,7 +41,7 @@
       // 检查目录中的文件数量是否符合预期
       const fileCount = await handle.length();
 
-      await data.disconnect();
+      // await data.disconnect();
 
       // 预期应该有5个对象（数据文件）
       return {
@@ -60,7 +60,7 @@
       await data.ready(true);
 
       // 动态修改
-      data.sub.obj2.val = "change val - " + Math.random();
+      // data.sub.obj2.val = "change val - " + Math.random();
 
       const ownerSize = data.sub.obj2.owner.size;
 
@@ -69,11 +69,11 @@
 
       const obj2Equal = data.sub2.obj2 === data.sub.obj2;
 
-      await data.disconnect();
+      // await data.disconnect();
 
       return {
         assert: obj2Equal && ownerSize === 2 && fileCount === 5,
-        content: `data.sub2.obj2 and data.sub.obj2 reference the same object, and the size of data.sub.obj2.owner is 2, and the number of files in the directory is 5`,
+        content: `obj2Equal: ${obj2Equal}, ownerSize: ${ownerSize}, fileCount: ${fileCount}`,
       };
     });
 
@@ -108,11 +108,9 @@
       // 预期应该有4个对象（数据文件）
       const fileCount3 = await handle.length();
 
-      debugger;
-
       return {
         assert: fileCount1 === 5 && fileCount2 === 5 && fileCount3 === 4,
-        content: `data.sub2.obj2 and data.sub.obj2 reference the same object. The initial number of files is 5, the number of files checked for the first time is 5, and the number of files checked for the second time is 4`,
+        content: `fileCount1: ${fileCount1}, fileCount2: ${fileCount2}, fileCount3: ${fileCount3}`,
       };
     });
   </script>

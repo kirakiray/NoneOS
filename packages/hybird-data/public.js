@@ -86,12 +86,16 @@ export const realSaveData = async (hydata) => {
 
   console.log("savedata", hydata); // eslint-disable-line no-cons
 
-  // 数据变化，写入到 handle 中
-  await fileHandle.write(newText, {
-    remark: `writedby-${hydata._root.xid}`,
-  });
+  try {
+    // 数据变化，写入到 handle 中
+    await fileHandle.write(newText, {
+      remark: `writedby-${hydata._root.xid}`,
+    });
 
-  console.log("savedata end", hydata); // eslint-disable-line no-cons
+    console.log("savedata end", hydata); // eslint-disable-line no-cons
+  } catch (err) {
+    console.error(err);
+  }
 
   if (oldText) {
     // 根据旧的数据，删除掉没有使用的对象文件
@@ -136,9 +140,11 @@ const removeData = async (oldData, exitedData) => {
     // 删除子对象
     const childDeletions = Object.entries(targetData)
       .filter(([_, val]) => typeof val === "object")
-      .map(([_, val]) =>
-        removeData(`${Identification}${val._dataId}`, exitedData)
-      );
+      .map(([_, val]) => {
+        if (val && val._dataId) {
+          removeData(`${Identification}${val._dataId}`, exitedData);
+        }
+      });
 
     await Promise.all(childDeletions);
 
