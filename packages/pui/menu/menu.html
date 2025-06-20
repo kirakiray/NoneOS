@@ -57,6 +57,21 @@
       transform: translate(10px, 0);
       opacity: 0;
     }
+
+    @keyframes item-anime {
+      0% {
+        opacity: 0;
+        transform: translate(15px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+    }
+
+    :host([direct-animation]) {
+      opacity: 0;
+    }
   </style>
   <link rel="stylesheet" href="./menu.css" />
 

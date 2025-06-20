@@ -100,6 +100,18 @@
       pointer-events: none;
       opacity: 0;
     }
+
+    /* BUG: 必须要在item内也建立这个动画才能生效 */
+    @keyframes direct-item-anime {
+      0% {
+        opacity: 0;
+        transform: translate(10px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+    }
   </style>
   <button
     class="fake-button"

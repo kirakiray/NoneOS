@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Contenteditable焦点控制示例</title>
+    <style>
+      #editable {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+        min-height: 50px;
+      }
+      button {
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="editable" contenteditable="true">
+      这是一个可编辑的区域。点击下面的按钮会将光标定位到中间位置。
+    </div>
+
+    <button onclick="focusToMiddle()">将光标定位到中间</button>
+
+    <script>
+      function focusToMiddle() {
+        const editable = document.getElementById("editable");
+        editable.focus();
+
+        // 获取文本内容
+        const text = editable.textContent;
+        const middlePos = Math.floor(text.length / 2);
+
+        // 创建范围并设置光标位置
+        const range = document.createRange();
+        const selection = window.getSelection();
+
+        // 找到文本节点
+        let textNode = editable.firstChild;
+        while (textNode && textNode.nodeType !== Node.TEXT_NODE) {
+          textNode = textNode.nextSibling;
+        }
+
+        if (textNode) {
+          range.setStart(textNode, middlePos);
+          range.collapse(true);
+
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
+    </script>
+  </body>
+</html>
