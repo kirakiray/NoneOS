@@ -27,8 +27,16 @@ export class HybirdData extends Stanz {
     if (options._dataId) {
       // 从本地handle加载的数据，会带有数据的id
       const { owner } = options;
+      const root = owner.#root || owner;
 
-      this.#root = owner.#root || owner;
+      // 尝试从根节点上获取是否已经存在
+      const exitedObj = root[ROOTMAPPER].get(options._dataId);
+
+      if (exitedObj) {
+        return exitedObj;
+      }
+
+      this.#root = root;
       this.#dataId = options._dataId; // 继承旧的id
       this.#root[ROOTMAPPER].set(this.#dataId, this); // 将数据添加到root对象中
 

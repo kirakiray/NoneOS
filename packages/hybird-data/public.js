@@ -122,6 +122,8 @@ const removeData = async (oldData, exitedData) => {
   // 从根上获取该对象
   const targetData = rootMapper.get(dataId);
 
+  // 如果不存在 hybirddata owner，可以删除
+
   if (!targetData) {
     console.log("targetData not found", dataId); // eslint-disable-line no-cons
     return;

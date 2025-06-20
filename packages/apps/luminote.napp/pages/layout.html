@@ -175,9 +175,7 @@
             slot="prefix"
             style="display: block; margin-right: 4px; font-size: 18px"
           ></n-local-icon>
-          {{$data.title || '未命名页面'}}
-
-          
+          {{$data.title || '未命名页面'}} {{$host.hasSubArticle($data)}}
         </p-list-item>
       </template>
 
@@ -201,6 +199,9 @@
           currentProjectName: "Loading...",
         },
         proto: {
+          async hasSubArticle(data) {
+            console.log("hasSubArticle");
+          },
           async handleClickMenuItem(e) {
             const { selected, menuItem } = e.data;
 
