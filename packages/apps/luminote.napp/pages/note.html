@@ -54,9 +54,6 @@
             const articleData = (await this.app.getCurrentProject()).data;
 
             // 查找对应文章
-            // const target = articleData.main.find((e) => {
-            //   return e._dataId === article_id;
-            // });
             const target = await findArticle(this.app, article_id);
 
             this.itemData = target;

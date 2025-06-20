@@ -143,6 +143,19 @@
         transform: scale(1);
       }
     }
+
+    .article-comp {
+      display: flex;
+      align-items: center;
+      min-height: 37px;
+      margin-left: 7px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .article-comp:hover {
+      background-color: var(--md-sys-color-on-primary);
+    }
   </style>
   <o-if :value="!loading">
     <div
@@ -248,14 +261,7 @@
         </lumi-fake>
       </o-if>
       <o-if :value="itemData.type === 'article'">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            min-height: 37px;
-            margin-left: 7px;
-          "
-        >
+        <div class="article-comp" on:click="clickArticle">
           <n-local-icon
             name="article"
             style="display: block; margin-right: 4px; font-size: 18px"
@@ -312,6 +318,11 @@
           renderedEditor: false, // 是否已经渲染了编辑器
         },
         proto: {
+          clickArticle() {
+            this.app.current.goto(
+              `./note.html?article_id=${this.itemData._dataId}`
+            );
+          },
           handleChangeType(type) {
             this.itemData.type = type;
             this.leftMenuOpen = false;
