@@ -40,6 +40,8 @@
     export default async ({ load, query }) => {
       const { article_id } = query;
 
+      const { findArticle } = await load("../util/find-article-data.js");
+
       return {
         data: {
           articleId: article_id,
@@ -52,9 +54,10 @@
             const articleData = (await this.app.getCurrentProject()).data;
 
             // 查找对应文章
-            const target = articleData.main.find((e) => {
-              return e._dataId === article_id;
-            });
+            // const target = articleData.main.find((e) => {
+            //   return e._dataId === article_id;
+            // });
+            const target = await findArticle(this.app, article_id);
 
             this.itemData = target;
 
