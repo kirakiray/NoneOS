@@ -5,6 +5,7 @@
   <l-m src="./lumi-fake.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
       /* background-color: rgba(255, 0, 0, 0.3); */
     }
@@ -133,6 +134,11 @@
       animation-delay: -0.16s;
     }
 
+    [contenteditable] {
+      -webkit-user-modify: read-write-plaintext-only;
+      user-modify: read-write-plaintext-only;
+    }
+
     @keyframes bounce {
       0%,
       80%,
@@ -252,7 +258,7 @@
           <div
             class="inputer-content"
             class:dragovering="dragovering"
-            contenteditable
+            contenteditable="plaintext-only"
             on:input="handleInput"
             on:keydown="handleKeyDown"
             :html="itemData.value"
@@ -283,6 +289,39 @@
       </div>
     </div>
   </o-else>
+
+  <style>
+    .section-pannel {
+      position: absolute;
+      width: 100px;
+      height: 30px;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+      border-radius: var(--pui-border-radius);
+      animation: pannel-anime ease 0.3s;
+    }
+
+    @keyframes pannel-anime {
+      0% {
+        transform: translate(16px, 0);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <o-if :value="showToolPannel">
+    <div
+      class="section-pannel"
+      :style.top="pannelPositionTop"
+      :style.left="pannelPositionLeft"
+    ></div>
+  </o-if>
+
   <script>
     // 焦点中的元素
     let oldFocus = null;
@@ -305,6 +344,8 @@
       clearLeftMenu();
     });
 
+    let oldRangeEl = null; //
+
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
     export default async ({ load }) => {
@@ -318,13 +359,24 @@
           leftMenuOpen: false,
           childs: [], // 子元素
           renderedEditor: false, // 是否已经渲染了编辑器
+          showToolPannel: false,
+          pannelPositionTop: 0,
+          pannelPositionLeft: 0,
         },
         proto: {
           textMouseDown(e) {
             console.log("textMouseDown: ", e);
           },
-          textMouseUp(e) {
+          async textMouseUp(e) {
             console.log("textMouseUp: ", e);
+
+            if (oldRangeEl) {
+              oldRangeEl.showToolPannel = false;
+            }
+
+            // BUG: 已选中了文本，再将焦点停在选择范围内，会发现选择文本内容是错的
+            // 所以让子弹再飞一会
+            await new Promise((resolve) => setTimeout(resolve, 10));
 
             const selection = this.shadow.ele.getSelection
               ? this.shadow.ele.getSelection()
@@ -333,9 +385,33 @@
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
 
+              const rangString = range.toString();
+
+              if (!rangString) {
+                this.showToolPannel = false;
+                return;
+              }
+
+              // const rangeRect = range.getBoundingClientRect();
+              const rangeRect = getFirstLinePosition(range);
+              const selfRect = this.ele.getBoundingClientRect();
+
+              const lineHeight = parseFloat(this.css.lineHeight);
+              const fontSize = parseFloat(this.css.fontSize);
+              const finnalHeight = (lineHeight - fontSize) / 2 + lineHeight + 6; // 最终要往上偏移的像素
+
+              // 调整工具框的位置
+              this.pannelPositionTop =
+                rangeRect.top - selfRect.top - finnalHeight + "px";
+              this.pannelPositionLeft = rangeRect.left - selfRect.left + "px";
+
+              oldRangeEl = this;
+              this.showToolPannel = true;
+
               console.log("选中的元素: ", selection, range, range.toString());
             } else {
               console.log("没有选中文本");
+              this.showToolPannel = false;
             }
           },
           clickArticle() {
@@ -467,6 +543,11 @@
             blocks.splice(index, 1);
           }
 
+          if (oldRangeEl === this) {
+            this.showToolPannel = false;
+            oldRangeEl = null;
+          }
+
           if (oldFocus === this) {
             oldFocus = null;
           }
@@ -523,6 +604,25 @@
 
       selection.removeAllRanges();
       selection.addRange(range);
+    }
+
+    function getFirstLinePosition(range) {
+      const rects = range.getClientRects();
+
+      if (rects.length === 0) return null;
+
+      // 第一个矩形就是第一行的位置信息
+      const firstLineRect = rects[0];
+
+      return {
+        left: firstLineRect.left,
+        top: firstLineRect.top,
+        width: firstLineRect.width,
+        height: firstLineRect.height,
+        // 加上滚动偏移量获取绝对位置
+        absoluteLeft: firstLineRect.left + window.scrollX,
+        absoluteTop: firstLineRect.top + window.scrollY,
+      };
     }
   </script>
 </template>
