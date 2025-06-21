@@ -257,6 +257,8 @@
             on:keydown="handleKeyDown"
             :html="itemData.value"
             on:focus="handleFocus"
+            on:mousedown="textMouseDown"
+            on:mouseup="textMouseUp"
           ></div>
         </lumi-fake>
       </o-if>
@@ -318,6 +320,20 @@
           renderedEditor: false, // 是否已经渲染了编辑器
         },
         proto: {
+          textMouseDown(e) {
+            console.log("textMouseDown: ", e);
+          },
+          textMouseUp(e) {
+            console.log("textMouseUp: ", e);
+
+            const selection = this.shadow.ele.getSelection
+              ? this.shadow.ele.getSelection()
+              : window.getSelection();
+
+            const range = selection.getRangeAt(0);
+
+            console.log("选中的元素: ", selection, range, range.toString());
+          },
           clickArticle() {
             this.app.current.goto(
               `./note.html?article_id=${this.itemData._dataId}`
