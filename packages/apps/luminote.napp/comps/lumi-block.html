@@ -182,7 +182,7 @@
       <!-- menu组件重复使用导致渲染变慢，所以改为在使用的时候才打开 -->
       <o-if :value="leftMenuOpen">
         <p-menu open="'on'" class="left-menu" direct-animation>
-          <p-menu-item>
+          <p-menu-item attr:disabled="itemData.type === 'article'">
             <n-local-icon name="exchange" slot="prefix"></n-local-icon>
             更改组件
             <p-menu open="off">
@@ -330,9 +330,13 @@
               ? this.shadow.ele.getSelection()
               : window.getSelection();
 
-            const range = selection.getRangeAt(0);
+            if (selection.rangeCount > 0) {
+              const range = selection.getRangeAt(0);
 
-            console.log("选中的元素: ", selection, range, range.toString());
+              console.log("选中的元素: ", selection, range, range.toString());
+            } else {
+              console.log("没有选中文本");
+            }
           },
           clickArticle() {
             this.app.current.goto(
@@ -348,7 +352,7 @@
 
             setTimeout(
               () => {
-                this.shadow.$(".inputer-content").ele.focus();
+                focusAndSetCursorAtEnd(this.shadow.$(".inputer-content").ele);
               },
               isSafari ? 100 : 10
             );
@@ -503,5 +507,22 @@
         running = false;
       }
     };
+
+    function focusAndSetCursorAtEnd(element) {
+      element.focus();
+
+      if (isSafari) {
+        return;
+      }
+      // TODO: safari 有bug，无法对焦到最后
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      range.selectNodeContents(element);
+      range.collapse(false);
+
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   </script>
 </template>

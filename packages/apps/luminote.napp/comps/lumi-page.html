@@ -58,13 +58,11 @@
             }
           },
           focusTitle() {
-            focusAndSetCursorAtEnd(this.shadow.$(".title").ele);
+            this.shadow.$(".title").ele.focus();
           },
           focusLast() {
             setTimeout(() => {
-              focusAndSetCursorAtEnd(
-                this.shadow.$("#lumi-fill-el").slice(-1)[0].editorElement
-              );
+              this.shadow.$("#lumi-fill-el").slice(-1)[0].focus();
             }, 30);
           },
           async handleEnter(data, index) {
@@ -93,7 +91,7 @@
               }
 
               // 文本焦点放在最后
-              prevBlock && focusAndSetCursorAtEnd(prevBlock.editorElement);
+              prevBlock && prevBlock.focus();
             }, 10);
           },
           handleDrop(data, index, event) {
@@ -133,7 +131,7 @@
             }
 
             if (fillEl.length > 1) {
-              focusAndSetCursorAtEnd(fillEl[fillEl.length - 1].editorElement);
+              fillEl[fillEl.length - 1].focus();
             }
           });
         },
@@ -142,24 +140,5 @@
         },
       };
     };
-
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-    function focusAndSetCursorAtEnd(element) {
-      element.focus();
-
-      if (isSafari) {
-        return;
-      }
-      // TODO: safari 有bug，无法对焦到最后
-      const range = document.createRange();
-      const selection = window.getSelection();
-
-      range.selectNodeContents(element);
-      range.collapse(false);
-
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
   </script>
 </template>
