@@ -378,14 +378,30 @@
             // 所以让子弹再飞一会
             await new Promise((resolve) => setTimeout(resolve, 10));
 
+            console.log(
+              "this.shadow.ele.getSelection: ",
+              this.shadow.ele.getSelection
+            );
+
+            console.dir(this.shadow.ele);
+
+            // BUG: 垃圾 safari,没办法获取到选择的范围
             const selection = this.shadow.ele.getSelection
               ? this.shadow.ele.getSelection()
-              : window.getSelection();
+              : document.getSelection();
 
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
 
               const rangString = range.toString();
+
+              console.log(
+                "selection: ",
+                selection,
+                range,
+                "rangString: ",
+                rangString
+              );
 
               if (!rangString) {
                 this.showToolPannel = false;
