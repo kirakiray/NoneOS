@@ -1,0 +1,648 @@
+<template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="./lumi-fake.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      /* background-color: rgba(255, 0, 0, 0.3); */
+    }
+    .inputer {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      width: 100%;
+      max-width: 800px;
+      margin: 1px auto;
+      /* background-color: rgba(255, 128, 0, 0.3); */
+    }
+    .menu-btn {
+      display: inline-block;
+      position: absolute;
+      /* top: 4px; */
+      /* top: 20%; */
+      left: -30px;
+      opacity: 0;
+    }
+    :host(:hover) .menu-btn {
+      opacity: 1;
+    }
+    .placeholder {
+      position: absolute;
+      padding: 4px;
+      color: var(--md-sys-color-normal);
+      pointer-events: none;
+      padding-left: 12px;
+      opacity: 0;
+      transition: opacity ease 0.1s;
+    }
+    .placeholder.show {
+      opacity: 1;
+    }
+
+    .inputer-tips {
+      position: absolute;
+      top: 32px;
+      left: 13px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      transform: translate(-50%, 0);
+      white-space: nowrap;
+      color: var(--md-sys-color-normal);
+      background-color: var(--md-sys-color-on-normal);
+      opacity: 0;
+      z-index: 2;
+      transition: all ease 0.2s;
+    }
+
+    .menu-btn p-button:hover + .inputer-tips {
+      opacity: 1;
+      transition-delay: 0.5s;
+    }
+
+    .menu-btn:active,
+    .menu-btn:active p-button::part(container),
+    .menu-btn p-button:active {
+      cursor: grabbing !important;
+    }
+
+    .menu-btn p-button:active + .inputer-tips {
+      opacity: 0;
+    }
+
+    .dragovering-mark {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--md-sys-color-primary);
+      opacity: 0;
+    }
+    .dragovering-mark.show {
+      opacity: 1;
+    }
+
+    .left-menu {
+      position: absolute;
+      left: 0;
+      top: 36px;
+      z-index: 2;
+    }
+
+    .left-menu n-local-icon {
+      display: block;
+      margin-right: 8px;
+      font-size: 16px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .openedmenu {
+      background-color: var(--md-ref-palette-translucent-primary60);
+    }
+
+    .dot-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 50px;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-primary);
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    /* [contenteditable] {
+        -webkit-user-modify: read-write-plaintext-only;
+        user-modify: read-write-plaintext-only;
+      } */
+
+    @keyframes bounce {
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    .article-comp {
+      display: flex;
+      align-items: center;
+      min-height: 37px;
+      margin-left: 7px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .article-comp:hover {
+      background-color: var(--md-sys-color-on-primary);
+    }
+
+    .fake-textarea {
+      display: block;
+      border: none;
+      -webkit-appearance: none;
+      appearance: none;
+      resize: none;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+      background-color: transparent;
+    }
+
+    .inputer-content,
+    .fake-textarea {
+      display: block;
+      font-size: inherit;
+      line-height: inherit;
+      font-family: inherit;
+      font-weight: inherit;
+      min-height: 38px;
+      line-height: 1.6em;
+      letter-spacing: inherit;
+      word-break: break-all;
+      /* outline: none; */
+    }
+
+    .fake-textarea {
+      color: rgba(255, 0, 0, 0.7);
+    }
+  </style>
+  <o-if :value="!loading">
+    <div
+      class="inputer"
+      class:openedmenu="leftMenuOpen"
+      on:dragover="handleDargover"
+      on:dragleave="dragovering = false"
+      on:drop="handleDrop"
+    >
+      <div class="menu-btn">
+        <p-button
+          icon
+          size="small"
+          variant="text"
+          on:mousedown="handleMousedown"
+          on:mouseup="handleMouseup"
+          on:click="handleClickLeftMenu"
+        >
+          <n-local-icon name="menu"></n-local-icon>
+        </p-button>
+        <div class="inputer-tips">拖拽或点击</div>
+      </div>
+
+      <!-- menu组件重复使用导致渲染变慢，所以改为在使用的时候才打开 -->
+      <o-if :value="leftMenuOpen">
+        <p-menu open="'on'" class="left-menu" direct-animation>
+          <p-menu-item attr:disabled="itemData.type === 'article'">
+            <n-local-icon name="exchange" slot="prefix"></n-local-icon>
+            更改组件
+            <p-menu open="off">
+              <p-menu-item
+                attr:active-item="itemData.type === 'paragraph'"
+                on:click="handleChangeType('paragraph')"
+              >
+                <n-local-icon name="p" slot="prefix"></n-local-icon>
+                段落
+              </p-menu-item>
+              <p-menu-item
+                attr:active-item="itemData.type === 'h1'"
+                on:click="handleChangeType('h1')"
+              >
+                <n-local-icon name="h1" slot="prefix"></n-local-icon>
+                大标题
+              </p-menu-item>
+              <p-menu-item
+                attr:active-item="itemData.type === 'h2'"
+                on:click="handleChangeType('h2')"
+              >
+                <n-local-icon name="h2" slot="prefix"></n-local-icon>
+                中标题
+              </p-menu-item>
+              <p-menu-item
+                attr:active-item="itemData.type === 'h3'"
+                on:click="handleChangeType('h3')"
+              >
+                <n-local-icon name="h3" slot="prefix"></n-local-icon>
+                小标题
+              </p-menu-item>
+            </p-menu>
+          </p-menu-item>
+          <p-menu-item disabled>
+            <n-local-icon name="color" slot="prefix"></n-local-icon>
+            更改颜色
+          </p-menu-item>
+          <hr />
+          <p-menu-item disabled>
+            <n-local-icon name="copy" slot="prefix"></n-local-icon>
+            拷贝
+          </p-menu-item>
+          <p-menu-item disabled>
+            <n-local-icon name="duplicate" slot="prefix"></n-local-icon>
+            创建副本
+          </p-menu-item>
+          <p-menu-item disabled>
+            <n-local-icon name="delete" slot="prefix"></n-local-icon>
+            删除
+          </p-menu-item>
+          <hr />
+          <p-menu-item disabled>
+            <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
+            润色
+          </p-menu-item>
+        </p-menu>
+      </o-if>
+
+      <span class="placeholder" class:show="inFocus && !itemData.value">
+        输入文本，默认使用段落组件。按 "/" 切换组件
+      </span>
+      <o-if :value="itemData.type && itemData.type !== 'article'">
+        <lumi-fake :type="itemData.type">
+          <!-- <div
+              class="inputer-content"
+              class:dragovering="dragovering"
+              contenteditable="true"
+              on:input="handleInput"
+              on:keydown="handleKeyDown"
+              :html="itemData.value"
+              on:focus="handleFocus"
+              on:mousedown="textMouseDown"
+              on:mouseup="textMouseUp"
+            ></div>  -->
+          <div
+            class="inputer-content"
+            class:dragovering="dragovering"
+            :html="inputerTextContent"
+            on:mousedown="textMouseDown"
+            on:mouseup="textMouseUp"
+          ></div>
+          <textarea
+            class="fake-textarea"
+            sync:value="fakeValue"
+            on:input="textChange"
+            on:keydown="handleKeyDown"
+            on:focus="handleFocus"
+          >
+          </textarea>
+        </lumi-fake>
+      </o-if>
+      <o-if :value="itemData.type === 'article'">
+        <div class="article-comp" on:click="clickArticle">
+          <n-local-icon
+            name="article"
+            style="display: block; margin-right: 4px; font-size: 18px"
+          ></n-local-icon>
+          {{itemData.title || '未命名页面'}}
+        </div>
+      </o-if>
+      <div class="dragovering-mark" class:show="dragovering"></div>
+    </div>
+  </o-if>
+  <o-else>
+    <div class="inputer" style="margin: 16px auto; align-items: flex-start">
+      <div class="dot-loading">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </o-else>
+
+  <style>
+    .section-pannel {
+      position: absolute;
+      width: 100px;
+      height: 30px;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+      border-radius: var(--pui-border-radius);
+      animation: pannel-anime ease 0.3s;
+    }
+
+    @keyframes pannel-anime {
+      0% {
+        transform: translate(16px, 0);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+    }
+  </style>
+
+  <o-if :value="showToolPannel">
+    <div
+      class="section-pannel"
+      :style.top="pannelPositionTop"
+      :style.left="pannelPositionLeft"
+    ></div>
+  </o-if>
+
+  <script>
+    // 焦点中的元素
+    let oldFocus = null;
+
+    // 打开的左侧菜单元素
+    let oldOpenedLeftMenuEl = null;
+
+    // 清除左侧菜单
+    const clearLeftMenu = () => {
+      if (oldOpenedLeftMenuEl) {
+        oldOpenedLeftMenuEl.leftMenuOpen = false;
+        oldOpenedLeftMenuEl = null;
+      }
+    };
+
+    // 拖拽中的元素
+    let dragStartEl = null;
+
+    document.body.addEventListener("click", () => {
+      clearLeftMenu();
+    });
+
+    let oldRangeEl = null; //
+
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-block",
+        data: {
+          loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
+          itemData: {},
+          fakeValue: "", // textarea 使用的字符串内容
+          inFocus: false,
+          dragovering: false,
+          leftMenuOpen: false,
+          childs: [], // 子元素
+          showToolPannel: false,
+          pannelPositionTop: 0,
+          pannelPositionLeft: 0,
+        },
+        proto: {
+          get inputerTextContent() {
+            return valueToHtml(this.itemData.value);
+          },
+          textChange(e) {
+            this.fakeValue = e.target.value;
+            this.itemData.value = e.target.value;
+          },
+          textMouseDown(e) {
+            // 给 inputer-content 每个字包上 span
+            // const content = this.shadow.$(".inputer-content");
+            // if (content) {
+            //   debugger;
+            // }
+            // console.log("textMouseDown: ", e);
+          },
+          async textMouseUp(e) {
+            console.log("textMouseUp: ", e);
+
+            if (oldRangeEl) {
+              oldRangeEl.showToolPannel = false;
+            }
+
+            // BUG: 已选中了文本，再将焦点停在选择范围内，会发现选择文本内容是错的
+            // 所以让子弹再飞一会
+            await new Promise((resolve) => setTimeout(resolve, 10));
+          },
+          clickArticle() {
+            this.app.current.goto(
+              `./note.html?article_id=${this.itemData._dataId}`
+            );
+          },
+          handleChangeType(type) {
+            this.itemData.type = type;
+            this.leftMenuOpen = false;
+          },
+          async focus() {
+            setTimeout(
+              () => {
+                this.shadow.$(".fake-textarea").ele.focus();
+              },
+              isSafari ? 100 : 10
+            );
+          },
+          handleClickLeftMenu() {
+            this.leftMenuOpen = !this.leftMenuOpen;
+
+            if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
+              clearLeftMenu();
+            }
+
+            oldOpenedLeftMenuEl = this;
+          },
+          handleMousedown() {
+            let startFunc, endFunc;
+            this.attr("draggable", "true");
+            this.on(
+              "dragstart",
+              (startFunc = (e) => {
+                clearLeftMenu();
+                dragStartEl = this;
+                console.log("dragstart", e);
+              })
+            );
+            this.on(
+              "dragend",
+              (endFunc = (e) => {
+                dragStartEl = null;
+                console.log("dragend", e);
+                this.attr("draggable", null);
+
+                this.off("dragstart", startFunc);
+                this.off("dragend", endFunc);
+              })
+            );
+          },
+          handleMouseup() {
+            this.attr("draggable", null);
+          },
+          handleFocus() {
+            if (oldFocus) {
+              oldFocus.inFocus = false;
+            }
+
+            clearLeftMenu();
+
+            this.inFocus = true;
+            oldFocus = this;
+          },
+          handleInput(e) {
+            this.itemData.value = e.target.value;
+          },
+          handleKeyDown(e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+              // 会车，直接在下面新增一个
+              e.preventDefault();
+              this.emit("enter", {
+                bubbles: false,
+              });
+            } else if (e.key === "Backspace" && !this.itemData.value.trim()) {
+              // 在没有内容时按了返回，等于清空内容
+              this.emit("delete", {
+                bubbles: false,
+              });
+            }
+          },
+          handleDargover(e) {
+            e.preventDefault();
+            if (dragStartEl === this) {
+              return;
+            }
+
+            this.dragovering = true;
+          },
+          handleDrop(e) {
+            e.preventDefault();
+            this.dragovering = false;
+
+            if (dragStartEl === this) {
+              return;
+            }
+
+            this.emit("drop", {
+              bubbles: false,
+              data: {
+                sourceData: dragStartEl.__item.$data,
+                // dragStartEl,
+              },
+            });
+          },
+        },
+        attached() {
+          this.on("click", (e) => {
+            e.stopPropagation();
+            if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
+              clearLeftMenu();
+            }
+          });
+
+          if (this.itemData.type !== "article") {
+            this.fakeValue = this.itemData.value;
+          }
+          addLoadingTask(this);
+        },
+        detached() {
+          if (blocks.includes(this)) {
+            const index = blocks.indexOf(this);
+            blocks.splice(index, 1);
+          }
+
+          if (oldRangeEl === this) {
+            this.showToolPannel = false;
+            oldRangeEl = null;
+          }
+
+          if (oldFocus === this) {
+            oldFocus = null;
+          }
+
+          if (oldOpenedLeftMenuEl === this) {
+            oldOpenedLeftMenuEl = null;
+          }
+
+          this.itemData = {};
+        },
+      };
+    };
+
+    // 队列中的block元素
+    const blocks = [];
+    let running = false;
+    const addLoadingTask = (lumiBlock) => {
+      blocks.push(lumiBlock);
+
+      if (!running) {
+        runBlock();
+      }
+    };
+
+    // 按顺序渲染组件，防止页面卡顿
+    const runBlock = async () => {
+      running = true;
+
+      const current = blocks.shift();
+
+      current.loading = false;
+
+      await new Promise((res) => setTimeout(res, 0)); // 异步渲染组件
+
+      if (blocks.length) {
+        runBlock();
+      } else {
+        running = false;
+      }
+    };
+
+    function focusAndSetCursorAtEnd(element) {
+      element.focus();
+
+      if (isSafari) {
+        return;
+      }
+      // TODO: safari 有bug，无法对焦到最后
+      const range = document.createRange();
+      const selection = window.getSelection();
+
+      range.selectNodeContents(element);
+      range.collapse(false);
+
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+
+    function getFirstLinePosition(range) {
+      const rects = range.getClientRects();
+
+      if (rects.length === 0) return null;
+
+      // 第一个矩形就是第一行的位置信息
+      const firstLineRect = rects[0];
+
+      return {
+        left: firstLineRect.left,
+        top: firstLineRect.top,
+        width: firstLineRect.width,
+        height: firstLineRect.height,
+        // 加上滚动偏移量获取绝对位置
+        absoluteLeft: firstLineRect.left + window.scrollX,
+        absoluteTop: firstLineRect.top + window.scrollY,
+      };
+    }
+
+    function valueToHtml(value, options = {}) {
+      const { escape = true, preserveWhitespace = false } = options;
+
+      let result = value;
+
+      result = result.replace(/\n/g, "<br>").replace(/ /g, "&nbsp;");
+
+      return result;
+    }
+  </script>
+</template>
