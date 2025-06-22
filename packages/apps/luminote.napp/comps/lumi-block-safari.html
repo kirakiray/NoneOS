@@ -176,19 +176,20 @@
     .inputer-content,
     .fake-textarea {
       display: block;
-      font-size: inherit;
       line-height: inherit;
-      font-family: inherit;
-      font-weight: inherit;
       min-height: 38px;
       line-height: 1.6em;
       letter-spacing: inherit;
       word-break: break-all;
+      /* white-space: inherit; */
+      font: inherit;
+      border: 0;
+      white-space: pre-wrap;
       /* outline: none; */
     }
 
     .fake-textarea {
-      color: rgba(255, 0, 0, 0.7);
+      color: rgba(255, 0, 0, 0.6);
     }
   </style>
   <o-if :value="!loading">
@@ -293,6 +294,7 @@
             ></div>  -->
           <div
             class="inputer-content"
+            contenteditable="true"
             class:dragovering="dragovering"
             :html="inputerTextContent"
             on:mousedown="textMouseDown"
