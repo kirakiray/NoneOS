@@ -42,7 +42,13 @@
     .placeholder.show {
       opacity: 1;
     }
-    .inputer-content {
+    /* .inputer-content {
+      display: block;
+      padding: 6px 8px;
+      line-height: 1.6em;
+      outline: none;
+    } */
+    ::slotted([inputer-content]) {
       display: block;
       padding: 6px 8px;
       line-height: 1.6em;
@@ -250,12 +256,9 @@
       <span class="placeholder" class:show="inFocus && !itemData.value">
         输入文本，默认使用段落组件。按 "/" 切换组件
       </span>
-      <o-if
-        :value="itemData.type && itemData.type !== 'article'"
-        on:rendered="renderedEditor = true"
-      >
+      <o-if :value="itemData.type && itemData.type !== 'article'">
         <lumi-fake :type="itemData.type">
-          <div
+          <!-- <div
             class="inputer-content"
             class:dragovering="dragovering"
             contenteditable="plaintext-only"
@@ -265,7 +268,8 @@
             on:focus="handleFocus"
             on:mousedown="textMouseDown"
             on:mouseup="textMouseUp"
-          ></div>
+          ></div> -->
+          <slot></slot>
         </lumi-fake>
       </o-if>
       <o-if :value="itemData.type === 'article'">
@@ -351,6 +355,7 @@
     export default async ({ load }) => {
       const {
         addLoadingTask,
+        removeLoadingTask,
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
         cloneEditorContent,
@@ -365,40 +370,43 @@
           dragovering: false,
           leftMenuOpen: false,
           childs: [], // 子元素
-          renderedEditor: false, // 是否已经渲染了编辑器
           showToolPannel: false,
           pannelPositionTop: 0,
           pannelPositionLeft: 0,
         },
         proto: {
+          initEditor() {
+            // 初始化 editor 操作,主要是为了兼容safari
+            const inputerContent = $(
+              `<div inputer-content contenteditable="plaintext-only"></div> `
+            );
+
+            inputerContent.html = this.itemData.value;
+
+            inputerContent.on("input", (e) => {
+              this.handleInput(e);
+            });
+
+            inputerContent.on("keydown", (e) => {
+              this.handleKeyDown(e);
+            });
+
+            inputerContent.on("focus", (e) => {
+              this.handleFocus(e);
+            });
+
+            inputerContent.on("mousedown", (e) => {
+              this.textMouseDown(e);
+            });
+
+            inputerContent.on("mouseup", (e) => {
+              this.textMouseUp(e);
+            });
+
+            this.push(inputerContent);
+          },
           textMouseDown(e) {
             console.log("textMouseDown: ", e);
-
-            // // 完全复制一份到body
-            // const contentRect = this.shadow
-            //   .$(".inputer-content")
-            //   .ele.getBoundingClientRect();
-
-            // // 复制一份一模一样的代码
-            // const cEle = cloneEditorContent(
-            //   this.shadow.$(".inputer-content").ele
-            // );
-
-            // // 放在桌面相对定位的位置
-            // cEle.style.position = "fixed";
-            // cEle.style.top = contentRect.top + "px";
-            // cEle.style.left = contentRect.left + "px";
-            // cEle.style.zIndex = 4;
-
-            // // 放在body
-            // document.body.appendChild(cEle);
-
-            // cEle.focus();
-            // cEle.style.color = "red";
-
-            // setTimeout(() => {
-            //   console.log("selection: ", document.getSelection());
-            // }, 1000);
           },
           async textMouseUp(e) {
             console.log("textMouseUp: ", e);
@@ -416,10 +424,12 @@
               this.shadow.ele.getSelection
             );
 
-            // BUG: 垃圾 safari,没办法获取到选择的范围
-            const selection = this.shadow.ele.getSelection
-              ? this.shadow.ele.getSelection()
-              : document.getSelection();
+            // // BUG: 垃圾 safari,没办法获取到选择的范围
+            // const selection = this.shadow.ele.getSelection
+            //   ? this.shadow.ele.getSelection()
+            //   : document.getSelection();
+
+            const selection = e.target.getRootNode().getSelection();
 
             if (selection.getComposedRanges) {
               const cRanges = selection.getComposedRanges();
@@ -480,11 +490,10 @@
             this.leftMenuOpen = false;
           },
           async focus() {
-            await this.watchTick(() => this.renderedEditor);
-
             setTimeout(
               () => {
-                focusAndSetCursorAtEnd(this.shadow.$(".inputer-content").ele);
+                // focusAndSetCursorAtEnd(this.shadow.$(".inputer-content").ele);
+                focusAndSetCursorAtEnd(this[0].ele);
               },
               isSafari ? 100 : 10
             );
@@ -546,17 +555,14 @@
               // 会车，直接在下面新增一个
               e.preventDefault();
               this.emit("enter", {
-                bubbles: false,
+                // bubbles: false,
               });
             } else if (e.key === "Backspace" && !this.itemData.value.trim()) {
               // 在没有内容时按了返回，等于清空内容
               this.emit("delete", {
-                bubbles: false,
+                // bubbles: false,
               });
             }
-          },
-          get editorElement() {
-            return this.shadow?.$(".inputer-content")?.ele;
           },
           handleDargover(e) {
             e.preventDefault();
@@ -575,15 +581,22 @@
             }
 
             this.emit("drop", {
-              bubbles: false,
+              // bubbles: false,
               data: {
-                sourceData: dragStartEl.__item.$data,
+                // sourceData: dragStartEl.__item.$data,
+                sourceData: dragStartEl.itemData,
                 // dragStartEl,
               },
             });
           },
         },
         attached() {
+          if (!this.itemData.type) {
+            console.error(
+              "注意：`itemData` 必须在组件初始化时就进行设置，当前未满足此条件，请检查代码逻辑。"
+            );
+          }
+
           this.on("click", (e) => {
             e.stopPropagation();
             if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
@@ -592,12 +605,11 @@
           });
 
           addLoadingTask(this);
+
+          this.initEditor();
         },
         detached() {
-          if (blocks.includes(this)) {
-            const index = blocks.indexOf(this);
-            blocks.splice(index, 1);
-          }
+          removeLoadingTask(this);
 
           if (oldRangeEl === this) {
             this.showToolPannel = false;

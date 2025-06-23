@@ -31,7 +31,9 @@
   <div class="top"></div>
   <div class="main">
     <div class="inner">
-      <lumi-page :item-data="itemData" style="height: 100%"></lumi-page>
+      <!-- BUG: 为了适配safari,必须放在 slot 内,如果以后safari修复了这个问题,则重新放回 -->
+      <!-- <lumi-page :item-data="itemData" style="height: 100%"></lumi-page> -->
+      <slot></slot>
     </div>
   </div>
   <script>
@@ -72,6 +74,19 @@
           },
         },
         attached() {
+          {
+            // BUG: 为了适配safari的操作
+            const wid = this.watchTick((e) => {
+              if (this.itemData.type === "article") {
+                // 数据成功后,首次传递数据
+                this.$("lumi-page").itemData = this.itemData;
+                this.unwatch(wid);
+              }
+            });
+            this.push(`<lumi-page style="height: 100%"></lumi-page>`);
+            this.$("lumi-page").itemData = this.itemData;
+          }
+
           this.emit("active-article", {
             composed: true,
             data: {
@@ -83,6 +98,7 @@
         },
         detached() {
           this.itemData = {};
+          this.$("lumi-page").itemData = {};
         },
       };
     };

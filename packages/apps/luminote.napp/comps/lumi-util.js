@@ -9,6 +9,13 @@ export const addLoadingTask = (lumiBlock) => {
   }
 };
 
+export const removeLoadingTask = (lumiBlock) => {
+  const index = blocks.indexOf(lumiBlock);
+  if (index !== -1) {
+    blocks.splice(index, 1);
+  }
+};
+
 // 按顺序渲染组件，防止页面卡顿
 export const runBlock = async () => {
   running = true;
@@ -25,6 +32,8 @@ export const runBlock = async () => {
     running = false;
   }
 };
+
+const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 export function focusAndSetCursorAtEnd(element) {
   element.focus();
