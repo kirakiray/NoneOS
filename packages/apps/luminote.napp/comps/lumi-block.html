@@ -306,6 +306,7 @@
       box-shadow: var(--contained-shadow);
       border-radius: 18px;
       padding: 3px;
+      white-space: nowrap;
       animation: pannel-anime ease 0.3s;
     }
 
@@ -335,6 +336,15 @@
     .section-pannel p-button {
       margin: 0 2px;
     }
+
+    .tool-tips {
+      margin-bottom: 5px;
+      padding: 8px;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-normal-container);
+      border-radius: var(--pui-border-radius);
+      box-shadow: var(--contained-shadow);
+    }
   </style>
 
   <o-if :value="showToolPannel">
@@ -353,39 +363,49 @@
           剖析
         </p-button>
         <div slot="tips">
-          <div
-            style="
-              width: 200px;
-              margin-bottom: 5px;
-              padding: 8px;
-              color: var(--md-sys-color-on-normal-container);
-              background-color: var(--md-sys-color-normal-container);
-              white-space: wrap;
-              border-radius: var(--pui-border-radius);
-              box-shadow: var(--contained-shadow);
-            "
-          >
+          <div class="tool-tips" style="white-space: wrap; width: 200px">
             新建一份便条，对选中内容进行解释说明。
           </div>
         </div>
       </p-tooltips>
 
       <div class="tool-pannel-line"></div>
-      <p-button size="small" variant="text" color="normal" icon>
-        <n-local-icon name="bold"></n-local-icon>
-      </p-button>
-      <p-button size="small" variant="text" color="normal" icon>
-        <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
-      </p-button>
-      <p-button size="small" variant="text" color="normal" icon>
-        <n-local-icon
-          name="strikethrough"
-          style="font-size: 18px"
-        ></n-local-icon>
-      </p-button>
-      <p-button size="small" variant="text" color="normal" icon>
-        <n-local-icon name="italic"></n-local-icon>
-      </p-button>
+      <p-tooltips placement="top" plain>
+        <p-button size="small" variant="text" color="normal" icon>
+          <n-local-icon name="bold"></n-local-icon>
+        </p-button>
+
+        <div slot="tips">
+          <div class="tool-tips">加粗</div>
+        </div>
+      </p-tooltips>
+      <p-tooltips placement="top" plain>
+        <p-button size="small" variant="text" color="normal" icon>
+          <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips">下划线</div>
+        </div>
+      </p-tooltips>
+      <p-tooltips placement="top" plain>
+        <p-button size="small" variant="text" color="normal" icon>
+          <n-local-icon
+            name="strikethrough"
+            style="font-size: 18px"
+          ></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips">删除线</div>
+        </div>
+      </p-tooltips>
+      <p-tooltips placement="top" plain>
+        <p-button size="small" variant="text" color="normal" icon>
+          <n-local-icon name="italic"></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips">斜体</div>
+        </div>
+      </p-tooltips>
       <p-button size="small" variant="outlined" color="normal">
         <span slot="prefix">A</span>
         颜色
@@ -527,10 +547,25 @@
               // 调整工具框的位置
               this.pannelPositionTop =
                 rangeRect.top - selfRect.top - finnalHeight + "px";
+
               this.pannelPositionLeft = rangeRect.left - selfRect.left + "px";
 
               oldRangeEl = this;
               this.showToolPannel = true;
+
+              await new Promise((resolve) => setTimeout(resolve, 10));
+
+              // 如果超出了屏幕边, 改为靠右
+              const width = parseInt(
+                this.shadow.$(".section-pannel").css.width
+              );
+
+              if (
+                width + parseFloat(this.pannelPositionLeft) >
+                selfRect.width
+              ) {
+                this.pannelPositionLeft = selfRect.width - width + "px";
+              }
 
               console.log("选中的元素: ", selection, range, range.toString());
             } else {
