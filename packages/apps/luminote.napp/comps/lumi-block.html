@@ -578,7 +578,8 @@
             this.emit("drop", {
               // bubbles: false,
               data: {
-                sourceData: dragStartEl.__item.$data,
+                // sourceData: dragStartEl.__item.$data,
+                sourceData: dragStartEl.itemData,
                 // dragStartEl,
               },
             });

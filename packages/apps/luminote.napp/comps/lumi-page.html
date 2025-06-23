@@ -224,7 +224,9 @@
             });
             this.on("drop", (e) => {
               e.stopPropagation();
-              debugger;
+
+              const lumiblock = $(e.target);
+              this.handleDrop(lumiblock.itemData, lumiblock.index, e);
             });
           }
         },
