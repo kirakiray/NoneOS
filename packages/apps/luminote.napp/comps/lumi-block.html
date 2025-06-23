@@ -351,6 +351,7 @@
     export default async ({ load }) => {
       const {
         addLoadingTask,
+        removeLoadingTask,
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
         cloneEditorContent,
@@ -546,12 +547,12 @@
               // 会车，直接在下面新增一个
               e.preventDefault();
               this.emit("enter", {
-                bubbles: false,
+                // bubbles: false,
               });
             } else if (e.key === "Backspace" && !this.itemData.value.trim()) {
               // 在没有内容时按了返回，等于清空内容
               this.emit("delete", {
-                bubbles: false,
+                // bubbles: false,
               });
             }
           },
@@ -575,7 +576,7 @@
             }
 
             this.emit("drop", {
-              bubbles: false,
+              // bubbles: false,
               data: {
                 sourceData: dragStartEl.__item.$data,
                 // dragStartEl,
@@ -594,10 +595,7 @@
           addLoadingTask(this);
         },
         detached() {
-          if (blocks.includes(this)) {
-            const index = blocks.indexOf(this);
-            blocks.splice(index, 1);
-          }
+          removeLoadingTask(this);
 
           if (oldRangeEl === this) {
             this.showToolPannel = false;

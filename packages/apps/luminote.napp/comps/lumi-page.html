@@ -35,7 +35,9 @@
         placeholder="页面标题"
       />
     </div>
-    <o-fill id="lumi-fill-el" :value="itemData.content" fill-key="_dataId">
+    <!-- BUG: safari无法获取shadow root 内的 selection,所以改用slot操作 -->
+    <slot></slot>
+    <!-- <o-fill id="lumi-fill-el" :value="itemData.content" fill-key="_dataId">
       <lumi-block
         :item-data="$data"
         attr:data-type="$data.type"
@@ -43,7 +45,7 @@
         on:delete="$host.handleDelete($data,$index)"
         on:drop="$host.handleDrop($data,$index,$event)"
       ></lumi-block>
-    </o-fill>
+    </o-fill> -->
   </div>
   <script>
     export default async () => {
@@ -75,17 +77,19 @@
             });
 
             setTimeout(() => {
-              this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
+              // this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
+              this[finnalIndex].focus();
             }, 10);
           },
           async handleDelete(data, index) {
             this.itemData.content.splice(index, 1);
 
             setTimeout(() => {
-              const fillEl = this.shadow.$("#lumi-fill-el");
+              // const fillEl = this.shadow.$("#lumi-fill-el");
 
               // 获取对上的一个元素
-              let prevBlock = fillEl[index - 1];
+              // let prevBlock = fillEl[index - 1];
+              let prevBlock = this[index - 1];
 
               while (prevBlock && prevBlock.data.type === "article") {
                 prevBlock = prevBlock.prev;
@@ -135,6 +139,94 @@
               fillEl[fillEl.length - 1].focus();
             }
           });
+
+          {
+            // BUG: safari无法获取shadow root 内的 selection
+            this.watchTick((e) => {
+              if (!e.hasModified("itemData")) {
+                return;
+              }
+
+              const { content } = this.itemData;
+
+              if (!content) {
+                return;
+              }
+
+              // 遍历子元素,如果不一致则进行修正
+              for (let i = 0, len = content.length; i < len; i++) {
+                const item = content[i];
+                const currentEl = this[i];
+
+                if (!currentEl) {
+                  // 如果没有存在元素,代表为空,直接塞新数据进去
+                  const blockEl = $(
+                    `<lumi-block data-type="${item.type}"></lumi-block>`
+                  );
+
+                  blockEl.itemData = item;
+
+                  this.push(blockEl);
+                } else {
+                  // 查看数据是否一致
+                  if (currentEl.itemData === item) {
+                    continue;
+                  }
+
+                  // 查看是否在后面的元素中
+                  const exitedIndex = this.findIndex((e) => {
+                    return e.itemData === item;
+                  });
+
+                  if (exitedIndex > -1) {
+                    // 只修正位移
+                    const exitedItem = this[exitedIndex];
+                    // 防止触发 detached 事件
+                    exitedItem.ele.__internal = 1;
+                    console.log("exitedItem: ", exitedItem.xid);
+                    currentEl.before(exitedItem);
+                    delete exitedItem.ele.__internal;
+
+                    // 判断 current 是否需要删除
+                    if (!content.includes(currentEl.itemData)) {
+                      // 需要删除
+                      currentEl.remove();
+                    }
+                    continue;
+                  }
+
+                  // 如果没有存在元素,代表为空,直接塞新数据进去
+                  const blockEl = $(
+                    `<lumi-block data-type="${item.type}"></lumi-block>`
+                  );
+
+                  blockEl.itemData = item;
+
+                  // 在目标前面添加
+                  currentEl.before(blockEl);
+                }
+              }
+
+              // debugger;
+            });
+
+            this.on("enter", (e) => {
+              e.stopPropagation();
+              const lumiblock = $(e.target);
+
+              this.handleEnter(lumiblock.itemData, lumiblock.index);
+            });
+            this.on("delete", (e) => {
+              e.stopPropagation();
+              const lumiblock = $(e.target);
+
+              this.handleDelete(lumiblock.itemData, lumiblock.index);
+            });
+            this.on("drop", (e) => {
+              e.stopPropagation();
+              debugger;
+            });
+          }
         },
         detached() {
           this.itemData = {}; // 清除绑定
