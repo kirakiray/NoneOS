@@ -2,6 +2,8 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="/packages/pui/button/group.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
   <style>
     :host {
@@ -296,13 +298,14 @@
 
   <style>
     .section-pannel {
+      display: flex;
+      align-items: center;
       position: absolute;
-      width: 100px;
-      height: 30px;
       background-color: var(--md-sys-color-on-normal);
       color: var(--md-sys-color-normal);
       box-shadow: var(--contained-shadow);
-      border-radius: var(--pui-border-radius);
+      border-radius: 18px;
+      padding: 3px;
       animation: pannel-anime ease 0.3s;
     }
 
@@ -316,6 +319,22 @@
         opacity: 1;
       }
     }
+
+    .section-pannel n-local-icon {
+      display: block;
+      font-size: 16px;
+    }
+
+    .tool-pannel-line {
+      background-color: var(--md-sys-color-normal);
+      width: 1px;
+      height: 22px;
+      margin: 0 6px;
+    }
+
+    .section-pannel p-button {
+      margin: 0 2px;
+    }
   </style>
 
   <o-if :value="showToolPannel">
@@ -323,7 +342,55 @@
       class="section-pannel"
       :style.top="pannelPositionTop"
       :style.left="pannelPositionLeft"
-    ></div>
+    >
+      <p-tooltips placement="top" plain>
+        <p-button size="small" variant="text" color="normal">
+          <n-local-icon
+            name="branch"
+            slot="prefix"
+            style="margin-right: 6px; color: var(--md-sys-color-primary)"
+          ></n-local-icon>
+          剖析
+        </p-button>
+        <div slot="tips">
+          <div
+            style="
+              width: 200px;
+              margin-bottom: 5px;
+              padding: 8px;
+              color: var(--md-sys-color-on-normal-container);
+              background-color: var(--md-sys-color-normal-container);
+              white-space: wrap;
+              border-radius: var(--pui-border-radius);
+              box-shadow: var(--contained-shadow);
+            "
+          >
+            新建一份便条，对选中内容进行解释说明。
+          </div>
+        </div>
+      </p-tooltips>
+
+      <div class="tool-pannel-line"></div>
+      <p-button size="small" variant="text" color="normal" icon>
+        <n-local-icon name="bold"></n-local-icon>
+      </p-button>
+      <p-button size="small" variant="text" color="normal" icon>
+        <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
+      </p-button>
+      <p-button size="small" variant="text" color="normal" icon>
+        <n-local-icon
+          name="strikethrough"
+          style="font-size: 18px"
+        ></n-local-icon>
+      </p-button>
+      <p-button size="small" variant="text" color="normal" icon>
+        <n-local-icon name="italic"></n-local-icon>
+      </p-button>
+      <p-button size="small" variant="outlined" color="normal">
+        <span slot="prefix">A</span>
+        颜色
+      </p-button>
+    </div>
   </o-if>
 
   <script>
@@ -430,15 +497,6 @@
             //   : document.getSelection();
 
             const selection = e.target.getRootNode().getSelection();
-
-            if (selection.getComposedRanges) {
-              const cRanges = selection.getComposedRanges();
-              console.log(
-                "getComposedRanges: ",
-                cRanges[0],
-                cRanges[0].toString()
-              );
-            }
 
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
