@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>createTreeWalker 示例</title>
+    <style>
+      .highlight {
+        background-color: yellow;
+      }
+      .node-type {
+        color: blue;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="container">
+      <h1>DOM 遍历示例</h1>
+      <p>这是一个段落 <span>包含span元素</span> 和一些文本。</p>
+      <ul>
+        <li>列表项1</li>
+        <li>列表项2</li>
+        <li>列表项3</li>
+      </ul>
+      <div>
+        <p>嵌套段落</p>
+        <a href="#">链接</a>
+      </div>
+      <!-- 这是一个注释节点 -->
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const container = document.getElementById("container");
+
+        // 1. 基本遍历 - 所有节点
+        const walker1 = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_ALL,
+          null,
+          false
+        );
+
+        console.log("=== 所有节点遍历 ===");
+        let node;
+        while ((node = walker1.nextNode())) {
+          console.log(`节点类型: ${node.nodeType}`, node);
+        }
+
+        // 2. 只遍历元素节点
+        const walker2 = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_ELEMENT,
+          null,
+          false
+        );
+
+        console.log("=== 元素节点遍历 ===");
+        let currentNode = walker2.currentNode;
+        while ((currentNode = walker2.nextNode())) {
+          currentNode.classList.add("highlight");
+          console.log(`元素标签名: ${currentNode.tagName}`);
+        }
+
+        // 3. 自定义过滤器 - 只遍历包含文本的段落
+        const walker3 = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_ELEMENT,
+          {
+            acceptNode: function (node) {
+              if (node.tagName === "P" && node.textContent.trim().length > 0) {
+                return NodeFilter.FILTER_ACCEPT;
+              }
+              return NodeFilter.FILTER_SKIP;
+            },
+          },
+          false
+        );
+
+        console.log("=== 自定义过滤器遍历 ===");
+        while ((node = walker3.nextNode())) {
+          node.style.border = "1px solid red";
+          console.log("找到符合条件的段落:", node);
+        }
+
+        // 4. 遍历方向控制
+        const walker4 = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_ALL,
+          null,
+          false
+        );
+
+        console.log("=== 遍历方向控制 ===");
+        // 前进到第一个子节点
+        walker4.firstChild();
+        console.log("第一个子节点:", walker4.currentNode);
+
+        // 前进到下一个兄弟节点
+        walker4.nextSibling();
+        console.log("下一个兄弟节点:", walker4.currentNode);
+
+        // 返回到父节点
+        walker4.parentNode();
+        console.log("返回到父节点:", walker4.currentNode);
+
+        // 5. 显示节点类型信息
+        const nodeTypes = {
+          1: "ELEMENT_NODE",
+          2: "ATTRIBUTE_NODE",
+          3: "TEXT_NODE",
+          4: "CDATA_SECTION_NODE",
+          7: "PROCESSING_INSTRUCTION_NODE",
+          8: "COMMENT_NODE",
+          9: "DOCUMENT_NODE",
+          10: "DOCUMENT_TYPE_NODE",
+          11: "DOCUMENT_FRAGMENT_NODE",
+        };
+
+        const walker5 = document.createTreeWalker(
+          container,
+          NodeFilter.SHOW_ALL,
+          null,
+          false
+        );
+
+        console.log("=== 节点类型信息 ===");
+        const typeInfo = document.createElement("div");
+        typeInfo.innerHTML = "<h2>节点类型信息</h2>";
+
+        while ((node = walker5.nextNode())) {
+          const typeSpan = document.createElement("span");
+          typeSpan.className = "node-type";
+          typeSpan.textContent = `${
+            nodeTypes[node.nodeType] || node.nodeType
+          }: `;
+
+          const infoDiv = document.createElement("div");
+          infoDiv.appendChild(typeSpan);
+
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            infoDiv.appendChild(
+              document.createTextNode(node.outerHTML.split(">")[0] + ">")
+            );
+          } else if (node.nodeType === Node.TEXT_NODE) {
+            infoDiv.appendChild(
+              document.createTextNode(`"${node.textContent.trim()}"`)
+            );
+          } else if (node.nodeType === Node.COMMENT_NODE) {
+            infoDiv.appendChild(
+              document.createTextNode(`<!--${node.textContent}-->`)
+            );
+          }
+
+          typeInfo.appendChild(infoDiv);
+        }
+
+        document.body.appendChild(typeInfo);
+      });
+    </script>
+  </body>
+</html>

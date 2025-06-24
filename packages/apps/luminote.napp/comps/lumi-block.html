@@ -5,6 +5,7 @@
   <l-m src="/packages/pui/button/group.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
+  <l-m src="./lumi-block-pannel.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -293,145 +294,13 @@
     </div>
   </o-else>
 
-  <style>
-    .section-pannel {
-      display: flex;
-      align-items: center;
-      position: absolute;
-      background-color: var(--md-sys-color-on-normal);
-      color: var(--md-sys-color-normal);
-      box-shadow: var(--contained-shadow);
-      border-radius: 18px;
-      padding: 3px;
-      white-space: nowrap;
-      animation: pannel-anime ease 0.3s;
-    }
-
-    @keyframes pannel-anime {
-      0% {
-        transform: translate(16px, 0);
-        opacity: 0;
-      }
-      100% {
-        transform: translate(0, 0);
-        opacity: 1;
-      }
-    }
-
-    .section-pannel n-local-icon {
-      display: block;
-      font-size: 16px;
-    }
-
-    .tool-pannel-line {
-      background-color: var(--md-sys-color-normal);
-      width: 1px;
-      height: 22px;
-      margin: 0 6px;
-    }
-
-    .section-pannel p-button {
-      margin: 0 2px;
-    }
-
-    .tool-tips {
-      margin-bottom: 5px;
-      padding: 8px;
-      color: var(--md-sys-color-on-normal-container);
-      background-color: var(--md-sys-color-normal-container);
-      border-radius: var(--pui-border-radius);
-      box-shadow: var(--contained-shadow);
-    }
-  </style>
-
   <o-if :value="showToolPannel">
-    <div
-      class="section-pannel"
+    <lumi-block-pannel
       :style.top="pannelPositionTop"
       :style.left="pannelPositionLeft"
-    >
-      <p-tooltips placement="top" plain>
-        <p-button size="small" variant="text" color="normal">
-          <n-local-icon
-            name="branch"
-            slot="prefix"
-            style="margin-right: 6px; color: var(--md-sys-color-primary)"
-          ></n-local-icon>
-          解析文档
-        </p-button>
-        <div slot="tips">
-          <div class="tool-tips" style="white-space: wrap; width: 200px">
-            新建一份便条，对选中内容进行解释说明。
-          </div>
-        </div>
-      </p-tooltips>
-
-      <div class="tool-pannel-line"></div>
-      <p-tooltips placement="top" plain>
-        <p-button
-          size="small"
-          variant="text"
-          color="normal"
-          icon
-          on:click="handleSelectionAction('bold')"
-        >
-          <n-local-icon name="bold"></n-local-icon>
-        </p-button>
-
-        <div slot="tips">
-          <div class="tool-tips">加粗</div>
-        </div>
-      </p-tooltips>
-      <p-tooltips placement="top" plain>
-        <p-button
-          size="small"
-          variant="text"
-          color="normal"
-          icon
-          on:click="handleSelectionAction('underline')"
-        >
-          <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
-        </p-button>
-        <div slot="tips">
-          <div class="tool-tips">下划线</div>
-        </div>
-      </p-tooltips>
-      <p-tooltips placement="top" plain>
-        <p-button
-          size="small"
-          variant="text"
-          color="normal"
-          icon
-          on:click="handleSelectionAction('strikethrough')"
-        >
-          <n-local-icon
-            name="strikethrough"
-            style="font-size: 18px"
-          ></n-local-icon>
-        </p-button>
-        <div slot="tips">
-          <div class="tool-tips">删除线</div>
-        </div>
-      </p-tooltips>
-      <p-tooltips placement="top" plain>
-        <p-button
-          size="small"
-          variant="text"
-          color="normal"
-          icon
-          on:click="handleSelectionAction('italic')"
-        >
-          <n-local-icon name="italic"></n-local-icon>
-        </p-button>
-        <div slot="tips">
-          <div class="tool-tips">斜体</div>
-        </div>
-      </p-tooltips>
-      <p-button size="small" variant="outlined" color="normal">
-        <span slot="prefix">A</span>
-        颜色
-      </p-button>
-    </div>
+      :item-data="itemData"
+      on:selection-action="handleSelectionAction"
+    ></lumi-block-pannel>
   </o-if>
 
   <script>
@@ -469,6 +338,7 @@
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
         cloneEditorContent,
+        boldRange,
       } = await load("./lumi-util.js");
 
       return {
@@ -485,11 +355,14 @@
           pannelPositionLeft: 0,
         },
         proto: {
-          handleSelectionAction(type) {
+          handleSelectionAction(event) {
+            const { type } = event.data;
+
             switch (type) {
               case "bold":
-                const sContent = $("<b></b>");
-                this._range.surroundContents(sContent.ele);
+                boldRange(this._range);
+                // const sContent = $("<b></b>");
+                // this._range.surroundContents(sContent.ele);
                 break;
               case "italic":
                 const iContent = $("<i></i>");
@@ -570,7 +443,7 @@
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
 
-              this._range = range;
+              window._range = this._range = range;
 
               const rangString = range.toString();
 
@@ -608,7 +481,8 @@
 
               // 如果超出了屏幕边, 改为靠右
               const width = parseInt(
-                this.shadow.$(".section-pannel").css.width
+                // this.shadow.$(".section-pannel").css.width
+                this.shadow.$("lumi-block-pannel").css.width
               );
 
               if (

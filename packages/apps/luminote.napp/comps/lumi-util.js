@@ -98,3 +98,33 @@ export const cloneEditorContent = (ele) => {
 
   return cloneEl;
 };
+
+export const boldRange = (range) => {
+  // 创建文档片段来保存处理后的内容
+  const fragment = range.extractContents();
+
+  // 创建 TreeWalker 遍历所有文本节点
+  const walker = document.createTreeWalker(
+    fragment,
+    NodeFilter.SHOW_TEXT,
+    null,
+    false
+  );
+
+  // 收集所有文本节点
+  const textNodes = [];
+  while (walker.nextNode()) {
+    textNodes.push(walker.currentNode);
+  }
+
+  // 处理每个文本节点
+  textNodes.forEach((textNode) => {
+    const parent = textNode.parentNode;
+    const bold = document.createElement("strong");
+    parent.insertBefore(bold, textNode);
+    bold.appendChild(textNode);
+  });
+
+  // 将处理后的内容插回原位置
+  range.insertNode(fragment);
+};

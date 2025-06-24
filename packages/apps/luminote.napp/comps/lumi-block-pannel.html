@@ -1,0 +1,170 @@
+<template component>
+  <l-m src="/packages/pui/button/group.html"></l-m>
+
+  <style>
+    :host {
+      position: absolute;
+      display: block;
+    }
+    .section-pannel {
+      display: flex;
+      align-items: center;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+      border-radius: 18px;
+      padding: 3px;
+      white-space: nowrap;
+      animation: pannel-anime ease 0.3s;
+    }
+
+    @keyframes pannel-anime {
+      0% {
+        transform: translate(16px, 0);
+        opacity: 0;
+      }
+      100% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+    }
+
+    .section-pannel n-local-icon {
+      display: block;
+      font-size: 16px;
+    }
+
+    .tool-pannel-line {
+      background-color: var(--md-sys-color-normal);
+      width: 1px;
+      height: 22px;
+      margin: 0 6px;
+    }
+
+    .section-pannel p-button {
+      margin: 0 2px;
+    }
+
+    .tool-tips {
+      margin-bottom: 5px;
+      padding: 8px;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-normal-container);
+      border-radius: var(--pui-border-radius);
+      box-shadow: var(--contained-shadow);
+    }
+  </style>
+
+  <div class="section-pannel">
+    <p-tooltips placement="top" plain>
+      <p-button size="small" variant="text" color="normal">
+        <n-local-icon
+          name="branch"
+          slot="prefix"
+          style="margin-right: 6px; color: var(--md-sys-color-primary)"
+        ></n-local-icon>
+        创建解释文档
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips" style="white-space: wrap; width: 200px">
+          新建一份便条，对选中内容进行解释说明。
+        </div>
+      </div>
+    </p-tooltips>
+
+    <div class="tool-pannel-line"></div>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('bold')"
+        attr:disabled="itemData.type === 'h1' || itemData.type === 'h2' || itemData.type === 'h3'"
+      >
+        <n-local-icon name="bold"></n-local-icon>
+      </p-button>
+
+      <div slot="tips">
+        <o-if
+          :value="itemData.type === 'h1' || itemData.type === 'h2' || itemData.type === 'h3'"
+        >
+          <div class="tool-tips">标题已经是加粗的状态</div>
+        </o-if>
+        <o-else>
+          <div class="tool-tips">加粗</div>
+        </o-else>
+      </div>
+    </p-tooltips>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('underline')"
+      >
+        <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips">下划线</div>
+      </div>
+    </p-tooltips>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('strikethrough')"
+      >
+        <n-local-icon
+          name="strikethrough"
+          style="font-size: 18px"
+        ></n-local-icon>
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips">删除线</div>
+      </div>
+    </p-tooltips>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('italic')"
+      >
+        <n-local-icon name="italic"></n-local-icon>
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips">斜体</div>
+      </div>
+    </p-tooltips>
+    <p-button size="small" variant="outlined" color="normal">
+      <span slot="prefix">A</span>
+      颜色
+    </p-button>
+  </div>
+
+  <script>
+    export default async () => {
+      return {
+        tag: "lumi-block-pannel",
+        data: {
+          itemData: {},
+        },
+        proto: {
+          handleSelectionAction(type) {
+            this.emit("selection-action", {
+              data: { type },
+            });
+          },
+        },
+        detached() {
+          this.itemData = {};
+        },
+      };
+    };
+  </script>
+</template>
