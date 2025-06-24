@@ -174,7 +174,7 @@
       class:openedmenu="leftMenuOpen"
       on:dragover="handleDargover"
       on:dragleave="dragovering = false"
-      on:drop="handleDrop"
+      on:drop="handleDropEvent"
     >
       <div class="menu-btn">
         <p-button
@@ -183,7 +183,7 @@
           variant="text"
           on:mousedown="handleMousedown"
           on:mouseup="handleMouseup"
-          on:click="handleClickLeftMenu"
+          on:click="handleClickLeftMenuButton"
         >
           <n-local-icon name="menu"></n-local-icon>
         </p-button>
@@ -199,28 +199,28 @@
             <p-menu open="off">
               <p-menu-item
                 attr:active-item="itemData.type === 'paragraph'"
-                on:click="handleChangeType('paragraph')"
+                on:click="handleChangeBlockType('paragraph')"
               >
                 <n-local-icon name="p" slot="prefix"></n-local-icon>
                 段落
               </p-menu-item>
               <p-menu-item
                 attr:active-item="itemData.type === 'h1'"
-                on:click="handleChangeType('h1')"
+                on:click="handleChangeBlockType('h1')"
               >
                 <n-local-icon name="h1" slot="prefix"></n-local-icon>
                 大标题
               </p-menu-item>
               <p-menu-item
                 attr:active-item="itemData.type === 'h2'"
-                on:click="handleChangeType('h2')"
+                on:click="handleChangeBlockType('h2')"
               >
                 <n-local-icon name="h2" slot="prefix"></n-local-icon>
                 中标题
               </p-menu-item>
               <p-menu-item
                 attr:active-item="itemData.type === 'h3'"
-                on:click="handleChangeType('h3')"
+                on:click="handleChangeBlockType('h3')"
               >
                 <n-local-icon name="h3" slot="prefix"></n-local-icon>
                 小标题
@@ -261,18 +261,18 @@
             class="inputer-content"
             class:dragovering="dragovering"
             contenteditable="plaintext-only"
-            on:input="handleInput"
-            on:keydown="handleKeyDown"
+            on:input="handleInputContent"
+            on:keydown="handleKeyDownEvent"
             :html="itemData.value"
             on:focus="handleFocus"
-            on:mousedown="textMouseDown"
-            on:mouseup="textMouseUp"
+            on:mousedown="handleTextMouseDown"
+            on:mouseup="handleTextMouseUp"
           ></div> -->
           <slot></slot>
         </lumi-fake>
       </o-if>
       <o-if :value="itemData.type === 'article'">
-        <div class="article-comp" on:click="clickArticle">
+        <div class="article-comp" on:click="handleClickArticle">
           <n-local-icon
             name="article"
             style="display: block; margin-right: 4px; font-size: 18px"
@@ -436,31 +436,31 @@
 
   <script>
     // 焦点中的元素
-    let oldFocus = null;
+    let focusedElement = null;
 
     // 打开的左侧菜单元素
-    let oldOpenedLeftMenuEl = null;
+    let openedLeftMenuElement = null;
 
     // 清除左侧菜单
-    const clearLeftMenu = () => {
-      if (oldOpenedLeftMenuEl) {
-        oldOpenedLeftMenuEl.leftMenuOpen = false;
-        oldOpenedLeftMenuEl = null;
+    const clearLeftMenuState = () => {
+      if (openedLeftMenuElement) {
+        openedLeftMenuElement.leftMenuOpen = false;
+        openedLeftMenuElement = null;
       }
     };
 
     // 拖拽中的元素
-    let dragStartEl = null;
+    let draggedElement = null;
 
     document.body.addEventListener("click", () => {
-      clearLeftMenu();
+      clearLeftMenuState();
     });
 
-    let oldRangeEl = null; //
+    let previousRangeElement = null; // 旧的选择的范围
 
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
-    let startMouseBlock = null; // 鼠标点下的元素
+    let mouseDownBlock = null; // 鼠标点下的元素
 
     export default async ({ load }) => {
       const {
@@ -505,7 +505,7 @@
                 break;
             }
           },
-          initEditor() {
+          initializeEditor() {
             // 初始化 editor 操作,主要是为了兼容safari
             const inputerContent = $(
               `<div inputer-content contenteditable="plaintext-only"></div> `
@@ -514,11 +514,11 @@
             inputerContent.html = this.itemData.value;
 
             inputerContent.on("input", (e) => {
-              this.handleInput(e);
+              this.handleInputContent(e);
             });
 
             inputerContent.on("keydown", (e) => {
-              this.handleKeyDown(e);
+              this.handleKeyDownEvent(e);
             });
 
             inputerContent.on("focus", (e) => {
@@ -526,29 +526,29 @@
             });
 
             inputerContent.on("mousedown", (e) => {
-              this.textMouseDown(e);
+              this.handleTextMouseDown(e);
             });
 
             inputerContent.on("mouseup", (e) => {
-              this.textMouseUp(e);
+              this.handleTextMouseUp(e);
             });
 
             this.push(inputerContent);
           },
-          textMouseDown(e) {
-            startMouseBlock = this;
+          handleTextMouseDown(e) {
+            mouseDownBlock = this;
           },
-          async textMouseUp(e) {
-            console.log("textMouseUp: ", e);
+          async handleTextMouseUp(e) {
+            console.log("handleTextMouseUp: ", e);
 
-            if (startMouseBlock !== this) {
-              startMouseBlock = null;
+            if (mouseDownBlock !== this) {
+              mouseDownBlock = null;
               // TODO: 这个时候应该是多选
               return;
             }
 
-            if (oldRangeEl) {
-              oldRangeEl.showToolPannel = false;
+            if (previousRangeElement) {
+              previousRangeElement.showToolPannel = false;
             }
 
             // BUG: 已选中了文本，再将焦点停在选择范围内，会发现选择文本内容是错的
@@ -601,7 +601,7 @@
 
               this.pannelPositionLeft = rangeRect.left - selfRect.left + "px";
 
-              oldRangeEl = this;
+              previousRangeElement = this;
               this.showToolPannel = true;
 
               await new Promise((resolve) => setTimeout(resolve, 10));
@@ -624,12 +624,12 @@
               this.showToolPannel = false;
             }
           },
-          clickArticle() {
+          handleClickArticle() {
             this.app.current.goto(
               `./note.html?article_id=${this.itemData._dataId}`
             );
           },
-          handleChangeType(type) {
+          handleChangeBlockType(type) {
             this.itemData.type = type;
             this.leftMenuOpen = false;
           },
@@ -642,14 +642,14 @@
               isSafari ? 100 : 10
             );
           },
-          handleClickLeftMenu() {
+          handleClickLeftMenuButton() {
             this.leftMenuOpen = !this.leftMenuOpen;
 
-            if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
-              clearLeftMenu();
+            if (openedLeftMenuElement && openedLeftMenuElement !== this) {
+              clearLeftMenuState();
             }
 
-            oldOpenedLeftMenuEl = this;
+            openedLeftMenuElement = this;
           },
           handleMousedown() {
             let startFunc, endFunc;
@@ -657,15 +657,15 @@
             this.on(
               "dragstart",
               (startFunc = (e) => {
-                clearLeftMenu();
-                dragStartEl = this;
+                clearLeftMenuState();
+                draggedElement = this;
                 console.log("dragstart", e);
               })
             );
             this.on(
               "dragend",
               (endFunc = (e) => {
-                dragStartEl = null;
+                draggedElement = null;
                 console.log("dragend", e);
                 this.attr("draggable", null);
 
@@ -678,23 +678,23 @@
             this.attr("draggable", null);
           },
           handleFocus() {
-            if (oldFocus) {
-              oldFocus.inFocus = false;
+            if (focusedElement) {
+              focusedElement.inFocus = false;
             }
 
-            clearLeftMenu();
+            clearLeftMenuState();
 
             this.inFocus = true;
-            oldFocus = this;
+            focusedElement = this;
           },
-          handleInput(e) {
+          handleInputContent(e) {
             let content = e.target.innerHTML.trim();
             if (content === "<br>") {
               content = "";
             }
             this.itemData.value = content;
           },
-          handleKeyDown(e) {
+          handleKeyDownEvent(e) {
             if (e.key === "Enter" && !e.shiftKey) {
               // 会车，直接在下面新增一个
               e.preventDefault();
@@ -710,26 +710,26 @@
           },
           handleDargover(e) {
             e.preventDefault();
-            if (dragStartEl === this) {
+            if (draggedElement === this) {
               return;
             }
 
             this.dragovering = true;
           },
-          handleDrop(e) {
+          handleDropEvent(e) {
             e.preventDefault();
             this.dragovering = false;
 
-            if (dragStartEl === this) {
+            if (draggedElement === this) {
               return;
             }
 
             this.emit("drop", {
               // bubbles: false,
               data: {
-                // sourceData: dragStartEl.__item.$data,
-                sourceData: dragStartEl.itemData,
-                // dragStartEl,
+                // sourceData: draggedElement.__item.$data,
+                sourceData: draggedElement.itemData,
+                // draggedElement,
               },
             });
           },
@@ -743,29 +743,29 @@
 
           this.on("click", (e) => {
             e.stopPropagation();
-            if (oldOpenedLeftMenuEl && oldOpenedLeftMenuEl !== this) {
-              clearLeftMenu();
+            if (openedLeftMenuElement && openedLeftMenuElement !== this) {
+              clearLeftMenuState();
             }
           });
 
           addLoadingTask(this);
 
-          this.initEditor();
+          this.initializeEditor();
         },
         detached() {
           removeLoadingTask(this);
 
-          if (oldRangeEl === this) {
+          if (previousRangeElement === this) {
             this.showToolPannel = false;
-            oldRangeEl = null;
+            previousRangeElement = null;
           }
 
-          if (oldFocus === this) {
-            oldFocus = null;
+          if (focusedElement === this) {
+            focusedElement = null;
           }
 
-          if (oldOpenedLeftMenuEl === this) {
-            oldOpenedLeftMenuEl = null;
+          if (openedLeftMenuElement === this) {
+            openedLeftMenuElement = null;
           }
 
           this.itemData = {};
