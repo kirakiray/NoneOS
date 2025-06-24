@@ -118,6 +118,9 @@
         attached() {
           this.on("click", async (e) => {
             // 最后面聚焦
+            if (!this.itemData.content && !this.itemData.content.length) {
+              return;
+            }
 
             // 判断最后一个是不是空白，不是的话加一个
             const lastItem = this.itemData.content.slice(-1)[0];

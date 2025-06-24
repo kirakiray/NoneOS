@@ -55,6 +55,8 @@
       padding: 6px 8px;
       line-height: 1.6em;
       outline: none;
+      -webkit-user-modify: read-write-plaintext-only;
+      user-modify: read-write-plaintext-only;
     }
 
     .inputer-tips {
@@ -140,11 +142,6 @@
 
     .dot:nth-child(2) {
       animation-delay: -0.16s;
-    }
-
-    [contenteditable] {
-      -webkit-user-modify: read-write-plaintext-only;
-      user-modify: read-write-plaintext-only;
     }
 
     @keyframes bounce {
@@ -360,7 +357,7 @@
             slot="prefix"
             style="margin-right: 6px; color: var(--md-sys-color-primary)"
           ></n-local-icon>
-          剖析
+          解析文档
         </p-button>
         <div slot="tips">
           <div class="tool-tips" style="white-space: wrap; width: 200px">
@@ -371,7 +368,13 @@
 
       <div class="tool-pannel-line"></div>
       <p-tooltips placement="top" plain>
-        <p-button size="small" variant="text" color="normal" icon>
+        <p-button
+          size="small"
+          variant="text"
+          color="normal"
+          icon
+          on:click="handleSelectionAction('bold')"
+        >
           <n-local-icon name="bold"></n-local-icon>
         </p-button>
 
@@ -380,7 +383,13 @@
         </div>
       </p-tooltips>
       <p-tooltips placement="top" plain>
-        <p-button size="small" variant="text" color="normal" icon>
+        <p-button
+          size="small"
+          variant="text"
+          color="normal"
+          icon
+          on:click="handleSelectionAction('underline')"
+        >
           <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
         </p-button>
         <div slot="tips">
@@ -388,7 +397,13 @@
         </div>
       </p-tooltips>
       <p-tooltips placement="top" plain>
-        <p-button size="small" variant="text" color="normal" icon>
+        <p-button
+          size="small"
+          variant="text"
+          color="normal"
+          icon
+          on:click="handleSelectionAction('strikethrough')"
+        >
           <n-local-icon
             name="strikethrough"
             style="font-size: 18px"
@@ -399,7 +414,13 @@
         </div>
       </p-tooltips>
       <p-tooltips placement="top" plain>
-        <p-button size="small" variant="text" color="normal" icon>
+        <p-button
+          size="small"
+          variant="text"
+          color="normal"
+          icon
+          on:click="handleSelectionAction('italic')"
+        >
           <n-local-icon name="italic"></n-local-icon>
         </p-button>
         <div slot="tips">
@@ -439,6 +460,8 @@
 
     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+    let startMouseBlock = null; // 鼠标点下的元素
+
     export default async ({ load }) => {
       const {
         addLoadingTask,
@@ -462,6 +485,26 @@
           pannelPositionLeft: 0,
         },
         proto: {
+          handleSelectionAction(type) {
+            switch (type) {
+              case "bold":
+                const sContent = $("<b></b>");
+                this._range.surroundContents(sContent.ele);
+                break;
+              case "italic":
+                const iContent = $("<i></i>");
+                this._range.surroundContents(iContent.ele);
+                break;
+              case "underline":
+                const uContent = $("<u></u>");
+                this._range.surroundContents(uContent.ele);
+                break;
+              case "strikethrough":
+                const dContent = $("<del></del>");
+                this._range.surroundContents(dContent.ele);
+                break;
+            }
+          },
           initEditor() {
             // 初始化 editor 操作,主要是为了兼容safari
             const inputerContent = $(
@@ -493,10 +536,16 @@
             this.push(inputerContent);
           },
           textMouseDown(e) {
-            console.log("textMouseDown: ", e);
+            startMouseBlock = this;
           },
           async textMouseUp(e) {
             console.log("textMouseUp: ", e);
+
+            if (startMouseBlock !== this) {
+              startMouseBlock = null;
+              // TODO: 这个时候应该是多选
+              return;
+            }
 
             if (oldRangeEl) {
               oldRangeEl.showToolPannel = false;
@@ -520,6 +569,8 @@
 
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
+
+              this._range = range;
 
               const rangString = range.toString();
 
