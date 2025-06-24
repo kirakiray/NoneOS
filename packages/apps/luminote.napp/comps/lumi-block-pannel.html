@@ -148,7 +148,7 @@
   </div>
 
   <script>
-    export default async () => {
+    export default async ({ load }) => {
       return {
         tag: "lumi-block-pannel",
         data: {
@@ -156,9 +156,24 @@
         },
         proto: {
           handleSelectionAction(type) {
-            this.emit("selection-action", {
-              data: { type },
-            });
+            switch (type) {
+              case "bold":
+                const sContent = $("<b></b>");
+                this.host._range.surroundContents(sContent.ele);
+                break;
+              case "italic":
+                const iContent = $("<i></i>");
+                this.host._range.surroundContents(iContent.ele);
+                break;
+              case "underline":
+                const uContent = $("<u></u>");
+                this.host._range.surroundContents(uContent.ele);
+                break;
+              case "strikethrough":
+                const dContent = $("<del></del>");
+                this.host._range.surroundContents(dContent.ele);
+                break;
+            }
           },
         },
         detached() {

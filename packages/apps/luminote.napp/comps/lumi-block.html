@@ -299,7 +299,6 @@
       :style.top="pannelPositionTop"
       :style.left="pannelPositionLeft"
       :item-data="itemData"
-      on:selection-action="handleSelectionAction"
     ></lumi-block-pannel>
   </o-if>
 
@@ -338,7 +337,6 @@
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
         cloneEditorContent,
-        boldRange,
       } = await load("./lumi-util.js");
 
       return {
@@ -355,29 +353,6 @@
           pannelPositionLeft: 0,
         },
         proto: {
-          handleSelectionAction(event) {
-            const { type } = event.data;
-
-            switch (type) {
-              case "bold":
-                boldRange(this._range);
-                // const sContent = $("<b></b>");
-                // this._range.surroundContents(sContent.ele);
-                break;
-              case "italic":
-                const iContent = $("<i></i>");
-                this._range.surroundContents(iContent.ele);
-                break;
-              case "underline":
-                const uContent = $("<u></u>");
-                this._range.surroundContents(uContent.ele);
-                break;
-              case "strikethrough":
-                const dContent = $("<del></del>");
-                this._range.surroundContents(dContent.ele);
-                break;
-            }
-          },
           initializeEditor() {
             // 初始化 editor 操作,主要是为了兼容safari
             const inputerContent = $(
