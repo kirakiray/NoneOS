@@ -103,6 +103,8 @@
         color="normal"
         icon
         on:click="handleSelectionAction('underline')"
+        attr:color="isActiveUnderline == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveUnderline == 2 ? 'tonal' : 'text'"
       >
         <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
       </p-button>
@@ -149,16 +151,18 @@
 
   <script>
     export default async ({ load }) => {
-      const {
-        elementToLetterData,
-        letterDataToElement,
-        getRealOffset,
-      } = await load("./lumi-util.js");
+      const { elementToLetterData, letterDataToElement, getRealOffset } =
+        await load("./lumi-util.js");
 
       return {
         tag: "lumi-block-pannel",
         data: {
           itemData: {},
+          // 下面是激活按钮的状态: 0没有激活 1激活了部分 2完全激活
+          isActiveBold: 0, // 激活了加粗按钮
+          isActiveItalic: 0, // 激活了斜体按钮
+          isActiveUnderline: 0, // 激活了下划线按钮
+          isActiveStrikethrough: 0, // 激活了删除线按钮
         },
         proto: {
           async getSelectionLetterData() {
@@ -195,6 +199,7 @@
               selectionRangeLetters,
             };
           },
+          // 当点击了对应的操作
           async handleSelectionAction(type) {
             const {
               startOffset,
@@ -241,6 +246,10 @@
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
 
+            setTimeout(() => {
+              this.refreshBtnState();
+            }, 100);
+
             this.emit("update-value", {
               data: {
                 value: newValue,
@@ -249,19 +258,49 @@
               },
             });
           },
+          async refreshBtnState() {
+            const { selectionRangeLetters } =
+              await this.getSelectionLetterData();
+
+            // 获取选中文本的状态
+            this.isActiveBold = getState("bold", selectionRangeLetters);
+            this.isActiveItalic = getState("italic", selectionRangeLetters);
+            this.isActiveUnderline = getState(
+              "underline",
+              selectionRangeLetters
+            );
+            this.isActiveStrikethrough = getState(
+              "lineThrough",
+              selectionRangeLetters
+            );
+          },
         },
         attached() {
           // 获取选择的返回, 看看是不是有文字
-          // (async () => {
-          //   const { letterData, selectionRangeLetters } =
-          //     await this.getSelectionLetterData();
-          //   debugger;
-          // })();
+          this.refreshBtnState();
         },
         detached() {
           this.itemData = {};
         },
       };
+    };
+
+    // 获取状态
+    const getState = (key, selectionRangeLetters) => {
+      let activeStatus = 0;
+      let allBold = true;
+      selectionRangeLetters.some((item) => {
+        if (item.options[key]) {
+          activeStatus = 1;
+        } else {
+          allBold = false;
+        }
+      });
+      if (allBold) {
+        activeStatus = 2;
+      }
+
+      return activeStatus;
     };
   </script>
 </template>
