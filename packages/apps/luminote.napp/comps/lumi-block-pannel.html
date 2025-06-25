@@ -97,7 +97,8 @@
         </o-if>
         <o-else>
           <div class="tool-tips">
-            加粗 <br />
+            <strong>加粗</strong>
+            <br />
             <o-if :value="isActiveBold === 2"> 已激活,点击后取消加粗 </o-if>
             <o-else-if :value="isActiveBold === 1">
               部分激活,点击后取消部分加粗
@@ -121,7 +122,7 @@
       </p-button>
       <div slot="tips">
         <div class="tool-tips">
-          下划线
+          <strong>下划线</strong>
           <br />
           <o-if :value="isActiveUnderline === 2">
             已激活,点击后取消下划线
@@ -150,7 +151,7 @@
       </p-button>
       <div slot="tips">
         <div class="tool-tips">
-          删除线
+          <strong>删除线</strong>
           <br />
           <o-if :value="isActiveStrikethrough === 2">
             已激活,点击后取消删除线
@@ -176,7 +177,7 @@
       </p-button>
       <div slot="tips">
         <div class="tool-tips">
-          斜体
+          <strong>斜体</strong>
           <br />
           <o-if :value="isActiveItalic === 2"> 已激活,点击后取消斜体 </o-if>
           <o-else-if :value="isActiveItalic === 1">
