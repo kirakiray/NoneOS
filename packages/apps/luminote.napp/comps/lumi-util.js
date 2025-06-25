@@ -110,7 +110,8 @@ export const getContainerAndOffset = (root, realOffset) => {
 
   return {
     container,
-    offset: total - offset - container.length,
+    // offset: total - offset - container.length,
+    offset: Math.abs(total - offset - container.length),
   };
 };
 

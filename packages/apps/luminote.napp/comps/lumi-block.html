@@ -363,7 +363,7 @@
             {
               // 重新选择范围
               // 创建范围并设置光标位置
-              const range = (this._range = document.createRange());
+              const range = document.createRange();
 
               const { container: startContainer, offset: start } =
                 getContainerAndOffset(this[0].ele, startOffset);
@@ -373,7 +373,7 @@
               range.setStart(startContainer, start);
               range.setEnd(endContainer, end);
 
-              const selection = (this._selection = window.getSelection());
+              const selection = window.getSelection();
               selection.removeAllRanges();
               selection.addRange(range);
             }
@@ -448,8 +448,8 @@
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
 
-              window._selection = this._selection = selection;
-              window._range = this._range = range;
+              // window._selection = this._selection = selection;
+              // window._range = this._range = range;
 
               const rangString = range.toString();
 

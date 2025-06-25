@@ -52,6 +52,7 @@
       background-color: var(--md-sys-color-normal-container);
       border-radius: var(--pui-border-radius);
       box-shadow: var(--contained-shadow);
+      text-align: center;
     }
   </style>
 
@@ -81,6 +82,8 @@
         icon
         on:click="handleSelectionAction('bold')"
         attr:disabled="itemData.type === 'h1' || itemData.type === 'h2' || itemData.type === 'h3'"
+        attr:color="isActiveBold == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveBold == 2 ? 'tonal' : 'text'"
       >
         <n-local-icon name="bold"></n-local-icon>
       </p-button>
@@ -119,6 +122,8 @@
         color="normal"
         icon
         on:click="handleSelectionAction('strikethrough')"
+        attr:color="isActiveStrikethrough == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveStrikethrough == 2 ? 'tonal' : 'text'"
       >
         <n-local-icon
           name="strikethrough"
@@ -136,6 +141,8 @@
         color="normal"
         icon
         on:click="handleSelectionAction('italic')"
+        attr:color="isActiveItalic == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveItalic == 2 ? 'tonal' : 'text'"
       >
         <n-local-icon name="italic"></n-local-icon>
       </p-button>
@@ -166,7 +173,9 @@
         },
         proto: {
           async getSelectionLetterData() {
-            const range = this.host._range;
+            const selection = document.getSelection();
+            const range = selection.getRangeAt(0);
+
             const rootEl = this.host[0].ele;
 
             // 转为字母数据
@@ -210,35 +219,67 @@
 
             switch (type) {
               case "bold":
+                const { isActiveBold } = this;
                 selectionRangeLetters.forEach((item) => {
-                  item.options = {
-                    ...item.options,
-                    bold: true,
-                  };
+                  if (isActiveBold === 0) {
+                    item.options = {
+                      ...item.options,
+                      bold: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      bold: false,
+                    };
+                  }
                 });
                 break;
               case "italic":
+                const { isActiveItalic } = this;
                 selectionRangeLetters.forEach((item) => {
-                  item.options = {
-                    ...item.options,
-                    italic: true,
-                  };
+                  if (isActiveItalic === 0) {
+                    item.options = {
+                      ...item.options,
+                      italic: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      italic: false,
+                    };
+                  }
                 });
                 break;
               case "underline":
+                const { isActiveUnderline } = this;
                 selectionRangeLetters.forEach((item) => {
-                  item.options = {
-                    ...item.options,
-                    underline: true,
-                  };
+                  if (isActiveUnderline === 0) {
+                    item.options = {
+                      ...item.options,
+                      underline: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      underline: false,
+                    };
+                  }
                 });
                 break;
               case "strikethrough":
+                const { isActiveStrikethrough } = this;
                 selectionRangeLetters.forEach((item) => {
-                  item.options = {
-                    ...item.options,
-                    lineThrough: true,
-                  };
+                  if (isActiveStrikethrough === 0) {
+                    item.options = {
+                      ...item.options,
+                      lineThrough: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      lineThrough: false,
+                    };
+                  }
                 });
                 break;
             }
