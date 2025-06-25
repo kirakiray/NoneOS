@@ -48,6 +48,7 @@
     .tool-tips {
       margin-bottom: 5px;
       padding: 8px;
+      line-height: 1.6em;
       color: var(--md-sys-color-on-normal-container);
       background-color: var(--md-sys-color-normal-container);
       border-radius: var(--pui-border-radius);
@@ -95,7 +96,14 @@
           <div class="tool-tips">标题已经是加粗的状态</div>
         </o-if>
         <o-else>
-          <div class="tool-tips">加粗</div>
+          <div class="tool-tips">
+            加粗 <br />
+            <o-if :value="isActiveBold === 2"> 已激活,点击后取消加粗 </o-if>
+            <o-else-if :value="isActiveBold === 1">
+              部分激活,点击后取消部分加粗
+            </o-else-if>
+            <o-else> 未激活,点击后激活加粗 </o-else>
+          </div>
         </o-else>
       </div>
     </p-tooltips>
@@ -112,7 +120,17 @@
         <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
       </p-button>
       <div slot="tips">
-        <div class="tool-tips">下划线</div>
+        <div class="tool-tips">
+          下划线
+          <br />
+          <o-if :value="isActiveUnderline === 2">
+            已激活,点击后取消下划线
+          </o-if>
+          <o-else-if :value="isActiveUnderline === 1">
+            部分激活,点击后取消部分下划线
+          </o-else-if>
+          <o-else> 未激活,点击后激活下划线 </o-else>
+        </div>
       </div>
     </p-tooltips>
     <p-tooltips placement="top" plain>
@@ -131,7 +149,17 @@
         ></n-local-icon>
       </p-button>
       <div slot="tips">
-        <div class="tool-tips">删除线</div>
+        <div class="tool-tips">
+          删除线
+          <br />
+          <o-if :value="isActiveStrikethrough === 2">
+            已激活,点击后取消删除线
+          </o-if>
+          <o-else-if :value="isActiveStrikethrough === 1">
+            部分激活,点击后取消部分删除线
+          </o-else-if>
+          <o-else> 未激活,点击后激活删除线 </o-else>
+        </div>
       </div>
     </p-tooltips>
     <p-tooltips placement="top" plain>
@@ -147,7 +175,15 @@
         <n-local-icon name="italic"></n-local-icon>
       </p-button>
       <div slot="tips">
-        <div class="tool-tips">斜体</div>
+        <div class="tool-tips">
+          斜体
+          <br />
+          <o-if :value="isActiveItalic === 2"> 已激活,点击后取消斜体 </o-if>
+          <o-else-if :value="isActiveItalic === 1">
+            部分激活,点击后取消部分斜体
+          </o-else-if>
+          <o-else> 未激活,点击后激活斜体 </o-else>
+        </div>
       </div>
     </p-tooltips>
     <p-button size="small" variant="outlined" color="normal">

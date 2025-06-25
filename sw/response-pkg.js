@@ -94,9 +94,10 @@ export const respNapp = async (event) => {
       }
 
       body {
-        font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
-          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
-          Segoe UI Emoji;
+        font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
+          "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
+          "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
+          "Segoe UI Emoji", "Segoe UI Symbol";
       }
     </style>
   </head>
