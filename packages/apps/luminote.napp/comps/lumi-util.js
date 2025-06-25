@@ -71,35 +71,7 @@ export function getFirstLinePosition(range) {
   };
 }
 
-// 复制一份保留完整外观的元素
-export const cloneEditorContent = (ele) => {
-  const cloneEl = ele.cloneNode(true);
-
-  const compStyle = getComputedStyle(ele);
-
-  const rectStyle = {};
-
-  for (let key of compStyle) {
-    rectStyle[key] = compStyle[key];
-  }
-
-  //   // 定义所有和外观样式相关的键名数组
-  //   const rectKeys = Object.keys(compStyle).filter((e) => {
-  //     return !/\d/.test(e);
-  //   });
-
-  //   console.log("rectKeys: ", rectKeys, compStyle, Object.keys(compStyle));
-
-  //   rectKeys.forEach((key) => {
-  //     rectStyle[key] = compStyle[key];
-  //   });
-
-  Object.assign(cloneEl.style, rectStyle);
-
-  return cloneEl;
-};
-
-// 获取目标在root中的真实偏移量
+// 获取目标在root中的绝对偏移值
 export const getRealOffset = (root, node, offset) => {
   if (!root.contains(node)) {
     throw new Error("get offset error");
@@ -119,6 +91,42 @@ export const getRealOffset = (root, node, offset) => {
   }
 
   return realOffset;
+};
+
+// 获取容器元素和相对偏移值
+export const getContainerAndOffset = (root, realOffset) => {
+  let offset = realOffset;
+
+  const nodes = getAllTextNode(root);
+
+  let container = null;
+  let index = 0;
+  let total = 0;
+  while (total <= offset) {
+    container = nodes[index];
+    total += nodes[index].textContent.length;
+    index++;
+  }
+
+  return {
+    container,
+    offset: total - offset - container.length,
+  };
+};
+
+// 递归获取所有文本节点
+const getAllTextNode = (root) => {
+  let arr = [];
+
+  for (let childNode of Array.from(root.childNodes)) {
+    if (childNode instanceof Text) {
+      arr.push(childNode);
+    } else {
+      arr.push(...getAllTextNode(childNode));
+    }
+  }
+
+  return arr;
 };
 
 // 将元素转为字数据

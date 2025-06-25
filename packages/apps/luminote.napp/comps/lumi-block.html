@@ -337,7 +337,7 @@
         removeLoadingTask,
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
-        cloneEditorContent,
+        getContainerAndOffset,
       } = await load("./lumi-util.js");
 
       return {
@@ -355,10 +355,30 @@
         },
         proto: {
           handleUpdateValue(e) {
-            const { value } = e.data;
+            const { value, startOffset, endOffset } = e.data;
 
+            // 更新视图代码
             this[0].html = value;
 
+            {
+              // 重新选择范围
+              // 创建范围并设置光标位置
+              const range = (this._range = document.createRange());
+
+              const { container: startContainer, offset: start } =
+                getContainerAndOffset(this[0].ele, startOffset);
+              const { container: endContainer, offset: end } =
+                getContainerAndOffset(this[0].ele, endOffset);
+
+              range.setStart(startContainer, start);
+              range.setEnd(endContainer, end);
+
+              const selection = (this._selection = window.getSelection());
+              selection.removeAllRanges();
+              selection.addRange(range);
+            }
+
+            // 保存数据
             // this.itemData.value = value;
 
             console.log("handleUpdateValue: ", value);
@@ -467,7 +487,6 @@
 
               // 如果超出了屏幕边, 改为靠右
               const width = parseInt(
-                // this.shadow.$(".section-pannel").css.width
                 this.shadow.$("lumi-block-pannel").css.width
               );
 

@@ -149,8 +149,11 @@
 
   <script>
     export default async ({ load }) => {
-      const { elementToLetterData, letterDataToElement, getRealOffset } =
-        await load("./lumi-util.js");
+      const {
+        elementToLetterData,
+        letterDataToElement,
+        getRealOffset,
+      } = await load("./lumi-util.js");
 
       return {
         tag: "lumi-block-pannel",
@@ -158,10 +161,8 @@
           itemData: {},
         },
         proto: {
-          async handleSelectionAction(type) {
-            const value = this.itemData.value;
+          async getSelectionLetterData() {
             const range = this.host._range;
-
             const rootEl = this.host[0].ele;
 
             // 转为字母数据
@@ -182,13 +183,29 @@
             );
 
             // 给目标范围内的字符修正信息
-            const inRangeLetters = letterData.slice(startOffset, endOffset);
+            const selectionRangeLetters = letterData.slice(
+              startOffset,
+              endOffset
+            );
 
-            debugger;
+            return {
+              startOffset,
+              endOffset,
+              letterData,
+              selectionRangeLetters,
+            };
+          },
+          async handleSelectionAction(type) {
+            const {
+              startOffset,
+              endOffset,
+              letterData,
+              selectionRangeLetters,
+            } = await this.getSelectionLetterData();
 
             switch (type) {
               case "bold":
-                inRangeLetters.forEach((item) => {
+                selectionRangeLetters.forEach((item) => {
                   item.options = {
                     ...item.options,
                     bold: true,
@@ -196,7 +213,7 @@
                 });
                 break;
               case "italic":
-                inRangeLetters.forEach((item) => {
+                selectionRangeLetters.forEach((item) => {
                   item.options = {
                     ...item.options,
                     italic: true,
@@ -204,7 +221,7 @@
                 });
                 break;
               case "underline":
-                inRangeLetters.forEach((item) => {
+                selectionRangeLetters.forEach((item) => {
                   item.options = {
                     ...item.options,
                     underline: true,
@@ -212,7 +229,7 @@
                 });
                 break;
               case "strikethrough":
-                inRangeLetters.forEach((item) => {
+                selectionRangeLetters.forEach((item) => {
                   item.options = {
                     ...item.options,
                     lineThrough: true,
@@ -227,12 +244,19 @@
             this.emit("update-value", {
               data: {
                 value: newValue,
+                startOffset,
+                endOffset,
               },
             });
-
-            // 更新值
-            // this.itemData.value = newValue;
           },
+        },
+        attached() {
+          // 获取选择的返回, 看看是不是有文字
+          // (async () => {
+          //   const { letterData, selectionRangeLetters } =
+          //     await this.getSelectionLetterData();
+          //   debugger;
+          // })();
         },
         detached() {
           this.itemData = {};
