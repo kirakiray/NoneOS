@@ -163,47 +163,6 @@ export const elementToLetterData = async (node, options = {}) => {
   return arr;
 };
 
-// // 递归解析元素为字数据
-// const toLetterData = (
-//   node,
-//   opts = {
-//     t: [],
-//   }
-// ) => {
-//   const arr = [];
-//   if (node instanceof Text) {
-//     Array.from(node.textContent).forEach((letter) => {
-//       arr.push({
-//         l: letter,
-//         ...opts,
-//       });
-//     });
-//   } else if (node.childNodes) {
-//     const childNodes = Array.from(node.childNodes);
-
-//     const tag = node.tagName.toLowerCase();
-
-//     debugger;
-
-//     childNodes.forEach((childNode) => {
-//       const t = [...opts.t];
-
-//       if (!t.includes(tag)) {
-//         t.push(tag);
-//         t.sort();
-//       }
-
-//       arr.push(
-//         ...toLetterData(childNode, {
-//           t,
-//         })
-//       );
-//     });
-//   }
-
-//   return arr;
-// };
-
 // 将字数据转为元素
 export const letterDataToElement = async (letterData) => {
   let str = "";
@@ -276,6 +235,7 @@ const equalOptions = (a, b) => {
     a.underline === b.underline &&
     a.italic === b.italic &&
     a.color === b.color &&
+    a.lineThrough === b.lineThrough &&
     a.backgroundColor === b.backgroundColor
   );
 };

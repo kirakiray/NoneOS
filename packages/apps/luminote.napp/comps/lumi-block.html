@@ -357,6 +357,10 @@
           handleUpdateValue(e) {
             const { value } = e.data;
 
+            this[0].html = value;
+
+            // this.itemData.value = value;
+
             console.log("handleUpdateValue: ", value);
           },
           initializeEditor() {
