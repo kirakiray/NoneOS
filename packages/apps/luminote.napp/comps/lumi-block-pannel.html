@@ -149,31 +149,89 @@
 
   <script>
     export default async ({ load }) => {
+      const { elementToLetterData, letterDataToElement, getRealOffset } =
+        await load("./lumi-util.js");
+
       return {
         tag: "lumi-block-pannel",
         data: {
           itemData: {},
         },
         proto: {
-          handleSelectionAction(type) {
+          async handleSelectionAction(type) {
+            const value = this.itemData.value;
+            const range = this.host._range;
+
+            const rootEl = this.host[0].ele;
+
+            // 转为字母数据
+            const letterData = await elementToLetterData(rootEl);
+
+            console.log("letterData: ", letterData);
+
+            let startOffset = getRealOffset(
+              rootEl,
+              range.startContainer,
+              range.startOffset
+            );
+
+            let endOffset = getRealOffset(
+              rootEl,
+              range.endContainer,
+              range.endOffset
+            );
+
+            // 获取目标范围内的字符
+            const inRangeLetters = letterData.slice(startOffset, endOffset);
+
+            console.log("inRangeLetters: ", inRangeLetters);
+
             switch (type) {
               case "bold":
-                const sContent = $("<b></b>");
-                this.host._range.surroundContents(sContent.ele);
+                inRangeLetters.forEach((item) => {
+                  item.options = {
+                    ...item.options,
+                    bold: true,
+                  };
+                });
                 break;
               case "italic":
-                const iContent = $("<i></i>");
-                this.host._range.surroundContents(iContent.ele);
+                inRangeLetters.forEach((item) => {
+                  item.options = {
+                    ...item.options,
+                    italic: true,
+                  };
+                });
                 break;
               case "underline":
-                const uContent = $("<u></u>");
-                this.host._range.surroundContents(uContent.ele);
+                inRangeLetters.forEach((item) => {
+                  item.options = {
+                    ...item.options,
+                    underline: true,
+                  };
+                });
                 break;
               case "strikethrough":
-                const dContent = $("<del></del>");
-                this.host._range.surroundContents(dContent.ele);
+                inRangeLetters.forEach((item) => {
+                  item.options = {
+                    ...item.options,
+                    lineThrough: true,
+                  };
+                });
                 break;
             }
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+              },
+            });
+
+            // 更新值
+            // this.itemData.value = newValue;
           },
         },
         detached() {

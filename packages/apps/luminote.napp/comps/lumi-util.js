@@ -99,32 +99,183 @@ export const cloneEditorContent = (ele) => {
   return cloneEl;
 };
 
-export const boldRange = (range) => {
-  // 创建文档片段来保存处理后的内容
-  const fragment = range.extractContents();
-
-  // 创建 TreeWalker 遍历所有文本节点
-  const walker = document.createTreeWalker(
-    fragment,
-    NodeFilter.SHOW_TEXT,
-    null,
-    false
-  );
-
-  // 收集所有文本节点
-  const textNodes = [];
-  while (walker.nextNode()) {
-    textNodes.push(walker.currentNode);
+// 获取目标在root中的真实偏移量
+export const getRealOffset = (root, node, offset) => {
+  if (!root.contains(node)) {
+    throw new Error("get offset error");
   }
 
-  // 处理每个文本节点
-  textNodes.forEach((textNode) => {
-    const parent = textNode.parentNode;
-    const bold = document.createElement("strong");
-    parent.insertBefore(bold, textNode);
-    bold.appendChild(textNode);
-  });
+  let realOffset = 0;
 
-  // 将处理后的内容插回原位置
-  range.insertNode(fragment);
+  for (let childNode of Array.from(root.childNodes)) {
+    if (childNode === node || childNode.contains(node)) {
+      // 达到目标节点
+      realOffset += offset;
+      break;
+    } else {
+      // 在目标节点前面,添加位移
+      realOffset += childNode.textContent.length;
+    }
+  }
+
+  return realOffset;
+};
+
+// 将元素转为字数据
+export const elementToLetterData = async (node, options = {}) => {
+  if (node instanceof Text) {
+    return Array.from(node.textContent).map((text) => {
+      return {
+        text,
+        options,
+      };
+    });
+  }
+
+  // 获取样式
+  const compStyle = getComputedStyle(node);
+
+  const isBold = parseInt(compStyle.fontWeight) >= 600;
+  const { textDecoration } = compStyle;
+  const isUnderline = textDecoration.includes("underline");
+  const isLineThrough = textDecoration.includes("line-through");
+  const isItalic = compStyle.fontStyle === "italic";
+  const color = node.style.color;
+  const backgroundColor = node.style.backgroundColor;
+
+  const selfOptions = {
+    bold: isBold,
+    underline: isUnderline,
+    lineThrough: isLineThrough,
+    italic: isItalic,
+    color,
+    backgroundColor,
+  };
+
+  let arr = [];
+
+  if (node.childNodes) {
+    for (let e of Array.from(node.childNodes)) {
+      arr.push(...(await elementToLetterData(e, selfOptions)));
+    }
+  }
+
+  return arr;
+};
+
+// // 递归解析元素为字数据
+// const toLetterData = (
+//   node,
+//   opts = {
+//     t: [],
+//   }
+// ) => {
+//   const arr = [];
+//   if (node instanceof Text) {
+//     Array.from(node.textContent).forEach((letter) => {
+//       arr.push({
+//         l: letter,
+//         ...opts,
+//       });
+//     });
+//   } else if (node.childNodes) {
+//     const childNodes = Array.from(node.childNodes);
+
+//     const tag = node.tagName.toLowerCase();
+
+//     debugger;
+
+//     childNodes.forEach((childNode) => {
+//       const t = [...opts.t];
+
+//       if (!t.includes(tag)) {
+//         t.push(tag);
+//         t.sort();
+//       }
+
+//       arr.push(
+//         ...toLetterData(childNode, {
+//           t,
+//         })
+//       );
+//     });
+//   }
+
+//   return arr;
+// };
+
+// 将字数据转为元素
+export const letterDataToElement = async (letterData) => {
+  let str = "";
+
+  let prevItem = null;
+  let hasPrevSpan = false;
+  for (const item of letterData) {
+    if (
+      prevItem &&
+      !(
+        item.options === prevItem.options ||
+        equalOptions(item.options, prevItem.options)
+      )
+    ) {
+      // 样式有改动
+      if (hasPrevSpan) {
+        str += "</span>";
+      }
+
+      const styleStr = getStyleStr(item.options);
+
+      if (styleStr) {
+        str += `<span style="${styleStr}">`;
+        hasPrevSpan = true;
+      } else {
+        hasPrevSpan = false;
+      }
+    }
+
+    str += item.text;
+
+    prevItem = item;
+  }
+
+  return str;
+};
+
+// 生成style字符串
+const getStyleStr = (options) => {
+  let styleStr = "";
+
+  if (options.bold) {
+    styleStr += "font-weight: bold;";
+  }
+
+  if (options.underline && options.lineThrough) {
+    styleStr += "text-decoration: underline line-through;";
+  } else {
+    if (options.underline) {
+      styleStr += "text-decoration: underline;";
+    } else if (options.lineThrough) {
+      styleStr += "text-decoration: line-through;";
+    }
+  }
+
+  if (options.italic) {
+    styleStr += "font-style: italic;";
+  }
+
+  if (options.color) {
+    styleStr += `color: ${options.color};`;
+  }
+
+  return styleStr;
+};
+
+const equalOptions = (a, b) => {
+  return (
+    a.bold === b.bold &&
+    a.underline === b.underline &&
+    a.italic === b.italic &&
+    a.color === b.color &&
+    a.backgroundColor === b.backgroundColor
+  );
 };

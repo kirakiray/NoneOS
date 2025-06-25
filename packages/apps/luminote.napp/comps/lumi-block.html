@@ -299,6 +299,7 @@
       :style.top="pannelPositionTop"
       :style.left="pannelPositionLeft"
       :item-data="itemData"
+      on:update-value="handleUpdateValue"
     ></lumi-block-pannel>
   </o-if>
 
@@ -353,6 +354,11 @@
           pannelPositionLeft: 0,
         },
         proto: {
+          handleUpdateValue(e) {
+            const { value } = e.data;
+
+            console.log("handleUpdateValue: ", value);
+          },
           initializeEditor() {
             // 初始化 editor 操作,主要是为了兼容safari
             const inputerContent = $(
@@ -418,6 +424,7 @@
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
 
+              window._selection = this._selection = selection;
               window._range = this._range = range;
 
               const rangString = range.toString();
