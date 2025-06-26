@@ -15,12 +15,11 @@
       border-radius: var(--pui-border-radius);
       box-shadow: var(--contained-shadow);
       opacity: 0;
-      transform: scale(0);
+      transition: all ease 0.2s;
     }
 
     .tips.open {
       opacity: 1;
-      transform: scale(1);
       pointer-events: auto;
     }
 
