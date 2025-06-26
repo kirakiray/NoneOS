@@ -443,7 +443,8 @@
             //   ? this.shadow.ele.getSelection()
             //   : document.getSelection();
 
-            const selection = e.target.getRootNode().getSelection();
+            // const selection = e.target.getRootNode().getSelection();
+            const selection = this.ele.getRootNode().getSelection();
 
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);

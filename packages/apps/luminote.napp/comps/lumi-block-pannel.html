@@ -99,11 +99,11 @@
           <div class="tool-tips">
             <strong>加粗</strong>
             <br />
-            <o-if :value="isActiveBold === 2"> 已激活,点击后取消加粗 </o-if>
+            <o-if :value="isActiveBold === 2"> 已激活，点击后取消加粗 </o-if>
             <o-else-if :value="isActiveBold === 1">
-              部分激活,点击后取消部分加粗
+              部分激活，点击后取消部分加粗
             </o-else-if>
-            <o-else> 未激活,点击后激活加粗 </o-else>
+            <o-else> 未激活，点击后激活加粗 </o-else>
           </div>
         </o-else>
       </div>
@@ -125,12 +125,12 @@
           <strong>下划线</strong>
           <br />
           <o-if :value="isActiveUnderline === 2">
-            已激活,点击后取消下划线
+            已激活，点击后取消下划线
           </o-if>
           <o-else-if :value="isActiveUnderline === 1">
-            部分激活,点击后取消部分下划线
+            部分激活，点击后取消部分下划线
           </o-else-if>
-          <o-else> 未激活,点击后激活下划线 </o-else>
+          <o-else> 未激活，点击后激活下划线 </o-else>
         </div>
       </div>
     </p-tooltips>
@@ -154,12 +154,12 @@
           <strong>删除线</strong>
           <br />
           <o-if :value="isActiveStrikethrough === 2">
-            已激活,点击后取消删除线
+            已激活，点击后取消删除线
           </o-if>
           <o-else-if :value="isActiveStrikethrough === 1">
-            部分激活,点击后取消部分删除线
+            部分激活，点击后取消部分删除线
           </o-else-if>
-          <o-else> 未激活,点击后激活删除线 </o-else>
+          <o-else> 未激活，点击后激活删除线 </o-else>
         </div>
       </div>
     </p-tooltips>
@@ -179,19 +179,171 @@
         <div class="tool-tips">
           <strong>斜体</strong>
           <br />
-          <o-if :value="isActiveItalic === 2"> 已激活,点击后取消斜体 </o-if>
+          <o-if :value="isActiveItalic === 2"> 已激活，点击后取消斜体 </o-if>
           <o-else-if :value="isActiveItalic === 1">
-            部分激活,点击后取消部分斜体
+            部分激活，点击后取消部分斜体
           </o-else-if>
-          <o-else> 未激活,点击后激活斜体 </o-else>
+          <o-else> 未激活，点击后激活斜体 </o-else>
         </div>
       </div>
     </p-tooltips>
-    <p-button size="small" variant="outlined" color="normal">
-      <span slot="prefix">A</span>
-      颜色
-    </p-button>
+    <div style="position: relative">
+      <p-button
+        size="small"
+        icon
+        variant="text"
+        color="normal"
+        class="color-btn"
+        on:mouseover="mouseoverColorWheel"
+        on:mouseout="mouseoutColorWheel"
+      >
+        <n-local-icon name="color"></n-local-icon>
+      </p-button>
+      <div
+        class="color-wheel"
+        class:show-color-wheel="showColorWheel"
+        on:click="$event.stopPropagation()"
+        on:mouseover="mouseoverColorWheel"
+        on:mouseout="mouseoutColorWheel"
+      >
+        <strong>字体颜色</strong>
+        <div style="display: flex">
+          <div
+            class="color-block checked"
+            style="
+              border-color: transparent;
+              color: var(--md-sys-color-on-surface);
+            "
+            title="不使用颜色"
+          ></div>
+          <div
+            class="color-block"
+            style="
+              border-color: var(--md-sys-color-primary);
+              color: var(--md-sys-color-primary);
+            "
+            title="Primary"
+          ></div>
+          <div
+            class="color-block"
+            style="
+              border-color: var(--md-sys-color-success);
+              color: var(--md-sys-color-success);
+            "
+            title="Success"
+          ></div>
+          <div
+            class="color-block"
+            style="
+              border-color: var(--md-sys-color-error);
+              color: var(--md-sys-color-error);
+            "
+            title="Error"
+          ></div>
+          <div
+            class="color-block"
+            style="
+              border-color: var(--md-sys-color-normal);
+              color: var(--md-sys-color-normal);
+            "
+            title="Gray"
+          ></div>
+        </div>
+        <strong style="margin-top: 12px">背景颜色</strong>
+        <div style="display: flex">
+          <div
+            class="color-block checked"
+            title="不使用背景色"
+            style="border: none"
+          ></div>
+          <div
+            class="color-block"
+            title="Primary"
+            style="
+              background-color: var(--md-sys-color-on-primary);
+              border: none;
+            "
+          ></div>
+          <div
+            class="color-block"
+            title="Success"
+            style="
+              background-color: var(--md-sys-color-on-success);
+              border: none;
+            "
+          ></div>
+          <div
+            class="color-block"
+            title="Error"
+            style="background-color: var(--md-sys-color-on-error); border: none"
+          ></div>
+          <div
+            class="color-block"
+            title="Gray"
+            style="
+              background-color: var(--md-sys-color-on-normal);
+              border: none;
+            "
+          ></div>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <style>
+    .color-wheel {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: 36px;
+      width: 200px;
+      padding: 8px;
+      border-radius: 8px;
+      text-align: left;
+      background-color: var(--md-sys-color-normal-container);
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+    }
+    /* .color-wheel:hover,
+    .color-btn:hover + .color-wheel {
+      transition: all 0.3s ease 0s;
+      opacity: 1;
+      pointer-events: auto;
+    } */
+
+    .show-color-wheel {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .color-wheel strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .color-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+      font-size: 20px;
+      margin-right: 6px;
+      border-radius: 6px;
+      border: 0.5px solid var(--md-sys-color-on-surface);
+      /* border: 1px solid transparent; */
+      cursor: pointer;
+    }
+
+    .color-block.checked {
+      outline: 2px solid var(--md-sys-color-primary);
+    }
+    .color-block::after {
+      content: "A";
+    }
+  </style>
 
   <script>
     export default async ({ load }) => {
@@ -207,10 +359,22 @@
           isActiveItalic: 0, // 激活了斜体按钮
           isActiveUnderline: 0, // 激活了下划线按钮
           isActiveStrikethrough: 0, // 激活了删除线按钮
+          showColorWheel: false,
         },
         proto: {
+          mouseoverColorWheel() {
+            clearTimeout(this._mouseOverTimer);
+            this.showColorWheel = true;
+          },
+          mouseoutColorWheel() {
+            clearTimeout(this._mouseOverTimer);
+            this._mouseOverTimer = setTimeout(() => {
+              this.showColorWheel = false;
+            }, 300);
+          },
           async getSelectionLetterData() {
-            const selection = document.getSelection();
+            // const selection = document.getSelection();
+            const selection = this.host.ele.getRootNode().getSelection();
             const range = selection.getRangeAt(0);
 
             const rootEl = this.host[0].ele;

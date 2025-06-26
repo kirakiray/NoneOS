@@ -14,7 +14,6 @@
       white-space: nowrap;
       border-radius: var(--pui-border-radius);
       box-shadow: var(--contained-shadow);
-      transition: all ease 0.3s;
       opacity: 0;
       transform: scale(0);
     }
@@ -42,7 +41,7 @@
   </style>
   <p-placement attr:placement="placement" part="placement">
     <slot></slot>
-    <div slot="tips" class="tips" class:open="open">
+    <div slot="tips" class="tips" part="tips-container" class:open="open">
       <slot name="tips"></slot>
     </div>
   </p-placement>
