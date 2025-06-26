@@ -5,6 +5,7 @@
     :host {
       position: absolute;
       display: block;
+      user-select: none;
     }
     .section-pannel {
       display: flex;
@@ -214,7 +215,7 @@
               class:checked="$data.color === $host.currentColor"
               :style.color="`var(--md-sys-color-${$data.color})`"
               attr:title="$data.name"
-              on:click="$host.currentColor = $data.color"
+              on:mousedown="$host.changeColor($data.color)"
             >
               A
             </div>
@@ -228,11 +229,9 @@
               class:checked="$data.color === $host.currentBgColor"
               :style.background-color="`var(--md-sys-color-${$data.color}-container)`"
               attr:title="$data.name"
-              on:click="$host.currentBgColor = $data.color"
-            >
-            </div>
+              on:mousedown="$host.changeColor($data.color, true)"
+            ></div>
           </o-fill>
-        </div>
         </div>
       </div>
     </div>
@@ -243,7 +242,7 @@
       display: block;
       position: absolute;
       right: 0;
-      top: 36px;
+      top: 52px;
       width: 200px;
       padding: 8px;
       border-radius: 8px;
@@ -373,6 +372,45 @@
               letterData,
               selectionRangeLetters,
             };
+          },
+          async changeColor(color, isChangeBgColor) {
+            const {
+              startOffset,
+              endOffset,
+              letterData,
+              selectionRangeLetters,
+            } = await this.getSelectionLetterData();
+
+            if (isChangeBgColor) {
+              this.currentBgColor = color;
+              selectionRangeLetters.forEach((item) => {
+                item.options = {
+                  ...item.options,
+                  backgroundColor: `var(--md-sys-color-${color}-container)`,
+                };
+              });
+            } else {
+              this.currentColor = color;
+              selectionRangeLetters.forEach((item) => {
+                item.options = {
+                  ...item.options,
+                  color: `var(--md-sys-color-${color})`,
+                };
+              });
+            }
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            setTimeout(() => {
+              this.emit("update-value", {
+                data: {
+                  value: newValue,
+                  startOffset,
+                  endOffset,
+                },
+              });
+            });
           },
           // 当点击了对应的操作
           async handleSelectionAction(type) {

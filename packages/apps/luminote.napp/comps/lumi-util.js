@@ -235,6 +235,10 @@ const getStyleStr = (options) => {
     styleStr += `color: ${options.color};`;
   }
 
+  if (options.backgroundColor) {
+    styleStr += `background-color: ${options.backgroundColor};`;
+  }
+
   return styleStr;
 };
 
