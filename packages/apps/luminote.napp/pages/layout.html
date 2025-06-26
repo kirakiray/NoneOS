@@ -237,7 +237,7 @@
 
             switch (type) {
               case "addSubNote":
-                const targetArticle = await findArticle(
+                const { target: targetArticle } = await findArticle(
                   this.app,
                   this.currentArticleDataId
                 );

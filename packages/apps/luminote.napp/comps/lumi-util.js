@@ -103,8 +103,11 @@ export const getContainerAndOffset = (root, realOffset) => {
   let index = 0;
   let total = 0;
   while (total <= offset) {
+    if (!nodes[index]) {
+      break;
+    }
     container = nodes[index];
-    total += nodes[index].textContent.length;
+    total += container.textContent.length;
     index++;
   }
 
@@ -178,7 +181,9 @@ export const letterDataToElement = async (letterData) => {
 
   let prevItem = null;
   let hasPrevSpan = false;
-  for (const item of letterData) {
+  for (let len = letterData.length, i = 0, last = len - 1; i < len; i++) {
+    const item = letterData[i];
+
     if (
       prevItem &&
       !(
@@ -204,6 +209,11 @@ export const letterDataToElement = async (letterData) => {
     str += item.text;
 
     prevItem = item;
+
+    // 当是最后一个item时，又存在prevSpan，需要关闭
+    if (i === last && hasPrevSpan) {
+      str += "</span>";
+    }
   }
 
   return str;

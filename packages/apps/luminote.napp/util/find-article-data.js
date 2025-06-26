@@ -8,13 +8,13 @@ export const findArticle = async (app, dataId) => {
 const findTargetArticle = async (content, dataId) => {
   for (let e of content) {
     if (e._dataId === dataId) {
-      return e;
+      return { target: e };
     }
 
     if (e.content) {
-      let target = await findTargetArticle(e.content, dataId);
-      if (target) {
-        return target;
+      let result = await findTargetArticle(e.content, dataId);
+      if (result?.target) {
+        return { target: result.target };
       }
     }
   }
