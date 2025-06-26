@@ -197,8 +197,13 @@
         class="color-btn"
         on:mouseover="mouseoverColorWheel"
         on:mouseout="mouseoutColorWheel"
+        style="border-radius: 16px"
+        :style.background-color="`var(--md-sys-color-${currentBgColor}-container)`"
       >
-        <n-local-icon name="color"></n-local-icon>
+        <n-local-icon
+          name="color"
+          :style.color="`var(--md-sys-color-${currentColor})`"
+        ></n-local-icon>
       </p-button>
       <div
         class="color-wheel"
@@ -272,9 +277,9 @@
       align-items: center;
       width: 30px;
       height: 30px;
+      border-radius: 16px;
       font-size: 20px;
       margin-right: 6px;
-      border-radius: 6px;
       border: 0.5px solid var(--md-sys-color-on-surface);
       /* border: 1px solid transparent; */
       cursor: pointer;
@@ -332,9 +337,9 @@
           },
           mouseoutColorWheel() {
             clearTimeout(this._mouseOverTimer);
-            // this._mouseOverTimer = setTimeout(() => {
-            //   this.showColorWheel = false;
-            // }, 300);
+            this._mouseOverTimer = setTimeout(() => {
+              this.showColorWheel = false;
+            }, 300);
           },
           async getSelectionLetterData() {
             // const selection = document.getSelection();
@@ -386,7 +391,9 @@
               selectionRangeLetters.forEach((item) => {
                 item.options = {
                   ...item.options,
-                  backgroundColor: `var(--md-sys-color-${color}-container)`,
+                  backgroundColor: color
+                    ? `var(--md-sys-color-${color}-container)`
+                    : "",
                 };
               });
             } else {
@@ -394,7 +401,7 @@
               selectionRangeLetters.forEach((item) => {
                 item.options = {
                   ...item.options,
-                  color: `var(--md-sys-color-${color})`,
+                  color: color ? `var(--md-sys-color-${color})` : "",
                 };
               });
             }
@@ -518,6 +525,9 @@
               "lineThrough",
               selectionRangeLetters
             );
+
+            this.currentColor = getColor(selectionRangeLetters);
+            this.currentBgColor = getColor(selectionRangeLetters, 1);
           },
         },
         attached() {
@@ -528,6 +538,35 @@
           this.itemData = {};
         },
       };
+    };
+
+    const getColor = (selectionRangeLetters, isBgColor) => {
+      let color = "";
+      selectionRangeLetters.some((item) => {
+        if (isBgColor) {
+          if (item.options.backgroundColor) {
+            const colorArr = item.options.backgroundColor
+              .replace(/var\((.+)\)/, "$1")
+              .split("-");
+
+            color = colorArr[colorArr.findIndex((e) => e === "color") + 1];
+
+            return true;
+          }
+        } else {
+          if (item.options.color) {
+            const colorArr = item.options.color
+              .replace(/var\((.+)\)/, "$1")
+              .split("-");
+
+            color = colorArr[colorArr.findIndex((e) => e === "color") + 1];
+
+            return true;
+          }
+        }
+      });
+
+      return color;
     };
 
     // 获取状态
