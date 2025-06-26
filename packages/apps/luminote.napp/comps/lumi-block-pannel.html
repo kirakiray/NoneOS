@@ -208,83 +208,31 @@
       >
         <strong>字体颜色</strong>
         <div style="display: flex">
-          <div
-            class="color-block checked"
-            style="
-              border-color: transparent;
-              color: var(--md-sys-color-on-surface);
-            "
-            title="不使用颜色"
-          ></div>
-          <div
-            class="color-block"
-            style="
-              border-color: var(--md-sys-color-primary);
-              color: var(--md-sys-color-primary);
-            "
-            title="Primary"
-          ></div>
-          <div
-            class="color-block"
-            style="
-              border-color: var(--md-sys-color-success);
-              color: var(--md-sys-color-success);
-            "
-            title="Success"
-          ></div>
-          <div
-            class="color-block"
-            style="
-              border-color: var(--md-sys-color-error);
-              color: var(--md-sys-color-error);
-            "
-            title="Error"
-          ></div>
-          <div
-            class="color-block"
-            style="
-              border-color: var(--md-sys-color-normal);
-              color: var(--md-sys-color-normal);
-            "
-            title="Gray"
-          ></div>
+          <o-fill :value="colorOpts">
+            <div
+              class="color-block"
+              class:checked="$data.color === $host.currentColor"
+              :style.color="`var(--md-sys-color-${$data.color})`"
+              attr:title="$data.name"
+              on:click="$host.currentColor = $data.color"
+            >
+              A
+            </div>
+          </o-fill>
         </div>
         <strong style="margin-top: 12px">背景颜色</strong>
         <div style="display: flex">
-          <div
-            class="color-block checked"
-            title="不使用背景色"
-            style="border: none"
-          ></div>
-          <div
-            class="color-block"
-            title="Primary"
-            style="
-              background-color: var(--md-sys-color-on-primary);
-              border: none;
-            "
-          ></div>
-          <div
-            class="color-block"
-            title="Success"
-            style="
-              background-color: var(--md-sys-color-on-success);
-              border: none;
-            "
-          ></div>
-          <div
-            class="color-block"
-            title="Error"
-            style="background-color: var(--md-sys-color-on-error); border: none"
-          ></div>
-          <div
-            class="color-block"
-            title="Gray"
-            style="
-              background-color: var(--md-sys-color-on-normal);
-              border: none;
-            "
-          ></div>
+          <o-fill :value="colorOpts">
+            <div
+              class="color-block"
+              class:checked="$data.color === $host.currentBgColor"
+              :style.background-color="`var(--md-sys-color-${$data.color}-container)`"
+              attr:title="$data.name"
+              on:click="$host.currentBgColor = $data.color"
+            >
+            </div>
+          </o-fill>
+        </div>
         </div>
       </div>
     </div>
@@ -300,18 +248,14 @@
       padding: 8px;
       border-radius: 8px;
       text-align: left;
-      background-color: var(--md-sys-color-normal-container);
+      background-color: var(--md-sys-color-on-normal);
       font-size: 12px;
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s ease;
+      z-index: 2;
+      box-shadow: var(--contained-shadow);
     }
-    /* .color-wheel:hover,
-    .color-btn:hover + .color-wheel {
-      transition: all 0.3s ease 0s;
-      opacity: 1;
-      pointer-events: auto;
-    } */
 
     .show-color-wheel {
       opacity: 1;
@@ -340,9 +284,6 @@
     .color-block.checked {
       outline: 2px solid var(--md-sys-color-primary);
     }
-    .color-block::after {
-      content: "A";
-    }
   </style>
 
   <script>
@@ -359,6 +300,30 @@
           isActiveItalic: 0, // 激活了斜体按钮
           isActiveUnderline: 0, // 激活了下划线按钮
           isActiveStrikethrough: 0, // 激活了删除线按钮
+          currentColor: "",
+          currentBgColor: "",
+          colorOpts: [
+            {
+              name: "不使用",
+              color: "",
+            },
+            {
+              name: "主题色",
+              color: "primary",
+            },
+            {
+              name: "成功色",
+              color: "success",
+            },
+            {
+              name: "错误色",
+              color: "error",
+            },
+            {
+              name: "灰色",
+              color: "normal",
+            },
+          ],
           showColorWheel: false,
         },
         proto: {
@@ -368,9 +333,9 @@
           },
           mouseoutColorWheel() {
             clearTimeout(this._mouseOverTimer);
-            this._mouseOverTimer = setTimeout(() => {
-              this.showColorWheel = false;
-            }, 300);
+            // this._mouseOverTimer = setTimeout(() => {
+            //   this.showColorWheel = false;
+            // }, 300);
           },
           async getSelectionLetterData() {
             // const selection = document.getSelection();
