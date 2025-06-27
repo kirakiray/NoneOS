@@ -204,6 +204,10 @@ export const letterDataToElement = async (letterData) => {
       } else {
         hasPrevSpan = false;
       }
+    } else if (!prevItem && hasStyle(item.options)) {
+      const styleStr = getStyleStr(item.options);
+      str += `<span style="${styleStr}">`;
+      hasPrevSpan = true;
     }
 
     str += item.text;
@@ -250,6 +254,17 @@ const getStyleStr = (options) => {
   }
 
   return styleStr;
+};
+
+const hasStyle = (options) => {
+  return (
+    options.bold ||
+    options.underline ||
+    options.italic ||
+    options.color ||
+    options.lineThrough ||
+    options.backgroundColor
+  );
 };
 
 const equalOptions = (a, b) => {
