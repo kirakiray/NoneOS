@@ -73,6 +73,7 @@ export default {
             userId: item.userId,
             _handle: item.handle,
             noData: 1,
+            projects: [],
           });
           continue;
         }

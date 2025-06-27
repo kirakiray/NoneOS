@@ -68,12 +68,12 @@
   </o-if>
 
   <h4>切换项目</h4>
+  <h5>切换到本地项目</h5>
   <p-list style="max-height: 300px">
     <o-fill :value="existProjects">
       <p-list-item
         button
         on:click="$host.switchProject($data)"
-        class:hide="$host.currentDirName === $data.dirName"
         style="max-width: 380px"
       >
         <div style="display: flex">
@@ -91,17 +91,27 @@
         </div>
         <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
 
-        <p-button
-          slot="suffix"
-          size="small"
-          color="error"
-          variant="outlined"
-          icon
-          on:click="$host.handleDeleteProject($data,$event)"
-          style="z-index: 3"
-        >
-          <n-local-icon name="delete"></n-local-icon>
-        </p-button>
+        <x-if :value="$host.currentDirName === $data.dirName">
+          <div
+            slot="suffix"
+            style="color: var(--md-sys-color-primary); font-size: 12px"
+          >
+            当前选择
+          </div>
+        </x-if>
+        <x-else>
+          <p-button
+            slot="suffix"
+            size="small"
+            color="error"
+            variant="outlined"
+            icon
+            on:click="$host.handleDeleteProject($data,$event)"
+            style="z-index: 3"
+          >
+            <n-local-icon name="delete"></n-local-icon>
+          </p-button>
+        </x-else>
       </p-list-item>
     </o-fill>
   </p-list>
@@ -111,7 +121,13 @@
     <p-button variant="text" disabled>导出所有项目</p-button>
   </div>
 
-  <h4>切换到设备的项目</h4>
+  <h5>切换到设备的项目</h5>
+  <o-if :value="loadingRemote">
+    <div>加载中...</div>
+  </o-if>
+  <o-else-if :value="!remotes.length">
+    <div>没有其他设备</div>
+  </o-else-if>
   <p-list style="max-width: 380px">
     <o-fill :value="remotes">
       <p-list-item>
@@ -122,6 +138,9 @@
         ></n-id-avatar>
         {{$data.userName}}
         <p-list slot="childs" style="max-height: 300px; --ladder-left: 8px">
+          <o-if :value="$data.noData">
+            <p-list-item> 没有该应用的数据 </p-list-item>
+          </o-if>
           <o-fill :value="$data.projects">
             <p-list-item button>
               <div style="display: flex">
@@ -195,6 +214,7 @@
           currentDirName: "",
           existProjects: [], // 已经存在的项目
           remotes: [], // 其他设备
+          loadingRemote: false,
         },
         proto: {
           async handleDeleteProject(data, event) {
@@ -215,6 +235,10 @@
             this.reloadExistProjects();
           },
           async switchProject(data) {
+            if (this.currentDirName === data.dirName) {
+              return;
+            }
+
             const result = await this.app.changeCurrentProject(data.dirName);
 
             this.reloadExistProjects();
@@ -284,7 +308,9 @@
             this.existProjects = exists;
           },
           async loadRemotes() {
+            this.loadingRemote = true;
             this.remotes = await this.app.getRemotes();
+            this.loadingRemote = false;
           },
         },
         attached() {
