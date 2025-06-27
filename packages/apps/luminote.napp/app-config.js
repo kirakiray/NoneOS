@@ -23,44 +23,75 @@ import { createData, loadData } from "/packages/hybird-data/main.js";
 
 const exitedProject = {};
 
-// let currentDirName = localStorage.__luminote_before_opened_dirname || "start";
 let __start_resolve;
 let currentDirName = new Promise((resolve) => (__start_resolve = resolve));
 
+// 加载项目数据
+const loadProjectData = async (rootHandle) => {
+  const arr = [];
+
+  for await (let [dirName, item] of rootHandle.entries()) {
+    if (item.kind === "file") {
+      continue;
+    }
+
+    const articleDirHandle = await item.get("article");
+
+    try {
+      // 获取项目数据
+      const data = await loadData({
+        level: 1,
+        handle: articleDirHandle,
+      });
+
+      arr.push({
+        projectName: data.projectName,
+        creationtime: data.creationtime,
+        dirName,
+      });
+    } catch (err) {
+      continue;
+    }
+  }
+
+  return arr;
+};
+
 export default {
   proto: {
+    // 获取其他设备
+    async getRemotes() {
+      const remotes = await this.dedicatedRemoteHandle();
+
+      const arr = [];
+
+      for (let item of remotes) {
+        if (!item.hasData) {
+          // 没有该应用数据
+          arr.push({
+            userName: item.userName,
+            userId: item.userId,
+            _handle: item.handle,
+            noData: 1,
+          });
+          continue;
+        }
+        arr.push({
+          userName: item.userName,
+          userId: item.userId,
+          _handle: item.handle,
+          projects: await loadProjectData(item.handle),
+        });
+      }
+
+      return arr;
+    },
     // 获取已经存在的项目名
     async getExistProjects() {
       // 获取专属文件句柄
       const rootHandle = await this.dedicatedHandle();
 
-      const arr = [];
-
-      for await (let [dirName, item] of rootHandle.entries()) {
-        if (item.kind === "file") {
-          continue;
-        }
-
-        const articleDirHandle = await item.get("article");
-
-        try {
-          // 获取项目数据
-          const data = await loadData({
-            level: 1,
-            handle: articleDirHandle,
-          });
-
-          arr.push({
-            projectName: data.projectName,
-            creationtime: data.creationtime,
-            dirName,
-          });
-        } catch (err) {
-          continue;
-        }
-      }
-
-      return arr;
+      return await loadProjectData(rootHandle);
     },
 
     // 获取项目

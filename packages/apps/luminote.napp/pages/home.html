@@ -108,16 +108,55 @@
   <div class="button-line" style="margin-top: 16px">
     <p-button on:click="clickCreate">创建新项目</p-button>
     <p-button variant="outlined" disabled>导入新项目</p-button>
+    <p-button variant="text" disabled>导出所有项目</p-button>
   </div>
 
   <h4>切换到设备的项目</h4>
-  <p-list>
-    <p-list-item>
+  <p-list style="max-width: 380px">
+    <o-fill :value="remotes">
+      <p-list-item>
+        <n-id-avatar
+          attr:val="$data.userId"
+          style="width: 16px; height: 16px"
+          slot="prefix"
+        ></n-id-avatar>
+        {{$data.userName}}
+        <p-list slot="childs" style="max-height: 300px; --ladder-left: 8px">
+          <o-fill :value="$data.projects">
+            <p-list-item button>
+              <div style="display: flex">
+                {{$data.projectName}} -
+                <span
+                  style="
+                    display: inline-block;
+                    margin-left: 6px;
+                    font-size: 12px;
+                    color: #7c7c7c;
+                  "
+                >
+                  创建时间:
+                  <n-moment-span :time="$data.creationtime"></n-moment-span>
+                </span>
+              </div>
+              <div class="secondary" style="color: #7c7c7c">
+                {{$data.dirName}}
+              </div>
+            </p-list-item>
+          </o-fill>
+        </p-list>
+      </p-list-item>
+    </o-fill>
+    <!-- <p-list-item>
       <n-id-avatar
         val="example"
-        style="width: 30px; height: 30px"
+        style="width: 16px; height: 16px"
+        slot="prefix"
       ></n-id-avatar>
-    </p-list-item>
+      设备AAA
+      <p-list slot="childs" style="max-height: 300px">
+        <p-list-item button> 项目BBB </p-list-item>
+      </p-list> 
+    </p-list-item>-->
   </p-list>
 
   <!-- <div>
@@ -155,6 +194,7 @@
           creationtime: "",
           currentDirName: "",
           existProjects: [], // 已经存在的项目
+          remotes: [], // 其他设备
         },
         proto: {
           async handleDeleteProject(data, event) {
@@ -243,6 +283,9 @@
 
             this.existProjects = exists;
           },
+          async loadRemotes() {
+            this.remotes = await this.app.getRemotes();
+          },
         },
         attached() {
           this.emit("active-article", {
@@ -261,6 +304,7 @@
 
           this.reloadProject();
           this.reloadExistProjects();
+          this.loadRemotes();
         },
         detached() {},
       };
