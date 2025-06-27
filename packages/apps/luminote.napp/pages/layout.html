@@ -233,7 +233,7 @@
           cursor: pointer;
         }
 
-        .breadcrumb:hover {
+        .breadcrumb:hover .content {
           text-decoration: underline;
         }
 
@@ -274,7 +274,7 @@
                     name="article"
                     style="display: block; font-size: 18px; margin-right: 4px"
                   ></n-local-icon>
-                  {{$data.title}}
+                  <span class="content"> {{$data.title}}</span>
                   <span class="after-mark"> / </span>
                 </div>
               </o-fill>

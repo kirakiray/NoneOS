@@ -140,11 +140,20 @@ export default {
         // 记录打开的项目地址
         const rootHandle = await this.dedicatedHandle();
 
-        let beforeOpenedProject = await rootHandle.get("_before_open", {
+        let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
           create: "file",
         });
 
-        await beforeOpenedProject.write(dirName);
+        let data = {};
+
+        try {
+          data = JSON.parse(await beforeOpenedProjectFile.text());
+        } catch (err) {
+          data = {};
+        }
+        data.dirName = dirName;
+
+        await beforeOpenedProjectFile.write(JSON.stringify(data));
       }
 
       // 刷新所有页面的数据
@@ -238,18 +247,24 @@ export default {
     (async () => {
       const rootHandle = await this.dedicatedHandle();
 
-      let beforeOpenedProject = await rootHandle.get("_before_open", {
+      let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
         create: "file",
       });
 
-      beforeOpenedProject = await beforeOpenedProject.text();
+      const text = await beforeOpenedProjectFile.text();
 
-      if (!beforeOpenedProject) {
-        // 如果不存在，相当于等于 start
-        beforeOpenedProject = "start";
+      let beforeDirName = "start";
+
+      if (text) {
+        try {
+          const data = JSON.parse(text);
+          if (data.dirName) {
+            beforeDirName = data.dirName;
+          }
+        } catch (err) {}
       }
 
-      __start_resolve(beforeOpenedProject);
+      __start_resolve(beforeDirName);
     })();
   },
 };
