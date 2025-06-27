@@ -1,5 +1,13 @@
-export const findArticle = async (app, dataId) => {
-  const articleData = (await app.getCurrentProject()).data;
+export const findArticle = async (app, dataId, userId = "self", dirName) => {
+  let project;
+  if (userId !== "self") {
+    // 不是当前设备，就要请求远端了
+    project = await app.getProject(dirName, userId);
+  } else {
+    project = await app.getCurrentProject(dirName);
+  }
+
+  const articleData = project.data;
   const { main } = articleData;
 
   return await findTargetArticle(main, dataId);

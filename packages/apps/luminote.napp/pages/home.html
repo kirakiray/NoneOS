@@ -142,7 +142,7 @@
             <p-list-item> 数据获取失败 </p-list-item>
           </o-if>
           <o-fill :value="$data.projects">
-            <p-list-item button>
+            <p-list-item button on:click="$host.switchProject($data)">
               <div style="display: flex">
                 {{$data.projectName}} -
                 <span
@@ -165,17 +165,6 @@
         </p-list>
       </p-list-item>
     </o-fill>
-    <!-- <p-list-item>
-      <n-id-avatar
-        val="example"
-        style="width: 16px; height: 16px"
-        slot="prefix"
-      ></n-id-avatar>
-      设备AAA
-      <p-list slot="childs" style="max-height: 300px">
-        <p-list-item button> 项目BBB </p-list-item>
-      </p-list> 
-    </p-list-item>-->
   </p-list>
 
   <!-- <div>
@@ -212,6 +201,7 @@
           currentName: "",
           creationtime: "",
           currentDirName: "",
+          currentUserId: "self",
           existProjects: [], // 已经存在的项目
           remotes: [], // 其他设备
           loadingRemote: false,
@@ -235,11 +225,27 @@
             this.reloadExistProjects();
           },
           async switchProject(data) {
-            if (this.currentDirName === data.dirName) {
+            if (
+              this.currentDirName === data.dirName &&
+              this.currentUserId === (data.userId || "self")
+            ) {
               return;
             }
 
-            const result = await this.app.changeCurrentProject(data.dirName);
+            this.currentUserId = data.userId || "self";
+
+            this.emit("update-current-project-data", {
+              data: {
+                userId: this.currentUserId,
+                dirName: data.dirName,
+              },
+              composed: true,
+            });
+
+            const result = await this.app.changeCurrentProject(
+              data.dirName,
+              this.currentUserId
+            );
 
             this.reloadExistProjects();
             this.reloadProject();

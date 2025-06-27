@@ -301,10 +301,14 @@
           articles: [],
           currentArticleDataId: null,
           currentProjectName: "Loading...",
+          currentUserId: "self",
+          currentDirName: null,
         },
         proto: {
           clickBread(item) {
-            this.goto(`./note.html?article_id=${item.dataId}`);
+            this.goto(
+              `./note.html?article_id=${item.dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
+            );
           },
           handleUpdateBreadcrumbs(e) {
             const { hide, titles } = e.data;
@@ -330,7 +334,9 @@
               case "addSubNote":
                 const { target: targetArticle, titles } = await findArticle(
                   this.app,
-                  this.currentArticleDataId
+                  this.currentArticleDataId,
+                  this.currentUserId,
+                  this.currentDirName
                 );
 
                 targetArticle.content.push(createArticleData());
@@ -353,7 +359,9 @@
             if ($(event.target).attr("toggle-collapse") !== null) {
               return;
             }
-            this.goto(`./note.html?article_id=${data._dataId}`);
+            this.goto(
+              `./note.html?article_id=${data._dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
+            );
           },
           handleAddNote(e) {
             e.stopPropagation();
@@ -368,11 +376,13 @@
             this.currentArticleDataId = e.data.articleId;
           },
           async reloadProject() {
-            const articleData = (await this.app.getCurrentProject()).data;
+            const { data: articleData, dirName } =
+              await this.app.getCurrentProject();
 
             if (articleData) {
               window.articles = articleData.main;
               this.articles = articleData.main;
+              this.currentDirName = dirName;
               this.currentProjectName = articleData.projectName;
             }
           },
@@ -382,6 +392,12 @@
         },
         attached() {
           this.reloadProject();
+
+          this.on("update-current-project-data", (e) => {
+            this.currentUserId = e.data.userId;
+            this.currentDirName = e.data.dirName;
+            e.stopPropagation();
+          });
         },
         detached() {
           this.articles = {};

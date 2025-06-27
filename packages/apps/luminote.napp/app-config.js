@@ -60,7 +60,7 @@ const loadProjectData = async (rootHandle) => {
 
 export default {
   proto: {
-    // 获取其他设备
+    //     // 获取其他设备
     async getRemotes() {
       const remotes = await this.dedicatedRemoteHandle();
 
@@ -82,7 +82,9 @@ export default {
           userName: item.userName,
           userId: item.userId,
           _handle: item.handle,
-          projects: await loadProjectData(item.handle),
+          projects: (await loadProjectData(item.handle)).map((e) => {
+            return { ...e, userId: item.userId };
+          }),
         });
       }
 
@@ -102,27 +104,43 @@ export default {
         return new Error(`不存在该项目: ${dirName}`);
       }
 
-      if (exitedProject[dirName]) {
-        return exitedProject[dirName];
+      const exitedName = dirName + "---" + userId;
+
+      if (exitedProject[exitedName]) {
+        return exitedProject[exitedName];
       }
 
-      return (exitedProject[dirName] = (async () => {
+      return (exitedProject[exitedName] = (async () => {
+        if (userId !== "self") {
+          // 打开远端的用户
+          const remotes = await this.dedicatedRemoteHandle();
+          const remote = remotes.find((e) => e.userId === userId);
+
+          const { handle } = remote;
+
+          return (exitedProject[exitedName] = this.createProject({
+            dirName,
+            rootHandle: handle,
+          }));
+        }
+
         // 获取专属文件句柄
         const rootHandle = await this.dedicatedHandle();
 
-        // 掉过初始化的project项目
+        // 如果不是初始化文件夹，尝试读取项目目录
         if (dirName !== "start") {
           // 获取目标项目目录handle
           const projectHandle = await rootHandle.get(dirName);
 
           if (!projectHandle) {
-            exitedProject[dirName] = null;
+            exitedProject[exitedName] = null;
             return new Error(`不存在项目文件夹 "${dirName}"`);
           }
         }
 
-        return (exitedProject[dirName] = this.createProject({
+        return (exitedProject[exitedName] = this.createProject({
           dirName,
+          rootHandle,
         }));
       })());
     },
@@ -168,11 +186,13 @@ export default {
 
     // 删除本地项目
     async deleteProject(dirName) {
+      const exitedName = dirName + "---self";
+
       // 清除绑定
-      if (exitedProject[dirName]) {
-        const projectItem = await exitedProject[dirName];
+      if (exitedProject[exitedName]) {
+        const projectItem = await exitedProject[exitedName];
         await projectItem.data.disconnect();
-        delete exitedProject[dirName];
+        delete exitedProject[exitedName];
       }
 
       // 删除目录
@@ -183,13 +203,13 @@ export default {
     },
 
     // 创建一个本地项目
-    async createProject({ projectName, dirName }) {
+    async createProject({ projectName, dirName, rootHandle: root }) {
       // 项目目录名
       dirName =
         dirName || `luminote-project-${Math.random().toString(32).slice(2)}`;
 
       // 获取专属文件句柄
-      const rootHandle = await this.dedicatedHandle();
+      const rootHandle = root || (await this.dedicatedHandle());
 
       // 获取目标项目目录handle
       const projectHandle = await rootHandle.get(dirName, {
@@ -229,10 +249,6 @@ export default {
         projectName: articleData.projectName,
         dirName,
       };
-
-      if (!exitedProject[dirName]) {
-        exitedProject[dirName] = redata;
-      }
 
       return redata;
     },

@@ -40,7 +40,7 @@
     export const parent = "./layout.html";
 
     export default async ({ load, query }) => {
-      const { article_id } = query;
+      const { article_id, user_id, dir_name } = query;
 
       const { findArticle } = await load("../util/find-article-data.js");
 
@@ -53,10 +53,13 @@
         },
         proto: {
           async loadArticle() {
-            const articleData = (await this.app.getCurrentProject()).data;
-
             // 查找对应文章
-            const { target, titles } = await findArticle(this.app, article_id);
+            const { target, titles } = await findArticle(
+              this.app,
+              article_id,
+              user_id,
+              dir_name
+            );
 
             this.itemData = target;
 
