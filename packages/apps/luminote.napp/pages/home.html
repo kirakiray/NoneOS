@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
 
   <style>
     :host {
@@ -109,10 +110,20 @@
     <p-button variant="outlined" disabled>导入新项目</p-button>
   </div>
 
-  <div>
+  <h4>切换到设备的项目</h4>
+  <p-list>
+    <p-list-item>
+      <n-id-avatar
+        val="example"
+        style="width: 30px; height: 30px"
+      ></n-id-avatar>
+    </p-list-item>
+  </p-list>
+
+  <!-- <div>
     <h4>最近访问</h4>
     <div style="color: var(--md-sys-color-normal)">准备中...</div>
-  </div>
+  </div> -->
 
   <div>
     <h4>本地AI</h4>
