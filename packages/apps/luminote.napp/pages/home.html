@@ -139,7 +139,7 @@
         {{$data.userName}}
         <p-list slot="childs" style="max-height: 300px; --ladder-left: 8px">
           <o-if :value="$data.noData">
-            <p-list-item> 没有该应用的数据 </p-list-item>
+            <p-list-item> 数据获取失败 </p-list-item>
           </o-if>
           <o-fill :value="$data.projects">
             <p-list-item button>

@@ -25,6 +25,7 @@ const exitedProject = {};
 
 let __start_resolve;
 let currentDirName = new Promise((resolve) => (__start_resolve = resolve));
+let currentUserId = "self"; // 当前项目用户id
 
 // 加载项目数据
 const loadProjectData = async (rootHandle) => {
@@ -96,7 +97,7 @@ export default {
     },
 
     // 获取项目
-    getProject(dirName) {
+    getProject(dirName, userId = "self") {
       if (!dirName) {
         return new Error(`不存在该项目: ${dirName}`);
       }
@@ -128,15 +129,16 @@ export default {
 
     async getCurrentProject() {
       // 获取当前项目
-      return this.getProject(await currentDirName);
+      return this.getProject(await currentDirName, currentUserId);
     },
 
-    async changeCurrentProject(dirName) {
-      const targetProject = await this.getProject(dirName);
+    async changeCurrentProject(dirName, userId = "self") {
+      const targetProject = await this.getProject(dirName, userId);
 
       currentDirName = Promise.resolve(dirName);
 
-      {
+      // 只在打开本地项目时，记录上一次的记录
+      if (userId === "self") {
         // 记录打开的项目地址
         const rootHandle = await this.dedicatedHandle();
 
@@ -159,10 +161,12 @@ export default {
       // 刷新所有页面的数据
       this.$("o-page").reloadProject();
 
+      currentUserId = userId;
+
       return targetProject;
     },
 
-    // 删除项目
+    // 删除本地项目
     async deleteProject(dirName) {
       // 清除绑定
       if (exitedProject[dirName]) {
@@ -178,7 +182,7 @@ export default {
       await targetHandle.remove();
     },
 
-    // 创建一个项目
+    // 创建一个本地项目
     async createProject({ projectName, dirName }) {
       // 项目目录名
       dirName =
@@ -235,8 +239,6 @@ export default {
 
     // 释放所有已加载项目的内存资源
     async revokeAllProject() {
-      debugger;
-
       Object.values(exitedProject).forEach(async (e) => {
         const item = await e;
         item.data.disconnect();
@@ -245,6 +247,7 @@ export default {
   },
   ready() {
     (async () => {
+      // 加载初始化项目
       const rootHandle = await this.dedicatedHandle();
 
       let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
