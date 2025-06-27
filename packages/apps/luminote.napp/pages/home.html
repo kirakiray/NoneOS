@@ -241,6 +241,13 @@
             },
           });
 
+          this.emit("update-breadcrumbs", {
+            composed: true,
+            data: {
+              hide: 1,
+            },
+          });
+
           this.reloadProject();
           this.reloadExistProjects();
         },

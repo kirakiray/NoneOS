@@ -206,8 +206,84 @@
         </p-list-item>
       </template>
 
-      <div class="main" on:active-article="handleActiveArticle">
-        <slot></slot>
+      <style>
+        .breadcrumbs {
+          display: flex;
+          align-items: center;
+          justify-content: flex-start;
+          height: 38px;
+          width: 100%;
+          margin: 0 16px;
+          overflow: hidden;
+          opacity: 1;
+          transition: all ease 0.3s;
+        }
+
+        .breadcrumbs.hide-breadcrumbs {
+          opacity: 0;
+          height: 0px;
+        }
+
+        .breadcrumb {
+          display: flex;
+          align-items: center;
+          font-size: 16px;
+          font-weight: 500;
+          line-height: 24px;
+          cursor: pointer;
+        }
+
+        .breadcrumb:hover {
+          text-decoration: underline;
+        }
+
+        .after-mark {
+          display: block;
+          margin: 0 8px;
+          color: var(--md-sys-color-normal-container);
+        }
+
+        .breadcrumb:last-child {
+          cursor: default;
+          text-decoration: none !important;
+        }
+
+        .breadcrumb:last-child .after-mark {
+          display: none;
+        }
+      </style>
+
+      <div
+        class="main"
+        on:active-article="handleActiveArticle"
+        on:update-breadcrumbs="handleUpdateBreadcrumbs"
+      >
+        <div
+          style="
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+          "
+        >
+          <div class="top">
+            <div class="breadcrumbs" class:hide-breadcrumbs="hideBreadcrumbs">
+              <o-fill :value="paths" fill-key="dataId">
+                <div class="breadcrumb" on:click="$host.clickBread($data)">
+                  <n-local-icon
+                    name="article"
+                    style="display: block; font-size: 18px; margin-right: 4px"
+                  ></n-local-icon>
+                  {{$data.title}}
+                  <span class="after-mark"> / </span>
+                </div>
+              </o-fill>
+            </div>
+          </div>
+          <div style="flex: 1; position: relative">
+            <slot></slot>
+          </div>
+        </div>
       </div>
       <!-- <div class="right"></div> -->
     </div>
@@ -221,11 +297,27 @@
 
       return {
         data: {
+          paths: [],
+          hideBreadcrumbs: false,
           articles: [],
           currentArticleDataId: null,
           currentProjectName: "Loading...",
         },
         proto: {
+          clickBread(item) {
+            this.goto(`./note.html?article_id=${item.dataId}`);
+          },
+          handleUpdateBreadcrumbs(e) {
+            const { hide, titles } = e.data;
+
+            if (hide) {
+              this.hideBreadcrumbs = true;
+              // this.paths = [];
+            } else {
+              this.hideBreadcrumbs = false;
+              this.paths = e.data.titles;
+            }
+          },
           getSubArticles(data) {
             return data.content.filter((e) => e.type === "article");
           },
@@ -237,7 +329,7 @@
 
             switch (type) {
               case "addSubNote":
-                const { target: targetArticle } = await findArticle(
+                const { target: targetArticle, titles } = await findArticle(
                   this.app,
                   this.currentArticleDataId
                 );

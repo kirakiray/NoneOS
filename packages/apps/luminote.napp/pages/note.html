@@ -3,6 +3,7 @@
   <style>
     :host {
       display: flex;
+      flex-direction: column;
       box-sizing: border-box;
       position: absolute;
       left: 0;
@@ -28,7 +29,6 @@
       overflow: auto;
     }
   </style>
-  <div class="top"></div>
   <div class="main">
     <div class="inner">
       <!-- BUG: 为了适配safari,必须放在 slot 内,如果以后safari修复了这个问题,则重新放回 -->
@@ -56,21 +56,23 @@
             const articleData = (await this.app.getCurrentProject()).data;
 
             // 查找对应文章
-            const { target } = await findArticle(this.app, article_id);
+            const { target, titles } = await findArticle(this.app, article_id);
 
             this.itemData = target;
 
-            window.currentArticle = target;
+            this.emit("update-breadcrumbs", {
+              composed: true,
+              data: {
+                titles,
+              },
+            });
+
+            // this.paths = titles;
 
             // 如果没有标题，则对焦标题；如果有标题，则对焦最后一个元素
             if (!target.title) {
               this.shadow.$("lumi-page").focusTitle();
             }
-            // else {
-            //   setTimeout(() => {
-            //     this.shadow.$("lumi-page").focusLast();
-            //   }, 30);
-            // }
           },
         },
         attached() {
