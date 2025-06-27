@@ -93,8 +93,9 @@
   <script>
     export const parent = "./layout.html";
 
-    export default async ({ load }) => {
+    export default async ({ load, query }) => {
       const { confirm } = await load("/packages/pui/util.js");
+      const { user_id, dir_name } = query;
 
       return {
         data: {
@@ -136,7 +137,9 @@
 
             await new Promise((res) => setTimeout(res, 100));
 
-            const articleData = (await this.app.getCurrentProject()).data;
+            const project = await this.app.getProject(dir_name, user_id);
+
+            const articleData = project.data;
 
             await articleData.ready();
 
@@ -173,6 +176,14 @@
             _parent: content,
             item,
           });
+        }
+
+        if (item.type === "article") {
+          const subRemoves = await findRemovedArticles(item.content);
+
+          if (subRemoves.length) {
+            removeds.push(...subRemoves);
+          }
         }
       }
 

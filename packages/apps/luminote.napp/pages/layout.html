@@ -109,7 +109,7 @@
           <p-list-item
             button
             attr:active-item="currentArticleDataId === 'recycles'"
-            on:click="goto('./recycles.html')"
+            on:click="goto(`./recycles.html?user_id=${currentUserId}&dir_name=${currentDirName}`)"
           >
             <n-local-icon name="recycle" slot="prefix"></n-local-icon>
             回收站
@@ -347,7 +347,8 @@
                 data.removedTime = Date.now();
 
                 // 如果当前是回收站，刷新回收站内容
-                debugger;
+                this.app.current.loadRemovedArticles &&
+                  this.app.current.loadRemovedArticles();
 
                 break;
             }

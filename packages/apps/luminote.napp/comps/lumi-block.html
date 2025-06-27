@@ -500,9 +500,11 @@
             }
           },
           handleClickArticle() {
-            this.app.current.goto(
-              `./note.html?article_id=${this.itemData._dataId}`
-            );
+            const app = this.parents.filter((e) => e.tag === "o-app")[0];
+            app.current.goto(`./note.html?article_id=${this.itemData._dataId}`);
+            // this.app.current.goto(
+            //   `./note.html?article_id=${this.itemData._dataId}`
+            // );
           },
           handleChangeBlockType(type) {
             this.itemData.type = type;
