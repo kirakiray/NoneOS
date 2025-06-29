@@ -167,6 +167,14 @@
             </p-list>
           </p-list-item>
         </p-list>
+        <p-button
+          variant="text"
+          on:click="openAddDialog = true"
+          style="width: 100%"
+        >
+        <n-local-icon name="add" slot="prefix"></n-local-icon>  
+         切换 / 添加项目
+        </p-button>
       </div>
 
       <template name="list-item">
@@ -287,6 +295,11 @@
       <!-- <div class="right"></div> -->
     </div>
   </p-bind-contextmenu>
+
+  <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
+    <div slot="title">添加项目</div>
+    <div style="min-width: 80vw; min-height: 60vh"></div>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
       const { findArticle } = await load("../util/find-article-data.js");
@@ -303,6 +316,7 @@
           currentProjectName: "Loading...",
           currentUserId: "self",
           currentDirName: null,
+          openAddDialog: false,
         },
         proto: {
           clickBread(item) {
@@ -357,9 +371,10 @@
             console.log("menuItem: ", menuItem.ele);
           },
           handleClickArticle(data, event) {
-            if ($(event.target).attr("toggle-collapse") !== null) {
+            if (event && $(event.target).attr("toggle-collapse") !== null) {
               return;
             }
+
             this.goto(
               `./note.html?article_id=${data._dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
             );
