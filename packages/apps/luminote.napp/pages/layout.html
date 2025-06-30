@@ -4,6 +4,8 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="../comps/switch-project.html"></l-m>
   <style>
     :host {
       display: block;
@@ -120,6 +122,15 @@
           </p-list-item>
         </p-list>
         <p-list>
+          <o-fill :value="projects">
+            <p-list-item>
+              <n-local-icon name="project" slot="prefix"></n-local-icon>
+              {{$data.data.projectName}}
+            </p-list-item>
+          </o-fill>
+        </p-list>
+
+        <!-- <p-list>
           <p-list-item collapse-childs="open" button="suffix">
             <n-id-avatar
               val="self"
@@ -155,7 +166,10 @@
               on:click="handleAddNote"
               style="z-index: 3; position: absolute; right: 16px"
             >
-              <n-local-icon name="add"></n-local-icon>
+              <n-local-icon
+                name="add-note"
+                style="font-size: 18px"
+              ></n-local-icon>
             </p-button>
 
             <p-list slot="childs" style="--ladder-left: 8px">
@@ -166,14 +180,18 @@
               ></o-fill>
             </p-list>
           </p-list-item>
-        </p-list>
+        </p-list> -->
         <p-button
           variant="text"
           on:click="openAddDialog = true"
           style="width: 100%"
         >
-        <n-local-icon name="add" slot="prefix"></n-local-icon>  
-         切换 / 添加项目
+          <n-local-icon
+            name="add-project"
+            slot="prefix"
+            style="display: block; margin-right: 3px"
+          ></n-local-icon>
+          切换或添加项目
         </p-button>
       </div>
 
@@ -297,8 +315,10 @@
   </p-bind-contextmenu>
 
   <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
-    <div slot="title">添加项目</div>
-    <div style="min-width: 80vw; min-height: 60vh"></div>
+    <div slot="title">添加或切换项目</div>
+    <div style="min-width: 60vw; min-height: 60vh">
+      <lumi-switch-project></lumi-switch-project>
+    </div>
   </p-dialog>
   <script>
     export default async ({ load }) => {
@@ -316,7 +336,8 @@
           currentProjectName: "Loading...",
           currentUserId: "self",
           currentDirName: null,
-          openAddDialog: false,
+          openAddDialog: true,
+          projects: [], // 已经打开的项目
         },
         proto: {
           clickBread(item) {
@@ -413,9 +434,13 @@
             this.currentDirName = e.data.dirName;
             e.stopPropagation();
           });
+
+          const { _openedProjects } = this.app;
+          this.projects = _openedProjects;
         },
         detached() {
           this.articles = {};
+          this.projects = [];
 
           // TODO: 清除所有已经载入的 hybird data
           this.app.revokeAllProject();

@@ -1,0 +1,190 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <h4>已经打开的项目</h4>
+  <p-list>
+    <o-fill :value="openedProjects">
+      <p-list-item> {{$data.data.projectName}} </p-list-item>
+    </o-fill>
+  </p-list>
+
+  <p>点击下方选项切换项目</p>
+
+  <h4>本地项目</h4>
+  <p-list>
+    <o-fill :value="existProjects">
+      <p-list-item on:click="$host.switchProject($data)">
+        <div style="display: flex">
+          {{$data.projectName}} -
+          <span
+            style="
+              display: inline-block;
+              margin-left: 6px;
+              font-size: 12px;
+              color: #7c7c7c;
+            "
+          >
+            创建时间: <n-moment-span :time="$data.creationtime"></n-moment-span>
+          </span>
+        </div>
+        <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
+
+        <o-if :value="!$host.isOpenedProject($data)" slot="suffix">
+          <p-button
+            size="small"
+            icon
+            variant="outlined"
+            title="同时打开此项目"
+            style="margin-right: 8px"
+          >
+            <n-local-icon name="add"></n-local-icon>
+          </p-button>
+        </o-if>
+
+        <p-button
+          slot="suffix"
+          size="small"
+          color="error"
+          variant="text"
+          icon
+          on:click="$host.handleDeleteProject($data,$event)"
+          style="z-index: 3"
+        >
+          <n-local-icon name="delete"></n-local-icon>
+        </p-button>
+      </p-list-item>
+    </o-fill>
+    <p-list-item>
+      <p-input placeholder="请输入项目名称" sync:value="newProjectName">
+        <p-button
+          slot="suffix"
+          size="small"
+          attr:disabled="!newProjectName"
+          on:click="addNewProject"
+        >
+          添加新项目
+        </p-button>
+      </p-input>
+    </p-list-item>
+    <!-- <p-list-item>
+      <div style="display: flex">
+        <p-button variant="text" disabled style="margin-left: 8px">
+          导入新项目
+        </p-button>
+        <p-button variant="text" disabled style="margin-left: 8px">
+          导出所有本地项目
+        </p-button>
+      </div>
+    </p-list-item> -->
+  </p-list>
+
+  <h4>其他设备</h4>
+  <p-list>
+    <o-fill :value="remotes">
+      <p-list-item>
+        <n-id-avatar
+          attr:val="$data.userId"
+          style="width: 16px; height: 16px"
+          slot="prefix"
+        ></n-id-avatar>
+        {{$data.userName}}
+        <p-list slot="childs" style="--ladder-left: 8px">
+          <o-if :value="$data.noData">
+            <p-list-item> 数据获取失败 </p-list-item>
+          </o-if>
+          <o-fill :value="$data.projects">
+            <p-list-item button on:click="$host.switchProject($data)">
+              <div style="display: flex">
+                {{$data.projectName}} -
+                <span
+                  style="
+                    display: inline-block;
+                    margin-left: 6px;
+                    font-size: 12px;
+                    color: #7c7c7c;
+                  "
+                >
+                  创建时间:
+                  <n-moment-span :time="$data.creationtime"></n-moment-span>
+                </span>
+              </div>
+              <div class="secondary" style="color: #7c7c7c">
+                {{$data.dirName}}
+              </div>
+            </p-list-item>
+          </o-fill>
+        </p-list>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-switch-project",
+        data: {
+          newProjectName: "",
+          openedProjects: [], // 已经打开的项目
+          existProjects: [], // 已经存在的项目
+          loadingRemote: false,
+          remotes: [],
+          projects: [],
+        },
+        proto: {
+          isOpenedProject(data) {
+            return this.openedProjects.find((item) => {
+              return data.projectDataId === item.data.main._dataId;
+            });
+          },
+          async addNewProject() {
+            debugger;
+          },
+          // 切换到项目
+          async switchProject(data) {
+            console.log("switch-project: ", data);
+          },
+          // 删除项目
+          async handleDeleteProject(data, e) {
+            e.stopPropagation();
+          },
+          // 刷新已经存在的项目
+          async reloadExistProjects() {
+            const exists = await this.app.getExistProjects();
+
+            console.log("exists: ", exists);
+
+            this.existProjects = exists;
+          },
+          async loadRemotes() {
+            this.loadingRemote = true;
+            this.remotes = await this.app.getRemotes();
+            this.loadingRemote = false;
+          },
+        },
+        attached() {
+          this.reloadExistProjects();
+          this.loadRemotes();
+
+          const { _openedProjects } = this.app;
+          this.openedProjects = _openedProjects;
+
+          setTimeout(() => {
+            this.openedProjects;
+            console.log("_openedProjects: ", _openedProjects.toJSON());
+          }, 1000);
+        },
+        detached() {
+          this.openedProjects = [];
+        },
+      };
+    };
+  </script>
+</template>

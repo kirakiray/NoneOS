@@ -49,6 +49,7 @@ const loadProjectData = async (rootHandle) => {
         projectName: data.projectName,
         creationtime: data.creationtime,
         dirName,
+        projectDataId: data.main._dataId,
       });
     } catch (err) {
       continue;
@@ -262,29 +263,40 @@ export default {
     },
   },
   ready() {
+    this._openedProjects = $.stanz([]); // 已经打开的项目
+
     (async () => {
-      // 加载初始化项目
-      const rootHandle = await this.dedicatedHandle();
-
-      let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
-        create: "file",
+      // 首先打开start项目
+      const startProject = await this.getProject("start");
+      this._openedProjects.push({
+        data: startProject.data,
+        __handle: startProject.handle,
       });
-
-      const text = await beforeOpenedProjectFile.text();
-
-      let beforeDirName = "start";
-
-      if (text) {
-        try {
-          const data = JSON.parse(text);
-          if (data.dirName) {
-            beforeDirName = data.dirName;
-          }
-        } catch (err) {}
-      }
-
-      __start_resolve(beforeDirName);
     })();
+
+    // (async () => {
+    //   // 加载初始化项目
+    //   const rootHandle = await this.dedicatedHandle();
+
+    //   let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
+    //     create: "file",
+    //   });
+
+    //   const text = await beforeOpenedProjectFile.text();
+
+    //   let beforeDirName = "start";
+
+    //   if (text) {
+    //     try {
+    //       const data = JSON.parse(text);
+    //       if (data.dirName) {
+    //         beforeDirName = data.dirName;
+    //       }
+    //     } catch (err) {}
+    //   }
+
+    //   __start_resolve(beforeDirName);
+    // })();
   },
 };
 

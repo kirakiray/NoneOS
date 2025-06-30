@@ -313,11 +313,11 @@
 
             this.existProjects = exists;
           },
-          async loadRemotes() {
-            this.loadingRemote = true;
-            this.remotes = await this.app.getRemotes();
-            this.loadingRemote = false;
-          },
+          // async loadRemotes() {
+          //   this.loadingRemote = true;
+          //   this.remotes = await this.app.getRemotes();
+          //   this.loadingRemote = false;
+          // },
         },
         attached() {
           this.emit("active-article", {
@@ -336,7 +336,7 @@
 
           this.reloadProject();
           this.reloadExistProjects();
-          this.loadRemotes();
+          // this.loadRemotes();
         },
         detached() {},
       };
