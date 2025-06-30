@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -167,6 +168,46 @@
               <div class="secondary" style="color: #7c7c7c">
                 {{$data.dirName}}
               </div>
+
+              <o-if
+                :value="!$host.isOpenedProject($data)"
+                slot="suffix"
+                style="z-index: 3; display: block"
+              >
+                <p-button
+                  size="small"
+                  icon
+                  variant="outlined"
+                  title="同时打开此项目"
+                  style="margin-right: 8px"
+                  on:click="$host.pushProject($data, $event)"
+                >
+                  <n-local-icon name="add"></n-local-icon>
+                </p-button>
+              </o-if>
+              <o-else-if
+                :value="$host.openedProjects.length > 1"
+                slot="suffix"
+                style="z-index: 3; display: block"
+              >
+                <p-button
+                  size="small"
+                  icon
+                  variant="outlined"
+                  title="关闭此项目"
+                  style="margin-right: 8px"
+                  on:click="$host.closeProject($data,$event)"
+                >
+                  <n-local-icon name="close"></n-local-icon>
+                </p-button>
+              </o-else-if>
+              <o-else slot="suffix">
+                <div
+                  style="color: var(--md-sys-color-primary); margin-right: 8px"
+                >
+                  已打开
+                </div>
+              </o-else>
             </p-list-item>
           </o-fill>
         </p-list>
@@ -195,11 +236,11 @@
 
           pushProject(data, event) {
             event.stopPropagation();
-            this.app.pushProject(data.dirName);
+            this.app.pushProject(data.dirName, data.userId || "self");
           },
           closeProject(data, event) {
             event.stopPropagation();
-            this.app.closeProject(data.dirName);
+            this.app.closeProject(data.dirName, data.userId || "self");
           },
           // 切换到项目
           switchProject(data) {
@@ -207,11 +248,11 @@
               return;
             }
 
-            this.app.switchProject(data.dirName);
+            this.app.switchProject(data.dirName, data.userId || "self");
 
-            this.emit("close-dialog", {
-              bubbles: false,
-            });
+            // this.emit("close-dialog", {
+            //   bubbles: false,
+            // });
           },
           async addNewProject() {
             debugger;

@@ -228,19 +228,24 @@ export default {
       }
 
       // 已经存在则不操作
-      if (this._openedProjects.find((e) => e.__handle.name === dirName)) {
+      if (
+        this._openedProjects.find(
+          (e) => e.__handle.name === dirName && e.userId === userId
+        )
+      ) {
         return;
       }
 
       this._openedProjects.push({
         data: project.data,
+        userId,
         __handle: project.handle,
       });
     },
     // 切换到只剩一个项目上
     async switchProject(dirName, userId = "self") {
       const others = this._openedProjects.filter(
-        (e) => e.__handle.name !== dirName
+        (e) => e.__handle.name !== dirName || e.userId !== userId
       );
 
       // 清除数据
@@ -248,7 +253,7 @@ export default {
         const index = this._openedProjects.indexOf(e);
         this._openedProjects.splice(index, 1);
         e.data.disconnect();
-        exitedProject[e.__handle.name + "---" + userId] = null;
+        exitedProject[e.__handle.name + "---" + e.userId] = null;
       });
 
       // 打开目标项目
