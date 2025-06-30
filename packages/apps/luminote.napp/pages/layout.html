@@ -125,7 +125,7 @@
           <o-fill :value="projects">
             <p-list-item>
               <n-local-icon name="project" slot="prefix"></n-local-icon>
-              {{$data.data.projectName}}
+              {{$data?.data?.projectName}}
             </p-list-item>
           </o-fill>
         </p-list>
@@ -191,7 +191,7 @@
             slot="prefix"
             style="display: block; margin-right: 3px"
           ></n-local-icon>
-          切换或添加项目
+          管理项目
         </p-button>
       </div>
 
@@ -315,7 +315,7 @@
   </p-bind-contextmenu>
 
   <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
-    <div slot="title">添加或切换项目</div>
+    <div slot="title">管理项目</div>
     <div style="min-width: 60vw; min-height: 60vh">
       <lumi-switch-project></lumi-switch-project>
     </div>

@@ -9,19 +9,21 @@
     }
   </style>
 
-  <h4>已经打开的项目</h4>
-  <p-list>
-    <o-fill :value="openedProjects">
-      <p-list-item> {{$data.data.projectName}} </p-list-item>
-    </o-fill>
-  </p-list>
-
   <p>点击下方选项切换项目</p>
 
   <h4>本地项目</h4>
   <p-list>
     <o-fill :value="existProjects">
-      <p-list-item on:click="$host.switchProject($data)">
+      <p-list-item
+        on:click="$host.switchProject($data)"
+        attr:button="$host.openedProjects.length <= 1"
+      >
+        <n-local-icon
+          name="project"
+          slot="prefix"
+          style="display: block; margin-right: 6px; font-size: 26px"
+        >
+        </n-local-icon>
         <div style="display: flex">
           {{$data.projectName}} -
           <span
@@ -37,17 +39,43 @@
         </div>
         <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
 
-        <o-if :value="!$host.isOpenedProject($data)" slot="suffix">
+        <o-if
+          :value="!$host.isOpenedProject($data)"
+          slot="suffix"
+          style="z-index: 3; display: block"
+        >
           <p-button
             size="small"
             icon
             variant="outlined"
             title="同时打开此项目"
             style="margin-right: 8px"
+            on:click="$host.pushProject($data)"
           >
             <n-local-icon name="add"></n-local-icon>
           </p-button>
         </o-if>
+        <o-else-if
+          :value="$host.openedProjects.length > 1"
+          slot="suffix"
+          style="z-index: 3; display: block"
+        >
+          <p-button
+            size="small"
+            icon
+            variant="outlined"
+            title="关闭此项目"
+            style="margin-right: 8px"
+            on:click="$host.closeProject($data)"
+          >
+            <n-local-icon name="close"></n-local-icon>
+          </p-button>
+        </o-else-if>
+        <o-else slot="suffix">
+          <div style="color: var(--md-sys-color-primary); margin-right: 8px">
+            已打开
+          </div>
+        </o-else>
 
         <p-button
           slot="suffix"
@@ -126,6 +154,21 @@
     </o-fill>
   </p-list>
 
+  <h4>已经打开的项目</h4>
+  <p-list>
+    <o-fill :value="openedProjects">
+      <p-list-item>
+        <n-local-icon
+          name="project"
+          slot="prefix"
+          style="display: block; margin-right: 6px; font-size: 18px"
+        >
+        </n-local-icon>
+        {{$data?.data?.projectName}}
+      </p-list-item>
+    </o-fill>
+  </p-list>
+
   <script>
     export default async ({ load }) => {
       return {
@@ -144,12 +187,22 @@
               return data.projectDataId === item.data.main._dataId;
             });
           },
-          async addNewProject() {
-            debugger;
+
+          pushProject(data) {
+            this.app.pushProject(data.dirName);
+          },
+          closeProject(data) {
+            this.app.closeProject(data.dirName);
           },
           // 切换到项目
           async switchProject(data) {
-            console.log("switch-project: ", data);
+            if (this.openedProjects.length > 1) {
+              return;
+            }
+            this.app.switchProject(data.dirName);
+          },
+          async addNewProject() {
+            debugger;
           },
           // 删除项目
           async handleDeleteProject(data, e) {

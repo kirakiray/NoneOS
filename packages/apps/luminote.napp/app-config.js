@@ -261,17 +261,59 @@ export default {
         item.data.disconnect();
       });
     },
+    async pushProject(dirName, userId = "self") {
+      const project = await this.getProject(dirName, userId);
+
+      if (project instanceof Error) {
+        debugger;
+        return;
+      }
+
+      // 已经存在则不操作
+      if (this._openedProjects.find((e) => e.__handle.name === dirName)) {
+        return;
+      }
+
+      this._openedProjects.push({
+        data: project.data,
+        __handle: project.handle,
+      });
+    },
+    // 切换到只剩一个项目上
+    async switchProject(dirName, userId = "self") {
+      const others = this._openedProjects.filter(
+        (e) => e.__handle.name !== dirName
+      );
+
+      // 清除数据
+      others.forEach((e) => {
+        const index = this._openedProjects.indexOf(e);
+        this._openedProjects.splice(index, 1);
+        e.data.disconnect();
+        exitedProject[e.__handle.name + "---" + userId] = null;
+      });
+
+      // 打开目标项目
+      await this.pushProject(dirName, userId);
+    },
+    async closeProject(dirName, userId = "self") {
+      const targetIndex = this._openedProjects.findIndex(
+        (e) => e.__handle.name === dirName
+      );
+
+      if (targetIndex !== -1) {
+        const targetProject = this._openedProjects.splice(targetIndex, 1)[0];
+        targetProject.data.disconnect();
+        exitedProject[dirName + "---" + userId] = null;
+      }
+    },
   },
   ready() {
     this._openedProjects = $.stanz([]); // 已经打开的项目
 
     (async () => {
       // 首先打开start项目
-      const startProject = await this.getProject("start");
-      this._openedProjects.push({
-        data: startProject.data,
-        __handle: startProject.handle,
-      });
+      this.pushProject("start");
     })();
 
     // (async () => {
