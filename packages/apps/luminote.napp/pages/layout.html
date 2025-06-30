@@ -405,15 +405,15 @@
           },
         },
         ready() {
-          this.attr("layout-page", "");
-        },
-        attached() {
           this.on("update-current-project-data", (e) => {
             this.currentUserId = e.data.userId;
             this.currentDirName = e.data.dirName;
             e.stopPropagation();
           });
 
+          this.attr("layout-page", "");
+        },
+        attached() {
           const { _openedProjects } = this.app;
           this.projects = _openedProjects;
 

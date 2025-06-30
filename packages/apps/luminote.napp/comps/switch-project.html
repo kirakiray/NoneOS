@@ -8,6 +8,20 @@
       display: block;
     }
   </style>
+  <h4>已经打开的项目</h4>
+  <p-list style="min-height: 34px; display: flex; flex-wrap: wrap">
+    <o-fill :value="openedProjects">
+      <p-list-item>
+        <n-local-icon
+          name="project"
+          slot="prefix"
+          style="display: block; margin-right: 6px; font-size: 18px"
+        >
+        </n-local-icon>
+        {{$data?.data?.projectName}}
+      </p-list-item>
+    </o-fill>
+  </p-list>
 
   <p>点击下方选项切换项目</p>
 
@@ -66,7 +80,7 @@
             variant="outlined"
             title="关闭此项目"
             style="margin-right: 8px"
-            on:click="$host.closeProject($data)"
+            on:click="$host.closeProject($data,$event)"
           >
             <n-local-icon name="close"></n-local-icon>
           </p-button>
@@ -130,6 +144,12 @@
           </o-if>
           <o-fill :value="$data.projects">
             <p-list-item button on:click="$host.switchProject($data)">
+              <n-local-icon
+                name="project"
+                slot="prefix"
+                style="display: block; margin-right: 6px; font-size: 26px"
+              >
+              </n-local-icon>
               <div style="display: flex">
                 {{$data.projectName}} -
                 <span
@@ -150,21 +170,6 @@
             </p-list-item>
           </o-fill>
         </p-list>
-      </p-list-item>
-    </o-fill>
-  </p-list>
-
-  <h4>已经打开的项目</h4>
-  <p-list>
-    <o-fill :value="openedProjects">
-      <p-list-item>
-        <n-local-icon
-          name="project"
-          slot="prefix"
-          style="display: block; margin-right: 6px; font-size: 18px"
-        >
-        </n-local-icon>
-        {{$data?.data?.projectName}}
       </p-list-item>
     </o-fill>
   </p-list>
@@ -192,7 +197,8 @@
             event.stopPropagation();
             this.app.pushProject(data.dirName);
           },
-          closeProject(data) {
+          closeProject(data, event) {
+            event.stopPropagation();
             this.app.closeProject(data.dirName);
           },
           // 切换到项目

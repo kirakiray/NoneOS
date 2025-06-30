@@ -101,6 +101,14 @@
             },
           });
 
+          this.emit("update-current-project-data", {
+            data: {
+              userId: user_id,
+              dirName: dir_name,
+            },
+            composed: true,
+          });
+
           this.loadArticle();
         },
         detached() {
