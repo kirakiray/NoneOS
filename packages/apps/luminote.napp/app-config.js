@@ -146,45 +146,6 @@ export default {
       })());
     },
 
-    async getCurrentProject() {
-      // 获取当前项目
-      return this.getProject(await currentDirName, currentUserId);
-    },
-
-    async changeCurrentProject(dirName, userId = "self") {
-      const targetProject = await this.getProject(dirName, userId);
-
-      currentDirName = Promise.resolve(dirName);
-
-      // 只在打开本地项目时，记录上一次的记录
-      if (userId === "self") {
-        // 记录打开的项目地址
-        const rootHandle = await this.dedicatedHandle();
-
-        let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
-          create: "file",
-        });
-
-        let data = {};
-
-        try {
-          data = JSON.parse(await beforeOpenedProjectFile.text());
-        } catch (err) {
-          data = {};
-        }
-        data.dirName = dirName;
-
-        await beforeOpenedProjectFile.write(JSON.stringify(data));
-      }
-
-      // 刷新所有页面的数据
-      this.$("o-page").reloadProject();
-
-      currentUserId = userId;
-
-      return targetProject;
-    },
-
     // 删除本地项目
     async deleteProject(dirName) {
       const exitedName = dirName + "---self";

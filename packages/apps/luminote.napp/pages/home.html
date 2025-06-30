@@ -36,37 +36,6 @@
     还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
   </p>
 
-  <o-if :value="currentName">
-    <h4>操作</h4>
-    <div style="margin-bottom: 16px; max-width: 380px">
-      <p-input sync:value="projectName" maxlength="38">
-        <label>当前项目名</label>
-        <p-button
-          variant="text"
-          slot="suffix"
-          attr:disabled="projectName === currentName"
-          size="small"
-          on:click="submitRename"
-        >
-          重命名项目
-        </p-button>
-      </p-input>
-      <div
-        style="
-          color: var(--md-sys-color-normal);
-          font-size: 12px;
-          margin-top: 8px;
-        "
-      >
-        项目创建时间:
-        <n-moment-span :time="creationtime"></n-moment-span>
-      </div>
-    </div>
-    <div class="button-line" style="margin-top: 8px">
-      <p-button variant="outlined" disabled>导出该项目</p-button>
-    </div>
-  </o-if>
-
   <!-- <div>
     <h4>最近访问</h4>
     <div style="color: var(--md-sys-color-normal)">准备中...</div>
@@ -97,8 +66,6 @@
 
       return {
         data: {
-          projectName: "",
-          currentName: "",
           creationtime: "",
           currentDirName: "",
           currentUserId: "self",
@@ -124,95 +91,6 @@
 
             this.reloadExistProjects();
           },
-          async switchProject(data) {
-            if (
-              this.currentDirName === data.dirName &&
-              this.currentUserId === (data.userId || "self")
-            ) {
-              return;
-            }
-
-            this.currentUserId = data.userId || "self";
-
-            this.emit("update-current-project-data", {
-              data: {
-                userId: this.currentUserId,
-                dirName: data.dirName,
-              },
-              composed: true,
-            });
-
-            const result = await this.app.changeCurrentProject(
-              data.dirName,
-              this.currentUserId
-            );
-
-            this.reloadExistProjects();
-            this.reloadProject();
-
-            toast(`切换到 "${result.projectName}" 成功`);
-          },
-          async clickCreate() {
-            const result = await prompt({
-              title: "创建新项目",
-              label: "请输入项目名",
-              yes: "创建",
-              cancel: "取消",
-            });
-
-            if (result === false) {
-              return;
-            }
-
-            if (!result.trim()) {
-              toast({
-                color: "error",
-                content: `创建失败，无效的项目名: "${result}"`,
-              });
-              return;
-            }
-
-            // 创建一个新项目
-            const newProject = await this.app.createProject({
-              projectName: result,
-            });
-
-            toast({
-              content: `创建 "${newProject.projectName}" 成功`,
-              color: "success",
-            });
-
-            this.switchProject({
-              dirName: newProject.dirName,
-            });
-          },
-          async submitRename() {
-            const articleData = await this.app.getCurrentProject();
-            this.parent.currentProjectName =
-              this.currentName =
-              articleData.data.projectName =
-                this.projectName;
-
-            toast("重命名成功");
-          },
-          async reloadProject() {
-            const articleData = await this.app.getCurrentProject();
-
-            if (!(articleData instanceof Error)) {
-              this.currentName = this.projectName =
-                articleData.data.projectName;
-              this.currentDirName = articleData.dirName;
-              this.creationtime = articleData.data.creationtime;
-            }
-          },
-          // 展示已经存在的项目
-          async reloadExistProjects() {
-            const exists = await this.app.getExistProjects();
-
-            console.log("exists: ", exists);
-
-            this.existProjects = exists;
-          },
           // async loadRemotes() {
           //   this.loadingRemote = true;
           //   this.remotes = await this.app.getRemotes();
@@ -233,10 +111,6 @@
               hide: 1,
             },
           });
-
-          this.reloadProject();
-          this.reloadExistProjects();
-          // this.loadRemotes();
         },
         detached() {},
       };

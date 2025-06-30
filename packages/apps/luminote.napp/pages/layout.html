@@ -121,66 +121,51 @@
             设置
           </p-list-item>
         </p-list>
+
+        <h4 style="font-size: 13px; margin: 6px 0 6px 16px">本地文档</h4>
         <p-list>
           <o-fill :value="projects">
-            <p-list-item>
+            <p-list-item
+              attr:data-project-userid="$data._userId || 'self'"
+              attr:data-project-dirname="$data.__handle.name"
+            >
               <n-local-icon name="project" slot="prefix"></n-local-icon>
-              {{$data?.data?.projectName}}
+              <span
+                style="
+                  color: var(--md-sys-color-primary);
+                  max-width: 80%;
+                  text-overflow: ellipsis;
+                  white-space: nowrap;
+                  overflow: hidden;
+                "
+              >
+                {{$data?.data?.projectName}}
+              </span>
+              <p-button
+                size="small"
+                icon
+                slot="suffix"
+                variant="text"
+                on:click="$host.handleAddNote($event,$data)"
+                style="z-index: 3; position: absolute; right: 8px"
+              >
+                <n-local-icon
+                  name="add-note"
+                  style="font-size: 18px"
+                ></n-local-icon>
+              </p-button>
+              <p-list slot="childs" style="--ladder-left: 8px">
+                <o-fill
+                  :value="$data?.data?.main"
+                  name="list-item"
+                  fill-key="_dataId"
+                >
+                </o-fill>
+              </p-list>
             </p-list-item>
           </o-fill>
         </p-list>
 
-        <!-- <p-list>
-          <p-list-item collapse-childs="open" button="suffix">
-            <n-id-avatar
-              val="self"
-              slot="prefix"
-              style="
-                display: block;
-                margin-right: 8px;
-                font-size: 18px;
-                width: 20px;
-                height: 20px;
-                border-radius: 4px;
-                overflow: hidden;
-                box-shadow: var(--md-sys-color-primary) 0 0 5px;
-              "
-            ></n-id-avatar>
-            <div
-              style="
-                color: var(--md-sys-color-primary);
-                max-width: 80%;
-                text-overflow: ellipsis;
-                overflow: hidden;
-                white-space: nowrap;
-              "
-            >
-              {{currentProjectName}}
-            </div>
-            <i toggle-collapse slot="suffix" style="display: none"></i>
-            <p-button
-              size="small"
-              icon
-              slot="suffix"
-              variant="text"
-              on:click="handleAddNote"
-              style="z-index: 3; position: absolute; right: 16px"
-            >
-              <n-local-icon
-                name="add-note"
-                style="font-size: 18px"
-              ></n-local-icon>
-            </p-button>
-
-            <p-list slot="childs" style="--ladder-left: 8px">
-              <o-fill
-                :value="articles"
-                name="list-item"
-                fill-key="_dataId"
-              ></o-fill>
-            </p-list>
-          </p-list-item>
-        </p-list> -->
         <p-button
           variant="text"
           on:click="openAddDialog = true"
@@ -336,7 +321,7 @@
           currentProjectName: "Loading...",
           currentUserId: "self",
           currentDirName: null,
-          openAddDialog: true,
+          openAddDialog: false,
           projects: [], // 已经打开的项目
         },
         proto: {
@@ -396,39 +381,33 @@
               return;
             }
 
+            const [projectItem] = $(event.target).parents.filter((item) => {
+              return item.tag && item.is("[data-project-userid]");
+            });
+
             this.goto(
-              `./note.html?article_id=${data._dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
+              `./note.html?article_id=${data._dataId}&user_id=${projectItem.data.projectUserid}&dir_name=${projectItem.data.projectDirname}`
             );
           },
-          handleAddNote(e) {
+          handleAddNote(e, item) {
             e.stopPropagation();
 
-            this.articles.push(createArticleData());
+            // 添加新文章
+            item.data.main.push(createArticleData());
 
-            const target = this.articles.slice(-1)[0];
+            // 跳转到目标
+            const target = item.data.main.slice(-1)[0];
 
             this.handleClickArticle(target);
           },
           handleActiveArticle(e) {
             this.currentArticleDataId = e.data.articleId;
           },
-          async reloadProject() {
-            const { data: articleData, dirName } =
-              await this.app.getCurrentProject();
-
-            if (articleData) {
-              this.articles = articleData.main;
-              this.currentDirName = dirName;
-              this.currentProjectName = articleData.projectName;
-            }
-          },
         },
         ready() {
           this.attr("layout-page", "");
         },
         attached() {
-          this.reloadProject();
-
           this.on("update-current-project-data", (e) => {
             this.currentUserId = e.data.userId;
             this.currentDirName = e.data.dirName;
@@ -437,6 +416,10 @@
 
           const { _openedProjects } = this.app;
           this.projects = _openedProjects;
+
+          setTimeout(() => {
+            console.log("_openedProjects: ", _openedProjects[0]);
+          }, 1000);
         },
         detached() {
           this.articles = {};

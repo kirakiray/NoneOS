@@ -50,7 +50,7 @@
             variant="outlined"
             title="同时打开此项目"
             style="margin-right: 8px"
-            on:click="$host.pushProject($data)"
+            on:click="$host.pushProject($data, $event)"
           >
             <n-local-icon name="add"></n-local-icon>
           </p-button>
@@ -188,17 +188,19 @@
             });
           },
 
-          pushProject(data) {
+          pushProject(data, event) {
+            event.stopPropagation();
             this.app.pushProject(data.dirName);
           },
           closeProject(data) {
             this.app.closeProject(data.dirName);
           },
           // 切换到项目
-          async switchProject(data) {
+          switchProject(data) {
             if (this.openedProjects.length > 1) {
               return;
             }
+
             this.app.switchProject(data.dirName);
           },
           async addNewProject() {
@@ -211,8 +213,6 @@
           // 刷新已经存在的项目
           async reloadExistProjects() {
             const exists = await this.app.getExistProjects();
-
-            console.log("exists: ", exists);
 
             this.existProjects = exists;
           },
@@ -228,11 +228,6 @@
 
           const { _openedProjects } = this.app;
           this.openedProjects = _openedProjects;
-
-          setTimeout(() => {
-            this.openedProjects;
-            console.log("_openedProjects: ", _openedProjects.toJSON());
-          }, 1000);
         },
         detached() {
           this.openedProjects = [];
