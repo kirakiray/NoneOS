@@ -57,7 +57,7 @@ const loadProjectData = async (rootHandle) => {
 
 export default {
   proto: {
-    //     // 获取其他设备
+    // 获取其他设备
     async getRemotes() {
       const remotes = await this.dedicatedRemoteHandle();
 
@@ -94,7 +94,6 @@ export default {
 
       return await loadProjectData(rootHandle);
     },
-
     // 获取项目
     getProject(dirName, userId = "self") {
       if (!dirName) {

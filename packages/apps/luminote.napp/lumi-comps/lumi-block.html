@@ -501,10 +501,12 @@
           },
           handleClickArticle() {
             const app = this.parents.filter((e) => e.tag === "o-app")[0];
-            app.current.goto(`./note.html?article_id=${this.itemData._dataId}`);
-            // this.app.current.goto(
-            //   `./note.html?article_id=${this.itemData._dataId}`
-            // );
+
+            const firstPageEl = this.parent.parent;
+
+            app.current.goto(
+              `./note.html?article_id=${this.itemData._dataId}&user_id=${firstPageEl.currentUserId}&dir_name=${firstPageEl.currentDirName}`
+            );
           },
           handleChangeBlockType(type) {
             this.itemData.type = type;
