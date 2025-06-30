@@ -144,7 +144,10 @@
             <p-list-item> 数据获取失败 </p-list-item>
           </o-if>
           <o-fill :value="$data.projects">
-            <p-list-item button on:click="$host.switchProject($data)">
+            <p-list-item
+              attr:button="$host.openedProjects.length <= 1"
+              on:click="$host.switchProject($data)"
+            >
               <n-local-icon
                 name="project"
                 slot="prefix"

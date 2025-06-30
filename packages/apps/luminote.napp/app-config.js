@@ -233,7 +233,7 @@ export default {
           (e) => e.__handle.name === dirName && e.userId === userId
         )
       ) {
-        return;
+        return project;
       }
 
       this._openedProjects.push({
@@ -241,6 +241,8 @@ export default {
         userId,
         __handle: project.handle,
       });
+
+      return project;
     },
     // 切换到只剩一个项目上
     async switchProject(dirName, userId = "self") {

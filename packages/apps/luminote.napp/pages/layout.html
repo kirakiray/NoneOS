@@ -27,6 +27,7 @@
     .left {
       width: 260px;
       padding: 0 8px;
+      overflow-y: auto;
       /* color: var(--md-sys-color-on-normal-container);
       background-color: var(--md-sys-color-normal-container); */
       border-right: var(--md-sys-color-normal-container) solid 1px;
@@ -128,8 +129,11 @@
             <p-list-item
               attr:data-project-userid="$data._userId || 'self'"
               attr:data-project-dirname="$data.__handle.name"
+              button="suffix"
+              collapse-childs="open"
             >
               <n-local-icon name="project" slot="prefix"></n-local-icon>
+              <i slot="suffix" toggle-collapse style="display: none"></i>
               <span
                 style="
                   color: var(--md-sys-color-primary);
