@@ -314,8 +314,18 @@
 
   <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
     <div slot="title">管理项目</div>
+    <p-button
+      variant="text"
+      icon
+      on:click="openAddDialog = false"
+      style="position: absolute; right: 10px; top: 10px"
+    >
+      <n-local-icon name="close"></n-local-icon>
+    </p-button>
     <div style="min-width: 60vw; min-height: 60vh">
-      <lumi-switch-project></lumi-switch-project>
+      <lumi-switch-project
+        on:close-dialog="openAddDialog = false"
+      ></lumi-switch-project>
     </div>
   </p-dialog>
   <script>

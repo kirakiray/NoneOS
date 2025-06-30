@@ -23,7 +23,7 @@
     </o-fill>
   </p-list>
 
-  <p>点击下方选项切换项目</p>
+  <p style="color: var(--md-sys-color-primary)">点击下方选项切换项目</p>
 
   <h4>本地项目</h4>
   <p-list>
@@ -208,6 +208,10 @@
             }
 
             this.app.switchProject(data.dirName);
+
+            this.emit("close-dialog", {
+              bubbles: false,
+            });
           },
           async addNewProject() {
             debugger;
