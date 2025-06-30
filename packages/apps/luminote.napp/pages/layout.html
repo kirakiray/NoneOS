@@ -111,7 +111,7 @@
           <p-list-item
             button
             attr:active-item="currentArticleDataId === 'recycles'"
-            on:click="goto(`./recycles.html?user_id=${currentUserId}&dir_name=${currentDirName}`)"
+            on:click="goto(`./recycles.html`)"
           >
             <n-local-icon name="recycle" slot="prefix"></n-local-icon>
             回收站
@@ -253,7 +253,7 @@
           font-weight: 100;
         }
 
-        .breadcrumb:last-child {
+        .breadcrumb:last-child .content {
           cursor: default;
           text-decoration: none !important;
         }
@@ -278,6 +278,19 @@
         >
           <div class="top">
             <div class="breadcrumbs" class:hide-breadcrumbs="hideBreadcrumbs">
+              <div
+                class="breadcrumb"
+                style="text-decoration: none; cursor: default"
+              >
+                <n-local-icon
+                  name="project"
+                  style="display: block; font-size: 18px; margin-right: 4px"
+                ></n-local-icon>
+                <span style="color: var(--md-sys-color-primary)"
+                  >{{currentProjectName}}</span
+                >
+                <span class="after-mark"> / </span>
+              </div>
               <o-fill :value="paths" fill-key="dataId">
                 <div class="breadcrumb" on:click="$host.clickBread($data)">
                   <n-local-icon
@@ -318,7 +331,7 @@
           hideBreadcrumbs: false,
           articles: [],
           currentArticleDataId: null,
-          currentProjectName: "Loading...",
+          currentProjectName: "",
           currentUserId: "self",
           currentDirName: null,
           openAddDialog: false,
@@ -330,8 +343,15 @@
               `./note.html?article_id=${item.dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
             );
           },
-          handleUpdateBreadcrumbs(e) {
+          async handleUpdateBreadcrumbs(e) {
             const { hide, titles } = e.data;
+
+            const projectData = await this.app.getProject(
+              this.currentDirName,
+              this.currentUserId
+            );
+
+            this.currentProjectName = projectData.projectName;
 
             if (hide) {
               this.hideBreadcrumbs = true;
@@ -389,7 +409,7 @@
               `./note.html?article_id=${data._dataId}&user_id=${projectItem.data.projectUserid}&dir_name=${projectItem.data.projectDirname}`
             );
           },
-          handleAddNote(e, item) {
+          async handleAddNote(e, item) {
             e.stopPropagation();
 
             // 添加新文章
@@ -398,7 +418,12 @@
             // 跳转到目标
             const target = item.data.main.slice(-1)[0];
 
-            this.handleClickArticle(target);
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            // 模拟点击
+            this.handleClickArticle(target, {
+              target: this.shadow.$(`[data-id="${target._dataId}"]`).ele,
+            });
           },
           handleActiveArticle(e) {
             this.currentArticleDataId = e.data.articleId;
@@ -425,7 +450,6 @@
           this.articles = {};
           this.projects = [];
 
-          // TODO: 清除所有已经载入的 hybird data
           this.app.revokeAllProject();
         },
       };

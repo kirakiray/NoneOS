@@ -23,10 +23,6 @@ import { createData, loadData } from "/packages/hybird-data/main.js";
 
 const exitedProject = {};
 
-let __start_resolve;
-let currentDirName = new Promise((resolve) => (__start_resolve = resolve));
-let currentUserId = "self"; // 当前项目用户id
-
 // 加载项目数据
 const loadProjectData = async (rootHandle) => {
   const arr = [];
@@ -217,11 +213,13 @@ export default {
 
     // 释放所有已加载项目的内存资源
     async revokeAllProject() {
-      Object.values(exitedProject).forEach(async (e) => {
+      Object.entries(exitedProject).forEach(async ([key, e]) => {
         const item = await e;
-        item.data.disconnect();
+        await item.data.disconnect();
+        delete exitedProject[key];
       });
     },
+    // 增加一个项目
     async pushProject(dirName, userId = "self") {
       const project = await this.getProject(dirName, userId);
 
@@ -257,6 +255,7 @@ export default {
       // 打开目标项目
       await this.pushProject(dirName, userId);
     },
+    // 关闭项目
     async closeProject(dirName, userId = "self") {
       const targetIndex = this._openedProjects.findIndex(
         (e) => e.__handle.name === dirName
