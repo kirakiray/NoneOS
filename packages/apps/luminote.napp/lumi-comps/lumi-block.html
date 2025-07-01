@@ -52,6 +52,8 @@
       outline: none;
     } */
     ::slotted([inputer-content]) {
+      position: relative;
+      z-index: 1;
       display: block;
       padding: 6px 8px;
       line-height: 1.6em;
@@ -172,6 +174,39 @@
     .hide {
       display: none !important;
     }
+
+    .focus-mark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      outline: var(--md-sys-color-primary) 2px solid;
+      pointer-events: none;
+      opacity: 1;
+    }
+
+    .focus-mark.hide-mark {
+      opacity: 0;
+    }
+
+    .focus-mark-name {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      right: -8px;
+      top: -16px;
+      padding: 2px 4px;
+      font-size: 12px;
+      color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 1px;
+      background-color: var(--md-sys-color-surface);
+      border-radius: 4px;
+    }
   </style>
   <o-if :value="!loading">
     <div
@@ -257,6 +292,17 @@
       </span>
       <o-if :value="itemData.type && itemData.type !== 'article'">
         <lumi-fake :type="itemData.type">
+          <div class="focus-mark" class:hide-mark="!getInUserName()">
+            <o-if :value="itemData?.focusUser">
+              <div class="focus-mark-name">
+                <n-id-avatar
+                  attr:val="itemData?.focusUser?.userId"
+                  style="width: 16px; height: 16px; margin-right: 4px"
+                ></n-id-avatar>
+                <span> {{focusUserName}} </span>
+              </div>
+            </o-if>
+          </div>
           <!-- <div
             class="inputer-content"
             class:dragovering="dragovering"
@@ -334,7 +380,11 @@
 
     let mouseDownBlock = null; // 鼠标点下的元素
 
+    let selfUserId = null; // 自身的userid
+
     export default async ({ load }) => {
+      const { getUserName } = await load("/packages/util/get-user-info.js");
+
       const {
         addLoadingTask,
         removeLoadingTask,
@@ -343,9 +393,19 @@
         getContainerAndOffset,
       } = await load("./lumi-util.js");
 
+      if (!selfUserId) {
+        try {
+          const { getUserStore } = await load("/packages/user/user-store.js");
+          const userStore = await getUserStore();
+
+          selfUserId = userStore.userId;
+        } catch (err) {}
+      }
+
       return {
         tag: "lumi-block",
         data: {
+          selfUserId, // 本机用户的id
           loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
           itemData: {},
           inFocus: false,
@@ -355,10 +415,15 @@
           showToolPannel: false,
           pannelPositionTop: 0,
           pannelPositionLeft: 0,
+          focusUserName: "",
         },
         watch: {
           ["itemData.value"]() {
             const value = this.itemData.value;
+
+            if (value === undefined) {
+              return;
+            }
 
             if (this.__inputerContent && this.__inputerContent.html !== value) {
               // 被其他地方更新了内容，直接覆盖
@@ -369,6 +434,23 @@
           },
         },
         proto: {
+          getInUserName() {
+            if (this.itemData.focusUser) {
+              if (this.itemData.focusUser.userId === this.selfUserId) {
+                return "";
+              }
+
+              (async () => {
+                this.focusUserName = await getUserName(
+                  this.itemData.focusUser.userId
+                );
+              })();
+
+              return true;
+            }
+
+            return "";
+          },
           handleUpdateValue(e) {
             const { value, startOffset, endOffset } = e.data;
 
@@ -416,8 +498,27 @@
               this.handleKeyDownEvent(e);
             });
 
+            this._focusTimer = null;
+
             inputerContent.on("focus", (e) => {
+              clearTimeout(this._focusTimer);
               this.handleFocus(e);
+
+              // 添加聚焦标识，用于远端标注框的聚焦
+              this.itemData.focusUser = {
+                userId: selfUserId,
+                time: Date.now(),
+              };
+
+              this._focusTimer = setTimeout(() => {
+                // 每隔一段更新时间聚焦标识
+                this.itemData.focusUser.time = Date.now();
+              }, 10000);
+            });
+
+            inputerContent.on("blur", (e) => {
+              clearTimeout(this._focusTimer);
+              this.itemData.focusUser = null;
             });
 
             inputerContent.on("mousedown", (e) => {
@@ -654,6 +755,10 @@
           this.initializeEditor();
         },
         detached() {
+          if (this.itemData.focusUser) {
+            this.itemData.focusUser = null;
+          }
+
           removeLoadingTask(this);
 
           if (previousRangeElement === this) {
