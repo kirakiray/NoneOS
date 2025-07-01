@@ -253,9 +253,19 @@
 
             this.app.switchProject(data.dirName, data.userId || "self");
 
-            // this.emit("close-dialog", {
-            //   bubbles: false,
-            // });
+            this.emit("close-dialog", {
+              bubbles: false,
+            });
+
+            setTimeout(() => {
+              // 切换到第一篇文章
+              try {
+                this.root
+                  .$(`p-list-item[data-project-userid]`)
+                  .$(".article-list-item")
+                  .ele.click();
+              } catch (err) {}
+            }, 300);
           },
           async addNewProject() {
             debugger;

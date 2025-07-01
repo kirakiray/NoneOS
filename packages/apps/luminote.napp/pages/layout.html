@@ -142,7 +142,12 @@
               <o-else slot="prefix">
                 <n-id-avatar
                   attr:val="$data.userId"
-                  style="width: 18px; height: 18px; margin-right: 8px"
+                  style="
+                    width: 18px;
+                    height: 18px;
+                    margin-right: 8px;
+                    box-shadow: var(--contained-shadow);
+                  "
                 ></n-id-avatar>
               </o-else>
               <i slot="suffix" toggle-collapse style="display: none"></i>

@@ -283,6 +283,8 @@ export default {
         targetProject.data.disconnect();
         exitedProject[dirName + "---" + userId] = null;
       }
+
+      saveOpenHistory(this);
     },
   },
   ready() {
