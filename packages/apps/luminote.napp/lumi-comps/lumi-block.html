@@ -168,6 +168,10 @@
     .article-comp:hover {
       background-color: var(--md-sys-color-on-primary);
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
   <o-if :value="!loading">
     <div
@@ -268,7 +272,11 @@
         </lumi-fake>
       </o-if>
       <o-if :value="itemData.type === 'article'">
-        <div class="article-comp" on:click="handleClickArticle">
+        <div
+          class="article-comp"
+          class:hide="itemData.removed"
+          on:click="handleClickArticle"
+        >
           <n-local-icon
             name="article"
             style="display: block; margin-right: 4px; font-size: 18px"
@@ -412,7 +420,7 @@
             mouseDownBlock = this;
           },
           async handleTextMouseUp(e) {
-            console.log("handleTextMouseUp: ", e);
+            // console.log("handleTextMouseUp: ", e);
 
             if (mouseDownBlock !== this) {
               mouseDownBlock = null;
@@ -428,10 +436,10 @@
             // 所以让子弹再飞一会
             await new Promise((resolve) => setTimeout(resolve, 10));
 
-            console.log(
-              "this.shadow.ele.getSelection: ",
-              this.shadow.ele.getSelection
-            );
+            // console.log(
+            //   "this.shadow.ele.getSelection: ",
+            //   this.shadow.ele.getSelection
+            // );
 
             // // BUG: 垃圾 safari,没办法获取到选择的范围
             // const selection = this.shadow.ele.getSelection
@@ -449,13 +457,13 @@
 
               const rangString = range.toString();
 
-              console.log(
-                "selection: ",
-                selection,
-                range,
-                "rangString: ",
-                rangString
-              );
+              // console.log(
+              //   "selection: ",
+              //   selection,
+              //   range,
+              //   "rangString: ",
+              //   rangString
+              // );
 
               if (!rangString) {
                 this.showToolPannel = false;

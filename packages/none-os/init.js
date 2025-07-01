@@ -32,7 +32,7 @@ Object.defineProperties($.fn, {
         );
       }
       if (!this.length) {
-        await new Promise((resolve) => setTimeout(resolve, 100)); // 获取文件数据依赖第一个page元素的src
+        await new Promise((resolve) => setTimeout(resolve, 200)); // 获取文件数据依赖第一个page元素的src
       }
 
       const mark = getAppMark(this);
