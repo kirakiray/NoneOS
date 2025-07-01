@@ -127,7 +127,7 @@
         <p-list>
           <o-fill :value="projects">
             <p-list-item
-              attr:data-project-userid="$data._userId || 'self'"
+              attr:data-project-userid="$data.userId || 'self'"
               attr:data-project-dirname="$data.__handle.name"
               button="suffix"
               collapse-childs="open"
@@ -182,6 +182,7 @@
           ></n-local-icon>
           管理项目
         </p-button>
+        <div style="height: 16px"></div>
       </div>
 
       <template name="list-item">

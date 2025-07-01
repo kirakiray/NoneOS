@@ -31,9 +31,14 @@
   </style>
   <div class="main">
     <div class="inner">
-      <!-- BUG: 为了适配safari,必须放在 slot 内,如果以后safari修复了这个问题,则重新放回 -->
-      <!-- <lumi-page :item-data="itemData" style="height: 100%"></lumi-page> -->
-      <slot></slot>
+      <o-if :value="!!error">
+        <div style="color: var(--md-sys-color-error)">{{error}}</div>
+      </o-if>
+      <o-else>
+        <!-- BUG: 为了适配safari,必须放在 slot 内,如果以后safari修复了这个问题,则重新放回 -->
+        <!-- <lumi-page :item-data="itemData" style="height: 100%"></lumi-page> -->
+        <slot></slot>
+      </o-else>
     </div>
   </div>
   <script>
@@ -52,31 +57,37 @@
           itemData: {
             title: "loading...",
           },
+          error: "",
         },
         proto: {
           async loadArticle() {
-            // 查找对应文章
-            const { target, titles } = await findArticle(
-              this.app,
-              article_id,
-              user_id,
-              dir_name
-            );
+            try {
+              // 查找对应文章
+              const { target, titles } = await findArticle(
+                this.app,
+                article_id,
+                user_id,
+                dir_name
+              );
 
-            this.itemData = target;
+              this.itemData = target;
 
-            this.emit("update-breadcrumbs", {
-              composed: true,
-              data: {
-                titles,
-              },
-            });
+              this.emit("update-breadcrumbs", {
+                composed: true,
+                data: {
+                  titles,
+                },
+              });
 
-            // this.paths = titles;
+              // this.paths = titles;
 
-            // 如果没有标题，则对焦标题；如果有标题，则对焦最后一个元素
-            if (!target.title) {
-              this.$("lumi-page").focusTitle();
+              // 如果没有标题，则对焦标题；如果有标题，则对焦最后一个元素
+              if (!target.title) {
+                this.$("lumi-page").focusTitle();
+              }
+            } catch (error) {
+              debugger;
+              this.error = error.message;
             }
           },
         },

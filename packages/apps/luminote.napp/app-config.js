@@ -110,7 +110,13 @@ export default {
         if (userId !== "self") {
           // 打开远端的用户
           const remotes = await this.dedicatedRemoteHandle();
+          console.log("remotes: ", remotes);
           const remote = remotes.find((e) => e.userId === userId);
+
+          if (!remote) {
+            exitedProject[exitedName] = null;
+            throw new Error(`不存在该用户: ${userId}`);
+          }
 
           const { handle } = remote;
 
@@ -221,11 +227,6 @@ export default {
     // 增加一个项目
     async pushProject(dirName, userId = "self") {
       const project = await this.getProject(dirName, userId);
-
-      if (project instanceof Error) {
-        debugger;
-        return;
-      }
 
       // 已经存在则不操作
       if (
