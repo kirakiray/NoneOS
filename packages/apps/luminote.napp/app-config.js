@@ -225,7 +225,13 @@ export default {
       });
     },
     // 增加一个项目
-    async pushProject(dirName, userId = "self") {
+    async pushProject(
+      dirName,
+      userId = "self",
+      opts = {
+        isSave: true,
+      }
+    ) {
       const project = await this.getProject(dirName, userId);
 
       // 已经存在则不操作
@@ -242,6 +248,10 @@ export default {
         userId,
         __handle: project.handle,
       });
+
+      if (opts.isSave) {
+        saveOpenHistory(this);
+      }
 
       return project;
     },
@@ -280,32 +290,15 @@ export default {
 
     (async () => {
       // 首先打开start项目
-      this.pushProject("start");
+
+      const his = await getOpenHistory(this);
+
+      for (let e of his) {
+        await this.pushProject(e.dirName, e.userId, {
+          isSave: false,
+        });
+      }
     })();
-
-    // (async () => {
-    //   // 加载初始化项目
-    //   const rootHandle = await this.dedicatedHandle();
-
-    //   let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
-    //     create: "file",
-    //   });
-
-    //   const text = await beforeOpenedProjectFile.text();
-
-    //   let beforeDirName = "start";
-
-    //   if (text) {
-    //     try {
-    //       const data = JSON.parse(text);
-    //       if (data.dirName) {
-    //         beforeDirName = data.dirName;
-    //       }
-    //     } catch (err) {}
-    //   }
-
-    //   __start_resolve(beforeDirName);
-    // })();
   },
 };
 
@@ -315,3 +308,50 @@ export default {
 //   "bookmarks",
 //   new URL("/packages/apps/bookmarks.napp/lang", location.href).href
 // );
+
+const getOpenHistory = async (app) => {
+  // 加载初始化项目
+  const rootHandle = await app.dedicatedHandle();
+
+  let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
+    create: "file",
+  });
+
+  let data = [
+    {
+      dirName: "start",
+      userId: "self",
+    },
+  ];
+
+  const text = await beforeOpenedProjectFile.text();
+
+  try {
+    data = JSON.parse(text);
+  } catch (err) {}
+
+  return data;
+};
+
+// 保存打开的记录
+const saveOpenHistory = async (app) => {
+  // 加载初始化项目
+  const rootHandle = await app.dedicatedHandle();
+
+  let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
+    create: "file",
+  });
+
+  const text = await beforeOpenedProjectFile.text();
+
+  const data = app._openedProjects.map((e) => {
+    return {
+      dirName: e.__handle.name,
+      userId: e.userId,
+    };
+  });
+
+  if (JSON.stringify(data) !== text) {
+    await beforeOpenedProjectFile.write(JSON.stringify(data));
+  }
+};
