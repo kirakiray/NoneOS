@@ -44,8 +44,9 @@
       margin: 2px 0;
     }
 
-    p-list-item > n-local-icon[slot="prefix"],
-    p-menu-item > n-local-icon[slot="prefix"] {
+    p-list-item n-local-icon[slot="prefix"],
+    p-menu-item n-local-icon[slot="prefix"],
+    .menu-icon {
       display: block;
       margin-right: 8px;
       font-size: 18px;
@@ -132,7 +133,18 @@
               button="suffix"
               collapse-childs="open"
             >
-              <n-local-icon name="project" slot="prefix"></n-local-icon>
+              <o-if
+                :value="!$data.userId || $data.userId === 'self'"
+                slot="prefix"
+              >
+                <n-local-icon name="project" class="menu-icon"></n-local-icon>
+              </o-if>
+              <o-else slot="prefix">
+                <n-id-avatar
+                  attr:val="$data.userId"
+                  style="width: 18px; height: 18px; margin-right: 8px"
+                ></n-id-avatar>
+              </o-else>
               <i slot="suffix" toggle-collapse style="display: none"></i>
               <span
                 style="
