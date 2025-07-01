@@ -356,6 +356,18 @@
           pannelPositionTop: 0,
           pannelPositionLeft: 0,
         },
+        watch: {
+          ["itemData.value"]() {
+            const value = this.itemData.value;
+
+            if (this.__inputerContent && this.__inputerContent.html !== value) {
+              // 被其他地方更新了内容，直接覆盖
+              this.__inputerContent.html = value;
+
+              console.log("被其他地方更新了内容，直接覆盖", this.ele, value);
+            }
+          },
+        },
         proto: {
           handleUpdateValue(e) {
             const { value, startOffset, endOffset } = e.data;
@@ -391,6 +403,8 @@
             const inputerContent = $(
               `<div inputer-content contenteditable="plaintext-only"></div> `
             );
+
+            this.__inputerContent = inputerContent;
 
             inputerContent.html = this.itemData.value;
 
