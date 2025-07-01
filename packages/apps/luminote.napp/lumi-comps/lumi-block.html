@@ -52,8 +52,8 @@
       outline: none;
     } */
     ::slotted([inputer-content]) {
-      position: relative;
-      z-index: 1;
+      /* position: relative;
+      z-index: 1; */
       display: block;
       padding: 6px 8px;
       line-height: 1.6em;
@@ -501,7 +501,7 @@
             this._focusTimer = null;
 
             inputerContent.on("focus", (e) => {
-              clearTimeout(this._focusTimer);
+              clearInterval(this._focusTimer);
               this.handleFocus(e);
 
               // 添加聚焦标识，用于远端标注框的聚焦
@@ -510,14 +510,14 @@
                 time: Date.now(),
               };
 
-              this._focusTimer = setTimeout(() => {
+              this._focusTimer = setInterval(() => {
                 // 每隔一段更新时间聚焦标识
                 this.itemData.focusUser.time = Date.now();
               }, 10000);
             });
 
             inputerContent.on("blur", (e) => {
-              clearTimeout(this._focusTimer);
+              clearInterval(this._focusTimer);
               this.itemData.focusUser = null;
             });
 
@@ -758,6 +758,8 @@
           if (this.itemData.focusUser) {
             this.itemData.focusUser = null;
           }
+
+          clearInterval(this._focusTimer);
 
           removeLoadingTask(this);
 
