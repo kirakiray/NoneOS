@@ -223,12 +223,6 @@ export default {
         if (!exitedProject[exitedName]) {
           exitedProject[exitedName] = redata;
         }
-
-        // this._openedProjects.push({
-        //   data: redata.data,
-        //   userId: "self",
-        //   __handle: redata.handle,
-        // });
       }
 
       return redata;

@@ -7,6 +7,8 @@
   <style>
     :host {
       display: block;
+      max-height: calc(90dvh - 80px);
+      overflow-y: auto;
     }
   </style>
   <h4>已经打开的项目</h4>
@@ -27,7 +29,7 @@
   <p style="color: var(--md-sys-color-primary)">点击下方选项切换项目</p>
 
   <h4>本地项目</h4>
-  <p-list style="max-height: 50dvh; overflow-y: auto">
+  <p-list>
     <o-fill :value="existProjects" fill-key="projectDataId">
       <p-list-item
         on:click="$host.switchProject($data)"
@@ -93,17 +95,18 @@
           </div>
         </o-else>
 
-        <p-button
-          slot="suffix"
-          size="small"
-          color="error"
-          variant="text"
-          icon
-          on:click="$host.handleDeleteProject($data,$event)"
-          style="z-index: 3"
-        >
-          <n-local-icon name="delete"></n-local-icon>
-        </p-button>
+        <o-if :value="!$host.isOpenedProject($data)" slot="suffix">
+          <p-button
+            size="small"
+            color="error"
+            variant="text"
+            icon
+            on:click="$host.handleDeleteProject($data,$event)"
+            style="z-index: 3"
+          >
+            <n-local-icon name="delete"></n-local-icon>
+          </p-button>
+        </o-if>
       </p-list-item>
     </o-fill>
     <p-list-item>
@@ -221,7 +224,7 @@
 
   <script>
     export default async ({ load }) => {
-      const { toast } = await load("/packages/pui/util.js");
+      const { toast, confirm } = await load("/packages/pui/util.js");
 
       return {
         tag: "lumi-switch-project",
@@ -316,6 +319,19 @@
           // 删除项目
           async handleDeleteProject(data, e) {
             e.stopPropagation();
+
+            const result = await confirm({
+              title: "删除项目",
+              content: `确定要删除该项目(${data.projectName})吗？改操作不可逆。`,
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await this.app.deleteProject(data.dirName);
+
+            this.reloadExistProjects();
           },
           // 刷新已经存在的项目
           async reloadExistProjects() {
