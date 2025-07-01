@@ -440,6 +440,14 @@
                 return "";
               }
 
+              // 确保时间在20秒内
+              if (
+                this.itemData.focusUser.time &&
+                this.itemData.focusUser.time < Date.now() - 20 * 1000
+              ) {
+                return "";
+              }
+
               (async () => {
                 this.focusUserName = await getUserName(
                   this.itemData.focusUser.userId
@@ -498,10 +506,7 @@
               this.handleKeyDownEvent(e);
             });
 
-            this._focusTimer = null;
-
             inputerContent.on("focus", (e) => {
-              clearInterval(this._focusTimer);
               this.handleFocus(e);
 
               // 添加聚焦标识，用于远端标注框的聚焦
@@ -509,15 +514,9 @@
                 userId: selfUserId,
                 time: Date.now(),
               };
-
-              this._focusTimer = setInterval(() => {
-                // 每隔一段更新时间聚焦标识
-                this.itemData.focusUser.time = Date.now();
-              }, 10000);
             });
 
             inputerContent.on("blur", (e) => {
-              clearInterval(this._focusTimer);
               this.itemData.focusUser = null;
             });
 
@@ -636,13 +635,11 @@
             this.leftMenuOpen = false;
           },
           async focus() {
-            setTimeout(
-              () => {
-                // focusAndSetCursorAtEnd(this.shadow.$(".inputer-content").ele);
-                focusAndSetCursorAtEnd(this[0].ele);
-              },
-              isSafari ? 100 : 10
-            );
+            await this.watchUntil(() => !this.loading);
+
+            setTimeout(() => {
+              focusAndSetCursorAtEnd(this[0].ele);
+            }, 500);
           },
           handleClickLeftMenuButton() {
             this.leftMenuOpen = !this.leftMenuOpen;
@@ -743,6 +740,14 @@
             );
           }
 
+          // 如果是上次聚焦的元素，则聚焦
+          if (
+            this.itemData.focusUser &&
+            this.itemData.focusUser.userId === selfUserId
+          ) {
+            this.focus();
+          }
+
           this.on("click", (e) => {
             e.stopPropagation();
             if (openedLeftMenuElement && openedLeftMenuElement !== this) {
@@ -758,8 +763,6 @@
           if (this.itemData.focusUser) {
             this.itemData.focusUser = null;
           }
-
-          clearInterval(this._focusTimer);
 
           removeLoadingTask(this);
 

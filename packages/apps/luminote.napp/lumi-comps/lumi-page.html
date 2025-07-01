@@ -48,7 +48,17 @@
     </o-fill> -->
   </div>
   <script>
-    export default async () => {
+    let selfUserId;
+    export default async ({ load }) => {
+      if (!selfUserId) {
+        try {
+          const { getUserStore } = await load("/packages/user/user-store.js");
+          const userStore = await getUserStore();
+
+          selfUserId = userStore.userId;
+        } catch (err) {}
+      }
+
       return {
         tag: "lumi-page",
         data: {
