@@ -166,7 +166,12 @@ export default {
     },
 
     // 创建一个本地项目
-    async createProject({ projectName, dirName, rootHandle: root }) {
+    async createProject({
+      projectName,
+      dirName,
+      rootHandle: root,
+      addExitedProject,
+    }) {
       // 项目目录名
       dirName =
         dirName || `luminote-project-${Math.random().toString(32).slice(2)}`;
@@ -212,6 +217,19 @@ export default {
         projectName: articleData.projectName,
         dirName,
       };
+
+      if (addExitedProject) {
+        const exitedName = dirName + "---self";
+        if (!exitedProject[exitedName]) {
+          exitedProject[exitedName] = redata;
+        }
+
+        // this._openedProjects.push({
+        //   data: redata.data,
+        //   userId: "self",
+        //   __handle: redata.handle,
+        // });
+      }
 
       return redata;
     },
@@ -292,7 +310,6 @@ export default {
 
     (async () => {
       // 首先打开start项目
-
       const his = await getOpenHistory(this);
 
       for (let e of his) {

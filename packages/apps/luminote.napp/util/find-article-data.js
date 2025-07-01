@@ -1,7 +1,9 @@
 export const findArticle = async (app, dataId, userId = "self", dirName) => {
   // 不是当前设备，就要请求远端了
   // const project = await app.getProject(dirName, userId);
-  const project = await app.pushProject(dirName, userId);
+  const project = await app.pushProject(dirName, userId, {
+    isSave: false,
+  });
 
   const articleData = project.data;
   const { main } = articleData;

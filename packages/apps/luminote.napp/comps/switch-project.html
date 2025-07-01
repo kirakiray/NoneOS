@@ -27,11 +27,12 @@
   <p style="color: var(--md-sys-color-primary)">点击下方选项切换项目</p>
 
   <h4>本地项目</h4>
-  <p-list>
-    <o-fill :value="existProjects">
+  <p-list style="max-height: 50dvh; overflow-y: auto">
+    <o-fill :value="existProjects" fill-key="projectDataId">
       <p-list-item
         on:click="$host.switchProject($data)"
         attr:button="$host.openedProjects.length <= 1"
+        attr:data-project-dataid="$data.projectDataId"
       >
         <n-local-icon
           name="project"
@@ -110,7 +111,7 @@
         <p-button
           slot="suffix"
           size="small"
-          attr:disabled="!newProjectName"
+          attr:disabled="!newProjectName || adding"
           on:click="addNewProject"
         >
           添加新项目
@@ -220,6 +221,8 @@
 
   <script>
     export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+
       return {
         tag: "lumi-switch-project",
         data: {
@@ -229,6 +232,7 @@
           loadingRemote: false,
           remotes: [],
           projects: [],
+          adding: false,
         },
         proto: {
           isOpenedProject(data) {
@@ -268,7 +272,46 @@
             }, 300);
           },
           async addNewProject() {
-            debugger;
+            this.adding = true;
+
+            const projectName = this.newProjectName;
+
+            if (!projectName.trim()) {
+              toast({
+                content: "项目名不能为空",
+                color: "error",
+              });
+              this.adding = false;
+              return;
+            }
+
+            const newProject = await this.app.createProject({
+              projectName,
+              addExitedProject: 1,
+            });
+
+            toast({
+              content: "创建成功",
+              color: "success",
+            });
+
+            this.newProjectName = "";
+
+            this.reloadExistProjects();
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const pid = newProject.data.main._dataId;
+
+            const target = this.shadow.$(
+              `p-list-item[data-project-dataid="${pid}"]`
+            );
+
+            if (target) {
+              target.ele.click();
+            }
+
+            this.adding = false;
           },
           // 删除项目
           async handleDeleteProject(data, e) {
@@ -277,6 +320,7 @@
           // 刷新已经存在的项目
           async reloadExistProjects() {
             const exists = await this.app.getExistProjects();
+            exists.sort((a, b) => a.creationtime - b.creationtime);
 
             this.existProjects = exists;
           },
