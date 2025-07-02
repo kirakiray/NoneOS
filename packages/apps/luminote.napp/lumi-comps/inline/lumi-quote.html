@@ -1,0 +1,17 @@
+<template component>
+  <style>
+    :host {
+      display: inline-flex;
+      color: #dbcc83;
+      border-bottom: #dbcc83 dashed 2px;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async () => {
+      return {
+        tag: "lumi-quote",
+      };
+    };
+  </script>
+</template>

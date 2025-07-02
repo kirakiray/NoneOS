@@ -12,6 +12,9 @@
       display: block;
       /* background-color: rgba(255, 0, 0, 0.3); */
     }
+    ::slotted {
+      word-break: break-all;
+    }
     .inputer {
       position: relative;
       display: flex;
@@ -269,7 +272,7 @@
           </p-menu-item>
           <p-menu-item disabled>
             <n-local-icon name="copy" slot="prefix"></n-local-icon>
-            拷贝
+            复制
           </p-menu-item>
           <p-menu-item disabled>
             <n-local-icon name="duplicate" slot="prefix"></n-local-icon>
@@ -484,7 +487,7 @@
             }
 
             // 保存数据
-            this.itemData.value = value;
+            // this.itemData.value = value;
 
             console.log("handleUpdateValue: ", value);
           },

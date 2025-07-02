@@ -144,6 +144,16 @@ export const elementToLetterData = async (node, options = {}) => {
     });
   }
 
+  // 将内联组件转换为span
+  if (node.querySelector("[custom-inline-component]")) {
+    node = node.cloneNode(true);
+    const comps = node.querySelectorAll("[custom-inline-component]");
+    comps.forEach((e) => {
+      const innerHTML = e.innerHTML;
+      e.parentNode.innerHTML = innerHTML;
+    });
+  }
+
   // 获取样式
   const compStyle = getComputedStyle(node);
 
@@ -154,6 +164,7 @@ export const elementToLetterData = async (node, options = {}) => {
   const isItalic = compStyle.fontStyle === "italic";
   const color = node.style.color;
   const backgroundColor = node.style.backgroundColor;
+  const comp = node.getAttribute("custom-comp");
 
   const selfOptions = {
     bold: isBold,
@@ -163,6 +174,10 @@ export const elementToLetterData = async (node, options = {}) => {
     color,
     backgroundColor,
   };
+
+  if (comp) {
+    selfOptions.comp = JSON.parse(decodeURI(comp));
+  }
 
   let arr = [];
 
@@ -179,8 +194,8 @@ export const elementToLetterData = async (node, options = {}) => {
 export const letterDataToElement = async (letterData) => {
   let str = "";
 
-  let prevItem = null;
-  let hasPrevSpan = false;
+  let prevItem = null; // 上一个元素
+  let hasPrevSpan = false; // 是否有上一个span
   for (let len = letterData.length, i = 0, last = len - 1; i < len; i++) {
     const item = letterData[i];
 
@@ -197,16 +212,17 @@ export const letterDataToElement = async (letterData) => {
       }
 
       const styleStr = getStyleStr(item.options);
-
-      if (styleStr) {
-        str += `<span style="${styleStr}">`;
+      const compPropStr = getCompPropStr(item.options.comp);
+      if (styleStr || compPropStr) {
+        str += `<span style="${styleStr}"${compPropStr}>`;
         hasPrevSpan = true;
       } else {
         hasPrevSpan = false;
       }
-    } else if (!prevItem && hasStyle(item.options)) {
+    } else if (!prevItem && hasOptsData(item.options)) {
       const styleStr = getStyleStr(item.options);
-      str += `<span style="${styleStr}">`;
+      const compPropStr = getCompPropStr(item.options.comp);
+      str += `<span style="${styleStr}"${compPropStr}>`;
       hasPrevSpan = true;
     }
 
@@ -217,6 +233,35 @@ export const letterDataToElement = async (letterData) => {
     // 当是最后一个item时，又存在prevSpan，需要关闭
     if (i === last && hasPrevSpan) {
       str += "</span>";
+    }
+  }
+
+  {
+    // 修正自定义组件内容
+    const tempEl = $(`<template>${str}</template>`);
+    const customComps = tempEl.all("[custom-comp]");
+    if (customComps.length) {
+      customComps.forEach((spanEl) => {
+        const compData = JSON.parse(decodeURI(spanEl.attr("custom-comp")));
+        const data = { ...compData };
+        delete data.tag;
+
+        let propStr = "";
+        for (let [key, value] of Object.entries(data)) {
+          propStr += ` ${key}="${value}"`;
+        }
+
+        // 创建组件
+        const compEl = $(
+          `<${compData.tag}${propStr} custom-inline-component>${spanEl.html}</${compData.tag}>`
+        );
+
+        // 塞入组件
+        spanEl.html = compEl.ele.outerHTML;
+      });
+
+      // 替换内容
+      str = tempEl.html;
     }
   }
 
@@ -256,14 +301,23 @@ const getStyleStr = (options) => {
   return styleStr;
 };
 
-const hasStyle = (options) => {
+const getCompPropStr = (comp) => {
+  if (!comp) {
+    return ``;
+  }
+
+  return ` custom-comp="${encodeURI(JSON.stringify(comp))}"`;
+};
+
+const hasOptsData = (options) => {
   return (
     options.bold ||
     options.underline ||
     options.italic ||
     options.color ||
     options.lineThrough ||
-    options.backgroundColor
+    options.backgroundColor ||
+    options.comp
   );
 };
 
@@ -274,6 +328,9 @@ const equalOptions = (a, b) => {
     a.italic === b.italic &&
     a.color === b.color &&
     a.lineThrough === b.lineThrough &&
-    a.backgroundColor === b.backgroundColor
+    a.backgroundColor === b.backgroundColor &&
+    a.comp &&
+    b.comp &&
+    JSON.stringify(a.comp) === JSON.stringify(b.comp)
   );
 };

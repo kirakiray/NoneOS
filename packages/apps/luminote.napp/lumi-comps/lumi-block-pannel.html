@@ -59,21 +59,50 @@
   </style>
 
   <div class="section-pannel">
-    <p-tooltips placement="top" plain>
-      <p-button size="small" variant="text" color="primary">
-        <n-local-icon
-          name="branch"
-          slot="prefix"
-          style="margin: 0"
-        ></n-local-icon>
-      </p-button>
-      <div slot="tips">
-        <div class="tool-tips" style="white-space: wrap; width: 200px">
-          <strong>创建解释文档</strong><br />
-          新建一份便条，对选中内容进行解释说明。
+    <o-if :value="!selectionHasComponent">
+      <p-tooltips placement="top" plain>
+        <p-button
+          size="small"
+          variant="text"
+          color="primary"
+          on:click="clickBranch"
+        >
+          <n-local-icon
+            name="branch"
+            slot="prefix"
+            style="margin: 0"
+          ></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips" style="white-space: wrap; width: 200px">
+            <strong>创建解释文档</strong><br />
+            新建一份便条，对选中内容进行解释说明。
+          </div>
         </div>
-      </div>
-    </p-tooltips>
+      </p-tooltips>
+    </o-if>
+    <o-else>
+      <p-tooltips placement="top" plain>
+        <p-button
+          size="small"
+          variant="text"
+          color="primary"
+          on:click="clickCancelComp"
+        >
+          <n-local-icon
+            name="remove"
+            slot="prefix"
+            style="margin: 0"
+          ></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips" style="white-space: wrap; width: 200px">
+            <strong>取消组件引用</strong><br />
+            移除选中文字中的内联组件引用，将其恢复为普通文本。
+          </div>
+        </div>
+      </p-tooltips>
+    </o-else>
 
     <div class="tool-pannel-line"></div>
     <p-tooltips placement="top" plain>
@@ -306,6 +335,7 @@
           isActiveStrikethrough: 0, // 激活了删除线按钮
           currentColor: "",
           currentBgColor: "",
+          selectionHasComponent: false, // 当前选中的元素是否包含组件
           colorOpts: [
             {
               name: "不使用",
@@ -340,6 +370,70 @@
             this._mouseOverTimer = setTimeout(() => {
               this.showColorWheel = false;
             }, 300);
+          },
+          async clickCancelComp() {
+            const {
+              startOffset,
+              endOffset,
+              letterData,
+              selectionRangeLetters,
+            } = await this.getSelectionLetterData();
+
+            selectionRangeLetters.forEach((letterData) => {
+              letterData.options = {
+                ...letterData.options,
+                comp: undefined,
+              };
+            });
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+                startOffset,
+                endOffset,
+              },
+            });
+            
+            setTimeout(() => {
+              this.refreshBtnState();
+            }, 100);
+          },
+          async clickBranch() {
+            const {
+              startOffset,
+              endOffset,
+              letterData,
+              selectionRangeLetters,
+            } = await this.getSelectionLetterData();
+
+            // 添加引用组件
+            selectionRangeLetters.forEach((letterData) => {
+              letterData.options = {
+                ...letterData.options,
+                comp: {
+                  tag: "lumi-quote",
+                  src: "hahaha",
+                },
+              };
+            });
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+                startOffset,
+                endOffset,
+              },
+            });
+
+            setTimeout(() => {
+              this.refreshBtnState();
+            }, 100);
           },
           async getSelectionLetterData() {
             // const selection = document.getSelection();
@@ -528,6 +622,10 @@
 
             this.currentColor = getColor(selectionRangeLetters);
             this.currentBgColor = getColor(selectionRangeLetters, 1);
+
+            this.selectionHasComponent = selectionRangeLetters.some(
+              (e) => e.options.comp
+            );
           },
         },
         attached() {
