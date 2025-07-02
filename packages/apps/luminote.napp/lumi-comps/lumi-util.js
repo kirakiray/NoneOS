@@ -317,7 +317,7 @@ const hasOptsData = (options) => {
     options.color ||
     options.lineThrough ||
     options.backgroundColor ||
-    options.comp
+    !!options.comp
   );
 };
 
@@ -329,8 +329,6 @@ const equalOptions = (a, b) => {
     a.color === b.color &&
     a.lineThrough === b.lineThrough &&
     a.backgroundColor === b.backgroundColor &&
-    a.comp &&
-    b.comp &&
     JSON.stringify(a.comp) === JSON.stringify(b.comp)
   );
 };
