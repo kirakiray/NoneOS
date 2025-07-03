@@ -1,16 +1,32 @@
 <template component>
+  <l-m src="/packages/pui/input/input.html"></l-m>
   <style>
     :host {
       display: block;
       padding: 16px;
-      border: red solid 1px;
       border-radius: 6px;
+      color: var(--md-sys-color-on-surface);
+      background-color: var(--md-sys-color-on-normal);
+      animation: slideIn 0.2s ease-in-out;
+    }
+
+    @keyframes slideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+      80% {
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 1;
+      }
     }
   </style>
-  <div>我是表单组件</div>
-  <div style="height: 100px; overflow: auto">
-    <div style="height: 200px">!!!</div>
-  </div>
+  <p-input size="small" variant="filled" style="width: 200px">
+    <label> 引用来源于 </label>
+  </p-input>
+
   <script>
     export default async ({ load }) => {
       return {

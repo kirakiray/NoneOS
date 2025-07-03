@@ -817,9 +817,13 @@
 
       let tipsEl = target.__tipsEl;
 
+      if (tipsEl) {
+        return;
+      }
+
       if (!target.__isBinded) {
         target.__isBinded = true;
-        target.addEventListener("mouseleave", () => {
+        target.addEventListener("mouseout", () => {
           removeTips(target);
         });
       }
@@ -836,7 +840,7 @@
         });
 
         // 移除时添加移除事件
-        tipsEl.on("mouseleave", () => {
+        tipsEl.on("mouseout", () => {
           removeTips(target);
         });
 
@@ -864,7 +868,10 @@
         left: rect.left + "px",
       });
 
-      $("body").push(tipsEl);
+      if (!tipsEl.isConnected) {
+        console.log("tipsEl.isConnected", tipsEl.isConnected);
+        $("body").push(tipsEl);
+      }
     };
   </script>
 </template>
