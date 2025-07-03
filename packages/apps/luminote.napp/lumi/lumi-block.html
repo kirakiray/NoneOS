@@ -643,7 +643,9 @@
             this.leftMenuOpen = false;
           },
           async focus() {
-            await this.watchUntil(() => !this.loading);
+            if (this.loading) {
+              await this.watchUntil(() => !this.loading);
+            }
 
             setTimeout(() => {
               focusAndSetCursorAtEnd(this[0].ele);
