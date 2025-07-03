@@ -410,10 +410,6 @@
             // 转为字母数据
             const letterData = await elementToLetterData(rootEl);
 
-            console.log("getSelectionLetterData: ", letterData);
-
-            console.log("letterData: ", letterData);
-
             let startOffset = getRealOffset(
               rootEl,
               range.startContainer,
@@ -613,6 +609,7 @@
               this.inlineComps.push(option);
             });
           },
+          // 点击了内联组件按钮
           async clickPanelBtn(item) {
             const {
               startOffset,
@@ -639,6 +636,12 @@
                 value: newValue,
                 startOffset,
                 endOffset,
+                callback: ({ startContainer }) => {
+                  const target = startContainer.parentElement;
+
+                  // 插入成功后，立刻激活该元素
+                  $(target).active = true;
+                },
               },
             });
 
