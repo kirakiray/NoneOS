@@ -1,57 +1,20 @@
 <template component>
   <style>
     :host {
-      position: relative;
       display: inline-flex;
-      /* 设置 line-height 为 0，可防止内联元素（包含标注元素）继承默认行高 */
-      line-height: 0;
+      line-height: 1.2em;
       color: #ffd500;
-    }
-
-    .tips {
-      position: absolute;
-      display: flex;
-      flex-direction: column;
-      left: 0;
-      top: 12px;
-      width: 200px;
-      height: 200px;
-      padding: 16px;
-      line-height: 24px;
-      background-color: var(--md-sys-color-surface);
-      border: var(--md-sys-color-on-surface) solid 1px;
-      color: var(--md-sys-color-on-surface);
-      box-shadow: var(--contained-shadow);
-      z-index: 2;
-      -webkit-user-select: none;
-      user-select: none;
-      border-radius: 6px;
-
-      transition: all 0.3s ease-in-out;
-      opacity: 0;
-      transform: scale(0);
-      transform-origin: 0 0;
-      float: left;
-    }
-
-    .show-tips {
-      opacity: 1;
-      transform: scale(1);
+      border-bottom: #ffd500 dashed 2px;
+      background-color: rgba(255, 213, 0, 0.2);
     }
   </style>
   <slot></slot>
-  <!-- <p-dialog :open="showDialog"> 我是弹窗 </p-dialog> -->
-  <div class="tips" class:show-tips="active">
-    <p-button>新建一片文章进行解释</p-button>
-    <p-button>引用已存在的文章</p-button>
-  </div>
   <script>
     export default async () => {
       return {
         tag: "lumi-quote",
         data: {
           active: false, // 是否处在激活的状态
-          showDialog: false,
         },
         proto: {
           onActivate() {
@@ -62,21 +25,6 @@
             // 取消激活时
             console.log("quote deactivate", this);
           },
-        },
-        ready() {
-          // 防止组件内的事件冒泡
-          // this.on("mousedown", (e) => {
-          //   e.stopPropagation();
-          //   e.preventDefault();
-          // });
-          // this.on("mouseup", (e) => {
-          //   e.stopPropagation();
-          //   e.preventDefault();
-          // });
-          // this.on("click", (e) => {
-          //   e.stopPropagation();
-          //   e.preventDefault();
-          // });
         },
       };
     };

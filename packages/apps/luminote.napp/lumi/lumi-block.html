@@ -428,7 +428,10 @@
               return;
             }
 
-            if (this.__inputerContent && this.__inputerContent.html !== value) {
+            if (
+              this.__inputerContent &&
+              this.__inputerContent.html.trim() !== value.trim()
+            ) {
               // 被其他地方更新了内容，直接覆盖
               this.__inputerContent.html = value;
 
@@ -644,7 +647,7 @@
 
             setTimeout(() => {
               focusAndSetCursorAtEnd(this[0].ele);
-            }, 500);
+            }, 10);
           },
           handleClickLeftMenuButton() {
             this.leftMenuOpen = !this.leftMenuOpen;

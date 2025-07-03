@@ -1,0 +1,19 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+      border: red solid 1px;
+    }
+  </style>
+  <div>我是表单组件</div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-quote-form",
+        data: {},
+        proto: {},
+      };
+    };
+  </script>
+</template>

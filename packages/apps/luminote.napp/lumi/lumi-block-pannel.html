@@ -75,6 +75,7 @@
               <strong>{{$data.name}}</strong><br />
               {{$data.desc}}
             </div>
+            load()
           </div>
         </p-tooltips>
       </o-fill>
@@ -321,6 +322,15 @@
     export default async ({ load }) => {
       const { elementToLetterData, letterDataToElement, getRealOffset } =
         await load("./lumi-util.js");
+
+      {
+        // 加载内联组件
+        const { inlineComps } = await load("./inline/config.js");
+        inlineComps.forEach(async (inlineComp) => {
+          load(inlineComp.inlineComponentSrc); // 加载内联组件
+          load(inlineComp.formComponentSrc); // 加载改动数据用的表单组件
+        });
+      }
 
       return {
         tag: "lumi-block-pannel",
@@ -591,13 +601,7 @@
             );
           },
           async loadInlineComponents() {
-            // 加载内联组件
-            const { inlineComps } = await load("./inline/config.js");
-
             inlineComps.forEach(async (inlineComp) => {
-              // const { tag, component } = inlineComp;
-              load(inlineComp.src);
-
               const option = {
                 name: inlineComp.name.cn,
                 desc: inlineComp.desc.cn,

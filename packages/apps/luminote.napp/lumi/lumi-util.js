@@ -206,13 +206,7 @@ export const letterDataToElement = async (letterData) => {
   for (let len = letterData.length, i = 0, last = len - 1; i < len; i++) {
     const item = letterData[i];
 
-    if (
-      prevItem &&
-      !(
-        item.options === prevItem.options ||
-        equalOptions(item.options, prevItem.options)
-      )
-    ) {
+    if (prevItem && !equalOptions(item.options, prevItem.options)) {
       // 样式有改动
       if (hasPrevSpan) {
         str += "</span>";

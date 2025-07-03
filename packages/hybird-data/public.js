@@ -84,7 +84,7 @@ export const realSaveData = async (hydata) => {
     return;
   }
 
-  console.log("savedata", hydata); // eslint-disable-line no-cons
+  // console.log("savedata", hydata); // eslint-disable-line no-cons
 
   try {
     // 数据变化，写入到 handle 中
@@ -92,7 +92,7 @@ export const realSaveData = async (hydata) => {
       remark: `writedby-${hydata._root.xid}`,
     });
 
-    console.log("savedata end", hydata); // eslint-disable-line no-cons
+    // console.log("savedata end", hydata); // eslint-disable-line no-cons
   } catch (err) {
     console.error(err);
   }
