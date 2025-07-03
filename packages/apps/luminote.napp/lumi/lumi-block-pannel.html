@@ -60,26 +60,24 @@
 
   <div class="section-pannel">
     <o-if :value="!selectionHasComponent">
-      <p-tooltips placement="top" plain>
-        <p-button
-          size="small"
-          variant="text"
-          color="primary"
-          on:click="clickBranch"
-        >
-          <n-local-icon
-            name="branch"
-            slot="prefix"
-            style="margin: 0"
-          ></n-local-icon>
-        </p-button>
-        <div slot="tips">
-          <div class="tool-tips" style="white-space: wrap; width: 200px">
-            <strong>创建解释笔记</strong><br />
-            新建一份笔记，对选中内容进行解释说明。
+      <o-fill :value="inlineComps">
+        <p-tooltips placement="top" plain>
+          <p-button
+            size="small"
+            variant="text"
+            color="primary"
+            on:click="$host.clickPanelBtn($data)"
+          >
+            <span :html="$data.icon"></span>
+          </p-button>
+          <div slot="tips">
+            <div class="tool-tips" style="white-space: wrap; width: 140px">
+              <strong>{{$data.name}}</strong><br />
+              {{$data.desc}}
+            </div>
           </div>
-        </div>
-      </p-tooltips>
+        </p-tooltips>
+      </o-fill>
     </o-if>
     <o-else>
       <p-tooltips placement="top" plain>
@@ -359,6 +357,7 @@
             },
           ],
           showColorWheel: false,
+          inlineComps: [],
         },
         proto: {
           mouseoverColorWheel() {
@@ -383,40 +382,6 @@
               letterData.options = {
                 ...letterData.options,
                 comp: undefined,
-              };
-            });
-
-            // 将数据重新转回字符串
-            const newValue = await letterDataToElement(letterData);
-
-            this.emit("update-value", {
-              data: {
-                value: newValue,
-                startOffset,
-                endOffset,
-              },
-            });
-
-            setTimeout(() => {
-              this.refreshBtnState();
-            }, 100);
-          },
-          async clickBranch() {
-            const {
-              startOffset,
-              endOffset,
-              letterData,
-              selectionRangeLetters,
-            } = await this.getSelectionLetterData();
-
-            // 添加引用组件
-            selectionRangeLetters.forEach((letterData) => {
-              letterData.options = {
-                ...letterData.options,
-                comp: {
-                  tag: "lumi-quote",
-                  src: "hahaha",
-                },
               };
             });
 
@@ -629,10 +594,59 @@
               (e) => e.options.comp
             );
           },
+          async loadInlineComponents() {
+            // 加载内联组件
+            const { inlineComps } = await load("./inline/config.js");
+
+            inlineComps.forEach(async (inlineComp) => {
+              // const { tag, component } = inlineComp;
+              load(inlineComp.src);
+
+              const option = {
+                name: inlineComp.name.cn,
+                desc: inlineComp.desc.cn,
+                icon: inlineComp.icon,
+                tag: inlineComp.tag,
+                __data: inlineComp,
+              };
+
+              this.inlineComps.push(option);
+            });
+          },
+          async clickPanelBtn(item) {
+            const {
+              startOffset,
+              endOffset,
+              letterData,
+              selectionRangeLetters,
+            } = await this.getSelectionLetterData();
+
+            // 添加引用组件
+            selectionRangeLetters.forEach((letterData) => {
+              letterData.options = {
+                ...letterData.options,
+                comp: {
+                  tag: item.tag,
+                },
+              };
+            });
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+                startOffset,
+                endOffset,
+              },
+            });
+          },
         },
         attached() {
           // 获取选择的返回, 看看是不是有文字
           this.refreshBtnState();
+          this.loadInlineComponents();
         },
         detached() {
           this.itemData = {};

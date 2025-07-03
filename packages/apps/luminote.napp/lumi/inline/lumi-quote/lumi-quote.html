@@ -1,0 +1,31 @@
+<template component>
+  <style>
+    :host {
+      display: inline-flex;
+      line-height: 1.4em;
+      color: #ffd500;
+      border-bottom: #ffd500 dashed 2px;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async () => {
+      return {
+        tag: "lumi-quote",
+        data: {
+          active: false, // 是否处在激活的状态
+        },
+        proto: {
+          onActivate() {
+            // 激活时
+            console.log("quote activate", this);
+          },
+          onDeactivate() {
+            // 取消激活时
+            console.log("quote deactivate", this);
+          },
+        },
+      };
+    };
+  </script>
+</template>
