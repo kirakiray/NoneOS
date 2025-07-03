@@ -144,7 +144,7 @@ export const elementToLetterData = async (node, options = {}) => {
     });
   }
 
-  // 将内联组件转换为span
+  // 将内联组件转换为span，防止干扰
   if (node.querySelector("[custom-inline-component]")) {
     node = node.cloneNode(true);
     const comps = node.querySelectorAll("[custom-inline-component]");
@@ -156,14 +156,21 @@ export const elementToLetterData = async (node, options = {}) => {
 
   // 获取样式
   const compStyle = getComputedStyle(node);
+  const selfStyle = node.style;
 
-  const isBold = parseInt(compStyle.fontWeight) >= 600;
-  const { textDecoration } = compStyle;
-  const isUnderline = textDecoration.includes("underline");
-  const isLineThrough = textDecoration.includes("line-through");
-  const isItalic = compStyle.fontStyle === "italic";
-  const color = node.style.color;
-  const backgroundColor = node.style.backgroundColor;
+  const isBold =
+    parseInt(selfStyle.fontWeight) >= 600 ||
+    parseInt(compStyle.fontWeight) >= 600;
+  const isUnderline =
+    selfStyle.textDecoration.includes("underline") ||
+    compStyle.textDecoration.includes("underline");
+  const isLineThrough =
+    selfStyle.textDecoration.includes("line-through") ||
+    compStyle.textDecoration.includes("line-through");
+  const isItalic =
+    selfStyle.fontStyle === "italic" || compStyle.fontStyle === "italic";
+  const color = selfStyle.color;
+  const backgroundColor = selfStyle.backgroundColor;
   const comp = node.getAttribute("custom-comp");
 
   const selfOptions = {

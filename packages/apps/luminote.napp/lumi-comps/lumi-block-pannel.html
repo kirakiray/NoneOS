@@ -386,6 +386,8 @@
               };
             });
 
+            debugger
+
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
 
@@ -396,7 +398,7 @@
                 endOffset,
               },
             });
-            
+
             setTimeout(() => {
               this.refreshBtnState();
             }, 100);
@@ -419,6 +421,8 @@
                 },
               };
             });
+
+            debugger;
 
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
@@ -444,6 +448,8 @@
 
             // 转为字母数据
             const letterData = await elementToLetterData(rootEl);
+
+           console.log("getSelectionLetterData: ", letterData);
 
             console.log("letterData: ", letterData);
 
