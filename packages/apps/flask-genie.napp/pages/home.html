@@ -1,5 +1,16 @@
 <template page>
-  我是首页 - {{val}}
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+    }
+  </style>
+  <p>
+    本应用是专为 NoneOS 内部应用打造的管理工具，可实现穿透访问外部世界的功能。
+  </p>
+  <p>
+    借助该应用，内部程序不仅能请求外部 API，还能通过代理访问各类外部 AI 接口。
+  </p>
   <script>
     export default async ({ load }) => {
       async function getOllamaModels() {

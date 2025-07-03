@@ -75,8 +75,8 @@
         </p-button>
         <div slot="tips">
           <div class="tool-tips" style="white-space: wrap; width: 200px">
-            <strong>创建解释文档</strong><br />
-            新建一份便条，对选中内容进行解释说明。
+            <strong>创建解释笔记</strong><br />
+            新建一份笔记，对选中内容进行解释说明。
           </div>
         </div>
       </p-tooltips>
@@ -386,8 +386,6 @@
               };
             });
 
-            debugger
-
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
 
@@ -422,8 +420,6 @@
               };
             });
 
-            debugger;
-
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
 
@@ -449,7 +445,7 @@
             // 转为字母数据
             const letterData = await elementToLetterData(rootEl);
 
-           console.log("getSelectionLetterData: ", letterData);
+            console.log("getSelectionLetterData: ", letterData);
 
             console.log("letterData: ", letterData);
 
