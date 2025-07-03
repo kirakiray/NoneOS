@@ -8,12 +8,16 @@
     }
   </style>
   <div>我是表单组件</div>
+  <div style="height: 100px; overflow: auto">
+    <div style="height: 200px">!!!</div>
+  </div>
   <script>
     export default async ({ load }) => {
       return {
         tag: "lumi-quote-form",
         data: {},
         proto: {},
+        attached() {},
       };
     };
   </script>

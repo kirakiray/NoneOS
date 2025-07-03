@@ -793,12 +793,17 @@
     };
 
     // 移除提示
-    const removeTips = (target) => {
+    const removeTips = (target, time = 100) => {
       clearTimeout(target._tips_remove_timer);
       target._tips_remove_timer = setTimeout(() => {
-        target.__tipsEl.remove();
+        target.__tipsEl && target.__tipsEl.remove();
         target.__tipsEl = null;
-      }, 100);
+
+        if (target.__mousewheel_func) {
+          document.removeEventListener("mousewheel", target.__mousewheel_func);
+          target.__mousewheel_func = null;
+        }
+      }, time);
     };
 
     // 在body中添加对用内联组件的表单元素的弹窗气泡
@@ -834,6 +839,22 @@
         tipsEl.on("mouseleave", () => {
           removeTips(target);
         });
+
+        target.__mousewheel_func = (e) => {
+          console.log("mousewheel", e.target.tagName);
+          // 在鼠标滚轮滚动时，目标对应的表单元素，则直接移除提示
+          if (e.target.tagName.toLowerCase() !== registerItem.formTag) {
+            // 移除监听
+            document.removeEventListener(
+              "mousewheel",
+              target.__mousewheel_func
+            );
+            target.__mousewheel_func = null;
+            removeTips(target, 10);
+          }
+        };
+
+        document.addEventListener("mousewheel", target.__mousewheel_func);
       }
 
       // 修正定位
