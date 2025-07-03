@@ -356,6 +356,8 @@
   </o-if>
 
   <script>
+    import { inlineComps } from "./inline/config.js";
+
     // 焦点中的元素
     let focusedElement = null;
 
@@ -574,18 +576,7 @@
             if (selection.rangeCount > 0) {
               const range = selection.getRangeAt(0);
 
-              // window._selection = this._selection = selection;
-              // window._range = this._range = range;
-
               const rangString = range.toString();
-
-              // console.log(
-              //   "selection: ",
-              //   selection,
-              //   range,
-              //   "rangString: ",
-              //   rangString
-              // );
 
               if (!rangString) {
                 this.showToolPannel = false;
@@ -768,6 +759,13 @@
           addLoadingTask(this);
 
           this.initializeEditor();
+
+          // 当移动到内联组件时，添加一个弹窗
+          this.on("mouseover", (e) => {
+            if (e.target.hasAttribute("custom-inline-component")) {
+              showInlineCompForm(e.target);
+            }
+          });
         },
         detached() {
           if (this.itemData.focusUser) {
@@ -792,6 +790,60 @@
           this.itemData = {};
         },
       };
+    };
+
+    // 移除提示
+    const removeTips = (target) => {
+      clearTimeout(target._tips_remove_timer);
+      target._tips_remove_timer = setTimeout(() => {
+        target.__tipsEl.remove();
+        target.__tipsEl = null;
+      }, 100);
+    };
+
+    // 在body中添加对用内联组件的表单元素的弹窗气泡
+    const showInlineCompForm = (target) => {
+      const tag = target.tagName.toLowerCase();
+      const registerItem = inlineComps.find((item) => item.tag === tag);
+
+      const rect = target.getBoundingClientRect();
+
+      clearTimeout(target._tips_remove_timer); // 清除移除的定时器
+
+      let tipsEl = target.__tipsEl;
+
+      if (!target.__isBinded) {
+        target.__isBinded = true;
+        target.addEventListener("mouseleave", () => {
+          removeTips(target);
+        });
+      }
+
+      if (!tipsEl) {
+        // 添加提示插件
+        tipsEl = target.__tipsEl = $(
+          `<${registerItem.formTag}></${registerItem.formTag}>`
+        );
+
+        tipsEl.on("mouseover", () => {
+          // 直接移动进来的时候
+          clearTimeout(target._tips_remove_timer);
+        });
+
+        // 移除时添加移除事件
+        tipsEl.on("mouseleave", () => {
+          removeTips(target);
+        });
+      }
+
+      // 修正定位
+      Object.assign(tipsEl.style, {
+        position: "fixed",
+        top: rect.top + rect.height + "px",
+        left: rect.left + "px",
+      });
+
+      $("body").push(tipsEl);
     };
   </script>
 </template>
