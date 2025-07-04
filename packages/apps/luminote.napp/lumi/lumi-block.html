@@ -580,6 +580,7 @@
 
               if (!rangString) {
                 this.showToolPannel = false;
+                mouseDownBlock = null;
                 return;
               }
 
@@ -619,6 +620,8 @@
               console.log("没有选中文本");
               this.showToolPannel = false;
             }
+
+            mouseDownBlock = null;
           },
           handleClickArticle() {
             const app = this.parents.filter((e) => e.tag === "o-app")[0];
