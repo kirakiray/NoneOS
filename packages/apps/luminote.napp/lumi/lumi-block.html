@@ -762,7 +762,10 @@
 
           // 当移动到内联组件时，添加一个弹窗
           this.on("mouseover", (e) => {
-            if (e.target.hasAttribute("custom-inline-component")) {
+            if (
+              e.target.hasAttribute("custom-inline-component") &&
+              !mouseDownBlock
+            ) {
               showInlineCompForm(e.target);
             }
           });
