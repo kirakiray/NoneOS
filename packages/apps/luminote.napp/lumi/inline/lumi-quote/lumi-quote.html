@@ -21,13 +21,13 @@
           active: false, // 是否处在激活的状态
         },
         proto: {
-          onActivate() {
+          onActivate(opts) {
             // 激活时
-            console.log("quote activate", this);
+            console.log("quote activate", opts, this);
           },
-          onDeactivate() {
+          onDeactivate(opts) {
             // 取消激活时
-            console.log("quote deactivate", this);
+            console.log("quote deactivate", opts, this);
           },
         },
       };

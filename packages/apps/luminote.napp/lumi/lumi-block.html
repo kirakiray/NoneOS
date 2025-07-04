@@ -834,6 +834,8 @@
         target.__tipsEl && target.__tipsEl.remove();
         target.__tipsEl = null;
 
+        $(target).onDeactivate && $(target).onDeactivate();
+
         if (target.__mousewheel_func) {
           document.removeEventListener("mousewheel", target.__mousewheel_func);
           target.__mousewheel_func = null;
@@ -872,7 +874,7 @@
         $.nextTick(() => {
           // 运行组件的初始化函数
           tipsEl.onInit({
-            target: $(target),
+            target: $target,
           });
         });
 
@@ -900,6 +902,12 @@
           }
         };
 
+        const $target = $(target);
+        $target.onActivate &&
+          $target.onActivate({
+            tips: tipsEl,
+          });
+
         document.addEventListener("mousewheel", target.__mousewheel_func);
       }
 
@@ -911,7 +919,6 @@
       });
 
       if (!tipsEl.isConnected) {
-        console.log("tipsEl.isConnected", tipsEl.isConnected);
         $("body").push(tipsEl);
       }
     };
