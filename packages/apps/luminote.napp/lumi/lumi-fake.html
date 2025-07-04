@@ -49,7 +49,7 @@
             } else {
               // 自定义组件
               main.attr("type", null);
-              main.html = `<${type}></${type}>`;
+              main.html = `<${type}><slot></slot></${type}>`;
             }
           },
         },
