@@ -115,7 +115,8 @@
       z-index: 2;
     }
 
-    .left-menu n-local-icon {
+    .left-menu n-local-icon,
+    .left-menu .menu-icon-span {
       display: block;
       margin-right: 8px;
       font-size: 16px;
@@ -268,6 +269,19 @@
                 <n-local-icon name="h3" slot="prefix"></n-local-icon>
                 小标题
               </p-menu-item>
+              <x-fill :value="blockComps">
+                <p-menu-item
+                  attr:active-item="$host.itemData.type === $data.tag"
+                  on:click="$host.handleChangeBlockType($data.tag)"
+                >
+                  <span
+                    class="menu-icon-span"
+                    :html="$data.icon"
+                    style="font-size: 18px; color: var(--md-sys-color-primary)"
+                  ></span>
+                  {{$data.name.cn}}
+                </p-menu-item>
+              </x-fill>
             </p-menu>
           </p-menu-item>
           <p-menu-item
@@ -396,6 +410,11 @@
     export default async ({ load }) => {
       const { getUserName } = await load("/packages/util/get-user-info.js");
       const { toast } = await load("/packages/pui/util.js");
+      const { blockComps } = await load("./block/config.js"); // 块组件的配置
+
+      blockComps.forEach((item) => {
+        load(item.src);
+      });
 
       const {
         addLoadingTask,
@@ -428,6 +447,7 @@
           pannelPositionTop: 0,
           pannelPositionLeft: 0,
           focusUserName: "",
+          blockComps,
         },
         watch: {
           ["itemData.value"]() {
@@ -468,7 +488,7 @@
           },
           handleCopy() {
             navigator.clipboard.writeText(this.text);
-            toast("复制成功");
+            toast("已复制文本到剪贴板");
             this.leftMenuOpen = false;
           },
           getInUserName() {

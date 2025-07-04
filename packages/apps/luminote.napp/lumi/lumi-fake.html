@@ -17,9 +17,11 @@
       font-weight: 600;
     }
   </style>
-  <div attr:type="type">
+
+  <div class="main">
     <slot></slot>
   </div>
+
   <script>
     export default async ({ load }) => {
       return {
@@ -29,7 +31,26 @@
         },
         watch: {
           type(type) {
+            const main = this.shadow.$(".main");
+
             // 当使用自定义组件的时候，在这里添加
+            if (
+              type === "h1" ||
+              type === "h2" ||
+              type === "h3" ||
+              type === "paragraph"
+            ) {
+              // 自带的组件
+              main.attr("type", type);
+              main.html = `<slot></slot>`;
+            } else if (type === "article") {
+              main.attr("type", null);
+              main.html = `<slot></slot>`;
+            } else {
+              // 自定义组件
+              main.attr("type", null);
+              main.html = `<${type}></${type}>`;
+            }
           },
         },
       };

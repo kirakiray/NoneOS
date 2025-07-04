@@ -1,0 +1,20 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+      border-radius: 6px;
+    }
+  </style>
+  <code>
+    <slot></slot>
+  </code>
+  <script>
+    export default async () => {
+      return {
+        tag: "lumi-code",
+        data: {},
+      };
+    };
+  </script>
+</template>

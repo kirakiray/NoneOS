@@ -20,6 +20,29 @@
       color: inherit;
     }
   </style>
+  <o-if :value="itemData.removed">
+    <div
+      style="
+        display: flex;
+        background-color: var(--md-sys-color-on-error);
+        color: var(--md-sys-color-error);
+        padding: 8px 16px;
+        border-radius: 6px;
+      "
+    >
+      此文章已暂时被放到回收站
+
+      <p-button
+        size="small"
+        color="primary"
+        variant="outlined"
+        on:click="itemData.removed = null"
+        style="margin-left: auto"
+      >
+        放回原处
+      </p-button>
+    </div>
+  </o-if>
   <div class="container">
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
