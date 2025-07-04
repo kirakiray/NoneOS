@@ -8,6 +8,9 @@
       color: var(--md-sys-color-on-surface);
       background-color: var(--md-sys-color-on-normal);
       animation: slideIn 0.2s ease-in-out;
+      line-height: 1.2em;
+      word-break: break-all;
+      font-size: 12px;
     }
 
     @keyframes slideIn {
@@ -24,8 +27,8 @@
     }
   </style>
   <div style="display: flex">
-    <div style="color: var(--md-sys-color-primary)">引用来源文章id</div>
-    {{target.articleId}}
+    <div style="color: var(--md-sys-color-primary)">引用来源</div>
+    : {{target.articleId}}
   </div>
   <script>
     export default async ({ load }) => {
