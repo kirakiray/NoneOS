@@ -15,7 +15,15 @@ const defaults = {
     cn: "新建一份笔记，对选中内容进行解释说明。",
   },
   // 点击内联组件时触发
-  click() {
+  click({
+    blockItemData,
+    pageItemData,
+    blockEl,
+    startOffset,
+    endOffset,
+    letterData,
+    selectionRangeLetter,
+  }) {
     debugger;
   },
 };

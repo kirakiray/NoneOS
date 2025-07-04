@@ -63,12 +63,13 @@
       <o-fill :value="inlineComps">
         <p-tooltips placement="top" plain>
           <p-button
+            icon
             size="small"
             variant="text"
             color="primary"
             on:click="$host.clickPanelBtn($data)"
           >
-            <span :html="$data.icon"></span>
+            <span :html="$data.icon" style="display: contents"></span>
           </p-button>
           <div slot="tips">
             <div class="tool-tips" style="white-space: wrap; width: 140px">
@@ -85,6 +86,7 @@
           size="small"
           variant="text"
           color="primary"
+          icon
           on:click="clickCancelComp"
         >
           <n-local-icon
@@ -380,14 +382,10 @@
             }, 300);
           },
           async clickCancelComp() {
-            const {
-              startOffset,
-              endOffset,
-              letterData,
-              selectionRangeLetters,
-            } = await this.getSelectionLetterData();
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
 
-            selectionRangeLetters.forEach((letterData) => {
+            selectionRangeLetter.forEach((letterData) => {
               letterData.options = {
                 ...letterData.options,
                 comp: undefined,
@@ -432,7 +430,7 @@
             );
 
             // 给目标范围内的字符修正信息
-            const selectionRangeLetters = letterData.slice(
+            const selectionRangeLetter = letterData.slice(
               startOffset,
               endOffset
             );
@@ -441,20 +439,16 @@
               startOffset,
               endOffset,
               letterData,
-              selectionRangeLetters,
+              selectionRangeLetter,
             };
           },
           async changeColor(color, isChangeBgColor) {
-            const {
-              startOffset,
-              endOffset,
-              letterData,
-              selectionRangeLetters,
-            } = await this.getSelectionLetterData();
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
 
             if (isChangeBgColor) {
               this.currentBgColor = color;
-              selectionRangeLetters.forEach((item) => {
+              selectionRangeLetter.forEach((item) => {
                 item.options = {
                   ...item.options,
                   backgroundColor: color
@@ -464,7 +458,7 @@
               });
             } else {
               this.currentColor = color;
-              selectionRangeLetters.forEach((item) => {
+              selectionRangeLetter.forEach((item) => {
                 item.options = {
                   ...item.options,
                   color: color ? `var(--md-sys-color-${color})` : "",
@@ -487,17 +481,13 @@
           },
           // 当点击了对应的操作
           async handleSelectionAction(type) {
-            const {
-              startOffset,
-              endOffset,
-              letterData,
-              selectionRangeLetters,
-            } = await this.getSelectionLetterData();
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
 
             switch (type) {
               case "bold":
                 const { isActiveBold } = this;
-                selectionRangeLetters.forEach((item) => {
+                selectionRangeLetter.forEach((item) => {
                   if (isActiveBold === 0) {
                     item.options = {
                       ...item.options,
@@ -513,7 +503,7 @@
                 break;
               case "italic":
                 const { isActiveItalic } = this;
-                selectionRangeLetters.forEach((item) => {
+                selectionRangeLetter.forEach((item) => {
                   if (isActiveItalic === 0) {
                     item.options = {
                       ...item.options,
@@ -529,7 +519,7 @@
                 break;
               case "underline":
                 const { isActiveUnderline } = this;
-                selectionRangeLetters.forEach((item) => {
+                selectionRangeLetter.forEach((item) => {
                   if (isActiveUnderline === 0) {
                     item.options = {
                       ...item.options,
@@ -545,7 +535,7 @@
                 break;
               case "strikethrough":
                 const { isActiveStrikethrough } = this;
-                selectionRangeLetters.forEach((item) => {
+                selectionRangeLetter.forEach((item) => {
                   if (isActiveStrikethrough === 0) {
                     item.options = {
                       ...item.options,
@@ -577,25 +567,25 @@
             });
           },
           async refreshBtnState() {
-            const { selectionRangeLetters } =
+            const { selectionRangeLetter } =
               await this.getSelectionLetterData();
 
             // 获取选中文本的状态
-            this.isActiveBold = getState("bold", selectionRangeLetters);
-            this.isActiveItalic = getState("italic", selectionRangeLetters);
+            this.isActiveBold = getState("bold", selectionRangeLetter);
+            this.isActiveItalic = getState("italic", selectionRangeLetter);
             this.isActiveUnderline = getState(
               "underline",
-              selectionRangeLetters
+              selectionRangeLetter
             );
             this.isActiveStrikethrough = getState(
               "lineThrough",
-              selectionRangeLetters
+              selectionRangeLetter
             );
 
-            this.currentColor = getColor(selectionRangeLetters);
-            this.currentBgColor = getColor(selectionRangeLetters, 1);
+            this.currentColor = getColor(selectionRangeLetter);
+            this.currentBgColor = getColor(selectionRangeLetter, 1);
 
-            this.selectionHasComponent = selectionRangeLetters.some(
+            this.selectionHasComponent = selectionRangeLetter.some(
               (e) => e.options.comp
             );
           },
@@ -614,15 +604,11 @@
           },
           // 点击了内联组件按钮
           async clickPanelBtn(item) {
-            const {
-              startOffset,
-              endOffset,
-              letterData,
-              selectionRangeLetters,
-            } = await this.getSelectionLetterData();
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
 
             // 添加引用组件
-            selectionRangeLetters.forEach((letterData) => {
+            selectionRangeLetter.forEach((letterData) => {
               letterData.options = {
                 ...letterData.options,
                 comp: {
@@ -630,6 +616,22 @@
                 },
               };
             });
+
+            if (item.__data.click) {
+              const result = await item.__data.click({
+                blockEl: this.host, // 主体块元素
+                blockItemData: this.host.itemData,
+                pageItemData: this.host.parent.itemData,
+                startOffset,
+                endOffset,
+                letterData,
+                selectionRangeLetter,
+              });
+
+              if (result === false) {
+                return;
+              }
+            }
 
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
@@ -664,9 +666,9 @@
       };
     };
 
-    const getColor = (selectionRangeLetters, isBgColor) => {
+    const getColor = (selectionRangeLetter, isBgColor) => {
       let color = "";
-      selectionRangeLetters.some((item) => {
+      selectionRangeLetter.some((item) => {
         if (isBgColor) {
           if (item.options.backgroundColor) {
             const colorArr = item.options.backgroundColor
@@ -694,10 +696,10 @@
     };
 
     // 获取状态
-    const getState = (key, selectionRangeLetters) => {
+    const getState = (key, selectionRangeLetter) => {
       let activeStatus = 0;
       let allBold = true;
-      selectionRangeLetters.some((item) => {
+      selectionRangeLetter.some((item) => {
         if (item.options[key]) {
           activeStatus = 1;
         } else {
