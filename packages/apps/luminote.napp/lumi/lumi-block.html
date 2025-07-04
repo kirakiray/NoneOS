@@ -270,7 +270,7 @@
               </p-menu-item>
             </p-menu>
           </p-menu-item>
-          <p-menu-item disabled>
+          <p-menu-item on:click="handleCopy">
             <n-local-icon name="copy" slot="prefix"></n-local-icon>
             复制
           </p-menu-item>
@@ -389,6 +389,7 @@
 
     export default async ({ load }) => {
       const { getUserName } = await load("/packages/util/get-user-info.js");
+      const { toast } = await load("/packages/pui/util.js");
 
       const {
         addLoadingTask,
@@ -442,6 +443,11 @@
           },
         },
         proto: {
+          handleCopy() {
+            navigator.clipboard.writeText(this.text);
+            toast("复制成功");
+            this.leftMenuOpen = false;
+          },
           getInUserName() {
             if (this.itemData.focusUser) {
               if (this.itemData.focusUser.userId === this.selfUserId) {
