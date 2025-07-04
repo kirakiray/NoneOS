@@ -24,6 +24,8 @@ const defaults = {
     letterData,
     selectionRangeLetter,
   }) {
+    const selectionText = selectionRangeLetter.map((e) => e.text).join(""); // 选中的文本内容
+
     debugger;
   },
 };
