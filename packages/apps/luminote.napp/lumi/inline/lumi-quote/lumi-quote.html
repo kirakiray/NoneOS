@@ -7,6 +7,7 @@
       color: #d6b300;
       border-bottom: #d6b300 dashed 2px;
       background-color: rgba(255, 213, 0, 0.2);
+      cursor: pointer;
     }
   </style>
   <slot></slot>
@@ -23,12 +24,25 @@
         proto: {
           onActivate(opts) {
             // 激活时
-            console.log("quote activate", opts, this);
+            // console.log("quote activate", opts, this);
           },
           onDeactivate(opts) {
             // 取消激活时
-            console.log("quote deactivate", opts, this);
+            // console.log("quote deactivate", opts, this);
           },
+        },
+        attached() {
+          this.on("click", () => {
+            const { articleId } = this;
+            const [app] = this.parents.filter((e) => e.tag === "o-app");
+            const [notePage] = this.parents.filter((e) =>
+              e?.src?.includes("/note.html")
+            );
+
+            notePage.goto(
+              `./note.html?article_id=${articleId}&user_id=${notePage.currentUserId}&dir_name=${notePage.currentDirName}`
+            );
+          });
         },
       };
     };

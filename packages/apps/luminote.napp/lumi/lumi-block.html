@@ -834,7 +834,9 @@
         target.__tipsEl && target.__tipsEl.remove();
         target.__tipsEl = null;
 
-        $(target).onDeactivate && $(target).onDeactivate();
+        const $target = $(target);
+        $target.onDeactivate && $target.onDeactivate();
+        $target.active = false;
 
         if (target.__mousewheel_func) {
           document.removeEventListener("mousewheel", target.__mousewheel_func);
@@ -903,6 +905,7 @@
         };
 
         const $target = $(target);
+        $target.active = true;
         $target.onActivate &&
           $target.onActivate({
             tips: tipsEl,
