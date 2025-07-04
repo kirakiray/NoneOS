@@ -133,6 +133,12 @@ const getAllTextNode = (root) => {
   return arr;
 };
 
+const attributesToObject = (element) =>
+  Array.from(element.attributes).reduce(
+    (obj, { name, value }) => ((obj[name] = value), obj),
+    {}
+  );
+
 // 将元素转为字数据
 export const elementToLetterData = async (node, options = {}) => {
   if (node instanceof Text) {
@@ -150,6 +156,20 @@ export const elementToLetterData = async (node, options = {}) => {
     const comps = node.querySelectorAll("[custom-inline-component]");
     comps.forEach((e) => {
       const innerHTML = e.innerHTML;
+
+      const attrs = attributesToObject(e);
+      delete attrs["custom-inline-component"];
+
+      // 将属性更新到挂在的span上
+      e.parentNode.setAttribute(
+        "custom-comp",
+        encodeURI(
+          JSON.stringify({
+            tag: e.tagName.toLowerCase(),
+            ...attrs,
+          })
+        )
+      );
       e.parentNode.innerHTML = innerHTML;
     });
   }
@@ -161,6 +181,7 @@ export const elementToLetterData = async (node, options = {}) => {
   const isBold =
     parseInt(selfStyle.fontWeight) >= 600 ||
     parseInt(compStyle.fontWeight) >= 600;
+
   const isUnderline =
     selfStyle.textDecoration.includes("underline") ||
     compStyle.textDecoration.includes("underline");
@@ -259,6 +280,9 @@ export const letterDataToElement = async (letterData) => {
 
         // 塞入组件
         spanEl.html = compEl.ele.outerHTML;
+
+        // 去除 custom-comp 的内容
+        spanEl.attr("custom-comp", "");
       });
 
       // 替换内容
@@ -274,7 +298,7 @@ const getStyleStr = (options) => {
   let styleStr = "";
 
   if (options.bold) {
-    styleStr += "font-weight: bold;";
+    styleStr += "font-weight: 600;";
   }
 
   if (options.underline && options.lineThrough) {

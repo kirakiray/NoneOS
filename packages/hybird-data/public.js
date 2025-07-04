@@ -104,7 +104,7 @@ export const realSaveData = async (hydata) => {
     const newValues = Object.values(finnalData);
     const deleteValues = oldValues.filter((val) => !newValues.includes(val)); // 已被删除的value
 
-    console.log("deleteValues", deleteValues); // eslint-disable-line no-cons
+    // console.log("deleteValues", deleteValues); // eslint-disable-line no-cons
 
     if (deleteValues.length) {
       await Promise.all(deleteValues.map((e) => removeData(e, hydata)));

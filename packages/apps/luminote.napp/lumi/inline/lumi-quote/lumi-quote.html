@@ -1,18 +1,30 @@
 <template component>
   <style>
     :host {
+      position: relative;
       display: inline-flex;
       line-height: 1.2em;
       color: #ffd500;
       border-bottom: #ffd500 dashed 2px;
       background-color: rgba(255, 213, 0, 0.2);
     }
+    .tips {
+      position: absolute;
+      top: -8px;
+      left: 100%;
+      color: red;
+      white-space: nowrap;
+    }
   </style>
+  <div class="tips">{{val}}</div>
   <slot></slot>
   <script>
     export default async () => {
       return {
         tag: "lumi-quote",
+        attrs: {
+          val: "",
+        },
         data: {
           active: false, // 是否处在激活的状态
         },

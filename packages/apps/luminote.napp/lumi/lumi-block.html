@@ -834,6 +834,13 @@
           `<${registerItem.formTag}></${registerItem.formTag}>`
         );
 
+        $.nextTick(() => {
+          // 运行组件的初始化函数
+          tipsEl.onInit({
+            target: $(target),
+          });
+        });
+
         tipsEl.on("mouseover", () => {
           // 直接移动进来的时候
           clearTimeout(target._tips_remove_timer);
