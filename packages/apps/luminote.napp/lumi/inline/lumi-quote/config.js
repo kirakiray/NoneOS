@@ -1,3 +1,5 @@
+import { createArticleData } from "../../../util/create-article-data.js";
+
 const defaults = {
   inlineComponentSrc:
     "/packages/apps/luminote.napp/lumi/inline/lumi-quote/lumi-quote.html",
@@ -12,12 +14,13 @@ const defaults = {
   },
   desc: {
     en: "Create a new note to explain the selected content.",
-    cn: "新建一份笔记，对选中内容进行解释说明。",
+    cn: "新建一篇笔记，对选中内容进行解释说明。",
   },
   // 点击内联组件时触发
   click({
     blockItemData,
     pageItemData,
+    pageEl,
     blockEl,
     startOffset,
     endOffset,
@@ -26,7 +29,28 @@ const defaults = {
   }) {
     const selectionText = selectionRangeLetter.map((e) => e.text).join(""); // 选中的文本内容
 
-    debugger;
+    // 在目标区域下创建一篇文章组件，并添加到后面
+    const targetIndex = pageItemData.content.indexOf(blockItemData);
+
+    const articleData = createArticleData();
+
+    articleData.title = selectionText;
+
+    // 添加到正文内
+    pageItemData.content.splice(targetIndex + 1, 0, articleData);
+
+    // 获取真实的item数据
+    const realItemData = pageItemData.content[targetIndex + 1];
+
+    setTimeout(() => {
+      // 一秒后跳转到对应的文章
+      debugger;
+    }, 1000);
+
+    return {
+      // 给内联组件添加文章的id
+      articleId: realItemData._dataId,
+    };
   },
 };
 

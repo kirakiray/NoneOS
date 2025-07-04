@@ -607,20 +607,12 @@
             const { startOffset, endOffset, letterData, selectionRangeLetter } =
               await this.getSelectionLetterData();
 
-            // 添加引用组件
-            selectionRangeLetter.forEach((letterData) => {
-              letterData.options = {
-                ...letterData.options,
-                comp: {
-                  tag: item.tag,
-                },
-              };
-            });
-
+            let result;
             if (item.__data.click) {
-              const result = await item.__data.click({
+              result = await item.__data.click({
                 blockEl: this.host, // 主体块元素
                 blockItemData: this.host.itemData,
+                pageEl: this.host.parent,
                 pageItemData: this.host.parent.itemData,
                 startOffset,
                 endOffset,
@@ -632,6 +624,18 @@
                 return;
               }
             }
+
+            debugger;
+            // 添加引用组件
+            selectionRangeLetter.forEach((letterData) => {
+              letterData.options = {
+                ...letterData.options,
+                comp: {
+                  tag: item.tag,
+                  ...result,
+                },
+              };
+            });
 
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);

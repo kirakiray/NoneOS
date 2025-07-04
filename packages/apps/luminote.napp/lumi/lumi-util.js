@@ -270,6 +270,9 @@ export const letterDataToElement = async (letterData) => {
 
         let propStr = "";
         for (let [key, value] of Object.entries(data)) {
+          // key中的大小写改为-驼峰
+          key = key.replace(/([A-Z])/g, "-$1").toLowerCase();
+
           propStr += ` ${key}="${value}"`;
         }
 
