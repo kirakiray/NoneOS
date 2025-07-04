@@ -23,15 +23,10 @@
       }
     }
   </style>
-  <p-input
-    size="small"
-    variant="filled"
-    sync:value="target.articleId"
-    style="width: 200px"
-  >
-    <label> 引用来源于 </label>
-  </p-input>
-
+  <div style="display: flex">
+    <div style="color: var(--md-sys-color-primary)">引用来源文章id</div>
+    {{target.articleId}}
+  </div>
   <script>
     export default async ({ load }) => {
       return {

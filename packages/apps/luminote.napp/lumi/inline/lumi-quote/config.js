@@ -17,16 +17,7 @@ const defaults = {
     cn: "新建一篇笔记，对选中内容进行解释说明。",
   },
   // 点击内联组件时触发
-  click({
-    blockItemData,
-    pageItemData,
-    pageEl,
-    blockEl,
-    startOffset,
-    endOffset,
-    letterData,
-    selectionRangeLetter,
-  }) {
+  click({ blockItemData, pageItemData, blockEl, selectionRangeLetter }) {
     const selectionText = selectionRangeLetter.map((e) => e.text).join(""); // 选中的文本内容
 
     // 在目标区域下创建一篇文章组件，并添加到后面
@@ -43,9 +34,17 @@ const defaults = {
     const realItemData = pageItemData.content[targetIndex + 1];
 
     setTimeout(() => {
-      // 一秒后跳转到对应的文章
-      debugger;
-    }, 1000);
+      const [targetNotePage] = blockEl.parents.filter((e) =>
+        e?.src?.includes("note.html")
+      );
+
+      if (targetNotePage) {
+        // 一秒后跳转到对应的文章
+        targetNotePage.goto(
+          `./note.html?article_id=${realItemData._dataId}&dir_name=${targetNotePage.currentDirName}&user_id=${targetNotePage.currentUserId}`
+        );
+      }
+    }, 200);
 
     return {
       // 给内联组件添加文章的id
