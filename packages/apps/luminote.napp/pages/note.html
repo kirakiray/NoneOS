@@ -63,12 +63,13 @@
           async loadArticle() {
             try {
               // 查找对应文章
-              const { target, titles } = await findArticle(
-                this.app,
-                article_id,
-                user_id,
-                dir_name
-              );
+              const { target, titles } = await findArticle({
+                app: this.app,
+                dataId: article_id,
+                userId: user_id,
+                dirName: dir_name,
+                isAddProject: 1,
+              });
 
               this.itemData = target;
 

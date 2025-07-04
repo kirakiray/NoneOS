@@ -404,12 +404,13 @@
 
             switch (type) {
               case "addSubNote":
-                const { target: targetArticle, titles } = await findArticle(
-                  this.app,
-                  this.currentArticleDataId,
-                  this.currentUserId,
-                  this.currentDirName
-                );
+                const { target: targetArticle, titles } = await findArticle({
+                  app: this.app,
+                  dataId: this.currentArticleDataId,
+                  userId: this.currentUserId,
+                  dirName: this.currentDirName,
+                  isAddProject: 1,
+                });
 
                 targetArticle.content.push(createArticleData());
 
