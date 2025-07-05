@@ -18,7 +18,8 @@ export const getServers = async (useLocalUserDirName) => {
     // 初始化服务器列表
     if (!selfUserStore.servers || selfUserStore.servers.length === 0) {
       selfUserStore.servers = [];
-      if (location.host.includes("localhost")) {
+      if (location.host.includes("localhost") && location.port == 5559) {
+        // 测试环境下
         await selfUserStore.servers.ready();
 
         // 加入测试地址

@@ -13,6 +13,7 @@ const sources = [
   "../recovery",
   "../sw.js",
   "../index.html",
+  "../package.json",
 ];
 
 async function copyDirectories() {

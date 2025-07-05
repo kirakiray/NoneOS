@@ -14,7 +14,7 @@ const createWindow = (url) => {
 };
 
 app.whenReady().then(() => {
-  createWindow("http://localhost:55596");
+  createWindow("http://localhost:55969");
 });
 
 app.on("window-all-closed", () => {

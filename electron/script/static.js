@@ -22,4 +22,4 @@ app.use(async (ctx, next) => {
 
 app.use(home);
 
-export const _server = app.listen(55596);
+export const _server = app.listen(55969);

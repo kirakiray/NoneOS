@@ -140,6 +140,13 @@
           <n-desc space="setting" name="restart"></n-desc>
         </p-button>
       </p-list-item>
+      <p-list-item>
+        <n-local-icon name="recovery" slot="prefix"></n-local-icon>
+        Recovery Mode
+        <p-button slot="suffix" size="small" on:click="gotoRecovery">
+          GO
+        </p-button>
+      </p-list-item>
     </div>
     <h5>
       <n-desc space="setting" name="appearance"></n-desc>
@@ -241,6 +248,9 @@
         },
         watch: {},
         proto: {
+          gotoRecovery() {
+            location.href = "/recovery";
+          },
           reloadOptions() {
             setTimeout(() => {
               this.dirOptions = [
