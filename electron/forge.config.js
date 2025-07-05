@@ -5,10 +5,10 @@ export default {
   packagerConfig: {
     asar: true,
     osx: {
-      icon: "./icons/mac/icon.icns", // 必须是 .icns 文件
+      icon: "./icon.icns", // 必须是 .icns 文件
     },
     win: {
-      icon: "./icons/win/icon.ico", // 必须是 .ico 文件
+      icon: "./icon.ico", // 必须是 .ico 文件
     },
   },
   rebuildConfig: {},
@@ -20,6 +20,9 @@ export default {
     {
       name: "@electron-forge/maker-zip",
       platforms: ["darwin"],
+      config: {
+        icon: "./icon.icns", // macOS图标
+      },
     },
     {
       name: "@electron-forge/maker-deb",
