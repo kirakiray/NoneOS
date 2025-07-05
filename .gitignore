@@ -114,3 +114,4 @@ old/
 /blob-report/
 /playwright/.cache/
 rootkeys
+electron/out
