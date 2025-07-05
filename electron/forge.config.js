@@ -4,6 +4,12 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 export default {
   packagerConfig: {
     asar: true,
+    osx: {
+      icon: "./icons/mac/icon.icns", // 必须是 .icns 文件
+    },
+    win: {
+      icon: "./icons/win/icon.ico", // 必须是 .ico 文件
+    },
   },
   rebuildConfig: {},
   makers: [
