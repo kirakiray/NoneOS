@@ -115,3 +115,6 @@ old/
 /playwright/.cache/
 rootkeys
 electron/out
+electron/packages
+electron/sw
+electron/dist

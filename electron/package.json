@@ -25,6 +25,8 @@
     "electron": "^37.2.0"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1"
+    "electron-squirrel-startup": "^1.0.1",
+    "koa": "^2.15.3",
+    "koa-static": "^5.0.0"
   }
 }

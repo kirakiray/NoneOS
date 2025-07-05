@@ -1,18 +1,23 @@
 import { app, BrowserWindow } from "electron";
+import "./script/static.js";
 
-const createWindow = () => {
+const createWindow = (url) => {
   const win = new BrowserWindow({
     width: 800,
-    height: 600,
+    height: 800,
   });
 
-  win.loadFile("index.html");
+  //   win.loadFile("index.html");
+  win.loadURL(url);
+
+  return win;
 };
 
 app.whenReady().then(() => {
-  createWindow();
+  createWindow("http://localhost:55596");
 });
 
 app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+  //   if (process.platform !== "darwin") app.quit();
+  app.quit();
 });
