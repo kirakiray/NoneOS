@@ -118,3 +118,6 @@ electron/out
 electron/packages
 electron/sw
 electron/dist
+electron/install
+electron/others
+electron/sw.js

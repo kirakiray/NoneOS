@@ -5,6 +5,10 @@ const sources = [
   "../dist",
   "../packages",
   "../sw",
+  "../install",
+  "../others",
+  "../sw.js",
+  "../index.html",
 ];
 
 async function copyDirectories() {
