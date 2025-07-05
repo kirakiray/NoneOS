@@ -3,7 +3,7 @@ import serve from "koa-static";
 import path from "path";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
-const home = serve(path.normalize(__dirname + "/../"));
+const home = serve(path.normalize(__dirname + "/../sources/"));
 
 const app = new Koa();
 app.use(async (ctx, next) => {
@@ -22,4 +22,4 @@ app.use(async (ctx, next) => {
 
 app.use(home);
 
-const _server = app.listen(55596);
+export const _server = app.listen(55596);
