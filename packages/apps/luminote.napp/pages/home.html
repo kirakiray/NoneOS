@@ -43,7 +43,17 @@
 
   <div>
     <h4>本地AI</h4>
-    <div style="color: var(--md-sys-color-normal)">准备中...</div>
+    <div>
+      <o-if :value="models === 0"> 加载中... </o-if>
+      <o-else-if :value="models === 'error'">
+        <span style="color: var(--md-sys-color-error)">加载失败</span>
+      </o-else-if>
+      <o-else>
+        <span style="color: var(--md-sys-color-primary)">
+          本地检测到 {{models.length}} 个模型
+        </span>
+      </o-else>
+    </div>
   </div>
 
   <div>
@@ -63,6 +73,7 @@
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
+      const { getOllamaModels } = await load("/packages/ai/util.js");
 
       return {
         data: {
@@ -72,6 +83,7 @@
           existProjects: [], // 已经存在的项目
           remotes: [], // 其他设备
           loadingRemote: false,
+          models: 0,
         },
         proto: {
           async handleDeleteProject(data, event) {
@@ -106,6 +118,12 @@
               hide: 1,
             },
           });
+
+          getOllamaModels()
+            .then((e) => {
+              this.models = e;
+            })
+            .catch(() => (this.models = "error"));
         },
         detached() {},
       };
