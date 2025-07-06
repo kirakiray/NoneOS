@@ -303,7 +303,7 @@
             删除
           </p-menu-item>
           <hr />
-          <p-menu-item disabled>
+          <p-menu-item on:click="handleBeautify">
             <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
             润色
           </p-menu-item>
@@ -375,6 +375,30 @@
     ></lumi-block-pannel>
   </o-if>
 
+  <style>
+    .beautify-content {
+      box-sizing: border-box;
+      max-width: 800px;
+      padding: 0 8px;
+      margin: 0 auto;
+      color: var(--md-sys-color-normal);
+    }
+  </style>
+
+  <o-if :value="beautifyStep !== 0">
+    <div class="beautify-content">
+      <div>{{beautifyContent}}</div>
+      <o-if :value="beautifyStep === 2">
+        <div style="margin: 8px 0">
+          <p-button size="small" on:click="useBeautify">采用</p-button>
+          <p-button size="small" variant="text" on:click="discardBeautify"
+            >放弃</p-button
+          >
+        </div>
+      </o-if>
+    </div>
+  </o-if>
+
   <script>
     import { inlineComps } from "./inline/config.js";
 
@@ -424,6 +448,8 @@
         getContainerAndOffset,
       } = await load("./lumi-util.js");
 
+      const { askOllamaStream } = await load("/packages/ai/util.js");
+
       if (!selfUserId) {
         try {
           const { getUserStore } = await load("/packages/user/user-store.js");
@@ -448,6 +474,8 @@
           pannelPositionLeft: 0,
           focusUserName: "",
           blockComps,
+          beautifyContent: "Loading...",
+          beautifyStep: 0,
         },
         watch: {
           ["itemData.value"]() {
@@ -469,6 +497,37 @@
           },
         },
         proto: {
+          useBeautify() {
+            this.beautifyStep = 0;
+            this.itemData.value = this.beautifyContent;
+            this.beautifyContent = "";
+          },
+          discardBeautify() {
+            this.beautifyStep = 0;
+            this.beautifyContent = "";
+          },
+          async handleBeautify() {
+            this.leftMenuOpen = false;
+
+            let text = "";
+            this.beautifyStep = 1;
+
+            // 使用示例
+            await askOllamaStream(
+              `/no_think 润色并直接返回润色后的结果：
+            ${this.itemData.value}`,
+              "qwen3:4b",
+              (chunk) => {
+                text += chunk;
+                this.beautifyContent = text.replace(
+                  /<think>\s+<\/think>\s+/,
+                  ""
+                );
+              }
+            );
+
+            this.beautifyStep = 2;
+          },
           handleDelete() {
             if (this.itemData.type === "article") {
               this.itemData.removed = true;

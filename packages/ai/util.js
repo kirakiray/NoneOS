@@ -30,6 +30,7 @@ export async function askOllamaStream(prompt, model = "qwen3:4b", callback) {
           repeat_penalty: 1.1,
           num_predict: 512, // 最大生成长度
           // nothink: true, // 启用无思考模式
+          enable_thinking: "False",
         },
       }),
     });
