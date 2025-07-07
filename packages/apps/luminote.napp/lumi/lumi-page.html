@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./lumi-block.html"></l-m>
+  <link rel="stylesheet" href="/packages/none-os/public.css" />
   <style>
     :host {
       display: block;
@@ -45,7 +46,7 @@
       </p-button>
     </div>
   </o-if>
-  <div class="container">
+  <div class="container" on:multi-select-component="multiSelectComponent">
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
       <input
@@ -71,6 +72,74 @@
       ></lumi-block>
     </o-fill> -->
   </div>
+
+  <style>
+    .mask {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10000;
+      pointer-events: none;
+    }
+
+    .mask.show-multi-panel {
+      pointer-events: auto;
+    }
+
+    .multi-panel {
+      position: fixed;
+      top: 100px;
+      left: 100px;
+      padding: 3px;
+      background-color: var(--md-sys-color-on-normal);
+      box-shadow: var(--contained-shadow);
+      border-radius: 20px;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity ease 0.2s, transform ease 0.2s;
+    }
+
+    .mask.show-multi-panel .multi-panel {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  </style>
+
+  <div
+    class="mask"
+    class:show-multi-panel="multiSelected"
+    on:click="clickMultiMask"
+  >
+    <div
+      class="multi-panel"
+      :style.top="multiPanelStyle.top"
+      :style.left="multiPanelStyle.left"
+    >
+      <p-button size="small" variant="text">
+        <n-local-icon
+          name="copy"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        复制
+      </p-button>
+      <p-button
+        size="small"
+        color="error"
+        variant="text"
+        on:click="clickMultiDelete"
+      >
+        <n-local-icon
+          name="delete"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        删除
+      </p-button>
+    </div>
+  </div>
   <script>
     let selfUserId;
     export default async ({ load }) => {
@@ -87,8 +156,60 @@
         tag: "lumi-page",
         data: {
           itemData: {},
+          multiSelected: false,
+          multiPanelStyle: {
+            top: 0,
+            left: 0,
+          },
         },
         proto: {
+          clickMultiDelete() {
+            // 逐个删除内容
+            const { content } = this.itemData;
+
+            this._rangData.forEach((item) => {
+              if (item.type === "article") {
+                item.removed = true;
+              } else {
+                const index = content.indexOf(item);
+                content.splice(index, 1);
+              }
+            });
+          },
+          clickMultiMask() {
+            this.multiSelected = false;
+            this.forEach((e) => {
+              if (e.selected) {
+                e.selected = false;
+              }
+            });
+          },
+          // 多选选中组件
+          multiSelectComponent(e) {
+            e.stopPropagation();
+            const { data } = e;
+            const { originEvent } = data;
+
+            const start =
+              data.startIndex > data.endIndex ? data.endIndex : data.startIndex;
+            const end =
+              data.startIndex > data.endIndex ? data.startIndex : data.endIndex;
+
+            const rangeData = this.itemData.content.slice(start, end + 1);
+            const rangeEl = this.slice(start, end + 1);
+
+            // 选中目标的组件，并弹窗显示操作
+            rangeEl.forEach((e) => (e.selected = true));
+
+            this._rangData = rangeData;
+
+            this.multiPanelStyle = {
+              left: `${originEvent.clientX}px`,
+              top: `${originEvent.clientY}px`,
+            };
+
+            this.multiSelected = true;
+          },
           titleKeyDown(e) {
             if (e.key === "Enter") {
               this.focusLast();
@@ -180,11 +301,19 @@
                 return;
               }
 
+              if (
+                !Array.from(e).filter((e2) => e2.name !== "dataStatus").length
+              ) {
+                return;
+              }
+
               const { content } = this.itemData;
 
               if (!content) {
                 return;
               }
+
+              console.log("content: ", e);
 
               // 遍历子元素,如果不一致则进行修正
               for (let i = 0, len = content.length; i < len; i++) {

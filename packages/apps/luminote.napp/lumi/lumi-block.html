@@ -123,7 +123,7 @@
       color: var(--md-sys-color-primary);
     }
 
-    .openedmenu {
+    .active-bg {
       background-color: var(--md-ref-palette-translucent-primary60);
     }
 
@@ -215,7 +215,7 @@
   <o-if :value="!loading">
     <div
       class="inputer"
-      class:openedmenu="leftMenuOpen"
+      class:active-bg="leftMenuOpen || selected"
       on:dragover="handleDargover"
       on:dragleave="dragovering = false"
       on:drop="handleDropEvent"
@@ -326,17 +326,6 @@
               </div>
             </o-if>
           </div>
-          <!-- <div
-            class="inputer-content"
-            class:dragovering="dragovering"
-            contenteditable="plaintext-only"
-            on:input="handleInputContent"
-            on:keydown="handleKeyDownEvent"
-            :html="itemData.value"
-            on:focus="handleFocus"
-            on:mousedown="handleTextMouseDown"
-            on:mouseup="handleTextMouseUp"
-          ></div> -->
           <slot></slot>
         </lumi-fake>
       </o-if>
@@ -448,6 +437,8 @@
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
         getContainerAndOffset,
+        elementToLetterData,
+        letterDataToElement,
       } = await load("./util/range.js");
 
       const { askOllamaStream } = await load("/packages/ai/util.js");
@@ -478,6 +469,7 @@
           blockComps,
           beautifyContent: "Loading...",
           beautifyStep: 0,
+          selected: false, // 是否被选中
         },
         watch: {
           ["itemData.value"]() {
@@ -648,16 +640,48 @@
               this.handleTextMouseUp(e);
             });
 
-            inputerContent.on("paste", (e) => {
+            inputerContent.on("paste", async (e) => {
+              e.preventDefault();
+
               // 获取粘贴的内容
               const clipboardData = e.clipboardData;
               // const pastedText = clipboardData.getData("text");
               const pastedHtml = clipboardData.getData("text/html");
 
               if (pastedHtml) {
-                const temp = $(`<template>${pastedHtml}</template>`);
+                const temp = $(`<template>${pastedHtml}</template>`).ele;
 
-                debugger;
+                const contents = [];
+
+                for (let item of temp.content.children) {
+                  if (item.innerHTML) {
+                    const reContent = await elementToLetterData(item);
+                    contents.push({
+                      type: "paragraph",
+                      value: await letterDataToElement(reContent),
+                    });
+                  }
+                }
+
+                const parentContent = this.parent.itemData.content;
+
+                // 在当前的前面添加对应的数据
+                const index = parentContent.indexOf(this.itemData);
+
+                if (index > -1) {
+                  parentContent.splice(index, 0, ...contents);
+                }
+
+                // 重新分段
+
+                // const letterData = await elementToLetterData(temp.ele.content);
+
+                // 重新转化
+                // const html = await letterDataToElement(letterData);
+
+                // 粘贴到本地
+                // this.__inputerContent.html = html;
+
                 return;
               }
 
@@ -678,8 +702,22 @@
             // console.log("handleTextMouseUp: ", e);
 
             if (mouseDownBlock !== this) {
-              mouseDownBlock = null;
               // TODO: 这个时候应该是多选
+              const parentContent = this.parent.itemData.content;
+              const startIndex = parentContent.indexOf(mouseDownBlock.itemData);
+              const selfIndex = parentContent.indexOf(this.itemData);
+
+              this.emit("multi-select-component", {
+                data: {
+                  startIndex,
+                  endIndex: selfIndex,
+                  originEvent: e,
+                },
+                composed: true,
+              });
+
+              // 将多选的这个元素递交给上一层
+              mouseDownBlock = null;
               return;
             }
 

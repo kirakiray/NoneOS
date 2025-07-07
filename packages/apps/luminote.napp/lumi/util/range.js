@@ -139,37 +139,41 @@ export const elementToLetterData = async (node, options = {}) => {
     });
   }
 
-  // 获取样式
-  const compStyle = getComputedStyle(node);
-  const selfStyle = node.style;
+  let selfOptions = {};
 
-  const isBold =
-    parseInt(selfStyle.fontWeight) >= 600 ||
-    parseInt(compStyle.fontWeight) >= 600;
+  if (node.style) {
+    // 获取样式
+    const compStyle = getComputedStyle(node);
+    const selfStyle = node.style;
 
-  const isUnderline =
-    selfStyle.textDecoration.includes("underline") ||
-    compStyle.textDecoration.includes("underline");
-  const isLineThrough =
-    selfStyle.textDecoration.includes("line-through") ||
-    compStyle.textDecoration.includes("line-through");
-  const isItalic =
-    selfStyle.fontStyle === "italic" || compStyle.fontStyle === "italic";
-  const color = selfStyle.color;
-  const backgroundColor = selfStyle.backgroundColor;
-  const comp = node.getAttribute("custom-comp");
+    const isBold =
+      parseInt(selfStyle.fontWeight) >= 600 ||
+      parseInt(compStyle.fontWeight) >= 600;
 
-  const selfOptions = {
-    bold: isBold,
-    underline: isUnderline,
-    lineThrough: isLineThrough,
-    italic: isItalic,
-    color,
-    backgroundColor,
-  };
+    const isUnderline =
+      selfStyle.textDecoration.includes("underline") ||
+      compStyle.textDecoration.includes("underline");
+    const isLineThrough =
+      selfStyle.textDecoration.includes("line-through") ||
+      compStyle.textDecoration.includes("line-through");
+    const isItalic =
+      selfStyle.fontStyle === "italic" || compStyle.fontStyle === "italic";
+    const color = selfStyle.color;
+    const backgroundColor = selfStyle.backgroundColor;
+    const comp = node.getAttribute("custom-comp");
 
-  if (comp) {
-    selfOptions.comp = JSON.parse(decodeURI(comp));
+    selfOptions = {
+      bold: isBold,
+      underline: isUnderline,
+      lineThrough: isLineThrough,
+      italic: isItalic,
+      color,
+      backgroundColor,
+    };
+
+    if (comp) {
+      selfOptions.comp = JSON.parse(decodeURI(comp));
+    }
   }
 
   let arr = [];
