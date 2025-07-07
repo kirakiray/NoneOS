@@ -2,6 +2,20 @@
 export const diffFill = ({ container, data, create, isEqual }) => {
   // 遍历子元素，如果不一致则进行修正
   let lastEl = null; // 最后一个添加进去的元素
+
+  if (!container.length) {
+    const frag = $.frag();
+
+    for (let i = 0, len = data.length; i < len; i++) {
+      const item = data[i];
+      const blockEl = create({ item });
+      frag.push(blockEl);
+    }
+
+    container.push(frag);
+    return;
+  }
+
   for (let i = 0, len = data.length; i < len; i++) {
     const item = data[i];
     const currentEl = container[i];
