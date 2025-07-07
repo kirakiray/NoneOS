@@ -4,6 +4,7 @@ import { FuseV1Options, FuseVersion } from "@electron/fuses";
 export default {
   packagerConfig: {
     asar: true,
+    icon: "./icon.icns",
     osx: {
       icon: "./icon.icns", // 必须是 .icns 文件
     },
