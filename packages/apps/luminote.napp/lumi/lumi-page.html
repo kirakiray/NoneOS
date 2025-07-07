@@ -143,6 +143,8 @@
   <script>
     let selfUserId;
     export default async ({ load }) => {
+      const { diffFill } = await load("./util/diff-fill.js");
+
       if (!selfUserId) {
         try {
           const { getUserStore } = await load("/packages/user/user-store.js");
@@ -318,65 +320,22 @@
                 return;
               }
 
-              // 遍历子元素，如果不一致则进行修正
-              let lastEl = null; // 最后一个添加进去的元素
-              for (let i = 0, len = content.length; i < len; i++) {
-                const item = content[i];
-                const currentEl = this[i];
-
-                if (!currentEl) {
-                  // 如果没有存在元素,代表为空,直接塞新数据进去
+              diffFill({
+                container: this,
+                data: content,
+                create: ({ item }) => {
                   const blockEl = $(
                     `<lumi-block data-type="${item.type}"></lumi-block>`
                   );
 
                   blockEl.itemData = item;
 
-                  lastEl = blockEl;
-                  this.push(blockEl);
-                } else {
-                  // 查看数据是否一致
-                  if (currentEl.itemData === item) {
-                    lastEl = currentEl;
-                    continue;
-                  }
-
-                  // 查看是否在后面的元素中
-                  const exitedIndex = this.findIndex((e) => {
-                    return e.itemData === item;
-                  });
-
-                  if (exitedIndex > -1) {
-                    // 只修正位移
-                    const exitedItem = this[exitedIndex];
-                    // 防止触发 detached 事件
-                    exitedItem.ele.__internal = 1;
-                    currentEl.before(exitedItem);
-                    delete exitedItem.ele.__internal;
-                    lastEl = exitedItem;
-
-                    continue;
-                  }
-
-                  // 如果没有存在元素,代表为空,直接塞新数据进去
-                  const blockEl = $(
-                    `<lumi-block data-type="${item.type}"></lumi-block>`
-                  );
-
-                  blockEl.itemData = item;
-
-                  // 在目标前面添加
-                  currentEl.before(blockEl);
-                  lastEl = blockEl;
-                }
-              }
-
-              // 将最后元素的后面的元素全部清除
-              let next = lastEl.next;
-              while (next) {
-                next.remove();
-                next = lastEl.next;
-              }
+                  return blockEl;
+                },
+                isEqual: (subEl, item) => {
+                  return subEl.itemData === item;
+                },
+              });
             });
 
             this.on("enter", (e) => {
