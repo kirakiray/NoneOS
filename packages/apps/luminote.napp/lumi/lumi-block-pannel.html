@@ -322,7 +322,7 @@
   <script>
     export default async ({ load }) => {
       const { elementToLetterData, letterDataToElement, getRealOffset } =
-        await load("./lumi-util.js");
+        await load("./util/range.js");
       const { inlineComps } = await load("./inline/config.js");
 
       {

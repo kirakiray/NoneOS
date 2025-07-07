@@ -440,13 +440,15 @@
         load(item.src);
       });
 
+      const { addLoadingTask, removeLoadingTask } = await load(
+        "./util/lumi-util.js"
+      );
+
       const {
-        addLoadingTask,
-        removeLoadingTask,
         focusAndSetCursorAtEnd,
         getFirstLinePosition,
         getContainerAndOffset,
-      } = await load("./lumi-util.js");
+      } = await load("./util/range.js");
 
       const { askOllamaStream } = await load("/packages/ai/util.js");
 
@@ -644,6 +646,27 @@
 
             inputerContent.on("mouseup", (e) => {
               this.handleTextMouseUp(e);
+            });
+
+            inputerContent.on("paste", (e) => {
+              // 获取粘贴的内容
+              const clipboardData = e.clipboardData;
+              // const pastedText = clipboardData.getData("text");
+              const pastedHtml = clipboardData.getData("text/html");
+
+              if (pastedHtml) {
+                const temp = $(`<template>${pastedHtml}</template>`);
+
+                debugger;
+                return;
+              }
+
+              const pastedText = clipboardData.getData("text/plain");
+
+              // 内容分段
+              const lines = pastedText.split("\n");
+
+              debugger;
             });
 
             this.push(inputerContent);
