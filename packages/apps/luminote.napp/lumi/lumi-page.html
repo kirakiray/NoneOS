@@ -301,9 +301,14 @@
                 return;
               }
 
-              if (
-                !Array.from(e).filter((e2) => e2.name !== "dataStatus").length
-              ) {
+              const finalArr = Array.from(e).filter(
+                (e) =>
+                  e.name !== "dataStatus" &&
+                  e.name !== "inFocus" &&
+                  e.name !== "focusUser"
+              );
+
+              if (!finalArr.length) {
                 return;
               }
 
@@ -313,9 +318,8 @@
                 return;
               }
 
-              console.log("content: ", e);
-
-              // 遍历子元素,如果不一致则进行修正
+              // 遍历子元素，如果不一致则进行修正
+              let lastEl = null; // 最后一个添加进去的元素
               for (let i = 0, len = content.length; i < len; i++) {
                 const item = content[i];
                 const currentEl = this[i];
@@ -328,10 +332,12 @@
 
                   blockEl.itemData = item;
 
+                  lastEl = blockEl;
                   this.push(blockEl);
                 } else {
                   // 查看数据是否一致
                   if (currentEl.itemData === item) {
+                    lastEl = currentEl;
                     continue;
                   }
 
@@ -345,15 +351,10 @@
                     const exitedItem = this[exitedIndex];
                     // 防止触发 detached 事件
                     exitedItem.ele.__internal = 1;
-                    console.log("exitedItem: ", exitedItem.xid);
                     currentEl.before(exitedItem);
                     delete exitedItem.ele.__internal;
+                    lastEl = exitedItem;
 
-                    // 判断 current 是否需要删除
-                    if (!content.includes(currentEl.itemData)) {
-                      // 需要删除
-                      currentEl.remove();
-                    }
                     continue;
                   }
 
@@ -366,10 +367,16 @@
 
                   // 在目标前面添加
                   currentEl.before(blockEl);
+                  lastEl = blockEl;
                 }
               }
 
-              // debugger;
+              // 将最后元素的后面的元素全部清除
+              let next = lastEl.next;
+              while (next) {
+                next.remove();
+                next = lastEl.next;
+              }
             });
 
             this.on("enter", (e) => {
