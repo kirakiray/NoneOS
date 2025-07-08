@@ -218,6 +218,13 @@
             const end =
               data.startIndex > data.endIndex ? data.startIndex : data.endIndex;
 
+            if (start === end) {
+              this.forEach((e, i) => {
+                e.selected = null;
+              });
+              return;
+            }
+
             // 修正选中区域
             this.forEach((e, i) => {
               if (i >= start && i <= end) {
@@ -288,7 +295,7 @@
             setTimeout(() => {
               // this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
               this[finnalIndex].focus();
-            }, 10);
+            }, 1);
           },
           async handleDelete(data, index) {
             this.itemData.content.splice(index, 1);

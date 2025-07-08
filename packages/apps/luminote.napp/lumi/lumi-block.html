@@ -637,7 +637,7 @@
             });
 
             inputerContent.on("mouseenter", (e) => {
-              if (mouseDownBlock && mouseDownBlock !== this) {
+              if (mouseDownBlock) {
                 const parentContent = this.parent.itemData.content;
                 const startIndex = parentContent.indexOf(
                   mouseDownBlock.itemData
@@ -652,8 +652,6 @@
                   },
                   composed: true,
                 });
-              } else {
-                // 选中内容
               }
             });
 
