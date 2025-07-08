@@ -5,6 +5,7 @@
     :host {
       display: block;
       margin: 0 auto;
+      user-select: auto;
     }
     /* .container {
     } */
@@ -172,18 +173,26 @@
         },
         proto: {
           clickMultiCopy() {
-            let content = "";
+            let textContent = "";
+            let htmlContent = "";
 
             const lastIndex = this._rangData.length - 1;
 
-            this._rangData.forEach((item, index) => {
-              content += item.value;
+            this._rangeEl.forEach((item, index) => {
+              textContent += item.text;
               if (index !== lastIndex) {
-                content += `\n\n`;
+                textContent += `\n\n`;
               }
+
+              htmlContent += item.htmlContent + "\n";
             });
 
-            navigator.clipboard.writeText(content);
+            navigator.clipboard.write([
+              new ClipboardItem({
+                "text/html": new Blob([htmlContent], { type: "text/html" }),
+                "text/plain": new Blob([textContent], { type: "text/plain" }),
+              }),
+            ]);
 
             toast("复制成功");
           },
@@ -251,22 +260,39 @@
             // 选中目标的组件，并弹窗显示操作
             rangeEl.forEach((e) => (e.selected = true));
 
+            this._rangeEl = rangeEl;
             this._rangData = rangeData;
 
-            this.multiPanelStyle = {
-              left: `${originEvent.clientX}px`,
-              top: `${originEvent.clientY}px`,
-            };
+            if (!originEvent) {
+              const rect = e.target.getBoundingClientRect();
 
-            // 如果超出了屏幕边, 改为靠右
-            const width = parseInt(this.shadow.$(".multi-panel").css.width);
+              // 直接使用当前鼠标的坐标轴
+              this.multiPanelStyle = {
+                left: `${rect.left + rect.width / 2}px`,
+                top: `${rect.top}px`,
+              };
+            } else {
+              this.multiPanelStyle = {
+                left: `${originEvent.clientX}px`,
+                top: `${originEvent.clientY}px`,
+              };
 
-            const selfRect = this.ele.getBoundingClientRect();
+              // 如果超出了屏幕边, 改为靠右
+              const width = parseInt(this.shadow.$(".multi-panel").css.width);
 
-            if (width + originEvent.clientX > selfRect.width + selfRect.left) {
-              this.multiPanelStyle.left =
-                selfRect.width - width + selfRect.left + "px";
+              const selfRect = this.ele.getBoundingClientRect();
+
+              if (
+                width + originEvent.clientX >
+                selfRect.width + selfRect.left
+              ) {
+                this.multiPanelStyle.left =
+                  selfRect.width - width + selfRect.left + "px";
+              }
             }
+
+            // 取消原来选中的范围
+            window.getSelection().removeAllRanges();
 
             this.multiSelected = true;
           },
@@ -350,7 +376,7 @@
             }
 
             if (this.length > 1) {
-              this[this.length - 1].focus();
+              this[this.length - 1] && this[this.length - 1].focus();
             }
           });
 
@@ -382,9 +408,7 @@
                 container: this,
                 data: content,
                 create: ({ item }) => {
-                  const blockEl = $(
-                    `<lumi-block data-type="${item.type}"></lumi-block>`
-                  );
+                  const blockEl = $(`<lumi-block></lumi-block>`);
 
                   blockEl.itemData = item;
 

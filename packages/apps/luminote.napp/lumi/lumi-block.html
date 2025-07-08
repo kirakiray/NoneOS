@@ -629,6 +629,7 @@
             });
 
             inputerContent.on("blur", (e) => {
+              this.__beforeSelectAll = false;
               this.itemData.focusUser = null;
             });
 
@@ -664,7 +665,6 @@
 
               // 获取粘贴的内容
               const clipboardData = e.clipboardData;
-              // const pastedText = clipboardData.getData("text");
               const pastedHtml = clipboardData.getData("text/html");
 
               if (pastedHtml) {
@@ -707,16 +707,6 @@
                 if (index > -1) {
                   parentContent.splice(index, 0, ...contents);
                 }
-
-                // 重新分段
-
-                // const letterData = await elementToLetterData(temp.ele.content);
-
-                // 重新转化
-                // const html = await letterDataToElement(letterData);
-
-                // 粘贴到本地
-                // this.__inputerContent.html = html;
 
                 return;
               }
@@ -898,6 +888,37 @@
             this.itemData.value = content;
           },
           handleKeyDownEvent(e) {
+            if (e.key === "c" && e.metaKey) {
+              e.preventDefault();
+              const { htmlContent, text: textContent } = this;
+
+              navigator.clipboard.write([
+                new ClipboardItem({
+                  "text/html": new Blob([htmlContent], { type: "text/html" }),
+                  "text/plain": new Blob([textContent], { type: "text/plain" }),
+                }),
+              ]);
+
+              return;
+            }
+
+            if (e.key === "a" && e.metaKey) {
+              if (this.__beforeSelectAll) {
+                this.emit("multi-select-component", {
+                  data: {
+                    startIndex: 0,
+                    endIndex: this.siblings.length,
+                  },
+                  composed: true,
+                });
+
+                this.__beforeSelectAll = null;
+                return;
+              }
+              this.__beforeSelectAll = true;
+              return;
+            }
+
             if (e.key === "Enter" && !e.shiftKey) {
               // 会车，直接在下面新增一个
               e.preventDefault();
@@ -909,6 +930,23 @@
               this.emit("delete", {
                 // bubbles: false,
               });
+            }
+          },
+          get htmlContent() {
+            const { value, type } = this.itemData;
+
+            switch (type) {
+              case "paragraph":
+                return `<p>${value}</p>`;
+              case "h1":
+                return `<h2>${value}</h2>`;
+              case "h2":
+                return `<h3>${value}</h3>`;
+              case "h3":
+                return `<h4>${value}</h4>`;
+              default:
+                // 其他自定义组件
+                debugger;
             }
           },
           handleDargover(e) {
