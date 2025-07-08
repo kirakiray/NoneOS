@@ -59,52 +59,6 @@
   </style>
 
   <div class="section-pannel">
-    <o-if :value="!selectionHasComponent">
-      <o-fill :value="inlineComps">
-        <p-tooltips placement="top" plain>
-          <p-button
-            icon
-            size="small"
-            variant="text"
-            color="primary"
-            on:click="$host.clickPanelBtn($data)"
-          >
-            <span :html="$data.icon" style="display: contents"></span>
-          </p-button>
-          <div slot="tips">
-            <div class="tool-tips" style="white-space: wrap; width: 140px">
-              <strong>{{$data.name}}</strong><br />
-              {{$data.desc}}
-            </div>
-          </div>
-        </p-tooltips>
-      </o-fill>
-    </o-if>
-    <o-else>
-      <p-tooltips placement="top" plain>
-        <p-button
-          size="small"
-          variant="text"
-          color="primary"
-          icon
-          on:click="clickCancelComp"
-        >
-          <n-local-icon
-            name="remove"
-            slot="prefix"
-            style="margin: 0"
-          ></n-local-icon>
-        </p-button>
-        <div slot="tips">
-          <div class="tool-tips" style="white-space: wrap; width: 200px">
-            <strong>取消组件引用</strong><br />
-            移除选中文字中的内联组件引用，将其恢复为普通文本。
-          </div>
-        </div>
-      </p-tooltips>
-    </o-else>
-
-    <div class="tool-pannel-line"></div>
     <p-tooltips placement="top" plain>
       <p-button
         size="small"
@@ -269,6 +223,51 @@
         </div>
       </div>
     </div>
+    <div class="tool-pannel-line"></div>
+    <o-if :value="!selectionHasComponent">
+      <o-fill :value="inlineComps">
+        <p-tooltips placement="top" plain>
+          <p-button
+            icon
+            size="small"
+            variant="text"
+            color="primary"
+            on:click="$host.clickPanelBtn($data)"
+          >
+            <span :html="$data.icon" style="display: contents"></span>
+          </p-button>
+          <div slot="tips">
+            <div class="tool-tips" style="white-space: wrap; width: 140px">
+              <strong>{{$data.name}}</strong><br />
+              {{$data.desc}}
+            </div>
+          </div>
+        </p-tooltips>
+      </o-fill>
+    </o-if>
+    <o-else>
+      <p-tooltips placement="top" plain>
+        <p-button
+          size="small"
+          variant="text"
+          color="primary"
+          icon
+          on:click="clickCancelComp"
+        >
+          <n-local-icon
+            name="remove"
+            slot="prefix"
+            style="margin: 0"
+          ></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips" style="white-space: wrap; width: 200px">
+            <strong>取消组件引用</strong><br />
+            移除选中文字中的内联组件引用，将其恢复为普通文本。
+          </div>
+        </div>
+      </p-tooltips>
+    </o-else>
   </div>
 
   <style>
