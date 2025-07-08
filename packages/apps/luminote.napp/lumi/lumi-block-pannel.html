@@ -66,7 +66,7 @@
         color="normal"
         icon
         on:click="handleSelectionAction('bold')"
-        attr:disabled="itemData.type === 'h1' || itemData.type === 'h2' || itemData.type === 'h3'"
+        attr:disabled="itemData.type === 'h2' || itemData.type === 'h3' || itemData.type === 'h4'"
         attr:color="isActiveBold == 0 ? 'normal' : 'primary'"
         attr:variant="isActiveBold == 2 ? 'tonal' : 'text'"
       >
@@ -75,7 +75,7 @@
 
       <div slot="tips">
         <o-if
-          :value="itemData.type === 'h1' || itemData.type === 'h2' || itemData.type === 'h3'"
+          :value="itemData.type === 'h2' || itemData.type === 'h3' || itemData.type === 'h4'"
         >
           <div class="tool-tips">标题已经是加粗的状态</div>
         </o-if>

@@ -249,24 +249,24 @@
                 段落
               </p-menu-item>
               <p-menu-item
-                attr:active-item="itemData.type === 'h1'"
-                on:click="handleChangeBlockType('h1')"
-              >
-                <n-local-icon name="h1" slot="prefix"></n-local-icon>
-                大标题
-              </p-menu-item>
-              <p-menu-item
                 attr:active-item="itemData.type === 'h2'"
                 on:click="handleChangeBlockType('h2')"
               >
                 <n-local-icon name="h2" slot="prefix"></n-local-icon>
-                中标题
+                大标题
               </p-menu-item>
               <p-menu-item
                 attr:active-item="itemData.type === 'h3'"
                 on:click="handleChangeBlockType('h3')"
               >
                 <n-local-icon name="h3" slot="prefix"></n-local-icon>
+                中标题
+              </p-menu-item>
+              <p-menu-item
+                attr:active-item="itemData.type === 'h4'"
+                on:click="handleChangeBlockType('h4')"
+              >
+                <n-local-icon name="h4" slot="prefix"></n-local-icon>
                 小标题
               </p-menu-item>
               <x-fill :value="blockComps">
@@ -684,8 +684,17 @@
                   for (let item of temp.content.children) {
                     if (item.innerHTML) {
                       const reContent = await elementToLetterData(item);
+
+                      const tag = item.tagName.toLowerCase();
+
+                      let type = "paragraph";
+
+                      if (tag === "h2" || tag === "h3" || tag === "h4") {
+                        type = tag;
+                      }
+
                       contents.push({
-                        type: "paragraph",
+                        type,
                         value: await letterDataToElement(reContent),
                       });
                     }
@@ -938,11 +947,11 @@
             switch (type) {
               case "paragraph":
                 return `<p>${value}</p>`;
-              case "h1":
-                return `<h2>${value}</h2>`;
               case "h2":
-                return `<h3>${value}</h3>`;
+                return `<h2>${value}</h2>`;
               case "h3":
+                return `<h3>${value}</h3>`;
+              case "h4":
                 return `<h4>${value}</h4>`;
               default:
                 // 其他自定义组件

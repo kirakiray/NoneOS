@@ -4,15 +4,15 @@
       display: block;
     }
 
-    [type="h1"] {
+    [type="h2"] {
       font-size: 30px;
       font-weight: 600;
     }
-    [type="h2"] {
+    [type="h3"] {
       font-size: 24px;
       font-weight: 600;
     }
-    [type="h3"] {
+    [type="h4"] {
       font-size: 20px;
       font-weight: 600;
     }
@@ -35,9 +35,9 @@
 
             // 当使用自定义组件的时候，在这里添加
             if (
-              type === "h1" ||
               type === "h2" ||
               type === "h3" ||
+              type === "h4" ||
               type === "paragraph"
             ) {
               // 自带的组件
