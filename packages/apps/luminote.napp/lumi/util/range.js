@@ -158,9 +158,33 @@ export const elementToLetterData = async (node, options = {}) => {
       compStyle.textDecoration.includes("line-through");
     const isItalic =
       selfStyle.fontStyle === "italic" || compStyle.fontStyle === "italic";
-    const color = selfStyle.color;
-    const backgroundColor = selfStyle.backgroundColor;
+    let color = selfStyle.color;
+    let backgroundColor = selfStyle.backgroundColor;
     const comp = node.getAttribute("custom-comp");
+
+    if (color && !color.includes("var(")) {
+      // 转换回对应的主题色变量，看看是否相等；没有对应主题色则清空，有就替换。
+      const themeStr = getThemeColorName(color);
+
+      if (themeStr) {
+        color = `var(${themeStr})`;
+      } else {
+        color = "";
+      }
+    }
+
+    if (backgroundColor && !backgroundColor.includes("var(")) {
+      // 转换回对应的主题色变量，看看是否相等；没有对应主题色则清空，有就替换。
+      const themeStr = getThemeColorName(backgroundColor);
+
+      if (themeStr) {
+        backgroundColor = `var(${themeStr})`;
+      } else {
+        backgroundColor = "";
+      }
+    }
+
+    // 看看是不是内部的颜色
 
     selfOptions = {
       bold: isBold,
@@ -264,6 +288,54 @@ export const letterDataToElement = async (letterData) => {
 
   return str;
 };
+
+let bodyThemeColor = null;
+const getThemeColorName = (color) => {
+  if (bodyThemeColor) {
+    return bodyThemeColor.get(color);
+  }
+
+  bodyThemeColor = new Map();
+
+  // 获取主题色的值
+  const bodyCompStyle = document.body.computedStyleMap();
+  [
+    "--md-sys-color-primary",
+    "--md-sys-color-success",
+    "--md-sys-color-error",
+    "--md-sys-color-normal",
+    "--md-sys-color-primary-container",
+    "--md-sys-color-success-container",
+    "--md-sys-color-error-container",
+    "--md-sys-color-normal-container",
+  ].forEach((key) => {
+    const value = hexToRgb(bodyCompStyle.get(key)[0]);
+    bodyThemeColor.set(value, key);
+  });
+
+  return bodyThemeColor.get(color);
+};
+
+function hexToRgb(hex) {
+  // 移除可能的 #
+  hex = hex.replace(/^#/, "");
+
+  // 处理简写形式如 #fff -> #ffffff
+  if (hex.length === 3) {
+    hex = hex
+      .split("")
+      .map((c) => c + c)
+      .join("");
+  }
+
+  // 解析 R, G, B 值
+  const bigint = parseInt(hex, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+
+  return `rgb(${r}, ${g}, ${b})`;
+}
 
 // 生成style字符串
 const getStyleStr = (options) => {
