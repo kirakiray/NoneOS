@@ -633,7 +633,28 @@
             });
 
             inputerContent.on("mousedown", (e) => {
-              this.handleTextMouseDown(e);
+              mouseDownBlock = this;
+            });
+
+            inputerContent.on("mouseenter", (e) => {
+              if (mouseDownBlock && mouseDownBlock !== this) {
+                const parentContent = this.parent.itemData.content;
+                const startIndex = parentContent.indexOf(
+                  mouseDownBlock.itemData
+                );
+                const selfIndex = parentContent.indexOf(this.itemData);
+
+                this.emit("multi-snap-select-component", {
+                  data: {
+                    startIndex,
+                    endIndex: selfIndex,
+                    originEvent: e,
+                  },
+                  composed: true,
+                });
+              } else {
+                // 选中内容
+              }
             });
 
             inputerContent.on("mouseup", (e) => {
@@ -695,14 +716,9 @@
 
             this.push(inputerContent);
           },
-          handleTextMouseDown(e) {
-            mouseDownBlock = this;
-          },
           async handleTextMouseUp(e) {
-            // console.log("handleTextMouseUp: ", e);
-
             if (mouseDownBlock !== this) {
-              // TODO: 这个时候应该是多选
+              // 多选内容
               const parentContent = this.parent.itemData.content;
               const startIndex = parentContent.indexOf(mouseDownBlock.itemData);
               const selfIndex = parentContent.indexOf(this.itemData);

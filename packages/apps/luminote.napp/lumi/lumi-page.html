@@ -46,7 +46,11 @@
       </p-button>
     </div>
   </o-if>
-  <div class="container" on:multi-select-component="multiSelectComponent">
+  <div
+    class="container"
+    on:multi-select-component="multiSelectComponent"
+    on:multi-snap-select-component="multiSnapSelectComponent"
+  >
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
       <input
@@ -99,6 +103,7 @@
       opacity: 0;
       transform: translateX(10px);
       transition: opacity ease 0.2s, transform ease 0.2s;
+      white-space: nowrap;
     }
 
     .mask.show-multi-panel .multi-panel {
@@ -117,7 +122,7 @@
       :style.top="multiPanelStyle.top"
       :style.left="multiPanelStyle.left"
     >
-      <p-button size="small" variant="text">
+      <p-button size="small" variant="text" on:click="clickMultiCopy">
         <n-local-icon
           name="copy"
           slot="prefix"
@@ -144,6 +149,7 @@
     let selfUserId;
     export default async ({ load }) => {
       const { diffFill } = await load("./util/diff-fill.js");
+      const { toast } = await load("/packages/pui/util.js");
 
       if (!selfUserId) {
         try {
@@ -165,6 +171,22 @@
           },
         },
         proto: {
+          clickMultiCopy() {
+            let content = "";
+
+            const lastIndex = this._rangData.length - 1;
+
+            this._rangData.forEach((item, index) => {
+              content += item.value;
+              if (index !== lastIndex) {
+                content += `\n\n`;
+              }
+            });
+
+            navigator.clipboard.writeText(content);
+
+            toast("复制成功");
+          },
           clickMultiDelete() {
             // 逐个删除内容
             const { content } = this.itemData;
@@ -183,6 +205,25 @@
             this.forEach((e) => {
               if (e.selected) {
                 e.selected = false;
+              }
+            });
+          },
+          // 鼠标移动时的临时选中
+          multiSnapSelectComponent(e) {
+            const { data } = e;
+            const { originEvent } = data;
+
+            const start =
+              data.startIndex > data.endIndex ? data.endIndex : data.startIndex;
+            const end =
+              data.startIndex > data.endIndex ? data.startIndex : data.endIndex;
+
+            // 修正选中区域
+            this.forEach((e, i) => {
+              if (i >= start && i <= end) {
+                e.selected = true;
+              } else {
+                e.selected = null;
               }
             });
           },
@@ -209,6 +250,16 @@
               left: `${originEvent.clientX}px`,
               top: `${originEvent.clientY}px`,
             };
+
+            // 如果超出了屏幕边, 改为靠右
+            const width = parseInt(this.shadow.$(".multi-panel").css.width);
+
+            const selfRect = this.ele.getBoundingClientRect();
+
+            if (width + originEvent.clientX > selfRect.width + selfRect.left) {
+              this.multiPanelStyle.left =
+                selfRect.width - width + selfRect.left + "px";
+            }
 
             this.multiSelected = true;
           },
