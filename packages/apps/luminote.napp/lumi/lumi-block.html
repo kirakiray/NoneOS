@@ -667,6 +667,17 @@
               const clipboardData = e.clipboardData;
               const pastedHtml = clipboardData.getData("text/html");
 
+              const pushContents = (contents) => {
+                const parentContent = this.parent.itemData.content;
+
+                // 在当前的前面添加对应的数据
+                const index = parentContent.indexOf(this.itemData);
+
+                if (index > -1) {
+                  parentContent.splice(index, 0, ...contents);
+                }
+              };
+
               if (pastedHtml) {
                 const temp = $(`<template>${pastedHtml}</template>`).ele;
 
@@ -708,24 +719,31 @@
                   });
                 }
 
-                const parentContent = this.parent.itemData.content;
-
-                // 在当前的前面添加对应的数据
-                const index = parentContent.indexOf(this.itemData);
-
-                if (index > -1) {
-                  parentContent.splice(index, 0, ...contents);
-                }
-
+                pushContents(contents);
                 return;
               }
+              {
+                const contents = [];
 
-              const pastedText = clipboardData.getData("text/plain");
+                let pastedText = clipboardData.getData("text/plain"); //
+                if (pastedText) {
+                  pastedText = await navigator.clipboard.readText();
+                }
 
-              // 内容分段
-              const lines = pastedText.split("\n");
+                // 内容分段
+                const lines = pastedText.split("\n");
 
-              debugger;
+                lines
+                  .filter((e) => !!e)
+                  .forEach((e) => {
+                    contents.push({
+                      type: "paragraph",
+                      value: e.trim(),
+                    });
+                  });
+
+                pushContents(contents);
+              }
             });
 
             this.push(inputerContent);

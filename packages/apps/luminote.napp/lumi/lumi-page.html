@@ -151,8 +151,11 @@
   <script>
     let selfUserId;
     export default async ({ load }) => {
+      const { EverCache } = await load("/packages/libs/ever-cache.js");
       const { diffFill } = await load("./util/diff-fill.js");
       const { toast } = await load("/packages/pui/util.js");
+
+      const storage = new EverCache("lumi-editor-history");
 
       if (!selfUserId) {
         try {
@@ -369,6 +372,9 @@
           },
         },
         attached() {
+          // 先清空
+          storage.clear();
+
           this.on("click", async (e) => {
             // 最后面聚焦
             if (!this.itemData?.content?.length) {
@@ -387,7 +393,8 @@
             }
 
             if (this.length > 1) {
-              this[this.length - 1] && this[this.length - 1].focus();
+              const finnalItem = this[this.length - 1];
+              finnalItem && finnalItem.focus && finnalItem.focus();
             }
           });
 
