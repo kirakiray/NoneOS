@@ -53,6 +53,7 @@
     on:multi-snap-select-component="multiSnapSelectComponent"
     on:block-copy="handleBlockCopy"
     on:block-delete="handleBlockDelete"
+    on:block-undo="handleBlockUndo"
   >
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
@@ -151,11 +152,12 @@
   <script>
     let selfUserId;
     export default async ({ load }) => {
-      const { EverCache } = await load("/packages/libs/ever-cache.js");
       const { diffFill } = await load("./util/diff-fill.js");
       const { toast } = await load("/packages/pui/util.js");
 
-      const storage = new EverCache("lumi-editor-history");
+      const { saveHistory, handleUndo, clearUndoHistory } = await load(
+        "./util/page-undo-util.js"
+      );
 
       if (!selfUserId) {
         try {
@@ -177,6 +179,9 @@
           },
         },
         proto: {
+          async handleBlockUndo(e) {
+            await handleUndo(this);
+          },
           handleBlockCopy(e) {
             e.stopPropagation();
             this.clickMultiCopy();
@@ -373,7 +378,7 @@
         },
         attached() {
           // 先清空
-          storage.clear();
+          clearUndoHistory();
 
           this.on("click", async (e) => {
             // 最后面聚焦
@@ -415,6 +420,8 @@
               if (!finalArr.length) {
                 return;
               }
+
+              saveHistory(this);
 
               const { content } = this.itemData;
 
