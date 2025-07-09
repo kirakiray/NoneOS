@@ -51,6 +51,8 @@
     class="container"
     on:multi-select-component="multiSelectComponent"
     on:multi-snap-select-component="multiSnapSelectComponent"
+    on:block-copy="handleBlockCopy"
+    on:block-delete="handleBlockDelete"
   >
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
@@ -172,6 +174,15 @@
           },
         },
         proto: {
+          handleBlockCopy(e) {
+            e.stopPropagation();
+            this.clickMultiCopy();
+          },
+          handleBlockDelete(e) {
+            e.stopPropagation();
+            this.clickMultiDelete();
+            this.multiSelected = false;
+          },
           clickMultiCopy() {
             let textContent = "";
             let htmlContent = "";

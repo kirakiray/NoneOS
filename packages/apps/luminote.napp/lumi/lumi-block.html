@@ -731,6 +731,10 @@
             this.push(inputerContent);
           },
           async handleTextMouseUp(e) {
+            if (!mouseDownBlock) {
+              return;
+            }
+
             if (mouseDownBlock !== this) {
               // 多选内容
               const parentContent = this.parent.itemData.content;
@@ -898,8 +902,17 @@
           },
           handleKeyDownEvent(e) {
             if (e.key === "c" && e.metaKey) {
+              // 复制
               e.preventDefault();
               const { htmlContent, text: textContent } = this;
+
+              if (!textContent) {
+                // 这时候应该是进入多选的状态，将复制事件冒泡上去
+                this.emit("block-copy", {
+                  composed: true,
+                });
+                return;
+              }
 
               navigator.clipboard.write([
                 new ClipboardItem({
@@ -908,6 +921,14 @@
                 }),
               ]);
 
+              return;
+            }
+
+            if (e.key === "Backspace" && this.parent.multiSelected) {
+              // 上层的删除操作
+              this.emit("block-delete", {
+                composed: true,
+              });
               return;
             }
 
