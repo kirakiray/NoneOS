@@ -317,18 +317,33 @@
           },
           titleKeyDown(e) {
             if (e.key === "Enter") {
-              this.focusLast();
+              // 如果第一个元素不是空元素，则添加空元素后聚焦
+              let firstBlock = this[0];
+
+              if (!firstBlock.itemData.value.trim()) {
+                firstBlock.focus();
+                return;
+              }
+
+              this.itemData.content.unshift({
+                type: "paragraph",
+                value: "",
+              });
+
+              setTimeout(() => {
+                this[0].focus();
+              }, 10);
             }
           },
           focusTitle() {
             this.shadow.$(".title").ele.focus();
           },
-          focusLast() {
-            setTimeout(() => {
-              // this.shadow.$("#lumi-fill-el").slice(-1)[0].focus();
-              this.slice(-1)[0].focus();
-            }, 30);
-          },
+          // focusLast() {
+          //   setTimeout(() => {
+          //     // this.shadow.$("#lumi-fill-el").slice(-1)[0].focus();
+          //     this.slice(-1)[0].focus();
+          //   }, 30);
+          // },
           async handleEnter(data, index) {
             const finnalIndex = index + 1;
 
