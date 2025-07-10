@@ -870,13 +870,20 @@
             this.itemData.type = type;
             this.leftMenuOpen = false;
           },
-          async focus() {
+          async focus(position = "end") {
             if (this.loading) {
               await this.watchUntil(() => !this.loading);
             }
 
             setTimeout(() => {
-              focusAndSetCursorAtEnd(this[0].ele);
+              if (position === "end") {
+                focusAndSetCursorAtEnd(this[0].ele);
+              } else if (position === "start") {
+                this[0].ele.focus();
+              } else {
+                // TODO: 其他位置
+                focusAndSetCursorAtEnd(this[0].ele);
+              }
             }, 10);
           },
           handleClickLeftMenuButton() {

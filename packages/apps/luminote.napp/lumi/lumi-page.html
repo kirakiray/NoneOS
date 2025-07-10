@@ -144,6 +144,9 @@
     export default async ({ load }) => {
       const { diffFill } = await load("./util/diff-fill.js");
       const { toast } = await load("/packages/pui/util.js");
+      const { letterDataToElement, getSelectionLetterData } = await load(
+        "./util/range.js"
+      );
 
       const { saveHistory, handleUndo, clearUndoHistory } = await load(
         "./util/page-undo-util.js"
@@ -338,22 +341,46 @@
             const finnalIndex = index + 1;
 
             // 获取选中的焦点
-            const selection = window.getSelection();
+            const selectionRangeData = await getSelectionLetterData(
+              this.ele.getRootNode()
+            );
 
-            // 获取对应选中的组件
-            const selectedComponent = this[finnalIndex];
+            // 截取焦点后的内容
+            const afterLetterData = selectionRangeData.letterData.slice(
+              selectionRangeData.startOffset
+            );
 
-            // 从焦点位置将内容带下去
-            debugger;
+            if (afterLetterData.length) {
+              const beforeLetterData = selectionRangeData.letterData.slice(
+                0,
+                selectionRangeData.startOffset
+              );
 
-            this.itemData.content.splice(finnalIndex, 0, {
-              type: "paragraph",
-              value: "",
-            });
+              const beforeContent = await letterDataToElement(beforeLetterData);
+              const afterContent = await letterDataToElement(afterLetterData);
+
+              // 获取对应选中的组件
+              const selectedComponent = this[index];
+
+              // 更新回车后的内容
+              selectedComponent.itemData.value = beforeContent;
+
+              // 从焦点位置将内容带下去
+              this.itemData.content.splice(finnalIndex, 0, {
+                type: "paragraph",
+                value: afterContent,
+              });
+            } else {
+              // 最末尾添加
+              this.itemData.content.splice(finnalIndex, 0, {
+                type: "paragraph",
+                value: "",
+              });
+            }
 
             setTimeout(() => {
               // this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
-              this[finnalIndex].focus();
+              this[finnalIndex].focus("start");
             }, 1);
           },
           async handleDelete(data, index) {

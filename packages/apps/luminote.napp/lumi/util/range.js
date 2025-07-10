@@ -5,6 +5,18 @@ export const getSelectionLetterData = async (root, editorEl) => {
   const selection = root.getSelection();
   const range = selection.getRangeAt(0);
 
+  if (!editorEl) {
+    let target = range.startContainer;
+    while (!target.matches || !target.matches("[inputer-content]")) {
+      target = target.parentNode;
+
+      if (!target) {
+        break;
+      }
+    }
+    editorEl = target;
+  }
+
   // 转为字母数据
   const letterData = await elementToLetterData(editorEl);
 
