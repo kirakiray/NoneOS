@@ -875,12 +875,30 @@
               await this.watchUntil(() => !this.loading);
             }
 
-            setTimeout(() => {
+            setTimeout(async () => {
               if (position === "end") {
                 focusAndSetCursorAtEnd(this[0].ele);
               } else if (position === "start") {
                 this[0].ele.focus();
+              } else if (/\d/.test(position)) {
+                const inputerContentEl = this.$(`[inputer-content]`).ele;
+
+                // 对应位置进行聚焦
+                const { container, offset } = await getContainerAndOffset(
+                  inputerContentEl,
+                  position
+                );
+
+                inputerContentEl.focus();
+
+                const range = document.createRange();
+                range.setStart(container, offset);
+                range.setEnd(container, offset);
+                const selection = window.getSelection();
+                selection.removeAllRanges();
+                selection.addRange(range);
               } else {
+                debugger;
                 // TODO: 其他位置
                 focusAndSetCursorAtEnd(this[0].ele);
               }
