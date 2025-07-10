@@ -106,6 +106,10 @@ const attributesToObject = (element) =>
 
 // 将元素转为字数据
 export const elementToLetterData = async (node, options = {}) => {
+  if (node instanceof Comment) {
+    return [];
+  }
+
   if (node instanceof Text) {
     return Array.from(node.textContent).map((text) => {
       return {
