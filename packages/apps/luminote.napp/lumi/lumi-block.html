@@ -439,6 +439,7 @@
         getContainerAndOffset,
         elementToLetterData,
         letterDataToElement,
+        setSelection,
       } = await load("./util/range.js");
 
       const { askOllamaStream } = await load("/packages/ai/util.js");
@@ -584,20 +585,19 @@
 
             {
               // 重新选择范围
-              // 创建范围并设置光标位置
-              const range = document.createRange();
 
               const { container: startContainer, offset: start } =
                 getContainerAndOffset(this[0].ele, startOffset);
               const { container: endContainer, offset: end } =
                 getContainerAndOffset(this[0].ele, endOffset);
 
-              range.setStart(startContainer, start);
-              range.setEnd(endContainer, end);
-
-              const selection = window.getSelection();
-              selection.removeAllRanges();
-              selection.addRange(range);
+              // 创建范围并设置光标位置
+              setSelection({
+                startContainer,
+                start,
+                endContainer,
+                end,
+              });
 
               callback && callback({ startContainer, endContainer });
             }
@@ -891,12 +891,12 @@
 
                 inputerContentEl.focus();
 
-                const range = document.createRange();
-                range.setStart(container, offset);
-                range.setEnd(container, offset);
-                const selection = window.getSelection();
-                selection.removeAllRanges();
-                selection.addRange(range);
+                setSelection({
+                  startContainer: container,
+                  start: offset,
+                  endContainer: container,
+                  end: offset,
+                });
               } else {
                 debugger;
                 // TODO: 其他位置

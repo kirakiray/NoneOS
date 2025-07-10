@@ -444,3 +444,14 @@ const equalOptions = (a, b) => {
     JSON.stringify(a.comp) === JSON.stringify(b.comp)
   );
 };
+
+// 选中范围
+export const setSelection = ({ startContainer, endContainer, start, end }) => {
+  const range = document.createRange();
+  range.setStart(startContainer, start);
+  range.setEnd(endContainer, end);
+
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(range);
+};
