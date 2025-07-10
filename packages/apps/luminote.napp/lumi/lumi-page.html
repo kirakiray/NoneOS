@@ -54,6 +54,7 @@
     on:block-copy="handleBlockCopy"
     on:block-delete="handleBlockDelete"
     on:block-undo="handleBlockUndo"
+    on:block-merge-prev="handleMergePrev"
   >
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
@@ -144,9 +145,11 @@
     export default async ({ load }) => {
       const { diffFill } = await load("./util/diff-fill.js");
       const { toast } = await load("/packages/pui/util.js");
-      const { letterDataToElement, getSelectionLetterData } = await load(
-        "./util/range.js"
-      );
+      const {
+        letterDataToElement,
+        elementToLetterData,
+        getSelectionLetterData,
+      } = await load("./util/range.js");
 
       const { saveHistory, handleUndo, clearUndoHistory } = await load(
         "./util/page-undo-util.js"
@@ -172,6 +175,35 @@
           },
         },
         proto: {
+          async handleMergePrev(e) {
+            const target = $(e.target);
+            const targetIndex = this.itemData.content.indexOf(target.itemData);
+
+            if (targetIndex > 0) {
+              const prev = target.prev;
+              // 和前一个数据合并
+              const currentLetterData = await elementToLetterData(
+                target.$("[inputer-content]").ele
+              );
+              const prevLetterData = await elementToLetterData(
+                prev.$("[inputer-content]").ele
+              );
+
+              const newLetterData = [...prevLetterData, ...currentLetterData];
+              const newContent = await letterDataToElement(newLetterData);
+
+              // 更新前一个数据
+              prev.itemData.value = newContent;
+
+              // 删除当前的数据
+              this.itemData.content.splice(targetIndex, 1);
+
+              // 修复焦点
+              setTimeout(() => {
+                prev.focus();
+              }, 1);
+            }
+          },
           async handleBlockUndo(e) {
             await handleUndo(this);
           },

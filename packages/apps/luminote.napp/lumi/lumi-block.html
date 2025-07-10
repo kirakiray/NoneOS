@@ -962,17 +962,22 @@
               return;
             }
 
-            // if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
-            //   // 触发撤销事件
-            //   this.emit("block-undo", {
-            //     composed: true,
-            //   });
-            //   e.preventDefault(); // 禁止默认事件
-            //   return;
-            // }
+            if (e.key === "Backspace") {
+              const selection = window.getSelection();
+              const range = selection.getRangeAt(0);
+
+              if (range.startOffset === 0 && range.endOffset === 0) {
+                // 回车且内容在最开始的位置，则把内容带到上一段
+
+                this.emit("block-merge-prev", {
+                  composed: true,
+                });
+                return;
+              }
+            }
 
             if (e.key === "Backspace" && this.parent.multiSelected) {
-              // 上层的删除操作
+              // 多选的情况下，按了回车，代表删除选中的组件
               this.emit("block-delete", {
                 composed: true,
               });
