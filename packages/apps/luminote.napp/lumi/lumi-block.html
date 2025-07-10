@@ -919,7 +919,7 @@
             this.itemData.value = content;
           },
           handleKeyDownEvent(e) {
-            if (e.key === "c" && e.metaKey) {
+            if (e.key === "c" && (e.metaKey || e.ctrlKey)) {
               // 复制
               e.preventDefault();
               const { htmlContent, text: textContent } = this;
@@ -942,7 +942,7 @@
               return;
             }
 
-            if (e.key === "z" && e.metaKey) {
+            if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
               // 触发撤销事件
               this.emit("block-undo", {
                 composed: true,
@@ -959,7 +959,7 @@
               return;
             }
 
-            if (e.key === "a" && e.metaKey) {
+            if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
               if (this.__beforeSelectAll) {
                 this.emit("multi-select-component", {
                   data: {

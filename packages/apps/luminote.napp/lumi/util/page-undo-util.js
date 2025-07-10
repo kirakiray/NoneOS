@@ -8,9 +8,10 @@ export const clearUndoHistory = () => {
 };
 
 // 保存编辑历史
-export const saveHistory = (lumipage) => {
+export const saveHistory = (lumipage, watchs) => {
   clearTimeout(saveHistoryDebounceTimer);
   saveHistoryDebounceTimer = setTimeout(async () => {
+    watchs;
     if (lumipage.itemData.content) {
       const contentData = lumipage.itemData.content.map((item) =>
         extractContentItemData(item)
@@ -20,13 +21,11 @@ export const saveHistory = (lumipage) => {
 
       // 如果上一个 __undoContent，代表时从撤销过来的，看看数据是否对等，是的话不操作
       if (lumipage.__undoContent) {
-        // if (compareContentData(contentData, lumipage.__undoContent)) {
-        //   // 如果当前的数据和后退档的历史数据一致，代表时通过撤销操作得到的数据FFhsdedachcotsad，iyhsilddohhhsdadur //
-        console.log("撤销操作，不存档: ", lumipage.__undoContent);
-        //   return;
-        // }
-        lumipage.__undoContent = null;
-        return;
+        if (compareContentData(contentData, lumipage.__undoContent)) {
+          //   // 如果当前的数据和后退档的历史数据一致，代表时通过撤销操作得到的数据FFhsdedachcotsad，iyhsilddohhhsdadur //
+          console.log("撤销操作，不存档: ", lumipage.__undoContent);
+          return;
+        }
       }
 
       console.log("存档: ", contentData);
