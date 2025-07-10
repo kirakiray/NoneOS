@@ -443,6 +443,13 @@
 
       const { askOllamaStream } = await load("/packages/ai/util.js");
 
+      const { default: purify } = await load("/packages/libs/purify.es.mjs");
+
+      purify.setConfig({
+        RETURN_TRUSTED_TYPE: false,
+        FORCE_BODY: true,
+      });
+
       if (!selfUserId) {
         try {
           const { getUserStore } = await load("/packages/user/user-store.js");
@@ -665,7 +672,10 @@
 
               // 获取粘贴的内容
               const clipboardData = e.clipboardData;
-              const pastedHtml = clipboardData.getData("text/html");
+              let pastedHtml = clipboardData.getData("text/html");
+
+              // 净化html
+              pastedHtml = purify.sanitize(pastedHtml);
 
               const pushContents = (contents) => {
                 const parentContent = this.parent.itemData.content;
@@ -736,9 +746,12 @@
                 lines
                   .filter((e) => !!e)
                   .forEach((e) => {
+                    // 净化html
+                    const value = purify.sanitize(e.trim());
+
                     contents.push({
                       type: "paragraph",
-                      value: e.trim(),
+                      value,
                     });
                   });
 
