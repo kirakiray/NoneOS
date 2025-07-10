@@ -17,18 +17,18 @@ export const saveHistory = (lumipage, watchs) => {
         extractContentItemData(item)
       );
 
-      console.log("before save: ", lumipage.__undoContent, contentData);
+      // console.log("before save: ", lumipage.__undoContent, contentData);
 
       // 如果上一个 __undoContent，代表时从撤销过来的，看看数据是否对等，是的话不操作
       if (lumipage.__undoContent) {
         if (compareContentData(contentData, lumipage.__undoContent)) {
           //   // 如果当前的数据和后退档的历史数据一致，代表时通过撤销操作得到的数据FFhsdedachcotsad，iyhsilddohhhsdadur //
-          console.log("撤销操作，不存档: ", lumipage.__undoContent);
+          // console.log("撤销操作，不存档: ", lumipage.__undoContent);
           return;
         }
       }
 
-      console.log("存档: ", contentData);
+      // console.log("存档: ", contentData);
 
       const historyList = (await historyStorage.getItem("_history")) || [];
 

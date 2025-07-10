@@ -468,16 +468,22 @@
               "keydown",
               (this._keydownFunc = (e) => {
                 if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
+                  console.log(e.target, e.composedPath());
                   // 属于编辑器或body的操作
                   if (
-                    $(e.target).parents.filter((e) => e.is("lumi-block"))
+                    e
+                      .composedPath()
+                      .filter((e) => e.matches && e.matches("lumi-block"))
                       .length ||
                     e.target === document.body
                   ) {
-                    console.log("haha");
-                    // 属于编辑器的操作
+                    const [app] = this.parents.filter((e) => e.tag === "o-app");
                     e.preventDefault();
-                    this.handleBlockUndo();
+
+                    if (app.focused()) {
+                      // 属于自身聚焦的状态，才允许撤销
+                      this.handleBlockUndo();
+                    }
                   }
                 }
               })

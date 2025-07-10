@@ -124,6 +124,31 @@ Object.defineProperties($.fn, {
       return remoteHandles;
     },
   },
+  // 判断当前应用是不是处于焦点状态
+  focused: {
+    value() {
+      const selfAppFrame = this.parent;
+
+      if (!selfAppFrame.is("n-app-frame")) {
+        return true;
+      }
+
+      const siblingsFrames = selfAppFrame.siblings;
+      if (siblingsFrames.length === 0) {
+        // 只有自己，绝对是焦点
+        return true;
+      }
+
+      // 判断自己是不是最大 zIndex 的元素，就是焦点
+      for (let e of siblingsFrames) {
+        if (e.item.zIndex > selfAppFrame.item.zIndex) {
+          return false;
+        }
+      }
+
+      return true;
+    },
+  },
 });
 
 const getAppMark = (app) => {
