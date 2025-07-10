@@ -440,6 +440,7 @@
         elementToLetterData,
         letterDataToElement,
         setSelection,
+        getSelectionLetterData,
       } = await load("./util/range.js");
 
       const { askOllamaStream } = await load("/packages/ai/util.js");
@@ -956,7 +957,7 @@
             }
             this.itemData.value = content;
           },
-          handleKeyDownEvent(e) {
+          async handleKeyDownEvent(e) {
             if (e.key === "c" && (e.metaKey || e.ctrlKey)) {
               // 复制
               e.preventDefault();
@@ -1017,6 +1018,52 @@
               }
               this.__beforeSelectAll = true;
               return;
+            }
+
+            if (e.key === "ArrowUp") {
+              const { startOffset, endOffset } = await getSelectionLetterData(
+                this.ele.getRootNode()
+              );
+
+              if (startOffset === 0) {
+                let prev = this.prev;
+
+                while (prev.itemData.type === "article") {
+                  prev = prev.prev;
+                  if (!prev) {
+                    break;
+                  }
+                }
+
+                // 向上聚焦
+                if (prev) {
+                  prev.focus("end");
+                  return;
+                }
+              }
+            }
+
+            if (e.key === "ArrowDown") {
+              const { startOffset, endOffset } = await getSelectionLetterData(
+                this.ele.getRootNode()
+              );
+
+              if (endOffset === this.text.length) {
+                let next = this.next;
+
+                while (next.itemData.type === "article") {
+                  next = next.next;
+                  if (!next) {
+                    break;
+                  }
+                }
+
+                // 向下聚焦
+                if (next) {
+                  next.focus("start");
+                  return;
+                }
+              }
             }
 
             if (e.key === "Enter" && !e.shiftKey) {

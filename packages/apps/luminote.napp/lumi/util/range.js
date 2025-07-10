@@ -103,6 +103,13 @@ export const getContainerAndOffset = (root, realOffset) => {
 
   const nodes = getAllTextNode(root);
 
+  if (!nodes.length) {
+    return {
+      container: root,
+      offset: 0,
+    };
+  }
+
   let container = null;
   let index = 0;
   let total = 0;
