@@ -463,10 +463,30 @@
               const lumiblock = $(e.target);
               this.handleDrop(lumiblock.itemData, lumiblock.index, e);
             });
+
+            document.addEventListener(
+              "keydown",
+              (this._keydownFunc = (e) => {
+                if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
+                  // 属于编辑器或body的操作
+                  if (
+                    $(e.target).parents.filter((e) => e.is("lumi-block"))
+                      .length ||
+                    e.target === document.body
+                  ) {
+                    console.log("haha");
+                    // 属于编辑器的操作
+                    e.preventDefault();
+                    this.handleBlockUndo();
+                  }
+                }
+              })
+            );
           }
         },
         detached() {
           this.itemData = {}; // 清除绑定
+          document.removeEventListener("keydown", this._keydownFunc);
         },
       };
     };

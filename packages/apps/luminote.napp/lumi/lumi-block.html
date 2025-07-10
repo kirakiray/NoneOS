@@ -942,14 +942,14 @@
               return;
             }
 
-            if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
-              // 触发撤销事件
-              this.emit("block-undo", {
-                composed: true,
-              });
-              e.preventDefault(); // 禁止默认事件
-              return;
-            }
+            // if (e.key === "z" && (e.metaKey || e.ctrlKey)) {
+            //   // 触发撤销事件
+            //   this.emit("block-undo", {
+            //     composed: true,
+            //   });
+            //   e.preventDefault(); // 禁止默认事件
+            //   return;
+            // }
 
             if (e.key === "Backspace" && this.parent.multiSelected) {
               // 上层的删除操作
