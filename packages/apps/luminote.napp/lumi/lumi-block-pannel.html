@@ -320,8 +320,9 @@
 
   <script>
     export default async ({ load }) => {
-      const { elementToLetterData, letterDataToElement, getRealOffset } =
-        await load("./util/range.js");
+      const { letterDataToElement, getSelectionLetterData } = await load(
+        "./util/range.js"
+      );
       const { inlineComps } = await load("./inline/config.js");
 
       {
@@ -407,39 +408,10 @@
             }, 100);
           },
           async getSelectionLetterData() {
-            // const selection = document.getSelection();
-            const selection = this.host.ele.getRootNode().getSelection();
-            const range = selection.getRangeAt(0);
-
-            const rootEl = this.host[0].ele;
-
-            // 转为字母数据
-            const letterData = await elementToLetterData(rootEl);
-
-            let startOffset = getRealOffset(
-              rootEl,
-              range.startContainer,
-              range.startOffset
+            return getSelectionLetterData(
+              this.host.ele.getRootNode(),
+              this.host[0].ele
             );
-
-            let endOffset = getRealOffset(
-              rootEl,
-              range.endContainer,
-              range.endOffset
-            );
-
-            // 给目标范围内的字符修正信息
-            const selectionRangeLetter = letterData.slice(
-              startOffset,
-              endOffset
-            );
-
-            return {
-              startOffset,
-              endOffset,
-              letterData,
-              selectionRangeLetter,
-            };
           },
           async changeColor(color, isChangeBgColor) {
             const { startOffset, endOffset, letterData, selectionRangeLetter } =

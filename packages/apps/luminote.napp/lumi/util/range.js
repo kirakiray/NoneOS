@@ -1,5 +1,32 @@
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+// 获取返回内的数据
+export const getSelectionLetterData = async (root, editorEl) => {
+  const selection = root.getSelection();
+  const range = selection.getRangeAt(0);
+
+  // 转为字母数据
+  const letterData = await elementToLetterData(editorEl);
+
+  let startOffset = getRealOffset(
+    editorEl,
+    range.startContainer,
+    range.startOffset
+  );
+
+  let endOffset = getRealOffset(editorEl, range.endContainer, range.endOffset);
+
+  // 给目标范围内的字符修正信息
+  const selectionRangeLetter = letterData.slice(startOffset, endOffset);
+
+  return {
+    startOffset,
+    endOffset,
+    letterData,
+    selectionRangeLetter,
+  };
+};
+
 export function focusAndSetCursorAtEnd(element) {
   element.focus();
 

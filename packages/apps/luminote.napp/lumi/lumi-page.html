@@ -68,17 +68,7 @@
         placeholder="页面标题"
       />
     </div>
-    <!-- BUG: safari无法获取shadow root 内的 selection,所以改用slot操作 -->
     <slot></slot>
-    <!-- <o-fill id="lumi-fill-el" :value="itemData.content" fill-key="_dataId">
-      <lumi-block
-        :item-data="$data"
-        attr:data-type="$data.type"
-        on:enter="$host.handleEnter($data,$index)"
-        on:delete="$host.handleDelete($data,$index)"
-        on:drop="$host.handleDrop($data,$index,$event)"
-      ></lumi-block>
-    </o-fill> -->
   </div>
 
   <style>
@@ -344,8 +334,17 @@
           //     this.slice(-1)[0].focus();
           //   }, 30);
           // },
-          async handleEnter(data, index) {
+          async handleEnter(data, index, originEvent) {
             const finnalIndex = index + 1;
+
+            // 获取选中的焦点
+            const selection = window.getSelection();
+
+            // 获取对应选中的组件
+            const selectedComponent = this[finnalIndex];
+
+            // 从焦点位置将内容带下去
+            debugger;
 
             this.itemData.content.splice(finnalIndex, 0, {
               type: "paragraph",
@@ -464,7 +463,11 @@
               e.stopPropagation();
               const lumiblock = $(e.target);
 
-              this.handleEnter(lumiblock.itemData, lumiblock.index);
+              this.handleEnter(
+                lumiblock.itemData,
+                lumiblock.index,
+                e.data.originEvent
+              );
             });
             this.on("delete", (e) => {
               e.stopPropagation();
