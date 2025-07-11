@@ -112,7 +112,7 @@
       position: absolute;
       left: 0;
       top: 36px;
-      z-index: 2;
+      z-index: 8;
     }
 
     .left-menu n-local-icon,
@@ -380,9 +380,9 @@
       <o-if :value="beautifyStep === 2">
         <div style="margin: 8px 0">
           <p-button size="small" on:click="useBeautify">采用</p-button>
-          <p-button size="small" variant="text" on:click="discardBeautify"
-            >放弃</p-button
-          >
+          <p-button size="small" variant="text" on:click="discardBeautify">
+            放弃
+          </p-button>
         </div>
       </o-if>
     </div>

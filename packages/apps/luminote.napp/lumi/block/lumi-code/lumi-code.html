@@ -3,13 +3,67 @@
   <style>
     :host {
       display: block;
+      background: #171b21;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .top {
+      padding: 0 8px;
+      height: 32px;
+      line-height: 32px;
+      background-color: var(--md-sys-color-on-normal);
+      transition: all ease 0.3s;
+    }
+    .top:empty {
+      height: 0;
+      opacity: 0;
+    }
+    .main {
+      flex: 1;
+      padding: 0 8px;
     }
   </style>
-  <n-code></n-code>
+  <div style="display: flex; flex-direction: column">
+    <div class="top">{{realLang}}</div>
+    <div class="main">
+      <n-code watch:real-lang="realLang" on:change="changeCode"></n-code>
+    </div>
+  </div>
   <script>
     export default async ({ load }) => {
       return {
         tag: "lumi-code",
+        data: {
+          realLang: "",
+        },
+        proto: {
+          get blockEl() {
+            const fakeEl = this.host;
+            return fakeEl.host;
+          },
+          changeCode(e) {
+            const {
+              data: { textContent },
+            } = e;
+
+            const { blockEl } = this;
+
+            const temp = $(`<div></div>`);
+            temp.text = textContent;
+
+            // 更新内容
+            blockEl.itemData.value = temp.html;
+          },
+        },
+        attached() {
+          const { blockEl } = this;
+
+          // 将代码转换回数据
+          const temp = $(`<div></div>`);
+          temp.html = blockEl.itemData.value;
+
+          this.shadow.$("n-code").code = temp.text;
+        },
       };
     };
   </script>

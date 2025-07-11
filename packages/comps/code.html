@@ -4,7 +4,6 @@
     :host {
       position: relative;
       display: block;
-      border-radius: 6px;
     }
 
     code[contenteditable] {
@@ -39,28 +38,14 @@
       padding: 0 !important;
       min-height: 2em;
       word-break: break-word;
-      border-radius: 6px;
     }
 
     .hljs::spelling-error {
       background-color: transparent; /* 移除背景色 */
       text-decoration: none; /* 移除下划线 */
     }
-
-    .lang-tag {
-      position: absolute;
-      right: 4px;
-      top: 4px;
-      z-index: 2;
-      padding: 0 4px;
-      font-size: 12px;
-      border-radius: 6px;
-      background-color: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-    }
   </style>
 
-  <div class="lang-tag">{{realLang}}</div>
   <pre><code class="hljs editor-code" contenteditable="plaintext-only" on:input="changeCode"></code></pre>
   <pre><code class="hljs show-code"></code></pre>
 
@@ -75,15 +60,30 @@
           realLang: "",
         },
         proto: {
+          get code() {
+            return this.shadow.$(".editor-code").text;
+          },
+          set code(code) {
+            this.shadow.$(".editor-code").text = code;
+            this.changeCode();
+          },
           changeCode(e) {
-            const result = hljs.highlightAuto(e.target.textContent);
+            const result = hljs.highlightAuto(
+              e ? e.target.textContent : this.code
+            );
 
             this.realLang = result.language;
-            this._codeEl.html = result.value;
+            this.shadow.$("code.show-code").html = result.value;
+
+            if (e) {
+              this.emit("change", {
+                bubbles: false,
+                data: {
+                  textContent: e.target.textContent,
+                },
+              });
+            }
           },
-        },
-        attached() {
-          this._codeEl = this.shadow.$("code.show-code");
         },
       };
     };
