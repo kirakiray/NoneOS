@@ -492,7 +492,6 @@
               this.__inputerContent &&
               this.__inputerContent.html.trim() !== value.trim()
             ) {
-              // 被其他地方更新了内容，直接覆盖
               this.__inputerContent.html = value;
 
               console.log("被其他地方更新了内容，直接覆盖", this.ele, value);

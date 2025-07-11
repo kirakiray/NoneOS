@@ -1,5 +1,7 @@
 <template component>
-  <l-m src="/packages/comps/code.html"></l-m>
+  <!-- <l-m src="/packages/comps/code.html"></l-m> -->
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -8,13 +10,16 @@
       overflow: hidden;
     }
     .top {
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 0 8px;
       height: 32px;
       line-height: 32px;
       background-color: var(--md-sys-color-on-normal);
       transition: all ease 0.3s;
     }
-    .top:empty {
+    .top:hide {
       height: 0;
       opacity: 0;
     }
@@ -24,19 +29,57 @@
     }
   </style>
   <div style="display: flex; flex-direction: column">
-    <div class="top">{{realLang}}</div>
+    <div class="top" class:hide="!realLang">
+      {{realLang}}
+
+      <o-if :value="!copied">
+        <p-button
+          size="mini"
+          variant="text"
+          style="margin-left: auto"
+          on:click="clickCopy"
+        >
+          <n-local-icon
+            name="copy"
+            slot="prefix"
+            style="display: block; margin-right: 4px; font-size: 14px"
+          ></n-local-icon>
+          复制
+        </p-button>
+      </o-if>
+      <o-else>
+        <p-button size="mini" color="success" style="margin-left: auto">
+          <n-local-icon
+            name="success"
+            slot="prefix"
+            style="display: block; margin-right: 4px; font-size: 14px"
+          ></n-local-icon>
+          复制
+        </p-button>
+      </o-else>
+    </div>
     <div class="main">
       <n-code watch:real-lang="realLang" on:change="changeCode"></n-code>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
+      await load("/packages/comps/code.html");
+
       return {
         tag: "lumi-code",
         data: {
           realLang: "",
+          copied: false,
         },
         proto: {
+          clickCopy() {
+            navigator.clipboard.writeText(this.shadow.$("n-code").code);
+            this.copied = true;
+            setTimeout(() => {
+              this.copied = false;
+            }, 1000);
+          },
           get blockEl() {
             const fakeEl = this.host;
             return fakeEl.host;
@@ -56,6 +99,7 @@
           },
         },
         attached() {
+          // 初次进入将 contenteditable 内容转化到组件内
           const { blockEl } = this;
 
           // 将代码转换回数据
