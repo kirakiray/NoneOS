@@ -1,6 +1,5 @@
 <template component>
   <link rel="stylesheet" href="./hljs-dark.css" />
-  <!-- <link rel="stylesheet" href="/packages/libs/hljs-es/default.css"> -->
   <style>
     :host {
       position: relative;
@@ -31,16 +30,37 @@
       background-color: transparent;
     }
 
-    .hljs {
-      font-size: 14px;
+    pre {
+      white-space: pre-wrap; /* 或者使用 word-wrap: break-word; */
+    }
+
+    code.hljs {
+      font-size: 13px;
+      padding: 0 !important;
+      min-height: 2em;
+      word-break: break-word;
+      border-radius: 6px;
     }
 
     .hljs::spelling-error {
       background-color: transparent; /* 移除背景色 */
       text-decoration: none; /* 移除下划线 */
     }
+
+    .lang-tag {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      z-index: 2;
+      padding: 0 4px;
+      font-size: 12px;
+      border-radius: 6px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
   </style>
 
+  <div class="lang-tag">{{realLang}}</div>
   <pre><code class="hljs editor-code" contenteditable="plaintext-only" on:input="changeCode"></code></pre>
   <pre><code class="hljs show-code"></code></pre>
 
@@ -63,14 +83,21 @@
 
       return {
         tag: "lumi-code",
-        data: {},
+        data: {
+          lang: "auto",
+          realLang: "",
+        },
         proto: {
           changeCode(e) {
-            const highlightedCode = hljs.highlight(e.target.textContent, {
-              language: "xml",
-            }).value;
+            // const highlightedCode = hljs.highlight(e.target.textContent, {
+            //   language: "xml",
+            // }).value;
+            // this._codeEl.html = highlightedCode;
 
-            this._codeEl.html = highlightedCode;
+            const result = hljs.highlightAuto(e.target.textContent);
+
+            this.realLang = result.language;
+            this._codeEl.html = result.value;
           },
         },
         attached() {
