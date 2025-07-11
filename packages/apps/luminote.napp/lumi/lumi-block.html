@@ -1094,8 +1094,24 @@
                 return `<h3>${value}</h3>`;
               case "h4":
                 return `<h4>${value}</h4>`;
+              case "article":
+                return "<span></span>";
               default:
-                // 其他自定义组件
+                debugger;
+            }
+          },
+          get textContent() {
+            const { type } = this.itemData;
+
+            switch (type) {
+              case "paragraph":
+              case "h2":
+              case "h3":
+              case "h4":
+                return this.text;
+              case "article":
+                return "";
+              default:
                 debugger;
             }
           },

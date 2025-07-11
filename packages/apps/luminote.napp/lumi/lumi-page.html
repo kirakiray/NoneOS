@@ -223,8 +223,13 @@
             const lastIndex = this._rangData.length - 1;
 
             this._rangeEl.forEach((item, index) => {
-              textContent += item.text;
-              if (index !== lastIndex) {
+              if (!item.textContent) {
+                return;
+              }
+
+              textContent += item.textContent;
+
+              if (textContent && index !== lastIndex) {
                 textContent += `\n\n`;
               }
 
