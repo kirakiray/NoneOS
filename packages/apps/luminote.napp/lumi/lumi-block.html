@@ -1115,6 +1115,24 @@
                 debugger;
             }
           },
+          get mdContent() {
+            const { type } = this.itemData;
+
+            switch (type) {
+              case "paragraph":
+                return this.text;
+              case "h2":
+                return `## ${this.text}`;
+              case "h3":
+                return `### ${this.text}`;
+              case "h4":
+                return `#### ${this.text}`;
+              case "article":
+                return "";
+              default:
+                debugger;
+            }
+          },
           handleDargover(e) {
             e.preventDefault();
             if (draggedElement === this) {
