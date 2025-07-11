@@ -1,0 +1,91 @@
+<template component>
+  <link rel="stylesheet" href="/packages/libs/hljs-es/hljs-dark.css" />
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      border-radius: 6px;
+    }
+
+    code[contenteditable] {
+      -webkit-user-modify: read-write-plaintext-only;
+      outline: none;
+    }
+
+    .editor-code {
+      position: relative;
+      z-index: 1;
+      caret-color: var(--md-sys-color-on-surface);
+      color: transparent;
+    }
+
+    .show-code {
+      position: absolute;
+      z-index: 2;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background-color: transparent;
+    }
+
+    pre {
+      white-space: pre-wrap; /* 或者使用 word-wrap: break-word; */
+    }
+
+    code.hljs {
+      font-size: 13px;
+      padding: 0 !important;
+      min-height: 2em;
+      word-break: break-word;
+      border-radius: 6px;
+    }
+
+    .hljs::spelling-error {
+      background-color: transparent; /* 移除背景色 */
+      text-decoration: none; /* 移除下划线 */
+    }
+
+    .lang-tag {
+      position: absolute;
+      right: 4px;
+      top: 4px;
+      z-index: 2;
+      padding: 0 4px;
+      font-size: 12px;
+      border-radius: 6px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+  </style>
+
+  <div class="lang-tag">{{realLang}}</div>
+  <pre><code class="hljs editor-code" contenteditable="plaintext-only" on:input="changeCode"></code></pre>
+  <pre><code class="hljs show-code"></code></pre>
+
+  <script>
+    export default async ({ load }) => {
+      const { hljs } = await load("/packages/libs/hljs-es/general.js");
+
+      return {
+        tag: "n-code",
+        data: {
+          lang: "auto",
+          realLang: "",
+        },
+        proto: {
+          changeCode(e) {
+            const result = hljs.highlightAuto(e.target.textContent);
+
+            this.realLang = result.language;
+            this._codeEl.html = result.value;
+          },
+        },
+        attached() {
+          this._codeEl = this.shadow.$("code.show-code");
+        },
+      };
+    };
+  </script>
+</template>
