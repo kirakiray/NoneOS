@@ -1,19 +1,81 @@
 <template component>
+  <link rel="stylesheet" href="./hljs-dark.css" />
+  <!-- <link rel="stylesheet" href="/packages/libs/hljs-es/default.css"> -->
   <style>
     :host {
+      position: relative;
       display: block;
-      padding: 16px;
       border-radius: 6px;
     }
+
+    code[contenteditable] {
+      -webkit-user-modify: read-write-plaintext-only;
+      outline: none;
+    }
+
+    .editor-code {
+      position: absolute;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      caret-color: var(--md-sys-color-on-surface);
+      color: transparent;
+    }
+
+    .show-code {
+      position: relative;
+      z-index: 2;
+      pointer-events: none;
+      background-color: transparent;
+    }
+
+    .hljs {
+      font-size: 14px;
+    }
+
+    .hljs::spelling-error {
+      background-color: transparent; /* 移除背景色 */
+      text-decoration: none; /* 移除下划线 */
+    }
   </style>
-  <code>
-    <slot></slot>
-  </code>
+
+  <pre><code class="hljs editor-code" contenteditable="plaintext-only" on:input="changeCode"></code></pre>
+  <pre><code class="hljs show-code"></code></pre>
+
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { default: hljs } = await load("/packages/libs/hljs-es/core.js");
+      const { default: hljsXml } = await load(
+        "/packages/libs/hljs-es/languages/xml.js"
+      );
+      const { default: hljsJs } = await load(
+        "/packages/libs/hljs-es/languages/javascript.js"
+      );
+      const { default: hljsCss } = await load(
+        "/packages/libs/hljs-es/languages/css.js"
+      );
+
+      hljs.registerLanguage("xml", hljsXml);
+      hljs.registerLanguage("javascript", hljsJs);
+      hljs.registerLanguage("css", hljsCss);
+
       return {
         tag: "lumi-code",
         data: {},
+        proto: {
+          changeCode(e) {
+            const highlightedCode = hljs.highlight(e.target.textContent, {
+              language: "xml",
+            }).value;
+
+            this._codeEl.html = highlightedCode;
+          },
+        },
+        attached() {
+          this._codeEl = this.shadow.$("code.show-code");
+        },
       };
     };
   </script>
