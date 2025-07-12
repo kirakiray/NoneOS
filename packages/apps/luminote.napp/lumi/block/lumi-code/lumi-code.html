@@ -39,7 +39,7 @@
     <div class="top" class:hide="!realLang">
       <!-- <span style="font-size: 12px"> {{lang}}({{realLang}}) </span> -->
       <select sync:value="lang" class="lang-selector">
-        <option value="auto">Auto({{realLang}})</option>
+        <option value="auto">Auto[{{realLang}}]</option>
         <template is="replace-temp">
           <x-fill :value="langs">
             <option attr:value="$data">{{$data}}</option>
@@ -88,9 +88,11 @@
 
       return {
         tag: "lumi-code",
+        attrs: {
+          lang: "auto",
+        },
         data: {
           realLang: "",
-          lang: "auto",
           copied: false,
           langs,
         },

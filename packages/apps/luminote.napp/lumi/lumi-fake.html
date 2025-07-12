@@ -33,6 +33,17 @@
           type(type) {
             const main = this.shadow.$(".main");
 
+            if (this._tid) {
+              // 注销之前的监听
+              debugger;
+              main[0].unwatch(this._tid);
+              this._tid = null;
+            }
+
+            if (!type) {
+              return;
+            }
+
             // 当使用自定义组件的时候，在这里添加
             if (
               type === "h2" ||
@@ -50,6 +61,39 @@
               // 自定义组件
               main.attr("type", null);
               main.html = `<${type}><slot></slot></${type}>`;
+
+              const targetEl = main[0];
+
+              if (this.host.itemData.attrs) {
+                // 同步属性
+                Object.entries(this.host.itemData.attrs).forEach(
+                  ([key, value]) => {
+                    targetEl.attr(key, value);
+                  }
+                );
+              }
+
+              // 监听属性上的变动
+              const tid = (this._tid = targetEl.watchTick(() => {
+                if (this._tid !== tid) {
+                  // 备选注销方案
+                  targetEl.unwatch(tid);
+                  return;
+                }
+
+                // 获取 attribute 上的数据变动并记录
+                const attrs = Array.from(targetEl.ele.attributes).reduce(
+                  (acc, attr) => {
+                    acc[attr.name] = attr.value;
+                    return acc;
+                  },
+                  {}
+                );
+
+                this.host.itemData.attrs = Object.keys(attrs).length
+                  ? attrs
+                  : undefined;
+              }));
             }
           },
         },

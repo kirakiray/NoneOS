@@ -129,7 +129,9 @@ const extractContentItemData = (item) => {
   };
 
   if (item.attrs) {
-    itemData.attrs = item.attrs;
+    const attrs = { ...item.attrs };
+    delete attrs.dataStatus;
+    itemData.attrs = attrs;
   }
 
   return itemData;
