@@ -59,6 +59,11 @@
           lang: "auto",
           realLang: "",
         },
+        watch: {
+          lang() {
+            this.changeCode();
+          },
+        },
         proto: {
           get code() {
             return this.shadow.$(".editor-code").text;
@@ -68,12 +73,22 @@
             this.changeCode();
           },
           changeCode(e) {
-            const result = hljs.highlightAuto(
-              e ? e.target.textContent : this.code
-            );
+            if (this.lang === "auto") {
+              const result = hljs.highlightAuto(
+                e ? e.target.textContent : this.code
+              );
 
-            this.realLang = result.language;
-            this.shadow.$("code.show-code").html = result.value;
+              this.realLang = result.language;
+              this.shadow.$("code.show-code").html = result.value;
+            } else {
+              const result = hljs.highlight(
+                this.lang,
+                e ? e.target.textContent : this.code
+              );
+
+              this.realLang = "";
+              this.shadow.$("code.show-code").html = result.value;
+            }
 
             if (e) {
               this.emit("change", {

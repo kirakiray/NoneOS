@@ -2,6 +2,7 @@
   <!-- <l-m src="/packages/comps/code.html"></l-m> -->
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
   <style>
     :host {
       display: block;
@@ -27,10 +28,24 @@
       flex: 1;
       padding: 0 8px;
     }
+    .lang-selector {
+      /* -webkit-appearance: none; */
+      border: none;
+      outline: none;
+      background-color: transparent;
+    }
   </style>
   <div style="display: flex; flex-direction: column">
     <div class="top" class:hide="!realLang">
-      {{realLang}}
+      <!-- <span style="font-size: 12px"> {{lang}}({{realLang}}) </span> -->
+      <select sync:value="lang" class="lang-selector">
+        <option value="auto">Auto({{realLang}})</option>
+        <template is="replace-temp">
+          <x-fill :value="langs">
+            <option attr:value="$data">{{$data}}</option>
+          </x-fill>
+        </template>
+      </select>
 
       <o-if :value="!copied">
         <p-button
@@ -59,18 +74,25 @@
       </o-else>
     </div>
     <div class="main">
-      <n-code watch:real-lang="realLang" on:change="changeCode"></n-code>
+      <n-code
+        watch:real-lang="realLang"
+        sync:lang="lang"
+        on:change="changeCode"
+      ></n-code>
     </div>
   </div>
   <script>
     export default async ({ load }) => {
       await load("/packages/comps/code.html");
+      const { langs } = await load("/packages/libs/hljs-es/general.js");
 
       return {
         tag: "lumi-code",
         data: {
           realLang: "",
+          lang: "auto",
           copied: false,
+          langs,
         },
         proto: {
           clickCopy() {

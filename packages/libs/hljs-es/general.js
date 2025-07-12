@@ -36,4 +36,23 @@ hljs.registerLanguage("sql", sql);
 hljs.registerLanguage("bash", bash);
 hljs.registerLanguage("shell", shell);
 
+export const langs = [
+  "javascript",
+  "typescript",
+  "python",
+  "java",
+  "cpp",
+  "csharp",
+  "php",
+  "ruby",
+  "swift",
+  "kotlin",
+  "go",
+  "rust",
+  "css",
+  "sql",
+  "bash",
+  "shell",
+];
+
 export { hljs };
