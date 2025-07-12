@@ -376,12 +376,6 @@
           focusTitle() {
             this.shadow.$(".title").ele.focus();
           },
-          // focusLast() {
-          //   setTimeout(() => {
-          //     // this.shadow.$("#lumi-fill-el").slice(-1)[0].focus();
-          //     this.slice(-1)[0].focus();
-          //   }, 30);
-          // },
           async handleEnter(data, index, originEvent) {
             const finnalIndex = index + 1;
 
@@ -423,10 +417,13 @@
               });
             }
 
-            setTimeout(() => {
-              // this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
-              this[finnalIndex].focus("start");
-            }, 1);
+            setTimeout(
+              () => {
+                // this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
+                this[finnalIndex].focus("start");
+              },
+              isSafari ? 60 : 1
+            );
           },
           async handleDelete(data, index) {
             this.itemData.content.splice(index, 1);
@@ -600,5 +597,7 @@
         },
       };
     };
+
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
   </script>
 </template>
