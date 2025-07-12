@@ -550,7 +550,6 @@
               "keydown",
               (this._keydownFunc = (e) => {
                 if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
-                  console.log(e.target, e.composedPath());
                   // 属于编辑器或body的操作
                   if (
                     e
@@ -566,6 +565,17 @@
                       // 属于自身聚焦的状态，才允许撤销
                       this.handleBlockUndo();
                     }
+                  }
+                } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
+                  if (
+                    e
+                      .composedPath()
+                      .filter((e) => e.matches && e.matches("lumi-page")).length
+                  ) {
+                    e.preventDefault();
+
+                    // 提示上层保存
+                    this.emit("lumi-page-save");
                   }
                 }
               })

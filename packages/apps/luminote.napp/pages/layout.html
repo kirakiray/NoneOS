@@ -299,7 +299,7 @@
             flex-direction: column;
           "
         >
-          <div class="top">
+          <div class="top" style="display: flex; align-items: center">
             <div class="breadcrumbs" class:hide-breadcrumbs="hideBreadcrumbs">
               <div
                 class="breadcrumb"
@@ -325,8 +325,16 @@
                 </div>
               </o-fill>
             </div>
+            <o-if :value="saveing">
+              <div style="margin: 0 16px 0 auto; font-size: 20px">
+                <n-local-icon name="loading"></n-local-icon>
+              </div>
+            </o-if>
           </div>
-          <div style="flex: 1; position: relative">
+          <div
+            style="flex: 1; position: relative"
+            on:lumi-page-save="lumiPageSaving"
+          >
             <slot></slot>
           </div>
         </div>
@@ -369,8 +377,16 @@
           currentDirName: null,
           openAddDialog: false,
           projects: [], // 已经打开的项目
+          saveing: false, // 保存项目中
         },
         proto: {
+          lumiPageSaving() {
+            clearTimeout(this._saving_timer);
+            this.saveing = true;
+            this._saving_timer = setTimeout(() => {
+              this.saveing = false;
+            }, 500 + Math.random() * 500);
+          },
           clickBread(item) {
             this.goto(
               `./note.html?article_id=${item.dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
