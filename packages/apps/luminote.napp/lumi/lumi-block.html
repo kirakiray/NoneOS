@@ -314,7 +314,10 @@
         输入文本，默认使用段落组件。按 "/" 切换组件
       </span>
       <o-if :value="itemData.type && itemData.type !== 'article'">
-        <lumi-fake :type="itemData.type">
+        <lumi-fake
+          :type="itemData.type"
+          on:update-block-value="updateBlockValue"
+        >
           <div class="focus-mark" class:hide-mark="!getInUserName()">
             <o-if :value="itemData?.focusUser">
               <div class="focus-mark-name">
@@ -488,17 +491,34 @@
               return;
             }
 
-            if (
-              this.__inputerContent &&
-              this.__inputerContent.html.trim() !== value.trim()
-            ) {
+            if (this.__inputerContent && this.__inputerContent.html !== value) {
               this.__inputerContent.html = value;
+
+              // 更新component的value
+              if (this.itemData.type.includes("-")) {
+                try {
+                  const targetComp = this.shadow
+                    .$("lumi-fake")
+                    .shadow.$(".main")[0];
+
+                  targetComp.setValue &&
+                    targetComp.setValue(this.itemData.value);
+                } catch (err) {
+                  console.log(err);
+                }
+              }
 
               console.log("被其他地方更新了内容，直接覆盖", this.ele, value);
             }
           },
         },
         proto: {
+          updateBlockValue(e) {
+            e.stopPropagation();
+            const { value } = e.data;
+
+            this.itemData.value = value;
+          },
           useBeautify() {
             this.beautifyStep = 0;
             this.itemData.value = this.beautifyContent;

@@ -113,13 +113,25 @@
               data: { textContent },
             } = e;
 
-            const { blockEl } = this;
-
             const temp = $(`<div></div>`);
             temp.text = textContent;
 
-            // 更新内容
-            blockEl.itemData.value = temp.html;
+            // 触发事件更新
+            this.emit("update-block-value", {
+              composed: true,
+              data: {
+                value: temp.html,
+              },
+            });
+          },
+          setValue(value) {
+            const temp = $(`<div>${value}</div>`);
+            const realCode = temp.text;
+
+            // 从父层更新下来的value
+            if (this._codeEl.code !== realCode) {
+              this._codeEl.code = realCode;
+            }
           },
         },
         attached() {
@@ -129,6 +141,8 @@
           // 将代码转换回数据
           const temp = $(`<div></div>`);
           temp.html = blockEl.itemData.value;
+
+          this._codeEl = this.shadow.$("n-code");
 
           this.shadow.$("n-code").code = temp.text;
         },

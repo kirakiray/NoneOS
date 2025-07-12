@@ -38,7 +38,7 @@ export const saveHistory = (lumipage, watchs) => {
       historyList.push(historyId);
       await historyStorage.setItem("_history", historyList);
     }
-  }, 100);
+  }, 300);
 };
 
 let undoOK = true;
@@ -55,7 +55,8 @@ export const handleUndo = async (lumipage) => {
   const previousHistoryList =
     (await historyStorage.getItem("_preHistory")) || [];
 
-  if (!historyList || !historyList.length) {
+  if (!historyList || !historyList.length || historyList.length === 1) {
+    undoOK = true;
     return;
   }
 
@@ -78,6 +79,7 @@ export const handleUndo = async (lumipage) => {
 
   if (!previousContent) {
     // 没有旧数据，撤销操作
+    undoOK = true;
     return;
   }
 
