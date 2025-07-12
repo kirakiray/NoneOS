@@ -419,6 +419,8 @@
 
     let selfUserId = null; // 自身的userid
 
+    let showToolpanelBlock = null;
+
     export default async ({ load }) => {
       const { getUserName } = await load("/packages/util/get-user-info.js");
       const { toast } = await load("/packages/pui/util.js");
@@ -659,6 +661,14 @@
 
             this.on("mousedown", (e) => {
               mouseDownBlock = this;
+
+              if (openedLeftMenuElement && openedLeftMenuElement !== this) {
+                openedLeftMenuElement.leftMenuOpen = false;
+              }
+
+              if (showToolpanelBlock && showToolpanelBlock !== this) {
+                showToolpanelBlock.showToolPannel = false;
+              }
             });
 
             this.on("mouseenter", (e) => {
@@ -820,6 +830,9 @@
 
             if (previousRangeElement) {
               previousRangeElement.showToolPannel = false;
+              if (showToolpanelBlock === previousRangeElement) {
+                showToolpanelBlock = null;
+              }
             }
 
             // BUG: 已选中了文本，再将焦点停在选择范围内，会发现选择文本内容是错的
@@ -846,6 +859,9 @@
 
               if (!rangString) {
                 this.showToolPannel = false;
+                if (showToolpanelBlock === this) {
+                  showToolpanelBlock = null;
+                }
                 mouseDownBlock = null;
                 return;
               }
@@ -866,6 +882,7 @@
 
               previousRangeElement = this;
               this.showToolPannel = true;
+              showToolpanelBlock = this;
 
               await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -885,6 +902,9 @@
             } else {
               // console.log("没有选中文本");
               this.showToolPannel = false;
+              if (showToolpanelBlock === this) {
+                showToolpanelBlock = null;
+              }
             }
 
             mouseDownBlock = null;
@@ -1235,6 +1255,11 @@
           }
 
           removeLoadingTask(this);
+
+          if (showToolpanelBlock === this) {
+            showToolpanelBlock = null;
+            this.showToolPannel = false;
+          }
 
           if (previousRangeElement === this) {
             this.showToolPannel = false;
