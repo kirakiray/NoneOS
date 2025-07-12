@@ -134,17 +134,8 @@
             }
           },
         },
-        attached() {
-          // 初次进入将 contenteditable 内容转化到组件内
-          const { blockEl } = this;
-
-          // 将代码转换回数据
-          const temp = $(`<div></div>`);
-          temp.html = blockEl.itemData.value;
-
+        ready() {
           this._codeEl = this.shadow.$("n-code");
-
-          this.shadow.$("n-code").code = temp.text;
         },
       };
     };

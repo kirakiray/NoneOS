@@ -73,6 +73,11 @@
                 );
               }
 
+              // 设置初始值
+              if (targetEl.setValue) {
+                targetEl.setValue(this.host.itemData.value);
+              }
+
               // 监听属性上的变动
               const tid = (this._tid = targetEl.watchTick(() => {
                 if (this._tid !== tid) {
