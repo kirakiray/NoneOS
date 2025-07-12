@@ -221,6 +221,7 @@
           clickMultiCopy() {
             let textContent = "";
             let htmlContent = "";
+            // let mdContent = "";
 
             const lastIndex = this._rangData.length - 1;
 
@@ -230,18 +231,23 @@
               }
 
               textContent += item.textContent;
+              htmlContent += item.htmlContent;
+              // mdContent += item.mdContent;
 
               if (textContent && index !== lastIndex) {
                 textContent += `\n\n`;
+                htmlContent += `\n`;
+                // mdContent += `\n\n`;
               }
-
-              htmlContent += item.htmlContent + "\n";
             });
 
             navigator.clipboard.write([
               new ClipboardItem({
                 "text/html": new Blob([htmlContent], { type: "text/html" }),
                 "text/plain": new Blob([textContent], { type: "text/plain" }),
+                // "text/markdown": new Blob([mdContent], {
+                //   type: "text/markdown",
+                // }),
               }),
             ]);
 

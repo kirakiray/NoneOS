@@ -1012,7 +1012,7 @@
             if (e.key === "c" && (e.metaKey || e.ctrlKey)) {
               // 复制
               e.preventDefault();
-              const { htmlContent, text: textContent } = this;
+              const { text: textContent } = this;
 
               if (!textContent) {
                 // 这时候应该是进入多选的状态，将复制事件冒泡上去
@@ -1024,8 +1024,15 @@
 
               navigator.clipboard.write([
                 new ClipboardItem({
-                  "text/html": new Blob([htmlContent], { type: "text/html" }),
-                  "text/plain": new Blob([textContent], { type: "text/plain" }),
+                  "text/html": new Blob([this.htmlContent], {
+                    type: "text/html",
+                  }),
+                  "text/plain": new Blob([this.textContent], {
+                    type: "text/plain",
+                  }),
+                  // "text/markdown": new Blob([this.mdContent], {
+                  //   type: "text/markdown",
+                  // }),
                 }),
               ]);
 
