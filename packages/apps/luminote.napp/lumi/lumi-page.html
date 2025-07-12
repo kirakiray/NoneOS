@@ -151,9 +151,8 @@
         getSelectionLetterData,
       } = await load("./util/range.js");
 
-      const { saveHistory, handleUndo, clearUndoHistory } = await load(
-        "./util/page-undo-util.js"
-      );
+      const { saveHistory, handleUndo, handleRedo, clearUndoHistory } =
+        await load("./util/page-undo-util.js");
 
       if (!selfUserId) {
         try {
@@ -206,6 +205,9 @@
           },
           async handleBlockUndo(e) {
             await handleUndo(this);
+          },
+          async handleBlockRedo(e) {
+            await handleRedo(this);
           },
           handleBlockCopy(e) {
             e.stopPropagation();
@@ -561,9 +563,13 @@
                     const [app] = this.parents.filter((e) => e.tag === "o-app");
                     e.preventDefault();
 
+                    // 属于自身聚焦的状态，才允许撤销
                     if (app.focused()) {
-                      // 属于自身聚焦的状态，才允许撤销
-                      this.handleBlockUndo();
+                      if (e.shiftKey) {
+                        this.handleBlockRedo();
+                      } else {
+                        this.handleBlockUndo();
+                      }
                     }
                   }
                 } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {

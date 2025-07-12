@@ -17,18 +17,23 @@ export const saveHistory = (lumipage, watchs) => {
         extractContentItemData(item)
       );
 
-      // console.log("before save: ", lumipage.__undoContent, contentData);
-
       // 如果上一个 __undoContent，代表时从撤销过来的，看看数据是否对等，是的话不操作
       if (lumipage.__undoContent) {
-        if (compareContentData(contentData, lumipage.__undoContent)) {
-          //   // 如果当前的数据和后退档的历史数据一致，代表时通过撤销操作得到的数据FFhsdedachcotsad，iyhsilddohhhsdadur //
-          // console.log("撤销操作，不存档: ", lumipage.__undoContent);
-          return;
-        }
+        // console.log("撤销操作，不存档: ", lumipage.__undoContent);
+        lumipage.__undoContent = null;
+        return;
+        // if (compareContentData(contentData, lumipage.__undoContent)) {
+        //   //   // 如果当前的数据和后退档的历史数据一致，代表时通过撤销操作得到的数据FFhsdedachcotsad，iyhsilddohhhsdadur //
+        //   // console.log("撤销操作，不存档: ", lumipage.__undoContent);
+        //   return;
+        // }
+      } else if (lumipage.__redoContent) {
+        lumipage.__redoContent = null;
+      } else {
+        // 从普通状态过来的话，需要清除 redo 数据
+        // console.log("清除 redo");
+        historyStorage.setItem("_preHistory", []);
       }
-
-      // console.log("存档: ", contentData);
 
       const historyList = (await historyStorage.getItem("_history")) || [];
 
@@ -41,14 +46,43 @@ export const saveHistory = (lumipage, watchs) => {
   }, 300);
 };
 
-let undoOK = true;
+let doing = true;
 
-export const handleUndo = async (lumipage) => {
-  if (!undoOK) {
+export const handleRedo = async (lumipage) => {
+  if (!doing) {
     return;
   }
 
-  undoOK = false;
+  doing = false;
+
+  // 获取历史数据
+  const historyList = await historyStorage.getItem("_history");
+  const previousHistoryList =
+    (await historyStorage.getItem("_preHistory")) || [];
+
+  if (previousHistoryList.length) {
+    const previousContentId = previousHistoryList.pop();
+    const previousContent = await historyStorage.getItem(previousContentId);
+    await historyStorage.setItem("_preHistory", previousHistoryList);
+
+    if (previousContent) {
+      // 重新修正内容
+      updatePageContent(lumipage, previousContent);
+
+      lumipage.__redoContent = previousContent; // 记录当前是从撤回的操作
+      lumipage.__undoContent = null;
+    }
+  }
+
+  doing = true;
+};
+
+export const handleUndo = async (lumipage) => {
+  if (!doing) {
+    return;
+  }
+
+  doing = false;
 
   // 获取历史数据
   const historyList = await historyStorage.getItem("_history");
@@ -56,7 +90,7 @@ export const handleUndo = async (lumipage) => {
     (await historyStorage.getItem("_preHistory")) || [];
 
   if (!historyList || !historyList.length || historyList.length === 1) {
-    undoOK = true;
+    doing = true;
     return;
   }
 
@@ -76,13 +110,20 @@ export const handleUndo = async (lumipage) => {
   console.log("save his ", previousContent);
 
   lumipage.__undoContent = previousContent; // 记录当前是从撤回的操作
+  lumipage.__redoContent = null;
 
   if (!previousContent) {
     // 没有旧数据，撤销操作
-    undoOK = true;
+    doing = true;
     return;
   }
 
+  updatePageContent(lumipage, previousContent);
+
+  doing = true;
+};
+
+const updatePageContent = (lumipage, previousContent) => {
   // 根据旧的content，还原 itemData.content 的内容
   const restoredContent = [];
   const currentContent = lumipage.itemData.content;
@@ -118,8 +159,6 @@ export const handleUndo = async (lumipage) => {
 
   // 还原内容
   lumipage.itemData.content = restoredContent;
-
-  undoOK = true;
 };
 
 // 获取 content 内单个item的纯净数据

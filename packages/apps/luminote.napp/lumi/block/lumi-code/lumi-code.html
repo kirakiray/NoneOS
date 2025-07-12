@@ -133,6 +133,26 @@
               this._codeEl.code = realCode;
             }
           },
+          get textContent() {
+            // const temp = $(`<div></div>`);
+            // temp.text = this._codeEl.code;
+
+            // return temp.html;
+            return this.htmlContent;
+          },
+          get htmlContent() {
+            const temp = $(`<div></div>`);
+            temp.text = this._codeEl.code;
+
+            return `<code>${temp.html}</code>`;
+          },
+          get mdContent() {
+            let lang = this.lang;
+            if (lang === "auto") {
+              lang = this.realLang;
+            }
+            return "```" + lang + "\n" + this._codeEl.code + "\n" + "```";
+          },
         },
         ready() {
           this._codeEl = this.shadow.$("n-code");

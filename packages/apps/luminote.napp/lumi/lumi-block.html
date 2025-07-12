@@ -23,6 +23,7 @@
       width: 100%;
       max-width: 800px;
       margin: 1px auto;
+      padding: 6px 8px;
       /* background-color: rgba(255, 128, 0, 0.3); */
     }
     .menu-btn {
@@ -48,17 +49,12 @@
     .placeholder.show {
       opacity: 1;
     }
-    /* .inputer-content {
-      display: block;
-      padding: 6px 8px;
-      line-height: 1.6em;
-      outline: none;
-    } */
+
     ::slotted([inputer-content]) {
       /* position: relative;
       z-index: 1; */
       display: block;
-      padding: 6px 8px;
+      /* padding: 6px 8px; */
       line-height: 1.6em;
       outline: none;
       -webkit-user-modify: read-write-plaintext-only;
@@ -491,7 +487,10 @@
               return;
             }
 
-            if (this.__inputerContent && this.__inputerContent.html !== value) {
+            if (
+              this.__inputerContent &&
+              this.__inputerContent.html.trim() !== value.trim()
+            ) {
               this.__inputerContent.html = value;
 
               // 更新component的value
@@ -507,8 +506,6 @@
                   console.log(err);
                 }
               }
-
-              console.log("被其他地方更新了内容，直接覆盖", this.ele, value);
             }
           },
         },
@@ -660,12 +657,13 @@
               this.itemData.focusUser = null;
             });
 
-            inputerContent.on("mousedown", (e) => {
+            this.on("mousedown", (e) => {
               mouseDownBlock = this;
             });
 
-            inputerContent.on("mouseenter", (e) => {
+            this.on("mouseenter", (e) => {
               if (mouseDownBlock) {
+                console.log("enter block: ", e.target);
                 const parentContent = this.parent.itemData.content;
                 const startIndex = parentContent.indexOf(
                   mouseDownBlock.itemData
@@ -683,7 +681,7 @@
               }
             });
 
-            inputerContent.on("mouseup", (e) => {
+            this.on("mouseup", (e) => {
               this.handleTextMouseUp(e);
             });
 
@@ -728,16 +726,30 @@
 
                       const tag = item.tagName.toLowerCase();
 
-                      let type = "paragraph";
+                      if (
+                        tag === "p" ||
+                        tag === "h2" ||
+                        tag === "h3" ||
+                        tag === "h4"
+                      ) {
+                        const type = tag === "p" ? "paragraph" : tag;
 
-                      if (tag === "h2" || tag === "h3" || tag === "h4") {
-                        type = tag;
+                        contents.push({
+                          type,
+                          value: await letterDataToElement(reContent),
+                        });
+                      } else if (tag === "code") {
+                        contents.push({
+                          type: "lumi-code",
+                          value: item.innerHTML,
+                        });
+                      } else {
+                        // 不明类型全部填充为段落
+                        contents.push({
+                          type: "paragraph",
+                          value: await letterDataToElement(reContent),
+                        });
                       }
-
-                      contents.push({
-                        type,
-                        value: await letterDataToElement(reContent),
-                      });
                     }
                   }
                 } else {
@@ -1116,7 +1128,8 @@
               case "article":
                 return "<span></span>";
               default:
-                debugger;
+                // 自定义组件上获取数据
+                return this.shadow.$("lumi-fake").innerComponent.htmlContent;
             }
           },
           get textContent() {
@@ -1131,7 +1144,8 @@
               case "article":
                 return "";
               default:
-                debugger;
+                // 自定义组件上获取数据
+                return this.shadow.$("lumi-fake").innerComponent.textContent;
             }
           },
           get mdContent() {
@@ -1149,7 +1163,8 @@
               case "article":
                 return "";
               default:
-                debugger;
+                // 自定义组件上获取数据
+                return this.shadow.$("lumi-fake").innerComponent.mdContent;
             }
           },
           handleDargover(e) {

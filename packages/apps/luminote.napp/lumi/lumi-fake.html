@@ -35,7 +35,6 @@
 
             if (this._tid) {
               // 注销之前的监听
-              debugger;
               main[0].unwatch(this._tid);
               this._tid = null;
             }
@@ -76,6 +75,11 @@
               // 设置初始值
               if (targetEl.setValue) {
                 targetEl.setValue(this.host.itemData.value);
+              } else {
+                setTimeout(() => {
+                  // 兜底方案
+                  targetEl.attr("value", this.host.itemData.value);
+                }, 100);
               }
 
               // 监听属性上的变动
@@ -95,6 +99,10 @@
                   {}
                 );
 
+                if (isObjectEqual(this.host.itemData.attrs, attrs)) {
+                  return;
+                }
+
                 this.host.itemData.attrs = Object.keys(attrs).length
                   ? attrs
                   : undefined;
@@ -102,7 +110,33 @@
             }
           },
         },
+        proto: {
+          get innerComponent() {
+            return this.shadow.$(".main")[0];
+          },
+        },
       };
+    };
+
+    const isObjectEqual = (obj1, obj2) => {
+      if (obj1 === obj2) {
+        return true;
+      }
+
+      const keys1 = Object.keys(obj1);
+      const keys2 = Object.keys(obj2);
+
+      if (keys1.length !== keys2.length) {
+        return false;
+      }
+
+      for (const key of keys1) {
+        if (!keys2.includes(key) || !isObjectEqual(obj1[key], obj2[key])) {
+          return false;
+        }
+      }
+
+      return true;
     };
   </script>
 </template>
