@@ -38,7 +38,7 @@ export const initMultiSelect = (lumipage) => {
     });
 
     if (startIndex === endIndex) {
-      lumiBlock.selected = null;
+      $(lumiBlock).selected = null;
     }
   });
 
