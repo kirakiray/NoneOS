@@ -286,8 +286,9 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
 
-      const { addLoadingTask, removeLoadingTask, showInlineCompForm } =
-        await load("./util/lumi-util.js");
+      const { addLoadingTask, removeLoadingTask } = await load(
+        "./util/lumi-util.js"
+      );
 
       const { focusAndSetCursorAtEnd, getContainerAndOffset, setSelection } =
         await load("./util/range.js");
@@ -337,7 +338,6 @@
           updateBlockValue(e) {
             e.stopPropagation();
             const { value } = e.data;
-
             this.itemData.value = value;
           },
           handleClickArticle() {
@@ -358,6 +358,7 @@
             this.__inputerContent = inputerContent;
 
             inputerContent.on("input", (e) => {
+              // 内容改动后更新到数据对象上
               let content = e.target.innerHTML.trim();
               if (content === "<br>") {
                 content = "";
@@ -400,13 +401,6 @@
                 focusAndSetCursorAtEnd(this[0].ele);
               }
             }, 10);
-          },
-          handleInputContent(e) {
-            let content = e.target.innerHTML.trim();
-            if (content === "<br>") {
-              content = "";
-            }
-            this.itemData.value = content;
           },
           get htmlContent() {
             const { value, type } = this.itemData;

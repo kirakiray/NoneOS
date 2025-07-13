@@ -1,4 +1,5 @@
 // 编辑器的撤销和重做功
+// 初始化重做功能
 export const initUndoRedo = (_this) => {
   document.addEventListener(
     "keydown",
@@ -37,8 +38,9 @@ export const initUndoRedo = (_this) => {
   );
 };
 
-export const revokeUndoRedo = (lumiPage) => {
-  document.removeEventListener("keydown", lumiPage._keydownFunc);
+// 注销撤销重做功能
+export const revokeUndoRedo = (_this) => {
+  document.removeEventListener("keydown", _this._keydownFunc);
 };
 
 import { EverCache } from "/packages/libs/ever-cache.js";
