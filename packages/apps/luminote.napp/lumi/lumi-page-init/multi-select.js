@@ -53,8 +53,46 @@ export const initMultiSelect = (lumipage) => {
 
     const { startIndex, endIndex } = getStartAndEnd(lumiBlock, lumipage);
 
+    if (startIndex === endIndex) {
+      mousedownStartBlock = null;
+      return;
+    }
+
     // 选中的block
     const selectedBlocks = lumipage.slice(startIndex, endIndex + 1);
+
+    const multiPanel = lumipage.shadow.$("lumi-multi-panel");
+
+    if (!multiPanel) {
+      console.error("lumi-multi-panel not found");
+      return;
+    }
+
+    multiPanel.open = true; // 打开
+
+    const originEvent = e;
+
+    multiPanel.multiPanelStyle = {
+      left: `${originEvent.clientX}px`,
+      top: `${originEvent.clientY}px`,
+    };
+
+    // // 如果超出了屏幕边, 改为靠右
+    const width = parseInt(multiPanel.panel.css.width);
+
+    console.log("panelwidth: ", width);
+
+    const selfRect = lumipage.ele.getBoundingClientRect();
+
+    if (width + originEvent.clientX > selfRect.width + selfRect.left) {
+      multiPanel.multiPanelStyle.left =
+        selfRect.width - width + selfRect.left + "px";
+    }
+
+    // 取消原来选中的范围
+    window.getSelection().removeAllRanges();
+
+    console.log("selectedBlocks: ", selectedBlocks);
 
     mousedownStartBlock = null;
   });

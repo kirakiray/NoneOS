@@ -366,6 +366,9 @@
               this.itemData.value = content;
             });
 
+            inputerContent.on("focus", () => (this.inFocus = true));
+            inputerContent.on("blur", () => (this.inFocus = false));
+
             inputerContent.html = this.itemData.value;
 
             this.push(inputerContent);
