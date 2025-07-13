@@ -624,7 +624,7 @@
             // 保存数据
             this.itemData.value = value;
 
-            console.log("handleUpdateValue: ", value);
+            // console.log("handleUpdateValue: ", value);
           },
           initializeEditor() {
             // 初始化 editor 操作,主要是为了兼容safari
@@ -659,7 +659,7 @@
               this.itemData.focusUser = null;
             });
 
-            this.on("mousedown", (e) => {
+            inputerContent.on("mousedown", (e) => {
               mouseDownBlock = this;
 
               if (openedLeftMenuElement && openedLeftMenuElement !== this) {
@@ -671,7 +671,7 @@
               }
             });
 
-            this.on("mouseenter", (e) => {
+            inputerContent.on("mouseenter", (e) => {
               if (mouseDownBlock) {
                 console.log("enter block: ", e.target);
                 const parentContent = this.parent.itemData.content;
@@ -691,7 +691,7 @@
               }
             });
 
-            this.on("mouseup", (e) => {
+            inputerContent.on("mouseup", (e) => {
               this.handleTextMouseUp(e);
             });
 
@@ -828,7 +828,7 @@
               return;
             }
 
-            if (previousRangeElement && previousRangeElement !== this) {
+            if (previousRangeElement) {
               previousRangeElement.showToolPannel = false;
               if (showToolpanelBlock === previousRangeElement) {
                 showToolpanelBlock = null;
