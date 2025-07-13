@@ -123,6 +123,10 @@
         return true;
       }
 
+      if (obj1 === undefined || obj2 === undefined) {
+        return obj1 === obj2;
+      }
+
       const keys1 = Object.keys(obj1);
       const keys2 = Object.keys(obj2);
 

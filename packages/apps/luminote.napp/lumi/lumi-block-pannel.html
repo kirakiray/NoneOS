@@ -409,10 +409,12 @@
             }, 100);
           },
           async getSelectionLetterData() {
-            return getSelectionLetterData(
-              this.host.ele.getRootNode(),
-              this.host[0].ele
-            );
+            // return getSelectionLetterData(
+            //   this.host.ele.getRootNode(),
+            //   this.host[0].ele
+            // );
+            console.log("aa: ", this, this.host, this.host[0]);
+            return getSelectionLetterData(document, this.host[0].ele);
           },
           async changeColor(color, isChangeBgColor) {
             const { startOffset, endOffset, letterData, selectionRangeLetter } =

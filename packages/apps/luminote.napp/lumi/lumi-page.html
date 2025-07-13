@@ -380,9 +380,10 @@
             const finnalIndex = index + 1;
 
             // 获取选中的焦点
-            const selectionRangeData = await getSelectionLetterData(
-              this.ele.getRootNode()
-            );
+            // const selectionRangeData = await getSelectionLetterData(
+            //   this.ele.getRootNode()
+            // );
+            const selectionRangeData = await getSelectionLetterData(document);
 
             // 截取焦点后的内容
             const afterLetterData = selectionRangeData.letterData.slice(
