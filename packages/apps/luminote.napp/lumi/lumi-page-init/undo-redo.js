@@ -1,9 +1,9 @@
 // 编辑器的撤销和重做功
 // 初始化重做功能
-export const initUndoRedo = (_this) => {
+export const initUndoRedo = (lumipage) => {
   document.addEventListener(
     "keydown",
-    (_this._keydownFunc = (e) => {
+    (lumipage._keydownFunc = (e) => {
       if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
         // 属于编辑器或body的操作
         if (
@@ -11,15 +11,15 @@ export const initUndoRedo = (_this) => {
             .length ||
           e.target === document.body
         ) {
-          const [app] = _this.parents.filter((e) => e.tag === "o-app");
+          const [app] = lumipage.parents.filter((e) => e.tag === "o-app");
           e.preventDefault();
 
           // 属于自身聚焦的状态，才允许撤销
           if (app.focused()) {
             if (e.shiftKey) {
-              handleRedo(_this);
+              handleRedo(lumipage);
             } else {
-              handleUndo(_this);
+              handleUndo(lumipage);
             }
           }
         }
@@ -31,7 +31,7 @@ export const initUndoRedo = (_this) => {
           e.preventDefault();
 
           // 提示上层保存
-          _this.emit("lumi-page-save");
+          lumipage.emit("lumi-page-save");
         }
       }
     })
@@ -39,8 +39,8 @@ export const initUndoRedo = (_this) => {
 };
 
 // 注销撤销重做功能
-export const revokeUndoRedo = (_this) => {
-  document.removeEventListener("keydown", _this._keydownFunc);
+export const revokeUndoRedo = (lumipage) => {
+  document.removeEventListener("keydown", lumipage._keydownFunc);
 };
 
 import { EverCache } from "/packages/libs/ever-cache.js";

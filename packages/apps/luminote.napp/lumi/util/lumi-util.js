@@ -35,6 +35,15 @@ export const runBlock = async () => {
 
 import { inlineComps } from "../inline/config.js";
 
+{
+  // 加载组件
+  const load = lm();
+  inlineComps.forEach((e) => {
+    load(e.inlineComponentSrc);
+    load(e.formComponentSrc);
+  });
+}
+
 // 在body中添加对用内联组件的表单元素的弹窗气泡
 export const showInlineCompForm = (target) => {
   const tag = target.tagName.toLowerCase();

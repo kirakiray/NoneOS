@@ -137,6 +137,9 @@
       const { initUndoRedo, revokeUndoRedo } = await load(
         "./lumi-page-init/undo-redo.js"
       );
+      const { initMultiSelect, revokeMultiSelect } = await load(
+        "./lumi-page-init/multi-select.js"
+      );
 
       const { diffFill } = await load("./util/diff-fill.js");
       const { toast } = await load("/packages/pui/util.js");
@@ -149,6 +152,13 @@
       const { saveHistory, clearUndoHistory } = await load(
         "./lumi-page-init/undo-redo.js"
       );
+
+      const { blockComps } = await load("./block/config.js");
+
+      // 加载块组件
+      blockComps.forEach((e) => {
+        load(e.src);
+      });
 
       return {
         tag: "lumi-page",
@@ -297,6 +307,7 @@
             });
 
             initUndoRedo(this);
+            initMultiSelect(this);
           }
         },
         detached() {
