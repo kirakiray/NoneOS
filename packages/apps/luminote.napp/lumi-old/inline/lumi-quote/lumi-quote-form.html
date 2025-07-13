@@ -1,0 +1,76 @@
+<template component>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 8px;
+      border-radius: 6px;
+      color: var(--md-sys-color-on-surface);
+      background-color: var(--md-sys-color-on-normal);
+      box-shadow: var(--contained-shadow);
+      animation: slideIn 0.2s ease-in-out;
+      line-height: 1.2em;
+      word-break: break-all;
+      font-size: 12px;
+    }
+
+    @keyframes slideIn {
+      0% {
+        opacity: 0;
+        transform: translateX(10px);
+      }
+      80% {
+        transform: translateX(0);
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  </style>
+  <div style="display: flex">
+    <div style="color: var(--md-sys-color-primary)">解释文章</div>
+    :
+    <div style="display: flex; align-items: center; margin-left: 4px">
+      <n-local-icon name="article" style="font-size: 14px"></n-local-icon>
+      {{title}}
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { findArticle } = await load("../../../util/find-article-data.js");
+
+      return {
+        tag: "lumi-quote-form",
+        data: {
+          target: {}, // 目标内联组件
+          title: "Loading...",
+        },
+        proto: {
+          // 对页面进行初始化
+          async onInit({ target }) {
+            this.target = target;
+
+            const { articleId } = target;
+            const [app] = target.parents.filter((e) => e.tag === "o-app");
+            const [notePage] = target.parents.filter((e) =>
+              e?.src?.includes("/note.html")
+            );
+
+            const { target: articleItemData } = await findArticle({
+              app,
+              dataId: articleId,
+              userId: notePage.currentUserId,
+              dirName: notePage.currentDirName,
+            });
+
+            this.title = articleItemData.title;
+          },
+        },
+        attached() {},
+        detached() {
+          this.target = {};
+        },
+      };
+    };
+  </script>
+</template>
