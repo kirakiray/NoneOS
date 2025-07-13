@@ -211,6 +211,7 @@
   <o-if :value="!loading">
     <div
       class="inputer"
+      class:hide="itemData.type === 'article' && itemData.removed"
       class:active-bg="leftMenuOpen || selected"
       on:dragover="handleDargover"
       on:dragleave="dragovering = false"
@@ -430,9 +431,8 @@
         load(item.src);
       });
 
-      const { addLoadingTask, removeLoadingTask } = await load(
-        "./util/lumi-util.js"
-      );
+      const { addLoadingTask, removeLoadingTask, showInlineCompForm } =
+        await load("./util/lumi-util.js");
 
       const {
         focusAndSetCursorAtEnd,
@@ -1009,6 +1009,11 @@
             this.itemData.value = content;
           },
           async handleKeyDownEvent(e) {
+            if (e.key === "/" && this.itemData.value === "") {
+              // 如果是在组件第一个字符按下，则弹出组件选择菜单
+              debugger;
+            }
+
             if (e.key === "c" && (e.metaKey || e.ctrlKey)) {
               // 复制
               e.preventDefault();
@@ -1302,87 +1307,6 @@
           target.__mousewheel_func = null;
         }
       }, time);
-    };
-
-    // 在body中添加对用内联组件的表单元素的弹窗气泡
-    const showInlineCompForm = (target) => {
-      const tag = target.tagName.toLowerCase();
-      const registerItem = inlineComps.find((item) => item.tag === tag);
-
-      const rect = target.getBoundingClientRect();
-
-      clearTimeout(target._tips_remove_timer); // 清除移除的定时器
-
-      let tipsEl = target.__tipsEl;
-
-      if (tipsEl) {
-        return;
-      }
-
-      if (!target.__isBinded) {
-        target.__isBinded = true;
-        target.addEventListener("mouseout", () => {
-          removeTips(target);
-        });
-      }
-
-      if (!tipsEl) {
-        // 添加提示插件
-        tipsEl = target.__tipsEl = $(
-          `<${registerItem.formTag}></${registerItem.formTag}>`
-        );
-
-        $.nextTick(() => {
-          // 运行组件的初始化函数
-          tipsEl.onInit({
-            target: $target,
-          });
-        });
-
-        tipsEl.on("mouseover", () => {
-          // 直接移动进来的时候
-          clearTimeout(target._tips_remove_timer);
-        });
-
-        // 移除时添加移除事件
-        tipsEl.on("mouseout", () => {
-          removeTips(target);
-        });
-
-        target.__mousewheel_func = (e) => {
-          console.log("mousewheel", e.target.tagName);
-          // 在鼠标滚轮滚动时，目标对应的表单元素，则直接移除提示
-          if (e.target.tagName.toLowerCase() !== registerItem.formTag) {
-            // 移除监听
-            document.removeEventListener(
-              "mousewheel",
-              target.__mousewheel_func
-            );
-            target.__mousewheel_func = null;
-            removeTips(target, 10);
-          }
-        };
-
-        const $target = $(target);
-        $target.active = true;
-        $target.onActivate &&
-          $target.onActivate({
-            tips: tipsEl,
-          });
-
-        document.addEventListener("mousewheel", target.__mousewheel_func);
-      }
-
-      // 修正定位
-      Object.assign(tipsEl.style, {
-        position: "fixed",
-        top: rect.top + rect.height + "px",
-        left: rect.left + "px",
-      });
-
-      if (!tipsEl.isConnected) {
-        $("body").push(tipsEl);
-      }
     };
   </script>
 </template>
