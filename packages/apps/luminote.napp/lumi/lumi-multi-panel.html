@@ -72,6 +72,8 @@
 
   <script>
     export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+
       return {
         tag: "lumi-multi-panel",
         data: {
@@ -80,28 +82,20 @@
             top: 0,
             left: 0,
           },
+          _selecteds: [], // 选中的元素
         },
         proto: {
           get panel() {
             return this.shadow.$(".multi-panel");
-          },
-          handleBlockCopy(e) {
-            e.stopPropagation();
-            this.clickMultiCopy();
-          },
-          handleBlockDelete(e) {
-            e.stopPropagation();
-            this.clickMultiDelete();
-            this.open = false;
           },
           clickMultiCopy() {
             let textContent = "";
             let htmlContent = "";
             // let mdContent = "";
 
-            const lastIndex = this._rangData.length - 1;
+            const lastIndex = this._selecteds.length - 1;
 
-            this._rangeEl.forEach((item, index) => {
+            this._selecteds.forEach((item, index) => {
               if (!item.textContent) {
                 return;
               }

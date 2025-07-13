@@ -68,6 +68,7 @@ export const initMultiSelect = (lumipage) => {
       return;
     }
 
+    multiPanel._selecteds = selectedBlocks;
     multiPanel.open = true; // 打开
 
     const originEvent = e;
@@ -92,6 +93,7 @@ export const initMultiSelect = (lumipage) => {
     multiPanel.one("close", () => {
       lumipage.forEach((e) => {
         e.selected = null;
+        multiPanel._selecteds = [];
       });
     });
 
