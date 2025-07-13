@@ -828,7 +828,7 @@
               return;
             }
 
-            if (previousRangeElement) {
+            if (previousRangeElement && previousRangeElement !== this) {
               previousRangeElement.showToolPannel = false;
               if (showToolpanelBlock === previousRangeElement) {
                 showToolpanelBlock = null;
