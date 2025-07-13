@@ -1,3 +1,46 @@
+// 编辑器的撤销和重做功
+export const initUndoRedo = (_this) => {
+  document.addEventListener(
+    "keydown",
+    (_this._keydownFunc = (e) => {
+      if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
+        // 属于编辑器或body的操作
+        if (
+          e.composedPath().filter((e) => e.matches && e.matches("lumi-block"))
+            .length ||
+          e.target === document.body
+        ) {
+          const [app] = _this.parents.filter((e) => e.tag === "o-app");
+          e.preventDefault();
+
+          // 属于自身聚焦的状态，才允许撤销
+          if (app.focused()) {
+            if (e.shiftKey) {
+              handleRedo(_this);
+            } else {
+              handleUndo(_this);
+            }
+          }
+        }
+      } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
+        if (
+          e.composedPath().filter((e) => e.matches && e.matches("lumi-page"))
+            .length
+        ) {
+          e.preventDefault();
+
+          // 提示上层保存
+          _this.emit("lumi-page-save");
+        }
+      }
+    })
+  );
+};
+
+export const revokeUndoRedo = (lumiPage) => {
+  document.removeEventListener("keydown", lumiPage._keydownFunc);
+};
+
 import { EverCache } from "/packages/libs/ever-cache.js";
 const historyStorage = new EverCache("lumi-editor-history"); // 用于记录修改历史的空间
 
@@ -178,12 +221,12 @@ const extractContentItemData = (item) => {
   return itemData;
 };
 
-const compareContentData = (contentA, contentB) => {
-  const processedA = contentA.map(extractEssentialItemData);
-  const processedB = contentB.map(extractEssentialItemData);
+// const compareContentData = (contentA, contentB) => {
+//   const processedA = contentA.map(extractEssentialItemData);
+//   const processedB = contentB.map(extractEssentialItemData);
 
-  return JSON.stringify(processedA) === JSON.stringify(processedB);
-};
+//   return JSON.stringify(processedA) === JSON.stringify(processedB);
+// };
 
 const extractEssentialItemData = (item) => {
   return {

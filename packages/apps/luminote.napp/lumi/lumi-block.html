@@ -212,95 +212,14 @@
     <div
       class="inputer"
       class:hide="itemData.type === 'article' && itemData.removed"
-      class:active-bg="leftMenuOpen || selected"
+      class:active-bg="selected"
     >
       <div class="menu-btn">
-        <p-button
-          icon
-          size="small"
-          variant="text"
-          on:click="handleClickLeftMenuButton"
-        >
+        <p-button icon size="small" variant="text">
           <n-local-icon name="menu"></n-local-icon>
         </p-button>
         <div class="inputer-tips">拖拽或点击</div>
       </div>
-
-      <!-- menu组件重复使用导致渲染变慢，所以改为在使用的时候才打开 -->
-      <o-if :value="leftMenuOpen">
-        <p-menu open="'on'" class="left-menu" direct-animation>
-          <p-menu-item attr:disabled="itemData.type === 'article'">
-            <n-local-icon name="exchange" slot="prefix"></n-local-icon>
-            更改组件
-            <p-menu open="off">
-              <p-menu-item
-                attr:active-item="itemData.type === 'paragraph'"
-                on:click="handleChangeBlockType('paragraph')"
-              >
-                <n-local-icon name="p" slot="prefix"></n-local-icon>
-                段落
-              </p-menu-item>
-              <p-menu-item
-                attr:active-item="itemData.type === 'h2'"
-                on:click="handleChangeBlockType('h2')"
-              >
-                <n-local-icon name="h2" slot="prefix"></n-local-icon>
-                大标题
-              </p-menu-item>
-              <p-menu-item
-                attr:active-item="itemData.type === 'h3'"
-                on:click="handleChangeBlockType('h3')"
-              >
-                <n-local-icon name="h3" slot="prefix"></n-local-icon>
-                中标题
-              </p-menu-item>
-              <p-menu-item
-                attr:active-item="itemData.type === 'h4'"
-                on:click="handleChangeBlockType('h4')"
-              >
-                <n-local-icon name="h4" slot="prefix"></n-local-icon>
-                小标题
-              </p-menu-item>
-              <x-fill :value="blockComps">
-                <p-menu-item
-                  attr:active-item="$host.itemData.type === $data.tag"
-                  on:click="$host.handleChangeBlockType($data.tag)"
-                >
-                  <span
-                    class="menu-icon-span"
-                    :html="$data.icon"
-                    style="font-size: 18px; color: var(--md-sys-color-primary)"
-                  ></span>
-                  {{$data.name.cn}}
-                </p-menu-item>
-              </x-fill>
-            </p-menu>
-          </p-menu-item>
-          <p-menu-item
-            on:click="handleCopy"
-            attr:disabled="itemData.type === 'article'"
-          >
-            <n-local-icon name="copy" slot="prefix"></n-local-icon>
-            复制
-          </p-menu-item>
-          <p-menu-item
-            on:click="handleDuplicate"
-            attr:disabled="itemData.type === 'article'"
-          >
-            <n-local-icon name="duplicate" slot="prefix"></n-local-icon>
-            创建副本
-          </p-menu-item>
-          <p-menu-item on:click="handleDelete">
-            <n-local-icon name="delete" slot="prefix"></n-local-icon>
-            删除
-          </p-menu-item>
-          <hr />
-          <p-menu-item on:click="handleAIBeautify">
-            <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
-            润色
-          </p-menu-item>
-        </p-menu>
-      </o-if>
 
       <span class="placeholder" class:show="inFocus && !itemData.value">
         输入文本，默认使用段落组件。按 "/" 切换组件
@@ -310,17 +229,6 @@
           :type="itemData.type"
           on:update-block-value="updateBlockValue"
         >
-          <div class="focus-mark" class:hide-mark="!getInUserName()">
-            <o-if :value="itemData?.focusUser">
-              <div class="focus-mark-name">
-                <n-id-avatar
-                  attr:val="itemData?.focusUser?.userId"
-                  style="width: 16px; height: 16px; margin-right: 4px"
-                ></n-id-avatar>
-                <span> {{focusUserName}} </span>
-              </div>
-            </o-if>
-          </div>
           <slot></slot>
         </lumi-fake>
       </o-if>
@@ -337,7 +245,7 @@
           {{itemData.title || '未命名页面'}}
         </div>
       </o-if>
-      <div class="dragovering-mark" class:show="dragovering"></div>
+      <!-- <div class="dragovering-mark" class:show="dragovering"></div> -->
     </div>
   </o-if>
   <o-else>
@@ -375,83 +283,22 @@
   </o-if>
 
   <script>
-    import { inlineComps } from "./inline/config.js";
-
-    // 打开的左侧菜单元素
-    let openedLeftMenuElement = null;
-
-    // 清除左侧菜单
-    const clearLeftMenuState = () => {
-      if (openedLeftMenuElement) {
-        openedLeftMenuElement.leftMenuOpen = false;
-        openedLeftMenuElement = null;
-      }
-    };
-
-    // 拖拽中的元素
-    let draggedElement = null;
-
-    document.body.addEventListener("click", () => {
-      clearLeftMenuState();
-    });
-
-    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-    let selfUserId = null; // 自身的userid
-
     export default async ({ load }) => {
-      const { getUserName } = await load("/packages/util/get-user-info.js");
       const { toast } = await load("/packages/pui/util.js");
-      const { blockComps } = await load("./block/config.js"); // 块组件的配置
-
-      blockComps.forEach((item) => {
-        load(item.src);
-      });
 
       const { addLoadingTask, removeLoadingTask, showInlineCompForm } =
         await load("./util/lumi-util.js");
 
-      const {
-        focusAndSetCursorAtEnd,
-        getFirstLinePosition,
-        getContainerAndOffset,
-        elementToLetterData,
-        letterDataToElement,
-        setSelection,
-      } = await load("./util/range.js");
-
-      const { askOllamaStream } = await load("/packages/ai/util.js");
-
-      const { default: purify } = await load("/packages/libs/purify.es.mjs");
-
-      purify.setConfig({
-        RETURN_TRUSTED_TYPE: false,
-        FORCE_BODY: true,
-      });
-
-      if (!selfUserId) {
-        try {
-          const { getUserStore } = await load("/packages/user/user-store.js");
-          const userStore = await getUserStore();
-
-          selfUserId = userStore.userId;
-        } catch (err) {}
-      }
+      const { focusAndSetCursorAtEnd, getContainerAndOffset, setSelection } =
+        await load("./util/range.js");
 
       return {
         tag: "lumi-block",
         data: {
-          selfUserId, // 本机用户的id
+          inFocus: false,
           loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
           itemData: {},
-          inFocus: false,
-          dragovering: false,
-          leftMenuOpen: false,
           childs: [], // 子元素
-          pannelPositionTop: 0,
-          pannelPositionLeft: 0,
-          focusUserName: "",
-          blockComps,
           beautifyContent: "Loading...",
           beautifyStep: 0,
           selected: false, // 是否被选中
@@ -493,114 +340,6 @@
 
             this.itemData.value = value;
           },
-          useAIBeautify() {
-            this.beautifyStep = 0;
-            this.itemData.value = this.beautifyContent;
-            this.beautifyContent = "";
-          },
-          discardAIBeautify() {
-            this.beautifyStep = 0;
-            this.beautifyContent = "";
-          },
-          async handleAIBeautify() {
-            this.leftMenuOpen = false;
-
-            let text = "";
-            this.beautifyStep = 1;
-
-            // 使用示例
-            await askOllamaStream(
-              `/no_think 润色并直接返回润色后的结果：
-            ${this.itemData.value}`,
-              "qwen3:4b",
-              (chunk) => {
-                text += chunk;
-                this.beautifyContent = text.replace(
-                  /<think>\s+<\/think>\s+/,
-                  ""
-                );
-              }
-            );
-
-            this.beautifyStep = 2;
-          },
-          handleDelete() {
-            if (this.itemData.type === "article") {
-              this.itemData.removed = true;
-              this.itemData.removedTime = Date.now();
-            } else {
-              const content = this.parent.itemData.content;
-              const index = content.indexOf(this.itemData);
-              content.splice(index, 1);
-            }
-            this.leftMenuOpen = false;
-          },
-          handleDuplicate() {
-            const content = this.parent.itemData.content;
-            const index = content.indexOf(this.itemData);
-            content.splice(index, 0, this.itemData.toJSON());
-            this.leftMenuOpen = false;
-          },
-          handleCopy() {
-            navigator.clipboard.writeText(this.text);
-            toast("已复制文本到剪贴板");
-            this.leftMenuOpen = false;
-          },
-          getInUserName() {
-            if (this.itemData.focusUser) {
-              if (this.itemData.focusUser.userId === this.selfUserId) {
-                return "";
-              }
-
-              // 确保时间在20秒内
-              if (
-                this.itemData.focusUser.time &&
-                this.itemData.focusUser.time < Date.now() - 20 * 1000
-              ) {
-                return "";
-              }
-
-              (async () => {
-                this.focusUserName = await getUserName(
-                  this.itemData.focusUser.userId
-                );
-              })();
-
-              return true;
-            }
-
-            return "";
-          },
-          handleUpdateValue(e) {
-            const { value, startOffset, endOffset, callback } = e.data;
-
-            // 更新视图代码
-            this[0].html = value;
-
-            {
-              // 重新选择范围
-
-              const { container: startContainer, offset: start } =
-                getContainerAndOffset(this[0].ele, startOffset);
-              const { container: endContainer, offset: end } =
-                getContainerAndOffset(this[0].ele, endOffset);
-
-              // 创建范围并设置光标位置
-              setSelection({
-                startContainer,
-                start,
-                endContainer,
-                end,
-              });
-
-              callback && callback({ startContainer, endContainer });
-            }
-
-            // 保存数据
-            this.itemData.value = value;
-
-            // console.log("handleUpdateValue: ", value);
-          },
           handleClickArticle() {
             const app = this.parents.filter((e) => e.tag === "o-app")[0];
 
@@ -610,126 +349,23 @@
               `./note.html?article_id=${this.itemData._dataId}&user_id=${firstPageEl.currentUserId}&dir_name=${firstPageEl.currentDirName}`
             );
           },
-          handleChangeBlockType(type) {
-            this.itemData.type = type;
-            this.leftMenuOpen = false;
-          },
 
           initializeEditor() {
-            // 初始化 editor 操作,主要是为了兼容safari
             const inputerContent = $(
-              `<div inputer-content contenteditable="plaintext-only"></div> `
+              `<div inputer-content contenteditable="plaintext-only"></div>`
             );
 
             this.__inputerContent = inputerContent;
 
-            inputerContent.html = this.itemData.value;
-
-            inputerContent.on("paste", async (e) => {
-              e.preventDefault();
-
-              // 获取粘贴的内容
-              const clipboardData = e.clipboardData;
-              let pastedHtml = clipboardData.getData("text/html");
-
-              // 净化html
-              pastedHtml = purify.sanitize(pastedHtml);
-
-              const pushContents = (contents) => {
-                const parentContent = this.parent.itemData.content;
-
-                // 在当前的前面添加对应的数据
-                const index = parentContent.indexOf(this.itemData);
-
-                if (index > -1) {
-                  parentContent.splice(index, 0, ...contents);
-                }
-              };
-
-              if (pastedHtml) {
-                const temp = $(`<template>${pastedHtml}</template>`).ele;
-
-                const contents = [];
-
-                const hasP = temp.content.querySelector("p");
-                const hasTitle =
-                  temp.content.querySelector("h1") ||
-                  temp.content.querySelector("h2") ||
-                  temp.content.querySelector("h3") ||
-                  temp.content.querySelector("h4") ||
-                  temp.content.querySelector("h5");
-
-                if (hasP || hasTitle) {
-                  for (let item of temp.content.children) {
-                    if (item.innerHTML) {
-                      const reContent = await elementToLetterData(item);
-
-                      const tag = item.tagName.toLowerCase();
-
-                      if (
-                        tag === "p" ||
-                        tag === "h2" ||
-                        tag === "h3" ||
-                        tag === "h4"
-                      ) {
-                        const type = tag === "p" ? "paragraph" : tag;
-
-                        contents.push({
-                          type,
-                          value: await letterDataToElement(reContent),
-                        });
-                      } else if (tag === "code") {
-                        contents.push({
-                          type: "lumi-code",
-                          value: item.innerHTML,
-                        });
-                      } else {
-                        // 不明类型全部填充为段落
-                        contents.push({
-                          type: "paragraph",
-                          value: await letterDataToElement(reContent),
-                        });
-                      }
-                    }
-                  }
-                } else {
-                  // 直接粘贴的片段
-                  const reContent = await elementToLetterData(temp.content);
-                  contents.push({
-                    type: "paragraph",
-                    value: await letterDataToElement(reContent),
-                  });
-                }
-
-                pushContents(contents);
-                return;
+            inputerContent.on("input", (e) => {
+              let content = e.target.innerHTML.trim();
+              if (content === "<br>") {
+                content = "";
               }
-              {
-                const contents = [];
-
-                let pastedText = clipboardData.getData("text/plain"); //
-                if (pastedText) {
-                  pastedText = await navigator.clipboard.readText();
-                }
-
-                // 内容分段
-                const lines = pastedText.split("\n");
-
-                lines
-                  .filter((e) => !!e)
-                  .forEach((e) => {
-                    // 净化html
-                    const value = purify.sanitize(e.trim());
-
-                    contents.push({
-                      type: "paragraph",
-                      value,
-                    });
-                  });
-
-                pushContents(contents);
-              }
+              this.itemData.value = content;
             });
+
+            inputerContent.html = this.itemData.value;
 
             this.push(inputerContent);
           },
@@ -744,9 +380,9 @@
               } else if (position === "start") {
                 this[0].ele.focus();
               } else if (/\d/.test(position)) {
+                // 对应位置进行聚焦
                 const inputerContentEl = this.$(`[inputer-content]`).ele;
 
-                // 对应位置进行聚焦
                 const { container, offset } = await getContainerAndOffset(
                   inputerContentEl,
                   position
@@ -761,21 +397,9 @@
                   end: offset,
                 });
               } else {
-                debugger;
-                // TODO: 其他位置
                 focusAndSetCursorAtEnd(this[0].ele);
               }
             }, 10);
-          },
-          handleClickLeftMenuButton() {
-            debugger;
-            this.leftMenuOpen = !this.leftMenuOpen;
-
-            if (openedLeftMenuElement && openedLeftMenuElement !== this) {
-              clearLeftMenuState();
-            }
-
-            openedLeftMenuElement = this;
           },
           handleInputContent(e) {
             let content = e.target.innerHTML.trim();

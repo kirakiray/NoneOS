@@ -47,15 +47,7 @@
       </p-button>
     </div>
   </o-if>
-  <div
-    class="container"
-    on:multi-select-component="multiSelectComponent"
-    on:multi-snap-select-component="multiSnapSelectComponent"
-    on:block-copy="handleBlockCopy"
-    on:block-delete="handleBlockDelete"
-    on:block-undo="handleBlockUndo"
-    on:block-merge-prev="handleMergePrev"
-  >
+  <div class="container">
     <div style="height: 100px"></div>
     <div style="margin: 0 auto; max-width: 800px; width: 100%">
       <input
@@ -141,8 +133,11 @@
     </div>
   </div>
   <script>
-    let selfUserId;
     export default async ({ load }) => {
+      const { initUndoRedo, revokeUndoRedo } = await load(
+        "./lumi-page-init/undo-redo.js"
+      );
+
       const { diffFill } = await load("./util/diff-fill.js");
       const { toast } = await load("/packages/pui/util.js");
       const {
@@ -151,17 +146,9 @@
         getSelectionLetterData,
       } = await load("./util/range.js");
 
-      const { saveHistory, handleUndo, handleRedo, clearUndoHistory } =
-        await load("./util/page-undo-util.js");
-
-      if (!selfUserId) {
-        try {
-          const { getUserStore } = await load("/packages/user/user-store.js");
-          const userStore = await getUserStore();
-
-          selfUserId = userStore.userId;
-        } catch (err) {}
-      }
+      const { saveHistory, clearUndoHistory } = await load(
+        "./util/page-undo-util.js"
+      );
 
       return {
         tag: "lumi-page",
@@ -174,41 +161,6 @@
           },
         },
         proto: {
-          async handleMergePrev(e) {
-            const target = $(e.target);
-            const targetIndex = this.itemData.content.indexOf(target.itemData);
-
-            if (targetIndex > 0) {
-              const prev = target.prev;
-              // 和前一个数据合并
-              const currentLetterData = await elementToLetterData(
-                target.$("[inputer-content]").ele
-              );
-              const prevLetterData = await elementToLetterData(
-                prev.$("[inputer-content]").ele
-              );
-
-              const newLetterData = [...prevLetterData, ...currentLetterData];
-              const newContent = await letterDataToElement(newLetterData);
-
-              // 更新前一个数据
-              prev.itemData.value = newContent;
-
-              // 删除当前的数据
-              this.itemData.content.splice(targetIndex, 1);
-
-              // 修复焦点
-              setTimeout(() => {
-                prev.focus(prevLetterData.length);
-              }, 1);
-            }
-          },
-          async handleBlockUndo(e) {
-            await handleUndo(this);
-          },
-          async handleBlockRedo(e) {
-            await handleRedo(this);
-          },
           handleBlockCopy(e) {
             e.stopPropagation();
             this.clickMultiCopy();
@@ -274,85 +226,6 @@
               }
             });
           },
-          // 鼠标移动时的临时选中
-          multiSnapSelectComponent(e) {
-            const { data } = e;
-            const { originEvent } = data;
-
-            const start =
-              data.startIndex > data.endIndex ? data.endIndex : data.startIndex;
-            const end =
-              data.startIndex > data.endIndex ? data.startIndex : data.endIndex;
-
-            if (start === end) {
-              this.forEach((e, i) => {
-                e.selected = null;
-              });
-              return;
-            }
-
-            // 修正选中区域
-            this.forEach((e, i) => {
-              if (i >= start && i <= end) {
-                e.selected = true;
-              } else {
-                e.selected = null;
-              }
-            });
-          },
-          // 多选选中组件
-          multiSelectComponent(e) {
-            e.stopPropagation();
-            const { data } = e;
-            const { originEvent } = data;
-
-            const start =
-              data.startIndex > data.endIndex ? data.endIndex : data.startIndex;
-            const end =
-              data.startIndex > data.endIndex ? data.startIndex : data.endIndex;
-
-            const rangeData = this.itemData.content.slice(start, end + 1);
-            const rangeEl = this.slice(start, end + 1);
-
-            // 选中目标的组件，并弹窗显示操作
-            rangeEl.forEach((e) => (e.selected = true));
-
-            this._rangeEl = rangeEl;
-            this._rangData = rangeData;
-
-            if (!originEvent) {
-              const rect = e.target.getBoundingClientRect();
-
-              // 直接使用当前鼠标的坐标轴
-              this.multiPanelStyle = {
-                left: `${rect.left + rect.width / 2}px`,
-                top: `${rect.top}px`,
-              };
-            } else {
-              this.multiPanelStyle = {
-                left: `${originEvent.clientX}px`,
-                top: `${originEvent.clientY}px`,
-              };
-
-              // 如果超出了屏幕边, 改为靠右
-              const width = parseInt(this.shadow.$(".multi-panel").css.width);
-
-              const selfRect = this.ele.getBoundingClientRect();
-
-              if (
-                width + originEvent.clientX >
-                selfRect.width + selfRect.left
-              ) {
-                this.multiPanelStyle.left =
-                  selfRect.width - width + selfRect.left + "px";
-              }
-            }
-
-            // 取消原来选中的范围
-            window.getSelection().removeAllRanges();
-
-            this.multiSelected = true;
-          },
           titleKeyDown(e) {
             if (e.key === "Enter") {
               // 如果第一个元素不是空元素，则添加空元素后聚焦
@@ -376,116 +249,10 @@
           focusTitle() {
             this.shadow.$(".title").ele.focus();
           },
-          async handleEnter(data, index, originEvent) {
-            const finnalIndex = index + 1;
-
-            // 获取选中的焦点
-            // const selectionRangeData = await getSelectionLetterData(
-            //   this.ele.getRootNode()
-            // );
-            const selectionRangeData = await getSelectionLetterData(document);
-
-            // 截取焦点后的内容
-            const afterLetterData = selectionRangeData.letterData.slice(
-              selectionRangeData.startOffset
-            );
-
-            if (afterLetterData.length) {
-              const beforeLetterData = selectionRangeData.letterData.slice(
-                0,
-                selectionRangeData.startOffset
-              );
-
-              const beforeContent = await letterDataToElement(beforeLetterData);
-              const afterContent = await letterDataToElement(afterLetterData);
-
-              // 获取对应选中的组件
-              const selectedComponent = this[index];
-
-              // 更新回车后的内容
-              selectedComponent.itemData.value = beforeContent;
-
-              // 从焦点位置将内容带下去
-              this.itemData.content.splice(finnalIndex, 0, {
-                type: "paragraph",
-                value: afterContent,
-              });
-            } else {
-              // 最末尾添加
-              this.itemData.content.splice(finnalIndex, 0, {
-                type: "paragraph",
-                value: "",
-              });
-            }
-
-            setTimeout(
-              () => {
-                // this.shadow.$("#lumi-fill-el")[finnalIndex].focus();
-                this[finnalIndex].focus("start");
-              },
-              isSafari ? 60 : 1
-            );
-          },
-          async handleDelete(data, index) {
-            this.itemData.content.splice(index, 1);
-
-            setTimeout(() => {
-              let prevBlock = this[index - 1];
-
-              while (prevBlock && prevBlock.data.type === "article") {
-                prevBlock = prevBlock.prev;
-              }
-
-              // 文本焦点放在最后
-              prevBlock && prevBlock.focus();
-            }, 10);
-          },
-          handleDrop(data, index, event) {
-            if (!event.data) {
-              // 会触发两次
-              return;
-            }
-
-            const { sourceData } = event.data;
-
-            // 查看元数据是不是在content上，是的话相当于剪切
-            const sourceIndex = this.itemData.content.indexOf(sourceData);
-
-            if (sourceIndex !== -1) {
-              this.itemData.content.splice(sourceIndex, 1);
-            }
-
-            const currentIndex = this.itemData.content.indexOf(data);
-
-            this.itemData.content.splice(currentIndex + 1, 0, sourceData);
-          },
         },
         attached() {
           // 先清空
           clearUndoHistory();
-
-          this.on("click", async (e) => {
-            // 最后面聚焦
-            if (!this.itemData?.content?.length) {
-              return;
-            }
-
-            // 判断最后一个是不是空白，不是的话加一个
-            const lastItem = this.itemData.content.slice(-1)[0];
-            if (lastItem.value !== "" || lastItem.type === "article") {
-              this.itemData.content.push({
-                type: "paragraph",
-                value: "",
-              });
-
-              await new Promise((res) => setTimeout(res, 30));
-            }
-
-            if (this.length > 1) {
-              const finnalItem = this[this.length - 1];
-              finnalItem && finnalItem.focus && finnalItem.focus();
-            }
-          });
 
           {
             // BUG: safari无法获取shadow root 内的 selection
@@ -529,72 +296,13 @@
               });
             });
 
-            this.on("enter", (e) => {
-              e.stopPropagation();
-              const lumiblock = $(e.target);
-
-              this.handleEnter(
-                lumiblock.itemData,
-                lumiblock.index,
-                e.data.originEvent
-              );
-            });
-            this.on("delete", (e) => {
-              e.stopPropagation();
-              const lumiblock = $(e.target);
-
-              this.handleDelete(lumiblock.itemData, lumiblock.index);
-            });
-            this.on("drop", (e) => {
-              e.stopPropagation();
-
-              const lumiblock = $(e.target);
-              this.handleDrop(lumiblock.itemData, lumiblock.index, e);
-            });
-
-            document.addEventListener(
-              "keydown",
-              (this._keydownFunc = (e) => {
-                if (e.key === "z" && (e.ctrlKey || e.metaKey)) {
-                  // 属于编辑器或body的操作
-                  if (
-                    e
-                      .composedPath()
-                      .filter((e) => e.matches && e.matches("lumi-block"))
-                      .length ||
-                    e.target === document.body
-                  ) {
-                    const [app] = this.parents.filter((e) => e.tag === "o-app");
-                    e.preventDefault();
-
-                    // 属于自身聚焦的状态，才允许撤销
-                    if (app.focused()) {
-                      if (e.shiftKey) {
-                        this.handleBlockRedo();
-                      } else {
-                        this.handleBlockUndo();
-                      }
-                    }
-                  }
-                } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
-                  if (
-                    e
-                      .composedPath()
-                      .filter((e) => e.matches && e.matches("lumi-page")).length
-                  ) {
-                    e.preventDefault();
-
-                    // 提示上层保存
-                    this.emit("lumi-page-save");
-                  }
-                }
-              })
-            );
+            initUndoRedo(this);
           }
         },
         detached() {
           this.itemData = {}; // 清除绑定
-          document.removeEventListener("keydown", this._keydownFunc);
+
+          revokeUndoRedo(this);
         },
       };
     };
