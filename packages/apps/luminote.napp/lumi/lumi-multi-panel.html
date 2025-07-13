@@ -77,6 +77,7 @@
       return {
         tag: "lumi-multi-panel",
         data: {
+          itemData: {},
           open: false,
           multiPanelStyle: {
             top: 0,
@@ -131,7 +132,9 @@
             // 逐个删除内容
             const { content } = this.itemData;
 
-            this._rangData.forEach((item) => {
+            const rangData = this._selecteds.map((e) => e.itemData);
+
+            rangData.forEach((item) => {
               if (item.type === "article") {
                 item.removed = true;
               } else {
@@ -157,6 +160,10 @@
           },
         },
         attached() {},
+        detached() {
+          this.itemData = {};
+          this._selecteds = [];
+        },
       };
     };
   </script>
