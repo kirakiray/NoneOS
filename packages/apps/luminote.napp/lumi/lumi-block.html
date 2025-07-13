@@ -1290,23 +1290,5 @@
         },
       };
     };
-
-    // 移除提示
-    const removeTips = (target, time = 100) => {
-      clearTimeout(target._tips_remove_timer);
-      target._tips_remove_timer = setTimeout(() => {
-        target.__tipsEl && target.__tipsEl.remove();
-        target.__tipsEl = null;
-
-        const $target = $(target);
-        $target.onDeactivate && $target.onDeactivate();
-        $target.active = false;
-
-        if (target.__mousewheel_func) {
-          document.removeEventListener("mousewheel", target.__mousewheel_func);
-          target.__mousewheel_func = null;
-        }
-      }, time);
-    };
   </script>
 </template>

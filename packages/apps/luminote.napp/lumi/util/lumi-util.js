@@ -33,9 +33,10 @@ export const runBlock = async () => {
   }
 };
 
+import { inlineComps } from "../inline/config.js";
+
 // 在body中添加对用内联组件的表单元素的弹窗气泡
 export const showInlineCompForm = (target) => {
-  debugger
   const tag = target.tagName.toLowerCase();
   const registerItem = inlineComps.find((item) => item.tag === tag);
 
@@ -110,4 +111,22 @@ export const showInlineCompForm = (target) => {
   if (!tipsEl.isConnected) {
     $("body").push(tipsEl);
   }
+};
+
+// 移除提示
+const removeTips = (target, time = 100) => {
+  clearTimeout(target._tips_remove_timer);
+  target._tips_remove_timer = setTimeout(() => {
+    target.__tipsEl && target.__tipsEl.remove();
+    target.__tipsEl = null;
+
+    const $target = $(target);
+    $target.onDeactivate && $target.onDeactivate();
+    $target.active = false;
+
+    if (target.__mousewheel_func) {
+      document.removeEventListener("mousewheel", target.__mousewheel_func);
+      target.__mousewheel_func = null;
+    }
+  }, time);
 };
