@@ -89,6 +89,12 @@ export const initMultiSelect = (lumipage) => {
         selfRect.width - width + selfRect.left + "px";
     }
 
+    multiPanel.one("close", () => {
+      lumipage.forEach((e) => {
+        e.selected = null;
+      });
+    });
+
     // 取消原来选中的范围
     window.getSelection().removeAllRanges();
 

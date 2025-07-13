@@ -40,7 +40,7 @@
     }
   </style>
 
-  <div class="mask" class:show-multi-panel="open" on:click="clickMultiMask">
+  <div class="mask" class:show-multi-panel="open" on:click="clickMask">
     <div
       class="multi-panel"
       :style.top="multiPanelStyle.top"
@@ -128,6 +128,10 @@
             ]);
 
             toast("复制成功");
+
+            this.emit("close", {
+              bubbles: false,
+            });
           },
           clickMultiDelete() {
             // 逐个删除内容
@@ -141,13 +145,20 @@
                 content.splice(index, 1);
               }
             });
+
+            this.emit("close", {
+              bubbles: false,
+            });
           },
-          clickMultiMask() {
+          clickMask() {
             this.open = false;
             this.forEach((e) => {
               if (e.selected) {
                 e.selected = false;
               }
+            });
+            this.emit("close", {
+              bubbles: false,
             });
           },
         },
