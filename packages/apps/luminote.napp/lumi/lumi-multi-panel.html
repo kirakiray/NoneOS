@@ -46,7 +46,7 @@
       :style.top="multiPanelStyle.top"
       :style.left="multiPanelStyle.left"
     >
-      <p-button size="small" variant="text" on:click="clickMultiCopy">
+      <p-button size="small" variant="text" on:click="clickCopy">
         <n-local-icon
           name="copy"
           slot="prefix"
@@ -58,7 +58,7 @@
         size="small"
         color="error"
         variant="text"
-        on:click="clickMultiDelete"
+        on:click="clickDelete"
       >
         <n-local-icon
           name="delete"
@@ -89,7 +89,7 @@
           get panel() {
             return this.shadow.$(".multi-panel");
           },
-          clickMultiCopy() {
+          clickCopy() {
             let textContent = "";
             let htmlContent = "";
             // let mdContent = "";
@@ -128,7 +128,7 @@
               bubbles: false,
             });
           },
-          clickMultiDelete() {
+          clickDelete() {
             // 逐个删除内容
             const { content } = this.itemData;
 

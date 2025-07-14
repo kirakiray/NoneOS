@@ -1,6 +1,7 @@
 <template component>
   <l-m src="./lumi-block.html"></l-m>
   <l-m src="./lumi-multi-panel.html"></l-m>
+  <l-m src="./lumi-text-panel.html"></l-m>
   <style>
     :host {
       display: block;
@@ -64,6 +65,7 @@
     <slot></slot>
   </div>
   <lumi-multi-panel :item-data="itemData"></lumi-multi-panel>
+  <lumi-text-panel></lumi-text-panel>
   <script>
     export default async ({ load }) => {
       const { initUndoRedo, revokeUndoRedo } = await load(
@@ -71,6 +73,10 @@
       );
       const { initMultiSelect, revokeMultiSelect } = await load(
         "./lumi-page-init/multi-select.js"
+      );
+
+      const { initTextRange, revokeTextRange } = await load(
+        "./lumi-page-init/text-range.js"
       );
 
       const { diffFill } = await load("./util/diff-fill.js");
@@ -169,6 +175,7 @@
 
             initUndoRedo(this);
             initMultiSelect(this);
+            initTextRange(this);
           }
         },
         detached() {
@@ -176,6 +183,7 @@
 
           revokeUndoRedo(this);
           revokeMultiSelect(this);
+          revokeTextRange(this);
         },
       };
     };
