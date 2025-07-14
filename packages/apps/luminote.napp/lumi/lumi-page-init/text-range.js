@@ -63,6 +63,11 @@ export const initTextRange = (lumipage) => {
     })
   );
 
+  lumipage.on("mousewheel", () => {
+    textPanel.open = false;
+    mousedownStartBlock = null;
+  });
+
   lumipage.on(
     "mouseup",
     (lumipage._selectionMouseupFunc = async (e) => {
