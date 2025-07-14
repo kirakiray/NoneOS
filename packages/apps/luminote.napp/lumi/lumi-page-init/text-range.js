@@ -18,6 +18,7 @@ export const initTextRange = (lumipage) => {
     const { _targetBlock } = textPanel;
 
     _targetBlock.$("[inputer-content]").html = value;
+    _targetBlock.itemData.value = value;
 
     // 重新选择范围
     const { container: startContainer, offset: start } = getContainerAndOffset(
