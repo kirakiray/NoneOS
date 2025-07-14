@@ -81,9 +81,12 @@ export const initTextRange = (lumipage) => {
       await new Promise((resolve) => setTimeout(resolve, 10)); // 防止错误选区聚焦
 
       // 查看选择的文本
-      const selectionData = await getSelectionLetterData(
-        lumipage.ele.getRootNode()
-      );
+      const rootNode = lumipage.ele.getRootNode();
+      if (!rootNode) {
+        mousedownStartBlock = null;
+        return;
+      }
+      const selectionData = await getSelectionLetterData(rootNode);
 
       if (selectionData.endOffset === selectionData.startOffset) {
         // 没有选择文本
