@@ -86,7 +86,14 @@ export const initTextRange = (lumipage) => {
         mousedownStartBlock = null;
         return;
       }
-      const selectionData = await getSelectionLetterData(rootNode);
+      let selectionData;
+
+      try {
+        selectionData = await getSelectionLetterData(rootNode);
+      } catch (err) {
+        console.log(err);
+        return;
+      }
 
       if (selectionData.endOffset === selectionData.startOffset) {
         // 没有选择文本
