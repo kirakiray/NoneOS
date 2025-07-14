@@ -1,9 +1,45 @@
-import { getSelectionLetterData } from "../util/range.js";
+import {
+  getSelectionLetterData,
+  getContainerAndOffset,
+  setSelection,
+} from "../util/range.js";
 
 let mousedownStartBlock = null;
 
 // 修改选中文本颜色背景加粗等的初始化操作
 export const initTextRange = (lumipage) => {
+  // 数据设置到textpanel上
+  const textPanel = lumipage.shadow.$("lumi-text-panel");
+
+  textPanel.on("update-value", (e) => {
+    e.stopPropagation();
+    const { data } = e;
+    const { value, startOffset, endOffset } = data;
+    const { _targetBlock } = textPanel;
+
+    _targetBlock.$("[inputer-content]").html = value;
+
+    // 重新选择范围
+    const { container: startContainer, offset: start } = getContainerAndOffset(
+      _targetBlock[0].ele,
+      startOffset
+    );
+    const { container: endContainer, offset: end } = getContainerAndOffset(
+      _targetBlock[0].ele,
+      endOffset
+    );
+
+    // 创建范围并设置光标位置
+    setSelection({
+      startContainer,
+      start,
+      endContainer,
+      end,
+    });
+
+    textPanel.refreshBtnState();
+  });
+
   lumipage.on(
     "mousedown",
     (lumipage._selectionMousedownFunc = (e) => {
@@ -14,9 +50,6 @@ export const initTextRange = (lumipage) => {
       if (!lumiBlock) {
         return;
       }
-
-      // 数据设置到textpanel上
-      const textPanel = lumipage.shadow.$("lumi-text-panel");
 
       if (!textPanel) {
         console.error("lumi-text-panel not found");
@@ -41,6 +74,7 @@ export const initTextRange = (lumipage) => {
         mousedownStartBlock = null;
         return;
       }
+      textPanel._targetBlock = $(mousedownStartBlock);
       mousedownStartBlock = null;
 
       await new Promise((resolve) => setTimeout(resolve, 10)); // 防止错误选区聚焦
@@ -55,37 +89,26 @@ export const initTextRange = (lumipage) => {
         return;
       }
 
-      // 数据设置到textpanel上
-      const textPanel = lumipage.shadow.$("lumi-text-panel");
-
-      if (!textPanel) {
-        console.error("lumi-text-panel not found");
-        return;
-      }
-
-      textPanel._selectedData = selectionData;
       textPanel.open = true;
+      textPanel.refreshBtnState();
 
       const originEvent = e;
 
+      // 修正位置
       Object.assign(textPanel.style, {
         position: "fixed",
         left: `${originEvent.clientX}px`,
         top: `${originEvent.clientY - 50}px`,
       });
 
-      // // 如果超出了屏幕边, 改为靠右
+      // 如果超出了屏幕边, 改为靠右
       const width = parseInt(textPanel.css.width);
-
-      console.log("panelwidth: ", width);
 
       const selfRect = lumipage.ele.getBoundingClientRect();
 
       if (width + originEvent.clientX > selfRect.width + selfRect.left) {
         textPanel.style.left = selfRect.width - width + selfRect.left + "px";
       }
-
-      console.log("selectionData: ", selectionData);
     })
   );
 };

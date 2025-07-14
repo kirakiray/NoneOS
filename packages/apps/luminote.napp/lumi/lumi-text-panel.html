@@ -401,17 +401,8 @@
                 endOffset,
               },
             });
-
-            setTimeout(() => {
-              this.refreshBtnState();
-            }, 100);
           },
           async getSelectionLetterData() {
-            // return getSelectionLetterData(
-            //   this.host.ele.getRootNode(),
-            //   this.host[0].ele
-            // );
-            console.log("aa: ", this, this.host, this.host[0]);
             return getSelectionLetterData(document);
           },
           async changeColor(color, isChangeBgColor) {
@@ -526,10 +517,6 @@
             // 将数据重新转回字符串
             const newValue = await letterDataToElement(letterData);
 
-            setTimeout(() => {
-              this.refreshBtnState();
-            }, 100);
-
             this.emit("update-value", {
               data: {
                 value: newValue,
@@ -624,10 +611,6 @@
                 },
               },
             });
-
-            setTimeout(() => {
-              this.refreshBtnState();
-            }, 100);
           },
         },
         attached() {
