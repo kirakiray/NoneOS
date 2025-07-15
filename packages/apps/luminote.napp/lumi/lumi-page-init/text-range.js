@@ -20,25 +20,28 @@ export const initTextRange = (lumipage) => {
     _targetBlock.$("[inputer-content]").html = value;
     _targetBlock.itemData.value = value;
 
-    // 重新选择范围
-    const { container: startContainer, offset: start } = getContainerAndOffset(
-      _targetBlock[0].ele,
-      startOffset
-    );
-    const { container: endContainer, offset: end } = getContainerAndOffset(
-      _targetBlock[0].ele,
-      endOffset
-    );
+    // 兼容safari未提前渲染的问题
+    $.nextTick(() => {
+      // 重新选择范围
+      const { container: startContainer, offset: start } =
+        getContainerAndOffset(_targetBlock[0].ele, startOffset);
+      const { container: endContainer, offset: end } = getContainerAndOffset(
+        _targetBlock[0].ele,
+        endOffset
+      );
 
-    // 创建范围并设置光标位置
-    setSelection({
-      startContainer,
-      start,
-      endContainer,
-      end,
+      // 创建范围并设置光标位置
+      setSelection({
+        startContainer,
+        start,
+        endContainer,
+        end,
+      });
+
+      setTimeout(() => {
+        textPanel.refreshBtnState();
+      }, 10);
     });
-
-    textPanel.refreshBtnState();
   });
 
   lumipage.on(
