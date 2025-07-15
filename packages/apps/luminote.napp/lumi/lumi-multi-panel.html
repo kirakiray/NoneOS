@@ -86,10 +86,6 @@
           },
         },
         proto: {
-          get _selecteds() {
-            // 选中的元素
-            return this.host._selecteds;
-          },
           get panel() {
             return this.shadow.$(".multi-panel");
           },
@@ -106,7 +102,7 @@
             // 逐个删除内容
             const { content } = this.itemData;
 
-            const rangData = this._selecteds.map((e) => e.itemData);
+            const rangData = this.host._selecteds.map((e) => e.itemData);
 
             rangData.forEach((item) => {
               if (item.type === "article") {
@@ -128,6 +124,7 @@
                 e.selected = false;
               }
             });
+            this.host._selecteds = null;
             this.emit("close", {
               bubbles: false,
             });
@@ -136,7 +133,6 @@
         attached() {},
         detached() {
           this.itemData = {};
-          this._selecteds = [];
         },
       };
     };
