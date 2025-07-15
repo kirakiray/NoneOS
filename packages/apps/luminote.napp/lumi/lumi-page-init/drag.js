@@ -52,8 +52,6 @@ export const initDrag = (lumipage) => {
     currentDragEnterBlock.dragovering = true; // 标记为悬停
 
     oldDragEnterBlock = currentDragEnterBlock;
-
-    console.log("dragenter", lumiBlock);
   });
 
   lumipage.on("drop", (e) => {
