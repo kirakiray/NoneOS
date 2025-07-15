@@ -253,7 +253,7 @@
           {{itemData.title || '未命名页面'}}
         </div>
       </o-if>
-      <!-- <div class="dragovering-mark" class:show="dragovering"></div> -->
+      <div class="dragovering-mark" class:show="dragovering"></div>
     </div>
   </o-if>
   <o-else>
@@ -295,6 +295,7 @@
           itemData: {},
           beautifyContent: "Loading...",
           selected: false, // 是否被选中
+          dragovering: false,
         },
         watch: {
           ["itemData.value"]() {
