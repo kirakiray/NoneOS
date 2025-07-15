@@ -85,3 +85,30 @@ export const copySelectedBlock = (lumipage) => {
     }),
   ]);
 };
+
+export const deleteSelectedBlock = (lumipage) => {
+  // 逐个删除内容
+  const { content } = lumipage.itemData;
+
+  const rangData = lumipage._selecteds.map((e) => e.itemData);
+
+  // 提前获取下一个要聚焦的元素
+  const nextFocusBlock =
+    lumipage._selecteds.slice(-1)[0].next || lumipage._selecteds[0].prev;
+
+  rangData.forEach((item) => {
+    if (item.type === "article") {
+      item.removed = true;
+    } else {
+      const index = content.indexOf(item);
+      content.splice(index, 1);
+    }
+  });
+
+  lumipage._selecteds = null;
+
+  // 聚焦到选区最下的元素上
+  setTimeout(() => {
+    nextFocusBlock.focus("end");
+  });
+};

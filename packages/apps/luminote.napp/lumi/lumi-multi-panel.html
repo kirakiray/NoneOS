@@ -73,12 +73,13 @@
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
-      const { copySelectedBlock } = await load("./util/lumi-util.js");
+      const { copySelectedBlock, deleteSelectedBlock } = await load(
+        "./util/lumi-util.js"
+      );
 
       return {
         tag: "lumi-multi-panel",
         data: {
-          itemData: {},
           open: false,
           multiPanelStyle: {
             top: 0,
@@ -100,18 +101,7 @@
           },
           clickDelete() {
             // 逐个删除内容
-            const { content } = this.itemData;
-
-            const rangData = this.host._selecteds.map((e) => e.itemData);
-
-            rangData.forEach((item) => {
-              if (item.type === "article") {
-                item.removed = true;
-              } else {
-                const index = content.indexOf(item);
-                content.splice(index, 1);
-              }
-            });
+            deleteSelectedBlock(this.host);
 
             this.emit("close", {
               bubbles: false,
@@ -131,9 +121,7 @@
           },
         },
         attached() {},
-        detached() {
-          this.itemData = {};
-        },
+        detached() {},
       };
     };
   </script>

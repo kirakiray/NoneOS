@@ -1,4 +1,8 @@
-import { getLumiBlock, copySelectedBlock } from "../util/lumi-util.js";
+import {
+  getLumiBlock,
+  copySelectedBlock,
+  deleteSelectedBlock,
+} from "../util/lumi-util.js";
 import {
   getSelectionLetterData,
   letterDataToElement,
@@ -52,6 +56,13 @@ export const initTextInput = (lumipage) => {
       }
 
       if (e.key === "Backspace") {
+        if (lumipage._selecteds) {
+          deleteSelectedBlock(lumipage);
+
+          // 关闭弹窗
+          lumipage.shadow.$("lumi-multi-panel").open = false;
+          return;
+        }
         // 在没有内容时按了返回，等于清空内容
         handleBackspace(lumipage, lumiBlock);
         return;
@@ -93,11 +104,8 @@ export const initTextInput = (lumipage) => {
         if (endOffset === lumiBlock.text.length) {
           let next = lumiBlock.next;
 
-          while (next.itemData.type === "article") {
+          while (next && next.itemData.type === "article") {
             next = next.next;
-            if (!next) {
-              break;
-            }
           }
 
           // 向下聚焦
