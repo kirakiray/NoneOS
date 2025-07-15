@@ -51,3 +51,37 @@ export const getLumiBlock = (event) => {
 
   return lumiBlock;
 };
+
+export const copySelectedBlock = (lumipage) => {
+  let textContent = "";
+  let htmlContent = "";
+  // let mdContent = "";
+
+  const lastIndex = lumipage._selecteds.length - 1;
+
+  lumipage._selecteds.forEach((item, index) => {
+    if (!item.textContent) {
+      return;
+    }
+
+    textContent += item.textContent;
+    htmlContent += item.htmlContent;
+    // mdContent += item.mdContent;
+
+    if (textContent && index !== lastIndex) {
+      textContent += `\n\n`;
+      htmlContent += `\n`;
+      // mdContent += `\n\n`;
+    }
+  });
+
+  navigator.clipboard.write([
+    new ClipboardItem({
+      "text/html": new Blob([htmlContent], { type: "text/html" }),
+      "text/plain": new Blob([textContent], { type: "text/plain" }),
+      // "text/markdown": new Blob([mdContent], {
+      //   type: "text/markdown",
+      // }),
+    }),
+  ]);
+};

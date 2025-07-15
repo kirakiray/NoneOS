@@ -1,4 +1,4 @@
-import { getLumiBlock } from "../util/lumi-util.js";
+import { getLumiBlock, copySelectedBlock } from "../util/lumi-util.js";
 import {
   getSelectionLetterData,
   letterDataToElement,
@@ -29,13 +29,9 @@ export const initTextInput = (lumipage) => {
       if (e.key === "c" && (e.metaKey || e.ctrlKey)) {
         // 复制
         e.preventDefault();
-        const { text: textContent } = lumiBlock;
 
-        if (!textContent) {
-          // 这时候应该是进入多选的状态，将复制事件冒泡上去
-          lumiBlock.emit("block-copy", {
-            composed: true,
-          });
+        if (lumipage._selecteds) {
+          copySelectedBlock(lumipage);
           return;
         }
 
@@ -52,7 +48,6 @@ export const initTextInput = (lumipage) => {
             // }),
           }),
         ]);
-
         return;
       }
 
@@ -64,19 +59,6 @@ export const initTextInput = (lumipage) => {
 
       if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
         handleSelectAll(lumipage, lumiBlock, e);
-        // if (lumiBlock.__beforeSelectAll) {
-        //   lumiBlock.emit("multi-select-component", {
-        //     data: {
-        //       startIndex: 0,
-        //       endIndex: lumiBlock.siblings.length,
-        //     },
-        //     composed: true,
-        //   });
-
-        //   lumiBlock.__beforeSelectAll = null;
-        //   return;
-        // }
-        // lumiBlock.__beforeSelectAll = true;
         return;
       }
 
