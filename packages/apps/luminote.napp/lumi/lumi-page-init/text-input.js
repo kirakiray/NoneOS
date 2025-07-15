@@ -9,6 +9,30 @@ import {
   elementToLetterData,
 } from "../util/range.js";
 
+import { inlineComps } from "../inline/config.js";
+
+import purify from "/packages/libs/purify.es.mjs";
+
+purify.setConfig({
+  RETURN_TRUSTED_TYPE: false,
+  FORCE_BODY: true,
+  ALLOWED_TAGS: [
+    "span",
+    "b",
+    "i",
+    "em",
+    "strong",
+    "a",
+    "p",
+    ...inlineComps.map((e) => e.tag),
+  ], // 允许的标签
+});
+
+purify.addHook("uponSanitizeAttribute", (node, data) => {
+  // 允许所有属性通过
+  return false; // 返回false表示不阻止任何属性
+});
+
 export const initTextInput = (lumipage) => {
   lumipage.on(
     "keydown",
@@ -124,6 +148,135 @@ export const initTextInput = (lumipage) => {
       }
     })
   );
+
+  lumipage.on("paste", async (e) => {
+    let lumiBlock = getLumiBlock(e);
+
+    if (!lumiBlock) {
+      return;
+    }
+    lumiBlock = $(lumiBlock);
+
+    e.preventDefault();
+
+    // 获取粘贴的内容
+    const clipboardData = e.clipboardData;
+    let pastedHtml = clipboardData.getData("text/html");
+    {
+      // 还原被净化的属性值
+      const backupEl = $(`<template>${pastedHtml}</template>`);
+      // 净化html
+      pastedHtml = purify.sanitize(pastedHtml);
+      const afterEl = $(`<template>${pastedHtml}</template>`);
+
+      const customs = backupEl.all(inlineComps.map((e) => e.tag).join(","));
+      const afterCustoms = afterEl.all(inlineComps.map((e) => e.tag).join(","));
+
+      customs.forEach((e, i) => {
+        const afterCustomEl = afterCustoms[i];
+        for (let item of e.ele.attributes) {
+          afterCustomEl.attr(item.name, item.value);
+        }
+      });
+
+      pastedHtml = afterEl.html;
+    }
+
+    const pushContents = (contents) => {
+      const parentContent = lumipage.itemData.content;
+
+      // 在当前的前面添加对应的数据
+      const index = parentContent.indexOf(lumiBlock.itemData);
+
+      if (index > -1) {
+        parentContent.splice(index, 0, ...contents);
+      }
+    };
+
+    if (pastedHtml) {
+      const temp = $(`<template>${pastedHtml}</template>`).ele;
+
+      const contents = [];
+
+      const hasP = temp.content.querySelector("p");
+      const hasTitle =
+        temp.content.querySelector("h1") ||
+        temp.content.querySelector("h2") ||
+        temp.content.querySelector("h3") ||
+        temp.content.querySelector("h4") ||
+        temp.content.querySelector("h5");
+
+      if (hasP || hasTitle) {
+        for (let item of temp.content.children) {
+          if (item.innerHTML) {
+            const reContent = await elementToLetterData(item);
+
+            const tag = item.tagName.toLowerCase();
+
+            if (tag === "p" || tag === "h2" || tag === "h3" || tag === "h4") {
+              const type = tag === "p" ? "paragraph" : tag;
+
+              contents.push({
+                type,
+                value: await letterDataToElement(reContent),
+              });
+            } else if (tag === "code") {
+              contents.push({
+                type: "lumi-code",
+                value: item.innerHTML,
+              });
+            } else {
+              // 不明类型全部填充为段落
+              contents.push({
+                type: "paragraph",
+                value: await letterDataToElement(reContent),
+              });
+            }
+          }
+        }
+      } else {
+        // 直接粘贴的片段
+        const reContent = await elementToLetterData(temp.content);
+        contents.push({
+          type: "paragraph",
+          value: await letterDataToElement(reContent),
+        });
+      }
+
+      pushContents(contents);
+      return;
+    }
+    {
+      const contents = [];
+
+      let pastedText = clipboardData.getData("text/plain"); //
+      if (!pastedText) {
+        pastedText = await navigator.clipboard.readText();
+      }
+
+      if (!pastedText) {
+        console.log("粘贴失败");
+        return;
+      }
+
+      // 内容分段
+      const lines = pastedText.split("\n");
+
+      lines
+        .filter((e) => !!e)
+        .forEach((e) => {
+          // 净化html
+          const value = purify.sanitize(e.trim());
+
+          contents.push({
+            type: "paragraph",
+            value,
+          });
+        });
+
+      pushContents(contents);
+    }
+  });
 };
 
 const handleSelectAll = (lumipage, lumiBlock, originEvent) => {
@@ -155,7 +308,7 @@ const handleSelectAll = (lumipage, lumiBlock, originEvent) => {
   }
 
   let blurFunc;
-  lumiBlock.on(
+  lumiBlock[0].on(
     "blur",
     (blurFunc = () => {
       lumiBlock.__beforeSelectAll = null;
