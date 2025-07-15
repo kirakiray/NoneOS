@@ -1,8 +1,7 @@
 <template component>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
-  <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
-  <l-m src="/packages/pui/button/group.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
   <style>
@@ -206,6 +205,11 @@
       background-color: var(--md-sys-color-surface);
       border-radius: 4px;
     }
+
+    :host([draggable]) {
+      contain: paint; /* 限制元素的渲染边界 */
+      transform: translateZ(0); /* 创建独立的合成层 */
+    }
   </style>
   <o-if :value="!loading">
     <div
@@ -214,7 +218,12 @@
       class:active-bg="selected"
     >
       <div class="menu-btn">
-        <p-button icon size="small" variant="text">
+        <p-button
+          icon
+          size="small"
+          variant="text"
+          on:mousedown="mousedownDragBtn"
+        >
           <n-local-icon name="menu"></n-local-icon>
         </p-button>
         <div class="inputer-tips">拖拽或点击</div>
@@ -267,20 +276,6 @@
     }
   </style>
 
-  <o-if :value="beautifyStep !== 0">
-    <div class="beautify-content">
-      <div>{{beautifyContent}}</div>
-      <o-if :value="beautifyStep === 2">
-        <div style="margin: 8px 0">
-          <p-button size="small" on:click="useAIBeautify">采用</p-button>
-          <p-button size="small" variant="text" on:click="discardAIBeautify">
-            放弃
-          </p-button>
-        </div>
-      </o-if>
-    </div>
-  </o-if>
-
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
@@ -299,7 +294,6 @@
           loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
           itemData: {},
           beautifyContent: "Loading...",
-          beautifyStep: 0,
           selected: false, // 是否被选中
         },
         watch: {
@@ -333,6 +327,10 @@
           },
         },
         proto: {
+          mousedownDragBtn(e) {
+            e.stopPropagation();
+            this.emit("drag-block-start");
+          },
           updateBlockValue(e) {
             e.stopPropagation();
             const { value } = e.data;

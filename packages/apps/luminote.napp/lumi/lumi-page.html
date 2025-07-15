@@ -79,6 +79,8 @@
         "./lumi-page-init/text-range.js"
       );
 
+      const { initDrag, revokeDrag } = await load("./lumi-page-init/drag.js");
+
       const { diffFill } = await load("./util/diff-fill.js");
       const {
         letterDataToElement,
@@ -176,6 +178,7 @@
             initUndoRedo(this);
             initMultiSelect(this);
             initTextRange(this);
+            initDrag(this);
           }
         },
         detached() {
@@ -184,6 +187,7 @@
           revokeUndoRedo(this);
           revokeMultiSelect(this);
           revokeTextRange(this);
+          revokeDrag(this);
         },
       };
     };
