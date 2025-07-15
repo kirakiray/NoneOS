@@ -1,12 +1,12 @@
+import { getLumiBlock } from "../util/lumi-util.js";
+
 let mousedownStartBlock = null;
 
 export const initMultiSelect = (lumipage) => {
   lumipage.on(
     "mousedown",
     (lumipage._multiSelectMousedownFunc = (e) => {
-      const [lumiBlock] = e
-        .composedPath()
-        .filter((e) => e.tagName === "LUMI-BLOCK");
+      const lumiBlock = getLumiBlock(e);
 
       if (!lumiBlock) {
         return;
@@ -23,9 +23,7 @@ export const initMultiSelect = (lumipage) => {
   lumipage.on(
     "mouseover",
     (lumipage._multiSelectMouseoverFunc = (e) => {
-      const [lumiBlock] = e
-        .composedPath()
-        .filter((e) => e.tagName === "LUMI-BLOCK");
+      const lumiBlock = getLumiBlock(e);
 
       if (!lumiBlock || !mousedownStartBlock) {
         return;
@@ -50,16 +48,22 @@ export const initMultiSelect = (lumipage) => {
 
   lumipage.on(
     "mouseup",
-    (lumipage._multiSelectMouseupFunc = (e) => {
-      const [lumiBlock] = e
-        .composedPath()
-        .filter((e) => e.tagName === "LUMI-BLOCK");
+    (lumipage._multiSelectMouseupFunc = (e, selectedOptions) => {
+      let lumiBlock = null;
+      let startIndex, endIndex;
+      if (!selectedOptions) {
+        lumiBlock = getLumiBlock(e);
 
-      if (!lumiBlock || !mousedownStartBlock) {
-        return;
+        if (!lumiBlock || !mousedownStartBlock) {
+          return;
+        }
+
+        ({ startIndex, endIndex } = getStartAndEnd(lumiBlock, lumipage));
+      } else {
+        lumiBlock = selectedOptions.lumiBlock;
+        startIndex = selectedOptions.startIndex;
+        endIndex = selectedOptions.endIndex;
       }
-
-      const { startIndex, endIndex } = getStartAndEnd(lumiBlock, lumipage);
 
       if (startIndex === endIndex) {
         mousedownStartBlock = null;

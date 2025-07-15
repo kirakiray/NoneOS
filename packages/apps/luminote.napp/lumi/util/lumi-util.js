@@ -43,3 +43,11 @@ import { inlineComps } from "../inline/config.js";
     load(e.formComponentSrc);
   });
 }
+
+export const getLumiBlock = (event) => {
+  const [lumiBlock] = event
+    .composedPath()
+    .filter((e) => e.tagName === "LUMI-BLOCK");
+
+  return lumiBlock;
+};

@@ -79,6 +79,10 @@
         "./lumi-page-init/text-range.js"
       );
 
+      const { initTextInput, revokeTextInput } = await load(
+        "./lumi-page-init/text-input.js"
+      );
+
       const { initDrag, revokeDrag } = await load("./lumi-page-init/drag.js");
 
       const { diffFill } = await load("./util/diff-fill.js");
@@ -179,6 +183,7 @@
             initMultiSelect(this);
             initTextRange(this);
             initDrag(this);
+            initTextInput(this);
           }
         },
         detached() {
@@ -188,6 +193,7 @@
           revokeMultiSelect(this);
           revokeTextRange(this);
           revokeDrag(this);
+          revokeTextInput(this);
         },
       };
     };

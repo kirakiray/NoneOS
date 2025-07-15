@@ -4,6 +4,8 @@ import {
   setSelection,
 } from "../util/range.js";
 
+import { getLumiBlock } from "../util/lumi-util.js";
+
 let mousedownStartBlock = null;
 
 // 修改选中文本颜色背景加粗等的初始化操作
@@ -47,9 +49,7 @@ export const initTextRange = (lumipage) => {
   lumipage.on(
     "mousedown",
     (lumipage._selectionMousedownFunc = (e) => {
-      const [lumiBlock] = e
-        .composedPath()
-        .filter((e) => e.tagName === "LUMI-BLOCK");
+      const lumiBlock = getLumiBlock(e);
 
       if (!lumiBlock) {
         return;
@@ -74,9 +74,7 @@ export const initTextRange = (lumipage) => {
   lumipage.on(
     "mouseup",
     (lumipage._selectionMouseupFunc = async (e) => {
-      const [lumiBlock] = e
-        .composedPath()
-        .filter((e) => e.tagName === "LUMI-BLOCK");
+      const lumiBlock = getLumiBlock(e);
 
       if (lumiBlock !== mousedownStartBlock) {
         // 不是同一个block, 不处理
