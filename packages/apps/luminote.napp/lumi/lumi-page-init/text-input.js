@@ -164,22 +164,26 @@ export const initTextInput = (lumipage) => {
     let pastedHtml = clipboardData.getData("text/html");
     {
       // 还原被净化的属性值
-      const backupEl = $(`<template>${pastedHtml}</template>`);
+      const originalTemplate = $(`<template>${pastedHtml}</template>`);
       // 净化html
       pastedHtml = purify.sanitize(pastedHtml);
-      const afterEl = $(`<template>${pastedHtml}</template>`);
+      const sanitizedTemplate = $(`<template>${pastedHtml}</template>`);
 
-      const customs = backupEl.all(inlineComps.map((e) => e.tag).join(","));
-      const afterCustoms = afterEl.all(inlineComps.map((e) => e.tag).join(","));
+      const originalCustomElements = originalTemplate.all(
+        inlineComps.map((component) => component.tag).join(",")
+      );
+      const sanitizedCustomElements = sanitizedTemplate.all(
+        inlineComps.map((component) => component.tag).join(",")
+      );
 
-      customs.forEach((e, i) => {
-        const afterCustomEl = afterCustoms[i];
-        for (let item of e.ele.attributes) {
-          afterCustomEl.attr(item.name, item.value);
+      originalCustomElements.forEach((originalElement, index) => {
+        const sanitizedElement = sanitizedCustomElements[index];
+        for (let attribute of originalElement.ele.attributes) {
+          sanitizedElement.attr(attribute.name, attribute.value);
         }
       });
 
-      pastedHtml = afterEl.html;
+      pastedHtml = sanitizedTemplate.html;
     }
 
     const pushContents = (contents) => {
