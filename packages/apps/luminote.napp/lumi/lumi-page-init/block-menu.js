@@ -1,6 +1,19 @@
 export const initBlockMenu = (lumipage) => {
   let beforeOpendBlock = null;
 
+  lumipage.on(
+    "drag-block-start",
+    (lumipage._dragStartFunc = (e) => {
+      e.stopPropagation();
+
+      if (beforeOpendBlock) {
+        beforeOpendBlock.leftMenuOpened = false;
+        const lumiBlockMenu = lumipage.shadow.$("lumi-block-menu");
+        lumiBlockMenu.open = "off";
+      }
+    })
+  );
+
   lumipage.on("click-block-menu", (e) => {
     e.stopPropagation();
     const { menuBtn, originEvent } = e.data;

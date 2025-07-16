@@ -3,6 +3,7 @@
   <l-m src="./lumi-multi-panel.html"></l-m>
   <l-m src="./lumi-text-panel.html"></l-m>
   <l-m src="./lumi-block-menu.html"></l-m>
+  <l-m src="./lumi-page-title.html"></l-m>
   <style>
     :host {
       display: block;
@@ -50,12 +51,10 @@
     </div>
   </o-if>
   <div class="container">
-    <div style="height: 100px"></div>
-    <div style="margin: 0 auto; max-width: 800px; width: 100%">
+    <lumi-page-title>
       <input
         id="title"
         class="title"
-        lumi-page-title
         type="text"
         sync:value="itemData.title"
         on:click="$event.stopPropagation()"
@@ -63,7 +62,8 @@
         on:keydown="titleKeyDown"
         placeholder="页面标题"
       />
-    </div>
+    </lumi-page-title>
+    <div lumi-page-title-container></div>
     <slot></slot>
     <div style="height: 32px"></div>
   </div>

@@ -22,12 +22,36 @@ export const initDrag = (lumipage) => {
       return;
     }
 
+    const composeds = e.composedPath();
+
     // 获取对应的 block元素
-    const [lumiBlock] = e
-      .composedPath()
-      .filter((e) => e.tagName === "LUMI-BLOCK");
+    const [lumiBlock] = composeds.filter((e) => e.tagName === "LUMI-BLOCK");
 
     if (!lumiBlock) {
+      const [titleContainer] = composeds.filter(
+        (e) => e.matches && e.matches("lumi-page-title")
+      );
+
+      // 判断是否title，是的话放到第一个
+      if (titleContainer) {
+        if (oldDragEnterBlock) {
+          // 去掉之前的标记
+          oldDragEnterBlock.dragovering = false;
+        }
+
+        // 位移数据
+        const startIndex = lumipage.itemData.content.indexOf(
+          dargStartBlock.itemData
+        );
+
+        if (startIndex <= 0) {
+          return;
+        }
+
+        // 标记
+        oldDragEnterBlock = $(titleContainer);
+        oldDragEnterBlock.dragovering = true;
+      }
       return;
     }
 
@@ -68,8 +92,12 @@ export const initDrag = (lumipage) => {
     const [lumiBlock] = composeds.filter((e) => e.tagName === "LUMI-BLOCK");
 
     if (!lumiBlock) {
+      const [titleContainer] = composeds.filter(
+        (e) => e.matches && e.matches("lumi-page-title")
+      );
+
       // 判断是否title，是的话放到第一个
-      if (composeds[0].matches("[lumi-page-title]")) {
+      if (titleContainer) {
         // 位移数据
         const startIndex = lumipage.itemData.content.indexOf(
           dargStartBlock.itemData

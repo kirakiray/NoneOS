@@ -1,0 +1,36 @@
+<template component>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      margin: 0 auto;
+      max-width: 800px;
+      width: 100%;
+    }
+
+    .dragovering-mark {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--md-sys-color-primary);
+      opacity: 0;
+    }
+    .dragovering-mark.show {
+      opacity: 1;
+    }
+  </style>
+  <div style="height: 100px"></div>
+  <slot></slot>
+  <div class="dragovering-mark" class:show="dragovering"></div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-page-title",
+        data: {
+          dragovering: false,
+        },
+      };
+    };
+  </script>
+</template>
