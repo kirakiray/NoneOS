@@ -94,9 +94,6 @@ export const initTextInput = (lumipage) => {
               "text/plain": new Blob([temp.ele.content.textContent], {
                 type: "text/plain",
               }),
-              // "text/markdown": new Blob([lumiBlock.mdContent], {
-              //   type: "text/markdown",
-              // }),
             }),
           ]);
         }
