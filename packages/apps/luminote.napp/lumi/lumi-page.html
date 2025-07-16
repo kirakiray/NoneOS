@@ -9,6 +9,7 @@
       display: block;
       margin: 0 auto;
       user-select: auto;
+      /* background-color: rgb(62, 177, 142); */
     }
     /* .container {
     } */
@@ -142,6 +143,31 @@
           },
         },
         attached() {
+          this.on("click", (e) => {
+            const composeds = e.composedPath();
+
+            if (composeds[0].matches && composeds[0].matches("lumi-page")) {
+              // 点击了页面，聚焦最后一个元素
+              if (this.itemData.content.length) {
+                this.slice(-1)[0].focus();
+              } else {
+                this.itemData.content.push({
+                  type: "paragraph",
+                  value: "",
+                });
+
+                setTimeout(
+                  () => {
+                    this.slice(-1)[0].focus();
+                  },
+                  isSafari ? 60 : 1
+                );
+              }
+            }
+
+            // console.log("composeds: ", composeds);
+          });
+
           // 先清空
           clearUndoHistory();
 
