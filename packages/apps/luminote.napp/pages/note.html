@@ -25,8 +25,6 @@
       top: 0;
       width: 100%;
       height: 100%;
-      padding: 16px 42px;
-      overflow: auto;
     }
   </style>
   <div class="main">
@@ -102,7 +100,9 @@
                 this.unwatch(wid);
               }
             });
-            this.push(`<lumi-page style="height: 100%"></lumi-page>`);
+            this.push(
+              `<lumi-page style="height: 100%;overflow: auto"></lumi-page>`
+            );
             this.$("lumi-page").itemData = this.itemData;
           }
 
