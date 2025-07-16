@@ -62,14 +62,35 @@ export const initDrag = (lumipage) => {
 
     e.stopPropagation();
 
+    const composeds = e.composedPath();
+
     // 获取对应的 block元素
-    const [lumiBlock] = e
-      .composedPath()
-      .filter((e) => e.tagName === "LUMI-BLOCK");
+    const [lumiBlock] = composeds.filter((e) => e.tagName === "LUMI-BLOCK");
+
+    if (!lumiBlock) {
+      // 判断是否title，是的话放到第一个
+      if (composeds[0].matches("[lumi-page-title]")) {
+        // 位移数据
+        const startIndex = lumipage.itemData.content.indexOf(
+          dargStartBlock.itemData
+        );
+
+        if (startIndex <= 0) {
+          return;
+        }
+
+        const [targetData] = lumipage.itemData.content.splice(startIndex, 1);
+
+        lumipage.itemData.content.unshift(targetData);
+      }
+
+      return;
+    }
 
     if (dargStartBlock && lumiBlock === dargStartBlock.ele) {
       return;
     }
+
     // 如果是前一个元素，代表没有位移，也不需要标记
     if (lumiBlock.nextSibling && lumiBlock.nextSibling === dargStartBlock.ele) {
       return;
