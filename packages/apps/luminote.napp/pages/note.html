@@ -122,6 +122,13 @@
           });
 
           this.loadArticle();
+
+          setTimeout(() => {
+            // 修正菜单定位
+            Object.assign(this.style, {
+              transform: "",
+            });
+          }, 300);
         },
         detached() {
           this.itemData = {};
