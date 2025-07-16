@@ -86,13 +86,16 @@
       删除
     </p-menu-item>
     <hr />
-    <p-menu-item on:click="handleBeautify">
+    <p-menu-item on:click="handleBeautify" disabled>
       <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
       润色
     </p-menu-item>
   </p-menu>
   <script>
     export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+      const { blockComps } = await load("./block/config.js"); // 块组件的配置
+
       return {
         tag: "lumi-block-menu",
         attrs: {
@@ -100,20 +103,44 @@
         },
         data: {
           itemData: {},
-          blockComps: [],
+          blockComps,
+          _blockEl: null,
         },
         proto: {
           handleBeautify() {
             debugger;
           },
           handleCopy() {
-            debugger;
+            navigator.clipboard.write([
+              new ClipboardItem({
+                "text/html": new Blob([this._blockEl.htmlContent], {
+                  type: "text/html",
+                }),
+                "text/plain": new Blob([this._blockEl.textContent], {
+                  type: "text/plain",
+                }),
+              }),
+            ]);
+
+            toast("已复制文本到剪贴板");
+
+            this.open = "off";
           },
           handleDelete() {
-            debugger;
+            const targetIndex = this.host.itemData.content.indexOf(
+              this.itemData
+            );
+
+            if (targetIndex !== -1) {
+              this.host.itemData.content.splice(targetIndex, 1);
+            }
+            this.open = "off";
           },
           handleDuplicate() {
-            debugger;
+            const content = this.host.itemData.content;
+            const index = content.indexOf(this.itemData);
+            content.splice(index, 0, this.itemData.toJSON());
+            this.open = "off";
           },
           handleChangeBlockType(type) {
             this.itemData.type = type;
@@ -122,6 +149,7 @@
         },
         detached() {
           this.itemData = {};
+          this._blockEl = null;
         },
       };
     };

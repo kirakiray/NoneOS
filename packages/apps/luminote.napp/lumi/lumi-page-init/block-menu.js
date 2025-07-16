@@ -26,6 +26,8 @@ export const initBlockMenu = (lumipage) => {
     });
 
     lumiBlockMenu.itemData = lumiBlock.itemData;
+    lumiBlockMenu._blockEl = lumiBlock;
+
     lumiBlockMenu.open = "on";
   });
 
