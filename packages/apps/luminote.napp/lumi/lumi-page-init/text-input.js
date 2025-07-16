@@ -7,6 +7,7 @@ import {
   getSelectionLetterData,
   letterDataToElement,
   elementToLetterData,
+  getRealOffset,
 } from "../util/range.js";
 
 import { inlineComps } from "../inline/config.js";
@@ -58,29 +59,53 @@ export const initTextInput = (lumipage) => {
         // 复制
         e.preventDefault();
 
-        if (lumipage._selecteds) {
+        if (lumipage._selecteds?.length) {
           copySelectedBlock(lumipage);
           return;
         }
 
-        navigator.clipboard.write([
-          new ClipboardItem({
-            "text/html": new Blob([lumiBlock.htmlContent], {
-              type: "text/html",
+        const { selectionRangeLetter } = await getSelectionLetterData();
+
+        e.preventDefault();
+
+        if (!selectionRangeLetter.length) {
+          navigator.clipboard.write([
+            new ClipboardItem({
+              "text/plain": new Blob([lumiBlock.textContent], {
+                type: "text/plain",
+              }),
+              "text/html": new Blob([lumiBlock.htmlContent], {
+                type: "text/html",
+              }),
+              // "text/markdown": new Blob([lumiBlock.mdContent], {
+              //   type: "text/markdown",
+              // }),
             }),
-            "text/plain": new Blob([lumiBlock.textContent], {
-              type: "text/plain",
+          ]);
+        } else {
+          const html = await letterDataToElement(selectionRangeLetter);
+          const temp = $(`<template>${html}</template>`);
+
+          navigator.clipboard.write([
+            new ClipboardItem({
+              "text/html": new Blob([html], {
+                type: "text/html",
+              }),
+              "text/plain": new Blob([temp.ele.content.textContent], {
+                type: "text/plain",
+              }),
+              // "text/markdown": new Blob([lumiBlock.mdContent], {
+              //   type: "text/markdown",
+              // }),
             }),
-            // "text/markdown": new Blob([lumiBlock.mdContent], {
-            //   type: "text/markdown",
-            // }),
-          }),
-        ]);
+          ]);
+        }
+
         return;
       }
 
       if (e.key === "Backspace") {
-        if (lumipage._selecteds) {
+        if (lumipage._selecteds?.length) {
           deleteSelectedBlock(lumipage);
 
           // 关闭弹窗
@@ -152,12 +177,15 @@ export const initTextInput = (lumipage) => {
   lumipage.on("paste", async (e) => {
     let lumiBlock = getLumiBlock(e);
 
-    if (!lumiBlock) {
+    const [inputerContent] = e
+      .composedPath()
+      .filter((e2) => e2.matches && e2.matches("[inputer-content]"));
+
+    if (!lumiBlock || !inputerContent) {
       return;
     }
-    lumiBlock = $(lumiBlock);
 
-    e.preventDefault();
+    lumiBlock = $(lumiBlock);
 
     // 获取粘贴的内容
     const clipboardData = e.clipboardData;
@@ -238,16 +266,21 @@ export const initTextInput = (lumipage) => {
             }
           }
         }
+
+        e.preventDefault();
+        pushContents(contents);
       } else {
-        // 直接粘贴的片段
-        const reContent = await elementToLetterData(temp.content);
-        contents.push({
-          type: "paragraph",
-          value: await letterDataToElement(reContent),
-        });
+        // const selectionRangeData = await getSelectionLetterData();
+        // // 直接粘贴的片段
+        // const reContent = await elementToLetterData(temp.content);
+        // debugger;
+        // console.log("paste");
+        // contents.push({
+        //   type: "paragraph",
+        //   value: await letterDataToElement(reContent),
+        // });
       }
 
-      pushContents(contents);
       return;
     }
     {
@@ -390,7 +423,7 @@ const handleEnter = async (lumipage, lumiBlock) => {
   const finnalIndex = index + 1;
 
   // 获取选中的焦点
-  const selectionRangeData = await getSelectionLetterData(document);
+  const selectionRangeData = await getSelectionLetterData();
 
   // 截取焦点后的内容
   const afterLetterData = selectionRangeData.letterData.slice(

@@ -2,6 +2,10 @@ const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 // 获取返回内的数据
 export const getSelectionLetterData = async (root, editorEl) => {
+  if (!root) {
+    root = document;
+  }
+
   const selection = root.getSelection();
   const range = selection.getRangeAt(0);
 

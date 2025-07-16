@@ -7,8 +7,20 @@
       z-index: 6;
       display: block;
       user-select: none;
+      transition: transform ease 0.2s, opacity ease 0.2s;
+
+      transform: translate(16px, 0);
+      opacity: 0;
+      pointer-events: none;
     }
-    .section-pannel {
+
+    :host([open="true"]) {
+      transform: translate(0, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .section-panel {
       display: flex;
       align-items: center;
       background-color: var(--md-sys-color-on-normal);
@@ -17,16 +29,15 @@
       border-radius: 18px;
       padding: 3px;
       white-space: nowrap;
-      transition: all ease 0.2s;
     }
 
-    .section-pannel.hide {
+    /* .section-panel.hide {
       transform: translate(16px, 0);
       opacity: 0;
       pointer-events: none;
-    }
+    } */
 
-    .section-pannel n-local-icon {
+    .section-panel n-local-icon {
       display: block;
       font-size: 16px;
     }
@@ -38,7 +49,7 @@
       margin: 0 6px;
     }
 
-    .section-pannel p-button {
+    .section-panel p-button {
       margin: 0 2px;
     }
 
@@ -54,7 +65,7 @@
     }
   </style>
 
-  <div class="section-pannel" class:hide="!open">
+  <div class="section-panel">
     <p-tooltips placement="top" plain>
       <p-button
         size="small"
@@ -332,6 +343,9 @@
 
       return {
         tag: "lumi-text-panel",
+        attrs: {
+          open: null,
+        },
         data: {
           itemData: {},
           // 下面是激活按钮的状态: 0没有激活 1激活了部分 2完全激活
@@ -366,7 +380,7 @@
           ],
           showColorWheel: false,
           inlineComps: [],
-          open: false,
+          // open: false,
           _selectedData: {}, // 选中块的数据
         },
         proto: {
