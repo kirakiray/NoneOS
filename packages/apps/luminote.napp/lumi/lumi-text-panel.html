@@ -583,8 +583,8 @@
             let result;
             if (item.__data.click) {
               result = await item.__data.click({
-                blockEl: this.host, // 主体块元素
-                blockItemData: this.host.itemData,
+                blockEl: this._targetBlock, // 主体块元素
+                blockItemData: this._targetBlock.itemData,
                 pageEl: this.host.parent,
                 pageItemData: this.host.parent.itemData,
                 startOffset,
