@@ -215,7 +215,7 @@
     <div
       class="inputer"
       class:hide="itemData.type === 'article' && itemData.removed"
-      class:active-bg="selected"
+      class:active-bg="selected || leftMenuOpened"
     >
       <div class="menu-btn">
         <p-button
@@ -223,6 +223,7 @@
           size="small"
           variant="text"
           on:mousedown="mousedownDragBtn"
+          on:click="clickDragBtn"
         >
           <n-local-icon name="menu"></n-local-icon>
         </p-button>
@@ -295,6 +296,7 @@
           itemData: {},
           beautifyContent: "Loading...",
           selected: false, // 是否被选中
+          leftMenuOpened: false, // 左侧菜单是否打开
           dragovering: false,
         },
         watch: {
@@ -331,6 +333,17 @@
           mousedownDragBtn(e) {
             e.stopPropagation();
             this.emit("drag-block-start");
+          },
+          clickDragBtn(e) {
+            this.attr("draggable", null);
+
+            // 弹出菜单
+            this.emit("click-block-menu", {
+              data: {
+                menuBtn: e.target,
+                originEvent: e,
+              },
+            });
           },
           updateBlockValue(e) {
             e.stopPropagation();

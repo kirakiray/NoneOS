@@ -2,6 +2,7 @@
   <l-m src="./lumi-block.html"></l-m>
   <l-m src="./lumi-multi-panel.html"></l-m>
   <l-m src="./lumi-text-panel.html"></l-m>
+  <l-m src="./lumi-block-menu.html"></l-m>
   <style>
     :host {
       display: block;
@@ -66,6 +67,7 @@
   </div>
   <lumi-multi-panel></lumi-multi-panel>
   <lumi-text-panel></lumi-text-panel>
+  <lumi-block-menu></lumi-block-menu>
   <script>
     export default async ({ load }) => {
       const { initUndoRedo, revokeUndoRedo } = await load(
@@ -81,6 +83,10 @@
 
       const { initTextInput, revokeTextInput } = await load(
         "./lumi-page-init/text-input.js"
+      );
+
+      const { initBlockMenu, revokeBlockMenu } = await load(
+        "./lumi-page-init/block-menu.js"
       );
 
       const { initDrag, revokeDrag } = await load("./lumi-page-init/drag.js");
@@ -184,6 +190,7 @@
             initTextRange(this);
             initDrag(this);
             initTextInput(this);
+            initBlockMenu(this);
           }
         },
         detached() {
@@ -194,6 +201,7 @@
           revokeTextRange(this);
           revokeDrag(this);
           revokeTextInput(this);
+          revokeBlockMenu(this);
         },
       };
     };

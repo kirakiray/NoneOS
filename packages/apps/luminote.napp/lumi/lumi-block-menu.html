@@ -1,0 +1,129 @@
+<template component>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <style>
+    :host {
+      position: fixed;
+      display: block;
+      z-index: 7;
+      pointer-events: none;
+    }
+    :host([open="on"]) {
+      pointer-events: auto;
+    }
+
+    n-local-icon,
+    .menu-icon-span {
+      display: block;
+      margin-right: 8px;
+      font-size: 16px;
+      color: var(--md-sys-color-primary);
+    }
+  </style>
+  <p-menu attr:open="open">
+    <p-menu-item attr:disabled="itemData.type === 'article'">
+      <n-local-icon name="exchange" slot="prefix"></n-local-icon>
+      更改组件
+      <p-menu open="off">
+        <p-menu-item
+          attr:active-item="itemData.type === 'paragraph'"
+          on:click="handleChangeBlockType('paragraph')"
+        >
+          <n-local-icon name="p" slot="prefix"></n-local-icon>
+          段落
+        </p-menu-item>
+        <p-menu-item
+          attr:active-item="itemData.type === 'h2'"
+          on:click="handleChangeBlockType('h2')"
+        >
+          <n-local-icon name="h2" slot="prefix"></n-local-icon>
+          大标题
+        </p-menu-item>
+        <p-menu-item
+          attr:active-item="itemData.type === 'h3'"
+          on:click="handleChangeBlockType('h3')"
+        >
+          <n-local-icon name="h3" slot="prefix"></n-local-icon>
+          中标题
+        </p-menu-item>
+        <p-menu-item
+          attr:active-item="itemData.type === 'h4'"
+          on:click="handleChangeBlockType('h4')"
+        >
+          <n-local-icon name="h4" slot="prefix"></n-local-icon>
+          小标题
+        </p-menu-item>
+        <x-fill :value="blockComps">
+          <p-menu-item
+            attr:active-item="$host.itemData.type === $data.tag"
+            on:click="$host.handleChangeBlockType($data.tag)"
+          >
+            <span
+              class="menu-icon-span"
+              :html="$data.icon"
+              style="font-size: 18px; color: var(--md-sys-color-primary)"
+            ></span>
+            {{$data.name.cn}}
+          </p-menu-item>
+        </x-fill>
+      </p-menu>
+    </p-menu-item>
+    <p-menu-item
+      on:click="handleCopy"
+      attr:disabled="itemData.type === 'article'"
+    >
+      <n-local-icon name="copy" slot="prefix"></n-local-icon>
+      复制
+    </p-menu-item>
+    <p-menu-item
+      on:click="handleDuplicate"
+      attr:disabled="itemData.type === 'article'"
+    >
+      <n-local-icon name="duplicate" slot="prefix"></n-local-icon>
+      创建副本
+    </p-menu-item>
+    <p-menu-item on:click="handleDelete">
+      <n-local-icon name="delete" slot="prefix"></n-local-icon>
+      删除
+    </p-menu-item>
+    <hr />
+    <p-menu-item on:click="handleBeautify">
+      <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
+      润色
+    </p-menu-item>
+  </p-menu>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-block-menu",
+        attrs: {
+          open: "off",
+        },
+        data: {
+          itemData: {},
+          blockComps: [],
+        },
+        proto: {
+          handleBeautify() {
+            debugger;
+          },
+          handleCopy() {
+            debugger;
+          },
+          handleDelete() {
+            debugger;
+          },
+          handleDuplicate() {
+            debugger;
+          },
+          handleChangeBlockType(type) {
+            this.itemData.type = type;
+            this.open = "off";
+          },
+        },
+        detached() {
+          this.itemData = {};
+        },
+      };
+    };
+  </script>
+</template>

@@ -7,7 +7,6 @@ import {
   getSelectionLetterData,
   letterDataToElement,
   elementToLetterData,
-  getRealOffset,
 } from "../util/range.js";
 
 import { inlineComps } from "../inline/config.js";
