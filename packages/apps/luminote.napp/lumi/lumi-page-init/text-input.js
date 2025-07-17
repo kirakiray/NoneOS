@@ -103,9 +103,15 @@ export const initTextInput = (lumipage) => {
       if (e.key === "Tab") {
         // 增加间距
         e.preventDefault();
-        let tabLeft = lumiBlock.itemData.tab || 0;
-        tabLeft += 1;
-        lumiBlock.itemData.tab = tabLeft;
+        // let tabLeft = lumiBlock.itemData.tab || 0;
+        // tabLeft += 1;
+
+        // tabLeft = prevTab +;
+        // lumiBlock.itemData.tab = tabLeft;
+
+        // 不能比前面那个大1
+        let prevTab = lumiBlock.prev ? lumiBlock.prev.itemData.tab || 0 : 0;
+        lumiBlock.itemData.tab = prevTab + 1;
         return;
       }
 
@@ -453,27 +459,12 @@ const handleEnter = async (lumipage, lumiBlock) => {
   // 获取选中的焦点
   const selectionRangeData = await getSelectionLetterData();
 
-  if (!selectionRangeData) {
-    // 直接向下换行
-    lumipage.itemData.content.splice(finnalIndex, 0, {
-      type: "paragraph",
-      value: "",
-    });
-
-    setTimeout(
-      () => {
-        lumipage[finnalIndex].focus("start");
-      },
-      isSafari ? 60 : 1
-    );
-
-    return;
-  }
-
   // 截取焦点后的内容
   const afterLetterData = selectionRangeData.letterData.slice(
     selectionRangeData.startOffset
   );
+
+  const tab = lumiBlock.itemData.tab;
 
   if (afterLetterData.length) {
     const beforeLetterData = selectionRangeData.letterData.slice(
@@ -494,12 +485,14 @@ const handleEnter = async (lumipage, lumiBlock) => {
     lumipage.itemData.content.splice(finnalIndex, 0, {
       type: "paragraph",
       value: afterContent,
+      tab,
     });
   } else {
     // 最末尾添加
     lumipage.itemData.content.splice(finnalIndex, 0, {
       type: "paragraph",
       value: "",
+      tab,
     });
   }
 
