@@ -21,12 +21,12 @@ export const initBlockMenu = (lumipage) => {
     originEvent.stopPropagation();
 
     const lumiBlock = $(e.target);
-    lumiBlock.leftMenuOpened = true;
 
     if (beforeOpendBlock) {
       beforeOpendBlock.leftMenuOpened = false;
     }
     beforeOpendBlock = lumiBlock;
+    lumiBlock.leftMenuOpened = true;
 
     const lumiBlockMenu = lumipage.shadow.$("lumi-block-menu");
 

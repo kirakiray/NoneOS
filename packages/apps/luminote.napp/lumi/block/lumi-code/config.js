@@ -11,7 +11,7 @@ const defaults = {
     cn: "用于友好展示代码的组件",
   },
   _getUseContenteditable() {
-    debugger;
+    return false;
   },
 };
 
