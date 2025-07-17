@@ -61,8 +61,8 @@ export const initDrag = (lumipage) => {
     }
 
     // 确保不是在子元素上
-    const { subItems } = dargStartBlock;
-    const isSub = subItems.some((e) => e.ele === lumiBlock);
+    const { subItems: subElItems } = dargStartBlock;
+    const isSub = subElItems.some((e) => e.ele === lumiBlock);
 
     if (isSub) {
       return;
@@ -128,8 +128,8 @@ export const initDrag = (lumipage) => {
     }
 
     // 确保不是在子元素上
-    const { subItems } = dargStartBlock;
-    const isSub = subItems.some((e) => e.ele === lumiBlock);
+    const { subItems: subElItems } = dargStartBlock;
+    const isSub = subElItems.some((e) => e.ele === lumiBlock);
 
     if (isSub) {
       return;
@@ -142,20 +142,30 @@ export const initDrag = (lumipage) => {
 
     const currentDragEnterBlock = $(lumiBlock);
 
-    // 位移数据
-    const currentIndex = lumipage.itemData.content.indexOf(
-      currentDragEnterBlock.itemData
-    );
-    const startIndex = lumipage.itemData.content.indexOf(
-      dargStartBlock.itemData
-    );
+    const pageContent = lumipage.itemData.content;
+    const moveItem = (currentItemData, targetItemData) => {
+      // 位移数据
+      const currentIndex = pageContent.indexOf(currentItemData);
+      const startIndex = pageContent.indexOf(targetItemData);
 
-    if (currentIndex === -1 || startIndex === -1) {
-      return;
+      if (currentIndex === -1 || startIndex === -1) {
+        return;
+      }
+
+      const [targetData] = pageContent.splice(startIndex, 1);
+      pageContent.splice(currentIndex, 0, targetData);
+    };
+
+    moveItem(currentDragEnterBlock.itemData, dargStartBlock.itemData);
+
+    if (subElItems.length) {
+      let prevItemData = dargStartBlock.itemData;
+      subElItems.forEach((subElItem) => {
+        const subItem = subElItem.itemData;
+        moveItem(prevItemData, subItem);
+        prevItemData = subItem;
+      });
     }
-
-    const [targetData] = lumipage.itemData.content.splice(startIndex, 1);
-    lumipage.itemData.content.splice(currentIndex, 0, targetData);
   });
 
   lumipage.on("dragend", () => {
