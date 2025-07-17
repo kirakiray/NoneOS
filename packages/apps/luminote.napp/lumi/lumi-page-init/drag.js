@@ -7,6 +7,9 @@ export const initDrag = (lumipage) => {
       e.stopPropagation();
 
       dargStartBlock = $(e.target);
+      dargStartBlock.dragStart = true;
+      dargStartBlock.subItems.forEach((e) => (e.dragStart = true));
+
       dargStartBlock.attr("draggable", "true");
     })
   );
@@ -202,6 +205,8 @@ export const initDrag = (lumipage) => {
       oldDragEnterBlock = null;
     }
     if (dargStartBlock) {
+      dargStartBlock.subItems.forEach((e) => (e.dragStart = false));
+      dargStartBlock.dragStart = false;
       dargStartBlock.attr("draggable", null);
     }
   });

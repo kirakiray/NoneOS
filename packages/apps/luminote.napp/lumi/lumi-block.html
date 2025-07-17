@@ -222,10 +222,19 @@
       /* height: calc(100% - 16px); */
       height: 100%;
     }
+
+    .drag-start {
+      background-color: var(--md-ref-palette-translucent-success60);
+      transition: background ease 0.2s 0.3s;
+      /* 拖拽前要有延迟动画 */
+    }
   </style>
 
   <o-if :value="!loading">
-    <div style="display: flex; max-width: 800px; margin: 0 auto">
+    <div
+      style="display: flex; max-width: 800px; margin: 0 auto"
+      class:drag-start="dragStart"
+    >
       <div class="space" :style.width="tabLeft"></div>
       <div
         class="inputer"
@@ -320,6 +329,7 @@
           showSubmark: false, // 显示当前为子元素的标记
           dragovering: false, // 拖拽中
           tabLeft: 0,
+          dragStart: false, // 拖拽开始
         },
         watch: {
           leftMenuOpened(opened) {
@@ -394,6 +404,8 @@
           },
           clickDragBtn(e) {
             this.attr("draggable", null);
+            this.dragStart = false;
+            this.subItems.forEach((e) => (e.dragStart = false));
 
             // 弹出菜单
             this.emit("click-block-menu", {
