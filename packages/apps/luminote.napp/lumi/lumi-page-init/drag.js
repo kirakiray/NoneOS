@@ -140,52 +140,52 @@ export const initDrag = (lumipage) => {
       return;
     }
 
-    const currentDragEnterBlock = $(lumiBlock);
+    const targetBlock = $(lumiBlock);
 
     const pageContent = lumipage.itemData.content;
-    const moveItem = (currentItemData, targetItemData) => {
+    const moveItemData = (destinationItemData, sourceItemData) => {
       // 位移数据
-      const currentIndex = pageContent.indexOf(currentItemData);
-      const startIndex = pageContent.indexOf(targetItemData);
+      const destinationIndex = pageContent.indexOf(destinationItemData);
+      const sourceIndex = pageContent.indexOf(sourceItemData);
 
-      if (currentIndex === -1 || startIndex === -1) {
+      if (destinationIndex === -1 || sourceIndex === -1) {
         return;
       }
 
-      const [targetData] = pageContent.splice(startIndex, 1);
-      pageContent.splice(currentIndex, 0, targetData);
+      const [movedData] = pageContent.splice(sourceIndex, 1);
+      pageContent.splice(destinationIndex, 0, movedData);
     };
 
-    moveItem(currentDragEnterBlock.itemData, dargStartBlock.itemData);
+    moveItemData(targetBlock.itemData, dargStartBlock.itemData);
 
     // 修复tab数量
-    let reduceCount = 0;
+    let tabReduction = 0;
     {
-      const currentTab = currentDragEnterBlock.itemData.tab || 0;
-      const dargStartBlockTab = dargStartBlock.itemData.tab || 0;
+      const targetTab = targetBlock.itemData.tab || 0;
+      const draggedBlockTab = dargStartBlock.itemData.tab || 0;
 
-      const diffTab = dargStartBlockTab - currentTab;
-      if (diffTab > 1) {
-        reduceCount = diffTab - 1;
+      const tabDifference = draggedBlockTab - targetTab;
+      if (tabDifference > 1) {
+        tabReduction = tabDifference - 1;
       }
 
       // 修正tab
-      dargStartBlock.itemData.tab = dargStartBlockTab - reduceCount;
+      dargStartBlock.itemData.tab = draggedBlockTab - tabReduction;
     }
 
     if (subElItems.length) {
       // 子元素也带走
-      let prevItemData = dargStartBlock.itemData;
-      subElItems.forEach((subElItem) => {
-        const subItem = subElItem.itemData;
-        moveItem(prevItemData, subItem);
+      let previousItemData = dargStartBlock.itemData;
+      subElItems.forEach((subElement) => {
+        const subItemData = subElement.itemData;
+        moveItemData(previousItemData, subItemData);
 
-        if (reduceCount > 0) {
+        if (tabReduction > 0) {
           // 修正子元素tab
-          subItem.tab -= reduceCount;
+          subItemData.tab -= tabReduction;
         }
 
-        prevItemData = subItem;
+        previousItemData = subItemData;
       });
     }
   });
