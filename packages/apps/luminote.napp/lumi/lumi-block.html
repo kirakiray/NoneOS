@@ -304,7 +304,7 @@
           ["itemData.tab"]() {
             let tabLeft = this.itemData.tab;
             tabLeft = tabLeft ? parseInt(tabLeft) : 0;
-            this.style.marginLeft = `${tabLeft * 64}px`;
+            this.style.marginLeft = tabLeft ? `${tabLeft * 64}px` : "";
           },
           ["itemData.value"]() {
             const value = this.itemData.value;

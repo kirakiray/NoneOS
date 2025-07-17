@@ -103,11 +103,6 @@ export const initTextInput = (lumipage) => {
       if (e.key === "Tab") {
         // 增加间距
         e.preventDefault();
-        // let tabLeft = lumiBlock.itemData.tab || 0;
-        // tabLeft += 1;
-
-        // tabLeft = prevTab +;
-        // lumiBlock.itemData.tab = tabLeft;
 
         // 不能比前面那个大1
         let prevTab = lumiBlock.prev ? lumiBlock.prev.itemData.tab || 0 : 0;
