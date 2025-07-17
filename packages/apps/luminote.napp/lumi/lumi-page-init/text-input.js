@@ -103,7 +103,9 @@ export const initTextInput = (lumipage) => {
       if (e.key === "Tab") {
         // 增加间距
         e.preventDefault();
-        lumiBlock.tabLeft = parseInt(lumiBlock.tabLeft || 0) + 1;
+        let tabLeft = lumiBlock.itemData.tab || 0;
+        tabLeft += 1;
+        lumiBlock.itemData.tab = tabLeft;
         return;
       }
 
@@ -119,6 +121,13 @@ export const initTextInput = (lumipage) => {
         // 在没有内容时按了返回，等于清空内容
         handleBackspace(lumipage, lumiBlock);
         return;
+      }
+
+      if (e.key === "Enter" && !e.shiftKey) {
+        // 会车，直接在下面新增一个
+        e.preventDefault();
+
+        handleEnter(lumipage, lumiBlock);
       }
 
       if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
@@ -167,13 +176,6 @@ export const initTextInput = (lumipage) => {
             return;
           }
         }
-      }
-
-      if (e.key === "Enter" && !e.shiftKey) {
-        // 会车，直接在下面新增一个
-        e.preventDefault();
-
-        handleEnter(lumipage, lumiBlock);
       }
     })
   );
@@ -364,6 +366,18 @@ const handleSelectAll = (lumipage, lumiBlock, originEvent) => {
 const handleBackspace = async (lumipage, lumiBlock) => {
   const { index } = lumiBlock;
 
+  const selectionRangeData = await getSelectionLetterData();
+
+  // 查看是否有tabLeft，有的话进行递进
+  if (
+    lumiBlock.itemData.tab &&
+    selectionRangeData.startOffset === 0 &&
+    selectionRangeData.endOffset === 0
+  ) {
+    lumiBlock.itemData.tab = parseInt(lumiBlock.itemData.tab) - 1;
+    return;
+  }
+
   if (!lumiBlock.itemData.value.trim()) {
     // 没有内容的块直接删除
     lumipage.itemData.content.splice(index, 1);
@@ -381,25 +395,6 @@ const handleBackspace = async (lumipage, lumiBlock) => {
       },
       isSafari ? 60 : 1
     );
-  }
-
-  const selectionRangeData = await getSelectionLetterData();
-
-  if (!selectionRangeData) {
-    return;
-  }
-
-  // 查看是否有tabLeft，有的话进行递进
-  if (
-    lumiBlock.tabLeft &&
-    selectionRangeData.startOffset === 0 &&
-    selectionRangeData.endOffset === 0
-  ) {
-    lumiBlock.tabLeft = parseInt(lumiBlock.tabLeft) - 1;
-    if (lumiBlock.tabLeft == 0) {
-      lumiBlock.tabLeft = null;
-    }
-    return;
   }
 
   // 回车且内容在最开始的位置，则把内容带到上一段

@@ -25,7 +25,13 @@ export const getSelectionLetterData = async (root, editorEl) => {
   const letterData = await elementToLetterData(editorEl);
 
   if (!letterData.length) {
-    return null;
+    // return null;
+    return {
+      startOffset: 0,
+      endOffset: 0,
+      letterData: [],
+      selectionRangeLetter: [],
+    };
   }
 
   let startOffset = getRealOffset(
