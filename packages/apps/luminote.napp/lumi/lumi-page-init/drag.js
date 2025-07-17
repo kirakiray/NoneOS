@@ -60,6 +60,14 @@ export const initDrag = (lumipage) => {
       oldDragEnterBlock.dragovering = false;
     }
 
+    // 确保不是在子元素上
+    const { subItems } = dargStartBlock;
+    const isSub = subItems.some((e) => e.ele === lumiBlock);
+
+    if (isSub) {
+      return;
+    }
+
     const currentDragEnterBlock = $(lumiBlock);
 
     // 如果是前一个元素，代表没有位移，也不需要标记
@@ -116,6 +124,14 @@ export const initDrag = (lumipage) => {
     }
 
     if (dargStartBlock && lumiBlock === dargStartBlock.ele) {
+      return;
+    }
+
+    // 确保不是在子元素上
+    const { subItems } = dargStartBlock;
+    const isSub = subItems.some((e) => e.ele === lumiBlock);
+
+    if (isSub) {
       return;
     }
 

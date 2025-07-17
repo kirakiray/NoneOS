@@ -100,9 +100,27 @@ export const initTextInput = (lumipage) => {
         return;
       }
 
+      if (e.key === "]" && lumipage._selecteds?.length) {
+        // 多选往后
+        selectedsTabPlus(lumipage, e);
+        return;
+      }
+
+      if (e.key === "[" && lumipage._selecteds?.length) {
+        // 多选往后
+        selectedsTabPlus(lumipage, e, -1);
+        return;
+      }
+
       if (e.key === "Tab") {
         // 增加间距
         e.preventDefault();
+
+        // 多选的话，全部加tab
+        if (lumipage._selecteds?.length) {
+          selectedsTabPlus(lumipage, e);
+          return;
+        }
 
         // 不能比前面那个大1
         let prevTab = lumiBlock.prev ? lumiBlock.prev.itemData.tab || 0 : 0;
@@ -323,6 +341,25 @@ export const initTextInput = (lumipage) => {
 
       pushContents(contents);
     }
+  });
+};
+
+const selectedsTabPlus = (lumipage, event, tabCount = 1) => {
+  event.preventDefault();
+
+  // 确保第一个已经是最大的tabid
+  const selectFirstTab = lumipage._selecteds[0].itemData.tab || 0;
+  const prevTab = lumipage._selecteds[0].prev?.itemData.tab || 0;
+
+  if (tabCount > 0 && selectFirstTab > prevTab) {
+    // 第一个超过就不执行了
+    return;
+  }
+
+  lumipage._selecteds.forEach((e) => {
+    let finalTab = (e.itemData.tab || 0) + tabCount;
+    finalTab <= 0 && (finalTab = 0);
+    e.itemData.tab = finalTab;
   });
 };
 
