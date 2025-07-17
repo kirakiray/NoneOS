@@ -153,7 +153,13 @@ export const initDrag = (lumipage) => {
       }
 
       const [movedData] = pageContent.splice(sourceIndex, 1);
-      pageContent.splice(destinationIndex, 0, movedData);
+      pageContent.splice(
+        destinationIndex < sourceIndex
+          ? destinationIndex + 1
+          : destinationIndex,
+        0,
+        movedData
+      );
     };
 
     moveItemData(targetBlock.itemData, dargStartBlock.itemData);
