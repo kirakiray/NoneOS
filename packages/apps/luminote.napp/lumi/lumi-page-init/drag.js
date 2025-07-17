@@ -158,11 +158,33 @@ export const initDrag = (lumipage) => {
 
     moveItem(currentDragEnterBlock.itemData, dargStartBlock.itemData);
 
+    // 修复tab数量
+    let reduceCount = 0;
+    {
+      const currentTab = currentDragEnterBlock.itemData.tab || 0;
+      const dargStartBlockTab = dargStartBlock.itemData.tab || 0;
+
+      const diffTab = dargStartBlockTab - currentTab;
+      if (diffTab > 1) {
+        reduceCount = diffTab - 1;
+      }
+
+      // 修正tab
+      dargStartBlock.itemData.tab = dargStartBlockTab - reduceCount;
+    }
+
     if (subElItems.length) {
+      // 子元素也带走
       let prevItemData = dargStartBlock.itemData;
       subElItems.forEach((subElItem) => {
         const subItem = subElItem.itemData;
         moveItem(prevItemData, subItem);
+
+        if (reduceCount > 0) {
+          // 修正子元素tab
+          subItem.tab -= reduceCount;
+        }
+
         prevItemData = subItem;
       });
     }
