@@ -194,6 +194,7 @@ const updatePageContent = (lumipage, previousContent) => {
       // 不等则修正
       existingItem.type = item.type;
       existingItem.value = item.value;
+      existingItem.tab = item.tab;
       if (existingItem.attrs !== item.attrs) {
         Object.assign(existingItem.attrs, item.attrs);
       }
@@ -211,6 +212,7 @@ const extractContentItemData = (item) => {
   const itemData = {
     type: item.type,
     value: item.value,
+    tab: item.tab,
     _dataId: item._dataId,
   };
 
@@ -223,17 +225,11 @@ const extractContentItemData = (item) => {
   return itemData;
 };
 
-// const compareContentData = (contentA, contentB) => {
-//   const processedA = contentA.map(extractEssentialItemData);
-//   const processedB = contentB.map(extractEssentialItemData);
-
-//   return JSON.stringify(processedA) === JSON.stringify(processedB);
-// };
-
 const extractEssentialItemData = (item) => {
   return {
     type: item.type,
     value: item.value,
+    tab: item.tab,
     attrs: item.attrs,
   };
 };
