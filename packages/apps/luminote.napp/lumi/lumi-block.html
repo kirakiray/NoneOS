@@ -481,8 +481,10 @@
             if (type === "article") {
               return false;
             } else if (type.includes("-")) {
-              blockComps;
-              debugger;
+              const targetCompOption = blockComps.find((e) => e.tag === type);
+              return targetCompOption._getUseContenteditable
+                ? targetCompOption._getUseContenteditable()
+                : false;
             }
 
             return true;
