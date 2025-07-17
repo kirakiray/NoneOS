@@ -24,6 +24,10 @@ export const getSelectionLetterData = async (root, editorEl) => {
   // 转为字母数据
   const letterData = await elementToLetterData(editorEl);
 
+  if (!letterData.length) {
+    return null;
+  }
+
   let startOffset = getRealOffset(
     editorEl,
     range.startContainer,

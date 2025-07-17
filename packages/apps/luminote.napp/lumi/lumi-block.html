@@ -287,6 +287,8 @@
       const { focusAndSetCursorAtEnd, getContainerAndOffset, setSelection } =
         await load("./util/range.js");
 
+      const { blockComps } = await load("./block/config.js");
+
       return {
         tag: "lumi-block",
         data: {
@@ -467,6 +469,18 @@
                 // 自定义组件上获取数据
                 return this.shadow.$("lumi-fake").innerComponent.mdContent;
             }
+          },
+          get useContenteditable() {
+            const { type } = this.itemData;
+
+            if (type === "article") {
+              return false;
+            } else if (type.includes("-")) {
+              blockComps;
+              debugger;
+            }
+
+            return true;
           },
         },
         attached() {

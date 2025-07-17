@@ -375,11 +375,27 @@ const handleBackspace = async (lumipage, lumiBlock) => {
     );
   }
 
-  const selection = window.getSelection();
-  const range = selection.getRangeAt(0);
+  const selectionRangeData = await getSelectionLetterData();
+
+  if (!selectionRangeData) {
+    return;
+  }
 
   // 回车且内容在最开始的位置，则把内容带到上一段
-  if (range.startOffset === 0 && range.endOffset === 0) {
+  if (
+    selectionRangeData.startOffset === 0 &&
+    selectionRangeData.endOffset === 0
+  ) {
+    if (lumiBlock.prev) {
+      // 查看是否可以和前面合并
+      const { useContenteditable } = lumiBlock.prev;
+
+      if (!useContenteditable) {
+        // 前一个元素不使用 contenteditable，不能向前合并
+        return;
+      }
+    }
+
     const targetIndex = lumipage.itemData.content.indexOf(lumiBlock.itemData);
 
     if (targetIndex > 0) {
@@ -420,6 +436,23 @@ const handleEnter = async (lumipage, lumiBlock) => {
 
   // 获取选中的焦点
   const selectionRangeData = await getSelectionLetterData();
+
+  if (!selectionRangeData) {
+    // 直接向下换行
+    lumipage.itemData.content.splice(finnalIndex, 0, {
+      type: "paragraph",
+      value: "",
+    });
+
+    setTimeout(
+      () => {
+        lumipage[finnalIndex].focus("start");
+      },
+      isSafari ? 60 : 1
+    );
+
+    return;
+  }
 
   // 截取焦点后的内容
   const afterLetterData = selectionRangeData.letterData.slice(

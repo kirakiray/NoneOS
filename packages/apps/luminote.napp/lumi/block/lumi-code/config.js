@@ -10,6 +10,9 @@ const defaults = {
     en: "A component for friendly code display",
     cn: "用于友好展示代码的组件",
   },
+  _getUseContenteditable() {
+    debugger;
+  },
 };
 
 export default defaults;

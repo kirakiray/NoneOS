@@ -66,7 +66,7 @@
     </lumi-page-title>
     <div lumi-page-title-container></div>
     <slot></slot>
-    <div style="height: 32px"></div>
+    <div style="height: 128px" on:click="focusLast"></div>
   </div>
   <lumi-multi-panel></lumi-multi-panel>
   <lumi-text-panel></lumi-text-panel>
@@ -141,31 +141,30 @@
           focusTitle() {
             this.shadow.$(".title").ele.focus();
           },
+          async focusLast() {
+            let lastBlockEl = this.slice(-1)[0];
+
+            if (!lastBlockEl || lastBlockEl.itemData.type !== "paragraph") {
+              // 如果最后一个元素不是段落元素，则添加段落元素
+              this.itemData.content.push({
+                type: "paragraph",
+                value: "",
+              });
+
+              await new Promise((res) => setTimeout(res, isSafari ? 60 : 1));
+            }
+
+            // 聚焦最后一个元素
+            this.slice(-1)[0].focus();
+          },
         },
         attached() {
           this.on("click", (e) => {
             const composeds = e.composedPath();
 
             if (composeds[0].matches && composeds[0].matches("lumi-page")) {
-              // 点击了页面，聚焦最后一个元素
-              if (this.itemData.content.length) {
-                this.slice(-1)[0].focus();
-              } else {
-                this.itemData.content.push({
-                  type: "paragraph",
-                  value: "",
-                });
-
-                setTimeout(
-                  () => {
-                    this.slice(-1)[0].focus();
-                  },
-                  isSafari ? 60 : 1
-                );
-              }
+              this.focusLast();
             }
-
-            // console.log("composeds: ", composeds);
           });
 
           // 先清空
