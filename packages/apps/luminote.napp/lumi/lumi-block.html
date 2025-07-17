@@ -19,6 +19,7 @@
       flex: 1;
       margin: 1px auto;
       padding: 6px 8px;
+      border-radius: 6px;
       /* background-color: rgba(255, 128, 0, 0.3); */
     }
     .menu-btn {
@@ -213,14 +214,17 @@
       /* top: 8px; */
       top: 0;
       width: 100%;
-      height: 0;
-      /* border-radius: 4px; */
+      height: 100%;
+      border-radius: 6px;
       background-color: var(--md-ref-palette-translucent-normal60);
+      transform: translate(16px, 0);
+      opacity: 0;
       transition: all ease 0.2s;
     }
     .show-sub-mark {
       /* height: calc(100% - 16px); */
-      height: 100%;
+      opacity: 1;
+      transform: translate(0, 0);
     }
 
     .drag-start {
