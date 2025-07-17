@@ -13,6 +13,10 @@ export const initTextRange = (lumipage) => {
   // 数据设置到textpanel上
   const textPanel = lumipage.shadow.$("lumi-text-panel");
 
+  lumipage.on("drag-block-start", () => {
+    textPanel.open = false;
+  });
+
   textPanel.on("update-value", (e) => {
     e.stopPropagation();
     const { data } = e;

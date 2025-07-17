@@ -28,10 +28,10 @@ purify.setConfig({
   ], // 允许的标签
 });
 
-purify.addHook("uponSanitizeAttribute", (node, data) => {
-  // 允许所有属性通过
-  return false; // 返回false表示不阻止任何属性
-});
+// purify.addHook("uponSanitizeAttribute", (node, data) => {
+//   // 允许所有属性通过
+//   return false; // 返回false表示不阻止任何属性
+// });
 
 export const initTextInput = (lumipage) => {
   lumipage.on(
@@ -100,6 +100,13 @@ export const initTextInput = (lumipage) => {
         return;
       }
 
+      if (e.key === "Tab") {
+        // 增加间距
+        e.preventDefault();
+        lumiBlock.tabLeft = parseInt(lumiBlock.tabLeft || 0) + 1;
+        return;
+      }
+
       if (e.key === "Backspace") {
         if (lumipage._selecteds?.length) {
           deleteSelectedBlock(lumipage);
@@ -108,6 +115,7 @@ export const initTextInput = (lumipage) => {
           lumipage.shadow.$("lumi-multi-panel").open = false;
           return;
         }
+
         // 在没有内容时按了返回，等于清空内容
         handleBackspace(lumipage, lumiBlock);
         return;
@@ -378,6 +386,19 @@ const handleBackspace = async (lumipage, lumiBlock) => {
   const selectionRangeData = await getSelectionLetterData();
 
   if (!selectionRangeData) {
+    return;
+  }
+
+  // 查看是否有tabLeft，有的话进行递进
+  if (
+    lumiBlock.tabLeft &&
+    selectionRangeData.startOffset === 0 &&
+    selectionRangeData.endOffset === 0
+  ) {
+    lumiBlock.tabLeft = parseInt(lumiBlock.tabLeft) - 1;
+    if (lumiBlock.tabLeft == 0) {
+      lumiBlock.tabLeft = null;
+    }
     return;
   }
 

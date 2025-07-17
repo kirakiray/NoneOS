@@ -300,7 +300,15 @@
           leftMenuOpened: false, // 左侧菜单是否打开
           dragovering: false,
         },
+        attrs: {
+          tabLeft: null,
+        },
         watch: {
+          tabLeft(tabLeft) {
+            // 距离左侧tab的距离
+            tabLeft = tabLeft ? parseInt(tabLeft) : 0;
+            this.style.marginLeft = `${tabLeft * 64}px`;
+          },
           ["itemData.value"]() {
             const value = this.itemData.value;
 
