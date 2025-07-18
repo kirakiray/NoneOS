@@ -14,6 +14,15 @@ const defaults = {
     return true;
   },
   keepEnterNext: true, // 回车时，保持下一个元素也是该组件
+  _keydown(e, { lumiBlock }) {
+    if (e.key === "Enter" && e.metaKey) {
+      const innerComponent = lumiBlock.shadow.$("lumi-fake").innerComponent;
+
+      innerComponent.eleChecked = !innerComponent.eleChecked;
+
+      return false;
+    }
+  },
 };
 
 export default defaults;
