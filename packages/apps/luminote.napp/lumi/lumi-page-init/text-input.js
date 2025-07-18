@@ -395,6 +395,24 @@ const handleMatchComponent = (e, { lumiBlock, selectionData }) => {
   // * 按下空格键
   if (e.key == " " && selectionData.startOffset < 4) {
     const keyStr = lumiBlock.itemData.value.slice(0, selectionData.startOffset);
+
+    if (keyStr.startsWith("#")) {
+      e.preventDefault();
+      switch (keyStr) {
+        case "#":
+          lumiBlock.itemData.type = "h2";
+          break;
+        case "##":
+          lumiBlock.itemData.type = "h3";
+          break;
+        case "###":
+          lumiBlock.itemData.type = "h4";
+          break;
+      }
+      lumiBlock.itemData.value = lumiBlock.itemData.value.replace(keyStr, "");
+      return false;
+    }
+
     let compData;
     const targetComp = blockComps.find((e) => {
       if (e._getMatchKey) {

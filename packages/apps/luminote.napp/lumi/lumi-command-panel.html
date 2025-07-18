@@ -1,0 +1,31 @@
+<template component>
+  <style>
+    :host {
+      position: fixed;
+      display: block;
+      padding: 8px;
+      border-radius: 4px;
+      z-index: 2;
+      left: 300px;
+      top: 100px;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+    }
+  </style>
+  我是lumi-command-panel
+  <script>
+    export default async ({ load }) => {
+      const { blockComps } = await load("./block/config.js");
+
+      console.log("blockComps: ", blockComps);
+
+      return {
+        tag: "lumi-command-panel",
+        data: {},
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>
