@@ -1,0 +1,20 @@
+<template component>
+  <l-m src="/packages/pui/checkbox/checkbox.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+  <p-checkbox></p-checkbox>
+  <div style="margin-left: 6px; flex: 1">
+    <slot></slot>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-checkbox",
+      };
+    };
+  </script>
+</template>
