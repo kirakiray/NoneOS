@@ -553,6 +553,15 @@
                 return this.shadow.$("lumi-fake").innerComponent.mdContent;
             }
           },
+          get componentOption() {
+            const { type } = this.itemData;
+
+            if (type.includes("-")) {
+              return blockComps.find((e) => e.tag === type);
+            }
+
+            return {};
+          },
           get useContenteditable() {
             const { type } = this.itemData;
 

@@ -13,6 +13,7 @@ const defaults = {
   _getUseContenteditable() {
     return true;
   },
+  keepEnterNext: true, // 回车时，保持下一个元素也是该组件
 };
 
 export default defaults;

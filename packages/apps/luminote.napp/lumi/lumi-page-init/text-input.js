@@ -515,6 +515,8 @@ const handleEnter = async (lumipage, lumiBlock) => {
 
   const tab = lumiBlock.itemData.tab;
 
+  const { keepEnterNext, tag } = lumiBlock.componentOption;
+
   if (afterLetterData.length) {
     const beforeLetterData = selectionRangeData.letterData.slice(
       0,
@@ -532,14 +534,14 @@ const handleEnter = async (lumipage, lumiBlock) => {
 
     // 从焦点位置将内容带下去
     lumipage.itemData.content.splice(finnalIndex, 0, {
-      type: "paragraph",
+      type: keepEnterNext ? tag : "paragraph",
       value: afterContent,
       tab,
     });
   } else {
     // 最末尾添加
     lumipage.itemData.content.splice(finnalIndex, 0, {
-      type: "paragraph",
+      type: keepEnterNext ? tag : "paragraph",
       value: "",
       tab,
     });
