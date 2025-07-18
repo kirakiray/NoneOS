@@ -6,14 +6,35 @@
       align-items: center;
     }
   </style>
-  <p-checkbox></p-checkbox>
-  <div style="margin-left: 6px; flex: 1">
+  <p-checkbox sync:checked="eleChecked"></p-checkbox>
+  <div style="position: relative; margin-left: 6px; flex: 1">
     <slot></slot>
   </div>
   <script>
     export default async ({ load }) => {
       return {
         tag: "lumi-checkbox",
+        attrs: {
+          checked: null,
+        },
+        data: {
+          eleChecked: false,
+        },
+        watch: {
+          checked(checked) {
+            if (checked) {
+              this.eleChecked = true;
+            } else {
+              this.eleChecked = false;
+            }
+          },
+          eleChecked(eleChecked) {
+            this.checked = eleChecked ? "1" : null;
+          },
+        },
+        proto: {
+          setValue() {},
+        },
       };
     };
   </script>

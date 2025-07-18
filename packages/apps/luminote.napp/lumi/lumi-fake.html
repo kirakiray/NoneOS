@@ -1,6 +1,7 @@
 <template component>
   <style>
     :host {
+      position: relative;
       display: block;
     }
 
@@ -15,6 +16,10 @@
     [type="h4"] {
       font-size: 20px;
       font-weight: 600;
+    }
+
+    .main {
+      display: block;
     }
   </style>
 
@@ -67,6 +72,13 @@
                 // 同步属性
                 Object.entries(this.host.itemData.attrs).forEach(
                   ([key, value]) => {
+                    if (
+                      key === "dataStatus" ||
+                      key === "datastatus" ||
+                      key === "value"
+                    ) {
+                      return;
+                    }
                     targetEl.attr(key, value);
                   }
                 );
@@ -77,8 +89,9 @@
                 targetEl.setValue(this.host.itemData.value);
               } else {
                 setTimeout(() => {
-                  // 兜底方案
-                  targetEl.attr("value", this.host.itemData.value);
+                  // 可能是没有渲染完，兜底方案
+                  targetEl.setValue &&
+                    targetEl.setValue(this.host.itemData.value);
                 }, 1000);
               }
 
@@ -91,13 +104,13 @@
                 }
 
                 // 获取 attribute 上的数据变动并记录
-                const attrs = Array.from(targetEl.ele.attributes).reduce(
-                  (acc, attr) => {
-                    acc[attr.name] = attr.value;
-                    return acc;
-                  },
-                  {}
-                );
+                const attrs = {};
+                Array.from(targetEl.ele.attributes).forEach((attr) => {
+                  if (attr.name === "value") {
+                    return;
+                  }
+                  attrs[attr.name] = attr.value;
+                });
 
                 if (isObjectEqual(this.host.itemData.attrs, attrs)) {
                   return;

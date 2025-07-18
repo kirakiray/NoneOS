@@ -35,12 +35,15 @@
     }
     .placeholder {
       position: absolute;
+      left: -4px;
+      top: -2px;
       padding: 4px;
       color: var(--md-sys-color-normal);
       pointer-events: none;
       padding-left: 12px;
       opacity: 0;
       transition: opacity ease 0.1s;
+      pointer-events: none;
     }
     .placeholder.show {
       opacity: 1;
@@ -262,15 +265,16 @@
 
         <div class="sub-mark" class:show-sub-mark="showSubmark"></div>
 
-        <span class="placeholder" class:show="inFocus && !itemData.value">
-          输入文本，默认使用段落组件。按 "/" 切换组件
-        </span>
         <o-if :value="itemData.type && itemData.type !== 'article'">
           <lumi-fake
             :type="itemData.type"
             on:update-block-value="updateBlockValue"
           >
             <slot></slot>
+
+            <span class="placeholder" class:show="inFocus && !itemData.value">
+              输入文本，默认使用段落组件。按 "/" 切换组件
+            </span>
           </lumi-fake>
         </o-if>
         <o-if :value="itemData.type === 'article'">
