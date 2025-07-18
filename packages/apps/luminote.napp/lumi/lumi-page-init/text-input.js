@@ -145,6 +145,9 @@ export const initTextInput = (lumipage) => {
 
         // 不能比前面那个大1
         let prevTab = lumiBlock.prev ? lumiBlock.prev.itemData.tab || 0 : 0;
+        if (!lumiBlock.itemData.tab || lumiBlock.itemData.tab < 0) {
+          lumiBlock.itemData.tab = 0;
+        }
         lumiBlock.itemData.tab++;
         if (lumiBlock.itemData.tab > prevTab + 1) {
           lumiBlock.itemData.tab = prevTab + 1;
