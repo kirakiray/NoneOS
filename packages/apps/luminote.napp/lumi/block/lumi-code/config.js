@@ -11,6 +11,7 @@ const defaults = {
     cn: "用于友好展示代码的组件",
   },
   _getUseContenteditable() {
+    // 代码组件使用的是自带的元素
     return false;
   },
 };

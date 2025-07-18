@@ -299,7 +299,10 @@
     </div>
   </o-if>
   <o-else>
-    <div class="inputer" style="margin: 16px auto; align-items: center;justify-content: center;">
+    <div
+      class="inputer"
+      style="margin: 16px auto; align-items: center; justify-content: center"
+    >
       <div class="dot-loading">
         <div class="dot"></div>
         <div class="dot"></div>
@@ -571,7 +574,7 @@
               const targetCompOption = blockComps.find((e) => e.tag === type);
               return targetCompOption._getUseContenteditable
                 ? targetCompOption._getUseContenteditable()
-                : false;
+                : true;
             }
 
             return true;

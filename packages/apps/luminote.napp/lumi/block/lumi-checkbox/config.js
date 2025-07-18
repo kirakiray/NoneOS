@@ -11,9 +11,9 @@ const defaults = {
     cn: "复选框的组件",
   },
   _getUseContenteditable() {
+    // 是否有使用 contenteditable 元素
     return true;
   },
-  keepEnterNext: true, // 回车时，保持下一个元素也是该组件
   _keydown(e, { lumiBlock }) {
     if (e.key === "Enter" && e.metaKey) {
       const innerComponent = lumiBlock.shadow.$("lumi-fake").innerComponent;
@@ -23,6 +23,7 @@ const defaults = {
       return false;
     }
   },
+  keepEnterNext: true, // 回车时，保持下一个元素也是该组件
 };
 
 export default defaults;
