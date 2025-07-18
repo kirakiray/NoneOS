@@ -144,6 +144,10 @@
           async focusLast() {
             let lastBlockEl = this.slice(-1)[0];
 
+            if (!this.itemData?.content) {
+              return;
+            }
+
             if (!lastBlockEl || lastBlockEl.itemData.type !== "paragraph") {
               // 如果最后一个元素不是段落元素，则添加段落元素
               this.itemData.content.push({
