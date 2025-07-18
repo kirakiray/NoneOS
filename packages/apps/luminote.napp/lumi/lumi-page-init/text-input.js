@@ -417,6 +417,16 @@ const handleBackspace = async (lumipage, lumiBlock) => {
 
   const selectionRangeData = await getSelectionLetterData();
 
+  if (
+    selectionRangeData.startOffset === 0 &&
+    selectionRangeData.endOffset === 0 &&
+    lumiBlock.componentOptions.tag
+  ) {
+    // 如果当前是block组件，则将类型改为段落
+    lumiBlock.itemData.type = "paragraph";
+    return;
+  }
+
   // 查看是否有tabLeft，有的话进行递进
   if (
     lumiBlock.itemData.tab &&
