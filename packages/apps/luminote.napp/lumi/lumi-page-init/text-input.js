@@ -9,6 +9,8 @@ import {
   elementToLetterData,
 } from "../util/range.js";
 
+import { blockComps } from "../block/config.js";
+
 import { inlineComps } from "../inline/config.js";
 
 import purify from "/packages/libs/purify.es.mjs";
@@ -45,6 +47,17 @@ export const initTextInput = (lumipage) => {
 
       lumiBlock = $(lumiBlock);
 
+      const selectionData = getSelectionLetterData();
+
+      const result = handleMatchComponent(e, {
+        lumiBlock,
+        selectionData,
+      });
+
+      if (result === false) {
+        return;
+      }
+
       // 看看是否先从选项上出发keydown
       const { componentOptions } = lumiBlock;
       if (componentOptions._keydown) {
@@ -71,7 +84,7 @@ export const initTextInput = (lumipage) => {
           return;
         }
 
-        const { selectionRangeLetter } = await getSelectionLetterData();
+        const { selectionRangeLetter } = selectionData;
 
         e.preventDefault();
 
@@ -149,7 +162,7 @@ export const initTextInput = (lumipage) => {
         }
 
         // 在没有内容时按了返回，等于清空内容
-        handleBackspace(lumipage, lumiBlock);
+        handleBackspace(lumipage, { lumiBlock, selectionData });
         return;
       }
 
@@ -157,7 +170,7 @@ export const initTextInput = (lumipage) => {
         // 会车，直接在下面新增一个
         e.preventDefault();
 
-        handleEnter(lumipage, lumiBlock);
+        handleEnter(lumipage, { lumiBlock, selectionData });
       }
 
       if (e.key === "a" && (e.metaKey || e.ctrlKey)) {
@@ -306,7 +319,7 @@ export const initTextInput = (lumipage) => {
         e.preventDefault();
         pushContents(contents);
       } else {
-        // const selectionRangeData = await getSelectionLetterData();
+        // const selectionRangeData = selectionData;
         // // 直接粘贴的片段
         // const reContent = await elementToLetterData(temp.content);
         // debugger;
@@ -371,6 +384,38 @@ const selectedsTabPlus = (lumipage, event, tabCount = 1) => {
   });
 };
 
+// 匹配组件
+const handleMatchComponent = (e, { lumiBlock, selectionData }) => {
+  // 进入组件状态需满足以下条件：
+  // * 输入焦点位于内容起始位置
+  // * 当前内容匹配组件关键字
+  // * 按下空格键
+  if (e.key == " " && selectionData.startOffset < 4) {
+    const keyStr = lumiBlock.itemData.value.slice(0, selectionData.startOffset);
+    let compData;
+    const targetComp = blockComps.find((e) => {
+      if (e._getMatchKey) {
+        const mapObj = new Map(e._getMatchKey());
+        compData = mapObj.get(keyStr);
+
+        return !!compData;
+      }
+    });
+
+    if (compData && targetComp) {
+      e.preventDefault();
+      lumiBlock.itemData.value = lumiBlock.itemData.value.replace(keyStr, "");
+      lumiBlock.itemData.type = targetComp.tag;
+
+      setTimeout(() => {
+        // 合并数据
+        Object.assign(lumiBlock.shadow.$("lumi-fake").innerComponent, compData);
+      });
+      return false;
+    }
+  }
+};
+
 const handleSelectAll = (lumipage, lumiBlock, originEvent) => {
   if (lumiBlock.__beforeSelectAll) {
     // 获取 lumiBlock 的定位
@@ -412,10 +457,11 @@ const handleSelectAll = (lumipage, lumiBlock, originEvent) => {
 };
 
 // 按了删除键
-const handleBackspace = async (lumipage, lumiBlock) => {
+const handleBackspace = async (
+  lumipage,
+  { lumiBlock, selectionData: selectionRangeData }
+) => {
   const { index } = lumiBlock;
-
-  const selectionRangeData = await getSelectionLetterData();
 
   if (
     selectionRangeData.startOffset === 0 &&
@@ -519,12 +565,12 @@ const handleBackspace = async (lumipage, lumiBlock) => {
 };
 
 // 按了回车
-const handleEnter = async (lumipage, lumiBlock) => {
+const handleEnter = async (
+  lumipage,
+  { lumiBlock, selectionData: selectionRangeData }
+) => {
   const { index } = lumiBlock;
   const finnalIndex = index + 1;
-
-  // 获取选中的焦点
-  const selectionRangeData = await getSelectionLetterData();
 
   // 截取焦点后的内容
   const afterLetterData = selectionRangeData.letterData.slice(

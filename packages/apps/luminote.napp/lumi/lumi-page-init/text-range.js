@@ -99,7 +99,7 @@ export const initTextRange = (lumipage) => {
       let selectionData;
 
       try {
-        selectionData = await getSelectionLetterData(rootNode);
+        selectionData = getSelectionLetterData(rootNode);
       } catch (err) {
         console.log(err);
         return;

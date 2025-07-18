@@ -1,7 +1,7 @@
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
 // 获取返回内的数据
-export const getSelectionLetterData = async (root, editorEl) => {
+export const getSelectionLetterData = (root, editorEl) => {
   if (!root) {
     root = document;
   }
@@ -22,7 +22,7 @@ export const getSelectionLetterData = async (root, editorEl) => {
   }
 
   // 转为字母数据
-  const letterData = await elementToLetterData(editorEl);
+  const letterData = elementToLetterData(editorEl);
 
   if (!letterData.length) {
     // return null;
@@ -165,7 +165,7 @@ const attributesToObject = (element) =>
   );
 
 // 将元素转为字数据
-export const elementToLetterData = async (node, options = {}) => {
+export const elementToLetterData = (node, options = {}) => {
   if (node instanceof Comment) {
     return [];
   }
@@ -268,7 +268,7 @@ export const elementToLetterData = async (node, options = {}) => {
 
   if (node.childNodes) {
     for (let e of Array.from(node.childNodes)) {
-      arr.push(...(await elementToLetterData(e, selfOptions)));
+      arr.push(...elementToLetterData(e, selfOptions));
     }
   }
 

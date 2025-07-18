@@ -10,6 +10,30 @@ const defaults = {
     en: "A component for checkbox display",
     cn: "复选框的组件",
   },
+  keepEnterNext: true, // 回车时，保持下一个元素也是该组件
+  _getMatchKey() {
+    // 前置匹配的key
+    return [
+      [
+        "[]",
+        {
+          eleChecked: false,
+        },
+      ],
+      [
+        "[ ]",
+        {
+          eleChecked: false,
+        },
+      ],
+      [
+        "[x]",
+        {
+          eleChecked: true,
+        },
+      ],
+    ];
+  },
   _getUseContenteditable() {
     // 是否有使用 contenteditable 元素
     return true;
@@ -23,7 +47,6 @@ const defaults = {
       return false;
     }
   },
-  keepEnterNext: true, // 回车时，保持下一个元素也是该组件
 };
 
 export default defaults;
