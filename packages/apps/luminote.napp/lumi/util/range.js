@@ -7,6 +7,11 @@ export const getSelectionLetterData = (root, editorEl) => {
   }
 
   const selection = root.getSelection();
+
+  if (selection.type === "None") {
+    return {};
+  }
+
   const range = selection.getRangeAt(0);
 
   if (!editorEl) {
