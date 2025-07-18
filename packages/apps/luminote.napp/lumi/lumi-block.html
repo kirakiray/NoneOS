@@ -14,8 +14,9 @@
       word-break: break-all;
     }
     .inputer {
+      display: flex;
+      align-self: center;
       position: relative;
-      /* width: 100%; */
       flex: 1;
       margin: 1px auto;
       padding: 6px 8px;
@@ -24,10 +25,8 @@
     }
     .menu-btn {
       display: inline-block;
-      position: absolute;
       /* top: 4px; */
       /* top: 20%; */
-      left: -30px;
       opacity: 0;
     }
     :host(:hover) .menu-btn {
@@ -45,6 +44,7 @@
       transition: opacity ease 0.1s;
       pointer-events: none;
     }
+
     .placeholder.show {
       opacity: 1;
     }

@@ -448,9 +448,19 @@ const handleBackspace = async (lumipage, lumiBlock) => {
     selectionRangeData.startOffset === 0 &&
     selectionRangeData.endOffset === 0
   ) {
-    if (lumiBlock.prev) {
+    let prev = lumiBlock.prev;
+
+    while (prev.itemData.type === "article") {
+      prev = prev.prev;
+      if (!prev) {
+        prev = null;
+        break;
+      }
+    }
+
+    if (prev) {
       // 查看是否可以和前面合并
-      const { useContenteditable } = lumiBlock.prev;
+      const { useContenteditable } = prev;
 
       if (!useContenteditable) {
         // 前一个元素不使用 contenteditable，不能向前合并
@@ -461,7 +471,6 @@ const handleBackspace = async (lumipage, lumiBlock) => {
     const targetIndex = lumipage.itemData.content.indexOf(lumiBlock.itemData);
 
     if (targetIndex > 0) {
-      const prev = lumiBlock.prev;
       // 和前一个数据合并
       const currentLetterData = await elementToLetterData(
         lumiBlock.$("[inputer-content]").ele
