@@ -78,13 +78,15 @@ export const initTextInput = (lumipage) => {
         }
       }
 
-      if (e.key === "/" && lumiBlock.itemData.value === "") {
+      if (e.key === "/" && selectionData.startOffset < 2) {
         // 如果是在组件第一个字符按下，则弹出组件选择菜单
         commandPanel.init(e, {
           lumiBlock,
           lumipage,
         });
         return;
+      } else {
+        commandPanel.removeBind();
       }
 
       if (e.key === "c" && (e.metaKey || e.ctrlKey)) {

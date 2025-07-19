@@ -34,27 +34,26 @@
     }
   </style>
   <p-list style="width: 200px">
-    <div style="font-size: 12px; font-weight: bold; padding: 0 8px">组件</div>
+    <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
+      组件
+    </div>
     <hr />
-    <p-list-item button on:click="changeType('p')">
-      <n-local-icon class="icon" name="p" slot="prefix"></n-local-icon>
-      段落
-    </p-list-item>
-    <p-list-item button on:click="changeType('h2')">
-      <n-local-icon class="icon" name="h2" slot="prefix"></n-local-icon>
-      大标题
-    </p-list-item>
-    <p-list-item button on:click="changeType('h3')">
-      <n-local-icon class="icon" name="h3" slot="prefix"></n-local-icon>
-      中标题
-    </p-list-item>
-    <p-list-item button on:click="changeType('h4')">
-      <n-local-icon class="icon" name="h4" slot="prefix"></n-local-icon>
-      小标题
-    </p-list-item>
-    <o-fill :value="blockComps">
-      <p-list-item button on:click="$host.changeType($data.tag)">
-        <div class="icon" slot="prefix" :html="$data.icon"></div>
+    <o-fill :value="allComps">
+      <p-list-item
+        button
+        on:click="$host.changeType($data.tag)"
+        attr:active-item="$host.activeTag === $data.tag"
+      >
+        <o-if :value="$data.iconName" slot="prefix">
+          <n-local-icon
+            class="icon"
+            attr:name="$data.iconName"
+            slot="prefix"
+          ></n-local-icon>
+        </o-if>
+        <o-else>
+          <div class="icon" slot="prefix" :html="$data.icon"></div>
+        </o-else>
         {{$data.name.cn}}
       </p-list-item>
     </o-fill>
@@ -71,7 +70,38 @@
           open: "off",
         },
         data: {
-          blockComps,
+          allComps: [
+            {
+              tag: "paragraph",
+              iconName: "p",
+              name: {
+                cn: "段落",
+              },
+            },
+            {
+              tag: "h2",
+              iconName: "h2",
+              name: {
+                cn: "大标题",
+              },
+            },
+            {
+              tag: "h3",
+              iconName: "h3",
+              name: {
+                cn: "中标题",
+              },
+            },
+            {
+              tag: "h4",
+              iconName: "h4",
+              name: {
+                cn: "小标题",
+              },
+            },
+            ...blockComps,
+          ],
+          activeTag: "paragraph",
         },
         proto: {
           changeType(type) {
@@ -91,15 +121,21 @@
           },
           removeBind() {
             this.open = "off";
-            this._lumiBlock = null;
-            if (this._clickHandler) {
-              document.removeEventListener("click", this._clickHandler);
-              this._clickHandler = null;
+            if (this._blurHandler) {
+              this._lumiBlock
+                .$("[inputer-content]")
+                .off("blur", this._blurHandler);
+              this._blurHandler = null;
             }
+
             if (this._keydownHandler) {
-              document.removeEventListener("keydown", this._keydownHandler);
+              this._lumiBlock
+                .$("[inputer-content]")
+                .off("keydown", this._keydownHandler);
               this._keydownHandler = null;
             }
+
+            this._lumiBlock = null;
           },
           init(e, { lumiBlock, lumipage }) {
             this.removeBind();
@@ -115,18 +151,59 @@
 
             this.open = "on";
 
-            document.addEventListener(
-              "click",
-              (this._clickHandler = (e) => {
+            lumiBlock.$("[inputer-content]").on(
+              "blur",
+              (this._blurHandler = () => {
                 this.removeBind();
               })
             );
 
-            document.addEventListener(
+            lumiBlock.$("[inputer-content]").on(
               "keydown",
               (this._keydownHandler = (e) => {
-                if (e.key === "Escape") {
-                  this.removeBind();
+                e.stopPropagation();
+                switch (e.key) {
+                  case "Backspace":
+                    if (
+                      lumiBlock.itemData.value === "/" ||
+                      lumiBlock.itemData.value === ""
+                    ) {
+                      this.removeBind();
+                    }
+                    break;
+                  case "ArrowUp": {
+                    e.preventDefault();
+
+                    // 查找位置并切换
+                    const index = this.allComps.findIndex(
+                      (item) => item.tag === this.activeTag
+                    );
+                    if (index > 0) {
+                      this.activeTag = this.allComps[index - 1].tag;
+                    }
+
+                    break;
+                  }
+                  case "ArrowDown": {
+                    e.preventDefault();
+
+                    // 查找位置并切换
+                    const index = this.allComps.findIndex(
+                      (item) => item.tag === this.activeTag
+                    );
+                    if (index < this.allComps.length - 1) {
+                      this.activeTag = this.allComps[index + 1].tag;
+                    }
+
+                    break;
+                  }
+                  case "Enter":
+                    e.preventDefault();
+                    this.changeType(this.activeTag);
+                    break;
+                  case "Escape":
+                    this.removeBind();
+                    break;
                 }
               })
             );
