@@ -21,9 +21,11 @@
       transform: translate(0, 0);
     }
   </style>
-  <div>lumi-inline-comp-panel</div>
+  <div class="main"></div>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { inlineComps } = await load("./inline/config.js");
+
       return {
         tag: "lumi-inline-comp-panel",
         attrs: {
@@ -31,6 +33,28 @@
           _inlineCompTimer: null,
         },
         proto: {
+          init(inlineComp) {
+            const inlineCompConfig = inlineComps.find(
+              (e) => e.tag === inlineComp.tag
+            );
+
+            if (inlineCompConfig) {
+              const { formTag } = inlineCompConfig;
+
+              this.shadow.$(".main").html = `<${formTag}></${formTag}>`;
+
+              setTimeout(() => {
+                // 运行初始化方法
+                this.shadow.$(".main")[0].onInit({
+                  target: inlineComp,
+                });
+              });
+
+              this.showPanel();
+            } else {
+              console.log("没有找到该组件的配置: ", inlineComp.tag);
+            }
+          },
           showPanel() {
             clearTimeout(this._inlineCompTimer);
             this.open = "1";
@@ -43,7 +67,7 @@
         },
         attached() {
           this.on("mouseenter", () => {
-            clearTimeout(this._inlineCompTimer);
+            this.showPanel();
           });
 
           this.on("mouseleave", () => {

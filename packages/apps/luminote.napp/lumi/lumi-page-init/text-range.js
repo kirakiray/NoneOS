@@ -139,7 +139,7 @@ export const initTextRange = (lumipage) => {
       return;
     }
 
-    inlineCompPanel.showPanel();
+    inlineCompPanel.init($(e.target));
 
     // 修正位置
     Object.assign(inlineCompPanel.style, {
