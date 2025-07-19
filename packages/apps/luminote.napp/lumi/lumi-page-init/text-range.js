@@ -135,7 +135,7 @@ export const initTextRange = (lumipage) => {
   );
 
   lumipage.on("mouseover", (e) => {
-    if (!e.target.matches("[custom-inline-component]")) {
+    if (!e.target.matches("[custom-inline-component]") || mousedownStartBlock) {
       return;
     }
 
