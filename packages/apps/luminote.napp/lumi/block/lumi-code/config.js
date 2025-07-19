@@ -14,6 +14,10 @@ const defaults = {
     // 代码组件使用的是自带的元素
     return false;
   },
+  _getMatchKey() {
+    // 前置匹配的key
+    return [["```", {}]];
+  },
 };
 
 export default defaults;
