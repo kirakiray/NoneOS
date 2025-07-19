@@ -27,15 +27,16 @@
       display: block;
       color: var(--md-sys-color-primary);
       font-size: 18px;
+      margin-right: 8px;
     }
 
     .icon svg {
       display: block;
     }
   </style>
-  <p-list style="width: 200px">
+  <p-list style="width: 300px">
     <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
-      组件
+      基本组件
     </div>
     <hr />
     <o-fill :value="allComps">
@@ -45,16 +46,13 @@
         attr:active-item="$host.activeTag === $data.tag"
       >
         <o-if :value="$data.iconName" slot="prefix">
-          <n-local-icon
-            class="icon"
-            attr:name="$data.iconName"
-            slot="prefix"
-          ></n-local-icon>
+          <n-local-icon class="icon" attr:name="$data.iconName"></n-local-icon>
         </o-if>
-        <o-else>
-          <div class="icon" slot="prefix" :html="$data.icon"></div>
+        <o-else slot="prefix">
+          <div class="icon" :html="$data.icon"></div>
         </o-else>
         {{$data.name.cn}}
+        <div secondary>{{$data.desc.cn}}</div>
       </p-list-item>
     </o-fill>
   </p-list>
@@ -77,12 +75,18 @@
               name: {
                 cn: "段落",
               },
+              desc: {
+                cn: "基础段落",
+              },
             },
             {
               tag: "h2",
               iconName: "h2",
               name: {
                 cn: "大标题",
+              },
+              desc: {
+                cn: "划分文章主要章节，作为核心标题展示架构",
               },
             },
             {
@@ -91,12 +95,18 @@
               name: {
                 cn: "中标题",
               },
+              desc: {
+                cn: "细分主要章节内容，呈现子主题补充大标题",
+              },
             },
             {
               tag: "h4",
               iconName: "h4",
               name: {
                 cn: "小标题",
+              },
+              desc: {
+                cn: "细化内容，分组关键信息展现细节",
               },
             },
             ...blockComps,
