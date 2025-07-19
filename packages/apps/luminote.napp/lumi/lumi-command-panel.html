@@ -164,12 +164,11 @@
                 e.stopPropagation();
                 switch (e.key) {
                   case "Backspace":
-                    if (
-                      lumiBlock.itemData.value === "/" ||
-                      lumiBlock.itemData.value === ""
-                    ) {
-                      this.removeBind();
-                    }
+                    setTimeout(() => {
+                      if (!lumiBlock.itemData.value.startsWith("/")) {
+                        this.removeBind();
+                      }
+                    });
                     break;
                   case "ArrowUp": {
                     e.preventDefault();
