@@ -12,6 +12,7 @@ let mousedownStartBlock = null;
 export const initTextRange = (lumipage) => {
   // 数据设置到textpanel上
   const textPanel = lumipage.shadow.$("lumi-text-panel");
+  const inlineCompPanel = lumipage.shadow.$("lumi-inline-comp-panel");
 
   lumipage.on("drag-block-start", () => {
     textPanel.open = false;
@@ -132,6 +133,29 @@ export const initTextRange = (lumipage) => {
       }
     })
   );
+
+  lumipage.on("mouseover", (e) => {
+    if (!e.target.matches("[custom-inline-component]")) {
+      return;
+    }
+
+    inlineCompPanel.showPanel();
+
+    // 修正位置
+    Object.assign(inlineCompPanel.style, {
+      position: "fixed",
+      left: `${e.clientX}px`,
+      top: `${e.clientY - 50}px`,
+    });
+  });
+
+  lumipage.on("mouseout", (e) => {
+    if (!e.target.matches("[custom-inline-component]")) {
+      return;
+    }
+
+    inlineCompPanel.hidePanel();
+  });
 };
 export const revokeTextRange = (lumipage) => {
   lumipage.off("mousedown", lumipage._selectionMousedownFunc);

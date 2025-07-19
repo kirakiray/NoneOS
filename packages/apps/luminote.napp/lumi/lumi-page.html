@@ -5,6 +5,7 @@
   <l-m src="./lumi-block-menu.html"></l-m>
   <l-m src="./lumi-page-title.html"></l-m>
   <l-m src="./lumi-command-panel.html"></l-m>
+  <l-m src="./lumi-inline-comp-panel.html"></l-m>
   <style>
     :host {
       display: block;
@@ -73,6 +74,7 @@
   <lumi-text-panel></lumi-text-panel>
   <!-- <lumi-command-panel></lumi-command-panel> -->
   <lumi-block-menu></lumi-block-menu>
+  <lumi-inline-comp-panel></lumi-inline-comp-panel>
   <script>
     export default async ({ load }) => {
       const { initUndoRedo, revokeUndoRedo } = await load(
