@@ -31,6 +31,14 @@ purify.setConfig({
 });
 
 export const initTextInput = (lumipage) => {
+  const commandPanel = lumipage.shadow.$("lumi-command-panel");
+
+  lumipage.on("mousewheel", (e) => {
+    if (commandPanel.open === "on") {
+      commandPanel.removeBind();
+    }
+  });
+
   lumipage.on(
     "keydown",
     (lumipage._inputKeydownFunc = async (e) => {
@@ -72,7 +80,11 @@ export const initTextInput = (lumipage) => {
 
       if (e.key === "/" && lumiBlock.itemData.value === "") {
         // 如果是在组件第一个字符按下，则弹出组件选择菜单
-        debugger;
+        commandPanel.init(e, {
+          lumiBlock,
+          lumipage,
+        });
+        return;
       }
 
       if (e.key === "c" && (e.metaKey || e.ctrlKey)) {

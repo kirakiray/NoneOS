@@ -1,9 +1,9 @@
 <template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       position: fixed;
       display: block;
-      padding: 8px;
       border-radius: 4px;
       z-index: 2;
       left: 300px;
@@ -11,9 +11,54 @@
       background-color: var(--md-sys-color-on-normal);
       color: var(--md-sys-color-normal);
       box-shadow: var(--contained-shadow);
+      opacity: 0;
+      transform: translate(20px, 0);
+      transition: opacity ease 0.2s, transform ease 0.2s;
+      pointer-events: none;
+    }
+
+    :host([open="on"]) {
+      opacity: 1;
+      transform: translate(0, 0);
+      pointer-events: auto;
+    }
+
+    .icon {
+      display: block;
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+    }
+
+    .icon svg {
+      display: block;
     }
   </style>
-  我是lumi-command-panel
+  <p-list style="width: 200px">
+    <div style="font-size: 12px; font-weight: bold; padding: 0 8px">组件</div>
+    <hr />
+    <p-list-item button on:click="changeType('p')">
+      <n-local-icon class="icon" name="p" slot="prefix"></n-local-icon>
+      段落
+    </p-list-item>
+    <p-list-item button on:click="changeType('h2')">
+      <n-local-icon class="icon" name="h2" slot="prefix"></n-local-icon>
+      大标题
+    </p-list-item>
+    <p-list-item button on:click="changeType('h3')">
+      <n-local-icon class="icon" name="h3" slot="prefix"></n-local-icon>
+      中标题
+    </p-list-item>
+    <p-list-item button on:click="changeType('h4')">
+      <n-local-icon class="icon" name="h4" slot="prefix"></n-local-icon>
+      小标题
+    </p-list-item>
+    <o-fill :value="blockComps">
+      <p-list-item button on:click="$host.changeType($data.tag)">
+        <div class="icon" slot="prefix" :html="$data.icon"></div>
+        {{$data.name.cn}}
+      </p-list-item>
+    </o-fill>
+  </p-list>
   <script>
     export default async ({ load }) => {
       const { blockComps } = await load("./block/config.js");
@@ -22,9 +67,75 @@
 
       return {
         tag: "lumi-command-panel",
-        data: {},
+        attrs: {
+          open: "off",
+        },
+        data: {
+          blockComps,
+        },
+        proto: {
+          changeType(type) {
+            const { _lumiBlock } = this;
+            if (_lumiBlock) {
+              _lumiBlock.itemData.value = _lumiBlock.itemData.value.replace(
+                /^\//g,
+                ""
+              );
+
+              setTimeout(() => {
+                _lumiBlock.focus();
+              });
+              _lumiBlock.itemData.type = type;
+            }
+            this.removeBind();
+          },
+          removeBind() {
+            this.open = "off";
+            this._lumiBlock = null;
+            if (this._clickHandler) {
+              document.removeEventListener("click", this._clickHandler);
+              this._clickHandler = null;
+            }
+            if (this._keydownHandler) {
+              document.removeEventListener("keydown", this._keydownHandler);
+              this._keydownHandler = null;
+            }
+          },
+          init(e, { lumiBlock, lumipage }) {
+            this.removeBind();
+
+            this._lumiBlock = lumiBlock;
+
+            const rect = e.target.getBoundingClientRect();
+
+            Object.assign(this.style, {
+              left: `${rect.left}px`,
+              top: `${rect.top + 36}px`,
+            });
+
+            this.open = "on";
+
+            document.addEventListener(
+              "click",
+              (this._clickHandler = (e) => {
+                this.removeBind();
+              })
+            );
+
+            document.addEventListener(
+              "keydown",
+              (this._keydownHandler = (e) => {
+                if (e.key === "Escape") {
+                  this.removeBind();
+                }
+              })
+            );
+          },
+        },
         attached() {},
-        detached() {},
+        detached() {
+          this.removeBind();
+        },
       };
     };
   </script>
