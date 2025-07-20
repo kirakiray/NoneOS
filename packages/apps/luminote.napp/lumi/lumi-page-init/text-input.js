@@ -26,6 +26,7 @@ purify.setConfig({
     "strong",
     "a",
     "p",
+    "code",
     ...inlineComps.map((e) => e.tag),
     ...blockComps.map((e) => e.tag),
   ], // 允许的标签
@@ -327,13 +328,14 @@ export const initTextInput = (lumipage) => {
               });
             } else {
               const tag = item.tagName.toLowerCase();
-              const attrs = {};
-
-              for (let e of item.attributes) {
-                attrs[e.name] = e.value;
-              }
 
               if (blockComps.find((e) => e.tag === tag)) {
+                const attrs = {};
+
+                for (let e of item.attributes) {
+                  attrs[e.name] = e.value;
+                }
+
                 contents.push({
                   type: tag,
                   attrs,
