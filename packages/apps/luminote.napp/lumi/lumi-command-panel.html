@@ -34,7 +34,7 @@
       display: block;
     }
   </style>
-  <p-list style="width: 300px">
+  <p-list style="width: 200px">
     <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
       基本组件
     </div>
@@ -52,7 +52,7 @@
           <div class="icon" :html="$data.icon"></div>
         </o-else>
         {{$data.name.cn}}
-        <div secondary style="max-width: 220px">{{$data.desc.cn}}</div>
+        <!-- <div secondary style="max-width: 220px">{{$data.desc.cn}}</div> -->
         <o-if :value="$data._getMatchKey" slot="suffix">
           <div>{{$data._getMatchKey()[0][0]}}</div>
         </o-if>
