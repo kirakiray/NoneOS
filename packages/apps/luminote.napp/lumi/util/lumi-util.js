@@ -64,9 +64,17 @@ export const copySelectedBlock = (lumipage) => {
       return;
     }
 
+    let itemHtml = item.htmlContent;
+
+    if (item.itemData.tab) {
+      const temp = $(`<template>${item.htmlContent}</template>`);
+      const child1 = temp.ele.content.children[0];
+      child1.dataset.tabcount = item.itemData.tab;
+      itemHtml = child1.outerHTML;
+    }
+
     textContent += item.textContent;
-    htmlContent += item.htmlContent;
-    // mdContent += item.mdContent;
+    htmlContent += itemHtml;
 
     if (textContent && index !== lastIndex) {
       textContent += `\n\n`;

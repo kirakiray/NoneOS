@@ -298,14 +298,6 @@ export const initTextInput = (lumipage) => {
 
       const contents = [];
 
-      // const hasP = temp.content.querySelector("p");
-      // const hasTitle =
-      //   temp.content.querySelector("h1") ||
-      //   temp.content.querySelector("h2") ||
-      //   temp.content.querySelector("h3") ||
-      //   temp.content.querySelector("h4") ||
-      //   temp.content.querySelector("h5");
-
       // 直接单标签开头
       if (/^</.test(pastedHtml.trim())) {
         for (let item of temp.content.children) {
@@ -332,15 +324,27 @@ export const initTextInput = (lumipage) => {
               if (blockComps.find((e) => e.tag === tag)) {
                 const attrs = {};
 
+                let tab = 0;
+
                 for (let e of item.attributes) {
+                  if (e.name === "data-tabcount") {
+                    tab = parseInt(e.value);
+                    continue;
+                  }
                   attrs[e.name] = e.value;
                 }
 
-                contents.push({
+                const obj = {
                   type: tag,
                   attrs,
                   value: await letterDataToElement(reContent),
-                });
+                };
+
+                if (tab) {
+                  obj.tab = tab;
+                }
+
+                contents.push(obj);
               } else {
                 // 不明类型全部填充为段落
                 contents.push({

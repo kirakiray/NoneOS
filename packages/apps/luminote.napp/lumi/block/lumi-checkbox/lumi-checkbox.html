@@ -40,7 +40,9 @@
           get htmlContent() {
             const { html } = this.host.host[0];
 
-            return `<lumi-checkbox checked="${this.checked}">${html}</lumi-checkbox>`;
+            return `<lumi-checkbox ${
+              this.checked ? 'checked="1"' : ""
+            }>${html}</lumi-checkbox>`;
           },
           get mdContent() {
             return `- [${this.eleChecked ? "x" : " "}] ${this.textContent}`;

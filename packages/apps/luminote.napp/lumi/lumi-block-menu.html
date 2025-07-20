@@ -95,6 +95,7 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
       const { blockComps } = await load("./block/config.js"); // 块组件的配置
+      const { copySelectedBlock } = await load("./util/lumi-util.js");
 
       return {
         tag: "lumi-block-menu",
@@ -111,16 +112,9 @@
             debugger;
           },
           handleCopy() {
-            navigator.clipboard.write([
-              new ClipboardItem({
-                "text/html": new Blob([this._blockEl.htmlContent], {
-                  type: "text/html",
-                }),
-                "text/plain": new Blob([this._blockEl.textContent], {
-                  type: "text/plain",
-                }),
-              }),
-            ]);
+            copySelectedBlock({
+              _selecteds: [this._blockEl],
+            });
 
             toast("已复制文本到剪贴板");
 
