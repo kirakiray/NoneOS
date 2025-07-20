@@ -34,6 +34,17 @@
         },
         proto: {
           setValue() {},
+          get textContent() {
+            return this.host.host.text;
+          },
+          get htmlContent() {
+            const { html } = this.host.host[0];
+
+            return `<lumi-checkbox checked="${this.checked}">${html}</lumi-checkbox>`;
+          },
+          get mdContent() {
+            return `- [${this.eleChecked ? "x" : " "}] ${this.textContent}`;
+          },
         },
       };
     };

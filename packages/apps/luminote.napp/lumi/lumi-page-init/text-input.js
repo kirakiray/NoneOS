@@ -27,6 +27,7 @@ purify.setConfig({
     "a",
     "p",
     ...inlineComps.map((e) => e.tag),
+    ...blockComps.map((e) => e.tag),
   ], // 允许的标签
 });
 
@@ -296,15 +297,16 @@ export const initTextInput = (lumipage) => {
 
       const contents = [];
 
-      const hasP = temp.content.querySelector("p");
-      const hasTitle =
-        temp.content.querySelector("h1") ||
-        temp.content.querySelector("h2") ||
-        temp.content.querySelector("h3") ||
-        temp.content.querySelector("h4") ||
-        temp.content.querySelector("h5");
+      // const hasP = temp.content.querySelector("p");
+      // const hasTitle =
+      //   temp.content.querySelector("h1") ||
+      //   temp.content.querySelector("h2") ||
+      //   temp.content.querySelector("h3") ||
+      //   temp.content.querySelector("h4") ||
+      //   temp.content.querySelector("h5");
 
-      if (hasP || hasTitle) {
+      // 直接单标签开头
+      if (/^</.test(pastedHtml.trim())) {
         for (let item of temp.content.children) {
           if (item.innerHTML) {
             const reContent = await elementToLetterData(item);
@@ -324,11 +326,26 @@ export const initTextInput = (lumipage) => {
                 value: item.innerHTML,
               });
             } else {
-              // 不明类型全部填充为段落
-              contents.push({
-                type: "paragraph",
-                value: await letterDataToElement(reContent),
-              });
+              const tag = item.tagName.toLowerCase();
+              const attrs = {};
+
+              for (let e of item.attributes) {
+                attrs[e.name] = e.value;
+              }
+
+              if (blockComps.find((e) => e.tag === tag)) {
+                contents.push({
+                  type: tag,
+                  attrs,
+                  value: await letterDataToElement(reContent),
+                });
+              } else {
+                // 不明类型全部填充为段落
+                contents.push({
+                  type: "paragraph",
+                  value: await letterDataToElement(reContent),
+                });
+              }
             }
           }
         }

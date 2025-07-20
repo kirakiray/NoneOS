@@ -29,10 +29,13 @@
       padding: 0 8px;
     }
     .lang-selector {
-      /* -webkit-appearance: none; */
+      -webkit-appearance: none;
       border: none;
       outline: none;
       background-color: transparent;
+      padding: 2px 8px;
+      border: var(--md-sys-color-normal) solid 1px;
+      border-radius: 6px;
     }
   </style>
   <div style="display: flex; flex-direction: column">
@@ -134,10 +137,6 @@
             }
           },
           get textContent() {
-            // const temp = $(`<div></div>`);
-            // temp.text = this._codeEl.code;
-
-            // return temp.html;
             return this.htmlContent;
           },
           get htmlContent() {
