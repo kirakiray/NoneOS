@@ -57,7 +57,7 @@ export const initTextInput = (lumipage) => {
 
       lumiBlock = $(lumiBlock);
 
-      const selectionData = getSelectionLetterData();
+      const selectionData = getSelectionLetterData(lumipage.ele.getRootNode());
 
       const result = handleMatchComponent(e, {
         lumiBlock,
