@@ -336,6 +336,7 @@
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
+      const { saveUserCord } = await load("../util/user-record-util.js");
 
       const { addLoadingTask, removeLoadingTask } = await load(
         "./util/lumi-util.js"
@@ -459,6 +460,27 @@
             );
           },
 
+          setInfocus() {
+            this.inFocus = true;
+
+            const notePage = this.parents.find(
+              (e) => e.tag === "o-page" && e.src.includes("note.html")
+            );
+
+            const { articleId, currentDirName, currentUserId } = notePage;
+
+            saveUserCord({
+              blockId: this.itemData._dataId,
+              articleId,
+              targetUserId: currentUserId,
+              projectDirName: currentDirName,
+              app: this.parents.find((e) => e.tag === "o-app"),
+            });
+          },
+          setOutfocus() {
+            this.inFocus = false;
+          },
+
           initializeEditor() {
             const inputerContent = $(
               `<div inputer-content contenteditable="plaintext-only"></div>`
@@ -475,8 +497,12 @@
               this.itemData.value = content;
             });
 
-            inputerContent.on("focus", () => (this.inFocus = true));
-            inputerContent.on("blur", () => (this.inFocus = false));
+            inputerContent.on("focus", () => {
+              this.setInfocus();
+            });
+            inputerContent.on("blur", () => {
+              this.setOutfocus();
+            });
 
             inputerContent.html = this.itemData.value;
 
@@ -602,6 +628,13 @@
           this.initializeEditor();
 
           addLoadingTask(this);
+
+          this.on("focus", () => {
+            this.setInfocus();
+          });
+          this.on("blur", () => {
+            this.setOutfocus();
+          });
         },
         detached() {
           removeLoadingTask(this);

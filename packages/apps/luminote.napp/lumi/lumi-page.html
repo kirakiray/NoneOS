@@ -98,6 +98,8 @@
 
       const { initDrag, revokeDrag } = await load("./lumi-page-init/drag.js");
 
+      const { getRecordByPageId } = await load("../util/user-record-util.js");
+
       const { diffFill } = await load("./util/diff-fill.js");
       const {
         letterDataToElement,
@@ -120,6 +122,7 @@
         tag: "lumi-page",
         data: {
           itemData: {},
+          recordData: {},
         },
         proto: {
           titleKeyDown(e) {
@@ -226,9 +229,30 @@
             initDrag(this);
             initTextInput(this);
             initBlockMenu(this);
+
+            (async () => {
+              const notePage = this.parents.find(
+                (e) => e.tag === "o-page" && e.src.includes("note.html")
+              );
+
+              const { articleId, currentDirName, currentUserId } = notePage;
+
+              const { recordData, revoke } = await getRecordByPageId({
+                targetUserId: notePage.currentUserId,
+                projectDirName: notePage.currentDirName,
+                app: this.parents.find((e) => e.tag === "o-app"),
+              });
+
+              this.recordData = recordData;
+              this._recordRevoke = revoke;
+            })();
           }
         },
         detached() {
+          if (this._recordRevoke) {
+            this._recordRevoke();
+          }
+
           this.itemData = {}; // 清除绑定
 
           revokeUndoRedo(this);
