@@ -250,19 +250,22 @@
       transition: background ease 0.2s 0.3s;
       /* 拖拽前要有延迟动画 */
     }
+
+    [item-type="article"] .inputer {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
   </style>
 
   <o-if :value="!loading">
     <div
       style="display: flex; max-width: 800px; margin: 0 auto"
       class:drag-start="dragStart"
+      attr:item-type="itemData.type"
+      class:hide="itemData.type === 'article' && itemData.removed"
     >
       <div class="space" :style.width="tabLeft"></div>
-      <div
-        class="inputer"
-        class:hide="itemData.type === 'article' && itemData.removed"
-        class:active-bg="selected || leftMenuOpened"
-      >
+      <div class="inputer" class:active-bg="selected || leftMenuOpened">
         <div class="menu-btn">
           <p-button
             icon
