@@ -36,6 +36,15 @@
     还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
   </p>
 
+  <o-if :value="isSafari">
+    <div style="color: red">
+      <p>
+        注意：在 Safari
+        浏览器中使用本应用时，请务必通过新标签页模式打开，否则可能会出现兼容性问题，导致部分功能无法正常使用。
+      </p>
+    </div>
+  </o-if>
+
   <!-- <div>
     <h4>最近访问</h4>
     <div style="color: var(--md-sys-color-normal)">准备中...</div>
@@ -75,8 +84,13 @@
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
       const { getOllamaModels } = await load("/packages/ai/util.js");
 
+      const isSafari = /^((?!chrome|android).)*safari/i.test(
+        navigator.userAgent
+      );
+
       return {
         data: {
+          isSafari,
           creationtime: "",
           currentDirName: "",
           currentUserId: "self",

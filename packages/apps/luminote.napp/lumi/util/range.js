@@ -1,8 +1,10 @@
 const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 
+const isFirefox = navigator.userAgent.indexOf("Firefox") > -1;
+
 // 获取返回内的数据
 export const getSelectionLetterData = (root, editorEl) => {
-  if (!root) {
+  if (!root || isFirefox) {
     root = document;
   }
 
