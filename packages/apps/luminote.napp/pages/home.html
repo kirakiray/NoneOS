@@ -5,6 +5,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/i18n/n-auto-show.html"></l-m>
 
   <style>
     :host {
@@ -26,49 +27,130 @@
       display: none !important;
     }
   </style>
-  <h1>首页</h1>
-  <p>
-    欢迎使用
-    Luminote！这是一款强大的知识管理工具，它能帮助你有条理地梳理思路。通过逐层拆解内容，你可以将复杂的知识体系转化为清晰明了的笔记。
-  </p>
-  <p>建议使用新标签页模式打开本应用，能畅享更加流畅、稳定的使用体验。</p>
+  <h1>
+    <n-auto-show>
+      <span lang="cn">首页</span>
+      <span lang="en">Home</span>
+      <span lang="ja">ホーム</span>
+    </n-auto-show>
+  </h1>
+  <n-auto-show>
+    <p lang="cn">
+      欢迎使用
+      Luminote！这是一款强大的知识管理工具，它能帮助你有条理地梳理思路。通过逐层拆解内容，你可以将复杂的知识体系转化为清晰明了的笔记。
+    </p>
+
+    <p lang="en">
+      Welcome to use Luminote! This is a powerful knowledge management tool that
+      can help you organize your thoughts systematically. By breaking down the
+      content layer by layer, you can transform complex knowledge systems into
+      clear and concise notes.
+    </p>
+
+    <p lang="ja">
+      Luminoteをご利用いただき、ありがとうございます！これは強力な知識管理ツールで、あなたが体系的に考えを整理するのに役立ちます。内容を段階的に分解することで、複雑な知識体系を明確で分かりやすいノートに変換することができます。
+    </p>
+
+    <p lang="cn">
+      建议使用新标签页模式打开本应用，能畅享更加流畅、稳定的使用体验。
+    </p>
+
+    <p lang="en">
+      Suggest using a new tab to open this application for the best experience.
+    </p>
+
+    <p lang="ja">
+      新しいタブでこのアプリケーションを開いてください。最良の体験を得るためです。
+    </p>
+  </n-auto-show>
 
   <o-if :value="isSafari">
     <div style="color: red">
-      <p>
+      <p lang="cn">
         注意：在 Safari
         浏览器中使用本应用时，请务必通过新标签页模式打开，否则可能会出现兼容性问题，导致部分功能无法正常使用。
+      </p>
+      <p lang="en">
+        Note: When using this application in Safari browser, please open it in a
+        new tab mode, otherwise, you may encounter compatibility issues and some
+        features may not work properly.
+      </p>
+      <p lang="ja">
+        注意： Safari
+        ブラウザでこのアプリケーションを使用する場合、新しいタブで開いてください。そうしないと、一部の機能が正常に動作しない可能性があります。
       </p>
     </div>
   </o-if>
 
-  <!-- <div>
-    <h4>最近访问</h4>
-    <div style="color: var(--md-sys-color-normal)">准备中...</div>
-  </div> -->
-
   <div>
-    <h4>本地AI</h4>
-    <p>
-      配置本地 AI 后，Luminote
-      还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
-    </p>
+    <h4>
+      <n-auto-show>
+        <span lang="cn">本地AI</span>
+        <span lang="en">Local AI</span>
+        <span lang="ja">ローカルAI</span>
+      </n-auto-show>
+    </h4>
+    <n-auto-show>
+      <p lang="cn">
+        配置本地 AI 后，Luminote
+        还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
+      </p>
+      <p lang="en">
+        After configuring the local AI, Luminote can also automatically provide
+        proofreading and translation services for your content, making your
+        writing experience more enjoyable and allowing you to focus on the
+        creation itself.
+      </p>
+      <p lang="ja">
+        ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
+      </p>
+    </n-auto-show>
     <div>
-      <o-if :value="models === 0"> 加载中... </o-if>
+      <o-if :value="models === 0">
+        <n-auto-show>
+          <span lang="cn">加载中...</span>
+          <span lang="en">Loading...</span>
+          <span lang="ja">ローディング中...</span>
+        </n-auto-show>
+      </o-if>
       <o-else-if :value="models === 'error'">
-        <span style="color: var(--md-sys-color-error)">加载失败</span>
+        <n-auto-show>
+          <span lang="cn">加载失败</span>
+          <span lang="en">Loading failed</span>
+          <span lang="ja">ローディングに失敗しました</span>
+        </n-auto-show>
       </o-else-if>
       <o-else>
-        <span style="color: var(--md-sys-color-primary)">
-          检测到 {{models.length}} 个模型
-        </span>
+        <n-auto-show>
+          <span lang="cn" style="color: var(--md-sys-color-primary)">
+            检测到 {{models.length}} 个模型
+          </span>
+          <span lang="en" style="color: var(--md-sys-color-primary)">
+            Detected {{models.length}} models
+          </span>
+          <span lang="ja" style="color: var(--md-sys-color-primary)">
+            検出された {{models.length}} モデル
+          </span>
+        </n-auto-show>
       </o-else>
     </div>
   </div>
 
   <div>
-    <h4>查看使用技巧</h4>
-    <div style="color: var(--md-sys-color-normal)">准备中...</div>
+    <h4>
+      <n-auto-show>
+        <span lang="cn">查看使用技巧</span>
+        <span lang="en">View usage tips</span>
+        <span lang="ja">使用方法を表示</span>
+      </n-auto-show>
+    </h4>
+    <div style="color: var(--md-sys-color-normal)">
+      <n-auto-show>
+        <span lang="cn">准备中...</span>
+        <span lang="en">Preparing...</span>
+        <span lang="ja">準備中...</span>
+      </n-auto-show>
+    </div>
   </div>
 
   <!-- <h4>打包项目</h4>
