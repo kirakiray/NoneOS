@@ -6,8 +6,10 @@
   <l-m src="./lumi-page-title.html"></l-m>
   <l-m src="./lumi-command-panel.html"></l-m>
   <l-m src="./lumi-inline-comp-panel.html"></l-m>
+  <l-m src="./lumi-remote-mark.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
       margin: 0 auto;
       user-select: auto;
@@ -66,9 +68,13 @@
         placeholder="页面标题"
       />
     </lumi-page-title>
-    {{recordData}}
-    <div lumi-page-title-container></div>
     <slot></slot>
+    <o-fill :value="recordData" fill-key="userId">
+      <lumi-remote-mark
+        :block-id="$data.blockId"
+        :user-id="$data.userId"
+      ></lumi-remote-mark>
+    </o-fill>
     <div style="height: 128px" on:click="focusLast"></div>
   </div>
   <lumi-multi-panel></lumi-multi-panel>
@@ -232,6 +238,7 @@
                   const blockEl = $(`<lumi-block></lumi-block>`);
 
                   blockEl.itemData = item;
+                  blockEl.data.blockid = item._dataId;
 
                   return blockEl;
                 },

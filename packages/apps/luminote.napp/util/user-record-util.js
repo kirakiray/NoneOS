@@ -56,8 +56,8 @@ export const getRecordByPageId = async ({
 
   const pageRecordData = $.stanz([]);
 
-  const userStore = await getUserStore();
-  const { userId: selfUserId } = userStore;
+  //   const userStore = await getUserStore();
+  //   const { userId: selfUserId } = userStore;
 
   const refresh = () => {
     const newRecordData = [];
@@ -80,6 +80,7 @@ export const getRecordByPageId = async ({
       }
     });
 
+    // 更新数据
     pageRecordData.splice(0, pageRecordData.length, ...newRecordData);
   };
 
