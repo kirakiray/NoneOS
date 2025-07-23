@@ -66,6 +66,7 @@
         placeholder="页面标题"
       />
     </lumi-page-title>
+    {{recordData}}
     <div lumi-page-title-container></div>
     <slot></slot>
     <div style="height: 128px" on:click="focusLast"></div>
@@ -168,6 +169,23 @@
             // 聚焦最后一个元素
             this.slice(-1)[0].focus();
           },
+          async initRecord() {
+            const notePage = this.parents.find(
+              (e) => e.tag === "o-page" && e.src.includes("note.html")
+            );
+
+            const { articleId, currentDirName, currentUserId } = notePage;
+
+            const { recordData, revoke } = await getRecordByPageId({
+              targetUserId: notePage.currentUserId,
+              projectDirName: notePage.currentDirName,
+              articleId: this.itemData._dataId,
+              app: this.parents.find((e) => e.tag === "o-app"),
+            });
+
+            this.recordData = recordData;
+            this._recordRevoke = revoke;
+          },
         },
         attached() {
           this.on("click", (e) => {
@@ -229,28 +247,12 @@
             initDrag(this);
             initTextInput(this);
             initBlockMenu(this);
-
-            (async () => {
-              const notePage = this.parents.find(
-                (e) => e.tag === "o-page" && e.src.includes("note.html")
-              );
-
-              const { articleId, currentDirName, currentUserId } = notePage;
-
-              const { recordData, revoke } = await getRecordByPageId({
-                targetUserId: notePage.currentUserId,
-                projectDirName: notePage.currentDirName,
-                app: this.parents.find((e) => e.tag === "o-app"),
-              });
-
-              this.recordData = recordData;
-              this._recordRevoke = revoke;
-            })();
           }
         },
         detached() {
           if (this._recordRevoke) {
             this._recordRevoke();
+            this._recordRevoke = null;
           }
 
           this.itemData = {}; // 清除绑定

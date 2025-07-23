@@ -91,21 +91,6 @@
           },
         },
         attached() {
-          {
-            // BUG: 为了适配safari的操作
-            const wid = this.watchTick((e) => {
-              if (this.itemData.type === "article") {
-                // 数据成功后,首次传递数据
-                this.$("lumi-page").itemData = this.itemData;
-                this.unwatch(wid);
-              }
-            });
-            this.push(
-              `<lumi-page style="height: 100%;overflow: auto"></lumi-page>`
-            );
-            this.$("lumi-page").itemData = this.itemData;
-          }
-
           this.emit("active-article", {
             composed: true,
             data: {
@@ -121,7 +106,16 @@
             composed: true,
           });
 
-          this.loadArticle();
+          (async () => {
+            await this.loadArticle();
+            
+            this.push(
+              `<lumi-page style="height: 100%;overflow: auto"></lumi-page>`
+            );
+
+            this.$("lumi-page").itemData = this.itemData;
+            this.$("lumi-page").initRecord();
+          })();
 
           setTimeout(() => {
             // 修正菜单定位

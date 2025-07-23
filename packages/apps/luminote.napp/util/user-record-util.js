@@ -45,6 +45,7 @@ export const getRecordData = async ({ projectDirName, targetUserId, app }) => {
 export const getRecordByPageId = async ({
   targetUserId,
   projectDirName,
+  articleId,
   app,
 }) => {
   const recordData = await getRecordData({
@@ -70,10 +71,7 @@ export const getRecordByPageId = async ({
       // 如果是当前页的数据，进行修正记录
       const { focusArticleId, focusBlockId, focusTime } = recordData;
 
-      if (
-        (targetUserId === "self" && selfUserId === userId) ||
-        focusArticleId === targetUserId
-      ) {
+      if (focusArticleId === articleId) {
         // 是当前文章的数据，加入当前页记录
         newRecordData.push({
           userId,
@@ -92,7 +90,6 @@ export const getRecordByPageId = async ({
   return {
     recordData: pageRecordData,
     revoke() {
-      debugger;
       pageRecordData.revoke();
       recordData.unwatch(tid);
     },
