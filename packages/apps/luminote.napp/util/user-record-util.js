@@ -56,8 +56,8 @@ export const getRecordByPageId = async ({
 
   const pageRecordData = $.stanz([]);
 
-  //   const userStore = await getUserStore();
-  //   const { userId: selfUserId } = userStore;
+  const userStore = await getUserStore();
+  const { userId: selfUserId } = userStore;
 
   const refresh = () => {
     const newRecordData = [];
@@ -93,6 +93,11 @@ export const getRecordByPageId = async ({
     revoke() {
       pageRecordData.revoke();
       recordData.unwatch(tid);
+      const targetRecord = recordData[selfUserId];
+      if (targetRecord) {
+        targetRecord.focusArticleId = "";
+        targetRecord.focusBlockId = "";
+      }
     },
   };
 };
