@@ -30,6 +30,7 @@
       font-size: 12px;
       background-color: var(--md-sys-color-primary);
       color: var(--md-sys-color-on-primary);
+      opacity: 0.8;
     }
 
     n-id-avatar {
@@ -51,8 +52,14 @@
       const { getUserStore } = await load("/packages/user/user-store.js");
       const { getUserName } = await load("/packages/util/get-user-info.js");
 
+      const { getConnectionStore } = await load(
+        "/packages/user/connection/main.js"
+      );
+
       const userStore = await getUserStore();
       const selfUserId = userStore.userId;
+
+      const connections = await getConnectionStore();
 
       return {
         tag: "lumi-remote-mark",
@@ -69,10 +76,19 @@
               return;
             }
 
-            if (this.userId === this.selfUserId) {
+            const targetUser = connections.find((e) => e.userId == this.userId);
+
+            if (!targetUser) {
               this.style.display = "none";
               return;
             }
+
+            if (targetUser.state !== "ready") {
+              this.style.display = "none";
+              return;
+            }
+
+            this.style.display = "";
 
             const targetBlock = this.host.$(`[data-blockid="${this.blockId}"]`);
 
