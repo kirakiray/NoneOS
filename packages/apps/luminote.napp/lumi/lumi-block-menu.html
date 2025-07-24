@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/i18n/localized-object-content.html"></l-m>
   <style>
     :host {
       position: fixed;
@@ -83,7 +84,9 @@
               :html="$data.icon"
               style="font-size: 18px; color: var(--md-sys-color-primary)"
             ></span>
-            {{$data.name.cn}}
+            <localized-object-content
+              :obj="$data.name"
+            ></localized-object-content>
           </p-menu-item>
         </x-fill>
       </p-menu>

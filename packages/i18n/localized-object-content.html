@@ -1,0 +1,44 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      // 加载本机的语言
+      const { getLangAsync } = await load("./data.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      return {
+        tag: "localized-object-content",
+        data: {
+          obj: {},
+        },
+        proto: {
+          refreshContent() {
+            const lang = settingData.lang;
+            const obj = this.obj;
+            if (obj[lang]) {
+              this.html = obj[lang];
+            } else {
+              this.html = obj[en] || "";
+            }
+          },
+        },
+        attached() {
+          this._wid = settingData.watchTick(() => {
+            this.refreshContent();
+          });
+
+          this.refreshContent();
+        },
+        detached() {
+          settingData.unwatch(this._wid);
+        },
+      };
+    };
+  </script>
+</template>

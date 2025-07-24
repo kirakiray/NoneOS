@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/menu/menu.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
   <style>
     :host {
@@ -276,7 +277,13 @@
           >
             <n-local-icon name="menu"></n-local-icon>
           </p-button>
-          <div class="inputer-tips">拖拽或点击</div>
+          <div class="inputer-tips">
+            <localized-content>
+              <span lang="en">Drag or click</span>
+              <span lang="cn">拖拽或点击</span>
+              <span lang="ja">ドラッグまたはクリック</span>
+            </localized-content>
+          </div>
         </div>
 
         <div class="sub-mark" class:show-sub-mark="showSubmark"></div>
@@ -289,7 +296,18 @@
             <slot></slot>
 
             <span class="placeholder" class:show="inFocus && !itemData.value">
-              输入文本，默认使用段落组件。按 "/" 切换组件
+              <localized-content>
+                <span lang="en"
+                  >Enter text, paragraph component by default. Press "/" to
+                  switch components</span
+                >
+                <span lang="cn"
+                  >输入文本，默认使用段落组件。按 "/" 切换组件</span
+                >
+                <span lang="ja"
+                  >テキストを入力してください、デフォルトで段落コンポーネントを使用します。"/"を押してコンポーネントを切り替えます</span
+                >
+              </localized-content>
             </span>
           </lumi-fake>
         </o-if>
@@ -303,7 +321,7 @@
               name="article"
               style="display: block; margin-right: 4px; font-size: 18px"
             ></n-local-icon>
-            {{itemData.title || '未命名页面'}}
+            {{itemData.title || desc.untitledPage}}
           </div>
         </o-if>
         <div class="dragovering-mark" class:show="dragovering"></div>
@@ -347,6 +365,10 @@
 
       const { blockComps } = await load("./block/config.js");
 
+      const { localizedObject } = await load(
+        "/packages/i18n/localized-object.js"
+      );
+
       return {
         tag: "lumi-block",
         data: {
@@ -360,6 +382,7 @@
           dragovering: false, // 拖拽中
           tabLeft: 0,
           dragStart: false, // 拖拽开始
+          desc: {},
         },
         watch: {
           leftMenuOpened(opened) {
@@ -635,11 +658,21 @@
           this.on("blur", () => {
             this.setOutfocus();
           });
+          
+          this.desc = localizedObject({
+            untitledPage: {
+              cn: "未命名页面",
+              en: "Untitled page",
+              ja: "無題のページ",
+            },
+          });
         },
         detached() {
           removeLoadingTask(this);
 
           this.itemData = {};
+          this.desc._clear && this.desc._clear();
+          this.desc = {};
         },
       };
     };
