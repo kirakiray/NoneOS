@@ -42,7 +42,13 @@
         border-radius: 6px;
       "
     >
-      此文章已暂时被放到回收站
+      <localized-content>
+        <span lang="cn">此文章已暂时被放到回收站</span>
+        <span lang="en"
+          >This article has been temporarily moved to the recycle bin</span
+        >
+        <span lang="ja">この記事は一時的にごみ箱に移動されました</span>
+      </localized-content>
 
       <p-button
         size="small"
@@ -51,7 +57,11 @@
         on:click="itemData.removed = null"
         style="margin-left: auto"
       >
-        放回原处
+        <localized-content>
+          <span lang="cn">放回原处</span>
+          <span lang="en">Restore</span>
+          <span lang="ja">元に戻す</span>
+        </localized-content>
       </p-button>
     </div>
   </o-if>
@@ -65,7 +75,7 @@
         on:click="$event.stopPropagation()"
         style="margin-bottom: 16px"
         on:keydown="titleKeyDown"
-        placeholder="页面标题"
+        :placeholder="desc.pageTitlePlaceholder"
       />
     </lumi-page-title>
     <slot></slot>
@@ -83,6 +93,8 @@
   <lumi-block-menu></lumi-block-menu>
   <lumi-inline-comp-panel></lumi-inline-comp-panel>
   <script>
+    import { localizedObject } from "/packages/i18n/localized-object.js";
+
     export default async ({ load }) => {
       const { initUndoRedo, revokeUndoRedo } = await load(
         "./lumi-page-init/undo-redo.js"
@@ -130,6 +142,7 @@
         data: {
           itemData: {},
           recordData: {},
+          desc: {},
         },
         proto: {
           titleKeyDown(e) {
@@ -193,7 +206,14 @@
             this._recordRevoke = revoke;
           },
         },
-        attached() {
+        async attached() {
+          this.desc = localizedObject({
+            pageTitlePlaceholder: {
+              cn: "页面标题",
+              en: "Page title",
+              ja: "ページタイトル",
+            },
+          });
           this.on("click", (e) => {
             const composeds = e.composedPath();
 
@@ -264,6 +284,8 @@
           }
 
           this.itemData = {}; // 清除绑定
+          this.desc._clear();
+          this.desc = {};
 
           revokeUndoRedo(this);
           revokeMultiSelect(this);

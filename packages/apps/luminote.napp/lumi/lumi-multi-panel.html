@@ -52,7 +52,11 @@
           slot="prefix"
           style="display: block; margin-right: 4px"
         ></n-local-icon>
-        复制
+        <localized-content>
+          <span lang="cn">复制</span>
+          <span lang="en">Copy</span>
+          <span lang="ja">コピー</span>
+        </localized-content>
       </p-button>
       <p-button
         size="small"
@@ -65,7 +69,11 @@
           slot="prefix"
           style="display: block; margin-right: 4px"
         ></n-local-icon>
-        删除
+        <localized-content>
+          <span lang="cn">删除</span>
+          <span lang="en">Delete</span>
+          <span lang="ja">削除</span>
+        </localized-content>
       </p-button>
     </div>
   </div>
@@ -76,6 +84,7 @@
       const { copySelectedBlock, deleteSelectedBlock } = await load(
         "./util/lumi-util.js"
       );
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "lumi-multi-panel",
@@ -90,10 +99,17 @@
           get panel() {
             return this.shadow.$(".multi-panel");
           },
-          clickCopy() {
+          async clickCopy() {
             copySelectedBlock(this.host);
 
-            toast("复制成功");
+            toast({
+              content: await getLocalized({
+                cn: "复制成功",
+                en: "Copied successfully",
+                ja: "コピー成功",
+              }),
+              color: "success",
+            });
 
             this.emit("close", {
               bubbles: false,

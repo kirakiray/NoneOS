@@ -1,5 +1,8 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/i18n/localized-object-content.html"></l-m>
+
   <style>
     :host {
       position: fixed;
@@ -36,7 +39,11 @@
   </style>
   <p-list style="width: 200px">
     <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
-      基本组件
+      <localized-content>
+        <span lang="en">Basic Components</span>
+        <span lang="cn">基本组件</span>
+        <span lang="ja">基本コンポーネント</span>
+      </localized-content>
     </div>
     <hr />
     <o-fill :value="allComps">
@@ -51,8 +58,7 @@
         <o-else slot="prefix">
           <div class="icon" :html="$data.icon"></div>
         </o-else>
-        {{$data.name.cn}}
-        <!-- <div secondary style="max-width: 220px">{{$data.desc.cn}}</div> -->
+        <localized-object-content :obj="$data.name"></localized-object-content>
         <o-if :value="$data._getMatchKey" slot="suffix">
           <div>{{$data._getMatchKey()[0][0]}}</div>
         </o-if>
@@ -60,6 +66,11 @@
     </o-fill>
   </p-list>
   <script>
+    import {
+      localizedObject,
+      getLocalized,
+    } from "/packages/i18n/localized-object.js";
+
     export default async ({ load }) => {
       const { blockComps } = await load("./block/config.js");
 
@@ -78,10 +89,12 @@
               name: {
                 cn: "段落",
                 en: "paragraph",
+                ja: "段落",
               },
               desc: {
                 cn: "基础段落",
                 en: "base paragraph",
+                ja: "基本段落",
               },
             },
             {
@@ -89,11 +102,13 @@
               iconName: "h2",
               name: {
                 cn: "大标题",
-                en: "h2",
+                en: "Heading 1",
+                ja: "大見出し",
               },
               desc: {
                 cn: "划分文章主要章节，作为核心标题展示架构",
                 en: "divide article main chapter as core title show architecture",
+                ja: "記事の主要な章を区切り、コアタイトルを展示するアーキテクチャ",
               },
               _getMatchKey() {
                 return [["#"]];
@@ -104,11 +119,13 @@
               iconName: "h3",
               name: {
                 cn: "中标题",
-                en: "h3",
+                en: "Heading 2",
+                ja: "中見出し",
               },
               desc: {
                 cn: "细分主要章节内容，呈现子主题补充大标题",
                 en: "divide main chapter content as sub theme supplement title",
+                ja: "主要な章の内容を細分し、サブトピックを補足する大見出し",
               },
               _getMatchKey() {
                 return [["##"]];
@@ -119,11 +136,13 @@
               iconName: "h4",
               name: {
                 cn: "小标题",
-                en: "h4",
+                en: "Heading 3",
+                ja: "小見出し",
               },
               desc: {
                 cn: "细化内容，分组关键信息展现细节",
                 en: "refine content group key information show details",
+                ja: "内容を詳細に調整し、キー情報をグループ化して詳細を提示",
               },
               _getMatchKey() {
                 return [["###"]];
