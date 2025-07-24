@@ -32,9 +32,23 @@
     </o-fill>
   </p-list>
 
-  <p style="color: var(--md-sys-color-primary)">点击下方选项切换项目</p>
+  <p style="color: var(--md-sys-color-primary)">
+    <localized-content>
+      <span lang="en">Click below to switch projects</span>
+      <span lang="cn">点击下方选项切换项目</span>
+      <span lang="ja"
+        >下のオプションをクリックしてプロジェクトを切り替えます</span
+      >
+    </localized-content>
+  </p>
 
-  <h4>本地项目</h4>
+  <h4>
+    <localized-content>
+      <span lang="en">Local Projects</span>
+      <span lang="cn">本地项目</span>
+      <span lang="ja">ローカルプロジェクト</span>
+    </localized-content>
+  </h4>
   <p-list>
     <o-fill :value="existProjects" fill-key="projectDataId">
       <p-list-item
@@ -50,16 +64,22 @@
         </n-local-icon>
         <div style="display: flex">
           {{$data.projectName}} -
-          <span
+          <div
             style="
-              display: inline-block;
+              display: inline-flex;
               margin-left: 6px;
               font-size: 12px;
               color: #7c7c7c;
             "
           >
-            创建时间: <n-moment-span :time="$data.creationtime"></n-moment-span>
-          </span>
+            <localized-content>
+              <span lang="en">Created Time</span>
+              <span lang="cn">创建时间</span>
+              <span lang="ja">作成日時</span>
+            </localized-content>
+            :
+            <n-moment-span :time="$data.creationtime"></n-moment-span>
+          </div>
         </div>
         <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
 
@@ -97,7 +117,11 @@
         </o-else-if>
         <o-else slot="suffix">
           <div style="color: var(--md-sys-color-primary); margin-right: 8px">
-            已打开
+            <localized-content>
+              <span lang="en">Opened</span>
+              <span lang="cn">已打开</span>
+              <span lang="ja">開いている</span>
+            </localized-content>
           </div>
         </o-else>
 
@@ -123,7 +147,11 @@
           attr:disabled="!newProjectName || adding"
           on:click="addNewProject"
         >
-          添加新项目
+          <localized-content>
+            <span lang="en">Add New Project</span>
+            <span lang="cn">添加新项目</span>
+            <span lang="ja">新しいプロジェクトを追加する</span>
+          </localized-content>
         </p-button>
       </p-input>
     </p-list-item>
@@ -139,7 +167,13 @@
     </p-list-item> -->
   </p-list>
 
-  <h4>其他设备</h4>
+  <h4>
+    <localized-content>
+      <span lang="en">Other Devices</span>
+      <span lang="cn">其他设备</span>
+      <span lang="ja">他のデバイス</span>
+    </localized-content>
+  </h4>
   <p-list>
     <o-fill :value="remotes">
       <p-list-item>
@@ -151,7 +185,13 @@
         {{$data.userName}}
         <p-list slot="childs" style="--ladder-left: 8px">
           <o-if :value="$data.noData">
-            <p-list-item> 数据获取失败 </p-list-item>
+            <p-list-item>
+              <localized-content>
+                <span lang="en">Failed to get data</span>
+                <span lang="cn">获取数据失败</span>
+                <span lang="ja">データの取得に失敗しました</span>
+              </localized-content>
+            </p-list-item>
           </o-if>
           <o-fill :value="$data.projects">
             <p-list-item
@@ -166,17 +206,22 @@
               </n-local-icon>
               <div style="display: flex">
                 {{$data.projectName}} -
-                <span
+                <div
                   style="
-                    display: inline-block;
+                    display: inline-flex;
                     margin-left: 6px;
                     font-size: 12px;
                     color: #7c7c7c;
                   "
                 >
-                  创建时间:
+                  <localized-content>
+                    <span lang="en">Created Time</span>
+                    <span lang="cn">创建时间</span>
+                    <span lang="ja">作成日時</span>
+                  </localized-content>
+                  :
                   <n-moment-span :time="$data.creationtime"></n-moment-span>
-                </span>
+                </div>
               </div>
               <div class="secondary" style="color: #7c7c7c">
                 {{$data.dirName}}
@@ -218,7 +263,11 @@
                 <div
                   style="color: var(--md-sys-color-primary); margin-right: 8px"
                 >
-                  已打开
+                  <localized-content>
+                    <span lang="en">Opened</span>
+                    <span lang="cn">已打开</span>
+                    <span lang="ja">開いている</span>
+                  </localized-content>
                 </div>
               </o-else>
             </p-list-item>

@@ -6,6 +6,9 @@
     ::slotted([lang]) {
       display: none;
     }
+    ::slotted(span) {
+      display: contents;
+    }
   </style>
   <style id="lang-style"></style>
   <slot></slot>
@@ -23,8 +26,6 @@
         data: {},
         proto: {
           refreshStyle() {
-            settingData;
-
             this.shadow.$("#lang-style").html = `
               ::slotted([lang="${settingData.lang}"]) {
                 display: block;
