@@ -1,0 +1,47 @@
+<template component>
+  <style>
+    :host {
+      display: contents;
+    }
+    ::slotted([lang]) {
+      display: none;
+    }
+    ::slotted(span) {
+      display: contents;
+    }
+  </style>
+  <style id="lang-style"></style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      // 加载本机的语言
+      const { getLangAsync } = await load("./data.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      return {
+        tag: "localized-content",
+        data: {},
+        proto: {
+          refreshStyle() {
+            this.shadow.$("#lang-style").html = `
+              ::slotted([lang="${settingData.lang}"]) {
+                display: block;
+              }
+            `;
+          },
+        },
+        attached() {
+          this._wid = settingData.watchTick(() => {
+            this.refreshStyle();
+          });
+
+          this.refreshStyle();
+        },
+        detached() {
+          settingData.unwatch(this._wid);
+        },
+      };
+    };
+  </script>
+</template>

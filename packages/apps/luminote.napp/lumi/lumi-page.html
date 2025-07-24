@@ -1,0 +1,302 @@
+<template component>
+  <l-m src="./lumi-block.html"></l-m>
+  <l-m src="./lumi-multi-panel.html"></l-m>
+  <l-m src="./lumi-text-panel.html"></l-m>
+  <l-m src="./lumi-block-menu.html"></l-m>
+  <l-m src="./lumi-page-title.html"></l-m>
+  <l-m src="./lumi-command-panel.html"></l-m>
+  <l-m src="./lumi-inline-comp-panel.html"></l-m>
+  <l-m src="./lumi-remote-mark.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      margin: 0 auto;
+      user-select: auto;
+      /* background-color: rgb(62, 177, 142); */
+    }
+    /* .container {
+    } */
+
+    .title {
+      font-size: 40px;
+      font-weight: 700;
+      box-sizing: border-box;
+      margin: 0 6px;
+      width: 100%;
+      outline: none;
+      background-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      border: none;
+      color: inherit;
+    }
+  </style>
+  <o-if :value="itemData.removed">
+    <div
+      style="
+        display: flex;
+        background-color: var(--md-sys-color-on-error);
+        color: var(--md-sys-color-error);
+        padding: 8px 16px;
+        border-radius: 6px;
+      "
+    >
+      <localized-content>
+        <span lang="cn">此文章已暂时被放到回收站</span>
+        <span lang="en"
+          >This article has been temporarily moved to the recycle bin</span
+        >
+        <span lang="ja">この記事は一時的にごみ箱に移動されました</span>
+      </localized-content>
+
+      <p-button
+        size="small"
+        color="primary"
+        variant="outlined"
+        on:click="itemData.removed = null"
+        style="margin-left: auto"
+      >
+        <localized-content>
+          <span lang="cn">放回原处</span>
+          <span lang="en">Restore</span>
+          <span lang="ja">元に戻す</span>
+        </localized-content>
+      </p-button>
+    </div>
+  </o-if>
+  <div class="container">
+    <lumi-page-title>
+      <input
+        id="title"
+        class="title"
+        type="text"
+        sync:value="itemData.title"
+        on:click="$event.stopPropagation()"
+        style="margin-bottom: 16px"
+        on:keydown="titleKeyDown"
+        :placeholder="desc.pageTitlePlaceholder"
+      />
+    </lumi-page-title>
+    <slot></slot>
+    <o-fill :value="recordData" fill-key="userId">
+      <lumi-remote-mark
+        :block-id="$data.blockId"
+        :user-id="$data.userId"
+      ></lumi-remote-mark>
+    </o-fill>
+    <div style="height: 128px" on:click="focusLast"></div>
+  </div>
+  <lumi-multi-panel></lumi-multi-panel>
+  <lumi-text-panel></lumi-text-panel>
+  <lumi-command-panel></lumi-command-panel>
+  <lumi-block-menu></lumi-block-menu>
+  <lumi-inline-comp-panel></lumi-inline-comp-panel>
+  <script>
+    import { localizedObject } from "/packages/i18n/localized-object.js";
+
+    export default async ({ load }) => {
+      const { initUndoRedo, revokeUndoRedo } = await load(
+        "./lumi-page-init/undo-redo.js"
+      );
+      const { initMultiSelect, revokeMultiSelect } = await load(
+        "./lumi-page-init/multi-select.js"
+      );
+
+      const { initTextRange, revokeTextRange } = await load(
+        "./lumi-page-init/text-range.js"
+      );
+
+      const { initTextInput, revokeTextInput } = await load(
+        "./lumi-page-init/text-input.js"
+      );
+
+      const { initBlockMenu, revokeBlockMenu } = await load(
+        "./lumi-page-init/block-menu.js"
+      );
+
+      const { initDrag, revokeDrag } = await load("./lumi-page-init/drag.js");
+
+      const { getRecordByPageId } = await load("../util/user-record-util.js");
+
+      const { diffFill } = await load("./util/diff-fill.js");
+      const {
+        letterDataToElement,
+        elementToLetterData,
+        getSelectionLetterData,
+      } = await load("./util/range.js");
+
+      const { saveHistory, clearUndoHistory } = await load(
+        "./lumi-page-init/undo-redo.js"
+      );
+
+      const { blockComps } = await load("./block/config.js");
+
+      // 加载块组件
+      blockComps.forEach((e) => {
+        load(e.src);
+      });
+
+      return {
+        tag: "lumi-page",
+        data: {
+          itemData: {},
+          recordData: {},
+          desc: {},
+        },
+        proto: {
+          titleKeyDown(e) {
+            if (e.key === "Enter") {
+              // 如果第一个元素不是空元素，则添加空元素后聚焦
+              let firstBlock = this[0];
+
+              if (!firstBlock.itemData.value.trim()) {
+                firstBlock.focus();
+                return;
+              }
+
+              this.itemData.content.unshift({
+                type: "paragraph",
+                value: "",
+              });
+
+              setTimeout(() => {
+                this[0].focus();
+              }, 10);
+            }
+          },
+          focusTitle() {
+            this.shadow.$(".title").ele.focus();
+          },
+          async focusLast() {
+            let lastBlockEl = this.slice(-1)[0];
+
+            if (!this.itemData?.content) {
+              return;
+            }
+
+            if (!lastBlockEl || lastBlockEl.itemData.type !== "paragraph") {
+              // 如果最后一个元素不是段落元素，则添加段落元素
+              this.itemData.content.push({
+                type: "paragraph",
+                value: "",
+              });
+
+              await new Promise((res) => setTimeout(res, isSafari ? 60 : 1));
+            }
+
+            // 聚焦最后一个元素
+            this.slice(-1)[0].focus();
+          },
+          async initRecord() {
+            const notePage = this.parents.find(
+              (e) => e.tag === "o-page" && e.src.includes("note.html")
+            );
+
+            const { articleId, currentDirName, currentUserId } = notePage;
+
+            const { recordData, revoke } = await getRecordByPageId({
+              targetUserId: notePage.currentUserId,
+              projectDirName: notePage.currentDirName,
+              articleId: this.itemData._dataId,
+              app: this.parents.find((e) => e.tag === "o-app"),
+            });
+
+            this.recordData = recordData;
+            this._recordRevoke = revoke;
+          },
+        },
+        async attached() {
+          this.desc = localizedObject({
+            pageTitlePlaceholder: {
+              cn: "页面标题",
+              en: "Page title",
+              ja: "ページタイトル",
+            },
+          });
+          this.on("click", (e) => {
+            const composeds = e.composedPath();
+
+            if (composeds[0].matches && composeds[0].matches("lumi-page")) {
+              this.focusLast();
+            }
+          });
+
+          // 先清空
+          clearUndoHistory();
+
+          {
+            // BUG: safari无法获取shadow root 内的 selection
+            this.watchTick((e) => {
+              if (!e.hasModified("itemData")) {
+                return;
+              }
+
+              const finalArr = Array.from(e).filter(
+                (e) =>
+                  e.name !== "dataStatus" &&
+                  e.name !== "inFocus" &&
+                  e.name !== "focusUser"
+              );
+
+              if (!finalArr.length) {
+                return;
+              }
+
+              saveHistory(this, e);
+
+              const { content } = this.itemData;
+
+              if (!content) {
+                return;
+              }
+
+              diffFill({
+                container: this,
+                data: content,
+                create: ({ item }) => {
+                  const blockEl = $(`<lumi-block></lumi-block>`);
+
+                  blockEl.itemData = item;
+                  blockEl.data.blockid = item._dataId;
+
+                  return blockEl;
+                },
+                isEqual: (subEl, item) => {
+                  return subEl.itemData === item;
+                },
+              });
+            });
+
+            initUndoRedo(this);
+            initMultiSelect(this);
+            initTextRange(this);
+            initDrag(this);
+            initTextInput(this);
+            initBlockMenu(this);
+          }
+        },
+        detached() {
+          if (this._recordRevoke) {
+            this.recordData = [];
+            this._recordRevoke();
+            this._recordRevoke = null;
+          }
+
+          this.itemData = {}; // 清除绑定
+          this.desc._clear();
+          this.desc = {};
+
+          revokeUndoRedo(this);
+          revokeMultiSelect(this);
+          revokeTextRange(this);
+          revokeDrag(this);
+          revokeTextInput(this);
+          revokeBlockMenu(this);
+        },
+      };
+    };
+
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+  </script>
+</template>

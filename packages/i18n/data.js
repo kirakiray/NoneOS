@@ -3,7 +3,7 @@ import { Stanz } from "/packages/libs/stanz/main.js";
 
 (() => {
   const load = lm(import.meta);
-  load("./component.html");
+  load("./n-desc.html");
 })();
 
 // 多语言的存储主体对象
@@ -60,6 +60,12 @@ const listeners = [];
 
 let oldLang = null;
 export const getLang = () => oldLang;
+
+export const getLangAsync = async () => {
+  const settingData = await getSetting();
+
+  return settingData.lang;
+};
 
 (async () => {
   const settingData = await getSetting();

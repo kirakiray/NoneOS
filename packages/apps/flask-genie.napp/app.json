@@ -1,0 +1,15 @@
+{
+  "name": "FlaskGenie",
+  "icon": "icon.svg",
+  "i18n": {
+    "cn": {
+      "name": "FlaskGenie"
+    },
+    "en": {
+      "name": "FlaskGenie"
+    },
+    "ja": {
+      "name": "FlaskGenie"
+    }
+  }
+}

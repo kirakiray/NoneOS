@@ -27,8 +27,16 @@ export class HybirdData extends Stanz {
     if (options._dataId) {
       // 从本地handle加载的数据，会带有数据的id
       const { owner } = options;
+      const root = owner.#root || owner;
 
-      this.#root = owner.#root || owner;
+      // 尝试从根节点上获取是否已经存在
+      const exitedObj = root[ROOTMAPPER].get(options._dataId);
+
+      if (exitedObj) {
+        return exitedObj;
+      }
+
+      this.#root = root;
       this.#dataId = options._dataId; // 继承旧的id
       this.#root[ROOTMAPPER].set(this.#dataId, this); // 将数据添加到root对象中
 
@@ -55,7 +63,9 @@ export class HybirdData extends Stanz {
       this.#dataId = "_root";
       this[ROOTMAPPER] = new Map();
 
-      this.#initRoot();
+      this.#initRoot({
+        saveDebounce: options.saveDebounce,
+      });
     } else {
       // TODO: 不明白的情况
       debugger;
@@ -63,7 +73,7 @@ export class HybirdData extends Stanz {
   }
 
   // 初始化根对象的
-  async #initRoot() {
+  async #initRoot(options = {}) {
     let handle = await this._spaceHandle.get(this.#dataId, {
       create: "file",
     });
@@ -114,7 +124,7 @@ export class HybirdData extends Stanz {
       watchs.forEach((watcher) => {
         saveData(watcher.target); // 保存数据
       });
-    });
+    }, options.saveDebounce || 0);
 
     Object.defineProperties(this, {
       // 注销监听
@@ -183,7 +193,7 @@ export class HybirdData extends Stanz {
         this[key] = subHyData; // 设置数据，这里会触发set，从而触发保存数据的逻辑
       } catch (e) {
         console.error(
-          new Error(`Data parsing error, file content: \`${subText}\``, {
+          new Error(`Data parsing error, file content: '${subText}'`, {
             cause: e,
           })
         );

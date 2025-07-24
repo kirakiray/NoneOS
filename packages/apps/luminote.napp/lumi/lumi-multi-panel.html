@@ -1,0 +1,144 @@
+<template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .mask {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10000;
+      pointer-events: none;
+    }
+
+    .mask.show-multi-panel {
+      pointer-events: auto;
+    }
+
+    .multi-panel {
+      position: fixed;
+      top: 100px;
+      left: 100px;
+      padding: 3px;
+      background-color: var(--md-sys-color-on-normal);
+      box-shadow: var(--contained-shadow);
+      border-radius: 20px;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: opacity ease 0.2s, transform ease 0.2s;
+      white-space: nowrap;
+    }
+
+    .mask.show-multi-panel .multi-panel {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  </style>
+
+  <div class="mask" class:show-multi-panel="open" on:click="clickMask">
+    <div
+      class="multi-panel"
+      :style.top="multiPanelStyle.top"
+      :style.left="multiPanelStyle.left"
+    >
+      <p-button size="small" variant="text" on:click="clickCopy">
+        <n-local-icon
+          name="copy"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <localized-content>
+          <span lang="cn">复制</span>
+          <span lang="en">Copy</span>
+          <span lang="ja">コピー</span>
+        </localized-content>
+      </p-button>
+      <p-button
+        size="small"
+        color="error"
+        variant="text"
+        on:click="clickDelete"
+      >
+        <n-local-icon
+          name="delete"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <localized-content>
+          <span lang="cn">删除</span>
+          <span lang="en">Delete</span>
+          <span lang="ja">削除</span>
+        </localized-content>
+      </p-button>
+    </div>
+  </div>
+
+  <script>
+    export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+      const { copySelectedBlock, deleteSelectedBlock } = await load(
+        "./util/lumi-util.js"
+      );
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        tag: "lumi-multi-panel",
+        data: {
+          open: false,
+          multiPanelStyle: {
+            top: 0,
+            left: 0,
+          },
+        },
+        proto: {
+          get panel() {
+            return this.shadow.$(".multi-panel");
+          },
+          async clickCopy() {
+            copySelectedBlock(this.host);
+
+            toast({
+              content: await getLocalized({
+                cn: "复制成功",
+                en: "Copied successfully",
+                ja: "コピー成功",
+              }),
+              color: "success",
+            });
+
+            this.emit("close", {
+              bubbles: false,
+            });
+          },
+          clickDelete() {
+            // 逐个删除内容
+            deleteSelectedBlock(this.host);
+
+            this.emit("close", {
+              bubbles: false,
+            });
+          },
+          clickMask() {
+            this.open = false;
+            this.forEach((e) => {
+              if (e.selected) {
+                e.selected = false;
+              }
+            });
+            this.host._selecteds = null;
+            this.emit("close", {
+              bubbles: false,
+            });
+          },
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

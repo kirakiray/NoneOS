@@ -1,0 +1,80 @@
+<template component>
+  <style>
+    :host {
+      position: fixed;
+      display: block;
+      padding: 8px;
+      border-radius: 4px;
+      z-index: 2;
+      left: 300px;
+      top: 100px;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+      transition: transform ease 0.2s, opacity ease 0.2s;
+      opacity: 0;
+      transform: translate(16px, 0);
+    }
+
+    :host([open]) {
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+  </style>
+  <div class="main"></div>
+  <script>
+    export default async ({ load }) => {
+      const { inlineComps } = await load("./inline/config.js");
+
+      return {
+        tag: "lumi-inline-comp-panel",
+        attrs: {
+          open: null,
+          _inlineCompTimer: null,
+        },
+        proto: {
+          init(inlineComp) {
+            const inlineCompConfig = inlineComps.find(
+              (e) => e.tag === inlineComp.tag
+            );
+
+            if (inlineCompConfig) {
+              const { formTag } = inlineCompConfig;
+
+              this.shadow.$(".main").html = `<${formTag}></${formTag}>`;
+
+              setTimeout(() => {
+                // 运行初始化方法
+                this.shadow.$(".main")[0].onInit({
+                  target: inlineComp,
+                });
+              });
+
+              this.showPanel();
+            } else {
+              console.log("没有找到该组件的配置: ", inlineComp.tag);
+            }
+          },
+          showPanel() {
+            clearTimeout(this._inlineCompTimer);
+            this.open = "1";
+          },
+          hidePanel() {
+            this._inlineCompTimer = setTimeout(() => {
+              this.open = null;
+            }, 300);
+          },
+        },
+        attached() {
+          this.on("mouseenter", () => {
+            this.showPanel();
+          });
+
+          this.on("mouseleave", () => {
+            this.hidePanel();
+          });
+        },
+      };
+    };
+  </script>
+</template>

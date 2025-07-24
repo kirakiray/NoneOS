@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Selection和Range API示例</title>
+    <style>
+      #content {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      button {
+        margin: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content" contenteditable="true">
+      这是一个可编辑的区域。你可以在这里选择一些文本，然后点击下面的按钮来测试Selection和Range
+      API。
+    </div>
+
+    <button onclick="showSelection()">显示选中内容</button>
+    <button onclick="surroundSelection()">用span包裹选中内容</button>
+
+    <div id="output"></div>
+
+    <script>
+      function showSelection() {
+        const selection = window.getSelection();
+        const output = document.getElementById("output");
+
+        if (selection.rangeCount > 0) {
+          const range = selection.getRangeAt(0);
+          output.innerHTML = `
+                    <p>选中文本: "${range.toString()}"</p>
+                    <p>开始节点: ${range.startContainer.nodeName}</p>
+                    <p>开始偏移: ${range.startOffset}</p>
+                    <p>结束节点: ${range.endContainer.nodeName}</p>
+                    <p>结束偏移: ${range.endOffset}</p>
+                `;
+        } else {
+          output.innerHTML = "<p>没有选中任何内容</p>";
+        }
+      }
+
+      function surroundSelection() {
+        const selection = window.getSelection();
+
+        if (selection.rangeCount > 0 && !selection.isCollapsed) {
+          const range = selection.getRangeAt(0);
+          const span = document.createElement("span");
+          span.style.backgroundColor = "yellow";
+
+          range.surroundContents(span);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      }
+    </script>
+  </body>
+</html>

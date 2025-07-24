@@ -1,0 +1,855 @@
+<template component>
+  <l-m src="/packages/pui/button/group.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+
+  <style>
+    :host {
+      position: absolute;
+      z-index: 6;
+      display: block;
+      user-select: none;
+      transition: transform ease 0.2s, opacity ease 0.2s;
+
+      transform: translate(16px, 0);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    :host([open="true"]) {
+      transform: translate(0, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .section-panel {
+      display: flex;
+      align-items: center;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+      border-radius: 18px;
+      padding: 3px;
+      white-space: nowrap;
+    }
+
+    /* .section-panel.hide {
+      transform: translate(16px, 0);
+      opacity: 0;
+      pointer-events: none;
+    } */
+
+    .section-panel n-local-icon {
+      display: block;
+      font-size: 16px;
+    }
+
+    .tool-pannel-line {
+      background-color: var(--md-sys-color-normal);
+      width: 1px;
+      height: 22px;
+      margin: 0 6px;
+    }
+
+    .section-panel p-button {
+      margin: 0 2px;
+    }
+
+    .tool-tips {
+      margin-bottom: 5px;
+      padding: 8px;
+      line-height: 1.6em;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-normal-container);
+      border-radius: var(--pui-border-radius);
+      box-shadow: var(--contained-shadow);
+      text-align: center;
+    }
+  </style>
+
+  <div class="section-panel">
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('bold')"
+        attr:disabled="itemType === 'h2' || itemType === 'h3' || itemType === 'h4'"
+        attr:color="isActiveBold == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveBold == 2 ? 'tonal' : 'text'"
+      >
+        <n-local-icon name="bold"></n-local-icon>
+      </p-button>
+
+      <div slot="tips">
+        <o-if
+          :value="itemType === 'h2' || itemType === 'h3' || itemType === 'h4'"
+        >
+          <div class="tool-tips">
+            <localized-content>
+              <span lang="en">Headers are already bold</span>
+              <span lang="cn">标题已经是加粗的状态</span>
+              <span lang="ja">ヘッダーは既に太字です</span>
+            </localized-content>
+          </div>
+        </o-if>
+        <o-else>
+          <div class="tool-tips">
+            <strong>
+              <localized-content>
+                <span lang="en">Bold</span>
+                <span lang="cn">加粗</span>
+                <span lang="ja">太字</span>
+              </localized-content>
+            </strong>
+            <br />
+            <o-if :value="isActiveBold === 2">
+              <localized-content>
+                <span lang="en">Activated, click to deactivate bold</span>
+                <span lang="cn">已激活，点击后取消加粗</span>
+                <span lang="ja">有効化済み、クリックで太字を解除</span>
+              </localized-content>
+            </o-if>
+            <o-else-if :value="isActiveBold === 1">
+              <localized-content>
+                <span lang="en"
+                  >Partially activated, click to deactivate partial bold</span
+                >
+                <span lang="cn">部分激活，点击后取消部分加粗</span>
+                <span lang="ja"
+                  >部分的に有効化、クリックで部分的な太字を解除</span
+                >
+              </localized-content>
+            </o-else-if>
+            <o-else>
+              <localized-content>
+                <span lang="en">Not activated, click to activate bold</span>
+                <span lang="cn">未激活，点击后激活加粗</span>
+                <span lang="ja">未有効化、クリックで太字を有効化</span>
+              </localized-content>
+            </o-else>
+          </div>
+        </o-else>
+      </div>
+    </p-tooltips>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('underline')"
+        attr:color="isActiveUnderline == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveUnderline == 2 ? 'tonal' : 'text'"
+      >
+        <n-local-icon name="underline" style="font-size: 18px"></n-local-icon>
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips">
+          <strong>
+            <localized-content>
+              <span lang="en">Underline</span>
+              <span lang="cn">下划线</span>
+              <span lang="ja">下線</span>
+            </localized-content>
+          </strong>
+          <br />
+          <o-if :value="isActiveUnderline === 2">
+            <localized-content>
+              <span lang="en">Activated, click to deactivate underline</span>
+              <span lang="cn">已激活，点击后取消下划线</span>
+              <span lang="ja">有効化済み、クリックで下線を解除</span>
+            </localized-content>
+          </o-if>
+          <o-else-if :value="isActiveUnderline === 1">
+            <localized-content>
+              <span lang="en"
+                >Partially activated, click to deactivate partial
+                underline</span
+              >
+              <span lang="cn">部分激活，点击后取消部分下划线</span>
+              <span lang="ja"
+                >部分的に有効化、クリックで部分的な下線を解除</span
+              >
+            </localized-content>
+          </o-else-if>
+          <o-else>
+            <localized-content>
+              <span lang="en">Not activated, click to activate underline</span>
+              <span lang="cn">未激活，点击后激活下划线</span>
+              <span lang="ja">未有効化、クリックで下線を有効化</span>
+            </localized-content>
+          </o-else>
+        </div>
+      </div>
+    </p-tooltips>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('strikethrough')"
+        attr:color="isActiveStrikethrough == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveStrikethrough == 2 ? 'tonal' : 'text'"
+      >
+        <n-local-icon
+          name="strikethrough"
+          style="font-size: 18px"
+        ></n-local-icon>
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips">
+          <strong>
+            <localized-content>
+              <span lang="en">Strikethrough</span>
+              <span lang="cn">删除线</span>
+              <span lang="ja">取り消し線</span>
+            </localized-content>
+          </strong>
+          <br />
+          <o-if :value="isActiveStrikethrough === 2">
+            <localized-content>
+              <span lang="en"
+                >Activated, click to deactivate strikethrough</span
+              >
+              <span lang="cn">已激活，点击后取消删除线</span>
+              <span lang="ja">有効化済み、クリックで取り消し線を解除</span>
+            </localized-content>
+          </o-if>
+          <o-else-if :value="isActiveStrikethrough === 1">
+            <localized-content>
+              <span lang="en"
+                >Partially activated, click to deactivate partial
+                strikethrough</span
+              >
+              <span lang="cn">部分激活，点击后取消部分删除线</span>
+              <span lang="ja"
+                >部分的に有効化、クリックで部分的な取り消し線を解除</span
+              >
+            </localized-content>
+          </o-else-if>
+          <o-else>
+            <localized-content>
+              <span lang="en">
+                Not activated, click to activate strikethrough
+              </span>
+              <span lang="cn">未激活，点击后激活删除线</span>
+              <span lang="ja">未有効化、クリックで取り消し線を有効化</span>
+            </localized-content>
+          </o-else>
+        </div>
+      </div>
+    </p-tooltips>
+    <p-tooltips placement="top" plain>
+      <p-button
+        size="small"
+        variant="text"
+        color="normal"
+        icon
+        on:click="handleSelectionAction('italic')"
+        attr:color="isActiveItalic == 0 ? 'normal' : 'primary'"
+        attr:variant="isActiveItalic == 2 ? 'tonal' : 'text'"
+      >
+        <n-local-icon name="italic"></n-local-icon>
+      </p-button>
+      <div slot="tips">
+        <div class="tool-tips">
+          <strong>
+            <localized-content>
+              <span lang="en">Italic</span>
+              <span lang="cn">斜体</span>
+              <span lang="ja">斜体</span>
+            </localized-content>
+          </strong>
+          <br />
+          <o-if :value="isActiveItalic === 2">
+            <localized-content>
+              <span lang="en">Activated, click to deactivate italic</span>
+              <span lang="cn">已激活，点击后取消斜体</span>
+              <span lang="ja">有効化済み、クリックで斜体を解除</span>
+            </localized-content>
+          </o-if>
+          <o-else-if :value="isActiveItalic === 1">
+            <localized-content>
+              <span lang="en"
+                >Partially activated, click to deactivate partial italic</span
+              >
+              <span lang="cn">部分激活，点击后取消部分斜体</span>
+              <span lang="ja"
+                >部分的に有効化、クリックで部分的な斜体を解除</span
+              >
+            </localized-content>
+          </o-else-if>
+          <o-else>
+            <localized-content>
+              <span lang="en">Not activated, click to activate italic</span>
+              <span lang="cn">未激活，点击后激活斜体</span>
+              <span lang="ja">未有効化、クリックで斜体を有効化</span>
+            </localized-content>
+          </o-else>
+        </div>
+      </div>
+    </p-tooltips>
+    <div style="position: relative">
+      <p-button
+        size="small"
+        icon
+        variant="text"
+        color="normal"
+        class="color-btn"
+        on:mouseover="mouseoverColorWheel"
+        on:mouseout="mouseoutColorWheel"
+        style="border-radius: 16px"
+        :style.background-color="`var(--md-sys-color-${currentBgColor}-container)`"
+      >
+        <n-local-icon
+          name="color"
+          :style.color="`var(--md-sys-color-${currentColor})`"
+        ></n-local-icon>
+      </p-button>
+      <div
+        class="color-wheel"
+        class:show-color-wheel="showColorWheel"
+        on:click="$event.stopPropagation()"
+        on:mouseover="mouseoverColorWheel"
+        on:mouseout="mouseoutColorWheel"
+      >
+        <strong>
+          <localized-content>
+            <span lang="en">Text Color</span>
+            <span lang="cn">字体颜色</span>
+            <span lang="ja">文字色</span>
+          </localized-content>
+        </strong>
+        <div style="display: flex">
+          <o-fill :value="colorOpts">
+            <div
+              class="color-block"
+              class:checked="$data.color === $host.currentColor"
+              :style.color="`var(--md-sys-color-${$data.color})`"
+              attr:title="$data.name"
+              on:mousedown="$host.changeColor($data.color)"
+            >
+              A
+            </div>
+          </o-fill>
+        </div>
+        <strong style="margin-top: 12px">
+          <localized-content>
+            <span lang="en">Background Color</span>
+            <span lang="cn">背景颜色</span>
+            <span lang="ja">背景色</span>
+          </localized-content>
+        </strong>
+        <div style="display: flex">
+          <o-fill :value="colorOpts">
+            <div
+              class="color-block"
+              class:checked="$data.color === $host.currentBgColor"
+              :style.background-color="`var(--md-sys-color-${$data.color}-container)`"
+              attr:title="$data.name"
+              on:mousedown="$host.changeColor($data.color, true)"
+            ></div>
+          </o-fill>
+        </div>
+      </div>
+    </div>
+    <div class="tool-pannel-line"></div>
+    <o-if :value="!selectionHasComponent">
+      <o-fill :value="inlineComps">
+        <p-tooltips placement="top" plain>
+          <p-button
+            icon
+            size="small"
+            variant="text"
+            color="primary"
+            on:click="$host.clickPanelBtn($data)"
+          >
+            <span :html="$data.icon" style="display: contents"></span>
+          </p-button>
+          <div slot="tips">
+            <div class="tool-tips" style="white-space: wrap; width: 140px">
+              <strong>{{$data.name}}</strong><br />
+              {{$data.desc}}
+            </div>
+          </div>
+        </p-tooltips>
+      </o-fill>
+    </o-if>
+    <o-else>
+      <p-tooltips placement="top" plain>
+        <p-button
+          size="small"
+          variant="text"
+          color="primary"
+          icon
+          on:click="clickCancelComp"
+        >
+          <n-local-icon
+            name="remove"
+            slot="prefix"
+            style="margin: 0"
+          ></n-local-icon>
+        </p-button>
+        <div slot="tips">
+          <div class="tool-tips" style="white-space: wrap; width: 200px">
+            <strong>
+              <localized-content>
+                <span lang="en">Remove Component Reference</span>
+                <span lang="cn">取消组件引用</span>
+                <span lang="ja">コンポーネント参照を削除</span>
+              </localized-content> </strong
+            ><br />
+            <localized-content>
+              <span lang="en"
+                >Remove inline component references from selected text and
+                restore it to plain text.</span
+              >
+              <span lang="cn"
+                >移除选中文字中的内联组件引用，将其恢复为普通文本。</span
+              >
+              <span lang="ja"
+                >選択したテキストからインラインコンポーネント参照を削除し、プレーンテキストに戻します。</span
+              >
+            </localized-content>
+          </div>
+        </div>
+      </p-tooltips>
+    </o-else>
+  </div>
+
+  <style>
+    .color-wheel {
+      display: block;
+      position: absolute;
+      right: 0;
+      top: 52px;
+      width: 200px;
+      padding: 8px;
+      border-radius: 8px;
+      text-align: left;
+      background-color: var(--md-sys-color-on-normal);
+      box-shadow: var(--contained-shadow);
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s ease;
+      z-index: 2;
+    }
+
+    .show-color-wheel {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .color-wheel strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .color-block {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 16px;
+      font-size: 20px;
+      margin-right: 6px;
+      border: 0.5px solid var(--md-sys-color-on-surface);
+      /* border: 1px solid transparent; */
+      cursor: pointer;
+    }
+
+    .color-block.checked {
+      outline: 2px solid var(--md-sys-color-primary);
+    }
+  </style>
+
+  <script>
+    export default async ({ load }) => {
+      const { letterDataToElement, getSelectionLetterData } = await load(
+        "./util/range.js"
+      );
+
+      const { inlineComps } = await load("./inline/config.js");
+      const { localizedObject, getLocalized } = await load(
+        "/packages/i18n/localized-object.js"
+      );
+
+      {
+        // 加载内联组件
+        inlineComps.forEach(async (inlineComp) => {
+          load(inlineComp.inlineComponentSrc); // 加载内联组件
+          load(inlineComp.formComponentSrc); // 加载改动数据用的表单组件
+        });
+      }
+
+      return {
+        tag: "lumi-text-panel",
+        attrs: {
+          open: null,
+        },
+        data: {
+          // 下面是激活按钮的状态: 0没有激活 1激活了部分 2完全激活
+          isActiveBold: 0, // 激活了加粗按钮
+          isActiveItalic: 0, // 激活了斜体按钮
+          isActiveUnderline: 0, // 激活了下划线按钮
+          isActiveStrikethrough: 0, // 激活了删除线按钮
+          currentColor: "",
+          currentBgColor: "",
+          selectionHasComponent: false, // 当前选中的元素是否包含组件
+          colorOpts: [
+            {
+              name: await getLocalized({
+                en: "None",
+                cn: "不使用",
+                ja: "なし",
+              }),
+              color: "",
+            },
+            {
+              name: await getLocalized({
+                en: "Primary",
+                cn: "主题色",
+                ja: "プライマリー",
+              }),
+              color: "primary",
+            },
+            {
+              name: await getLocalized({
+                en: "Success",
+                cn: "成功色",
+                ja: "成功",
+              }),
+              color: "success",
+            },
+            {
+              name: await getLocalized({
+                en: "Error",
+                cn: "错误色",
+                ja: "エラー",
+              }),
+              color: "error",
+            },
+            {
+              name: await getLocalized({
+                en: "Normal",
+                cn: "灰色",
+                ja: "通常",
+              }),
+              color: "normal",
+            },
+          ],
+          showColorWheel: false,
+          inlineComps: [],
+          // open: false,
+          _selectedData: {}, // 选中块的数据
+        },
+        proto: {
+          get itemType() {
+            try {
+              return this._targetBlock.itemData.type;
+            } catch (err) {
+              return "";
+            }
+          },
+          mouseoverColorWheel() {
+            clearTimeout(this._mouseOverTimer);
+            this.showColorWheel = true;
+          },
+          mouseoutColorWheel() {
+            clearTimeout(this._mouseOverTimer);
+            this._mouseOverTimer = setTimeout(() => {
+              this.showColorWheel = false;
+            }, 300);
+          },
+          async clickCancelComp() {
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
+
+            selectionRangeLetter.forEach((letterData) => {
+              letterData.options = {
+                ...letterData.options,
+                comp: undefined,
+              };
+            });
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+                startOffset,
+                endOffset,
+              },
+            });
+          },
+          async getSelectionLetterData() {
+            return getSelectionLetterData(document);
+          },
+          async changeColor(color, isChangeBgColor) {
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
+
+            if (isChangeBgColor) {
+              this.currentBgColor = color;
+              selectionRangeLetter.forEach((item) => {
+                item.options = {
+                  ...item.options,
+                  backgroundColor: color
+                    ? `var(--md-sys-color-${color}-container)`
+                    : "",
+                };
+              });
+            } else {
+              this.currentColor = color;
+              selectionRangeLetter.forEach((item) => {
+                item.options = {
+                  ...item.options,
+                  color: color ? `var(--md-sys-color-${color})` : "",
+                };
+              });
+            }
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            setTimeout(() => {
+              this.emit("update-value", {
+                data: {
+                  value: newValue,
+                  startOffset,
+                  endOffset,
+                },
+              });
+            });
+          },
+          // 当点击了对应的操作
+          async handleSelectionAction(type) {
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
+
+            switch (type) {
+              case "bold":
+                const { isActiveBold } = this;
+                selectionRangeLetter.forEach((item) => {
+                  if (isActiveBold === 0) {
+                    item.options = {
+                      ...item.options,
+                      bold: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      bold: false,
+                    };
+                  }
+                });
+                break;
+              case "italic":
+                const { isActiveItalic } = this;
+                selectionRangeLetter.forEach((item) => {
+                  if (isActiveItalic === 0) {
+                    item.options = {
+                      ...item.options,
+                      italic: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      italic: false,
+                    };
+                  }
+                });
+                break;
+              case "underline":
+                const { isActiveUnderline } = this;
+                selectionRangeLetter.forEach((item) => {
+                  if (isActiveUnderline === 0) {
+                    item.options = {
+                      ...item.options,
+                      underline: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      underline: false,
+                    };
+                  }
+                });
+                break;
+              case "strikethrough":
+                const { isActiveStrikethrough } = this;
+                selectionRangeLetter.forEach((item) => {
+                  if (isActiveStrikethrough === 0) {
+                    item.options = {
+                      ...item.options,
+                      lineThrough: true,
+                    };
+                  } else {
+                    item.options = {
+                      ...item.options,
+                      lineThrough: false,
+                    };
+                  }
+                });
+                break;
+            }
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+                startOffset,
+                endOffset,
+              },
+            });
+          },
+          async refreshBtnState() {
+            const { selectionRangeLetter } =
+              await this.getSelectionLetterData();
+
+            // 获取选中文本的状态
+            this.isActiveBold = getState("bold", selectionRangeLetter);
+            this.isActiveItalic = getState("italic", selectionRangeLetter);
+            this.isActiveUnderline = getState(
+              "underline",
+              selectionRangeLetter
+            );
+            this.isActiveStrikethrough = getState(
+              "lineThrough",
+              selectionRangeLetter
+            );
+
+            this.currentColor = getColor(selectionRangeLetter);
+            this.currentBgColor = getColor(selectionRangeLetter, 1);
+
+            this.selectionHasComponent = selectionRangeLetter.some(
+              (e) => e.options.comp
+            );
+          },
+          async loadInlineComponents() {
+            inlineComps.forEach(async (inlineComp) => {
+              const option = {
+                name: inlineComp.name.cn,
+                desc: inlineComp.desc.cn,
+                icon: inlineComp.icon,
+                tag: inlineComp.tag,
+                __data: inlineComp,
+              };
+
+              this.inlineComps.push(option);
+            });
+          },
+          // 点击了内联组件按钮
+          async clickPanelBtn(item) {
+            const { startOffset, endOffset, letterData, selectionRangeLetter } =
+              await this.getSelectionLetterData();
+
+            let result;
+            if (item.__data.click) {
+              result = await item.__data.click({
+                blockEl: this._targetBlock, // 主体块元素
+                blockItemData: this._targetBlock.itemData,
+                pageEl: this.host.parent,
+                pageItemData: this.host.parent.itemData,
+                startOffset,
+                endOffset,
+                letterData,
+                selectionRangeLetter,
+              });
+
+              if (result === false) {
+                return;
+              }
+            }
+
+            // 添加引用组件
+            selectionRangeLetter.forEach((letterData) => {
+              letterData.options = {
+                ...letterData.options,
+                comp: {
+                  tag: item.tag,
+                  ...result,
+                },
+              };
+            });
+
+            // 将数据重新转回字符串
+            const newValue = await letterDataToElement(letterData);
+
+            this.emit("update-value", {
+              data: {
+                value: newValue,
+                startOffset,
+                endOffset,
+                callback: ({ startContainer }) => {
+                  const target = startContainer.parentElement;
+
+                  // 插入成功后，立刻激活该元素
+                  $(target).active = true;
+                },
+              },
+            });
+          },
+        },
+        attached() {
+          this.loadInlineComponents();
+        },
+        detached() {},
+      };
+    };
+
+    const getColor = (selectionRangeLetter, isBgColor) => {
+      let color = "";
+      selectionRangeLetter.some((item) => {
+        if (isBgColor) {
+          if (item.options.backgroundColor) {
+            const colorArr = item.options.backgroundColor
+              .replace(/var\((.+)\)/, "$1")
+              .split("-");
+
+            color = colorArr[colorArr.findIndex((e) => e === "color") + 1];
+
+            return true;
+          }
+        } else {
+          if (item.options.color) {
+            const colorArr = item.options.color
+              .replace(/var\((.+)\)/, "$1")
+              .split("-");
+
+            color = colorArr[colorArr.findIndex((e) => e === "color") + 1];
+
+            return true;
+          }
+        }
+      });
+
+      return color;
+    };
+
+    // 获取状态
+    const getState = (key, selectionRangeLetter) => {
+      let activeStatus = 0;
+      let allBold = true;
+      selectionRangeLetter.some((item) => {
+        if (item.options[key]) {
+          activeStatus = 1;
+        } else {
+          allBold = false;
+        }
+      });
+      if (allBold) {
+        activeStatus = 2;
+      }
+
+      return activeStatus;
+    };
+  </script>
+</template>

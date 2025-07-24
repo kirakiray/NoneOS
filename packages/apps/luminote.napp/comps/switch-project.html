@@ -1,0 +1,463 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      max-height: calc(90dvh - 80px);
+      overflow-y: auto;
+    }
+  </style>
+  <h4>
+    <localized-content>
+      <span lang="en"> Opened Projects </span>
+      <span lang="cn"> 已经打开的项目 </span>
+      <span lang="ja"> 開いているプロジェクト </span>
+    </localized-content>
+  </h4>
+  <p-list style="min-height: 34px; display: flex; flex-wrap: wrap">
+    <o-fill :value="openedProjects">
+      <p-list-item>
+        <n-local-icon
+          name="project"
+          slot="prefix"
+          style="display: block; margin-right: 6px; font-size: 18px"
+        >
+        </n-local-icon>
+        {{$data?.data?.projectName}}
+      </p-list-item>
+    </o-fill>
+  </p-list>
+
+  <p style="color: var(--md-sys-color-primary)">
+    <localized-content>
+      <span lang="en">Click below to switch projects</span>
+      <span lang="cn">点击下方选项切换项目</span>
+      <span lang="ja"
+        >下のオプションをクリックしてプロジェクトを切り替えます</span
+      >
+    </localized-content>
+  </p>
+
+  <h4>
+    <localized-content>
+      <span lang="en">Local Projects</span>
+      <span lang="cn">本地项目</span>
+      <span lang="ja">ローカルプロジェクト</span>
+    </localized-content>
+  </h4>
+  <p-list>
+    <o-fill :value="existProjects" fill-key="projectDataId">
+      <p-list-item
+        on:click="$host.switchProject($data)"
+        attr:button="$host.openedProjects.length <= 1"
+        attr:data-project-dataid="$data.projectDataId"
+      >
+        <n-local-icon
+          name="project"
+          slot="prefix"
+          style="display: block; margin-right: 6px; font-size: 26px"
+        >
+        </n-local-icon>
+        <div style="display: flex">
+          {{$data.projectName}} -
+          <div
+            style="
+              display: inline-flex;
+              margin-left: 6px;
+              font-size: 12px;
+              color: #7c7c7c;
+            "
+          >
+            <localized-content>
+              <span lang="en">Created Time</span>
+              <span lang="cn">创建时间</span>
+              <span lang="ja">作成日時</span>
+            </localized-content>
+            :
+            <n-moment-span :time="$data.creationtime"></n-moment-span>
+          </div>
+        </div>
+        <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
+
+        <o-if
+          :value="!$host.isOpenedProject($data)"
+          slot="suffix"
+          style="z-index: 3; display: block"
+        >
+          <p-button
+            size="small"
+            icon
+            variant="outlined"
+            attr:title="$host.desc.pushProject"
+            style="margin-right: 8px"
+            on:click="$host.pushProject($data, $event)"
+          >
+            <n-local-icon name="add"></n-local-icon>
+          </p-button>
+        </o-if>
+        <o-else-if
+          :value="$host.openedProjects.length > 1"
+          slot="suffix"
+          style="z-index: 3; display: block"
+        >
+          <p-button
+            size="small"
+            icon
+            variant="outlined"
+            attr:title="$host.desc.closeProject"
+            style="margin-right: 8px"
+            on:click="$host.closeProject($data,$event)"
+          >
+            <n-local-icon name="close"></n-local-icon>
+          </p-button>
+        </o-else-if>
+        <o-else slot="suffix">
+          <div style="color: var(--md-sys-color-primary); margin-right: 8px">
+            <localized-content>
+              <span lang="en">Opened</span>
+              <span lang="cn">已打开</span>
+              <span lang="ja">開いている</span>
+            </localized-content>
+          </div>
+        </o-else>
+
+        <o-if :value="!$host.isOpenedProject($data)" slot="suffix">
+          <p-button
+            size="small"
+            color="error"
+            variant="text"
+            icon
+            on:click="$host.handleDeleteProject($data,$event)"
+            style="z-index: 3"
+          >
+            <n-local-icon name="delete"></n-local-icon>
+          </p-button>
+        </o-if>
+      </p-list-item>
+    </o-fill>
+    <p-list-item>
+      <p-input
+        attr:placeholder="desc.inputPlaceholder"
+        sync:value="newProjectName"
+      >
+        <p-button
+          slot="suffix"
+          size="small"
+          attr:disabled="!newProjectName || adding"
+          on:click="addNewProject"
+        >
+          <localized-content>
+            <span lang="en">Add New Project</span>
+            <span lang="cn">添加新项目</span>
+            <span lang="ja">新しいプロジェクトを追加する</span>
+          </localized-content>
+        </p-button>
+      </p-input>
+    </p-list-item>
+    <!-- <p-list-item>
+      <div style="display: flex">
+        <p-button variant="text" disabled style="margin-left: 8px">
+          导入新项目
+        </p-button>
+        <p-button variant="text" disabled style="margin-left: 8px">
+          导出所有本地项目
+        </p-button>
+      </div>
+    </p-list-item> -->
+  </p-list>
+
+  <h4>
+    <localized-content>
+      <span lang="en">Other Devices</span>
+      <span lang="cn">其他设备</span>
+      <span lang="ja">他のデバイス</span>
+    </localized-content>
+  </h4>
+  <p-list>
+    <o-fill :value="remotes">
+      <p-list-item>
+        <n-id-avatar
+          attr:val="$data.userId"
+          style="width: 16px; height: 16px"
+          slot="prefix"
+        ></n-id-avatar>
+        {{$data.userName}}
+        <p-list slot="childs" style="--ladder-left: 8px">
+          <o-if :value="$data.noData">
+            <p-list-item>
+              <localized-content>
+                <span lang="en">Failed to get data</span>
+                <span lang="cn">获取数据失败</span>
+                <span lang="ja">データの取得に失敗しました</span>
+              </localized-content>
+            </p-list-item>
+          </o-if>
+          <o-fill :value="$data.projects">
+            <p-list-item
+              attr:button="$host.openedProjects.length <= 1"
+              on:click="$host.switchProject($data)"
+            >
+              <n-local-icon
+                name="project"
+                slot="prefix"
+                style="display: block; margin-right: 6px; font-size: 26px"
+              >
+              </n-local-icon>
+              <div style="display: flex">
+                {{$data.projectName}} -
+                <div
+                  style="
+                    display: inline-flex;
+                    margin-left: 6px;
+                    font-size: 12px;
+                    color: #7c7c7c;
+                  "
+                >
+                  <localized-content>
+                    <span lang="en">Created Time</span>
+                    <span lang="cn">创建时间</span>
+                    <span lang="ja">作成日時</span>
+                  </localized-content>
+                  :
+                  <n-moment-span :time="$data.creationtime"></n-moment-span>
+                </div>
+              </div>
+              <div class="secondary" style="color: #7c7c7c">
+                {{$data.dirName}}
+              </div>
+
+              <o-if
+                :value="!$host.isOpenedProject($data)"
+                slot="suffix"
+                style="z-index: 3; display: block"
+              >
+                <p-button
+                  size="small"
+                  icon
+                  variant="outlined"
+                  attr:title="$host.desc.pushProject"
+                  style="margin-right: 8px"
+                  on:click="$host.pushProject($data, $event)"
+                >
+                  <n-local-icon name="add"></n-local-icon>
+                </p-button>
+              </o-if>
+              <o-else-if
+                :value="$host.openedProjects.length > 1"
+                slot="suffix"
+                style="z-index: 3; display: block"
+              >
+                <p-button
+                  size="small"
+                  icon
+                  variant="outlined"
+                  attr:title="$host.desc.closeProject"
+                  style="margin-right: 8px"
+                  on:click="$host.closeProject($data,$event)"
+                >
+                  <n-local-icon name="close"></n-local-icon>
+                </p-button>
+              </o-else-if>
+              <o-else slot="suffix">
+                <div
+                  style="color: var(--md-sys-color-primary); margin-right: 8px"
+                >
+                  <localized-content>
+                    <span lang="en">Opened</span>
+                    <span lang="cn">已打开</span>
+                    <span lang="ja">開いている</span>
+                  </localized-content>
+                </div>
+              </o-else>
+            </p-list-item>
+          </o-fill>
+        </p-list>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+
+  <script>
+    import {
+      localizedObject,
+      getLocalized,
+    } from "/packages/i18n/localized-object.js";
+
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
+      return {
+        tag: "lumi-switch-project",
+        data: {
+          newProjectName: "",
+          openedProjects: [], // 已经打开的项目
+          existProjects: [], // 已经存在的项目
+          loadingRemote: false,
+          remotes: [],
+          projects: [],
+          adding: false,
+          desc: {},
+        },
+        proto: {
+          isOpenedProject(data) {
+            return this.openedProjects.find((item) => {
+              return data.projectDataId === item.data.main._dataId;
+            });
+          },
+
+          pushProject(data, event) {
+            event.stopPropagation();
+            this.app.pushProject(data.dirName, data.userId || "self");
+          },
+          closeProject(data, event) {
+            event.stopPropagation();
+            this.app.closeProject(data.dirName, data.userId || "self");
+          },
+          // 切换到项目
+          switchProject(data) {
+            if (this.openedProjects.length > 1) {
+              return;
+            }
+
+            this.app.switchProject(data.dirName, data.userId || "self");
+
+            this.emit("close-dialog", {
+              bubbles: false,
+            });
+
+            setTimeout(() => {
+              // 切换到第一篇文章
+              try {
+                this.root
+                  .$(`p-list-item[data-project-userid]`)
+                  .$(".article-list-item")
+                  .ele.click();
+              } catch (err) {}
+            }, 300);
+          },
+          async addNewProject() {
+            this.adding = true;
+
+            const projectName = this.newProjectName;
+
+            if (!projectName.trim()) {
+              toast({
+                content: await getLocalized({
+                  cn: "项目名不能为空",
+                  en: "Project name cannot be empty",
+                  ja: "プロジェクト名を入力してください",
+                }),
+                color: "error",
+              });
+              this.adding = false;
+              return;
+            }
+
+            const newProject = await this.app.createProject({
+              projectName,
+              addExitedProject: 1,
+            });
+
+            toast({
+              content: await getLocalized({
+                cn: "创建成功",
+                en: "Project created successfully",
+                ja: "プロジェクトが正常に作成されました",
+              }),
+              color: "success",
+            });
+
+            this.newProjectName = "";
+
+            this.reloadExistProjects();
+
+            await new Promise((resolve) => setTimeout(resolve, 100));
+
+            const pid = newProject.data.main._dataId;
+
+            const target = this.shadow.$(
+              `p-list-item[data-project-dataid="${pid}"]`
+            );
+
+            if (target) {
+              target.ele.click();
+            }
+
+            this.adding = false;
+          },
+          // 删除项目
+          async handleDeleteProject(data, e) {
+            e.stopPropagation();
+
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除项目",
+                en: "Delete project",
+                ja: "プロジェクトを削除する",
+              }),
+              content: await getLocalized({
+                cn: `确定要删除该项目(${data.projectName})吗？改操作不可逆。`,
+                en: `Are you sure you want to delete the project (${data.projectName})? This action is irreversible.`,
+                ja: `このプロジェクト(${data.projectName})を削除してもよろしいですか？この操作は不可逆です。`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await this.app.deleteProject(data.dirName);
+
+            this.reloadExistProjects();
+          },
+          // 刷新已经存在的项目
+          async reloadExistProjects() {
+            const exists = await this.app.getExistProjects();
+            exists.sort((a, b) => a.creationtime - b.creationtime);
+
+            this.existProjects = exists;
+          },
+          async loadRemotes() {
+            this.loadingRemote = true;
+            this.remotes = await this.app.getRemotes();
+            this.loadingRemote = false;
+          },
+        },
+        attached() {
+          this.reloadExistProjects();
+          this.loadRemotes();
+          this.desc = localizedObject({
+            pushProject: {
+              cn: "同时打开此项目",
+              en: "Open this project",
+              ja: "このプロジェクトを開く",
+            },
+            closeProject: {
+              cn: "关闭此项目",
+              en: "Close this project",
+              ja: "このプロジェクトを閉じる",
+            },
+            inputPlaceholder: {
+              cn: "请输入项目名称",
+              en: "Please enter project name",
+              ja: "プロジェクト名を入力してください",
+            },
+          });
+
+          window.descObj = this.desc;
+
+          const { _openedProjects } = this.app;
+          this.openedProjects = _openedProjects;
+        },
+        detached() {
+          this.desc._clear();
+          this.desc = {};
+          this.openedProjects = [];
+        },
+      };
+    };
+  </script>
+</template>

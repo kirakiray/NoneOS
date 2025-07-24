@@ -1,0 +1,125 @@
+<template component>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <style>
+    :host {
+      position: absolute;
+      display: block;
+      margin: 0 auto;
+      transition: all ease 0.3s;
+      z-index: 3;
+    }
+
+    .main {
+      position: relative;
+      box-sizing: border-box;
+      max-width: 860px;
+      height: 100%;
+      margin: 0 auto;
+      border: var(--md-sys-color-primary) solid 2px;
+      border-radius: 8px;
+    }
+
+    .username {
+      display: flex;
+      align-items: center;
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      border-radius: 4px 0 0;
+      padding: 2px 4px;
+      font-size: 12px;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      opacity: 0.8;
+    }
+
+    n-id-avatar {
+      display: block;
+      width: 16px;
+      height: 16px;
+      margin-right: 4px;
+    }
+  </style>
+  <div class="main">
+    <div class="username">
+      <n-id-avatar :val="userId"></n-id-avatar>
+      {{userName}}
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      // 加载用户信息
+      const { getUserStore } = await load("/packages/user/user-store.js");
+      const { getUserName } = await load("/packages/util/get-user-info.js");
+
+      const { getConnectionStore } = await load(
+        "/packages/user/connection/main.js"
+      );
+
+      const userStore = await getUserStore();
+      const selfUserId = userStore.userId;
+
+      const connections = await getConnectionStore();
+
+      return {
+        tag: "lumi-remote-mark",
+        data: {
+          userId: "",
+          blockId: "",
+          selfUserId,
+          userName: "",
+        },
+        proto: {
+          async refreshPosition() {
+            // 根据blockId进行查询
+            if (!this.blockId) {
+              return;
+            }
+
+            const targetUser = connections.find((e) => e.userId == this.userId);
+
+            if (!targetUser) {
+              this.style.display = "none";
+              return;
+            }
+
+            if (targetUser.state !== "ready") {
+              this.style.display = "none";
+              return;
+            }
+
+            this.style.display = "";
+
+            const targetBlock = this.host.$(`[data-blockid="${this.blockId}"]`);
+
+            if (!targetBlock) {
+              console.log("未找到目标元素: ", this.blockId);
+              return;
+            }
+
+            this.userName = await getUserName(this.userId);
+
+            const { offsetTop, offsetLeft } = targetBlock.ele;
+
+            const rect = targetBlock.ele.getBoundingClientRect();
+
+            Object.assign(this.style, {
+              top: `${offsetTop}px`,
+              left: `${offsetLeft}px`,
+              width: `${rect.width}px`,
+              height: `${rect.height}px`,
+            });
+          },
+        },
+        attached() {
+          this._timer = setInterval(() => {
+            this.refreshPosition();
+          }, 500);
+        },
+        detached() {
+          clearInterval(this._timer);
+        },
+      };
+    };
+  </script>
+</template>

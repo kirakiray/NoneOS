@@ -12,7 +12,9 @@
   </style>
   <img attr:src="url" />
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { getUserStore } = await load("/packages/user/user-store.js");
+
       return {
         tag: "n-id-avatar",
         data: {
@@ -23,6 +25,14 @@
         },
         watch: {
           val(val) {
+            if (val === "self") {
+              (async () => {
+                const selfUSerStore = await getUserStore();
+                this.val = selfUSerStore.userId;
+              })();
+              return;
+            }
+
             this.url = generateAvatarBase64(this.val);
           },
         },

@@ -1,0 +1,134 @@
+<template page>
+  <l-m src="../lumi/lumi-page.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      /* background-color: rgba(0, 0, 255, 0.3); */
+    }
+
+    .main {
+      position: relative;
+      flex: 1;
+    }
+
+    .inner {
+      position: absolute;
+      box-sizing: border-box;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+  <div class="main">
+    <div class="inner">
+      <o-if :value="!!error">
+        <div style="color: var(--md-sys-color-error)">{{error}}</div>
+      </o-if>
+      <o-else>
+        <!-- BUG: 为了适配safari,必须放在 slot 内,如果以后safari修复了这个问题,则重新放回 -->
+        <!-- <lumi-page :item-data="itemData" style="height: 100%"></lumi-page> -->
+        <slot></slot>
+      </o-else>
+    </div>
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load, query }) => {
+      const { article_id, user_id, dir_name } = query;
+
+      const { findArticle } = await load("../util/find-article-data.js");
+
+      return {
+        data: {
+          articleId: article_id,
+          currentUserId: user_id,
+          currentDirName: dir_name,
+          itemData: {
+            title: "loading...",
+          },
+          error: "",
+        },
+        proto: {
+          async loadArticle() {
+            try {
+              // 查找对应文章
+              const { target, titles } = await findArticle({
+                app: this.app,
+                dataId: article_id,
+                userId: user_id,
+                dirName: dir_name,
+                isAddProject: 1,
+              });
+
+              this.itemData = target;
+
+              this.emit("update-breadcrumbs", {
+                composed: true,
+                data: {
+                  titles,
+                },
+              });
+
+              // this.paths = titles;
+
+              // 如果没有标题，则对焦标题；如果有标题，则对焦最后一个元素
+              if (!target.title) {
+                this.$("lumi-page").focusTitle();
+              }
+            } catch (error) {
+              debugger;
+              this.error = error.message;
+            }
+          },
+        },
+        attached() {
+          this.emit("active-article", {
+            composed: true,
+            data: {
+              articleId: article_id,
+            },
+          });
+
+          this.emit("update-current-project-data", {
+            data: {
+              userId: user_id,
+              dirName: dir_name,
+            },
+            composed: true,
+          });
+
+          (async () => {
+            this.push(
+              `<lumi-page style="height: 100%;overflow: auto"></lumi-page>`
+            );
+
+            await this.loadArticle();
+
+            this.$("lumi-page").itemData = this.itemData;
+            this.$("lumi-page").initRecord();
+          })();
+
+          setTimeout(() => {
+            // 修正菜单定位
+            Object.assign(this.style, {
+              transform: "",
+            });
+          }, 300);
+        },
+        detached() {
+          this.itemData = {};
+          // this.$("lumi-page").itemData = {};
+        },
+      };
+    };
+  </script>
+</template>

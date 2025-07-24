@@ -1,0 +1,44 @@
+<template component>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+    }
+
+    .circle {
+      display: block;
+      width: 6px;
+      height: 6px;
+      margin: 0 6px;
+      border-radius: 4px;
+      background-color: var(--md-sys-color-on-surface);
+    }
+  </style>
+  <span class="circle"></span>
+  <div style="position: relative; margin-left: 6px; flex: 1">
+    <slot></slot>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-list-item",
+        attrs: {},
+        data: {},
+        watch: {},
+        proto: {
+          setValue() {},
+          get textContent() {
+            return this.host.host.text;
+          },
+          get htmlContent() {
+            const { html } = this.host.host[0];
+            return `<lumi-list-item>${html}</lumi-list-item>`;
+          },
+          get mdContent() {
+            return `- ${this.textContent}`;
+          },
+        },
+      };
+    };
+  </script>
+</template>

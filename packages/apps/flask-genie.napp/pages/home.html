@@ -1,0 +1,52 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+    }
+  </style>
+  <p>
+    本应用是专为 NoneOS 内部应用打造的管理工具，可实现穿透访问外部世界的功能。
+  </p>
+  <p>
+    借助该应用，内部程序不仅能请求外部 API，还能通过代理访问各类外部 AI 接口。
+  </p>
+  <h5>本地已下载的模型</h5>
+  <p-list>
+    <o-fill :value="models">
+      <p-list-item>
+        <n-local-icon
+          name="ai-chip"
+          slot="prefix"
+          style="display: block; margin-right: 6px"
+        ></n-local-icon>
+        {{ $data.name }}
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { getOllamaModels } = await load("/packages/ai/util.js");
+
+      return {
+        data: {
+          val: "123",
+          models: [],
+        },
+        async attached() {
+          this.models = await getOllamaModels();
+        },
+      };
+    };
+
+    // let text = "";
+
+    // 使用示例
+    // askOllamaStream("/no_think 你是谁？", "qwen3:4b", (chunk) => {
+    //   text += chunk;
+    //   console.clear();
+    //   console.log(text); // 实时输出每个片段
+    // });
+  </script>
+</template>

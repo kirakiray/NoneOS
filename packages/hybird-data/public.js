@@ -84,14 +84,18 @@ export const realSaveData = async (hydata) => {
     return;
   }
 
-  console.log("savedata", hydata); // eslint-disable-line no-cons
+  // console.log("savedata", hydata); // eslint-disable-line no-cons
 
-  // 数据变化，写入到 handle 中
-  await fileHandle.write(newText, {
-    remark: `writedby-${hydata._root.xid}`,
-  });
+  try {
+    // 数据变化，写入到 handle 中
+    await fileHandle.write(newText, {
+      remark: `writedby-${hydata._root.xid}`,
+    });
 
-  console.log("savedata end", hydata); // eslint-disable-line no-cons
+    // console.log("savedata end", hydata); // eslint-disable-line no-cons
+  } catch (err) {
+    console.error(err);
+  }
 
   if (oldText) {
     // 根据旧的数据，删除掉没有使用的对象文件
@@ -100,7 +104,7 @@ export const realSaveData = async (hydata) => {
     const newValues = Object.values(finnalData);
     const deleteValues = oldValues.filter((val) => !newValues.includes(val)); // 已被删除的value
 
-    console.log("deleteValues", deleteValues); // eslint-disable-line no-cons
+    // console.log("deleteValues", deleteValues); // eslint-disable-line no-cons
 
     if (deleteValues.length) {
       await Promise.all(deleteValues.map((e) => removeData(e, hydata)));
@@ -122,6 +126,8 @@ const removeData = async (oldData, exitedData) => {
   // 从根上获取该对象
   const targetData = rootMapper.get(dataId);
 
+  // 如果不存在 hybirddata owner，可以删除
+
   if (!targetData) {
     console.log("targetData not found", dataId); // eslint-disable-line no-cons
     return;
@@ -134,9 +140,11 @@ const removeData = async (oldData, exitedData) => {
     // 删除子对象
     const childDeletions = Object.entries(targetData)
       .filter(([_, val]) => typeof val === "object")
-      .map(([_, val]) =>
-        removeData(`${Identification}${val._dataId}`, exitedData)
-      );
+      .map(([_, val]) => {
+        if (val && val._dataId) {
+          removeData(`${Identification}${val._dataId}`, exitedData);
+        }
+      });
 
     await Promise.all(childDeletions);
 

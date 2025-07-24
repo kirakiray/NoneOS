@@ -1,0 +1,267 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/i18n/localized-object-content.html"></l-m>
+
+  <style>
+    :host {
+      position: fixed;
+      display: block;
+      border-radius: 4px;
+      z-index: 2;
+      left: 300px;
+      top: 100px;
+      background-color: var(--md-sys-color-on-normal);
+      color: var(--md-sys-color-normal);
+      box-shadow: var(--contained-shadow);
+      opacity: 0;
+      transform: translate(20px, 0);
+      transition: opacity ease 0.2s, transform ease 0.2s;
+      pointer-events: none;
+    }
+
+    :host([open="on"]) {
+      opacity: 1;
+      transform: translate(0, 0);
+      pointer-events: auto;
+    }
+
+    .icon {
+      display: block;
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+      margin-right: 8px;
+    }
+
+    .icon svg {
+      display: block;
+    }
+  </style>
+  <p-list style="width: 200px">
+    <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
+      <localized-content>
+        <span lang="en">Basic Components</span>
+        <span lang="cn">基本组件</span>
+        <span lang="ja">基本コンポーネント</span>
+      </localized-content>
+    </div>
+    <hr />
+    <o-fill :value="allComps">
+      <p-list-item
+        button
+        on:click="$host.changeType($data.tag)"
+        attr:active-item="$host.activeTag === $data.tag"
+      >
+        <o-if :value="$data.iconName" slot="prefix">
+          <n-local-icon class="icon" attr:name="$data.iconName"></n-local-icon>
+        </o-if>
+        <o-else slot="prefix">
+          <div class="icon" :html="$data.icon"></div>
+        </o-else>
+        <localized-object-content :obj="$data.name"></localized-object-content>
+        <o-if :value="$data._getMatchKey" slot="suffix">
+          <div>{{$data._getMatchKey()[0][0]}}</div>
+        </o-if>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <script>
+    import {
+      localizedObject,
+      getLocalized,
+    } from "/packages/i18n/localized-object.js";
+
+    export default async ({ load }) => {
+      const { blockComps } = await load("./block/config.js");
+
+      console.log("blockComps: ", blockComps);
+
+      return {
+        tag: "lumi-command-panel",
+        attrs: {
+          open: "off",
+        },
+        data: {
+          allComps: [
+            {
+              tag: "paragraph",
+              iconName: "p",
+              name: {
+                cn: "段落",
+                en: "paragraph",
+                ja: "段落",
+              },
+              desc: {
+                cn: "基础段落",
+                en: "base paragraph",
+                ja: "基本段落",
+              },
+            },
+            {
+              tag: "h2",
+              iconName: "h2",
+              name: {
+                cn: "大标题",
+                en: "Heading 1",
+                ja: "大見出し",
+              },
+              desc: {
+                cn: "划分文章主要章节，作为核心标题展示架构",
+                en: "divide article main chapter as core title show architecture",
+                ja: "記事の主要な章を区切り、コアタイトルを展示するアーキテクチャ",
+              },
+              _getMatchKey() {
+                return [["#"]];
+              },
+            },
+            {
+              tag: "h3",
+              iconName: "h3",
+              name: {
+                cn: "中标题",
+                en: "Heading 2",
+                ja: "中見出し",
+              },
+              desc: {
+                cn: "细分主要章节内容，呈现子主题补充大标题",
+                en: "divide main chapter content as sub theme supplement title",
+                ja: "主要な章の内容を細分し、サブトピックを補足する大見出し",
+              },
+              _getMatchKey() {
+                return [["##"]];
+              },
+            },
+            {
+              tag: "h4",
+              iconName: "h4",
+              name: {
+                cn: "小标题",
+                en: "Heading 3",
+                ja: "小見出し",
+              },
+              desc: {
+                cn: "细化内容，分组关键信息展现细节",
+                en: "refine content group key information show details",
+                ja: "内容を詳細に調整し、キー情報をグループ化して詳細を提示",
+              },
+              _getMatchKey() {
+                return [["###"]];
+              },
+            },
+            ...blockComps,
+          ],
+          activeTag: "paragraph",
+        },
+        proto: {
+          changeType(type) {
+            const { _lumiBlock } = this;
+            if (_lumiBlock) {
+              _lumiBlock.itemData.value = _lumiBlock.itemData.value.replace(
+                /^\//g,
+                ""
+              );
+
+              setTimeout(() => {
+                _lumiBlock.focus();
+              });
+              _lumiBlock.itemData.type = type;
+            }
+            this.removeBind();
+          },
+          removeBind() {
+            this.open = "off";
+            if (this._blurHandler) {
+              this._lumiBlock
+                .$("[inputer-content]")
+                .off("blur", this._blurHandler);
+              this._blurHandler = null;
+            }
+
+            if (this._keydownHandler) {
+              this._lumiBlock
+                .$("[inputer-content]")
+                .off("keydown", this._keydownHandler);
+              this._keydownHandler = null;
+            }
+
+            this._lumiBlock = null;
+          },
+          init(e, { lumiBlock, lumipage }) {
+            this.removeBind();
+
+            this._lumiBlock = lumiBlock;
+
+            const rect = e.target.getBoundingClientRect();
+
+            Object.assign(this.style, {
+              left: `${rect.left}px`,
+              top: `${rect.top + 36}px`,
+            });
+
+            this.open = "on";
+
+            lumiBlock.$("[inputer-content]").on(
+              "blur",
+              (this._blurHandler = () => {
+                this.removeBind();
+              })
+            );
+
+            lumiBlock.$("[inputer-content]").on(
+              "keydown",
+              (this._keydownHandler = (e) => {
+                e.stopPropagation();
+                switch (e.key) {
+                  case "Backspace":
+                    setTimeout(() => {
+                      if (!lumiBlock.itemData.value.startsWith("/")) {
+                        this.removeBind();
+                      }
+                    });
+                    break;
+                  case "ArrowUp": {
+                    e.preventDefault();
+
+                    // 查找位置并切换
+                    const index = this.allComps.findIndex(
+                      (item) => item.tag === this.activeTag
+                    );
+                    if (index > 0) {
+                      this.activeTag = this.allComps[index - 1].tag;
+                    }
+
+                    break;
+                  }
+                  case "ArrowDown": {
+                    e.preventDefault();
+
+                    // 查找位置并切换
+                    const index = this.allComps.findIndex(
+                      (item) => item.tag === this.activeTag
+                    );
+                    if (index < this.allComps.length - 1) {
+                      this.activeTag = this.allComps[index + 1].tag;
+                    }
+
+                    break;
+                  }
+                  case "Enter":
+                    e.preventDefault();
+                    this.changeType(this.activeTag);
+                    break;
+                  case "Escape":
+                    this.removeBind();
+                    break;
+                }
+              })
+            );
+          },
+        },
+        attached() {},
+        detached() {
+          this.removeBind();
+        },
+      };
+    };
+  </script>
+</template>

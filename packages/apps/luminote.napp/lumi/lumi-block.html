@@ -1,0 +1,680 @@
+<template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/menu/menu.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="./lumi-fake.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      /* background-color: rgba(255, 0, 0, 0.3); */
+    }
+    ::slotted {
+      word-break: break-all;
+    }
+    .inputer {
+      display: flex;
+      align-self: center;
+      position: relative;
+      /* background-color: rgba(18, 107, 107, 0.413); */
+      flex: 1;
+      margin: 1px auto;
+      padding: 6px 8px;
+      border-radius: 6px;
+      /* background-color: rgba(255, 128, 0, 0.3); */
+    }
+    .menu-btn {
+      display: inline-block;
+      position: absolute;
+      left: -32px;
+      top: 4px;
+      /* top: 4px; */
+      /* top: 20%; */
+      opacity: 0;
+    }
+    :host(:hover) .menu-btn {
+      opacity: 1;
+    }
+    .placeholder {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      /* background-color: rgba(255, 0, 0, 0.495); */
+      padding: 4px;
+      color: var(--md-sys-color-normal);
+      pointer-events: none;
+      padding-left: 0.2em;
+      opacity: 0;
+      transition: opacity ease 0.1s;
+      pointer-events: none;
+    }
+
+    .placeholder.show {
+      opacity: 1;
+    }
+
+    ::slotted([inputer-content]) {
+      position: relative;
+      z-index: 1;
+      display: block;
+      /* padding: 6px 8px; */
+      line-height: 1.6em;
+      outline: none;
+      -webkit-user-modify: read-write-plaintext-only;
+      user-modify: read-write-plaintext-only;
+    }
+
+    .inputer-tips {
+      position: absolute;
+      top: 32px;
+      left: 13px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      transform: translate(-50%, 0);
+      white-space: nowrap;
+      color: var(--md-sys-color-normal);
+      background-color: var(--md-sys-color-on-normal);
+      opacity: 0;
+      z-index: 2;
+      pointer-events: none;
+      transition: all ease 0.2s;
+    }
+
+    .menu-btn p-button:hover + .inputer-tips {
+      opacity: 1;
+      transition-delay: 0.5s;
+    }
+
+    .menu-btn:active,
+    .menu-btn:active p-button::part(container),
+    .menu-btn p-button:active {
+      cursor: grabbing !important;
+    }
+
+    .menu-btn p-button:active + .inputer-tips {
+      opacity: 0;
+    }
+
+    .dragovering-mark {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--md-sys-color-primary);
+      opacity: 0;
+    }
+    .dragovering-mark.show {
+      opacity: 1;
+    }
+
+    .left-menu {
+      position: absolute;
+      left: 0;
+      top: 36px;
+      z-index: 8;
+    }
+
+    .left-menu n-local-icon,
+    .left-menu .menu-icon-span {
+      display: block;
+      margin-right: 8px;
+      font-size: 16px;
+      color: var(--md-sys-color-primary);
+    }
+
+    .active-bg {
+      background-color: var(--md-ref-palette-translucent-primary60);
+    }
+
+    .dot-loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      height: 50px;
+    }
+
+    .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: var(--md-sys-color-primary);
+      animation: bounce 1.4s infinite ease-in-out;
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes bounce {
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+      }
+      40% {
+        transform: scale(1);
+      }
+    }
+
+    .article-comp {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-height: 37px;
+      padding-left: 8px;
+      border-radius: 4px;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    .article-comp:hover {
+      background-color: var(--md-sys-color-on-primary);
+    }
+
+    .hide {
+      display: none !important;
+    }
+
+    .focus-mark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      outline: var(--md-sys-color-primary) 2px solid;
+      pointer-events: none;
+      opacity: 1;
+    }
+
+    .focus-mark.hide-mark {
+      opacity: 0;
+    }
+
+    .focus-mark-name {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      right: -8px;
+      top: -16px;
+      padding: 2px 4px;
+      font-size: 12px;
+      color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 1px;
+      background-color: var(--md-sys-color-surface);
+      border-radius: 4px;
+    }
+
+    :host([draggable]) {
+      transform: translateZ(0); /* 创建独立的合成层 */
+    }
+
+    .sub-mark {
+      position: absolute;
+      z-index: 0;
+      left: 0;
+      /* top: 8px; */
+      top: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 6px;
+      background-color: var(--md-ref-palette-translucent-normal60);
+      transform: translate(16px, 0);
+      opacity: 0;
+      transition: all ease 0.2s;
+      pointer-events: none;
+    }
+    .show-sub-mark {
+      /* height: calc(100% - 16px); */
+      opacity: 1;
+      transform: translate(0, 0);
+    }
+
+    .drag-start {
+      background-color: var(--md-ref-palette-translucent-success60);
+      transition: background ease 0.2s 0.3s;
+      /* 拖拽前要有延迟动画 */
+    }
+
+    [item-type="article"] .inputer {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  </style>
+
+  <o-if :value="!loading">
+    <div
+      style="display: flex; max-width: 800px; margin: 0 auto"
+      class:drag-start="dragStart"
+      attr:item-type="itemData.type"
+      class:hide="itemData.type === 'article' && itemData.removed"
+    >
+      <div class="space" :style.width="tabLeft"></div>
+      <div class="inputer" class:active-bg="selected || leftMenuOpened">
+        <div class="menu-btn">
+          <p-button
+            icon
+            size="small"
+            variant="text"
+            on:mousedown="mousedownDragBtn"
+            on:click="clickDragBtn"
+          >
+            <n-local-icon name="menu"></n-local-icon>
+          </p-button>
+          <div class="inputer-tips">
+            <localized-content>
+              <span lang="en">Drag or click</span>
+              <span lang="cn">拖拽或点击</span>
+              <span lang="ja">ドラッグまたはクリック</span>
+            </localized-content>
+          </div>
+        </div>
+
+        <div class="sub-mark" class:show-sub-mark="showSubmark"></div>
+
+        <o-if :value="itemData.type && itemData.type !== 'article'">
+          <lumi-fake
+            :type="itemData.type"
+            on:update-block-value="updateBlockValue"
+          >
+            <slot></slot>
+
+            <span class="placeholder" class:show="inFocus && !itemData.value">
+              <localized-content>
+                <span lang="en">
+                  Enter text, paragraph component by default. Press "/" to
+                  switch components
+                </span>
+                <span lang="cn">
+                  输入文本，默认使用段落组件。按 "/" 切换组件
+                </span>
+                <span lang="ja">
+                  テキストを入力してください、デフォルトで段落コンポーネントを使用します。"/"を押してコンポーネントを切り替えます
+                </span>
+              </localized-content>
+            </span>
+          </lumi-fake>
+        </o-if>
+        <o-if :value="itemData.type === 'article'">
+          <div
+            class="article-comp"
+            class:hide="itemData.removed"
+            on:click="handleClickArticle"
+          >
+            <n-local-icon
+              name="article"
+              style="display: block; margin-right: 4px; font-size: 18px"
+            ></n-local-icon>
+            {{itemData.title || desc.untitledPage}}
+          </div>
+        </o-if>
+        <div class="dragovering-mark" class:show="dragovering"></div>
+      </div>
+    </div>
+  </o-if>
+  <o-else>
+    <div
+      class="inputer"
+      style="margin: 16px auto; align-items: center; justify-content: center"
+    >
+      <div class="dot-loading">
+        <div class="dot"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
+  </o-else>
+
+  <style>
+    .beautify-content {
+      box-sizing: border-box;
+      max-width: 800px;
+      padding: 0 8px;
+      margin: 0 auto;
+      color: var(--md-sys-color-normal);
+    }
+  </style>
+
+  <script>
+    export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
+      const { saveUserCord } = await load("../util/user-record-util.js");
+
+      const { addLoadingTask, removeLoadingTask } = await load(
+        "./util/lumi-util.js"
+      );
+
+      const { focusAndSetCursorAtEnd, getContainerAndOffset, setSelection } =
+        await load("./util/range.js");
+
+      const { blockComps } = await load("./block/config.js");
+
+      const { localizedObject } = await load(
+        "/packages/i18n/localized-object.js"
+      );
+
+      return {
+        tag: "lumi-block",
+        data: {
+          inFocus: false,
+          loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
+          itemData: {},
+          beautifyContent: "Loading...",
+          selected: false, // 是否被选中
+          leftMenuOpened: false, // 左侧菜单是否打开
+          showSubmark: false, // 显示当前为子元素的标记
+          dragovering: false, // 拖拽中
+          tabLeft: 0,
+          dragStart: false, // 拖拽开始
+          desc: {},
+        },
+        watch: {
+          leftMenuOpened(opened) {
+            if (!this.__inited) {
+              this.__inited = 1;
+              return;
+            }
+
+            if (opened) {
+              // 如果打开，将子项目也打开
+              this.subItems.forEach((e) => (e.showSubmark = true));
+            } else {
+              this.subItems.forEach((e) => (e.showSubmark = false));
+            }
+          },
+          ["itemData.tab"]() {
+            let tabLeft = this.itemData.tab;
+            tabLeft = tabLeft ? parseInt(tabLeft) : 0;
+            this.tabLeft = tabLeft ? `${tabLeft * 32}px` : "";
+          },
+          ["itemData.value"]() {
+            const value = this.itemData.value;
+
+            if (value === undefined) {
+              return;
+            }
+
+            if (
+              this.__inputerContent &&
+              this.__inputerContent.html.trim() !== value.trim()
+            ) {
+              this.__inputerContent.html = value;
+
+              // 更新component的value
+              if (this.itemData.type.includes("-")) {
+                try {
+                  const targetComp = this.shadow
+                    .$("lumi-fake")
+                    .shadow.$(".main")[0];
+
+                  targetComp.setValue &&
+                    targetComp.setValue(this.itemData.value);
+                } catch (err) {
+                  console.log(err);
+                }
+              }
+            }
+          },
+        },
+        proto: {
+          get subItems() {
+            const currentTab = this.itemData.tab || 0;
+
+            let subs = [];
+            let next = this.next;
+            while (next) {
+              const tab = next.itemData.tab || 0;
+              if (currentTab >= tab) {
+                break;
+              }
+
+              subs.push(next);
+
+              next = next.next;
+            }
+
+            return subs;
+          },
+          mousedownDragBtn(e) {
+            e.stopPropagation();
+            this.emit("drag-block-start");
+          },
+          clickDragBtn(e) {
+            this.attr("draggable", null);
+            this.dragStart = false;
+            this.subItems.forEach((e) => (e.dragStart = false));
+
+            // 弹出菜单
+            this.emit("click-block-menu", {
+              data: {
+                menuBtn: e.target,
+                originEvent: e,
+              },
+            });
+          },
+          updateBlockValue(e) {
+            e.stopPropagation();
+            const { value } = e.data;
+            this.itemData.value = value;
+          },
+          handleClickArticle() {
+            const app = this.parents.filter((e) => e.tag === "o-app")[0];
+
+            const firstPageEl = this.parent.parent;
+
+            app.current.goto(
+              `./note.html?article_id=${this.itemData._dataId}&user_id=${firstPageEl.currentUserId}&dir_name=${firstPageEl.currentDirName}`
+            );
+          },
+
+          setInfocus() {
+            this.inFocus = true;
+
+            const notePage = this.parents.find(
+              (e) => e.tag === "o-page" && e.src.includes("note.html")
+            );
+
+            const { articleId, currentDirName, currentUserId } = notePage;
+
+            saveUserCord({
+              blockId: this.itemData._dataId,
+              articleId,
+              targetUserId: currentUserId,
+              projectDirName: currentDirName,
+              app: this.parents.find((e) => e.tag === "o-app"),
+            });
+          },
+          setOutfocus() {
+            this.inFocus = false;
+          },
+
+          initializeEditor() {
+            const inputerContent = $(
+              `<div inputer-content contenteditable="plaintext-only"></div>`
+            );
+
+            this.__inputerContent = inputerContent;
+
+            inputerContent.on("input", (e) => {
+              // 内容改动后更新到数据对象上
+              let content = e.target.innerHTML.trim();
+              if (content === "<br>") {
+                content = "";
+              }
+              this.itemData.value = content;
+            });
+
+            inputerContent.on("focus", () => {
+              this.setInfocus();
+            });
+            inputerContent.on("blur", () => {
+              this.setOutfocus();
+            });
+
+            inputerContent.html = this.itemData.value;
+
+            this.push(inputerContent);
+          },
+          async focus(position = "end") {
+            if (this.loading) {
+              await this.watchUntil(() => !this.loading);
+            }
+
+            setTimeout(async () => {
+              if (position === "end") {
+                focusAndSetCursorAtEnd(this[0].ele);
+              } else if (position === "start") {
+                this[0].ele.focus();
+              } else if (/\d/.test(position)) {
+                // 对应位置进行聚焦
+                const inputerContentEl = this.$(`[inputer-content]`).ele;
+
+                const { container, offset } = await getContainerAndOffset(
+                  inputerContentEl,
+                  position
+                );
+
+                inputerContentEl.focus();
+
+                setSelection({
+                  startContainer: container,
+                  start: offset,
+                  endContainer: container,
+                  end: offset,
+                });
+              } else {
+                focusAndSetCursorAtEnd(this[0].ele);
+              }
+            }, 10);
+          },
+          get htmlContent() {
+            const { value, type } = this.itemData;
+
+            switch (type) {
+              case "paragraph":
+                return `<p>${value}</p>`;
+              case "h2":
+                return `<h2>${value}</h2>`;
+              case "h3":
+                return `<h3>${value}</h3>`;
+              case "h4":
+                return `<h4>${value}</h4>`;
+              case "article":
+                return "<span></span>";
+              default:
+                // 自定义组件上获取数据
+                return this.shadow.$("lumi-fake").innerComponent.htmlContent;
+            }
+          },
+          get textContent() {
+            const { type } = this.itemData;
+
+            switch (type) {
+              case "paragraph":
+              case "h2":
+              case "h3":
+              case "h4":
+                return this.text;
+              case "article":
+                return "";
+              default:
+                // 自定义组件上获取数据
+                return this.shadow.$("lumi-fake").innerComponent.textContent;
+            }
+          },
+          get mdContent() {
+            const { type } = this.itemData;
+
+            switch (type) {
+              case "paragraph":
+                return this.text;
+              case "h2":
+                return `## ${this.text}`;
+              case "h3":
+                return `### ${this.text}`;
+              case "h4":
+                return `#### ${this.text}`;
+              case "article":
+                return "";
+              default:
+                // 自定义组件上获取数据
+                return this.shadow.$("lumi-fake").innerComponent.mdContent;
+            }
+          },
+          get componentOptions() {
+            const { type } = this.itemData;
+
+            if (type.includes("-")) {
+              return blockComps.find((e) => e.tag === type);
+            }
+
+            return {};
+          },
+          get useContenteditable() {
+            const { type } = this.itemData;
+
+            if (type === "article") {
+              return false;
+            } else if (type.includes("-")) {
+              const targetCompOption = blockComps.find((e) => e.tag === type);
+              return targetCompOption._getUseContenteditable
+                ? targetCompOption._getUseContenteditable()
+                : true;
+            }
+
+            return true;
+          },
+        },
+        attached() {
+          if (!this.itemData.type) {
+            console.error(
+              "注意：`itemData` 必须在组件初始化时就进行设置，当前未满足此条件，请检查代码逻辑。"
+            );
+          }
+
+          this.initializeEditor();
+
+          addLoadingTask(this);
+
+          this.on("focus", () => {
+            this.setInfocus();
+          });
+          this.on("blur", () => {
+            this.setOutfocus();
+          });
+
+          this.desc = localizedObject({
+            untitledPage: {
+              cn: "未命名页面",
+              en: "Untitled page",
+              ja: "無題のページ",
+            },
+          });
+        },
+        detached() {
+          removeLoadingTask(this);
+
+          this.itemData = {};
+          this.desc._clear && this.desc._clear();
+          this.desc = {};
+        },
+      };
+    };
+  </script>
+</template>

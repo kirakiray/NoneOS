@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>测试父文本编辑器</title>
+    <style>
+      .editor-container {
+        width: 100%;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        border-radius: 5px;
+      }
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 5px;
+      }
+      .toolbar button {
+        padding: 5px 10px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+      .toolbar button:hover {
+        background-color: #45a049;
+      }
+      .editor {
+        width: 100%;
+        min-height: 300px;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+        line-height: 1.5;
+        overflow: auto;
+      }
+      .editor:focus {
+        outline: none;
+        border-color: #4caf50;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="editor-container">
+      <div class="toolbar">
+        <button id="bold">加粗</button>
+        <button id="italic">斜体</button>
+        <button id="underline">下划线</button>
+        <button id="insertImage">插入图片</button>
+        <button id="save">保存</button>
+      </div>
+      <div id="editor" class="editor" contenteditable="true"></div>
+    </div>
+
+    <script>
+      class TextEditor {
+        constructor(editorId, toolbarButtons) {
+          this.editor = document.getElementById(editorId);
+          this.initToolbar(toolbarButtons);
+          this.initEvents();
+        }
+
+        initToolbar(buttons) {
+          buttons.forEach((buttonId) => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+              button.addEventListener("click", () =>
+                this.handleToolbarAction(buttonId)
+              );
+            }
+          });
+        }
+
+        initEvents() {
+          // 添加编辑器内容变化事件
+          this.editor.addEventListener("input", () => {
+            this.onContentChange();
+          });
+
+          // 添加键盘事件
+          this.editor.addEventListener("keydown", (e) => {
+            // 可以在这里添加快捷键支持
+            if (e.ctrlKey && e.key === "b") {
+              e.preventDefault();
+              this.handleToolbarAction("bold");
+            } else if (e.ctrlKey && e.key === "i") {
+              e.preventDefault();
+              this.handleToolbarAction("italic");
+            } else if (e.ctrlKey && e.key === "u") {
+              e.preventDefault();
+              this.handleToolbarAction("underline");
+            }
+          });
+        }
+
+        handleToolbarAction(action) {
+          switch (action) {
+            case "bold":
+              document.execCommand("bold", false, null);
+              break;
+            case "italic":
+              document.execCommand("italic", false, null);
+              break;
+            case "underline":
+              document.execCommand("underline", false, null);
+              break;
+            case "insertImage":
+              const imageUrl = prompt("请输入图片URL:");
+              if (imageUrl) {
+                document.execCommand("insertImage", false, imageUrl);
+              }
+              break;
+            case "save":
+              this.saveContent();
+              break;
+          }
+          this.editor.focus();
+        }
+
+        getContent() {
+          return this.editor.innerHTML;
+        }
+
+        setContent(html) {
+          this.editor.innerHTML = html;
+          this.onContentChange();
+        }
+
+        saveContent() {
+          // 保存内容的方法，可以被子类重写
+          const content = this.getContent();
+          console.log("保存内容:", content);
+          // 触发保存事件，可以被外部监听
+          const saveEvent = new CustomEvent("editor-save", {
+            detail: { content },
+          });
+          document.dispatchEvent(saveEvent);
+        }
+
+        onContentChange() {
+          // 内容变化时的回调，可以被子类重写
+          console.log("内容已更改");
+          // 触发内容变化事件，可以被外部监听
+          const changeEvent = new CustomEvent("editor-change", {
+            detail: { content: this.getContent() },
+          });
+          document.dispatchEvent(changeEvent);
+        }
+      }
+
+      // 初始化编辑器
+      document.addEventListener("DOMContentLoaded", () => {
+        const editor = new TextEditor("editor", [
+          "bold",
+          "italic",
+          "underline",
+          "insertImage",
+          "save",
+        ]);
+
+        // 示例：监听编辑器事件
+        document.addEventListener("editor-save", (e) => {
+          alert("内容已保存！");
+        });
+
+        document.addEventListener("editor-change", (e) => {
+          // 可以在这里实现自动保存等功能
+        });
+
+        // 示例：设置初始内容
+        editor.setContent("<p>这是一个简单的父文本编辑器示例。</p>");
+      });
+    </script>
+  </body>
+</html>

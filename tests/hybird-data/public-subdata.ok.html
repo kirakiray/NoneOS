@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>public subdata</title>
+  </head>
+  <body></body>
+  <script type="module">
+    import { test } from "/ok-test/main.js";
+    import { get, init } from "/packages/fs/main.js";
+    import { createData } from "/packages/hybird-data/main.js";
+
+    await init("local");
+
+    await test("test public sub object", async () => {
+      const handle = await get("local/test/test-public-sub", {
+        create: "dir",
+      });
+
+      const data = await createData(handle);
+
+      data.sub = {
+        val: "Set sub val " + Math.random().toString(32).slice(2),
+        obj1: {
+          val: "111",
+        },
+        obj2: {
+          val: "222",
+        },
+      };
+
+      data.sub2 = {
+        obj2: data.sub.obj2,
+      };
+
+      console.log(data.sub2.obj2 === data.sub.obj2);
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // 检查目录中的文件数量是否符合预期
+      const fileCount = await handle.length();
+
+      // await data.disconnect();
+
+      // 预期应该有5个对象（数据文件）
+      return {
+        assert: fileCount === 5,
+        content: `File count is ${fileCount}, expected 5`,
+      };
+    });
+
+    await test("test load public sub object", async () => {
+      const handle = await get("local/test/test-public-sub", {
+        create: "dir",
+      });
+
+      const data = await createData(handle);
+
+      await data.ready(true);
+
+      // 动态修改
+      // data.sub.obj2.val = "change val - " + Math.random();
+
+      const ownerSize = data.sub.obj2.owner.size;
+
+      // 检查目录中的文件数量是否符合预期
+      const fileCount = await handle.length();
+
+      const obj2Equal = data.sub2.obj2 === data.sub.obj2;
+
+      // await data.disconnect();
+
+      return {
+        assert: obj2Equal && ownerSize === 2 && fileCount === 5,
+        content: `obj2Equal: ${obj2Equal}, ownerSize: ${ownerSize}, fileCount: ${fileCount}`,
+      };
+    });
+
+    await test("test remove public sub object", async () => {
+      const handle = await get("local/test/test-public-sub", {
+        create: "dir",
+      });
+
+      // 预期应该有5个对象（数据文件）
+      const fileCount1 = await handle.length();
+
+      const data = await createData(handle);
+
+      await data.ready(true);
+
+      // 尝试删除一个对象的引用
+      data.sub.obj2 = null;
+
+      await new Promise((res) => setTimeout(res, 1000));
+
+      // 预期应该有5个对象（数据文件）
+      const fileCount2 = await handle.length();
+
+      const obj2 = data.sub2.obj2;
+
+      // 删除另一个
+      // delete data.sub2.obj2;
+      data.sub2.obj2 = null;
+
+      await new Promise((res) => setTimeout(res, 200));
+
+      // 预期应该有4个对象（数据文件）
+      const fileCount3 = await handle.length();
+
+      return {
+        assert: fileCount1 === 5 && fileCount2 === 5 && fileCount3 === 4,
+        content: `fileCount1: ${fileCount1}, fileCount2: ${fileCount2}, fileCount3: ${fileCount3}`,
+      };
+    });
+  </script>
+</html>

@@ -129,8 +129,19 @@
     :host([infocus]) {
       background-color: var(--md-sys-color-primary-container);
     }
+
+    :host {
+      --self-ladder-left: calc(
+        var(--parent-left, 0px) + var(--ladder-left, 0px)
+      );
+    }
+
+    ::slotted(p-list) {
+      --parent-left: var(--self-ladder-left, 0px);
+    }
   </style>
   <div class="main" part="main">
+    <div style="width: var(--self-ladder-left)"></div>
     <div class="avatar">
       <slot name="prefix"></slot>
     </div>

@@ -1,0 +1,54 @@
+<template component>
+  <l-m src="/packages/pui/checkbox/checkbox.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+  <p-checkbox sync:checked="eleChecked"></p-checkbox>
+  <div style="position: relative; margin-left: 6px; flex: 1">
+    <slot></slot>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-checkbox",
+        attrs: {
+          checked: null,
+        },
+        data: {
+          eleChecked: false,
+        },
+        watch: {
+          checked(checked) {
+            if (checked) {
+              this.eleChecked = true;
+            } else {
+              this.eleChecked = false;
+            }
+          },
+          eleChecked(eleChecked) {
+            this.checked = eleChecked ? "1" : null;
+          },
+        },
+        proto: {
+          setValue() {},
+          get textContent() {
+            return this.host.host.text;
+          },
+          get htmlContent() {
+            const { html } = this.host.host[0];
+
+            return `<lumi-checkbox ${
+              this.checked ? 'checked="1"' : ""
+            }>${html}</lumi-checkbox>`;
+          },
+          get mdContent() {
+            return `- [${this.eleChecked ? "x" : " "}] ${this.textContent}`;
+          },
+        },
+      };
+    };
+  </script>
+</template>

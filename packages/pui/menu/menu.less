@@ -1,7 +1,45 @@
 // compress: true
+
+:host([direct-animation]) {
+  opacity: 0;
+  animation: menu-anime ease 0.3s;
+  animation-fill-mode: both;
+}
+
+:host([direct-animation]) ::slotted(p-menu-item) {
+  animation: direct-item-anime ease 0.3s;
+  animation-fill-mode: both;
+}
+
+@keyframes menu-anime {
+  0% {
+    opacity: 0;
+    transform: translate(15px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes direct-item-anime {
+  0% {
+    opacity: 0;
+    transform: translate(10px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
 .looping(@i, @n) when (@i <= @n) {
   ::slotted(p-menu-item:nth-of-type(@{i})) {
     transition-delay: unit(@i * 30, ms);
+  }
+
+  :host([direct-animation]) ::slotted(p-menu-item:nth-of-type(@{i})) {
+    animation-delay: unit(@i * 30, ms);
   }
 
   // 递归调用自身

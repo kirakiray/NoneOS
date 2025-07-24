@@ -100,6 +100,18 @@
       pointer-events: none;
       opacity: 0;
     }
+
+    /* BUG: 必须要在item内也建立这个动画才能生效 */
+    @keyframes direct-item-anime {
+      0% {
+        opacity: 0;
+        transform: translate(10px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+    }
   </style>
   <button
     class="fake-button"
@@ -182,14 +194,21 @@
             this.$("p-menu").open = "off";
           }
         },
-      },
-      ready() {
-        this.shadow.$("slot[data-main]").on("slotchange", () => {
+        slotchange() {
           this.hasMenu = !!this.$("p-menu");
           this.all("p-menu").forEach((e) => {
             e.open = "off";
             e.isChild = true;
           });
+        },
+      },
+      ready() {
+        this.shadow.$("slot[data-main]").on("slotchange", () => {
+          this.slotchange();
+        });
+
+        this.on("mousedown", (e) => {
+          e.__is_item_mousedown = true; // 标识
         });
 
         this.on("click", (e) => {
@@ -198,6 +217,9 @@
             data: e.target,
           });
         });
+      },
+      attached() {
+        this.slotchange();
       },
     };
   </script>
