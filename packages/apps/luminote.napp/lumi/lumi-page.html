@@ -258,6 +258,7 @@
         },
         detached() {
           if (this._recordRevoke) {
+            this.recordData = [];
             this._recordRevoke();
             this._recordRevoke = null;
           }
