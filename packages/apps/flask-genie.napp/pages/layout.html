@@ -1,0 +1,58 @@
+<template page>
+  <l-m src="/packages/comps/horsp-pannel.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      background-color: var(--md-sys-color-surface-variant);
+    }
+
+    n-horsp-pannel {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    p-list-item {
+      border-radius: 0 20px 20px 0;
+      margin: 2px 0;
+    }
+    p-list-item n-local-icon {
+      display: block;
+      font-size: 20px;
+      color: var(--md-sys-color-primary);
+      margin-right: 6px;
+    }
+  </style>
+
+  <n-horsp-pannel>
+    <div slot="left" class="left-con">
+      <p-list>
+        <p-list-item active-item>
+          <n-local-icon name="robot" slot="prefix"></n-local-icon>
+          本机AI
+        </p-list-item>
+        <p-list-item button>
+          <n-local-icon name="robot2" slot="prefix"></n-local-icon>
+          其他设备的AI
+        </p-list-item>
+        <p-list-item button>
+          <n-local-icon name="network" slot="prefix"></n-local-icon>
+          网络请求
+        </p-list-item>
+      </p-list>
+    </div>
+    <slot></slot>
+  </n-horsp-pannel>
+
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {},
+      };
+    };
+  </script>
+</template>

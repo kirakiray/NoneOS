@@ -26,6 +26,8 @@
     </o-fill>
   </p-list>
   <script>
+    export const parent = "./layout.html";
+
     export default async ({ load }) => {
       const { getOllamaModels } = await load("/packages/ai/util.js");
 

@@ -63,19 +63,21 @@
 
   <o-if :value="isSafari">
     <div style="color: red">
-      <p lang="cn">
-        注意：在 Safari
-        浏览器中使用本应用时，请务必通过新标签页模式打开，否则可能会出现兼容性问题，导致部分功能无法正常使用。
-      </p>
-      <p lang="en">
-        Note: When using this application in Safari browser, please open it in a
-        new tab mode, otherwise, you may encounter compatibility issues and some
-        features may not work properly.
-      </p>
-      <p lang="ja">
-        注意： Safari
-        ブラウザでこのアプリケーションを使用する場合、新しいタブで開いてください。そうしないと、一部の機能が正常に動作しない可能性があります。
-      </p>
+      <localized-content>
+        <p lang="cn">
+          注意：在 Safari
+          浏览器中使用本应用时，请务必通过新标签页模式打开，否则可能会出现兼容性问题，导致部分功能无法正常使用。
+        </p>
+        <p lang="en">
+          Note: When using this application in Safari browser, please open it in
+          a new tab mode, otherwise, you may encounter compatibility issues and
+          some features may not work properly.
+        </p>
+        <p lang="ja">
+          注意： Safari
+          ブラウザでこのアプリケーションを使用する場合、新しいタブで開いてください。そうしないと、一部の機能が正常に動作しない可能性があります。
+        </p>
+      </localized-content>
     </div>
   </o-if>
 
