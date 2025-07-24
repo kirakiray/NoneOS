@@ -38,6 +38,11 @@
         },
         async attached() {
           this.models = await getOllamaModels();
+
+          this.emit("update-tab", {
+            data: "local-ai",
+            composed: true,
+          });
         },
       };
     };

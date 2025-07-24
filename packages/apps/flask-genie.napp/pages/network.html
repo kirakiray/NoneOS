@@ -1,0 +1,27 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+    }
+  </style>
+  <p>网络请求</p>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      return {
+        data: {
+          models: [],
+        },
+        async attached() {
+          this.emit("update-tab", {
+            data: "network",
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>

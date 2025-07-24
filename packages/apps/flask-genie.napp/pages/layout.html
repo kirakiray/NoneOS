@@ -18,7 +18,7 @@
 
     p-list-item {
       border-radius: 0 20px 20px 0;
-      margin: 2px 0;
+      margin: 4px 0;
     }
     p-list-item n-local-icon {
       display: block;
@@ -31,15 +31,27 @@
   <n-horsp-pannel>
     <div slot="left" class="left-con">
       <p-list>
-        <p-list-item active-item>
+        <p-list-item
+          attr:active-item="currentTab == 'local-ai'"
+          on:click="goto('./local-ai.html')"
+          attr:button="currentTab !== 'local-ai'"
+        >
           <n-local-icon name="robot" slot="prefix"></n-local-icon>
           本机AI
         </p-list-item>
-        <p-list-item button>
+        <p-list-item
+          attr:active-item="currentTab == 'remote-ai'"
+          on:click="goto('./remote-ai.html')"
+          attr:button="currentTab !== 'remote-ai'"
+        >
           <n-local-icon name="robot2" slot="prefix"></n-local-icon>
           其他设备的AI
         </p-list-item>
-        <p-list-item button>
+        <p-list-item
+          attr:active-item="currentTab == 'network'"
+          on:click="goto('./network.html')"
+          attr:button="currentTab !== 'network'"
+        >
           <n-local-icon name="network" slot="prefix"></n-local-icon>
           网络请求
         </p-list-item>
@@ -51,7 +63,16 @@
   <script>
     export default async ({ load }) => {
       return {
-        data: {},
+        data: {
+          currentTab: "",
+        },
+        ready() {
+          this.on("update-tab", (e) => {
+            e.stopPropagation();
+            this.currentTab = e.data;
+            console.log(e.data);
+          });
+        },
       };
     };
   </script>

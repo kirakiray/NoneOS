@@ -1,0 +1,27 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+    }
+  </style>
+  <p>其他设备的AI</p>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      return {
+        data: {
+          models: [],
+        },
+        async attached() {
+          this.emit("update-tab", {
+            data: "remote-ai",
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>
