@@ -281,7 +281,10 @@
   </p-list>
 
   <script>
-    import { localizedObject } from "/packages/i18n/localized-object.js";
+    import {
+      localizedObject,
+      getLocalized,
+    } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
@@ -342,7 +345,11 @@
 
             if (!projectName.trim()) {
               toast({
-                content: "项目名不能为空",
+                content: await getLocalized({
+                  cn: "项目名不能为空",
+                  en: "Project name cannot be empty",
+                  ja: "プロジェクト名を入力してください",
+                }),
                 color: "error",
               });
               this.adding = false;
@@ -355,7 +362,11 @@
             });
 
             toast({
-              content: "创建成功",
+              content: await getLocalized({
+                cn: "创建成功",
+                en: "Project created successfully",
+                ja: "プロジェクトが正常に作成されました",
+              }),
               color: "success",
             });
 
@@ -382,8 +393,16 @@
             e.stopPropagation();
 
             const result = await confirm({
-              title: "删除项目",
-              content: `确定要删除该项目(${data.projectName})吗？改操作不可逆。`,
+              title: await getLocalized({
+                cn: "删除项目",
+                en: "Delete project",
+                ja: "プロジェクトを削除する",
+              }),
+              content: await getLocalized({
+                cn: `确定要删除该项目(${data.projectName})吗？改操作不可逆。`,
+                en: `Are you sure you want to delete the project (${data.projectName})? This action is irreversible.`,
+                ja: `このプロジェクト(${data.projectName})を削除してもよろしいですか？この操作は不可逆です。`,
+              }),
             });
 
             if (!result) {

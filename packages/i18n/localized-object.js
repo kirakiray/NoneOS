@@ -1,5 +1,16 @@
 import { getSetting } from "../none-os/setting.js";
 
+export const getLocalized = async (obj) => {
+  const settingData = await getSetting();
+  const { lang } = settingData;
+
+  if (!obj[lang]) {
+    return obj.en || obj.cn;
+  }
+
+  return obj[lang];
+};
+
 export const localizedObject = (obj) => {
   const reobj = $.stanz({});
 
