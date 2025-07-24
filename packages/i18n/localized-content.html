@@ -19,8 +19,6 @@
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
-      console.log("settingData: ", settingData);
-
       return {
         tag: "localized-content",
         data: {},

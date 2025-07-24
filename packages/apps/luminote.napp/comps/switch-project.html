@@ -92,7 +92,7 @@
             size="small"
             icon
             variant="outlined"
-            title="同时打开此项目"
+            attr:title="$host.desc.pushProject"
             style="margin-right: 8px"
             on:click="$host.pushProject($data, $event)"
           >
@@ -108,7 +108,7 @@
             size="small"
             icon
             variant="outlined"
-            title="关闭此项目"
+            attr:title="$host.desc.closeProject"
             style="margin-right: 8px"
             on:click="$host.closeProject($data,$event)"
           >
@@ -140,7 +140,10 @@
       </p-list-item>
     </o-fill>
     <p-list-item>
-      <p-input placeholder="请输入项目名称" sync:value="newProjectName">
+      <p-input
+        attr:placeholder="desc.inputPlaceholder"
+        sync:value="newProjectName"
+      >
         <p-button
           slot="suffix"
           size="small"
@@ -236,7 +239,7 @@
                   size="small"
                   icon
                   variant="outlined"
-                  title="同时打开此项目"
+                  attr:title="$host.desc.pushProject"
                   style="margin-right: 8px"
                   on:click="$host.pushProject($data, $event)"
                 >
@@ -252,7 +255,7 @@
                   size="small"
                   icon
                   variant="outlined"
-                  title="关闭此项目"
+                  attr:title="$host.desc.closeProject"
                   style="margin-right: 8px"
                   on:click="$host.closeProject($data,$event)"
                 >
@@ -278,6 +281,8 @@
   </p-list>
 
   <script>
+    import { localizedObject } from "/packages/i18n/localized-object.js";
+
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
 
@@ -291,6 +296,7 @@
           remotes: [],
           projects: [],
           adding: false,
+          desc: {},
         },
         proto: {
           isOpenedProject(data) {
@@ -404,11 +410,32 @@
         attached() {
           this.reloadExistProjects();
           this.loadRemotes();
+          this.desc = localizedObject({
+            pushProject: {
+              cn: "同时打开此项目",
+              en: "Open this project",
+              ja: "このプロジェクトを開く",
+            },
+            closeProject: {
+              cn: "关闭此项目",
+              en: "Close this project",
+              ja: "このプロジェクトを閉じる",
+            },
+            inputPlaceholder: {
+              cn: "请输入项目名称",
+              en: "Please enter project name",
+              ja: "プロジェクト名を入力してください",
+            },
+          });
+
+          window.descObj = this.desc;
 
           const { _openedProjects } = this.app;
           this.openedProjects = _openedProjects;
         },
         detached() {
+          this.desc._clear();
+          this.desc = {};
           this.openedProjects = [];
         },
       };
