@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/button/group.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
 
   <style>
     :host {
@@ -73,7 +74,7 @@
         color="normal"
         icon
         on:click="handleSelectionAction('bold')"
-        attr:disabled="itemData.type === 'h2' || itemData.type === 'h3' || itemData.type === 'h4'"
+        attr:disabled="itemType === 'h2' || itemType === 'h3' || itemType === 'h4'"
         attr:color="isActiveBold == 0 ? 'normal' : 'primary'"
         attr:variant="isActiveBold == 2 ? 'tonal' : 'text'"
       >
@@ -82,19 +83,51 @@
 
       <div slot="tips">
         <o-if
-          :value="itemData.type === 'h2' || itemData.type === 'h3' || itemData.type === 'h4'"
+          :value="itemType === 'h2' || itemType === 'h3' || itemType === 'h4'"
         >
-          <div class="tool-tips">标题已经是加粗的状态</div>
+          <div class="tool-tips">
+            <localized-content>
+              <span lang="en">Headers are already bold</span>
+              <span lang="cn">标题已经是加粗的状态</span>
+              <span lang="ja">ヘッダーは既に太字です</span>
+            </localized-content>
+          </div>
         </o-if>
         <o-else>
           <div class="tool-tips">
-            <strong>加粗</strong>
+            <strong>
+              <localized-content>
+                <span lang="en">Bold</span>
+                <span lang="cn">加粗</span>
+                <span lang="ja">太字</span>
+              </localized-content>
+            </strong>
             <br />
-            <o-if :value="isActiveBold === 2"> 已激活，点击后取消加粗 </o-if>
+            <o-if :value="isActiveBold === 2">
+              <localized-content>
+                <span lang="en">Activated, click to deactivate bold</span>
+                <span lang="cn">已激活，点击后取消加粗</span>
+                <span lang="ja">有効化済み、クリックで太字を解除</span>
+              </localized-content>
+            </o-if>
             <o-else-if :value="isActiveBold === 1">
-              部分激活，点击后取消部分加粗
+              <localized-content>
+                <span lang="en"
+                  >Partially activated, click to deactivate partial bold</span
+                >
+                <span lang="cn">部分激活，点击后取消部分加粗</span>
+                <span lang="ja"
+                  >部分的に有効化、クリックで部分的な太字を解除</span
+                >
+              </localized-content>
             </o-else-if>
-            <o-else> 未激活，点击后激活加粗 </o-else>
+            <o-else>
+              <localized-content>
+                <span lang="en">Not activated, click to activate bold</span>
+                <span lang="cn">未激活，点击后激活加粗</span>
+                <span lang="ja">未有効化、クリックで太字を有効化</span>
+              </localized-content>
+            </o-else>
           </div>
         </o-else>
       </div>
@@ -113,15 +146,40 @@
       </p-button>
       <div slot="tips">
         <div class="tool-tips">
-          <strong>下划线</strong>
+          <strong>
+            <localized-content>
+              <span lang="en">Underline</span>
+              <span lang="cn">下划线</span>
+              <span lang="ja">下線</span>
+            </localized-content>
+          </strong>
           <br />
           <o-if :value="isActiveUnderline === 2">
-            已激活，点击后取消下划线
+            <localized-content>
+              <span lang="en">Activated, click to deactivate underline</span>
+              <span lang="cn">已激活，点击后取消下划线</span>
+              <span lang="ja">有効化済み、クリックで下線を解除</span>
+            </localized-content>
           </o-if>
           <o-else-if :value="isActiveUnderline === 1">
-            部分激活，点击后取消部分下划线
+            <localized-content>
+              <span lang="en"
+                >Partially activated, click to deactivate partial
+                underline</span
+              >
+              <span lang="cn">部分激活，点击后取消部分下划线</span>
+              <span lang="ja"
+                >部分的に有効化、クリックで部分的な下線を解除</span
+              >
+            </localized-content>
           </o-else-if>
-          <o-else> 未激活，点击后激活下划线 </o-else>
+          <o-else>
+            <localized-content>
+              <span lang="en">Not activated, click to activate underline</span>
+              <span lang="cn">未激活，点击后激活下划线</span>
+              <span lang="ja">未有効化、クリックで下線を有効化</span>
+            </localized-content>
+          </o-else>
         </div>
       </div>
     </p-tooltips>
@@ -142,15 +200,44 @@
       </p-button>
       <div slot="tips">
         <div class="tool-tips">
-          <strong>删除线</strong>
+          <strong>
+            <localized-content>
+              <span lang="en">Strikethrough</span>
+              <span lang="cn">删除线</span>
+              <span lang="ja">取り消し線</span>
+            </localized-content>
+          </strong>
           <br />
           <o-if :value="isActiveStrikethrough === 2">
-            已激活，点击后取消删除线
+            <localized-content>
+              <span lang="en"
+                >Activated, click to deactivate strikethrough</span
+              >
+              <span lang="cn">已激活，点击后取消删除线</span>
+              <span lang="ja">有効化済み、クリックで取り消し線を解除</span>
+            </localized-content>
           </o-if>
           <o-else-if :value="isActiveStrikethrough === 1">
-            部分激活，点击后取消部分删除线
+            <localized-content>
+              <span lang="en"
+                >Partially activated, click to deactivate partial
+                strikethrough</span
+              >
+              <span lang="cn">部分激活，点击后取消部分删除线</span>
+              <span lang="ja"
+                >部分的に有効化、クリックで部分的な取り消し線を解除</span
+              >
+            </localized-content>
           </o-else-if>
-          <o-else> 未激活，点击后激活删除线 </o-else>
+          <o-else>
+            <localized-content>
+              <span lang="en">
+                Not activated, click to activate strikethrough
+              </span>
+              <span lang="cn">未激活，点击后激活删除线</span>
+              <span lang="ja">未有効化、クリックで取り消し線を有効化</span>
+            </localized-content>
+          </o-else>
         </div>
       </div>
     </p-tooltips>
@@ -168,13 +255,39 @@
       </p-button>
       <div slot="tips">
         <div class="tool-tips">
-          <strong>斜体</strong>
+          <strong>
+            <localized-content>
+              <span lang="en">Italic</span>
+              <span lang="cn">斜体</span>
+              <span lang="ja">斜体</span>
+            </localized-content>
+          </strong>
           <br />
-          <o-if :value="isActiveItalic === 2"> 已激活，点击后取消斜体 </o-if>
+          <o-if :value="isActiveItalic === 2">
+            <localized-content>
+              <span lang="en">Activated, click to deactivate italic</span>
+              <span lang="cn">已激活，点击后取消斜体</span>
+              <span lang="ja">有効化済み、クリックで斜体を解除</span>
+            </localized-content>
+          </o-if>
           <o-else-if :value="isActiveItalic === 1">
-            部分激活，点击后取消部分斜体
+            <localized-content>
+              <span lang="en"
+                >Partially activated, click to deactivate partial italic</span
+              >
+              <span lang="cn">部分激活，点击后取消部分斜体</span>
+              <span lang="ja"
+                >部分的に有効化、クリックで部分的な斜体を解除</span
+              >
+            </localized-content>
           </o-else-if>
-          <o-else> 未激活，点击后激活斜体 </o-else>
+          <o-else>
+            <localized-content>
+              <span lang="en">Not activated, click to activate italic</span>
+              <span lang="cn">未激活，点击后激活斜体</span>
+              <span lang="ja">未有効化、クリックで斜体を有効化</span>
+            </localized-content>
+          </o-else>
         </div>
       </div>
     </p-tooltips>
@@ -202,7 +315,13 @@
         on:mouseover="mouseoverColorWheel"
         on:mouseout="mouseoutColorWheel"
       >
-        <strong>字体颜色</strong>
+        <strong>
+          <localized-content>
+            <span lang="en">Text Color</span>
+            <span lang="cn">字体颜色</span>
+            <span lang="ja">文字色</span>
+          </localized-content>
+        </strong>
         <div style="display: flex">
           <o-fill :value="colorOpts">
             <div
@@ -216,7 +335,13 @@
             </div>
           </o-fill>
         </div>
-        <strong style="margin-top: 12px">背景颜色</strong>
+        <strong style="margin-top: 12px">
+          <localized-content>
+            <span lang="en">Background Color</span>
+            <span lang="cn">背景颜色</span>
+            <span lang="ja">背景色</span>
+          </localized-content>
+        </strong>
         <div style="display: flex">
           <o-fill :value="colorOpts">
             <div
@@ -269,8 +394,25 @@
         </p-button>
         <div slot="tips">
           <div class="tool-tips" style="white-space: wrap; width: 200px">
-            <strong>取消组件引用</strong><br />
-            移除选中文字中的内联组件引用，将其恢复为普通文本。
+            <strong>
+              <localized-content>
+                <span lang="en">Remove Component Reference</span>
+                <span lang="cn">取消组件引用</span>
+                <span lang="ja">コンポーネント参照を削除</span>
+              </localized-content> </strong
+            ><br />
+            <localized-content>
+              <span lang="en"
+                >Remove inline component references from selected text and
+                restore it to plain text.</span
+              >
+              <span lang="cn"
+                >移除选中文字中的内联组件引用，将其恢复为普通文本。</span
+              >
+              <span lang="ja"
+                >選択したテキストからインラインコンポーネント参照を削除し、プレーンテキストに戻します。</span
+              >
+            </localized-content>
           </div>
         </div>
       </p-tooltips>
@@ -332,6 +474,9 @@
       );
 
       const { inlineComps } = await load("./inline/config.js");
+      const { localizedObject, getLocalized } = await load(
+        "/packages/i18n/localized-object.js"
+      );
 
       {
         // 加载内联组件
@@ -347,7 +492,6 @@
           open: null,
         },
         data: {
-          itemData: {},
           // 下面是激活按钮的状态: 0没有激活 1激活了部分 2完全激活
           isActiveBold: 0, // 激活了加粗按钮
           isActiveItalic: 0, // 激活了斜体按钮
@@ -358,23 +502,43 @@
           selectionHasComponent: false, // 当前选中的元素是否包含组件
           colorOpts: [
             {
-              name: "不使用",
+              name: await getLocalized({
+                en: "None",
+                cn: "不使用",
+                ja: "なし",
+              }),
               color: "",
             },
             {
-              name: "主题色",
+              name: await getLocalized({
+                en: "Primary",
+                cn: "主题色",
+                ja: "プライマリー",
+              }),
               color: "primary",
             },
             {
-              name: "成功色",
+              name: await getLocalized({
+                en: "Success",
+                cn: "成功色",
+                ja: "成功",
+              }),
               color: "success",
             },
             {
-              name: "错误色",
+              name: await getLocalized({
+                en: "Error",
+                cn: "错误色",
+                ja: "エラー",
+              }),
               color: "error",
             },
             {
-              name: "灰色",
+              name: await getLocalized({
+                en: "Normal",
+                cn: "灰色",
+                ja: "通常",
+              }),
               color: "normal",
             },
           ],
@@ -384,6 +548,13 @@
           _selectedData: {}, // 选中块的数据
         },
         proto: {
+          get itemType() {
+            try {
+              return this._targetBlock.itemData.type;
+            } catch (err) {
+              return "";
+            }
+          },
           mouseoverColorWheel() {
             clearTimeout(this._mouseOverTimer);
             this.showColorWheel = true;
@@ -630,9 +801,7 @@
         attached() {
           this.loadInlineComponents();
         },
-        detached() {
-          this.itemData = {};
-        },
+        detached() {},
       };
     };
 

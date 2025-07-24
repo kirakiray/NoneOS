@@ -5,6 +5,7 @@
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       box-sizing: border-box;
@@ -18,7 +19,8 @@
 
     .container {
       display: grid;
-      grid-template-columns: repeat(auto-fill, 250px);
+      justify-content: center;
+      grid-template-columns: repeat(auto-fill, 300px);
       gap: 16px;
     }
 
@@ -34,8 +36,14 @@
       font-size: 16px;
     }
   </style>
-  <div style="margin: 0 auto; max-width: 800px; width: 100%">
-    <h1>回收站</h1>
+  <div style="margin: 0 auto; max-width: 932px; width: 100%">
+    <h1>
+      <localized-content>
+        <span lang="en">Recycle Bin</span>
+        <span lang="cn">回收站</span>
+        <span lang="ja">ごみ箱</span>
+      </localized-content>
+    </h1>
     <o-fill :value="removesGroup" fill-key="projectId">
       <div>
         <div style="font-weight: 600; font-size: 16px; margin: 24px 0 12px">
@@ -46,7 +54,11 @@
             <p-card elevated>
               <h3>{{$data.item.title || '无标题'}}</h3>
               <div style="font-size: 12px">
-                删除时间:
+                <localized-content>
+                  <span lang="en">Deleted Time:</span>
+                  <span lang="cn">删除时间:</span>
+                  <span lang="ja">削除日時:</span>
+                </localized-content>
                 <n-moment-span
                   :time="$data.item.removedTime"
                   style="color: var(--md-sys-color-error)"
@@ -62,7 +74,11 @@
                   style="margin: 0 8px 0 auto"
                 >
                   <n-local-icon name="revert" slot="prefix"></n-local-icon>
-                  还原
+                  <localized-content>
+                    <span lang="en">Restore</span>
+                    <span lang="cn">还原</span>
+                    <span lang="ja">復元</span>
+                  </localized-content>
                 </p-button>
                 <p-button
                   size="small"
@@ -71,7 +87,11 @@
                   on:click="$host.clickRemove($data,$index)"
                 >
                   <n-local-icon name="delete" slot="prefix"></n-local-icon>
-                  彻底删除
+                  <localized-content>
+                    <span lang="en">Delete Permanently</span>
+                    <span lang="cn">彻底删除</span>
+                    <span lang="ja">完全に削除</span>
+                  </localized-content>
                 </p-button>
               </div>
             </p-card>
@@ -88,7 +108,11 @@
               color: var(--md-sys-color-normal);
             "
           >
-            没有被删除的笔记
+            <localized-content>
+              <span lang="en">No deleted notes</span>
+              <span lang="cn">没有被删除的笔记</span>
+              <span lang="ja">削除されたノートはありません</span>
+            </localized-content>
           </div>
         </o-if>
       </div>
@@ -96,6 +120,10 @@
   </div>
   <script>
     export const parent = "./layout.html";
+    import {
+      localizedObject,
+      getLocalized,
+    } from "/packages/i18n/localized-object.js";
 
     export default async ({ load, query }) => {
       const { confirm } = await load("/packages/pui/util.js");
@@ -122,10 +150,22 @@
           },
           async clickRemove(data, index) {
             const result = await confirm({
-              content: `确认要删除 "${data.item.title}"？该操作不可撤销。`,
+              content: await getLocalized({
+                en: `Are you sure you want to permanently delete "${data.item.title}"? This action cannot be undone.`,
+                cn: `确认要删除 "${data.item.title}"？该操作不可撤销。`,
+                ja: `"${data.item.title}"を完全に削除してもよろしいですか？この操作は元に戻せません。`,
+              }),
               color: "error",
-              yes: "是的，删除",
-              cancel: "先不要",
+              yes: await getLocalized({
+                en: "Yes, delete",
+                cn: "是的，删除",
+                ja: "はい、削除します",
+              }),
+              cancel: await getLocalized({
+                en: "Cancel",
+                cn: "先不要",
+                ja: "キャンセル",
+              }),
             });
 
             if (!result) {
