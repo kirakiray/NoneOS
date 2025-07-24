@@ -107,11 +107,11 @@
           });
 
           (async () => {
-            await this.loadArticle();
-            
             this.push(
               `<lumi-page style="height: 100%;overflow: auto"></lumi-page>`
             );
+
+            await this.loadArticle();
 
             this.$("lumi-page").itemData = this.itemData;
             this.$("lumi-page").initRecord();
@@ -126,7 +126,7 @@
         },
         detached() {
           this.itemData = {};
-          this.$("lumi-page").itemData = {};
+          // this.$("lumi-page").itemData = {};
         },
       };
     };
