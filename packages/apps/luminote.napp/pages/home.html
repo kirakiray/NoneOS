@@ -5,7 +5,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
-  <l-m src="/packages/i18n/n-auto-show.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
 
   <style>
     :host {
@@ -28,13 +28,13 @@
     }
   </style>
   <h1>
-    <n-auto-show>
+    <localized-content>
       <span lang="cn">首页</span>
       <span lang="en">Home</span>
       <span lang="ja">ホーム</span>
-    </n-auto-show>
+    </localized-content>
   </h1>
-  <n-auto-show>
+  <localized-content>
     <p lang="cn">
       欢迎使用
       Luminote！这是一款强大的知识管理工具，它能帮助你有条理地梳理思路。通过逐层拆解内容，你可以将复杂的知识体系转化为清晰明了的笔记。
@@ -59,7 +59,7 @@
     <p lang="ja">
       新しいタブでこのアプリケーションを開いてください。最良の体験を得るためです。
     </p>
-  </n-auto-show>
+  </localized-content>
 
   <o-if :value="isSafari">
     <div style="color: red">
@@ -81,13 +81,13 @@
 
   <div>
     <h4>
-      <n-auto-show>
+      <localized-content>
         <span lang="cn">本地AI</span>
         <span lang="en">Local AI</span>
         <span lang="ja">ローカルAI</span>
-      </n-auto-show>
+      </localized-content>
     </h4>
-    <n-auto-show>
+    <localized-content>
       <p lang="cn">
         配置本地 AI 后，Luminote
         还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
@@ -101,24 +101,24 @@
       <p lang="ja">
         ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
       </p>
-    </n-auto-show>
+    </localized-content>
     <div>
       <o-if :value="models === 0">
-        <n-auto-show>
+        <localized-content>
           <span lang="cn">加载中...</span>
           <span lang="en">Loading...</span>
           <span lang="ja">ローディング中...</span>
-        </n-auto-show>
+        </localized-content>
       </o-if>
       <o-else-if :value="models === 'error'">
-        <n-auto-show>
+        <localized-content>
           <span lang="cn">加载失败</span>
           <span lang="en">Loading failed</span>
           <span lang="ja">ローディングに失敗しました</span>
-        </n-auto-show>
+        </localized-content>
       </o-else-if>
       <o-else>
-        <n-auto-show>
+        <localized-content>
           <span lang="cn" style="color: var(--md-sys-color-primary)">
             检测到 {{models.length}} 个模型
           </span>
@@ -128,25 +128,25 @@
           <span lang="ja" style="color: var(--md-sys-color-primary)">
             検出された {{models.length}} モデル
           </span>
-        </n-auto-show>
+        </localized-content>
       </o-else>
     </div>
   </div>
 
   <div>
     <h4>
-      <n-auto-show>
+      <localized-content>
         <span lang="cn">查看使用技巧</span>
         <span lang="en">View usage tips</span>
         <span lang="ja">使用方法を表示</span>
-      </n-auto-show>
+      </localized-content>
     </h4>
     <div style="color: var(--md-sys-color-normal)">
-      <n-auto-show>
+      <localized-content>
         <span lang="cn">准备中...</span>
         <span lang="en">Preparing...</span>
         <span lang="ja">準備中...</span>
-      </n-auto-show>
+      </localized-content>
     </div>
   </div>
 

@@ -5,6 +5,7 @@
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="../comps/switch-project.html"></l-m>
   <style>
     :host {
@@ -70,7 +71,11 @@
           slot="prefix"
           style="color: var(--md-sys-color-primary)"
         ></n-local-icon>
-        添加子笔记
+        <localized-content>
+          <span lang="en"> Add Sub Note </span>
+          <span lang="cn"> 添加子笔记 </span>
+          <span lang="ja"> サブノートを追加 </span>
+        </localized-content>
       </p-menu-item>
       <p-menu-item data-type="removeNote">
         <n-local-icon
@@ -78,7 +83,11 @@
           slot="prefix"
           style="color: var(--md-sys-color-error)"
         ></n-local-icon>
-        移动到回收站
+        <localized-content>
+          <span lang="en"> Move to Recycle Bin </span>
+          <span lang="cn"> 移动到回收站 </span>
+          <span lang="ja"> ゴミ箱に移動 </span>
+        </localized-content>
       </p-menu-item>
     </p-menu>
     <div class="container">
@@ -101,7 +110,11 @@
         <p-list style="margin-bottom: 18px">
           <p-list-item button disabled>
             <n-local-icon name="search" slot="prefix"></n-local-icon>
-            搜索
+            <localized-content>
+              <span lang="en"> Search </span>
+              <span lang="cn"> 搜索 </span>
+              <span lang="ja"> 検索 </span>
+            </localized-content>
           </p-list-item>
           <p-list-item
             button
@@ -109,7 +122,11 @@
             on:click="goto('./home.html')"
           >
             <n-local-icon name="home" slot="prefix"></n-local-icon>
-            首页
+            <localized-content>
+              <span lang="en"> Home </span>
+              <span lang="cn"> 首页 </span>
+              <span lang="ja"> ホーム </span>
+            </localized-content>
           </p-list-item>
           <p-list-item
             button
@@ -117,15 +134,29 @@
             on:click="goto(`./recycles.html`)"
           >
             <n-local-icon name="recycle" slot="prefix"></n-local-icon>
-            回收站
+            <localized-content>
+              <span lang="en"> Recycle Bin </span>
+              <span lang="cn"> 回收站 </span>
+              <span lang="ja"> ゴミ箱 </span>
+            </localized-content>
           </p-list-item>
           <p-list-item button disabled>
             <n-local-icon name="config" slot="prefix"></n-local-icon>
-            设置
+            <localized-content>
+              <span lang="en"> Settings </span>
+              <span lang="cn"> 设置 </span>
+              <span lang="ja"> 設定 </span>
+            </localized-content>
           </p-list-item>
         </p-list>
 
-        <h4 style="font-size: 13px; margin: 6px 0 6px 16px">已打开文档</h4>
+        <h4 style="font-size: 13px; margin: 6px 0 6px 16px">
+          <localized-content>
+            <span lang="en"> Open Documents </span>
+            <span lang="cn"> 已打开文档 </span>
+            <span lang="ja"> 開いているドキュメント </span>
+          </localized-content>
+        </h4>
         <p-list>
           <o-fill :value="projects">
             <p-list-item
@@ -198,7 +229,11 @@
             slot="prefix"
             style="display: block; margin-right: 3px"
           ></n-local-icon>
-          管理项目
+          <localized-content>
+            <span lang="en"> Manage Projects </span>
+            <span lang="cn"> 管理项目 </span>
+            <span lang="ja"> プロジェクトを管理する </span>
+          </localized-content>
         </p-button>
         <div style="height: 16px"></div>
       </div>
@@ -218,8 +253,11 @@
             slot="prefix"
             style="display: block; margin-right: 4px; font-size: 18px"
           ></n-local-icon>
-
-          {{$data.title || '未命名页面'}}
+          <localized-content>
+            <span lang="en"> {{$data.title || 'Unnamed Page'}} </span>
+            <span lang="cn"> {{$data.title || '未命名页面'}} </span>
+            <span lang="ja"> {{$data.title || '未命名ページ'}} </span>
+          </localized-content>
 
           <i
             slot="suffix"
@@ -344,7 +382,13 @@
   </p-bind-contextmenu>
 
   <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
-    <div slot="title">管理项目</div>
+    <div slot="title">
+      <localized-content>
+        <span lang="en"> Manage Projects </span>
+        <span lang="cn"> 管理项目 </span>
+        <span lang="ja"> プロジェクトを管理する </span>
+      </localized-content>
+    </div>
     <p-button
       variant="text"
       icon
