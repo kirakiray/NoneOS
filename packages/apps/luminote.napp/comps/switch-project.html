@@ -11,7 +11,13 @@
       overflow-y: auto;
     }
   </style>
-  <h4>已经打开的项目</h4>
+  <h4>
+    <localized-content>
+      <span lang="en"> Opened Projects </span>
+      <span lang="cn"> 已经打开的项目 </span>
+      <span lang="ja"> 開いているプロジェクト </span>
+    </localized-content>
+  </h4>
   <p-list style="min-height: 34px; display: flex; flex-wrap: wrap">
     <o-fill :value="openedProjects">
       <p-list-item>
