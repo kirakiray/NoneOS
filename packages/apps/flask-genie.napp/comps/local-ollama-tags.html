@@ -18,7 +18,7 @@
   </o-if>
   <o-else>
     <p-list>
-      <o-fill :value="models">
+      <o-fill :value="models" fill-key="digest">
         <p-list-item collapse-childs="false" button="suffix">
           <n-local-icon
             name="ai-chip"
@@ -73,6 +73,7 @@
         tag: "local-ollama-tags",
         data: {
           models: [],
+          requiredModels: ["nomic-embed-text", "qwen3:4b"], // 内部严选的模型
         },
         proto: {
           async deleteModel(data) {

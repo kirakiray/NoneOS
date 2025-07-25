@@ -23,6 +23,16 @@ export const deleteOllamaModel = async (model) => {
   return result;
 };
 
+export const pullOllamaModel = async (model) => {
+  const result = await fetch("http://localhost:11434/api/pull", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: model }),
+  }).then((e) => e.json());
+
+  return result;
+};
+
 export async function askOllamaStream(prompt, model = "qwen3:4b", callback) {
   try {
     const response = await fetch("http://localhost:11434/api/generate", {
