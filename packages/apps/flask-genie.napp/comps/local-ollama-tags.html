@@ -1,0 +1,52 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <o-if :value="!models">
+    <p style="color: var(--md-sys-color-error)">
+      无法连接到本地Ollama服务，请检查Ollama服务是否已启动，若已启动可尝试重启服务。
+    </p>
+    <p style="color: var(--md-sys-color-error)">
+      若尚未安装Ollama，可访问
+      <a href="https://ollama.com/">ollama.com</a> 进行下载和安装。
+    </p>
+  </o-if>
+  <o-else>
+    <p-list>
+      <o-fill :value="models">
+        <p-list-item>
+          <n-local-icon
+            name="ai-chip"
+            slot="prefix"
+            style="display: block; margin-right: 6px"
+          ></n-local-icon>
+          {{ $data.name }}
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </o-else>
+  <script>
+    export default async ({ load }) => {
+      const { getOllamaModels } = await load("/packages/ai/util.js");
+
+      return {
+        tag: "local-ollama-tags",
+        data: {
+          models: [],
+        },
+        proto: {
+          async getModels() {
+            this.models = await getOllamaModels();
+          },
+        },
+        attached() {
+          this.getModels();
+        },
+      };
+    };
+  </script>
+</template>
