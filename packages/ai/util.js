@@ -14,13 +14,11 @@ export async function getOllamaModels() {
 }
 
 export const deleteOllamaModel = async (model) => {
-  const res = await fetch("http://localhost:11434/api/delete", {
+  const result = await fetch("http://localhost:11434/api/delete", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: model }),
-  });
-
-  debugger;
+  }).then((e) => e.text());
 
   return result;
 };

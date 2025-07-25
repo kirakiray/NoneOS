@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -18,20 +19,55 @@
   <o-else>
     <p-list>
       <o-fill :value="models">
-        <p-list-item>
+        <p-list-item collapse-childs="false" button="suffix">
           <n-local-icon
             name="ai-chip"
             slot="prefix"
             style="display: block; margin-right: 6px"
           ></n-local-icon>
-          {{ $data.name }}
+          <div style="display: flex">
+            {{ $data.name }}
+            <span
+              style="
+                display: block;
+                margin: 0 16px 0 auto;
+                font-size: 12px;
+                color: var(--md-sys-color-normal);
+              "
+            >
+              {{$host.getFileSize($data.size)}}
+            </span>
+          </div>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs" style="--parent-left: 16px">
+            <!-- <p-list-item>
+              模型大小: {{$host.getFileSize($data.size)}}
+            </p-list-item> -->
+            <p-list-item>
+              修改时间: {{$host.getTime($data.modified_at)}}</p-list-item
+            >
+            <p-list-item> digest: {{$data.digest}} </p-list-item>
+            <p-list-item>
+              <div>
+                <p-button
+                  color="error"
+                  size="small"
+                  on:click="$host.deleteModel($data)"
+                  >删除该模型</p-button
+                >
+              </div>
+            </p-list-item>
+          </p-list>
         </p-list-item>
       </o-fill>
     </p-list>
   </o-else>
   <script>
     export default async ({ load }) => {
-      const { getOllamaModels } = await load("/packages/ai/util.js");
+      const { getOllamaModels, deleteOllamaModel } = await load(
+        "/packages/ai/util.js"
+      );
+      const { toast, confirm } = await load("/packages/pui/util.js");
 
       return {
         tag: "local-ollama-tags",
@@ -39,12 +75,46 @@
           models: [],
         },
         proto: {
-          async getModels() {
+          async deleteModel(data) {
+            const ok = await confirm({
+              title: "删除模型",
+              content: `确认删除模型 ${data.name} 吗？`,
+            });
+
+            if (!ok) {
+              return;
+            }
+
+            await deleteOllamaModel(data.name);
+
+            toast({
+              content: `删除 ${data.name} 成功`,
+              color: "success",
+            });
+
+            this.refreshModels();
+          },
+          getFileSize(size) {
+            if (size < 1024) {
+              return size + "B";
+            }
+            if (size < 1024 * 1024) {
+              return (size / 1024).toFixed(2) + "KB";
+            }
+            if (size < 1024 * 1024 * 1024) {
+              return (size / 1024 / 1024).toFixed(2) + "MB";
+            }
+            return (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+          },
+          getTime(time) {
+            return new Date(time).toLocaleString();
+          },
+          async refreshModels() {
             this.models = await getOllamaModels();
           },
         },
         attached() {
-          this.getModels();
+          this.refreshModels();
         },
       };
     };
