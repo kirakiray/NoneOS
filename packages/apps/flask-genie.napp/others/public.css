@@ -1,0 +1,9 @@
+h5 {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 8px 0;
+}
+
+h5:first-of-type {
+  margin-top: 0;
+}

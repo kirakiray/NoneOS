@@ -9,7 +9,7 @@ export async function getOllamaModels() {
     return data.models;
   } catch (error) {
     console.error("获取模型失败:", error);
-    return [];
+    return null;
   }
 }
 
@@ -29,7 +29,6 @@ export async function askOllamaStream(prompt, model = "qwen3:4b", callback) {
           temperature: 0.7, // 创造性程度
           repeat_penalty: 1.1,
           num_predict: 512, // 最大生成长度
-          // nothink: true, // 启用无思考模式
           enable_thinking: "False",
         },
       }),

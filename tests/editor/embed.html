@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Embedding 语义搜索 Demo</title>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 40px;
+      }
+      textarea {
+        width: 100%;
+        height: 60px;
+      }
+      button {
+        margin: 8px 0;
+      }
+      #result span {
+        display: inline-block;
+        margin: 4px;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+      .high {
+        background: #d1f7d1;
+      }
+      .low {
+        background: #ffecec;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>1. 输入几段文本</h2>
+    <textarea id="docs">
+杭州西湖的荷花开了
+北京故宫的雪景真美
+人工智能将改变世界
+我爱吃冰淇淋
+    </textarea>
+
+    <h2>2. 输入你想搜索的句子</h2>
+    <input id="query" type="text" placeholder="例如：旅游景点" size="60" />
+
+    <button onclick="run()">计算相似度 & 排序</button>
+
+    <h3>3. 结果（颜色越深越相关）</h3>
+    <div id="result"></div>
+
+    <script>
+      /* ---------- 工具：余弦相似度 ---------- */
+      function cosSim(a, b) {
+        const dot = a.reduce((s, ai, i) => s + ai * b[i], 0);
+        const normA = Math.sqrt(a.reduce((s, ai) => s + ai * ai, 0));
+        const normB = Math.sqrt(b.reduce((s, bi) => s + bi * bi, 0));
+        return dot / (normA * normB);
+      }
+
+      /* ---------- 工具：调用 ollama embeddings ---------- */
+      async function getEmbedding(text) {
+        const res = await fetch("http://localhost:11434/v1/embeddings", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer ollama",
+          },
+          body: JSON.stringify({ model: "nomic-embed-text", input: text }),
+        });
+        const data = await res.json();
+        return data.data[0].embedding; // 768 维数组
+      }
+
+      /* ---------- 主流程 ---------- */
+      async function run() {
+        const texts = document
+          .getElementById("docs")
+          .value.trim()
+          .split("\n")
+          .filter(Boolean);
+        const query = document.getElementById("query").value.trim();
+        if (!query) return alert("请输入查询句子");
+
+        // 1. 计算所有向量
+        const all = [query, ...texts];
+        const vectors = await Promise.all(all.map(getEmbedding));
+
+        const qVec = vectors[0];
+        const pairs = texts.map((txt, i) => ({
+          text: txt,
+          score: cosSim(qVec, vectors[i + 1]),
+        }));
+
+        // 2. 按相似度排序
+        pairs.sort((a, b) => b.score - a.score);
+
+        // 3. 展示
+        const box = document.getElementById("result");
+        box.innerHTML = "";
+        pairs.forEach((p) => {
+          const span = document.createElement("span");
+          span.textContent = `${p.text} (${p.score.toFixed(3)})`;
+          // 颜色映射 0→红色 1→绿色
+          const hue = p.score * 120;
+          span.style.background = `hsl(${hue}, 80%, 85%)`;
+          box.appendChild(span);
+        });
+      }
+    </script>
+  </body>
+</html>

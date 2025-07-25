@@ -1,30 +1,41 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <link rel="stylesheet" href="../others/public.css" />
   <style>
     :host {
       display: block;
       padding: 16px;
     }
   </style>
+  <h5>本机AI</h5>
   <p>
-    本应用是专为 NoneOS 内部应用打造的管理工具，可实现穿透访问外部世界的功能。
+    依托本地系统安装的Ollama接口，让NoneOS内的应用能够直接调用AI能力，解锁更多丰富的AI功能。
   </p>
-  <p>
-    借助该应用，内部程序不仅能请求外部 API，还能通过代理访问各类外部 AI 接口。
-  </p>
-  <h5>本地已下载的模型</h5>
-  <p-list>
-    <o-fill :value="models">
-      <p-list-item>
-        <n-local-icon
-          name="ai-chip"
-          slot="prefix"
-          style="display: block; margin-right: 6px"
-        ></n-local-icon>
-        {{ $data.name }}
-      </p-list-item>
-    </o-fill>
-  </p-list>
+  <o-if :value="!models">
+    <p style="color: var(--md-sys-color-error)">
+      无法连接到本地Ollama服务，请检查Ollama服务是否已启动，若已启动可尝试重启服务。
+    </p>
+    <p style="color: var(--md-sys-color-error)">
+      若尚未安装Ollama，可访问
+      <a href="https://ollama.com/">ollama.com</a> 进行下载和安装。
+    </p>
+  </o-if>
+  <o-else>
+    <h5>本地已下载的模型</h5>
+    <p-list>
+      <o-fill :value="models">
+        <p-list-item>
+          <n-local-icon
+            name="ai-chip"
+            slot="prefix"
+            style="display: block; margin-right: 6px"
+          ></n-local-icon>
+          {{ $data.name }}
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </o-else>
+
   <script>
     export const parent = "./layout.html";
 
@@ -36,8 +47,13 @@
           val: "123",
           models: [],
         },
+        proto: {
+          async getModels() {
+            this.models = await getOllamaModels();
+          },
+        },
         async attached() {
-          this.models = await getOllamaModels();
+          this.getModels();
 
           this.emit("update-tab", {
             data: "local-ai",
