@@ -151,22 +151,10 @@
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
-      const {
-        getOllamaModels,
-        deleteOllamaModel,
-        pullOllamaModel,
-        askOllamaStream,
-      } = await load("/packages/ai/main.js");
+      const { getOllamaModels, deleteOllamaModel, pullOllamaModel } =
+        await load("/packages/ai/main.js");
 
       const { toast, confirm } = await load("/packages/pui/util.js");
-
-      // 使用示例
-      //   let text = "";
-      //   askOllamaStream("/no_think 你是谁？", "qwen3:4b", (chunk) => {
-      //     text += chunk;
-      //     console.clear();
-      //     console.log(text); // 实时输出每个片段
-      //   });
 
       return {
         tag: "local-ollama-tags",
@@ -210,6 +198,8 @@
         proto: {
           useModel(data) {
             this.settingData.ai.model = data.model;
+
+            this.emit("change-setting-model");
           },
           getEntries(data) {
             return Object.entries(data).map(([key, value]) => {
