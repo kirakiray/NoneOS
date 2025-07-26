@@ -35,7 +35,7 @@
           ></n-local-icon>
           <div style="display: flex">
             {{ $data.name }}
-            <span
+            <!-- <span
               style="
                 display: block;
                 margin: 0 16px 0 auto;
@@ -44,13 +44,13 @@
               "
             >
               {{$host.getFileSize($data.size)}}
-            </span>
+            </span> -->
           </div>
           <i toggle-collapse triangle slot="suffix"></i>
-          <p-list slot="childs" style="--parent-left: 16px">
-            <!-- <p-list-item>
+          <p-list slot="childs" style="--ladder-left: 16px">
+            <p-list-item>
               模型大小: {{$host.getFileSize($data.size)}}
-            </p-list-item> -->
+            </p-list-item>
             <p-list-item>
               下载时间: {{$host.getTime($data.modified_at)}}</p-list-item
             >
@@ -59,7 +59,7 @@
             <p-list-item collapse-childs="false" button="suffix">
               Details
               <i toggle-collapse triangle slot="suffix"></i>
-              <p-list slot="childs" style="--parent-left: 32px">
+              <p-list slot="childs">
                 <o-fill :value="$host.getEntries($data.details)">
                   <p-list-item>
                     <div style="display: flex">
@@ -88,7 +88,11 @@
         </p-list-item>
       </o-fill>
       <o-fill :value="requiredModels">
-        <p-list-item class:hide="$data.installed">
+        <p-list-item
+          class:hide="$data.installed"
+          collapse-childs="false"
+          button="suffix"
+        >
           <n-local-icon
             name="ai-chip"
             slot="prefix"
@@ -99,26 +103,31 @@
               color: var(--md-sys-color-normal);
             "
           ></n-local-icon>
-          <div style="display: flex; align-items: center">
-            {{$data.name}}
-            <p-button
-              color="primary"
-              size="mini"
-              variant="outlined"
-              on:click="$host.pullModel($data)"
-              attr:disabled="$data.downloading"
-              style="margin-left: 32px"
-            >
-              <o-if :value="$data.downloading">
-                <n-local-icon
-                  name="loading"
-                  style="margin-right: 4px; display: block"
-                ></n-local-icon>
-                下载中
-              </o-if>
-              <o-else> 下载 </o-else>
-            </p-button>
-          </div>
+          <div style="display: flex; align-items: center">{{$data.name}}</div>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs" style="--ladder-left: 16px">
+            <p-list-item> {{$data.desc.cn}} </p-list-item>
+            <p-list-item>
+              <div>
+                <p-button
+                  color="primary"
+                  size="small"
+                  variant="outlined"
+                  on:click="$host.pullModel($data)"
+                  attr:disabled="$data.downloading"
+                >
+                  <o-if :value="$data.downloading">
+                    <n-local-icon
+                      name="loading"
+                      style="margin-right: 4px; display: block"
+                    ></n-local-icon>
+                    下载中
+                  </o-if>
+                  <o-else> 下载 </o-else>
+                </p-button>
+              </div>
+            </p-list-item>
+          </p-list>
         </p-list-item>
       </o-fill>
     </p-list>
@@ -146,8 +155,34 @@
         data: {
           models: [],
           requiredModels: [
-            { name: "qwen3:4b", installed: false },
-            { name: "nomic-embed-text:latest", installed: false },
+            {
+              name: "qwen3:4b",
+              installed: false,
+              desc: {
+                cn: "通义千问3的4B参数版本，轻量级大语言模型，在普通性能设备上运行流畅，中文理解和生成能力优秀",
+              },
+            },
+            {
+              name: "qwen3:30b",
+              installed: false,
+              desc: {
+                cn: "通义千问3的30B参数版本，高性能大语言模型，需要较强计算设备支持，在复杂中文任务上表现优异",
+              },
+            },
+            {
+              name: "gemma3:4b",
+              installed: false,
+              desc: {
+                cn: "Google Gemma 3的4B参数版本，轻量级开源模型，专为高效推理设计，在多语言任务中表现良好",
+              },
+            },
+            {
+              name: "gemma3n:e4b",
+              installed: false,
+              desc: {
+                cn: "Google Gemma 3的优化4B参数版本，针对边缘设备特别优化，保持高效推理能力的同时降低资源消耗",
+              },
+            },
           ], // 内部严选的模型
         },
         proto: {
