@@ -1,5 +1,16 @@
 import { getSetting } from "../none-os/setting.js";
 
+(async () => {
+  const settingData = await getSetting();
+
+  // ai配置
+  if (!settingData.ai) {
+    settingData.ai = {
+      model: "qwen3:4b",
+    };
+  }
+})();
+
 export {
   getOllamaModels,
   deleteOllamaModel,
@@ -18,7 +29,7 @@ export const modelExtend = {
       if (!/<think>[\d\D]*?<\/think>\n/.test(responseText)) {
         return "";
       }
-      
+
       return responseText.replace(/^\<think>[\d\D]*?<\/think>\s+/, "");
     },
   },
@@ -40,7 +51,7 @@ export const ask = async (prompt, { model: modelName, onChunk }) => {
   await askOllamaStream(prompt, finalModelName, (chunk) => {
     responseText += chunk;
 
-    let preprocessedText = "";
+    let preprocessedText = responseText;
     if (targetExtend && targetExtend.preprocess) {
       preprocessedText = targetExtend.preprocess(responseText);
     }
@@ -55,8 +66,14 @@ export const ask = async (prompt, { model: modelName, onChunk }) => {
     }
   });
 
+  let preprocessedText = responseText;
+  if (targetExtend && targetExtend.preprocess) {
+    preprocessedText = targetExtend.preprocess(responseText);
+  }
+
   return {
     modelName: finalModelName,
-    text: responseText,
+    originText: responseText,
+    responseText: preprocessedText,
   };
 };

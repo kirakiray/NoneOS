@@ -35,16 +35,18 @@
           ></n-local-icon>
           <div style="display: flex">
             {{ $data.name }}
-            <!-- <span
-              style="
-                display: block;
-                margin: 0 16px 0 auto;
-                font-size: 12px;
-                color: var(--md-sys-color-normal);
-              "
-            >
-              {{$host.getFileSize($data.size)}}
-            </span> -->
+
+            <o-if :value="settingData.ai.model === $data.name">
+              <div
+                style="
+                  margin-left: 16px;
+                  color: var(--md-sys-color-success);
+                  font-size: 20px;
+                "
+              >
+                <n-local-icon name="tick-circle"></n-local-icon>
+              </div>
+            </o-if>
           </div>
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs" style="--ladder-left: 16px">
@@ -75,7 +77,16 @@
 
             <p-list-item>
               <div>
-                <p-button size="small"> 优先使用该模型 </p-button>
+                <p-button
+                  size="small"
+                  attr:disabled="settingData.ai.model === $data.name"
+                  on:click="$host.useModel($data)"
+                >
+                  <o-if :value="settingData.ai.model === $data.name">
+                    已选择该模型
+                  </o-if>
+                  <o-else> 优先使用该模型 </o-else>
+                </p-button>
                 <p-button
                   color="error"
                   size="small"
@@ -140,13 +151,6 @@
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
-      // ai配置
-      if (!settingData.ai) {
-        settingData.ai = {
-          model: "qwen3:4b",
-        };
-      }
-
       const {
         getOllamaModels,
         deleteOllamaModel,
@@ -204,6 +208,9 @@
           settingData: {},
         },
         proto: {
+          useModel(data) {
+            this.settingData.ai.model = data.model;
+          },
           getEntries(data) {
             return Object.entries(data).map(([key, value]) => {
               return {
