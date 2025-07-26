@@ -109,12 +109,14 @@
             <p-list-item> {{$data.desc.cn}} </p-list-item>
             <p-list-item>
               <div>
+                模型大小 : {{$data.size}}
                 <p-button
                   color="primary"
                   size="small"
                   variant="outlined"
                   on:click="$host.pullModel($data)"
                   attr:disabled="$data.downloading"
+                  style="margin-left: 16px"
                 >
                   <o-if :value="$data.downloading">
                     <n-local-icon
@@ -168,6 +170,7 @@
               desc: {
                 cn: "通义千问3的30B参数版本，高性能大语言模型，需要较强计算设备支持，在复杂中文任务上表现优异",
               },
+              size: "19GB",
             },
             {
               name: "gemma3:4b",
@@ -175,6 +178,7 @@
               desc: {
                 cn: "Google Gemma 3的4B参数版本，轻量级开源模型，专为高效推理设计，在多语言任务中表现良好",
               },
+              size: "3.3GB",
             },
             {
               name: "gemma3n:e4b",
@@ -182,6 +186,7 @@
               desc: {
                 cn: "Google Gemma 3的优化4B参数版本，针对边缘设备特别优化，保持高效推理能力的同时降低资源消耗",
               },
+              size: "7.5GB",
             },
           ], // 内部严选的模型
         },
@@ -195,6 +200,17 @@
             });
           },
           async pullModel(data) {
+            if (data.size) {
+              const ok = await confirm({
+                title: "确认下载模型",
+                content: `您确定要下载模型 ${data.name} 吗？该模型将占用 ${data.size} 磁盘空间。请注意，下载一旦开始便无法暂停，需等待下载完成后方可删除。`,
+              });
+
+              if (!ok) {
+                return;
+              }
+            }
+
             const result = await pullOllamaModel(data.name, (e) => {
               console.log(e);
               data.downloading = true;
@@ -238,13 +254,18 @@
             return new Date(time).toLocaleString();
           },
           async refreshModels() {
-            const models = await getOllamaModels();
+            try {
+              const models = await getOllamaModels();
 
-            this.requiredModels.forEach((e) => {
-              e.installed = models.some((m) => m.name === e.name);
-            });
+              this.requiredModels.forEach((e) => {
+                e.installed = models.some((m) => m.name === e.name);
+              });
 
-            this.models = models;
+              this.models = models;
+            } catch (error) {
+              this.models = null;
+              console.log(error);
+            }
           },
         },
         attached() {
