@@ -75,6 +75,7 @@
 
             <p-list-item>
               <div>
+                <p-button size="small"> 优先使用该模型 </p-button>
                 <p-button
                   color="error"
                   size="small"
@@ -136,6 +137,16 @@
   </o-else>
   <script>
     export default async ({ load }) => {
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      // ai配置
+      if (!settingData.ai) {
+        settingData.ai = {
+          model: "qwen3:4b",
+        };
+      }
+
       const {
         getOllamaModels,
         deleteOllamaModel,
@@ -190,6 +201,7 @@
               size: "7.5GB",
             },
           ], // 内部严选的模型
+          settingData: {},
         },
         proto: {
           getEntries(data) {
@@ -271,6 +283,10 @@
         },
         attached() {
           this.refreshModels();
+          this.settingData = settingData;
+        },
+        detached() {
+          this.settingData = {};
         },
       };
     };

@@ -46,13 +46,14 @@
   </div>
 
   <h5>本地模型</h5>
+
   <local-ollama-tags></local-ollama-tags>
 
   <script>
     export const parent = "./layout.html";
 
     export default async ({ load }) => {
-      const { askOllamaStream } = await load("/packages/ai/main.js");
+      const { askOllamaStream, ask } = await load("/packages/ai/main.js");
 
       return {
         data: {
@@ -66,13 +67,11 @@
 
             this.chatContent = "";
 
-            const result = await askOllamaStream(
-              `/no_think你是谁？`,
-              this.selectedModel,
-              (e) => {
-                this.chatContent += e;
-              }
-            );
+            await ask("我是谁？", {
+              onChunk: ({ modelName, responseText, currentToken }) => {
+                this.chatContent = responseText;
+              },
+            });
 
             this.chatting = false;
           },
