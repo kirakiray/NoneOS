@@ -1,5 +1,6 @@
 <template page>
   <link rel="stylesheet" href="../others/public.css" />
+  <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="../comps/local-ollama-tags.html"></l-m>
   <style>
     :host {
@@ -7,28 +8,67 @@
       padding: 16px;
     }
   </style>
-  <h5>本机AI</h5>
+  <h3>本机AI</h3>
   <p>
     依托本地系统安装的Ollama接口，让NoneOS内的应用能够直接调用AI能力，解锁更多丰富的AI功能。
   </p>
-  <h5>本地Ollama</h5>
-  <local-ollama-tags></local-ollama-tags>
+  <h4>本地Ollama</h4>
 
-  <h5>添加互联网的key</h5>
+  <h5>优先使用的AI</h5>
+
+  <p-select
+    attr:disabled="chatting"
+    sync:value="selectedModel"
+    size="small"
+    style="display: inline-block; min-width: 200px"
+  >
+    <o-fill :value="models">
+      <p-option attr:value="$data.name">{{ $data.name }}</p-option>
+    </o-fill>
+  </p-select>
+
+  <div class="chat-pop">{{chatContent}}</div>
+
+  <h5>本地模型</h5>
+  <local-ollama-tags watch:models="models"></local-ollama-tags>
 
   <script>
     export const parent = "./layout.html";
 
     export default async ({ load }) => {
+      const { askOllamaStream } = await load("/packages/ai/main.js");
+
       return {
         data: {
-          val: "123",
+          models: [],
+          selectedModel: "qwen3:4b",
+          chatContent: "",
+          chatting: false,
+        },
+        proto: {
+          async refreshChat() {
+            this.chatting = true;
+
+            this.chatContent = "";
+
+            const result = await askOllamaStream(
+              `/no_think你是谁？`,
+              this.selectedModel,
+              (e) => {
+                this.chatContent += e;
+              }
+            );
+
+            this.chatting = false;
+          },
         },
         async attached() {
           this.emit("update-tab", {
             data: "local-ai",
             composed: true,
           });
+
+          this.refreshChat();
         },
       };
     };
