@@ -5,6 +5,9 @@
     :host {
       display: block;
     }
+    .hide {
+      display: none;
+    }
   </style>
 
   <o-if :value="!models">
@@ -18,12 +21,17 @@
   </o-if>
   <o-else>
     <p-list>
-      <o-fill :value="models" fill-key="digest">
+      <o-fill :value="models" fill-key="name">
         <p-list-item collapse-childs="false" button="suffix">
           <n-local-icon
             name="ai-chip"
             slot="prefix"
-            style="display: block; margin-right: 6px"
+            style="
+              display: block;
+              margin-right: 6px;
+              font-size: 20px;
+              color: var(--md-sys-color-primary);
+            "
           ></n-local-icon>
           <div style="display: flex">
             {{ $data.name }}
@@ -44,38 +52,122 @@
               模型大小: {{$host.getFileSize($data.size)}}
             </p-list-item> -->
             <p-list-item>
-              修改时间: {{$host.getTime($data.modified_at)}}</p-list-item
+              下载时间: {{$host.getTime($data.modified_at)}}</p-list-item
             >
             <p-list-item> digest: {{$data.digest}} </p-list-item>
+
+            <p-list-item collapse-childs="false" button="suffix">
+              Details
+              <i toggle-collapse triangle slot="suffix"></i>
+              <p-list slot="childs" style="--parent-left: 32px">
+                <o-fill :value="$host.getEntries($data.details)">
+                  <p-list-item>
+                    <div style="display: flex">
+                      <span style="color: var(--md-sys-color-normal)">
+                        {{$data.name}}
+                      </span>
+                      : {{$data.value}}
+                    </div>
+                  </p-list-item>
+                </o-fill>
+              </p-list>
+            </p-list-item>
+
             <p-list-item>
               <div>
                 <p-button
                   color="error"
                   size="small"
                   on:click="$host.deleteModel($data)"
-                  >删除该模型</p-button
                 >
+                  删除该模型
+                </p-button>
               </div>
             </p-list-item>
           </p-list>
+        </p-list-item>
+      </o-fill>
+      <o-fill :value="requiredModels">
+        <p-list-item class:hide="$data.installed">
+          <n-local-icon
+            name="ai-chip"
+            slot="prefix"
+            style="
+              display: block;
+              margin-right: 6px;
+              font-size: 20px;
+              color: var(--md-sys-color-normal);
+            "
+          ></n-local-icon>
+          <div style="display: flex; align-items: center">
+            {{$data.name}}
+            <p-button
+              color="primary"
+              size="mini"
+              variant="outlined"
+              on:click="$host.pullModel($data)"
+              attr:disabled="$data.downloading"
+              style="margin-left: 32px"
+            >
+              <o-if :value="$data.downloading">
+                <n-local-icon
+                  name="loading"
+                  style="margin-right: 4px; display: block"
+                ></n-local-icon>
+                下载中
+              </o-if>
+              <o-else> 下载 </o-else>
+            </p-button>
+          </div>
         </p-list-item>
       </o-fill>
     </p-list>
   </o-else>
   <script>
     export default async ({ load }) => {
-      const { getOllamaModels, deleteOllamaModel } = await load(
-        "/packages/ai/util.js"
-      );
+      const {
+        getOllamaModels,
+        deleteOllamaModel,
+        pullOllamaModel,
+        askOllamaStream,
+      } = await load("/packages/ai/util.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
+
+      // 使用示例
+      //   let text = "";
+      //   askOllamaStream("/no_think 你是谁？", "qwen3:4b", (chunk) => {
+      //     text += chunk;
+      //     console.clear();
+      //     console.log(text); // 实时输出每个片段
+      //   });
 
       return {
         tag: "local-ollama-tags",
         data: {
           models: [],
-          requiredModels: ["nomic-embed-text", "qwen3:4b"], // 内部严选的模型
+          requiredModels: [
+            { name: "qwen3:4b", installed: false },
+            { name: "nomic-embed-text:latest", installed: false },
+          ], // 内部严选的模型
         },
         proto: {
+          getEntries(data) {
+            return Object.entries(data).map(([key, value]) => {
+              return {
+                name: key,
+                value,
+              };
+            });
+          },
+          async pullModel(data) {
+            const result = await pullOllamaModel(data.name, (e) => {
+              console.log(e);
+              data.downloading = true;
+            });
+
+            this.refreshModels();
+            data.downloading = false;
+          },
           async deleteModel(data) {
             const ok = await confirm({
               title: "删除模型",
@@ -111,7 +203,13 @@
             return new Date(time).toLocaleString();
           },
           async refreshModels() {
-            this.models = await getOllamaModels();
+            const models = await getOllamaModels();
+
+            this.requiredModels.forEach((e) => {
+              e.installed = models.some((m) => m.name === e.name);
+            });
+
+            this.models = models;
           },
         },
         attached() {

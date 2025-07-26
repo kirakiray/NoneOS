@@ -11,8 +11,10 @@
   <p>
     依托本地系统安装的Ollama接口，让NoneOS内的应用能够直接调用AI能力，解锁更多丰富的AI功能。
   </p>
-  <h5>本地已下载的模型</h5>
+  <h5>本地Ollama</h5>
   <local-ollama-tags></local-ollama-tags>
+
+  <h5>添加互联网的key</h5>
 
   <script>
     export const parent = "./layout.html";
@@ -32,12 +34,5 @@
     };
 
     // let text = "";
-
-    // 使用示例
-    // askOllamaStream("/no_think 你是谁？", "qwen3:4b", (chunk) => {
-    //   text += chunk;
-    //   console.clear();
-    //   console.log(text); // 实时输出每个片段
-    // });
   </script>
 </template>
