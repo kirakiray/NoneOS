@@ -141,7 +141,8 @@
         deleteOllamaModel,
         pullOllamaModel,
         askOllamaStream,
-      } = await load("/packages/ai/util.js");
+      } = await load("/packages/ai/main.js");
+
       const { toast, confirm } = await load("/packages/pui/util.js");
 
       // 使用示例

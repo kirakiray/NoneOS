@@ -164,7 +164,7 @@
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
-      const { getOllamaModels } = await load("/packages/ai/util.js");
+      const { getOllamaModels } = await load("/packages/ai/main.js");
 
       const isSafari = /^((?!chrome|android).)*safari/i.test(
         navigator.userAgent
