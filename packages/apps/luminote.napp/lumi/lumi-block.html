@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
   <style>
     :host {
@@ -311,6 +312,7 @@
             </span>
           </lumi-fake>
         </o-if>
+
         <o-if :value="itemData.type === 'article'">
           <div
             class="article-comp"
@@ -327,6 +329,40 @@
         <div class="dragovering-mark" class:show="dragovering"></div>
       </div>
     </div>
+    <o-if :value="inBeautify">
+      <div
+        style="
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 8px 16px;
+          color: var(--md-sys-color-normal);
+        "
+      >
+        {{beautifyContent}}
+        <o-if :value="inBeautify == 1">
+          <n-local-icon name="loading"></n-local-icon>
+        </o-if>
+        <o-else-if :value="inBeautify == 2">
+          <div style="padding: 8px 0">
+            <p-button
+              variant="outlined"
+              size="small"
+              on:click="useBeautify(true)"
+            >
+              采用
+            </p-button>
+            <p-button
+              variant="outlined"
+              size="small"
+              on:click="useBeautify(false)"
+              color="error"
+            >
+              取消
+            </p-button>
+          </div>
+        </o-else-if>
+      </div>
+    </o-if>
   </o-if>
   <o-else>
     <div
@@ -375,7 +411,8 @@
           inFocus: false,
           loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
           itemData: {},
-          beautifyContent: "Loading...",
+          beautifyContent: "",
+          inBeautify: false, // 润色中
           selected: false, // 是否被选中
           leftMenuOpened: false, // 左侧菜单是否打开
           showSubmark: false, // 显示当前为子元素的标记
@@ -433,6 +470,13 @@
           },
         },
         proto: {
+          useBeautify(bool) {
+            if (bool) {
+              this.itemData.value = this.beautifyContent;
+              this.beautifyContent = "";
+            }
+            this.inBeautify = false;
+          },
           get subItems() {
             const currentTab = this.itemData.tab || 0;
 

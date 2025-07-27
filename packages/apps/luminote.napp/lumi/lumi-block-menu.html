@@ -122,7 +122,10 @@
       </localized-content>
     </p-menu-item>
     <hr />
-    <p-menu-item on:click="handleBeautify" attr:disabled="aiAvailable">
+    <p-menu-item
+      on:click="handleBeautify"
+      attr:disabled="aiAvailable || isInBeautify"
+    >
       <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
       <localized-content>
         <span lang="en">Polish</span>
@@ -151,10 +154,15 @@
           aiAvailable: await isAIAvailable(),
         },
         proto: {
-          handleBeautify() {
+          get isInBeautify() {
+            return !!this?._blockEl?.inBeautify;
+          },
+          async handleBeautify() {
             this.open = "off";
+            this._blockEl.inBeautify = 1;
+            this._blockEl.beautifyContent = "";
 
-            ask(
+            await ask(
               `润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
               {
                 onChunk: (e) => {
@@ -163,6 +171,8 @@
                 },
               }
             );
+
+            this._blockEl.inBeautify = 2;
           },
           async handleCopy() {
             copySelectedBlock({
