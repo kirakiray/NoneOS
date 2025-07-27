@@ -233,10 +233,7 @@
               }
 
               const finalArr = Array.from(e).filter(
-                (e) =>
-                  e.name !== "dataStatus" &&
-                  e.name !== "inFocus" &&
-                  e.name !== "focusUser"
+                (e) => e.name !== "dataStatus" && e.name !== "inFocus"
               );
 
               if (!finalArr.length) {
