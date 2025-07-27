@@ -16,34 +16,42 @@
 
   <h5>优先使用的AI</h5>
 
-  <div style="text-align: center; padding: 16px; max-width: 600px">
-    <div
-      style="
-        color: var(--md-sys-color-primary);
-        font-size: 26px;
-        font-weight: 600;
-        padding-bottom: 16px;
-      "
-    >
-      {{settingData?.ai?.model}}
-    </div>
-    <o-if :value="chatting && !chatContent">
-      <n-local-icon name="loading" style="display: inline-block"></n-local-icon>
-    </o-if>
-    <o-else>
-      <div>{{chatContent}}</div>
-      <o-if :value="!chatting">
-        <p-button
-          variant="outlined"
-          size="small"
-          on:click="refreshChat"
-          style="margin-top: 8px"
-        >
-          刷新
-        </p-button>
+  <o-if :value="chatError">
+    <p style="color: red">{{chatError}}</p>
+  </o-if>
+  <o-else>
+    <div style="text-align: center; padding: 16px; max-width: 600px">
+      <div
+        style="
+          color: var(--md-sys-color-primary);
+          font-size: 26px;
+          font-weight: 600;
+          padding-bottom: 16px;
+        "
+      >
+        {{settingData?.ai?.model}}
+      </div>
+      <o-if :value="chatting && !chatContent">
+        <n-local-icon
+          name="loading"
+          style="display: inline-block"
+        ></n-local-icon>
       </o-if>
-    </o-else>
-  </div>
+      <o-else>
+        <div>{{chatContent}}</div>
+        <o-if :value="!chatting">
+          <p-button
+            variant="outlined"
+            size="small"
+            on:click="refreshChat"
+            style="margin-top: 8px"
+          >
+            刷新
+          </p-button>
+        </o-if>
+      </o-else>
+    </div>
+  </o-else>
 
   <h5>本地模型</h5>
 
@@ -64,6 +72,7 @@
           chatContent: "",
           chatting: false,
           settingData: {},
+          chatError: "",
         },
         proto: {
           async refreshChat() {
@@ -71,11 +80,15 @@
 
             this.chatContent = "";
 
-            await ask("我是谁？", {
-              onChunk: ({ modelName, responseText, currentToken }) => {
-                this.chatContent = responseText;
-              },
-            });
+            try {
+              await ask("我是谁？", {
+                onChunk: ({ modelName, responseText, currentToken }) => {
+                  this.chatContent = responseText;
+                },
+              });
+            } catch (err) {
+              this.chatError = err.message;
+            }
 
             this.chatting = false;
           },

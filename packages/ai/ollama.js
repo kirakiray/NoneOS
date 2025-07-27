@@ -120,7 +120,10 @@ export async function askOllamaStream(prompt, model = "qwen3:4b", callback) {
 
     return result;
   } catch (error) {
-    console.error("Error communicating with Ollama:", error);
-    return null;
+    const err = new Error("Error communicating with Ollama: " + error.message, {
+      cause: error,
+    });
+
+    throw err;
   }
 }
