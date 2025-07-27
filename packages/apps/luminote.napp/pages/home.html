@@ -105,30 +105,23 @@
       </p>
     </localized-content>
     <div>
-      <o-if :value="models === 0">
-        <localized-content>
-          <span lang="cn">加载中...</span>
-          <span lang="en">Loading...</span>
-          <span lang="ja">ローディング中...</span>
-        </localized-content>
-      </o-if>
-      <o-else-if :value="models === 'error'">
+      <o-if :value="aiAvailable">
         <localized-content>
           <span lang="cn">加载失败</span>
           <span lang="en">Loading failed</span>
           <span lang="ja">ローディングに失敗しました</span>
         </localized-content>
-      </o-else-if>
+      </o-if>
       <o-else>
         <localized-content>
           <span lang="cn" style="color: var(--md-sys-color-primary)">
-            检测到 {{models.length}} 个模型
+            当前已检测到本地AI可用
           </span>
           <span lang="en" style="color: var(--md-sys-color-primary)">
-            Detected {{models.length}} models
+            Local AI available
           </span>
           <span lang="ja" style="color: var(--md-sys-color-primary)">
-            検出された {{models.length}} モデル
+            ローカルAIが利用可能
           </span>
         </localized-content>
       </o-else>
@@ -164,7 +157,7 @@
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
-      const { getOllamaModels } = await load("/packages/ai/main.js");
+      const { isAIAvailable } = await load("/packages/ai/main.js");
 
       const isSafari = /^((?!chrome|android).)*safari/i.test(
         navigator.userAgent
@@ -179,7 +172,7 @@
           existProjects: [], // 已经存在的项目
           remotes: [], // 其他设备
           loadingRemote: false,
-          models: 0,
+          aiAvailable: await isAIAvailable(),
         },
         proto: {
           async handleDeleteProject(data, event) {
@@ -214,12 +207,6 @@
               hide: 1,
             },
           });
-
-          getOllamaModels()
-            .then((e) => {
-              this.models = e;
-            })
-            .catch(() => (this.models = "error"));
         },
         detached() {},
       };

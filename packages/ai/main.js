@@ -35,6 +35,19 @@ export const modelExtend = {
   },
 };
 
+// 是否可以用AI
+export const isAIAvailable = async () => {
+  try {
+    const models = await getOllamaModels();
+
+    if (models) {
+      return !!models.length;
+    }
+  } catch (err) {
+    return false;
+  }
+};
+
 export const ask = async (prompt, { model: modelName, onChunk }) => {
   const settingData = await getSetting();
 
