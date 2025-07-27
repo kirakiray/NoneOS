@@ -122,7 +122,7 @@
       </localized-content>
     </p-menu-item>
     <hr />
-    <p-menu-item on:click="handleBeautify" disabled>
+    <p-menu-item on:click="handleBeautify" attr:disabled="aiAvailable">
       <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
       <localized-content>
         <span lang="en">Polish</span>
@@ -137,6 +137,7 @@
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const { blockComps } = await load("./block/config.js"); // 块组件的配置
       const { copySelectedBlock } = await load("./util/lumi-util.js");
+      const { isAIAvailable, ask } = await load("/packages/ai/main.js");
 
       return {
         tag: "lumi-block-menu",
@@ -147,10 +148,21 @@
           itemData: {},
           blockComps,
           _blockEl: null,
+          aiAvailable: await isAIAvailable(),
         },
         proto: {
           handleBeautify() {
-            debugger;
+            this.open = "off";
+
+            ask(
+              `润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
+              {
+                onChunk: (e) => {
+                  this._blockEl.beautifyContent = e.responseText;
+                  console.log(e.responseText);
+                },
+              }
+            );
           },
           async handleCopy() {
             copySelectedBlock({
