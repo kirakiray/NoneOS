@@ -50,7 +50,8 @@ export const isAIAvailable = async () => {
         resolve(!!models.length);
       }
     } catch (err) {
-      reject(err);
+      console.error(err);
+      resolve(false);
     }
 
     setTimeout(() => {

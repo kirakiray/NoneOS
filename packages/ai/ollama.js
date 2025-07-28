@@ -1,16 +1,11 @@
 export async function getOllamaModels() {
-  try {
-    const response = await fetch("http://localhost:11434/api/tags");
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    console.log("已下载的模型:", data.models);
-    return data.models;
-  } catch (error) {
-    console.error("获取模型失败:", error);
-    return null;
+  const response = await fetch("http://localhost:11434/api/tags");
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+  const data = await response.json();
+  console.log("已下载的模型:", data.models);
+  return data.models;
 }
 
 export const deleteOllamaModel = async (model) => {
