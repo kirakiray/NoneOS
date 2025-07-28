@@ -29,7 +29,7 @@
           padding-bottom: 16px;
         "
       >
-        {{settingData?.ai?.model}}
+        {{aiSetting?.ollama?.model}}
       </div>
       <o-if :value="chatting && !chatContent">
         <n-local-icon
@@ -61,18 +61,19 @@
     export const parent = "./layout.html";
 
     export default async ({ load }) => {
+      const { getAISetting } = await load("/packages/ai/custom-data.js");
+      const aiSetting = await getAISetting();
+
       const { askOllamaStream, ask } = await load("/packages/ai/main.js");
 
       const { getSetting } = await load("/packages/none-os/setting.js");
-      const settingData = await getSetting();
 
       return {
         data: {
-          selectedModel: "qwen3:4b",
           chatContent: "",
           chatting: false,
-          settingData: {},
           chatError: "",
+          aiSetting: {},
         },
         proto: {
           async refreshChat() {
@@ -99,10 +100,10 @@
           });
 
           this.refreshChat();
-          this.settingData = settingData;
+          this.aiSetting = aiSetting;
         },
         detached() {
-          this.settingData = {};
+          this.aiSetting = {};
         },
       };
     };

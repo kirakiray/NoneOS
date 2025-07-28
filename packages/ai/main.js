@@ -1,15 +1,4 @@
-import { getSetting } from "../none-os/setting.js";
-
-(async () => {
-  const settingData = await getSetting();
-
-  // ai配置
-  if (!settingData.ai) {
-    settingData.ai = {
-      model: "qwen3:4b",
-    };
-  }
-})();
+import { getAISetting } from "./custom-data.js";
 
 export {
   getOllamaModels,
@@ -61,11 +50,11 @@ export const isAIAvailable = async () => {
 };
 
 export const ask = async (prompt, { model: modelName, onChunk }) => {
-  const settingData = await getSetting();
+  const aiSettingData = await getAISetting();
 
   let responseText = "";
 
-  let finalModelName = modelName || settingData.ai.model || "qwen3:4b";
+  let finalModelName = modelName || aiSettingData.ollama.model || "qwen3:4b";
 
   const targetExtend = modelExtend[finalModelName];
 

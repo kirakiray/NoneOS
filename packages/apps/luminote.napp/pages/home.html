@@ -6,6 +6,7 @@
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
 
   <style>
     :host {
@@ -133,6 +134,15 @@
         </localized-content>
       </o-else>
     </div>
+    <div style="padding: 16px">
+      <p-select sync:value="viewLang" style="display: inline-block">
+        <label>优先展示语言</label>
+        <p-option value="cn">简体中文</p-option>
+        <p-option value="t-cn">繁体中文</p-option>
+        <p-option value="en">English</p-option>
+        <p-option value="ja">Japanese</p-option>
+      </p-select>
+    </div>
   </div>
 
   <div>
@@ -180,6 +190,7 @@
           remotes: [], // 其他设备
           loadingRemote: false,
           aiAvailable: 0,
+          viewLang: "cn",
         },
         proto: {
           async handleDeleteProject(data, event) {

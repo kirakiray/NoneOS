@@ -36,7 +36,7 @@
           <div style="display: flex">
             {{ $data.name }}
 
-            <o-if :value="settingData.ai.model === $data.name">
+            <o-if :value="$host.aiSetting.ollama.model === $data.name">
               <div
                 style="
                   margin-left: 16px;
@@ -79,10 +79,10 @@
               <div>
                 <p-button
                   size="small"
-                  attr:disabled="settingData.ai.model === $data.name"
+                  attr:disabled="$host.aiSetting.ollama.model === $data.name"
                   on:click="$host.useModel($data)"
                 >
-                  <o-if :value="settingData.ai.model === $data.name">
+                  <o-if :value="$host.aiSetting.ollama.model === $data.name">
                     已选择该模型
                   </o-if>
                   <o-else> 优先使用该模型 </o-else>
@@ -148,8 +148,8 @@
   </o-else>
   <script>
     export default async ({ load }) => {
-      const { getSetting } = await load("/packages/none-os/setting.js");
-      const settingData = await getSetting();
+      const { getAISetting } = await load("/packages/ai/custom-data.js");
+      const aiSetting = await getAISetting();
 
       const { getOllamaModels, deleteOllamaModel, pullOllamaModel } =
         await load("/packages/ai/main.js");
@@ -200,12 +200,12 @@
               },
               size: "19GB",
             },
-          ], // 内部严选的模型
-          settingData: {},
+          ],
+          aiSetting: {},
         },
         proto: {
           useModel(data) {
-            this.settingData.ai.model = data.model;
+            this.aiSetting.ollama.model = data.model;
 
             this.emit("change-setting-model");
           },
@@ -288,10 +288,10 @@
         },
         attached() {
           this.refreshModels();
-          this.settingData = settingData;
+          this.aiSetting = aiSetting;
         },
         detached() {
-          this.settingData = {};
+          this.aiSetting = {};
         },
       };
     };
