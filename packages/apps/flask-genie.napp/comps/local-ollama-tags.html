@@ -83,9 +83,9 @@
                   on:click="$host.useModel($data)"
                 >
                   <o-if :value="$host.aiSetting.ollama.model === $data.name">
-                    已选择该模型
+                    已选择该AI助手
                   </o-if>
-                  <o-else> 优先使用该模型 </o-else>
+                  <o-else> 设置为默认AI助手 </o-else>
                 </p-button>
                 <p-button
                   color="error"
