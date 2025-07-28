@@ -258,8 +258,6 @@ export const initTextInput = (lumipage) => {
       return;
     }
 
-    debugger;
-
     lumiBlock = $(lumiBlock);
 
     // 获取粘贴的内容

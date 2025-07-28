@@ -18,7 +18,7 @@ export {
   askOllamaStream,
 } from "./ollama.js";
 
-import { askOllamaStream } from "./ollama.js";
+import { askOllamaStream, getOllamaModels } from "./ollama.js";
 
 export const modelExtend = {
   "qwen3:4b": {
@@ -35,17 +35,28 @@ export const modelExtend = {
   },
 };
 
-// 是否可以用AI
-export const isAIAvailable = async () => {
-  try {
-    const models = await getOllamaModels();
+let availablePms = null;
 
-    if (models) {
-      return !!models.length;
-    }
-  } catch (err) {
-    return false;
+export const isAIAvailable = async () => {
+  if (availablePms) {
+    return availablePms;
   }
+
+  return (availablePms = new Promise(async (resolve, reject) => {
+    try {
+      const models = await getOllamaModels();
+
+      if (models) {
+        resolve(!!models.length);
+      }
+    } catch (err) {
+      reject(err);
+    }
+
+    setTimeout(() => {
+      availablePms = null;
+    }, 1000);
+  }));
 };
 
 export const ask = async (prompt, { model: modelName, onChunk }) => {

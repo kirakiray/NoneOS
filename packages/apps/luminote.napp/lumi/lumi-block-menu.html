@@ -124,7 +124,7 @@
     <hr />
     <p-menu-item
       on:click="handleBeautify"
-      attr:disabled="aiAvailable || isInBeautify"
+      attr:disabled="!aiAvailable || isInBeautify"
     >
       <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
       <localized-content>
@@ -167,7 +167,6 @@
               {
                 onChunk: (e) => {
                   this._blockEl.beautifyContent = e.responseText;
-                  console.log(e.responseText);
                 },
               }
             );
