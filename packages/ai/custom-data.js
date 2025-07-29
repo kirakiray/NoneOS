@@ -35,6 +35,8 @@ export const getAISetting = ({ useLocalUserDirName = "main" } = {}) => {
       };
     }
 
+    await aiSettingData.ready(true);
+
     return aiSettingData;
   })());
 };

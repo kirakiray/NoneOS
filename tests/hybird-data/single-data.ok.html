@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SingleData</title>
+  </head>
+  <body></body>
+  <script type="module">
+    import { test } from "/ok-test/main.js";
+    import { get, init } from "/packages/fs/main.js";
+    import { createSingleData } from "/packages/hybird-data/single-data.js";
+
+    await init("local");
+
+    await test("test single data sync", async () => {
+      const tFileHandle = await get("local/test/single-data.json", {
+        create: "file",
+      });
+
+      const data1 = await createSingleData({
+        handle: tFileHandle,
+      });
+
+      const data2 = await createSingleData({
+        handle: tFileHandle,
+      });
+
+      data1.val = Math.random();
+      data1.obj1 = {
+        a: Math.random(),
+      };
+      const key2 = Math.random().toString().slice(4);
+      data1.obj1[key2] = Math.random();
+
+      // 等待 data2 更新数据
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const valSync = data1.val === data2.val;
+      const objSync = data1.obj1 !== data2.obj1 && data1.obj1.a === data2.obj1.a;
+      const keySync = data1.obj1[key2] === data2.obj1[key2];
+
+      return {
+        assert: valSync && objSync && keySync,
+        content: `valSync: ${valSync}, objSync: ${objSync}, keySync: ${keySync}`,
+      };
+    });
+
+    await test("test single data dynamic keys", async () => {
+      const tFileHandle = await get("local/test/single-data.json", {
+        create: "file",
+      });
+
+      const data1 = await createSingleData({
+        handle: tFileHandle,
+      });
+
+      const data2 = await createSingleData({
+        handle: tFileHandle,
+      });
+
+      data1.val = Math.random();
+      data1.obj1 = {
+        a: Math.random(),
+      };
+      const key2 = Math.random().toString().slice(4);
+      data1.obj1[key2] = Math.random();
+
+      // 等待 data2 更新数据
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // 换个key
+      delete data1.obj1[key2];
+      const key3 = Math.random().toString().slice(4);
+      data1.obj1[key3] = Math.random();
+
+      // 等待data2更新
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const newKeySync = data1.obj1[key3] === data2.obj1[key3];
+      const keyCountMatch = Object.keys(data1.obj1).length === Object.keys(data2.obj1).length && Object.keys(data2.obj1).length === 2;
+
+      return {
+        assert: newKeySync && keyCountMatch,
+        content: `newKeySync: ${newKeySync}, keyCountMatch: ${keyCountMatch}, keys: ${Object.keys(data1.obj1)}`,
+      };
+    });
+
+    await test("test single data persistence", async () => {
+      const tFileHandle = await get("local/test/single-data-persistence.json", {
+        create: "file",
+      });
+
+      const data1 = await createSingleData({
+        handle: tFileHandle,
+      });
+
+      const testValue = Math.random();
+      data1.persistedValue = testValue;
+      data1.nested = {
+        level1: {
+          level2: testValue
+        }
+      };
+
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      // 创建新的实例验证持久化
+      const data2 = await createSingleData({
+        handle: tFileHandle,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      const valuePersisted = data2.persistedValue === testValue;
+      const nestedPersisted = data2.nested.level1.level2 === testValue;
+
+      return {
+        assert: valuePersisted && nestedPersisted,
+        content: `valuePersisted: ${valuePersisted}, nestedPersisted: ${nestedPersisted}`,
+      };
+    });
+  </script>
+</html>

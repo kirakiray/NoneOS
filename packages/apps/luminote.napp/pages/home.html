@@ -7,6 +7,7 @@
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
 
   <style>
     :host {
@@ -135,8 +136,12 @@
       </o-else>
     </div>
     <div style="padding: 16px">
-      <p-select sync:value="viewLang" style="display: inline-block">
-        <label>优先展示语言</label>
+      <p-switch>启用AI翻译</p-switch>
+      <p-select
+        sync:value="aiSetting.userPreferences.lang.value"
+        style="display: inline-block"
+      >
+        <label>你的偏好语言</label>
         <p-option value="cn">简体中文</p-option>
         <p-option value="t-cn">繁体中文</p-option>
         <p-option value="en">English</p-option>
@@ -180,6 +185,8 @@
         navigator.userAgent
       );
 
+      const { getAISetting } = await load("/packages/ai/custom-data.js");
+
       return {
         data: {
           isSafari,
@@ -190,7 +197,11 @@
           remotes: [], // 其他设备
           loadingRemote: false,
           aiAvailable: 0,
-          viewLang: "cn",
+          aiSetting: {
+            userPreferences: {
+              lang: { value: "" },
+            },
+          },
         },
         proto: {
           async handleDeleteProject(data, event) {
@@ -214,6 +225,9 @@
         attached() {
           (async () => {
             this.aiAvailable = await isAIAvailable();
+
+            const aiSetting = await getAISetting();
+            this.aiSetting = aiSetting;
           })();
 
           this.emit("active-article", {
@@ -230,7 +244,9 @@
             },
           });
         },
-        detached() {},
+        detached() {
+          this.aiSetting = {};
+        },
       };
     };
   </script>
