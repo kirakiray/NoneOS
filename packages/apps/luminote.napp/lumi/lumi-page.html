@@ -17,7 +17,7 @@
     }
     /* .container {
     } */
-
+    /* 
     .title {
       font-size: 40px;
       font-weight: 700;
@@ -30,7 +30,7 @@
       appearance: none;
       border: none;
       color: inherit;
-    }
+    } */
   </style>
   <o-if :value="itemData.removed">
     <div
@@ -66,18 +66,7 @@
     </div>
   </o-if>
   <div class="container">
-    <lumi-page-title>
-      <input
-        id="title"
-        class="title"
-        type="text"
-        sync:value="itemData.title"
-        on:click="$event.stopPropagation()"
-        style="margin-bottom: 16px"
-        on:keydown="titleKeyDown"
-        :placeholder="desc.pageTitlePlaceholder"
-      />
-    </lumi-page-title>
+    <lumi-page-title :item-data="itemData"> </lumi-page-title>
     <slot></slot>
     <o-fill :value="recordData" fill-key="userId">
       <lumi-remote-mark
@@ -93,8 +82,6 @@
   <lumi-block-menu></lumi-block-menu>
   <lumi-inline-comp-panel></lumi-inline-comp-panel>
   <script>
-    import { localizedObject } from "/packages/i18n/localized-object.js";
-
     export default async ({ load }) => {
       const { initUndoRedo, revokeUndoRedo } = await load(
         "./lumi-page-init/undo-redo.js"
@@ -145,28 +132,8 @@
           desc: {},
         },
         proto: {
-          titleKeyDown(e) {
-            if (e.key === "Enter") {
-              // 如果第一个元素不是空元素，则添加空元素后聚焦
-              let firstBlock = this[0];
-
-              if (!firstBlock.itemData.value.trim()) {
-                firstBlock.focus();
-                return;
-              }
-
-              this.itemData.content.unshift({
-                type: "paragraph",
-                value: "",
-              });
-
-              setTimeout(() => {
-                this[0].focus();
-              }, 10);
-            }
-          },
           focusTitle() {
-            this.shadow.$(".title").ele.focus();
+            this.shadow.$("lumi-page-title").focus();
           },
           async focusLast() {
             let lastBlockEl = this.slice(-1)[0];
@@ -207,13 +174,6 @@
           },
         },
         async attached() {
-          this.desc = localizedObject({
-            pageTitlePlaceholder: {
-              cn: "页面标题",
-              en: "Page title",
-              ja: "ページタイトル",
-            },
-          });
           this.on("click", (e) => {
             const composeds = e.composedPath();
 
@@ -281,8 +241,6 @@
           }
 
           this.itemData = {}; // 清除绑定
-          this.desc._clear();
-          this.desc = {};
 
           revokeUndoRedo(this);
           revokeMultiSelect(this);

@@ -137,7 +137,10 @@
     </div>
     <div style="padding: 16px; display: flex; align-items: center">
       <o-if :value="aiAvailable">
-        <p-switch sync:value="appConfigData.useAITranslate" style="margin-right: 16px;">
+        <p-switch
+          sync:value="appConfigData.useAITranslate"
+          style="margin-right: 16px"
+        >
           <localized-content>
             <span lang="cn">启用AI翻译</span>
             <span lang="en">Enable AI translation</span>
@@ -147,7 +150,7 @@
       </o-if>
       <p-select
         sync:value="appConfigData.viewLang"
-        style="display: inline-block;"
+        style="display: inline-block"
       >
         <label>
           <localized-content>
