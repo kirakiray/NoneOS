@@ -136,9 +136,9 @@
       </o-else>
     </div>
     <div style="padding: 16px">
-      <p-switch>启用AI翻译</p-switch>
+      <p-switch sync:value="appConfigData.useAITranslate">启用AI翻译</p-switch>
       <p-select
-        sync:value="aiSetting.userPreferences.lang.value"
+        sync:value="appConfigData.viewLang"
         style="display: inline-block"
       >
         <label>你的偏好语言</label>
@@ -185,7 +185,7 @@
         navigator.userAgent
       );
 
-      const { getAISetting } = await load("/packages/ai/custom-data.js");
+      const { getSetting } = await load("/packages/none-os/setting.js");
 
       return {
         data: {
@@ -197,11 +197,7 @@
           remotes: [], // 其他设备
           loadingRemote: false,
           aiAvailable: 0,
-          aiSetting: {
-            userPreferences: {
-              lang: { value: "" },
-            },
-          },
+          appConfigData: {},
         },
         proto: {
           async handleDeleteProject(data, event) {
@@ -226,8 +222,15 @@
           (async () => {
             this.aiAvailable = await isAIAvailable();
 
-            const aiSetting = await getAISetting();
-            this.aiSetting = aiSetting;
+            const configData = await this.app._configData;
+
+            if (configData.useAITranslate === undefined) {
+              // 设置AI翻译默认值
+              configData.useAITranslate = "off";
+              configData.viewLang = "en";
+            }
+
+            this.appConfigData = configData;
           })();
 
           this.emit("active-article", {
@@ -245,7 +248,7 @@
           });
         },
         detached() {
-          this.aiSetting = {};
+          this.appConfigData = {};
         },
       };
     };
