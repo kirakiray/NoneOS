@@ -4,7 +4,6 @@ export async function getOllamaModels() {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
   const data = await response.json();
-  console.log("已下载的模型:", data.models);
   return data.models;
 }
 

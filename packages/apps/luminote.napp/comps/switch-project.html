@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
   <style>
     :host {
       display: block;
@@ -20,7 +21,8 @@
   </h4>
   <p-list style="min-height: 34px; display: flex; flex-wrap: wrap">
     <o-fill :value="openedProjects">
-      <p-list-item>
+      <p-list-item collapse-childs="open" button="suffix">
+        <i toggle-collapse triangle slot="suffix" style="margin-left: 32px"></i>
         <n-local-icon
           name="project"
           slot="prefix"
@@ -28,6 +30,23 @@
         >
         </n-local-icon>
         {{$data?.data?.projectName}}
+        <p-list slot="childs" style="--ladder-left: 16px">
+          <p-list-item>
+            <p-select size="small" sync:value="$data.data.mainLang">
+              <label>
+                <localized-content>
+                  <span lang="en">Main Language</span>
+                  <span lang="cn">主体语言</span>
+                  <span lang="ja">メイン言語</span>
+                </localized-content>
+              </label>
+              <p-option value="cn">简体中文</p-option>
+              <p-option value="t-cn">繁体中文</p-option>
+              <p-option value="en">English</p-option>
+              <p-option value="ja">Japanese</p-option>
+            </p-select>
+          </p-list-item>
+        </p-list>
       </p-list-item>
     </o-fill>
   </p-list>
@@ -300,6 +319,7 @@
           projects: [],
           adding: false,
           desc: {},
+          currentProjectSetting: {}, // 当前项目的设置数据
         },
         proto: {
           isOpenedProject(data) {
@@ -456,6 +476,7 @@
           this.desc._clear();
           this.desc = {};
           this.openedProjects = [];
+          this.currentProjectSetting = {};
         },
       };
     };
