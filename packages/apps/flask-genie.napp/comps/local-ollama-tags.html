@@ -36,7 +36,7 @@
           <div style="display: flex">
             {{ $data.name }}
 
-            <o-if :value="$host.aiSetting.ollama.model === $data.name">
+            <o-if :value="$host.aiSetting?.ollama?.model === $data.name">
               <div
                 style="
                   margin-left: 16px;
@@ -79,10 +79,10 @@
               <div>
                 <p-button
                   size="small"
-                  attr:disabled="$host.aiSetting.ollama.model === $data.name"
+                  attr:disabled="$host.aiSetting?.ollama?.model === $data.name"
                   on:click="$host.useModel($data)"
                 >
-                  <o-if :value="$host.aiSetting.ollama.model === $data.name">
+                  <o-if :value="$host.aiSetting?.ollama?.model === $data.name">
                     已选择该AI助手
                   </o-if>
                   <o-else> 设置为默认AI助手 </o-else>
