@@ -1,3 +1,5 @@
+// 保存每个用户在当前项目中的操作改动信息
+
 import { getUserStore } from "/packages/user/user-store.js";
 
 // 保存当前的用户id

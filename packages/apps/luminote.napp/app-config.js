@@ -235,6 +235,9 @@ export default {
         await item.data.disconnect();
         delete exitedProject[key];
       });
+
+      const configData = await this._configData;
+      configData.disconnect();
     },
     // 增加一个项目
     async pushProject(
@@ -302,6 +305,17 @@ export default {
   ready() {
     this._openedProjects = $.stanz([]); // 已经打开的项目
 
+    this._configData = (async () => {
+      // 获取配置对象
+      const rootHandle = await this.dedicatedHandle();
+      const configHandle = await rootHandle.get("config.json", {
+        create: "file",
+      });
+      const configData = await createData(configHandle);
+
+      return configData;
+    })();
+
     (async () => {
       // 首先打开start项目
       const his = await getOpenHistory(this);
@@ -315,20 +329,9 @@ export default {
   },
 };
 
-// import { setSpace } from "/packages/i18n/data.js";
-
-// await setSpace(
-//   "bookmarks",
-//   new URL("/packages/apps/bookmarks.napp/lang", location.href).href
-// );
-
 const getOpenHistory = async (app) => {
   // 加载初始化项目
-  const rootHandle = await app.dedicatedHandle();
-
-  let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
-    create: "file",
-  });
+  const configData = await app._configData;
 
   let data = [
     {
@@ -337,34 +340,21 @@ const getOpenHistory = async (app) => {
     },
   ];
 
-  const text = await beforeOpenedProjectFile.text();
-
-  try {
-    data = JSON.parse(text);
-  } catch (err) {}
+  if (configData.lastOpen) {
+    data = configData.lastOpen.toJSON();
+  }
 
   return data;
 };
 
 // 保存打开的记录
 const saveOpenHistory = async (app) => {
-  // 加载初始化项目
-  const rootHandle = await app.dedicatedHandle();
+  const configData = await app._configData;
 
-  let beforeOpenedProjectFile = await rootHandle.get("_before_open", {
-    create: "file",
-  });
-
-  const text = await beforeOpenedProjectFile.text();
-
-  const data = app._openedProjects.map((e) => {
+  configData.lastOpen = app._openedProjects.map((e) => {
     return {
       dirName: e.__handle.name,
       userId: e.userId,
     };
   });
-
-  if (JSON.stringify(data) !== text) {
-    await beforeOpenedProjectFile.write(JSON.stringify(data));
-  }
 };

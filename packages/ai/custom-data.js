@@ -9,8 +9,8 @@ export const getAISetting = ({ useLocalUserDirName = "main" } = {}) => {
   useLocalUserDirName = useLocalUserDirName || "main";
 
   return (aiPms[useLocalUserDirName] = (async () => {
-    const settingDir = await get(`system/ai/${useLocalUserDirName}`, {
-      create: "dir",
+    const settingDir = await get(`system/ai/${useLocalUserDirName}.json`, {
+      create: "file",
     });
 
     const aiSettingData = await createData(settingDir);
@@ -34,8 +34,6 @@ export const getAISetting = ({ useLocalUserDirName = "main" } = {}) => {
         },
       };
     }
-
-    await aiSettingData.ready(true);
 
     return aiSettingData;
   })());
