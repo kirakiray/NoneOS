@@ -29,7 +29,7 @@
     <o-fill :value="imgs">
       <div
         class="block"
-        class:active="settingData?.wallpaper === $data.name"
+        class:active="$host.settingData?.wallpaper === $data.name"
         :style.background-image="`url(${$data.imgUrl})`"
         on:click="$host.clickItem($data)"
         attr:title="$data.from"
@@ -53,8 +53,6 @@
         // 没有设置背景的情况下，设置第一张图为默认背景
         settingData.wallpaper = firstItem[0];
       }
-
-      debugger
 
       return {
         tag: "n-change-wallpaper",
@@ -110,8 +108,8 @@
           },
         },
         attached() {
-          this.loadWallpaper();
           this.settingData = settingData;
+          this.loadWallpaper();
         },
         detached() {
           this.settingData = {};
