@@ -1,20 +1,6 @@
 import { getAISetting } from "./custom-data.js";
 import { askOllamaStream } from "./ollama.js";
 
-export const modelExtend = {
-  "qwen3:4b": {
-    prepare(prompt) {
-      return `/no_think${prompt}`;
-    },
-    preprocess(responseText) {
-      if (!/<think>[\d\D]*?<\/think>\n/.test(responseText)) {
-        return "";
-      }
-
-      return responseText.replace(/^\<think>[\d\D]*?<\/think>\s+/, "");
-    },
-  },
-};
 const taskQueue = [];
 
 let activeAICount = 0; // 正在运行的AI个数
@@ -68,6 +54,21 @@ export const ask = (prompt, options) => {
       executeTask();
     }
   });
+};
+
+export const modelExtend = {
+  "qwen3:4b": {
+    prepare(prompt) {
+      return `/no_think${prompt}`;
+    },
+    preprocess(responseText) {
+      if (!/<think>[\d\D]*?<\/think>\n/.test(responseText)) {
+        return "";
+      }
+
+      return responseText.replace(/^\<think>[\d\D]*?<\/think>\s+/, "");
+    },
+  },
 };
 
 // 对内容进行提问
