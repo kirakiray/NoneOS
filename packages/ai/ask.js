@@ -15,46 +15,57 @@ export const modelExtend = {
     },
   },
 };
+const taskQueue = [];
 
-const tasks = [];
+let activeAICount = 0; // 正在运行的AI个数
 
-let runningCount = 0; // 正在运行的AI个数
+const executeTask = () => {
+  const currentTask = taskQueue.shift();
 
-const runTask = () => {
-  const task = tasks.shift();
+  const { prompt, options, resolve, reject } = currentTask;
 
-  const { prompt, options, resolve, reject } = task;
-
-  runningCount++;
+  activeAICount++;
 
   askByLocalOllama(prompt, options)
-    .then((res) => {
-      runningCount--;
-      resolve(res);
+    .then((result) => {
+      activeAICount--;
+      resolve(result);
     })
-    .catch((err) => {
-      runningCount--;
-      reject(err);
+    .catch((error) => {
+      activeAICount--;
+      reject(error);
     })
     .finally(() => {
-      if (tasks.length > 0) {
-        runTask();
+      if (taskQueue.length > 0) {
+        executeTask();
       }
     });
+};
+
+export const clearAsk = (id) => {
+  if (!id) {
+    return;
+  }
+
+  taskQueue = taskQueue.filter((task) => {
+    const { options } = task;
+
+    return options.id !== id;
+  });
 };
 
 export const ask = (prompt, options) => {
   return new Promise((resolve, reject) => {
     // 先加入队列，等待处理
-    tasks.push({
+    taskQueue.push({
       prompt,
       options,
       resolve,
       reject,
     });
 
-    if (runningCount <= 0) {
-      runTask();
+    if (activeAICount <= 0) {
+      executeTask();
     }
   });
 };
