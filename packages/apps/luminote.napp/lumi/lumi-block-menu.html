@@ -141,18 +141,12 @@
         <span lang="ja">言語を切り替える</span>
       </localized-content>
       <p-menu>
-        <p-menu-item>
-          <span slot="prefix">🇨🇳</span>
-          中文
-        </p-menu-item>
-        <p-menu-item>
-          <span slot="prefix">🇺🇸</span>
-          English
-        </p-menu-item>
-        <p-menu-item>
-          <span slot="prefix">🇯🇵</span>
-          日本語
-        </p-menu-item>
+        <o-fill :value="langOption">
+          <p-menu-item on:click="$host.switchLang($data)">
+            <span slot="prefix" :html="$data.icon"></span>
+            {{$data.name}}
+          </p-menu-item>
+        </o-fill>
       </p-menu>
     </p-menu-item>
   </p-menu>
@@ -174,26 +168,39 @@
           blockComps,
           _blockEl: null,
           aiAvailable: await isAIAvailable(),
+          langOption: [
+            {
+              icon: "🇨🇳",
+              code: "cn",
+              name: "简体中文",
+            },
+            {
+              icon: "🇭🇰",
+              code: "t-cn",
+              name: "繁体中文",
+            },
+            {
+              icon: "🇺🇸",
+              code: "en",
+              name: "English",
+            },
+            {
+              icon: "🇯🇵",
+              code: "ja",
+              name: "日本語",
+            },
+          ],
         },
         proto: {
-          get isInBeautify() {
-            return !!this?._blockEl?.inBeautify;
+          async switchLang(item) {
+            this._blockEl.switchOtherLang(item.code);
           },
           async handleBeautify() {
+            this._blockEl.beautify();
             this.open = "off";
-            this._blockEl.inBeautify = 1;
-            this._blockEl.beautifyContent = "";
-
-            await ask(
-              `润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
-              {
-                onChunk: (e) => {
-                  this._blockEl.beautifyContent = e.responseText;
-                },
-              }
-            );
-
-            this._blockEl.inBeautify = 2;
+          },
+          get isInBeautify() {
+            return !!this?._blockEl?.inBeautify;
           },
           async handleCopy() {
             copySelectedBlock({

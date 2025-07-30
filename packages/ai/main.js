@@ -1,4 +1,3 @@
-import { getAISetting } from "./custom-data.js";
 
 export {
   getOllamaModels,
@@ -7,22 +6,9 @@ export {
   askOllamaStream,
 } from "./ollama.js";
 
-import { askOllamaStream, getOllamaModels } from "./ollama.js";
+export { modelExtend, ask } from "./ask.js";
 
-export const modelExtend = {
-  "qwen3:4b": {
-    prepare(prompt) {
-      return `/no_think${prompt}`;
-    },
-    preprocess(responseText) {
-      if (!/<think>[\d\D]*?<\/think>\n/.test(responseText)) {
-        return "";
-      }
-
-      return responseText.replace(/^\<think>[\d\D]*?<\/think>\s+/, "");
-    },
-  },
-};
+import { getOllamaModels } from "./ollama.js";
 
 let availablePms = null;
 
@@ -47,47 +33,4 @@ export const isAIAvailable = async () => {
       availablePms = null;
     }, 1000);
   }));
-};
-
-export const ask = async (prompt, { model: modelName, onChunk }) => {
-  const aiSettingData = await getAISetting();
-
-  let responseText = "";
-
-  let finalModelName = modelName || aiSettingData.ollama.model || "qwen3:4b";
-
-  const targetExtend = modelExtend[finalModelName];
-
-  if (targetExtend) {
-    prompt = targetExtend.prepare(prompt);
-  }
-
-  await askOllamaStream(prompt, finalModelName, (chunk) => {
-    responseText += chunk;
-
-    let preprocessedText = responseText;
-    if (targetExtend && targetExtend.preprocess) {
-      preprocessedText = targetExtend.preprocess(responseText);
-    }
-
-    if (onChunk) {
-      onChunk({
-        modelName: finalModelName,
-        originText: responseText,
-        responseText: preprocessedText,
-        currentToken: chunk,
-      });
-    }
-  });
-
-  let preprocessedText = responseText;
-  if (targetExtend && targetExtend.preprocess) {
-    preprocessedText = targetExtend.preprocess(responseText);
-  }
-
-  return {
-    modelName: finalModelName,
-    originText: responseText,
-    responseText: preprocessedText,
-  };
 };

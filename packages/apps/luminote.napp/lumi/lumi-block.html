@@ -31,8 +31,6 @@
       position: absolute;
       left: -32px;
       top: 4px;
-      /* top: 4px; */
-      /* top: 20%; */
       opacity: 0;
     }
     :host(:hover) .menu-btn {
@@ -405,6 +403,8 @@
         "/packages/i18n/localized-object.js"
       );
 
+      const { ask } = await load("/packages/ai/main.js");
+
       return {
         tag: "lumi-block",
         data: {
@@ -470,6 +470,27 @@
           },
         },
         proto: {
+          // 切换其他语种
+          async switchOtherLang(lang) {
+            debugger;
+          },
+          // 润色内容
+          async beautify() {
+            this.inBeautify = 1;
+            this.beautifyContent = "";
+
+            await ask(
+              `保留原来的html格式，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
+              {
+                id: this.xid,
+                onChunk: (e) => {
+                  this.beautifyContent = e.responseText;
+                },
+              }
+            );
+
+            this.inBeautify = 2;
+          },
           useBeautify(bool) {
             if (bool) {
               this.itemData.value = this.beautifyContent;

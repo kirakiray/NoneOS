@@ -21,8 +21,9 @@
   </h4>
   <p-list style="min-height: 34px; display: flex; flex-wrap: wrap">
     <o-fill :value="openedProjects">
-      <p-list-item collapse-childs="open" button="suffix">
-        <i toggle-collapse triangle slot="suffix" style="margin-left: 32px"></i>
+      <!-- <p-list-item collapse-childs="open" button="suffix"> -->
+      <p-list-item>
+        <!-- <i toggle-collapse triangle slot="suffix" style="margin-left: 32px"></i> -->
         <n-local-icon
           name="project"
           slot="prefix"
@@ -30,7 +31,7 @@
         >
         </n-local-icon>
         {{$data?.data?.projectName}}
-        <p-list slot="childs" style="--ladder-left: 16px">
+        <!-- <p-list slot="childs" style="--ladder-left: 16px">
           <p-list-item>
             <p-select size="small" sync:value="$data.data.mainLang">
               <label>
@@ -46,7 +47,7 @@
               <p-option value="ja">Japanese</p-option>
             </p-select>
           </p-list-item>
-        </p-list>
+        </p-list> -->
       </p-list-item>
     </o-fill>
   </p-list>
