@@ -24,6 +24,8 @@
       position: fixed;
       top: 100px;
       left: 100px;
+      display: flex;
+      align-items: center;
       padding: 3px;
       background-color: var(--md-sys-color-on-normal);
       box-shadow: var(--contained-shadow);
@@ -34,9 +36,20 @@
       white-space: nowrap;
     }
 
+    .multi-panel p-button {
+      margin: 0 2px;
+    }
+
     .mask.show-multi-panel .multi-panel {
       opacity: 1;
       transform: translateX(0);
+    }
+
+    .line {
+      height: 24px;
+      width: 1px;
+      margin: 0 4px;
+      background-color: var(--md-sys-color-normal);
     }
   </style>
 
@@ -46,35 +59,54 @@
       :style.top="multiPanelStyle.top"
       :style.left="multiPanelStyle.left"
     >
-      <p-button size="small" variant="text" on:click="clickCopy">
-        <n-local-icon
-          name="copy"
-          slot="prefix"
-          style="display: block; margin-right: 4px"
-        ></n-local-icon>
-        <localized-content>
-          <span lang="cn">复制</span>
-          <span lang="en">Copy</span>
-          <span lang="ja">コピー</span>
-        </localized-content>
-      </p-button>
-      <p-button
-        size="small"
-        color="error"
-        variant="text"
-        on:click="clickDelete"
-      >
-        <n-local-icon
-          name="delete"
-          slot="prefix"
-          style="display: block; margin-right: 4px"
-        ></n-local-icon>
-        <localized-content>
-          <span lang="cn">删除</span>
-          <span lang="en">Delete</span>
-          <span lang="ja">削除</span>
-        </localized-content>
-      </p-button>
+      <p-tooltips placement="top">
+        <p-button size="small" variant="text" on:click="clickCopy" icon>
+          <n-local-icon name="copy" slot="prefix"></n-local-icon>
+        </p-button>
+
+        <div slot="tips">
+          <localized-content>
+            <span lang="cn">复制</span>
+            <span lang="en">Copy</span>
+            <span lang="ja">コピー</span>
+          </localized-content>
+        </div>
+      </p-tooltips>
+      <p-tooltips placement="top">
+        <p-button
+          size="small"
+          color="error"
+          variant="text"
+          on:click="clickDelete"
+          icon
+        >
+          <n-local-icon name="delete" slot="prefix"></n-local-icon>
+        </p-button>
+
+        <div slot="tips">
+          <localized-content>
+            <span lang="cn">删除</span>
+            <span lang="en">Delete</span>
+            <span lang="ja">削除</span>
+          </localized-content>
+        </div>
+      </p-tooltips>
+      <o-if :value="isAIAvailable">
+        <div class="line"></div>
+        <p-tooltips placement="top">
+          <p-button size="small" variant="text" on:click="clickBeautify" icon>
+            <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
+          </p-button>
+
+          <div slot="tips">
+            <localized-content>
+              <span lang="en">Polish</span>
+              <span lang="cn">润色</span>
+              <span lang="ja">修正</span>
+            </localized-content>
+          </div>
+        </p-tooltips>
+      </o-if>
     </div>
   </div>
 
@@ -85,6 +117,7 @@
         "./util/lumi-util.js"
       );
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { isAIAvailable } = await load("/packages/ai/main.js");
 
       return {
         tag: "lumi-multi-panel",
@@ -94,10 +127,16 @@
             top: 0,
             left: 0,
           },
+          isAIAvailable: false,
         },
         proto: {
           get panel() {
             return this.shadow.$(".multi-panel");
+          },
+          clickBeautify() {
+            this.host._selecteds.forEach((e) => {
+              e.beautify();
+            });
           },
           async clickCopy() {
             copySelectedBlock(this.host);
@@ -136,7 +175,9 @@
             });
           },
         },
-        attached() {},
+        async attached() {
+          this.isAIAvailable = await isAIAvailable();
+        },
         detached() {},
       };
     };

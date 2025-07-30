@@ -35,6 +35,11 @@ const runTask = () => {
     .catch((err) => {
       runningCount--;
       reject(err);
+    })
+    .finally(() => {
+      if (tasks.length > 0) {
+        runTask();
+      }
     });
 };
 

@@ -476,20 +476,23 @@
           },
           // 润色内容
           async beautify() {
-            this.inBeautify = 1;
-            this.beautifyContent = "";
+            try {
+              this.inBeautify = 1;
+              this.beautifyContent = "";
 
-            await ask(
-              `保留原来的html格式，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
-              {
-                id: this.xid,
-                onChunk: (e) => {
-                  this.beautifyContent = e.responseText;
-                },
-              }
-            );
+              await ask(
+                `保留原来的html标签，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
+                {
+                  onChunk: (e) => {
+                    this.beautifyContent = e.responseText;
+                  },
+                }
+              );
 
-            this.inBeautify = 2;
+              this.inBeautify = 2;
+            } catch (err) {
+              this.inBeautify = false;
+            }
           },
           useBeautify(bool) {
             if (bool) {

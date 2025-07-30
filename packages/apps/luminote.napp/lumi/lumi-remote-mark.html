@@ -7,6 +7,16 @@
       margin: 0 auto;
       transition: all ease 0.3s;
       z-index: 3;
+      animation: fadein 0.3s ease-in-out;
+    }
+
+    @keyframes fadein {
+      0% {
+        opacity: 0;
+      }
+      100% {
+        opacity: 1;
+      }
     }
 
     .main {
@@ -112,6 +122,7 @@
           },
         },
         attached() {
+          this.refreshPosition();
           this._timer = setInterval(() => {
             this.refreshPosition();
           }, 500);
