@@ -255,6 +255,22 @@
       padding-top: 0;
       padding-bottom: 0;
     }
+
+    .translate-container {
+      position: relative;
+    }
+
+    .lang-mark {
+      position: absolute;
+      right: -8px;
+      bottom: 0px;
+      font-size: 12px;
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+      padding: 0 4px;
+      border-radius: 4px;
+      opacity: 0.7;
+    }
   </style>
 
   <o-if :value="!loading">
@@ -292,7 +308,20 @@
             :type="itemData.type"
             on:update-block-value="updateBlockValue"
           >
-            <slot></slot>
+            <o-if :value="inTranslate">
+              <div class="translate-container">
+                <o-if :value="inTranslate == 1">
+                  <n-local-icon name="loading"></n-local-icon>
+                </o-if>
+
+                <div :html="translateContent" style="display: contents"></div>
+
+                <div class="lang-mark">{{markLang}}</div>
+              </div>
+            </o-if>
+            <o-else>
+              <slot></slot>
+            </o-else>
 
             <span class="placeholder" class:show="inFocus && !itemData.value">
               <localized-content>
@@ -327,6 +356,7 @@
         <div class="dragovering-mark" class:show="dragovering"></div>
       </div>
     </div>
+
     <o-if :value="inBeautify">
       <div
         style="
@@ -389,6 +419,7 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
       const { saveUserCord } = await load("../util/user-record-util.js");
+      const { getHash } = await load("/packages/fs/util.js");
 
       const { addLoadingTask, removeLoadingTask } = await load(
         "./util/lumi-util.js"
@@ -411,8 +442,11 @@
           inFocus: false,
           loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
           itemData: {},
-          beautifyContent: "",
+          beautifyContent: "", // 润色后的文本
           inBeautify: false, // 润色中
+          translateContent: "", // 翻译后的文本
+          inTranslate: false, // 翻译中
+          inTranslateLang: "", // 翻译的语言
           selected: false, // 是否被选中
           leftMenuOpened: false, // 左侧菜单是否打开
           showSubmark: false, // 显示当前为子元素的标记
@@ -470,9 +504,86 @@
           },
         },
         proto: {
+          get markLang() {
+            switch (this.inTranslateLang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+            }
+          },
           // 切换其他语种
           async switchOtherLang(lang) {
-            debugger;
+            this.inTranslateLang = lang;
+            this.inTranslate = 1;
+
+            let promptLang = "";
+
+            switch (lang) {
+              case "en":
+                promptLang = "英语";
+                break;
+              case "cn":
+                promptLang = "中文";
+                break;
+              case "t-cn":
+                promptLang = "繁体中文";
+                break;
+              case "ja":
+                promptLang = "日语";
+                break;
+              default:
+                promptLang = lang;
+            }
+
+            let i18nContent = this.itemData.i18nContent;
+            if (!this.itemData.i18nContent) {
+              this.itemData.i18nContent = {};
+              i18nContent = this.itemData.i18nContent;
+            }
+
+            const originHash = await getHash(this.itemData.value);
+
+            if (i18nContent[lang]) {
+              if (i18nContent[lang].originHash === originHash) {
+                // 哈希没变，直接用缓存的值
+                this.translateContent = i18nContent[lang].value;
+                this.inTranslate = 2;
+                return;
+              }
+            }
+
+            try {
+              this.translateContent = "";
+
+              const result = await ask(
+                `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${this.itemData.value}`,
+                {
+                  onChunk: (e) => {
+                    this.translateContent = e.responseText;
+                  },
+                }
+              );
+
+              if (!result) {
+                return;
+              }
+
+              i18nContent[lang] = {
+                originHash,
+                modelName: result.modelName,
+                value: result.responseText,
+                time: Date.now(),
+              };
+
+              this.inTranslate = 2;
+            } catch (err) {
+              console.log(err);
+            }
           },
           // 润色内容
           async beautify() {

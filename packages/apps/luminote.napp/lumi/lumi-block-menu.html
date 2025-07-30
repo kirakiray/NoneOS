@@ -194,6 +194,7 @@
         proto: {
           async switchLang(item) {
             this._blockEl.switchOtherLang(item.code);
+            this.open = "off";
           },
           async handleBeautify() {
             this._blockEl.beautify();
