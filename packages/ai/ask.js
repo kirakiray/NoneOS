@@ -12,13 +12,14 @@ const executeTask = () => {
 
   activeAICount++;
 
-  askByLocalOllama(prompt, options)
+  askByLocalOllama(prompt, options || {})
     .then((result) => {
       activeAICount--;
       resolve(result);
     })
     .catch((error) => {
       activeAICount--;
+      console.error(error);
       reject(error);
     })
     .finally(() => {
