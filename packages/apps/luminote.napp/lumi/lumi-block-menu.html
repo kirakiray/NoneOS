@@ -133,6 +133,28 @@
         <span lang="ja">修正</span>
       </localized-content>
     </p-menu-item>
+    <p-menu-item>
+      <n-local-icon name="translate" slot="prefix"></n-local-icon>
+      <localized-content>
+        <span lang="cn">切换语言</span>
+        <span lang="en">Switch Language</span>
+        <span lang="ja">言語を切り替える</span>
+      </localized-content>
+      <p-menu>
+        <p-menu-item>
+          <span slot="prefix">🇨🇳</span>
+          中文
+        </p-menu-item>
+        <p-menu-item>
+          <span slot="prefix">🇺🇸</span>
+          English
+        </p-menu-item>
+        <p-menu-item>
+          <span slot="prefix">🇯🇵</span>
+          日本語
+        </p-menu-item>
+      </p-menu>
+    </p-menu-item>
   </p-menu>
   <script>
     export default async ({ load }) => {

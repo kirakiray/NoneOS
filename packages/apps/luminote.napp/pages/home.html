@@ -135,37 +135,6 @@
         </localized-content>
       </o-else>
     </div>
-    <div style="padding: 16px; display: flex; align-items: center">
-      <o-if :value="aiAvailable">
-        <p-switch
-          sync:value="appConfigData.useAITranslate"
-          style="margin-right: 16px"
-        >
-          <localized-content>
-            <span lang="cn">启用AI翻译</span>
-            <span lang="en">Enable AI translation</span>
-            <span lang="ja">AI翻訳を有効にする</span>
-          </localized-content>
-        </p-switch>
-      </o-if>
-      <p-select
-        sync:value="appConfigData.viewLang"
-        style="display: inline-block"
-      >
-        <label>
-          <localized-content>
-            <span lang="cn">你的偏好语言</span>
-            <span lang="en">Your preferred language</span>
-            <span lang="ja">あなたの好みの言語</span>
-          </localized-content>
-        </label>
-        <p-option value="cn">简体中文</p-option>
-        <p-option value="t-cn">繁体中文</p-option>
-        <p-option value="en">English</p-option>
-        <p-option value="ja">Japanese</p-option>
-      </p-select>
-    </div>
-  </div>
 
   <div>
     <h4>
@@ -239,15 +208,7 @@
           (async () => {
             this.aiAvailable = await isAIAvailable();
 
-            const configData = await this.app._configData;
 
-            if (configData.useAITranslate === undefined) {
-              // 设置AI翻译默认值
-              configData.useAITranslate = "off";
-              configData.viewLang = "en";
-            }
-
-            this.appConfigData = configData;
           })();
 
           this.emit("active-article", {
@@ -265,7 +226,6 @@
           });
         },
         detached() {
-          this.appConfigData = {};
         },
       };
     };
