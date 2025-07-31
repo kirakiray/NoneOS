@@ -546,6 +546,11 @@
           async switchOtherLang(lang) {
             this.inTranslate = 1;
 
+            if (this._asking) {
+              clearAsk(this.xid);
+              delete this._asking;
+            }
+
             const mainLang = await this.getMainLang();
             if (mainLang === lang) {
               this.inTranslate = false;
@@ -594,12 +599,16 @@
             try {
               this.translateContent = "";
 
+              this._asking = lang; // 标识正在翻译中
+
               const result = await ask(
                 `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${this.itemData.value}`,
                 {
                   id: this.xid,
                   onChunk: (e) => {
-                    this.translateContent = e.responseText;
+                    if (this._asking === lang) {
+                      this.translateContent = e.responseText;
+                    }
                   },
                 }
               );
@@ -615,10 +624,15 @@
                 time: Date.now(),
               };
 
-              this.inTranslate = 2;
+              if (this._asking === lang) {
+                // 证明没被切换
+                this.inTranslate = 2;
+              }
             } catch (err) {
               console.log(err);
             }
+
+            delete this._asking;
           },
           // 润色内容
           async beautify() {
