@@ -1,5 +1,4 @@
 <template component>
-  <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
 
@@ -17,52 +16,74 @@
       color: var(--md-sys-color-normal);
     }
   </style>
-  <p-list>
-    <p-list-item>
-      <div class="list-line">
-        <span class="list-key">项目名称</span>
-        :
-        <o-if :value="!nameEditMode">
-          <div style="margin-left: 4px; color: var(--md-sys-color-primary)">
-            {{projectData.projectName}}
-          </div>
-          <p-button
-            size="small"
-            variant="text"
-            on:click="clickEditMode"
-            icon
-            style="margin-left: 8px"
-          >
-            <n-local-icon name="edit"></n-local-icon>
-          </p-button>
-        </o-if>
-        <o-else>
-          <p-input
-            sync:value="editProjectName"
-            size="small"
-            style="width: 200px; margin-left: 8px"
-          ></p-input>
-          <p-button
-            on:click="clickSave"
-            size="small"
-            style="margin-left: 8px"
-            variant="outlined"
-            attr:disabled="editProjectName === projectData.projectName"
-          >
-            保存
-          </p-button>
-          <p-button
-            on:click="nameEditMode = false"
-            size="small"
-            variant="text"
-            style="margin-left: 8px"
-          >
-            取消
-          </p-button>
-        </o-else>
+
+  <div class="list-line">
+    <span class="list-key">
+      <localized-content>
+        <span lang="cn"> 项目名称 </span>
+        <span lang="en"> Project Name </span>
+        <span lang="ja"> プロジェクト名 </span>
+      </localized-content>
+    </span>
+    :
+    <o-if :value="!nameEditMode">
+      <div style="margin-left: 4px; color: var(--md-sys-color-primary)">
+        {{projectData.projectName}}
       </div>
-    </p-list-item>
-  </p-list>
+      <p-button
+        size="small"
+        variant="text"
+        on:click="clickEditMode"
+        icon
+        style="margin-left: 8px"
+      >
+        <n-local-icon name="edit"></n-local-icon>
+      </p-button>
+    </o-if>
+    <o-else>
+      <p-input
+        sync:value="editProjectName"
+        size="small"
+        style="width: 200px; margin-left: 8px"
+      ></p-input>
+      <p-button
+        on:click="clickSave"
+        size="small"
+        style="margin-left: 8px"
+        variant="outlined"
+        attr:disabled="editProjectName === projectData.projectName"
+      >
+        <localized-content>
+          <span lang="cn"> 保存 </span>
+          <span lang="en"> Save </span>
+          <span lang="ja"> 保存 </span>
+        </localized-content>
+      </p-button>
+      <p-button
+        on:click="nameEditMode = false"
+        size="small"
+        variant="text"
+        style="margin-left: 8px"
+      >
+        <localized-content>
+          <span lang="cn"> 取消 </span>
+          <span lang="en"> Cancel </span>
+          <span lang="ja"> キャンセル </span>
+        </localized-content>
+      </p-button>
+    </o-else>
+  </div>
+  <div class="list-line">
+    <span class="list-key">
+      <localized-content>
+        <span lang="cn"> 项目语言 </span>
+        <span lang="en"> Project Language </span>
+        <span lang="ja"> プロジェクト言語 </span>
+      </localized-content>
+    </span>
+    :
+    <div style="margin-left: 4px">{{lang}}</div>
+  </div>
   <script>
     export default async ({ load }) => {
       return {
@@ -73,6 +94,20 @@
           projectData: {},
         },
         proto: {
+          get lang() {
+            switch (this.projectData.mainLang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+              default:
+                return "unknown";
+            }
+          },
           clickSave() {
             this.projectData.projectName = this.editProjectName;
             this.nameEditMode = false;
