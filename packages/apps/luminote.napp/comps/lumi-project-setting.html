@@ -28,7 +28,7 @@
     :
     <o-if :value="!nameEditMode">
       <div style="margin-left: 4px; color: var(--md-sys-color-primary)">
-        {{projectData.projectName}}
+        {{projectData?.projectName}}
       </div>
       <p-button
         size="small"
@@ -95,6 +95,10 @@
         },
         proto: {
           get lang() {
+            if (!this.projectData) {
+              return "";
+            }
+
             switch (this.projectData.mainLang) {
               case "cn":
                 return "简体中文";
@@ -105,7 +109,7 @@
               case "ja":
                 return "日本語";
               default:
-                return "unknown";
+                return this.projectData.mainLang;
             }
           },
           clickSave() {

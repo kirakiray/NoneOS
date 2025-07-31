@@ -8,6 +8,7 @@
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="../comps/switch-project.html"></l-m>
   <l-m src="../comps/lumi-project-setting.html"></l-m>
+  <l-m src="../comps/view-lang.html"></l-m>
   <style>
     :host {
       display: block;
@@ -371,12 +372,12 @@
                 align-items: center;
                 height: 30px;
                 transition: all ease 0.3s;
-                overflow: hidden;
                 padding-right: 16px;
               }
               .hide-top-right {
                 height: 0;
                 opacity: 0;
+                pointer-events: none;
               }
             </style>
             <div class="top-right" class:hide-top-right="hideBreadcrumbs">
@@ -386,6 +387,11 @@
               >
                 <n-local-icon name="loading"></n-local-icon>
               </div>
+
+              <lumi-view-lang
+                :project-data="currentProjectData"
+              ></lumi-view-lang>
+
               <p-button
                 size="small"
                 variant="text"
@@ -443,7 +449,7 @@
       </localized-content>
     </div>
     <lumi-project-setting
-      :project-data="projectSettingData"
+      :project-data="currentProjectData"
       style="min-height: 50vh; min-width: 50vh"
     ></lumi-project-setting>
   </p-dialog>
@@ -467,7 +473,7 @@
           projects: [], // 已经打开的项目
           saveing: false, // 保存项目中
           openProjectSettingDialog: false,
-          projectSettingData: {},
+          currentProjectData: {},
         },
         proto: {
           lumiPageSaving() {
@@ -490,8 +496,8 @@
               this.currentUserId
             );
 
-            if (this.projectSettingData !== projectItem.data) {
-              this.projectSettingData = projectItem.data;
+            if (this.currentProjectData !== projectItem.data) {
+              this.currentProjectData = projectItem.data;
             }
 
             this.currentProjectName = projectItem.projectName;
@@ -593,7 +599,7 @@
         detached() {
           this.articles = {};
           this.projects = [];
-          this.projectSettingData = {};
+          this.currentProjectData = {};
 
           this.app.revokeAllProject();
         },
