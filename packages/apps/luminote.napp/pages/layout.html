@@ -7,6 +7,7 @@
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="../comps/switch-project.html"></l-m>
+  <l-m src="../comps/lumi-project-setting.html"></l-m>
   <style>
     :host {
       display: block;
@@ -140,14 +141,14 @@
               <span lang="ja"> ゴミ箱 </span>
             </localized-content>
           </p-list-item>
-          <p-list-item button disabled>
+          <!-- <p-list-item button disabled>
             <n-local-icon name="config" slot="prefix"></n-local-icon>
             <localized-content>
               <span lang="en"> Settings </span>
               <span lang="cn"> 设置 </span>
               <span lang="ja"> 設定 </span>
             </localized-content>
-          </p-list-item>
+          </p-list-item> -->
         </p-list>
 
         <h4 style="font-size: 13px; margin: 6px 0 6px 16px">
@@ -363,11 +364,38 @@
                 </div>
               </o-fill>
             </div>
-            <o-if :value="saveing">
-              <div style="margin: 0 16px 0 auto; font-size: 20px">
+            <style>
+              .top-right {
+                display: flex;
+                margin-left: auto;
+                align-items: center;
+                height: 30px;
+                transition: all ease 0.3s;
+                overflow: hidden;
+                padding-right: 16px;
+              }
+              .hide-top-right {
+                height: 0;
+                opacity: 0;
+              }
+            </style>
+            <div class="top-right" class:hide-top-right="hideBreadcrumbs">
+              <div
+                style="margin-right: 8px; font-size: 20px"
+                :style.opacity="saveing ? 1 : 0"
+              >
                 <n-local-icon name="loading"></n-local-icon>
               </div>
-            </o-if>
+              <p-button
+                size="small"
+                variant="text"
+                color="normal"
+                icon
+                on:click="openProjectSettingDialog = true"
+              >
+                <n-local-icon name="config"></n-local-icon>
+              </p-button>
+            </div>
           </div>
           <div
             style="flex: 1; position: relative"
@@ -403,6 +431,22 @@
       ></lumi-switch-project>
     </div>
   </p-dialog>
+  <p-dialog
+    :open="openProjectSettingDialog"
+    on:click-mask="openProjectSettingDialog = false"
+  >
+    <div slot="title">
+      <localized-content>
+        <span lang="en"> Project Settings </span>
+        <span lang="cn"> 项目设置 </span>
+        <span lang="ja"> プロジェクトの設定 </span>
+      </localized-content>
+    </div>
+    <lumi-project-setting
+      :project-data="projectSettingData"
+      style="min-height: 50vh; min-width: 50vh"
+    ></lumi-project-setting>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
       const { findArticle } = await load("../util/find-article-data.js");
@@ -422,6 +466,8 @@
           openAddDialog: false,
           projects: [], // 已经打开的项目
           saveing: false, // 保存项目中
+          openProjectSettingDialog: false,
+          projectSettingData: {},
         },
         proto: {
           lumiPageSaving() {
@@ -439,12 +485,16 @@
           async handleUpdateBreadcrumbs(e) {
             const { hide, titles } = e.data;
 
-            const projectData = await this.app.getProject(
+            const projectItem = await this.app.getProject(
               this.currentDirName,
               this.currentUserId
             );
 
-            this.currentProjectName = projectData.projectName;
+            if (this.projectSettingData !== projectItem.data) {
+              this.projectSettingData = projectItem.data;
+            }
+
+            this.currentProjectName = projectItem.projectName;
 
             if (hide) {
               this.hideBreadcrumbs = true;
@@ -543,6 +593,7 @@
         detached() {
           this.articles = {};
           this.projects = [];
+          this.projectSettingData = {};
 
           this.app.revokeAllProject();
         },

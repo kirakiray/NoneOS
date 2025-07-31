@@ -1,0 +1,26 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  lumi 项目设置
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-project-setting",
+        data: {
+          projectData: {},
+        },
+        attached() {
+          setTimeout(() => {
+            console.log("projectItem: ", this.projectItem);
+          }, 1000);
+        },
+        detached() {
+          this.projectItem = {};
+        },
+      };
+    };
+  </script>
+</template>
