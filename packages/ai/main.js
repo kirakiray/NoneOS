@@ -1,4 +1,3 @@
-
 export {
   getOllamaModels,
   deleteOllamaModel,
@@ -6,7 +5,7 @@ export {
   askOllamaStream,
 } from "./ollama.js";
 
-export { modelExtend, ask } from "./ask.js";
+export { modelExtend, ask, clearAsk } from "./ask.js";
 
 import { getOllamaModels } from "./ollama.js";
 

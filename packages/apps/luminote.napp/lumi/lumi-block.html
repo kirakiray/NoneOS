@@ -265,6 +265,7 @@
     .translate-container {
       position: relative;
       min-height: 14px;
+      user-select: text;
     }
 
     .lang-mark {
@@ -445,7 +446,7 @@
         "/packages/i18n/localized-object.js"
       );
 
-      const { ask } = await load("/packages/ai/main.js");
+      const { ask, clearAsk } = await load("/packages/ai/main.js");
 
       return {
         tag: "lumi-block",
@@ -596,6 +597,7 @@
               const result = await ask(
                 `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${this.itemData.value}`,
                 {
+                  id: this.xid,
                   onChunk: (e) => {
                     this.translateContent = e.responseText;
                   },
@@ -880,6 +882,7 @@
           });
         },
         detached() {
+          clearAsk(this.xid);
           removeLoadingTask(this);
 
           this.itemData = {};

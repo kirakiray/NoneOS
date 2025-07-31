@@ -1,7 +1,7 @@
 import { getAISetting } from "./custom-data.js";
 import { askOllamaStream } from "./ollama.js";
 
-const taskQueue = [];
+let taskQueue = [];
 
 let activeAICount = 0; // 正在运行的AI个数
 
