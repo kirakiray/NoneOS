@@ -80,6 +80,8 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { getSetting } = await load("/packages/none-os/setting.js");
+
       return {
         tag: "lumi-view-lang",
         data: {
@@ -121,6 +123,11 @@
           )._configData;
 
           this.appConfigData = configData;
+
+          if (!configData.viewLang) {
+            const settingData = await getSetting();
+            configData.viewLang = settingData.lang;
+          }
         },
         detached() {
           this.projectData = {};
