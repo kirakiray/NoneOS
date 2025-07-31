@@ -1,24 +1,94 @@
 <template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+
   <style>
     :host {
       display: block;
     }
+
+    .list-line {
+      display: flex;
+      align-items: center;
+      height: 30px;
+    }
+    .list-key {
+      color: var(--md-sys-color-normal);
+    }
   </style>
-  lumi 项目设置
+  <p-list>
+    <p-list-item>
+      <div class="list-line">
+        <span class="list-key">项目名称</span>
+        :
+        <o-if :value="!nameEditMode">
+          <div style="margin-left: 4px; color: var(--md-sys-color-primary)">
+            {{projectData.projectName}}
+          </div>
+          <p-button
+            size="small"
+            variant="text"
+            on:click="clickEditMode"
+            icon
+            style="margin-left: 8px"
+          >
+            <n-local-icon name="edit"></n-local-icon>
+          </p-button>
+        </o-if>
+        <o-else>
+          <p-input
+            sync:value="editProjectName"
+            size="small"
+            style="width: 200px; margin-left: 8px"
+          ></p-input>
+          <p-button
+            on:click="clickSave"
+            size="small"
+            style="margin-left: 8px"
+            variant="outlined"
+            attr:disabled="editProjectName === projectData.projectName"
+          >
+            保存
+          </p-button>
+          <p-button
+            on:click="nameEditMode = false"
+            size="small"
+            variant="text"
+            style="margin-left: 8px"
+          >
+            取消
+          </p-button>
+        </o-else>
+      </div>
+    </p-list-item>
+  </p-list>
   <script>
     export default async ({ load }) => {
       return {
         tag: "lumi-project-setting",
         data: {
+          nameEditMode: false,
+          editProjectName: "",
           projectData: {},
+        },
+        proto: {
+          clickSave() {
+            this.projectData.projectName = this.editProjectName;
+            this.nameEditMode = false;
+          },
+          clickEditMode() {
+            this.editProjectName = this.projectData.projectName;
+            this.nameEditMode = true;
+          },
         },
         attached() {
           setTimeout(() => {
-            console.log("projectItem: ", this.projectItem);
+            console.log("projectData: ", this.projectData);
           }, 1000);
         },
         detached() {
-          this.projectItem = {};
+          this.projectData = {};
         },
       };
     };
