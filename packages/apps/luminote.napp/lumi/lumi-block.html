@@ -880,6 +880,8 @@
               ja: "無題のページ",
             },
           });
+
+          this.emit("block-attached");
         },
         detached() {
           clearAsk(this.xid);

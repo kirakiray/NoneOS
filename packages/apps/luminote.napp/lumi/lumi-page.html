@@ -150,17 +150,18 @@
           lumiViewLang: "",
         },
         watch: {
-          async lumiViewLang(lang) {
+          lumiViewLang(lang) {
             this.changeLang(lang);
           },
         },
         proto: {
           async changeLang(lang) {
             for (let block of this.all("lumi-block")) {
-              if (!this.ele.isConnected) {
+              if (!this.ele.isConnected || !block.switchOtherLang) {
                 // 删除后不翻译
                 break;
               }
+
               await block.switchOtherLang(lang);
             }
           },
@@ -204,6 +205,15 @@
             this.recordData = recordData;
             this._recordRevoke = revoke;
           },
+        },
+        ready() {
+          const oapp = this.parents.find((e) => e.tag == "o-app");
+
+          this.on("block-attached", async (e) => {
+            e.stopPropagation();
+            const configData = await oapp._configData;
+            $(e.target).switchOtherLang(this.lumiViewLang);
+          });
         },
         async attached() {
           this.on("click", (e) => {
