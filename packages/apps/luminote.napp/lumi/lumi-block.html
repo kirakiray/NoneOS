@@ -792,17 +792,23 @@
             }, 10);
           },
           get htmlContent() {
-            const { value, type } = this.itemData;
+            const { value, type, i18nContent = {} } = this.itemData;
+
+            let currentValue = value;
+
+            try {
+              currentValue = i18nContent[this.parent.lumiViewLang].value;
+            } catch (err) {}
 
             switch (type) {
               case "paragraph":
-                return `<p>${value}</p>`;
+                return `<p>${currentValue}</p>`;
               case "h2":
-                return `<h2>${value}</h2>`;
+                return `<h2>${currentValue}</h2>`;
               case "h3":
-                return `<h3>${value}</h3>`;
+                return `<h3>${currentValue}</h3>`;
               case "h4":
-                return `<h4>${value}</h4>`;
+                return `<h4>${currentValue}</h4>`;
               case "article":
                 return "<span></span>";
               default:
@@ -811,14 +817,22 @@
             }
           },
           get textContent() {
-            const { type } = this.itemData;
+            const { type, value, i18nContent = {} } = this.itemData;
+
+            let currentValue = value;
+
+            try {
+              currentValue = i18nContent[this.parent.lumiViewLang].value;
+            } catch (err) {}
+
+            const temp = $(`<template>${currentValue}</template>`);
 
             switch (type) {
               case "paragraph":
               case "h2":
               case "h3":
               case "h4":
-                return this.text;
+                return temp.ele.content.textContent;
               case "article":
                 return "";
               default:
@@ -831,13 +845,13 @@
 
             switch (type) {
               case "paragraph":
-                return this.text;
+                return this.textContent;
               case "h2":
-                return `## ${this.text}`;
+                return `## ${this.textContent}`;
               case "h3":
-                return `### ${this.text}`;
+                return `### ${this.textContent}`;
               case "h4":
-                return `#### ${this.text}`;
+                return `#### ${this.textContent}`;
               case "article":
                 return "";
               default:
