@@ -264,6 +264,7 @@
 
     .translate-container {
       position: relative;
+      min-height: 14px;
     }
 
     .lang-mark {
@@ -525,36 +526,26 @@
                 return "日本語";
             }
           },
+          async getMainLang() {
+            const notePage = this.parents.find(
+              (e) => e.tag === "o-page" && e.src.includes("note.html")
+            );
+
+            const oapp = this.parents.find((e) => e.tag == "o-app");
+
+            const projectData = await oapp.getProject(
+              notePage.currentDirName,
+              notePage.currentUserId
+            );
+
+            return projectData.data.mainLang;
+          },
           // 切换其他语种
           async switchOtherLang(lang) {
             this.inTranslate = 1;
 
-            // 先判断原始的语言类型
-            if (!this.itemData.originLang) {
-              try {
-                const result = await ask(
-                  `判断以下文本的语言，如果是中文，直接返回cn;如果是英文，直接返回en;如果是繁体中文，直接返回t-cn;如果是日文，直接返回ja;其他的语言，返回：unknown\n ${this.itemData.value}`
-                );
-
-                const { responseText } = result;
-
-                if (
-                  responseText &&
-                  ["cn", "en", "t-cn", "ja", "unknown"].includes(
-                    responseText.trim()
-                  )
-                ) {
-                  // 设置原始语言
-                  this.itemData.originLang = responseText.trim();
-                }
-              } catch (err) {
-                console.error(err);
-                this.inTranslate = false;
-                return;
-              }
-            }
-
-            if (this.itemData.originLang === lang) {
+            const mainLang = await this.getMainLang();
+            if (mainLang === lang) {
               this.inTranslate = false;
               return;
             }
