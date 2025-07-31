@@ -3,7 +3,7 @@
   <l-m src="./lumi-multi-panel.html"></l-m>
   <l-m src="./lumi-text-panel.html"></l-m>
   <l-m src="./lumi-block-menu.html"></l-m>
-  <l-m src="./lumi-page-title.html"></l-m>
+  <!-- <l-m src="./lumi-page-title.html"></l-m> -->
   <l-m src="./lumi-command-panel.html"></l-m>
   <l-m src="./lumi-inline-comp-panel.html"></l-m>
   <l-m src="./lumi-remote-mark.html"></l-m>
@@ -96,6 +96,8 @@
   <lumi-inline-comp-panel></lumi-inline-comp-panel>
   <script>
     export default async ({ load }) => {
+      await load("./lumi-page-title.html");
+
       const { initUndoRedo, revokeUndoRedo } = await load(
         "./lumi-page-init/undo-redo.js"
       );
@@ -146,7 +148,7 @@
         },
         proto: {
           focusTitle() {
-            this.shadow.$("lumi-page-title").focus();
+            setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
           },
           async focusLast() {
             let lastBlockEl = this.slice(-1)[0];
