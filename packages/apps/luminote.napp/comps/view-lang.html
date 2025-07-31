@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -11,27 +12,10 @@
       align-items: center;
     }
     .tips {
-      width: 300px;
-      position: absolute;
-      top: 24px;
-      right: 0;
-      padding: 4px 8px;
-      border-radius: 4px;
-      color: var(--md-sys-color-on-normal-container);
-      background-color: var(--md-sys-color-normal-container);
-      font-size: 14px;
-      line-height: 1.6em;
-      opacity: 0;
-      transform: translate(10px, 0);
-      transition: all 0.1s ease-in-out;
-      z-index: 3;
-      pointer-events: none;
-    }
-    .main:hover + .tips,
-    .tips:hover {
-      opacity: 1;
-      transform: translate(0, 0);
-      pointer-events: auto;
+      font-size: 16px;
+      min-width: 40vw;
+      max-width: 80vw;
+      min-height: 20vh;
     }
     p {
       margin: 0.4em 0;
@@ -39,54 +23,76 @@
   </style>
 
   <div class="main">
-    <n-local-icon name="translate"></n-local-icon>
-    <span style="font-size: 14px; margin-left: 4px"
-      >{{getRealLang(appConfigData.viewLang)}}</span
-    >
-  </div>
-  <div class="tips">
-    <p>
-      当前正在使用
-      <span style="color: var(--md-sys-color-primary)"
-        >{{getRealLang(appConfigData.viewLang)}}</span
-      >
-      阅读文档。 本文档原生采用
-      <span style="color: var(--md-sys-color-primary)">{{defaultLang}}</span>
-      撰写。
-    </p>
+    <p-button size="small" variant="text" on:click="showDialog = true">
+      <n-local-icon
+        name="view"
+        slot="prefix"
+        style="display: block; font-size: 18px; margin-right: 4px"
+      ></n-local-icon>
 
-    <o-if :value="appConfigData.viewLang != projectData.mainLang">
-      <p>阅读语言与原生语言不一致时，需切换至原生语言才能修改内容。</p>
-    </o-if>
-
-    <p style="display: flex; align-items: center">
-      点击切换阅读语言
-      <p-select
-        size="small"
-        sync:value="appConfigData.viewLang"
-        on:change="changeLang"
-        style="display: inline-block; margin-left: 8px"
-      >
-        <n-local-icon name="translate" slot="prefix"></n-local-icon>
-        <p-option value="cn">简体中文</p-option>
-        <p-option value="en">English</p-option>
-        <p-option value="t-cn">繁體中文</p-option>
-        <p-option value="ja">日本語</p-option>
-      </p-select>
-    </p>
-    <p>
-      若文章包含所选语言内容，系统将自动切换显示；若没有对应语言，将使用您本地的AI进行翻译。
-    </p>
+      {{getRealLang(appConfigData.viewLang)}}
+    </p-button>
   </div>
+
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title">文档语言</div>
+    <div class="tips">
+      <p style="display: flex; align-items: center">
+        点击切换阅读语言
+        <p-select
+          size="small"
+          sync:value="appConfigData.viewLang"
+          on:change="changeLang"
+          style="display: inline-block; margin-left: 8px"
+        >
+          <n-local-icon name="translate" slot="prefix"></n-local-icon>
+          <p-option value="cn">简体中文</p-option>
+          <p-option value="en">English</p-option>
+          <p-option value="t-cn">繁體中文</p-option>
+          <p-option value="ja">日本語</p-option>
+        </p-select>
+      </p>
+
+      <p>
+        本文档原生采用
+        <span style="color: var(--md-sys-color-primary)">{{defaultLang}}</span>
+        撰写。 当前正在使用
+        <span style="color: var(--md-sys-color-primary)"
+          >{{getRealLang(appConfigData.viewLang)}}</span
+        >
+        阅读文档。
+      </p>
+      <p>若文章包含所选语言内容，系统将自动切换显示；</p>
+      <p>若没有对应语言，将使用您本地的AI进行翻译。</p>
+
+      <o-if :value="!aiAvailable">
+        <p style="color: var(--md-sys-color-error)">
+          您当前环境没有可用的AI接口。
+        </p>
+      </o-if>
+
+      <o-if :value="appConfigData.viewLang != projectData.mainLang">
+        <p style="color: var(--md-sys-color-primary)">
+          阅读语言与原生语言不一致时，需切换至原生语言才能修改内容。
+        </p>
+      </o-if>
+    </div>
+  </p-dialog>
+
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
   <script>
     export default async ({ load }) => {
       const { getSetting } = await load("/packages/none-os/setting.js");
+      const { isAIAvailable } = await load("/packages/ai/main.js");
 
       return {
         tag: "lumi-view-lang",
         data: {
           projectData: {},
           appConfigData: {},
+          lumiViewLang: "",
+          showDialog: false,
+          aiAvailable: false,
         },
         proto: {
           get defaultLang() {
@@ -98,9 +104,12 @@
           },
           changeLang() {
             // 切换到其他语言
-            this.host.all("lumi-block").forEach((e) => {
-              e.switchOtherLang(this.appConfigData.viewLang);
-            });
+            // this.host.all("lumi-block").forEach((e) => {
+            //   e.switchOtherLang(this.appConfigData.viewLang);
+            // });
+
+            this.getProvider("lumi-view-lang").value =
+              this.appConfigData.viewLang;
           },
           getRealLang(lang) {
             switch (lang) {
@@ -128,6 +137,11 @@
             const settingData = await getSetting();
             configData.viewLang = settingData.lang;
           }
+
+          const provider = this.getProvider("lumi-view-lang");
+          provider.value = configData.viewLang;
+
+          this.aiAvailable = await isAIAvailable();
         },
         detached() {
           this.projectData = {};

@@ -94,6 +94,8 @@
   <lumi-command-panel></lumi-command-panel>
   <lumi-block-menu></lumi-block-menu>
   <lumi-inline-comp-panel></lumi-inline-comp-panel>
+
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
   <script>
     export default async ({ load }) => {
       await load("./lumi-page-title.html");
@@ -145,8 +147,23 @@
           itemData: {},
           recordData: {},
           desc: {},
+          lumiViewLang: "",
+        },
+        watch: {
+          async lumiViewLang(lang) {
+            this.changeLang(lang);
+          },
         },
         proto: {
+          async changeLang(lang) {
+            for (let block of this.all("lumi-block")) {
+              if (!this.ele.isConnected) {
+                // 删除后不翻译
+                break;
+              }
+              await block.switchOtherLang(lang);
+            }
+          },
           focusTitle() {
             setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
           },
