@@ -131,7 +131,9 @@
         </p>
       </o-if>
 
-      <o-if :value="appConfigData.viewLang != projectData.mainLang">
+      <o-if
+        :value="projectData && appConfigData.viewLang != projectData.mainLang"
+      >
         <p style="color: var(--md-sys-color-primary)">
           <localized-content>
             <span lang="cn"

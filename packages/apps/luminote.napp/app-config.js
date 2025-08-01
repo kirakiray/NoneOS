@@ -281,8 +281,11 @@ export default {
       others.forEach((e) => {
         const index = this._openedProjects.indexOf(e);
         this._openedProjects.splice(index, 1);
-        e.data.disconnect();
         exitedProject[e.__handle.name + "---" + e.userId] = null;
+        setTimeout(() => {
+          // 过快回收会导致渲染的组件提前报错
+          e.data.disconnect();
+        }, 1000);
       });
 
       // 打开目标项目

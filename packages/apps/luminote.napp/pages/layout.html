@@ -222,23 +222,25 @@
             </o-fill>
           </p-list>
 
-          <p-button
-            variant="text"
-            on:click="openAddDialog = true"
-            style="width: 100%"
-          >
-            <n-local-icon
-              name="add-project"
-              slot="prefix"
-              style="display: block; margin-right: 3px"
-            ></n-local-icon>
-            <localized-content>
-              <span lang="en"> Manage Projects </span>
-              <span lang="cn"> 管理项目 </span>
-              <span lang="ja"> プロジェクトを管理する </span>
-            </localized-content>
-          </p-button>
-          <div style="height: 16px"></div>
+          <div style="padding-bottom: 16px; display: flex; align-items: center">
+            <p-button
+              variant="text"
+              on:click="openAddDialog = true"
+              style="flex: 1"
+            >
+              <n-local-icon
+                name="add-project"
+                slot="prefix"
+                style="display: block; margin-right: 3px"
+              ></n-local-icon>
+              <localized-content>
+                <span lang="en"> Manage Projects </span>
+                <span lang="cn"> 管理项目 </span>
+                <span lang="ja"> プロジェクトを管理する </span>
+              </localized-content>
+            </p-button>
+            <!-- <p-button variant="text" style="flex: 1"> 添加项目 </p-button> -->
+          </div>
         </div>
 
         <template name="list-item">
@@ -475,7 +477,7 @@
           projects: [], // 已经打开的项目
           saveing: false, // 保存项目中
           openProjectSettingDialog: false,
-          currentProjectData: {},
+          currentProjectData: null,
         },
         proto: {
           lumiPageSaving() {
@@ -498,7 +500,7 @@
               this.currentUserId
             );
 
-            if (this.currentProjectData !== projectItem.data) {
+            if (projectItem.data) {
               this.currentProjectData = projectItem.data;
             }
 
