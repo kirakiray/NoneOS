@@ -552,6 +552,14 @@
             }
 
             const mainLang = await this.getMainLang();
+
+            if (!mainLang) {
+              debugger;
+              // 没有主体语言，不能进行翻译
+              this.inTranslate = false;
+              return;
+            }
+
             if (mainLang === lang) {
               this.inTranslate = false;
               return;
@@ -918,7 +926,9 @@
           this.emit("block-attached");
         },
         detached() {
-          clearAsk(this.xid);
+          if (this._asking) {
+            clearAsk(this.xid);
+          }
           removeLoadingTask(this);
 
           this.itemData = {};

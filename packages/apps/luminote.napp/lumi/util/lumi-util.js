@@ -73,7 +73,8 @@ export const copySelectedBlock = (lumipage) => {
       itemHtml = child1.outerHTML;
     }
 
-    textContent += item.textContent;
+    // textContent += item.textContent;
+    textContent += item.mdContent;
     htmlContent += itemHtml;
 
     if (textContent && index !== lastIndex) {

@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
 
   <style>
     :host {
@@ -83,9 +84,24 @@
     </span>
     :
     <div style="margin-left: 4px">{{lang}}</div>
+    <o-if :value="!lang">
+      <p-select sync:value="currentMainLang" size="small">
+        <p-option value="cn">简体中文</p-option>
+        <p-option value="en">English</p-option>
+        <p-option value="t-cn">繁體中文</p-option>
+        <p-option value="ja">日本語</p-option>
+      </p-select>
+      <p-button
+        on:click="projectData.mainLang = currentMainLang"
+        size="small"
+        style="margin-left: 4px"
+        variant="outlined"
+        >保存</p-button
+      >
+    </o-if>
   </div>
   <h4>多语言</h4>
-  
+
   <script>
     export default async ({ load }) => {
       return {
@@ -94,6 +110,7 @@
           nameEditMode: false,
           editProjectName: "",
           projectData: {},
+          currentMainLang: "",
         },
         proto: {
           get lang() {
