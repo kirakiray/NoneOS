@@ -166,12 +166,7 @@ export default {
     },
 
     // 创建一个本地项目
-    async createProject({
-      projectName,
-      dirName,
-      rootHandle: root,
-      addExitedProject,
-    }) {
+    async createProject({ projectName, dirName, rootHandle: root }) {
       // 项目目录名
       dirName =
         dirName || `luminote-project-${Math.random().toString(32).slice(2)}`;
@@ -219,26 +214,6 @@ export default {
         // projectName: articleData.projectName, // 使用 data.projectName
         // dirName, // 使用 __handle.name
       };
-
-      if (addExitedProject) {
-        const exitedName = dirName + "---self";
-        if (!exitedProject[exitedName]) {
-          exitedProject[exitedName] = redata;
-        }
-
-        // 检查项目是否已存在，若不存在则添加
-        if (
-          !this._openedProjects.some(
-            (e) => e.__handle.name === dirName && e.userId === "self"
-          )
-        ) {
-          this._openedProjects.push({
-            data: articleData,
-            __handle: projectHandle,
-            userId: "self",
-          });
-        }
-      }
 
       return redata;
     },

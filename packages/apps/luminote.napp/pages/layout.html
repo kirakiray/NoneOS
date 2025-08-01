@@ -354,7 +354,7 @@
                     style="display: block; font-size: 18px; margin-right: 4px"
                   ></n-local-icon>
                   <span style="color: var(--md-sys-color-primary)"
-                    >{{currentProjectName}}</span
+                    >{{currentProjectData?.projectName}}</span
                   >
                   <span class="after-mark"> / </span>
                 </div>
@@ -471,7 +471,7 @@
         </localized-content>
       </div>
       <lumi-create-project
-        on:cancel-create-project="openCreateProjectDialog = false"
+        on:cancel-create-project="cancelCreateProject"
       ></lumi-create-project>
     </p-dialog>
   </o-provider>
@@ -499,6 +499,10 @@
           openCreateProjectDialog: false,
         },
         proto: {
+          cancelCreateProject() {
+            this.openCreateProjectDialog = false;
+            this.shadow.$("lumi-switch-project").reloadExistProjects();
+          },
           lumiPageSaving() {
             clearTimeout(this._saving_timer);
             this.saving = true;
@@ -523,11 +527,9 @@
               this.currentProjectData = projectItem.data;
             }
 
-            this.currentProjectName = projectItem.data.projectName;
-
             if (hide) {
               this.hideBreadcrumbs = true;
-              // this.paths = [];
+              this.currentProjectData = {};
             } else {
               this.hideBreadcrumbs = false;
               this.paths = e.data.titles;
