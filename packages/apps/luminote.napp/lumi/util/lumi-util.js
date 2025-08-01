@@ -65,20 +65,26 @@ export const copySelectedBlock = (lumipage) => {
     }
 
     let itemHtml = item.htmlContent;
+    let itemText = item.mdContent;
 
     if (item.itemData.tab) {
       const temp = $(`<template>${item.htmlContent}</template>`);
       const child1 = temp.ele.content.children[0];
       child1.dataset.tabcount = item.itemData.tab;
       itemHtml = child1.outerHTML;
+      itemText = "  ".repeat(item.itemData.tab) + itemText;
     }
 
-    // textContent += item.textContent;
-    textContent += item.mdContent;
+    textContent += itemText;
     htmlContent += itemHtml;
 
     if (textContent && index !== lastIndex) {
-      textContent += `\n\n`;
+      const nextItem = lumipage._selecteds[index + 1];
+      if (nextItem && nextItem.itemData.tab) {
+        textContent += "\n";
+      } else {
+        textContent += `\n\n`;
+      }
       htmlContent += `\n`;
       // mdContent += `\n\n`;
     }
