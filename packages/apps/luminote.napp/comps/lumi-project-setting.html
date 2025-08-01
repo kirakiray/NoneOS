@@ -120,12 +120,22 @@
   </h4>
   <o-if :value="translationProgress.length">
     <o-fill :value="translationProgress">
-      <div style="max-width: 320px; padding: 8px 0">
+      <div style="padding: 8px 0">
         {{$data.langName}} ({{$data.progress}}%)
-        <p-progress
-          :value="$data.progress"
-          style="margin-top: 4px"
-        ></p-progress>
+        <div style="display: flex; align-items: center; max-width: 320px">
+          <p-progress
+            :value="$data.progress"
+            style="margin-top: 4px; margin-right: 8px"
+          ></p-progress>
+          <p-button
+            size="small"
+            variant="outlined"
+            color="error"
+            on:click="$host.clearLang($data.lang)"
+          >
+            清除内容
+          </p-button>
+        </div>
       </div>
     </o-fill>
   </o-if>
@@ -136,6 +146,7 @@
   <script>
     export default async ({ load }) => {
       const { getHash } = await load("/packages/fs/util.js");
+      const { toast, confirm } = await load("/packages/pui/util.js");
 
       return {
         tag: "lumi-project-setting",
@@ -147,6 +158,20 @@
           translationProgress: [],
         },
         proto: {
+          async clearLang(lang) {
+            const result = await confirm({
+              title: "清除内翻译缓存",
+              content: `确认要清除 ${this.getRealLang(lang)}？`,
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await clearTranslatedContent(this.projectData.main, lang);
+
+            this.refreshLangProgress();
+          },
           async refreshLangProgress() {
             const translationProgress = [];
 
@@ -218,6 +243,24 @@
           this.projectData = {};
         },
       };
+    };
+
+    const clearTranslatedContent = async (contentBlocks, lang) => {
+      for (let i = 0; i < contentBlocks.length; i++) {
+        const contentBlock = contentBlocks[i];
+        if (contentBlock.type === "article") {
+          contentBlock.content = await clearTranslatedContent(
+            contentBlock.content,
+            lang
+          );
+        } else {
+          const { i18nContent } = contentBlock;
+          if (i18nContent) {
+            i18nContent[lang] = "";
+          }
+        }
+      }
+      return contentBlocks;
     };
 
     // 获取翻译的进度
