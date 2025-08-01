@@ -791,7 +791,7 @@
               }
             }, 10);
           },
-          get htmlContent() {
+          get _currentHtmlContent() {
             const { value, type, i18nContent = {} } = this.itemData;
 
             let currentValue = value;
@@ -799,6 +799,19 @@
             try {
               currentValue = i18nContent[this.parent.lumiViewLang].value;
             } catch (err) {}
+
+            return currentValue;
+          },
+          get _currentTextContent() {
+            const currentValue = this._currentHtmlContent;
+
+            const temp = $(`<template>${currentValue}</template>`);
+
+            return temp.ele.content.textContent;
+          },
+          get htmlContent() {
+            const { type } = this.itemData;
+            const currentValue = this._currentHtmlContent;
 
             switch (type) {
               case "paragraph":
@@ -817,22 +830,15 @@
             }
           },
           get textContent() {
-            const { type, value, i18nContent = {} } = this.itemData;
-
-            let currentValue = value;
-
-            try {
-              currentValue = i18nContent[this.parent.lumiViewLang].value;
-            } catch (err) {}
-
-            const temp = $(`<template>${currentValue}</template>`);
+            const { type } = this.itemData;
 
             switch (type) {
               case "paragraph":
               case "h2":
               case "h3":
               case "h4":
-                return temp.ele.content.textContent;
+                console.log(this._currentTextContent);
+                return this._currentTextContent;
               case "article":
                 return "";
               default:
