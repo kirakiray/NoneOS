@@ -118,9 +118,8 @@
             });
 
             this.newProjectName = "";
-            this.emit("project-created", {
-              project: newProject,
-              bubbles: false,
+            this.emit("cancel-create-project", {
+              composed: true,
             });
 
             this.adding = false;
