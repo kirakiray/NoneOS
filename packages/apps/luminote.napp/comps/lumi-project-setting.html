@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
 
   <style>
     :host {
@@ -103,25 +104,39 @@
         size="small"
         style="margin-left: 4px"
         variant="outlined"
-        >保存</p-button
+      >
+        <localized-content>
+          <span lang="cn">保存</span>
+          <span lang="en">Save</span>
+          <span lang="ja">保存</span>
+        </localized-content>
+      </p-button>
       >
     </o-if>
   </div>
-  <h4>
-    多语言进度
+  <h4 style="display: flex; align-items: center">
+    <localized-content>
+      <span lang="cn">多语言进度</span>
+      <span lang="en">Translation Progress</span>
+      <span lang="ja">翻訳進捗</span>
+    </localized-content>
     <p-button
       size="mini"
       style="margin-left: 8px"
       variant="outlined"
       on:click="refreshLangProgress"
     >
-      刷新
+      <localized-content>
+        <span lang="cn">刷新</span>
+        <span lang="en">Refresh</span>
+        <span lang="ja">更新</span>
+      </localized-content>
     </p-button>
   </h4>
   <o-if :value="translationProgress.length">
     <o-fill :value="translationProgress">
       <div style="padding: 8px 0">
-        {{$data.langName}} ({{$data.progress}}%)
+        {{$data.langName}} ({{$data.progressStr}}%)
         <div style="display: flex; align-items: center; max-width: 320px">
           <p-progress
             :value="$data.progress"
@@ -133,14 +148,24 @@
             color="error"
             on:click="$host.clearLang($data.lang)"
           >
-            清除内容
+            <localized-content>
+              <span lang="cn">清除缓存</span>
+              <span lang="en">Clear Cache</span>
+              <span lang="ja">キャッシュをクリア</span>
+            </localized-content>
           </p-button>
         </div>
       </div>
     </o-fill>
   </o-if>
   <o-else>
-    <div style="height: 48px; line-height: 48px">暂无翻译进度</div>
+    <div style="height: 48px; line-height: 48px">
+      <localized-content>
+        <span lang="cn">暂无翻译进度</span>
+        <span lang="en">No translation progress</span>
+        <span lang="ja">翻訳進捗なし</span>
+      </localized-content>
+    </div>
   </o-else>
 
   <script>
@@ -148,6 +173,7 @@
 
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "lumi-project-setting",
@@ -161,8 +187,16 @@
         proto: {
           async clearLang(lang) {
             const result = await confirm({
-              title: "清除内翻译缓存",
-              content: `确认要清除 ${this.getRealLang(lang)}？`,
+              title: await getLocalized({
+                cn: "清除翻译缓存",
+                en: "Clear Translation Cache",
+                ja: "翻訳キャッシュをクリア",
+              }),
+              content: await getLocalized({
+                cn: `确认要清除 ${this.getRealLang(lang)}？`,
+                en: `Are you sure you want to clear ${this.getRealLang(lang)}?`,
+                ja: `${this.getRealLang(lang)}をクリアしてもよろしいですか？`,
+              }),
             });
 
             if (!result) {
@@ -189,16 +223,21 @@
                   translatedItemCount: 0,
                   totalItemCount: 0,
                 };
-                translationProgress.push({
-                  lang,
-                  langName: this.getRealLang(lang),
-                  ...langProgress,
-                  progress: (
+
+                {
+                  const progress =
                     (langProgress.translatedItemCount /
                       langProgress.totalItemCount) *
-                    100
-                  ).toFixed(2),
-                });
+                    100;
+
+                  translationProgress.push({
+                    lang,
+                    langName: this.getRealLang(lang),
+                    ...langProgress,
+                    progress,
+                    progressStr: progress.toFixed(2),
+                  });
+                }
               }
             }
 
