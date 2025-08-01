@@ -111,8 +111,19 @@
           editProjectName: "",
           projectData: {},
           currentMainLang: "",
+          translationProgress: [],
+        },
+        watch: {
+          projectData(projectData, e) {
+            console.log("projectdata: ", e);
+            this.refreshLangProgress();
+          },
         },
         proto: {
+          async refreshLangProgress() {
+            const translationProgress = [];
+            this.translationProgress = translationProgress;
+          },
           get lang() {
             if (!this.projectData) {
               return "";
@@ -141,9 +152,7 @@
           },
         },
         attached() {
-          setTimeout(() => {
-            console.log("projectData: ", this.projectData);
-          }, 1000);
+          this.refreshLangProgress();
         },
         detached() {
           this.projectData = {};

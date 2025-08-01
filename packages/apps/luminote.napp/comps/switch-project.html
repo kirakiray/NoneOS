@@ -31,23 +31,17 @@
         >
         </n-local-icon>
         {{$data?.data?.projectName}}
-        <!-- <p-list slot="childs" style="--ladder-left: 16px">
-          <p-list-item>
-            <p-select size="small" sync:value="$data.data.mainLang">
-              <label>
-                <localized-content>
-                  <span lang="en">Main Language</span>
-                  <span lang="cn">主体语言</span>
-                  <span lang="ja">メイン言語</span>
-                </localized-content>
-              </label>
-              <p-option value="cn">简体中文</p-option>
-              <p-option value="t-cn">繁体中文</p-option>
-              <p-option value="en">English</p-option>
-              <p-option value="ja">Japanese</p-option>
-            </p-select>
-          </p-list-item>
-        </p-list> -->
+        <o-if :value="$host.openedProjects.length > 1" slot="suffix">
+          <p-button
+            icon
+            size="mini"
+            variant="text"
+            style="display: block; margin-left: 4px"
+            on:click="$host.closeItem($index,$data)"
+          >
+            <n-local-icon name="close"></n-local-icon>
+          </p-button>
+        </o-if>
       </p-list-item>
     </o-fill>
   </p-list>
@@ -323,6 +317,9 @@
           currentProjectSetting: {}, // 当前项目的设置数据
         },
         proto: {
+          closeItem(index, item) {
+            this.app.closeProject(item.dirName, item.userId);
+          },
           isOpenedProject(data) {
             return this.openedProjects.find((item) => {
               return data.projectDataId === item.data.main._dataId;

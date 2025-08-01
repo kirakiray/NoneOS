@@ -261,6 +261,7 @@ export default {
       this._openedProjects.push({
         data: project.data,
         userId,
+        dirName,
         __handle: project.handle,
       });
 
