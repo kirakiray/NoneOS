@@ -9,6 +9,7 @@
   <l-m src="../comps/switch-project.html"></l-m>
   <l-m src="../comps/lumi-project-setting.html"></l-m>
   <l-m src="../comps/view-lang.html"></l-m>
+  <l-m src="../comps/lumi-create-project.html"></l-m>
   <style>
     :host {
       display: block;
@@ -409,6 +410,7 @@
             <div
               style="flex: 1; position: relative"
               on:lumi-page-save="lumiPageSaving"
+              on:click-create-project="openCreateProjectDialog = true"
             >
               <slot></slot>
             </div>
@@ -456,6 +458,20 @@
         style="min-height: 50vh; min-width: 50vh"
       ></lumi-project-setting>
     </p-dialog>
+
+    <p-dialog
+      :open="openCreateProjectDialog"
+      on:click-mask="openCreateProjectDialog = false"
+    >
+      <div slot="title">
+        <localized-content>
+          <span lang="en"> Create Project </span>
+          <span lang="cn"> 创建项目 </span>
+          <span lang="ja"> プロジェクトを作成する </span>
+        </localized-content>
+      </div>
+      <lumi-create-project></lumi-create-project>
+    </p-dialog>
   </o-provider>
   <script>
     export default async ({ load }) => {
@@ -478,6 +494,7 @@
           saveing: false, // 保存项目中
           openProjectSettingDialog: false,
           currentProjectData: null,
+          openCreateProjectDialog: false,
         },
         proto: {
           lumiPageSaving() {

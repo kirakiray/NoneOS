@@ -83,58 +83,75 @@
     </div>
   </o-if>
 
+  <h4>
+    <localized-content>
+      <span lang="cn">本地AI</span>
+      <span lang="en">Local AI</span>
+      <span lang="ja">ローカルAI</span>
+    </localized-content>
+  </h4>
+  <localized-content>
+    <p lang="cn">
+      配置本地 AI 后，Luminote
+      还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
+    </p>
+    <p lang="en">
+      After configuring the local AI, Luminote can also automatically provide
+      proofreading and translation services for your content, making your
+      writing experience more enjoyable and allowing you to focus on the
+      creation itself.
+    </p>
+    <p lang="ja">
+      ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
+    </p>
+  </localized-content>
+  <div>
+    <o-if :value="aiAvailable === 0">
+      <localized-content>
+        <span lang="cn">加载中...</span>
+        <span lang="en">Loading...</span>
+        <span lang="ja">ローディング中...</span>
+      </localized-content>
+    </o-if>
+    <o-else-if :value="!aiAvailable">
+      <localized-content>
+        <span lang="cn" style="color: red">加载失败</span>
+        <span lang="en" style="color: red">Loading failed</span>
+        <span lang="ja" style="color: red">ローディングに失敗しました</span>
+      </localized-content>
+    </o-else-if>
+    <o-else>
+      <localized-content>
+        <span lang="cn" style="color: var(--md-sys-color-primary)">
+          当前已检测到本地AI可用
+        </span>
+        <span lang="en" style="color: var(--md-sys-color-primary)">
+          Local AI available
+        </span>
+        <span lang="ja" style="color: var(--md-sys-color-primary)">
+          ローカルAIが利用可能
+        </span>
+      </localized-content>
+    </o-else>
+  </div>
+
   <div>
     <h4>
       <localized-content>
-        <span lang="cn">本地AI</span>
-        <span lang="en">Local AI</span>
-        <span lang="ja">ローカルAI</span>
+        <span lang="cn">项目操作</span>
+        <span lang="en">Project operations</span>
+        <span lang="ja">プロジェクト操作</span>
       </localized-content>
     </h4>
-    <localized-content>
-      <p lang="cn">
-        配置本地 AI 后，Luminote
-        还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
-      </p>
-      <p lang="en">
-        After configuring the local AI, Luminote can also automatically provide
-        proofreading and translation services for your content, making your
-        writing experience more enjoyable and allowing you to focus on the
-        creation itself.
-      </p>
-      <p lang="ja">
-        ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
-      </p>
-    </localized-content>
-    <div>
-      <o-if :value="aiAvailable === 0">
-        <localized-content>
-          <span lang="cn">加载中...</span>
-          <span lang="en">Loading...</span>
-          <span lang="ja">ローディング中...</span>
-        </localized-content>
-      </o-if>
-      <o-else-if :value="!aiAvailable">
-        <localized-content>
-          <span lang="cn" style="color: red">加载失败</span>
-          <span lang="en" style="color: red">Loading failed</span>
-          <span lang="ja" style="color: red">ローディングに失敗しました</span>
-        </localized-content>
-      </o-else-if>
-      <o-else>
-        <localized-content>
-          <span lang="cn" style="color: var(--md-sys-color-primary)">
-            当前已检测到本地AI可用
-          </span>
-          <span lang="en" style="color: var(--md-sys-color-primary)">
-            Local AI available
-          </span>
-          <span lang="ja" style="color: var(--md-sys-color-primary)">
-            ローカルAIが利用可能
-          </span>
-        </localized-content>
-      </o-else>
-    </div>
+
+    <p-button on:click="clickCreateProject" variant="outlined">
+      <localized-content>
+        <span lang="cn">创建新项目</span>
+        <span lang="en">Create new project</span>
+        <span lang="ja">新しいプロジェクトを作成する</span>
+      </localized-content>
+    </p-button>
+  </div>
 
   <div>
     <h4>
@@ -186,6 +203,11 @@
           appConfigData: {}, // 当前应用的配置数据
         },
         proto: {
+          clickCreateProject() {
+            this.emit("click-create-project", {
+              composed: true,
+            });
+          },
           async handleDeleteProject(data, event) {
             event.stopPropagation();
 
@@ -207,8 +229,6 @@
         attached() {
           (async () => {
             this.aiAvailable = await isAIAvailable();
-
-
           })();
 
           this.emit("active-article", {
@@ -225,8 +245,7 @@
             },
           });
         },
-        detached() {
-        },
+        detached() {},
       };
     };
   </script>
