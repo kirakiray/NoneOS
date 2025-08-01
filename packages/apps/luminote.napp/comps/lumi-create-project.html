@@ -105,8 +105,9 @@
 
             const newProject = await this.app.createProject({
               projectName,
-              addExitedProject: 1,
             });
+
+            await this.app.switchProject(newProject.__handle.name);
 
             toast({
               content: await getLocalized({

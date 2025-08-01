@@ -213,15 +213,30 @@ export default {
 
       const redata = {
         data: articleData,
-        handle: projectHandle,
-        projectName: articleData.projectName,
-        dirName,
+        __handle: projectHandle,
+        userId: "self",
+        // handle: projectHandle,
+        // projectName: articleData.projectName, // 使用 data.projectName
+        // dirName, // 使用 __handle.name
       };
 
       if (addExitedProject) {
         const exitedName = dirName + "---self";
         if (!exitedProject[exitedName]) {
           exitedProject[exitedName] = redata;
+        }
+
+        // 检查项目是否已存在，若不存在则添加
+        if (
+          !this._openedProjects.some(
+            (e) => e.__handle.name === dirName && e.userId === "self"
+          )
+        ) {
+          this._openedProjects.push({
+            data: articleData,
+            __handle: projectHandle,
+            userId: "self",
+          });
         }
       }
 
@@ -249,6 +264,10 @@ export default {
     ) {
       const project = await this.getProject(dirName, userId);
 
+      if (project instanceof Error) {
+        return;
+      }
+
       // 已经存在则不操作
       if (
         this._openedProjects.find(
@@ -259,10 +278,7 @@ export default {
       }
 
       this._openedProjects.push({
-        data: project.data,
-        userId,
-        dirName,
-        __handle: project.handle,
+        ...project,
       });
 
       if (opts.isSave) {

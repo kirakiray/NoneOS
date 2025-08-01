@@ -391,8 +391,7 @@
 
           window.descObj = this.desc;
 
-          const { _openedProjects } = this.app;
-          this.openedProjects = _openedProjects;
+          this.openedProjects = this.app._openedProjects;
         },
         detached() {
           this.desc._clear();

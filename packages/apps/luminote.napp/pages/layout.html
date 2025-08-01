@@ -387,7 +387,7 @@
               <div class="top-right" class:hide-top-right="hideBreadcrumbs">
                 <div
                   style="margin-right: 8px; font-size: 20px"
-                  :style.opacity="saveing ? 1 : 0"
+                  :style.opacity="saving ? 1 : 0"
                 >
                   <n-local-icon name="loading"></n-local-icon>
                 </div>
@@ -470,7 +470,9 @@
           <span lang="ja"> プロジェクトを作成する </span>
         </localized-content>
       </div>
-      <lumi-create-project on:cancel-create-project="openCreateProjectDialog = false"></lumi-create-project>
+      <lumi-create-project
+        on:cancel-create-project="openCreateProjectDialog = false"
+      ></lumi-create-project>
     </p-dialog>
   </o-provider>
   <script>
@@ -491,7 +493,7 @@
           currentDirName: null,
           openAddDialog: false,
           projects: [], // 已经打开的项目
-          saveing: false, // 保存项目中
+          saving: false, // 保存项目中
           openProjectSettingDialog: false,
           currentProjectData: null,
           openCreateProjectDialog: false,
@@ -499,9 +501,9 @@
         proto: {
           lumiPageSaving() {
             clearTimeout(this._saving_timer);
-            this.saveing = true;
+            this.saving = true;
             this._saving_timer = setTimeout(() => {
-              this.saveing = false;
+              this.saving = false;
             }, 500 + Math.random() * 500);
           },
           clickBread(item) {
@@ -521,7 +523,7 @@
               this.currentProjectData = projectItem.data;
             }
 
-            this.currentProjectName = projectItem.projectName;
+            this.currentProjectName = projectItem.data.projectName;
 
             if (hide) {
               this.hideBreadcrumbs = true;
@@ -610,12 +612,7 @@
           this.attr("layout-page", "");
         },
         attached() {
-          const { _openedProjects } = this.app;
-          this.projects = _openedProjects;
-
-          setTimeout(() => {
-            console.log("_openedProjects: ", _openedProjects[0]);
-          }, 1000);
+          this.projects = this.app._openedProjects;
         },
         detached() {
           this.articles = {};
