@@ -144,8 +144,9 @@
   </o-else>
 
   <script>
+    import { getHash } from "/packages/fs/util.js";
+
     export default async ({ load }) => {
-      const { getHash } = await load("/packages/fs/util.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
 
       return {
@@ -192,11 +193,11 @@
                   lang,
                   langName: this.getRealLang(lang),
                   ...langProgress,
-                  progress: Math.ceil(
+                  progress: (
                     (langProgress.translatedItemCount /
                       langProgress.totalItemCount) *
-                      100
-                  ),
+                    100
+                  ).toFixed(2),
                 });
               }
             }
@@ -303,7 +304,9 @@
               continue;
             }
 
-            if (i18nContent[lang]) {
+            const hash = await getHash(contentBlock.value);
+
+            if (i18nContent[lang] && i18nContent[lang].originHash === hash) {
               result[lang].translatedItemCount++;
             }
           }
