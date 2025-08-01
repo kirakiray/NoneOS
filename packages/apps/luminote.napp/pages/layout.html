@@ -470,7 +470,7 @@
           <span lang="ja"> プロジェクトを作成する </span>
         </localized-content>
       </div>
-      <lumi-create-project></lumi-create-project>
+      <lumi-create-project on:cancel-create-project="openCreateProjectDialog = false"></lumi-create-project>
     </p-dialog>
   </o-provider>
   <script>

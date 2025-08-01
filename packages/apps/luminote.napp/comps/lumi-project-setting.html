@@ -211,7 +211,7 @@
 
             const langs = ["en", "ja"];
 
-            if (this.projectData.main) {
+            if (this?.projectData?.main) {
               const progress = await getTranslationProgress(
                 this.projectData.main,
                 langs
