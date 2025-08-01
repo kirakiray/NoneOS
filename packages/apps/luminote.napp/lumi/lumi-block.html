@@ -320,11 +320,14 @@
             on:update-block-value="updateBlockValue"
           >
             <o-if :value="inTranslate">
+              <o-if :value="inTranslate == 1">
+                <slot></slot>
+              </o-if>
               <div class="translate-container">
                 <div :html="translateContent" style="display: contents"></div>
 
                 <div class="lang-mark">
-                  <o-if :value="inTranslate == 1">
+                  <o-if :value="inTranslate == 1 || inTranslate == 2">
                     <n-local-icon name="loading"></n-local-icon>
                   </o-if>
                   {{markLang}}
@@ -598,7 +601,7 @@
               if (i18nContent[lang].originHash === originHash) {
                 // 哈希没变，直接用缓存的值
                 this.translateContent = i18nContent[lang].value;
-                this.inTranslate = 2;
+                this.inTranslate = 3;
                 return;
               }
             }
@@ -615,6 +618,10 @@
                   onChunk: (e) => {
                     if (this._asking === lang) {
                       this.translateContent = e.responseText;
+
+                      if (this.inTranslate !== 2) {
+                        this.inTranslate = 2;
+                      }
                     }
                   },
                 }
@@ -633,7 +640,7 @@
 
               if (this._asking === lang) {
                 // 证明没被切换
-                this.inTranslate = 2;
+                this.inTranslate = 3;
               }
             } catch (err) {
               console.log(err);
