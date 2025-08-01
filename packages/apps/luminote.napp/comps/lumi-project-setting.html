@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
 
   <style>
     :host {
@@ -15,6 +16,12 @@
     }
     .list-key {
       color: var(--md-sys-color-normal);
+    }
+
+    h4 {
+      margin: 0;
+      padding: 0;
+      margin-top: 1em;
     }
   </style>
 
@@ -100,7 +107,31 @@
       >
     </o-if>
   </div>
-  <h4>多语言</h4>
+  <h4>
+    多语言进度
+    <p-button
+      size="mini"
+      style="margin-left: 8px"
+      variant="outlined"
+      on:click="refreshLangProgress"
+    >
+      刷新
+    </p-button>
+  </h4>
+  <o-if :value="translationProgress.length">
+    <o-fill :value="translationProgress">
+      <div style="max-width: 320px; padding: 8px 0">
+        {{$data.langName}} ({{$data.progress}}%)
+        <p-progress
+          :value="$data.progress"
+          style="margin-top: 4px"
+        ></p-progress>
+      </div>
+    </o-fill>
+  </o-if>
+  <o-else>
+    <div style="height: 48px; line-height: 48px">暂无翻译进度</div>
+  </o-else>
 
   <script>
     export default async ({ load }) => {
@@ -113,15 +144,31 @@
           currentMainLang: "",
           translationProgress: [],
         },
-        watch: {
-          projectData(projectData, e) {
-            console.log("projectdata: ", e);
-            this.refreshLangProgress();
-          },
-        },
         proto: {
           async refreshLangProgress() {
             const translationProgress = [];
+
+            const langs = ["en", "ja"];
+
+            if (this.projectData.main) {
+              for (const lang of langs) {
+                const progress = await getTranslationProgress(
+                  this.projectData.main,
+                  lang
+                );
+
+                translationProgress.push({
+                  lang,
+                  langName: this.getRealLang(lang),
+                  ...progress,
+                  progress: Math.ceil(
+                    (progress.translatedItemCount / progress.totalItemCount) *
+                      100
+                  ),
+                });
+              }
+            }
+
             this.translationProgress = translationProgress;
           },
           get lang() {
@@ -129,7 +176,11 @@
               return "";
             }
 
-            switch (this.projectData.mainLang) {
+            return this.getRealLang(this.projectData.mainLang);
+          },
+
+          getRealLang(lang) {
+            switch (lang) {
               case "cn":
                 return "简体中文";
               case "en":
@@ -139,7 +190,7 @@
               case "ja":
                 return "日本語";
               default:
-                return this.projectData.mainLang;
+                return lang;
             }
           },
           clickSave() {
@@ -152,11 +203,49 @@
           },
         },
         attached() {
-          this.refreshLangProgress();
+          setTimeout(() => {
+            this.refreshLangProgress();
+          }, 2000);
         },
         detached() {
           this.projectData = {};
         },
+      };
+    };
+
+    // 获取翻译的进度
+    const getTranslationProgress = async (contentBlocks, language) => {
+      let translatedItemCount = 0;
+      let totalItemCount = 0;
+
+      for (let i = 0; i < contentBlocks.length; i++) {
+        const contentBlock = contentBlocks[i];
+        if (contentBlock.type === "article") {
+          const progressData = await getTranslationProgress(
+            contentBlock.content,
+            language
+          );
+
+          translatedItemCount += progressData.translatedItemCount;
+          totalItemCount += progressData.totalItemCount;
+        } else {
+          totalItemCount++;
+
+          const { i18nContent } = contentBlock;
+
+          if (!i18nContent) {
+            continue;
+          }
+
+          if (i18nContent[language]) {
+            translatedItemCount++;
+          }
+        }
+      }
+
+      return {
+        translatedItemCount,
+        totalItemCount,
       };
     };
   </script>
