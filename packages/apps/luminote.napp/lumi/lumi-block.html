@@ -450,6 +450,7 @@
       );
 
       const { ask, clearAsk } = await load("/packages/ai/main.js");
+      const { switchOtherLang } = await load("./util/i18n-toblock.js");
 
       return {
         tag: "lumi-block",
@@ -531,122 +532,23 @@
                 return "日本語";
             }
           },
-          async getMainLang() {
-            const notePage = this.parents.find(
-              (e) => e.tag === "o-page" && e.src.includes("note.html")
-            );
-
-            const oapp = this.parents.find((e) => e.tag == "o-app");
-
-            const projectItem = await oapp.getProject(
-              notePage.currentDirName,
-              notePage.currentUserId
-            );
-
-            return projectItem.data.mainLang;
-          },
           // 切换其他语种
           async switchOtherLang(lang) {
-            this.inTranslate = 1;
-
-            if (this._asking) {
-              clearAsk(this.xid);
-              delete this._asking;
-            }
-
-            const mainLang = await this.getMainLang();
-
-            if (!mainLang || !this.itemData.value.trim()) {
-              // 没有主体语言，不能进行翻译
-              this.inTranslate = false;
-              return;
-            }
-
-            if (mainLang === lang) {
-              this.inTranslate = false;
-              return;
-            }
-
-            this.inTranslateLang = lang;
-            this.inTranslate = 1;
-
-            let promptLang = "";
-
-            switch (lang) {
-              case "en":
-                promptLang = "英语";
-                break;
-              case "cn":
-                promptLang = "中文";
-                break;
-              case "t-cn":
-                promptLang = "繁体中文";
-                break;
-              case "ja":
-                promptLang = "日语";
-                break;
-              default:
-                promptLang = lang;
-            }
-
-            let i18nContent = this.itemData.i18nContent;
-            if (!this.itemData.i18nContent) {
-              this.itemData.i18nContent = {};
-              i18nContent = this.itemData.i18nContent;
-            }
-
-            const originHash = await getHash(this.itemData.value);
-
-            if (i18nContent[lang]) {
-              if (i18nContent[lang].originHash === originHash) {
-                // 哈希没变，直接用缓存的值
-                this.translateContent = i18nContent[lang].value;
-                this.inTranslate = 3;
-                return;
-              }
-            }
-
-            try {
-              this.translateContent = "";
-
-              this._asking = lang; // 标识正在翻译中
-
-              const result = await ask(
-                `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${this.itemData.value}`,
-                {
-                  id: this.xid,
-                  onChunk: (e) => {
-                    if (this._asking === lang) {
-                      this.translateContent = e.responseText;
-
-                      if (this.inTranslate !== 2) {
-                        this.inTranslate = 2;
-                      }
-                    }
-                  },
+            await switchOtherLang(this, lang, {
+              onStateChange: (state) => {
+                this.inTranslate = state;
+              },
+              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
+                this.inTranslateLang = targetLang;
+                this.inTranslate = state;
+                if (content !== undefined) {
+                  this.translateContent = content;
                 }
-              );
-
-              if (!result) {
-                return;
-              }
-
-              i18nContent[lang] = {
-                originHash,
-                modelName: result.modelName,
-                value: result.responseText,
-                time: Date.now(),
-              };
-
-              if (this._asking === lang) {
-                // 证明没被切换
-                this.inTranslate = 3;
-              }
-            } catch (err) {
-              console.log(err);
-            }
-
-            delete this._asking;
+              },
+              onError: (err) => {
+                console.log(err);
+              },
+            });
           },
           // 润色内容
           async beautify() {

@@ -35,30 +35,43 @@
     }
   </style>
   <div style="height: 100px"></div>
-  <!-- <slot></slot> -->
-  <input
-    id="title"
-    class="title"
-    type="text"
-    sync:value="itemData.title"
-    on:click="$event.stopPropagation()"
-    style="margin-bottom: 16px"
-    on:keydown="titleKeyDown"
-    :placeholder="desc.pageTitlePlaceholder"
-  />
+  <o-if :value="!inTranslate">
+    <input
+      class="title"
+      type="text"
+      sync:value="itemData.title"
+      on:click="$event.stopPropagation()"
+      style="margin-bottom: 16px"
+      on:keydown="titleKeyDown"
+      :placeholder="desc.pageTitlePlaceholder"
+    />
+  </o-if>
+  <o-else>
+    <div class="title">
+      <div :text="translateContent" style="display: contents"></div>
+    </div>
+  </o-else>
   <div class="dragovering-mark" class:show="dragovering"></div>
   <script>
     import { localizedObject } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
+      const { ask, clearAsk } = await load("/packages/ai/main.js");
+
       return {
         tag: "lumi-page-title",
         data: {
           dragovering: false,
           itemData: {},
           desc: {},
+          translateContent: "", // 翻译后的文本
+          inTranslate: false, // 翻译中
+          inTranslateLang: "", // 翻译的语言
         },
         proto: {
+          switchOtherLang(lang) {
+            debugger;
+          },
           titleKeyDown(e) {
             if (e.key === "Enter") {
               // 如果第一个元素不是空元素，则添加空元素后聚焦

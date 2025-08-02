@@ -160,6 +160,7 @@
             this.all("lumi-block").forEach(
               (block) => block.switchOtherLang && block.switchOtherLang(lang)
             );
+            this.shadow.$("lumi-page-title").switchOtherLang(lang);
           },
           focusTitle() {
             setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
