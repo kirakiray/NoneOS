@@ -149,20 +149,7 @@
           desc: {},
           lumiViewLang: "",
         },
-        watch: {
-          ["lumiViewLang"]() {
-            if (this.itemData.title) {
-              this.changeLang(this.lumiViewLang);
-            }
-          },
-        },
         proto: {
-          async changeLang(lang) {
-            this.shadow.$("lumi-page-title").switchOtherLang(lang);
-            this.all("lumi-block").forEach(
-              (block) => block.switchOtherLang && block.switchOtherLang(lang)
-            );
-          },
           focusTitle() {
             setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
           },
@@ -203,15 +190,6 @@
             this.recordData = recordData;
             this._recordRevoke = revoke;
           },
-        },
-        ready() {
-          const oapp = this.parents.find((e) => e.tag == "o-app");
-
-          this.on("block-attached", async (e) => {
-            e.stopPropagation();
-            const configData = await oapp._configData;
-            $(e.target).switchOtherLang(this.lumiViewLang);
-          });
         },
         async attached() {
           this.on("click", (e) => {

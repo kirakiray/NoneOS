@@ -86,6 +86,7 @@
     </div>
   </o-else>
   <div class="dragovering-mark" class:show="dragovering"></div>
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
   <script>
     import { localizedObject } from "/packages/i18n/localized-object.js";
 
@@ -102,6 +103,12 @@
           translateContent: "", // 翻译后的文本
           inTranslate: false, // 翻译中
           inTranslateLang: "", // 翻译的语言
+          lumiViewLang: "",
+        },
+        watch: {
+          lumiViewLang(lang) {
+            this.switchOtherLang(lang);
+          },
         },
         proto: {
           get markLang() {
@@ -116,7 +123,9 @@
                 return "日本語";
             }
           },
-          switchOtherLang(lang) {
+          async switchOtherLang(lang) {
+            await this.watchUntil(() => this.itemData.title);
+
             return switchLang(this, lang, {
               lumipage: this.host,
               onStateChange: (state) => {

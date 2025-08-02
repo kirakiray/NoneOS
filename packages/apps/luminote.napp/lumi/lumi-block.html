@@ -431,6 +431,8 @@
     }
   </style>
 
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
+
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
@@ -471,8 +473,12 @@
           tabLeft: 0,
           dragStart: false, // 拖拽开始
           desc: {},
+          lumiViewLang: "",
         },
         watch: {
+          lumiViewLang(lang) {
+            this.switchOtherLang(lang);
+          },
           leftMenuOpened(opened) {
             if (!this.__inited) {
               this.__inited = 1;
@@ -832,7 +838,7 @@
             },
           });
 
-          this.emit("block-attached");
+          // this.emit("block-attached");
         },
         detached() {
           if (this._asking) {
