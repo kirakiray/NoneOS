@@ -259,11 +259,19 @@
               slot="prefix"
               style="display: block; margin-right: 4px; font-size: 18px"
             ></n-local-icon>
-            <localized-content>
-              <span lang="en"> {{$data.title || 'Unnamed Page'}} </span>
-              <span lang="cn"> {{$data.title || '未命名页面'}} </span>
-              <span lang="ja"> {{$data.title || '未命名ページ'}} </span>
-            </localized-content>
+
+            {{$host.getArticleTitle($data)}}
+            <!-- <localized-content>
+              <span lang="en">
+                {{$host.getArticleTitle($data) || 'Unnamed Page'}}
+              </span>
+              <span lang="cn">
+                {{$host.getArticleTitle($data) || '未命名页面'}}
+              </span>
+              <span lang="ja">
+                {{$host.getArticleTitle($data) || '未命名ページ'}}
+              </span>
+            </localized-content> -->
 
             <i
               slot="suffix"
@@ -364,7 +372,9 @@
                       name="article"
                       style="display: block; font-size: 18px; margin-right: 4px"
                     ></n-local-icon>
-                    <span class="content"> {{$data.title}}</span>
+                    <span class="content">
+                      {{$host.getArticleTitle($data)}}</span
+                    >
                     <span class="after-mark"> / </span>
                   </div>
                 </o-fill>
@@ -499,6 +509,23 @@
           openCreateProjectDialog: false,
         },
         proto: {
+          getArticleTitle(data) {
+            const provider = this.shadow.$('o-provider[name="lumi-view-lang"]');
+
+            const viewLang = provider.value;
+
+            const { titleI18nContent } = data;
+
+            if (titleI18nContent && titleI18nContent[viewLang]) {
+              return titleI18nContent[viewLang].value;
+            }
+
+            if (!data.title) {
+              return "Unnamed Page";
+            }
+
+            return data.title;
+          },
           cancelCreateProject() {
             this.openCreateProjectDialog = false;
             this.shadow.$("lumi-switch-project").reloadExistProjects();

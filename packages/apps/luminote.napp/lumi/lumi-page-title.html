@@ -152,7 +152,7 @@
               // 如果第一个元素不是空元素，则添加空元素后聚焦
               let firstBlock = this[0];
 
-              if (!firstBlock.itemData.value.trim()) {
+              if (firstBlock && !firstBlock.itemData.value.trim()) {
                 firstBlock.focus();
                 return;
               }
@@ -163,7 +163,7 @@
               });
 
               setTimeout(() => {
-                this[0].focus();
+                this.host[0].focus();
               }, 10);
             }
           },
