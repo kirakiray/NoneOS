@@ -532,7 +532,7 @@
               this.currentProjectData = {};
             } else {
               this.hideBreadcrumbs = false;
-              this.paths = e.data.titles;
+              this.paths.splice(0, this.paths.length, ...e.data.titles);
             }
           },
           getSubArticles(data) {

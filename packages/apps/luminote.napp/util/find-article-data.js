@@ -25,12 +25,7 @@ const findTargetArticle = async (content, dataId) => {
     if (e._dataId === dataId) {
       return {
         target: e,
-        titles: [
-          {
-            title: e.title,
-            dataId: e._dataId,
-          },
-        ],
+        titles: [e],
       };
     }
 
@@ -42,13 +37,7 @@ const findTargetArticle = async (content, dataId) => {
       if (target) {
         return {
           target,
-          titles: [
-            {
-              title: e.title,
-              dataId: e._dataId,
-            },
-            ...subTitles,
-          ],
+          titles: [e, ...subTitles],
         };
       }
     }

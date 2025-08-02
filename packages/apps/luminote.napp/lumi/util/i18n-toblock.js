@@ -8,6 +8,10 @@ export const getMainLang = async (el) => {
 
   const oapp = el.parents.find((e) => e.tag == "o-app");
 
+  if (!oapp || !notePage) {
+    return null;
+  }
+
   const projectItem = await oapp.getProject(
     notePage.currentDirName,
     notePage.currentUserId
