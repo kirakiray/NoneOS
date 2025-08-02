@@ -33,6 +33,34 @@
       border: none;
       color: inherit;
     }
+
+    .translate-container {
+      position: relative;
+      display: block;
+      margin: 0 6px;
+      margin-bottom: 16px;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.2;
+      min-height: 48px;
+      user-select: text;
+    }
+
+    .lang-mark {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      font-size: 12px;
+      line-height: 1.6em;
+      display: flex;
+      align-items: center;
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+      padding: 0 4px;
+      border-radius: 4px;
+      opacity: 0.7;
+      font-weight: 500;
+    }
   </style>
   <div style="height: 100px"></div>
   <o-if :value="!inTranslate">
@@ -47,8 +75,14 @@
     />
   </o-if>
   <o-else>
-    <div class="title">
-      <div :text="translateContent" style="display: contents"></div>
+    <div class="translate-container">
+      <div :html="translateContent" style="display: contents"></div>
+      <div class="lang-mark">
+        <o-if :value="inTranslate == 1 || inTranslate == 2">
+          <n-local-icon name="loading"></n-local-icon>
+        </o-if>
+        {{markLang}}
+      </div>
     </div>
   </o-else>
   <div class="dragovering-mark" class:show="dragovering"></div>
@@ -70,6 +104,18 @@
           inTranslateLang: "", // 翻译的语言
         },
         proto: {
+          get markLang() {
+            switch (this.inTranslateLang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+            }
+          },
           switchOtherLang(lang) {
             return switchLang(this, lang, {
               lumipage: this.host,

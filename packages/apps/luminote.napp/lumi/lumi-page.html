@@ -152,17 +152,16 @@
         watch: {
           ["lumiViewLang"]() {
             if (this.itemData.title) {
-              debugger;
               this.changeLang(this.lumiViewLang);
             }
           },
         },
         proto: {
           async changeLang(lang) {
+            this.shadow.$("lumi-page-title").switchOtherLang(lang);
             this.all("lumi-block").forEach(
               (block) => block.switchOtherLang && block.switchOtherLang(lang)
             );
-            this.shadow.$("lumi-page-title").switchOtherLang(lang);
           },
           focusTitle() {
             setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
