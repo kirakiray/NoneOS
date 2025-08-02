@@ -157,20 +157,9 @@
         proto: {
           async changeLang(lang) {
             this._changeingLang = lang;
-            for (let block of this.all("lumi-block")) {
-              if (
-                !this.ele.isConnected ||
-                !block.switchOtherLang ||
-                this._changeingLang !== lang
-              ) {
-                // 删除后不执行
-                // 没有初始化不执行
-                // 切换语言不执行
-                break;
-              }
-
-              block.switchOtherLang(lang);
-            }
+            this.all("lumi-block").forEach(
+              (block) => block.switchOtherLang && block.switchOtherLang(lang)
+            );
           },
           focusTitle() {
             setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
