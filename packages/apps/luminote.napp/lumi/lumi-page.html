@@ -150,9 +150,9 @@
           lumiViewLang: "",
         },
         watch: {
-          ["lumiViewLang,itemData"]() {
+          ["lumiViewLang"]() {
             if (this.itemData.title) {
-              debugger
+              debugger;
               this.changeLang(this.lumiViewLang);
             }
           },

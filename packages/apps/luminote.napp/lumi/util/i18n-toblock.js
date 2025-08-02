@@ -92,7 +92,9 @@ export const switchLang = async (block, lang, options = {}) => {
     block._asking = lang;
 
     const result = await ask(
-      `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${block.itemData.value}`,
+      `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${
+        block.itemData[keys.originKey]
+      }`,
       {
         id: block.xid,
         onChunk: (e) => {
