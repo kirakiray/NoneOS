@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ollama Embedding 语义搜索 Demo</title>
+    <style>
+      body {
+        font-family: Arial;
+        margin: 40px;
+      }
+      textarea {
+        width: 100%;
+        height: 120px;
+      }
+      button {
+        margin: 8px 0;
+      }
+      .item {
+        margin: 4px 0;
+        padding: 4px 8px;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>1. 准备语料（一行一句）</h2>
+    <textarea id="corpus">
+杭州西湖的荷花开了
+北京故宫的雪景真美
+人工智能将改变世界
+我爱吃冰淇淋
+</textarea
+    >
+
+    <h2>2. 输入查询</h2>
+    <input id="query" type="text" placeholder="例如：旅游景点" size="60" />
+
+    <button onclick="search()">语义搜索</button>
+
+    <h3>3. 结果（按余弦相似度降序）</h3>
+    <div id="results"></div>
+
+    <script>
+      /* ---------- 工具函数 ---------- */
+      async function embed(texts) {
+        const res = await fetch("http://localhost:11434/api/embed", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "qwen3:4b", // 或 mxbai-embed-large
+            input: texts, // 支持批量
+          }),
+        });
+        if (!res.ok) throw new Error(await res.text());
+        return (await res.json()).embeddings; // 二维数组
+      }
+
+      function cosSim(a, b) {
+        const dot = a.reduce((s, x, i) => s + x * b[i], 0);
+        const normA = Math.sqrt(a.reduce((s, x) => s + x * x, 0));
+        const normB = Math.sqrt(b.reduce((s, x) => s + x * x, 0));
+        return dot / (normA * normB);
+      }
+
+      /* ---------- 主逻辑 ---------- */
+      async function search() {
+        const corpus = document
+          .getElementById("corpus")
+          .value.trim()
+          .split("\n")
+          .filter(Boolean);
+        const query = document.getElementById("query").value.trim();
+        if (!query) return alert("请输入查询语句");
+
+        document.getElementById("results").textContent = "计算中...";
+
+        try {
+          // 批量生成向量：查询 + 语料
+          const vectors = await embed([query, ...corpus]);
+          const qVec = vectors[0];
+
+          // 计算相似度并排序
+          const scores = corpus
+            .map((text, i) => ({
+              text,
+              score: cosSim(qVec, vectors[i + 1]),
+            }))
+            .sort((a, b) => b.score - a.score);
+
+          // 渲染
+          const box = document.getElementById("results");
+          box.innerHTML = "";
+          scores.forEach(({ text, score }) => {
+            const div = document.createElement("div");
+            div.className = "item";
+            div.style.background = `hsl(${score * 120},80%,85%)`;
+            div.textContent = `${score.toFixed(4)} - ${text}`;
+            box.appendChild(div);
+          });
+        } catch (e) {
+          document.getElementById("results").textContent = "❌ " + e;
+        }
+      }
+    </script>
+  </body>
+</html>

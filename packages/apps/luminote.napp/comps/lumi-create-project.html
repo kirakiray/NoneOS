@@ -1,0 +1,146 @@
+<template component>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+      min-width: 30vw;
+    }
+  </style>
+
+  <p-input sync:value="newProjectName" on:keyup="handleKeyup">
+    <label>
+      <localized-content>
+        <span lang="en">Project Name</span>
+        <span lang="cn">项目名称</span>
+        <span lang="ja">プロジェクト名</span>
+      </localized-content>
+    </label>
+  </p-input>
+
+  <p-select sync:value="mainLang" style="margin-top: 16px">
+    <label>
+      <localized-content>
+        <span lang="en">Project Language</span>
+        <span lang="cn">项目语言</span>
+        <span lang="ja">プロジェクト言語</span>
+      </localized-content>
+    </label>
+    <p-option value="cn">简体中文</p-option>
+    <p-option value="en">English</p-option>
+    <p-option value="t-cn">繁體中文</p-option>
+    <p-option value="ja">日本語</p-option>
+  </p-select>
+
+  <div
+    style="
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      margin-top: 16px;
+    "
+  >
+    <p-button
+      attr:disabled="!newProjectName || adding"
+      on:click="addNewProject"
+    >
+      <localized-content>
+        <span lang="en">Create Project</span>
+        <span lang="cn">创建项目</span>
+        <span lang="ja">プロジェクトを作成</span>
+      </localized-content>
+    </p-button>
+    <p-button
+      style="margin-left: 8px"
+      variant="text"
+      on:click="emit('cancel-create-project')"
+    >
+      <localized-content>
+        <span lang="en">Cancel</span>
+        <span lang="cn">取消</span>
+        <span lang="ja">キャンセル</span>
+      </localized-content>
+    </p-button>
+  </div>
+
+  <script>
+    import {
+      localizedObject,
+      getLocalized,
+    } from "/packages/i18n/localized-object.js";
+
+    export default async ({ load }) => {
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const settingData = await getSetting();
+
+      const { toast } = await load("/packages/pui/util.js");
+
+      return {
+        tag: "lumi-create-project",
+        data: {
+          newProjectName: "",
+          adding: false,
+          mainLang: settingData.lang,
+        },
+        proto: {
+          async addNewProject() {
+            this.adding = true;
+
+            const projectName = this.newProjectName;
+
+            if (!projectName.trim()) {
+              toast({
+                content: await getLocalized({
+                  cn: "项目名不能为空",
+                  en: "Project name cannot be empty",
+                  ja: "プロジェクト名を入力してください",
+                }),
+                color: "error",
+              });
+              this.adding = false;
+              return;
+            }
+
+            const newProject = await this.app.createProject({
+              projectName,
+            });
+
+            newProject.data.mainLang = this.mainLang;
+
+            await this.app.switchProject(newProject.__handle.name);
+
+            toast({
+              content: await getLocalized({
+                cn: "创建成功",
+                en: "Project created successfully",
+                ja: "プロジェクトが正常に作成されました",
+              }),
+              color: "success",
+            });
+
+            this.newProjectName = "";
+            this.emit("cancel-create-project", {
+              composed: true,
+            });
+
+            this.adding = false;
+          },
+
+          handleKeyup(e) {
+            if (
+              e.key === "Enter" &&
+              this.newProjectName.trim() &&
+              !this.adding
+            ) {
+              this.addNewProject();
+            }
+          },
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

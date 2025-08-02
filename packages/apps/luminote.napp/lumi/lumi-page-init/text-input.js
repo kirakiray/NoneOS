@@ -27,6 +27,11 @@ purify.setConfig({
     "a",
     "p",
     "code",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
     ...inlineComps.map((e) => e.tag),
     ...blockComps.map((e) => e.tag),
   ], // 允许的标签
@@ -56,7 +61,6 @@ export const initTextInput = (lumipage) => {
       }
 
       lumiBlock = $(lumiBlock);
-
 
       const selectionData = getSelectionLetterData(lumipage.ele.getRootNode());
 

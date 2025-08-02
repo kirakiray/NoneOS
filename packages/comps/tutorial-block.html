@@ -142,8 +142,6 @@
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
-      window.settingData = settingData;
-
       return {
         tag: "n-tutorial-block",
         data: {

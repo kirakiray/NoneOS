@@ -1,6 +1,11 @@
 import { HybirdData } from "./hybird-data.js";
+import { createSingleData } from "./single-data.js";
 
 export const createData = async (handle, options) => {
+  if (handle.kind === "file") {
+    return createSingleData({ handle });
+  }
+
   const data = new HybirdData(
     {},
     {

@@ -13,14 +13,30 @@ export const getSetting = async () => {
   mainDataPms = (async () => {
     await init("system");
 
-    // 创造主体数据对象
+    // 判断是否有旧的数据
+    const oldSettingDataDir = await get("system/setting");
+
     const settingData = await createData(
-      await get("system/setting", {
-        create: "dir",
+      await get("system/setting.json", {
+        create: "file",
       })
     );
 
-    await settingData.ready();
+    if (oldSettingDataDir) {
+      // 替换旧版本的数据
+      // 创造主体数据对象
+      const oldSettingData = await createData(oldSettingDataDir);
+
+      await oldSettingData.ready(true);
+
+      // 合并到新对象
+      Object.assign(settingData, oldSettingData.toJSON());
+
+      // 删除旧的数据文件夹
+      await oldSettingData.disconnect();
+
+      await oldSettingDataDir.remove();
+    }
 
     // 如果没有初始化数据，直接添加初始化数据
     if (!settingData.lang) {

@@ -19,16 +19,171 @@
     .dragovering-mark.show {
       opacity: 1;
     }
+
+    .title {
+      font-size: 40px;
+      font-weight: 700;
+      box-sizing: border-box;
+      margin: 0 6px;
+      width: 100%;
+      outline: none;
+      background-color: transparent;
+      -webkit-appearance: none;
+      appearance: none;
+      border: none;
+      color: inherit;
+    }
+
+    .translate-container {
+      position: relative;
+      display: block;
+      margin: 0 6px;
+      margin-bottom: 16px;
+      font-size: 40px;
+      font-weight: 700;
+      line-height: 1.2;
+      min-height: 48px;
+      user-select: text;
+    }
+
+    .lang-mark {
+      position: absolute;
+      right: -2px;
+      bottom: -2px;
+      font-size: 12px;
+      line-height: 1.6em;
+      display: flex;
+      align-items: center;
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+      padding: 0 4px;
+      border-radius: 4px;
+      opacity: 0.7;
+      font-weight: 500;
+    }
   </style>
   <div style="height: 100px"></div>
-  <slot></slot>
+  <o-if :value="!inTranslate">
+    <input
+      class="title"
+      type="text"
+      sync:value="itemData.title"
+      on:click="$event.stopPropagation()"
+      style="margin-bottom: 16px"
+      on:keydown="titleKeyDown"
+      :placeholder="desc.pageTitlePlaceholder"
+    />
+  </o-if>
+  <o-else>
+    <div class="translate-container">
+      <div :html="translateContent" style="display: contents"></div>
+      <div class="lang-mark">
+        <o-if :value="inTranslate == 1 || inTranslate == 2">
+          <n-local-icon name="loading"></n-local-icon>
+        </o-if>
+        {{markLang}}
+      </div>
+    </div>
+  </o-else>
   <div class="dragovering-mark" class:show="dragovering"></div>
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
   <script>
+    import { localizedObject } from "/packages/i18n/localized-object.js";
+
     export default async ({ load }) => {
+      const { ask, clearAsk } = await load("/packages/ai/main.js");
+      const { switchLang } = await load("./util/i18n-toblock.js");
+
       return {
         tag: "lumi-page-title",
         data: {
           dragovering: false,
+          itemData: {},
+          desc: {},
+          translateContent: "", // 翻译后的文本
+          inTranslate: false, // 翻译中
+          inTranslateLang: "", // 翻译的语言
+          lumiViewLang: "",
+        },
+        watch: {
+          lumiViewLang(lang) {
+            this.switchOtherLang(lang);
+          },
+        },
+        proto: {
+          get markLang() {
+            switch (this.inTranslateLang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+            }
+          },
+          async switchOtherLang(lang) {
+            await this.watchUntil(() => this.itemData.title);
+
+            return switchLang(this, lang, {
+              lumipage: this.host,
+              onStateChange: (state) => {
+                this.inTranslate = state;
+              },
+              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
+                this.inTranslateLang = targetLang;
+                this.inTranslate = state;
+                if (content !== undefined) {
+                  this.translateContent = content;
+                }
+              },
+              onError: (err) => {
+                console.log(err);
+              },
+              keys: {
+                originKey: "title",
+                i18nKey: "titleI18nContent",
+              },
+            });
+          },
+          titleKeyDown(e) {
+            if (e.key === "Enter") {
+              // 如果第一个元素不是空元素，则添加空元素后聚焦
+              let firstBlock = this[0];
+
+              if (firstBlock && !firstBlock.itemData.value.trim()) {
+                firstBlock.focus();
+                return;
+              }
+
+              this.itemData.content.unshift({
+                type: "paragraph",
+                value: "",
+              });
+
+              setTimeout(() => {
+                this.host[0].focus();
+              }, 10);
+            }
+          },
+          focus() {
+            this.shadow.$(".title").ele.focus();
+          },
+        },
+        attached() {
+          this.desc = localizedObject({
+            pageTitlePlaceholder: {
+              cn: "页面标题",
+              en: "Page title",
+              ja: "ページタイトル",
+            },
+          });
+        },
+        detached() {
+          this.itemData = {};
+          this.desc._clear();
+          this.desc = {};
         },
       };
     };

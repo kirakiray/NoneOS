@@ -1,0 +1,299 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .hide {
+      display: none;
+    }
+  </style>
+
+  <o-if :value="!models">
+    <p style="color: var(--md-sys-color-error)">
+      无法连接到本地Ollama服务，请检查Ollama服务是否已启动，若已启动可尝试重启服务。
+    </p>
+    <p style="color: var(--md-sys-color-error)">
+      若尚未安装Ollama，可访问
+      <a href="https://ollama.com/">ollama.com</a> 进行下载和安装。
+    </p>
+  </o-if>
+  <o-else>
+    <p-list>
+      <o-fill :value="models" fill-key="name">
+        <p-list-item collapse-childs="false" button="suffix">
+          <n-local-icon
+            name="ai-chip"
+            slot="prefix"
+            style="
+              display: block;
+              margin-right: 6px;
+              font-size: 20px;
+              color: var(--md-sys-color-primary);
+            "
+          ></n-local-icon>
+          <div style="display: flex">
+            {{ $data.name }}
+
+            <o-if :value="$host.aiSetting?.ollama?.model === $data.name">
+              <div
+                style="
+                  margin-left: 16px;
+                  color: var(--md-sys-color-success);
+                  font-size: 20px;
+                "
+              >
+                <n-local-icon name="tick-circle"></n-local-icon>
+              </div>
+            </o-if>
+          </div>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs" style="--ladder-left: 16px">
+            <p-list-item>
+              模型大小: {{$host.getFileSize($data.size)}}
+            </p-list-item>
+            <p-list-item>
+              下载时间: {{$host.getTime($data.modified_at)}}</p-list-item
+            >
+            <p-list-item> digest: {{$data.digest}} </p-list-item>
+
+            <p-list-item collapse-childs="false" button="suffix">
+              Details
+              <i toggle-collapse triangle slot="suffix"></i>
+              <p-list slot="childs">
+                <o-fill :value="$host.getEntries($data.details)">
+                  <p-list-item>
+                    <div style="display: flex">
+                      <span style="color: var(--md-sys-color-normal)">
+                        {{$data.name}}
+                      </span>
+                      : {{$data.value}}
+                    </div>
+                  </p-list-item>
+                </o-fill>
+              </p-list>
+            </p-list-item>
+
+            <p-list-item>
+              <div>
+                <p-button
+                  size="small"
+                  attr:disabled="$host.aiSetting?.ollama?.model === $data.name"
+                  on:click="$host.useModel($data)"
+                >
+                  <o-if :value="$host.aiSetting?.ollama?.model === $data.name">
+                    已选择该AI助手
+                  </o-if>
+                  <o-else> 设置为默认AI助手 </o-else>
+                </p-button>
+                <p-button
+                  color="error"
+                  size="small"
+                  on:click="$host.deleteModel($data)"
+                >
+                  删除该模型
+                </p-button>
+              </div>
+            </p-list-item>
+          </p-list>
+        </p-list-item>
+      </o-fill>
+      <o-fill :value="requiredModels">
+        <p-list-item
+          class:hide="$data.installed"
+          collapse-childs="false"
+          button="suffix"
+        >
+          <n-local-icon
+            name="ai-chip"
+            slot="prefix"
+            style="
+              display: block;
+              margin-right: 6px;
+              font-size: 20px;
+              color: var(--md-sys-color-normal);
+            "
+          ></n-local-icon>
+          <div style="display: flex; align-items: center">{{$data.name}}</div>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs" style="--ladder-left: 16px">
+            <p-list-item> {{$data.desc.cn}} </p-list-item>
+            <p-list-item>
+              <div>
+                模型大小 : {{$data.size}}
+                <p-button
+                  color="primary"
+                  size="small"
+                  variant="outlined"
+                  on:click="$host.pullModel($data)"
+                  attr:disabled="$data.downloading"
+                  style="margin-left: 16px"
+                >
+                  <o-if :value="$data.downloading">
+                    <n-local-icon
+                      name="loading"
+                      style="margin-right: 4px; display: block"
+                    ></n-local-icon>
+                    下载中
+                  </o-if>
+                  <o-else> 下载 </o-else>
+                </p-button>
+              </div>
+            </p-list-item>
+          </p-list>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </o-else>
+  <script>
+    export default async ({ load }) => {
+      const { getAISetting } = await load("/packages/ai/custom-data.js");
+      const aiSetting = await getAISetting();
+
+      const { getOllamaModels, deleteOllamaModel, pullOllamaModel } =
+        await load("/packages/ai/main.js");
+
+      const { toast, confirm } = await load("/packages/pui/util.js");
+
+      return {
+        tag: "local-ollama-tags",
+        data: {
+          models: [],
+          requiredModels: [
+            {
+              name: "qwen3:4b",
+              installed: false,
+              desc: {
+                cn: "通义千问3的4B参数版本，轻量级大语言模型，在普通性能设备上运行流畅，中文理解和生成能力优秀",
+              },
+            },
+            {
+              name: "gemma3:4b",
+              installed: false,
+              desc: {
+                cn: "Google Gemma 3的4B参数版本，轻量级开源模型，专为高效推理设计，在多语言任务中表现良好",
+              },
+              size: "3.3GB",
+            },
+            {
+              name: "gemma3n:e4b",
+              installed: false,
+              desc: {
+                cn: "Gemma 3n 型号专为在笔记本电脑、平板电脑或手机等日常设备上高效执行而设计。",
+              },
+              size: "7.5GB",
+            },
+            {
+              name: "gemma3n:e2b",
+              installed: false,
+              desc: {
+                cn: "Gemma 3n 型号专为在笔记本电脑、平板电脑或手机等日常设备上高效执行而设计，相比 e4b 进一步降低了资源消耗。",
+              },
+              size: "5.6GB",
+            },
+            {
+              name: "qwen3:30b",
+              installed: false,
+              desc: {
+                cn: "通义千问3的30B参数版本，高性能大语言模型，需要较强计算设备支持，在复杂中文任务上表现优异",
+              },
+              size: "19GB",
+            },
+          ],
+          aiSetting: {},
+        },
+        proto: {
+          useModel(data) {
+            this.aiSetting.ollama.model = data.model;
+
+            this.emit("change-setting-model");
+          },
+          getEntries(data) {
+            return Object.entries(data).map(([key, value]) => {
+              return {
+                name: key,
+                value,
+              };
+            });
+          },
+          async pullModel(data) {
+            if (data.size) {
+              const ok = await confirm({
+                title: "确认下载模型",
+                content: `您确定要下载模型 ${data.name} 吗？该模型将占用 ${data.size} 磁盘空间。请注意，下载一旦开始便无法暂停，需等待下载完成后方可删除。`,
+              });
+
+              if (!ok) {
+                return;
+              }
+            }
+
+            const result = await pullOllamaModel(data.name, (e) => {
+              console.log(e);
+              data.downloading = true;
+            });
+
+            this.refreshModels();
+            data.downloading = false;
+          },
+          async deleteModel(data) {
+            const ok = await confirm({
+              title: "删除模型",
+              content: `确认删除模型 ${data.name} 吗？`,
+            });
+
+            if (!ok) {
+              return;
+            }
+
+            await deleteOllamaModel(data.name);
+
+            toast({
+              content: `删除 ${data.name} 成功`,
+              color: "success",
+            });
+
+            this.refreshModels();
+          },
+          getFileSize(size) {
+            if (size < 1024) {
+              return size + "B";
+            }
+            if (size < 1024 * 1024) {
+              return (size / 1024).toFixed(2) + "KB";
+            }
+            if (size < 1024 * 1024 * 1024) {
+              return (size / 1024 / 1024).toFixed(2) + "MB";
+            }
+            return (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+          },
+          getTime(time) {
+            return new Date(time).toLocaleString();
+          },
+          async refreshModels() {
+            try {
+              const models = await getOllamaModels();
+
+              this.requiredModels.forEach((e) => {
+                e.installed = models.some((m) => m.name === e.name);
+              });
+
+              this.models = models;
+            } catch (error) {
+              this.models = null;
+              console.log(error);
+            }
+          },
+        },
+        attached() {
+          this.refreshModels();
+          this.aiSetting = aiSetting;
+        },
+        detached() {
+          this.aiSetting = {};
+        },
+      };
+    };
+  </script>
+</template>

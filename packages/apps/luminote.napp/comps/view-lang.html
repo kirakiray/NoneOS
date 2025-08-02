@@ -1,0 +1,223 @@
+<template component>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      margin: 0 8px;
+    }
+    .main {
+      display: flex;
+      align-items: center;
+    }
+    .tips {
+      font-size: 16px;
+      min-width: 40vw;
+      max-width: 80vw;
+      min-height: 20vh;
+    }
+    p {
+      margin: 0.4em 0;
+    }
+  </style>
+
+  <div class="main">
+    <p-button size="small" variant="text" on:click="showDialog = true">
+      <n-local-icon
+        name="view"
+        slot="prefix"
+        style="display: block; font-size: 18px; margin-right: 4px"
+      ></n-local-icon>
+
+      {{getRealLang(appConfigData.viewLang)}}
+    </p-button>
+  </div>
+
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title">
+      <localized-content>
+        <span lang="cn">文档语言</span>
+        <span lang="en">Document language</span>
+        <span lang="ja">ドキュメント言語</span>
+      </localized-content>
+    </div>
+    <div class="tips">
+      <p style="display: flex; align-items: center">
+        <localized-content>
+          <span lang="cn">点击切换阅读语言</span>
+          <span lang="en">Click to switch reading language</span>
+          <span lang="ja">読み取り言語を切り替える</span>
+        </localized-content>
+        <p-select
+          size="small"
+          sync:value="appConfigData.viewLang"
+          on:change="changeLang"
+          style="display: inline-block; margin-left: 8px"
+        >
+          <n-local-icon name="translate" slot="prefix"></n-local-icon>
+          <p-option value="cn">简体中文</p-option>
+          <p-option value="en">English</p-option>
+          <p-option value="t-cn">繁體中文</p-option>
+          <p-option value="ja">日本語</p-option>
+        </p-select>
+      </p>
+
+      <localized-content>
+        <div lang="cn">
+          <p>
+            本文档原生采用
+            <span style="color: var(--md-sys-color-primary)"
+              >{{defaultLang}}</span
+            >
+            撰写。 当前正在使用
+            <span style="color: var(--md-sys-color-primary)"
+              >{{getRealLang(appConfigData.viewLang)}}</span
+            >
+            阅读文档。
+          </p>
+          <p>若文章包含所选语言内容，系统将自动切换显示；</p>
+          <p>若没有对应语言，将使用您本地的AI进行翻译。</p>
+        </div>
+        <div lang="en">
+          <p>
+            This document is originally written in
+            <span style="color: var(--md-sys-color-primary)"
+              >{{defaultLang}}</span
+            >
+            . Currently, you are reading the document in
+            <span style="color: var(--md-sys-color-primary)"
+              >{{getRealLang(appConfigData.viewLang)}}</span
+            >
+            .
+          </p>
+          <p>
+            If the article contains content in the selected language, the system
+            will automatically switch the display;
+          </p>
+          <p>
+            If there is no corresponding language, the system will use your
+            local AI for translation.
+          </p>
+        </div>
+        <div lang="ja">
+          <p>
+            このドキュメントは
+            <span style="color: var(--md-sys-color-primary)"
+              >{{defaultLang}}</span
+            >
+            で書かれています。 現在、
+            <span style="color: var(--md-sys-color-primary)"
+              >{{getRealLang(appConfigData.viewLang)}}</span
+            >
+            でドキュメントを読んでいます。
+          </p>
+          <p>
+            文章に選択した言語の内容が含まれている場合、システムは自動的に表示を
+            切り替えます。
+          </p>
+        </div>
+      </localized-content>
+
+      <o-if :value="!aiAvailable">
+        <p style="color: var(--md-sys-color-error)">
+          <localized-content>
+            <span lang="cn">您当前环境没有可用的AI接口。</span>
+            <span lang="en">You currently have no available AI interface.</span>
+            <span lang="ja"
+              >您の現在の環境にはAIインターフェースがありません。</span
+            >
+          </localized-content>
+        </p>
+      </o-if>
+
+      <o-if
+        :value="projectData && appConfigData.viewLang != projectData.mainLang"
+      >
+        <p style="color: var(--md-sys-color-primary)">
+          <localized-content>
+            <span lang="cn"
+              >阅读语言与原生语言不一致时，需切换至原生语言才能修改内容。</span
+            >
+            <span lang="en"
+              >When the reading language is different from the native language,
+              you need to switch to the native language to modify the
+              content.</span
+            >
+            <span lang="ja"
+              >読み取り言語がネイティブ言語と異なる場合、ネイティブ言語に切り替える必要があります。</span
+            >
+          </localized-content>
+        </p>
+      </o-if>
+    </div>
+  </p-dialog>
+
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
+  <script>
+    export default async ({ load }) => {
+      const { getSetting } = await load("/packages/none-os/setting.js");
+      const { isAIAvailable } = await load("/packages/ai/main.js");
+
+      return {
+        tag: "lumi-view-lang",
+        data: {
+          projectData: {},
+          appConfigData: {},
+          lumiViewLang: "",
+          showDialog: false,
+          aiAvailable: false,
+        },
+        proto: {
+          get defaultLang() {
+            if (!this.projectData) {
+              return "";
+            }
+
+            return this.getRealLang(this.projectData.mainLang);
+          },
+          changeLang() {
+            // 切换到其他语言
+            this.getProvider("lumi-view-lang").value =
+              this.appConfigData.viewLang;
+          },
+          getRealLang(lang) {
+            switch (lang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+              default:
+                return lang;
+            }
+          },
+        },
+        async attached() {
+          const configData = await this.host.parents.find(
+            (e) => e.tag == "o-app"
+          )._configData;
+
+          this.appConfigData = configData;
+
+          if (!configData.viewLang) {
+            const settingData = await getSetting();
+            configData.viewLang = settingData.lang;
+          }
+
+          const provider = this.getProvider("lumi-view-lang");
+          provider.value = configData.viewLang;
+
+          this.aiAvailable = await isAIAvailable();
+        },
+        detached() {
+          this.projectData = {};
+          this.appConfigData = {};
+        },
+      };
+    };
+  </script>
+</template>

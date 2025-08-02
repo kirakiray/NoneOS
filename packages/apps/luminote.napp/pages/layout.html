@@ -7,6 +7,9 @@
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="../comps/switch-project.html"></l-m>
+  <l-m src="../comps/lumi-project-setting.html"></l-m>
+  <l-m src="../comps/view-lang.html"></l-m>
+  <l-m src="../comps/lumi-create-project.html"></l-m>
   <style>
     :host {
       display: block;
@@ -59,350 +62,429 @@
     }
   </style>
 
-  <p-bind-contextmenu
-    auto-close
-    on:click-item="handleClickMenuItem"
-    style="height: 100%"
-  >
-    <p-menu contextmenu-selector=".article-list-item">
-      <p-menu-item data-type="addSubNote">
-        <n-local-icon
-          name="add-note"
-          slot="prefix"
-          style="color: var(--md-sys-color-primary)"
-        ></n-local-icon>
-        <localized-content>
-          <span lang="en"> Add Sub Note </span>
-          <span lang="cn"> 添加子笔记 </span>
-          <span lang="ja"> サブノートを追加 </span>
-        </localized-content>
-      </p-menu-item>
-      <p-menu-item data-type="removeNote">
-        <n-local-icon
-          name="delete"
-          slot="prefix"
-          style="color: var(--md-sys-color-error)"
-        ></n-local-icon>
-        <localized-content>
-          <span lang="en"> Move to Recycle Bin </span>
-          <span lang="cn"> 移动到回收站 </span>
-          <span lang="ja"> ゴミ箱に移動 </span>
-        </localized-content>
-      </p-menu-item>
-    </p-menu>
-    <div class="container">
-      <div class="left">
-        <div
-          style="
-            display: flex;
-            align-items: center;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 12px 4px;
-          "
-        >
-          <img
-            src="../icon.svg"
-            style="display: block; height: 36px; margin-right: 6px"
-          />
-          Luminote
-        </div>
-        <p-list style="margin-bottom: 18px">
-          <p-list-item button disabled>
-            <n-local-icon name="search" slot="prefix"></n-local-icon>
-            <localized-content>
-              <span lang="en"> Search </span>
-              <span lang="cn"> 搜索 </span>
-              <span lang="ja"> 検索 </span>
-            </localized-content>
-          </p-list-item>
-          <p-list-item
-            button
-            attr:active-item="currentArticleDataId === 'home'"
-            on:click="goto('./home.html')"
+  <o-provider name="lumi-view-lang" value="cn">
+    <p-bind-contextmenu
+      auto-close
+      on:click-item="handleClickMenuItem"
+      style="height: 100%"
+    >
+      <p-menu contextmenu-selector=".article-list-item">
+        <p-menu-item data-type="addSubNote">
+          <n-local-icon
+            name="add-note"
+            slot="prefix"
+            style="color: var(--md-sys-color-primary)"
+          ></n-local-icon>
+          <localized-content>
+            <span lang="en"> Add Sub Note </span>
+            <span lang="cn"> 添加子笔记 </span>
+            <span lang="ja"> サブノートを追加 </span>
+          </localized-content>
+        </p-menu-item>
+        <p-menu-item data-type="removeNote">
+          <n-local-icon
+            name="delete"
+            slot="prefix"
+            style="color: var(--md-sys-color-error)"
+          ></n-local-icon>
+          <localized-content>
+            <span lang="en"> Move to Recycle Bin </span>
+            <span lang="cn"> 移动到回收站 </span>
+            <span lang="ja"> ゴミ箱に移動 </span>
+          </localized-content>
+        </p-menu-item>
+      </p-menu>
+      <div class="container">
+        <div class="left">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              font-size: 18px;
+              font-weight: bold;
+              margin: 12px 4px;
+            "
           >
-            <n-local-icon name="home" slot="prefix"></n-local-icon>
-            <localized-content>
-              <span lang="en"> Home </span>
-              <span lang="cn"> 首页 </span>
-              <span lang="ja"> ホーム </span>
-            </localized-content>
-          </p-list-item>
-          <p-list-item
-            button
-            attr:active-item="currentArticleDataId === 'recycles'"
-            on:click="goto(`./recycles.html`)"
-          >
-            <n-local-icon name="recycle" slot="prefix"></n-local-icon>
-            <localized-content>
-              <span lang="en"> Recycle Bin </span>
-              <span lang="cn"> 回收站 </span>
-              <span lang="ja"> ゴミ箱 </span>
-            </localized-content>
-          </p-list-item>
-          <p-list-item button disabled>
+            <img
+              src="../icon.svg"
+              style="display: block; height: 36px; margin-right: 6px"
+            />
+            Luminote
+          </div>
+          <p-list style="margin-bottom: 18px">
+            <p-list-item button disabled>
+              <n-local-icon name="search" slot="prefix"></n-local-icon>
+              <localized-content>
+                <span lang="en"> Search </span>
+                <span lang="cn"> 搜索 </span>
+                <span lang="ja"> 検索 </span>
+              </localized-content>
+            </p-list-item>
+            <p-list-item
+              button
+              attr:active-item="currentArticleDataId === 'home'"
+              on:click="goto('./home.html')"
+            >
+              <n-local-icon name="home" slot="prefix"></n-local-icon>
+              <localized-content>
+                <span lang="en"> Home </span>
+                <span lang="cn"> 首页 </span>
+                <span lang="ja"> ホーム </span>
+              </localized-content>
+            </p-list-item>
+            <p-list-item
+              button
+              attr:active-item="currentArticleDataId === 'recycles'"
+              on:click="goto(`./recycles.html`)"
+            >
+              <n-local-icon name="recycle" slot="prefix"></n-local-icon>
+              <localized-content>
+                <span lang="en"> Recycle Bin </span>
+                <span lang="cn"> 回收站 </span>
+                <span lang="ja"> ゴミ箱 </span>
+              </localized-content>
+            </p-list-item>
+            <!-- <p-list-item button disabled>
             <n-local-icon name="config" slot="prefix"></n-local-icon>
             <localized-content>
               <span lang="en"> Settings </span>
               <span lang="cn"> 设置 </span>
               <span lang="ja"> 設定 </span>
             </localized-content>
-          </p-list-item>
-        </p-list>
-
-        <h4 style="font-size: 13px; margin: 6px 0 6px 16px">
-          <localized-content>
-            <span lang="en"> Open Documents </span>
-            <span lang="cn"> 已打开文档 </span>
-            <span lang="ja"> 開いているドキュメント </span>
-          </localized-content>
-        </h4>
-        <p-list>
-          <o-fill :value="projects">
-            <p-list-item
-              attr:data-project-userid="$data.userId || 'self'"
-              attr:data-project-dirname="$data.__handle.name"
-              button="suffix"
-              collapse-childs="open"
-            >
-              <o-if
-                :value="!$data.userId || $data.userId === 'self'"
-                slot="prefix"
-              >
-                <n-local-icon name="project" class="menu-icon"></n-local-icon>
-              </o-if>
-              <o-else slot="prefix">
-                <n-id-avatar
-                  attr:val="$data.userId"
-                  style="
-                    width: 18px;
-                    height: 18px;
-                    margin-right: 8px;
-                    box-shadow: var(--contained-shadow);
-                  "
-                ></n-id-avatar>
-              </o-else>
-              <i slot="suffix" toggle-collapse style="display: none"></i>
-              <span
-                style="
-                  color: var(--md-sys-color-primary);
-                  max-width: 80%;
-                  text-overflow: ellipsis;
-                  white-space: nowrap;
-                  overflow: hidden;
-                "
-              >
-                {{$data?.data?.projectName}}
-              </span>
-              <p-button
-                size="small"
-                icon
-                slot="suffix"
-                variant="text"
-                on:click="$host.handleAddNote($event,$data)"
-                style="z-index: 3; position: absolute; right: 8px"
-              >
-                <n-local-icon
-                  name="add-note"
-                  style="font-size: 18px"
-                ></n-local-icon>
-              </p-button>
-              <p-list slot="childs" style="--ladder-left: 8px">
-                <o-fill
-                  :value="$data?.data?.main"
-                  name="list-item"
-                  fill-key="_dataId"
-                >
-                </o-fill>
-              </p-list>
-            </p-list-item>
-          </o-fill>
-        </p-list>
-
-        <p-button
-          variant="text"
-          on:click="openAddDialog = true"
-          style="width: 100%"
-        >
-          <n-local-icon
-            name="add-project"
-            slot="prefix"
-            style="display: block; margin-right: 3px"
-          ></n-local-icon>
-          <localized-content>
-            <span lang="en"> Manage Projects </span>
-            <span lang="cn"> 管理项目 </span>
-            <span lang="ja"> プロジェクトを管理する </span>
-          </localized-content>
-        </p-button>
-        <div style="height: 16px"></div>
-      </div>
-
-      <template name="list-item">
-        <p-list-item
-          class="article-list-item"
-          attr:data-id="$data._dataId"
-          class:hide="$data.removed"
-          button
-          attr:active-item=" $data._dataId === $host.currentArticleDataId"
-          collapse-childs="open"
-          on:click="$host.handleClickArticle($data,$event)"
-        >
-          <n-local-icon
-            name="article"
-            slot="prefix"
-            style="display: block; margin-right: 4px; font-size: 18px"
-          ></n-local-icon>
-          <localized-content>
-            <span lang="en"> {{$data.title || 'Unnamed Page'}} </span>
-            <span lang="cn"> {{$data.title || '未命名页面'}} </span>
-            <span lang="ja"> {{$data.title || '未命名ページ'}} </span>
-          </localized-content>
-
-          <i
-            slot="suffix"
-            size="mini"
-            toggle-collapse
-            style="z-index: 3; display: block"
-            triangle
-            class:hide="!$host.getSubArticles($data).length"
-          ></i>
-
-          <p-list slot="childs">
-            <o-fill
-              :value="$host.getSubArticles($data)"
-              name="list-item"
-              fill-key="_dataId"
-            ></o-fill>
+          </p-list-item> -->
           </p-list>
-        </p-list-item>
-      </template>
 
-      <style>
-        .breadcrumbs {
-          display: flex;
-          align-items: center;
-          justify-content: flex-start;
-          height: 38px;
-          margin: 0 16px;
-          overflow: hidden;
-          opacity: 1;
-          transition: all ease 0.3s;
-        }
-
-        .breadcrumbs.hide-breadcrumbs {
-          opacity: 0;
-          height: 0px;
-        }
-
-        .breadcrumb {
-          display: flex;
-          align-items: center;
-          font-size: 16px;
-          line-height: 24px;
-          cursor: pointer;
-        }
-
-        .breadcrumb:hover .content {
-          text-decoration: underline;
-        }
-
-        .after-mark {
-          display: block;
-          margin: 0 8px;
-          color: #a4a4a4;
-          font-weight: 100;
-        }
-
-        .breadcrumb:last-child .content {
-          cursor: default;
-          text-decoration: none !important;
-        }
-
-        .breadcrumb:last-child .after-mark {
-          display: none;
-        }
-      </style>
-
-      <div
-        class="main"
-        on:active-article="handleActiveArticle"
-        on:update-breadcrumbs="handleUpdateBreadcrumbs"
-      >
-        <div
-          style="
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-          "
-        >
-          <div class="top" style="display: flex; align-items: center">
-            <div class="breadcrumbs" class:hide-breadcrumbs="hideBreadcrumbs">
-              <div
-                class="breadcrumb"
-                style="text-decoration: none; cursor: default"
+          <h4 style="font-size: 13px; margin: 6px 0 6px 16px">
+            <localized-content>
+              <span lang="en"> Open Documents </span>
+              <span lang="cn"> 已打开文档 </span>
+              <span lang="ja"> 開いているドキュメント </span>
+            </localized-content>
+          </h4>
+          <p-list>
+            <o-fill :value="projects">
+              <p-list-item
+                attr:data-project-userid="$data.userId || 'self'"
+                attr:data-project-dirname="$data.__handle.name"
+                button="suffix"
+                collapse-childs="open"
               >
-                <n-local-icon
-                  name="project"
-                  style="display: block; font-size: 18px; margin-right: 4px"
-                ></n-local-icon>
-                <span style="color: var(--md-sys-color-primary)"
-                  >{{currentProjectName}}</span
+                <o-if
+                  :value="!$data.userId || $data.userId === 'self'"
+                  slot="prefix"
                 >
-                <span class="after-mark"> / </span>
-              </div>
-              <o-fill :value="paths" fill-key="dataId">
-                <div class="breadcrumb" on:click="$host.clickBread($data)">
+                  <n-local-icon name="project" class="menu-icon"></n-local-icon>
+                </o-if>
+                <o-else slot="prefix">
+                  <n-id-avatar
+                    attr:val="$data.userId"
+                    style="
+                      width: 18px;
+                      height: 18px;
+                      margin-right: 8px;
+                      box-shadow: var(--contained-shadow);
+                    "
+                  ></n-id-avatar>
+                </o-else>
+                <i slot="suffix" toggle-collapse style="display: none"></i>
+                <span
+                  style="
+                    color: var(--md-sys-color-primary);
+                    max-width: 80%;
+                    text-overflow: ellipsis;
+                    white-space: nowrap;
+                    overflow: hidden;
+                  "
+                >
+                  {{$data?.data?.projectName}}
+                </span>
+                <p-button
+                  size="small"
+                  icon
+                  slot="suffix"
+                  variant="text"
+                  on:click="$host.handleAddNote($event,$data)"
+                  style="z-index: 3; position: absolute; right: 8px"
+                >
                   <n-local-icon
-                    name="article"
-                    style="display: block; font-size: 18px; margin-right: 4px"
+                    name="add-note"
+                    style="font-size: 18px"
                   ></n-local-icon>
-                  <span class="content"> {{$data.title}}</span>
-                  <span class="after-mark"> / </span>
-                </div>
-              </o-fill>
-            </div>
-            <o-if :value="saveing">
-              <div style="margin: 0 16px 0 auto; font-size: 20px">
-                <n-local-icon name="loading"></n-local-icon>
-              </div>
-            </o-if>
-          </div>
-          <div
-            style="flex: 1; position: relative"
-            on:lumi-page-save="lumiPageSaving"
-          >
-            <slot></slot>
+                </p-button>
+                <p-list slot="childs" style="--ladder-left: 8px">
+                  <o-fill
+                    :value="$data?.data?.main"
+                    name="list-item"
+                    fill-key="_dataId"
+                  >
+                  </o-fill>
+                </p-list>
+              </p-list-item>
+            </o-fill>
+          </p-list>
+
+          <div style="padding-bottom: 16px; display: flex; align-items: center">
+            <p-button
+              variant="text"
+              on:click="openAddDialog = true"
+              style="flex: 1"
+            >
+              <n-local-icon
+                name="add-project"
+                slot="prefix"
+                style="display: block; margin-right: 3px"
+              ></n-local-icon>
+              <localized-content>
+                <span lang="en"> Manage Projects </span>
+                <span lang="cn"> 管理项目 </span>
+                <span lang="ja"> プロジェクトを管理する </span>
+              </localized-content>
+            </p-button>
+            <!-- <p-button variant="text" style="flex: 1"> 添加项目 </p-button> -->
           </div>
         </div>
-      </div>
-      <!-- <div class="right"></div> -->
-    </div>
-  </p-bind-contextmenu>
 
-  <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
-    <div slot="title">
-      <localized-content>
-        <span lang="en"> Manage Projects </span>
-        <span lang="cn"> 管理项目 </span>
-        <span lang="ja"> プロジェクトを管理する </span>
-      </localized-content>
-    </div>
-    <p-button
-      variant="text"
-      icon
-      on:click="openAddDialog = false"
-      style="position: absolute; right: 10px; top: 10px"
+        <template name="list-item">
+          <p-list-item
+            class="article-list-item"
+            attr:data-id="$data._dataId"
+            class:hide="$data.removed"
+            button
+            attr:active-item=" $data._dataId === $host.currentArticleDataId"
+            collapse-childs="open"
+            on:click="$host.handleClickArticle($data,$event)"
+          >
+            <n-local-icon
+              name="article"
+              slot="prefix"
+              style="display: block; margin-right: 4px; font-size: 18px"
+            ></n-local-icon>
+
+            {{$host.getArticleTitle($data)}}
+            <!-- <localized-content>
+              <span lang="en">
+                {{$host.getArticleTitle($data) || 'Unnamed Page'}}
+              </span>
+              <span lang="cn">
+                {{$host.getArticleTitle($data) || '未命名页面'}}
+              </span>
+              <span lang="ja">
+                {{$host.getArticleTitle($data) || '未命名ページ'}}
+              </span>
+            </localized-content> -->
+
+            <i
+              slot="suffix"
+              size="mini"
+              toggle-collapse
+              style="z-index: 3; display: block"
+              triangle
+              class:hide="!$host.getSubArticles($data).length"
+            ></i>
+
+            <p-list slot="childs">
+              <o-fill
+                :value="$host.getSubArticles($data)"
+                name="list-item"
+                fill-key="_dataId"
+              ></o-fill>
+            </p-list>
+          </p-list-item>
+        </template>
+
+        <style>
+          .breadcrumbs {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            height: 38px;
+            margin: 0 16px;
+            overflow: hidden;
+            opacity: 1;
+            transition: all ease 0.3s;
+          }
+
+          .breadcrumbs.hide-breadcrumbs {
+            opacity: 0;
+            height: 0px;
+          }
+
+          .breadcrumb {
+            display: flex;
+            align-items: center;
+            font-size: 16px;
+            line-height: 24px;
+            cursor: pointer;
+          }
+
+          .breadcrumb:hover .content {
+            text-decoration: underline;
+          }
+
+          .after-mark {
+            display: block;
+            margin: 0 8px;
+            color: #a4a4a4;
+            font-weight: 100;
+          }
+
+          .breadcrumb:last-child .content {
+            cursor: default;
+            text-decoration: none !important;
+          }
+
+          .breadcrumb:last-child .after-mark {
+            display: none;
+          }
+        </style>
+
+        <div
+          class="main"
+          on:active-article="handleActiveArticle"
+          on:update-breadcrumbs="handleUpdateBreadcrumbs"
+        >
+          <div
+            style="
+              width: 100%;
+              height: 100%;
+              display: flex;
+              flex-direction: column;
+            "
+          >
+            <div class="top" style="display: flex; align-items: center">
+              <div class="breadcrumbs" class:hide-breadcrumbs="hideBreadcrumbs">
+                <div
+                  class="breadcrumb"
+                  style="text-decoration: none; cursor: default"
+                >
+                  <n-local-icon
+                    name="project"
+                    style="display: block; font-size: 18px; margin-right: 4px"
+                  ></n-local-icon>
+                  <span style="color: var(--md-sys-color-primary)"
+                    >{{currentProjectData?.projectName}}</span
+                  >
+                  <span class="after-mark"> / </span>
+                </div>
+                <o-fill :value="paths" fill-key="dataId">
+                  <div class="breadcrumb" on:click="$host.clickBread($data)">
+                    <n-local-icon
+                      name="article"
+                      style="display: block; font-size: 18px; margin-right: 4px"
+                    ></n-local-icon>
+                    <span class="content">
+                      {{$host.getArticleTitle($data)}}</span
+                    >
+                    <span class="after-mark"> / </span>
+                  </div>
+                </o-fill>
+              </div>
+              <style>
+                .top-right {
+                  display: flex;
+                  margin-left: auto;
+                  align-items: center;
+                  height: 30px;
+                  transition: all ease 0.3s;
+                  padding-right: 16px;
+                }
+                .hide-top-right {
+                  height: 0;
+                  opacity: 0;
+                  pointer-events: none;
+                }
+              </style>
+              <div class="top-right" class:hide-top-right="hideBreadcrumbs">
+                <div
+                  style="margin-right: 8px; font-size: 20px"
+                  :style.opacity="saving ? 1 : 0"
+                >
+                  <n-local-icon name="loading"></n-local-icon>
+                </div>
+
+                <lumi-view-lang
+                  :project-data="currentProjectData"
+                ></lumi-view-lang>
+
+                <p-button
+                  size="small"
+                  variant="text"
+                  color="normal"
+                  icon
+                  on:click="openProjectSettingDialog = true"
+                >
+                  <n-local-icon name="config"></n-local-icon>
+                </p-button>
+              </div>
+            </div>
+            <div
+              style="flex: 1; position: relative"
+              on:lumi-page-save="lumiPageSaving"
+              on:click-create-project="openCreateProjectDialog = true"
+            >
+              <slot></slot>
+            </div>
+          </div>
+        </div>
+        <!-- <div class="right"></div> -->
+      </div>
+    </p-bind-contextmenu>
+
+    <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
+      <div slot="title">
+        <localized-content>
+          <span lang="en"> Manage Projects </span>
+          <span lang="cn"> 管理项目 </span>
+          <span lang="ja"> プロジェクトを管理する </span>
+        </localized-content>
+      </div>
+      <p-button
+        variant="text"
+        icon
+        on:click="openAddDialog = false"
+        style="position: absolute; right: 10px; top: 10px"
+      >
+        <n-local-icon name="close"></n-local-icon>
+      </p-button>
+      <div style="min-width: 60vw; min-height: 60vh">
+        <lumi-switch-project
+          on:close-dialog="openAddDialog = false"
+        ></lumi-switch-project>
+      </div>
+    </p-dialog>
+    <p-dialog
+      :open="openProjectSettingDialog"
+      on:click-mask="openProjectSettingDialog = false"
     >
-      <n-local-icon name="close"></n-local-icon>
-    </p-button>
-    <div style="min-width: 60vw; min-height: 60vh">
-      <lumi-switch-project
-        on:close-dialog="openAddDialog = false"
-      ></lumi-switch-project>
-    </div>
-  </p-dialog>
+      <div slot="title">
+        <localized-content>
+          <span lang="en"> Project Settings </span>
+          <span lang="cn"> 项目设置 </span>
+          <span lang="ja"> プロジェクトの設定 </span>
+        </localized-content>
+      </div>
+      <lumi-project-setting
+        :project-data="currentProjectData"
+        style="min-height: 50vh; min-width: 50vh"
+      ></lumi-project-setting>
+    </p-dialog>
+
+    <p-dialog
+      :open="openCreateProjectDialog"
+      on:click-mask="openCreateProjectDialog = false"
+    >
+      <div slot="title">
+        <localized-content>
+          <span lang="en"> Create Project </span>
+          <span lang="cn"> 创建项目 </span>
+          <span lang="ja"> プロジェクトを作成する </span>
+        </localized-content>
+      </div>
+      <lumi-create-project
+        on:cancel-create-project="cancelCreateProject"
+      ></lumi-create-project>
+    </p-dialog>
+  </o-provider>
   <script>
     export default async ({ load }) => {
       const { findArticle } = await load("../util/find-article-data.js");
@@ -421,14 +503,38 @@
           currentDirName: null,
           openAddDialog: false,
           projects: [], // 已经打开的项目
-          saveing: false, // 保存项目中
+          saving: false, // 保存项目中
+          openProjectSettingDialog: false,
+          currentProjectData: null,
+          openCreateProjectDialog: false,
         },
         proto: {
+          getArticleTitle(data) {
+            const provider = this.shadow.$('o-provider[name="lumi-view-lang"]');
+
+            const viewLang = provider.value;
+
+            const { titleI18nContent } = data;
+
+            if (titleI18nContent && titleI18nContent[viewLang]) {
+              return titleI18nContent[viewLang].value;
+            }
+
+            if (!data.title) {
+              return "Unnamed Page";
+            }
+
+            return data.title;
+          },
+          cancelCreateProject() {
+            this.openCreateProjectDialog = false;
+            this.shadow.$("lumi-switch-project").reloadExistProjects();
+          },
           lumiPageSaving() {
             clearTimeout(this._saving_timer);
-            this.saveing = true;
+            this.saving = true;
             this._saving_timer = setTimeout(() => {
-              this.saveing = false;
+              this.saving = false;
             }, 500 + Math.random() * 500);
           },
           clickBread(item) {
@@ -439,19 +545,21 @@
           async handleUpdateBreadcrumbs(e) {
             const { hide, titles } = e.data;
 
-            const projectData = await this.app.getProject(
+            const projectItem = await this.app.getProject(
               this.currentDirName,
               this.currentUserId
             );
 
-            this.currentProjectName = projectData.projectName;
+            if (projectItem.data) {
+              this.currentProjectData = projectItem.data;
+            }
 
             if (hide) {
               this.hideBreadcrumbs = true;
-              // this.paths = [];
+              this.currentProjectData = {};
             } else {
               this.hideBreadcrumbs = false;
-              this.paths = e.data.titles;
+              this.paths.splice(0, this.paths.length, ...e.data.titles);
             }
           },
           getSubArticles(data) {
@@ -533,16 +641,12 @@
           this.attr("layout-page", "");
         },
         attached() {
-          const { _openedProjects } = this.app;
-          this.projects = _openedProjects;
-
-          setTimeout(() => {
-            console.log("_openedProjects: ", _openedProjects[0]);
-          }, 1000);
+          this.projects = this.app._openedProjects;
         },
         detached() {
           this.articles = {};
           this.projects = [];
+          this.currentProjectData = {};
 
           this.app.revokeAllProject();
         },

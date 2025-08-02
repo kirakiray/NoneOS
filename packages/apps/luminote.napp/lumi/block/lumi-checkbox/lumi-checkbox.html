@@ -35,10 +35,10 @@
         proto: {
           setValue() {},
           get textContent() {
-            return this.host.host.text;
+            return this.host.host._currentTextContent;
           },
           get htmlContent() {
-            const { html } = this.host.host[0];
+            const html = this.host.host._currentHtmlContent;
 
             return `<lumi-checkbox ${
               this.checked ? 'checked="1"' : ""

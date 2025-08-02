@@ -4,6 +4,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
   <style>
     :host {
@@ -21,7 +22,7 @@
       /* background-color: rgba(18, 107, 107, 0.413); */
       flex: 1;
       margin: 1px auto;
-      padding: 6px 8px;
+      padding: 4px 8px;
       border-radius: 6px;
       /* background-color: rgba(255, 128, 0, 0.3); */
     }
@@ -30,8 +31,6 @@
       position: absolute;
       left: -32px;
       top: 4px;
-      /* top: 4px; */
-      /* top: 20%; */
       opacity: 0;
     }
     :host(:hover) .menu-btn {
@@ -64,11 +63,17 @@
       position: relative;
       z-index: 1;
       display: block;
-      /* padding: 6px 8px; */
       line-height: 1.6em;
+      letter-spacing: 0px;
       outline: none;
       -webkit-user-modify: read-write-plaintext-only;
       user-modify: read-write-plaintext-only;
+    }
+
+    .translate-container {
+      display: block;
+      line-height: 1.6em;
+      letter-spacing: 0px;
     }
 
     .inputer-tips {
@@ -256,6 +261,28 @@
       padding-top: 0;
       padding-bottom: 0;
     }
+
+    .translate-container {
+      position: relative;
+      min-height: 14px;
+      user-select: text;
+    }
+
+    .lang-mark {
+      position: absolute;
+      right: -8px;
+      bottom: -6px;
+      font-size: 12px;
+      line-height: 1.6em;
+      display: flex;
+      align-items: center;
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+      padding: 0 4px;
+      border-radius: 4px;
+      opacity: 0.7;
+      font-weight: 500;
+    }
   </style>
 
   <o-if :value="!loading">
@@ -293,7 +320,24 @@
             :type="itemData.type"
             on:update-block-value="updateBlockValue"
           >
-            <slot></slot>
+            <o-if :value="inTranslate">
+              <o-if :value="inTranslate == 1">
+                <slot></slot>
+              </o-if>
+              <div class="translate-container">
+                <div :html="translateContent" style="display: contents"></div>
+
+                <div class="lang-mark">
+                  <o-if :value="inTranslate == 1 || inTranslate == 2">
+                    <n-local-icon name="loading"></n-local-icon>
+                  </o-if>
+                  {{markLang}}
+                </div>
+              </div>
+            </o-if>
+            <o-else>
+              <slot></slot>
+            </o-else>
 
             <span class="placeholder" class:show="inFocus && !itemData.value">
               <localized-content>
@@ -311,6 +355,7 @@
             </span>
           </lumi-fake>
         </o-if>
+
         <o-if :value="itemData.type === 'article'">
           <div
             class="article-comp"
@@ -327,6 +372,41 @@
         <div class="dragovering-mark" class:show="dragovering"></div>
       </div>
     </div>
+
+    <o-if :value="inBeautify">
+      <div
+        style="
+          max-width: 800px;
+          margin: 0 auto;
+          padding: 8px 16px;
+          color: var(--md-sys-color-normal);
+        "
+      >
+        {{beautifyContent}}
+        <o-if :value="inBeautify == 1">
+          <n-local-icon name="loading"></n-local-icon>
+        </o-if>
+        <o-else-if :value="inBeautify == 2">
+          <div style="padding: 8px 0">
+            <p-button
+              variant="outlined"
+              size="small"
+              on:click="useBeautify(true)"
+            >
+              采用
+            </p-button>
+            <p-button
+              variant="outlined"
+              size="small"
+              on:click="useBeautify(false)"
+              color="error"
+            >
+              取消
+            </p-button>
+          </div>
+        </o-else-if>
+      </div>
+    </o-if>
   </o-if>
   <o-else>
     <div
@@ -351,10 +431,13 @@
     }
   </style>
 
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
+
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
       const { saveUserCord } = await load("../util/user-record-util.js");
+      const { getHash } = await load("/packages/fs/util.js");
 
       const { addLoadingTask, removeLoadingTask } = await load(
         "./util/lumi-util.js"
@@ -369,13 +452,20 @@
         "/packages/i18n/localized-object.js"
       );
 
+      const { ask, clearAsk } = await load("/packages/ai/main.js");
+      const { switchLang } = await load("./util/i18n-toblock.js");
+
       return {
         tag: "lumi-block",
         data: {
           inFocus: false,
           loading: true, // 初始状态为loading，按队列尽心渲染，防止页面卡顿
           itemData: {},
-          beautifyContent: "Loading...",
+          beautifyContent: "", // 润色后的文本
+          inBeautify: false, // 润色中
+          translateContent: "", // 翻译后的文本
+          inTranslate: false, // 翻译中
+          inTranslateLang: "", // 翻译的语言
           selected: false, // 是否被选中
           leftMenuOpened: false, // 左侧菜单是否打开
           showSubmark: false, // 显示当前为子元素的标记
@@ -383,8 +473,12 @@
           tabLeft: 0,
           dragStart: false, // 拖拽开始
           desc: {},
+          lumiViewLang: "",
         },
         watch: {
+          lumiViewLang(lang) {
+            this.switchOtherLang(lang);
+          },
           leftMenuOpened(opened) {
             if (!this.__inited) {
               this.__inited = 1;
@@ -433,6 +527,63 @@
           },
         },
         proto: {
+          get markLang() {
+            switch (this.inTranslateLang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+            }
+          },
+          // 切换其他语种
+          async switchOtherLang(lang) {
+            return await switchLang(this, lang, {
+              onStateChange: (state) => {
+                this.inTranslate = state;
+              },
+              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
+                this.inTranslateLang = targetLang;
+                this.inTranslate = state;
+                if (content !== undefined) {
+                  this.translateContent = content;
+                }
+              },
+              onError: (err) => {
+                console.log(err);
+              },
+            });
+          },
+          // 润色内容
+          async beautify() {
+            try {
+              this.inBeautify = 1;
+              this.beautifyContent = "";
+
+              await ask(
+                `保留原来的html标签，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
+                {
+                  onChunk: (e) => {
+                    this.beautifyContent = e.responseText;
+                  },
+                }
+              );
+
+              this.inBeautify = 2;
+            } catch (err) {
+              this.inBeautify = false;
+            }
+          },
+          useBeautify(bool) {
+            if (bool) {
+              this.itemData.value = this.beautifyContent;
+              this.beautifyContent = "";
+            }
+            this.inBeautify = false;
+          },
           get subItems() {
             const currentTab = this.itemData.tab || 0;
 
@@ -563,18 +714,37 @@
               }
             }, 10);
           },
+          get _currentHtmlContent() {
+            const { value, type, i18nContent = {} } = this.itemData;
+
+            let currentValue = value;
+
+            try {
+              currentValue = i18nContent[this.parent.lumiViewLang].value;
+            } catch (err) {}
+
+            return currentValue;
+          },
+          get _currentTextContent() {
+            const currentValue = this._currentHtmlContent;
+
+            const temp = $(`<template>${currentValue}</template>`);
+
+            return temp.ele.content.textContent;
+          },
           get htmlContent() {
-            const { value, type } = this.itemData;
+            const { type } = this.itemData;
+            const currentValue = this._currentHtmlContent;
 
             switch (type) {
               case "paragraph":
-                return `<p>${value}</p>`;
+                return `<p>${currentValue}</p>`;
               case "h2":
-                return `<h2>${value}</h2>`;
+                return `<h2>${currentValue}</h2>`;
               case "h3":
-                return `<h3>${value}</h3>`;
+                return `<h3>${currentValue}</h3>`;
               case "h4":
-                return `<h4>${value}</h4>`;
+                return `<h4>${currentValue}</h4>`;
               case "article":
                 return "<span></span>";
               default:
@@ -590,7 +760,8 @@
               case "h2":
               case "h3":
               case "h4":
-                return this.text;
+                console.log(this._currentTextContent);
+                return this._currentTextContent;
               case "article":
                 return "";
               default:
@@ -603,13 +774,13 @@
 
             switch (type) {
               case "paragraph":
-                return this.text;
+                return this.textContent;
               case "h2":
-                return `## ${this.text}`;
+                return `## ${this.textContent}`;
               case "h3":
-                return `### ${this.text}`;
+                return `### ${this.textContent}`;
               case "h4":
-                return `#### ${this.text}`;
+                return `#### ${this.textContent}`;
               case "article":
                 return "";
               default:
@@ -666,8 +837,13 @@
               ja: "無題のページ",
             },
           });
+
+          // this.emit("block-attached");
         },
         detached() {
+          if (this._asking) {
+            clearAsk(this.xid);
+          }
           removeLoadingTask(this);
 
           this.itemData = {};

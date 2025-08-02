@@ -1,0 +1,357 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .list-line {
+      display: flex;
+      align-items: center;
+      height: 30px;
+    }
+    .list-key {
+      color: var(--md-sys-color-normal);
+    }
+
+    h4 {
+      margin: 0;
+      padding: 0;
+      margin-top: 1em;
+    }
+  </style>
+
+  <div class="list-line">
+    <span class="list-key">
+      <localized-content>
+        <span lang="cn"> 项目名称 </span>
+        <span lang="en"> Project Name </span>
+        <span lang="ja"> プロジェクト名 </span>
+      </localized-content>
+    </span>
+    :
+    <o-if :value="!nameEditMode">
+      <div style="margin-left: 4px; color: var(--md-sys-color-primary)">
+        {{projectData?.projectName}}
+      </div>
+      <p-button
+        size="small"
+        variant="text"
+        on:click="clickEditMode"
+        icon
+        style="margin-left: 8px"
+      >
+        <n-local-icon name="edit"></n-local-icon>
+      </p-button>
+    </o-if>
+    <o-else>
+      <p-input
+        sync:value="editProjectName"
+        size="small"
+        style="width: 200px; margin-left: 8px"
+      ></p-input>
+      <p-button
+        on:click="clickSave"
+        size="small"
+        style="margin-left: 8px"
+        variant="outlined"
+        attr:disabled="editProjectName === projectData.projectName"
+      >
+        <localized-content>
+          <span lang="cn"> 保存 </span>
+          <span lang="en"> Save </span>
+          <span lang="ja"> 保存 </span>
+        </localized-content>
+      </p-button>
+      <p-button
+        on:click="nameEditMode = false"
+        size="small"
+        variant="text"
+        style="margin-left: 8px"
+      >
+        <localized-content>
+          <span lang="cn"> 取消 </span>
+          <span lang="en"> Cancel </span>
+          <span lang="ja"> キャンセル </span>
+        </localized-content>
+      </p-button>
+    </o-else>
+  </div>
+  <div class="list-line">
+    <span class="list-key">
+      <localized-content>
+        <span lang="cn"> 项目语言 </span>
+        <span lang="en"> Project Language </span>
+        <span lang="ja"> プロジェクト言語 </span>
+      </localized-content>
+    </span>
+    :
+    <div style="margin-left: 4px">{{lang}}</div>
+    <o-if :value="!lang">
+      <p-select sync:value="currentMainLang" size="small">
+        <p-option value="cn">简体中文</p-option>
+        <p-option value="en">English</p-option>
+        <p-option value="t-cn">繁體中文</p-option>
+        <p-option value="ja">日本語</p-option>
+      </p-select>
+      <p-button
+        on:click="projectData.mainLang = currentMainLang"
+        size="small"
+        style="margin-left: 4px"
+        variant="outlined"
+      >
+        <localized-content>
+          <span lang="cn">保存</span>
+          <span lang="en">Save</span>
+          <span lang="ja">保存</span>
+        </localized-content>
+      </p-button>
+    </o-if>
+  </div>
+  <h4 style="display: flex; align-items: center">
+    <localized-content>
+      <span lang="cn">多语言进度</span>
+      <span lang="en">Translation Progress</span>
+      <span lang="ja">翻訳進捗</span>
+    </localized-content>
+    <p-button
+      size="mini"
+      style="margin-left: 8px"
+      variant="outlined"
+      on:click="refreshLangProgress"
+    >
+      <localized-content>
+        <span lang="cn">刷新</span>
+        <span lang="en">Refresh</span>
+        <span lang="ja">更新</span>
+      </localized-content>
+    </p-button>
+  </h4>
+  <o-if :value="translationProgress.length">
+    <o-fill :value="translationProgress">
+      <div style="padding: 8px 0">
+        {{$data.langName}} ({{$data.progressStr}}%)
+        <div style="display: flex; align-items: center; max-width: 320px">
+          <p-progress
+            :value="$data.progress"
+            style="margin-top: 4px; margin-right: 8px"
+          ></p-progress>
+          <p-button
+            size="small"
+            variant="outlined"
+            color="error"
+            on:click="$host.clearLang($data.lang)"
+          >
+            <localized-content>
+              <span lang="cn">清除缓存</span>
+              <span lang="en">Clear Cache</span>
+              <span lang="ja">キャッシュをクリア</span>
+            </localized-content>
+          </p-button>
+        </div>
+      </div>
+    </o-fill>
+  </o-if>
+  <o-else>
+    <div style="height: 48px; line-height: 48px">
+      <localized-content>
+        <span lang="cn">暂无翻译进度</span>
+        <span lang="en">No translation progress</span>
+        <span lang="ja">翻訳進捗なし</span>
+      </localized-content>
+    </div>
+  </o-else>
+
+  <script>
+    import { getHash } from "/packages/fs/util.js";
+
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        tag: "lumi-project-setting",
+        data: {
+          nameEditMode: false,
+          editProjectName: "",
+          projectData: {},
+          currentMainLang: "",
+          translationProgress: [],
+        },
+        proto: {
+          async clearLang(lang) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "清除翻译缓存",
+                en: "Clear Translation Cache",
+                ja: "翻訳キャッシュをクリア",
+              }),
+              content: await getLocalized({
+                cn: `确认要清除 ${this.getRealLang(lang)}？`,
+                en: `Are you sure you want to clear ${this.getRealLang(lang)}?`,
+                ja: `${this.getRealLang(lang)}をクリアしてもよろしいですか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await clearTranslatedContent(this.projectData.main, lang);
+
+            this.refreshLangProgress();
+          },
+          async refreshLangProgress() {
+            const translationProgress = [];
+
+            const langs = ["en", "ja"];
+
+            if (this?.projectData?.main) {
+              const progress = await getTranslationProgress(
+                this.projectData.main,
+                langs
+              );
+
+              for (const lang of langs) {
+                const langProgress = progress[lang] || {
+                  translatedItemCount: 0,
+                  totalItemCount: 0,
+                };
+
+                {
+                  const progress =
+                    (langProgress.translatedItemCount /
+                      langProgress.totalItemCount) *
+                    100;
+
+                  translationProgress.push({
+                    lang,
+                    langName: this.getRealLang(lang),
+                    ...langProgress,
+                    progress,
+                    progressStr: progress.toFixed(2),
+                  });
+                }
+              }
+            }
+
+            this.translationProgress = translationProgress;
+          },
+          get lang() {
+            if (!this.projectData) {
+              return "";
+            }
+
+            return this.getRealLang(this.projectData.mainLang);
+          },
+
+          getRealLang(lang) {
+            switch (lang) {
+              case "cn":
+                return "简体中文";
+              case "en":
+                return "English";
+              case "t-cn":
+                return "繁體中文";
+              case "ja":
+                return "日本語";
+              default:
+                return lang;
+            }
+          },
+          clickSave() {
+            this.projectData.projectName = this.editProjectName;
+            this.nameEditMode = false;
+          },
+          clickEditMode() {
+            this.editProjectName = this.projectData.projectName;
+            this.nameEditMode = true;
+          },
+        },
+        attached() {
+          setTimeout(() => {
+            this.refreshLangProgress();
+          }, 2000);
+        },
+        detached() {
+          this.projectData = {};
+        },
+      };
+    };
+
+    const clearTranslatedContent = async (contentBlocks, lang) => {
+      for (let i = 0; i < contentBlocks.length; i++) {
+        const contentBlock = contentBlocks[i];
+        if (contentBlock.type === "article") {
+          contentBlock.content = await clearTranslatedContent(
+            contentBlock.content,
+            lang
+          );
+        } else {
+          const { i18nContent } = contentBlock;
+          if (i18nContent) {
+            i18nContent[lang] = "";
+          }
+        }
+      }
+      return contentBlocks;
+    };
+
+    // 获取翻译的进度
+    const getTranslationProgress = async (contentBlocks, languages) => {
+      // 确保languages是数组
+      const langArray = Array.isArray(languages) ? languages : [languages];
+
+      // 为每种语言初始化计数器
+      const result = {};
+      for (const lang of langArray) {
+        result[lang] = {
+          translatedItemCount: 0,
+          totalItemCount: 0,
+        };
+      }
+
+      for (let i = 0; i < contentBlocks.length; i++) {
+        const contentBlock = contentBlocks[i];
+        if (contentBlock.type === "article") {
+          const progressData = await getTranslationProgress(
+            contentBlock.content,
+            langArray
+          );
+
+          // 累加每种语言的结果
+          for (const lang of langArray) {
+            if (progressData[lang]) {
+              result[lang].translatedItemCount +=
+                progressData[lang].translatedItemCount;
+              result[lang].totalItemCount += progressData[lang].totalItemCount;
+            }
+          }
+        } else {
+          // 为每种语言单独统计
+          for (const lang of langArray) {
+            result[lang].totalItemCount++;
+
+            const { i18nContent } = contentBlock;
+            if (!i18nContent) {
+              continue;
+            }
+
+            const hash = await getHash(contentBlock.value);
+
+            if (i18nContent[lang] && i18nContent[lang].originHash === hash) {
+              result[lang].translatedItemCount++;
+            }
+          }
+        }
+      }
+
+      return result;
+    };
+  </script>
+</template>

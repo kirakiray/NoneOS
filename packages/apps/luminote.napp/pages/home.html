@@ -6,6 +6,8 @@
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
 
   <style>
     :host {
@@ -63,74 +65,92 @@
 
   <o-if :value="isSafari">
     <div style="color: red">
-      <p lang="cn">
-        注意：在 Safari
-        浏览器中使用本应用时，请务必通过新标签页模式打开，否则可能会出现兼容性问题，导致部分功能无法正常使用。
-      </p>
-      <p lang="en">
-        Note: When using this application in Safari browser, please open it in a
-        new tab mode, otherwise, you may encounter compatibility issues and some
-        features may not work properly.
-      </p>
-      <p lang="ja">
-        注意： Safari
-        ブラウザでこのアプリケーションを使用する場合、新しいタブで開いてください。そうしないと、一部の機能が正常に動作しない可能性があります。
-      </p>
+      <localized-content>
+        <p lang="cn">
+          注意：在 Safari
+          浏览器中使用本应用时，请务必通过新标签页模式打开，否则可能会出现兼容性问题，导致部分功能无法正常使用。
+        </p>
+        <p lang="en">
+          Note: When using this application in Safari browser, please open it in
+          a new tab mode, otherwise, you may encounter compatibility issues and
+          some features may not work properly.
+        </p>
+        <p lang="ja">
+          注意： Safari
+          ブラウザでこのアプリケーションを使用する場合、新しいタブで開いてください。そうしないと、一部の機能が正常に動作しない可能性があります。
+        </p>
+      </localized-content>
     </div>
   </o-if>
+
+  <h4>
+    <localized-content>
+      <span lang="cn">本地AI</span>
+      <span lang="en">Local AI</span>
+      <span lang="ja">ローカルAI</span>
+    </localized-content>
+  </h4>
+  <localized-content>
+    <p lang="cn">
+      配置本地 AI 后，Luminote
+      还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
+    </p>
+    <p lang="en">
+      After configuring the local AI, Luminote can also automatically provide
+      proofreading and translation services for your content, making your
+      writing experience more enjoyable and allowing you to focus on the
+      creation itself.
+    </p>
+    <p lang="ja">
+      ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
+    </p>
+  </localized-content>
+  <div>
+    <o-if :value="aiAvailable === 0">
+      <localized-content>
+        <span lang="cn">加载中...</span>
+        <span lang="en">Loading...</span>
+        <span lang="ja">ローディング中...</span>
+      </localized-content>
+    </o-if>
+    <o-else-if :value="!aiAvailable">
+      <localized-content>
+        <span lang="cn" style="color: red">加载失败</span>
+        <span lang="en" style="color: red">Loading failed</span>
+        <span lang="ja" style="color: red">ローディングに失敗しました</span>
+      </localized-content>
+    </o-else-if>
+    <o-else>
+      <localized-content>
+        <span lang="cn" style="color: var(--md-sys-color-primary)">
+          当前已检测到本地AI可用
+        </span>
+        <span lang="en" style="color: var(--md-sys-color-primary)">
+          Local AI available
+        </span>
+        <span lang="ja" style="color: var(--md-sys-color-primary)">
+          ローカルAIが利用可能
+        </span>
+      </localized-content>
+    </o-else>
+  </div>
 
   <div>
     <h4>
       <localized-content>
-        <span lang="cn">本地AI</span>
-        <span lang="en">Local AI</span>
-        <span lang="ja">ローカルAI</span>
+        <span lang="cn">项目操作</span>
+        <span lang="en">Project operations</span>
+        <span lang="ja">プロジェクト操作</span>
       </localized-content>
     </h4>
-    <localized-content>
-      <p lang="cn">
-        配置本地 AI 后，Luminote
-        还能自动为你的内容提供润色和翻译服务，让你的写作体验更加轻松愉悦，专注于创作本身。
-      </p>
-      <p lang="en">
-        After configuring the local AI, Luminote can also automatically provide
-        proofreading and translation services for your content, making your
-        writing experience more enjoyable and allowing you to focus on the
-        creation itself.
-      </p>
-      <p lang="ja">
-        ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
-      </p>
-    </localized-content>
-    <div>
-      <o-if :value="models === 0">
-        <localized-content>
-          <span lang="cn">加载中...</span>
-          <span lang="en">Loading...</span>
-          <span lang="ja">ローディング中...</span>
-        </localized-content>
-      </o-if>
-      <o-else-if :value="models === 'error'">
-        <localized-content>
-          <span lang="cn">加载失败</span>
-          <span lang="en">Loading failed</span>
-          <span lang="ja">ローディングに失敗しました</span>
-        </localized-content>
-      </o-else-if>
-      <o-else>
-        <localized-content>
-          <span lang="cn" style="color: var(--md-sys-color-primary)">
-            检测到 {{models.length}} 个模型
-          </span>
-          <span lang="en" style="color: var(--md-sys-color-primary)">
-            Detected {{models.length}} models
-          </span>
-          <span lang="ja" style="color: var(--md-sys-color-primary)">
-            検出された {{models.length}} モデル
-          </span>
-        </localized-content>
-      </o-else>
-    </div>
+
+    <p-button on:click="clickCreateProject" variant="outlined">
+      <localized-content>
+        <span lang="cn">创建新项目</span>
+        <span lang="en">Create new project</span>
+        <span lang="ja">新しいプロジェクトを作成する</span>
+      </localized-content>
+    </p-button>
   </div>
 
   <div>
@@ -162,11 +182,13 @@
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
-      const { getOllamaModels } = await load("/packages/ai/util.js");
+      const { isAIAvailable } = await load("/packages/ai/main.js");
 
       const isSafari = /^((?!chrome|android).)*safari/i.test(
         navigator.userAgent
       );
+
+      const { getSetting } = await load("/packages/none-os/setting.js");
 
       return {
         data: {
@@ -177,9 +199,15 @@
           existProjects: [], // 已经存在的项目
           remotes: [], // 其他设备
           loadingRemote: false,
-          models: 0,
+          aiAvailable: 0,
+          appConfigData: {}, // 当前应用的配置数据
         },
         proto: {
+          clickCreateProject() {
+            this.emit("click-create-project", {
+              composed: true,
+            });
+          },
           async handleDeleteProject(data, event) {
             event.stopPropagation();
 
@@ -199,6 +227,10 @@
           },
         },
         attached() {
+          (async () => {
+            this.aiAvailable = await isAIAvailable();
+          })();
+
           this.emit("active-article", {
             composed: true,
             data: {
@@ -212,12 +244,6 @@
               hide: 1,
             },
           });
-
-          getOllamaModels()
-            .then((e) => {
-              this.models = e;
-            })
-            .catch(() => (this.models = "error"));
         },
         detached() {},
       };

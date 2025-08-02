@@ -3,7 +3,7 @@
   <l-m src="./lumi-multi-panel.html"></l-m>
   <l-m src="./lumi-text-panel.html"></l-m>
   <l-m src="./lumi-block-menu.html"></l-m>
-  <l-m src="./lumi-page-title.html"></l-m>
+  <!-- <l-m src="./lumi-page-title.html"></l-m> -->
   <l-m src="./lumi-command-panel.html"></l-m>
   <l-m src="./lumi-inline-comp-panel.html"></l-m>
   <l-m src="./lumi-remote-mark.html"></l-m>
@@ -12,12 +12,13 @@
       position: relative;
       display: block;
       margin: 0 auto;
+      padding: 0 32px;
       user-select: auto;
       /* background-color: rgb(62, 177, 142); */
     }
     /* .container {
     } */
-
+    /* 
     .title {
       font-size: 40px;
       font-weight: 700;
@@ -30,7 +31,7 @@
       appearance: none;
       border: none;
       color: inherit;
-    }
+    } */
   </style>
   <o-if :value="itemData.removed">
     <div
@@ -65,19 +66,20 @@
       </p-button>
     </div>
   </o-if>
+  <style>
+    .mask {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+  </style>
   <div class="container">
-    <lumi-page-title>
-      <input
-        id="title"
-        class="title"
-        type="text"
-        sync:value="itemData.title"
-        on:click="$event.stopPropagation()"
-        style="margin-bottom: 16px"
-        on:keydown="titleKeyDown"
-        :placeholder="desc.pageTitlePlaceholder"
-      />
-    </lumi-page-title>
+    <lumi-page-title :item-data="itemData"> </lumi-page-title>
+    <!-- 添加 mask 元素，用于防止 Chrome 浏览器对 lumi-block 组件的 hover 效果处理不及时的问题 -->
+    <div class="mask"></div>
     <slot></slot>
     <o-fill :value="recordData" fill-key="userId">
       <lumi-remote-mark
@@ -92,10 +94,12 @@
   <lumi-command-panel></lumi-command-panel>
   <lumi-block-menu></lumi-block-menu>
   <lumi-inline-comp-panel></lumi-inline-comp-panel>
-  <script>
-    import { localizedObject } from "/packages/i18n/localized-object.js";
 
+  <o-consumer name="lumi-view-lang" watch:value="lumiViewLang"></o-consumer>
+  <script>
     export default async ({ load }) => {
+      await load("./lumi-page-title.html");
+
       const { initUndoRedo, revokeUndoRedo } = await load(
         "./lumi-page-init/undo-redo.js"
       );
@@ -143,30 +147,11 @@
           itemData: {},
           recordData: {},
           desc: {},
+          lumiViewLang: "",
         },
         proto: {
-          titleKeyDown(e) {
-            if (e.key === "Enter") {
-              // 如果第一个元素不是空元素，则添加空元素后聚焦
-              let firstBlock = this[0];
-
-              if (!firstBlock.itemData.value.trim()) {
-                firstBlock.focus();
-                return;
-              }
-
-              this.itemData.content.unshift({
-                type: "paragraph",
-                value: "",
-              });
-
-              setTimeout(() => {
-                this[0].focus();
-              }, 10);
-            }
-          },
           focusTitle() {
-            this.shadow.$(".title").ele.focus();
+            setTimeout(() => this.shadow.$("lumi-page-title").focus(), 100);
           },
           async focusLast() {
             let lastBlockEl = this.slice(-1)[0];
@@ -207,19 +192,17 @@
           },
         },
         async attached() {
-          this.desc = localizedObject({
-            pageTitlePlaceholder: {
-              cn: "页面标题",
-              en: "Page title",
-              ja: "ページタイトル",
-            },
-          });
           this.on("click", (e) => {
             const composeds = e.composedPath();
 
             if (composeds[0].matches && composeds[0].matches("lumi-page")) {
               this.focusLast();
             }
+          });
+
+          // 用于防止 Chrome 浏览器对 lumi-block 组件的 hover 效果处理不及时的问题
+          this.shadow.$(".mask").on("mousedown", (e) => {
+            e.target.remove();
           });
 
           // 先清空
@@ -233,10 +216,7 @@
               }
 
               const finalArr = Array.from(e).filter(
-                (e) =>
-                  e.name !== "dataStatus" &&
-                  e.name !== "inFocus" &&
-                  e.name !== "focusUser"
+                (e) => e.name !== "dataStatus" && e.name !== "inFocus"
               );
 
               if (!finalArr.length) {
@@ -284,8 +264,6 @@
           }
 
           this.itemData = {}; // 清除绑定
-          this.desc._clear();
-          this.desc = {};
 
           revokeUndoRedo(this);
           revokeMultiSelect(this);

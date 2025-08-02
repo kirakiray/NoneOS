@@ -29,7 +29,7 @@
     <o-fill :value="imgs">
       <div
         class="block"
-        class:active="settingData.wallpaper === $data.name"
+        class:active="$host.settingData?.wallpaper === $data.name"
         :style.background-image="`url(${$data.imgUrl})`"
         on:click="$host.clickItem($data)"
         attr:title="$data.from"
@@ -108,8 +108,8 @@
           },
         },
         attached() {
-          this.loadWallpaper();
           this.settingData = settingData;
+          this.loadWallpaper();
         },
         detached() {
           this.settingData = {};

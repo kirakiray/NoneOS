@@ -122,13 +122,32 @@
       </localized-content>
     </p-menu-item>
     <hr />
-    <p-menu-item on:click="handleBeautify" disabled>
+    <p-menu-item
+      on:click="handleBeautify"
+      attr:disabled="!aiAvailable || isInBeautify"
+    >
       <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
       <localized-content>
         <span lang="en">Polish</span>
         <span lang="cn">润色</span>
         <span lang="ja">修正</span>
       </localized-content>
+    </p-menu-item>
+    <p-menu-item>
+      <n-local-icon name="translate" slot="prefix"></n-local-icon>
+      <localized-content>
+        <span lang="cn">切换语言</span>
+        <span lang="en">Switch Language</span>
+        <span lang="ja">言語を切り替える</span>
+      </localized-content>
+      <p-menu>
+        <o-fill :value="langOption">
+          <p-menu-item on:click="$host.switchLang($data)">
+            <span slot="prefix" :html="$data.icon"></span>
+            {{$data.name}}
+          </p-menu-item>
+        </o-fill>
+      </p-menu>
     </p-menu-item>
   </p-menu>
   <script>
@@ -137,6 +156,7 @@
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const { blockComps } = await load("./block/config.js"); // 块组件的配置
       const { copySelectedBlock } = await load("./util/lumi-util.js");
+      const { isAIAvailable, ask } = await load("/packages/ai/main.js");
 
       return {
         tag: "lumi-block-menu",
@@ -147,10 +167,41 @@
           itemData: {},
           blockComps,
           _blockEl: null,
+          aiAvailable: await isAIAvailable(),
+          langOption: [
+            {
+              icon: "🇨🇳",
+              code: "cn",
+              name: "简体中文",
+            },
+            {
+              icon: "🇭🇰",
+              code: "t-cn",
+              name: "繁体中文",
+            },
+            {
+              icon: "🇺🇸",
+              code: "en",
+              name: "English",
+            },
+            {
+              icon: "🇯🇵",
+              code: "ja",
+              name: "日本語",
+            },
+          ],
         },
         proto: {
-          handleBeautify() {
-            debugger;
+          async switchLang(item) {
+            this._blockEl.switchOtherLang(item.code);
+            this.open = "off";
+          },
+          async handleBeautify() {
+            this._blockEl.beautify();
+            this.open = "off";
+          },
+          get isInBeautify() {
+            return !!this?._blockEl?.inBeautify;
           },
           async handleCopy() {
             copySelectedBlock({
