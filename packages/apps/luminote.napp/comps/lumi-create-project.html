@@ -107,6 +107,8 @@
               projectName,
             });
 
+            newProject.data.mainLang = this.mainLang;
+
             await this.app.switchProject(newProject.__handle.name);
 
             toast({
