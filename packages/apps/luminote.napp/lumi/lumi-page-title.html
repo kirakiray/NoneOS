@@ -57,6 +57,7 @@
 
     export default async ({ load }) => {
       const { ask, clearAsk } = await load("/packages/ai/main.js");
+      const { switchLang } = await load("./util/i18n-toblock.js");
 
       return {
         tag: "lumi-page-title",
@@ -70,7 +71,26 @@
         },
         proto: {
           switchOtherLang(lang) {
-            debugger;
+            return switchLang(this, lang, {
+              lumipage: this.host,
+              onStateChange: (state) => {
+                this.inTranslate = state;
+              },
+              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
+                this.inTranslateLang = targetLang;
+                this.inTranslate = state;
+                if (content !== undefined) {
+                  this.translateContent = content;
+                }
+              },
+              onError: (err) => {
+                console.log(err);
+              },
+              keys: {
+                originKey: "title",
+                i18nKey: "titleI18nContent",
+              },
+            });
           },
           titleKeyDown(e) {
             if (e.key === "Enter") {

@@ -450,7 +450,7 @@
       );
 
       const { ask, clearAsk } = await load("/packages/ai/main.js");
-      const { switchOtherLang } = await load("./util/i18n-toblock.js");
+      const { switchLang } = await load("./util/i18n-toblock.js");
 
       return {
         tag: "lumi-block",
@@ -534,7 +534,7 @@
           },
           // 切换其他语种
           async switchOtherLang(lang) {
-            await switchOtherLang(this, lang, {
+            return await switchLang(this, lang, {
               onStateChange: (state) => {
                 this.inTranslate = state;
               },

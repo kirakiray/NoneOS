@@ -150,13 +150,15 @@
           lumiViewLang: "",
         },
         watch: {
-          lumiViewLang(lang) {
-            this.changeLang(lang);
+          ["lumiViewLang,itemData"]() {
+            if (this.itemData.title) {
+              debugger
+              this.changeLang(this.lumiViewLang);
+            }
           },
         },
         proto: {
           async changeLang(lang) {
-            this._changeingLang = lang;
             this.all("lumi-block").forEach(
               (block) => block.switchOtherLang && block.switchOtherLang(lang)
             );

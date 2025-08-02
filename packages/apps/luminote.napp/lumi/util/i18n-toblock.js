@@ -16,8 +16,15 @@ export const getMainLang = async (el) => {
   return projectItem.data.mainLang;
 };
 
-export const switchOtherLang = async (block, lang, options = {}) => {
-  const { onStateChange, onTranslateUpdate, onError } = options;
+export const switchLang = async (block, lang, options = {}) => {
+  let { onStateChange, onTranslateUpdate, onError, keys, lumipage } = options;
+
+  if (!keys) {
+    keys = {
+      originKey: "value",
+      i18nKey: "i18nContent",
+    };
+  }
 
   try {
     if (onStateChange) onStateChange(1);
@@ -27,9 +34,9 @@ export const switchOtherLang = async (block, lang, options = {}) => {
       delete block._asking;
     }
 
-    const mainLang = await getMainLang(block);
+    const mainLang = await getMainLang(lumipage || block);
 
-    if (!mainLang || !block.itemData.value.trim()) {
+    if (!mainLang || !block.itemData[keys.originKey].trim()) {
       if (onStateChange) onStateChange(false);
       return null;
     }
@@ -60,13 +67,13 @@ export const switchOtherLang = async (block, lang, options = {}) => {
         promptLang = lang;
     }
 
-    let i18nContent = block.itemData.i18nContent;
-    if (!block.itemData.i18nContent) {
-      block.itemData.i18nContent = {};
-      i18nContent = block.itemData.i18nContent;
+    let i18nContent = block.itemData[keys.i18nKey];
+    if (!i18nContent) {
+      block.itemData[keys.i18nKey] = {};
+      i18nContent = block.itemData[keys.i18nKey];
     }
 
-    const originHash = await getHash(block.itemData.value);
+    const originHash = await getHash(block.itemData[keys.originKey]);
 
     if (i18nContent[lang]) {
       if (i18nContent[lang].originHash === originHash) {
