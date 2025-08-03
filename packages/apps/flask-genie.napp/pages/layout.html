@@ -2,6 +2,7 @@
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -38,7 +39,11 @@
           attr:button="currentTab !== 'local-ai'"
         >
           <n-local-icon name="robot" slot="prefix"></n-local-icon>
-          本机AI
+          <localized-content>
+            <span lang="en"> Local AI </span>
+            <span lang="cn"> 本地AI </span>
+            <span lang="ja"> ローカルのAI </span>
+          </localized-content>
         </p-list-item>
         <p-list-item
           attr:active-item="currentTab == 'remote-ai'"
@@ -46,7 +51,11 @@
           attr:button="currentTab !== 'remote-ai'"
         >
           <n-local-icon name="robot2" slot="prefix"></n-local-icon>
-          其他设备的AI
+          <localized-content>
+            <span lang="en"> Remote AI </span>
+            <span lang="cn"> 其他设备的AI </span>
+            <span lang="ja"> 他のデバイスのAI </span>
+          </localized-content>
         </p-list-item>
         <p-list-item
           attr:active-item="currentTab == 'network'"
@@ -54,7 +63,11 @@
           attr:button="currentTab !== 'network'"
         >
           <n-local-icon name="network" slot="prefix"></n-local-icon>
-          网络请求
+          <localized-content>
+            <span lang="en"> Network </span>
+            <span lang="cn"> 网络请求 </span>
+            <span lang="ja"> ネットワーク要求 </span>
+          </localized-content>
         </p-list-item>
       </p-list>
     </div>

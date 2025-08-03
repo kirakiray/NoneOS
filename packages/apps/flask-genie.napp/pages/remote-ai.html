@@ -1,14 +1,31 @@
 <template page>
   <link rel="stylesheet" href="../others/public.css" />
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
       padding: 16px;
     }
   </style>
-  <h5>其他设备的AI</h5>
-  <p>让本机能够调用其他设备的AI接口</p>
-  <p>准备中...</p>
+  <localized-content>
+    <div lang="cn">
+      <h5>其他设备的AI</h5>
+      <p>让本机能够调用其他设备的AI接口</p>
+      <p>准备中...</p>
+    </div>
+    <div lang="en">
+      <h5>Remote AI</h5>
+      <p>Enable this device to call AI interfaces from other devices</p>
+      <p>Preparing...</p>
+    </div>
+    <div lang="ja">
+      <h5>他のデバイスのAI</h5>
+      <p>
+        このデバイスが他のデバイスのAIインターフェースを呼び出せるようにする
+      </p>
+      <p>準備中...</p>
+    </div>
+  </localized-content>
   <script>
     export const parent = "./layout.html";
 

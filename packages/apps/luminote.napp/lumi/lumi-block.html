@@ -282,6 +282,25 @@
       border-radius: 4px;
       opacity: 0.7;
       font-weight: 500;
+      cursor: pointer;
+    }
+
+    .lang-mark-text {
+      display: flex;
+      align-items: center;
+    }
+
+    .model-name,
+    .reload-btn {
+      display: none;
+    }
+    .reload-btn {
+      margin-left: 4px;
+      vertical-align: center;
+    }
+    .lang-mark:hover .model-name,
+    .lang-mark:hover .reload-btn {
+      display: inline-block;
     }
   </style>
 
@@ -327,11 +346,11 @@
               <div class="translate-container">
                 <div :html="translateContent" style="display: contents"></div>
 
-                <div class="lang-mark">
+                <div class="lang-mark" on:click="clickLangMark">
                   <o-if :value="inTranslate == 1 || inTranslate == 2">
                     <n-local-icon name="loading"></n-local-icon>
                   </o-if>
-                  {{markLang}}
+                  <div class="lang-mark-text" :html="markLang"></div>
                 </div>
               </div>
             </o-if>
@@ -527,17 +546,37 @@
           },
         },
         proto: {
-          get markLang() {
-            switch (this.inTranslateLang) {
-              case "cn":
-                return "简体中文";
-              case "en":
-                return "English";
-              case "t-cn":
-                return "繁體中文";
-              case "ja":
-                return "日本語";
+          clickLangMark() {
+            if (this.inTranslate === 3) {
+              delete this.itemData.i18nContent[this.inTranslateLang];
+              this.switchOtherLang(this.inTranslateLang);
             }
+          },
+          get markLang() {
+            let lang = this.inTranslateLang;
+
+            switch (lang) {
+              case "cn":
+                lang = "简体中文";
+                break;
+              case "en":
+                lang = "English";
+                break;
+              case "t-cn":
+                lang = "繁體中文";
+                break;
+              case "ja":
+                lang = "日本語";
+                break;
+            }
+
+            const targeti18n = this.itemData.i18nContent[this.inTranslateLang];
+            if (targeti18n) {
+              lang += `<span class="model-name"> - ${targeti18n.modelName}</span> 
+                  <n-local-icon name="reload" class="reload-btn"></n-local-icon>`;
+            }
+
+            return lang;
           },
           // 切换其他语种
           async switchOtherLang(lang) {

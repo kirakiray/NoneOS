@@ -105,7 +105,7 @@
       ローカルAIを設定すると、Luminoteはあなたのコンテンツに対して自動的に文章校正や翻訳サービスを提供し、執筆体験をより快適なものにし、創作そのものに集中できるようにします。
     </p>
   </localized-content>
-  <div>
+  <div style="display: flex; align-items: center">
     <o-if :value="aiAvailable === 0">
       <localized-content>
         <span lang="cn">加载中...</span>
@@ -113,25 +113,52 @@
         <span lang="ja">ローディング中...</span>
       </localized-content>
     </o-if>
-    <o-else-if :value="!aiAvailable">
-      <localized-content>
-        <span lang="cn" style="color: red">加载失败</span>
-        <span lang="en" style="color: red">Loading failed</span>
-        <span lang="ja" style="color: red">ローディングに失敗しました</span>
-      </localized-content>
-    </o-else-if>
     <o-else>
-      <localized-content>
-        <span lang="cn" style="color: var(--md-sys-color-primary)">
-          当前已检测到本地AI可用
-        </span>
-        <span lang="en" style="color: var(--md-sys-color-primary)">
-          Local AI available
-        </span>
-        <span lang="ja" style="color: var(--md-sys-color-primary)">
-          ローカルAIが利用可能
-        </span>
-      </localized-content>
+      <p-switch sync:value="appConfigData.useAITranslate" disabled>
+        使用AI功能
+      </p-switch>
+
+      <p-tooltips>
+        <o-if :value="aiAvailable">
+          <n-local-icon
+            name="succeed"
+            style="
+              color: var(--md-sys-color-primary);
+              margin-left: 8px;
+              display: block;
+            "
+          ></n-local-icon>
+        </o-if>
+        <o-else>
+          <p-button
+            size="mini"
+            icon
+            variant="outlined"
+            style="margin-left: 8px"
+          >
+            !
+          </p-button>
+        </o-else>
+
+        <div slot="tips">
+          <o-if :value="!aiAvailable">
+            <localized-content>
+              <span lang="cn">当前环境中未检测到可用的本地AI</span>
+              <span lang="en"
+                >Current environment did not detect available local AI</span
+              >
+              <span lang="ja">ローカルAIが利用可能</span>
+            </localized-content>
+          </o-if>
+          <o-else>
+            <localized-content>
+              <span lang="cn"> 当前已检测到本地AI可用 </span>
+              <span lang="en"> Local AI available </span>
+              <span lang="ja"> ローカルAIが利用可能 </span>
+            </localized-content>
+          </o-else>
+        </div>
+      </p-tooltips>
     </o-else>
   </div>
 
@@ -229,6 +256,16 @@
         attached() {
           (async () => {
             this.aiAvailable = await isAIAvailable();
+
+            const configData = await this.parents.find((e) => e.tag == "o-app")
+              ._configData;
+
+            this.appConfigData = configData;
+
+            // if (configData.useAITranslate === undefined) {
+            //   configData.useAITranslate = "off";
+            // }
+            configData.useAITranslate = this.aiAvailable ? "on" : "off";
           })();
 
           this.emit("active-article", {
@@ -245,7 +282,9 @@
             },
           });
         },
-        detached() {},
+        detached() {
+          this.appConfigData = {};
+        },
       };
     };
   </script>

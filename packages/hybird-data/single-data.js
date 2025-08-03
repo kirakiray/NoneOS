@@ -68,7 +68,7 @@ export const createSingleData = async ({ handle }) => {
   });
 
   // 监听文件变动
-  const handleRevoke = handle.observe(async () => {
+  const handleRevoke = await handle.observe(async () => {
     await refreshData(data, handle);
   });
 

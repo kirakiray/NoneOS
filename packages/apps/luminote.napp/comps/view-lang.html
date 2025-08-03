@@ -20,6 +20,9 @@
     p {
       margin: 0.4em 0;
     }
+    .hide {
+      display: none !important;
+    }
   </style>
 
   <div class="main">
@@ -77,7 +80,9 @@
             阅读文档。
           </p>
           <p>若文章包含所选语言内容，系统将自动切换显示；</p>
-          <p>若没有对应语言，将使用您本地的AI进行翻译。</p>
+          <p class:hide="!aiAvailable">
+            若没有对应语言，将使用您本地的AI进行翻译。
+          </p>
         </div>
         <div lang="en">
           <p>
@@ -95,7 +100,7 @@
             If the article contains content in the selected language, the system
             will automatically switch the display;
           </p>
-          <p>
+          <p class:hide="!aiAvailable">
             If there is no corresponding language, the system will use your
             local AI for translation.
           </p>
@@ -116,20 +121,25 @@
             文章に選択した言語の内容が含まれている場合、システムは自動的に表示を
             切り替えます。
           </p>
+          <p class:hide="!aiAvailable">
+            対応する言語がない場合、ローカルのAIを使用して翻訳します。
+          </p>
         </div>
       </localized-content>
 
-      <o-if :value="!aiAvailable">
-        <p style="color: var(--md-sys-color-error)">
+      <!-- <o-if :value="!aiAvailable">
+        <p style="color: var(--md-sys-color-primary)">
           <localized-content>
-            <span lang="cn">您当前环境没有可用的AI接口。</span>
-            <span lang="en">You currently have no available AI interface.</span>
-            <span lang="ja"
-              >您の現在の環境にはAIインターフェースがありません。</span
+            <span lang="cn"
+              >您当前环境没有可用的AI接口，所以不能使用AI翻译功能。</span
             >
+            <span lang="en">You currently have no available AI interface.</span>
+            <span lang="ja">
+              您の現在の環境にはAIインターフェースがありません。
+            </span>
           </localized-content>
         </p>
-      </o-if>
+      </o-if> -->
 
       <o-if
         :value="projectData && appConfigData.viewLang != projectData.mainLang"
