@@ -546,7 +546,7 @@
           },
           clickBread(item) {
             this.goto(
-              `./note.html?article_id=${item.dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
+              `./note.html?article_id=${item._dataId}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
             );
           },
           async handleUpdateBreadcrumbs(e) {
