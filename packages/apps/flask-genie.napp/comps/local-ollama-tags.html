@@ -235,6 +235,7 @@
         await load("/packages/ai/main.js");
 
       const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "local-ollama-tags",
@@ -310,8 +311,16 @@
           async pullModel(data) {
             if (data.size) {
               const ok = await confirm({
-                title: "确认下载模型",
-                content: `您确定要下载模型 ${data.name} 吗？该模型将占用 ${data.size} 磁盘空间。请注意，下载一旦开始便无法暂停，需等待下载完成后方可删除。`,
+                title: await getLocalized({
+                  en: "Confirm Model Download",
+                  cn: "确认下载模型",
+                  ja: "モデルダウンロードの確認",
+                }),
+                content: await getLocalized({
+                  en: `Are you sure you want to download model ${data.name}? This model will take up ${data.size} of disk space. Please note that once the download starts, it cannot be paused and you must wait for completion before deletion.`,
+                  cn: `您确定要下载模型 ${data.name} 吗？该模型将占用 ${data.size} 磁盘空间。请注意，下载一旦开始便无法暂停，需等待下载完成后方可删除。`,
+                  ja: `モデル ${data.name} をダウンロードしてもよろしいですか？このモデルは ${data.size} のディスク容量を使用します。ダウンロードが開始されると一時停止できず、完了するまで待つ必要があります。`,
+                }),
               });
 
               if (!ok) {
@@ -329,8 +338,16 @@
           },
           async deleteModel(data) {
             const ok = await confirm({
-              title: "删除模型",
-              content: `确认删除模型 ${data.name} 吗？`,
+              title: await getLocalized({
+                en: "Delete Model",
+                cn: "删除模型",
+                ja: "モデル削除",
+              }),
+              content: await getLocalized({
+                en: `Are you sure you want to delete model ${data.name}?`,
+                cn: `确认删除模型 ${data.name} 吗？`,
+                ja: `モデル ${data.name} を削除してもよろしいですか？`,
+              }),
             });
 
             if (!ok) {
@@ -340,7 +357,11 @@
             await deleteOllamaModel(data.name);
 
             toast({
-              content: `删除 ${data.name} 成功`,
+              content: await getLocalized({
+                en: `Successfully deleted ${data.name}`,
+                cn: `删除 ${data.name} 成功`,
+                ja: `${data.name} を正常に削除しました`,
+              }),
               color: "success",
             });
 
