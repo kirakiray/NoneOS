@@ -508,6 +508,13 @@
           currentProjectData: null,
           openCreateProjectDialog: false,
         },
+        watch: {
+          openProjectSettingDialog(bool) {
+            if (bool) {
+              this.shadow.$("lumi-project-setting").refreshLangProgress();
+            }
+          },
+        },
         proto: {
           getArticleTitle(data) {
             const provider = this.shadow.$('o-provider[name="lumi-view-lang"]');
