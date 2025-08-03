@@ -123,6 +123,7 @@ export default {
           return (exitedProject[exitedName] = this.createProject({
             dirName,
             rootHandle: handle,
+            userId,
           }));
         }
 
@@ -166,7 +167,7 @@ export default {
     },
 
     // 创建一个本地项目
-    async createProject({ projectName, dirName, rootHandle: root }) {
+    async createProject({ projectName, dirName, userId, rootHandle: root }) {
       // 项目目录名
       dirName =
         dirName || `luminote-project-${Math.random().toString(32).slice(2)}`;
@@ -209,7 +210,7 @@ export default {
       const redata = {
         data: articleData,
         __handle: projectHandle,
-        userId: "self",
+        userId: userId || "self",
         // handle: projectHandle,
         // projectName: articleData.projectName, // 使用 data.projectName
         // dirName, // 使用 __handle.name
