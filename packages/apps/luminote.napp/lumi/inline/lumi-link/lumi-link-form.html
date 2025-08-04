@@ -1,23 +1,38 @@
 <template component>
-  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/textarea/textarea.html"></l-m>
+  <l-m src="/packages/pui/tabs/tabs.html"></l-m>
   <style>
     :host {
       display: block;
+      min-width: 240px;
+      max-width: min(400px, 80vh);
     }
 
-    p-input {
+    p-tabs {
+      width: 125%;
+      transform-origin: 0 0;
+      transform: scale(0.8);
+    }
+
+    p-textarea {
       display: block;
-      width: 280px;
+      word-break: break-all;
     }
   </style>
-  <p-input size="small" variant="filled" sync:value="target.href">
+  <p-tabs auto-active sync:active-id="target.type">
+    <p-tab> 外部连接 </p-tab>
+    <p-tab> 内部文章 </p-tab>
+  </p-tabs>
+
+  <p-textarea variant="filled" size="small" sync:value="target.href">
     <label>请输入外链地址</label>
-  </p-input>
+  </p-textarea>
   <script>
     export default async ({ load }) => {
       return {
         tag: "lumi-link-form",
         data: {
+          activeId: "",
           target: {},
         },
         proto: {
