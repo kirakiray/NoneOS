@@ -30,6 +30,7 @@
     }
 
     .left {
+      position: relative;
       width: 260px;
       padding: 0 8px;
       overflow-y: auto;
@@ -39,10 +40,27 @@
       /* border-right: #aaa solid 1px; */
     }
 
-    /* .right {
-      width: 200px;
-      border-left: #bbb solid 1px;
-    } */
+    .left-resize-line {
+      width: 5px;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      right: 0;
+      cursor: col-resize;
+    }
+
+    .left-resize-line:hover {
+      background-color: var(--md-ref-palette-translucent-primary60);
+    }
+
+    .left-resize-mask {
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 10;
+    }
 
     p-list-item {
       border-radius: 6px;
@@ -61,6 +79,14 @@
       display: none !important;
     }
   </style>
+
+  <div
+    class="left-resize-mask"
+    class:hide="!leftResizeLineMouseDown"
+    on:mousemove="handleLeftResizeMaskMouseMove"
+    on:mouseup="handleLeftResizeMaskMouseUp"
+    on:mouseout="handleLeftResizeMaskMouseUp"
+  ></div>
 
   <o-provider name="lumi-view-lang" value="cn">
     <p-bind-contextmenu
@@ -95,7 +121,11 @@
         </p-menu-item>
       </p-menu>
       <div class="container">
-        <div class="left">
+        <div class="left" :style.width="leftWidth + 'px'">
+          <div
+            class="left-resize-line"
+            on:mousedown="handleLeftResizeLineMouseDown"
+          ></div>
           <div
             style="
               display: flex;
@@ -507,6 +537,9 @@
           openProjectSettingDialog: false,
           currentProjectData: null,
           openCreateProjectDialog: false,
+          leftResizeLineMouseDown: false, // 左侧修正宽度的条被鼠标点下
+          leftWidth: parseInt(sessionStorage.__luminote_left_width) || 260, // 左侧栏的宽度
+          appConfigData: {},
         },
         watch: {
           openProjectSettingDialog(bool) {
@@ -516,6 +549,30 @@
           },
         },
         proto: {
+          // 左侧修正宽度的条被鼠标点下
+          handleLeftResizeLineMouseDown(e) {
+            this.leftResizeLineMouseDown = true;
+            this._startLeftX = e.screenX;
+          },
+          handleLeftResizeMaskMouseMove(e) {
+            const diffX = e.screenX - this._startLeftX;
+            let lastedWidth = this.leftWidth + diffX;
+            if (lastedWidth < 200) {
+              lastedWidth = 200;
+            } else if (lastedWidth > 600) {
+              lastedWidth = 600;
+            }
+            this._lastedWidth = lastedWidth;
+
+            this.__leftContainer.style.width = `${lastedWidth}px`;
+          },
+          handleLeftResizeMaskMouseUp(e) {
+            this.leftResizeLineMouseDown = false;
+            this.leftWidth = this._lastedWidth;
+            sessionStorage.__luminote_left_width = this.leftWidth;
+
+            this.appConfigData.leftWidth = this.leftWidth;
+          },
           getArticleTitle(data) {
             const provider = this.shadow.$('o-provider[name="lumi-view-lang"]');
 
@@ -639,6 +696,8 @@
           },
         },
         ready() {
+          this.__leftContainer = this.shadow.$(".left");
+
           this.on("update-current-project-data", (e) => {
             this.currentUserId = e.data.userId;
             this.currentDirName = e.data.dirName;
@@ -649,11 +708,25 @@
         },
         attached() {
           this.projects = this.app._openedProjects;
+
+          (async () => {
+            const configData = await this.parents.find((e) => e.tag == "o-app")
+              ._configData;
+
+            this.appConfigData = configData;
+
+            if (this.appConfigData.leftWidth) {
+              this.leftWidth = this.appConfigData.leftWidth;
+              sessionStorage.__luminote_left_width = this.leftWidth;
+            }
+          })();
         },
         detached() {
           this.articles = {};
           this.projects = [];
           this.currentProjectData = {};
+
+          this.appConfigData = {};
 
           this.app.revokeAllProject();
         },
