@@ -40,7 +40,11 @@ export const switchLang = async (block, lang, options = {}) => {
 
     const mainLang = await getMainLang(lumipage || block);
 
-    if (!mainLang || !block.itemData[keys.originKey].trim()) {
+    if (
+      !mainLang ||
+      !block.itemData[keys.originKey] ||
+      !block.itemData[keys.originKey].trim()
+    ) {
       if (onStateChange) onStateChange(false);
       return null;
     }

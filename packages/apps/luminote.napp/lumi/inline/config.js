@@ -1,3 +1,4 @@
 import quote from "./lumi-quote/config.js";
+import link from "./lumi-link/config.js";
 
-export const inlineComps = [quote];
+export const inlineComps = [link, quote];

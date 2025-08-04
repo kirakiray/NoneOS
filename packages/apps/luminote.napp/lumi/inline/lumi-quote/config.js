@@ -11,10 +11,12 @@ const defaults = {
   name: {
     en: "Create Explanation Note",
     cn: "解释这段文字",
+    ja: "このテキストを説明するノートを作成する",
   },
   desc: {
     en: "Create a new note to explain the selected content.",
     cn: "新建一篇笔记，对选中内容进行解释说明。",
+    ja: "選択したテキストを説明する新しいノートを作成する",
   },
   // 点击内联组件时触发
   click({ blockItemData, pageItemData, blockEl, selectionRangeLetter }) {

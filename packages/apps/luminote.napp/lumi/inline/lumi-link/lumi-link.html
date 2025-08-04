@@ -1,0 +1,24 @@
+<template component>
+  <style>
+    :host {
+      display: inline-flex;
+      color: var(--md-sys-color-primary);
+      border-bottom: var(--md-sys-color-primary) dashed 1px;
+    }
+    :host(:not([href=""])) {
+      cursor: pointer;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-link",
+        attrs: {
+          href: "",
+        },
+        data: {},
+      };
+    };
+  </script>
+</template>

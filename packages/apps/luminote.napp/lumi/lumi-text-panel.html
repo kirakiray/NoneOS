@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/button/group.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/i18n/localized-object-content.html"></l-m>
 
   <style>
     :host {
@@ -57,12 +58,16 @@
     .tool-tips {
       margin-bottom: 5px;
       padding: 8px;
-      line-height: 1.6em;
+      line-height: 1.2em;
       color: var(--md-sys-color-on-normal-container);
       background-color: var(--md-sys-color-normal-container);
       border-radius: var(--pui-border-radius);
       box-shadow: var(--contained-shadow);
       text-align: center;
+    }
+    .tool-tips strong {
+      display: inline-block;
+      line-height: 1.6em;
     }
   </style>
 
@@ -102,7 +107,6 @@
                 <span lang="ja">太字</span>
               </localized-content>
             </strong>
-            <br />
             <o-if :value="isActiveBold === 2">
               <localized-content>
                 <span lang="en">Activated, click to deactivate bold</span>
@@ -153,7 +157,6 @@
               <span lang="ja">下線</span>
             </localized-content>
           </strong>
-          <br />
           <o-if :value="isActiveUnderline === 2">
             <localized-content>
               <span lang="en">Activated, click to deactivate underline</span>
@@ -207,7 +210,6 @@
               <span lang="ja">取り消し線</span>
             </localized-content>
           </strong>
-          <br />
           <o-if :value="isActiveStrikethrough === 2">
             <localized-content>
               <span lang="en"
@@ -262,7 +264,6 @@
               <span lang="ja">斜体</span>
             </localized-content>
           </strong>
-          <br />
           <o-if :value="isActiveItalic === 2">
             <localized-content>
               <span lang="en">Activated, click to deactivate italic</span>
@@ -370,8 +371,15 @@
           </p-button>
           <div slot="tips">
             <div class="tool-tips" style="white-space: wrap; width: 140px">
-              <strong>{{$data.name}}</strong><br />
-              {{$data.desc}}
+              <strong>
+                <localized-object-content
+                  :obj="$data.name"
+                ></localized-object-content>
+              </strong>
+              <br />
+              <localized-object-content
+                :obj="$data.desc"
+              ></localized-object-content>
             </div>
           </div>
         </p-tooltips>
@@ -736,8 +744,8 @@
           async loadInlineComponents() {
             inlineComps.forEach(async (inlineComp) => {
               const option = {
-                name: inlineComp.name.cn,
-                desc: inlineComp.desc.cn,
+                name: inlineComp.name,
+                desc: inlineComp.desc,
                 icon: inlineComp.icon,
                 tag: inlineComp.tag,
                 __data: inlineComp,

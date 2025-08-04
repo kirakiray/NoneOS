@@ -1,0 +1,35 @@
+<template component>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    p-input {
+      display: block;
+      width: 280px;
+    }
+  </style>
+  <p-input size="small" variant="filled" sync:value="target.href">
+    <label>请输入外链地址</label>
+  </p-input>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-link-form",
+        data: {
+          target: {},
+        },
+        proto: {
+          async onInit({ target }) {
+            this.target = target;
+          },
+        },
+        attached() {},
+        detached() {
+          this.target = {};
+        },
+      };
+    };
+  </script>
+</template>
