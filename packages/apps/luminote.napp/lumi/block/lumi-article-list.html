@@ -1,0 +1,109 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .hide {
+      display: none !important;
+    }
+  </style>
+  <p-list style="--ladder-left: 8px">
+    <o-fill :value="list" name="article-item"> </o-fill>
+  </p-list>
+
+  <template name="article-item">
+    <p-list-item
+      attr:data-id="$data._dataId"
+      button
+      on:click="$host.selectItem($data)"
+      attr:active-item="$host.selected === $data._dataId"
+    >
+      <n-local-icon
+        name="article"
+        slot="prefix"
+        style="display: block; font-size: 18px; margin-right: 4px"
+      ></n-local-icon>
+      {{ $data.title }}
+      <x-if :value="$data.childs && $data.childs.length">
+        <p-list slot="childs">
+          <o-fill :value="$data.childs" name="article-item"> </o-fill>
+        </p-list>
+      </x-if>
+
+      <n-local-icon
+        slot="suffix"
+        name="tick-circle"
+        class:hide="$data._dataId !== $host.selected"
+        style="
+          display: block;
+          font-size: 18px;
+          margin-right: 4px;
+          color: var(--md-sys-color-success);
+        "
+      ></n-local-icon>
+    </p-list-item>
+  </template>
+  <script>
+    export default async ({ load, query }) => {
+      return {
+        tag: "lumi-article-list",
+        data: {
+          selected: "",
+          currentDirName: "",
+          currentUserId: "",
+          list: [],
+        },
+        watch: {
+          "currentDirName,currentUserId"() {
+            this.loadList();
+          },
+        },
+        proto: {
+          selectItem(data) {
+            this.selected = data._dataId;
+          },
+          async loadList() {
+            if (!this.currentDirName) {
+              return;
+            }
+
+            // 读取文章数据
+            const app = this.host.host.host.parents.find(
+              (e) => e.tag === "o-app"
+            );
+
+            const projectItem = await app.getProject(
+              this.currentDirName,
+              this.currentUserId
+            );
+
+            const list = await findArticle(projectItem.data.main);
+
+            console.log("list: ", list);
+
+            this.list = list;
+          },
+        },
+      };
+    };
+
+    const findArticle = async (list) => {
+      const reList = [];
+
+      for (let i = 0; i < list.length; i++) {
+        const e = list[i];
+        if (e.type === "article") {
+          reList.push({
+            title: e.title,
+            _dataId: e._dataId,
+            childs: await findArticle(e.content),
+          });
+        }
+      }
+
+      return reList;
+    };
+  </script>
+</template>

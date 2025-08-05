@@ -17,11 +17,14 @@
         attrs: {
           type: "",
           href: "",
+          selectedArticleId: null,
         },
         data: {},
         attached() {
           this.on("click", () => {
-            window.open(this.href);
+            if (this.href) {
+              window.open(this.href);
+            }
           });
         },
       };

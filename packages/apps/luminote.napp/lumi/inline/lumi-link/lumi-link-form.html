@@ -2,6 +2,8 @@
   <l-m src="/packages/pui/textarea/textarea.html"></l-m>
   <l-m src="/packages/pui/tabs/tabs.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/radio/radio.html"></l-m>
+  <l-m src="../../block/lumi-article-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -21,6 +23,8 @@
     }
 
     .article-title {
+      display: flex;
+      align-items: center;
       font-size: 14px;
       padding-bottom: 4px;
       color: var(--md-sys-color-normal);
@@ -41,18 +45,59 @@
     </div>
   </o-if>
   <o-else>
-    <div style="padding: 8px">
-      <div class="article-title">未选择文章</div>
-      <p-button size="small">选择文章</p-button>
+    <div style="padding: 8px; display: flex">
+      <o-if :value="target.selectedArticleId">
+        <div class="article-title">
+          <n-local-icon
+            name="article"
+            style="
+              margin-right: 4px;
+              display: block;
+              font-size: 18px;
+              color: var(--md-sys-color-primary);
+            "
+          ></n-local-icon>
+          {{ selectedArticleName }}
+        </div>
+      </o-if>
+      <o-else>
+        <div class="article-title">未选择文章</div>
+      </o-else>
+      <p-button
+        size="mini"
+        on:click="showArticleList = true"
+        attr:disabled="showArticleList"
+        style="margin-left: auto"
+      >
+        <o-if :value="target.selectedArticleId"> 选择文章 </o-if>
+        <o-else> 修改文章 </o-else>
+      </p-button>
     </div>
   </o-else>
+
+  <o-if :value="showArticleList && target.type === 'internal'">
+    <lumi-article-list
+      sync:selected="target.selectedArticleId"
+      :current-dir-name="currentDirName"
+      :current-user-id="currentUserId"
+    ></lumi-article-list>
+  </o-if>
+
   <script>
     export default async ({ load }) => {
+      const { findArticle } = await load(
+        "/packages/apps/luminote.napp/util/find-article-data.js"
+      );
+
       return {
         tag: "lumi-link-form",
         data: {
           activeId: 0,
           target: {},
+          showArticleList: false,
+          currentDirName: "",
+          currentUserId: "",
+          selectedArticleName: "",
         },
         watch: {
           activeId(activeId) {
@@ -65,10 +110,28 @@
                 break;
             }
           },
+          async "target.selectedArticleId"() {
+            // 读取文章数据
+            const app = this.host.host.parents.find((e) => e.tag === "o-app");
+
+            if (!this.target.tag || !this.target.selectedArticleId) {
+              return;
+            }
+
+            const { target } = await findArticle({
+              app,
+              dataId: this.target.selectedArticleId,
+              userId: this.currentUserId,
+              dirName: this.currentDirName,
+            });
+
+            this.selectedArticleName = target.title;
+          },
         },
         proto: {
           async onInit({ target }) {
             this.target = target;
+            this.showArticleList = false;
 
             switch (target.type) {
               case "external":
@@ -80,7 +143,10 @@
             }
           },
         },
-        attached() {},
+        attached() {
+          this.currentDirName = this.host.host.parent.currentDirName;
+          this.currentUserId = this.host.host.parent.currentUserId;
+        },
         detached() {
           this.target = {};
         },
