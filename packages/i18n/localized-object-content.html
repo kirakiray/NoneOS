@@ -24,7 +24,7 @@
             if (obj[lang]) {
               this.html = obj[lang];
             } else {
-              this.html = obj[en] || "";
+              this.html = obj["en"] || obj["cn"] || "";
             }
           },
         },
