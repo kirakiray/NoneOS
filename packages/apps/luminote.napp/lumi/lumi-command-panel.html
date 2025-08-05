@@ -74,8 +74,6 @@
     export default async ({ load }) => {
       const { blockComps } = await load("./block/config.js");
 
-      console.log("blockComps: ", blockComps);
-
       return {
         tag: "lumi-command-panel",
         attrs: {
