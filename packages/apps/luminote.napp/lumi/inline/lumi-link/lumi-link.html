@@ -4,9 +4,14 @@
       display: inline-flex;
       color: var(--md-sys-color-primary);
       border-bottom: var(--md-sys-color-primary) dashed 1px;
-    }
-    :host(:not([href=""])) {
       cursor: pointer;
+    }
+    :host([type=""]),
+    :host([type="external"][href=""]),
+    :host([type="internal"][selected-article-id=""]) {
+      cursor: not-allowed;
+      color: var(--md-sys-color-normal);
+      border-bottom: var(--md-sys-color-normal) dashed 1px;
     }
   </style>
   <slot></slot>
@@ -17,13 +22,21 @@
         attrs: {
           type: "",
           href: "",
-          selectedArticleId: null,
+          selectedArticleId: "",
         },
         data: {},
         attached() {
           this.on("click", () => {
-            if (this.href) {
+            if (this.type === "external" && this.href) {
               window.open(this.href);
+            } else if (this.type === "internal" && this.selectedArticleId) {
+              const notePage = this.parents.find(
+                (e) => e.src && e.src.includes("note.html")
+              );
+
+              notePage.goto(
+                `./note.html?article_id=${this.selectedArticleId}&user_id=${notePage.currentUserId}&dir_name=${notePage.currentDirName}`
+              );
             }
           });
         },

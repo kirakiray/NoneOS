@@ -69,7 +69,7 @@
         attr:disabled="showArticleList"
         style="margin-left: auto"
       >
-        <o-if :value="target.selectedArticleId"> 选择文章 </o-if>
+        <o-if :value="!target.selectedArticleId"> 选择文章 </o-if>
         <o-else> 修改文章 </o-else>
       </p-button>
     </div>
@@ -111,6 +111,10 @@
             }
           },
           async "target.selectedArticleId"() {
+            if (!this?.host?.host?.parents) {
+              return;
+            }
+
             // 读取文章数据
             const app = this.host.host.parents.find((e) => e.tag === "o-app");
 
