@@ -219,6 +219,11 @@
             this.open = "off";
           },
           handleDelete() {
+            if (this.itemData.type === "article") {
+              this.itemData.removed = true;
+              return;
+            }
+
             const targetIndex = this.host.itemData.content.indexOf(
               this.itemData
             );
