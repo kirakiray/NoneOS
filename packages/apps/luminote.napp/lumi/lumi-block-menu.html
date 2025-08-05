@@ -115,11 +115,20 @@
     </p-menu-item>
     <p-menu-item on:click="handleDelete">
       <n-local-icon name="delete" slot="prefix"></n-local-icon>
-      <localized-content>
-        <span lang="en">Delete</span>
-        <span lang="cn">删除</span>
-        <span lang="ja">削除</span>
-      </localized-content>
+      <o-if :value="itemData.type === 'article'">
+        <localized-content>
+          <span lang="cn">移到回收站</span>
+          <span lang="en">Move to Recycle Bin</span>
+          <span lang="ja">ゴミ箱に移動</span>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <localized-content>
+          <span lang="en">Delete</span>
+          <span lang="cn">删除</span>
+          <span lang="ja">削除</span>
+        </localized-content>
+      </o-else>
     </p-menu-item>
     <hr />
     <p-menu-item
@@ -221,6 +230,7 @@
           handleDelete() {
             if (this.itemData.type === "article") {
               this.itemData.removed = true;
+              this.open = "off";
               return;
             }
 
