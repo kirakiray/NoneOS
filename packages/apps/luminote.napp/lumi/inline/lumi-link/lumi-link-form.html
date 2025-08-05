@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/tabs/tabs.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/radio/radio.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="../../block/lumi-article-list.html"></l-m>
   <style>
     :host {
@@ -58,6 +59,24 @@
             "
           ></n-local-icon>
           {{ selectedArticleName }}
+
+          <o-if :value="isRemoved === 1">
+            <p-tooltips content="已删除">
+              <n-local-icon
+                name="exclamation-circle"
+                style="
+                  display: block;
+                  margin-left: 4px;
+                  color: var(--md-sys-color-error);
+                "
+              >
+              </n-local-icon>
+              <div slot="tips">该文章已被移至回收站</div>
+            </p-tooltips>
+          </o-if>
+          <o-else-if :value="isRemoved === 2">
+            <div style="color: var(--md-sys-color-error)">该文章已被删除</div>
+          </o-else-if>
         </div>
       </o-if>
       <o-else>
@@ -98,6 +117,7 @@
           currentDirName: "",
           currentUserId: "",
           selectedArticleName: "",
+          isRemoved: 0, // 0未删除 1回收站 2已删除
         },
         watch: {
           activeId(activeId) {
@@ -122,14 +142,28 @@
               return;
             }
 
-            const { target } = await findArticle({
+            const { target: targetArticle } = await findArticle({
               app,
               dataId: this.target.selectedArticleId,
               userId: this.currentUserId,
               dirName: this.currentDirName,
             });
 
-            this.selectedArticleName = target.title;
+            if (!targetArticle) {
+              this.isRemoved = 2;
+              this.target.removed = true;
+              this.selectedArticleName = "";
+              return;
+            }
+
+            if (targetArticle.removed) {
+              this.isRemoved = 1;
+            } else {
+              this.isRemoved = 0;
+            }
+
+            this.target.removed = false;
+            this.selectedArticleName = targetArticle.title;
           },
         },
         proto: {

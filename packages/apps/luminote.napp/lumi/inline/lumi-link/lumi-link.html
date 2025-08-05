@@ -24,9 +24,15 @@
           href: "",
           selectedArticleId: "",
         },
-        data: {},
+        data: {
+          removed: false,
+        },
         attached() {
           this.on("click", () => {
+            if (this.removed) {
+              return;
+            }
+
             if (this.type === "external" && this.href) {
               window.open(this.href);
             } else if (this.type === "internal" && this.selectedArticleId) {
