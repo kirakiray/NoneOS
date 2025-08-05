@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/textarea/textarea.html"></l-m>
   <l-m src="/packages/pui/tabs/tabs.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -18,26 +19,65 @@
       display: block;
       word-break: break-all;
     }
-  </style>
-  <p-tabs auto-active sync:active-id="target.type">
-    <p-tab> 外部连接 </p-tab>
-    <p-tab> 内部文章 </p-tab>
-  </p-tabs>
 
-  <p-textarea variant="filled" size="small" sync:value="target.href">
-    <label>请输入外链地址</label>
-  </p-textarea>
+    .article-title {
+      font-size: 14px;
+      padding-bottom: 4px;
+      color: var(--md-sys-color-normal);
+    }
+  </style>
+  <div style="height: 32px">
+    <p-tabs auto-active sync:active-id="activeId">
+      <p-tab> 外部连接 </p-tab>
+      <p-tab> 内部文章 </p-tab>
+    </p-tabs>
+  </div>
+
+  <o-if :value="activeId == 0">
+    <div style="padding: 8px">
+      <p-textarea variant="filled" size="small" sync:value="target.href">
+        <label>外链地址</label>
+      </p-textarea>
+    </div>
+  </o-if>
+  <o-else>
+    <div style="padding: 8px">
+      <div class="article-title">未选择文章</div>
+      <p-button size="small">选择文章</p-button>
+    </div>
+  </o-else>
   <script>
     export default async ({ load }) => {
       return {
         tag: "lumi-link-form",
         data: {
-          activeId: "",
+          activeId: 0,
           target: {},
+        },
+        watch: {
+          activeId(activeId) {
+            switch (activeId) {
+              case 0:
+                this.target.type = "external";
+                break;
+              case 1:
+                this.target.type = "internal";
+                break;
+            }
+          },
         },
         proto: {
           async onInit({ target }) {
             this.target = target;
+
+            switch (target.type) {
+              case "external":
+                this.activeId = 0;
+                break;
+              case "internal":
+                this.activeId = 1;
+                break;
+            }
           },
         },
         attached() {},
