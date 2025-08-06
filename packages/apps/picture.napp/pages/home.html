@@ -42,8 +42,9 @@
     </o-else>
   </div>
   <script>
-    export default async ({ load }) => {
+    export default async ({ load, query }) => {
       const configs = await load("../app.json");
+      const { get } = await load("/packages/fs/main.js");
 
       const { onChangeLang, getLang } = await load("/packages/i18n/data.js");
 
@@ -59,6 +60,10 @@
           }, 300);
         },
         attached() {
+          if (query.path) {
+            // 如果带上路径，跳转到图片预览页
+            this.goto(`./view.html?path=${query.path}`);
+          }
           this.lang = getLang();
           this._cancel = onChangeLang(() => {
             this.lang = getLang();
