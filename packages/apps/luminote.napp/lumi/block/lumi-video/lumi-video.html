@@ -172,6 +172,7 @@
     const fileMap = new Map(); // 文件记录
 
     export default async ({ load }) => {
+      const { toast } = await load("/packages/pui/util.js");
       const { getFileHash } = await load("/packages/fs/util.js");
 
       return {
@@ -214,6 +215,14 @@
           async handleChange(e) {
             const file = e.target.files[0];
             e.target.value = "";
+
+            if (file.size > 1024 * 1024 * 50) {
+              toast({
+                content: "视频大小不能超过50MB",
+                color: "error",
+              });
+              return;
+            }
 
             // 计算文件的hash
             const hash = await getFileHash(file);
