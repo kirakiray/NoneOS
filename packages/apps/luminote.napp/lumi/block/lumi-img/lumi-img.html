@@ -1,5 +1,7 @@
 <template component>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/button/group.html"></l-m>
   <style>
     :host {
       display: block;
@@ -32,15 +34,31 @@
       transition: all ease 0.2s;
     }
 
+    .img-container[align="left"] {
+      justify-content: flex-start;
+    }
+
+    .img-container[align="right"] {
+      justify-content: flex-end;
+    }
+
     .tool-panel {
+      display: flex;
+      align-items: center;
       position: absolute;
       right: 0px;
       top: 0px;
       font-size: 14px;
       border-radius: 4px;
-      /* background-color: var(--md-ref-palette-translucent-normal60); */
       transition: all ease 0.3s;
       opacity: 0;
+      transform-origin: 100% 0;
+      transform: scale(0.8);
+    }
+
+    .tool-panel > p-tooltips > p-button,
+    .tool-panel > p-button-group {
+      margin: 0px 4px;
     }
 
     .tool-panel n-local-icon {
@@ -59,22 +77,53 @@
     }
   </style>
   <o-if :value="imgSrc">
-    <div class="img-container">
+    <div class="img-container" attr:align="align">
       <div class="tool-panel">
+        <p-button-group size="small" variant="outlined">
+          <p-button
+            color="normal"
+            attr:color="align === 'left' ? 'primary' : 'normal'"
+            attr:variant="align === 'left' ? 'contained' : 'outlined'"
+            on:click="align = 'left'"
+          >
+            <n-local-icon name="img-left"></n-local-icon>
+          </p-button>
+          <p-button
+            attr:color="align === 'center' ? 'primary' : 'normal'"
+            attr:variant="align === 'center' ? 'contained' : 'outlined'"
+            on:click="align = 'center'"
+          >
+            <n-local-icon name="img-center"></n-local-icon>
+          </p-button>
+          <p-button
+            color="normal"
+            attr:color="align === 'right' ? 'primary' : 'normal'"
+            attr:variant="align === 'right' ? 'contained' : 'outlined'"
+            on:click="align = 'right'"
+          >
+            <n-local-icon name="img-right"></n-local-icon>
+          </p-button>
+        </p-button-group>
+
         <p-tooltips placement="top">
-          <p-button size="small" icon>
+          <p-button variant="outlined" size="small" icon>
             <n-local-icon name="open" style="font-size: 16px"></n-local-icon>
           </p-button>
           <div slot="tips">外部打开图片</div>
         </p-tooltips>
         <p-tooltips placement="top">
-          <p-button size="small" icon on:click="handleClick">
+          <p-button variant="outlined" size="small" icon on:click="handleClick">
             <n-local-icon name="replace-img"></n-local-icon>
           </p-button>
           <div slot="tips">替换图片</div>
         </p-tooltips>
         <p-tooltips placement="top">
-          <p-button size="small" icon on:click="handleDownload">
+          <p-button
+            variant="outlined"
+            size="small"
+            icon
+            on:click="handleDownload"
+          >
             <n-local-icon name="download"></n-local-icon>
           </p-button>
           <div slot="tips">下载图片</div>
@@ -119,11 +168,13 @@
           imgSrc: "",
         },
         attrs: {
+          align: "center",
           filename: "",
+          hash: "",
         },
         watch: {
-          filename(filename) {
-            if (filename) {
+          hash(hash) {
+            if (hash) {
               this.loadImg();
             } else {
               this.imgSrc = "";
@@ -144,7 +195,7 @@
             const sourceHandle = await this.getSourceHandle();
 
             try {
-              const fileHandle = await sourceHandle.get(this.filename);
+              const fileHandle = await sourceHandle.get(this.hash);
               const file = await fileHandle.file();
               this.imgSrc = URL.createObjectURL(file);
             } catch (err) {
@@ -158,20 +209,16 @@
             // 计算文件的hash
             const hash = await getFileHash(file);
 
-            // 获取文件后缀
-            const fileExtension = file.name.split(".").pop();
-
             const sourceHandle = await this.getSourceHandle();
 
-            const filename = hash + "." + fileExtension;
-
-            const imgHandle = await sourceHandle.get(filename, {
+            const imgHandle = await sourceHandle.get(hash, {
               create: "file",
             });
 
             await imgHandle.write(file);
 
-            this.filename = filename;
+            this.filename = file.name;
+            this.hash = hash;
           },
           async getSourceHandle() {
             const notePage = this.host.host.parents.find((item) => {
