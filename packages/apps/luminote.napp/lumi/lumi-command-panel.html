@@ -201,7 +201,7 @@
             lumiBlock.$("[inputer-content]").on(
               "blur",
               (this._blurHandler = () => {
-                setTimeout(() => this.removeBind(), 50); // 不添加异步会导致点击失效
+                setTimeout(() => this.removeBind(), 200); // 不添加异步会导致点击失效
               })
             );
 
