@@ -77,7 +77,7 @@
     }
   </style>
   <o-if :value="imgSrc">
-    <div class="img-container" attr:align="align">
+    <div class="img-container" attr:align="align" on:dblclick="handleOpen">
       <div class="tool-panel">
         <p-button-group size="small" variant="outlined">
           <p-button
@@ -106,7 +106,7 @@
         </p-button-group>
 
         <p-tooltips placement="top">
-          <p-button variant="outlined" size="small" icon on:click="handleOpen">
+          <p-button size="small" icon on:click="handleOpen">
             <n-local-icon name="open" style="font-size: 16px"></n-local-icon>
           </p-button>
           <div slot="tips">外部打开图片</div>
