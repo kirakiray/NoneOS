@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <style>
     :host {
       display: block;
@@ -23,28 +24,176 @@
       font-size: 24px;
       margin-right: 8px;
     }
+
+    .img-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      transition: all ease 0.2s;
+    }
+
+    .tool-panel {
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      font-size: 14px;
+      border-radius: 4px;
+      /* background-color: var(--md-ref-palette-translucent-normal60); */
+      transition: all ease 0.3s;
+      opacity: 0;
+    }
+
+    .tool-panel n-local-icon {
+      font-size: 18px;
+    }
+
+    .img-container:hover .tool-panel {
+      opacity: 1;
+    }
+    .img-container:hover {
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+    .main-img {
+      max-width: 100%;
+      max-height: 500px;
+    }
   </style>
-  <div class="container">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="1em"
-      height="1em"
-      viewBox="0 0 24 24"
-      class="mark"
-    >
-      <path
-        fill="currentColor"
-        d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm0-2h14V5H5zm1-2h12l-3.75-5l-3 4L9 13zm-1 2V5z"
-      />
-    </svg>
-    添加图片
-  </div>
+  <o-if :value="imgSrc">
+    <div class="img-container">
+      <div class="tool-panel">
+        <p-tooltips placement="top">
+          <p-button size="small" icon>
+            <n-local-icon name="open" style="font-size: 16px"></n-local-icon>
+          </p-button>
+          <div slot="tips">外部打开图片</div>
+        </p-tooltips>
+        <p-tooltips placement="top">
+          <p-button size="small" icon on:click="handleClick">
+            <n-local-icon name="replace-img"></n-local-icon>
+          </p-button>
+          <div slot="tips">替换图片</div>
+        </p-tooltips>
+        <p-tooltips placement="top">
+          <p-button size="small" icon on:click="handleDownload">
+            <n-local-icon name="download"></n-local-icon>
+          </p-button>
+          <div slot="tips">下载图片</div>
+        </p-tooltips>
+      </div>
+      <img attr:src="imgSrc" class="main-img" />
+    </div>
+  </o-if>
+  <o-else>
+    <div class="container" on:click="handleClick">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="1em"
+        height="1em"
+        viewBox="0 0 24 24"
+        class="mark"
+      >
+        <path
+          fill="currentColor"
+          d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm0-2h14V5H5zm1-2h12l-3.75-5l-3 4L9 13zm-1 2V5z"
+        />
+      </svg>
+      添加图片
+    </div>
+  </o-else>
+  <input
+    type="file"
+    id="file-inputer"
+    accept="image/*"
+    on:change="handleChange"
+    style="display: none"
+  />
   <script>
+    const fileMap = new Map(); // 文件记录
+
     export default async ({ load }) => {
+      const { getFileHash } = await load("/packages/fs/util.js");
+
       return {
         tag: "lumi-img",
-        data: {},
-        attrs: {},
+        data: {
+          imgSrc: "",
+        },
+        attrs: {
+          filename: "",
+        },
+        watch: {
+          filename(filename) {
+            if (filename) {
+              this.loadImg();
+            } else {
+              this.imgSrc = "";
+            }
+          },
+        },
+        proto: {
+          handleClick() {
+            this.shadow.$("#file-inputer").ele.click();
+          },
+          handleDownload() {
+            const a = document.createElement("a");
+            a.href = this.imgSrc;
+            a.download = this.filename;
+            a.click();
+          },
+          async loadImg() {
+            const sourceHandle = await this.getSourceHandle();
+
+            try {
+              const fileHandle = await sourceHandle.get(this.filename);
+              const file = await fileHandle.file();
+              this.imgSrc = URL.createObjectURL(file);
+            } catch (err) {
+              this.imgSrc = "";
+            }
+          },
+          async handleChange(e) {
+            const file = e.target.files[0];
+            e.target.value = "";
+
+            // 计算文件的hash
+            const hash = await getFileHash(file);
+
+            // 获取文件后缀
+            const fileExtension = file.name.split(".").pop();
+
+            const sourceHandle = await this.getSourceHandle();
+
+            const filename = hash + "." + fileExtension;
+
+            const imgHandle = await sourceHandle.get(filename, {
+              create: "file",
+            });
+
+            await imgHandle.write(file);
+
+            this.filename = filename;
+          },
+          async getSourceHandle() {
+            const notePage = this.host.host.parents.find((item) => {
+              return item.src && item.src.includes("note.html");
+            });
+
+            const oapp = this.host.host.parents.find((item) => {
+              return item.tag === "o-app";
+            });
+
+            const projectItem = await oapp.getProject(
+              notePage.currentDirName,
+              notePage.currentUserId
+            );
+
+            const sourceHandle = await projectItem.__handle.get("source", {
+              create: "dir",
+            });
+
+            return sourceHandle;
+          },
+        },
       };
     };
   </script>

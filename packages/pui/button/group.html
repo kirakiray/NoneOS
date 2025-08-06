@@ -100,7 +100,7 @@
           updateChildButtons(attr, val) {
             if (!val) return;
 
-            this.forEach((e) => {
+            this.all("p-button").forEach((e) => {
               if (e.tag === "p-button") {
                 e[attr] = val;
               }
