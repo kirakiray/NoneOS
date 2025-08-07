@@ -178,6 +178,32 @@
         <span lang="ja">新しいプロジェクトを作成する</span>
       </localized-content>
     </p-button>
+
+    <p-button
+      on:click="clickImportProject"
+      variant="outlined"
+      attr:disabled="importing"
+    >
+      <o-if :value="!importing">
+        <localized-content>
+          <span lang="cn">导入项目</span>
+          <span lang="en">Import project</span>
+          <span lang="ja">プロジェクトをインポート</span>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <n-local-icon
+          name="loading"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <localized-content>
+          <span lang="cn">导入中...</span>
+          <span lang="en">Importing...</span>
+          <span lang="ja">インポート中...</span>
+        </localized-content>
+        {{importingProgress}}%
+      </o-else>
+    </p-button>
   </div>
 
   <div>
@@ -204,12 +230,21 @@
     <p-button variant="outlined" disabled>打包为llms.txt</p-button>
   </div> -->
 
+  <input
+    type="file"
+    id="importProject"
+    style="display: none"
+    accept=".zip"
+    on:change="handleImportProject"
+  />
+
   <script>
     export const parent = "./layout.html";
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
       const { isAIAvailable } = await load("/packages/ai/main.js");
+      const { unzip } = await load("/packages/libs/zip/main.js");
 
       const isSafari = /^((?!chrome|android).)*safari/i.test(
         navigator.userAgent
@@ -228,8 +263,89 @@
           loadingRemote: false,
           aiAvailable: 0,
           appConfigData: {}, // 当前应用的配置数据
+          importing: false,
+          importingProgress: 0,
         },
         proto: {
+          async handleImportProject(e) {
+            const file = e.target.files[0];
+            e.target.value = "";
+
+            const files = await unzip(file);
+
+            // 获取目录名
+            const projectDirName = files[0].path.split("/")[0];
+
+            const app = this.parent.parent;
+            const openedProjects = app._openedProjects;
+
+            // 正在打开则不允许导入
+            const isOpened = openedProjects.find(
+              (e) => e.__handle.name === projectDirName
+            );
+
+            if (isOpened) {
+              toast({
+                content: `项目 ${projectDirName} 正在打开中，请先切换或关闭该项目后再尝试导入。`,
+                color: "error",
+              });
+              return;
+            }
+
+            const existProjects = await app.getExistProjects();
+
+            // 判断是否已经存在
+            const isExited = existProjects.find(
+              (e) => e.__handle.name === projectDirName
+            );
+
+            if (isExited) {
+              const result = await confirm({
+                content: `项目 "${isExited.projectName}"(${projectDirName}) 已存在，是否覆盖？`,
+                yes: "覆盖",
+                cancel: "取消",
+              });
+
+              if (!result) {
+                return;
+              }
+            }
+
+            this.importing = true;
+
+            const rootHandle = await app.dedicatedHandle();
+
+            const exitedHandle = await rootHandle.get(projectDirName);
+
+            if (exitedHandle) {
+              // 先删除
+              await exitedHandle.remove();
+            }
+
+            let count = 0;
+            for (let { path, file } of files) {
+              const fileHandle = await rootHandle.get(path, {
+                create: "file",
+              });
+
+              await fileHandle.write(file);
+
+              count++;
+              this.importingProgress = count / files.length;
+              this.importingProgress = Math.round(this.importingProgress * 100);
+              console.log(this.importingProgress);
+            }
+
+            toast({
+              content: `导入 ${projectDirName} 完成`,
+            });
+
+            this.importingProgress = 0;
+            this.importing = false;
+          },
+          async clickImportProject() {
+            this.shadow.$("#importProject").ele.click();
+          },
           clickCreateProject() {
             this.emit("click-create-project", {
               composed: true,
