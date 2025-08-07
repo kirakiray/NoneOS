@@ -37,7 +37,7 @@
       display: block;
     }
   </style>
-  <p-list style="width: 200px">
+  <p-list style="width: 200px; max-height: 400px; overflow: auto">
     <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
       <localized-content>
         <span lang="en">Basic Components</span>
@@ -255,7 +255,11 @@
             );
           },
         },
-        attached() {},
+        attached() {
+          this.on("wheel", (e) => {
+            e.stopPropagation();
+          });
+        },
         detached() {
           this.removeBind();
         },
