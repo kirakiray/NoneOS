@@ -47,7 +47,7 @@
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            model: "qwen3:4b", // 或 mxbai-embed-large
+            model: "qwen3:4b-instruct", // 或 mxbai-embed-large
             input: texts, // 支持批量
           }),
         });

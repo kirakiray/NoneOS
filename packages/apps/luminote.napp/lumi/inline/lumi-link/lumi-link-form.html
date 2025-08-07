@@ -1,0 +1,194 @@
+<template component>
+  <l-m src="/packages/pui/textarea/textarea.html"></l-m>
+  <l-m src="/packages/pui/tabs/tabs.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/radio/radio.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="../../block/lumi-article-list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      min-width: 240px;
+      max-width: min(400px, 80vh);
+    }
+
+    p-tabs {
+      width: 125%;
+      transform-origin: 0 0;
+      transform: scale(0.8);
+    }
+
+    p-textarea {
+      display: block;
+      word-break: break-all;
+    }
+
+    .article-title {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+      padding-bottom: 4px;
+      color: var(--md-sys-color-normal);
+    }
+  </style>
+  <div style="height: 32px">
+    <p-tabs auto-active sync:active-id="activeId">
+      <p-tab> 外部连接 </p-tab>
+      <p-tab> 内部文章 </p-tab>
+    </p-tabs>
+  </div>
+
+  <o-if :value="activeId == 0">
+    <div style="padding: 8px">
+      <p-textarea variant="filled" size="small" sync:value="target.href">
+        <label>外链地址</label>
+      </p-textarea>
+    </div>
+  </o-if>
+  <o-else>
+    <div style="padding: 8px; display: flex">
+      <o-if :value="target.selectedArticleId">
+        <div class="article-title">
+          <n-local-icon
+            name="article"
+            style="
+              margin-right: 4px;
+              display: block;
+              font-size: 18px;
+              color: var(--md-sys-color-primary);
+            "
+          ></n-local-icon>
+          {{ selectedArticleName }}
+
+          <o-if :value="isRemoved === 1">
+            <p-tooltips content="已删除">
+              <n-local-icon
+                name="exclamation-circle"
+                style="
+                  display: block;
+                  margin-left: 4px;
+                  color: var(--md-sys-color-error);
+                "
+              >
+              </n-local-icon>
+              <div slot="tips">该文章已被移至回收站</div>
+            </p-tooltips>
+          </o-if>
+          <o-else-if :value="isRemoved === 2">
+            <div style="color: var(--md-sys-color-error)">该文章已被删除</div>
+          </o-else-if>
+        </div>
+      </o-if>
+      <o-else>
+        <div class="article-title">未选择文章</div>
+      </o-else>
+      <p-button
+        size="mini"
+        on:click="showArticleList = true"
+        attr:disabled="showArticleList"
+        style="margin-left: auto"
+      >
+        <o-if :value="!target.selectedArticleId"> 选择文章 </o-if>
+        <o-else> 修改文章 </o-else>
+      </p-button>
+    </div>
+  </o-else>
+
+  <o-if :value="showArticleList && target.type === 'internal'">
+    <lumi-article-list
+      sync:selected="target.selectedArticleId"
+      :current-dir-name="currentDirName"
+      :current-user-id="currentUserId"
+    ></lumi-article-list>
+  </o-if>
+
+  <script>
+    export default async ({ load }) => {
+      const { findArticle } = await load(
+        "/packages/apps/luminote.napp/util/find-article-data.js"
+      );
+
+      return {
+        tag: "lumi-link-form",
+        data: {
+          activeId: 0,
+          target: {},
+          showArticleList: false,
+          currentDirName: "",
+          currentUserId: "",
+          selectedArticleName: "",
+          isRemoved: 0, // 0未删除 1回收站 2已删除
+        },
+        watch: {
+          activeId(activeId) {
+            switch (activeId) {
+              case 0:
+                this.target.type = "external";
+                break;
+              case 1:
+                this.target.type = "internal";
+                break;
+            }
+          },
+          async "target.selectedArticleId"() {
+            if (!this?.host?.host?.parents) {
+              return;
+            }
+
+            // 读取文章数据
+            const app = this.host.host.parents.find((e) => e.tag === "o-app");
+
+            if (!this.target.tag || !this.target.selectedArticleId) {
+              return;
+            }
+
+            const { target: targetArticle } = await findArticle({
+              app,
+              dataId: this.target.selectedArticleId,
+              userId: this.currentUserId,
+              dirName: this.currentDirName,
+            });
+
+            if (!targetArticle) {
+              this.isRemoved = 2;
+              this.target.removed = true;
+              this.selectedArticleName = "";
+              return;
+            }
+
+            if (targetArticle.removed) {
+              this.isRemoved = 1;
+            } else {
+              this.isRemoved = 0;
+            }
+
+            this.target.removed = false;
+            this.selectedArticleName = targetArticle.title;
+          },
+        },
+        proto: {
+          async onInit({ target }) {
+            this.target = target;
+            this.showArticleList = false;
+
+            switch (target.type) {
+              case "external":
+                this.activeId = 0;
+                break;
+              case "internal":
+                this.activeId = 1;
+                break;
+            }
+          },
+        },
+        attached() {
+          this.currentDirName = this.host.host.parent.currentDirName;
+          this.currentUserId = this.host.host.parent.currentUserId;
+        },
+        detached() {
+          this.target = {};
+        },
+      };
+    };
+  </script>
+</template>

@@ -82,8 +82,12 @@ export const getRecordByPageId = async ({
       }
     });
 
-    // 更新数据
-    pageRecordData.splice(0, pageRecordData.length, ...newRecordData);
+    try {
+      // 更新数据
+      pageRecordData.splice(0, pageRecordData.length, ...newRecordData);
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   const tid = recordData.watchTick(() => refresh(), 100);

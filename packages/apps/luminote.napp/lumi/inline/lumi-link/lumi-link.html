@@ -1,0 +1,52 @@
+<template component>
+  <style>
+    :host {
+      display: inline-flex;
+      color: var(--md-sys-color-primary);
+      border-bottom: var(--md-sys-color-primary) dashed 1px;
+      cursor: pointer;
+    }
+    :host([type=""]),
+    :host([type="external"][href=""]),
+    :host([type="internal"][selected-article-id=""]) {
+      cursor: not-allowed;
+      color: var(--md-sys-color-normal);
+      border-bottom: var(--md-sys-color-normal) dashed 1px;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "lumi-link",
+        attrs: {
+          type: "",
+          href: "",
+          selectedArticleId: "",
+        },
+        data: {
+          removed: false,
+        },
+        attached() {
+          this.on("click", () => {
+            if (this.removed) {
+              return;
+            }
+
+            if (this.type === "external" && this.href) {
+              window.open(this.href);
+            } else if (this.type === "internal" && this.selectedArticleId) {
+              const notePage = this.parents.find(
+                (e) => e.src && e.src.includes("note.html")
+              );
+
+              notePage.goto(
+                `./note.html?article_id=${this.selectedArticleId}&user_id=${notePage.currentUserId}&dir_name=${notePage.currentDirName}`
+              );
+            }
+          });
+        },
+      };
+    };
+  </script>
+</template>

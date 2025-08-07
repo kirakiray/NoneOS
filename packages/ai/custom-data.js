@@ -18,7 +18,7 @@ export const getAISetting = ({ useLocalUserDirName = "main" } = {}) => {
     // 调整数据
     if (!aiSettingData.ollama) {
       aiSettingData.ollama = {
-        model: "qwen3:4b", // 设置默认模型
+        model: "qwen3:4b-instruct", // 设置默认模型
       };
     }
 

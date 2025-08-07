@@ -139,13 +139,15 @@ export const initTextRange = (lumipage) => {
       return;
     }
 
+    const rect = e.target.getBoundingClientRect();
+
     inlineCompPanel.init($(e.target));
 
     // 修正位置
     Object.assign(inlineCompPanel.style, {
       position: "fixed",
       left: `${e.clientX}px`,
-      top: `${e.clientY - 50}px`,
+      top: `${rect.top + 30}px`,
     });
   });
 

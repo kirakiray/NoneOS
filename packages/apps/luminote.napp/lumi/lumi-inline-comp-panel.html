@@ -3,7 +3,6 @@
     :host {
       position: fixed;
       display: block;
-      padding: 8px;
       border-radius: 4px;
       z-index: 2;
       left: 300px;
@@ -13,12 +12,14 @@
       box-shadow: var(--contained-shadow);
       transition: transform ease 0.2s, opacity ease 0.2s;
       opacity: 0;
-      transform: translate(16px, 0);
+      transform: translate(-55%, 0);
+      pointer-events: none;
     }
 
     :host([open]) {
       opacity: 1;
-      transform: translate(0, 0);
+      transform: translate(-50%, 0);
+      pointer-events: auto;
     }
   </style>
   <div class="main"></div>
@@ -45,6 +46,13 @@
 
               setTimeout(() => {
                 // 运行初始化方法
+                if (!this.shadow.$(".main")[0].onInit) {
+                  console.warn(
+                    "没有找到该组件的初始化方法: ",
+                    this.shadow.$(".main")[0]
+                  );
+                  return;
+                }
                 this.shadow.$(".main")[0].onInit({
                   target: inlineComp,
                 });

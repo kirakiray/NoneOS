@@ -877,7 +877,19 @@
             },
           });
 
-          // this.emit("block-attached");
+          this.watchTick((watchs) => {
+            // 监听inline组件是否有属性变动
+            const inlineCompChanged = watchs.some((e) => {
+              return (
+                e.type === "set" &&
+                e.target?.ele?.hasAttribute("custom-inline-component")
+              );
+            });
+
+            if (inlineCompChanged) {
+              this.itemData.value = this.$("[inputer-content]").html;
+            }
+          }, 300);
         },
         detached() {
           if (this._asking) {

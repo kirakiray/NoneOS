@@ -37,7 +37,7 @@
       display: block;
     }
   </style>
-  <p-list style="width: 200px">
+  <p-list style="width: 200px; max-height: 400px; overflow: auto">
     <div style="font-size: 12px; font-weight: bold; padding: 0.5em 8px 0">
       <localized-content>
         <span lang="en">Basic Components</span>
@@ -73,8 +73,6 @@
 
     export default async ({ load }) => {
       const { blockComps } = await load("./block/config.js");
-
-      console.log("blockComps: ", blockComps);
 
       return {
         tag: "lumi-command-panel",
@@ -203,7 +201,7 @@
             lumiBlock.$("[inputer-content]").on(
               "blur",
               (this._blurHandler = () => {
-                this.removeBind();
+                setTimeout(() => this.removeBind(), 200); // 不添加异步会导致点击失效
               })
             );
 
@@ -257,7 +255,11 @@
             );
           },
         },
-        attached() {},
+        attached() {
+          this.on("wheel", (e) => {
+            e.stopPropagation();
+          });
+        },
         detached() {
           this.removeBind();
         },

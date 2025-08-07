@@ -1,0 +1,258 @@
+<template component>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/button/group.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      color: var(--md-sys-color-normal);
+      background-color: var(--md-sys-color-on-normal);
+      padding: 8px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all ease 0.2s;
+    }
+
+    .container:hover {
+      background-color: var(--md-sys-color-normal-container);
+    }
+
+    .mark {
+      display: block;
+      font-size: 24px;
+      margin-right: 8px;
+    }
+
+    .img-container {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      transition: all ease 0.2s;
+    }
+
+    .img-container[align="left"] {
+      justify-content: flex-start;
+    }
+
+    .img-container[align="right"] {
+      justify-content: flex-end;
+    }
+
+    .tool-panel {
+      display: flex;
+      align-items: center;
+      position: absolute;
+      right: 0px;
+      top: 0px;
+      font-size: 14px;
+      border-radius: 4px;
+      transition: all ease 0.3s;
+      opacity: 0;
+      transform-origin: 100% 0;
+      transform: scale(0.8);
+    }
+
+    .tool-panel > p-tooltips > p-button,
+    .tool-panel > p-button-group {
+      margin: 0px 4px;
+    }
+
+    .tool-panel n-local-icon {
+      font-size: 18px;
+    }
+
+    .img-container:hover .tool-panel {
+      opacity: 1;
+    }
+    .img-container:hover {
+      background-color: var(--md-ref-palette-translucent-normal60);
+    }
+    .main-img {
+      max-width: 100%;
+      max-height: 500px;
+    }
+  </style>
+  <o-if :value="imgSrc">
+    <div class="img-container" attr:align="align" on:dblclick="handleOpen">
+      <div class="tool-panel">
+        <p-button-group size="small" variant="outlined">
+          <p-button
+            color="normal"
+            attr:color="align === 'left' ? 'primary' : 'normal'"
+            attr:variant="align === 'left' ? 'contained' : 'outlined'"
+            on:click="align = 'left'"
+          >
+            <n-local-icon name="img-left"></n-local-icon>
+          </p-button>
+          <p-button
+            attr:color="align === 'center' ? 'primary' : 'normal'"
+            attr:variant="align === 'center' ? 'contained' : 'outlined'"
+            on:click="align = 'center'"
+          >
+            <n-local-icon name="img-center"></n-local-icon>
+          </p-button>
+          <p-button
+            color="normal"
+            attr:color="align === 'right' ? 'primary' : 'normal'"
+            attr:variant="align === 'right' ? 'contained' : 'outlined'"
+            on:click="align = 'right'"
+          >
+            <n-local-icon name="img-right"></n-local-icon>
+          </p-button>
+        </p-button-group>
+
+        <p-tooltips placement="top">
+          <p-button size="small" icon on:click="handleOpen">
+            <n-local-icon name="open" style="font-size: 16px"></n-local-icon>
+          </p-button>
+          <div slot="tips">外部打开图片</div>
+        </p-tooltips>
+        <p-tooltips placement="top">
+          <p-button variant="outlined" size="small" icon on:click="handleClick">
+            <n-local-icon name="replace-img"></n-local-icon>
+          </p-button>
+          <div slot="tips">替换图片</div>
+        </p-tooltips>
+        <p-tooltips placement="top">
+          <p-button
+            variant="outlined"
+            size="small"
+            icon
+            on:click="handleDownload"
+          >
+            <n-local-icon name="download"></n-local-icon>
+          </p-button>
+          <div slot="tips">下载图片</div>
+        </p-tooltips>
+      </div>
+      <img attr:src="imgSrc" class="main-img" />
+    </div>
+  </o-if>
+  <o-else>
+    <div class="container" on:click="handleClick">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="1em"
+        height="1em"
+        viewBox="0 0 24 24"
+        class="mark"
+      >
+        <path
+          fill="currentColor"
+          d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm0-2h14V5H5zm1-2h12l-3.75-5l-3 4L9 13zm-1 2V5z"
+        />
+      </svg>
+      添加图片
+    </div>
+  </o-else>
+  <input
+    type="file"
+    id="file-inputer"
+    accept="image/*"
+    on:change="handleChange"
+    style="display: none"
+  />
+  <script>
+    const fileMap = new Map(); // 文件记录
+
+    export default async ({ load }) => {
+      const { getFileHash } = await load("/packages/fs/util.js");
+
+      return {
+        tag: "lumi-img",
+        data: {
+          imgSrc: "",
+        },
+        attrs: {
+          align: "center",
+          filename: "",
+          hash: "",
+        },
+        watch: {
+          hash(hash) {
+            if (hash) {
+              this.loadImg();
+            } else {
+              this.imgSrc = "";
+            }
+          },
+        },
+        proto: {
+          handleClick() {
+            this.shadow.$("#file-inputer").ele.click();
+          },
+          handleDownload() {
+            const a = document.createElement("a");
+            a.href = this.imgSrc;
+            a.download = this.filename;
+            a.click();
+          },
+          async handleOpen() {
+            const sourceHandle = await this.getSourceHandle();
+
+            const imgHandle = await sourceHandle.get(this.hash, {
+              create: "file",
+            });
+
+            window.open(
+              `/packages/apps/picture.napp/#pages/home.html?path=${imgHandle.path}`
+            );
+          },
+          async loadImg() {
+            const sourceHandle = await this.getSourceHandle();
+
+            try {
+              const fileHandle = await sourceHandle.get(this.hash);
+              const file = await fileHandle.file();
+              this.imgSrc = URL.createObjectURL(file);
+            } catch (err) {
+              this.imgSrc = "";
+            }
+          },
+          async handleChange(e) {
+            const file = e.target.files[0];
+            e.target.value = "";
+
+            // 计算文件的hash
+            const hash = await getFileHash(file);
+
+            const sourceHandle = await this.getSourceHandle();
+
+            const imgHandle = await sourceHandle.get(hash, {
+              create: "file",
+            });
+
+            await imgHandle.write(file);
+
+            this.filename = file.name;
+            this.hash = hash;
+          },
+          async getSourceHandle() {
+            const notePage = this.host.host.parents.find((item) => {
+              return item.src && item.src.includes("note.html");
+            });
+
+            const oapp = this.host.host.parents.find((item) => {
+              return item.tag === "o-app";
+            });
+
+            const projectItem = await oapp.getProject(
+              notePage.currentDirName,
+              notePage.currentUserId
+            );
+
+            const sourceHandle = await projectItem.__handle.get("source", {
+              create: "dir",
+            });
+
+            return sourceHandle;
+          },
+        },
+      };
+    };
+  </script>
+</template>
