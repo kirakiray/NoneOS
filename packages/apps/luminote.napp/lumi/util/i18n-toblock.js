@@ -20,6 +20,32 @@ export const getMainLang = async (el) => {
   return projectItem.data.mainLang;
 };
 
+// 填充翻译内容
+export const fillTranslate = async (list, { callback, langs } = {}) => {
+  for (let item of list) {
+    if (item.type === "article") {
+      // 翻译标题
+      const titleI18nContent = item.titleI18nContent;
+
+      for (let lang of langs) {
+        const i18Data = titleI18nContent[lang];
+        if (i18Data) {
+          // 计算hash是否匹配
+          debugger;
+        }
+
+        debugger;
+      }
+
+      // 翻译子内容
+      await fillTranslate(Array.from(item.content), { callback, langs });
+    } else {
+      // 翻译value
+      debugger;
+    }
+  }
+};
+
 export const switchLang = async (block, lang, options = {}) => {
   let { onStateChange, onTranslateUpdate, onError, keys, lumipage } = options;
 

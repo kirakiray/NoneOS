@@ -484,7 +484,7 @@
     </p-dialog>
     <p-dialog
       :open="openProjectSettingDialog"
-      on:click-mask="openProjectSettingDialog = false"
+      on:click-mask="!globalInTranslate ? (openProjectSettingDialog = false) : (openProjectSettingDialog = true)"
     >
       <div slot="title">
         <localized-content>
@@ -495,6 +495,7 @@
       </div>
       <lumi-project-setting
         :project-data="currentProjectData"
+        watch:in-translate="globalInTranslate"
         style="min-height: 50vh; min-width: 50vh"
       ></lumi-project-setting>
     </p-dialog>
@@ -540,6 +541,7 @@
           leftResizeLineMouseDown: false, // 左侧修正宽度的条被鼠标点下
           leftWidth: parseInt(sessionStorage.__luminote_left_width) || 260, // 左侧栏的宽度
           appConfigData: {},
+          globalInTranslate: false, // 是否在全文翻译中
         },
         watch: {
           openProjectSettingDialog(bool) {

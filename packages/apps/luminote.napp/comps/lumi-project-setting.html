@@ -131,6 +131,28 @@
         <span lang="ja">更新</span>
       </localized-content>
     </p-button>
+    <p-button
+      size="mini"
+      style="margin-left: 8px"
+      variant="outlined"
+      on:click="activeTranslate"
+      attr:disabled="inTranslate"
+    >
+      <o-if :value="!inTranslate">
+        <localized-content>
+          <span lang="cn">主动翻译</span>
+          <span lang="en">Active Translate</span>
+          <span lang="ja">翻訳を主动にする</span>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <localized-content>
+          <span lang="cn">翻译中...</span>
+          <span lang="en">Translating...</span>
+          <span lang="ja">翻訳中...</span>
+        </localized-content>
+      </o-else>
+    </p-button>
   </h4>
   <o-if :value="translationProgress.length">
     <o-fill :value="translationProgress">
@@ -173,6 +195,9 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { fillTranslate } = await load(
+        "/packages/apps/luminote.napp/lumi/util/i18n-toblock.js"
+      );
 
       return {
         tag: "lumi-project-setting",
@@ -182,8 +207,38 @@
           projectData: {},
           currentMainLang: "",
           translationProgress: [],
+          inTranslate: false,
         },
         proto: {
+          async activeTranslate() {
+            // 主动翻译所有语言
+            const result = await confirm({
+              content: await getLocalized({
+                cn: "确认要主动翻译目标语言吗？此操作无法暂停，需等待翻译完成后方可继续。",
+                en: "Are you sure you want to active translate all languages? This operation cannot be paused, and you need to wait for the translation to complete before you can continue.",
+                ja: "翻訳を主动にすることを確認しますか？この操作は中断できません。翻訳が完了するまで待ってから続行してください。",
+              }),
+            });
+
+            this.inTranslate = true;
+
+            // 主动翻译内容
+            await fillTranslate(this.projectData.main, {
+              langs: ["en", "ja"],
+            });
+
+            this.inTranslate = false;
+
+            this.refreshLangProgress();
+
+            toast({
+              content: await getLocalized({
+                cn: "主动翻译完成",
+                en: "Active translate completed",
+                ja: "翻訳を主动にしました",
+              }),
+            });
+          },
           async clearLang(lang) {
             const result = await confirm({
               title: await getLocalized({
