@@ -225,6 +225,7 @@
             // 主动翻译内容
             await fillTranslate(this.projectData.main, {
               langs: ["en", "ja"],
+              mainLang: this.projectData.mainLang,
             });
 
             this.inTranslate = false;
