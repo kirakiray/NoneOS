@@ -335,6 +335,11 @@
         } else {
           // 为每种语言单独统计
           for (const lang of langArray) {
+            if (!contentBlock.value.trim()) {
+              // 跳过空白
+              continue;
+            }
+
             result[lang].totalItemCount++;
 
             const { i18nContent } = contentBlock;
