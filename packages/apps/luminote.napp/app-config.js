@@ -46,6 +46,7 @@ const loadProjectData = async (rootHandle) => {
         creationtime: data.creationtime,
         dirName,
         projectDataId: data.main._dataId,
+        __handle: item,
       });
     } catch (err) {
       continue;

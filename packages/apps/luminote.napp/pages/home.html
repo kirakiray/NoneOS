@@ -240,6 +240,7 @@
 
   <script>
     export const parent = "./layout.html";
+    import { getLocalized } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
@@ -276,6 +277,19 @@
             // 获取目录名
             const projectDirName = files[0].path.split("/")[0];
 
+            // 确保所有文件都在一个目录下
+            for (const { path, file } of files) {
+              if (path.split("/")[0] !== projectDirName) {
+                toast({
+                  content: await getLocalized({
+                    cn: `导入的文件并非 Luminote 项目文件，请检查后重新导入。`,
+                  }),
+                  color: "error",
+                });
+                return;
+              }
+            }
+
             const app = this.parent.parent;
             const openedProjects = app._openedProjects;
 
@@ -286,7 +300,11 @@
 
             if (isOpened) {
               toast({
-                content: `项目 ${projectDirName} 正在打开中，请先切换或关闭该项目后再尝试导入。`,
+                content: await getLocalized({
+                  cn: `项目 ${projectDirName} 正在打开中，请先切换或关闭该项目后再尝试导入。`,
+                  en: `Project ${projectDirName} is currently open. Please switch to or close this project before attempting to import.`,
+                  ja: `プロジェクト ${projectDirName} は開いています。インポートする前にこのプロジェクトを切り替えるか閉じてください。`,
+                }),
                 color: "error",
               });
               return;
@@ -301,9 +319,21 @@
 
             if (isExited) {
               const result = await confirm({
-                content: `项目 "${isExited.projectName}"(${projectDirName}) 已存在，是否覆盖？`,
-                yes: "覆盖",
-                cancel: "取消",
+                content: await getLocalized({
+                  cn: `项目 "${isExited.projectName}"(${projectDirName}) 已存在，是否覆盖？`,
+                  en: `Project "${isExited.projectName}"(${projectDirName}) already exists. Do you want to overwrite it?`,
+                  ja: `プロジェクト "${isExited.projectName}"(${projectDirName}) は既に存在します。上書きしますか？`,
+                }),
+                yes: await getLocalized({
+                  cn: "覆盖",
+                  en: "Overwrite",
+                  ja: "上書き",
+                }),
+                cancel: await getLocalized({
+                  cn: "取消",
+                  en: "Cancel",
+                  ja: "キャンセル",
+                }),
               });
 
               if (!result) {
@@ -333,11 +363,14 @@
               count++;
               this.importingProgress = count / files.length;
               this.importingProgress = Math.round(this.importingProgress * 100);
-              console.log(this.importingProgress);
             }
 
             toast({
-              content: `导入 ${projectDirName} 完成`,
+              content: await getLocalized({
+                cn: `导入 ${projectDirName} 完成`,
+                en: `Import of ${projectDirName} completed`,
+                ja: `${projectDirName} のインポートが完了しました`,
+              }),
             });
 
             this.importingProgress = 0;
@@ -355,9 +388,21 @@
             event.stopPropagation();
 
             const result = await confirm({
-              content: `确认要删除 "${data.projectName}"(${data.dirName})？次操作不可逆。`,
-              yes: "是的，确认删除",
-              cancel: "不删除",
+              content: await getLocalized({
+                cn: `确认要删除 "${data.projectName}"(${data.dirName})？次操作不可逆。`,
+                en: `Are you sure you want to delete "${data.projectName}"(${data.dirName})? This action cannot be undone.`,
+                ja: `"${data.projectName}"(${data.dirName}) を削除してもよろしいですか？この操作は元に戻せません。`,
+              }),
+              yes: await getLocalized({
+                cn: "是的，确认删除",
+                en: "Yes, confirm deletion",
+                ja: "はい、削除を確認",
+              }),
+              cancel: await getLocalized({
+                cn: "不删除",
+                en: "Do not delete",
+                ja: "削除しない",
+              }),
             });
 
             if (!result) {
