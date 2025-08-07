@@ -69,6 +69,7 @@
         on:click="$host.switchProject($data)"
         attr:button="$host.openedProjects.length <= 1"
         attr:data-project-dataid="$data.projectDataId"
+        style="overflow: visible"
       >
         <n-local-icon
           name="project"
@@ -138,6 +139,29 @@
             </localized-content>
           </div>
         </o-else>
+
+        <p-tooltips
+          placement="top"
+          slot="suffix"
+          style="position: relative; z-index: 3"
+        >
+          <p-button
+            icon
+            variant="outlined"
+            size="small"
+            attr:disabled="$data.exporting"
+            on:click="$host.handleExportProject($data,$event)"
+          >
+            <n-local-icon name="export"></n-local-icon>
+          </p-button>
+          <div slot="tips">
+            <localized-content>
+              <span lang="en">Export Project</span>
+              <span lang="cn">导出项目</span>
+              <span lang="ja">プロジェクトをエクスポート</span>
+            </localized-content>
+          </div>
+        </p-tooltips>
 
         <o-if :value="!$host.isOpenedProject($data)" slot="suffix">
           <p-button
@@ -283,6 +307,7 @@
 
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
+      const { exportHandle } = await load("/packages/fs/task/main.js");
 
       return {
         tag: "lumi-switch-project",
@@ -296,6 +321,22 @@
           currentProjectSetting: {}, // 当前项目的设置数据
         },
         proto: {
+          async handleExportProject(data, event) {
+            data.exporting = true;
+
+            event.stopPropagation();
+
+            const app = this.host.parent;
+
+            const projectData = await app.getProject(data.dirName, "self");
+
+            await exportHandle(
+              [projectData.__handle.path],
+              `${data.projectName}.luminote`
+            );
+
+            data.exporting = false;
+          },
           closeItem(index, item) {
             this.app.closeProject(item.__handle.name, item.userId);
           },
@@ -316,6 +357,15 @@
           // 切换到项目
           switchProject(data) {
             if (this.openedProjects.length > 1) {
+              return;
+            }
+
+            if (
+              this.openedProjects.find((item) => {
+                return data.projectDataId === item.data.main._dataId;
+              })
+            ) {
+              // 已经打开了
               return;
             }
 
