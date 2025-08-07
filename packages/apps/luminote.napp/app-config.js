@@ -291,7 +291,11 @@ export default {
 
       if (targetIndex !== -1) {
         const targetProject = this._openedProjects.splice(targetIndex, 1)[0];
-        targetProject.data.disconnect();
+
+        setTimeout(() => {
+          targetProject.data.disconnect();
+        }, 100);
+
         exitedProject[dirName + "---" + userId] = null;
       }
 

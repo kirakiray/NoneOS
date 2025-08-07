@@ -297,7 +297,7 @@
         },
         proto: {
           closeItem(index, item) {
-            this.app.closeProject(item.dirName, item.userId);
+            this.app.closeProject(item.__handle.name, item.userId);
           },
           isOpenedProject(data) {
             return this.openedProjects.find((item) => {
