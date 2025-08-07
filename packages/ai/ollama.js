@@ -83,7 +83,7 @@ export const pullOllamaModel = async (model, callback) => {
   }
 };
 
-export async function askOllamaStream(prompt, model = "qwen3:4b", callback) {
+export async function askOllamaStream(prompt, model = "qwen3:4b-instruct", callback) {
   try {
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "POST",

@@ -125,9 +125,9 @@
             this.chatContent = "";
 
             const prompt = await getLocalized({
-              cn: "你是谁?",
-              en: "You are?",
-              ja: "あなたは？",
+              cn: "你是谁?回答的内容不要啰嗦，直接回答",
+              en: "You are? The answer should not be verbose, just answer",
+              ja: "あなたは？回答は冗長しないでください。",
             });
 
             try {

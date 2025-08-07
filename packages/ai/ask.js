@@ -59,9 +59,9 @@ export const ask = (prompt, options) => {
 
 export const modelExtend = {
   "qwen3:4b": {
-    prepare(prompt) {
-      return `/no_think${prompt}`;
-    },
+    // prepare(prompt) {
+    //   return `/no_think${prompt}`;
+    // },
     preprocess(responseText) {
       if (!/<think>[\d\D]*?<\/think>\n/.test(responseText)) {
         return "";
@@ -81,12 +81,13 @@ export const askByLocalOllama = async (
 
   let responseText = "";
 
-  let finalModelName = modelName || aiSettingData.ollama.model || "qwen3:4b";
+  let finalModelName =
+    modelName || aiSettingData.ollama.model || "qwen3:4b-instruct";
 
   const targetExtend = modelExtend[finalModelName];
 
   // 针对不同模型的预处理
-  if (targetExtend) {
+  if (targetExtend && targetExtend.prepare) {
     prompt = targetExtend.prepare(prompt);
   }
 
