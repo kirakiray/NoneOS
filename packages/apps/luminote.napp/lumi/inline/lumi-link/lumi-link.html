@@ -36,9 +36,16 @@
             if (this.type === "external" && this.href) {
               window.open(this.href);
             } else if (this.type === "internal" && this.selectedArticleId) {
-              const notePage = this.parents.find(
+              let notePage = this.parents.find(
                 (e) => e.src && e.src.includes("note.html")
               );
+
+              if (!notePage) {
+                // 在翻译模式下，可能会嵌套在 lumi-block 中
+                notePage = this.host.parents.find(
+                  (e) => e.src && e.src.includes("note.html")
+                );
+              }
 
               notePage.goto(
                 `./note.html?article_id=${this.selectedArticleId}&user_id=${notePage.currentUserId}&dir_name=${notePage.currentDirName}`

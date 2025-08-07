@@ -100,9 +100,15 @@ export const switchLang = async (block, lang, options = {}) => {
     block._asking = lang;
 
     const result = await ask(
-      `保留原来的html标签，将以下文本翻译成${promptLang}，直接返回翻译后的内容：\n ${
-        block.itemData[keys.originKey]
-      }`,
+      `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
+1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
+2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
+3. 仅将显示在页面上的自然语言文本翻译成${promptLang}；
+4. 不要添加或删除任何标签。
+
+HTML 如下：
+[[[ ${block.itemData[keys.originKey]} ]]]
+`,
       {
         id: block.xid,
         onChunk: (e) => {
