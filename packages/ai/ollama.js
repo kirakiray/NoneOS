@@ -83,7 +83,11 @@ export const pullOllamaModel = async (model, callback) => {
   }
 };
 
-export async function askOllamaStream(prompt, model = "qwen3:4b-instruct", callback) {
+export async function askOllamaStream(
+  prompt,
+  model = "qwen3:4b-instruct",
+  callback
+) {
   try {
     const response = await fetch("http://localhost:11434/api/generate", {
       method: "POST",
@@ -95,10 +99,10 @@ export async function askOllamaStream(prompt, model = "qwen3:4b-instruct", callb
         prompt: prompt,
         stream: true,
         options: {
-          num_ctx: 2048, // 上下文窗口大小
+          num_ctx: 1024 * 32, // 上下文窗口大小
           temperature: 0.7, // 创造性程度
           repeat_penalty: 1.1,
-          num_predict: 512, // 最大生成长度
+          num_predict: 1024 * 128, // 最大生成长度
           enable_thinking: "False",
         },
       }),

@@ -108,7 +108,7 @@
       const { getAISetting } = await load("/packages/ai/custom-data.js");
       const aiSetting = await getAISetting();
 
-      const { askOllamaStream, ask } = await load("/packages/ai/main.js");
+      const { ask } = await load("/packages/ai/main.js");
 
       const { getSetting } = await load("/packages/none-os/setting.js");
 
@@ -125,9 +125,9 @@
             this.chatContent = "";
 
             const prompt = await getLocalized({
-              cn: "你是谁?回答的内容不要啰嗦，直接回答",
-              en: "You are? The answer should not be verbose, just answer",
-              ja: "あなたは？回答は冗長しないでください。",
+              cn: "你是谁？回答的内容简短一点",
+              en: "Who are you? Just answer",
+              ja: "あなたは？直接回答してください。",
             });
 
             try {

@@ -63,6 +63,9 @@ export const modelExtend = {
     //   return `/no_think${prompt}`;
     // },
     preprocess(responseText) {
+      console.clear();
+      console.log(responseText);
+
       if (!/<think>[\d\D]*?<\/think>\n/.test(responseText)) {
         return "";
       }
