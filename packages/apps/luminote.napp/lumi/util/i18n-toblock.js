@@ -25,23 +25,39 @@ export const fillTranslate = async (list, { callback, langs } = {}) => {
   for (let item of list) {
     if (item.type === "article") {
       // 翻译标题
-      const titleI18nContent = item.titleI18nContent;
-
       for (let lang of langs) {
-        const i18Data = titleI18nContent[lang];
-        if (i18Data) {
-          // 计算hash是否匹配
-          debugger;
-        }
+        await translateItem({
+          block: {
+            itemData: item,
+          },
+          lang,
+          keys: {
+            i18nKey: "titleI18nContent",
+            originKey: "title",
+          },
+        });
+      }
 
-        debugger;
+      if (callback) {
+        callback();
       }
 
       // 翻译子内容
       await fillTranslate(Array.from(item.content), { callback, langs });
     } else {
-      // 翻译value
-      debugger;
+      for (let lang of langs) {
+        // 翻译value
+        await translateItem({
+          block: {
+            itemData: item,
+          },
+          lang,
+        });
+      }
+
+      if (callback) {
+        callback();
+      }
     }
   }
 };
@@ -54,6 +70,13 @@ export const translateItem = async ({
   onTranslateUpdate, // 翻译状态更新回调
 }) => {
   const { itemData } = block;
+
+  if (!keys) {
+    keys = {
+      originKey: "value",
+      i18nKey: "i18nContent",
+    };
+  }
 
   let promptLang = "";
   switch (lang) {
@@ -152,8 +175,6 @@ export const switchLang = async (block, lang, options = {}) => {
   }
 
   try {
-    if (onStateChange) onStateChange(1);
-
     if (block._asking) {
       clearAsk(block.xid);
       delete block._asking;
@@ -166,9 +187,11 @@ export const switchLang = async (block, lang, options = {}) => {
       !block.itemData[keys.originKey] ||
       !block.itemData[keys.originKey].trim()
     ) {
-      if (onStateChange) onStateChange(false);
+      // if (onStateChange) onStateChange(false);
       return null;
     }
+
+    if (onStateChange) onStateChange(1);
 
     if (mainLang === lang) {
       if (onStateChange) onStateChange(false);

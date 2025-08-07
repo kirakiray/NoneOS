@@ -226,6 +226,9 @@
             await fillTranslate(this.projectData.main, {
               langs: ["en", "ja"],
               mainLang: this.projectData.mainLang,
+              callback: () => {
+                this.refreshLangProgress();
+              },
             });
 
             this.inTranslate = false;
