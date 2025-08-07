@@ -375,6 +375,10 @@
 
             this.importingProgress = 0;
             this.importing = false;
+
+            this.emit("cancel-create-project", {
+              composed: true,
+            });
           },
           async clickImportProject() {
             this.shadow.$("#importProject").ele.click();
@@ -383,35 +387,6 @@
             this.emit("click-create-project", {
               composed: true,
             });
-          },
-          async handleDeleteProject(data, event) {
-            event.stopPropagation();
-
-            const result = await confirm({
-              content: await getLocalized({
-                cn: `确认要删除 "${data.projectName}"(${data.dirName})？次操作不可逆。`,
-                en: `Are you sure you want to delete "${data.projectName}"(${data.dirName})? This action cannot be undone.`,
-                ja: `"${data.projectName}"(${data.dirName}) を削除してもよろしいですか？この操作は元に戻せません。`,
-              }),
-              yes: await getLocalized({
-                cn: "是的，确认删除",
-                en: "Yes, confirm deletion",
-                ja: "はい、削除を確認",
-              }),
-              cancel: await getLocalized({
-                cn: "不删除",
-                en: "Do not delete",
-                ja: "削除しない",
-              }),
-            });
-
-            if (!result) {
-              return;
-            }
-
-            await this.app.deleteProject(data.dirName);
-
-            this.reloadExistProjects();
           },
         },
         attached() {

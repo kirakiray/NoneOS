@@ -71,11 +71,14 @@
       getLocalized,
     } from "/packages/i18n/localized-object.js";
 
-    export default async ({ load }) => {
+    export default async ({ load, url }) => {
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
+      const { unzip } = await load("/packages/libs/zip/main.js");
 
       const { toast } = await load("/packages/pui/util.js");
+
+      const urlObj = new URL("../source/quickstart.luminote.zip", url);
 
       return {
         tag: "lumi-create-project",
@@ -103,22 +106,48 @@
               return;
             }
 
-            const newProject = await this.app.createProject({
-              projectName,
-            });
+            const file = await fetch(urlObj).then((e) => e.blob());
+            const files = await unzip(file);
+            const app = this.host.parent;
+            const rootHandle = await app.dedicatedHandle();
 
-            newProject.data.mainLang = this.mainLang;
+            const originProjectRootName = files[0].path.split("/")[0];
+            const newProjectRootName = `luminote-project-${Math.random()
+              .toString(32)
+              .slice(2)}`;
 
-            await this.app.switchProject(newProject.__handle.name);
+            // 写入项目文件
+            for (let { path, file } of files) {
+              // 更替跟项目名
+              const repath = path.replace(
+                originProjectRootName,
+                newProjectRootName
+              );
+
+              const fileHandle = await rootHandle.get(repath, {
+                create: "file",
+              });
+
+              await fileHandle.write(file);
+            }
+
+            // 更换项目名
+            const projectItem = await app.getProject(newProjectRootName);
+            projectItem.data.projectName = projectName;
+
+            await new Promise((resolve) => setTimeout(resolve, 500)); // 等待保存项目名
 
             toast({
               content: await getLocalized({
-                cn: "创建成功",
-                en: "Project created successfully",
-                ja: "プロジェクトが正常に作成されました",
+                cn: `项目 ${projectName} 创建成功`,
+                en: `Project ${projectName} created successfully`,
+                ja: `プロジェクト${projectName}が正常に作成されました`,
               }),
               color: "success",
             });
+
+            // 切换到项目
+            await app.switchProject(newProjectRootName);
 
             this.newProjectName = "";
             this.emit("cancel-create-project", {
@@ -127,7 +156,6 @@
 
             this.adding = false;
           },
-
           handleKeyup(e) {
             if (
               e.key === "Enter" &&
