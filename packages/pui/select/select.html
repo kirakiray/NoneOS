@@ -87,7 +87,8 @@
     :active="infocus ? '' : null"
     :size="size"
     :fix-position="value ? '' : null"
-    :disabled="disabled"
+    :disabled="disabled || readonly"
+    :readonly="readonly"
   >
     <slot></slot>
     <div class="fake-input">
@@ -100,14 +101,16 @@
     </div>
     <slot name="suffix" slot="suffix"></slot>
     <slot name="prefix" slot="prefix"></slot>
-    <div class="triangle" slot="suffix"></div>
+    <o-if :value="readonly === null" slot="suffix">
+      <div class="triangle"></div>
+    </o-if>
     <slot name="helper" slot="helper"></slot>
   </p-field-container>
   <select
     sync:value="value"
     on:focus="infocus = true"
     on:blur="infocus = false"
-    attr:disabled="disabled"
+    attr:disabled="disabled || readonly"
     on:change="emit('change')"
     attr:name="name"
   ></select>
@@ -127,6 +130,7 @@
         size: null,
         placeholder: null,
         hanglabel: null,
+        readonly: null,
       },
       data: {
         value: "",

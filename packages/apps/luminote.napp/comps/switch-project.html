@@ -96,7 +96,26 @@
             <n-moment-span :time="$data.creationtime"></n-moment-span>
           </div>
         </div>
-        <div class="secondary" style="color: #7c7c7c">{{$data.dirName}}</div>
+        <div
+          class="secondary"
+          style="
+            display: flex;
+            align-items: center;
+            margin-top: 6px;
+            color: #7c7c7c;
+            font-size: 14px;
+            gap: 16px;
+          "
+        >
+          <div style="display: flex; align-items: center; gap: 4px">
+            <span style="font-weight: 500">默认语言:</span>
+            <span>{{$host.getLang($data.mainLang)}}</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 4px">
+            <span style="font-weight: 500">目录名:</span>
+            <span>{{$data.dirName}}</span>
+          </div>
+        </div>
 
         <o-if
           :value="!$host.isOpenedProject($data)"
@@ -245,6 +264,11 @@
                   <n-moment-span :time="$data.creationtime"></n-moment-span>
                 </div>
               </div>
+
+              <div class="secondary" style="color: #7c7c7c">
+                {{$data.mainLang}}
+              </div>
+
               <div class="secondary" style="color: #7c7c7c">
                 {{$data.dirName}}
               </div>
@@ -321,6 +345,22 @@
           currentProjectSetting: {}, // 当前项目的设置数据
         },
         proto: {
+          getLang(lang) {
+            switch (lang) {
+              case "cn":
+              case "t-cn":
+                return "中文";
+              case "en":
+                return "English";
+              case "ja":
+                return "日本語";
+              case "":
+              case undefined:
+                return "Not Set";
+              default:
+                return lang;
+            }
+          },
           async handleExportProject(data, event) {
             data.exporting = true;
 
