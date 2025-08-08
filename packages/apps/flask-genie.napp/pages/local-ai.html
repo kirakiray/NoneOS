@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="../comps/local-ollama-tags.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,6 +38,17 @@
     </localized-content>
   </h4>
 
+  <o-if :value="isLocalhost">
+    <p-switch sync:value="useLocalArea"> 使用局域网Ollama(临时方案) </p-switch>
+  </o-if>
+  <o-if :value="useLocalArea === 'on'">
+    <p-input
+      sync:value="ollamaHost"
+      label="Ollama Host"
+      style="margin-top: 8px; max-width: 320px"
+    ></p-input>
+  </o-if>
+
   <h5>
     <localized-content>
       <span lang="en"> Your AI Assistant </span>
@@ -46,7 +58,7 @@
   </h5>
 
   <o-if :value="chatError">
-    <p style="color: red">{{chatError}}</p>
+    <p style="color: var(--md-sys-color-error)">{{chatError}}</p>
   </o-if>
   <o-else>
     <div style="text-align: center; padding: 16px; max-width: 600px">
@@ -108,6 +120,10 @@
       const { getAISetting } = await load("/packages/ai/custom-data.js");
       const aiSetting = await getAISetting();
 
+      const { setOllamaHost, getOllamaHost } = await load(
+        "/packages/ai/ollama.js"
+      );
+
       const { ask } = await load("/packages/ai/main.js");
 
       const { getSetting } = await load("/packages/none-os/setting.js");
@@ -118,6 +134,20 @@
           chatting: false,
           chatError: "",
           aiSetting: {},
+          isLocalhost: location.host.includes("localhost"),
+          useLocalArea: localStorage.getItem("useLocalArea") || "off",
+          ollamaHost: await getOllamaHost(),
+        },
+        watch: {
+          useLocalArea(useLocalArea) {
+            if (useLocalArea === "off") {
+              this.ollamaHost = "";
+            }
+            localStorage.setItem("useLocalArea", useLocalArea);
+          },
+          ollamaHost(ollamaHost) {
+            setOllamaHost(ollamaHost.trim());
+          },
         },
         proto: {
           async refreshChat() {
@@ -157,7 +187,5 @@
         },
       };
     };
-
-    // let text = "";
   </script>
 </template>

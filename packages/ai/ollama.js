@@ -1,5 +1,18 @@
+let ollamaHost = localStorage.getItem("ollamaHost") || "http://localhost:11434";
+
+export const setOllamaHost = (host) => {
+  if (ollamaHost !== host) {
+    ollamaHost = host;
+    localStorage.setItem("ollamaHost", host);
+  }
+};
+
+export const getOllamaHost = () => {
+  return ollamaHost;
+};
+
 export async function getOllamaModels() {
-  const response = await fetch("http://localhost:11434/api/tags");
+  const response = await fetch(ollamaHost + "/api/tags");
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
@@ -8,7 +21,7 @@ export async function getOllamaModels() {
 }
 
 export const deleteOllamaModel = async (model) => {
-  const result = await fetch("http://localhost:11434/api/delete", {
+  const result = await fetch(ollamaHost + "/api/delete", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name: model }),
@@ -57,7 +70,7 @@ const processStreamResponse = async (response, callback) => {
 
 export const pullOllamaModel = async (model, callback) => {
   try {
-    const response = await fetch("http://localhost:11434/api/pull", {
+    const response = await fetch(ollamaHost + "/api/pull", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -89,7 +102,7 @@ export async function askOllamaStream(
   callback
 ) {
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const response = await fetch(ollamaHost + "/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
