@@ -84,7 +84,7 @@ export const translateItem = async ({
       promptLang = "英语";
       break;
     case "cn":
-      promptLang = "中文";
+      promptLang = "简体中文";
       break;
     case "t-cn":
       promptLang = "繁体中文";
