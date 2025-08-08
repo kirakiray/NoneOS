@@ -39,7 +39,7 @@ export const fillTranslate = async (list, { callback, langs } = {}) => {
       }
 
       if (callback) {
-        callback();
+        callback(item);
       }
 
       // 翻译子内容
@@ -56,7 +56,7 @@ export const fillTranslate = async (list, { callback, langs } = {}) => {
       }
 
       if (callback) {
-        callback();
+        callback(item);
       }
     }
   }

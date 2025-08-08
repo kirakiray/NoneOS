@@ -222,12 +222,20 @@
 
             this.inTranslate = true;
 
+            let refreshTimer;
+            const refresh = () => {
+              clearTimeout(refreshTimer);
+              refreshTimer = setTimeout(() => {
+                this.refreshLangProgress();
+              }, 1000);
+            };
+
             // 主动翻译内容
             await fillTranslate(this.projectData.main, {
               langs: ["en", "ja"],
               mainLang: this.projectData.mainLang,
-              callback: () => {
-                this.refreshLangProgress();
+              callback: (item) => {
+                refresh();
               },
             });
 
