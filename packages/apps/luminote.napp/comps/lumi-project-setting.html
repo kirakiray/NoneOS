@@ -319,7 +319,7 @@
           async refreshLangProgress() {
             const translationProgress = [];
 
-            const langs = ["en", "ja"];
+            const langs = this.projectData.otherLang;
 
             if (this?.projectData?.main) {
               const progress = await getTranslationProgress(
@@ -384,6 +384,20 @@
           },
         },
         attached() {
+          this.watchTick(async (watchs) => {
+            // 监听 projectData 被重制
+            if (watchs.hasReplaced("projectData")) {
+              // 判断是否有设置自定义语言种类
+              if (!this.projectData.otherLang) {
+                // 如果没有其他语言，则配置上；去除主语言
+                const mainLang = this.projectData.mainLang;
+                this.projectData.otherLang = ["en", "cn", "ja"].filter(
+                  (item) => item !== mainLang
+                );
+              }
+            }
+          });
+
           setTimeout(() => {
             this.refreshLangProgress();
           }, 2000);
