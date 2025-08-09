@@ -40,10 +40,6 @@ export const importProject = async ({ app, file, onError, onProgress }) => {
 
     count++;
     onProgress(count / files.length);
-
-    // count++;
-    // this.importingProgress = count / files.length;
-    // this.importingProgress = Math.round(this.importingProgress * 100);
   }
 
   return projectData;

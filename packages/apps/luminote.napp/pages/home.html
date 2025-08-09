@@ -277,82 +277,62 @@
 
             const app = this.parent.parent;
 
-            const projectData = await importProject({
-              file,
-              app,
-              onError: (e) => {
-                debugger;
-              },
-              onProgress: (e) => {
-                debugger;
-              },
-            });
+            this.importing = true;
 
-            // const files = await unzip(file);
+            try {
+              const projectData = await importProject({
+                app,
+                file,
+                onError: async (e) => {
+                  toast({
+                    content: await getLocalized({
+                      cn: `导入项目失败，请检查文件格式是否正确`,
+                      en: `Import failed, please check if the file format is correct`,
+                      ja: `インポートに失敗しました。ファイル形式が正しいか確認してください`,
+                    }),
+                    color: "error",
+                  });
+                  this.importing = false;
+                  this.importingProgress = 0;
+                },
+                onProgress: (progress) => {
+                  if (progress === "ready") {
+                    this.importingProgress = 0;
+                  } else {
+                    this.importingProgress = Math.round(progress * 100);
+                  }
+                },
+              });
 
-            // // 确保有 article.json 文件
-            // const articleJsonItem = files.find(
-            //   (e) => e.path === `article.json`
-            // );
-            // if (!articleJsonItem) {
-            //   toast({
-            //     content: await getLocalized({
-            //       cn: `导入的文件并非 Luminote 项目文件，请检查后重新导入。`,
-            //     }),
-            //     color: "error",
-            //   });
-            //   return;
-            // }
+              if (projectData) {
+                toast({
+                  content: await getLocalized({
+                    cn: `导入 ${projectData.projectName} 完成`,
+                    en: `Import of ${projectData.projectName} completed`,
+                    ja: `${projectData.projectName} のインポートが完了しました`,
+                  }),
+                });
 
-            // // 转换项目数据
-            // let projectData = await articleJsonItem.file.text();
-            // projectData = JSON.parse(projectData);
+                this.importing = false;
+                this.importingProgress = 0;
 
-            // const app = this.parent.parent;
-
-            // this.importing = true;
-
-            // // 创建一个空白项目
-            // const projectItem = await app.createProject({
-            //   projectName: projectData.projectName,
-            // });
-
-            // Object.assign(projectItem.data, projectData);
-
-            // await new Promise((resolve) => setTimeout(resolve, 200));
-
-            // // 等待数据存储完成
-            // await projectItem.data.ready(true);
-
-            // let count = 0;
-            // for (let { path, file } of files) {
-            //   if (path !== "article.json") {
-            //     const fileHandle = await projectItem.__handle.get(path, {
-            //       create: "file",
-            //     });
-
-            //     await fileHandle.write(file);
-            //   }
-
-            //   count++;
-            //   this.importingProgress = count / files.length;
-            //   this.importingProgress = Math.round(this.importingProgress * 100);
-            // }
-
-            toast({
-              content: await getLocalized({
-                cn: `导入 ${projectData.projectName} 完成`,
-                en: `Import of ${projectData.projectName} completed`,
-                ja: `${projectData.projectName} のインポートが完了しました`,
-              }),
-            });
-
-            this.importingProgress = 0;
-            this.importing = false;
-
-            this.emit("cancel-create-project", {
-              composed: true,
-            });
+                this.emit("cancel-create-project", {
+                  composed: true,
+                });
+              }
+            } catch (error) {
+              console.error("Import error:", error);
+              toast({
+                content: await getLocalized({
+                  cn: `导入项目时发生错误`,
+                  en: `An error occurred while importing the project`,
+                  ja: `プロジェクトのインポート中にエラーが発生しました`,
+                }),
+                color: "error",
+              });
+              this.importing = false;
+              this.importingProgress = 0;
+            }
           },
           async clickImportProject() {
             this.shadow.$("#importProject").ele.click();
