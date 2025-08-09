@@ -367,15 +367,38 @@
             event.stopPropagation();
 
             const app = this.host.parent;
+            const projectInfo = await app.getProject(data.dirName, "self");
 
-            const projectData = await app.getProject(data.dirName, "self");
+            // 将正文生成一个文件
+            await projectInfo.data.ready(true);
+            const projectDataStr = JSON.stringify(projectInfo.data);
 
-            await exportHandle(
-              [projectData.__handle.path],
-              `${data.projectName}.luminote`
+            // 写入文件
+            const articleFileHandle = await projectInfo.__handle.get(
+              "article.json",
+              {
+                create: "file",
+              }
             );
 
-            data.exporting = false;
+            await articleFileHandle.write(projectDataStr);
+
+            const exportPaths = [articleFileHandle.path];
+
+            const sourceFileHandle = await projectInfo.__handle.get("source");
+
+            if (sourceFileHandle) {
+              exportPaths.push(sourceFileHandle.path);
+            }
+
+            await exportHandle(exportPaths, `${data.projectName}.luminote`);
+
+            // data.exporting = false;
+            setTimeout(async () => {
+              // 导出完成后删除json文件
+              await articleFileHandle.remove();
+              data.exporting = false;
+            }, 500);
           },
           closeItem(index, item) {
             this.app.closeProject(item.__handle.name, item.userId);

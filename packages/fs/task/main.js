@@ -247,7 +247,13 @@ export const exportHandle = async (paths, zipFileName) => {
         );
       } else {
         // 文件
-        debugger;
+        const handle = await get(path);
+        const file = await handle.file();
+
+        files.push({
+          path: file.name,
+          file,
+        });
       }
     })
   );
