@@ -245,7 +245,10 @@
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
       const { isAIAvailable } = await load("/packages/ai/main.js");
-      const { unzip } = await load("/packages/libs/zip/main.js");
+      // const { unzip } = await load("/packages/libs/zip/main.js");
+      const { importProject } = await load(
+        "/packages/apps/luminote.napp/util/import-project.js"
+      );
 
       const isSafari = /^((?!chrome|android).)*safari/i.test(
         navigator.userAgent
@@ -272,56 +275,69 @@
             const file = e.target.files[0];
             e.target.value = "";
 
-            const files = await unzip(file);
-
-            // 确保有 article.json 文件
-            const articleJsonItem = files.find(
-              (e) => e.path === `article.json`
-            );
-            if (!articleJsonItem) {
-              toast({
-                content: await getLocalized({
-                  cn: `导入的文件并非 Luminote 项目文件，请检查后重新导入。`,
-                }),
-                color: "error",
-              });
-              return;
-            }
-
-            // 转换项目数据
-            let projectData = await articleJsonItem.file.text();
-            projectData = JSON.parse(projectData);
-
             const app = this.parent.parent;
 
-            this.importing = true;
-
-            // 创建一个空白项目
-            const projectItem = await app.createProject({
-              projectName: projectData.projectName,
+            const projectData = await importProject({
+              file,
+              app,
+              onError: (e) => {
+                debugger;
+              },
+              onProgress: (e) => {
+                debugger;
+              },
             });
 
-            Object.assign(projectItem.data, projectData);
+            // const files = await unzip(file);
 
-            await new Promise((resolve) => setTimeout(resolve, 200));
+            // // 确保有 article.json 文件
+            // const articleJsonItem = files.find(
+            //   (e) => e.path === `article.json`
+            // );
+            // if (!articleJsonItem) {
+            //   toast({
+            //     content: await getLocalized({
+            //       cn: `导入的文件并非 Luminote 项目文件，请检查后重新导入。`,
+            //     }),
+            //     color: "error",
+            //   });
+            //   return;
+            // }
 
-            // 等待数据存储完成
-            await projectItem.data.ready(true);
+            // // 转换项目数据
+            // let projectData = await articleJsonItem.file.text();
+            // projectData = JSON.parse(projectData);
 
-            let count = 0;
-            for (let { path, file } of files) {
-              if (path !== "article.json") {
-                const fileHandle = await projectItem.__handle.get(path, {
-                  create: "file",
-                });
+            // const app = this.parent.parent;
 
-                await fileHandle.write(file);
-              }
+            // this.importing = true;
 
-              count++;
-              this.importingProgress = count / files.length;
-              this.importingProgress = Math.round(this.importingProgress * 100);
-            }
+            // // 创建一个空白项目
+            // const projectItem = await app.createProject({
+            //   projectName: projectData.projectName,
+            // });
+
+            // Object.assign(projectItem.data, projectData);
+
+            // await new Promise((resolve) => setTimeout(resolve, 200));
+
+            // // 等待数据存储完成
+            // await projectItem.data.ready(true);
+
+            // let count = 0;
+            // for (let { path, file } of files) {
+            //   if (path !== "article.json") {
+            //     const fileHandle = await projectItem.__handle.get(path, {
+            //       create: "file",
+            //     });
+
+            //     await fileHandle.write(file);
+            //   }
+
+            //   count++;
+            //   this.importingProgress = count / files.length;
+            //   this.importingProgress = Math.round(this.importingProgress * 100);
+            // }
 
             toast({
               content: await getLocalized({
