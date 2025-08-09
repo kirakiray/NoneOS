@@ -23,6 +23,9 @@ export const importProject = async ({ app, file, onError, onProgress }) => {
 
   Object.assign(projectItem.data, projectData);
 
+  // 更新创建时间
+  projectItem.data.creationtime = Date.now();
+
   await new Promise((resolve) => setTimeout(resolve, 200));
 
   // 等待数据存储完成

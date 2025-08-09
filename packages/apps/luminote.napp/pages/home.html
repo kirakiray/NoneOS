@@ -245,7 +245,6 @@
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
       const { isAIAvailable } = await load("/packages/ai/main.js");
-      // const { unzip } = await load("/packages/libs/zip/main.js");
       const { importProject } = await load(
         "/packages/apps/luminote.napp/util/import-project.js"
       );
@@ -319,6 +318,10 @@
                 this.emit("cancel-create-project", {
                   composed: true,
                 });
+
+                this.parent.shadow
+                  .$("lumi-switch-project")
+                  .reloadExistProjects();
               }
             } catch (error) {
               console.error("Import error:", error);
