@@ -79,6 +79,9 @@
       const { toast } = await load("/packages/pui/util.js");
 
       const urlObj = new URL("../source/quickstart.luminote.zip", url);
+      const { changeLang } = await load(
+        "/packages/apps/luminote.napp/lumi/util/change-lang.js"
+      );
 
       return {
         tag: "lumi-create-project",
@@ -134,9 +137,15 @@
 
             // 更换项目名
             const projectItem = await app.getProject(newProjectRootName);
+
+            await projectItem.data.ready(true); // 等待数据加载完成
+
             projectItem.data.projectName = projectName;
 
-            await new Promise((resolve) => setTimeout(resolve, 500)); // 等待保存项目名
+            // 更换语言
+            await changeLang(projectItem.data, this.mainLang);
+
+            await projectItem.data.ready(true); // 等待保存项目名
 
             toast({
               content: await getLocalized({
@@ -148,7 +157,7 @@
             });
 
             // 切换到项目
-            await app.switchProject(newProjectRootName);
+            // await app.switchProject(newProjectRootName);
 
             this.newProjectName = "";
             this.emit("cancel-create-project", {
@@ -157,15 +166,15 @@
 
             this.adding = false;
 
-            setTimeout(() => {
-              // 切换到第一篇文章
-              try {
-                this.root
-                  .$(`p-list-item[data-project-userid]`)
-                  .$(".article-list-item")
-                  .ele.click();
-              } catch (err) {}
-            }, 300);
+            // setTimeout(() => {
+            //   // 切换到第一篇文章
+            //   try {
+            //     this.root
+            //       .$(`p-list-item[data-project-userid]`)
+            //       .$(".article-list-item")
+            //       .ele.click();
+            //   } catch (err) {}
+            // }, 300);
           },
           handleKeyup(e) {
             if (
