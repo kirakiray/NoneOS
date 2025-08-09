@@ -46,6 +46,9 @@
       attr:disabled="!newProjectName || adding"
       on:click="addNewProject"
     >
+      <o-if :value="adding" slot="prefix">
+        <n-local-icon name="loading" style="font-size: 18px"></n-local-icon>
+      </o-if>
       <localized-content>
         <span lang="en">Create Project</span>
         <span lang="cn">创建项目</span>
@@ -55,6 +58,7 @@
     <p-button
       style="margin-left: 8px"
       variant="text"
+      attr:disabled="adding"
       on:click="emit('cancel-create-project')"
     >
       <localized-content>
@@ -81,6 +85,9 @@
       const urlObj = new URL("../source/quickstart.luminote.zip", url);
       const { changeLang } = await load(
         "/packages/apps/luminote.napp/lumi/util/change-lang.js"
+      );
+      const { importProject } = await load(
+        "/packages/apps/luminote.napp/util/import-project.js"
       );
 
       return {
@@ -113,39 +120,33 @@
             const file = await fetch(urlObj).then((e) => e.blob());
             const files = await unzip(file);
             const app = this.host.parent;
-            const rootHandle = await app.dedicatedHandle();
 
-            const originProjectRootName = files[0].path.split("/")[0];
-            const newProjectRootName = `luminote-project-${Math.random()
-              .toString(32)
-              .slice(2)}`;
-
-            // 写入项目文件
-            for (let { path, file } of files) {
-              // 更替跟项目名
-              const repath = path.replace(
-                originProjectRootName,
-                newProjectRootName
-              );
-
-              const fileHandle = await rootHandle.get(repath, {
-                create: "file",
-              });
-
-              await fileHandle.write(file);
-            }
-
-            // 更换项目名
-            const projectItem = await app.getProject(newProjectRootName);
-
-            await projectItem.data.ready(true); // 等待数据加载完成
+            const projectItem = await importProject({
+              app,
+              file,
+              onError: async (e) => {},
+              onProgress: (progress) => {},
+            });
 
             projectItem.data.projectName = projectName;
 
-            // 更换语言
-            await changeLang(projectItem.data, this.mainLang);
+            // // 更换语言
+            // await changeLang(projectItem.data, this.mainLang);
 
-            await projectItem.data.ready(true); // 等待保存项目名
+            // await projectItem.data.ready(true); // 等待保存项目名
+
+            await projectItem.data.ready(true);
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            this.host.shadow.$("lumi-switch-project").reloadExistProjects();
+
+            // 切换到项目
+            await app.switchProject(projectItem.__handle.name);
+
+            this.emit("cancel-create-project", {
+              composed: true,
+            });
+
+            this.adding = false;
 
             toast({
               content: await getLocalized({
@@ -156,25 +157,16 @@
               color: "success",
             });
 
-            // 切换到项目
-            // await app.switchProject(newProjectRootName);
-
-            this.newProjectName = "";
-            this.emit("cancel-create-project", {
-              composed: true,
-            });
-
-            this.adding = false;
-
-            // setTimeout(() => {
-            //   // 切换到第一篇文章
-            //   try {
-            //     this.root
-            //       .$(`p-list-item[data-project-userid]`)
-            //       .$(".article-list-item")
-            //       .ele.click();
-            //   } catch (err) {}
-            // }, 300);
+            setTimeout(() => {
+              this.newProjectName = "";
+              // 切换到第一篇文章
+              try {
+                this.root
+                  .$(`p-list-item[data-project-userid]`)
+                  .$(".article-list-item")
+                  .ele.click();
+              } catch (err) {}
+            }, 300);
           },
           handleKeyup(e) {
             if (

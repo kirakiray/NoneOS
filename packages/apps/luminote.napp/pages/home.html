@@ -279,7 +279,7 @@
             this.importing = true;
 
             try {
-              const projectData = await importProject({
+              const projectItem = await importProject({
                 app,
                 file,
                 onError: async (e) => {
@@ -303,12 +303,12 @@
                 },
               });
 
-              if (projectData) {
+              if (projectItem) {
                 toast({
                   content: await getLocalized({
-                    cn: `导入 ${projectData.projectName} 完成`,
-                    en: `Import of ${projectData.projectName} completed`,
-                    ja: `${projectData.projectName} のインポートが完了しました`,
+                    cn: `导入 ${projectItem.data.projectName} 完成`,
+                    en: `Import of ${projectItem.data.projectName} completed`,
+                    ja: `${projectItem.data.projectName} のインポートが完了しました`,
                   }),
                 });
 
@@ -319,9 +319,11 @@
                   composed: true,
                 });
 
-                this.parent.shadow
-                  .$("lumi-switch-project")
-                  .reloadExistProjects();
+                setTimeout(() => {
+                  this.parent.shadow
+                    .$("lumi-switch-project")
+                    .reloadExistProjects();
+                }, 1000);
               }
             } catch (error) {
               console.error("Import error:", error);

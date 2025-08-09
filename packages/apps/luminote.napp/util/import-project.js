@@ -45,5 +45,5 @@ export const importProject = async ({ app, file, onError, onProgress }) => {
     onProgress(count / files.length);
   }
 
-  return projectData;
+  return projectItem;
 };
