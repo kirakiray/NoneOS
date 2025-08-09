@@ -171,8 +171,7 @@ export default {
     // 创建一个本地项目
     async createProject({ projectName, dirName, userId, rootHandle: root }) {
       // 项目目录名
-      dirName =
-        dirName || `luminote-project-${Math.random().toString(32).slice(2)}`;
+      dirName = dirName || `luminote-${Math.random().toString(32).slice(2)}`;
 
       // 获取专属文件句柄
       const rootHandle = root || (await this.dedicatedHandle());

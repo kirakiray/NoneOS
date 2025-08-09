@@ -274,91 +274,49 @@
 
             const files = await unzip(file);
 
-            // 获取目录名
-            const projectDirName = files[0].path.split("/")[0];
-
-            // 确保所有文件都在一个目录下
-            for (const { path, file } of files) {
-              if (path.split("/")[0] !== projectDirName) {
-                toast({
-                  content: await getLocalized({
-                    cn: `导入的文件并非 Luminote 项目文件，请检查后重新导入。`,
-                  }),
-                  color: "error",
-                });
-                return;
-              }
-            }
-
-            const app = this.parent.parent;
-            const openedProjects = app._openedProjects;
-
-            // 正在打开则不允许导入
-            const isOpened = openedProjects.find(
-              (e) => e.__handle.name === projectDirName
+            // 确保有 article.json 文件
+            const articleJsonItem = files.find(
+              (e) => e.path === `article.json`
             );
-
-            if (isOpened) {
+            if (!articleJsonItem) {
               toast({
                 content: await getLocalized({
-                  cn: `项目 ${projectDirName} 正在打开中，请先切换或关闭该项目后再尝试导入。`,
-                  en: `Project ${projectDirName} is currently open. Please switch to or close this project before attempting to import.`,
-                  ja: `プロジェクト ${projectDirName} は開いています。インポートする前にこのプロジェクトを切り替えるか閉じてください。`,
+                  cn: `导入的文件并非 Luminote 项目文件，请检查后重新导入。`,
                 }),
                 color: "error",
               });
               return;
             }
 
-            const existProjects = await app.getExistProjects();
+            // 转换项目数据
+            let projectData = await articleJsonItem.file.text();
+            projectData = JSON.parse(projectData);
 
-            // 判断是否已经存在
-            const isExited = existProjects.find(
-              (e) => e.__handle.name === projectDirName
-            );
-
-            if (isExited) {
-              const result = await confirm({
-                content: await getLocalized({
-                  cn: `项目 "${isExited.projectName}"(${projectDirName}) 已存在，是否覆盖？`,
-                  en: `Project "${isExited.projectName}"(${projectDirName}) already exists. Do you want to overwrite it?`,
-                  ja: `プロジェクト "${isExited.projectName}"(${projectDirName}) は既に存在します。上書きしますか？`,
-                }),
-                yes: await getLocalized({
-                  cn: "覆盖",
-                  en: "Overwrite",
-                  ja: "上書き",
-                }),
-                cancel: await getLocalized({
-                  cn: "取消",
-                  en: "Cancel",
-                  ja: "キャンセル",
-                }),
-              });
-
-              if (!result) {
-                return;
-              }
-            }
+            const app = this.parent.parent;
 
             this.importing = true;
 
-            const rootHandle = await app.dedicatedHandle();
+            // 创建一个空白项目
+            const projectItem = await app.createProject({
+              projectName: projectData.projectName,
+            });
 
-            const exitedHandle = await rootHandle.get(projectDirName);
+            Object.assign(projectItem.data, projectData);
 
-            if (exitedHandle) {
-              // 先删除
-              await exitedHandle.remove();
-            }
+            await new Promise((resolve) => setTimeout(resolve, 200));
+
+            // 等待数据存储完成
+            await projectItem.data.ready(true);
 
             let count = 0;
             for (let { path, file } of files) {
-              const fileHandle = await rootHandle.get(path, {
-                create: "file",
-              });
+              if (path !== "article.json") {
+                const fileHandle = await projectItem.__handle.get(path, {
+                  create: "file",
+                });
 
-              await fileHandle.write(file);
+                await fileHandle.write(file);
+              }
 
               count++;
               this.importingProgress = count / files.length;
@@ -367,9 +325,9 @@
 
             toast({
               content: await getLocalized({
-                cn: `导入 ${projectDirName} 完成`,
-                en: `Import of ${projectDirName} completed`,
-                ja: `${projectDirName} のインポートが完了しました`,
+                cn: `导入 ${projectData.projectName} 完成`,
+                en: `Import of ${projectData.projectName} completed`,
+                ja: `${projectData.projectName} のインポートが完了しました`,
               }),
             });
 
