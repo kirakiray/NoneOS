@@ -158,7 +158,7 @@
     <o-fill :value="translationProgress">
       <div style="padding: 8px 0">
         {{$data.langName}} ({{$data.progressStr}}%)
-        <div style="display: flex; align-items: center; max-width: 320px">
+        <div style="display: flex; align-items: center">
           <p-progress
             :value="$data.progress"
             style="margin-top: 4px; margin-right: 8px"
@@ -174,6 +174,15 @@
               <span lang="en">Clear Cache</span>
               <span lang="ja">キャッシュをクリア</span>
             </localized-content>
+          </p-button>
+          <p-button
+            size="small"
+            variant="text"
+            attr:disabled="$data.progress < 100"
+            on:click="$host.setDefaultLang($data.lang)"
+            style="margin-left: 4px"
+          >
+            设置为该默认语言
           </p-button>
         </div>
       </div>
@@ -198,6 +207,7 @@
       const { fillTranslate } = await load(
         "/packages/apps/luminote.napp/lumi/util/i18n-toblock.js"
       );
+      const { changeLang } = await load("../lumi/util/change-lang.js");
 
       return {
         tag: "lumi-project-setting",
@@ -210,6 +220,39 @@
           inTranslate: false,
         },
         proto: {
+          async setDefaultLang(lang) {
+            // this.projectData.mainLang = lang;
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "设置默认语言",
+                en: "Set Default Language",
+                ja: "デフォルト言語を設定",
+              }),
+              content: await getLocalized({
+                cn: `确认要将项目的默认语言更改为 ${this.getRealLang(
+                  lang
+                )} 吗？`,
+                en: `Are you sure you want to set ${this.getRealLang(
+                  lang
+                )} as the default language?`,
+                ja: `${this.getRealLang(lang)}をデフォルト言語に設定しますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await changeLang(this.projectData, lang);
+
+            toast({
+              content: await getLocalized({
+                cn: "默认语言已更改",
+                en: "Default language has been changed",
+                ja: "デフォルト言語が変更されました",
+              }),
+            });
+          },
           async activeTranslate() {
             // 主动翻译所有语言
             const result = await confirm({
