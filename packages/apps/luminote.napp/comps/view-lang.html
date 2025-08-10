@@ -33,7 +33,7 @@
         style="display: block; font-size: 18px; margin-right: 4px"
       ></n-local-icon>
 
-      {{getRealLang(appConfigData.viewLang)}}
+      {{getRealLang(lumiViewLang)}}
     </p-button>
   </div>
 
@@ -54,7 +54,7 @@
         </localized-content>
         <p-select
           size="small"
-          sync:value="appConfigData.viewLang"
+          sync:value="lumiViewLang"
           on:change="changeLang"
           style="display: inline-block; margin-left: 8px"
         >
@@ -75,7 +75,7 @@
             >
             撰写。 当前正在使用
             <span style="color: var(--md-sys-color-primary)"
-              >{{getRealLang(appConfigData.viewLang)}}</span
+              >{{getRealLang(lumiViewLang)}}</span
             >
             阅读文档。
           </p>
@@ -92,7 +92,7 @@
             >
             . Currently, you are reading the document in
             <span style="color: var(--md-sys-color-primary)"
-              >{{getRealLang(appConfigData.viewLang)}}</span
+              >{{getRealLang(lumiViewLang)}}</span
             >
             .
           </p>
@@ -113,7 +113,7 @@
             >
             で書かれています。 現在、
             <span style="color: var(--md-sys-color-primary)"
-              >{{getRealLang(appConfigData.viewLang)}}</span
+              >{{getRealLang(lumiViewLang)}}</span
             >
             でドキュメントを読んでいます。
           </p>
@@ -141,9 +141,7 @@
         </p>
       </o-if> -->
 
-      <o-if
-        :value="projectData && appConfigData.viewLang != projectData.mainLang"
-      >
+      <o-if :value="projectData && lumiViewLang != projectData.mainLang">
         <p style="color: var(--md-sys-color-primary)">
           <localized-content>
             <span lang="cn"
@@ -186,10 +184,13 @@
 
             return this.getRealLang(this.projectData.mainLang);
           },
-          changeLang() {
+          changeLang(e) {
+            const value = $(e.target).value;
+
             // 切换到其他语言
-            this.getProvider("lumi-view-lang").value =
-              this.appConfigData.viewLang;
+            const viewLangProvider = this.getProvider("lumi-view-lang");
+            viewLangProvider.value = value;
+            this.appConfigData.viewLang = value;
           },
           getRealLang(lang) {
             switch (lang) {

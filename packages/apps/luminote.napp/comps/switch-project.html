@@ -432,6 +432,11 @@
               return;
             }
 
+            if (data.mainLang) {
+              const viewLangProvider = this.getProvider("lumi-view-lang");
+              viewLangProvider.value = data.mainLang;
+            }
+
             this.app.switchProject(data.dirName, data.userId || "self");
 
             this.emit("close-dialog", {
