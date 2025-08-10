@@ -130,6 +130,14 @@
 
             projectItem.data.projectName = projectName;
 
+            if (this.mainLang !== projectItem.data.mainLang) {
+              await projectItem.data.ready(true);
+              await new Promise((resolve) => setTimeout(resolve, 600));
+              debugger
+              await changeLang(projectItem.data, this.mainLang);
+              debugger;
+            }
+
             // // 更换语言
             // await changeLang(projectItem.data, this.mainLang);
 

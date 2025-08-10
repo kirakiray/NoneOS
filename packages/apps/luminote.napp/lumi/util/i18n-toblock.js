@@ -33,7 +33,7 @@ export const fillTranslate = async (list, { callback, langs } = {}) => {
           lang,
           keys: {
             i18nKey: "titleI18nContent",
-            originKey: "title",
+            valueKey: "title",
           },
         });
       }
@@ -73,7 +73,7 @@ export const translateItem = async ({
 
   if (!keys) {
     keys = {
-      originKey: "value",
+      valueKey: "value",
       i18nKey: "i18nContent",
     };
   }
@@ -102,7 +102,12 @@ export const translateItem = async ({
     i18nContent = itemData[keys.i18nKey];
   }
 
-  const originHash = await getHash(itemData[keys.originKey]);
+  if (!keys.valueKey) {
+    // 没有内容，不需要翻译
+    debugger;
+  }
+
+  const originHash = await getHash(itemData[keys.valueKey]);
 
   if (i18nContent[lang]) {
     if (i18nContent[lang].originHash === originHash) {
@@ -130,7 +135,7 @@ export const translateItem = async ({
 4. 不要添加或删除任何标签。
 HTML 如下：
 
-${itemData[keys.originKey]}
+${itemData[keys.valueKey]}
 `,
     {
       id: block.xid,
@@ -169,7 +174,7 @@ export const switchLang = async (block, lang, options = {}) => {
 
   if (!keys) {
     keys = {
-      originKey: "value",
+      valueKey: "value",
       i18nKey: "i18nContent",
     };
   }
@@ -184,8 +189,8 @@ export const switchLang = async (block, lang, options = {}) => {
 
     if (
       !mainLang ||
-      !block.itemData[keys.originKey] ||
-      !block.itemData[keys.originKey].trim()
+      !block.itemData[keys.valueKey] ||
+      !block.itemData[keys.valueKey].trim()
     ) {
       // if (onStateChange) onStateChange(false);
       return null;
