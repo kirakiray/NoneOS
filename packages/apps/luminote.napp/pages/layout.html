@@ -9,7 +9,6 @@
   <l-m src="../comps/switch-project.html"></l-m>
   <l-m src="../comps/lumi-project-setting.html"></l-m>
   <l-m src="../comps/view-lang.html"></l-m>
-  <l-m src="../comps/lumi-create-project.html"></l-m>
   <style>
     :host {
       display: block;
@@ -254,22 +253,6 @@
           </p-list>
 
           <div style="padding-bottom: 16px; display: flex; align-items: center">
-            <p-button
-              variant="text"
-              on:click="openAddDialog = true"
-              style="flex: 1"
-            >
-              <n-local-icon
-                name="add-project"
-                slot="prefix"
-                style="display: block; margin-right: 3px"
-              ></n-local-icon>
-              <localized-content>
-                <span lang="en"> Manage Projects </span>
-                <span lang="cn"> 管理项目 </span>
-                <span lang="ja"> プロジェクトを管理する </span>
-              </localized-content>
-            </p-button>
             <!-- <p-button variant="text" style="flex: 1"> 添加项目 </p-button> -->
           </div>
         </div>
@@ -460,28 +443,6 @@
       </div>
     </p-bind-contextmenu>
 
-    <p-dialog :open="openAddDialog" on:click-mask="openAddDialog = false">
-      <div slot="title">
-        <localized-content>
-          <span lang="en"> Manage Projects </span>
-          <span lang="cn"> 管理项目 </span>
-          <span lang="ja"> プロジェクトを管理する </span>
-        </localized-content>
-      </div>
-      <p-button
-        variant="text"
-        icon
-        on:click="openAddDialog = false"
-        style="position: absolute; right: 10px; top: 10px"
-      >
-        <n-local-icon name="close"></n-local-icon>
-      </p-button>
-      <div style="min-width: 60vw; min-height: 60vh">
-        <lumi-switch-project
-          on:close-dialog="openAddDialog = false"
-        ></lumi-switch-project>
-      </div>
-    </p-dialog>
     <p-dialog
       :open="openProjectSettingDialog"
       on:click-mask="!globalInTranslate ? (openProjectSettingDialog = false) : (openProjectSettingDialog = true)"
@@ -532,7 +493,6 @@
           currentProjectName: "",
           currentUserId: "self",
           currentDirName: null,
-          openAddDialog: false,
           projects: [], // 已经打开的项目
           saving: false, // 保存项目中
           openProjectSettingDialog: false,
