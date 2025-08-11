@@ -133,22 +133,21 @@
             if (this.mainLang !== projectItem.data.mainLang) {
               await projectItem.data.ready(true);
               await new Promise((resolve) => setTimeout(resolve, 600));
-              debugger
+              // 更换语言
               await changeLang(projectItem.data, this.mainLang);
-              debugger;
+
+              await new Promise((resolve) => setTimeout(resolve, 600));
+
+              const viewLangProvider = this.getProvider("lumi-view-lang");
+              viewLangProvider.value = this.mainLang;
             }
-
-            // // 更换语言
-            // await changeLang(projectItem.data, this.mainLang);
-
-            // await projectItem.data.ready(true); // 等待保存项目名
 
             await projectItem.data.ready(true);
             await new Promise((resolve) => setTimeout(resolve, 600));
             this.host.shadow.$("lumi-switch-project").reloadExistProjects();
 
             // 切换到项目
-            await app.switchProject(projectItem.__handle.name);
+            // await app.switchProject(projectItem.__handle.name);
 
             this.emit("cancel-create-project", {
               composed: true,
@@ -165,16 +164,16 @@
               color: "success",
             });
 
-            setTimeout(() => {
-              this.newProjectName = "";
-              // 切换到第一篇文章
-              try {
-                this.root
-                  .$(`p-list-item[data-project-userid]`)
-                  .$(".article-list-item")
-                  .ele.click();
-              } catch (err) {}
-            }, 300);
+            // setTimeout(() => {
+            //   this.newProjectName = "";
+            //   // 切换到第一篇文章
+            //   try {
+            //     this.root
+            //       .$(`p-list-item[data-project-userid]`)
+            //       .$(".article-list-item")
+            //       .ele.click();
+            //   } catch (err) {}
+            // }, 300);
           },
           handleKeyup(e) {
             if (

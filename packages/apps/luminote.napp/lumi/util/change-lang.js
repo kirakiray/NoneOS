@@ -21,6 +21,30 @@ export const changeLang = async (projectData, lang) => {
 };
 
 const changeArticle = async (articleData, lang, originLang) => {
+  // 修正title
+  const { titleI18nContent, title } = articleData;
+  const reTitle = titleI18nContent[lang]?.value || title;
+  articleData.title = reTitle;
+
+  if (titleI18nContent[lang]) {
+    delete titleI18nContent[lang];
+  }
+
+  const titleHash = await getHash(reTitle);
+  titleI18nContent[originLang] = {
+    modelName: "",
+    originHash: titleHash,
+    time: Date.now(),
+    value: title,
+  };
+
+  for (let [key, obj] of Object.entries(titleI18nContent)) {
+    if (key === "dataStatus" || key === originLang) {
+      continue;
+    }
+    obj.originHash = titleHash;
+  }
+
   for (let item of articleData.content) {
     const { i18nContent, value } = item;
 
