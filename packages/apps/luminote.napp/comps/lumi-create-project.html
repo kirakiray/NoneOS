@@ -144,7 +144,7 @@
 
             await projectItem.data.ready(true);
             await new Promise((resolve) => setTimeout(resolve, 600));
-            this.host.shadow.$("lumi-switch-project").reloadExistProjects();
+            // this.host[0].shadow.$("lumi-switch-project").reloadExistProjects();
 
             // 切换到项目
             // await app.switchProject(projectItem.__handle.name);

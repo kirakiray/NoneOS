@@ -554,7 +554,7 @@
           },
           cancelCreateProject() {
             this.openCreateProjectDialog = false;
-            this.shadow.$("lumi-switch-project").reloadExistProjects();
+            this[0].shadow.$("lumi-switch-project").reloadExistProjects();
           },
           lumiPageSaving() {
             clearTimeout(this._saving_timer);
