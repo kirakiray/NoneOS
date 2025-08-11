@@ -243,6 +243,15 @@
               return;
             }
 
+            const lumiViewLangProvider = this.getProvider("lumi-view-lang");
+            lumiViewLangProvider.value = lang;
+
+            const configData = await this.host.parents.find(
+              (e) => e.tag == "o-app"
+            )._configData;
+
+            configData.viewLang = lang;
+
             await changeLang(this.projectData, lang);
 
             toast({
@@ -387,6 +396,8 @@
           this.watchTick(async (watchs) => {
             // 监听 projectData 被重制
             if (watchs.hasReplaced("projectData")) {
+              this.refreshLangProgress();
+
               // 判断是否有设置自定义语言种类
               if (!this.projectData.otherLang) {
                 // 如果没有其他语言，则配置上；去除主语言

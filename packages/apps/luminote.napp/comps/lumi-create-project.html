@@ -59,7 +59,7 @@
       style="margin-left: 8px"
       variant="text"
       attr:disabled="adding"
-      on:click="emit('cancel-create-project')"
+      on:click="emit('click-mask')"
     >
       <localized-content>
         <span lang="en">Cancel</span>
@@ -144,12 +144,12 @@
 
             await projectItem.data.ready(true);
             await new Promise((resolve) => setTimeout(resolve, 600));
-            // this.host[0].shadow.$("lumi-switch-project").reloadExistProjects();
+            this.host[0].shadow.$("lumi-switch-project").reloadExistProjects();
 
             // 切换到项目
             // await app.switchProject(projectItem.__handle.name);
 
-            this.emit("cancel-create-project", {
+            this.emit("click-mask", {
               composed: true,
             });
 

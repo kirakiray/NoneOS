@@ -185,8 +185,18 @@
         <o-if :value="!$host.isOpenedProject($data)" slot="suffix">
           <p-button
             size="small"
+            icon
+            variant="outlined"
+            style="z-index: 3; margin-right: 8px"
+            on:click="$host.handleProjectSetting($data,$event)"
+          >
+            <n-local-icon name="config"></n-local-icon>
+          </p-button>
+
+          <p-button
+            size="small"
             color="error"
-            variant="text"
+            variant="outlined"
             icon
             on:click="$host.handleDeleteProject($data,$event)"
             style="z-index: 3"
@@ -345,6 +355,17 @@
           currentProjectSetting: {}, // 当前项目的设置数据
         },
         proto: {
+          async handleProjectSetting(data, event) {
+            event.stopPropagation();
+
+            const projectItem = await this.app.getProject(data.dirName);
+
+            this.emit("click-project-setting", {
+              data: {
+                projectData: projectItem.data,
+              },
+            });
+          },
           getLang(lang) {
             switch (lang) {
               case "cn":

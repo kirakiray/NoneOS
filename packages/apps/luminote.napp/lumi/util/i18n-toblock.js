@@ -103,8 +103,7 @@ export const translateItem = async ({
   }
 
   if (!keys.valueKey) {
-    // 没有内容，不需要翻译
-    debugger;
+    return;
   }
 
   const originHash = await getHash(itemData[keys.valueKey]);

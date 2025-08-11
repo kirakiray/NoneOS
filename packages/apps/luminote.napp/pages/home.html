@@ -9,6 +9,8 @@
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
   <l-m src="../comps/lumi-create-project.html"></l-m>
+  <l-m src="../comps/lumi-project-setting.html"></l-m>
+  <l-m src="../comps/switch-project.html"></l-m>
 
   <style>
     :host {
@@ -207,7 +209,9 @@
     </p-button>
   </div>
 
-  <lumi-switch-project></lumi-switch-project>
+  <lumi-switch-project
+    on:click-project-setting="clickProjectSetting"
+  ></lumi-switch-project>
 
   <div>
     <h4>
@@ -241,6 +245,24 @@
     on:change="handleImportProject"
   />
 
+  <p-dialog
+    :open="openProjectSettingDialog"
+    on:click-mask="!globalInTranslate ? (openProjectSettingDialog = false) : (openProjectSettingDialog = true)"
+  >
+    <div slot="title">
+      <localized-content>
+        <span lang="en"> Project Settings </span>
+        <span lang="cn"> 项目设置 </span>
+        <span lang="ja"> プロジェクトの設定 </span>
+      </localized-content>
+    </div>
+    <lumi-project-setting
+      :project-data="currentSettingProjectData"
+      watch:in-translate="globalInTranslate"
+      style="min-height: 50vh; min-width: 50vh"
+    ></lumi-project-setting>
+  </p-dialog>
+
   <script>
     export const parent = "./layout.html";
     import { getLocalized } from "/packages/i18n/localized-object.js";
@@ -268,11 +290,20 @@
           remotes: [], // 其他设备
           loadingRemote: false,
           aiAvailable: 0,
-          appConfigData: {}, // 当前应用的配置数据
+          appConfigData: {}, // luminote应用的配置数据
           importing: false,
           importingProgress: 0,
+          currentSettingProjectData: {}, // 需要设置的项目数据
+          openProjectSettingDialog: false, // 是否弹起项目设置弹窗
+          globalInTranslate: false, // 是否在全文翻译中
         },
         proto: {
+          clickProjectSetting(e) {
+            const { projectData } = e.data;
+
+            this.currentSettingProjectData = projectData;
+            this.openProjectSettingDialog = true;
+          },
           async handleImportProject(e) {
             const file = e.target.files[0];
             e.target.value = "";
@@ -317,10 +348,6 @@
 
                 this.importing = false;
                 this.importingProgress = 0;
-
-                this.emit("cancel-create-project", {
-                  composed: true,
-                });
 
                 setTimeout(() => {
                   this.parent.shadow
@@ -382,6 +409,7 @@
         },
         detached() {
           this.appConfigData = {};
+          this.currentSettingProjectData = {};
         },
       };
     };
