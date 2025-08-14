@@ -302,6 +302,12 @@ export default {
 
       saveOpenHistory(this);
     },
+    async saveFile(file) {
+      debugger;
+    },
+    async getFileHandle(hash) {
+      debugger;
+    },
   },
   ready() {
     this._openedProjects = $.stanz([]); // 已经打开的项目

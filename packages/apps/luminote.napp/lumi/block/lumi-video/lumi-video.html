@@ -241,6 +241,10 @@
           async loadVideo() {
             const sourceHandle = await this.getSourceHandle();
 
+            if (this.videoSrc) {
+              URL.revokeObjectURL(this.videoSrc);
+            }
+
             try {
               const fileHandle = await sourceHandle.get(this.hash);
               const file = await fileHandle.file();
@@ -269,6 +273,11 @@
 
             return sourceHandle;
           },
+        },
+        detached() {
+          if (this.videoSrc) {
+            URL.revokeObjectURL(this.videoSrc);
+          }
         },
       };
     };

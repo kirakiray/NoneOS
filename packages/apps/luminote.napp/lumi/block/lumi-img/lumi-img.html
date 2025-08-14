@@ -205,6 +205,10 @@
           async loadImg() {
             const sourceHandle = await this.getSourceHandle();
 
+            if (this.imgSrc) {
+              URL.revokeObjectURL(this.imgSrc);
+            }
+
             try {
               const fileHandle = await sourceHandle.get(this.hash);
               const file = await fileHandle.file();
@@ -216,6 +220,10 @@
           async handleChange(e) {
             const file = e.target.files[0];
             e.target.value = "";
+
+            const app = this.app;
+
+            // const hash = await this.app.saveFile(file);
 
             // 计算文件的hash
             const hash = await getFileHash(file);
@@ -251,6 +259,11 @@
 
             return sourceHandle;
           },
+        },
+        detached() {
+          if (this.imgSrc) {
+            URL.revokeObjectURL(this.imgSrc);
+          }
         },
       };
     };
