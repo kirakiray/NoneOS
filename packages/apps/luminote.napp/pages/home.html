@@ -400,6 +400,10 @@
             },
           });
 
+          setTimeout(() => {
+            this.style.transform = "";
+          }, 300);
+
           this.emit("update-breadcrumbs", {
             composed: true,
             data: {

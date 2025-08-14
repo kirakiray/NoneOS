@@ -48,6 +48,12 @@ const changeArticle = async (articleData, lang, originLang) => {
   for (let item of articleData.content) {
     const { i18nContent, value } = item;
 
+    if (!value) {
+      // 清除所有翻译
+      item.i18nContent = undefined;
+      continue;
+    }
+
     const reValue = i18nContent[lang]?.value || value;
 
     const hash = await getHash(reValue);
