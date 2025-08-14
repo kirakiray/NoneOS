@@ -14,7 +14,7 @@
     "package4": "electron-forge make --platform=win32 --arch=x64",
     "make": "electron-forge make",
     "make2": "electron-forge make --platform=darwin --arch=x64,arm64",
-    "dev": "cd .. && npm run bu && cd electron && node script/copy-file.js && electron .",
+    "dev": "cd .. && cd .. && npm run bu && cd client && cd electron && node script/copy-file.js && electron .",
     "makeicon": "npx electron-icon-builder --input=./sources/packages/others/logo.png --output=."
   },
   "devDependencies": {

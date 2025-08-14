@@ -5,9 +5,10 @@ const createWindow = (url) => {
   const win = new BrowserWindow({
     width: 800,
     height: 800,
+    // frame: false,
+    // transparent: true,
   });
 
-  //   win.loadFile("index.html");
   win.loadURL(url);
 
   return win;
