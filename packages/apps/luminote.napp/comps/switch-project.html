@@ -467,7 +467,7 @@
             setTimeout(() => {
               // 切换到第一篇文章
               try {
-                this.root
+                this.host.parent.shadow
                   .$(`p-list-item[data-project-userid]`)
                   .$(".article-list-item")
                   .ele.click();
