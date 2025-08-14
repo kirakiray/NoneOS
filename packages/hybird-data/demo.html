@@ -16,17 +16,30 @@
       });
 
       const data1 = await createData(handle);
-      const data2 = await createData(handle);
+      // const data2 = await createData(handle);
 
       data1.splice(0, 100, {
         val: Math.random().toString(32).slice(6),
       });
 
       data1.a = Math.random().toString(32).slice(6);
+      data1.b = {
+        val: Math.random().toString(32).slice(6),
+      };
       await new Promise((r) => setTimeout(r, 1000)); // wait for 1s
 
       console.log(data1.toJSON());
-      console.log(data2.toJSON());
+      // console.log(data2.toJSON());
+
+      await new Promise((r) => setTimeout(r, 300));
+
+      delete data1.b;
+      // data1.b = undefined;
+
+      await new Promise((r) => setTimeout(r, 300));
+
+      console.log(data1.toJSON());
+      // console.log(data2.toJSON());
     </script>
   </body>
 </html>
