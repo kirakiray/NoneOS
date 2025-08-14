@@ -135,11 +135,6 @@
               await new Promise((resolve) => setTimeout(resolve, 600));
               // 更换语言
               await changeLang(projectItem.data, this.mainLang);
-
-              await new Promise((resolve) => setTimeout(resolve, 600));
-
-              const viewLangProvider = this.getProvider("lumi-view-lang");
-              viewLangProvider.value = this.mainLang;
             }
 
             await projectItem.data.ready(true);
