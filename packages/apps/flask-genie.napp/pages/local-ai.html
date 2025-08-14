@@ -39,7 +39,13 @@
   </h4>
 
   <o-if :value="isLocalhost">
-    <p-switch sync:value="useLocalArea"> 使用局域网Ollama(临时方案) </p-switch>
+    <p-switch sync:value="useLocalArea">
+      <localized-content>
+        <span lang="en"> Use local Ollama (temporary solution) </span>
+        <span lang="cn"> 使用局域网Ollama(临时方案) </span>
+        <span lang="ja"> ローカルのOllamaを使用(一時的な解決策) </span>
+      </localized-content>
+    </p-switch>
   </o-if>
   <o-if :value="useLocalArea === 'on'">
     <p-input
