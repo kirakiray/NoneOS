@@ -1,5 +1,6 @@
 import { createArticleData } from "./util/create-article-data.js";
 
+
 export const home = "./pages/home.html";
 
 export const pageAnime = {
@@ -301,12 +302,6 @@ export default {
       }
 
       saveOpenHistory(this);
-    },
-    async saveFile(file) {
-      debugger;
-    },
-    async getFileHandle(hash) {
-      debugger;
     },
   },
   ready() {

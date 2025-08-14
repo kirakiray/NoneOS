@@ -258,11 +258,7 @@
               return item.src && item.src.includes("note.html");
             });
 
-            const oapp = this.host.host.parents.find((item) => {
-              return item.tag === "o-app";
-            });
-
-            const projectItem = await oapp.getProject(
+            const projectItem = await this.app.getProject(
               notePage.currentDirName,
               notePage.currentUserId
             );
