@@ -243,15 +243,6 @@
               return;
             }
 
-            const lumiViewLangProvider = this.getProvider("lumi-view-lang");
-            lumiViewLangProvider.value = lang;
-
-            const configData = await this.host.parents.find(
-              (e) => e.tag == "o-app"
-            )._configData;
-
-            configData.viewLang = lang;
-
             await changeLang(this.projectData, lang);
 
             toast({
@@ -260,6 +251,10 @@
                 en: "Default language has been changed",
                 ja: "デフォルト言語が変更されました",
               }),
+            });
+
+            this.emit("reload-exited-project", {
+              composed: true,
             });
           },
           async activeTranslate() {

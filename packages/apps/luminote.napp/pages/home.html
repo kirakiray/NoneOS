@@ -350,9 +350,7 @@
                 this.importingProgress = 0;
 
                 setTimeout(() => {
-                  this.parent.shadow
-                    .$("lumi-switch-project")
-                    .reloadExistProjects();
+                  this.shadow.$("lumi-switch-project").reloadExistProjects();
                 }, 1000);
               }
             } catch (error) {
@@ -379,6 +377,12 @@
           },
         },
         attached() {
+          this.on("reload-exited-project", () => {
+            setTimeout(() => {
+              this.shadow.$("lumi-switch-project").reloadExistProjects();
+            }, 2000);
+          });
+
           (async () => {
             this.aiAvailable = await isAIAvailable();
 

@@ -387,7 +387,7 @@
 
             event.stopPropagation();
 
-            const app = this.host.parent;
+            const app = this.app;
             const projectInfo = await app.getProject(data.dirName, "self");
 
             // 将正文生成一个文件

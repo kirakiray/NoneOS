@@ -442,24 +442,6 @@
       </div>
     </p-bind-contextmenu>
 
-    <!-- <p-dialog
-      :open="openProjectSettingDialog"
-      on:click-mask="!globalInTranslate ? (openProjectSettingDialog = false) : (openProjectSettingDialog = true)"
-    >
-      <div slot="title">
-        <localized-content>
-          <span lang="en"> Project Settings </span>
-          <span lang="cn"> 项目设置 </span>
-          <span lang="ja"> プロジェクトの設定 </span>
-        </localized-content>
-      </div>
-      <lumi-project-setting
-        :project-data="currentProjectData"
-        watch:in-translate="globalInTranslate"
-        style="min-height: 50vh; min-width: 50vh"
-      ></lumi-project-setting>
-    </p-dialog> -->
-
     <p-dialog
       :open="openCreateProjectDialog"
       on:click-mask="openCreateProjectDialog = false"
@@ -492,21 +474,12 @@
           currentDirName: null,
           projects: [], // 已经打开的项目
           saving: false, // 保存项目中
-          // openProjectSettingDialog: false,
           currentProjectData: null,
           openCreateProjectDialog: false,
           leftResizeLineMouseDown: false, // 左侧修正宽度的条被鼠标点下
           leftWidth: parseInt(sessionStorage.__luminote_left_width) || 260, // 左侧栏的宽度
           appConfigData: {},
-          // globalInTranslate: false, // 是否在全文翻译中
         },
-        // watch: {
-        //   openProjectSettingDialog(bool) {
-        //     if (bool) {
-        //       this.shadow.$("lumi-project-setting").refreshLangProgress();
-        //     }
-        //   },
-        // },
         proto: {
           // 左侧修正宽度的条被鼠标点下
           handleLeftResizeLineMouseDown(e) {
