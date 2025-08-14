@@ -1,0 +1,28 @@
+{
+  "name": "none-os-static-server",
+  "version": "1.0.0",
+  "description": "A static file server built with Bun for NoneOS",
+  "main": "start.js",
+  "bin": {
+    "none-os-server": "start.js"
+  },
+  "scripts": {
+    "start": "bun start.js",
+    "dev": "bun --watch start.js",
+    "build": "bun build start.js --compile --outfile none-os-server",
+    "build:windows": "bun build start.js --compile --outfile none-os-server.exe --target bun-windows-x64",
+    "build:mac": "bun build start.js --compile --outfile none-os-server-macos --target bun-darwin-x64",
+    "build:linux": "bun build start.js --compile --outfile none-os-server-linux --target bun-linux-x64"
+  },
+  "keywords": [
+    "static-server",
+    "bun",
+    "none-os",
+    "file-server"
+  ],
+  "author": "NoneOS Team",
+  "license": "MIT",
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
