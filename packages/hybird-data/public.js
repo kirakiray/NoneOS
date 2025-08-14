@@ -39,8 +39,6 @@ export const realSaveData = async (hydata) => {
 
   hydata.dataStatus = "saving";
 
-  console.log("realSaveData: ", hydata);
-
   const finnalData = {};
 
   await Promise.all(
