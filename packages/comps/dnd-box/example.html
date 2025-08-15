@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DND Box Example</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <style>
+      dnd-box[draggable] {
+        opacity: 0.5;
+      }
+
+      [over-hor="1"] {
+        background-color: rgba(167, 89, 89, 0.395);
+      }
+      [over-hor="2"] {
+        background-color: rgba(89, 167, 133, 0.395);
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./dnd-box.html"></l-m>
+
+    <dnd-box
+      type="type1"
+      style="border: red solid 1px; padding: 8px; margin: 4px"
+    >
+      <button trigger-drag>拖拽我</button>
+      这是类型为 type1 的示范元素，点击左侧按钮即可拖拽
+    </dnd-box>
+    <dnd-box
+      type="type2 type3"
+      style="border: red solid 1px; padding: 8px; margin: 4px"
+    >
+      这是 type2 + type3 的示范元素，点击右侧按钮即可拖拽
+      <button trigger-drag>拖拽我</button>
+    </dnd-box>
+
+    <div style="height: 300px"></div>
+
+    <dnd-box
+      accept="type1"
+      style="border: green solid 1px; padding: 32px; margin: 8px"
+    >
+      请将 type1 类型的元素拖拽至此区域
+    </dnd-box>
+    <dnd-box
+      accept="type3"
+      style="
+        border: blue solid 1px;
+        padding: 32px;
+        margin: 8px;
+        margin-left: 25%;
+      "
+    >
+      请将 type3 类型的元素拖拽至此区域
+    </dnd-box>
+    <dnd-box
+      accept="type1 type2"
+      style="
+        border: orange solid 1px;
+        padding: 32px;
+        margin: 8px;
+        margin-left: 50%;
+      "
+    >
+      请将 type1 或 type2 类型的元素拖拽至此区域
+    </dnd-box>
+    <div style="height: 1000px"></div>
+    <script></script>
+  </body>
+</html>

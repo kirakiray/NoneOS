@@ -1,0 +1,133 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default {
+      tag: "dnd-box",
+      attrs: {
+        type: null, // 元素类型
+        accept: null, // 接受的类型
+        step: 2,
+        overHor: null, // 悬停在当前元素水平方向的10分之几
+        overVer: null, // 悬停在当前元素垂直方向的10分之几
+      },
+      data: {},
+      proto: {
+        _clear() {
+          this.overHor = null;
+          this.overVer = null;
+          clearTimeout(this._overtimer);
+          this._overtimer = null;
+        },
+      },
+      ready() {
+        this.on("mousedown", (e) => {
+          if (e.target.getAttribute("trigger-drag") !== null) {
+            this.attr("draggable", "true");
+          }
+        });
+
+        this.on("dragstart", (e) => {
+          const serialized = JSON.stringify({
+            type: this.type,
+          });
+
+          e.dataTransfer.setData("application/x-dnd-box", serialized);
+          console.log("dragstart", e);
+        });
+
+        this.on("dragenter", (e) => {
+          if (!this.accept) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          console.log("dragenter", e, e.dataTransfer.types);
+        });
+
+        this.on("dragover", (e) => {
+          if (!this.accept) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          e.preventDefault();
+
+          if (!this._overtimer) {
+            const { clientX, clientY } = e;
+            this._overtimer = setTimeout(() => {
+              // 计算悬停在当前元素水平方向的10分之几
+              const x = clientX - this.ele.offsetLeft;
+              const y = clientY - this.ele.offsetTop;
+
+              const rect = this.ele.getBoundingClientRect();
+
+              // 使用 getBoundingClientRect() 获取的坐标是相对于视口的，
+              // 因此 clientX 和 clientY 已经是相对于视口的坐标，无需减去 offsetLeft 和 offsetTop
+              const overHor = Math.ceil(
+                ((e.clientX - rect.left) / rect.width) * parseInt(this.step)
+              );
+
+              if (this.overHor != overHor) {
+                this.overHor = String(overHor);
+              }
+
+              const overVer = Math.ceil(
+                ((e.clientY - rect.top) / rect.height) * parseInt(this.step)
+              );
+
+              if (this.overVer != overVer) {
+                this.overVer = String(overVer);
+              }
+
+              this._overtimer = null;
+            }, 100);
+          }
+        });
+
+        this.on("dragleave", (e) => {
+          if (!this.accept) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          this._clear();
+        });
+
+        this.on("drop", (e) => {
+          e.preventDefault();
+
+          if (!this.accept) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          const dndboxData = JSON.parse(
+            e.dataTransfer.getData("application/x-dnd-box")
+          );
+
+          this._clear();
+
+          console.log("drop", dndboxData, e.dataTransfer.types);
+        });
+
+        {
+          // 结束时去除拖拽属性
+          this.on("click", () => {
+            // 点击去除绑定
+            this.attr("draggable", null);
+            this._clear();
+          });
+          this.on("dragend", (e) => {
+            this.attr("draggable", null);
+            this._clear();
+          });
+        }
+      },
+    };
+  </script>
+</template>
