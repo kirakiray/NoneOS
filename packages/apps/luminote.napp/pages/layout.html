@@ -122,7 +122,7 @@
       on:click-item="handleClickMenuItem"
       style="height: 100%"
     >
-      <p-menu contextmenu-selector=".article-list-item">
+      <p-menu contextmenu-selector=".article-list-item" style="z-index: 5">
         <p-menu-item data-type="addSubNote">
           <n-local-icon
             name="add-note"
@@ -302,6 +302,7 @@
               variant="text"
               icon
               slot="prefix"
+              on:click="$host.clickArticleMenu($data,$event)"
             >
               <n-local-icon name="article"></n-local-icon>
               <n-local-icon name="menu"></n-local-icon>
@@ -505,6 +506,22 @@
           appConfigData: {},
         },
         proto: {
+          clickArticleMenu(data, event) {
+            event.stopPropagation();
+
+            const $target = $(event.target);
+
+            const { offsetX, offsetY, clientX, clientY } = event;
+
+            $target.emit("contextmenu", {
+              data: {
+                offsetX,
+                offsetY,
+                clientX,
+                clientY,
+              },
+            });
+          },
           // 左侧修正宽度的条被鼠标点下
           handleLeftResizeLineMouseDown(e) {
             this.leftResizeLineMouseDown = true;
