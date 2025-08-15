@@ -2,6 +2,7 @@
   <style>
     :host {
       display: block;
+      transform: translateZ(0); /* 创建独立的合成层 */
     }
 
     :host([disabled-drop]) {
@@ -167,10 +168,16 @@
             }
           });
 
+          const { overHor, overVer } = this;
+
           this._clear();
 
           this.emit("dnd-drop", {
-            data,
+            data: {
+              dndData: data,
+              overHor,
+              overVer,
+            },
             composed: !(this.composed === null || this.composed === undefined),
           });
         });

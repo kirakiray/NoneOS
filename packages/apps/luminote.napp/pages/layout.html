@@ -6,8 +6,8 @@
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
-  <!-- <l-m src="../comps/lumi-project-setting.html"></l-m> -->
   <l-m src="../comps/view-lang.html"></l-m>
+  <l-m src="/packages/comps/dnd-box/dnd-box.html"></l-m>
   <style>
     :host {
       display: block;
@@ -77,9 +77,44 @@
       display: none !important;
     }
 
-    .pre-icon {
+    .article-list-item::part(main) {
+      padding: 4px calc(var(--pui-space-x) * 2);
+    }
+
+    .article-list-item dnd-box {
       position: relative;
       z-index: 3;
+    }
+
+    .item-top-mark,
+    .item-bottom-mark {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.1s ease-in-out;
+    }
+
+    .item-top-mark {
+      top: 0;
+      background-color: var(--md-sys-color-success);
+    }
+    .item-bottom-mark {
+      bottom: 0;
+      background-color: var(--md-sys-color-primary);
+    }
+
+    dnd-box[over-ver="1"] .item-top-mark {
+      opacity: 1;
+    }
+    dnd-box[over-ver="2"] .item-bottom-mark {
+      opacity: 1;
+    }
+
+    .pre-icon {
+      position: relative;
+      z-index: 4;
       font-size: 18px;
       margin-right: 4px;
     }
@@ -101,10 +136,6 @@
     }
     .pre-icon:hover n-local-icon[name="article"] {
       display: none;
-    }
-
-    .article-list-item::part(main) {
-      padding: 2px calc(var(--pui-space-x) * 2);
     }
   </style>
 
@@ -272,7 +303,7 @@
                 <p-list slot="childs" style="--ladder-left: 8px">
                   <o-fill
                     :value="$data?.data?.main"
-                    name="list-item"
+                    name="article-list-item"
                     fill-key="_dataId"
                   >
                   </o-fill>
@@ -286,7 +317,7 @@
           </div>
         </div>
 
-        <template name="list-item">
+        <template name="article-list-item">
           <p-list-item
             class="article-list-item"
             attr:data-id="$data._dataId"
@@ -296,19 +327,28 @@
             collapse-childs="open"
             on:click="$host.handleClickArticle($data,$event)"
           >
-            <p-button
-              class="pre-icon"
-              size="small"
-              variant="text"
-              icon
-              slot="prefix"
-              on:click="$host.clickArticleMenu($data,$event)"
+            <dnd-box
+              data-dnd-lumi="I am type1"
+              accept="lumi"
+              on:dnd-drop="$host.handleDndDrop($data,$event)"
+              style="display: flex; align-items: center"
             >
-              <n-local-icon name="article"></n-local-icon>
-              <n-local-icon name="menu"></n-local-icon>
-            </p-button>
+              <div class="item-top-mark"></div>
+              <div class="item-bottom-mark"></div>
+              <p-button
+                class="pre-icon"
+                trigger-drag
+                size="small"
+                variant="text"
+                icon
+                on:click="$host.clickArticleMenu($data,$event)"
+              >
+                <n-local-icon name="article"></n-local-icon>
+                <n-local-icon name="menu"></n-local-icon>
+              </p-button>
 
-            {{$host.getArticleTitle($data)}}
+              {{$host.getArticleTitle($data)}}
+            </dnd-box>
 
             <i
               slot="suffix"
@@ -322,7 +362,7 @@
             <p-list slot="childs">
               <o-fill
                 :value="$host.getSubArticles($data)"
-                name="list-item"
+                name="article-list-item"
                 fill-key="_dataId"
               ></o-fill>
             </p-list>
@@ -506,6 +546,9 @@
           appConfigData: {},
         },
         proto: {
+          handleDndDrop(data, event) {
+            console.log(event.data);
+          },
           clickArticleMenu(data, event) {
             event.stopPropagation();
 
