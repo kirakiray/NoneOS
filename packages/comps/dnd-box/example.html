@@ -72,12 +72,26 @@
     >
       请将 type1 或 type2 类型的元素拖拽至此区域
     </dnd-box>
+
+    <dnd-box
+      accept="type1 type2"
+      id="dnd-box-2"
+      style="border: orange solid 1px; padding: 32px; margin: 8px"
+    >
+      请将 type1 或 type2 类型的元素拖拽至此区域，但实际是不接受type2的元素的
+    </dnd-box>
     <div style="height: 1000px"></div>
     <script>
       $.all("dnd-box[accept]").forEach((item) => {
         item.on("dnd-drop", (e) => {
           console.log(item.ele, e.data);
         });
+      });
+
+      $("#dnd-box-2").on("dnd-dragenter", (e) => {
+        if (e.data && e.data.keys && e.data.keys.includes("type2")) {
+          e.preventDefault();
+        }
       });
     </script>
   </body>
