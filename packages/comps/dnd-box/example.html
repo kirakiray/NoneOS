@@ -76,7 +76,7 @@
     <script>
       $.all("dnd-box[accept]").forEach((item) => {
         item.on("dnd-drop", (e) => {
-          console.log(e.data);
+          console.log(item.ele, e.data);
         });
       });
     </script>
