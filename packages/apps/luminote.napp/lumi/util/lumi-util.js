@@ -123,7 +123,9 @@ export const deleteSelectedBlock = (lumipage) => {
   lumipage._selecteds = null;
 
   // 聚焦到选区最下的元素上
-  setTimeout(() => {
-    nextFocusBlock.focus("end");
-  });
+  if (nextFocusBlock) {
+    setTimeout(() => {
+      nextFocusBlock.focus("end");
+    });
+  }
 };

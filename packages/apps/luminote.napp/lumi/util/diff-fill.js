@@ -3,6 +3,12 @@ export const diffFill = ({ container, data, create, isEqual }) => {
   // 遍历子元素，如果不一致则进行修正
   let lastEl = null; // 最后一个添加进去的元素
 
+  if (!data.length) {
+    // 清空内容
+    container.html = "";
+    return;
+  }
+
   if (!container.length) {
     const frag = $.frag();
 
@@ -60,7 +66,7 @@ export const diffFill = ({ container, data, create, isEqual }) => {
 
   // 将最后元素的后面的元素全部清除
   // 使用 while 循环清除所有后续元素,直到没有下一个元素为止
-  while (lastEl.next) {
+  while (lastEl && lastEl.next) {
     lastEl.next.remove();
   }
 };
