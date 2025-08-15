@@ -73,6 +73,12 @@
       请将 type1 或 type2 类型的元素拖拽至此区域
     </dnd-box>
     <div style="height: 1000px"></div>
-    <script></script>
+    <script>
+      $.all("dnd-box[accept]").forEach((item) => {
+        item.on("dnd-drop", (e) => {
+          console.log(e.data);
+        });
+      });
+    </script>
   </body>
 </html>

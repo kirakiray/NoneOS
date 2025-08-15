@@ -18,6 +18,7 @@
         step: 2,
         overHor: null, // 悬停在当前元素水平方向的10分之几
         overVer: null, // 悬停在当前元素垂直方向的10分之几
+        composed: null, // 是否穿透冒泡
       },
       data: {},
       proto: {
@@ -30,12 +31,25 @@
           this._disabledDrop = undefined;
         },
         get _accept() {
-          return this.attr("accept")?.split(" ");
+          return this.attr("accept")
+            ?.split(" ")
+            .map((e) => {
+              // 转驼峰
+              return e.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+            });
         },
       },
       ready() {
         this.on("mousedown", (e) => {
-          if (e.target.getAttribute("trigger-drag") !== null) {
+          let targets = [];
+          if (e.target === this.ele) {
+            targets = [this];
+          } else {
+            targets = $(e.target).parentsUntil(this);
+            targets.push($(e.target), this); // 加上目标和自身
+          }
+
+          if (targets.some((item) => item.attr("trigger-drag") !== null)) {
             this.attr("draggable", "true");
           }
         });
@@ -75,8 +89,6 @@
             this._disabledDrop = 1;
             return;
           }
-
-          console.log("dragenter", keys, e.dataTransfer.types);
         });
 
         this.on("dragover", (e) => {
@@ -150,7 +162,10 @@
 
           this._clear();
 
-          console.log("drop", data);
+          this.emit("dnd-drop", {
+            data,
+            composed: !(this.composed === null || this.composed === undefined),
+          });
         });
 
         {
