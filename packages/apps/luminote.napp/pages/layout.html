@@ -76,6 +76,36 @@
     .hide {
       display: none !important;
     }
+
+    .pre-icon {
+      position: relative;
+      z-index: 3;
+      font-size: 18px;
+      margin-right: 4px;
+    }
+
+    .pre-icon n-local-icon {
+      font-size: 18px;
+    }
+
+    .pre-icon n-local-icon[name="article"] {
+      display: block;
+      color: var(--md-sys-color-normal);
+    }
+    .pre-icon n-local-icon[name="menu"] {
+      display: none;
+    }
+
+    .pre-icon:hover n-local-icon[name="menu"] {
+      display: block;
+    }
+    .pre-icon:hover n-local-icon[name="article"] {
+      display: none;
+    }
+
+    .article-list-item::part(main) {
+      padding: 2px calc(var(--pui-space-x) * 2);
+    }
   </style>
 
   <div
@@ -266,24 +296,18 @@
             collapse-childs="open"
             on:click="$host.handleClickArticle($data,$event)"
           >
-            <n-local-icon
-              name="article"
+            <p-button
+              class="pre-icon"
+              size="small"
+              variant="text"
+              icon
               slot="prefix"
-              style="display: block; margin-right: 4px; font-size: 18px"
-            ></n-local-icon>
+            >
+              <n-local-icon name="article"></n-local-icon>
+              <n-local-icon name="menu"></n-local-icon>
+            </p-button>
 
             {{$host.getArticleTitle($data)}}
-            <!-- <localized-content>
-              <span lang="en">
-                {{$host.getArticleTitle($data) || 'Unnamed Page'}}
-              </span>
-              <span lang="cn">
-                {{$host.getArticleTitle($data) || '未命名页面'}}
-              </span>
-              <span lang="ja">
-                {{$host.getArticleTitle($data) || '未命名ページ'}}
-              </span>
-            </localized-content> -->
 
             <i
               slot="suffix"
