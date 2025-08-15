@@ -3,6 +3,10 @@
     :host {
       display: block;
     }
+
+    :host([disabled-drop]) {
+      cursor: no-drop;
+    }
   </style>
   <slot></slot>
   <script>
@@ -22,6 +26,8 @@
           this.overVer = null;
           clearTimeout(this._overtimer);
           this._overtimer = null;
+          this.attr("disabled-drop", null);
+          this._disabledDrop = undefined;
         },
         get _accept() {
           return this.attr("accept")?.split(" ");
@@ -58,13 +64,23 @@
             return;
           }
 
+          const accept = this._accept;
           const keys = getDragKeys(e);
+
+          const canUse = accept.some((item) => keys.includes(item));
+
+          if (!canUse) {
+            // 不接受拖放到此处
+            this.attr("disabled-drop", "1");
+            this._disabledDrop = 1;
+            return;
+          }
 
           console.log("dragenter", keys, e.dataTransfer.types);
         });
 
         this.on("dragover", (e) => {
-          if (!this.accept) {
+          if (!this.accept || this._disabledDrop) {
             // 不接受拖放到此处
             return;
           }
