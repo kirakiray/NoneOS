@@ -386,10 +386,7 @@
           (async () => {
             this.aiAvailable = await isAIAvailable();
 
-            const configData = await this.parents.find((e) => e.tag == "o-app")
-              ._configData;
-
-            this.appConfigData = configData;
+            this.appConfigData = await this.app._configData;
 
             // if (configData.useAITranslate === undefined) {
             //   configData.useAITranslate = "off";

@@ -439,7 +439,7 @@
             this.app.closeProject(data.dirName, data.userId || "self");
           },
           // 切换到项目
-          switchProject(data) {
+          async switchProject(data) {
             if (this.openedProjects.length > 1) {
               return;
             }
@@ -459,6 +459,10 @@
             }
 
             this.app.switchProject(data.dirName, data.userId || "self");
+
+            const appConfigData = await this.app._configData;
+
+            appConfigData.viewLang = data.mainLang;
 
             this.emit("close-dialog", {
               bubbles: false,
