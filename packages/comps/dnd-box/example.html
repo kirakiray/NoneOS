@@ -22,14 +22,15 @@
     <l-m src="./dnd-box.html"></l-m>
 
     <dnd-box
-      type="type1"
+      data-dnd-type1="I am type1"
       style="border: red solid 1px; padding: 8px; margin: 4px"
     >
       <button trigger-drag>拖拽我</button>
       这是类型为 type1 的示范元素，点击左侧按钮即可拖拽
     </dnd-box>
     <dnd-box
-      type="type2 type3"
+      data-dnd-type2="I am type2"
+      data-dnd-type-three="I am type3"
       style="border: red solid 1px; padding: 8px; margin: 4px"
     >
       这是 type2 + type3 的示范元素，点击右侧按钮即可拖拽
@@ -45,7 +46,7 @@
       请将 type1 类型的元素拖拽至此区域
     </dnd-box>
     <dnd-box
-      accept="type3"
+      accept="typeThree"
       style="
         border: blue solid 1px;
         padding: 32px;
