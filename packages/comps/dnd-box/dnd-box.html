@@ -55,6 +55,8 @@
           }
         });
 
+        let isDragging = false;
+
         this.on("dragstart", (e) => {
           const data = this.data;
           Object.keys(data).forEach((key) => {
@@ -70,11 +72,13 @@
             }
           });
 
+          isDragging = true;
+
           console.log("dragstart", e);
         });
 
         this.on("dragenter", (e) => {
-          if (!this.accept) {
+          if (!this.accept || isDragging) {
             // 不接受拖放到此处
             return;
           }
@@ -100,7 +104,7 @@
         });
 
         this.on("dragover", (e) => {
-          if (!this.accept || this._disabledDrop) {
+          if (!this.accept || this._disabledDrop || isDragging) {
             // 不接受拖放到此处
             return;
           }
@@ -140,10 +144,12 @@
         });
 
         this.on("dragleave", (e) => {
-          if (!this.accept) {
+          if (!this.accept || isDragging) {
             // 不接受拖放到此处
             return;
           }
+
+          console.log("dragleave: ", e.target);
 
           this._clear();
         });
@@ -187,10 +193,12 @@
           this.on("click", () => {
             // 点击去除绑定
             this.attr("draggable", null);
+            isDragging = false;
             this._clear();
           });
           this.on("dragend", (e) => {
             this.attr("draggable", null);
+            isDragging = false;
             this._clear();
           });
         }
