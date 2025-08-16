@@ -391,7 +391,7 @@
             // if (configData.useAITranslate === undefined) {
             //   configData.useAITranslate = "off";
             // }
-            configData.useAITranslate = this.aiAvailable ? "on" : "off";
+            this.appConfigData.useAITranslate = this.aiAvailable ? "on" : "off";
           })();
 
           this.emit("active-article", {

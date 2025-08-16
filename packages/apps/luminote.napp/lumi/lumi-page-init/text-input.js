@@ -552,6 +552,11 @@ const handleBackspace = async (
   }
 
   if (!lumiBlock.itemData.value.trim()) {
+    // 如果它的前面也没有其他元素了，就不执行了
+    if (!lumiBlock.prev) {
+      return;
+    }
+
     // 没有内容的块直接删除
     lumipage.itemData.content.splice(index, 1);
 
