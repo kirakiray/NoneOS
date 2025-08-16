@@ -78,12 +78,13 @@
     }
 
     .article-list-item::part(main) {
-      padding: 4px calc(var(--pui-space-x) * 2);
+      padding: 0 calc(var(--pui-space-x) * 2);
     }
 
     .article-list-item dnd-box {
       position: relative;
       z-index: 3;
+      padding: 4px 0;
     }
 
     .item-top-mark,
@@ -526,6 +527,9 @@
       const { createArticleData } = await load(
         "../util/create-article-data.js"
       );
+      const { toast } = await load("/packages/pui/util.js");
+
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         data: {
@@ -548,16 +552,88 @@
           async handleDndDrop(data, event) {
             const { dndData, overVer } = event.data;
 
+            const toArticleId = event.target.dataset.dndLumiArticle;
+
             if (dndData.lumiArticle) {
               // 查找目标文章
-              const targetArticle = await findArticle({
+              const from = await findArticle({
                 app: this.app,
                 dataId: dndData.lumiArticle,
                 userId: this.currentUserId,
                 dirName: this.currentDirName,
               });
 
-              console.log("targetArticle: ", targetArticle);
+              const to = await findArticle({
+                app: this.app,
+                dataId: toArticleId,
+                userId: this.currentUserId,
+                dirName: this.currentDirName,
+              });
+
+              if (!to) {
+                // 不能移动到其他项目
+                toast({
+                  content: await getLocalized({
+                    cn: "无法移动到非同级的项目中",
+                    en: "Cannot move to other projects",
+                    ja: "他のプロジェクトには移動できません",
+                  }),
+                  color: "error",
+                });
+                return;
+              }
+
+              if (to.paths.includes(from.target)) {
+                // 不能移动到子文章
+                toast({
+                  content: await getLocalized({
+                    cn: "无法移动到子文章中",
+                    en: "Cannot move to child articles",
+                    ja: "子記事には移動できません",
+                  }),
+                  color: "error",
+                });
+                return;
+              }
+
+              const projectItem = await this.app.getProject(
+                this.currentDirName
+              );
+
+              // 提前准备好删除的函数
+              let preRemove;
+              if (from.paths.length === 1) {
+                debugger;
+              } else {
+                preRemove = () => {
+                  const fromParent = from.paths.slice(-2)[0];
+                  const index = fromParent.content.findIndex(
+                    (e) => e === from.target
+                  );
+                  // 删除from的文章
+                  const [article] = fromParent.content.splice(index, 1);
+
+                  return article;
+                };
+              }
+
+              // 确认并移动到目标
+              if (to.paths.length === 1) {
+                const projectData = projectItem.data;
+
+                // 准备加入的位置
+                const index = projectData.main.findIndex(
+                  (e) => e._dataId === toArticleId
+                );
+
+                const fromArticle = preRemove();
+
+                // 项目main上的移动
+                projectData.main.splice(index, 0, fromArticle);
+              } else {
+                // 移动到子文章内
+                debugger;
+              }
             }
 
             console.log(event.data);
@@ -652,7 +728,9 @@
             }
           },
           getSubArticles(data) {
-            return data.content.filter((e) => e.type === "article");
+            return data.content.filter(
+              (e) => e.type === "article" && !e.removed
+            );
           },
           async handleClickMenuItem(e) {
             const { selected, menuItem } = e.data;
