@@ -620,30 +620,32 @@
                 const [article] = parentContent.splice(index, 1);
                 return article;
               };
-
               // 确认并移动到目标
-              const fromArticle =
-                from.paths.length === 1
-                  ? removeArticleFromParent(
-                      projectData,
-                      projectData.main,
-                      from.target
-                    )
-                  : removeArticleFromParent(
-                      fromParent,
-                      fromParent.content,
-                      from.target
-                    );
+              let fromArticle;
+              if (from.paths.length === 1) {
+                fromArticle = removeArticleFromParent(
+                  projectData,
+                  projectData.main,
+                  from.target
+                );
+              } else {
+                fromArticle = removeArticleFromParent(
+                  fromParent,
+                  fromParent.content,
+                  from.target
+                );
+              }
 
-              const targetParent =
-                to.paths.length === 1 ? projectData.main : toParent.content;
-              const targetItem =
-                to.paths.length === 1 ? toArticleId : to.target;
-
-              let index =
-                to.paths.length === 1
-                  ? targetParent.findIndex((e) => e._dataId === targetItem)
-                  : targetParent.indexOf(targetItem);
+              let targetParent, targetItem, index;
+              if (to.paths.length === 1) {
+                targetParent = projectData.main;
+                targetItem = toArticleId;
+                index = targetParent.findIndex((e) => e._dataId === targetItem);
+              } else {
+                targetParent = toParent.content;
+                targetItem = to.target;
+                index = targetParent.indexOf(targetItem);
+              }
 
               if (overVer == 2) {
                 index++;
