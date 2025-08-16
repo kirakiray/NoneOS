@@ -327,7 +327,7 @@
             on:click="$host.handleClickArticle($data,$event)"
           >
             <dnd-box
-              data-dnd-lumi="I am type1"
+              attr:data-dnd-lumi-article="$data._dataId"
               accept="lumi"
               on:dnd-drop="$host.handleDndDrop($data,$event)"
               style="display: flex; align-items: center"
@@ -545,7 +545,21 @@
           appConfigData: {},
         },
         proto: {
-          handleDndDrop(data, event) {
+          async handleDndDrop(data, event) {
+            const { dndData, overVer } = event.data;
+
+            if (dndData.lumiArticle) {
+              // 查找目标文章
+              const targetArticle = await findArticle({
+                app: this.app,
+                dataId: dndData.lumiArticle,
+                userId: this.currentUserId,
+                dirName: this.currentDirName,
+              });
+
+              console.log("targetArticle: ", targetArticle);
+            }
+
             console.log(event.data);
           },
           clickArticleMenu(data, event) {
@@ -618,7 +632,7 @@
             );
           },
           async handleUpdateBreadcrumbs(e) {
-            const { hide, titles } = e.data;
+            const { hide } = e.data;
 
             const projectItem = await this.app.getProject(
               this.currentDirName,
@@ -634,7 +648,7 @@
               this.currentProjectData = {};
             } else {
               this.hideBreadcrumbs = false;
-              this.paths.splice(0, this.paths.length, ...e.data.titles);
+              this.paths.splice(0, this.paths.length, ...e.data.paths);
             }
           },
           getSubArticles(data) {
@@ -648,7 +662,7 @@
 
             switch (type) {
               case "addSubNote":
-                const { target: targetArticle, titles } = await findArticle({
+                const { target: targetArticle } = await findArticle({
                   app: this.app,
                   dataId: this.currentArticleDataId,
                   userId: this.currentUserId,
