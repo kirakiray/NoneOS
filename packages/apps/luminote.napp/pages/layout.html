@@ -604,57 +604,53 @@
               const fromParent = from.paths.slice(-2)[0];
               const toParent = to.paths.slice(-2)[0];
 
-              // 提前准备好删除的函数
-              let preRemove;
-              if (from.paths.length === 1) {
-                preRemove = () => {
-                  // 从main上获取
-                  const index = projectData.main.indexOf(from.target);
-
-                  const [article] = projectData.main.splice(index, 1);
-
-                  return article;
-                };
-              } else {
-                preRemove = () => {
-                  const fromIndex = fromParent.content.indexOf(from.target);
-
-                  // 删除from的文章
-                  const [article] = fromParent.content.splice(fromIndex, 1);
-
-                  return article;
-                };
-              }
+              /**
+               * 从父级内容中移除目标文章
+               * @param {Object} parent - 父级对象
+               * @param {Array} parentContent - 父级内容数组
+               * @param {Object} target - 目标文章
+               * @returns {Object} 被移除的文章
+               */
+              const removeArticleFromParent = (
+                parent,
+                parentContent,
+                target
+              ) => {
+                const index = parentContent.indexOf(target);
+                const [article] = parentContent.splice(index, 1);
+                return article;
+              };
 
               // 确认并移动到目标
-              if (to.paths.length === 1) {
-                const fromArticle = preRemove();
+              const fromArticle =
+                from.paths.length === 1
+                  ? removeArticleFromParent(
+                      projectData,
+                      projectData.main,
+                      from.target
+                    )
+                  : removeArticleFromParent(
+                      fromParent,
+                      fromParent.content,
+                      from.target
+                    );
 
-                // 准备加入的位置
-                let index = projectData.main.findIndex(
-                  (e) => e._dataId === toArticleId
-                );
+              const targetParent =
+                to.paths.length === 1 ? projectData.main : toParent.content;
+              const targetItem =
+                to.paths.length === 1 ? toArticleId : to.target;
 
-                if (overVer == 2) {
-                  index++;
-                }
+              let index =
+                to.paths.length === 1
+                  ? targetParent.findIndex((e) => e._dataId === targetItem)
+                  : targetParent.indexOf(targetItem);
 
-                // 项目main上的移动
-                projectData.main.splice(index, 0, fromArticle);
-              } else {
-                // 移动到子文章内
-                const fromArticle = preRemove();
-
-                let index = toParent.content.indexOf(to.target);
-
-                if (overVer == 2) {
-                  index++;
-                }
-
-                toParent.content.splice(index, 0, fromArticle);
+              if (overVer == 2) {
+                index++;
               }
-            }
 
+              targetParent.splice(index, 0, fromArticle);
+            }
             console.log(event.data);
           },
           clickArticleMenu(data, event) {
