@@ -3,6 +3,9 @@ import {
   copySelectedBlock,
   deleteSelectedBlock,
 } from "../util/lumi-util.js";
+
+import { saveFile } from "../util/source.js";
+
 import {
   getSelectionLetterData,
   letterDataToElement,
@@ -250,27 +253,46 @@ export const initTextInput = (lumipage) => {
   lumipage.on("paste", async (e) => {
     let lumiBlock = getLumiBlock(e);
 
-    // if (e.clipboardData.types.includes("Files")) {
-    //   e.preventDefault();
+    const pushContents = (contents) => {
+      const parentContent = lumipage.itemData.content;
 
-    //   // 如果是粘贴文件
-    //   const files = e.clipboardData.files;
+      // 在当前的前面添加对应的数据
+      const index = parentContent.indexOf($(lumiBlock).itemData);
 
-    //   const contents = [];
+      if (index > -1) {
+        parentContent.splice(index, 0, ...contents);
+      }
+    };
 
-    //   for (let file of files) {
-    //     if (file.type.includes("image/")) {
-    //       // 包含图片类型
+    if (e.clipboardData.types.includes("Files")) {
+      e.preventDefault();
 
-    //       contents.push({
-    //         type: "lumi-img",
-    //       });
+      // 如果是粘贴文件
+      const files = e.clipboardData.files;
 
-    //       debugger;
-    //     }
-    //   }
-    //   return;
-    // }
+      const contents = [];
+
+      for (let file of files) {
+        if (file.type.includes("image/")) {
+          const { hash } = await saveFile($(lumiBlock), file);
+
+          // 包含图片类型
+          contents.push({
+            type: "lumi-img",
+            attrs: {
+              align: "center",
+              filename: file.name,
+              hash,
+            },
+            value: "",
+          });
+        }
+      }
+
+      debugger;
+      pushContents(contents);
+      return;
+    }
 
     const [inputerContent] = e
       .composedPath()
@@ -316,17 +338,6 @@ export const initTextInput = (lumipage) => {
         pastedHtml = sanitizedTemplate.html;
       }
     }
-
-    const pushContents = (contents) => {
-      const parentContent = lumipage.itemData.content;
-
-      // 在当前的前面添加对应的数据
-      const index = parentContent.indexOf(lumiBlock.itemData);
-
-      if (index > -1) {
-        parentContent.splice(index, 0, ...contents);
-      }
-    };
 
     if (pastedHtml) {
       const temp = $(`<template>${pastedHtml}</template>`).ele;
