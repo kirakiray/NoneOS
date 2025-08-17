@@ -1,0 +1,34 @@
+<template component>
+  <style>
+    :host {
+      position: fixed;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      right: 100px;
+      bottom: 100px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      font-family: monospace;
+      color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 2px;
+      transition: all ease 0.1s;
+      cursor: pointer;
+    }
+
+    :host(:hover) {
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+    }
+  </style>
+  AI
+  <script>
+    export default async () => {
+      return {
+        tag: "ai-tool",
+      };
+    };
+  </script>
+</template>

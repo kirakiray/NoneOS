@@ -47,6 +47,42 @@
       </localized-content>
     </div>
     <div class="tips">
+      <localized-content>
+        <p lang="cn">
+          本文档原生采用
+          <span style="color: var(--md-sys-color-primary)"
+            >{{defaultLang}}</span
+          >
+          撰写。 当前正在使用
+          <span style="color: var(--md-sys-color-primary)"
+            >{{getRealLang(lumiViewLang)}}</span
+          >
+          阅读文档。
+        </p>
+        <p lang="en">
+          This document is originally written in
+          <span style="color: var(--md-sys-color-primary)"
+            >{{defaultLang}}</span
+          >
+          . Currently, you are reading the document in
+          <span style="color: var(--md-sys-color-primary)"
+            >{{getRealLang(lumiViewLang)}}</span
+          >
+          .
+        </p>
+        <p lang="ja">
+          このドキュメントは
+          <span style="color: var(--md-sys-color-primary)"
+            >{{defaultLang}}</span
+          >
+          で書かれています。 現在、
+          <span style="color: var(--md-sys-color-primary)"
+            >{{getRealLang(lumiViewLang)}}</span
+          >
+          でドキュメントを読んでいます。
+        </p>
+      </localized-content>
+
       <p style="display: flex; align-items: center">
         <localized-content>
           <span lang="cn">点击切换阅读语言</span>
@@ -68,6 +104,18 @@
       </p>
 
       <localized-content>
+        <p lang="cn">若文章包含所选语言内容，系统将自动切换显示；</p>
+        <p lang="en">
+          If the article contains content in the selected language, the system
+          will automatically switch the display;
+        </p>
+        <p lang="ja">
+          文章に選択した言語の内容が含まれている場合、システムは自動的に表示を
+          切り替えます。
+        </p>
+      </localized-content>
+
+      <!-- <localized-content>
         <div lang="cn">
           <p>
             本文档原生采用
@@ -126,21 +174,7 @@
             対応する言語がない場合、ローカルのAIを使用して翻訳します。
           </p>
         </div>
-      </localized-content>
-
-      <!-- <o-if :value="!aiAvailable">
-        <p style="color: var(--md-sys-color-primary)">
-          <localized-content>
-            <span lang="cn"
-              >您当前环境没有可用的AI接口，所以不能使用AI翻译功能。</span
-            >
-            <span lang="en">You currently have no available AI interface.</span>
-            <span lang="ja">
-              您の現在の環境にはAIインターフェースがありません。
-            </span>
-          </localized-content>
-        </p>
-      </o-if> -->
+      </localized-content> -->
 
       <o-if :value="projectData && lumiViewLang != projectData.mainLang">
         <p style="color: var(--md-sys-color-primary)">
