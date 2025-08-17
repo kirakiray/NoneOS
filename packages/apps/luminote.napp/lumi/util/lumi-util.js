@@ -60,10 +60,6 @@ export const copySelectedBlock = (lumipage) => {
   const lastIndex = lumipage._selecteds.length - 1;
 
   lumipage._selecteds.forEach((item, index) => {
-    if (!item.textContent) {
-      return;
-    }
-
     let itemHtml = item.htmlContent;
     let itemText = item.mdContent;
 

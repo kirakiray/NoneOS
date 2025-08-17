@@ -795,8 +795,19 @@ ${this.itemData.value}`,
               case "article":
                 return "<span></span>";
               default:
-                // 自定义组件上获取数据
-                return this.shadow.$("lumi-fake").innerComponent.htmlContent;
+                const innerComponent =
+                  this.shadow.$("lumi-fake").innerComponent;
+
+                if (innerComponent.hasOwnProperty("htmlContent")) {
+                  // 自定义组件上获取数据
+                  return innerComponent.htmlContent;
+                }
+
+                // 直接获取组件的html内容
+                return innerComponent.ele.outerHTML.replace(
+                  /<slot[\d\D]*><\/slot>/,
+                  this[0].html
+                );
             }
           },
           get textContent() {
