@@ -25,9 +25,22 @@
   </style>
   AI
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { groups } = await load("./solicit.js");
+
       return {
         tag: "ai-tool",
+        data: {
+          showPop: false, // 显示询问内容气泡
+          showDialog: false, // 显示对话弹窗
+        },
+        proto: {},
+        attached() {
+          this.groups = groups;
+        },
+        detached() {
+          this.groups = [];
+        },
       };
     };
   </script>

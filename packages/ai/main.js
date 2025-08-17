@@ -7,6 +7,8 @@ export {
 
 export { modelExtend, ask, clearAsk } from "./ask.js";
 
+export { solicit } from "./solicit.js";
+
 import { getOllamaModels } from "./ollama.js";
 
 let availablePms = null;
