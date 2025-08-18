@@ -14,7 +14,8 @@ export const solicit = (opts) => {
   const item = {
     tid: Math.random(),
     groupTitle: opts.groupTitle,
-    groupDesc: opts.groupDesc,
+    desc: opts.desc,
+    state: "waiting", // waiting:等待开始进度 running:运行中 success:成功 failed:失败
     _onstart: opts.onstart,
     _onstream: opts.onstream,
     _onsuccess: opts.onsuccess,

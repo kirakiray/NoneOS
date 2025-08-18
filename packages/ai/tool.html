@@ -56,6 +56,14 @@
       width: calc(100% - 32px);
       height: calc(100% - 42px);
       z-index: 2;
+      opacity: 0;
+      transition: all ease 0.3s, opacity ease 0.1s;
+    }
+
+    .content.show {
+      opacity: 1;
+      transition: all ease 0.3s;
+      transition-delay: 0.3s;
     }
   </style>
   <div class="main" class:dialog-mode="showDialog">
@@ -65,11 +73,18 @@
         <n-local-icon name="close"></n-local-icon>
       </o-else>
     </div>
-    <div class="content">
-      {{groups}}
+    <div class="content" class:show="showDialog">
       <p-list>
         <o-fill :value="groups">
-          <p-list-item> {{$data.groupTitle}} </p-list-item>
+          <p-list-item>
+            {{$data.groupTitle}}
+
+            <p-list slot="childs" style="--ladder-left: 8px">
+              <o-fill :value="$data.items">
+                <p-list-item> {{$data.desc}} </p-list-item>
+              </o-fill>
+            </p-list>
+          </p-list-item>
         </o-fill>
       </p-list>
     </div>
