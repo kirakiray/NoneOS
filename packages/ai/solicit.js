@@ -49,7 +49,7 @@ export const solicit = (opts) => {
 
     groups.unshift(targetGroup);
 
-    targetGroup = groups[groups.length - 1];
+    targetGroup = groups[0];
   }
 
   targetGroup.items.push(item);
