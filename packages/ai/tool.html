@@ -76,12 +76,67 @@
     <div class="content" class:show="showDialog">
       <p-list>
         <o-fill :value="groups">
-          <p-list-item>
-            {{$data.groupTitle}}
-
+          <p-list-item collapse-childs="open" button="suffix">
+            <i
+              toggle-collapse
+              triangle
+              slot="suffix"
+              style="margin-left: 32px"
+            ></i>
+            <div style="display: flex; align-items: center">
+              {{$data.groupTitle}}
+              <p-button
+                size="small"
+                on:click="$host.startTask($data,$event)"
+                style="z-index: 3; margin-left: 32px"
+                variant="outlined"
+              >
+                开始
+              </p-button>
+            </div>
             <p-list slot="childs" style="--ladder-left: 8px">
               <o-fill :value="$data.items">
-                <p-list-item> {{$data.desc}} </p-list-item>
+                <p-list-item collapse-childs="open" button="suffix">
+                  <div
+                    slot="prefix"
+                    style="display: block; font-size: 18px; margin-right: 4px"
+                  >
+                    <o-if :value="$data.state === 'waiting'">
+                      <n-local-icon
+                        name="pause"
+                        style="color: var(--md-sys-color-normal)"
+                      ></n-local-icon>
+                    </o-if>
+                    <o-else-if :value="$data.state === 'running'">
+                      <n-local-icon
+                        name="loading"
+                        style="color: var(--md-sys-color-primaryƒ)"
+                      ></n-local-icon>
+                    </o-else-if>
+                    <o-else-if :value="$data.state === 'success'">
+                      <n-local-icon
+                        name="tick-circle"
+                        style="color: var(--md-sys-color-primary)"
+                      ></n-local-icon>
+                    </o-else-if>
+                    <o-else>
+                      <n-local-icon
+                        name="error"
+                        style="color: var(--md-sys-color-error)"
+                      ></n-local-icon>
+                    </o-else>
+                  </div>
+                  {{$data.desc}}
+                  <i
+                    toggle-collapse
+                    triangle
+                    slot="suffix"
+                    style="margin-left: 32px"
+                  ></i>
+                  <p-list slot="childs">
+                    <p-list-item>未开始</p-list-item>
+                  </p-list>
+                </p-list-item>
               </o-fill>
             </p-list>
           </p-list-item>
@@ -100,7 +155,12 @@
           showDialog: true, // 显示对话弹窗
           groups: [],
         },
-        proto: {},
+        proto: {
+          startTask(data, event) {
+            event.stopPropagation();
+            debugger;
+          },
+        },
         attached() {
           this.groups = groups;
         },
