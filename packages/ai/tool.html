@@ -1,29 +1,79 @@
 <template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       position: fixed;
+      right: 100px;
+      bottom: 100px;
+    }
+
+    .main {
+      position: relative;
+      width: 40px;
+      height: 40px;
+      border-radius: 25px;
+      border: var(--md-sys-color-primary) solid 2px;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-surface);
+      transition: all ease 0.3s;
+    }
+
+    .ai-btn {
+      position: relative;
+      z-index: 3;
       display: flex;
       justify-content: center;
       align-items: center;
-      right: 100px;
-      bottom: 100px;
       width: 40px;
       height: 40px;
-      border-radius: 50%;
       font-size: 18px;
       font-family: monospace;
+      border-radius: 25px;
       color: var(--md-sys-color-primary);
-      border: var(--md-sys-color-primary) solid 2px;
-      transition: all ease 0.1s;
+      transition: all ease 0.2s;
       cursor: pointer;
     }
 
-    :host(:hover) {
+    .dialog-mode {
+      width: 50vw;
+      height: 50vh;
+    }
+    .ai-btn:hover {
       color: var(--md-sys-color-on-primary);
       background-color: var(--md-sys-color-primary);
     }
+
+    .dialog-mode .ai-btn:hover {
+      color: var(--md-sys-color-primary);
+      background-color: transparent;
+    }
+
+    .content {
+      position: absolute;
+      left: 16px;
+      top: 36px;
+      width: calc(100% - 32px);
+      height: calc(100% - 42px);
+      z-index: 2;
+    }
   </style>
-  AI
+  <div class="main" class:dialog-mode="showDialog">
+    <div class="ai-btn" on:click="showDialog = !showDialog">
+      <o-if :value="!showDialog"> AI </o-if>
+      <o-else>
+        <n-local-icon name="close"></n-local-icon>
+      </o-else>
+    </div>
+    <div class="content">
+      {{groups}}
+      <p-list>
+        <o-fill :value="groups">
+          <p-list-item> {{$data.groupTitle}} </p-list-item>
+        </o-fill>
+      </p-list>
+    </div>
+  </div>
   <script>
     export default async ({ load }) => {
       const { groups } = await load("./solicit.js");
@@ -32,7 +82,8 @@
         tag: "ai-tool",
         data: {
           showPop: false, // 显示询问内容气泡
-          showDialog: false, // 显示对话弹窗
+          showDialog: true, // 显示对话弹窗
+          groups: [],
         },
         proto: {},
         attached() {

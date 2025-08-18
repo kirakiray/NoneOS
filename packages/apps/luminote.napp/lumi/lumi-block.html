@@ -457,6 +457,7 @@
       const { toast } = await load("/packages/pui/util.js");
       const { saveUserCord } = await load("../util/user-record-util.js");
       const { getHash } = await load("/packages/fs/util.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       const { addLoadingTask, removeLoadingTask } = await load(
         "./util/lumi-util.js"
@@ -553,22 +554,7 @@
             }
           },
           get markLang() {
-            let lang = this.inTranslateLang;
-
-            switch (lang) {
-              case "cn":
-                lang = "简体中文";
-                break;
-              case "en":
-                lang = "English";
-                break;
-              case "t-cn":
-                lang = "繁體中文";
-                break;
-              case "ja":
-                lang = "日本語";
-                break;
-            }
+            let lang = getRealLang(this.inTranslateLang);
 
             const targeti18n = this.itemData.i18nContent[this.inTranslateLang];
             if (targeti18n) {
@@ -611,8 +597,8 @@
             ) {
               // TODO: 弹起AI翻译任务重新翻译
               this._translateCancel = solicit({
-                groupName: "翻译内容", // 用于给任务分组用
-                groupDesc: `当前文案尚未`,
+                groupTitle: "翻译内容", // 用于给任务分组用
+                groupDesc: `将文章翻译成${getRealLang(lang)}`,
                 onstart: () => {
                   return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
 1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
