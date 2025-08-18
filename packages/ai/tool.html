@@ -101,6 +101,18 @@
       </o-if>
     </div>
     <div class="content" class:show="showDialog">
+      <o-if :value="!groups.length">
+        <div
+          style="
+            padding: 16px;
+            text-align: center;
+            color: var(--md-sys-color-normal);
+            font-size: 12px;
+          "
+        >
+          暂无任务
+        </div>
+      </o-if>
       <p-list>
         <o-fill :value="groups">
           <p-list-item collapse-childs="open" button="suffix">

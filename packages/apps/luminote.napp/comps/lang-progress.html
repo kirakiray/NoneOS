@@ -18,16 +18,33 @@
         style="
           display: flex;
           align-items: center;
-          margin: 0 8px;
+          margin: 0 8px 8px 0;
           --circle-size: 50;
+          border: var(--md-sys-color-primary) solid 1px;
+          border-radius: 8px;
+          padding: 8px;
         "
       >
-        {{$data.langStr}}
+        <div style="text-align: center">
+          <div>{{$data.langStr}}</div>
+          <p-button
+            size="mini"
+            variant="outlined"
+            color="error"
+            on:click="$host.clearLang($data.lang)"
+          >
+            <localized-content>
+              <span lang="cn">清除缓存</span>
+              <span lang="en">Clear Cache</span>
+              <span lang="ja">キャッシュをクリア</span>
+            </localized-content>
+          </p-button>
+        </div>
         <p-progress
           attr:value="$data.value"
           type="circle"
           variant="determinate"
-          style="margin-left: 4px"
+          style="margin-left: 8px"
         >
           <span style="font-size: 12px">{{$data.value}}%</span>
         </p-progress>
@@ -36,7 +53,9 @@
   </div>
   <script>
     export default async ({ load }) => {
-      const { getTranslationProgress } = await load(
+      const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { getTranslationProgress, clearTranslatedContent } = await load(
         "../lumi/util/i18n-toblock.js"
       );
       const { getRealLang } = await load("../util/get-real-lang.js");
@@ -68,6 +87,35 @@
                 ...data,
               };
             });
+          },
+
+          async clearLang(lang) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "清除翻译缓存",
+                en: "Clear Translation Cache",
+                ja: "翻訳キャッシュをクリア",
+              }),
+              content: await getLocalized({
+                cn: `确认要清除 ${getRealLang(lang)}？`,
+                en: `Are you sure you want to clear ${getRealLang(lang)}?`,
+                ja: `${getRealLang(lang)}をクリアしてもよろしいですか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await clearTranslatedContent(this.projectData.main, lang);
+
+            toast(
+              await getLocalized({
+                cn: "清除成功",
+                en: "Clear success",
+                ja: "クリア成功",
+              })
+            );
           },
         },
         attached() {

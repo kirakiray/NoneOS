@@ -204,9 +204,8 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
-      const { fillTranslate, getTranslationProgress } = await load(
-        "/packages/apps/luminote.napp/lumi/util/i18n-toblock.js"
-      );
+      const { fillTranslate, getTranslationProgress, clearTranslatedContent } =
+        await load("/packages/apps/luminote.napp/lumi/util/i18n-toblock.js");
       const { changeLang } = await load("../lumi/util/change-lang.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
 
@@ -397,24 +396,6 @@
           this.projectData = {};
         },
       };
-    };
-
-    const clearTranslatedContent = async (contentBlocks, lang) => {
-      for (let i = 0; i < contentBlocks.length; i++) {
-        const contentBlock = contentBlocks[i];
-        if (contentBlock.type === "article") {
-          contentBlock.content = await clearTranslatedContent(
-            contentBlock.content,
-            lang
-          );
-        } else {
-          const { i18nContent } = contentBlock;
-          if (i18nContent) {
-            i18nContent[lang] = undefined;
-          }
-        }
-      }
-      return contentBlocks;
     };
   </script>
 </template>

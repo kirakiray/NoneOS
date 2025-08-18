@@ -286,3 +286,21 @@ export const getTranslationProgress = async (contentBlocks, languages) => {
 
   return result;
 };
+
+export const clearTranslatedContent = async (contentBlocks, lang) => {
+  for (let i = 0; i < contentBlocks.length; i++) {
+    const contentBlock = contentBlocks[i];
+    if (contentBlock.type === "article") {
+      contentBlock.content = await clearTranslatedContent(
+        contentBlock.content,
+        lang
+      );
+    } else {
+      const { i18nContent } = contentBlock;
+      if (i18nContent) {
+        i18nContent[lang] = undefined;
+      }
+    }
+  }
+  return contentBlocks;
+};
