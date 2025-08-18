@@ -342,6 +342,7 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { exportHandle } = await load("/packages/fs/task/main.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
         tag: "lumi-switch-project",
@@ -367,20 +368,13 @@
             });
           },
           getLang(lang) {
-            switch (lang) {
-              case "cn":
-              case "t-cn":
-                return "中文";
-              case "en":
-                return "English";
-              case "ja":
-                return "日本語";
-              case "":
-              case undefined:
-                return "Not Set";
-              default:
-                return lang;
+            const realLang = getRealLang(lang);
+
+            if (!realLang) {
+              return "Not Set";
             }
+
+            return realLang;
           },
           async handleExportProject(data, event) {
             data.exporting = true;

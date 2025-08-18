@@ -208,6 +208,7 @@
         "/packages/apps/luminote.napp/lumi/util/i18n-toblock.js"
       );
       const { changeLang } = await load("../lumi/util/change-lang.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
         tag: "lumi-project-setting",
@@ -229,13 +230,11 @@
                 ja: "デフォルト言語を設定",
               }),
               content: await getLocalized({
-                cn: `确认要将项目的默认语言更改为 ${this.getRealLang(
-                  lang
-                )} 吗？`,
-                en: `Are you sure you want to set ${this.getRealLang(
+                cn: `确认要将项目的默认语言更改为 ${getRealLang(lang)} 吗？`,
+                en: `Are you sure you want to set ${getRealLang(
                   lang
                 )} as the default language?`,
-                ja: `${this.getRealLang(lang)}をデフォルト言語に設定しますか？`,
+                ja: `${getRealLang(lang)}をデフォルト言語に設定しますか？`,
               }),
             });
 
@@ -306,9 +305,9 @@
                 ja: "翻訳キャッシュをクリア",
               }),
               content: await getLocalized({
-                cn: `确认要清除 ${this.getRealLang(lang)}？`,
-                en: `Are you sure you want to clear ${this.getRealLang(lang)}?`,
-                ja: `${this.getRealLang(lang)}をクリアしてもよろしいですか？`,
+                cn: `确认要清除 ${getRealLang(lang)}？`,
+                en: `Are you sure you want to clear ${getRealLang(lang)}?`,
+                ja: `${getRealLang(lang)}をクリアしてもよろしいですか？`,
               }),
             });
 
@@ -345,7 +344,7 @@
 
                   translationProgress.push({
                     lang,
-                    langName: this.getRealLang(lang),
+                    langName: getRealLang(lang),
                     ...langProgress,
                     progress,
                     progressStr: progress.toFixed(2),
@@ -361,23 +360,9 @@
               return "";
             }
 
-            return this.getRealLang(this.projectData.mainLang);
+            return getRealLang(this.projectData.mainLang);
           },
 
-          getRealLang(lang) {
-            switch (lang) {
-              case "cn":
-                return "简体中文";
-              case "en":
-                return "English";
-              case "t-cn":
-                return "繁體中文";
-              case "ja":
-                return "日本語";
-              default:
-                return lang;
-            }
-          },
           clickSave() {
             this.projectData.projectName = this.editProjectName;
             this.nameEditMode = false;

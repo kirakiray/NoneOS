@@ -93,6 +93,7 @@
     export default async ({ load }) => {
       const { ask, clearAsk } = await load("/packages/ai/main.js");
       const { switchLang } = await load("./util/i18n-toblock.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
         tag: "lumi-page-title",
@@ -112,16 +113,7 @@
         },
         proto: {
           get markLang() {
-            switch (this.inTranslateLang) {
-              case "cn":
-                return "简体中文";
-              case "en":
-                return "English";
-              case "t-cn":
-                return "繁體中文";
-              case "ja":
-                return "日本語";
-            }
+            return getRealLang(this.inTranslateLang);
           },
           async switchOtherLang(lang) {
             await this.watchUntil(() => this.itemData.title);
