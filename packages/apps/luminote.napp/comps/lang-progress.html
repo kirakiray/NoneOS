@@ -5,7 +5,13 @@
       display: block;
     }
   </style>
-  <h5>已翻译的数量</h5>
+  <h5>
+    <localized-content>
+      <span lang="cn">已翻译进度</span>
+      <span lang="en">Translation progress</span>
+      <span lang="ja">翻訳進捗</span>
+    </localized-content>
+  </h5>
   <div style="display: flex; flex-wrap: wrap">
     <o-fill :value="progress">
       <div
