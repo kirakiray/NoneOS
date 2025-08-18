@@ -157,13 +157,23 @@
                   style="z-index: 3; margin-left: 32px"
                   variant="outlined"
                 >
-                  开始
+                  <localized-content>
+                    <span lang="cn">开始</span>
+                    <span lang="en">Start</span>
+                    <span lang="ja">開始</span>
+                  </localized-content>
                 </p-button>
               </o-if>
             </div>
             <p-list slot="childs" style="--ladder-left: 8px">
               <o-if :value="$data.state === 'empty'">
-                <p-list-item>任务已取消</p-list-item>
+                <p-list-item>
+                  <localized-content>
+                    <span lang="cn">任务已取消</span>
+                    <span lang="en">Task canceled</span>
+                    <span lang="ja">タスクがキャンセルされました</span>
+                  </localized-content>
+                </p-list-item>
               </o-if>
               <o-fill :value="$data.items">
                 <p-list-item collapse-childs="close" button="suffix">
@@ -205,17 +215,35 @@
                   ></i>
                   <p-list slot="childs">
                     <o-if :value="$data.state === 'waiting'">
-                      <p-list-item>未开始</p-list-item>
+                      <p-list-item>
+                        <localized-content>
+                          <span lang="cn">未开始</span>
+                          <span lang="en">Not started</span>
+                          <span lang="ja">開始していません</span>
+                        </localized-content>
+                      </p-list-item>
                     </o-if>
                     <o-if :value="$data.aiName">
                       <p-list-item>
-                        <span class="list-key" slot="prefix">AI角色</span>
+                        <span class="list-key" slot="prefix">
+                          <localized-content>
+                            <span lang="cn">AI角色</span>
+                            <span lang="en">AI role</span>
+                            <span lang="ja">AIロール</span>
+                          </localized-content>
+                        </span>
                         {{$data.aiName}}</p-list-item
                       >
                     </o-if>
                     <o-if :value="$data.prompt">
                       <p-list-item>
-                        <span class="list-key">提示词</span>
+                        <span class="list-key">
+                          <localized-content>
+                            <span lang="cn">提示词</span>
+                            <span lang="en">Prompt</span>
+                            <span lang="ja">プロンプト</span>
+                          </localized-content>
+                        </span>
                         <div
                           style="overflow: auto; display: block; max-width: 80%"
                         >
@@ -225,7 +253,13 @@
                     </o-if>
                     <o-if :value="$data.result">
                       <p-list-item>
-                        <span class="list-key" slot="prefix">结果</span>
+                        <span class="list-key" slot="prefix">
+                          <localized-content>
+                            <span lang="cn">结果</span>
+                            <span lang="en">Result</span>
+                            <span lang="ja">結果</span>
+                          </localized-content>
+                        </span>
                         {{$data.result}}</p-list-item
                       >
                     </o-if>

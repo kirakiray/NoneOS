@@ -1,0 +1,78 @@
+<template component>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <h5>已翻译的数量</h5>
+  <div style="display: flex; flex-wrap: wrap">
+    <o-fill :value="progress">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          margin: 0 8px;
+          --circle-size: 50;
+        "
+      >
+        {{$data.langStr}}
+        <p-progress
+          attr:value="$data.value"
+          type="circle"
+          variant="determinate"
+          style="margin-left: 4px"
+        >
+          <span style="font-size: 12px">{{$data.value}}%</span>
+        </p-progress>
+      </div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { getTranslationProgress } = await load(
+        "../lumi/util/i18n-toblock.js"
+      );
+      const { getRealLang } = await load("../util/get-real-lang.js");
+
+      return {
+        tag: "lumi-lang-progress",
+        data: {
+          projectData: {
+            // mainLang: "", // 当前的主体语言
+            // otherLang: [], // 其他几个支持的语言
+          },
+          progress: [],
+        },
+        proto: {
+          async refershProgress() {
+            // debugger;
+            const progress = await getTranslationProgress(
+              this.projectData.main,
+              this.projectData.otherLang
+            );
+
+            this.progress = Object.entries(progress).map(([lang, data]) => {
+              return {
+                lang,
+                langStr: getRealLang(lang),
+                value: Math.ceil(
+                  (data.translatedItemCount / data.totalItemCount) * 100
+                ),
+                ...data,
+              };
+            });
+          },
+        },
+        attached() {
+          setTimeout(() => {
+            this.refershProgress();
+          }, 1000);
+        },
+        detached() {
+          this.projectData = projectData;
+        },
+      };
+    };
+  </script>
+</template>

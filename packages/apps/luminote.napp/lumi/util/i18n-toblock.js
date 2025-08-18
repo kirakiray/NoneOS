@@ -229,3 +229,60 @@ export const switchLang = async (block, lang, options = {}) => {
     return null;
   }
 };
+
+// 获取翻译的进度
+export const getTranslationProgress = async (contentBlocks, languages) => {
+  // 确保languages是数组
+  const langArray = Array.isArray(languages) ? languages : [languages];
+
+  // 为每种语言初始化计数器
+  const result = {};
+  for (const lang of langArray) {
+    result[lang] = {
+      translatedItemCount: 0,
+      totalItemCount: 0,
+    };
+  }
+
+  for (let i = 0; i < contentBlocks.length; i++) {
+    const contentBlock = contentBlocks[i];
+    if (contentBlock.type === "article") {
+      const progressData = await getTranslationProgress(
+        contentBlock.content,
+        langArray
+      );
+
+      // 累加每种语言的结果
+      for (const lang of langArray) {
+        if (progressData[lang]) {
+          result[lang].translatedItemCount +=
+            progressData[lang].translatedItemCount;
+          result[lang].totalItemCount += progressData[lang].totalItemCount;
+        }
+      }
+    } else {
+      // 为每种语言单独统计
+      for (const lang of langArray) {
+        if (!contentBlock.value.trim()) {
+          // 跳过空白
+          continue;
+        }
+
+        result[lang].totalItemCount++;
+
+        const { i18nContent } = contentBlock;
+        if (!i18nContent) {
+          continue;
+        }
+
+        const hash = await getHash(contentBlock.value);
+
+        if (i18nContent[lang] && i18nContent[lang].originHash === hash) {
+          result[lang].translatedItemCount++;
+        }
+      }
+    }
+  }
+
+  return result;
+};

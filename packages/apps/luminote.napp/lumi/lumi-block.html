@@ -347,9 +347,18 @@
                 <div :html="translateContent" style="display: contents"></div>
 
                 <div class="lang-mark" on:click="clickLangMark">
-                  <o-if :value="inTranslate == 1 || inTranslate == 2">
-                    <n-local-icon name="loading"></n-local-icon>
+                  <o-if :value="inTranslate == 1">
+                    <localized-content>
+                      <span lang="cn">等待确认翻译为:</span>
+                      <span lang="en">
+                        Wait for confirmation of translation:
+                      </span>
+                      <span lang="ja">翻訳を確認待ち:</span>
+                    </localized-content>
                   </o-if>
+                  <!-- <o-if :value="inTranslate == 1 || inTranslate == 2">
+                    <n-local-icon name="loading"></n-local-icon>
+                  </o-if> -->
                   <div class="lang-mark-text" :html="markLang"></div>
                 </div>
               </div>
