@@ -31,7 +31,7 @@ export const solicit = (opts) => {
   }
 
   let targetGroup = groups.find(
-    (e) => e.groupTitle === item.groupTitle && !e.disabled
+    (e) => e.groupTitle === item.groupTitle && e.state === "waiting"
   );
 
   if (!targetGroup) {
@@ -39,10 +39,9 @@ export const solicit = (opts) => {
       gid: Math.random(),
       groupTitle: item.groupTitle,
       groupDesc: item.groupDesc,
-      state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败
+      state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败 empty:空
       items: [],
       time: Date.now(), // 添加的时间
-      disabled: false, // 是否本注销了
       _startTask() {
         return startTask(targetGroup);
       },
@@ -63,7 +62,7 @@ export const solicit = (opts) => {
 
       if (!targetGroup.items.length) {
         // 移除分组
-        targetGroup.disabled = true;
+        targetGroup.state = "empty";
       }
     }
   };

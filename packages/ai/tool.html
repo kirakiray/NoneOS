@@ -60,7 +60,7 @@
     .content {
       position: absolute;
       box-sizing: border-box;
-      left: 16px;
+      left: 12px;
       top: 36px;
       width: calc(100% - 16px);
       height: calc(100% - 42px);
@@ -70,6 +70,7 @@
       overflow-y: auto;
       background-color: var(--md-sys-color-surface-variant);
       transition: all ease 0.3s, opacity ease 0.1s;
+      border-radius: 12px;
     }
 
     .content.show {
@@ -125,6 +126,12 @@
                   style="color: var(--md-sys-color-success)"
                 ></n-local-icon>
               </o-else-if>
+              <o-else-if :value="$data.state === 'empty'">
+                <n-local-icon
+                  name="error"
+                  style="color: var(--md-sys-color-normal)"
+                ></n-local-icon>
+              </o-else-if>
               <o-else>
                 <n-local-icon
                   name="error"
@@ -155,6 +162,9 @@
               </o-if>
             </div>
             <p-list slot="childs" style="--ladder-left: 8px">
+              <o-if :value="$data.state === 'empty'">
+                <p-list-item>任务已取消</p-list-item>
+              </o-if>
               <o-fill :value="$data.items">
                 <p-list-item collapse-childs="close" button="suffix">
                   <div
