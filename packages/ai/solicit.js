@@ -1,5 +1,6 @@
 // 当前所有分好组的数据
 export const groups = $.stanz([]);
+import { ask } from "./ask.js";
 
 // 询问用户后在执行的任务
 export const solicit = (opts) => {
@@ -15,7 +16,10 @@ export const solicit = (opts) => {
     tid: Math.random(),
     groupTitle: opts.groupTitle,
     desc: opts.desc,
-    state: "waiting", // waiting:等待开始进度 running:运行中 success:成功 failed:失败
+    state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败
+    aiName: "", // 分配的AI名称
+    prompt: "", // 提示词
+    result: "", // 最终结果
     _onstart: opts.onstart,
     _onstream: opts.onstream,
     _onsuccess: opts.onsuccess,
@@ -35,12 +39,16 @@ export const solicit = (opts) => {
       gid: Math.random(),
       groupTitle: item.groupTitle,
       groupDesc: item.groupDesc,
+      state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败
       items: [],
       time: Date.now(), // 添加的时间
       disabled: false, // 是否本注销了
+      _startTask() {
+        return startTask(targetGroup);
+      },
     };
 
-    groups.push(targetGroup);
+    groups.unshift(targetGroup);
 
     targetGroup = groups[groups.length - 1];
   }
@@ -59,4 +67,39 @@ export const solicit = (opts) => {
       }
     }
   };
+};
+
+// 开始运行进程
+const startTask = async (group) => {
+  // 更新状态
+  group.state = "running";
+
+  // 开始运行
+  for (const item of group.items) {
+    item.state = "running";
+
+    // 先获取prompt
+    const prompt = await item._onstart();
+    item.prompt = prompt;
+
+    // 开始进行翻译
+    const result = await ask(prompt, {
+      onChunk: (e) => {
+        const { modelName, originText, responseText, currentToken } = e;
+
+        if (!item.aiName) {
+          item.aiName = modelName;
+        }
+
+        item.result = responseText;
+      },
+    });
+
+    item.state = "success";
+    item.result = result.responseText;
+    item._onsuccess && item._onsuccess(result);
+  }
+
+  // 全部完成
+  group.state = "success";
 };

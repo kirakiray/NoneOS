@@ -1,11 +1,13 @@
 <template component>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/badge/badge.html"></l-m>
   <style>
     :host {
       position: fixed;
       right: 100px;
       bottom: 100px;
+      z-index: 3;
     }
 
     .main {
@@ -49,14 +51,24 @@
       background-color: transparent;
     }
 
+    .list-key {
+      display: inline-block;
+      margin-right: 4px;
+      color: var(--md-sys-color-primary);
+    }
+
     .content {
       position: absolute;
+      box-sizing: border-box;
       left: 16px;
       top: 36px;
-      width: calc(100% - 32px);
+      width: calc(100% - 16px);
       height: calc(100% - 42px);
+      padding-right: 16px;
       z-index: 2;
       opacity: 0;
+      overflow-y: auto;
+      background-color: var(--md-sys-color-surface-variant);
       transition: all ease 0.3s, opacity ease 0.1s;
     }
 
@@ -65,6 +77,17 @@
       transition: all ease 0.3s;
       transition-delay: 0.3s;
     }
+
+    p-badge {
+      position: absolute;
+      right: -4px;
+      top: -4px;
+      opacity: 1;
+      transition: all ease 0.3s;
+    }
+    p-badge.hide {
+      opacity: 0;
+    }
   </style>
   <div class="main" class:dialog-mode="showDialog">
     <div class="ai-btn" on:click="showDialog = !showDialog">
@@ -72,11 +95,44 @@
       <o-else>
         <n-local-icon name="close"></n-local-icon>
       </o-else>
+      <o-if :value="hasWaitting">
+        <p-badge class:hide="showDialog">!</p-badge>
+      </o-if>
     </div>
     <div class="content" class:show="showDialog">
       <p-list>
         <o-fill :value="groups">
           <p-list-item collapse-childs="open" button="suffix">
+            <div
+              slot="prefix"
+              style="display: block; font-size: 18px; margin-right: 4px"
+            >
+              <o-if :value="$data.state === 'waiting'">
+                <n-local-icon
+                  name="pause"
+                  style="color: var(--md-sys-color-normal)"
+                ></n-local-icon>
+              </o-if>
+              <o-else-if :value="$data.state === 'running'">
+                <n-local-icon
+                  name="loading"
+                  style="color: var(--md-sys-color-primary)"
+                ></n-local-icon>
+              </o-else-if>
+              <o-else-if :value="$data.state === 'success'">
+                <n-local-icon
+                  name="tick-circle"
+                  style="color: var(--md-sys-color-success)"
+                ></n-local-icon>
+              </o-else-if>
+              <o-else>
+                <n-local-icon
+                  name="error"
+                  style="color: var(--md-sys-color-error)"
+                ></n-local-icon>
+              </o-else>
+            </div>
+
             <i
               toggle-collapse
               triangle
@@ -85,18 +141,22 @@
             ></i>
             <div style="display: flex; align-items: center">
               {{$data.groupTitle}}
-              <p-button
-                size="small"
-                on:click="$host.startTask($data,$event)"
-                style="z-index: 3; margin-left: 32px"
-                variant="outlined"
+              <o-if
+                :value="$data.state === 'waiting' || $data.state === 'paused'"
               >
-                开始
-              </p-button>
+                <p-button
+                  size="small"
+                  on:click="$host.startTask($data,$event)"
+                  style="z-index: 3; margin-left: 32px"
+                  variant="outlined"
+                >
+                  开始
+                </p-button>
+              </o-if>
             </div>
             <p-list slot="childs" style="--ladder-left: 8px">
               <o-fill :value="$data.items">
-                <p-list-item collapse-childs="open" button="suffix">
+                <p-list-item collapse-childs="close" button="suffix">
                   <div
                     slot="prefix"
                     style="display: block; font-size: 18px; margin-right: 4px"
@@ -110,13 +170,13 @@
                     <o-else-if :value="$data.state === 'running'">
                       <n-local-icon
                         name="loading"
-                        style="color: var(--md-sys-color-primaryƒ)"
+                        style="color: var(--md-sys-color-primary)"
                       ></n-local-icon>
                     </o-else-if>
                     <o-else-if :value="$data.state === 'success'">
                       <n-local-icon
                         name="tick-circle"
-                        style="color: var(--md-sys-color-primary)"
+                        style="color: var(--md-sys-color-success)"
                       ></n-local-icon>
                     </o-else-if>
                     <o-else>
@@ -134,7 +194,31 @@
                     style="margin-left: 32px"
                   ></i>
                   <p-list slot="childs">
-                    <p-list-item>未开始</p-list-item>
+                    <o-if :value="$data.state === 'waiting'">
+                      <p-list-item>未开始</p-list-item>
+                    </o-if>
+                    <o-if :value="$data.aiName">
+                      <p-list-item>
+                        <span class="list-key" slot="prefix">AI角色</span>
+                        {{$data.aiName}}</p-list-item
+                      >
+                    </o-if>
+                    <o-if :value="$data.prompt">
+                      <p-list-item>
+                        <span class="list-key">提示词</span>
+                        <div
+                          style="overflow: auto; display: block; max-width: 80%"
+                        >
+                          {{$data.prompt}}
+                        </div>
+                      </p-list-item>
+                    </o-if>
+                    <o-if :value="$data.result">
+                      <p-list-item>
+                        <span class="list-key" slot="prefix">结果</span>
+                        {{$data.result}}</p-list-item
+                      >
+                    </o-if>
                   </p-list>
                 </p-list-item>
               </o-fill>
@@ -152,20 +236,37 @@
         tag: "ai-tool",
         data: {
           showPop: false, // 显示询问内容气泡
-          showDialog: true, // 显示对话弹窗
+          showDialog: false, // 显示对话弹窗
           groups: [],
+          hasWaitting: false, // 是否有未进行的队列
+        },
+        watch: {
+          groups() {
+            this.checkTask();
+          },
         },
         proto: {
           startTask(data, event) {
             event.stopPropagation();
-            debugger;
+            data._startTask();
+          },
+          // 检查是否有未完成的任务
+          checkTask() {
+            clearTimeout(this._timer);
+            this._timer = setTimeout(() => {
+              this.hasWaitting = this.groups.some((group) => {
+                return group.state === "waiting";
+              });
+            }, 100);
           },
         },
         attached() {
           this.groups = groups;
+          this.checkTask();
         },
         detached() {
           this.groups = [];
+          clearTimeout(this._timer);
         },
       };
     };
