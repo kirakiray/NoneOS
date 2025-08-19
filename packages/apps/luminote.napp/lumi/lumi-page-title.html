@@ -178,57 +178,35 @@
               return;
             }
 
-            const currentHash = await getHash(this.itemData.title);
-
-            let titleI18nContent = this.itemData.titleI18nContent;
-
-            if (!titleI18nContent) {
-              this.itemData.titleI18nContent = {};
-              titleI18nContent = this.itemData.titleI18nContent;
-            }
-
-            if (
-              !titleI18nContent[lang] ||
-              titleI18nContent[lang].originHash !== currentHash ||
-              reTranslate
-            ) {
-              this.translateContent = "";
-              this.inTranslateLang = lang;
-              this.inTranslate = 1;
-
-              this._cancelTranslate = await translateItemData({
-                itemData: this.itemData,
-                hostKey: "title",
-                i18nKey: "titleI18nContent",
-                lang,
-                onstream: (responseText) => {
-                  if (this.inTranslate != 2) {
-                    this.inTranslate = 2;
-                  }
-
-                  this.translateContent = responseText;
-                },
-                finalCall: (value) => {
-                  // 最终获取成功数据后的回调
-                  this.translateContent = value;
-                  this.inTranslateLang = lang;
-                  this.inTranslate = 3;
-                },
-                target: this,
-                execute: !!reTranslate,
-                groupTitle: reTranslate
-                  ? "重新翻译标题"
-                  : "翻译文章：" + this.itemData.title,
-                desc: `将标题翻译成"${getRealLang(lang)}"`,
-              });
-
-              return;
-            }
-
-            // 修正内容
-            this.translateContent = titleI18nContent[lang].value;
+            this.translateContent = "";
             this.inTranslateLang = lang;
-            this.inTranslate = 3;
+            this.inTranslate = 1;
+
+            this._cancelTranslate = await translateItemData({
+              itemData: this.itemData,
+              hostKey: "title",
+              i18nKey: "titleI18nContent",
+              lang,
+              onstream: (responseText) => {
+                if (this.inTranslate != 2) {
+                  this.inTranslate = 2;
+                }
+
+                this.translateContent = responseText;
+              },
+              finalCall: (value) => {
+                // 最终获取成功数据后的回调
+                this.translateContent = value;
+                this.inTranslateLang = lang;
+                this.inTranslate = 3;
+              },
+              target: this,
+              execute: !!reTranslate,
+              groupTitle: reTranslate
+                ? "重新翻译标题"
+                : "翻译文章：" + this.itemData.title,
+              desc: `将标题翻译成"${getRealLang(lang)}"`,
+            });
           },
           titleKeyDown(e) {
             if (e.key === "Enter") {
