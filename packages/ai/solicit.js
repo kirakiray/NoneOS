@@ -89,22 +89,40 @@ export const solicit = (opts) => {
     return groups[0];
   };
 
-  if (opts.execute) {
-    // 直接开始的不需要分组
+  targetGroup = groups.find(
+    (e) => e.groupTitle === item.groupTitle && e.state === "waiting"
+  );
+
+  if (!targetGroup) {
     targetGroup = createOrFindGroup();
-    targetGroup.items.push(item);
-    targetGroup._startTask();
-  } else {
-    targetGroup = groups.find(
-      (e) => e.groupTitle === item.groupTitle && e.state === "waiting"
-    );
-
-    if (!targetGroup) {
-      targetGroup = createOrFindGroup();
-    }
-
-    targetGroup.items.push(item);
   }
+
+  targetGroup.items.push(item);
+
+  if (opts.execute) {
+    // 需要主动运行
+    clearTimeout(targetGroup._startTimer);
+    targetGroup._startTimer = setTimeout(() => {
+      targetGroup._startTask();
+    }, 100);
+  }
+
+  // if (opts.execute) {
+  //   // 直接开始的不需要分组
+  //   targetGroup = createOrFindGroup();
+  //   targetGroup.items.push(item);
+  //   targetGroup._startTask();
+  // } else {
+  //   targetGroup = groups.find(
+  //     (e) => e.groupTitle === item.groupTitle && e.state === "waiting"
+  //   );
+
+  //   if (!targetGroup) {
+  //     targetGroup = createOrFindGroup();
+  //   }
+
+  //   targetGroup.items.push(item);
+  // }
 
   item = targetGroup.items[targetGroup.items.length - 1];
 

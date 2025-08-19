@@ -50,8 +50,7 @@ const translateArticle = async ({ article, lang, originLang }) => {
       hostKey: "title",
       i18nKey: "titleI18nContent",
       lang,
-      finalCall: (e) => {},
-      // execute: true,
+      execute: true,
       groupTitle: `翻译文章内容: ${article.title}`,
       desc: `将文章标题翻译成"${getRealLang(lang)}"`,
     });
@@ -75,12 +74,9 @@ const translateArticle = async ({ article, lang, originLang }) => {
           hostKey: "value",
           i18nKey: "i18nContent",
           lang,
-          // execute: true,
+          execute: true,
           groupTitle: `翻译文章内容: ${article.title}`,
           desc: `将第${index + 1}个段落翻译成"${getRealLang(lang)}"`,
-          finalCall: (e) => {
-            resolve(e);
-          },
         });
       }
     }
@@ -110,7 +106,7 @@ export const translateItemData = async ({
   }
 
   if (i18nContent[lang] && i18nContent[lang].originHash === currentHash) {
-    finalCall(i18nContent[lang].value);
+    finalCall && finalCall(i18nContent[lang].value);
     return;
   }
 
@@ -139,7 +135,7 @@ ${itemData[hostKey]}
         time: Date.now(),
       };
 
-      finalCall(e.responseText);
+      finalCall && finalCall(e.responseText);
     },
   });
 
