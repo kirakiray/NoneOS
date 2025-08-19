@@ -109,6 +109,10 @@
 
             await clearTranslatedContent(this.projectData.main, lang);
 
+            setTimeout(() => {
+              this.refershProgress();
+            }, 600);
+
             toast(
               await getLocalized({
                 cn: "清除成功",

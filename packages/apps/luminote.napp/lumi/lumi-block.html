@@ -341,7 +341,21 @@
           >
             <o-if :value="inTranslate">
               <o-if :value="inTranslate == 1">
-                <slot></slot>
+                <div style="position: relative">
+                  <div
+                    style="
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      height: 100%;
+                      z-index: 2;
+                    "
+                  >
+                    <!-- 添加遮罩层 -->
+                  </div>
+                  <slot></slot>
+                </div>
               </o-if>
               <div class="translate-container">
                 <div :html="translateContent" style="display: contents"></div>
@@ -356,7 +370,7 @@
                       <span lang="ja">翻訳を確認待ち:</span>
                     </localized-content>
                   </o-if>
-                  <!-- <o-if :value="inTranslate == 1 || inTranslate == 2">
+                  <!-- <o-if :value="inTranslate == 2">
                     <n-local-icon name="loading"></n-local-icon>
                   </o-if> -->
                   <div class="lang-mark-text" :html="markLang"></div>

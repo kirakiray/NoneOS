@@ -28,7 +28,7 @@
   </style>
 
   <div class="main">
-    <p-button size="small" variant="text" on:click="showDialog = true">
+    <p-button size="small" variant="text" on:click="clickShowDialog">
       <n-local-icon
         name="translate"
         slot="prefix"
@@ -143,6 +143,10 @@
           aiAvailable: false,
         },
         proto: {
+          clickShowDialog() {
+            this.showDialog = true;
+            this.shadow.$("lumi-lang-progress").refershProgress();
+          },
           get defaultLang() {
             if (!this.projectData) {
               return "";
