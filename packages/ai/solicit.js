@@ -65,6 +65,24 @@ export const solicit = (opts) => {
     };
 
     groups.unshift(group);
+
+    // 判断是否超过10个，超过的话将考后的状态为 success failed empty 的删除
+    if (groups.length > 10) {
+      for (let index = groups.length - 1; index > 0; index--) {
+        if (
+          groups[index].state === "success" ||
+          groups[index].state === "failed" ||
+          groups[index].state === "empty"
+        ) {
+          groups.splice(index, 1);
+        }
+
+        if (groups.length <= 10) {
+          break;
+        }
+      }
+    }
+
     return groups[0];
   };
 

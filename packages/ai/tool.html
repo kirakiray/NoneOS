@@ -176,6 +176,23 @@
                   </localized-content>
                 </p-button>
               </o-if>
+
+              <o-if
+                :value="$data.state === 'success' || $data.state === 'empty'"
+              >
+                <p-button
+                  size="small"
+                  on:click="$host.deleteTask($event,$index,$data)"
+                  style="z-index: 3; margin-left: 32px"
+                  variant="outlined"
+                >
+                  <localized-content>
+                    <span lang="cn">删除</span>
+                    <span lang="en">Delete</span>
+                    <span lang="ja">削除</span>
+                  </localized-content>
+                </p-button>
+              </o-if>
             </div>
             <p-list slot="childs" style="--ladder-left: 8px">
               <o-if :value="$data.state === 'empty'">
@@ -314,6 +331,11 @@
                 return group.state === "waiting";
               });
             }, 100);
+          },
+          deleteTask(event, index) {
+            event.stopPropagation();
+
+            this.groups.splice(index, 1);
           },
         },
         attached() {
