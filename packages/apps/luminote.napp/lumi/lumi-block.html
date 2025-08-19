@@ -625,8 +625,11 @@
             ) {
               // TODO: 弹起AI翻译任务重新翻译
               const _translateCancel = (this._translateCancel = solicit({
-                groupTitle: "翻译文章：" + this.parent.itemData.title, // 用于给任务分组用
+                groupTitle: reTranslate
+                  ? "重新翻译段落"
+                  : "翻译文章：" + this.parent.itemData.title, // 用于给任务分组用
                 desc: `将段落${this.index + 1}翻译成"${getRealLang(lang)}"`,
+                execute: !!reTranslate,
                 onstart: () => {
                   return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
 1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
