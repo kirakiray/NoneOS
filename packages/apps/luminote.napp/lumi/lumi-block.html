@@ -616,7 +616,7 @@
             this.inTranslateLang = lang;
             this.inTranslate = 1;
 
-            await translateItemData({
+            this._cancelTranslate = await translateItemData({
               itemData: this.itemData,
               hostKey: "value",
               i18nKey: "i18nContent",
