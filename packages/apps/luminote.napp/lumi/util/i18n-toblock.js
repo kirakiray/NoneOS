@@ -193,7 +193,6 @@ export const translateItemData = async ({
     finalCall(i18nContent[lang].value);
     return;
   }
-  
 
   const _cancelTranslate = solicit({
     groupTitle,
@@ -208,7 +207,7 @@ export const translateItemData = async ({
 4. 不要添加或删除任何标签。
 HTML 如下：
 
-${itemData.value}
+${itemData[hostKey]}
 `;
     },
     onstream: (e) => onstream(e.responseText),
