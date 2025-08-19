@@ -30,7 +30,7 @@ export const solicit = (opts) => {
   if (!item._onstart) {
     throw new Error("onstart is required");
   }
-  
+
   let targetGroup = null;
 
   // 创建或查找分组的辅助函数
