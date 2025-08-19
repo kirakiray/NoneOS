@@ -91,6 +91,8 @@ const startTask = async (group) => {
         }
 
         item.result = responseText;
+
+        item._onstream && item._onstream(e);
       },
     });
 

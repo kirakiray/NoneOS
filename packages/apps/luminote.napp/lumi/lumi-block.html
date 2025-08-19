@@ -370,9 +370,9 @@
                       <span lang="ja">翻訳を確認待ち:</span>
                     </localized-content>
                   </o-if>
-                  <!-- <o-if :value="inTranslate == 2">
+                  <o-if :value="inTranslate == 2">
                     <n-local-icon name="loading"></n-local-icon>
-                  </o-if> -->
+                  </o-if>
                   <div class="lang-mark-text" :html="markLang"></div>
                 </div>
               </div>
@@ -572,8 +572,9 @@
         proto: {
           clickLangMark() {
             if (this.inTranslate === 3) {
+              // 已翻译完成的，点击后重新翻译
               delete this.itemData.i18nContent[this.inTranslateLang];
-              this.switchOtherLang(this.inTranslateLang);
+              this.switchOtherLang(this.inTranslateLang, true);
             }
           },
           get markLang() {
@@ -588,7 +589,7 @@
             return lang;
           },
           // 切换其他语种
-          async switchOtherLang(lang) {
+          async switchOtherLang(lang, reTranslate) {
             if (this._translateCancel) {
               this._translateCancel();
               this._translateCancel = null;
@@ -636,6 +637,15 @@ HTML 如下：
 
 ${this.itemData.value}
 `;
+                },
+                onstream: (e) => {
+                  const { responseText } = e;
+
+                  if (this.inTranslate != 2) {
+                    this.inTranslate = 2;
+                  }
+
+                  this.translateContent = responseText;
                 },
                 onsuccess: (e) => {
                   i18nContent[lang] = {
