@@ -247,6 +247,22 @@ export const getTranslationProgress = async (contentBlocks, languages) => {
   for (let i = 0; i < contentBlocks.length; i++) {
     const contentBlock = contentBlocks[i];
     if (contentBlock.type === "article") {
+      // 把title也计算进去
+      const titleI18nContent = contentBlock.titleI18nContent;
+
+      const titleHash = await getHash(contentBlock.title);
+
+      for (let i = 0; i < languages.length; i++) {
+        const lang = languages[i];
+        result[lang].totalItemCount++;
+
+        if (titleI18nContent && titleI18nContent[lang]) {
+          if (titleI18nContent[lang].originHash === titleHash) {
+            result[lang].translatedItemCount++;
+          }
+        }
+      }
+
       const progressData = await getTranslationProgress(
         contentBlock.content,
         langArray
@@ -291,6 +307,9 @@ export const clearTranslatedContent = async (contentBlocks, lang) => {
   for (let i = 0; i < contentBlocks.length; i++) {
     const contentBlock = contentBlocks[i];
     if (contentBlock.type === "article") {
+      // TODO: 清除 title 翻译
+      debugger;
+
       contentBlock.content = await clearTranslatedContent(
         contentBlock.content,
         lang

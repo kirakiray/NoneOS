@@ -92,8 +92,9 @@
 
     export default async ({ load }) => {
       const { ask, clearAsk } = await load("/packages/ai/main.js");
-      const { switchLang } = await load("./util/i18n-toblock.js");
+      const { switchLang, getMainLang } = await load("./util/i18n-toblock.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
+      const { getHash } = await load("/packages/fs/util.js");
 
       return {
         tag: "lumi-page-title",
@@ -118,26 +119,80 @@
           async switchOtherLang(lang) {
             await this.watchUntil(() => this.itemData.title);
 
-            return switchLang(this, lang, {
-              lumipage: this.host,
-              onStateChange: (state) => {
-                this.inTranslate = state;
-              },
-              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
-                this.inTranslateLang = targetLang;
-                this.inTranslate = state;
-                if (content !== undefined) {
-                  this.translateContent = content;
-                }
-              },
-              onError: (err) => {
-                console.log(err);
-              },
-              keys: {
-                valueKey: "title",
-                i18nKey: "titleI18nContent",
-              },
-            });
+            if (this._translateCancel) {
+              this._translateCancel();
+              this._translateCancel = null;
+            }
+
+            const mainLang = await getMainLang(this.host);
+
+            if (mainLang === lang) {
+              // 同语言不需要切换
+              this.translateContent = "";
+              this.inTranslateLang = "";
+              this.inTranslate = false;
+              return;
+            }
+
+            if (!this.itemData.title) {
+              // 没有内容不需要翻译
+              return;
+            }
+
+            const currentHash = await getHash(this.itemData.title);
+
+            let titleI18nContent = this.itemData.titleI18nContent;
+
+            if (!titleI18nContent) {
+              this.itemData.titleI18nContent = {};
+              titleI18nContent = this.itemData.titleI18nContent;
+            }
+
+            if (
+              !titleI18nContent[lang] ||
+              titleI18nContent[lang].originHash !== currentHash
+            ) {
+              debugger;
+
+              // TODO: 弹起AI翻译任务重新翻译
+              this._translateCancel = solicit({
+                groupTitle: "翻译文章：" + this.itemData.title, // 用于给任务分组用
+                desc: `将段落${this.index + 1}翻译成"${getRealLang(lang)}"`,
+                onstart: () => {
+                  return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
+1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
+2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
+3. 仅将显示在页面上的自然语言文本翻译成${getRealLang(lang)}；
+4. 不要添加或删除任何标签。
+HTML 如下：
+
+${this.itemData.title}
+`;
+                },
+                onsuccess: (e) => {
+                  titleI18nContent[lang] = {
+                    originHash: currentHash,
+                    modelName: e.modelName,
+                    value: e.responseText,
+                    time: Date.now(),
+                  };
+
+                  this.translateContent = titleI18nContent[lang].value;
+                  this.inTranslateLang = lang;
+                  this.inTranslate = 3;
+                },
+              });
+
+              this.translateContent = "";
+              this.inTranslateLang = lang;
+              this.inTranslate = 1;
+              return;
+            }
+
+            // 修正内容
+            this.translateContent = titleI18nContent[lang].value;
+            this.inTranslateLang = lang;
+            this.inTranslate = 3;
           },
           titleKeyDown(e) {
             if (e.key === "Enter") {
