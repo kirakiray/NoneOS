@@ -21,20 +21,33 @@ export const getMainLang = async (el) => {
 };
 
 // 翻译整个项目
-export const translateProject = async ({ projectData, lang }) => {
+export const translateProject = async ({ projectData, lang, onchange }) => {
   const mainLang = projectData.mainLang; // 当前项目的语言
 
+  const hostData = {
+    translatedItemCount: 0,
+    totalItemCount: 0,
+  };
+
   for (let article of projectData.main) {
-    await translateArticle({
+    translateArticle({
       article,
       lang,
       originLang: mainLang,
+      hostData,
+      onchange,
     });
   }
 };
 
 // 翻译整个文章
-const translateArticle = async ({ article, lang, originLang }) => {
+const translateArticle = async ({
+  article,
+  lang,
+  originLang,
+  hostData,
+  onchange,
+}) => {
   if (originLang === lang) {
     return; // 同语言不需要翻译
   }
@@ -45,11 +58,17 @@ const translateArticle = async ({ article, lang, originLang }) => {
 
   // 翻译文章标题
   if (article.title && article.title.trim()) {
+    hostData.totalItemCount++;
+    onchange({ ...hostData });
     translateItemData({
       itemData: article,
       hostKey: "title",
       i18nKey: "titleI18nContent",
       lang,
+      finalCall: () => {
+        hostData.translatedItemCount++;
+        onchange({ ...hostData });
+      },
       execute: true,
       groupTitle: `翻译文章内容: ${article.title}`,
       desc: `将文章标题翻译成"${getRealLang(lang)}"`,
@@ -69,11 +88,17 @@ const translateArticle = async ({ article, lang, originLang }) => {
         });
       } else if (contentBlock.value && contentBlock.value.trim()) {
         // 翻译普通内容块
+        hostData.totalItemCount++;
+        onchange({ ...hostData });
         translateItemData({
           itemData: contentBlock,
           hostKey: "value",
           i18nKey: "i18nContent",
           lang,
+          finalCall: () => {
+            hostData.translatedItemCount++;
+            onchange({ ...hostData });
+          },
           execute: true,
           groupTitle: `翻译文章内容: ${article.title}`,
           desc: `将第${index + 1}个段落翻译成"${getRealLang(lang)}"`,

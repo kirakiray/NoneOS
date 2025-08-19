@@ -43,6 +43,7 @@
             variant="outlined"
             on:click="$host.translateAll($data)"
             style="margin-bottom: 4px"
+            attr:disabled="$host.inTranslatingLang === $data.lang"
           >
             <localized-content>
               <span lang="cn">翻译全部</span>
@@ -86,6 +87,7 @@
             // otherLang: [], // 其他几个支持的语言
           },
           progress: [],
+          inTranslatingLang: "",
         },
         proto: {
           async translateAll(data) {
@@ -106,22 +108,37 @@
               return;
             }
 
+            const lang = data.lang;
+            this.inTranslatingLang = lang;
+
             await translateProject({
               projectData: this.projectData,
               lang: data.lang,
+              onchange: async (result) => {
+                const currentData = this.progress.find((e) => e.lang === lang);
+                currentData.value = Math.ceil(
+                  (result.translatedItemCount / result.totalItemCount) * 100
+                );
+                currentData.translatedItemCount = result.translatedItemCount;
+                currentData.totalItemCount = result.totalItemCount;
+
+                if (result.translatedItemCount === result.totalItemCount) {
+                  toast(
+                    await getLocalized({
+                      cn: "翻译成功",
+                      en: "Translate success",
+                      ja: "翻訳成功",
+                    })
+                  );
+
+                  this.inTranslatingLang = "";
+
+                  setTimeout(() => {
+                    this.refershProgress();
+                  }, 600);
+                }
+              },
             });
-
-            toast(
-              await getLocalized({
-                cn: "翻译成功",
-                en: "Translate success",
-                ja: "翻訳成功",
-              })
-            );
-
-            setTimeout(() => {
-              this.refershProgress();
-            }, 600);
           },
           async refershProgress() {
             if (!this.projectData.main) {
