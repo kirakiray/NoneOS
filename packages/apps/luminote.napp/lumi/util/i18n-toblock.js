@@ -307,8 +307,11 @@ export const clearTranslatedContent = async (contentBlocks, lang) => {
   for (let i = 0; i < contentBlocks.length; i++) {
     const contentBlock = contentBlocks[i];
     if (contentBlock.type === "article") {
-      // TODO: 清除 title 翻译
-      debugger;
+      // 清除 title 翻译
+      const { titleI18nContent } = contentBlock;
+      if (titleI18nContent) {
+        titleI18nContent[lang] = undefined;
+      }
 
       contentBlock.content = await clearTranslatedContent(
         contentBlock.content,
