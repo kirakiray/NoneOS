@@ -20,48 +20,6 @@ export const getMainLang = async (el) => {
   return projectItem.data.mainLang;
 };
 
-// // 填充翻译内容
-// export const fillTranslate = async (list, { callback, langs } = {}) => {
-//   for (let item of list) {
-//     if (item.type === "article") {
-//       // 翻译标题
-//       for (let lang of langs) {
-//         await translateItem({
-//           block: {
-//             itemData: item,
-//           },
-//           lang,
-//           keys: {
-//             i18nKey: "titleI18nContent",
-//             valueKey: "title",
-//           },
-//         });
-//       }
-
-//       if (callback) {
-//         callback(item);
-//       }
-
-//       // 翻译子内容
-//       await fillTranslate(Array.from(item.content), { callback, langs });
-//     } else {
-//       for (let lang of langs) {
-//         // 翻译value
-//         await translateItem({
-//           block: {
-//             itemData: item,
-//           },
-//           lang,
-//         });
-//       }
-
-//       if (callback) {
-//         callback(item);
-//       }
-//     }
-//   }
-// };
-
 // 翻译整个项目
 export const translateProject = async ({ projectData, lang }) => {
   const mainLang = projectData.mainLang; // 当前项目的语言
@@ -77,7 +35,61 @@ export const translateProject = async ({ projectData, lang }) => {
 
 // 翻译整个文章
 const translateArticle = async ({ article, lang, originLang }) => {
-  debugger;
+  if (originLang === lang) {
+    return; // 同语言不需要翻译
+  }
+
+  if (!article) {
+    return;
+  }
+
+  // 翻译文章标题
+  if (article.title && article.title.trim()) {
+    await new Promise((resolve) => {
+      translateItemData({
+        itemData: article,
+        hostKey: "title",
+        i18nKey: "titleI18nContent",
+        lang,
+        finalCall: (e) => {
+          resolve(e);
+        },
+        execute: true,
+        groupTitle: `翻译文章标题: ${article.title}`,
+        desc: `将文章标题翻译成"${getRealLang(lang)}"`,
+      });
+    });
+  }
+
+  // 翻译文章内容块
+  if (article.content && Array.isArray(article.content)) {
+    for (const contentBlock of article.content) {
+      if (contentBlock.type === "article") {
+        // 递归翻译子文章
+        await translateArticle({
+          article: contentBlock,
+          lang,
+          originLang,
+        });
+      } else if (contentBlock.value && contentBlock.value.trim()) {
+        // 翻译普通内容块
+        await new Promise((resolve) => {
+          translateItemData({
+            itemData: contentBlock,
+            hostKey: "value",
+            i18nKey: "i18nContent",
+            lang,
+            execute: true,
+            groupTitle: `翻译文章内容: ${article.title}`,
+            desc: `将文章内容翻译成"${getRealLang(lang)}"`,
+            finalCall: (e) => {
+              resolve(e);
+            },
+          });
+        });
+      }
+    }
+  }
 };
 
 // 翻译单个项目的综合性方法
