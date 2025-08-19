@@ -118,6 +118,10 @@
                 ja: "翻訳成功",
               })
             );
+
+            setTimeout(() => {
+              this.refershProgress();
+            }, 600);
           },
           async refershProgress() {
             if (!this.projectData.main) {

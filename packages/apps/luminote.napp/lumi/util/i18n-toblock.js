@@ -45,47 +45,42 @@ const translateArticle = async ({ article, lang, originLang }) => {
 
   // 翻译文章标题
   if (article.title && article.title.trim()) {
-    await new Promise((resolve) => {
-      translateItemData({
-        itemData: article,
-        hostKey: "title",
-        i18nKey: "titleI18nContent",
-        lang,
-        finalCall: (e) => {
-          resolve(e);
-        },
-        execute: true,
-        groupTitle: `翻译文章标题: ${article.title}`,
-        desc: `将文章标题翻译成"${getRealLang(lang)}"`,
-      });
+    translateItemData({
+      itemData: article,
+      hostKey: "title",
+      i18nKey: "titleI18nContent",
+      lang,
+      finalCall: (e) => {},
+      // execute: true,
+      groupTitle: `翻译文章内容: ${article.title}`,
+      desc: `将文章标题翻译成"${getRealLang(lang)}"`,
     });
   }
 
   // 翻译文章内容块
   if (article.content && Array.isArray(article.content)) {
-    for (const contentBlock of article.content) {
+    for (let index = 0; index < article.content.length; index++) {
+      const contentBlock = article.content[index];
       if (contentBlock.type === "article") {
         // 递归翻译子文章
-        await translateArticle({
+        translateArticle({
           article: contentBlock,
           lang,
           originLang,
         });
       } else if (contentBlock.value && contentBlock.value.trim()) {
         // 翻译普通内容块
-        await new Promise((resolve) => {
-          translateItemData({
-            itemData: contentBlock,
-            hostKey: "value",
-            i18nKey: "i18nContent",
-            lang,
-            execute: true,
-            groupTitle: `翻译文章内容: ${article.title}`,
-            desc: `将文章内容翻译成"${getRealLang(lang)}"`,
-            finalCall: (e) => {
-              resolve(e);
-            },
-          });
+        translateItemData({
+          itemData: contentBlock,
+          hostKey: "value",
+          i18nKey: "i18nContent",
+          lang,
+          // execute: true,
+          groupTitle: `翻译文章内容: ${article.title}`,
+          desc: `将第${index + 1}个段落翻译成"${getRealLang(lang)}"`,
+          finalCall: (e) => {
+            resolve(e);
+          },
         });
       }
     }
