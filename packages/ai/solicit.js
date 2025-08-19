@@ -30,70 +30,46 @@ export const solicit = (opts) => {
   if (!item._onstart) {
     throw new Error("onstart is required");
   }
+  
   let targetGroup = null;
+
+  // 创建或查找分组的辅助函数
+  const createOrFindGroup = () => {
+    const group = {
+      gid: Math.random(),
+      groupTitle: item.groupTitle,
+      groupDesc: item.groupDesc,
+      state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败 empty:空
+      items: [],
+      time: Date.now(), // 添加的时间
+      _startTask() {
+        return startTask(this);
+      },
+    };
+
+    groups.unshift(group);
+    return groups[0];
+  };
 
   if (opts.execute) {
     // 直接开始的不需要分组
-    targetGroup = {
-      gid: Math.random(),
-      groupTitle: item.groupTitle,
-      groupDesc: item.groupDesc,
-      state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败 empty:空
-      items: [],
-      time: Date.now(), // 添加的时间
-      _startTask() {
-        return startTask(targetGroup);
-      },
-    };
+    targetGroup = createOrFindGroup();
+    targetGroup.items.push(item);
+    targetGroup._startTask();
+  } else {
+    targetGroup = groups.find(
+      (e) => e.groupTitle === item.groupTitle && e.state === "waiting"
+    );
 
-    groups.unshift(targetGroup);
-
-    targetGroup = groups[0];
+    if (!targetGroup) {
+      targetGroup = createOrFindGroup();
+    }
 
     targetGroup.items.push(item);
-
-    targetGroup._startTask();
-
-    return () => {
-      // 撤销函数
-      const index = targetGroup.items.findIndex((e) => e.tid === item.tid);
-      if (index !== -1) {
-        targetGroup.items.splice(index, 1);
-
-        if (!targetGroup.items.length) {
-          // 移除分组
-          targetGroup.state = "empty";
-        }
-      }
-    };
   }
 
-  targetGroup = groups.find(
-    (e) => e.groupTitle === item.groupTitle && e.state === "waiting"
-  );
-
-  if (!targetGroup) {
-    targetGroup = {
-      gid: Math.random(),
-      groupTitle: item.groupTitle,
-      groupDesc: item.groupDesc,
-      state: "waiting", // waiting:等待开始进度 running:运行中 paused:暂停 success:成功 failed:失败 empty:空
-      items: [],
-      time: Date.now(), // 添加的时间
-      _startTask() {
-        return startTask(targetGroup);
-      },
-    };
-
-    groups.unshift(targetGroup);
-
-    targetGroup = groups[0];
-  }
-
-  targetGroup.items.push(item);
-
+  // 撤销函数
   return () => {
-    // 撤销函数
     const index = targetGroup.items.findIndex((e) => e.tid === item.tid);
     if (index !== -1) {
       targetGroup.items.splice(index, 1);
