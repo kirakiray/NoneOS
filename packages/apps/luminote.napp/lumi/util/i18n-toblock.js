@@ -62,112 +62,6 @@ export const getMainLang = async (el) => {
 //   }
 // };
 
-// // 将内容翻译为指定语言
-// export const translateItem = async ({
-//   block, // 要翻译的块
-//   lang, // 翻译到目标语言
-//   keys, // 翻译到对应的key
-//   onTranslateUpdate, // 翻译状态更新回调
-// }) => {
-//   const { itemData } = block;
-
-//   if (!keys) {
-//     keys = {
-//       valueKey: "value",
-//       i18nKey: "i18nContent",
-//     };
-//   }
-
-//   let promptLang = "";
-//   switch (lang) {
-//     case "en":
-//       promptLang = "英语";
-//       break;
-//     case "cn":
-//       promptLang = "简体中文";
-//       break;
-//     case "t-cn":
-//       promptLang = "繁体中文";
-//       break;
-//     case "ja":
-//       promptLang = "日语";
-//       break;
-//     default:
-//       promptLang = lang;
-//   }
-
-//   let i18nContent = itemData[keys.i18nKey];
-//   if (!i18nContent) {
-//     itemData[keys.i18nKey] = {};
-//     i18nContent = itemData[keys.i18nKey];
-//   }
-
-//   if (!keys.valueKey) {
-//     return;
-//   }
-
-//   const originHash = await getHash(itemData[keys.valueKey]);
-
-//   if (i18nContent[lang]) {
-//     if (i18nContent[lang].originHash === originHash) {
-//       if (onTranslateUpdate) {
-//         onTranslateUpdate({
-//           lang,
-//           state: 3,
-//           content: i18nContent[lang].value,
-//         });
-//       }
-//       return i18nContent[lang].value;
-//     }
-//   }
-
-//   if (block) {
-//     block.translateContent = "";
-//     block._asking = lang;
-//   }
-
-//   const result = await ask(
-//     `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
-// 1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
-// 2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
-// 3. 仅将显示在页面上的自然语言文本翻译成${promptLang}；
-// 4. 不要添加或删除任何标签。
-// HTML 如下：
-
-// ${itemData[keys.valueKey]}
-// `,
-//     {
-//       id: block.xid,
-//       onChunk: (e) => {
-//         if (block._asking === lang) {
-//           block.translateContent = e.responseText;
-//           if (onTranslateUpdate) {
-//             onTranslateUpdate({
-//               lang,
-//               state: 2,
-//               content: e.responseText,
-//             });
-//           }
-//         }
-//       },
-//     }
-//   );
-
-//   if (!result) {
-//     if (onError) onError(new Error("Translation failed"));
-//     return null;
-//   }
-
-//   i18nContent[lang] = {
-//     originHash,
-//     modelName: result.modelName,
-//     value: result.responseText,
-//     time: Date.now(),
-//   };
-
-//   return result;
-// };
-
 export const translateItemData = async ({
   itemData,
   hostKey,
@@ -210,7 +104,7 @@ HTML 如下：
 ${itemData[hostKey]}
 `;
     },
-    onstream: (e) => onstream(e.responseText),
+    onstream: (e) => onstream && onstream(e.responseText),
     onsuccess: (e) => {
       i18nContent[lang] = {
         originHash: currentHash,
