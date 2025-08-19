@@ -13,7 +13,7 @@ export const solicit = (opts) => {
   //     onerror: (data) => {}, // 当失败的时候调用触发，返回数据
   //   };
 
-  const item = {
+  let item = {
     tid: Math.random(),
     groupTitle: opts.groupTitle,
     desc: opts.desc,
@@ -21,6 +21,7 @@ export const solicit = (opts) => {
     aiName: "", // 分配的AI名称
     prompt: "", // 提示词
     result: "", // 最终结果
+    _target: opts.target, // 寄宿的主体对象
     _onstart: opts.onstart,
     _onstream: opts.onstream,
     _onsuccess: opts.onsuccess,
@@ -29,6 +30,22 @@ export const solicit = (opts) => {
 
   if (!item._onstart) {
     throw new Error("onstart is required");
+  }
+
+  // 查找是否已经出现过相同的元素绑定
+  let existItem = null;
+  for (const group of groups) {
+    for (const e2 of group.items) {
+      if (e2._target === item._target) {
+        existItem = e2;
+        break;
+      }
+    }
+    if (existItem) break;
+  }
+
+  if (existItem) {
+    existItem._cancel();
   }
 
   let targetGroup = null;
@@ -68,9 +85,16 @@ export const solicit = (opts) => {
     targetGroup.items.push(item);
   }
 
+  item = targetGroup.items[targetGroup.items.length - 1];
+
   // 撤销函数
-  return () => {
+  const cancel = () => {
+    if (!(item.state === "running" || item.state === "waiting")) {
+      return;
+    }
+
     const index = targetGroup.items.findIndex((e) => e.tid === item.tid);
+
     if (index !== -1) {
       targetGroup.items.splice(index, 1);
 
@@ -80,6 +104,17 @@ export const solicit = (opts) => {
       }
     }
   };
+
+  item._cancel = cancel;
+
+  if (item._target) {
+    // 监听宿主是否被删除
+    item._target.on("detached", () => {
+      cancel();
+    });
+  }
+
+  return cancel;
 };
 
 // 开始运行进程

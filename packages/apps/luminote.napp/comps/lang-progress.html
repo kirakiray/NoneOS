@@ -71,6 +71,10 @@
         },
         proto: {
           async refershProgress() {
+            if (!this.projectData.main) {
+              return;
+            }
+            
             // debugger;
             const progress = await getTranslationProgress(
               this.projectData.main,

@@ -590,11 +590,6 @@
           },
           // 切换其他语种
           async switchOtherLang(lang, reTranslate) {
-            if (this._translateCancel) {
-              this._translateCancel();
-              this._translateCancel = null;
-            }
-
             const mainLang = await getMainLang(this);
 
             if (mainLang === lang) {
@@ -602,6 +597,11 @@
               this.translateContent = "";
               this.inTranslateLang = "";
               this.inTranslate = false;
+
+              if (this._cancelTranslate) {
+                this._cancelTranslate();
+                this._cancelTranslate = null;
+              }
               return;
             }
 
@@ -623,12 +623,12 @@
               !i18nContent[lang] ||
               i18nContent[lang].originHash !== currentHash
             ) {
-              // TODO: 弹起AI翻译任务重新翻译
-              const _translateCancel = (this._translateCancel = solicit({
+              this._cancelTranslate = solicit({
                 groupTitle: reTranslate
                   ? "重新翻译段落"
                   : "翻译文章：" + this.parent.itemData.title, // 用于给任务分组用
                 desc: `将段落${this.index + 1}翻译成"${getRealLang(lang)}"`,
+                target: this,
                 execute: !!reTranslate,
                 onstart: () => {
                   return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
@@ -661,13 +661,8 @@ ${this.itemData.value}
                   this.translateContent = i18nContent[lang].value;
                   this.inTranslateLang = lang;
                   this.inTranslate = 3;
-
-                  if (this._translateCancel === _translateCancel) {
-                    this._translateCancel();
-                    this._translateCancel = null;
-                  }
                 },
-              }));
+              });
 
               this.translateContent = "";
               this.inTranslateLang = lang;
@@ -995,11 +990,6 @@ ${this.itemData.value}`,
           }, 300);
         },
         detached() {
-          if (this._translateCancel) {
-            this._translateCancel();
-            this._translateCancel = null;
-          }
-
           if (this._asking) {
             clearAsk(this.xid);
           }
