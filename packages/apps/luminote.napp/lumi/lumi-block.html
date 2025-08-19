@@ -624,7 +624,7 @@
               i18nContent[lang].originHash !== currentHash
             ) {
               // TODO: 弹起AI翻译任务重新翻译
-              this._translateCancel = solicit({
+              const _translateCancel = (this._translateCancel = solicit({
                 groupTitle: "翻译文章：" + this.parent.itemData.title, // 用于给任务分组用
                 desc: `将段落${this.index + 1}翻译成"${getRealLang(lang)}"`,
                 onstart: () => {
@@ -658,8 +658,13 @@ ${this.itemData.value}
                   this.translateContent = i18nContent[lang].value;
                   this.inTranslateLang = lang;
                   this.inTranslate = 3;
+
+                  if (this._translateCancel === _translateCancel) {
+                    this._translateCancel();
+                    this._translateCancel = null;
+                  }
                 },
-              });
+              }));
 
               this.translateContent = "";
               this.inTranslateLang = lang;
