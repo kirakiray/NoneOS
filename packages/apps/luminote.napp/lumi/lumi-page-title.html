@@ -112,7 +112,6 @@
     import { localizedObject } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
-      const { ask, clearAsk, solicit } = await load("/packages/ai/main.js");
       const { switchLang, getMainLang } = await load("./util/i18n-toblock.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
       const { getHash } = await load("/packages/fs/util.js");

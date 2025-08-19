@@ -62,6 +62,25 @@ export const getMainLang = async (el) => {
 //   }
 // };
 
+// 翻译整个项目
+export const translateProject = async ({ projectData, lang }) => {
+  const mainLang = projectData.mainLang; // 当前项目的语言
+
+  for (let article of projectData.main) {
+    await translateArticle({
+      article,
+      lang,
+      originLang: mainLang,
+    });
+  }
+};
+
+// 翻译整个文章
+const translateArticle = async ({ article, lang, originLang }) => {
+  debugger;
+};
+
+// 翻译单个项目的综合性方法
 export const translateItemData = async ({
   itemData,
   hostKey,

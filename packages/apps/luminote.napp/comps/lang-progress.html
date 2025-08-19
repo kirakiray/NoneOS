@@ -71,9 +71,11 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
-      const { getTranslationProgress, clearTranslatedContent } = await load(
-        "../lumi/util/i18n-toblock.js"
-      );
+      const {
+        getTranslationProgress,
+        clearTranslatedContent,
+        translateProject,
+      } = await load("../lumi/util/i18n-toblock.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
@@ -104,7 +106,18 @@
               return;
             }
 
-            debugger;
+            await translateProject({
+              projectData: this.projectData,
+              lang: data.lang,
+            });
+
+            toast(
+              await getLocalized({
+                cn: "翻译成功",
+                en: "Translate success",
+                ja: "翻訳成功",
+              })
+            );
           },
           async refershProgress() {
             if (!this.projectData.main) {
