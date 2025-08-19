@@ -594,16 +594,16 @@
           async switchOtherLang(lang, reTranslate) {
             const mainLang = await getMainLang(this);
 
+            if (this._cancelTranslate) {
+              this._cancelTranslate();
+              this._cancelTranslate = null;
+            }
+
             if (mainLang === lang) {
               // 同语言不需要切换
               this.translateContent = "";
               this.inTranslateLang = "";
               this.inTranslate = false;
-
-              if (this._cancelTranslate) {
-                this._cancelTranslate();
-                this._cancelTranslate = null;
-              }
               return;
             }
 
