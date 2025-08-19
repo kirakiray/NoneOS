@@ -1,5 +1,7 @@
 import { ask, clearAsk } from "/packages/ai/ask.js";
+import { solicit } from "/packages/ai/main.js";
 import { getHash } from "/packages/fs/util.js";
+import { getRealLang } from "../../util/get-real-lang.js";
 
 export const getMainLang = async (el) => {
   const notePage = el.parents.find(
@@ -18,152 +20,211 @@ export const getMainLang = async (el) => {
   return projectItem.data.mainLang;
 };
 
-// 填充翻译内容
-export const fillTranslate = async (list, { callback, langs } = {}) => {
-  for (let item of list) {
-    if (item.type === "article") {
-      // 翻译标题
-      for (let lang of langs) {
-        await translateItem({
-          block: {
-            itemData: item,
-          },
-          lang,
-          keys: {
-            i18nKey: "titleI18nContent",
-            valueKey: "title",
-          },
-        });
-      }
+// // 填充翻译内容
+// export const fillTranslate = async (list, { callback, langs } = {}) => {
+//   for (let item of list) {
+//     if (item.type === "article") {
+//       // 翻译标题
+//       for (let lang of langs) {
+//         await translateItem({
+//           block: {
+//             itemData: item,
+//           },
+//           lang,
+//           keys: {
+//             i18nKey: "titleI18nContent",
+//             valueKey: "title",
+//           },
+//         });
+//       }
 
-      if (callback) {
-        callback(item);
-      }
+//       if (callback) {
+//         callback(item);
+//       }
 
-      // 翻译子内容
-      await fillTranslate(Array.from(item.content), { callback, langs });
-    } else {
-      for (let lang of langs) {
-        // 翻译value
-        await translateItem({
-          block: {
-            itemData: item,
-          },
-          lang,
-        });
-      }
+//       // 翻译子内容
+//       await fillTranslate(Array.from(item.content), { callback, langs });
+//     } else {
+//       for (let lang of langs) {
+//         // 翻译value
+//         await translateItem({
+//           block: {
+//             itemData: item,
+//           },
+//           lang,
+//         });
+//       }
 
-      if (callback) {
-        callback(item);
-      }
-    }
-  }
-};
+//       if (callback) {
+//         callback(item);
+//       }
+//     }
+//   }
+// };
 
-// 将内容翻译为指定语言
-export const translateItem = async ({
-  block, // 要翻译的块
-  lang, // 翻译到目标语言
-  keys, // 翻译到对应的key
-  onTranslateUpdate, // 翻译状态更新回调
+// // 将内容翻译为指定语言
+// export const translateItem = async ({
+//   block, // 要翻译的块
+//   lang, // 翻译到目标语言
+//   keys, // 翻译到对应的key
+//   onTranslateUpdate, // 翻译状态更新回调
+// }) => {
+//   const { itemData } = block;
+
+//   if (!keys) {
+//     keys = {
+//       valueKey: "value",
+//       i18nKey: "i18nContent",
+//     };
+//   }
+
+//   let promptLang = "";
+//   switch (lang) {
+//     case "en":
+//       promptLang = "英语";
+//       break;
+//     case "cn":
+//       promptLang = "简体中文";
+//       break;
+//     case "t-cn":
+//       promptLang = "繁体中文";
+//       break;
+//     case "ja":
+//       promptLang = "日语";
+//       break;
+//     default:
+//       promptLang = lang;
+//   }
+
+//   let i18nContent = itemData[keys.i18nKey];
+//   if (!i18nContent) {
+//     itemData[keys.i18nKey] = {};
+//     i18nContent = itemData[keys.i18nKey];
+//   }
+
+//   if (!keys.valueKey) {
+//     return;
+//   }
+
+//   const originHash = await getHash(itemData[keys.valueKey]);
+
+//   if (i18nContent[lang]) {
+//     if (i18nContent[lang].originHash === originHash) {
+//       if (onTranslateUpdate) {
+//         onTranslateUpdate({
+//           lang,
+//           state: 3,
+//           content: i18nContent[lang].value,
+//         });
+//       }
+//       return i18nContent[lang].value;
+//     }
+//   }
+
+//   if (block) {
+//     block.translateContent = "";
+//     block._asking = lang;
+//   }
+
+//   const result = await ask(
+//     `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
+// 1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
+// 2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
+// 3. 仅将显示在页面上的自然语言文本翻译成${promptLang}；
+// 4. 不要添加或删除任何标签。
+// HTML 如下：
+
+// ${itemData[keys.valueKey]}
+// `,
+//     {
+//       id: block.xid,
+//       onChunk: (e) => {
+//         if (block._asking === lang) {
+//           block.translateContent = e.responseText;
+//           if (onTranslateUpdate) {
+//             onTranslateUpdate({
+//               lang,
+//               state: 2,
+//               content: e.responseText,
+//             });
+//           }
+//         }
+//       },
+//     }
+//   );
+
+//   if (!result) {
+//     if (onError) onError(new Error("Translation failed"));
+//     return null;
+//   }
+
+//   i18nContent[lang] = {
+//     originHash,
+//     modelName: result.modelName,
+//     value: result.responseText,
+//     time: Date.now(),
+//   };
+
+//   return result;
+// };
+
+export const translateItemData = async ({
+  itemData,
+  hostKey,
+  i18nKey,
+  lang,
+  onstream,
+  finalCall,
+  target,
+  execute,
+  groupTitle,
+  desc,
 }) => {
-  const { itemData } = block;
+  const currentHash = await getHash(itemData[hostKey]);
 
-  if (!keys) {
-    keys = {
-      valueKey: "value",
-      i18nKey: "i18nContent",
-    };
-  }
+  let i18nContent = itemData[i18nKey];
 
-  let promptLang = "";
-  switch (lang) {
-    case "en":
-      promptLang = "英语";
-      break;
-    case "cn":
-      promptLang = "简体中文";
-      break;
-    case "t-cn":
-      promptLang = "繁体中文";
-      break;
-    case "ja":
-      promptLang = "日语";
-      break;
-    default:
-      promptLang = lang;
-  }
-
-  let i18nContent = itemData[keys.i18nKey];
   if (!i18nContent) {
-    itemData[keys.i18nKey] = {};
-    i18nContent = itemData[keys.i18nKey];
+    itemData[i18nKey] = {};
+    i18nContent = itemData[i18nKey];
   }
 
-  if (!keys.valueKey) {
+  if (i18nContent[lang] && i18nContent[lang].originHash === currentHash) {
+    finalCall(i18nContent[lang].value);
     return;
   }
+  
 
-  const originHash = await getHash(itemData[keys.valueKey]);
-
-  if (i18nContent[lang]) {
-    if (i18nContent[lang].originHash === originHash) {
-      if (onTranslateUpdate) {
-        onTranslateUpdate({
-          lang,
-          state: 3,
-          content: i18nContent[lang].value,
-        });
-      }
-      return i18nContent[lang].value;
-    }
-  }
-
-  if (block) {
-    block.translateContent = "";
-    block._asking = lang;
-  }
-
-  const result = await ask(
-    `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
+  const _cancelTranslate = solicit({
+    groupTitle,
+    desc,
+    target,
+    execute,
+    onstart: () => {
+      return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
 1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
 2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
-3. 仅将显示在页面上的自然语言文本翻译成${promptLang}；
+3. 仅将显示在页面上的自然语言文本翻译成${getRealLang(lang)}；
 4. 不要添加或删除任何标签。
 HTML 如下：
 
-${itemData[keys.valueKey]}
-`,
-    {
-      id: block.xid,
-      onChunk: (e) => {
-        if (block._asking === lang) {
-          block.translateContent = e.responseText;
-          if (onTranslateUpdate) {
-            onTranslateUpdate({
-              lang,
-              state: 2,
-              content: e.responseText,
-            });
-          }
-        }
-      },
-    }
-  );
+${itemData.value}
+`;
+    },
+    onstream: (e) => onstream(e.responseText),
+    onsuccess: (e) => {
+      i18nContent[lang] = {
+        originHash: currentHash,
+        modelName: e.modelName,
+        value: e.responseText,
+        time: Date.now(),
+      };
 
-  if (!result) {
-    if (onError) onError(new Error("Translation failed"));
-    return null;
-  }
+      finalCall(e.responseText);
+    },
+  });
 
-  i18nContent[lang] = {
-    originHash,
-    modelName: result.modelName,
-    value: result.responseText,
-    time: Date.now(),
-  };
-
-  return result;
+  return _cancelTranslate;
 };
 
 export const switchLang = async (block, lang, options = {}) => {

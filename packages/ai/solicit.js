@@ -33,19 +33,22 @@ export const solicit = (opts) => {
   }
 
   // 查找是否已经出现过相同的元素绑定
-  let existItem = null;
-  for (const group of groups) {
-    for (const e2 of group.items) {
-      if (e2._target === item._target) {
-        existItem = e2;
-        break;
+  if (item._target) {
+    let existItem = null;
+    for (const group of groups) {
+      for (const groupItem of group.items) {
+        if (groupItem._target === item._target) {
+          existItem = groupItem;
+          break;
+        }
       }
+      if (existItem) break;
     }
-    if (existItem) break;
-  }
 
-  if (existItem) {
-    existItem._cancel();
+    if (existItem) {
+      // 已存在的元素，取消之前的
+      existItem._cancel();
+    }
   }
 
   let targetGroup = null;

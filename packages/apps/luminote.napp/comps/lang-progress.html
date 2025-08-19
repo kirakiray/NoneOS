@@ -27,6 +27,30 @@
       >
         <div style="text-align: center">
           <div>{{$data.langStr}}</div>
+        </div>
+        <p-progress
+          attr:value="$data.value"
+          type="circle"
+          variant="determinate"
+          style="margin: 0 8px"
+        >
+          <span style="font-size: 12px">{{$data.value}}%</span>
+        </p-progress>
+
+        <div style="display: flex; flex-direction: column">
+          <p-button
+            size="mini"
+            variant="outlined"
+            on:click="$host.translateAll($data)"
+            style="margin-bottom: 4px"
+          >
+            <localized-content>
+              <span lang="cn">翻译全部</span>
+              <span lang="en">Translate All</span>
+              <span lang="ja">翻訳全部</span>
+            </localized-content>
+          </p-button>
+
           <p-button
             size="mini"
             variant="outlined"
@@ -40,14 +64,6 @@
             </localized-content>
           </p-button>
         </div>
-        <p-progress
-          attr:value="$data.value"
-          type="circle"
-          variant="determinate"
-          style="margin-left: 8px"
-        >
-          <span style="font-size: 12px">{{$data.value}}%</span>
-        </p-progress>
       </div>
     </o-fill>
   </div>
@@ -70,6 +86,26 @@
           progress: [],
         },
         proto: {
+          async translateAll(data) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "翻译全部",
+                en: "Translate All",
+                ja: "翻訳全部",
+              }),
+              content: await getLocalized({
+                cn: `确认要将本文档中剩余的 ${data.langStr} 内容全部翻译完成吗？`,
+                en: `Are you sure you want to translate all ${data.langStr} content in this document?`,
+                ja: `${data.langStr} の残りの内容をすべて翻訳してもよろしいですか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            debugger;
+          },
           async refershProgress() {
             if (!this.projectData.main) {
               return;

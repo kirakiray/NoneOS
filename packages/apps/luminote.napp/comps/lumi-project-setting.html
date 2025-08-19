@@ -204,10 +204,12 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
-      const { fillTranslate, getTranslationProgress, clearTranslatedContent } =
-        await load("/packages/apps/luminote.napp/lumi/util/i18n-toblock.js");
+      const { getTranslationProgress, clearTranslatedContent } = await load(
+        "/packages/apps/luminote.napp/lumi/util/i18n-toblock.js"
+      );
       const { changeLang } = await load("../lumi/util/change-lang.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
+      const fillTranslate = () => {};
 
       return {
         tag: "lumi-project-setting",
@@ -256,6 +258,9 @@
             });
           },
           async activeTranslate() {
+            // 暂时不可用
+            return;
+
             // 主动翻译所有语言
             const result = await confirm({
               content: await getLocalized({
