@@ -7,6 +7,9 @@ export async function chat({ onChunk, model, messages }) {
     throw new Error("Messages array is required and cannot be empty");
   }
 
+  // 根据是否存在 onChunk 来决定是否使用流式传输
+  const useStream = Boolean(onChunk && typeof onChunk === "function");
+
   try {
     const res = await fetch("http://localhost:1234/v1/chat/completions", {
       method: "POST",
@@ -16,7 +19,7 @@ export async function chat({ onChunk, model, messages }) {
         messages: messages,
         temperature: 0.7,
         max_tokens: 256,
-        stream: true,
+        stream: useStream,
       }),
     });
 
@@ -24,6 +27,14 @@ export async function chat({ onChunk, model, messages }) {
       throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     }
 
+    // 如果不是流式传输，直接返回完整响应
+    if (!useStream) {
+      const data = await res.json();
+      const fullResponse = data.choices?.[0]?.message?.content || "";
+      return fullResponse;
+    }
+
+    // 流式传输处理
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";

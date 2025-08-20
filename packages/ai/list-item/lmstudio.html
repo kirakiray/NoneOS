@@ -60,7 +60,12 @@
       <p-list-item>
         <div>
           {{fullResponse}}
-          <p-button on:click="testModel" size="mini" attr:disabled="responsing">
+          <p-button
+            on:click="testModel"
+            size="mini"
+            attr:disabled="responsing"
+            style="margin: 4px"
+          >
             测试模型
           </p-button>
         </div>
@@ -100,7 +105,7 @@
 
             try {
               const result = await chat({
-                model: "google/gemma-3-4b-it",
+                model: this.item.model,
                 messages: [{ role: "user", content: prompt }],
                 onChunk: (e) => {
                   const { fullResponse } = e;
