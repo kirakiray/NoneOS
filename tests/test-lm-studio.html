@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      async function callLM() {
+        const response = await fetch(
+          "http://localhost:1234/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              model: "google/gemma-3-4b-it", // 替换为官方的 gemma3 4b 模型
+              messages: [
+                { role: "system", content: "你是个有用的助手。" },
+                { role: "user", content: "写一首关于夏天的诗" },
+              ],
+              temperature: 0.7,
+              max_tokens: 256,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        console.log(data.choices[0].message.content);
+      }
+
+      callLM();
+    </script>
+  </body>
+</html>
