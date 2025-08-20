@@ -1,0 +1,45 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+  <div class="list">
+    <o-page src="./list-item/lmstudio.html" :item="aiSetting.lmstudio"></o-page>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { getAISetting } = await load("./custom-data.js");
+      const aiSetting = await getAISetting();
+
+      return {
+        tag: "ai-list",
+        data: {
+          aiSetting: {
+            // lmstudio: {},
+          },
+        },
+        proto: {
+          initLmstudio() {
+            if (!this.aiSetting.lmstudio) {
+              this.aiSetting.lmstudio = {
+                port: 1234,
+              };
+            }
+          },
+        },
+        attached() {
+          this.aiSetting = aiSetting;
+
+          this.initLmstudio();
+        },
+        detached() {
+          this.aiSetting = {};
+        },
+      };
+    };
+  </script>
+</template>

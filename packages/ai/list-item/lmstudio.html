@@ -1,0 +1,145 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+
+    n-local-icon {
+      display: block;
+      margin-right: 4px;
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+    }
+  </style>
+  <p-list-item collapse-childs="open" button="suffix">
+    <img
+      src="../sources/lmstudio.webp"
+      width="18"
+      height="18"
+      slot="prefix"
+      style="margin-right: 4px"
+    />
+    LM Studio Server
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs" style="--ladder-left: 16px">
+      <p-list-item>
+        <o-if :value="!!item">
+          <p-input size="small" sync:value="item.port" style="width: 100px">
+            <label>端口号</label>
+          </p-input>
+        </o-if>
+      </p-list-item>
+      <p-list-item collapse-childs="open" button="suffix">
+        <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
+        可用模型
+        <i toggle-collapse triangle slot="suffix"></i>
+        <p-list slot="childs">
+          <o-fill :value="list" fill-key="id">
+            <p-list-item
+              button
+              on:click="$host.useIt($data)"
+              attr:active-item="$host.item.model === $data.id"
+            >
+              <o-if :value="$data.id.includes('qwen')" slot="prefix">
+                <n-local-icon name="qwen"></n-local-icon>
+              </o-if>
+              <o-else slot="prefix">
+                <n-local-icon name="ai-chip"></n-local-icon>
+              </o-else>
+              {{$data.id}}
+              <o-if :value="$host.item.model === $data.id" slot="suffix">
+                <n-local-icon
+                  name="tick-circle"
+                  style="color: var(--md-sys-color-success)"
+                ></n-local-icon>
+              </o-if>
+            </p-list-item>
+          </o-fill>
+        </p-list>
+      </p-list-item>
+      <p-list-item>
+        <div>
+          {{fullResponse}}
+          <p-button on:click="testModel" size="mini" attr:disabled="responsing">
+            测试模型
+          </p-button>
+        </div>
+      </p-list-item>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { chat } = await load("../lmstudio.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        data: {
+          //   item: {},
+          error: "",
+          list: [], // 模型列表
+          serverHost: "localhost",
+          fullResponse: "",
+          responsing: false,
+        },
+        watch: {
+          item(item) {
+            if (item) {
+              this.initModels();
+            }
+          },
+        },
+        proto: {
+          async testModel() {
+            this.responsing = true;
+
+            const prompt = await getLocalized({
+              cn: "你是谁？回答的内容简短一点",
+              en: "Who are you? Just answer",
+              ja: "あなたは？直接回答してください。",
+            });
+
+            try {
+              const result = await chat({
+                model: "google/gemma-3-4b-it",
+                messages: [{ role: "user", content: prompt }],
+                onChunk: (e) => {
+                  const { fullResponse } = e;
+                  this.fullResponse = fullResponse;
+                },
+              });
+
+              this.fullResponse = result;
+            } catch (err) {
+              this.error = err.message;
+            } finally {
+              this.responsing = false;
+            }
+          },
+          useIt(data) {
+            this.item.model = data.id;
+          },
+          async initModels() {
+            try {
+              const result = await fetch(
+                `http://${this.serverHost}:${this.item.port}/v1/models`
+              ).then((e) => e.json());
+
+              if (!this.item.model) {
+              }
+
+              this.list = result.data;
+
+              console.log("result: ", result);
+            } catch (err) {
+              this.error = err.message;
+            }
+          },
+        },
+        attached() {},
+        detached() {
+          this.item = null;
+        },
+      };
+    };
+  </script>
+</template>
