@@ -1,4 +1,13 @@
-export async function chat({ onChunk, model, messages }) {
+/**
+ * 与AI模型进行对话
+ * @param {Object} options - 配置选项
+ * @param {string} [options.serverUrl='http://localhost:1234'] - 服务器完整地址
+ * @param {string} options.model - 模型名称
+ * @param {Array} options.messages - 消息数组
+ * @param {Function} [options.onChunk] - 流式响应回调函数
+ * @returns {Promise<string>} 返回AI响应内容
+ */
+export async function chat({ serverUrl = 'http://localhost:1234', onChunk, model, messages }) {
   if (!model) {
     throw new Error("Model is required");
   }
@@ -11,7 +20,7 @@ export async function chat({ onChunk, model, messages }) {
   const useStream = Boolean(onChunk && typeof onChunk === "function");
 
   try {
-    const res = await fetch("http://localhost:1234/v1/chat/completions", {
+    const res = await fetch(`${serverUrl}/v1/chat/completions`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -79,6 +88,27 @@ export async function chat({ onChunk, model, messages }) {
     return fullResponse;
   } catch (error) {
     console.error("Error in chat function:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取LM Studio服务器上的可用模型列表
+ * @param {string} [serverUrl='http://localhost:1234'] - 服务器完整地址
+ * @returns {Promise<Array>} 返回模型列表数组
+ */
+export async function getModels(serverUrl = "http://localhost:1234") {
+  try {
+    const res = await fetch(`${serverUrl}/v1/models`);
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.data || [];
+  } catch (error) {
+    console.error("Error fetching models:", error);
     throw error;
   }
 }

@@ -19,19 +19,26 @@
       slot="prefix"
       style="margin-right: 4px"
     />
-    LM Studio Server
+    LM Studio Server <o-if :value="serverHost === 'localhost'"> (本机AI) </o-if>
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs" style="--ladder-left: 16px">
       <p-list-item>
         <o-if :value="!!item">
-          <p-input size="small" sync:value="item.port" style="width: 100px">
-            <label>端口号</label>
-          </p-input>
+          <div style="display: flex; align-items: center">
+            localhost:
+            <p-input
+              size="small"
+              sync:value="item.port"
+              style="width: 100px; margin-left: 4px"
+            >
+              <label>端口号</label>
+            </p-input>
+          </div>
         </o-if>
       </p-list-item>
       <p-list-item collapse-childs="open" button="suffix">
         <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
-        可用模型
+        请选择您本地的默认AI模型：
         <i toggle-collapse triangle slot="suffix"></i>
         <p-list slot="childs">
           <o-fill :value="list" fill-key="id">
@@ -64,9 +71,10 @@
             on:click="testModel"
             size="mini"
             attr:disabled="responsing"
+            variant="outlined"
             style="margin: 4px"
           >
-            测试模型
+            你是？
           </p-button>
         </div>
       </p-list-item>
@@ -74,7 +82,7 @@
   </p-list-item>
   <script>
     export default async ({ load }) => {
-      const { chat } = await load("../lmstudio.js");
+      const { chat, getModels } = await load("../lmstudio.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
@@ -104,7 +112,9 @@
             });
 
             try {
+              const serverUrl = `http://${this.serverHost}:${this.item.port}`;
               const result = await chat({
+                serverUrl,
                 model: this.item.model,
                 messages: [{ role: "user", content: prompt }],
                 onChunk: (e) => {
@@ -115,26 +125,20 @@
 
               this.fullResponse = result;
             } catch (err) {
-              this.error = err.message;
+              this.fullResponse = "测试模型失败";
             } finally {
               this.responsing = false;
             }
           },
           useIt(data) {
             this.item.model = data.id;
+
+            this.testModel();
           },
           async initModels() {
             try {
-              const result = await fetch(
-                `http://${this.serverHost}:${this.item.port}/v1/models`
-              ).then((e) => e.json());
-
-              if (!this.item.model) {
-              }
-
-              this.list = result.data;
-
-              console.log("result: ", result);
+              const serverUrl = `http://${this.serverHost}:${this.item.port}`;
+              this.list = await getModels(serverUrl);
             } catch (err) {
               this.error = err.message;
             }
