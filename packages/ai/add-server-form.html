@@ -1,0 +1,209 @@
+<template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-object-content.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+    .block {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 8px;
+      width: 100px;
+      height: 68px;
+      margin: 2px 4px;
+      transition: all ease 0.1s;
+      border: 1px solid var(--md-sys-color-primary);
+    }
+
+    .block.selected {
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+    }
+
+    .block:hover {
+      color: var(--md-sys-color-on-primary);
+      background-color: var(--md-sys-color-primary);
+    }
+    .block[disabled] {
+      opacity: 0.5;
+    }
+
+    .block-name {
+      font-size: 12px;
+      line-height: 12px;
+      padding-bottom: 8px;
+      font-weight: bold;
+    }
+
+    img.block-icon {
+      width: auto;
+      height: 24px;
+    }
+    n-local-icon {
+      font-size: 28px;
+    }
+  </style>
+  <h4>请选择要添加的AI服务器</h4>
+  <div style="padding-bottom: 16px">
+    <o-fill :value="servers">
+      <div
+        class="block"
+        attr:disabled="$data.disabled"
+        class:selected="$host.selected == $data.name"
+        on:click="$host.clickItem($data)"
+      >
+        <div class="block-name">{{$data.name}}</div>
+        <o-if :value="$data.icon.endsWith('.svg')">
+          <n-local-icon
+            attr:href="$data.icon"
+            :style.color="$data.iconColor"
+          ></n-local-icon>
+        </o-if>
+        <o-else>
+          <img class="block-icon" attr:src="$data.icon" />
+        </o-else>
+      </div>
+    </o-fill>
+  </div>
+  <p style="margin-top: 0">
+    {{desc}}
+
+    <o-if :value="notReady">
+      <localized-content>
+        <span lang="cn"> （正在准备中...）</span>
+        <span lang="en"> (Preparing...)</span>
+        <span lang="ja"> (準備中...)</span>
+      </localized-content>
+    </o-if>
+  </p>
+
+  <o-if :value="selected === 'LM Studio' || selected === 'Ollama'">
+    <p-input
+      label="服务器地址"
+      placeholder="请输入服务器地址"
+      sync:value="serverUrl"
+      size="small"
+      style="margin-bottom: 16px"
+    ></p-input>
+  </o-if>
+
+  <p-button
+    attr:disabled="!selected || notReady || !serverUrl"
+    on:click="addServer"
+  >
+    确认
+  </p-button>
+  <script>
+    export default async ({ load, url }) => {
+      const { getAISetting } = await load("./custom-data.js");
+      const aiSetting = await getAISetting();
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      const resolveUrl = (path) => new URL(path, url).href;
+
+      return {
+        tag: "ai-add-server-form",
+        data: {
+          aiSetting: {},
+          selected: "",
+          desc: "",
+          serverUrl: "",
+          notReady: false,
+          servers: [
+            {
+              name: "LM Studio",
+              icon: resolveUrl("./sources/lmstudio.webp"),
+              desc: {
+                cn: "用于连接LM Studio模型服务的服务器地址。",
+                en: "Used to connect to the LM Studio model service server address.",
+                ja: "LM Studioモデルサービスのサーバーアドレスに接続するために使用します。",
+              },
+            },
+            {
+              name: "Ollama",
+              icon: resolveUrl("./sources/ollama.svg"),
+              desc: {
+                cn: "用于连接Ollama模型服务的服务器地址。",
+                en: "Used to connect to the Ollama model service server address.",
+                ja: "Ollamaモデルサービスのサーバーアドレスに接続するために使用します。",
+              },
+            },
+            {
+              name: "OpenAI",
+              icon: resolveUrl("./sources/openai.svg"),
+              desc: {
+                cn: "用于添加OpenAI API密钥以连接OpenAI模型服务。",
+                en: "Used to add the OpenAI API key to connect to the OpenAI model service.",
+                ja: "OpenAI APIキーを追加してOpenAIモデルサービスに接続するために使用します。",
+              },
+              disabled: true,
+            },
+            {
+              name: "DeepSeek",
+              icon: resolveUrl("./sources/deepseek.svg"),
+              iconColor: "#536af6",
+              desc: {
+                cn: "用于添加DeepSeek API密钥以连接DeepSeek模型服务。",
+                en: "Used to add the DeepSeek API key to connect to the DeepSeek model service.",
+                ja: "DeepSeek APIキーを追加してDeepSeekモデルサービスに接続するために使用します。",
+              },
+              disabled: true,
+            },
+            {
+              name: "Moonshot",
+              icon: resolveUrl("./sources/moonshot.svg"),
+              desc: {
+                cn: "用于添加Moonshot API密钥以连接Moonshot模型服务。",
+                en: "Used to add the Moonshot API key to connect to the Moonshot model service.",
+                ja: "Moonshot APIキーを追加してMoonshotモデルサービスに接続するために使用します。",
+              },
+              disabled: true,
+            },
+          ],
+        },
+        proto: {
+          async clickItem(data) {
+            this.selected = data.name;
+            this.notReady = !!data.disabled;
+            this.desc = await getLocalized(data.desc);
+          },
+          addServer() {
+            if (!this.aiSetting.otherAI) {
+              this.aiSetting.otherAI = [];
+            }
+
+            switch (this.selected) {
+              case "LM Studio":
+                debugger;
+                break;
+              case "Ollama":
+                this.aiSetting.otherAI.push({
+                  name: this.selected,
+                  url: this.serverUrl,
+                });
+                break;
+            }
+
+            this.serverUrl = "";
+            this.selected = "";
+
+            this.emit("success", {
+              bubbles: false,
+            });
+          },
+        },
+        attached() {
+          this.aiSetting = aiSetting;
+        },
+        detached() {
+          this.aiSetting = {};
+        },
+      };
+    };
+  </script>
+</template>

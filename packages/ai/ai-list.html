@@ -1,6 +1,8 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="./add-server-form.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -9,6 +11,16 @@
   </style>
   <div class="list">
     <o-page src="./list-item/lmstudio.html" :item="aiSetting.lmstudio"></o-page>
+    <div style="margin-top: 10px">
+      <p-button variant="outlined" size="small" on:click="showAddServer = true">
+        添加更多本机AI
+      </p-button>
+    </div>
+    <p-dialog :open="showAddServer" on:click-mask="showAddServer = false">
+      <ai-add-server-form
+        on:success="showAddServer = false"
+      ></ai-add-server-form>
+    </p-dialog>
   </div>
   <script>
     export default async ({ load }) => {
@@ -18,6 +30,7 @@
       return {
         tag: "ai-list",
         data: {
+          showAddServer: false,
           aiSetting: {
             // lmstudio: {},
           },

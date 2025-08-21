@@ -14,6 +14,7 @@
         tag: "n-local-icon",
         attrs: {
           name: null,
+          href: "",
         },
         watch: {
           async name(name) {
@@ -23,6 +24,15 @@
             const content = await load(`./icons/${name}.svg`).then((e) =>
               e.text()
             );
+
+            this.html = content;
+          },
+          async href(href) {
+            if (!href) {
+              return;
+            }
+
+            const content = await load(href).then((e) => e.text());
 
             this.html = content;
           },

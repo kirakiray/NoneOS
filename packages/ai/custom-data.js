@@ -15,13 +15,6 @@ export const getAISetting = ({ useLocalUserDirName = "main" } = {}) => {
 
     const aiSettingData = await createData(settingDir);
 
-    // 调整数据
-    if (!aiSettingData.ollama) {
-      aiSettingData.ollama = {
-        model: "qwen3:4b-instruct", // 设置默认模型
-      };
-    }
-
     if (!aiSettingData.userPreferences) {
       // 专门给AI食用的用户偏好
       const settingData = await getSetting();
