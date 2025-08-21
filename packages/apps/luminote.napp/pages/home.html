@@ -8,6 +8,9 @@
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="../comps/lumi-create-project.html"></l-m>
+  <l-m src="../comps/lumi-project-setting.html"></l-m>
+  <l-m src="../comps/switch-project.html"></l-m>
 
   <style>
     :host {
@@ -178,7 +181,37 @@
         <span lang="ja">新しいプロジェクトを作成する</span>
       </localized-content>
     </p-button>
+
+    <p-button
+      on:click="clickImportProject"
+      variant="outlined"
+      attr:disabled="importing"
+    >
+      <o-if :value="!importing">
+        <localized-content>
+          <span lang="cn">导入项目</span>
+          <span lang="en">Import project</span>
+          <span lang="ja">プロジェクトをインポート</span>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <n-local-icon
+          name="loading"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <localized-content>
+          <span lang="cn">导入中...</span>
+          <span lang="en">Importing...</span>
+          <span lang="ja">インポート中...</span>
+        </localized-content>
+        {{importingProgress}}%
+      </o-else>
+    </p-button>
   </div>
+
+  <lumi-switch-project
+    on:click-project-setting="clickProjectSetting"
+  ></lumi-switch-project>
 
   <div>
     <h4>
@@ -204,12 +237,42 @@
     <p-button variant="outlined" disabled>打包为llms.txt</p-button>
   </div> -->
 
+  <input
+    type="file"
+    id="importProject"
+    style="display: none"
+    accept=".zip"
+    on:change="handleImportProject"
+  />
+
+  <p-dialog
+    :open="openProjectSettingDialog"
+    on:click-mask="!globalInTranslate ? (openProjectSettingDialog = false) : (openProjectSettingDialog = true)"
+  >
+    <div slot="title">
+      <localized-content>
+        <span lang="en"> Project Settings </span>
+        <span lang="cn"> 项目设置 </span>
+        <span lang="ja"> プロジェクトの設定 </span>
+      </localized-content>
+    </div>
+    <lumi-project-setting
+      :project-data="currentSettingProjectData"
+      watch:in-translate="globalInTranslate"
+      style="min-height: 50vh; min-width: 50vh"
+    ></lumi-project-setting>
+  </p-dialog>
+
   <script>
     export const parent = "./layout.html";
+    import { getLocalized } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
       const { prompt, toast, confirm } = await load("/packages/pui/util.js");
       const { isAIAvailable } = await load("/packages/ai/main.js");
+      const { importProject } = await load(
+        "/packages/apps/luminote.napp/util/import-project.js"
+      );
 
       const isSafari = /^((?!chrome|android).)*safari/i.test(
         navigator.userAgent
@@ -227,45 +290,108 @@
           remotes: [], // 其他设备
           loadingRemote: false,
           aiAvailable: 0,
-          appConfigData: {}, // 当前应用的配置数据
+          appConfigData: {}, // luminote应用的配置数据
+          importing: false,
+          importingProgress: 0,
+          currentSettingProjectData: {}, // 需要设置的项目数据
+          openProjectSettingDialog: false, // 是否弹起项目设置弹窗
+          globalInTranslate: false, // 是否在全文翻译中
         },
         proto: {
+          clickProjectSetting(e) {
+            const { projectData } = e.data;
+
+            this.currentSettingProjectData = projectData;
+            this.openProjectSettingDialog = true;
+          },
+          async handleImportProject(e) {
+            const file = e.target.files[0];
+            e.target.value = "";
+
+            const app = this.parent.parent;
+
+            this.importing = true;
+
+            try {
+              const projectItem = await importProject({
+                app,
+                file,
+                onError: async (e) => {
+                  toast({
+                    content: await getLocalized({
+                      cn: `导入项目失败，请检查文件格式是否正确`,
+                      en: `Import failed, please check if the file format is correct`,
+                      ja: `インポートに失敗しました。ファイル形式が正しいか確認してください`,
+                    }),
+                    color: "error",
+                  });
+                  this.importing = false;
+                  this.importingProgress = 0;
+                },
+                onProgress: (progress) => {
+                  if (progress === "ready") {
+                    this.importingProgress = 0;
+                  } else {
+                    this.importingProgress = Math.round(progress * 100);
+                  }
+                },
+              });
+
+              if (projectItem) {
+                toast({
+                  content: await getLocalized({
+                    cn: `导入 ${projectItem.data.projectName} 完成`,
+                    en: `Import of ${projectItem.data.projectName} completed`,
+                    ja: `${projectItem.data.projectName} のインポートが完了しました`,
+                  }),
+                });
+
+                this.importing = false;
+                this.importingProgress = 0;
+
+                setTimeout(() => {
+                  this.shadow.$("lumi-switch-project").reloadExistProjects();
+                }, 1000);
+              }
+            } catch (error) {
+              console.error("Import error:", error);
+              toast({
+                content: await getLocalized({
+                  cn: `导入项目时发生错误`,
+                  en: `An error occurred while importing the project`,
+                  ja: `プロジェクトのインポート中にエラーが発生しました`,
+                }),
+                color: "error",
+              });
+              this.importing = false;
+              this.importingProgress = 0;
+            }
+          },
+          async clickImportProject() {
+            this.shadow.$("#importProject").ele.click();
+          },
           clickCreateProject() {
             this.emit("click-create-project", {
               composed: true,
             });
           },
-          async handleDeleteProject(data, event) {
-            event.stopPropagation();
-
-            const result = await confirm({
-              content: `确认要删除 "${data.projectName}"(${data.dirName})？次操作不可逆。`,
-              yes: "是的，确认删除",
-              cancel: "不删除",
-            });
-
-            if (!result) {
-              return;
-            }
-
-            await this.app.deleteProject(data.dirName);
-
-            this.reloadExistProjects();
-          },
         },
         attached() {
+          this.on("reload-exited-project", () => {
+            setTimeout(() => {
+              this.shadow.$("lumi-switch-project").reloadExistProjects();
+            }, 2000);
+          });
+
           (async () => {
             this.aiAvailable = await isAIAvailable();
 
-            const configData = await this.parents.find((e) => e.tag == "o-app")
-              ._configData;
-
-            this.appConfigData = configData;
+            this.appConfigData = await this.app._configData;
 
             // if (configData.useAITranslate === undefined) {
             //   configData.useAITranslate = "off";
             // }
-            configData.useAITranslate = this.aiAvailable ? "on" : "off";
+            this.appConfigData.useAITranslate = this.aiAvailable ? "on" : "off";
           })();
 
           this.emit("active-article", {
@@ -274,6 +400,10 @@
               articleId: "home",
             },
           });
+
+          setTimeout(() => {
+            this.style.transform = "";
+          }, 300);
 
           this.emit("update-breadcrumbs", {
             composed: true,
@@ -284,6 +414,7 @@
         },
         detached() {
           this.appConfigData = {};
+          this.currentSettingProjectData = {};
         },
       };
     };

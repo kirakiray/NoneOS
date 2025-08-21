@@ -46,6 +46,9 @@
       attr:disabled="!newProjectName || adding"
       on:click="addNewProject"
     >
+      <o-if :value="adding" slot="prefix">
+        <n-local-icon name="loading" style="font-size: 18px"></n-local-icon>
+      </o-if>
       <localized-content>
         <span lang="en">Create Project</span>
         <span lang="cn">创建项目</span>
@@ -55,7 +58,8 @@
     <p-button
       style="margin-left: 8px"
       variant="text"
-      on:click="emit('cancel-create-project')"
+      attr:disabled="adding"
+      on:click="emit('click-mask')"
     >
       <localized-content>
         <span lang="en">Cancel</span>
@@ -71,11 +75,20 @@
       getLocalized,
     } from "/packages/i18n/localized-object.js";
 
-    export default async ({ load }) => {
+    export default async ({ load, url }) => {
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
+      const { unzip } = await load("/packages/libs/zip/main.js");
 
       const { toast } = await load("/packages/pui/util.js");
+
+      const urlObj = new URL("../source/quickstart.luminote.zip", url);
+      const { changeLang } = await load(
+        "/packages/apps/luminote.napp/lumi/util/change-lang.js"
+      );
+      const { importProject } = await load(
+        "/packages/apps/luminote.napp/util/import-project.js"
+      );
 
       return {
         tag: "lumi-create-project",
@@ -99,35 +112,64 @@
                 }),
                 color: "error",
               });
+
               this.adding = false;
               return;
             }
 
-            const newProject = await this.app.createProject({
-              projectName,
+            const file = await fetch(urlObj).then((e) => e.blob());
+            const files = await unzip(file);
+            const app = this.host.parent;
+
+            const projectItem = await importProject({
+              app,
+              file,
+              onError: async (e) => {},
+              onProgress: (progress) => {},
             });
 
-            newProject.data.mainLang = this.mainLang;
+            projectItem.data.projectName = projectName;
 
-            await this.app.switchProject(newProject.__handle.name);
+            if (this.mainLang !== projectItem.data.mainLang) {
+              await projectItem.data.ready(true);
+              await new Promise((resolve) => setTimeout(resolve, 600));
+              // 更换语言
+              await changeLang(projectItem.data, this.mainLang);
+            }
 
-            toast({
-              content: await getLocalized({
-                cn: "创建成功",
-                en: "Project created successfully",
-                ja: "プロジェクトが正常に作成されました",
-              }),
-              color: "success",
-            });
+            await projectItem.data.ready(true);
+            await new Promise((resolve) => setTimeout(resolve, 600));
+            this.host[0].shadow.$("lumi-switch-project").reloadExistProjects();
 
-            this.newProjectName = "";
-            this.emit("cancel-create-project", {
+            // 切换到项目
+            // await app.switchProject(projectItem.__handle.name);
+
+            this.emit("click-mask", {
               composed: true,
             });
 
             this.adding = false;
-          },
 
+            toast({
+              content: await getLocalized({
+                cn: `项目 ${projectName} 创建成功`,
+                en: `Project ${projectName} created successfully`,
+                ja: `プロジェクト${projectName}が正常に作成されました`,
+              }),
+              color: "success",
+            });
+
+            // setTimeout(() => {
+            //   this.newProjectName = "";
+            //   // 切换到第一篇文章
+            //   try {
+            //     this.root
+            //       .$(`p-list-item[data-project-userid]`)
+            //       .$(".article-list-item")
+            //       .ele.click();
+            //   } catch (err) {}
+            // }, 300);
+          },
           handleKeyup(e) {
             if (
               e.key === "Enter" &&

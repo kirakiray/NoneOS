@@ -61,7 +61,7 @@
           async loadArticle() {
             try {
               // 查找对应文章
-              const { target, titles } = await findArticle({
+              const { target, paths } = await findArticle({
                 app: this.app,
                 dataId: article_id,
                 userId: user_id,
@@ -74,11 +74,11 @@
               this.emit("update-breadcrumbs", {
                 composed: true,
                 data: {
-                  titles,
+                  paths,
                 },
               });
 
-              // this.paths = titles;
+              // this.paths = paths;
 
               // 如果没有标题，则对焦标题；如果有标题，则对焦最后一个元素
               if (!target.title) {

@@ -161,6 +161,7 @@
 
     export default async ({ load }) => {
       const { getFileHash } = await load("/packages/fs/util.js");
+      const { saveFile, getFileHandle } = await load("../../util/source.js");
 
       return {
         tag: "lumi-img",
@@ -192,21 +193,19 @@
             a.click();
           },
           async handleOpen() {
-            const sourceHandle = await this.getSourceHandle();
-
-            const imgHandle = await sourceHandle.get(this.hash, {
-              create: "file",
-            });
+            const imgHandle = await getFileHandle(this, this.hash);
 
             window.open(
               `/packages/apps/picture.napp/#pages/home.html?path=${imgHandle.path}`
             );
           },
           async loadImg() {
-            const sourceHandle = await this.getSourceHandle();
+            if (this.imgSrc) {
+              URL.revokeObjectURL(this.imgSrc);
+            }
 
             try {
-              const fileHandle = await sourceHandle.get(this.hash);
+              const fileHandle = await getFileHandle(this, this.hash);
               const file = await fileHandle.file();
               this.imgSrc = URL.createObjectURL(file);
             } catch (err) {
@@ -217,40 +216,16 @@
             const file = e.target.files[0];
             e.target.value = "";
 
-            // 计算文件的hash
-            const hash = await getFileHash(file);
-
-            const sourceHandle = await this.getSourceHandle();
-
-            const imgHandle = await sourceHandle.get(hash, {
-              create: "file",
-            });
-
-            await imgHandle.write(file);
+            const { hash } = await saveFile(this, file);
 
             this.filename = file.name;
             this.hash = hash;
           },
-          async getSourceHandle() {
-            const notePage = this.host.host.parents.find((item) => {
-              return item.src && item.src.includes("note.html");
-            });
-
-            const oapp = this.host.host.parents.find((item) => {
-              return item.tag === "o-app";
-            });
-
-            const projectItem = await oapp.getProject(
-              notePage.currentDirName,
-              notePage.currentUserId
-            );
-
-            const sourceHandle = await projectItem.__handle.get("source", {
-              create: "dir",
-            });
-
-            return sourceHandle;
-          },
+        },
+        detached() {
+          if (this.imgSrc) {
+            URL.revokeObjectURL(this.imgSrc);
+          }
         },
       };
     };

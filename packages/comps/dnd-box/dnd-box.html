@@ -1,0 +1,228 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      transform: translateZ(0); /* 创建独立的合成层 */
+    }
+
+    :host([disabled-drop]) {
+      cursor: no-drop;
+    }
+  </style>
+  <slot></slot>
+  <script>
+    export default {
+      tag: "dnd-box",
+      attrs: {
+        type: null, // 元素类型
+        accept: null, // 接受的类型
+        step: 2,
+        overHor: null, // 悬停在当前元素水平方向的10分之几
+        overVer: null, // 悬停在当前元素垂直方向的10分之几
+        composed: null, // 是否穿透冒泡
+      },
+      data: {},
+      proto: {
+        _clear() {
+          this.overHor = null;
+          this.overVer = null;
+          clearTimeout(this._overtimer);
+          this._overtimer = null;
+          this.attr("disabled-drop", null);
+          this._disabledDrop = undefined;
+        },
+        get _accept() {
+          return this.attr("accept")
+            ?.split(" ")
+            .map((e) => {
+              // 转驼峰
+              return e.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+            });
+        },
+      },
+      ready() {
+        this.on("mousedown", (e) => {
+          let targets = [];
+          if (e.target === this.ele) {
+            targets = [this];
+          } else {
+            targets = $(e.target).parentsUntil(this);
+            targets.push($(e.target), this); // 加上目标和自身
+          }
+
+          if (targets.some((item) => item.attr("trigger-drag") !== null)) {
+            this.attr("draggable", "true");
+          }
+        });
+
+        let isDragging = false;
+
+        this.on("dragstart", (e) => {
+          const data = this.data;
+          Object.keys(data).forEach((key) => {
+            // key驼峰转 - 命名
+            const dashKey = key.replace(
+              /([A-Z])/g,
+              (g) => `-${g[0].toLowerCase()}`
+            );
+
+            // dnd 开头的key
+            if (dashKey.startsWith("dnd-")) {
+              e.dataTransfer.setData(`application/x-${dashKey}`, data[key]);
+            }
+          });
+
+          isDragging = true;
+        });
+
+        this.on("dragenter", (e) => {
+          if (!this.accept || isDragging) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          const accept = this._accept;
+          const keys = getDragKeys(e);
+
+          const canUse = accept.some((item) => keys.includes(item));
+
+          const event = new CustomEvent("dnd-dragenter", {
+            bubbles: false,
+            cancelable: true,
+          });
+          event.data = { keys };
+          this.ele.dispatchEvent(event);
+
+          if (!canUse || event.defaultPrevented) {
+            // 不接受拖放到此处
+            this.attr("disabled-drop", "1");
+            this._disabledDrop = 1;
+            return;
+          }
+        });
+
+        this.on("dragover", (e) => {
+          if (!this.accept || this._disabledDrop || isDragging) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          e.preventDefault();
+
+          if (!this._overtimer) {
+            const { clientX, clientY } = e;
+            this._overtimer = setTimeout(() => {
+              // 计算悬停在当前元素水平方向的10分之几
+              const x = clientX - this.ele.offsetLeft;
+              const y = clientY - this.ele.offsetTop;
+
+              const rect = this.ele.getBoundingClientRect();
+
+              // 使用 getBoundingClientRect() 获取的坐标是相对于视口的，
+              // 因此 clientX 和 clientY 已经是相对于视口的坐标，无需减去 offsetLeft 和 offsetTop
+              const overHor = Math.ceil(
+                ((e.clientX - rect.left) / rect.width) * parseInt(this.step)
+              );
+
+              if (this.overHor != overHor) {
+                this.overHor = String(overHor);
+              }
+
+              const overVer = Math.ceil(
+                ((e.clientY - rect.top) / rect.height) * parseInt(this.step)
+              );
+
+              if (this.overVer != overVer) {
+                this.overVer = String(overVer);
+              }
+
+              this._overtimer = null;
+            }, 50);
+          }
+        });
+
+        this.on("dragleave", (e) => {
+          if (!this.accept || isDragging) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          this._clear();
+        });
+
+        this.on("drop", (e) => {
+          e.preventDefault();
+
+          if (!this.accept) {
+            // 不接受拖放到此处
+            return;
+          }
+
+          const dndData = {};
+
+          e.dataTransfer.types.forEach((key) => {
+            if (key.startsWith("application/x-dnd")) {
+              let realKey = key.replace("application/x-dnd-", "");
+              // 转驼峰
+              realKey = realKey.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+
+              dndData[realKey] = e.dataTransfer.getData(key);
+            }
+          });
+
+          const { overHor, overVer } = this;
+
+          this._clear();
+
+          const isComposed = !(
+            this.composed === null || this.composed === undefined
+          );
+
+          const data = {
+            dndData,
+            overHor,
+            overVer,
+          };
+
+          if (isComposed) {
+            data.target = this;
+          }
+
+          this.emit("dnd-drop", {
+            data,
+            composed: isComposed,
+          });
+        });
+
+        {
+          // 结束时去除拖拽属性
+          this.on("click", () => {
+            // 点击去除绑定
+            this.attr("draggable", null);
+            isDragging = false;
+            this._clear();
+          });
+          this.on("dragend", (e) => {
+            this.attr("draggable", null);
+            isDragging = false;
+            this._clear();
+          });
+        }
+      },
+    };
+
+    // 获取拖拽的key
+    const getDragKeys = (e) => {
+      const keys = [];
+      e.dataTransfer.types.forEach((key) => {
+        if (key.startsWith("application/x-dnd-")) {
+          let realKey = key.replace("application/x-dnd-", "");
+          // 转驼峰
+          realKey = realKey.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+          keys.push(realKey);
+        }
+      });
+      return keys;
+    };
+  </script>
+</template>

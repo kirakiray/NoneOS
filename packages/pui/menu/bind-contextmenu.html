@@ -185,7 +185,11 @@
 
             this.bindBodyCancels();
 
-            const { offsetX, offsetY, clientX, clientY } = e;
+            let { offsetX, offsetY, clientX, clientY } = e;
+
+            if (offsetX === undefined || offsetY === undefined) {
+              ({ offsetX, offsetY, clientX, clientY } = e.data);
+            }
 
             const currentRect = e.currentTarget.getBoundingClientRect();
 

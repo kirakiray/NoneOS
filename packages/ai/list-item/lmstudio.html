@@ -1,0 +1,279 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+
+    n-local-icon {
+      display: block;
+      margin-right: 4px;
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+    }
+  </style>
+  <p-list-item collapse-childs="close" button="suffix">
+    <img
+      src="../sources/lmstudio.webp"
+      width="18"
+      height="18"
+      slot="prefix"
+      style="margin-right: 4px"
+    />
+
+    <div style="display: flex; align-items: center">
+      LM Studio
+      <o-if :value="defaultai">
+        <localized-content>
+          <span lang="cn"> (本机AI) </span>
+          <span lang="en"> (Local AI) </span>
+          <span lang="ja"> (ローカルのAI) </span>
+        </localized-content>
+      </o-if>
+    </div>
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs" style="--ladder-left: 16px">
+      <p-list-item>
+        <o-if :value="!!item && defaultai">
+          <div style="display: flex; align-items: center">
+            localhost:
+            <p-input
+              size="small"
+              sync:value="item.port"
+              style="width: 100px; margin-left: 4px"
+            >
+              <label>
+                <localized-content>
+                  <span lang="cn"> 端口号 </span>
+                  <span lang="en"> Port Number </span>
+                  <span lang="ja"> ポート番号 </span>
+                </localized-content>
+              </label>
+            </p-input>
+          </div>
+        </o-if>
+        <o-if :value="!defaultai">
+          <div style="display: flex; align-items: center">
+            <p-input
+              size="small"
+              sync:value="item.url"
+              style="width: 260px; margin-left: 4px"
+            >
+              <label>URL</label>
+            </p-input>
+          </div>
+        </o-if>
+      </p-list-item>
+      <o-if :value="error">
+        <localized-content>
+          <div lang="cn">
+            无法连接到本机的 LM Studio Server，请按以下步骤检查配置：<br />
+            1. 确认 LM Studio Server 已正确安装并正在运行。<br />
+            2. 确认项目配置的端口号与 LM Studio Server 的端口号一致。<br />
+            3. 确认在 LM Studio 的开发者选项中勾选 “启用
+            CORS（跨域资源共享）”。<br />
+          </div>
+          <div lang="en">
+            Unable to connect to the LM Studio Server on the local machine,
+            please check the configuration steps below:<br />
+            1. Confirm that LM Studio Server is installed and running
+            correctly.<br />
+            2. Confirm that the port number in the project configuration matches
+            the port number of the LM Studio Server.<br />
+            3. Confirm that "Enable CORS (Cross-Origin Resource Sharing)" is
+            ticked in the developer options of LM Studio.<br />
+          </div>
+          <div lang="ja">
+            ローカルマシン上の LM Studio Server
+            に接続できませんでした。以下の手順を確認してください：<br />
+            1. LM Studio Server
+            が正しくインストールされていることを確認してください。<br />
+            2. プロジェクトの設定で指定されたポート番号が、LM Studio Server
+            のポート番号と一致することを確認してください。<br />
+            3. LM Studio の開発者オプションで "Enable CORS (Cross-Origin
+            Resource Sharing)" をチェックしてください。<br />
+          </div>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <p-list-item collapse-childs="open" button="suffix">
+          <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
+          <localized-content>
+            <span lang="cn"> 请选择默认AI模型：</span>
+            <span lang="en"> Please select the default AI model:</span>
+            <span lang="ja"> デフォルトのAIモデルを選択してください：</span>
+          </localized-content>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <o-fill :value="list" fill-key="id">
+              <p-list-item
+                button
+                on:click="$host.useIt($data)"
+                attr:active-item="$host.item.model === $data.id"
+              >
+                <o-if :value="$data.id.includes('qwen')" slot="prefix">
+                  <n-local-icon name="qwen"></n-local-icon>
+                </o-if>
+                <o-else slot="prefix">
+                  <n-local-icon name="ai-chip"></n-local-icon>
+                </o-else>
+                {{$data.id}}
+                <o-if :value="$host.item.model === $data.id" slot="suffix">
+                  <n-local-icon
+                    name="tick-circle"
+                    style="color: var(--md-sys-color-success)"
+                  ></n-local-icon>
+                </o-if>
+              </p-list-item>
+            </o-fill>
+          </p-list>
+        </p-list-item>
+        <p-list-item>
+          <div>
+            {{fullResponse}}
+            <p-button
+              on:click="testModel"
+              size="mini"
+              attr:disabled="responsing"
+              variant="outlined"
+              style="margin: 4px"
+            >
+              <localized-content>
+                <span lang="cn"> 你是？</span>
+                <span lang="en"> Who are you?</span>
+                <span lang="ja"> あなたは？</span>
+              </localized-content>
+            </p-button>
+          </div>
+        </p-list-item>
+      </o-else>
+      <o-if :value="!defaultai">
+        <p-list-item>
+          <div style="display: flex">
+            <p-button
+              color="error"
+              size="small"
+              variant="outlined"
+              on:click="emit('click-delete')"
+            >
+              <localized-content>
+                <span lang="cn"> 删除该AI</span>
+                <span lang="en"> Delete this AI</span>
+                <span lang="ja"> このAIを削除</span>
+              </localized-content>
+            </p-button>
+          </div>
+        </p-list-item>
+      </o-if>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { chat, getModels } = await load("../lmstudio.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        data: {
+          //   item: {},
+          error: "",
+          list: [], // 模型列表
+          fullResponse: "",
+          responsing: false,
+        },
+        attrs: {
+          defaultai: null,
+        },
+        watch: {
+          item(item) {
+            if (item && (item.url || item.port)) {
+              this.initModels();
+            }
+          },
+        },
+        proto: {
+          async testModel() {
+            this.responsing = true;
+
+            const prompt = await getLocalized({
+              cn: "你是谁？回答的内容简短一点",
+              en: "Who are you? Just answer",
+              ja: "あなたは？直接回答してください。",
+            });
+
+            try {
+              let serverUrl;
+              if (this.defaultai) {
+                serverUrl = `http://localhost:${this.item.port}`;
+              } else {
+                serverUrl = this.item.url;
+              }
+
+              const model = this.item.model;
+
+              const result = await chat({
+                serverUrl,
+                model,
+                messages: [{ role: "user", content: prompt }],
+                onChunk: (e) => {
+                  const { fullResponse } = e;
+                  if (this.item.model === model) {
+                    this.fullResponse = fullResponse;
+                  }
+                },
+              });
+
+              if (this.item.model === model) {
+                this.fullResponse = result;
+              }
+
+              this.fullResponse = result;
+            } catch (err) {
+              this.fullResponse = await getLocalized({
+                cn: "测试模型失败",
+                en: "Test model failed",
+                ja: "モデルのテストが失敗しました",
+              });
+            } finally {
+              this.responsing = false;
+            }
+          },
+          useIt(data) {
+            this.item.model = data.id;
+
+            this.testModel();
+          },
+          async initModels() {
+            try {
+              let serverUrl;
+              if (this.defaultai) {
+                serverUrl = `http://localhost:${this.item.port}`;
+              } else {
+                serverUrl = this.item.url;
+              }
+
+              const list = await getModels(serverUrl);
+
+              console.log(list);
+
+              list.sort((a, b) => {
+                if (a.id < b.id) {
+                  return -1;
+                }
+                if (a.id > b.id) {
+                  return 1;
+                }
+                return 0;
+              });
+              this.list = list;
+            } catch (err) {
+              this.error = err.message;
+            }
+          },
+        },
+        attached() {},
+        detached() {
+          this.item = {};
+        },
+      };
+    };
+  </script>
+</template>

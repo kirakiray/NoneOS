@@ -91,7 +91,7 @@
           </localized-content>
         </div>
       </p-tooltips>
-      <o-if :value="isAIAvailable">
+      <!-- <o-if :value="isAIAvailable">
         <div class="line"></div>
         <p-tooltips placement="top">
           <p-button size="small" variant="text" on:click="clickBeautify" icon>
@@ -106,7 +106,7 @@
             </localized-content>
           </div>
         </p-tooltips>
-      </o-if>
+      </o-if> -->
     </div>
   </div>
 
@@ -134,9 +134,10 @@
             return this.shadow.$(".multi-panel");
           },
           clickBeautify() {
-            this.host._selecteds.forEach((e) => {
-              e.beautify();
-            });
+            // this.host._selecteds.forEach((e) => {
+            //   e.beautify();
+            // });
+            console.log("暂时不可用");
           },
           async clickCopy() {
             copySelectedBlock(this.host);

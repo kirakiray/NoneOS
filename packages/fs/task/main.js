@@ -203,7 +203,7 @@ export const exportHandle = async (paths, zipFileName) => {
     name: getText("exporting", "fs-task"),
   });
 
-  if (paths.length === 1) {
+  if (paths.length === 1 && !zipFileName) {
     const handle = await get(paths[0]);
 
     if (handle.kind === "file") {
@@ -247,7 +247,13 @@ export const exportHandle = async (paths, zipFileName) => {
         );
       } else {
         // 文件
-        debugger;
+        const handle = await get(path);
+        const file = await handle.file();
+
+        files.push({
+          path: file.name,
+          file,
+        });
       }
     })
   );

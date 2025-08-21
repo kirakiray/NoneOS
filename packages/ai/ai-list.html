@@ -1,0 +1,102 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="./add-server-form.html"></l-m>
+  <style>
+    :host {
+      display: flex;
+      flex-direction: column;
+    }
+  </style>
+  <div class="list">
+    <o-page
+      src="./list-item/lmstudio.html"
+      :item="aiSetting.lmstudio"
+      defaultai="1"
+    ></o-page>
+    <o-if :value="aiSetting.otherAI">
+      <o-fill :value="aiSetting.otherAI">
+        <div on:click-delete="$host.deleteOtherAI($index,$data)">
+          <o-if :value="$data.name === 'Ollama'">
+            <o-page src="./list-item/ollama.html" :item="$data"></o-page>
+          </o-if>
+          <o-if :value="$data.name === 'LM Studio'">
+            <o-page src="./list-item/lmstudio.html" :item="$data"></o-page>
+          </o-if>
+        </div>
+      </o-fill>
+    </o-if>
+    <div style="margin-top: 10px">
+      <p-button variant="outlined" size="small" on:click="showAddServer = true">
+        <localized-content>
+          <span lang="cn"> 添加更多本机AI</span>
+          <span lang="en"> Add more local AI</span>
+          <span lang="ja"> 追加するローカルAIを追加</span>
+        </localized-content>
+      </p-button>
+    </div>
+    <p-dialog :open="showAddServer" on:click-mask="showAddServer = false">
+      <ai-add-server-form
+        on:success="showAddServer = false"
+      ></ai-add-server-form>
+    </p-dialog>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { getAISetting } = await load("./custom-data.js");
+      const aiSetting = await getAISetting();
+      const { confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        tag: "ai-list",
+        data: {
+          showAddServer: false,
+          aiSetting: {
+            // lmstudio: {},
+          },
+        },
+        proto: {
+          async deleteOtherAI(index, data) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除AI",
+                en: "Delete AI",
+                ja: "AIを削除",
+              }),
+              content: await getLocalized({
+                cn: `确定删除第${index + 2}个AI(${data.name})吗？`,
+                en: `Are you sure you want to delete the ${index + 2}nd AI (${
+                  data.name
+                })?`,
+                ja: `第${index + 2}つのAI (${data.name})を削除しますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            this.aiSetting.otherAI.splice(index, 1);
+          },
+          initLmstudio() {
+            if (!this.aiSetting.lmstudio) {
+              this.aiSetting.lmstudio = {
+                port: 1234,
+              };
+            }
+          },
+        },
+        attached() {
+          this.aiSetting = aiSetting;
+
+          this.initLmstudio();
+        },
+        detached() {
+          this.aiSetting = {};
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,6 +1,8 @@
 <template component>
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="./lang-progress.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -26,14 +28,14 @@
   </style>
 
   <div class="main">
-    <p-button size="small" variant="text" on:click="showDialog = true">
+    <p-button size="small" variant="text" on:click="clickShowDialog">
       <n-local-icon
-        name="view"
+        name="translate"
         slot="prefix"
         style="display: block; font-size: 18px; margin-right: 4px"
       ></n-local-icon>
 
-      {{getRealLang(appConfigData.viewLang)}}
+      {{getRealLang(lumiViewLang)}}
     </p-button>
   </div>
 
@@ -46,6 +48,42 @@
       </localized-content>
     </div>
     <div class="tips">
+      <localized-content>
+        <p lang="cn">
+          本文档原生采用
+          <span style="color: var(--md-sys-color-primary)"
+            >{{defaultLang}}</span
+          >
+          撰写。 当前正在使用
+          <span style="color: var(--md-sys-color-primary)"
+            >{{getRealLang(lumiViewLang)}}</span
+          >
+          阅读文档。
+        </p>
+        <p lang="en">
+          This document is originally written in
+          <span style="color: var(--md-sys-color-primary)"
+            >{{defaultLang}}</span
+          >
+          . Currently, you are reading the document in
+          <span style="color: var(--md-sys-color-primary)"
+            >{{getRealLang(lumiViewLang)}}</span
+          >
+          .
+        </p>
+        <p lang="ja">
+          このドキュメントは
+          <span style="color: var(--md-sys-color-primary)"
+            >{{defaultLang}}</span
+          >
+          で書かれています。 現在、
+          <span style="color: var(--md-sys-color-primary)"
+            >{{getRealLang(lumiViewLang)}}</span
+          >
+          でドキュメントを読んでいます。
+        </p>
+      </localized-content>
+
       <p style="display: flex; align-items: center">
         <localized-content>
           <span lang="cn">点击切换阅读语言</span>
@@ -54,96 +92,19 @@
         </localized-content>
         <p-select
           size="small"
-          sync:value="appConfigData.viewLang"
+          sync:value="lumiViewLang"
           on:change="changeLang"
           style="display: inline-block; margin-left: 8px"
         >
           <n-local-icon name="translate" slot="prefix"></n-local-icon>
-          <p-option value="cn">简体中文</p-option>
           <p-option value="en">English</p-option>
-          <p-option value="t-cn">繁體中文</p-option>
+          <p-option value="cn">简体中文</p-option>
+          <!-- <p-option value="t-cn">繁體中文</p-option> -->
           <p-option value="ja">日本語</p-option>
         </p-select>
       </p>
 
-      <localized-content>
-        <div lang="cn">
-          <p>
-            本文档原生采用
-            <span style="color: var(--md-sys-color-primary)"
-              >{{defaultLang}}</span
-            >
-            撰写。 当前正在使用
-            <span style="color: var(--md-sys-color-primary)"
-              >{{getRealLang(appConfigData.viewLang)}}</span
-            >
-            阅读文档。
-          </p>
-          <p>若文章包含所选语言内容，系统将自动切换显示；</p>
-          <p class:hide="!aiAvailable">
-            若没有对应语言，将使用您本地的AI进行翻译。
-          </p>
-        </div>
-        <div lang="en">
-          <p>
-            This document is originally written in
-            <span style="color: var(--md-sys-color-primary)"
-              >{{defaultLang}}</span
-            >
-            . Currently, you are reading the document in
-            <span style="color: var(--md-sys-color-primary)"
-              >{{getRealLang(appConfigData.viewLang)}}</span
-            >
-            .
-          </p>
-          <p>
-            If the article contains content in the selected language, the system
-            will automatically switch the display;
-          </p>
-          <p class:hide="!aiAvailable">
-            If there is no corresponding language, the system will use your
-            local AI for translation.
-          </p>
-        </div>
-        <div lang="ja">
-          <p>
-            このドキュメントは
-            <span style="color: var(--md-sys-color-primary)"
-              >{{defaultLang}}</span
-            >
-            で書かれています。 現在、
-            <span style="color: var(--md-sys-color-primary)"
-              >{{getRealLang(appConfigData.viewLang)}}</span
-            >
-            でドキュメントを読んでいます。
-          </p>
-          <p>
-            文章に選択した言語の内容が含まれている場合、システムは自動的に表示を
-            切り替えます。
-          </p>
-          <p class:hide="!aiAvailable">
-            対応する言語がない場合、ローカルのAIを使用して翻訳します。
-          </p>
-        </div>
-      </localized-content>
-
-      <!-- <o-if :value="!aiAvailable">
-        <p style="color: var(--md-sys-color-primary)">
-          <localized-content>
-            <span lang="cn"
-              >您当前环境没有可用的AI接口，所以不能使用AI翻译功能。</span
-            >
-            <span lang="en">You currently have no available AI interface.</span>
-            <span lang="ja">
-              您の現在の環境にはAIインターフェースがありません。
-            </span>
-          </localized-content>
-        </p>
-      </o-if> -->
-
-      <o-if
-        :value="projectData && appConfigData.viewLang != projectData.mainLang"
-      >
+      <o-if :value="projectData && lumiViewLang != projectData.mainLang">
         <p style="color: var(--md-sys-color-primary)">
           <localized-content>
             <span lang="cn"
@@ -160,6 +121,8 @@
           </localized-content>
         </p>
       </o-if>
+
+      <lumi-lang-progress :project-data="projectData"></lumi-lang-progress>
     </div>
   </p-dialog>
 
@@ -168,6 +131,7 @@
     export default async ({ load }) => {
       const { getSetting } = await load("/packages/none-os/setting.js");
       const { isAIAvailable } = await load("/packages/ai/main.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
         tag: "lumi-view-lang",
@@ -179,6 +143,10 @@
           aiAvailable: false,
         },
         proto: {
+          clickShowDialog() {
+            this.showDialog = true;
+            this.shadow.$("lumi-lang-progress").refershProgress();
+          },
           get defaultLang() {
             if (!this.projectData) {
               return "";
@@ -186,24 +154,22 @@
 
             return this.getRealLang(this.projectData.mainLang);
           },
-          changeLang() {
+          changeLang(e) {
+            const value = $(e.target).value;
+
             // 切换到其他语言
-            this.getProvider("lumi-view-lang").value =
-              this.appConfigData.viewLang;
+            const viewLangProvider = this.getProvider("lumi-view-lang");
+            viewLangProvider.value = value;
+            this.appConfigData.viewLang = value;
           },
           getRealLang(lang) {
-            switch (lang) {
-              case "cn":
-                return "简体中文";
-              case "en":
-                return "English";
-              case "t-cn":
-                return "繁體中文";
-              case "ja":
-                return "日本語";
-              default:
-                return lang;
+            const realLang = getRealLang(lang);
+
+            if (!realLang) {
+              return "Not Set";
             }
+
+            return realLang;
           },
         },
         async attached() {

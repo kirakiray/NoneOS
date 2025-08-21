@@ -25,19 +25,19 @@ const findTargetArticle = async (content, dataId) => {
     if (e._dataId === dataId) {
       return {
         target: e,
-        titles: [e],
+        paths: [e],
       };
     }
 
     if (e.content) {
-      let { target, titles: subTitles } = await findTargetArticle(
+      let { target, paths: subPaths } = await findTargetArticle(
         e.content,
         dataId
       );
       if (target) {
         return {
           target,
-          titles: [e, ...subTitles],
+          paths: [e, ...subPaths],
         };
       }
     }

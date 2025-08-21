@@ -1,127 +1,310 @@
-export async function getOllamaModels() {
-  const response = await fetch("http://localhost:11434/api/tags");
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const data = await response.json();
-  return data.models;
-}
-
-export const deleteOllamaModel = async (model) => {
-  const result = await fetch("http://localhost:11434/api/delete", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: model }),
-  }).then((e) => e.text());
-
-  return result;
-};
-
-const processStreamResponse = async (response, callback) => {
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+/**
+ * 与Ollama AI模型进行对话
+ * @param {Object} options - 配置选项
+ * @param {string} [options.serverUrl='http://localhost:11434'] - Ollama服务器地址
+ * @param {string} options.model - 模型名称
+ * @param {Array} options.messages - 消息数组
+ * @param {Function} [options.onChunk] - 流式响应回调函数
+ * @returns {Promise<string>} 返回AI响应内容
+ */
+export async function chat({
+  serverUrl = "http://localhost:11434",
+  onChunk,
+  model,
+  messages,
+}) {
+  if (!model) {
+    throw new Error("Model is required");
   }
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let result = "";
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    throw new Error("Messages array is required and cannot be empty");
+  }
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+  // 根据是否存在 onChunk 来决定是否使用流式传输
+  const useStream = Boolean(onChunk && typeof onChunk === "function");
 
-    const chunk = decoder.decode(value);
-    const lines = chunk.split("\n").filter((line) => line.trim() !== "");
+  try {
+    const res = await fetch(`${serverUrl}/api/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: model,
+        messages: messages,
+        stream: useStream,
+      }),
+    });
 
-    for (const line of lines) {
-      try {
-        const parsed = JSON.parse(line);
-        if (callback) {
-          callback(parsed);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    // 如果不是流式传输，直接返回完整响应
+    if (!useStream) {
+      const data = await res.json();
+      const fullResponse = data.message?.content || "";
+      return fullResponse;
+    }
+
+    // 流式传输处理
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let fullResponse = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop(); // 最后一行可能不完整，留给下一轮
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine === "") {
+          continue;
         }
 
-        // 根据响应类型提取内容
-        if (parsed.response) {
-          result += parsed.response;
-        } else if (parsed.status) {
-          result += parsed.status;
+        try {
+          const parsed = JSON.parse(trimmedLine);
+          const delta = parsed.message?.content;
+
+          if (delta) {
+            fullResponse += delta;
+            if (onChunk && typeof onChunk === "function") {
+              onChunk({ delta, fullResponse });
+            }
+          }
+
+          // 检查是否是最后一个chunk
+          if (parsed.done) {
+            return fullResponse;
+          }
+        } catch (e) {
+          console.warn("Failed to parse JSON chunk:", e);
+          // 忽略解析错误，继续处理下一个chunk
         }
-      } catch (e) {
-        console.error("Error parsing JSON:", e);
       }
     }
+
+    return fullResponse;
+  } catch (error) {
+    console.error("Error in chat function:", error);
+    throw error;
+  }
+}
+
+/**
+ * 生成文本补全（使用Ollama的generate API）
+ * @param {Object} options - 配置选项
+ * @param {string} [options.serverUrl='http://localhost:11434'] - Ollama服务器地址
+ * @param {string} options.prompt - 输入提示
+ * @param {string} options.model - 模型名称
+ * @param {Function} [options.onChunk] - 流式响应回调函数
+ * @returns {Promise<string>} 返回AI生成的文本
+ */
+export async function generate({
+  serverUrl = "http://localhost:11434",
+  onChunk,
+  model,
+  prompt,
+}) {
+  if (!model) {
+    throw new Error("Model is required");
   }
 
-  return result;
-};
+  if (!prompt) {
+    throw new Error("Prompt is required");
+  }
 
-export const pullOllamaModel = async (model, callback) => {
+  const useStream = Boolean(onChunk && typeof onChunk === "function");
+
   try {
-    const response = await fetch("http://localhost:11434/api/pull", {
+    const res = await fetch(`${serverUrl}/api/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: model,
+        prompt: prompt,
+        stream: useStream,
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    if (!useStream) {
+      const data = await res.json();
+      return data.response || "";
+    }
+
+    // 流式传输处理
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let fullResponse = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine === "") {
+          continue;
+        }
+
+        try {
+          const parsed = JSON.parse(trimmedLine);
+          const delta = parsed.response;
+
+          if (delta) {
+            fullResponse += delta;
+            if (onChunk && typeof onChunk === "function") {
+              onChunk({ delta, fullResponse });
+            }
+          }
+
+          if (parsed.done) {
+            return fullResponse;
+          }
+        } catch (e) {
+          console.warn("Failed to parse JSON chunk:", e);
+        }
+      }
+    }
+
+    return fullResponse;
+  } catch (error) {
+    console.error("Error in generate function:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取Ollama服务器上的可用模型列表
+ * @param {string} [serverUrl='http://localhost:11434'] - Ollama服务器地址
+ * @returns {Promise<Array>} 返回模型列表数组
+ */
+export async function getModels(serverUrl = "http://localhost:11434") {
+  try {
+    const res = await fetch(`${serverUrl}/api/tags`);
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data.models || [];
+  } catch (error) {
+    console.error("Error getting models:", error);
+    throw error;
+  }
+}
+
+/**
+ * 获取模型详细信息
+ * @param {string} model - 模型名称
+ * @param {string} [serverUrl='http://localhost:11434'] - Ollama服务器地址
+ * @returns {Promise<Object>} 返回模型详细信息
+ */
+export async function getModelInfo(
+  model,
+  serverUrl = "http://localhost:11434"
+) {
+  if (!model) {
+    throw new Error("Model is required");
+  }
+
+  try {
+    const res = await fetch(`${serverUrl}/api/show`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: model,
-        stream: true,
       }),
     });
 
-    let result = "";
-    await processStreamResponse(response, (parsed) => {
-      if (callback && parsed.status) {
-        callback(parsed.status);
-      }
-      if (parsed.status) {
-        result += parsed.status;
-      }
-    });
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
 
-    return result;
+    return await res.json();
   } catch (error) {
-    console.error("Error pulling Ollama model:", error);
-    return null;
+    console.error("Error getting model info:", error);
+    throw error;
   }
-};
+}
 
-export async function askOllamaStream(
-  prompt,
-  model = "qwen3:4b-instruct",
-  callback
+/**
+ * 拉取模型（如果本地不存在）
+ * @param {string} model - 模型名称
+ * @param {Function} [options.onProgress] - 进度回调函数
+ * @param {string} [options.serverUrl='http://localhost:11434'] - Ollama服务器地址
+ * @returns {Promise<void>}
+ */
+export async function pullModel(
+  model,
+  { onProgress, serverUrl = "http://localhost:11434" } = {}
 ) {
+  if (!model) {
+    throw new Error("Model is required");
+  }
+
   try {
-    const response = await fetch("http://localhost:11434/api/generate", {
+    const res = await fetch(`${serverUrl}/api/pull`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: model,
-        prompt: prompt,
-        stream: true,
-        options: {
-          num_ctx: 1024 * 32, // 上下文窗口大小
-          temperature: 0.7, // 创造性程度
-          repeat_penalty: 1.1,
-          num_predict: 1024 * 128, // 最大生成长度
-          enable_thinking: "False",
-        },
+        name: model,
       }),
     });
 
-    let result = "";
-    await processStreamResponse(response, (parsed) => {
-      if (parsed.response) {
-        result += parsed.response;
-        if (callback) callback(parsed.response);
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    if (!onProgress) {
+      return;
+    }
+
+    // 处理流式进度更新
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (trimmedLine === "") {
+          continue;
+        }
+
+        try {
+          const parsed = JSON.parse(trimmedLine);
+          if (onProgress && typeof onProgress === "function") {
+            onProgress(parsed);
+          }
+        } catch (e) {
+          console.warn("Failed to parse JSON chunk:", e);
+        }
       }
-    });
-
-    return result;
+    }
   } catch (error) {
-    const err = new Error("Error communicating with Ollama: " + error.message, {
-      cause: error,
-    });
-
-    throw err;
+    console.error("Error pulling model:", error);
+    throw error;
   }
 }

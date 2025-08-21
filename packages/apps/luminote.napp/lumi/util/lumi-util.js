@@ -60,10 +60,6 @@ export const copySelectedBlock = (lumipage) => {
   const lastIndex = lumipage._selecteds.length - 1;
 
   lumipage._selecteds.forEach((item, index) => {
-    if (!item.textContent) {
-      return;
-    }
-
     let itemHtml = item.htmlContent;
     let itemText = item.mdContent;
 
@@ -123,7 +119,9 @@ export const deleteSelectedBlock = (lumipage) => {
   lumipage._selecteds = null;
 
   // 聚焦到选区最下的元素上
-  setTimeout(() => {
-    nextFocusBlock.focus("end");
-  });
+  if (nextFocusBlock) {
+    setTimeout(() => {
+      nextFocusBlock.focus("end");
+    });
+  }
 };

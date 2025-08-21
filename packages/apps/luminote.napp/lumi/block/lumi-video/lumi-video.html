@@ -169,11 +169,9 @@
     style="display: none"
   />
   <script>
-    const fileMap = new Map(); // 文件记录
-
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
-      const { getFileHash } = await load("/packages/fs/util.js");
+      const { saveFile, getFileHandle } = await load("../../util/source.js");
 
       return {
         tag: "lumi-video",
@@ -224,51 +222,29 @@
               return;
             }
 
-            // 计算文件的hash
-            const hash = await getFileHash(file);
-
-            const sourceHandle = await this.getSourceHandle();
-
-            const videoHandle = await sourceHandle.get(hash, {
-              create: "file",
-            });
-
-            await videoHandle.write(file);
+            const { hash } = await saveFile(this, file);
 
             this.filename = file.name;
             this.hash = hash;
           },
           async loadVideo() {
-            const sourceHandle = await this.getSourceHandle();
+            if (this.videoSrc) {
+              URL.revokeObjectURL(this.videoSrc);
+            }
 
             try {
-              const fileHandle = await sourceHandle.get(this.hash);
+              const fileHandle = await getFileHandle(this, this.hash);
               const file = await fileHandle.file();
               this.videoSrc = URL.createObjectURL(file);
             } catch (err) {
               this.videoSrc = "";
             }
           },
-          async getSourceHandle() {
-            const notePage = this.host.host.parents.find((item) => {
-              return item.src && item.src.includes("note.html");
-            });
-
-            const oapp = this.host.host.parents.find((item) => {
-              return item.tag === "o-app";
-            });
-
-            const projectItem = await oapp.getProject(
-              notePage.currentDirName,
-              notePage.currentUserId
-            );
-
-            const sourceHandle = await projectItem.__handle.get("source", {
-              create: "dir",
-            });
-
-            return sourceHandle;
-          },
+        },
+        detached() {
+          if (this.videoSrc) {
+            URL.revokeObjectURL(this.videoSrc);
+          }
         },
       };
     };

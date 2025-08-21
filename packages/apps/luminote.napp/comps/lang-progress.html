@@ -1,0 +1,209 @@
+<template component>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <h5>
+    <localized-content>
+      <span lang="cn">已翻译进度</span>
+      <span lang="en">Translation progress</span>
+      <span lang="ja">翻訳進捗</span>
+    </localized-content>
+  </h5>
+  <div style="display: flex; flex-wrap: wrap">
+    <o-fill :value="progress">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          margin: 0 8px 8px 0;
+          --circle-size: 50;
+          border: var(--md-sys-color-primary) solid 1px;
+          border-radius: 8px;
+          padding: 8px;
+        "
+      >
+        <div style="text-align: center">
+          <div>{{$data.langStr}}</div>
+        </div>
+        <p-progress
+          attr:value="$data.value"
+          type="circle"
+          variant="determinate"
+          style="margin: 0 8px"
+        >
+          <span style="font-size: 12px">{{$data.value}}%</span>
+        </p-progress>
+
+        <div style="display: flex; flex-direction: column">
+          <p-button
+            size="mini"
+            variant="outlined"
+            on:click="$host.translateAll($data)"
+            style="margin-bottom: 4px"
+            attr:disabled="$host.inTranslatingLang === $data.lang"
+          >
+            <localized-content>
+              <span lang="cn">翻译全部</span>
+              <span lang="en">Translate All</span>
+              <span lang="ja">翻訳全部</span>
+            </localized-content>
+          </p-button>
+
+          <p-button
+            size="mini"
+            variant="outlined"
+            color="error"
+            on:click="$host.clearLang($data.lang)"
+          >
+            <localized-content>
+              <span lang="cn">清除缓存</span>
+              <span lang="en">Clear Cache</span>
+              <span lang="ja">キャッシュをクリア</span>
+            </localized-content>
+          </p-button>
+        </div>
+      </div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { toast, confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const {
+        getTranslationProgress,
+        clearTranslatedContent,
+        translateProject,
+      } = await load("../lumi/util/i18n-toblock.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
+
+      return {
+        tag: "lumi-lang-progress",
+        data: {
+          projectData: {
+            // mainLang: "", // 当前的主体语言
+            // otherLang: [], // 其他几个支持的语言
+          },
+          progress: [],
+          inTranslatingLang: "",
+        },
+        proto: {
+          async translateAll(data) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "翻译全部",
+                en: "Translate All",
+                ja: "翻訳全部",
+              }),
+              content: await getLocalized({
+                cn: `确认要将本文档中剩余的 ${data.langStr} 内容全部翻译完成吗？`,
+                en: `Are you sure you want to translate all ${data.langStr} content in this document?`,
+                ja: `${data.langStr} の残りの内容をすべて翻訳してもよろしいですか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            const lang = data.lang;
+            this.inTranslatingLang = lang;
+
+            await translateProject({
+              projectData: this.projectData,
+              lang: data.lang,
+              onchange: async (result) => {
+                const currentData = this.progress.find((e) => e.lang === lang);
+                currentData.value = Math.ceil(
+                  (result.translatedItemCount / result.totalItemCount) * 100
+                );
+                currentData.translatedItemCount = result.translatedItemCount;
+                currentData.totalItemCount = result.totalItemCount;
+
+                if (result.translatedItemCount === result.totalItemCount) {
+                  toast(
+                    await getLocalized({
+                      cn: "翻译成功",
+                      en: "Translate success",
+                      ja: "翻訳成功",
+                    })
+                  );
+
+                  this.inTranslatingLang = "";
+
+                  setTimeout(() => {
+                    this.refershProgress();
+                  }, 600);
+                }
+              },
+            });
+          },
+          async refershProgress() {
+            if (!this.projectData.main) {
+              return;
+            }
+
+            const progress = await getTranslationProgress(
+              this.projectData.main,
+              this.projectData.otherLang
+            );
+
+            this.progress = Object.entries(progress).map(([lang, data]) => {
+              return {
+                lang,
+                langStr: getRealLang(lang),
+                value: Math.ceil(
+                  (data.translatedItemCount / data.totalItemCount) * 100
+                ),
+                ...data,
+              };
+            });
+          },
+
+          async clearLang(lang) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "清除翻译缓存",
+                en: "Clear Translation Cache",
+                ja: "翻訳キャッシュをクリア",
+              }),
+              content: await getLocalized({
+                cn: `确认要清除 ${getRealLang(lang)}？`,
+                en: `Are you sure you want to clear ${getRealLang(lang)}?`,
+                ja: `${getRealLang(lang)}をクリアしてもよろしいですか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await clearTranslatedContent(this.projectData.main, lang);
+
+            setTimeout(() => {
+              this.refershProgress();
+            }, 600);
+
+            toast(
+              await getLocalized({
+                cn: "清除成功",
+                en: "Clear success",
+                ja: "クリア成功",
+              })
+            );
+          },
+        },
+        attached() {
+          setTimeout(() => {
+            this.refershProgress();
+          }, 1000);
+        },
+        detached() {
+          this.projectData = projectData;
+        },
+      };
+    };
+  </script>
+</template>

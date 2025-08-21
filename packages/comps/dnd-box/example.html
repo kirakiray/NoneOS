@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DND Box Example</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <style>
+      dnd-box[draggable] {
+        opacity: 0.5;
+      }
+
+      [over-hor="1"] {
+        background-color: rgba(115, 89, 167, 0.395);
+      }
+      [over-hor="2"] {
+        background-color: rgba(89, 167, 133, 0.395);
+      }
+
+      [disabled-drop] {
+        background-color: red;
+        opacity: 0.5;
+      }
+    </style>
+  </head>
+  <body>
+    <l-m src="./dnd-box.html"></l-m>
+
+    <dnd-box
+      data-dnd-type1="I am type1"
+      style="border: red solid 1px; padding: 8px; margin: 4px"
+    >
+      <button trigger-drag>拖拽我</button>
+      这是类型为 type1 的示范元素，点击左侧按钮即可拖拽
+    </dnd-box>
+    <dnd-box
+      data-dnd-type2="I am type2"
+      data-dnd-type-three="I am type3"
+      style="border: red solid 1px; padding: 8px; margin: 4px"
+    >
+      这是 type2 + type3 的示范元素，点击右侧按钮即可拖拽
+      <button trigger-drag>拖拽我</button>
+    </dnd-box>
+
+    <div style="height: 300px"></div>
+
+    <dnd-box
+      accept="type1"
+      style="border: green solid 1px; padding: 32px; margin: 8px"
+    >
+      请将 type1 类型的元素拖拽至此区域
+    </dnd-box>
+    <dnd-box
+      accept="typeThree"
+      style="
+        border: blue solid 1px;
+        padding: 32px;
+        margin: 8px;
+        margin-left: 25%;
+      "
+    >
+      请将 type3 类型的元素拖拽至此区域
+    </dnd-box>
+    <dnd-box
+      accept="type1 type2"
+      style="
+        border: orange solid 1px;
+        padding: 32px;
+        margin: 8px;
+        margin-left: 50%;
+      "
+    >
+      请将 type1 或 type2 类型的元素拖拽至此区域
+    </dnd-box>
+
+    <dnd-box
+      accept="type1 type2"
+      id="dnd-box-2"
+      style="border: orange solid 1px; padding: 32px; margin: 8px"
+    >
+      请将 type1 或 type2 类型的元素拖拽至此区域，但实际是不接受type2的元素的
+    </dnd-box>
+    <div style="height: 1000px"></div>
+    <script>
+      $.all("dnd-box[accept]").forEach((item) => {
+        item.on("dnd-drop", (e) => {
+          console.log(item.ele, e.data);
+        });
+      });
+
+      $("#dnd-box-2").on("dnd-dragenter", (e) => {
+        if (e.data && e.data.keys && e.data.keys.includes("type2")) {
+          e.preventDefault();
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -341,13 +341,36 @@
           >
             <o-if :value="inTranslate">
               <o-if :value="inTranslate == 1">
-                <slot></slot>
+                <div style="position: relative">
+                  <div
+                    style="
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      width: 100%;
+                      height: 100%;
+                      z-index: 2;
+                    "
+                  >
+                    <!-- 添加遮罩层 -->
+                  </div>
+                  <slot></slot>
+                </div>
               </o-if>
               <div class="translate-container">
                 <div :html="translateContent" style="display: contents"></div>
 
                 <div class="lang-mark" on:click="clickLangMark">
-                  <o-if :value="inTranslate == 1 || inTranslate == 2">
+                  <o-if :value="inTranslate == 1">
+                    <localized-content>
+                      <span lang="cn">等待确认翻译为:</span>
+                      <span lang="en">
+                        Wait for confirmation of translation:
+                      </span>
+                      <span lang="ja">翻訳を確認待ち:</span>
+                    </localized-content>
+                  </o-if>
+                  <o-if :value="inTranslate == 2">
                     <n-local-icon name="loading"></n-local-icon>
                   </o-if>
                   <div class="lang-mark-text" :html="markLang"></div>
@@ -457,6 +480,7 @@
       const { toast } = await load("/packages/pui/util.js");
       const { saveUserCord } = await load("../util/user-record-util.js");
       const { getHash } = await load("/packages/fs/util.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       const { addLoadingTask, removeLoadingTask } = await load(
         "./util/lumi-util.js"
@@ -471,8 +495,10 @@
         "/packages/i18n/localized-object.js"
       );
 
-      const { ask, clearAsk } = await load("/packages/ai/main.js");
-      const { switchLang } = await load("./util/i18n-toblock.js");
+      const { ask, solicit } = await load("/packages/ai/main.js");
+      const { getMainLang, translateItemData } = await load(
+        "./util/i18n-toblock.js"
+      );
 
       return {
         tag: "lumi-block",
@@ -548,27 +574,13 @@
         proto: {
           clickLangMark() {
             if (this.inTranslate === 3) {
+              // 已翻译完成的，点击后重新翻译
               delete this.itemData.i18nContent[this.inTranslateLang];
-              this.switchOtherLang(this.inTranslateLang);
+              this.switchOtherLang(this.inTranslateLang, true);
             }
           },
           get markLang() {
-            let lang = this.inTranslateLang;
-
-            switch (lang) {
-              case "cn":
-                lang = "简体中文";
-                break;
-              case "en":
-                lang = "English";
-                break;
-              case "t-cn":
-                lang = "繁體中文";
-                break;
-              case "ja":
-                lang = "日本語";
-                break;
-            }
+            let lang = getRealLang(this.inTranslateLang);
 
             const targeti18n = this.itemData.i18nContent[this.inTranslateLang];
             if (targeti18n) {
@@ -579,50 +591,92 @@
             return lang;
           },
           // 切换其他语种
-          async switchOtherLang(lang) {
-            return await switchLang(this, lang, {
-              onStateChange: (state) => {
-                this.inTranslate = state;
-              },
-              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
-                this.inTranslateLang = targetLang;
-                this.inTranslate = state;
-                if (content !== undefined) {
-                  this.translateContent = content;
+          async switchOtherLang(lang, reTranslate) {
+            const mainLang = await getMainLang(this);
+
+            if (this._cancelTranslate) {
+              this._cancelTranslate();
+              this._cancelTranslate = null;
+            }
+
+            if (mainLang === lang) {
+              // 同语言不需要切换
+              this.translateContent = "";
+              this.inTranslateLang = "";
+              this.inTranslate = false;
+              return;
+            }
+
+            if (!this.itemData.value) {
+              // 没有内容不需要翻译
+              return;
+            }
+
+            this.translateContent = "";
+            this.inTranslateLang = lang;
+            this.inTranslate = 1;
+
+            this._cancelTranslate = await translateItemData({
+              itemData: this.itemData,
+              hostKey: "value",
+              i18nKey: "i18nContent",
+              lang,
+              onstream: (responseText) => {
+                if (this.inTranslate != 2) {
+                  this.inTranslate = 2;
                 }
+
+                this.translateContent = responseText;
               },
-              onError: (err) => {
-                console.log(err);
+              finalCall: (value) => {
+                // 最终获取成功数据后的回调
+                this.translateContent = value;
+                this.inTranslateLang = lang;
+                this.inTranslate = 3;
               },
+              target: this,
+              execute: !!reTranslate,
+              groupTitle: reTranslate
+                ? "重新翻译段落"
+                : "翻译文章：" + this.parent.itemData.title,
+              desc: `将段落${this.index + 1}翻译成"${getRealLang(lang)}"`,
             });
           },
-          // 润色内容
-          async beautify() {
-            try {
-              this.inBeautify = 1;
-              this.beautifyContent = "";
+          //           // 润色内容
+          //           async beautify() {
+          //             try {
+          //               this.inBeautify = 1;
+          //               this.beautifyContent = "";
 
-              await ask(
-                `保留原来的html标签，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
-                {
-                  onChunk: (e) => {
-                    this.beautifyContent = e.responseText;
-                  },
-                }
-              );
+          //               await ask(
+          //                 // `保留原来的html标签，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
+          //                 `你是一名母语级文案润色师。我将发送一段 HTML，请只对其中的「可见人类文字」进行流畅度、用词、语气的润色，同时：
+          // 1. 保证所有标签、属性、实体、注释、脚本、样式、URL 完全不变；
+          // 2. 不增删任何标签，也不改动标签内的空白与缩进；
+          // 3. 仅对最终会在浏览器页面上呈现的自然语言文本进行润色；
+          // 4. 输出完整 HTML，禁止用 Markdown 代码块包裹，不做任何解释。
+          // HTML 如下：
 
-              this.inBeautify = 2;
-            } catch (err) {
-              this.inBeautify = false;
-            }
-          },
-          useBeautify(bool) {
-            if (bool) {
-              this.itemData.value = this.beautifyContent;
-              this.beautifyContent = "";
-            }
-            this.inBeautify = false;
-          },
+          // ${this.itemData.value}`,
+          //                 {
+          //                   onChunk: (e) => {
+          //                     this.beautifyContent = e.responseText;
+          //                   },
+          //                 }
+          //               );
+
+          //               this.inBeautify = 2;
+          //             } catch (err) {
+          //               this.inBeautify = false;
+          //             }
+          //           },
+          //           useBeautify(bool) {
+          //             if (bool) {
+          //               this.itemData.value = this.beautifyContent;
+          //               this.beautifyContent = "";
+          //             }
+          //             this.inBeautify = false;
+          //           },
           get subItems() {
             const currentTab = this.itemData.tab || 0;
 
@@ -787,8 +841,19 @@
               case "article":
                 return "<span></span>";
               default:
-                // 自定义组件上获取数据
-                return this.shadow.$("lumi-fake").innerComponent.htmlContent;
+                const innerComponent =
+                  this.shadow.$("lumi-fake").innerComponent;
+
+                if (innerComponent.hasOwnProperty("htmlContent")) {
+                  // 自定义组件上获取数据
+                  return innerComponent.htmlContent;
+                }
+
+                // 直接获取组件的html内容
+                return innerComponent.ele.outerHTML.replace(
+                  /<slot[\d\D]*><\/slot>/,
+                  this[0].html
+                );
             }
           },
           get textContent() {
@@ -892,9 +957,6 @@
           }, 300);
         },
         detached() {
-          if (this._asking) {
-            clearAsk(this.xid);
-          }
           removeLoadingTask(this);
 
           this.itemData = {};

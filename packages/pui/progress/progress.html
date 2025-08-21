@@ -2,14 +2,13 @@
   <style>
     :host {
       --line-size: 4px;
-      --circle-size: 40;
       --progress-color: var(--md-sys-color-primary);
       --progress-animation: all 0.4s ease 0s;
       display: block;
       width: 100%;
     }
     :host([type="circle"]) {
-      width: calc(var(--circle-size) * 1px);
+      width: calc(var(--circle-size, 40) * 1px);
       display: inline-block;
     }
     .line-outer {
@@ -27,8 +26,9 @@
     }
 
     .circle-container {
-      width: calc(var(--circle-size) * 1px);
-      height: calc(var(--circle-size) * 1px);
+      position: relative;
+      width: calc(var(--circle-size, 40) * 1px);
+      height: calc(var(--circle-size, 40) * 1px);
     }
     .circle-container[variant="indeterminate"] {
       animation: circle-container-indeterminate 1.4s linear infinite;
@@ -36,6 +36,17 @@
 
     .circle-container[variant="indeterminate"] svg {
       display: block;
+    }
+
+    .content {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .p-progress-circle[variant="determinate"] {
@@ -71,12 +82,12 @@
       }
     }
   </style>
-  <x-if :value="type==='line'">
+  <o-if :value="type==='line'">
     <div class="line-outer">
       <div class="p-progress-line" :style.width="value + '%'"></div>
     </div>
-  </x-if>
-  <x-else>
+  </o-if>
+  <o-else>
     <div attr:variant="variant" class="circle-container">
       <svg
         slot=""
@@ -97,8 +108,11 @@
           attr:stroke-dasharray="`${circleDasharray}px`"
         ></circle>
       </svg>
+      <div class="content">
+        <slot></slot>
+      </div>
     </div>
-  </x-else>
+  </o-else>
   <script>
     import "../public/init.js";
 

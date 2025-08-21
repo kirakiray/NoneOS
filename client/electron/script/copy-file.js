@@ -5,15 +5,15 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const sources = [
-  "../dist",
-  "../packages",
-  "../sw",
-  "../install",
-  "../others",
-  "../recovery",
-  "../sw.js",
-  "../index.html",
-  "../package.json",
+  "../../dist",
+  "../../packages",
+  "../../sw",
+  "../../install",
+  "../../others",
+  "../../recovery",
+  "../../sw.js",
+  "../../index.html",
+  "../../package.json",
 ];
 
 async function copyDirectories() {

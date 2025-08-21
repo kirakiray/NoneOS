@@ -7,12 +7,14 @@
     }
   </style>
   <h1>{{val}}</h1>
+
   <script>
     export default async () => {
       return {
         data: {
           val: "Hello World!! 👋",
         },
+        attached() {},
       };
     };
   </script>

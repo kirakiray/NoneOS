@@ -114,7 +114,8 @@ export class HybirdData extends Stanz {
       const reWatchs = Array.from(watchs).filter(
         (e) =>
           (e.type === "set" && !reservedKeys.includes(e.name)) ||
-          e.type === "array"
+          e.type === "array" ||
+          e.type === "delete"
       );
 
       if (!reWatchs.length) {

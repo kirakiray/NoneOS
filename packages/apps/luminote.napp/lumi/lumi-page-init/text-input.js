@@ -3,6 +3,9 @@ import {
   copySelectedBlock,
   deleteSelectedBlock,
 } from "../util/lumi-util.js";
+
+import { saveFile } from "../util/source.js";
+
 import {
   getSelectionLetterData,
   letterDataToElement,
@@ -250,6 +253,47 @@ export const initTextInput = (lumipage) => {
   lumipage.on("paste", async (e) => {
     let lumiBlock = getLumiBlock(e);
 
+    const pushContents = (contents) => {
+      const parentContent = lumipage.itemData.content;
+
+      // 在当前的前面添加对应的数据
+      const index = parentContent.indexOf($(lumiBlock).itemData);
+
+      if (index > -1) {
+        parentContent.splice(index, 0, ...contents);
+      }
+    };
+
+    if (e.clipboardData.types.includes("Files")) {
+      e.preventDefault();
+
+      // 如果是粘贴文件
+      const files = e.clipboardData.files;
+
+      const contents = [];
+
+      for (let file of files) {
+        if (file.type.includes("image/")) {
+          const { hash } = await saveFile($(lumiBlock), file);
+
+          // 包含图片类型
+          contents.push({
+            type: "lumi-img",
+            attrs: {
+              align: "center",
+              filename: file.name,
+              hash,
+            },
+            value: "",
+          });
+        }
+      }
+
+      debugger;
+      pushContents(contents);
+      return;
+    }
+
     const [inputerContent] = e
       .composedPath()
       .filter((e2) => e2.matches && e2.matches("[inputer-content]"));
@@ -263,40 +307,37 @@ export const initTextInput = (lumipage) => {
     // 获取粘贴的内容
     const clipboardData = e.clipboardData;
     let pastedHtml = clipboardData.getData("text/html");
-    {
+
+    if (pastedHtml) {
       // 还原被净化的属性值
       const originalTemplate = $(`<template>${pastedHtml}</template>`);
       // 净化html
       pastedHtml = purify.sanitize(pastedHtml);
       const sanitizedTemplate = $(`<template>${pastedHtml}</template>`);
 
-      const originalCustomElements = originalTemplate.all(
-        inlineComps.map((component) => component.tag).join(",")
-      );
-      const sanitizedCustomElements = sanitizedTemplate.all(
-        inlineComps.map((component) => component.tag).join(",")
-      );
+      {
+        // 还原会原有的属性
+        const originalCustomElements = originalTemplate.all(
+          [...blockComps, ...inlineComps]
+            .map((component) => component.tag)
+            .join(",")
+        );
+        const sanitizedCustomElements = sanitizedTemplate.all(
+          [...blockComps, ...inlineComps]
+            .map((component) => component.tag)
+            .join(",")
+        );
 
-      originalCustomElements.forEach((originalElement, index) => {
-        const sanitizedElement = sanitizedCustomElements[index];
-        for (let attribute of originalElement.ele.attributes) {
-          sanitizedElement.attr(attribute.name, attribute.value);
-        }
-      });
+        originalCustomElements.forEach((originalElement, index) => {
+          const sanitizedElement = sanitizedCustomElements[index];
+          for (let attribute of originalElement.ele.attributes) {
+            sanitizedElement.attr(attribute.name, attribute.value);
+          }
+        });
 
-      pastedHtml = sanitizedTemplate.html;
-    }
-
-    const pushContents = (contents) => {
-      const parentContent = lumipage.itemData.content;
-
-      // 在当前的前面添加对应的数据
-      const index = parentContent.indexOf(lumiBlock.itemData);
-
-      if (index > -1) {
-        parentContent.splice(index, 0, ...contents);
+        pastedHtml = sanitizedTemplate.html;
       }
-    };
+    }
 
     if (pastedHtml) {
       const temp = $(`<template>${pastedHtml}</template>`).ele;
@@ -306,59 +347,59 @@ export const initTextInput = (lumipage) => {
       // 直接单标签开头
       if (/^</.test(pastedHtml.trim())) {
         for (let item of temp.content.children) {
-          if (item.innerHTML) {
-            const reContent = await elementToLetterData(item);
+          // if (item.innerHTML) {
+          const reContent = await elementToLetterData(item);
 
+          const tag = item.tagName.toLowerCase();
+
+          if (tag === "p" || tag === "h2" || tag === "h3" || tag === "h4") {
+            const type = tag === "p" ? "paragraph" : tag;
+
+            contents.push({
+              type,
+              value: await letterDataToElement(reContent),
+            });
+          } else if (tag === "code") {
+            contents.push({
+              type: "lumi-code",
+              value: item.innerHTML,
+            });
+          } else {
             const tag = item.tagName.toLowerCase();
 
-            if (tag === "p" || tag === "h2" || tag === "h3" || tag === "h4") {
-              const type = tag === "p" ? "paragraph" : tag;
+            if (blockComps.find((e) => e.tag === tag)) {
+              const attrs = {};
 
+              let tab = 0;
+
+              for (let e of item.attributes) {
+                if (e.name === "data-tabcount") {
+                  tab = parseInt(e.value);
+                  continue;
+                }
+                attrs[e.name] = e.value;
+              }
+
+              const obj = {
+                type: tag,
+                attrs,
+                value: await letterDataToElement(reContent),
+              };
+
+              if (tab) {
+                obj.tab = tab;
+              }
+
+              contents.push(obj);
+            } else {
+              // 不明类型全部填充为段落
               contents.push({
-                type,
+                type: "paragraph",
                 value: await letterDataToElement(reContent),
               });
-            } else if (tag === "code") {
-              contents.push({
-                type: "lumi-code",
-                value: item.innerHTML,
-              });
-            } else {
-              const tag = item.tagName.toLowerCase();
-
-              if (blockComps.find((e) => e.tag === tag)) {
-                const attrs = {};
-
-                let tab = 0;
-
-                for (let e of item.attributes) {
-                  if (e.name === "data-tabcount") {
-                    tab = parseInt(e.value);
-                    continue;
-                  }
-                  attrs[e.name] = e.value;
-                }
-
-                const obj = {
-                  type: tag,
-                  attrs,
-                  value: await letterDataToElement(reContent),
-                };
-
-                if (tab) {
-                  obj.tab = tab;
-                }
-
-                contents.push(obj);
-              } else {
-                // 不明类型全部填充为段落
-                contents.push({
-                  type: "paragraph",
-                  value: await letterDataToElement(reContent),
-                });
-              }
             }
           }
+          // }
         }
 
         e.preventDefault();
@@ -552,6 +593,11 @@ const handleBackspace = async (
   }
 
   if (!lumiBlock.itemData.value.trim()) {
+    // 如果它的前面也没有其他元素了，就不执行了
+    if (!lumiBlock.prev) {
+      return;
+    }
+
     // 没有内容的块直接删除
     lumipage.itemData.content.splice(index, 1);
 

@@ -60,6 +60,19 @@
       border-radius: 4px;
       opacity: 0.7;
       font-weight: 500;
+      cursor: pointer;
+    }
+    .model-name,
+    .reload-btn {
+      display: none;
+    }
+    .reload-btn {
+      margin-left: 4px;
+      vertical-align: center;
+    }
+    .lang-mark:hover .model-name,
+    .lang-mark:hover .reload-btn {
+      display: inline-block;
     }
   </style>
   <div style="height: 100px"></div>
@@ -76,12 +89,20 @@
   </o-if>
   <o-else>
     <div class="translate-container">
+      <o-if :value="inTranslate == 1"> {{itemData.title}} </o-if>
       <div :html="translateContent" style="display: contents"></div>
-      <div class="lang-mark">
-        <o-if :value="inTranslate == 1 || inTranslate == 2">
+      <div class="lang-mark" on:click="clickLangMark">
+        <o-if :value="inTranslate == 1">
+          <localized-content>
+            <span lang="cn">等待确认翻译为:</span>
+            <span lang="en"> Wait for confirmation of translation: </span>
+            <span lang="ja">翻訳を確認待ち:</span>
+          </localized-content>
+        </o-if>
+        <o-if :value="inTranslate == 2">
           <n-local-icon name="loading"></n-local-icon>
         </o-if>
-        {{markLang}}
+        <div class="lang-mark-text" :html="markLang"></div>
       </div>
     </div>
   </o-else>
@@ -91,8 +112,10 @@
     import { localizedObject } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
-      const { ask, clearAsk } = await load("/packages/ai/main.js");
-      const { switchLang } = await load("./util/i18n-toblock.js");
+      const { getMainLang } = await load("./util/i18n-toblock.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
+      const { getHash } = await load("/packages/fs/util.js");
+      const { translateItemData } = await load("./util/i18n-toblock.js");
 
       return {
         tag: "lumi-page-title",
@@ -111,40 +134,77 @@
           },
         },
         proto: {
-          get markLang() {
-            switch (this.inTranslateLang) {
-              case "cn":
-                return "简体中文";
-              case "en":
-                return "English";
-              case "t-cn":
-                return "繁體中文";
-              case "ja":
-                return "日本語";
+          clickLangMark() {
+            if (this.inTranslate === 3) {
+              // 已翻译完成的，点击后重新翻译
+              delete this.itemData.titleI18nContent[this.inTranslateLang];
+              this.switchOtherLang(this.inTranslateLang, true);
             }
           },
-          async switchOtherLang(lang) {
+          get markLang() {
+            let lang = getRealLang(this.inTranslateLang);
+
+            const targeti18n =
+              this.itemData.titleI18nContent &&
+              this.itemData.titleI18nContent[this.inTranslateLang];
+            if (targeti18n) {
+              lang += `<span class="model-name"> - ${targeti18n.modelName}</span> 
+                <n-local-icon name="reload" class="reload-btn"></n-local-icon>`;
+            }
+
+            return lang;
+          },
+          async switchOtherLang(lang, reTranslate) {
             await this.watchUntil(() => this.itemData.title);
 
-            return switchLang(this, lang, {
-              lumipage: this.host,
-              onStateChange: (state) => {
-                this.inTranslate = state;
-              },
-              onTranslateUpdate: ({ lang: targetLang, state, content }) => {
-                this.inTranslateLang = targetLang;
-                this.inTranslate = state;
-                if (content !== undefined) {
-                  this.translateContent = content;
+            const mainLang = await getMainLang(this.host);
+
+            if (this._cancelTranslate) {
+              this._cancelTranslate();
+              this._cancelTranslate = null;
+            }
+
+            if (mainLang === lang) {
+              // 同语言不需要切换
+              this.translateContent = "";
+              this.inTranslateLang = "";
+              this.inTranslate = false;
+              return;
+            }
+
+            if (!this.itemData.title) {
+              // 没有内容不需要翻译
+              return;
+            }
+
+            this.translateContent = "";
+            this.inTranslateLang = lang;
+            this.inTranslate = 1;
+
+            this._cancelTranslate = await translateItemData({
+              itemData: this.itemData,
+              hostKey: "title",
+              i18nKey: "titleI18nContent",
+              lang,
+              onstream: (responseText) => {
+                if (this.inTranslate != 2) {
+                  this.inTranslate = 2;
                 }
+
+                this.translateContent = responseText;
               },
-              onError: (err) => {
-                console.log(err);
+              finalCall: (value) => {
+                // 最终获取成功数据后的回调
+                this.translateContent = value;
+                this.inTranslateLang = lang;
+                this.inTranslate = 3;
               },
-              keys: {
-                originKey: "title",
-                i18nKey: "titleI18nContent",
-              },
+              target: this,
+              execute: !!reTranslate,
+              groupTitle: reTranslate
+                ? "重新翻译标题"
+                : "翻译文章：" + this.itemData.title,
+              desc: `将标题翻译成"${getRealLang(lang)}"`,
             });
           },
           titleKeyDown(e) {
