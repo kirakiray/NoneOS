@@ -17,20 +17,12 @@
     ></o-page>
     <o-if :value="aiSetting.otherAI">
       <o-fill :value="aiSetting.otherAI">
-        <div>
+        <div on:click-delete="$host.deleteOtherAI($index,$data)">
           <o-if :value="$data.name === 'Ollama'">
-            <o-page
-              src="./list-item/ollama.html"
-              :item="$data"
-              on:delete="$host.aiSetting.otherAI.splice($index,1)"
-            ></o-page>
+            <o-page src="./list-item/ollama.html" :item="$data"></o-page>
           </o-if>
           <o-if :value="$data.name === 'LM Studio'">
-            <o-page
-              src="./list-item/lmstudio.html"
-              :item="$data"
-              on:delete="$host.aiSetting.otherAI.splice($index,1)"
-            ></o-page>
+            <o-page src="./list-item/lmstudio.html" :item="$data"></o-page>
           </o-if>
         </div>
       </o-fill>
@@ -50,6 +42,7 @@
     export default async ({ load }) => {
       const { getAISetting } = await load("./custom-data.js");
       const aiSetting = await getAISetting();
+      const { confirm } = await load("/packages/pui/util.js");
 
       return {
         tag: "ai-list",
@@ -60,6 +53,18 @@
           },
         },
         proto: {
+          async deleteOtherAI(index, data) {
+            const result = await confirm({
+              title: "删除AI",
+              content: `确定删除第${index + 2}个AI(${data.name})吗？`,
+            });
+
+            if (!result) {
+              return;
+            }
+
+            this.aiSetting.otherAI.splice(index, 1);
+          },
           initLmstudio() {
             if (!this.aiSetting.lmstudio) {
               this.aiSetting.lmstudio = {

@@ -47,7 +47,6 @@
         </o-if>
         <o-if :value="!defaultai">
           <div style="display: flex; align-items: center">
-            URL:
             <p-input
               size="small"
               sync:value="item.url"
@@ -108,6 +107,20 @@
           </div>
         </p-list-item>
       </o-else>
+      <o-if :value="!defaultai">
+        <p-list-item>
+          <div style="display: flex">
+            <p-button
+              color="error"
+              size="small"
+              variant="outlined"
+              on:click="emit('click-delete')"
+            >
+              删除该AI
+            </p-button>
+          </div>
+        </p-list-item>
+      </o-if>
     </p-list>
   </p-list-item>
   <script>
@@ -128,7 +141,7 @@
         },
         watch: {
           item(item) {
-            if (item) {
+            if (item && item.url) {
               this.initModels();
             }
           },
@@ -209,7 +222,7 @@
         },
         attached() {},
         detached() {
-          this.item = null;
+          this.item = {};
         },
       };
     };

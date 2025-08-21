@@ -96,18 +96,18 @@
           </div>
         </p-list-item>
       </o-else>
-      <!-- <p-list-item>
+      <p-list-item>
         <div style="display: flex">
           <p-button
             color="error"
             size="small"
             variant="outlined"
-            on:click="deleteModel"
+            on:click="emit('click-delete')"
           >
             删除该AI
           </p-button>
         </div>
-      </p-list-item> -->
+      </p-list-item>
     </p-list>
   </p-list-item>
 
@@ -115,7 +115,6 @@
     export default async ({ load }) => {
       const { chat, getModels } = await load("../ollama.js");
 
-      const { confirm } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
@@ -136,20 +135,6 @@
           },
         },
         proto: {
-          // async deleteModel() {
-          //   const result = await confirm({
-          //     title: "删除AI",
-          //     content: "确定删除该AI吗？",
-          //   });
-
-          //   if (!result) {
-          //     return;
-          //   }
-
-          //   this.emit("delete", {
-          //     bubbles: false,
-          //   });
-          // },
           async testModel() {
             this.responsing = true;
 
