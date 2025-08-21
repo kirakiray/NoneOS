@@ -10,13 +10,24 @@
     }
   </style>
   <div class="list">
-    <o-page src="./list-item/lmstudio.html" :item="aiSetting.lmstudio"></o-page>
+    <o-page
+      src="./list-item/lmstudio.html"
+      :item="aiSetting.lmstudio"
+      defaultai="1"
+    ></o-page>
     <o-if :value="aiSetting.otherAI">
       <o-fill :value="aiSetting.otherAI">
         <div>
           <o-if :value="$data.name === 'Ollama'">
             <o-page
               src="./list-item/ollama.html"
+              :item="$data"
+              on:delete="$host.aiSetting.otherAI.splice($index,1)"
+            ></o-page>
+          </o-if>
+          <o-if :value="$data.name === 'LM Studio'">
+            <o-page
+              src="./list-item/lmstudio.html"
               :item="$data"
               on:delete="$host.aiSetting.otherAI.splice($index,1)"
             ></o-page>

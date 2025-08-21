@@ -11,7 +11,7 @@
       font-size: 18px;
     }
   </style>
-  <p-list-item collapse-childs="open" button="suffix">
+  <p-list-item collapse-childs="close" button="suffix">
     <img
       src="../sources/lmstudio.webp"
       width="18"
@@ -21,8 +21,8 @@
     />
 
     <div style="display: flex; align-items: center">
-      LM Studio Server
-      <o-if :value="serverHost === 'localhost'">
+      LM Studio
+      <o-if :value="defaultai">
         <localized-content>
           <span lang="cn"> (本机AI) </span>
           <span lang="en"> (Local AI) </span>
@@ -33,7 +33,7 @@
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs" style="--ladder-left: 16px">
       <p-list-item>
-        <o-if :value="!!item">
+        <o-if :value="!!item && defaultai">
           <div style="display: flex; align-items: center">
             localhost:
             <p-input
@@ -42,6 +42,18 @@
               style="width: 100px; margin-left: 4px"
             >
               <label>端口号</label>
+            </p-input>
+          </div>
+        </o-if>
+        <o-if :value="!defaultai">
+          <div style="display: flex; align-items: center">
+            URL:
+            <p-input
+              size="small"
+              sync:value="item.url"
+              style="width: 260px; margin-left: 4px"
+            >
+              <label>URL</label>
             </p-input>
           </div>
         </o-if>
@@ -108,9 +120,11 @@
           //   item: {},
           error: "",
           list: [], // 模型列表
-          serverHost: "localhost",
           fullResponse: "",
           responsing: false,
+        },
+        attrs: {
+          defaultai: null,
         },
         watch: {
           item(item) {
@@ -130,7 +144,12 @@
             });
 
             try {
-              const serverUrl = `http://${this.serverHost}:${this.item.port}`;
+              let serverUrl;
+              if (this.defaultai) {
+                serverUrl = `http://localhost:${this.item.port}`;
+              } else {
+                serverUrl = this.item.url;
+              }
 
               const model = this.item.model;
 
@@ -164,7 +183,13 @@
           },
           async initModels() {
             try {
-              const serverUrl = `http://${this.serverHost}:${this.item.port}`;
+              let serverUrl;
+              if (this.defaultai) {
+                serverUrl = `http://localhost:${this.item.port}`;
+              } else {
+                serverUrl = this.item.url;
+              }
+
               const list = await getModels(serverUrl);
               list.sort((a, b) => {
                 if (a.id < b.id) {

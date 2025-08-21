@@ -11,7 +11,7 @@
       font-size: 18px;
     }
   </style>
-  <p-list-item collapse-childs="open" button="suffix">
+  <p-list-item collapse-childs="close" button="suffix">
     <img
       src="../sources/ollama.svg"
       width="18"
@@ -96,7 +96,7 @@
           </div>
         </p-list-item>
       </o-else>
-      <p-list-item>
+      <!-- <p-list-item>
         <div style="display: flex">
           <p-button
             color="error"
@@ -107,7 +107,7 @@
             删除该AI
           </p-button>
         </div>
-      </p-list-item>
+      </p-list-item> -->
     </p-list>
   </p-list-item>
 
@@ -136,20 +136,20 @@
           },
         },
         proto: {
-          async deleteModel() {
-            const result = await confirm({
-              title: "删除AI",
-              content: "确定删除该AI吗？",
-            });
+          // async deleteModel() {
+          //   const result = await confirm({
+          //     title: "删除AI",
+          //     content: "确定删除该AI吗？",
+          //   });
 
-            if (!result) {
-              return;
-            }
+          //   if (!result) {
+          //     return;
+          //   }
 
-            this.emit("delete", {
-              bubbles: false,
-            });
-          },
+          //   this.emit("delete", {
+          //     bubbles: false,
+          //   });
+          // },
           async testModel() {
             this.responsing = true;
 
