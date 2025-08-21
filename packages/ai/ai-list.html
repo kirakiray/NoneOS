@@ -11,6 +11,15 @@
   </style>
   <div class="list">
     <o-page src="./list-item/lmstudio.html" :item="aiSetting.lmstudio"></o-page>
+    <o-if :value="aiSetting.otherAI">
+      <o-fill :value="aiSetting.otherAI">
+        <div>
+          <o-if :value="$data.name === 'Ollama'">
+            <o-page src="./list-item/ollama.html" :item="$data"></o-page>
+          </o-if>
+        </div>
+      </o-fill>
+    </o-if>
     <div style="margin-top: 10px">
       <p-button variant="outlined" size="small" on:click="showAddServer = true">
         添加更多本机AI
