@@ -130,7 +130,7 @@
         </localized-content>
       </o-else>
     </p-menu-item>
-    <hr />
+    <!-- <hr />
     <p-menu-item
       on:click="handleBeautify"
       attr:disabled="!aiAvailable || isInBeautify"
@@ -141,7 +141,7 @@
         <span lang="cn">润色</span>
         <span lang="ja">修正</span>
       </localized-content>
-    </p-menu-item>
+    </p-menu-item> -->
     <!-- <p-menu-item>
       <n-local-icon name="translate" slot="prefix"></n-local-icon>
       <localized-content>
@@ -201,10 +201,10 @@
           ],
         },
         proto: {
-          async switchLang(item) {
-            this._blockEl.switchOtherLang(item.code);
-            this.open = "off";
-          },
+          // async switchLang(item) {
+          //   this._blockEl.switchOtherLang(item.code);
+          //   this.open = "off";
+          // },
           async handleBeautify() {
             this._blockEl.beautify();
             this.open = "off";

@@ -1,9 +1,3 @@
-// import { chat } from "./lmstudio.js";
-
-// export const ask = async (prompt, options) => {
-//   const { prompt, model, onstream, onsuccess, onerror } = opts;
-// };
-
 import { getAISetting } from "./custom-data.js";
 import { askOllamaStream } from "./ollama.js";
 import { chat } from "./lmstudio.js";
@@ -131,4 +125,3 @@ export const askByLocalOllama = async (
     responseText: preprocessedText,
   };
 };
-

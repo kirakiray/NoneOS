@@ -642,41 +642,41 @@
               desc: `将段落${this.index + 1}翻译成"${getRealLang(lang)}"`,
             });
           },
-          // 润色内容
-          async beautify() {
-            try {
-              this.inBeautify = 1;
-              this.beautifyContent = "";
+//           // 润色内容
+//           async beautify() {
+//             try {
+//               this.inBeautify = 1;
+//               this.beautifyContent = "";
 
-              await ask(
-                // `保留原来的html标签，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
-                `你是一名母语级文案润色师。我将发送一段 HTML，请只对其中的「可见人类文字」进行流畅度、用词、语气的润色，同时：
-1. 保证所有标签、属性、实体、注释、脚本、样式、URL 完全不变；
-2. 不增删任何标签，也不改动标签内的空白与缩进；
-3. 仅对最终会在浏览器页面上呈现的自然语言文本进行润色；
-4. 输出完整 HTML，禁止用 Markdown 代码块包裹，不做任何解释。
-HTML 如下：
+//               await ask(
+//                 // `保留原来的html标签，并润色以下文本，直接返回润色后的内容：\n ${this.itemData.value}`,
+//                 `你是一名母语级文案润色师。我将发送一段 HTML，请只对其中的「可见人类文字」进行流畅度、用词、语气的润色，同时：
+// 1. 保证所有标签、属性、实体、注释、脚本、样式、URL 完全不变；
+// 2. 不增删任何标签，也不改动标签内的空白与缩进；
+// 3. 仅对最终会在浏览器页面上呈现的自然语言文本进行润色；
+// 4. 输出完整 HTML，禁止用 Markdown 代码块包裹，不做任何解释。
+// HTML 如下：
 
-${this.itemData.value}`,
-                {
-                  onChunk: (e) => {
-                    this.beautifyContent = e.responseText;
-                  },
-                }
-              );
+// ${this.itemData.value}`,
+//                 {
+//                   onChunk: (e) => {
+//                     this.beautifyContent = e.responseText;
+//                   },
+//                 }
+//               );
 
-              this.inBeautify = 2;
-            } catch (err) {
-              this.inBeautify = false;
-            }
-          },
-          useBeautify(bool) {
-            if (bool) {
-              this.itemData.value = this.beautifyContent;
-              this.beautifyContent = "";
-            }
-            this.inBeautify = false;
-          },
+//               this.inBeautify = 2;
+//             } catch (err) {
+//               this.inBeautify = false;
+//             }
+//           },
+//           useBeautify(bool) {
+//             if (bool) {
+//               this.itemData.value = this.beautifyContent;
+//               this.beautifyContent = "";
+//             }
+//             this.inBeautify = false;
+//           },
           get subItems() {
             const currentTab = this.itemData.tab || 0;
 
