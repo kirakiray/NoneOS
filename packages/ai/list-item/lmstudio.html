@@ -141,7 +141,7 @@
         },
         watch: {
           item(item) {
-            if (item && item.url) {
+            if (item && (item.url || item.port)) {
               this.initModels();
             }
           },
@@ -204,6 +204,9 @@
               }
 
               const list = await getModels(serverUrl);
+
+              console.log(list);
+
               list.sort((a, b) => {
                 if (a.id < b.id) {
                   return -1;
@@ -213,7 +216,6 @@
                 }
                 return 0;
               });
-              console.log(list);
               this.list = list;
             } catch (err) {
               this.error = err.message;
