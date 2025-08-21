@@ -46,16 +46,43 @@
         </o-if>
       </p-list-item>
       <o-if :value="error">
-        无法连接到本机的 Ollama Server，请按以下步骤检查配置：<br />
-        1. 确认 Ollama 已正确安装并正在运行。<br />
-        2. 确认项目配置的端口号与 Ollama Server 的端口号一致（默认: 11434）。<br />
-        3. 确认在 Ollama 配置中启用跨域访问。<br />
-        4. 在终端运行 <code>ollama serve</code> 启动服务。<br />
+        <localized-content>
+          <div lang="cn">
+            无法连接到本机的 Ollama Server，请按以下步骤检查配置：<br />
+            1. 确认 Ollama 已正确安装并正在运行。<br />
+            2. 确认项目配置的端口号与 Ollama Server 的端口号一致（默认:
+            11434）。<br />
+            3. 确认在 Ollama 配置中启用跨域访问。<br />
+          </div>
+          <div lang="en">
+            Unable to connect to the local Ollama Server, please check the
+            configuration steps below:<br />
+            1. Confirm that Ollama is installed and running correctly.<br />
+            2. Confirm that the port number in the project configuration matches
+            the port number of the Ollama Server (default: 11434).<br />
+            3. Confirm that cross-origin access is enabled in the Ollama
+            configuration.<br />
+          </div>
+          <div lang="ja">
+            ローカルのOllama
+            Serverに接続できません。以下の手順を確認してください：<br />
+            1. Ollamaが正しくインストールされていることを確認してください。<br />
+            2. プロジェクトの設定でOllama
+            Serverのポート番号が正しいことを確認してください（デフォルト:
+            11434）。<br />
+            3.
+            Ollamaの設定で跨域アクセスが有効になっていることを確認してください。<br />
+          </div>
+        </localized-content>
       </o-if>
       <o-else>
         <p-list-item collapse-childs="open" button="suffix">
           <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
-          请选择默认AI模型：
+          <localized-content>
+            <span lang="cn"> 请选择默认AI模型：</span>
+            <span lang="en"> Please select the default AI model:</span>
+            <span lang="ja"> デフォルトのAIモデルを選択してください：</span>
+          </localized-content>
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
             <o-fill :value="list" fill-key="name">
@@ -91,7 +118,11 @@
               variant="outlined"
               style="margin: 4px"
             >
-              你是？
+              <localized-content>
+                <span lang="cn"> 你是？</span>
+                <span lang="en"> Who are you?</span>
+                <span lang="ja"> あなたは？</span>
+              </localized-content>
             </p-button>
           </div>
         </p-list-item>
@@ -104,7 +135,11 @@
             variant="outlined"
             on:click="emit('click-delete')"
           >
-            删除该AI
+            <localized-content>
+              <span lang="cn"> 删除该AI</span>
+              <span lang="en"> Delete this AI</span>
+              <span lang="ja"> このAIを削除</span>
+            </localized-content>
           </p-button>
         </div>
       </p-list-item>
@@ -167,7 +202,11 @@
 
               this.fullResponse = result;
             } catch (err) {
-              this.fullResponse = "测试模型失败";
+              this.fullResponse = await getLocalized({
+                cn: "测试模型失败",
+                en: "Test model failed",
+                ja: "モデルのテストに失敗しました",
+              });
             } finally {
               this.responsing = false;
             }
@@ -180,7 +219,6 @@
             try {
               const serverUrl = this.item.url;
               const list = await getModels(serverUrl);
-
 
               // 格式化模型大小显示
               list.forEach((model) => {

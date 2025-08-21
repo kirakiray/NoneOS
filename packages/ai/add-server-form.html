@@ -48,7 +48,13 @@
       font-size: 28px;
     }
   </style>
-  <h4>请选择要添加的AI服务器</h4>
+  <h4>
+    <localized-content>
+      <span lang="cn"> 请选择要添加的AI服务器</span>
+      <span lang="en"> Please select the AI server to add</span>
+      <span lang="ja"> 追加するAIサーバーを選択してください</span>
+    </localized-content>
+  </h4>
   <div style="padding-bottom: 16px">
     <o-fill :value="servers">
       <div
@@ -83,20 +89,26 @@
   </p>
 
   <o-if :value="selected === 'LM Studio' || selected === 'Ollama'">
-    <p-input
-      label="服务器地址"
-      placeholder="请输入服务器地址"
-      sync:value="serverUrl"
-      size="small"
-      style="margin-bottom: 16px"
-    ></p-input>
+    <p-input sync:value="serverUrl" size="small" style="margin-bottom: 16px">
+      <label>
+        <localized-content>
+          <span lang="cn"> 服务器地址</span>
+          <span lang="en"> Server address</span>
+          <span lang="ja"> サーバーアドレス</span>
+        </localized-content>
+      </label>
+    </p-input>
   </o-if>
 
   <p-button
     attr:disabled="!selected || notReady || !serverUrl"
     on:click="addServer"
   >
-    确认
+    <localized-content>
+      <span lang="cn"> 确认</span>
+      <span lang="en"> Confirm</span>
+      <span lang="ja"> 確認</span>
+    </localized-content>
   </p-button>
   <script>
     export default async ({ load, url }) => {

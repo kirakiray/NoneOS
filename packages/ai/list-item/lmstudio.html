@@ -41,7 +41,13 @@
               sync:value="item.port"
               style="width: 100px; margin-left: 4px"
             >
-              <label>端口号</label>
+              <label>
+                <localized-content>
+                  <span lang="cn"> 端口号 </span>
+                  <span lang="en"> Port Number </span>
+                  <span lang="ja"> ポート番号 </span>
+                </localized-content>
+              </label>
             </p-input>
           </div>
         </o-if>
@@ -58,15 +64,44 @@
         </o-if>
       </p-list-item>
       <o-if :value="error">
-        无法连接到本机的 LM Studio Server，请按以下步骤检查配置：<br />
-        1. 确认 LM Studio Server 已正确安装并正在运行。<br />
-        2. 确认项目配置的端口号与 LM Studio Server 的端口号一致。<br />
-        3. 确认在 LM Studio 的开发者选项中勾选 “启用 CORS（跨域资源共享）”。<br />
+        <localized-content>
+          <div lang="cn">
+            无法连接到本机的 LM Studio Server，请按以下步骤检查配置：<br />
+            1. 确认 LM Studio Server 已正确安装并正在运行。<br />
+            2. 确认项目配置的端口号与 LM Studio Server 的端口号一致。<br />
+            3. 确认在 LM Studio 的开发者选项中勾选 “启用
+            CORS（跨域资源共享）”。<br />
+          </div>
+          <div lang="en">
+            Unable to connect to the LM Studio Server on the local machine,
+            please check the configuration steps below:<br />
+            1. Confirm that LM Studio Server is installed and running
+            correctly.<br />
+            2. Confirm that the port number in the project configuration matches
+            the port number of the LM Studio Server.<br />
+            3. Confirm that "Enable CORS (Cross-Origin Resource Sharing)" is
+            ticked in the developer options of LM Studio.<br />
+          </div>
+          <div lang="ja">
+            ローカルマシン上の LM Studio Server
+            に接続できませんでした。以下の手順を確認してください：<br />
+            1. LM Studio Server
+            が正しくインストールされていることを確認してください。<br />
+            2. プロジェクトの設定で指定されたポート番号が、LM Studio Server
+            のポート番号と一致することを確認してください。<br />
+            3. LM Studio の開発者オプションで "Enable CORS (Cross-Origin
+            Resource Sharing)" をチェックしてください。<br />
+          </div>
+        </localized-content>
       </o-if>
       <o-else>
         <p-list-item collapse-childs="open" button="suffix">
           <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
-          请选择默认AI模型：
+          <localized-content>
+            <span lang="cn"> 请选择默认AI模型：</span>
+            <span lang="en"> Please select the default AI model:</span>
+            <span lang="ja"> デフォルトのAIモデルを選択してください：</span>
+          </localized-content>
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
             <o-fill :value="list" fill-key="id">
@@ -102,7 +137,11 @@
               variant="outlined"
               style="margin: 4px"
             >
-              你是？
+              <localized-content>
+                <span lang="cn"> 你是？</span>
+                <span lang="en"> Who are you?</span>
+                <span lang="ja"> あなたは？</span>
+              </localized-content>
             </p-button>
           </div>
         </p-list-item>
@@ -116,7 +155,11 @@
               variant="outlined"
               on:click="emit('click-delete')"
             >
-              删除该AI
+              <localized-content>
+                <span lang="cn"> 删除该AI</span>
+                <span lang="en"> Delete this AI</span>
+                <span lang="ja"> このAIを削除</span>
+              </localized-content>
             </p-button>
           </div>
         </p-list-item>
@@ -184,7 +227,11 @@
 
               this.fullResponse = result;
             } catch (err) {
-              this.fullResponse = "测试模型失败";
+              this.fullResponse = await getLocalized({
+                cn: "测试模型失败",
+                en: "Test model failed",
+                ja: "モデルのテストが失敗しました",
+              });
             } finally {
               this.responsing = false;
             }
