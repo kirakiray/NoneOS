@@ -19,7 +19,17 @@
       slot="prefix"
       style="margin-right: 4px"
     />
-    LM Studio Server <o-if :value="serverHost === 'localhost'"> (本机AI) </o-if>
+
+    <div style="display: flex; align-items: center">
+      LM Studio Server
+      <o-if :value="serverHost === 'localhost'">
+        <localized-content>
+          <span lang="cn"> (本机AI) </span>
+          <span lang="en"> (Local AI) </span>
+          <span lang="ja"> (ローカルのAI) </span>
+        </localized-content>
+      </o-if>
+    </div>
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs" style="--ladder-left: 16px">
       <p-list-item>
@@ -36,48 +46,56 @@
           </div>
         </o-if>
       </p-list-item>
-      <p-list-item collapse-childs="open" button="suffix">
-        <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
-        请选择您本地的默认AI模型：
-        <i toggle-collapse triangle slot="suffix"></i>
-        <p-list slot="childs">
-          <o-fill :value="list" fill-key="id">
-            <p-list-item
-              button
-              on:click="$host.useIt($data)"
-              attr:active-item="$host.item.model === $data.id"
+      <o-if :value="error">
+        无法连接到本机的 LM Studio Server，请按以下步骤检查配置：<br />
+        1. 确认 LM Studio Server 已正确安装并正在运行。<br />
+        2. 确认项目配置的端口号与 LM Studio Server 的端口号一致。<br />
+        3. 确认在 LM Studio 的开发者选项中勾选 “启用 CORS（跨域资源共享）”。<br />
+      </o-if>
+      <o-else>
+        <p-list-item collapse-childs="open" button="suffix">
+          <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
+          请选择您本地的默认AI模型：
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <o-fill :value="list" fill-key="id">
+              <p-list-item
+                button
+                on:click="$host.useIt($data)"
+                attr:active-item="$host.item.model === $data.id"
+              >
+                <o-if :value="$data.id.includes('qwen')" slot="prefix">
+                  <n-local-icon name="qwen"></n-local-icon>
+                </o-if>
+                <o-else slot="prefix">
+                  <n-local-icon name="ai-chip"></n-local-icon>
+                </o-else>
+                {{$data.id}}
+                <o-if :value="$host.item.model === $data.id" slot="suffix">
+                  <n-local-icon
+                    name="tick-circle"
+                    style="color: var(--md-sys-color-success)"
+                  ></n-local-icon>
+                </o-if>
+              </p-list-item>
+            </o-fill>
+          </p-list>
+        </p-list-item>
+        <p-list-item>
+          <div>
+            {{fullResponse}}
+            <p-button
+              on:click="testModel"
+              size="mini"
+              attr:disabled="responsing"
+              variant="outlined"
+              style="margin: 4px"
             >
-              <o-if :value="$data.id.includes('qwen')" slot="prefix">
-                <n-local-icon name="qwen"></n-local-icon>
-              </o-if>
-              <o-else slot="prefix">
-                <n-local-icon name="ai-chip"></n-local-icon>
-              </o-else>
-              {{$data.id}}
-              <o-if :value="$host.item.model === $data.id" slot="suffix">
-                <n-local-icon
-                  name="tick-circle"
-                  style="color: var(--md-sys-color-success)"
-                ></n-local-icon>
-              </o-if>
-            </p-list-item>
-          </o-fill>
-        </p-list>
-      </p-list-item>
-      <p-list-item>
-        <div>
-          {{fullResponse}}
-          <p-button
-            on:click="testModel"
-            size="mini"
-            attr:disabled="responsing"
-            variant="outlined"
-            style="margin: 4px"
-          >
-            你是？
-          </p-button>
-        </div>
-      </p-list-item>
+              你是？
+            </p-button>
+          </div>
+        </p-list-item>
+      </o-else>
     </p-list>
   </p-list-item>
   <script>
@@ -147,7 +165,17 @@
           async initModels() {
             try {
               const serverUrl = `http://${this.serverHost}:${this.item.port}`;
-              this.list = await getModels(serverUrl);
+              const list = await getModels(serverUrl);
+              list.sort((a, b) => {
+                if (a.id < b.id) {
+                  return -1;
+                }
+                if (a.id > b.id) {
+                  return 1;
+                }
+                return 0;
+              });
+              this.list = list;
             } catch (err) {
               this.error = err.message;
             }

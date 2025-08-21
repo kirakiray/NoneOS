@@ -7,7 +7,12 @@
  * @param {Function} [options.onChunk] - 流式响应回调函数
  * @returns {Promise<string>} 返回AI响应内容
  */
-export async function chat({ serverUrl = 'http://localhost:1234', onChunk, model, messages }) {
+export async function chat({
+  serverUrl = "http://localhost:1234",
+  onChunk,
+  model,
+  messages,
+}) {
   if (!model) {
     throw new Error("Model is required");
   }
@@ -98,17 +103,12 @@ export async function chat({ serverUrl = 'http://localhost:1234', onChunk, model
  * @returns {Promise<Array>} 返回模型列表数组
  */
 export async function getModels(serverUrl = "http://localhost:1234") {
-  try {
-    const res = await fetch(`${serverUrl}/v1/models`);
+  const res = await fetch(`${serverUrl}/v1/models`);
 
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data.data || [];
-  } catch (error) {
-    console.error("Error fetching models:", error);
-    throw error;
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
   }
+
+  const data = await res.json();
+  return data.data || [];
 }
