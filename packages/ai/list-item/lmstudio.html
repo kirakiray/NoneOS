@@ -113,15 +113,24 @@
 
             try {
               const serverUrl = `http://${this.serverHost}:${this.item.port}`;
+
+              const model = this.item.model;
+
               const result = await chat({
                 serverUrl,
-                model: this.item.model,
+                model,
                 messages: [{ role: "user", content: prompt }],
                 onChunk: (e) => {
                   const { fullResponse } = e;
-                  this.fullResponse = fullResponse;
+                  if (this.item.model === model) {
+                    this.fullResponse = fullResponse;
+                  }
                 },
               });
+
+              if (this.item.model === model) {
+                this.fullResponse = result;
+              }
 
               this.fullResponse = result;
             } catch (err) {
