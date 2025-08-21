@@ -1,4 +1,3 @@
-import { ask, clearAsk } from "/packages/ai/ask.js";
 import { solicit } from "/packages/ai/main.js";
 import { getHash } from "/packages/fs/util.js";
 import { getRealLang } from "../../util/get-real-lang.js";

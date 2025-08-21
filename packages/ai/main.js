@@ -5,7 +5,7 @@ export {
   askOllamaStream,
 } from "./ollama.js";
 
-export { modelExtend, ask, clearAsk } from "./ask.js";
+export { ask } from "./ask.js";
 
 export { solicit } from "./solicit.js";
 
