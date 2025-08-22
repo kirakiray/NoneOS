@@ -137,7 +137,21 @@
             // this.host._selecteds.forEach((e) => {
             //   e.beautify();
             // });
-            const beautifyBtn = this.host.parent.shadow.$("lumi-beautify-btn");
+            // const beautifyBtn = this.host.parent.shadow.$("lumi-beautify-btn");
+
+            let layout = this.composedPath().find(
+              (e) => $(e).src && $(e).src.includes("layout.html")
+            );
+            layout = $(layout);
+
+            const beautifyBtn = layout.shadow.$("lumi-beautify-btn");
+
+            if (!beautifyBtn) {
+              toast("some thing error");
+              return;
+            }
+
+            // 传入要润色的内容
 
             debugger;
 
