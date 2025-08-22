@@ -147,7 +147,10 @@
             }
 
             // 传入要润色的内容
-            beautifyBtn.clickBeautify();
+            beautifyBtn.clickBeautify(
+              this.host._selecteds[0].index,
+              this.host._selecteds.slice(-1)[0].index + 1
+            );
 
             console.log("暂时不可用");
           },

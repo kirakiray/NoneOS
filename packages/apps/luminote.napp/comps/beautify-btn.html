@@ -138,6 +138,11 @@
         </div>
       </div>
     </div>
+    <o-if :value="isProcessed">
+      <p-button on:click="replaceContent" style="margin-left: 8px">
+        确认替换润色内容
+      </p-button>
+    </o-if>
   </p-dialog>
 
   <script>
@@ -151,13 +156,50 @@
           showDialog: false,
           isProcessing: false,
           processingType: null,
+          isProcessed: false,
+          _start: null,
+          _end: null,
         },
         proto: {
+          replaceContent() {
+            const articleData = this.host.$("lumi-page").itemData;
+
+            // 获取目标范围的数据
+            const targetRangeData = articleData.content.slice(
+              this._start,
+              this._end
+            );
+
+            // 如果和处理后的数量相同，则直接替换value数据
+            if (this.shadow.$("#content").length === targetRangeData.length) {
+              this.shadow.$("#content").forEach((item, index) => {
+                let content = item.html;
+                try {
+                  // 剥去一层标签内容
+                  const temp = $(content);
+                  content = temp.html;
+                } catch (e) {
+                  console.error("替换内容失败:", e);
+                }
+
+                if (!content.trim()) {
+                  return;
+                }
+
+                targetRangeData[index].value = content;
+              });
+            } else {
+              // TODO: 数量不一致，先删除旧的在加新的进去
+              debugger;
+            }
+
+            this.showDialog = false;
+          },
           /**
            * 获取文章内容
            * @returns {string} 文章内容HTML
            */
-          getArticleContent() {
+          getArticleContent(start, end) {
             try {
               const pages = this.host.$("lumi-page");
               if (!pages || pages.length === 0) {
@@ -166,7 +208,14 @@
               }
 
               return Array.from(pages)
-                .map((item) => {
+                .map((item, index) => {
+                  if (start !== undefined && index < start) {
+                    return "";
+                  }
+                  if (end !== undefined && index > end - 1) {
+                    return "";
+                  }
+
                   let content = item.htmlContent || "";
 
                   let tabLeft = 0;
@@ -188,11 +237,11 @@
           },
 
           /**
-           * 通过点击按钮的方式打开润色对话框
+           * 打开润色对话框
            */
-          clickBeautify() {
+          clickBeautify(start, end) {
             this.showDialog = true;
-            const articleContent = this.getArticleContent();
+            const articleContent = this.getArticleContent(start, end);
 
             if (!articleContent) {
               this.shadow.$("#origin").html =
@@ -202,10 +251,17 @@
               return;
             }
 
+            if (this._start !== start || this._end !== end) {
+              this.shadow.$("#content").html = "";
+              this.shadow.$("#content").parent.classList.add("hide");
+              this.isProcessed = false;
+            }
+
+            this._start = start;
+            this._end = end;
+
             this.articleContent = articleContent;
             this.shadow.$("#origin").html = articleContent;
-            this.shadow.$("#content").html = "";
-            // this.shadow.$("#content").parent.classList.add("hide");
           },
 
           /**
@@ -268,7 +324,7 @@ ${content}
             this.processingType = type;
 
             const contentEl = this.shadow.$("#content");
-            contentEl.html = `<div style="display:flex;justify-content:center;align-items:center;flex-direction: column; padding: 20px; color: #666;">
+            contentEl.html = `<div style="display:flex;justify-content:center;align-items:center;flex-direction: column; padding: 20px; color: #666;font-size:12px;">
               <p>正在${type === "beautify" ? "润色" : "精简"}文章...</p>
               <div style="margin-top: 10px;">
                 <n-local-icon name="loading" style="font-size:28px;"></n-local-icon>
@@ -289,6 +345,7 @@ ${content}
                     contentEl.html = e.responseText || " &nbsp;"; // 最少要加个空格，防止empty
                   },
                   onsuccess: (e) => {
+                    this.isProcessed = true;
                     resolve();
                   },
                   onerror: (error) => {

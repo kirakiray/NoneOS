@@ -49,7 +49,7 @@
       </p-button>
     </div>
   </o-if>
-  <style>
+  <!-- <style>
     .mask {
       position: absolute;
       left: 0;
@@ -58,11 +58,11 @@
       height: 100%;
       z-index: 2;
     }
-  </style>
+  </style> -->
   <div class="container">
     <lumi-page-title :item-data="itemData"> </lumi-page-title>
     <!-- 添加 mask 元素，用于防止 Chrome 浏览器对 lumi-block 组件的 hover 效果处理不及时的问题 -->
-    <div class="mask"></div>
+    <!-- <div class="mask"></div> -->
     <slot></slot>
     <o-fill :value="recordData" fill-key="userId">
       <lumi-remote-mark
@@ -184,9 +184,9 @@
           });
 
           // 用于防止 Chrome 浏览器对 lumi-block 组件的 hover 效果处理不及时的问题
-          this.shadow.$(".mask").on("mousedown", (e) => {
-            e.target.remove();
-          });
+          // this.shadow.$(".mask").on("mousedown", (e) => {
+          //   e.target.remove();
+          // });
 
           // 先清空
           clearUndoHistory();
