@@ -6,63 +6,64 @@ import { getModels } from "./lmstudio.js";
 
 let availablePms = null;
 
-let usefulConfig = {};
-
-export const getUsefulConfig = () => {
-  return usefulConfig;
-};
-
 export const isAIAvailable = async () => {
   if (availablePms) {
     return availablePms;
   }
 
   return (availablePms = new Promise(async (resolve, reject) => {
-    const setting = await getAISetting();
+    const availableConfigs = await getAvailableAIConfigs();
 
-    // 封装获取模型并检查是否可用的逻辑
-    const checkModelsAvailable = async (url) => {
-      try {
-        const models = await getModels(url);
-        return models.length > 0;
-      } catch {
-        return false;
-      }
-    };
-
-    // 检查本地 LM Studio 是否可用
-    if (
-      await checkModelsAvailable(`http://localhost:${setting.lmstudio.port}`)
-    ) {
-      usefulConfig = {
-        url: `http://localhost:${setting.lmstudio.port}`,
-        model: setting.lmstudio.model,
-      };
-      resolve(true);
-      return;
-    }
-
-    // 查看其他的 LM Studio 是否可用
-    if (setting.otherAI) {
-      for (const item of setting.otherAI) {
-        if (
-          item.name === "LM Studio" &&
-          (await checkModelsAvailable(item.url))
-        ) {
-          usefulConfig = {
-            url: item.url,
-            model: item.model,
-          };
-          resolve(true);
-          return;
-        }
-      }
-    }
-
-    resolve(false);
+    resolve(!!availableConfigs.length);
 
     setTimeout(() => {
       availablePms = null;
     }, 1000);
   }));
+};
+
+/**
+ * 获取所有可用的 AI 配置并以数组形式返回
+ * @returns {Promise<Array>} 返回可用 AI 配置的数组，每个配置包含 name, url, model 信息
+ */
+export const getAvailableAIConfigs = async () => {
+  const setting = await getAISetting();
+  const availableConfigs = [];
+
+  // 封装获取模型并检查是否可用的逻辑
+  const checkModelsAvailable = async (url) => {
+    try {
+      const models = await getModels(url);
+      return models.length > 0;
+    } catch {
+      return false;
+    }
+  };
+
+  // 检查本地 LM Studio
+  const localUrl = `http://localhost:${setting.lmstudio.port}`;
+  if (await checkModelsAvailable(localUrl)) {
+    availableConfigs.push({
+      url: localUrl,
+      model: setting.lmstudio.model,
+      type: "local",
+    });
+  }
+
+  // 检查其他 AI 配置
+  if (setting.otherAI && Array.isArray(setting.otherAI)) {
+    for (const item of setting.otherAI) {
+      if (item.name === "LM Studio" && item.url) {
+        if (await checkModelsAvailable(item.url)) {
+          availableConfigs.push({
+            url: item.url,
+            model: item.model,
+            type: "local-fetch",
+          });
+        }
+      }
+    }
+  }
+
+  return availableConfigs;
 };
