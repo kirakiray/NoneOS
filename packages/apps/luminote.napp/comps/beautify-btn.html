@@ -8,8 +8,6 @@
 
     .dialog-content {
       width: 80vw;
-      /* height: 20vh; */
-      /* height: 80vh; */
     }
   </style>
   <p-button variant="text" on:click="clickBeautify">
@@ -24,7 +22,6 @@
   <p-dialog :open="showDialog" on:click-mask="showDialog = false">
     <div slot="title" style="text-align: center">润色文章</div>
     <div class="dialog-content">
-      <p>请点击执行你想要做的操作。</p>
       <div style="padding: 8px; text-align: center">
         <p-button variant="outlined" on:click="beautifyAll">
           润色整片文章
@@ -78,14 +75,11 @@
 ${this._article_content}
 `;
 
-            // 设置原文
-            this.shadow.$("#origin").html = this._article_content;
-
             const contentEl = this.shadow.$("#content");
 
             const _cancelTranslate = solicit({
               groupTitle: "润色文章",
-              desc: "润色整片文章",
+              desc: "润色选中内容",
               target: this.host,
               execute: true,
               onstart: () => {
@@ -112,6 +106,9 @@ ${this._article_content}
             });
 
             this._article_content = _article_content;
+
+            // 设置原文
+            this.shadow.$("#origin").html = this._article_content;
           },
         },
         attached() {},
