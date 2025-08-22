@@ -29,6 +29,17 @@
           <span lang="ja"> (ローカルのAI) </span>
         </localized-content>
       </o-if>
+
+      <o-if :value="error">
+        <n-local-icon
+          name="error"
+          style="
+            color: var(--md-sys-color-error);
+            display: block;
+            margin-left: 8px;
+          "
+        ></n-local-icon>
+      </o-if>
     </div>
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs" style="--ladder-left: 16px">
