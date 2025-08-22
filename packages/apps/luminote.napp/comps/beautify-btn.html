@@ -8,6 +8,39 @@
 
     .dialog-content {
       width: 80vw;
+      max-width: 1200px;
+    }
+
+    .processing-text {
+      opacity: 0.7;
+    }
+
+    .left,
+    .right {
+      max-height: 70vh;
+      overflow-y: auto;
+      border: 1px solid #5e5e5e;
+      border-radius: 4px;
+    }
+
+    .left {
+      margin-right: 4px;
+    }
+
+    .right {
+      margin-left: 4px;
+    }
+
+    @media (max-width: 768px) {
+      .dialog-content {
+        width: 95vw;
+      }
+
+      .left,
+      .right {
+        max-height: 50vh;
+        font-size: 14px;
+      }
     }
   </style>
   <p-button variant="text" on:click="clickBeautify">
@@ -23,11 +56,38 @@
     <div slot="title" style="text-align: center">润色文章</div>
     <div class="dialog-content">
       <div style="padding: 8px; text-align: center">
-        <p-button variant="outlined" on:click="beautifyAll">
-          润色整片文章
+        <p-button
+          variant="outlined"
+          on:click="beautifyAll"
+          attr:disabled="isProcessing"
+        >
+          <span
+            class:processing-text="isProcessing && processingType === 'beautify'"
+          >
+            <o-if :value="isProcessing">
+              <span>润色中...</span>
+            </o-if>
+            <o-else>
+              <span>润色整篇文章</span>
+            </o-else>
+          </span>
         </p-button>
-        <p-button variant="outlined" style="margin-left: 8px">
-          精简文章内容
+        <p-button
+          variant="outlined"
+          style="margin-left: 8px"
+          on:click="simplifyAll"
+          attr:disabled="isProcessing"
+        >
+          <span
+            class:processing-text="isProcessing && processingType === 'simplify'"
+          >
+            <o-if :value="isProcessing">
+              <span>精简中...</span>
+            </o-if>
+            <o-else>
+              <span>精简文章内容</span>
+            </o-else>
+          </span>
         </p-button>
       </div>
       <div style="padding: 8px; display: flex">
@@ -54,10 +114,59 @@
         data: {
           articleData: {},
           showDialog: false,
+          isProcessing: false,
+          processingType: null,
         },
         proto: {
-          async beautifyAll() {
-            const prompt = `角色设定：
+          /**
+           * 获取文章内容
+           * @returns {string} 文章内容HTML
+           */
+          getArticleContent() {
+            try {
+              const pages = this.host.$("lumi-page");
+              if (!pages || pages.length === 0) {
+                console.warn("未找到文章内容");
+                return "";
+              }
+
+              return Array.from(pages)
+                .map((item) => item.htmlContent || "")
+                .filter((content) => content.trim())
+                .join("\n\n");
+            } catch (error) {
+              console.error("获取文章内容失败:", error);
+              return "";
+            }
+          },
+
+          /**
+           * 打开润色对话框
+           */
+          clickBeautify() {
+            this.showDialog = true;
+            const articleContent = this.getArticleContent();
+
+            if (!articleContent) {
+              this.shadow.$("#origin").html =
+                "<p style='color: #666; text-align: center; padding: 20px;'>暂无文章内容</p>";
+              this.shadow.$("#content").html =
+                "<p style='color: #666; text-align: center; padding: 20px;'>暂无文章内容</p>";
+              return;
+            }
+
+            this.articleContent = articleContent;
+            this.shadow.$("#origin").html = articleContent;
+            this.shadow.$("#content").html = articleContent;
+          },
+
+          /**
+           * 生成润色提示词
+           * @param {string} content 文章内容
+           * @returns {string} 润色提示词
+           */
+          generateBeautifyPrompt(content) {
+            return `角色设定：
 你是一位资深的内容编辑专家，擅长在不改变原意的前提下，提升文章的表达质量、逻辑结构和语言流畅度。
 任务说明：
 请对以下HTML文章内容进行润色，要求如下：
@@ -72,48 +181,126 @@
 输出格式：
 仅返回润色后的HTML内容，不要添加解释或多余说明。
 
-${this._article_content}
+${content}
 `;
+          },
+
+          /**
+           * 生成精简提示词
+           * @param {string} content 文章内容
+           * @returns {string} 精简提示词
+           */
+          generateSimplifyPrompt(content) {
+            return `角色设定：
+你是一位资深的内容编辑专家，擅长在不改变核心信息的前提下，精简文章内容。
+任务说明：
+请对以下HTML文章内容进行精简，要求如下：
+保留所有HTML标签结构（如 <p>、<h2>、<strong>、<a> 等），不删除或合并任何标签。
+保留核心信息和主要观点，删除冗余内容。
+保持文章逻辑清晰，语言简洁有力。
+适度压缩篇幅，但不影响信息传达。
+输入格式：
+文章内容为一段HTML格式的字符串。
+输出格式：
+仅返回精简后的HTML内容，不要添加解释或多余说明。
+
+${content}
+`;
+          },
+
+          /**
+           * 处理AI请求
+           * @param {string} prompt 提示词
+           * @param {string} type 处理类型
+           */
+          async processContent(prompt, type) {
+            if (this.isProcessing) return;
+
+            this.isProcessing = true;
+            this.processingType = type;
 
             const contentEl = this.shadow.$("#content");
+            contentEl.html = `<div style="display:flex;justify-content:center;align-items:center; padding: 20px; color: #666;">
+              <p>正在${type === "beautify" ? "润色" : "精简"}文章...</p>
+              <div style="margin-top: 10px;">
+                <n-local-icon name="loading" style="font-size:28px;"></n-local-icon>
+              </div>
+            </div>`;
 
-            const _cancelTranslate = solicit({
-              groupTitle: "润色文章",
-              desc: "润色选中内容",
-              target: this.host,
-              execute: true,
-              onstart: () => {
-                return prompt;
-              },
-              onstream: (e) => {
-                contentEl.html = e.responseText;
-                // console.log(e.responseText);
-              },
-              onsuccess: (e) => {
-                console.log(e.responseText);
-              },
-            });
+            try {
+              await new Promise((resolve, reject) => {
+                const cancel = solicit({
+                  groupTitle: type === "beautify" ? "润色文章" : "精简文章",
+                  desc: type === "beautify" ? "润色文章内容" : "精简文章内容",
+                  target: this.host,
+                  execute: true,
+                  onstart: () => prompt,
+                  onstream: (e) => {
+                    contentEl.html = e.responseText;
+                  },
+                  onsuccess: (e) => {
+                    console.log(
+                      `${type === "beautify" ? "润色" : "精简"}完成:`,
+                      e.responseText
+                    );
+                    resolve();
+                  },
+                  onerror: (error) => {
+                    console.error(
+                      `${type === "beautify" ? "润色" : "精简"}失败:`,
+                      error
+                    );
+                    reject(error);
+                  },
+                });
+              });
+            } catch (error) {
+              contentEl.html = `<div style="color: #e74c3c; padding: 20px; text-align: center;">
+                <p>处理失败，请稍后重试</p>
+                <p style="font-size: 12px; margin-top: 8px;">${
+                  error.message || "未知错误"
+                }</p>
+              </div>`;
+            } finally {
+              this.isProcessing = false;
+              this.processingType = null;
+            }
           },
 
-          clickBeautify() {
-            this.showDialog = true;
+          /**
+           * 润色整篇文章
+           */
+          async beautifyAll() {
+            if (!this.articleContent) {
+              alert("暂无文章内容");
+              return;
+            }
 
-            // 获取整个文章的内容
-            let _article_content = "";
+            const prompt = this.generateBeautifyPrompt(this.articleContent);
+            await this.processContent(prompt, "beautify");
+          },
 
-            this.host.$("lumi-page").forEach((item) => {
-              _article_content += item.htmlContent + "\n\n";
-            });
+          /**
+           * 精简文章内容
+           */
+          async simplifyAll() {
+            if (!this.articleContent) {
+              alert("暂无文章内容");
+              return;
+            }
 
-            this._article_content = _article_content;
-
-            // 设置原文
-            this.shadow.$("#origin").html = this._article_content;
+            const prompt = this.generateSimplifyPrompt(this.articleContent);
+            await this.processContent(prompt, "simplify");
           },
         },
-        attached() {},
+        attached() {
+          // 组件挂载时初始化
+        },
         detached() {
           this.articleData = {};
+          this.articleContent = "";
+          this.isProcessing = false;
+          this.processingType = null;
         },
       };
     };
