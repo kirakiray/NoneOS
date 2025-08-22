@@ -13,6 +13,10 @@ let availableConfigs = null;
 export const ask = async (prompt, options) => {
   if (!availableConfigs) {
     availableConfigs = await getAvailableAIConfigs();
+
+    setTimeout(() => {
+      availableConfigs = null;
+    }, 1000 * 60);
   }
 
   if (!availableConfigs.length) {
