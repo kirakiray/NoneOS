@@ -182,6 +182,10 @@
             try {
               const serverUrl = this.item.url;
 
+              if (!serverUrl || serverUrl === "undefined") {
+                return;
+              }
+
               const model = this.item.model;
 
               const result = await chat({
@@ -218,6 +222,10 @@
           async initModels() {
             try {
               const serverUrl = this.item.url;
+              if (!serverUrl || serverUrl === "undefined") {
+                return;
+              }
+
               const list = await getModels(serverUrl);
 
               // 格式化模型大小显示
@@ -252,7 +260,10 @@
           // 设置默认端口
         },
         detached() {
-          this.item = {};
+          this.item = {
+            url: "",
+            model: "",
+          };
         },
       };
     };

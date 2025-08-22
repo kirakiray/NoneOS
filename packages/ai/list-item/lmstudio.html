@@ -218,6 +218,10 @@
                 serverUrl = this.item.url;
               }
 
+              if (!serverUrl || serverUrl === "undefined") {
+                return;
+              }
+
               const model = this.item.model;
 
               const result = await chat({
@@ -259,6 +263,10 @@
                 serverUrl = `http://localhost:${this.item.port}`;
               } else {
                 serverUrl = this.item.url;
+              }
+
+              if (!serverUrl || serverUrl === "undefined") {
+                return;
               }
 
               const list = await getModels(serverUrl);
