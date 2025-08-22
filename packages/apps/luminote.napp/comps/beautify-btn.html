@@ -20,14 +20,22 @@
       max-height: 70vh;
       overflow-y: auto;
       border: 1px solid #5e5e5e;
-      border-radius: 4px;
+      border-radius: 8px;
       box-sizing: border-box;
       padding: 0 16px;
       width: calc(50% - 6px);
+      transition: all ease 0.2s;
     }
 
     .left {
       margin-right: 6px;
+    }
+
+    .left.hide {
+      width: 0;
+      padding-left: 0;
+      padding-right: 0;
+      border-width: 0;
     }
 
     .right {
@@ -73,7 +81,7 @@
           <span
             class:processing-text="isProcessing && processingType === 'beautify'"
           >
-            <o-if :value="isProcessing">
+            <o-if :value="isProcessing && processingType === 'beautify'">
               <span>润色中...</span>
             </o-if>
             <o-else>
@@ -90,7 +98,7 @@
           <span
             class:processing-text="isProcessing && processingType === 'simplify'"
           >
-            <o-if :value="isProcessing">
+            <o-if :value="isProcessing && processingType === 'simplify'">
               <span>精简中...</span>
             </o-if>
             <o-else>
@@ -99,9 +107,31 @@
           </span>
         </p-button>
       </div>
-      <div style="padding: 8px; display: flex">
-        <div class="left" id="content"></div>
-        <div class="right" id="origin"></div>
+      <div style="padding: 8px; display: flex; justify-content: center">
+        <div class="left hide">
+          <div
+            style="
+              padding: 4px 0;
+              font-weight: bold;
+              color: var(--md-sys-color-primary);
+            "
+          >
+            处理后
+          </div>
+          <div id="content"></div>
+        </div>
+        <div class="right">
+          <div
+            style="
+              padding: 4px 0;
+              font-weight: bold;
+              color: var(--md-sys-color-primary);
+            "
+          >
+            原文内容
+          </div>
+          <div id="origin"></div>
+        </div>
       </div>
     </div>
   </p-dialog>
@@ -240,6 +270,8 @@ ${content}
               </div>
             </div>`;
 
+            contentEl.parent.classList.remove("hide");
+
             try {
               await new Promise((resolve, reject) => {
                 const cancel = solicit({
@@ -249,13 +281,9 @@ ${content}
                   execute: true,
                   onstart: () => prompt,
                   onstream: (e) => {
-                    contentEl.html = e.responseText;
+                    contentEl.html = e.responseText || " &nbsp;"; // 最少要加个空格，防止empty
                   },
                   onsuccess: (e) => {
-                    console.log(
-                      `${type === "beautify" ? "润色" : "精简"}完成:`,
-                      e.responseText
-                    );
                     resolve();
                   },
                   onerror: (error) => {
