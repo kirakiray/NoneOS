@@ -103,14 +103,15 @@
       justify-content: flex-end;
       align-items: center;
       transition: all ease 0.3s;
-      white-space: nowrap;
       opacity: 0;
+      pointer-events: none;
     }
 
     .other-btn.show {
       width: 200px;
       left: -200px;
       opacity: 1;
+      pointer-events: auto;
     }
 
     .other-btn.hide {

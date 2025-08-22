@@ -63,7 +63,7 @@
       margin: 0;
     }
   </style>
-  <p-button variant="text" on:click="clickBeautify">
+  <p-button variant="text" on:click="clickBeautify" style="white-space: nowrap">
     <n-local-icon
       name="ai-beautify"
       slot="prefix"
@@ -188,7 +188,7 @@
           },
 
           /**
-           * 打开润色对话框
+           * 通过点击按钮的方式打开润色对话框
            */
           clickBeautify() {
             this.showDialog = true;
@@ -204,7 +204,8 @@
 
             this.articleContent = articleContent;
             this.shadow.$("#origin").html = articleContent;
-            // this.shadow.$("#content").html = articleContent;
+            this.shadow.$("#content").html = "";
+            // this.shadow.$("#content").parent.classList.add("hide");
           },
 
           /**
