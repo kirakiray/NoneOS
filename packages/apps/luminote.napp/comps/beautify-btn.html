@@ -1,0 +1,124 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .dialog-content {
+      width: 80vw;
+      /* height: 20vh; */
+      /* height: 80vh; */
+    }
+  </style>
+  <p-button variant="text" on:click="clickBeautify">
+    <n-local-icon
+      name="ai-beautify"
+      slot="prefix"
+      style="margin-right: 4px; display: block"
+    ></n-local-icon>
+    润色
+  </p-button>
+
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title" style="text-align: center">润色文章</div>
+    <div class="dialog-content">
+      <p>请点击执行你想要做的操作。</p>
+      <div style="padding: 8px; text-align: center">
+        <p-button variant="outlined" on:click="beautifyAll">
+          润色整片文章
+        </p-button>
+        <p-button variant="outlined" style="margin-left: 8px">
+          精简文章内容
+        </p-button>
+      </div>
+      <div style="padding: 8px; display: flex">
+        <div
+          class="left"
+          id="content"
+          style="padding: 16px 8px; flex: 1 0 0"
+        ></div>
+        <div
+          class="right"
+          id="origin"
+          style="padding: 16px 8px; flex: 1 0 0"
+        ></div>
+      </div>
+    </div>
+  </p-dialog>
+
+  <script>
+    export default async ({ load }) => {
+      const { solicit } = await load("/packages/ai/main.js");
+
+      return {
+        tag: "lumi-beautify-btn",
+        data: {
+          articleData: {},
+          showDialog: false,
+        },
+        proto: {
+          async beautifyAll() {
+            const prompt = `角色设定：
+你是一位资深的内容编辑专家，擅长在不改变原意的前提下，提升文章的表达质量、逻辑结构和语言流畅度。
+任务说明：
+请对以下HTML文章内容进行润色，要求如下：
+保留所有HTML标签结构（如 <p>、<h2>、<strong>、<a> 等），不删除或合并任何标签。
+不改变原意，仅优化语言表达。
+提升语言质量：使句子更通顺、专业、自然，避免重复和冗余。
+优化逻辑结构：在不改变段落顺序的前提下，让内容衔接更自然。
+适度增强感染力：根据语境增强语气或情感表达，但不过度修饰。
+避免AI痕迹：语言自然、贴近人类写作风格，避免机械感。
+输入格式：
+文章内容为一段HTML格式的字符串。
+输出格式：
+仅返回润色后的HTML内容，不要添加解释或多余说明。
+
+${this._article_content}
+`;
+
+            // 设置原文
+            this.shadow.$("#origin").html = this._article_content;
+
+            const contentEl = this.shadow.$("#content");
+
+            const _cancelTranslate = solicit({
+              groupTitle: "润色文章",
+              desc: "润色整片文章",
+              target: this.host,
+              execute: true,
+              onstart: () => {
+                return prompt;
+              },
+              onstream: (e) => {
+                contentEl.html = e.responseText;
+                // console.log(e.responseText);
+              },
+              onsuccess: (e) => {
+                console.log(e.responseText);
+              },
+            });
+          },
+
+          clickBeautify() {
+            this.showDialog = true;
+
+            // 获取整个文章的内容
+            let _article_content = "";
+
+            this.host.$("lumi-page").forEach((item) => {
+              _article_content += item.htmlContent + "\n\n";
+            });
+
+            this._article_content = _article_content;
+          },
+        },
+        attached() {},
+        detached() {
+          this.articleData = {};
+        },
+      };
+    };
+  </script>
+</template>

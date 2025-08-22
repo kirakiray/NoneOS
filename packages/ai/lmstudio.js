@@ -32,7 +32,7 @@ export async function chat({
         model: model,
         messages: messages,
         temperature: 0.7,
-        max_tokens: 256,
+        max_tokens: 1024 * 32,
         stream: useStream,
       }),
     });
