@@ -305,6 +305,7 @@
   <script>
     export default async ({ load }) => {
       const { groups } = await load("./solicit.js");
+      const { isAIAvailable } = await load("./main.js");
 
       return {
         tag: "ai-tool",
@@ -342,6 +343,14 @@
         attached() {
           this.groups = groups;
           this.checkTask();
+
+          (async () => {
+            const bool = await isAIAvailable();
+
+            if (!bool) {
+              this.style.display = "none";
+            }
+          })();
         },
         detached() {
           this.groups = [];
