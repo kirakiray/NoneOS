@@ -42,6 +42,11 @@
         font-size: 14px;
       }
     }
+
+    .line-comp {
+      display: block;
+      padding: 4px 0;
+    }
   </style>
   <p-button variant="text" on:click="clickBeautify">
     <n-local-icon
@@ -55,6 +60,7 @@
   <p-dialog :open="showDialog" on:click-mask="showDialog = false">
     <div slot="title" style="text-align: center">润色文章</div>
     <div class="dialog-content">
+      <div style="text-align: center">你想要对选中的内容做什么？</div>
       <div style="padding: 8px; text-align: center">
         <p-button
           variant="outlined"
@@ -68,7 +74,7 @@
               <span>润色中...</span>
             </o-if>
             <o-else>
-              <span>润色整篇文章</span>
+              <span>润色内容</span>
             </o-else>
           </span>
         </p-button>
@@ -85,7 +91,7 @@
               <span>精简中...</span>
             </o-if>
             <o-else>
-              <span>精简文章内容</span>
+              <span>精简内容</span>
             </o-else>
           </span>
         </p-button>
@@ -131,7 +137,19 @@
               }
 
               return Array.from(pages)
-                .map((item) => item.htmlContent || "")
+                .map((item) => {
+                  let content = item.htmlContent || "";
+
+                  let tabLeft = 0;
+
+                  if (item.itemData?.tab) {
+                    tabLeft = item.itemData.tab * 20;
+                  }
+
+                  content = `<div class="line-comp" style="margin-left:${tabLeft}px;">${content}</div>`;
+
+                  return content;
+                })
                 .filter((content) => content.trim())
                 .join("\n\n");
             } catch (error) {
