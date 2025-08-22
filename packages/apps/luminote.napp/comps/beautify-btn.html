@@ -21,14 +21,17 @@
       overflow-y: auto;
       border: 1px solid #5e5e5e;
       border-radius: 4px;
+      box-sizing: border-box;
+      padding: 0 16px;
+      width: calc(50% - 6px);
     }
 
     .left {
-      margin-right: 4px;
+      margin-right: 6px;
     }
 
     .right {
-      margin-left: 4px;
+      margin-left: 6px;
     }
 
     @media (max-width: 768px) {
@@ -97,16 +100,8 @@
         </p-button>
       </div>
       <div style="padding: 8px; display: flex">
-        <div
-          class="left"
-          id="content"
-          style="padding: 16px 8px; flex: 1 0 0"
-        ></div>
-        <div
-          class="right"
-          id="origin"
-          style="padding: 16px 8px; flex: 1 0 0"
-        ></div>
+        <div class="left" id="content"></div>
+        <div class="right" id="origin"></div>
       </div>
     </div>
   </p-dialog>
@@ -175,7 +170,7 @@
 
             this.articleContent = articleContent;
             this.shadow.$("#origin").html = articleContent;
-            this.shadow.$("#content").html = articleContent;
+            // this.shadow.$("#content").html = articleContent;
           },
 
           /**
@@ -238,7 +233,7 @@ ${content}
             this.processingType = type;
 
             const contentEl = this.shadow.$("#content");
-            contentEl.html = `<div style="display:flex;justify-content:center;align-items:center; padding: 20px; color: #666;">
+            contentEl.html = `<div style="display:flex;justify-content:center;align-items:center;flex-direction: column; padding: 20px; color: #666;">
               <p>正在${type === "beautify" ? "润色" : "精简"}文章...</p>
               <div style="margin-top: 10px;">
                 <n-local-icon name="loading" style="font-size:28px;"></n-local-icon>
