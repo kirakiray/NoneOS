@@ -1,6 +1,5 @@
 <template page>
   <l-m src="../lumi/lumi-page.html"></l-m>
-  <l-m src="../comps/beautify-btn.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -29,11 +28,11 @@
     }
   </style>
   <div class="main">
-    <o-if :value="isAIAvailable">
+    <!-- <o-if :value="isAIAvailable">
       <lumi-beautify-btn
         style="position: absolute; top: 16px; right: 16px"
       ></lumi-beautify-btn>
-    </o-if>
+    </o-if> -->
     <div class="inner">
       <o-if :value="!!error">
         <div style="color: var(--md-sys-color-error)">{{error}}</div>

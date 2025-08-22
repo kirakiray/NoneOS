@@ -9,6 +9,7 @@
   <l-m src="../comps/view-lang.html"></l-m>
   <l-m src="/packages/comps/dnd-box/dnd-box.html"></l-m>
   <l-m src="/packages/ai/tool.html"></l-m>
+  <l-m src="../comps/beautify-btn.html"></l-m>
   <style>
     :host {
       display: block;
@@ -522,7 +523,9 @@
       <lumi-create-project></lumi-create-project>
     </p-dialog>
   </o-provider>
-  <ai-tool></ai-tool>
+  <ai-tool>
+    <lumi-beautify-btn></lumi-beautify-btn>
+  </ai-tool>
   <script>
     export default async ({ load }) => {
       const { findArticle } = await load("../util/find-article-data.js");
