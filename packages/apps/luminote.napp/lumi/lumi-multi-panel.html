@@ -91,7 +91,7 @@
           </localized-content>
         </div>
       </p-tooltips>
-      <!-- <o-if :value="isAIAvailable">
+      <o-if :value="isAIAvailable">
         <div class="line"></div>
         <p-tooltips placement="top">
           <p-button size="small" variant="text" on:click="clickBeautify" icon>
@@ -106,7 +106,7 @@
             </localized-content>
           </div>
         </p-tooltips>
-      </o-if> -->
+      </o-if>
     </div>
   </div>
 
@@ -134,9 +134,24 @@
             return this.shadow.$(".multi-panel");
           },
           clickBeautify() {
-            // this.host._selecteds.forEach((e) => {
-            //   e.beautify();
-            // });
+            let layout = this.composedPath().find(
+              (e) => $(e).src && $(e).src.includes("layout.html")
+            );
+            layout = $(layout);
+
+            const beautifyBtn = layout.shadow.$("lumi-beautify-btn");
+
+            if (!beautifyBtn) {
+              toast("some thing error");
+              return;
+            }
+
+            // 传入要润色的内容
+            beautifyBtn.clickBeautify(
+              this.host._selecteds[0].index,
+              this.host._selecteds.slice(-1)[0].index + 1
+            );
+
             console.log("暂时不可用");
           },
           async clickCopy() {

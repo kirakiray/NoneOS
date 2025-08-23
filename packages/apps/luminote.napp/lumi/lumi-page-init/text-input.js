@@ -18,6 +18,8 @@ import { inlineComps } from "../inline/config.js";
 
 import purify from "/packages/libs/purify.es.mjs";
 
+import { htmlToItemData } from "../util/html-to-itemdata.js";
+
 purify.setConfig({
   RETURN_TRUSTED_TYPE: false,
   FORCE_BODY: true,
@@ -253,15 +255,8 @@ export const initTextInput = (lumipage) => {
   lumipage.on("paste", async (e) => {
     let lumiBlock = getLumiBlock(e);
 
-    const pushContents = (contents) => {
-      const parentContent = lumipage.itemData.content;
-
-      // 在当前的前面添加对应的数据
-      const index = parentContent.indexOf($(lumiBlock).itemData);
-
-      if (index > -1) {
-        parentContent.splice(index, 0, ...contents);
-      }
+    const pushData = (contents) => {
+      return pushContents(lumipage, lumiBlock, contents);
     };
 
     if (e.clipboardData.types.includes("Files")) {
@@ -289,8 +284,7 @@ export const initTextInput = (lumipage) => {
         }
       }
 
-      debugger;
-      pushContents(contents);
+      pushData(contents);
       return;
     }
 
@@ -340,85 +334,13 @@ export const initTextInput = (lumipage) => {
     }
 
     if (pastedHtml) {
-      const temp = $(`<template>${pastedHtml}</template>`).ele;
-
-      const contents = [];
-
-      // 直接单标签开头
-      if (/^</.test(pastedHtml.trim())) {
-        for (let item of temp.content.children) {
-          // if (item.innerHTML) {
-          const reContent = await elementToLetterData(item);
-
-          const tag = item.tagName.toLowerCase();
-
-          if (tag === "p" || tag === "h2" || tag === "h3" || tag === "h4") {
-            const type = tag === "p" ? "paragraph" : tag;
-
-            contents.push({
-              type,
-              value: await letterDataToElement(reContent),
-            });
-          } else if (tag === "code") {
-            contents.push({
-              type: "lumi-code",
-              value: item.innerHTML,
-            });
-          } else {
-            const tag = item.tagName.toLowerCase();
-
-            if (blockComps.find((e) => e.tag === tag)) {
-              const attrs = {};
-
-              let tab = 0;
-
-              for (let e of item.attributes) {
-                if (e.name === "data-tabcount") {
-                  tab = parseInt(e.value);
-                  continue;
-                }
-                attrs[e.name] = e.value;
-              }
-
-              const obj = {
-                type: tag,
-                attrs,
-                value: await letterDataToElement(reContent),
-              };
-
-              if (tab) {
-                obj.tab = tab;
-              }
-
-              contents.push(obj);
-            } else {
-              // 不明类型全部填充为段落
-              contents.push({
-                type: "paragraph",
-                value: await letterDataToElement(reContent),
-              });
-            }
-          }
-          // }
-        }
-
-        e.preventDefault();
-        pushContents(contents);
-      } else {
-        // const selectionRangeData = selectionData;
-        // // 直接粘贴的片段
-        // const reContent = await elementToLetterData(temp.content);
-        // debugger;
-        // console.log("paste");
-        // contents.push({
-        //   type: "paragraph",
-        //   value: await letterDataToElement(reContent),
-        // });
-      }
-
+      const contents = await htmlToItemData(pastedHtml);
+      pushData(contents);
+      e.preventDefault();
       return;
     }
     {
+      // 直接粘贴文本类型
       const contents = [];
 
       let pastedText = clipboardData.getData("text/plain"); //
@@ -446,9 +368,27 @@ export const initTextInput = (lumipage) => {
           });
         });
 
-      pushContents(contents);
+      pushData(contents);
     }
   });
+};
+
+const pushContents = (lumipage, lumiBlock, contents) => {
+  const parentContent = lumipage.itemData.content;
+
+  const index = parentContent.indexOf($(lumiBlock).itemData);
+
+  // 在当前的后面添加对应的数据，若是空白则会在前面加入
+  if (index > -1) {
+    let targetIndex = index + 1;
+    if (
+      parentContent[index].type === "paragraph" &&
+      parentContent[index].value === ""
+    ) {
+      targetIndex = index;
+    }
+    parentContent.splice(targetIndex, 0, ...contents);
+  }
 };
 
 const selectedsTabPlus = (lumipage, event, tabCount = 1) => {

@@ -1,0 +1,440 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .dialog-content {
+      width: 80vw;
+      max-width: 1200px;
+    }
+
+    .processing-text {
+      opacity: 0.7;
+    }
+
+    .left,
+    .right {
+      max-height: 70vh;
+      overflow-y: auto;
+      border: 1px solid #5e5e5e;
+      border-radius: 8px;
+      box-sizing: border-box;
+      padding: 0 16px;
+      width: calc(50% - 6px);
+      transition: all ease 0.2s;
+    }
+
+    .left {
+      margin-right: 6px;
+    }
+
+    .left.hide {
+      width: 0;
+      padding-left: 0;
+      padding-right: 0;
+      border-width: 0;
+    }
+
+    .right {
+      margin-left: 6px;
+    }
+
+    @media (max-width: 768px) {
+      .dialog-content {
+        width: 95vw;
+      }
+
+      .left,
+      .right {
+        max-height: 60vh;
+        font-size: 14px;
+      }
+    }
+
+    .line-comp {
+      display: block;
+      padding: 4px 0;
+    }
+    .line-comp p {
+      padding: 0;
+      margin: 0;
+    }
+  </style>
+  <p-button variant="text" on:click="clickBeautify" style="white-space: nowrap">
+    <n-local-icon
+      name="ai-beautify"
+      slot="prefix"
+      style="margin-right: 4px; display: block"
+    ></n-local-icon>
+    润色
+  </p-button>
+
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title" style="text-align: center">润色文章</div>
+    <div class="dialog-content">
+      <div style="text-align: center">你想要对选中的内容做什么？</div>
+      <div style="padding: 8px; text-align: center">
+        <p-button
+          variant="outlined"
+          on:click="beautifyAll"
+          attr:disabled="isProcessing"
+        >
+          <span
+            class:processing-text="isProcessing && processingType === 'beautify'"
+          >
+            <o-if :value="isProcessing && processingType === 'beautify'">
+              <span>润色中...</span>
+            </o-if>
+            <o-else>
+              <span>润色内容</span>
+            </o-else>
+          </span>
+        </p-button>
+        <p-button
+          variant="outlined"
+          style="margin-left: 8px"
+          on:click="simplifyAll"
+          attr:disabled="isProcessing"
+        >
+          <span
+            class:processing-text="isProcessing && processingType === 'simplify'"
+          >
+            <o-if :value="isProcessing && processingType === 'simplify'">
+              <span>精简中...</span>
+            </o-if>
+            <o-else>
+              <span>精简内容</span>
+            </o-else>
+          </span>
+        </p-button>
+      </div>
+      <div style="padding: 8px; display: flex; justify-content: center">
+        <div class="left hide">
+          <div
+            style="
+              padding: 4px 0;
+              font-weight: bold;
+              color: var(--md-sys-color-primary);
+            "
+          >
+            处理后
+          </div>
+          <div id="content"></div>
+        </div>
+        <div class="right">
+          <div
+            style="
+              padding: 4px 0;
+              font-weight: bold;
+              color: var(--md-sys-color-primary);
+            "
+          >
+            原文内容
+          </div>
+          <div id="origin"></div>
+        </div>
+      </div>
+    </div>
+    <o-if :value="isProcessed">
+      <p-button on:click="replaceContent" style="margin-left: 8px">
+        确认替换润色内容
+      </p-button>
+    </o-if>
+  </p-dialog>
+
+  <script>
+    export default async ({ load }) => {
+      const { solicit } = await load("/packages/ai/main.js");
+      const { htmlToItemData } = await load("../lumi/util/html-to-itemdata.js");
+
+      return {
+        tag: "lumi-beautify-btn",
+        data: {
+          articleData: {},
+          showDialog: false,
+          isProcessing: false,
+          processingType: null,
+          isProcessed: false,
+          _start: null,
+          _end: null,
+        },
+        proto: {
+          async replaceContent() {
+            const articleData = this.host.$("lumi-page").itemData;
+
+            // 获取目标范围的数据
+            const targetRangeData = articleData.content.slice(
+              this._start,
+              this._end
+            );
+
+            // 如果和处理后的数量相同，则直接替换value数据
+            if (this.shadow.$("#content").length === targetRangeData.length) {
+              this.shadow.$("#content").forEach((item, index) => {
+                let content = item.html;
+                try {
+                  // 剥去一层标签内容
+                  const temp = $(content);
+                  content = temp.html;
+                } catch (e) {
+                  console.error("替换内容失败:", e);
+                }
+
+                if (!content.trim()) {
+                  return;
+                }
+
+                targetRangeData[index].value = content;
+              });
+            } else {
+              let recontent = "";
+
+              this.shadow.$("#content").forEach((item, index) => {
+                recontent += item.html;
+              });
+
+              const recontentData = await htmlToItemData(recontent);
+
+              if (this._start === undefined || this._end === undefined) {
+                // 直接替换全文
+                articleData.content = recontentData;
+              } else {
+                // 局部替换
+                articleData.content.splice(
+                  this._start,
+                  this._end - this._start,
+                  ...recontentData
+                );
+              }
+            }
+
+            this.showDialog = false;
+          },
+          /**
+           * 获取文章内容
+           * @returns {string} 文章内容HTML
+           */
+          getArticleContent(start, end) {
+            try {
+              const pages = this.host.$("lumi-page");
+              if (!pages || pages.length === 0) {
+                console.warn("未找到文章内容");
+                return "";
+              }
+
+              const redata = Array.from(pages)
+                .map((item, index) => {
+                  // 检查当前索引是否在指定范围内，不在则返回空字符串
+                  if (start !== undefined && index < start) {
+                    return "";
+                  }
+                  if (end !== undefined && index > end - 1) {
+                    return "";
+                  }
+
+                  // 获取页面内容，若不存在则为空字符串
+                  let blockContent = item.htmlContent || "";
+
+                  // 初始化左侧缩进量
+                  let leftIndent = 0;
+
+                  // 若存在 tab 数据，计算缩进量并为内容添加 tab 计数属性
+                  if (item.itemData?.tab) {
+                    leftIndent = item.itemData.tab * 20;
+                    const templateWrapper = $(
+                      `<template>${blockContent}</template>`
+                    );
+                    const firstChild = templateWrapper.ele.content.children[0];
+                    firstChild.dataset.tabcount = item.itemData.tab;
+                    blockContent = firstChild.outerHTML;
+                  }
+
+                  // 将内容包裹在带有缩进样式的容器中
+                  return `<div class="line-comp" style="margin-left:${leftIndent}px;">${blockContent}</div>`;
+                })
+                .filter((content) => content.trim())
+                .join("\n\n");
+
+              return redata;
+            } catch (error) {
+              console.error("获取文章内容失败:", error);
+              return "";
+            }
+          },
+
+          /**
+           * 打开润色对话框
+           */
+          clickBeautify(start, end) {
+            this.showDialog = true;
+            const articleContent = this.getArticleContent(start, end);
+
+            if (!articleContent) {
+              this.shadow.$("#origin").html =
+                "<p style='color: #666; text-align: center; padding: 20px;'>暂无文章内容</p>";
+              this.shadow.$("#content").html =
+                "<p style='color: #666; text-align: center; padding: 20px;'>暂无文章内容</p>";
+              return;
+            }
+
+            if (this._start !== start || this._end !== end) {
+              this.shadow.$("#content").html = "";
+              this.shadow.$("#content").parent.classList.add("hide");
+              this.isProcessed = false;
+            }
+
+            this._start = start;
+            this._end = end;
+
+            this.articleContent = articleContent;
+            this.shadow.$("#origin").html = articleContent;
+          },
+
+          /**
+           * 生成润色提示词
+           * @param {string} content 文章内容
+           * @returns {string} 润色提示词
+           */
+          generateBeautifyPrompt(content) {
+            return `角色设定：
+你是一位资深的内容编辑专家，擅长在不改变原意的前提下，提升文章的表达质量、逻辑结构和语言流畅度。
+任务说明：
+请对以下HTML文章内容进行润色，要求如下：
+保留所有HTML标签结构（如 <p>、<h2>、<strong>、<a> 等），不删除或合并任何标签。
+不改变原意，仅优化语言表达。
+提升语言质量：使句子更通顺、专业、自然，避免重复和冗余。
+优化逻辑结构：在不改变段落顺序的前提下，让内容衔接更自然。
+适度增强感染力：根据语境增强语气或情感表达，但不过度修饰。
+避免AI痕迹：语言自然、贴近人类写作风格，避免机械感。
+输入格式：
+文章内容为一段HTML格式的字符串。
+输出格式：
+仅返回润色后的HTML内容，不要添加解释或多余说明。
+
+${content}
+`;
+          },
+
+          /**
+           * 生成精简提示词
+           * @param {string} content 文章内容
+           * @returns {string} 精简提示词
+           */
+          generateSimplifyPrompt(content) {
+            return `角色设定：
+你是一位资深的内容编辑专家，擅长在不改变核心信息的前提下，精简文章内容。
+任务说明：
+请对以下HTML文章内容进行精简，要求如下：
+保留所有HTML标签结构（如 <p>、<h2>、<strong>、<a> 等），不删除或合并任何标签。
+保留核心信息和主要观点，删除冗余内容。
+保持文章逻辑清晰，语言简洁有力。
+适度压缩篇幅，但不影响信息传达。
+输入格式：
+文章内容为一段HTML格式的字符串。
+输出格式：
+仅返回精简后的HTML内容，不要添加解释或多余说明。
+
+${content}
+`;
+          },
+
+          /**
+           * 处理AI请求
+           * @param {string} prompt 提示词
+           * @param {string} type 处理类型
+           */
+          async processContent(prompt, type) {
+            if (this.isProcessing) return;
+
+            this.isProcessing = true;
+            this.processingType = type;
+
+            const contentEl = this.shadow.$("#content");
+            contentEl.html = `<div style="display:flex;justify-content:center;align-items:center;flex-direction: column; padding: 20px; color: #666;font-size:12px;">
+              <p>正在${type === "beautify" ? "润色" : "精简"}文章...</p>
+              <div style="margin-top: 10px;">
+                <n-local-icon name="loading" style="font-size:28px;"></n-local-icon>
+              </div>
+            </div>`;
+
+            contentEl.parent.classList.remove("hide");
+
+            try {
+              await new Promise((resolve, reject) => {
+                const cancel = solicit({
+                  groupTitle: type === "beautify" ? "润色文章" : "精简文章",
+                  desc: type === "beautify" ? "润色文章内容" : "精简文章内容",
+                  target: this.host,
+                  execute: true,
+                  onstart: () => prompt,
+                  onstream: (e) => {
+                    contentEl.html = e.responseText || " &nbsp;"; // 最少要加个空格，防止empty
+                  },
+                  onsuccess: (e) => {
+                    this.isProcessed = true;
+                    resolve();
+                  },
+                  onerror: (error) => {
+                    console.error(
+                      `${type === "beautify" ? "润色" : "精简"}失败:`,
+                      error
+                    );
+                    reject(error);
+                  },
+                });
+              });
+            } catch (error) {
+              contentEl.html = `<div style="color: #e74c3c; padding: 20px; text-align: center;">
+                <p>处理失败，请稍后重试</p>
+                <p style="font-size: 12px; margin-top: 8px;">${
+                  error.message || "未知错误"
+                }</p>
+              </div>`;
+            } finally {
+              this.isProcessing = false;
+              this.processingType = null;
+            }
+          },
+
+          /**
+           * 润色整篇文章
+           */
+          async beautifyAll() {
+            if (!this.articleContent) {
+              alert("暂无文章内容");
+              return;
+            }
+
+            const prompt = this.generateBeautifyPrompt(this.articleContent);
+            await this.processContent(prompt, "beautify");
+          },
+
+          /**
+           * 精简文章内容
+           */
+          async simplifyAll() {
+            if (!this.articleContent) {
+              alert("暂无文章内容");
+              return;
+            }
+
+            const prompt = this.generateSimplifyPrompt(this.articleContent);
+            await this.processContent(prompt, "simplify");
+          },
+        },
+        attached() {
+          // 组件挂载时初始化
+        },
+        detached() {
+          this.articleData = {};
+          this.articleContent = "";
+          this.isProcessing = false;
+          this.processingType = null;
+        },
+      };
+    };
+  </script>
+</template>

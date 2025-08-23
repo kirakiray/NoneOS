@@ -38,15 +38,19 @@
         },
         watch: {},
         proto: {
-          // get aisettingJSON() {
-          //   return JSON.stringify(this.aiSetting, null, 2);
-          // },
+          get aisettingJSON() {
+            return JSON.stringify(this.aiSetting, null, 2);
+          },
         },
         async attached() {
           this.emit("update-tab", {
             data: "local-ai",
             composed: true,
           });
+
+          setTimeout(() => {
+            this.style.transform = "";
+          }, 300);
 
           this.aiSetting = aiSetting;
         },
