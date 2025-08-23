@@ -131,28 +131,6 @@
         <span lang="ja">更新</span>
       </localized-content>
     </p-button>
-    <p-button
-      size="mini"
-      style="margin-left: 8px"
-      variant="outlined"
-      on:click="activeTranslate"
-      attr:disabled="inTranslate"
-    >
-      <o-if :value="!inTranslate">
-        <localized-content>
-          <span lang="cn">主动翻译</span>
-          <span lang="en">Active Translate</span>
-          <span lang="ja">翻訳を主动にする</span>
-        </localized-content>
-      </o-if>
-      <o-else>
-        <localized-content>
-          <span lang="cn">翻译中...</span>
-          <span lang="en">Translating...</span>
-          <span lang="ja">翻訳中...</span>
-        </localized-content>
-      </o-else>
-    </p-button>
   </h4>
   <o-if :value="translationProgress.length">
     <o-fill :value="translationProgress">
@@ -163,7 +141,7 @@
             :value="$data.progress"
             style="margin-top: 4px; margin-right: 8px"
           ></p-progress>
-          <p-button
+          <!-- <p-button
             size="small"
             variant="outlined"
             color="error"
@@ -174,7 +152,7 @@
               <span lang="en">Clear Cache</span>
               <span lang="ja">キャッシュをクリア</span>
             </localized-content>
-          </p-button>
+          </p-button> -->
           <p-button
             size="small"
             variant="text"
@@ -204,7 +182,7 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
-      const { getTranslationProgress, clearTranslatedContent } = await load(
+      const { getTranslationProgress } = await load(
         "/packages/apps/luminote.napp/lumi/util/i18n-toblock.js"
       );
       const { changeLang } = await load("../lumi/util/change-lang.js");
@@ -219,7 +197,6 @@
           projectData: {},
           currentMainLang: "",
           translationProgress: [],
-          inTranslate: false,
         },
         proto: {
           async setDefaultLang(lang) {
@@ -256,72 +233,6 @@
             this.emit("reload-exited-project", {
               composed: true,
             });
-          },
-          async activeTranslate() {
-            // 暂时不可用
-            return;
-
-            // 主动翻译所有语言
-            const result = await confirm({
-              content: await getLocalized({
-                cn: "确认要主动翻译目标语言吗？此操作无法暂停，需等待翻译完成后方可继续。",
-                en: "Are you sure you want to active translate all languages? This operation cannot be paused, and you need to wait for the translation to complete before you can continue.",
-                ja: "翻訳を主动にすることを確認しますか？この操作は中断できません。翻訳が完了するまで待ってから続行してください。",
-              }),
-            });
-
-            this.inTranslate = true;
-
-            let refreshTimer;
-            const refresh = () => {
-              clearTimeout(refreshTimer);
-              refreshTimer = setTimeout(() => {
-                this.refreshLangProgress();
-              }, 1000);
-            };
-
-            // 主动翻译内容
-            await fillTranslate(this.projectData.main, {
-              langs: ["en", "ja"],
-              mainLang: this.projectData.mainLang,
-              callback: (item) => {
-                refresh();
-              },
-            });
-
-            this.inTranslate = false;
-
-            this.refreshLangProgress();
-
-            toast({
-              content: await getLocalized({
-                cn: "主动翻译完成",
-                en: "Active translate completed",
-                ja: "翻訳を主动にしました",
-              }),
-            });
-          },
-          async clearLang(lang) {
-            const result = await confirm({
-              title: await getLocalized({
-                cn: "清除翻译缓存",
-                en: "Clear Translation Cache",
-                ja: "翻訳キャッシュをクリア",
-              }),
-              content: await getLocalized({
-                cn: `确认要清除 ${getRealLang(lang)}？`,
-                en: `Are you sure you want to clear ${getRealLang(lang)}?`,
-                ja: `${getRealLang(lang)}をクリアしてもよろしいですか？`,
-              }),
-            });
-
-            if (!result) {
-              return;
-            }
-
-            await clearTranslatedContent(this.projectData.main, lang);
-
-            this.refreshLangProgress();
           },
           async refreshLangProgress() {
             const translationProgress = [];
