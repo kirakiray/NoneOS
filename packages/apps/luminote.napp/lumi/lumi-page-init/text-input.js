@@ -18,6 +18,8 @@ import { inlineComps } from "../inline/config.js";
 
 import purify from "/packages/libs/purify.es.mjs";
 
+import { htmlToItemData } from "../util/html-to-itemdata.js";
+
 purify.setConfig({
   RETURN_TRUSTED_TYPE: false,
   FORCE_BODY: true,
@@ -332,7 +334,8 @@ export const initTextInput = (lumipage) => {
     }
 
     if (pastedHtml) {
-      importUseHtml(pastedHtml, lumipage, lumiBlock);
+      const contents = await htmlToItemData(pastedHtml);
+      pushData(contents);
       e.preventDefault();
       return;
     }
@@ -368,72 +371,6 @@ export const initTextInput = (lumipage) => {
       pushData(contents);
     }
   });
-};
-
-// 将html从目标节点后面导入
-export const importUseHtml = async (pastedHtml, lumipage, lumiBlock) => {
-  const temp = $(`<template>${pastedHtml}</template>`).ele;
-
-  const contents = [];
-
-  // 直接单标签开头
-  if (/^</.test(pastedHtml.trim())) {
-    for (let item of temp.content.children) {
-      const reContent = await elementToLetterData(item);
-
-      const tag = item.tagName.toLowerCase();
-
-      if (tag === "p" || tag === "h2" || tag === "h3" || tag === "h4") {
-        const type = tag === "p" ? "paragraph" : tag;
-
-        contents.push({
-          type,
-          value: await letterDataToElement(reContent),
-        });
-      } else if (tag === "code") {
-        contents.push({
-          type: "lumi-code",
-          value: item.innerHTML,
-        });
-      } else {
-        const tag = item.tagName.toLowerCase();
-
-        if (blockComps.find((e) => e.tag === tag)) {
-          const attrs = {};
-
-          let tab = 0;
-
-          for (let e of item.attributes) {
-            if (e.name === "data-tabcount") {
-              tab = parseInt(e.value);
-              continue;
-            }
-            attrs[e.name] = e.value;
-          }
-
-          const obj = {
-            type: tag,
-            attrs,
-            value: await letterDataToElement(reContent),
-          };
-
-          if (tab) {
-            obj.tab = tab;
-          }
-
-          contents.push(obj);
-        } else {
-          // 不明类型全部填充为段落
-          contents.push({
-            type: "paragraph",
-            value: await letterDataToElement(reContent),
-          });
-        }
-      }
-    }
-
-    pushContents(lumipage, lumiBlock, contents);
-  }
 };
 
 const pushContents = (lumipage, lumiBlock, contents) => {

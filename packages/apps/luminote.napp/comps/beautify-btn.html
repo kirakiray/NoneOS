@@ -148,6 +148,7 @@
   <script>
     export default async ({ load }) => {
       const { solicit } = await load("/packages/ai/main.js");
+      const { htmlToItemData } = await load("../lumi/util/html-to-itemdata.js");
 
       return {
         tag: "lumi-beautify-btn",
@@ -189,8 +190,20 @@
                 targetRangeData[index].value = content;
               });
             } else {
-              // TODO: 数量不一致，先删除旧的在加新的进去
+              let recontent = "";
+
+              this.shadow.$("#content").forEach((item, index) => {
+                recontent += item.html;
+              });
+
+              const recontentData = htmlToItemData(recontent);
+
               debugger;
+
+              if (this._start === undefined || this._end === undefined) {
+                // 直接替换全文
+                debugger;
+              }
             }
 
             this.showDialog = false;
