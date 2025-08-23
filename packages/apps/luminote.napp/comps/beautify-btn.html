@@ -207,8 +207,9 @@
                 return "";
               }
 
-              return Array.from(pages)
+              const redata = Array.from(pages)
                 .map((item, index) => {
+                  // 检查当前索引是否在指定范围内，不在则返回空字符串
                   if (start !== undefined && index < start) {
                     return "";
                   }
@@ -216,20 +217,30 @@
                     return "";
                   }
 
-                  let content = item.htmlContent || "";
+                  // 获取页面内容，若不存在则为空字符串
+                  let blockContent = item.htmlContent || "";
 
-                  let tabLeft = 0;
+                  // 初始化左侧缩进量
+                  let leftIndent = 0;
 
+                  // 若存在 tab 数据，计算缩进量并为内容添加 tab 计数属性
                   if (item.itemData?.tab) {
-                    tabLeft = item.itemData.tab * 20;
+                    leftIndent = item.itemData.tab * 20;
+                    const templateWrapper = $(
+                      `<template>${blockContent}</template>`
+                    );
+                    const firstChild = templateWrapper.ele.content.children[0];
+                    firstChild.dataset.tabcount = item.itemData.tab;
+                    blockContent = firstChild.outerHTML;
                   }
 
-                  content = `<div class="line-comp" style="margin-left:${tabLeft}px;">${content}</div>`;
-
-                  return content;
+                  // 将内容包裹在带有缩进样式的容器中
+                  return `<div class="line-comp" style="margin-left:${leftIndent}px;">${blockContent}</div>`;
                 })
                 .filter((content) => content.trim())
                 .join("\n\n");
+
+              return redata;
             } catch (error) {
               console.error("获取文章内容失败:", error);
               return "";

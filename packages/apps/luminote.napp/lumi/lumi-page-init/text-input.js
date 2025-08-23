@@ -253,15 +253,8 @@ export const initTextInput = (lumipage) => {
   lumipage.on("paste", async (e) => {
     let lumiBlock = getLumiBlock(e);
 
-    const pushContents = (contents) => {
-      const parentContent = lumipage.itemData.content;
-
-      // 在当前的前面添加对应的数据
-      const index = parentContent.indexOf($(lumiBlock).itemData);
-
-      if (index > -1) {
-        parentContent.splice(index, 0, ...contents);
-      }
+    const pushData = (contents) => {
+      return pushContents(lumipage, lumiBlock, contents);
     };
 
     if (e.clipboardData.types.includes("Files")) {
@@ -289,8 +282,7 @@ export const initTextInput = (lumipage) => {
         }
       }
 
-      debugger;
-      pushContents(contents);
+      pushData(contents);
       return;
     }
 
@@ -347,7 +339,6 @@ export const initTextInput = (lumipage) => {
       // 直接单标签开头
       if (/^</.test(pastedHtml.trim())) {
         for (let item of temp.content.children) {
-          // if (item.innerHTML) {
           const reContent = await elementToLetterData(item);
 
           const tag = item.tagName.toLowerCase();
@@ -399,26 +390,16 @@ export const initTextInput = (lumipage) => {
               });
             }
           }
-          // }
         }
 
         e.preventDefault();
-        pushContents(contents);
-      } else {
-        // const selectionRangeData = selectionData;
-        // // 直接粘贴的片段
-        // const reContent = await elementToLetterData(temp.content);
-        // debugger;
-        // console.log("paste");
-        // contents.push({
-        //   type: "paragraph",
-        //   value: await letterDataToElement(reContent),
-        // });
+        pushData(contents);
       }
 
       return;
     }
     {
+      // 直接粘贴文本类型
       const contents = [];
 
       let pastedText = clipboardData.getData("text/plain"); //
@@ -446,9 +427,20 @@ export const initTextInput = (lumipage) => {
           });
         });
 
-      pushContents(contents);
+      pushData(contents);
     }
   });
+};
+
+const pushContents = (lumipage, lumiBlock, contents) => {
+  const parentContent = lumipage.itemData.content;
+
+  const index = parentContent.indexOf($(lumiBlock).itemData);
+
+  // 在当前的后面添加对应的数据
+  if (index > -1) {
+    parentContent.splice(index + 1, 0, ...contents);
+  }
 };
 
 const selectedsTabPlus = (lumipage, event, tabCount = 1) => {
