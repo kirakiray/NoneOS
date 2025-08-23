@@ -162,7 +162,7 @@
           _end: null,
         },
         proto: {
-          replaceContent() {
+          async replaceContent() {
             const articleData = this.host.$("lumi-page").itemData;
 
             // 获取目标范围的数据
@@ -196,13 +196,18 @@
                 recontent += item.html;
               });
 
-              const recontentData = htmlToItemData(recontent);
-
-              debugger;
+              const recontentData = await htmlToItemData(recontent);
 
               if (this._start === undefined || this._end === undefined) {
                 // 直接替换全文
-                debugger;
+                articleData.content = recontentData;
+              } else {
+                // 局部替换
+                articleData.content.splice(
+                  this._start,
+                  this._end - this._start,
+                  ...recontentData
+                );
               }
             }
 
