@@ -69,13 +69,32 @@
       slot="prefix"
       style="margin-right: 4px; display: block"
     ></n-local-icon>
-    润色
+
+    <localized-content>
+      <span lang="cn"> 润色</span>
+      <span lang="en"> Beautify</span>
+      <span lang="ja"> 美しくする</span>
+    </localized-content>
   </p-button>
 
   <p-dialog :open="showDialog" on:click-mask="showDialog = false">
-    <div slot="title" style="text-align: center">润色文章</div>
+    <div slot="title" style="text-align: center">
+      <localized-content>
+        <span lang="cn"> 润色文章</span>
+        <span lang="en"> Beautify Article</span>
+        <span lang="ja"> 美しくする記事</span>
+      </localized-content>
+    </div>
     <div class="dialog-content">
-      <div style="text-align: center">你想要对选中的内容做什么？</div>
+      <div style="text-align: center">
+        <localized-content>
+          <span lang="cn"> 你想要对选中的内容做什么？</span>
+          <span lang="en">
+            What do you want to do with the selected content?</span
+          >
+          <span lang="ja"> 選択した内容をどうしますか？</span>
+        </localized-content>
+      </div>
       <div style="padding: 8px; text-align: center">
         <p-button
           variant="outlined"
@@ -86,10 +105,18 @@
             class:processing-text="isProcessing && processingType === 'beautify'"
           >
             <o-if :value="isProcessing && processingType === 'beautify'">
-              <span>润色中...</span>
+              <localized-content>
+                <span lang="cn">润色中...</span>
+                <span lang="en"> Beautifying...</span>
+                <span lang="ja"> 美しくしています...</span>
+              </localized-content>
             </o-if>
             <o-else>
-              <span>润色内容</span>
+              <localized-content>
+                <span lang="cn">润色内容</span>
+                <span lang="en"> Beautify Content</span>
+                <span lang="ja"> 美しくする内容</span>
+              </localized-content>
             </o-else>
           </span>
         </p-button>
@@ -103,10 +130,18 @@
             class:processing-text="isProcessing && processingType === 'simplify'"
           >
             <o-if :value="isProcessing && processingType === 'simplify'">
-              <span>精简中...</span>
+              <localized-content>
+                <span lang="cn"> 精简中...</span>
+                <span lang="en"> Simplifying...</span>
+                <span lang="ja"> 簡素化しています...</span>
+              </localized-content>
             </o-if>
             <o-else>
-              <span>精简内容</span>
+              <localized-content>
+                <span lang="cn"> 精简内容</span>
+                <span lang="en"> Simplify Content</span>
+                <span lang="ja"> 簡素化する内容</span>
+              </localized-content>
             </o-else>
           </span>
         </p-button>
@@ -120,7 +155,11 @@
               color: var(--md-sys-color-primary);
             "
           >
-            处理后
+            <localized-content>
+              <span lang="cn"> 处理后</span>
+              <span lang="en"> Processed</span>
+              <span lang="ja"> 処理後</span>
+            </localized-content>
           </div>
           <div id="content"></div>
         </div>
@@ -132,7 +171,11 @@
               color: var(--md-sys-color-primary);
             "
           >
-            原文内容
+            <localized-content>
+              <span lang="cn"> 原文内容</span>
+              <span lang="en"> Original Content</span>
+              <span lang="ja"> 元の内容</span>
+            </localized-content>
           </div>
           <div id="origin"></div>
         </div>
@@ -140,7 +183,11 @@
     </div>
     <o-if :value="isProcessed">
       <p-button on:click="replaceContent" style="margin-left: 8px">
-        确认替换润色内容
+        <localized-content>
+          <span lang="cn"> 确认替换润色内容</span>
+          <span lang="en"> Confirm Replace Beautified Content</span>
+          <span lang="ja"> 润色内容を置き換える</span>
+        </localized-content>
       </p-button>
     </o-if>
   </p-dialog>
