@@ -6,6 +6,7 @@
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="./lumi-fake.html"></l-m>
+  <l-m src="/packages/pui/chip/chip.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -377,6 +378,15 @@
               </div>
             </o-if>
             <o-else>
+              <o-if :value="inaimode === true">
+                <p-chip>
+                  <n-local-icon name="loading"></n-local-icon>
+                  AI思考中
+                </p-chip>
+              </o-if>
+              <o-else-if :value="inaimode">
+                <p-chip>{{inaimode}}</p-chip>
+              </o-else-if>
               <slot></slot>
             </o-else>
 
@@ -524,6 +534,7 @@
           desc: {},
           lumiViewLang: "",
           aiAvailable: false,
+          inaimode: null, // 处于ai填充模式
         },
         watch: {
           lumiViewLang(lang) {

@@ -115,6 +115,9 @@ export const initTextInput = (lumipage) => {
           targetBlock = targetBlock.prev;
         }
 
+        lumiBlock.inaimode = true;
+        lumiBlock.$("[inputer-content]").style.display = "inline"; // 将输入框改为内联模式
+
         solicit({
           groupTitle: "润色或补全内容",
           desc: "润色或补全选中的段落",
@@ -137,10 +140,15 @@ ${lumiBlock.itemData.value}
 3. 输出格式：仅返回最终替换后的文本，不要添加解释或引号。`;
           },
           onstream: (e) => {
+            lumiBlock.inaimode = e.modelName;
             lumiBlock.itemData.value = e.responseText;
           },
           onsuccess: (e) => {
             lumiBlock.itemData.value = e.responseText;
+            lumiBlock.inaimode = null;
+            setTimeout(() => {
+              lumiBlock.$("[inputer-content]").style.display = ""; // 取消内联
+            }, 10);
           },
         });
 
