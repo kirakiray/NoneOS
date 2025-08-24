@@ -393,8 +393,15 @@ ${lumiBlock.itemData.value}
 
     if (pastedHtml) {
       const contents = await htmlToItemData(pastedHtml);
-      pushData(contents);
+
+      if (contents.length === 1 && contents[0].type === "paragraph") {
+        // 若粘贴内容仅为纯文本，系统将直接在焦点位置追加该内容
+        return;
+      }
+
+      // 添加多个内容
       e.preventDefault();
+      pushData(contents);
       return;
     }
     {
