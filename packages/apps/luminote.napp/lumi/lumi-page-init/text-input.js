@@ -103,7 +103,11 @@ export const initTextInput = (lumipage) => {
         commandPanel.removeBind();
       }
 
-      if (e.key === "i" && (e.metaKey || e.ctrlKey)) {
+      if (
+        e.key === "i" &&
+        (e.metaKey || e.ctrlKey) &&
+        lumiBlock.itemData.value
+      ) {
         // ai补全内容
         e.preventDefault();
 
