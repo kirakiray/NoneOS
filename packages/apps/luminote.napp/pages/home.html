@@ -384,13 +384,9 @@
           });
 
           (async () => {
+            this.appConfigData = await this.app._configData;
             this.aiAvailable = await isAIAvailable();
 
-            this.appConfigData = await this.app._configData;
-
-            // if (configData.useAITranslate === undefined) {
-            //   configData.useAITranslate = "off";
-            // }
             this.appConfigData.useAITranslate = this.aiAvailable ? "on" : "off";
           })();
 

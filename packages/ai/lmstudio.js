@@ -103,7 +103,12 @@ export async function chat({
  * @returns {Promise<Array>} 返回模型列表数组
  */
 export async function getModels(serverUrl = "http://localhost:1234") {
-  const res = await fetch(`${serverUrl}/v1/models`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 2000);
+  const res = await fetch(`${serverUrl}/v1/models`, {
+    signal: controller.signal,
+  });
+  clearTimeout(timeoutId);
 
   if (!res.ok) {
     throw new Error(`HTTP ${res.status}: ${res.statusText}`);
