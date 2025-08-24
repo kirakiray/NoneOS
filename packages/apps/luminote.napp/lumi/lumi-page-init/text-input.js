@@ -6,6 +6,8 @@ import {
 
 import { saveFile } from "../util/source.js";
 
+import { solicit } from "/packages/ai/main.js";
+
 import {
   getSelectionLetterData,
   letterDataToElement,
@@ -99,6 +101,62 @@ export const initTextInput = (lumipage) => {
         return;
       } else {
         commandPanel.removeBind();
+      }
+
+      if (
+        e.key === "i" &&
+        (e.metaKey || e.ctrlKey) &&
+        lumiBlock.itemData.value
+      ) {
+        // ai补全内容
+        e.preventDefault();
+
+        let content = ""; // 上下文
+
+        let targetBlock = lumiBlock.prev;
+        while (targetBlock) {
+          content = targetBlock.itemData.value + "\n\n" + content;
+          targetBlock = targetBlock.prev;
+        }
+
+        lumiBlock.inaimode = true;
+        lumiBlock.$("[inputer-content]").style.display = "inline"; // 将输入框改为内联模式
+
+        solicit({
+          groupTitle: "润色或补全内容",
+          desc: "润色或补全选中的段落",
+          target: lumiBlock,
+          execute: true,
+          onstart: () => {
+            return `你是一位资深编辑。我会给你两段内容：
+
+【上下文正文】
+${content}
+
+【待处理字符串】
+${lumiBlock.itemData.value}
+
+任务说明：
+1. 阅读【上下文正文】，准确把握语境、风格与受众。
+2. 判断【待处理字符串】：
+   - 如果它只是一个“关键词”或“短语”，请在不改变原意的前提下，结合上下文扩写为一到两句通顺、自然的完整表达。  
+   - 如果它已经是一段“完整或半完整文案”，请进行润色或重写，使其更精炼、生动、符合上下文整体风格，并可直接替换原字符串。
+3. 输出格式：仅返回最终替换后的文本，不要添加解释或引号。`;
+          },
+          onstream: (e) => {
+            lumiBlock.inaimode = e.modelName;
+            lumiBlock.itemData.value = e.responseText;
+          },
+          onsuccess: (e) => {
+            lumiBlock.itemData.value = e.responseText;
+            lumiBlock.inaimode = null;
+            setTimeout(() => {
+              lumiBlock.$("[inputer-content]").style.display = ""; // 取消内联
+            }, 10);
+          },
+        });
+
+        return;
       }
 
       if (e.key === "c" && (e.metaKey || e.ctrlKey)) {
