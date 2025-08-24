@@ -109,13 +109,25 @@
           <p-button size="small" icon on:click="handleOpen">
             <n-local-icon name="open" style="font-size: 16px"></n-local-icon>
           </p-button>
-          <div slot="tips">外部打开图片</div>
+          <div slot="tips">
+            <localized-content>
+              <span lang="cn">外部打开图片</span>
+              <span lang="en">Open image in external browser</span>
+              <span lang="ja">外部で画像を開く</span>
+            </localized-content>
+          </div>
         </p-tooltips>
         <p-tooltips placement="top">
           <p-button variant="outlined" size="small" icon on:click="handleClick">
             <n-local-icon name="replace-img"></n-local-icon>
           </p-button>
-          <div slot="tips">替换图片</div>
+          <div slot="tips">
+            <localized-content>
+              <span lang="cn">替换图片</span>
+              <span lang="en">Replace image</span>
+              <span lang="ja">画像を置き換える</span>
+            </localized-content>
+          </div>
         </p-tooltips>
         <p-tooltips placement="top">
           <p-button
@@ -126,7 +138,13 @@
           >
             <n-local-icon name="download"></n-local-icon>
           </p-button>
-          <div slot="tips">下载图片</div>
+          <div slot="tips">
+            <localized-content>
+              <span lang="cn">下载图片</span>
+              <span lang="en">Download image</span>
+              <span lang="ja">画像をダウンロードする</span>
+            </localized-content>
+          </div>
         </p-tooltips>
       </div>
       <img attr:src="imgSrc" class="main-img" />
@@ -146,7 +164,11 @@
           d="M5 21q-.825 0-1.412-.587T3 19V5q0-.825.588-1.412T5 3h14q.825 0 1.413.588T21 5v14q0 .825-.587 1.413T19 21zm0-2h14V5H5zm1-2h12l-3.75-5l-3 4L9 13zm-1 2V5z"
         />
       </svg>
-      添加图片
+      <localized-content>
+        <span lang="cn">添加图片</span>
+        <span lang="en">Add image</span>
+        <span lang="ja">画像を追加する</span>
+      </localized-content>
     </div>
   </o-else>
   <input
