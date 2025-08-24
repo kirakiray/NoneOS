@@ -41,7 +41,7 @@ async function zipPackages() {
       zip.file(relativePath, fileContent);
     }
 
-    // 生成压缩包，设置时间戳为0以确保相同内容生成相同的压缩包
+    // 生成压缩包，移除文件时间等信息，确保相同内容生成相同的压缩包
     const zipContent = await zip.generateAsync({
       type: "nodebuffer",
       compression: "DEFLATE",
@@ -50,6 +50,8 @@ async function zipPackages() {
       },
       platform: "UNIX", // 统一使用UNIX格式，避免不同平台差异
       date: new Date(0), // 将所有文件的时间戳设置为0，确保相同内容生成相同的压缩包
+      comment: "", // 清空压缩包注释
+      createFolders: false, // 不创建空文件夹
     });
 
     // 确保 dist 目录存在
