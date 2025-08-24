@@ -120,13 +120,25 @@
           <p-button size="small" icon on:click="handleDownload">
             <n-local-icon name="download"></n-local-icon>
           </p-button>
-          <div slot="tips">下载视频</div>
+          <div slot="tips">
+            <localized-content>
+              <span lang="cn">下载视频</span>
+              <span lang="en">Download video</span>
+              <span lang="ja">ビデオをダウンロードする</span>
+            </localized-content>
+          </div>
         </p-tooltips>
         <p-tooltips placement="top">
           <p-button variant="outlined" size="small" icon on:click="handleClick">
             <n-local-icon name="replace-img"></n-local-icon>
           </p-button>
-          <div slot="tips">替换视频</div>
+          <div slot="tips">
+            <localized-content>
+              <span lang="cn">替换视频</span>
+              <span lang="en">Replace video</span>
+              <span lang="ja">ビデオを置き換える</span>
+            </localized-content>
+          </div>
         </p-tooltips>
       </div>
 
@@ -158,7 +170,11 @@
           d="m15 10l4.553-2.276A1 1 0 0 1 21 8.618v6.764a1 1 0 0 1-1.447.894L15 14zM3 8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
         />
       </svg>
-      添加视频
+      <localized-content>
+        <span lang="cn">添加视频</span>
+        <span lang="en">Add video</span>
+        <span lang="ja">ビデオを追加する</span>
+      </localized-content>
     </div>
   </o-else>
   <input
@@ -172,6 +188,7 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
       const { saveFile, getFileHandle } = await load("../../util/source.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "lumi-video",
@@ -216,7 +233,11 @@
 
             if (file.size > 1024 * 1024 * 50) {
               toast({
-                content: "视频大小不能超过50MB",
+                content: await getLocalized({
+                  cn: "视频大小不能超过50MB",
+                  en: "Video size cannot exceed 50MB",
+                  ja: "ビデオサイズは50MBを超えることはできません",
+                }),
                 color: "error",
               });
               return;
