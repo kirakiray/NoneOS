@@ -422,6 +422,11 @@ ${lumiBlock.itemData.value}
       // 内容分段
       const lines = pastedText.split("\n");
 
+      if (lines.length === 1) {
+        // 若粘贴内容仅为纯文本，系统将直接在焦点位置追加该内容
+        return;
+      }
+
       lines
         .filter((e) => !!e)
         .forEach((e) => {
@@ -435,6 +440,8 @@ ${lumiBlock.itemData.value}
         });
 
       pushData(contents);
+
+      e.preventDefault(); // 禁用默认粘贴
     }
   });
 };
