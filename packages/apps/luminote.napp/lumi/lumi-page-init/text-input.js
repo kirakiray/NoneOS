@@ -141,7 +141,8 @@ ${lumiBlock.itemData.value}
 2. 判断【待处理字符串】：
    - 如果它只是一个“关键词”或“短语”，请在不改变原意的前提下，结合上下文扩写为一到两句通顺、自然的完整表达。  
    - 如果它已经是一段“完整或半完整文案”，请进行润色或重写，使其更精炼、生动、符合上下文整体风格，并可直接替换原字符串。
-3. 输出格式：仅返回最终替换后的文本，不要添加解释或引号。`;
+3. 【待处理字符串】可能包含 HTML 标签，请在处理时保留原有 HTML 标签结构，仅对标签内的文本内容进行处理。
+4. 输出格式：仅返回最终替换后的文本，不要添加解释或引号。`;
           },
           onstream: (e) => {
             lumiBlock.inaimode = e.modelName;
@@ -393,8 +394,15 @@ ${lumiBlock.itemData.value}
 
     if (pastedHtml) {
       const contents = await htmlToItemData(pastedHtml);
-      pushData(contents);
+
+      if (contents.length === 1 && contents[0].type === "paragraph") {
+        // 若粘贴内容仅为纯文本，系统将直接在焦点位置追加该内容
+        return;
+      }
+
+      // 添加多个内容
       e.preventDefault();
+      pushData(contents);
       return;
     }
     {
@@ -414,6 +422,11 @@ ${lumiBlock.itemData.value}
       // 内容分段
       const lines = pastedText.split("\n");
 
+      if (lines.length === 1) {
+        // 若粘贴内容仅为纯文本，系统将直接在焦点位置追加该内容
+        return;
+      }
+
       lines
         .filter((e) => !!e)
         .forEach((e) => {
@@ -427,6 +440,8 @@ ${lumiBlock.itemData.value}
         });
 
       pushData(contents);
+
+      e.preventDefault(); // 禁用默认粘贴
     }
   });
 };

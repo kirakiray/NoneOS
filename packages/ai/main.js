@@ -12,9 +12,12 @@ export const isAIAvailable = async () => {
   }
 
   return (availablePms = new Promise(async (resolve, reject) => {
-    const availableConfigs = await getAvailableAIConfigs();
-
-    resolve(!!availableConfigs.length);
+    await getAvailableAIConfigs({
+      callback: () => {
+        // 只要有一个成功代表可用
+        resolve(true);
+      },
+    });
 
     setTimeout(() => {
       availablePms = null;
@@ -26,7 +29,7 @@ export const isAIAvailable = async () => {
  * 获取所有可用的 AI 配置并以数组形式返回
  * @returns {Promise<Array>} 返回可用 AI 配置的数组，每个配置包含 name, url, model 信息
  */
-export const getAvailableAIConfigs = async () => {
+export const getAvailableAIConfigs = async ({ callback } = {}) => {
   const setting = await getAISetting();
   const availableConfigs = [];
 
@@ -48,6 +51,11 @@ export const getAvailableAIConfigs = async () => {
       model: setting.lmstudio.model,
       type: "local",
     });
+    callback?.({
+      url: localUrl,
+      model: setting.lmstudio.model,
+      type: "local",
+    });
   }
 
   // 检查其他 AI 配置
@@ -56,6 +64,11 @@ export const getAvailableAIConfigs = async () => {
       if (item.name === "LM Studio" && item.url) {
         if (await checkModelsAvailable(item.url)) {
           availableConfigs.push({
+            url: item.url,
+            model: item.model,
+            type: "local-fetch",
+          });
+          callback?.({
             url: item.url,
             model: item.model,
             type: "local-fetch",

@@ -160,7 +160,11 @@
             on:click="$host.setDefaultLang($data.lang)"
             style="margin-left: 4px"
           >
-            设置为该默认语言
+            <localized-content>
+              <span lang="cn">设置为默认语言</span>
+              <span lang="en">Set Default Language</span>
+              <span lang="ja">デフォルト言語を設定</span>
+            </localized-content>
           </p-button>
         </div>
       </div>

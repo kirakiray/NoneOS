@@ -108,12 +108,20 @@
           "
         >
           <div style="display: flex; align-items: center; gap: 4px">
-            <span style="font-weight: 500">默认语言:</span>
+            <localized-content>
+              <span lang="en">Default Language:</span>
+              <span lang="cn">默认语言:</span>
+              <span lang="ja">デフォルト言語:</span>
+            </localized-content>
             <span>{{$host.getLang($data.mainLang)}}</span>
           </div>
           <div style="display: flex; align-items: center; gap: 4px">
-            <span style="font-weight: 500">目录名:</span>
-            <span>{{$data.dirName}}</span>
+            <localized-content>
+              <span lang="en">Project Name:</span>
+              <span lang="cn">项目名称:</span>
+              <span lang="ja">プロジェクト名:</span>
+            </localized-content>
+            <span>{{$data.projectName}}</span>
           </div>
         </div>
 

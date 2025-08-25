@@ -213,6 +213,37 @@
     on:click-project-setting="clickProjectSetting"
   ></lumi-switch-project>
 
+  <h4>
+    <localized-content>
+      <span lang="cn">打包项目</span>
+      <span lang="en">Packaging project</span>
+      <span lang="ja">プロジェクトをパッケージ化</span>
+    </localized-content>
+  </h4>
+  <div class="button-line">
+    <p-button variant="outlined" disabled>
+      <localized-content>
+        <span lang="cn">打包为网站</span>
+        <span lang="en">Packaging as website</span>
+        <span lang="ja">ウェブサイトとしてパッケージ化</span>
+      </localized-content>
+    </p-button>
+    <p-button variant="outlined" disabled>
+      <localized-content>
+        <span lang="cn">打包为markdown</span>
+        <span lang="en">Packaging as markdown</span>
+        <span lang="ja">マークダウンとしてパッケージ化</span>
+      </localized-content>
+    </p-button>
+    <p-button variant="outlined" disabled>
+      <localized-content>
+        <span lang="cn">打包为llms.txt</span>
+        <span lang="en">Packaging as llms.txt</span>
+        <span lang="ja">llms.txtとしてパッケージ化</span>
+      </localized-content>
+    </p-button>
+  </div>
+
   <div>
     <h4>
       <localized-content>
@@ -229,13 +260,6 @@
       </localized-content>
     </div>
   </div>
-
-  <!-- <h4>打包项目</h4>
-  <div class="button-line">
-    <p-button variant="outlined" disabled>打包为网站</p-button>
-    <p-button variant="outlined" disabled>打包为markdown</p-button>
-    <p-button variant="outlined" disabled>打包为llms.txt</p-button>
-  </div> -->
 
   <input
     type="file"
@@ -384,13 +408,9 @@
           });
 
           (async () => {
+            this.appConfigData = await this.app._configData;
             this.aiAvailable = await isAIAvailable();
 
-            this.appConfigData = await this.app._configData;
-
-            // if (configData.useAITranslate === undefined) {
-            //   configData.useAITranslate = "off";
-            // }
             this.appConfigData.useAITranslate = this.aiAvailable ? "on" : "off";
           })();
 
