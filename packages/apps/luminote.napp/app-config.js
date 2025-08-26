@@ -255,6 +255,8 @@ export default {
         return project;
       }
 
+      debugger
+
       this._openedProjects.push({
         ...project,
       });

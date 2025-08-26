@@ -22,7 +22,7 @@ export const findArticle = async ({
 
 const findTargetArticle = async (content, dataId) => {
   for (let e of content) {
-    if (e._dataId === dataId) {
+    if (e.aid === dataId || e._dataId === dataId) {
       return {
         target: e,
         paths: [e],
