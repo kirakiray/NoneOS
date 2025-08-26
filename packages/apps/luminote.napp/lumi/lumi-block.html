@@ -725,7 +725,11 @@
             const firstPageEl = this.parent.parent;
 
             app.current.goto(
-              `./note.html?article_id=${this.itemData._dataId}&user_id=${firstPageEl.currentUserId}&dir_name=${firstPageEl.currentDirName}`
+              `./note.html?article_id=${
+                this.itemData.aid || this.itemData._dataId
+              }&user_id=${firstPageEl.currentUserId}&dir_name=${
+                firstPageEl.currentDirName
+              }`
             );
           },
 
