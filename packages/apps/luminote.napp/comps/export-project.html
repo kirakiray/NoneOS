@@ -1,0 +1,93 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .line {
+      max-width: 50vw;
+      padding: 16px 0 0 4px;
+      border-bottom: 0.5px solid #7c7c7c;
+    }
+    .line:last-child {
+      border-bottom: none;
+    }
+  </style>
+  <div class="line">
+    <p-button attr:disabled="exporting" on:click="exportFile"
+      >导出项目文件</p-button
+    >
+    <p>导出项目源文件，方便在其他设备上导入并继续项目操作。</p>
+  </div>
+  <div class="line">
+    <p-button variant="outlined" disabled>打包为网站</p-button>
+    <p>将项目打包为一个独立的网站文件，方便在没有安装Luminote的设备上打开。</p>
+  </div>
+  <div class="line">
+    <p-button variant="outlined" disabled>打包为markdown</p-button>
+    <p>将项目打包为markdown文件，方便在其他Markdown编辑器中打开。</p>
+  </div>
+  <div class="line">
+    <p-button variant="outlined" disabled>打包为llms.txt</p-button>
+    <p>
+      将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
+    </p>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { exportHandle } = await load("/packages/fs/task/main.js");
+
+      return {
+        tag: "lumi-export-project",
+        data: {
+          projectDirname: "", // 项目目录名
+          exporting: false,
+        },
+
+        proto: {
+          getProjectData() {},
+          async exportFile() {
+            this.exporting = true;
+            const app = this.app;
+            const projectInfo = await app.getProject(
+              this.projectDirname,
+              "self"
+            );
+
+            // 将正文生成一个文件
+            await projectInfo.data.ready(true);
+
+            const projectDataStr = JSON.stringify(projectInfo.data);
+            // 写入文件
+            const articleFileHandle = await projectInfo.__handle.get(
+              "article.json",
+              {
+                create: "file",
+              }
+            );
+            await articleFileHandle.write(projectDataStr);
+            const exportPaths = [articleFileHandle.path];
+            const sourceFileHandle = await projectInfo.__handle.get("source");
+            if (sourceFileHandle) {
+              exportPaths.push(sourceFileHandle.path);
+            }
+            debugger;
+
+            await exportHandle(
+              exportPaths,
+              `${projectInfo.data.projectName}.luminote`
+            );
+            // data.exporting = false;
+            setTimeout(async () => {
+              // 导出完成后删除json文件
+              await articleFileHandle.remove();
+              this.exporting = false;
+            }, 500);
+          },
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>
