@@ -258,22 +258,22 @@ export default {
         return Math.random().toString(32).slice(2);
       };
 
-      // 查看每个文章不存在aid进行补充
-      const fixAid = (list) => {
-        list.forEach((data) => {
-          if (data.type === "article") {
-            if (!data.aid) {
-              data.aid = getRandomId();
-            }
-          }
+      // // 查看每个文章不存在aid进行补充
+      // const fixAid = (list) => {
+      //   list.forEach((data) => {
+      //     if (data.type === "article") {
+      //       if (!data.aid) {
+      //         data.aid = getRandomId();
+      //       }
+      //     }
 
-          if (data.content) {
-            fixAid(data.content);
-          }
-        });
-      };
+      //     if (data.content) {
+      //       fixAid(data.content);
+      //     }
+      //   });
+      // };
 
-      fixAid(project.data.main);
+      // fixAid(project.data.main);
 
       this._openedProjects.push({
         ...project,
