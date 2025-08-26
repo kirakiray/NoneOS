@@ -62,7 +62,7 @@
         },
         proto: {
           selectItem(data) {
-            this.selected = data._dataId;
+            this.selected = data.aid || data._dataId;
           },
           async loadList() {
             if (!this.currentDirName) {
@@ -97,6 +97,7 @@
         if (e.type === "article") {
           reList.push({
             title: e.title,
+            aid: e.aid,
             _dataId: e._dataId,
             childs: await findArticle(e.content),
           });
