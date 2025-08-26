@@ -20,7 +20,9 @@
     <p>导出项目源文件，方便在其他设备上导入并继续项目操作。</p>
   </div>
   <div class="line">
-    <p-button variant="outlined" disabled>打包为网站</p-button>
+    <p-button variant="outlined" attr:disabled="exporting" on:click="exportWeb">
+      打包为网站
+    </p-button>
     <p>将项目打包为一个独立的网站文件，方便在没有安装Luminote的设备上打开。</p>
   </div>
   <div class="line">
@@ -46,10 +48,22 @@
 
         proto: {
           getProjectData() {},
+          async exportWeb() {
+            // 导出为网站
+            const projectInfo = await this.app.getProject(
+              this.projectDirname,
+              "self"
+            );
+
+            await projectInfo.data.ready(true);
+
+            // 导出为网站
+          },
           async exportFile() {
+            // 导出为项目文件
             this.exporting = true;
-            const app = this.app;
-            const projectInfo = await app.getProject(
+
+            const projectInfo = await this.app.getProject(
               this.projectDirname,
               "self"
             );
@@ -71,13 +85,12 @@
             if (sourceFileHandle) {
               exportPaths.push(sourceFileHandle.path);
             }
-            debugger;
 
             await exportHandle(
               exportPaths,
               `${projectInfo.data.projectName}.luminote`
             );
-            // data.exporting = false;
+
             setTimeout(async () => {
               // 导出完成后删除json文件
               await articleFileHandle.remove();

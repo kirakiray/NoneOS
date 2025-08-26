@@ -1,0 +1,21 @@
+<template page>
+  <style>
+    :host {
+      display: flex !important;
+      height: 100%;
+      width: 100%;
+    }
+    .left {
+      width: 200px;
+      background-color: rgba(10, 10, 128, 0.443);
+    }
+    .main {
+      background-color: rgba(172, 54, 54, 0.371);
+      flex: 1;
+    }
+  </style>
+  <div class="left">left</div>
+  <div class="main">
+    <slot></slot>
+  </div>
+</template>
