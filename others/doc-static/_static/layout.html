@@ -1,7 +1,7 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
-  <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
   <style>
     :host {
       display: flex !important;
@@ -19,6 +19,7 @@
     .logo {
       font-size: 20px;
       font-weight: bold;
+      margin-right: auto;
     }
 
     .main {
@@ -66,13 +67,14 @@
   <div class="header">
     <div class="main" style="align-items: center">
       <div class="logo">主体文档</div>
-      <p-switch
-        checked-value="dark"
-        unchecked-value="light"
-        sync:value="theme"
-        style="margin: 0 16px 0 auto; font-size: 22px; line-height: 22px"
+      <p-button
+        variant="text"
+        icon
+        on:click="switchTheme"
+        style="margin-left: 8px"
       >
         <svg
+          style="font-size: 18px"
           xmlns="http://www.w3.org/2000/svg"
           width="1em"
           height="1em"
@@ -84,7 +86,27 @@
             d="M277.333 405.333v85.333h-42.667v-85.333zm99.346-58.824l60.34 60.34l-30.17 30.17l-60.34-60.34zm-241.359 0l30.17 30.17l-60.34 60.34l-30.17-30.17zM256 139.353c64.422 0 116.647 52.224 116.647 116.647c0 64.422-52.225 116.647-116.647 116.647A116.427 116.427 0 0 1 139.352 256c0-64.423 52.225-116.647 116.648-116.647m0 42.666c-40.859 0-73.981 33.123-73.981 74.062a73.76 73.76 0 0 0 21.603 52.296c13.867 13.867 32.685 21.64 52.378 21.603zm234.666 52.647v42.667h-85.333v-42.667zm-384 0v42.667H21.333v-42.667zM105.15 74.98l60.34 60.34l-30.17 30.17l-60.34-60.34zm301.7 0l30.169 30.17l-60.34 60.34l-30.17-30.17zM277.332 21.333v85.333h-42.667V21.333z"
           />
         </svg>
-      </p-switch>
+      </p-button>
+      <p-select :value="lang" size="small" style="margin-left: 8px">
+        <svg
+          slot="prefix"
+          style="display: block; font-size: 18px"
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 24 24"
+        >
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="m13 19l3.5-9l3.5 9m-6.125-2h5.25M3 7h7m0 0h2m-2 0c0 1.63-.793 3.926-2.239 5.655M7.5 6.818V5m.261 7.655C6.79 13.82 5.521 14.725 4 15m3.761-2.345L5 10m2.761 2.655L10.2 15"
+          />
+        </svg>
+        <p-option value="cn">中文</p-option>
+      </p-select>
     </div>
   </div>
   <div class="main">
@@ -122,22 +144,28 @@
       return {
         data: {
           theme: sessionStorage.getItem("theme"),
+          lang: "cn",
         },
-        watch: {
-          theme(theme) {
-            if (!theme) {
-              return;
-            }
-
-            if (!this.getProvider("pui")) {
-              return;
-            }
-
+        proto: {
+          switchTheme() {
+            const theme = (this.theme =
+              this.theme === "dark" ? "light" : "dark");
             sessionStorage.setItem("theme", theme);
             this.getProvider("pui").theme = theme;
           },
         },
-        proto: {},
+        // watch: {
+        //   theme(theme) {
+        //     if (!theme) {
+        //       return;
+        //     }
+
+        //     if (!this.getProvider("pui")) {
+        //       return;
+        //     }
+
+        //   },
+        // },
         attached() {},
       };
     };
