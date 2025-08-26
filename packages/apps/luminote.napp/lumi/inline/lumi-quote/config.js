@@ -43,14 +43,18 @@ const defaults = {
       if (targetNotePage) {
         // 一秒后跳转到对应的文章
         targetNotePage.goto(
-          `./note.html?article_id=${realItemData._dataId}&dir_name=${targetNotePage.currentDirName}&user_id=${targetNotePage.currentUserId}`
+          `./note.html?article_id=${
+            realItemData.aid || realItemData._dataId
+          }&dir_name=${targetNotePage.currentDirName}&user_id=${
+            targetNotePage.currentUserId
+          }`
         );
       }
     }, 200);
 
     return {
       // 给内联组件添加文章的id
-      articleId: realItemData._dataId,
+      articleId: realItemData.aid || realItemData._dataId,
     };
   },
 };
