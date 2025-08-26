@@ -273,11 +273,7 @@ export default {
         });
       };
 
-      console.log("before: ", project.data.toJSON());
-
       fixAid(project.data.main);
-
-      console.log("after: ", project.data.toJSON());
 
       this._openedProjects.push({
         ...project,
