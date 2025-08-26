@@ -254,9 +254,9 @@ export default {
         return project;
       }
 
-      const getRandomId = () => {
-        return Math.random().toString(32).slice(2);
-      };
+      // const getRandomId = () => {
+      //   return Math.random().toString(32).slice(2);
+      // };
 
       // // 查看每个文章不存在aid进行补充
       // const fixAid = (list) => {
