@@ -66,7 +66,25 @@
   <div class="header">
     <div class="main" style="align-items: center">
       <div class="logo">主体文档</div>
-      <p-switch style="margin: 0 16px 0 auto"> 深色模式 </p-switch>
+      <p-switch
+        checked-value="dark"
+        unchecked-value="light"
+        sync:value="theme"
+        style="margin: 0 16px 0 auto; font-size: 22px; line-height: 22px"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="1em"
+          height="1em"
+          viewBox="0 0 512 512"
+        >
+          <path
+            fill="currentColor"
+            fill-rule="evenodd"
+            d="M277.333 405.333v85.333h-42.667v-85.333zm99.346-58.824l60.34 60.34l-30.17 30.17l-60.34-60.34zm-241.359 0l30.17 30.17l-60.34 60.34l-30.17-30.17zM256 139.353c64.422 0 116.647 52.224 116.647 116.647c0 64.422-52.225 116.647-116.647 116.647A116.427 116.427 0 0 1 139.352 256c0-64.423 52.225-116.647 116.648-116.647m0 42.666c-40.859 0-73.981 33.123-73.981 74.062a73.76 73.76 0 0 0 21.603 52.296c13.867 13.867 32.685 21.64 52.378 21.603zm234.666 52.647v42.667h-85.333v-42.667zm-384 0v42.667H21.333v-42.667zM105.15 74.98l60.34 60.34l-30.17 30.17l-60.34-60.34zm301.7 0l30.169 30.17l-60.34 60.34l-30.17-30.17zM277.332 21.333v85.333h-42.667V21.333z"
+          />
+        </svg>
+      </p-switch>
     </div>
   </div>
   <div class="main">
@@ -102,7 +120,23 @@
       await load("/packages/pui/public/init.js");
 
       return {
-        data: {},
+        data: {
+          theme: sessionStorage.getItem("theme"),
+        },
+        watch: {
+          theme(theme) {
+            if (!theme) {
+              return;
+            }
+
+            if (!this.getProvider("pui")) {
+              return;
+            }
+
+            sessionStorage.setItem("theme", theme);
+            this.getProvider("pui").theme = theme;
+          },
+        },
         proto: {},
         attached() {},
       };
