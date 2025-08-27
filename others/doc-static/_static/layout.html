@@ -32,6 +32,12 @@
       margin: 0 auto;
     }
 
+    @media screen and (max-width: 768px) {
+      .header .main {
+        padding: 0 16px;
+      }
+    }
+
     .left {
       width: 260px;
       /* background-color: rgba(10, 10, 128, 0.443); */
@@ -65,7 +71,6 @@
       transform: rotate(0deg);
     }
     .article {
-      background-color: rgba(172, 54, 54, 0.371);
       flex: 1;
     }
   </style>
@@ -132,30 +137,11 @@
       <div style="height: 16px"></div>
       <p-list>
         <o-fill :value="listData" name="article-item"></o-fill>
-        <!-- <p-list-item button>我是标题1</p-list-item>
-        <p-list-item button active-item>我是标题2</p-list-item>
-        <p-list-item button collapse-childs="open">
-          我是标题3
-          <p-button
-            toggle-collapse
-            size="mini"
-            slot="suffix"
-            variant="text"
-            style="position: relative; display: block; z-index: 3"
-          >
-            <span style="font-size: 16px">▾</span>
-          </p-button>
-
-          <p-list slot="childs" style="--ladder-left: 8px">
-            <p-list-item button>我是标题3-1</p-list-item>
-            <p-list-item button>我是标题3-2</p-list-item>
-            <p-list-item button>我是标题3-3</p-list-item>
-          </p-list>
-        </p-list-item>
-        <p-list-item button>我是标题4</p-list-item> -->
       </p-list>
     </div>
-    <div class="article"></div>
+    <div class="article">
+      <slot></slot>
+    </div>
   </div>
 
   <template name="article-item">
