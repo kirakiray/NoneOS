@@ -67,6 +67,8 @@
               await webDirHandle.remove();
             }
 
+            const { mainLang } = projectInfo.data; // 主体语言
+
             // 拷贝模板文件到web
             const tempDir = await get(
               "/packages/apps/luminote.napp/source/doc-static"
@@ -95,14 +97,26 @@
                     }
                   );
 
-                  let articleContent = `<h1>${item.title}</h1>\n\n`;
+                  let title = item.title;
+
+                  if (mainLang !== lang) {
+                    debugger;
+                  }
+
+                  let articleContent = `<h1>${title}</h1>\n\n`;
 
                   for (const e of item.content) {
                     let type = e.type;
                     if (e.type === "paragraph") {
                       type = "p";
                     }
-                    articleContent += `<${type}>${e.value}</${type}>\n\n`;
+                    let content = e.value;
+
+                    if (mainLang !== lang) {
+                      debugger;
+                    }
+
+                    articleContent += `<${type}>${content}</${type}>\n\n`;
                   }
 
                   // 最终要写入的内容
@@ -127,6 +141,7 @@
 
             // 导出为网站
             await writeProject("cn");
+            await writeProject("en");
 
             toast("导出网页成功");
           },

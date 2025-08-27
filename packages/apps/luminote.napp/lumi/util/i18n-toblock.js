@@ -58,7 +58,7 @@ const translateArticle = async ({
   // 翻译文章标题
   if (article.title && article.title.trim()) {
     hostData.totalItemCount++;
-    onchange({ ...hostData });
+    onchange && onchange({ ...hostData });
     translateItemData({
       itemData: article,
       hostKey: "title",
@@ -66,7 +66,7 @@ const translateArticle = async ({
       lang,
       finalCall: () => {
         hostData.translatedItemCount++;
-        onchange({ ...hostData });
+        onchange && onchange({ ...hostData });
       },
       execute: true,
       groupTitle: `翻译文章内容: ${article.title}`,
@@ -84,11 +84,13 @@ const translateArticle = async ({
           article: contentBlock,
           lang,
           originLang,
+          hostData,
+          onchange,
         });
       } else if (contentBlock.value && contentBlock.value.trim()) {
         // 翻译普通内容块
         hostData.totalItemCount++;
-        onchange({ ...hostData });
+        onchange && onchange({ ...hostData });
         translateItemData({
           itemData: contentBlock,
           hostKey: "value",
@@ -96,7 +98,7 @@ const translateArticle = async ({
           lang,
           finalCall: () => {
             hostData.translatedItemCount++;
-            onchange({ ...hostData });
+            onchange && onchange({ ...hostData });
           },
           execute: true,
           groupTitle: `翻译文章内容: ${article.title}`,
