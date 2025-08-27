@@ -162,7 +162,7 @@
           />
         </svg>
       </p-button>
-      <div class="logo">主体文档</div>
+      <div class="logo">{{projectName}}</div>
       <p-button variant="text" icon disabled>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -290,6 +290,7 @@
           activeId: null,
           openLeftMenu: true,
           langs: [],
+          projectName: "",
         },
         proto: {
           changeLang(event) {
@@ -336,11 +337,28 @@
             this.openLeftMenu = false;
           }
 
+          // 加载必须的组件
+
           (async () => {
             const langs = await fetch(`../_data/supported-lang.json`).then(
               (e) => e.json()
             );
             this.langs = langs;
+
+            const currentLang = langs.find((e) => e.value === lang);
+
+            this.projectName = currentLang?.projectName || langs[0].projectName;
+
+            // 加载组件
+            const componentPaths = [
+              "/packages/apps/luminote.napp/lumi/inline/lumi-link/lumi-link.html",
+              "/packages/apps/luminote.napp/lumi/block/lumi-checkbox/lumi-checkbox.html",
+              "/packages/apps/luminote.napp/lumi/block/lumi-code/lumi-code.html",
+              "/packages/apps/luminote.napp/lumi/block/lumi-img/lumi-img.html",
+              "/packages/apps/luminote.napp/lumi/block/lumi-list-item/lumi-list-item.html",
+              "/packages/apps/luminote.napp/lumi/block/lumi-video/lumi-video.html",
+            ];
+            componentPaths.forEach((path) => load(path));
           })();
         },
         attached() {

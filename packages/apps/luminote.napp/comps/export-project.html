@@ -167,10 +167,12 @@
                 {
                   value: projectInfo.data.mainLang,
                   label: getRealLang(projectInfo.data.mainLang),
+                  projectName: projectInfo.data.projectName,
                 },
                 ...projectInfo.data.otherLang.map((e) => ({
                   value: e,
                   label: getRealLang(e),
+                  projectName: projectInfo.data.projectName,
                 })),
               ])
             );
