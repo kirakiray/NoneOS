@@ -110,6 +110,7 @@
 
                   let articleContent = `<h1>${title}</h1>\n\n`;
 
+                  // 内容转html
                   for (const e of item.content) {
                     let type = e.type;
                     if (e.type === "paragraph") {
@@ -123,7 +124,25 @@
                       }
                     }
 
-                    articleContent += `<${type}>${content}</${type}>\n\n`;
+                    let attrStr = "";
+
+                    if (e.attrs) {
+                      Object.entries(e.attrs).forEach(([key, value]) => {
+                        if (key === "dataStatus") {
+                          return;
+                        }
+
+                        attrStr += ` ${key}="${value}"`;
+                      });
+                    }
+
+                    if (e.tab) {
+                      articleContent += `<${type}${attrStr} style="margin-left: ${
+                        e.tab * 16
+                      }px;">${content}</${type}>\n\n`;
+                    } else {
+                      articleContent += `<${type}${attrStr}>${content}</${type}>\n\n`;
+                    }
                   }
 
                   // 最终要写入的内容
