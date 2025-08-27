@@ -13,6 +13,7 @@
     .header {
       display: flex;
       height: 50px;
+      flex-shrink: 0;
       background-color: var(--md-sys-color-on-normal);
       box-shadow: var(--contained-shadow);
       position: relative;
@@ -76,7 +77,17 @@
       transform: rotate(0deg);
     }
     .article {
+      position: relative;
       flex: 1;
+    }
+
+    .article-inner {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
     }
 
     .left-menu-btn {
@@ -232,7 +243,9 @@
       on:click="openLeftMenu = false"
     ></div>
     <div class="article">
-      <slot></slot>
+      <div class="article-inner">
+        <slot></slot>
+      </div>
     </div>
   </div>
 
