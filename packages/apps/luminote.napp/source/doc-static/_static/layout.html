@@ -298,7 +298,10 @@
             this.getProvider("pui").theme = theme;
           },
           async loadList() {
-            const listData = await load(`../_data/${lang}_list.json`);
+            // const listData = await load(`../_data/${lang}_list.json`);
+            const listData = await fetch(`../_data/${lang}_list.json`).then(
+              (e) => e.json()
+            );
             console.log(listData);
             this.listData = listData;
           },
