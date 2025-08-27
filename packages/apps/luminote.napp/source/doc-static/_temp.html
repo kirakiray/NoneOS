@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doc Static - Luminote</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.11/dist/ofa.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.11/libs/scsr/dist/scsr.min.js"></script>
+    <link rel="stylesheet" href="../_static/public.css" />
+  </head>
+  <body>
+    <o-root-provider name="pui"></o-root-provider>
+    <o-app src="../_static/app.js">
+      <template page>
+        <style>
+          :host {
+            display: block;
+          }
+        </style>
+        <article>{{article}}</article>
+        <script>
+          export const parent = "../_static/layout.html";
+          export default async () => {
+            return {
+              data: {},
+            };
+          };
+        </script>
+      </template>
+    </o-app>
+  </body>
+</html>

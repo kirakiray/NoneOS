@@ -39,6 +39,7 @@
     export default async ({ load }) => {
       const { exportHandle } = await load("/packages/fs/task/main.js");
       const { get } = await load("/packages/fs/main.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
 
       return {
         tag: "lumi-export-project",
@@ -73,19 +74,61 @@
             await tempDir.copyTo(projectInfo.__handle, "web");
             webDirHandle = await projectInfo.__handle.get("web");
 
-            // 获取所有文章目录
-            const listData = await getListData(projectInfo.data.main);
+            // 获取模板文件内容
+            const tempContent = await fetch(
+              "/packages/apps/luminote.napp/source/doc-static/_temp.html"
+            ).then((e) => e.text());
 
-            // 存放 list 数据
-            const listFile = await webDirHandle.get(`_data/cn_list.json`, {
-              create: "file",
-            });
-            await listFile.write(JSON.stringify(listData));
+            // 写入特定语言到项目
+            const writeProject = async (lang) => {
+              // 获取所有文章目录
+              const listData = await getListData(
+                projectInfo.data.main,
+                async (item) => {
+                  const aid = item.aid || item._dataId;
 
-            // 存放文章数据
+                  // 写入文章数据
+                  const articleFile = await webDirHandle.get(
+                    `${lang}/${aid}.html`,
+                    {
+                      create: "file",
+                    }
+                  );
+
+                  let articleContent = "";
+
+                  for (const e of item.content) {
+                    let type = e.type;
+                    if (e.type === "paragraph") {
+                      type = "p";
+                    }
+                    articleContent += `<${type}>${e.value}</${type}>\n\n`;
+                  }
+
+                  // 最终要写入的内容
+                  const finalContent = tempContent.replace(
+                    "{{article}}",
+                    articleContent
+                  );
+
+                  await articleFile.write(finalContent);
+                }
+              );
+
+              // 存放 list 数据
+              const listFile = await webDirHandle.get(
+                `_data/${lang}_list.json`,
+                {
+                  create: "file",
+                }
+              );
+              await listFile.write(JSON.stringify(listData));
+            };
 
             // 导出为网站
-            debugger;
+            await writeProject("cn");
+
+            toast("导出网页成功");
           },
           async exportFile() {
             // 导出为项目文件
@@ -140,9 +183,11 @@
               title: item.title,
             };
 
-            await callback(item.content);
+            if (callback) {
+              await callback(item);
+            }
 
-            const subList = await getListData(item.content);
+            const subList = await getListData(item.content, callback);
 
             if (subList.length) {
               data.list = subList;
