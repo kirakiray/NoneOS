@@ -212,7 +212,7 @@
       <div class="left-inner">
         <div style="height: 16px"></div>
         <p-list>
-          <o-fill :value="listData" name="article-item"></o-fill>
+          <o-fill :value="listData" name="article-item" fill-key="aid"></o-fill>
         </p-list>
       </div>
     </div>
@@ -231,6 +231,7 @@
       button
       collapse-childs="open"
       attr:active-item="$host.activeId === $data.aid"
+      attr:data-aid="$data.aid"
       on:click="$host.clickItem($data,$event)"
     >
       {{$data.title}}
@@ -247,7 +248,7 @@
         </p-button>
       </x-if>
       <p-list slot="childs" style="--ladder-left: 8px">
-        <o-fill :value="$data.list" name="article-item"></o-fill>
+        <o-fill :value="$data.list" name="article-item" fill-key="aid"></o-fill>
       </p-list>
     </p-list-item>
   </template>
@@ -271,6 +272,8 @@
               return;
             }
 
+            this.app.current.goto(`./${data.aid}.html`);
+
             // 点击跳转
             this.activeId = data.aid;
           },
@@ -285,6 +288,14 @@
             console.log(listData);
             this.listData = listData;
           },
+          refreshAcitve() {
+            const path = window.location.pathname;
+            const aid = path.split("/").pop().split(".")[0];
+            this.activeId = aid;
+          },
+        },
+        routerChange() {
+          this.refreshAcitve();
         },
         ready() {
           if (window.innerWidth < 768) {
@@ -292,6 +303,7 @@
           }
         },
         attached() {
+          this.refreshAcitve();
           this.loadList();
         },
       };
