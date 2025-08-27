@@ -30,23 +30,19 @@
       width: 100%;
       max-width: 1200px;
       margin: 0 auto;
-    }
-
-    @media screen and (max-width: 768px) {
-      .header {
-        height: 40px;
-      }
-      .logo {
-        font-size: 16px;
-      }
-      .header .main {
-        padding: 0 8px;
-      }
+      padding: 0 16px;
     }
 
     .left {
       width: 260px;
+      overflow: hidden;
+      transition: all ease 0.2s;
+      padding-right: 8px;
       /* background-color: rgba(10, 10, 128, 0.443); */
+    }
+
+    .left-inner {
+      width: 260px;
     }
 
     .left p-list-item {
@@ -79,10 +75,67 @@
     .article {
       flex: 1;
     }
+
+    .left-menu-btn {
+      display: none;
+    }
+
+    @media screen and (max-width: 768px) {
+      .left-menu-btn {
+        display: block;
+      }
+
+      .header {
+        height: 40px;
+      }
+      .logo {
+        font-size: 16px;
+      }
+
+      .left {
+        position: fixed;
+        z-index: 3;
+        top: 42px;
+        left: 0;
+        height: calc(100% - 42px);
+        background-color: var(--md-sys-color-on-normal);
+        box-shadow: var(--contained-shadow);
+      }
+
+      .left p-list-item::part(main) {
+        border-radius: 0 22px 22px 0;
+      }
+
+      .left.hide {
+        width: 0;
+        padding-right: 0;
+      }
+
+      .mask {
+        position: fixed;
+        width: 100%;
+        top: 42px;
+        left: 0;
+        height: calc(100% - 42px);
+        z-index: 2;
+        background-color: rgba(126, 126, 126, 0.4);
+        transition: all ease 0.2s;
+      }
+      .mask.hide {
+        pointer-events: none;
+        opacity: 0;
+      }
+    }
   </style>
   <div class="header">
     <div class="main" style="align-items: center">
-      <p-button icon variant="text" style="margin-right: 4px">
+      <p-button
+        class="left-menu-btn"
+        icon
+        variant="text"
+        on:click="openLeftMenu = !openLeftMenu"
+        style="margin-right: 4px"
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="1em"
@@ -152,12 +205,19 @@
     </div>
   </div>
   <div class="main">
-    <div class="left">
-      <div style="height: 16px"></div>
-      <p-list>
-        <o-fill :value="listData" name="article-item"></o-fill>
-      </p-list>
+    <div class="left" class:hide="!openLeftMenu">
+      <div class="left-inner">
+        <div style="height: 16px"></div>
+        <p-list>
+          <o-fill :value="listData" name="article-item"></o-fill>
+        </p-list>
+      </div>
     </div>
+    <div
+      class="mask"
+      class:hide="!openLeftMenu"
+      on:click="openLeftMenu = false"
+    ></div>
     <div class="article">
       <slot></slot>
     </div>
@@ -200,6 +260,7 @@
           lang,
           listData: [],
           activeId: null,
+          openLeftMenu: true,
         },
         proto: {
           clickItem(data, event) {
@@ -221,6 +282,11 @@
             console.log(listData);
             this.listData = listData;
           },
+        },
+        ready() {
+          if (window.innerWidth < 768) {
+            this.openLeftMenu = false;
+          }
         },
         attached() {
           this.loadList();
