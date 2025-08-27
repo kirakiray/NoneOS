@@ -1,11 +1,43 @@
 import resposeFs from "./response-fs.js";
 import responsePkg from "./response-pkg.js";
 import configs from "./config.js";
-import { getFile } from "./util.js";
+import { getFile, getContentType } from "./util.js";
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
   const { pathname, origin, searchParams } = new URL(request.url);
+
+  if (configs.debugMode) {
+    if (/^\/\$local/.test(pathname)) {
+      // TODO: 这是一个临时方案，后期要替换到容器上去运行
+      event.respondWith(
+        (async () => {
+          // 获取文件
+          const fileHandle = await getFile(
+            pathname.replace(/^\/\$local/, "local")
+          );
+          const prefix = pathname.split(".").pop();
+
+          if (fileHandle) {
+            if (prefix === "html") {
+              return new Response(await fileHandle.getFile(), {
+                headers: {
+                  "Content-Type": "text/html;charset=utf-8",
+                },
+              });
+            }
+            // 优先使用本地文件
+            return new Response(await fileHandle.getFile(), {
+              headers: {
+                "Content-Type": getContentType(prefix),
+              },
+            });
+          }
+        })()
+      );
+      return;
+    }
+  }
 
   // 只处理同源的请求
   if (location.origin === origin) {

@@ -38,6 +38,7 @@
   <script>
     export default async ({ load }) => {
       const { exportHandle } = await load("/packages/fs/task/main.js");
+      const { get } = await load("/packages/fs/main.js");
 
       return {
         tag: "lumi-export-project",
@@ -58,22 +59,25 @@
             await projectInfo.data.ready(true);
 
             // 获取预览的文件夹
-            let previewDirHandle = await projectInfo.__handle.get("web");
+            let webDirHandle = await projectInfo.__handle.get("web");
 
-            if (previewDirHandle) {
+            if (webDirHandle) {
               // 先清理旧的
-              await previewDirHandle.remove();
+              await webDirHandle.remove();
             }
 
-            // 创建新的
-            previewDirHandle = await projectInfo.__handle.get("web", {
-              create: "dir",
-            });
+            // 拷贝模板文件到web
+            const tempDir = await get(
+              "/packages/apps/luminote.napp/source/doc-static"
+            );
+            await tempDir.copyTo(projectInfo.__handle, "web");
+            webDirHandle = await projectInfo.__handle.get("web");
 
             // 获取所有文章目录
             const listData = await getListData(projectInfo.data.main);
 
             // 导出为网站
+            debugger;
           },
           async exportFile() {
             // 导出为项目文件
