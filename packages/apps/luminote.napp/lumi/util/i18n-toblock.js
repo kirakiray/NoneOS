@@ -147,8 +147,8 @@ export const translateItemData = async ({
 2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
 3. 仅将显示在页面上的自然语言文本翻译成${getRealLang(lang)}；
 4. 不要添加或删除任何标签。
-HTML 如下：
 
+HTML 如下：
 ${itemData[hostKey]}
 `;
     },

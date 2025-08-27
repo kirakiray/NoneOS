@@ -112,10 +112,14 @@
       border-radius: 2px;
       transition: width 0.1s;
     }
+    
+    .hide {
+      display: none;
+    }
   </style>
   <o-if :value="videoSrc">
     <div class="video-container" attr:align="align">
-      <div class="tool-panel">
+      <div class="tool-panel" class:hide="!inEditor">
         <p-tooltips placement="top">
           <p-button size="small" icon on:click="handleDownload">
             <n-local-icon name="download"></n-local-icon>
