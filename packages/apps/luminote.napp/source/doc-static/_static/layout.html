@@ -208,9 +208,12 @@
             d="m13 19l3.5-9l3.5 9m-6.125-2h5.25M3 7h7m0 0h2m-2 0c0 1.63-.793 3.926-2.239 5.655M7.5 6.818V5m.261 7.655C6.79 13.82 5.521 14.725 4 15m3.761-2.345L5 10m2.761 2.655L10.2 15"
           />
         </svg>
-        <p-option value="cn">中文</p-option>
+        <!-- <p-option value="cn">中文</p-option>
         <p-option value="en">English</p-option>
-        <p-option value="ja">日本語</p-option>
+        <p-option value="ja">日本語</p-option> -->
+        <o-fill :value="langs">
+          <p-option attr:value="$data.value">{{$data.label}}</p-option>
+        </o-fill>
       </p-select>
     </div>
   </div>
@@ -273,6 +276,7 @@
           listData: [],
           activeId: null,
           openLeftMenu: true,
+          langs: [],
         },
         proto: {
           changeLang(event) {
@@ -318,6 +322,13 @@
           if (window.innerWidth < 768) {
             this.openLeftMenu = false;
           }
+
+          (async () => {
+            const langs = await fetch(`../_data/supported-lang.json`).then(
+              (e) => e.json()
+            );
+            this.langs = langs;
+          })();
         },
         attached() {
           this.refreshAcitve();

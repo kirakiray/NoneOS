@@ -40,6 +40,7 @@
       const { exportHandle } = await load("/packages/fs/task/main.js");
       const { get } = await load("/packages/fs/main.js");
       const { confirm, toast } = await load("/packages/pui/util.js");
+      const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
         tag: "lumi-export-project",
@@ -80,8 +81,6 @@
             const tempContent = await fetch(
               "/packages/apps/luminote.napp/source/doc-static/_temp.html"
             ).then((e) => e.text());
-
-            debugger;
 
             // 写入特定语言到项目
             const writeProject = async (lang) => {
@@ -152,6 +151,27 @@
             for (let lang of projectInfo.data.otherLang) {
               await writeProject(lang);
             }
+
+            // 写入支持的语言
+            const langFile = await webDirHandle.get(
+              `_data/supported-lang.json`,
+              {
+                create: "file",
+              }
+            );
+
+            await langFile.write(
+              JSON.stringify([
+                {
+                  value: projectInfo.data.mainLang,
+                  label: getRealLang(projectInfo.data.mainLang),
+                },
+                ...projectInfo.data.otherLang.map((e) => ({
+                  value: e,
+                  label: getRealLang(e),
+                })),
+              ])
+            );
 
             toast("导出网页成功");
           },
