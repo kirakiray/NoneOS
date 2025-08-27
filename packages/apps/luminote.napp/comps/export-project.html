@@ -84,9 +84,11 @@
             // 写入特定语言到项目
             const writeProject = async (lang) => {
               // 获取所有文章目录
-              const listData = await getListData(
-                projectInfo.data.main,
-                async (item) => {
+              const listData = await getListData({
+                list: projectInfo.data.main,
+                lang,
+                mainLang,
+                callback: async (item) => {
                   const aid = item.aid || item._dataId;
 
                   // 写入文章数据
@@ -100,7 +102,9 @@
                   let title = item.title;
 
                   if (mainLang !== lang) {
-                    debugger;
+                    if (item.titleI18nContent && item.titleI18nContent[lang]) {
+                      title = item.titleI18nContent[lang].value;
+                    }
                   }
 
                   let articleContent = `<h1>${title}</h1>\n\n`;
@@ -113,7 +117,9 @@
                     let content = e.value;
 
                     if (mainLang !== lang) {
-                      debugger;
+                      if (e.i18nContent && e.i18nContent[lang]) {
+                        content = e.i18nContent[lang].value;
+                      }
                     }
 
                     articleContent += `<${type}>${content}</${type}>\n\n`;
@@ -126,8 +132,8 @@
                   );
 
                   await articleFile.write(finalContent);
-                }
-              );
+                },
+              });
 
               // 存放 list 数据
               const listFile = await webDirHandle.get(
@@ -136,6 +142,8 @@
                   create: "file",
                 }
               );
+              debugger
+              
               await listFile.write(JSON.stringify(listData));
             };
 
@@ -189,7 +197,7 @@
       };
     };
 
-    const getListData = async (list, callback) => {
+    const getListData = async ({ list, lang, mainLang, callback }) => {
       let listData = await Promise.all(
         list.map(async (item) => {
           if (item.type === "article" && !item.removed) {
@@ -198,11 +206,22 @@
               title: item.title,
             };
 
-            if (callback) {
-              await callback(item);
+            if (mainLang !== lang) {
+              if (item.titleI18nContent && item.titleI18nContent[lang]) {
+                data.title = item.titleI18nContent[lang].value;
+              }
             }
 
-            const subList = await getListData(item.content, callback);
+            if (callback) {
+              await callback(item, lang);
+            }
+
+            const subList = await getListData({
+              list: item.content,
+              lang,
+              mainLang,
+              callback,
+            });
 
             if (subList.length) {
               data.list = subList;

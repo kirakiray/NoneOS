@@ -204,6 +204,8 @@
           />
         </svg>
         <p-option value="cn">中文</p-option>
+        <p-option value="en">English</p-option>
+        <p-option value="ja">日本語</p-option>
       </p-select>
     </div>
   </div>
@@ -256,12 +258,13 @@
     export default async ({ load }) => {
       await load("/packages/pui/public/init.js");
 
-      const lang = "cn";
+      // const lang = "cn";
+      const lang = window.location.pathname.split("/").slice(-2)[0];
 
       return {
         data: {
           theme: sessionStorage.getItem("theme"),
-          lang,
+          lang, // 当前所处的语言位置
           listData: [],
           activeId: null,
           openLeftMenu: true,
