@@ -188,7 +188,6 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
       const { saveFile, getFileHandle } = await load("../../util/source.js");
-      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "lumi-video",
@@ -232,6 +231,11 @@
             e.target.value = "";
 
             if (file.size > 1024 * 1024 * 50) {
+              // 放到内部，防止文档模式下，加载了无用的组件
+              const { getLocalized } = await load(
+                "/packages/i18n/localized-object.js"
+              );
+
               toast({
                 content: await getLocalized({
                   cn: "视频大小不能超过50MB",

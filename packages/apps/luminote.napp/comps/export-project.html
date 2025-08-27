@@ -82,6 +82,11 @@
               "/packages/apps/luminote.napp/source/doc-static/_temp.html"
             ).then((e) => e.text());
 
+            {
+              // 拷贝sources
+              const sourceDirHandle = await projectInfo.__handle.get("source");
+              await sourceDirHandle.copyTo(webDirHandle);
+            }
             // 写入特定语言到项目
             const writeProject = async (lang) => {
               // 获取所有文章目录

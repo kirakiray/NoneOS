@@ -182,7 +182,6 @@
     const fileMap = new Map(); // 文件记录
 
     export default async ({ load }) => {
-      const { getFileHash } = await load("/packages/fs/util.js");
       const { saveFile, getFileHandle } = await load("../../util/source.js");
 
       return {
