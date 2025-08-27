@@ -81,6 +81,8 @@
               "/packages/apps/luminote.napp/source/doc-static/_temp.html"
             ).then((e) => e.text());
 
+            debugger;
+
             // 写入特定语言到项目
             const writeProject = async (lang) => {
               // 获取所有文章目录
@@ -142,14 +144,14 @@
                   create: "file",
                 }
               );
-              debugger
-              
+
               await listFile.write(JSON.stringify(listData));
             };
 
-            // 导出为网站
-            await writeProject("cn");
-            await writeProject("en");
+            await writeProject(projectInfo.data.mainLang);
+            for (let lang of projectInfo.data.otherLang) {
+              await writeProject(lang);
+            }
 
             toast("导出网页成功");
           },
