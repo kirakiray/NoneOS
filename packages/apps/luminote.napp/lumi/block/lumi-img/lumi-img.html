@@ -75,10 +75,13 @@
       max-width: 100%;
       max-height: 500px;
     }
+    .hide {
+      display: none;
+    }
   </style>
   <o-if :value="imgSrc">
     <div class="img-container" attr:align="align" on:dblclick="handleOpen">
-      <div class="tool-panel">
+      <div class="tool-panel" class:hide="!inEditor">
         <p-button-group size="small" variant="outlined">
           <p-button
             color="normal"
@@ -202,6 +205,15 @@
           },
         },
         proto: {
+          get inEditor() {
+            const paths = this.composedPath();
+
+            const inEditor = paths.some(
+              (e) => $(e).src && $(e).src.includes("note.html")
+            );
+
+            return inEditor;
+          },
           handleClick() {
             this.shadow.$("#file-inputer").ele.click();
           },
@@ -212,6 +224,10 @@
             a.click();
           },
           async handleOpen() {
+            if (!this.inEditor) {
+              return;
+            }
+
             const { getFileHandle } = await load("../../util/source.js");
 
             const imgHandle = await getFileHandle(this, this.hash);
@@ -221,6 +237,18 @@
             );
           },
           async loadImg() {
+            // 判断是否在编辑器内
+            if (!this.inEditor) {
+              const arr = location.pathname.split("/");
+
+              const imgsrc =
+                arr.slice(0, -2).join("/") + "/source/" + this.hash;
+
+              // 在文档站，从source上加载图片
+              this.imgSrc = imgsrc;
+              return;
+            }
+
             const { getFileHandle } = await load("../../util/source.js");
 
             if (this.imgSrc) {

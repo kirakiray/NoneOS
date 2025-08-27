@@ -208,6 +208,15 @@
           },
         },
         proto: {
+          get inEditor() {
+            const paths = this.composedPath();
+
+            const inEditor = paths.some(
+              (e) => $(e).src && $(e).src.includes("note.html")
+            );
+
+            return inEditor;
+          },
           handleClick() {
             this.shadow.$("#file-inputer").ele.click();
           },
@@ -253,6 +262,17 @@
             this.hash = hash;
           },
           async loadVideo() {
+            if (!this.inEditor) {
+              const arr = location.pathname.split("/");
+
+              const videoSrc =
+                arr.slice(0, -2).join("/") + "/source/" + this.hash;
+
+              // 在文档站，从source上加载视频
+              this.videoSrc = videoSrc;
+              return;
+            }
+
             const { getFileHandle } = await load("../../util/source.js");
 
             if (this.videoSrc) {
