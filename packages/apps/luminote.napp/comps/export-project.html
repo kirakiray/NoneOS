@@ -127,10 +127,12 @@
                   }
 
                   // 最终要写入的内容
-                  const finalContent = tempContent.replace(
+                  let finalContent = tempContent.replace(
                     "{{article}}",
                     articleContent
                   );
+
+                  finalContent = finalContent.replace("{{title}}", title);
 
                   await articleFile.write(finalContent);
                 },
