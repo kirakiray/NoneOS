@@ -325,7 +325,7 @@
             attr:data-id="$data._dataId"
             class:hide="$data.removed"
             button
-            attr:active-item=" $data._dataId === $host.currentArticleDataId"
+            attr:active-item="$data.aid === $host.currentArticleDataId || $data._dataId === $host.currentArticleDataId"
             collapse-childs="open"
             on:click="$host.handleClickArticle($data,$event)"
           >
