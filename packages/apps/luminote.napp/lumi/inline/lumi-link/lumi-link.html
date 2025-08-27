@@ -47,9 +47,14 @@
                 );
               }
 
-              notePage.goto(
-                `./note.html?article_id=${this.selectedArticleId}&user_id=${notePage.currentUserId}&dir_name=${notePage.currentDirName}`
-              );
+              if (!notePage) {
+                // 还是找不到 notePage，代表是文档模式
+                this.app.current.goto(`./${this.selectedArticleId}.html`);
+              } else {
+                notePage.goto(
+                  `./note.html?article_id=${this.selectedArticleId}&user_id=${notePage.currentUserId}&dir_name=${notePage.currentDirName}`
+                );
+              }
             }
           });
         },
