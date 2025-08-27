@@ -113,6 +113,16 @@
                   // 内容转html
                   for (const e of item.content) {
                     let type = e.type;
+
+                    if (e.removed) {
+                      continue;
+                    }
+
+                    if (type === "article") {
+                      articleContent += `<a href="./${e.aid}.html" olink style="display:block;">${e.title}</a>`;
+                      continue;
+                    }
+
                     if (e.type === "paragraph") {
                       type = "p";
                     }
