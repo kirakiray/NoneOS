@@ -185,7 +185,12 @@
           />
         </svg>
       </p-button>
-      <p-select :value="lang" size="small" style="margin-left: 8px">
+      <p-select
+        :value="lang"
+        size="small"
+        on:change="changeLang"
+        style="margin-left: 8px"
+      >
         <svg
           slot="prefix"
           style="display: block; font-size: 18px"
@@ -270,6 +275,12 @@
           openLeftMenu: true,
         },
         proto: {
+          changeLang(event) {
+            const pathArr = window.location.pathname.split("/");
+            const value = $(event.target).value;
+            pathArr[pathArr.length - 2] = value;
+            window.location.pathname = pathArr.join("/");
+          },
           clickItem(data, event) {
             if (event.target.getAttribute("toggle-collapse") !== null) {
               return;
