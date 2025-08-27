@@ -186,9 +186,6 @@
   />
   <script>
     export default async ({ load }) => {
-      const { toast } = await load("/packages/pui/util.js");
-      const { saveFile, getFileHandle } = await load("../../util/source.js");
-
       return {
         tag: "lumi-video",
         data: {
@@ -235,6 +232,7 @@
               const { getLocalized } = await load(
                 "/packages/i18n/localized-object.js"
               );
+              const { toast } = await load("/packages/pui/util.js");
 
               toast({
                 content: await getLocalized({
@@ -247,12 +245,16 @@
               return;
             }
 
+            const { saveFile } = await load("../../util/source.js");
+
             const { hash } = await saveFile(this, file);
 
             this.filename = file.name;
             this.hash = hash;
           },
           async loadVideo() {
+            const { getFileHandle } = await load("../../util/source.js");
+
             if (this.videoSrc) {
               URL.revokeObjectURL(this.videoSrc);
             }

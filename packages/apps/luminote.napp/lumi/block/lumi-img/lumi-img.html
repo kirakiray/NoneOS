@@ -182,8 +182,6 @@
     const fileMap = new Map(); // 文件记录
 
     export default async ({ load }) => {
-      const { saveFile, getFileHandle } = await load("../../util/source.js");
-
       return {
         tag: "lumi-img",
         data: {
@@ -214,6 +212,8 @@
             a.click();
           },
           async handleOpen() {
+            const { getFileHandle } = await load("../../util/source.js");
+
             const imgHandle = await getFileHandle(this, this.hash);
 
             window.open(
@@ -221,6 +221,8 @@
             );
           },
           async loadImg() {
+            const { getFileHandle } = await load("../../util/source.js");
+
             if (this.imgSrc) {
               URL.revokeObjectURL(this.imgSrc);
             }
@@ -234,6 +236,8 @@
             }
           },
           async handleChange(e) {
+            const { saveFile } = await load("../../util/source.js");
+
             const file = e.target.files[0];
             e.target.value = "";
 
