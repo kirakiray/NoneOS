@@ -57,6 +57,22 @@
 
             await projectInfo.data.ready(true);
 
+            // 获取预览的文件夹
+            let previewDirHandle = await projectInfo.__handle.get("web");
+
+            if (previewDirHandle) {
+              // 先清理旧的
+              await previewDirHandle.remove();
+            }
+
+            // 创建新的
+            previewDirHandle = await projectInfo.__handle.get("web", {
+              create: "dir",
+            });
+
+            // 获取所有文章目录
+            const listData = await getListData(projectInfo.data.main);
+
             // 导出为网站
           },
           async exportFile() {
@@ -101,6 +117,29 @@
         attached() {},
         detached() {},
       };
+    };
+
+    const getListData = async (list) => {
+      let listData = await Promise.all(
+        list.map(async (item) => {
+          if (item.type === "article" && !item.removed) {
+            const data = {
+              aid: item.aid,
+              title: item.title,
+            };
+
+            const subList = await getListData(item.content);
+
+            if (subList.length) {
+              data.list = subList;
+            }
+
+            return data;
+          }
+        })
+      );
+
+      return listData.filter((e) => !!e);
     };
   </script>
 </template>
