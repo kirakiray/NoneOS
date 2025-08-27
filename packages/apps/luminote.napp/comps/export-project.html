@@ -76,6 +76,14 @@
             // 获取所有文章目录
             const listData = await getListData(projectInfo.data.main);
 
+            // 存放 list 数据
+            const listFile = await webDirHandle.get(`_data/cn_list.json`, {
+              create: "file",
+            });
+            await listFile.write(JSON.stringify(listData));
+
+            // 存放文章数据
+
             // 导出为网站
             debugger;
           },
@@ -123,7 +131,7 @@
       };
     };
 
-    const getListData = async (list) => {
+    const getListData = async (list, callback) => {
       let listData = await Promise.all(
         list.map(async (item) => {
           if (item.type === "article" && !item.removed) {
@@ -131,6 +139,8 @@
               aid: item.aid,
               title: item.title,
             };
+
+            await callback(item.content);
 
             const subList = await getListData(item.content);
 
