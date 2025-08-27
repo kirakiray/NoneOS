@@ -41,19 +41,19 @@
       margin: 2px 0;
     }
 
-    .left p-list-item[active-item]::part(main) {
-      background-color: var(--md-sys-color-primary);
-      color: var(--md-sys-color-on-primary);
-    }
-
     .left p-list-item::part(main) {
       height: 36px;
       box-sizing: border-box;
       border-radius: 22px;
+      transition: all ease 0.2s;
     }
-    .article {
-      background-color: rgba(172, 54, 54, 0.371);
-      flex: 1;
+
+    .left p-list-item[active-item]::part(main) {
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+    }
+    .left p-list-item[active-item] [toggle-collapse] span {
+      color: var(--md-sys-color-on-primary);
     }
 
     .left p-list-item[collapse-childs] [toggle-collapse] {
@@ -63,6 +63,10 @@
 
     .left p-list-item[collapse-childs="open"] [toggle-collapse] {
       transform: rotate(0deg);
+    }
+    .article {
+      background-color: rgba(172, 54, 54, 0.371);
+      flex: 1;
     }
   </style>
   <div class="header">
@@ -155,7 +159,12 @@
   </div>
 
   <template name="article-item">
-    <p-list-item button collapse-childs="open">
+    <p-list-item
+      button
+      collapse-childs="open"
+      attr:active-item="$host.activeId === $data.aid"
+      on:click="$host.activeId = $data.aid"
+    >
       {{$data.title}}
       <x-if :value="!!$data.list">
         <p-button
@@ -163,6 +172,7 @@
           size="mini"
           slot="suffix"
           variant="text"
+          color="normal"
           style="position: relative; display: block; z-index: 3"
         >
           <span style="font-size: 16px">▾</span>
@@ -184,6 +194,7 @@
           theme: sessionStorage.getItem("theme"),
           lang,
           listData: [],
+          activeId: null,
         },
         proto: {
           switchTheme() {

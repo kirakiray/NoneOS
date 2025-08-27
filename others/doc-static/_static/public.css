@@ -8,3 +8,7 @@ body {
 o-app {
   height: 100%;
 }
+
+html {
+  background-color: var(--md-sys-color-surface);
+}
