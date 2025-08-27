@@ -216,11 +216,6 @@ article del {
 
 /* 响应式设计 */
 @media (max-width: 767px) {
-  article {
-    padding: 15px;
-    font-size: 14px;
-  }
-
   article h1 {
     font-size: 1.75em;
   }
