@@ -77,8 +77,6 @@
             await tempDir.copyTo(projectInfo.__handle, "web");
             webDirHandle = await projectInfo.__handle.get("web");
 
-            debugger;
-
             {
               // 写入依赖的 packages 那部份文件
               const pui = await get("/packages/pui");
