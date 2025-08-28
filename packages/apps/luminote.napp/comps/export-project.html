@@ -77,6 +77,38 @@
             await tempDir.copyTo(projectInfo.__handle, "web");
             webDirHandle = await projectInfo.__handle.get("web");
 
+            debugger;
+
+            {
+              // 写入依赖的 packages 那部份文件
+              const pui = await get("/packages/pui");
+              const pkgDirHandle = await webDirHandle.get("packages", {
+                create: "dir",
+              });
+              await pui.copyTo(pkgDirHandle);
+
+              const hljsLib = await get("/packages/libs/hljs-es");
+              const libsDirHandle = await pkgDirHandle.get("libs", {
+                create: "dir",
+              });
+              await hljsLib.copyTo(libsDirHandle);
+
+              const blockDir = await get(
+                "/packages/apps/luminote.napp/lumi/block"
+              );
+              const inlineDir = await get(
+                "/packages/apps/luminote.napp/lumi/inline"
+              );
+              const lumiDirHandle = await pkgDirHandle.get(
+                "apps/luminote.napp/lumi",
+                {
+                  create: "dir",
+                }
+              );
+              await blockDir.copyTo(lumiDirHandle);
+              await inlineDir.copyTo(lumiDirHandle);
+            }
+
             // 获取模板文件内容
             const tempContent = await fetch(
               "/packages/apps/luminote.napp/source/doc-static/_temp.html"
@@ -85,7 +117,10 @@
             {
               // 拷贝sources
               const sourceDirHandle = await projectInfo.__handle.get("source");
-              await sourceDirHandle.copyTo(webDirHandle);
+
+              if (sourceDirHandle) {
+                await sourceDirHandle.copyTo(webDirHandle);
+              }
             }
             // 写入特定语言到项目
             const writeProject = async (lang) => {
