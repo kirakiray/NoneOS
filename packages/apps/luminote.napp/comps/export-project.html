@@ -1,4 +1,6 @@
 <template component>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/textarea/textarea.html"></l-m>
   <style>
     :host {
       display: block;
@@ -23,7 +25,13 @@
     <p-button variant="outlined" attr:disabled="exporting" on:click="exportWeb">
       打包为网站
     </p-button>
-    <p>将项目打包为一个独立的网站文件，方便在没有安装Luminote的设备上打开。</p>
+    <p-button size="mini" variant="outlined" on:click="openAnalyticsDialog">
+      配置谷歌分析代码
+    </p-button>
+    <p>
+      将项目打包成一个独立的文档网站压缩包，无需安装 Luminote
+      即可在其他设备上便捷打开。
+    </p>
   </div>
   <div class="line">
     <p-button variant="outlined" disabled>打包为markdown</p-button>
@@ -35,6 +43,18 @@
       将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
     </p>
   </div>
+  <p-dialog :open="openAnalytics">
+    <div slot="title">配置分析代码</div>
+    <p style="max-width: 50vw">
+      当您在下方文本框中填写谷歌分析代码后，生成的静态 HTML 文件将会在每个页面的
+      &lt;head&gt;
+      元素结束之后立即插入这段代码。这有助于您借助谷歌分析功能，精准地收集和分析网站的访问数据，从而深入了解用户行为和网站性能。
+    </p>
+    <p-textarea sync:value="analyticsCode" style="margin: 8px 0 16px">
+      <label>请输入谷歌分析代码</label>
+    </p-textarea>
+    <p-button on:click="confirmAnalyticsCode"> 确认 </p-button>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
       const { exportHandle } = await load("/packages/fs/task/main.js");
@@ -47,10 +67,43 @@
         data: {
           projectDirname: "", // 项目目录名
           exporting: false,
+          openAnalytics: false,
+          analyticsCode: "",
         },
 
         proto: {
-          getProjectData() {},
+          async confirmAnalyticsCode() {
+            if (!this.analyticsCode.trim()) {
+              toast({
+                content: "请输入分析代码",
+                color: "error",
+              });
+              return;
+            }
+
+            const projectInfo = await this.app.getProject(
+              this.projectDirname,
+              "self"
+            );
+
+            projectInfo.data.analyticsCode = this.analyticsCode;
+
+            toast("分析代码配置成功");
+
+            this.openAnalytics = false;
+          },
+          async openAnalyticsDialog(code) {
+            this.openAnalytics = true;
+
+            const projectInfo = await this.app.getProject(
+              this.projectDirname,
+              "self"
+            );
+
+            if (projectInfo.data.analyticsCode) {
+              this.analyticsCode = projectInfo.data.analyticsCode;
+            }
+          },
           async exportWeb() {
             this.exporting = true;
 
@@ -331,7 +384,6 @@
             }, 500);
           },
         },
-        attached() {},
         detached() {},
       };
     };
