@@ -43,7 +43,7 @@
       将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
     </p>
   </div>
-  <p-dialog :open="openAnalytics">
+  <p-dialog :open="openAnalytics" on:click-mask="openAnalytics = false">
     <div slot="title">配置分析代码</div>
     <p style="max-width: 50vw">
       当您在下方文本框中填写谷歌分析代码后，生成的静态 HTML 文件将会在每个页面的
@@ -113,6 +113,8 @@
               "self"
             );
 
+            const analyticsCode = projectInfo.data.analyticsCode;
+
             await projectInfo.data.ready(true);
 
             // 获取预览的文件夹
@@ -163,9 +165,14 @@
             }
 
             // 获取模板文件内容
-            const tempContent = await fetch(
+            let tempContent = await fetch(
               "/packages/apps/luminote.napp/source/doc-static/_temp.html"
             ).then((e) => e.text());
+
+            tempContent = tempContent.replace(
+              "<!-- Analytics Code -->",
+              analyticsCode
+            );
 
             {
               // 拷贝sources
@@ -301,6 +308,13 @@
                 /aaa\.html/g,
                 `${homeAid}.html`
               );
+
+              if (analyticsCode) {
+                indexContent = indexContent.replace(
+                  "<!-- Analytics Code -->",
+                  analyticsCode
+                );
+              }
 
               // 写入首页
               const indexFile = await webDirHandle.get(`index.html`, {
