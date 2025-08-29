@@ -21,19 +21,68 @@
             height: 100%;
             overflow-y: auto;
           }
+          .footer {
+            display: flex;
+            align-items: center;
+            height: 48px;
+          }
+
+          .footer a {
+            color: var(--md-sys-color-primary);
+            text-decoration: none;
+          }
         </style>
-        <article>{{article}}</article>
+        <article>
+          {{article}}
+          <div class="footer">
+            <o-if :value="footer.prevArticle.name">
+              <a olink attr:href="footer.prevArticle.href"
+                >{{footer.prevArticle.name}}</a
+              >
+            </o-if>
+            <o-if :value="footer.nextArticle.name">
+              <a
+                olink
+                attr:href="footer.nextArticle.href"
+                style="margin-left: auto"
+              >
+                {{footer.nextArticle.name}}
+              </a>
+            </o-if>
+          </div>
+        </article>
         <script>
           // export const parent = "../_static/layout.html"; // 正式模式
           // export const parent =
           //   "/packages/apps/luminote.napp/source/doc-static/_static/layout.html"; // debugmode
-          export default async () => {
+          export default async ({ load, url }) => {
             return {
               parent:
                 location.port != 5559
                   ? "../_static/layout.html"
                   : "/packages/apps/luminote.napp/source/doc-static/_static/layout.html",
-              data: {},
+              data: {
+                footer: {
+                  prevArticle: {
+                    name: "",
+                    href: "",
+                  },
+                  nextArticle: {
+                    name: "",
+                    href: "",
+                  },
+                },
+              },
+              attached() {
+                (async () => {
+                  this.footer = await this.parent.getFooter(
+                    new URL(url).pathname
+                      .split("/")
+                      .slice(-1)[0]
+                      .replace(".html", "")
+                  );
+                })();
+              },
             };
           };
         </script>

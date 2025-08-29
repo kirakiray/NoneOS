@@ -343,6 +343,44 @@
             const aid = path.split("/").pop().split(".")[0];
             this.activeId = aid;
           },
+          async getFooter(aid) {
+            await this.watchUntil(() => this.listData.length);
+
+            // 将listData扁平化
+            const flatList = this.listData.flatMap((e) => {
+              if (e.list && e.list.length) {
+                return [e, ...e.list];
+              }
+              return [e];
+            });
+
+            // 从listData中获取上一页和下一页的aid
+            const currentIndex = flatList.findIndex((e) => e.aid === aid);
+            const prevArticle =
+              currentIndex > 0 ? flatList[currentIndex - 1] : null;
+            const nextArticle =
+              currentIndex < flatList.length - 1
+                ? flatList[currentIndex + 1]
+                : null;
+
+            const redata = { prevArticle: {}, nextArticle: {} };
+
+            if (prevArticle) {
+              redata.prevArticle = {
+                name: prevArticle.title,
+                href: `./${prevArticle.aid}.html`,
+              };
+            }
+
+            if (nextArticle) {
+              redata.nextArticle = {
+                name: nextArticle.title,
+                href: `./${nextArticle.aid}.html`,
+              };
+            }
+
+            return redata;
+          },
         },
         routerChange() {
           this.refreshAcitve();
