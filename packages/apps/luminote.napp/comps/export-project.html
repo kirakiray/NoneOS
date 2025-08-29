@@ -122,6 +122,9 @@
                 await sourceDirHandle.copyTo(webDirHandle);
               }
             }
+
+            let homeAid; // 第一个页面当成首页
+
             // 写入特定语言到项目
             const writeProject = async (lang) => {
               // 获取所有文章目录
@@ -131,6 +134,10 @@
                 mainLang,
                 callback: async (item) => {
                   const aid = item.aid || item._dataId;
+
+                  if (!homeAid) {
+                    homeAid = aid;
+                  }
 
                   // 写入文章数据
                   const articleFile = await webDirHandle.get(
@@ -231,6 +238,24 @@
               }
             );
 
+            // 添加首页自动跳转代码
+            {
+              let indexContent = await fetch(
+                "/packages/apps/luminote.napp/source/doc-static/_index.html"
+              ).then((e) => e.text());
+
+              indexContent = indexContent.replace(
+                /aaa\.html/g,
+                `${homeAid}.html`
+              );
+
+              // 写入首页
+              const indexFile = await webDirHandle.get(`index.html`, {
+                create: "file",
+              });
+              await indexFile.write(indexContent);
+            }
+
             await langFile.write(
               JSON.stringify([
                 {
@@ -248,7 +273,16 @@
 
             // 导出文件
             const fileArr = [];
-            for await (let item of webDirHandle.values()) {
+            for await (let [name, item] of webDirHandle.entries()) {
+              if (
+                name === "_demo.html" ||
+                name === "_temp.html" ||
+                name === "_index.html"
+              ) {
+                // 忽略无用文件
+                continue;
+              }
+
               fileArr.push(item.path);
             }
 
