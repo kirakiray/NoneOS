@@ -37,7 +37,7 @@
           <div class="footer">
             <o-if :value="footer.prevArticle.name">
               <a olink attr:href="footer.prevArticle.href"
-                >{{footer.prevArticle.name}}</a
+                >← {{footer.prevArticle.name}}</a
               >
             </o-if>
             <o-if :value="footer.nextArticle.name">
@@ -46,7 +46,7 @@
                 attr:href="footer.nextArticle.href"
                 style="margin-left: auto"
               >
-                {{footer.nextArticle.name}}
+                {{footer.nextArticle.name}} →
               </a>
             </o-if>
           </div>
