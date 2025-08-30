@@ -28,11 +28,6 @@
     }
   </style>
   <div class="main">
-    <!-- <o-if :value="isAIAvailable">
-      <lumi-beautify-btn
-        style="position: absolute; top: 16px; right: 16px"
-      ></lumi-beautify-btn>
-    </o-if> -->
     <div class="inner">
       <o-if :value="!!error">
         <div style="color: var(--md-sys-color-error)">{{error}}</div>
@@ -62,7 +57,6 @@
             title: "loading...",
           },
           error: "",
-          isAIAvailable: false,
         },
         proto: {
           async loadArticle() {
@@ -114,8 +108,6 @@
           });
 
           (async () => {
-            this.isAIAvailable = await isAIAvailable();
-
             this.push(
               `<lumi-page style="height: 100%;overflow: auto"></lumi-page>`
             );
