@@ -16,9 +16,11 @@ export const isAIAvailable = async () => {
       callback: () => {
         // 只要有一个成功代表可用
         resolve(true);
+        resolve = null;
       },
     });
 
+    resolve && resolve(false);
     setTimeout(() => {
       availablePms = null;
     }, 10000);
