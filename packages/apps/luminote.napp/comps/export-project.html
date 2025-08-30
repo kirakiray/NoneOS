@@ -334,6 +334,17 @@
                     }
 
                     if (type === "article") {
+                      if (mainLang !== lang) {
+                        let title;
+                        try {
+                          title = e.titleI18nContent[lang].value;
+                        } catch (error) {
+                          title = e.title;
+                        }
+
+                        articleContent += `<a href="./${e.aid}.html" olink style="display:block;">${title}</a>`;
+                        continue;
+                      }
                       articleContent += `<a href="./${e.aid}.html" olink style="display:block;">${e.title}</a>`;
                       continue;
                     }
