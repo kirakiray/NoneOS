@@ -112,10 +112,14 @@
       border-radius: 2px;
       transition: width 0.1s;
     }
+    
+    .hide {
+      display: none;
+    }
   </style>
   <o-if :value="videoSrc">
     <div class="video-container" attr:align="align">
-      <div class="tool-panel">
+      <div class="tool-panel" class:hide="!inEditor">
         <p-tooltips placement="top">
           <p-button size="small" icon on:click="handleDownload">
             <n-local-icon name="download"></n-local-icon>
@@ -186,10 +190,6 @@
   />
   <script>
     export default async ({ load }) => {
-      const { toast } = await load("/packages/pui/util.js");
-      const { saveFile, getFileHandle } = await load("../../util/source.js");
-      const { getLocalized } = await load("/packages/i18n/localized-object.js");
-
       return {
         tag: "lumi-video",
         data: {
@@ -212,6 +212,15 @@
           },
         },
         proto: {
+          get inEditor() {
+            const paths = this.composedPath();
+
+            const inEditor = paths.some(
+              (e) => $(e).src && $(e).src.includes("note.html")
+            );
+
+            return inEditor;
+          },
           handleClick() {
             this.shadow.$("#file-inputer").ele.click();
           },
@@ -232,6 +241,12 @@
             e.target.value = "";
 
             if (file.size > 1024 * 1024 * 50) {
+              // 放到内部，防止文档模式下，加载了无用的组件
+              const { getLocalized } = await load(
+                "/packages/i18n/localized-object.js"
+              );
+              const { toast } = await load("/packages/pui/util.js");
+
               toast({
                 content: await getLocalized({
                   cn: "视频大小不能超过50MB",
@@ -243,12 +258,27 @@
               return;
             }
 
+            const { saveFile } = await load("../../util/source.js");
+
             const { hash } = await saveFile(this, file);
 
             this.filename = file.name;
             this.hash = hash;
           },
           async loadVideo() {
+            if (!this.inEditor) {
+              const arr = location.pathname.split("/");
+
+              const videoSrc =
+                arr.slice(0, -2).join("/") + "/source/" + this.hash;
+
+              // 在文档站，从source上加载视频
+              this.videoSrc = videoSrc;
+              return;
+            }
+
+            const { getFileHandle } = await load("../../util/source.js");
+
             if (this.videoSrc) {
               URL.revokeObjectURL(this.videoSrc);
             }

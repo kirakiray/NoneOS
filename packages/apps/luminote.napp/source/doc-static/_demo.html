@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doc Static - Luminote</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.11/dist/ofa.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.11/libs/scsr/dist/scsr.min.js"></script>
+    <link rel="stylesheet" href="./_static/public.css" />
+  </head>
+  <body>
+    <o-root-provider name="pui"></o-root-provider>
+    <o-app src="./_static/app.js">
+      <template page>
+        <link rel="stylesheet" href="./_static/article-markdown.css" />
+        <link rel="stylesheet" href="./_static/article-public.css" />
+        <style>
+          :host {
+            display: block;
+          }
+        </style>
+        <article>
+          <p>
+            Luminote 可以借助你本机的 AI 能力，解锁更丰富、更私密的智能功能。
+          </p>
+
+          <h2>如何启用本地 AI 功能？</h2>
+
+          <p>
+            要启用本地 AI，需使用
+            <span style="" custom-comp=""
+              ><lumi-link
+                type="external"
+                href="https://lmstudio.ai"
+                selected-article-id=""
+                custom-inline-component=""
+                >lmstudio</lumi-link
+              ></span
+            >，具体操作如下：
+          </p>
+
+          <p>1. 下载并安装匹配你系统版本的 lm studio，直接部署在本地设备上。</p>
+
+          <p>
+            2. 启动 lm
+            studio，选择并下载你希望使用的模型。若设备性能一般，推荐使用
+            <strong>qwen3-4b-2507</strong> 模型；若设备较强大，可尝试
+            <strong>Qwen3-30B-A3B-Instruct-2507</strong>
+            模型，以获得更出色的推理能力。
+          </p>
+
+          <p>
+            3. 打开 NoneOS 系统，在应用中找到 FlaskGenie，进入「本地AI」→「LM
+            Studio（本机AI）」→「选择默认模型」，然后绑定你之前下载的模型。这一步将为
+            Luminote 提供本地 AI 助手，实现无缝调用与高效响应。
+          </p>
+
+          <p>
+            4. 完成设置后，打开Luminote，可以在右下角看到
+            <span style="font-weight: 600">AI按钮，</span> 你即可立即体验本地 AI
+            的智能辅助功能。
+          </p>
+
+          <h2>AI润色</h2>
+
+          <h4>全文润色</h4>
+
+          <p>
+            在 Luminote
+            编辑正文后，将鼠标悬停于右下角的AI按钮，会从左侧弹出【润色】选项，点击后可选择“润色内容”或“精简内容”，等待AI处理完毕，再点击“确认替换内容”，即可实现文章的智能优化与流畅表达。
+          </p>
+
+          <p>
+            你也可以通过鼠标选中多个段落，弹出工具小窗后，点击润色按钮，即可对所选内容进行智能润色。
+          </p>
+
+          <h4>快速填充内容</h4>
+
+          <p>
+            你可以在段落中输入内容，点击快捷键
+            <span style="font-weight: 600; color: var(--md-sys-color-primary)"
+              >command/ctrl + i</span
+            >，即可调用AI自动润色当前段落的内容。
+          </p>
+
+          <p>
+            你也可以在段落中输入关键词，点击快捷键
+            <span style="font-weight: 600; color: var(--md-sys-color-primary)"
+              >command/ctrl + i</span
+            >，即可触发AI自动润色并智能填充相关内容。
+          </p>
+
+          <h3>翻译内容</h3>
+
+          <p>
+            编写完内容后，点击右上角的多语言按钮，可一键切换文档语言。此时文档内容仍为原始语言，AI按钮将显示感叹号，表示存在待翻译任务。点击该按钮，进入翻译任务界面，点击“开始任务”，文档将自动调用本地AI引擎，将全文智能翻译为目标语言，并实时更新显示。
+          </p>
+
+          <p>
+            翻译过的内容会自动缓存至文章中，下次切换语言时将优先调用缓存内容；你也可通过点击右上角多语言按钮，实时查看当前文档各段落的翻译进度。
+          </p>
+
+          <p></p>
+        </article>
+        <script>
+          export const parent = "./_static/layout.html";
+          export default async () => {
+            return {
+              data: {},
+            };
+          };
+        </script>
+      </template>
+    </o-app>
+  </body>
+</html>

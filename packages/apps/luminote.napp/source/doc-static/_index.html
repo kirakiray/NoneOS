@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="refresh" content="100; url=en/aaa.html" />
+    <title>Redirect</title>
+    <script>
+      // 获取用户浏览器语言
+      const userLang = navigator.language || navigator.userLanguage;
+
+      // 根据语言进行重定向
+      let redirectUrl = "en/aaa.html"; // 默认英语
+
+      if (userLang.startsWith("zh")) {
+        // 中文（包括简体和繁体）
+        redirectUrl = "cn/aaa.html";
+      } else if (userLang.startsWith("ja")) {
+        // 日语
+        redirectUrl = "ja/aaa.html";
+      } else if (userLang.startsWith("en")) {
+        // 英语
+        redirectUrl = "en/aaa.html";
+      }
+
+      // 执行重定向
+      window.location.href = redirectUrl;
+    </script>
+    <!-- Analytics Code -->
+  </head>
+  <body>
+    <p>Detecting your language preference...</p>
+    <p>If you are not redirected automatically, please choose:</p>
+    <ul>
+      <li><a href="cn/aaa.html">中文</a></li>
+      <li><a href="en/aaa.html">English</a></li>
+      <li><a href="ja/aaa.html">日本語</a></li>
+    </ul>
+  </body>
+</html>

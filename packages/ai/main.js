@@ -21,7 +21,7 @@ export const isAIAvailable = async () => {
 
     setTimeout(() => {
       availablePms = null;
-    }, 1000);
+    }, 10000);
   }));
 };
 

@@ -22,7 +22,8 @@ export const findArticle = async ({
 
 const findTargetArticle = async (content, dataId) => {
   for (let e of content) {
-    if (e._dataId === dataId) {
+    // TODO: 后期会逐渐淘汰 _dataId 作为文章的主id；要以 aid 为准
+    if (e.aid === dataId || e._dataId === dataId) {
       return {
         target: e,
         paths: [e],

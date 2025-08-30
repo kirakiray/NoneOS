@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}}</title>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.11/dist/ofa.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js@4.6.11/libs/scsr/dist/scsr.min.js"></script>
+    <link rel="stylesheet" href="../_static/public.css" />
+    <!-- Analytics Code -->
+  </head>
+  <body>
+    <o-root-provider name="pui"></o-root-provider>
+    <o-app src="../_static/app.js">
+      <template page>
+        <link rel="stylesheet" href="../_static/article-markdown.css" />
+        <link rel="stylesheet" href="../_static/article-public.css" />
+        <style>
+          :host {
+            display: block;
+            height: 100%;
+            overflow-y: auto;
+          }
+          .footer {
+            display: flex;
+            align-items: center;
+            height: 48px;
+          }
+
+          .footer a {
+            color: var(--md-sys-color-primary);
+            text-decoration: none;
+          }
+        </style>
+        <article>
+          {{article}}
+          <div class="footer">
+            <o-if :value="footer.prevArticle.name">
+              <a olink attr:href="footer.prevArticle.href"
+                >← {{footer.prevArticle.name}}</a
+              >
+            </o-if>
+            <o-if :value="footer.nextArticle.name">
+              <a
+                olink
+                attr:href="footer.nextArticle.href"
+                style="margin-left: auto"
+              >
+                {{footer.nextArticle.name}} →
+              </a>
+            </o-if>
+          </div>
+        </article>
+        <script>
+          // export const parent = "../_static/layout.html"; // 正式模式
+          // export const parent =
+          //   "/packages/apps/luminote.napp/source/doc-static/_static/layout.html"; // debugmode
+          export default async ({ load, url }) => {
+            return {
+              parent:
+                location.port != 5559
+                  ? "../_static/layout.html"
+                  : "/packages/apps/luminote.napp/source/doc-static/_static/layout.html",
+              data: {
+                footer: {
+                  prevArticle: {
+                    name: "",
+                    href: "",
+                  },
+                  nextArticle: {
+                    name: "",
+                    href: "",
+                  },
+                },
+              },
+              attached() {
+                (async () => {
+                  this.footer = await this.parent.getFooter(
+                    new URL(url).pathname
+                      .split("/")
+                      .slice(-1)[0]
+                      .replace(".html", "")
+                  );
+                })();
+              },
+            };
+          };
+        </script>
+      </template>
+    </o-app>
+  </body>
+</html>

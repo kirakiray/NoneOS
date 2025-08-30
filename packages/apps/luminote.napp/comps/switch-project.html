@@ -5,6 +5,7 @@
   <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="./export-project.html"></l-m>
   <style>
     :host {
       display: block;
@@ -341,6 +342,19 @@
     </o-fill>
   </p-list>
 
+  <p-dialog :open="showExportProject" on:click-mask="showExportProject = false">
+    <div slot="title">
+      <localized-content>
+        <span lang="en">Export Project</span>
+        <span lang="cn">导出项目</span>
+        <span lang="ja">プロジェクトをエクスポート</span>
+      </localized-content>
+    </div>
+    <lumi-export-project
+      :project-dirname="exportProjectDirName"
+    ></lumi-export-project>
+  </p-dialog>
+
   <script>
     import {
       localizedObject,
@@ -349,7 +363,6 @@
 
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
-      const { exportHandle } = await load("/packages/fs/task/main.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
 
       return {
@@ -362,6 +375,8 @@
           projects: [],
           desc: {},
           currentProjectSetting: {}, // 当前项目的设置数据
+          showExportProject: false,
+          exportProjectDirName: "",
         },
         proto: {
           async handleProjectSetting(data, event) {
@@ -385,43 +400,9 @@
             return realLang;
           },
           async handleExportProject(data, event) {
-            data.exporting = true;
-
             event.stopPropagation();
-
-            const app = this.app;
-            const projectInfo = await app.getProject(data.dirName, "self");
-
-            // 将正文生成一个文件
-            await projectInfo.data.ready(true);
-            const projectDataStr = JSON.stringify(projectInfo.data);
-
-            // 写入文件
-            const articleFileHandle = await projectInfo.__handle.get(
-              "article.json",
-              {
-                create: "file",
-              }
-            );
-
-            await articleFileHandle.write(projectDataStr);
-
-            const exportPaths = [articleFileHandle.path];
-
-            const sourceFileHandle = await projectInfo.__handle.get("source");
-
-            if (sourceFileHandle) {
-              exportPaths.push(sourceFileHandle.path);
-            }
-
-            await exportHandle(exportPaths, `${data.projectName}.luminote`);
-
-            // data.exporting = false;
-            setTimeout(async () => {
-              // 导出完成后删除json文件
-              await articleFileHandle.remove();
-              data.exporting = false;
-            }, 500);
+            this.showExportProject = true;
+            this.exportProjectDirName = data.dirName;
           },
           closeItem(index, item) {
             this.app.closeProject(item.__handle.name, item.userId);

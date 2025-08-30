@@ -1,6 +1,5 @@
 import { createArticleData } from "./util/create-article-data.js";
 
-
 export const home = "./pages/home.html";
 
 export const pageAnime = {
@@ -254,6 +253,27 @@ export default {
       ) {
         return project;
       }
+
+      // const getRandomId = () => {
+      //   return Math.random().toString(32).slice(2);
+      // };
+
+      // // 查看每个文章不存在aid进行补充
+      // const fixAid = (list) => {
+      //   list.forEach((data) => {
+      //     if (data.type === "article") {
+      //       if (!data.aid) {
+      //         data.aid = getRandomId();
+      //       }
+      //     }
+
+      //     if (data.content) {
+      //       fixAid(data.content);
+      //     }
+      //   });
+      // };
+
+      // fixAid(project.data.main);
 
       this._openedProjects.push({
         ...project,
