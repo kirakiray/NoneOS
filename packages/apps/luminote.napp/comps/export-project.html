@@ -457,6 +457,73 @@
               ])
             );
 
+            // 生成 sitemap.xml
+            {
+              const sitemapUrls = [];
+              
+              // 添加首页
+              sitemapUrls.push({
+                loc: "index.html",
+                lastmod: new Date().toISOString().split('T')[0],
+                changefreq: "daily",
+                priority: "1.0"
+              });
+
+              // 收集所有语言的页面
+              const allLangs = [projectInfo.data.mainLang, ...projectInfo.data.otherLang];
+              
+              for (let lang of allLangs) {
+                // 获取该语言的所有文章
+                const listData = await getListData({
+                  list: projectInfo.data.main,
+                  lang,
+                  mainLang: projectInfo.data.mainLang,
+                });
+                
+                // 递归收集所有页面URL
+                const collectUrls = (items) => {
+                  items.forEach(item => {
+                    if (item.aid) {
+                      sitemapUrls.push({
+                        loc: `${lang}/${item.aid}.html`,
+                        lastmod: new Date().toISOString().split('T')[0],
+                        changefreq: "daily",
+                        priority: "0.8"
+                      });
+                    }
+                    if (item.list && item.list.length > 0) {
+                      collectUrls(item.list);
+                    }
+                  });
+                };
+                
+                collectUrls(listData);
+              }
+
+              // 生成 sitemap.xml 内容
+              let sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+`;
+              
+              sitemapUrls.forEach(url => {
+                sitemapContent += `  <url>
+    <loc>${url.loc}</loc>
+    <lastmod>${url.lastmod}</lastmod>
+    <changefreq>${url.changefreq}</changefreq>
+    <priority>${url.priority}</priority>
+  </url>
+`;
+              });
+              
+              sitemapContent += `</urlset>`;
+
+              // 写入 sitemap.xml
+              const sitemapFile = await webDirHandle.get("sitemap.xml", {
+                create: "file",
+              });
+              await sitemapFile.write(sitemapContent);
+            }
+
             // 导出文件
             const fileArr = [];
             for await (let [name, item] of webDirHandle.entries()) {
