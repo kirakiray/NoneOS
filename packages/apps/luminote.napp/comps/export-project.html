@@ -17,46 +17,144 @@
   </style>
   <div class="line">
     <p-button attr:disabled="exporting" on:click="exportFile">
-      导出项目文件
+      <localized-content>
+        <span lang="cn">导出项目文件</span>
+        <span lang="en">Export Project File</span>
+        <span lang="ja"> プロジェクトファイルをエクスポート </span>
+      </localized-content>
     </p-button>
-    <p>导出项目源文件，方便在其他设备上导入并继续项目操作。</p>
+    <localized-content>
+      <p lang="cn">导出项目源文件，方便在其他设备上导入并继续项目操作。</p>
+      <p lang="en">
+        Export project source files for easy import on other devices.
+      </p>
+      <p lang="ja">
+        プロジェクトのソースファイルをエクスポートし、他のデバイスでインポートしてプロジェクトを続行できます。
+      </p>
+    </localized-content>
   </div>
   <div class="line">
     <p-button variant="outlined" attr:disabled="exporting" on:click="exportWeb">
-      打包为网站
+      <localized-content>
+        <span lang="cn">打包为网站</span>
+        <span lang="en">Export as Website</span>
+        <span lang="ja"> プロジェクトをウェブサイトとしてエクスポート </span>
+      </localized-content>
     </p-button>
     <p-button size="mini" variant="outlined" on:click="openAnalyticsDialog">
-      配置谷歌分析代码
+      <localized-content>
+        <span lang="cn">配置谷歌分析代码</span>
+        <span lang="en">Configure Google Analytics Code</span>
+        <span lang="ja"> プロジェクトをウェブサイトとしてエクスポート </span>
+      </localized-content>
     </p-button>
-    <p>
-      将项目打包成一个独立的文档网站压缩包，无需安装 Luminote
-      即可在其他设备上便捷打开。
-    </p>
+    <localized-content>
+      <p lang="cn">
+        将项目打包成一个独立的文档网站压缩包，无需安装 Luminote
+        即可在其他设备上便捷打开。
+      </p>
+      <p lang="en">
+        Export project as a standalone website zip package, no need to install
+        Luminote on other devices.
+      </p>
+      <p lang="ja">
+        プロジェクトをウェブサイトとしてエクスポートし、他のデバイスでインポートしてプロジェクトを続行できます。
+      </p>
+    </localized-content>
   </div>
   <div class="line">
-    <p-button variant="outlined" disabled>打包为markdown</p-button>
-    <p>将项目打包为markdown文件，方便在其他Markdown编辑器中打开。</p>
+    <p-button variant="outlined" disabled>
+      <localized-content>
+        <span lang="cn">打包为markdown</span>
+        <span lang="en">Export as Markdown</span>
+        <span lang="ja">
+          プロジェクトをマークダウンファイルとしてエクスポート
+        </span>
+      </localized-content>
+    </p-button>
+    <localized-content>
+      <p lang="cn">
+        将项目打包为markdown文件，方便在其他Markdown编辑器中打开。
+      </p>
+      <p lang="en">
+        Export project as a markdown file, for easy opening in other Markdown
+        editors.
+      </p>
+      <p lang="ja">
+        プロジェクトをマークダウンファイルとしてエクスポートし、他のマークダウンエディターで開くことができます。
+      </p>
+    </localized-content>
   </div>
   <div class="line">
-    <p-button variant="outlined" disabled>打包为llms.txt</p-button>
-    <p>
-      将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
-    </p>
+    <p-button variant="outlined" disabled>
+      <localized-content>
+        <span lang="cn">打包为llms.txt</span>
+        <span lang="en">Export as llms.txt</span>
+        <span lang="ja">
+          プロジェクトをllms.txtファイルとしてエクスポート
+        </span>
+      </localized-content>
+    </p-button>
+    <localized-content>
+      <p lang="cn">
+        将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
+      </p>
+      <p lang="en">
+        Export project as an llms.txt file, which will organize the key content
+        of the project in a structured format for efficient retrieval and
+        analysis by various AI models, meeting the needs of data mining,
+        knowledge extraction, etc.
+      </p>
+      <p lang="ja">
+        プロジェクトをllms.txtファイルとしてエクスポートし、他のマークダウンエディターで開くことができます。
+      </p>
+    </localized-content>
   </div>
   <p-dialog :open="openAnalytics" on:click-mask="openAnalytics = false">
-    <div slot="title">配置分析代码</div>
-    <p style="max-width: 50vw">
-      当您在下方文本框中填写谷歌分析代码后，生成的静态 HTML 文件将会在每个页面的
-      &lt;head&gt;
-      元素结束之后立即插入这段代码。这有助于您借助谷歌分析功能，精准地收集和分析网站的访问数据，从而深入了解用户行为和网站性能。
-    </p>
+    <div slot="title">
+      <localized-content>
+        <span lang="cn">配置分析代码</span>
+        <span lang="en">Configure Analytics Code</span>
+        <span lang="ja"> 分析コードを構成 </span>
+      </localized-content>
+    </div>
+    <localized-content>
+      <p lang="cn" style="max-width: 50vw">
+        当您在下方文本框中填写谷歌分析代码后，生成的静态 HTML
+        文件将会在每个页面的 &lt;head&gt;
+        元素结束之后立即插入这段代码。这有助于您借助谷歌分析功能，精准地收集和分析网站的访问数据，从而深入了解用户行为和网站性能。
+      </p>
+      <p lang="en" style="max-width: 50vw">
+        When you enter the Google Analytics code in the text box below, the
+        generated static HTML file will insert this code immediately after the
+        &lt;head&gt; element of each page. This helps you collect and analyze
+        website access data accurately using Google Analytics, enabling you to
+        understand user behavior and website performance.
+      </p>
+      <p lang="ja" style="max-width: 50vw">
+        分析コードを構成し、プロジェクトをウェブサイトとしてエクスポートします。
+      </p>
+    </localized-content>
     <p-textarea sync:value="analyticsCode" style="margin: 8px 0 16px">
-      <label>请输入谷歌分析代码</label>
+      <label>
+        <localized-content>
+          <span lang="cn">请输入谷歌分析代码</span>
+          <span lang="en">Please enter Google Analytics code</span>
+          <span lang="ja"> 谷歌分析コードを入力してください </span>
+        </localized-content>
+      </label>
     </p-textarea>
-    <p-button on:click="confirmAnalyticsCode"> 确认 </p-button>
+    <p-button on:click="confirmAnalyticsCode">
+      <localized-content>
+        <span lang="cn">确认</span>
+        <span lang="en">Confirm</span>
+        <span lang="ja"> 確認 </span>
+      </localized-content>
+    </p-button>
   </p-dialog>
   <script>
     export default async ({ load }) => {
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const { exportHandle } = await load("/packages/fs/task/main.js");
       const { get } = await load("/packages/fs/main.js");
       const { confirm, toast } = await load("/packages/pui/util.js");
@@ -75,7 +173,11 @@
           async confirmAnalyticsCode() {
             if (!this.analyticsCode.trim()) {
               toast({
-                content: "请输入分析代码",
+                content: await getLocalized({
+                  cn: "请输入分析代码",
+                  en: "Please enter Google Analytics code",
+                  ja: " 谷歌分析コードを入力してください ",
+                }),
                 color: "error",
               });
               return;
@@ -88,7 +190,13 @@
 
             projectInfo.data.analyticsCode = this.analyticsCode;
 
-            toast("分析代码配置成功");
+            toast({
+              content: await getLocalized({
+                cn: "分析代码配置成功",
+                en: "Analytics code configuration successful",
+                ja: " 分析コードの構成が成功しました ",
+              }),
+            });
 
             this.openAnalytics = false;
           },
@@ -357,7 +465,13 @@
 
             this.exporting = false;
 
-            toast("导出网页成功");
+            toast(
+              await getLocalized({
+                cn: "导出网页成功",
+                en: "Export web page successful",
+                ja: " ウェブページのエクスポートが成功しました ",
+              })
+            );
           },
           async exportFile() {
             // 导出为项目文件
