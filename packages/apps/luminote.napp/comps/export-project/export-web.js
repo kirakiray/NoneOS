@@ -62,6 +62,9 @@ export const proto = {
       // 导出文件
       await this._exportFiles(webDirHandle, projectName);
 
+      // 生成整站数据
+      await this._generateFullsite(projectInfo);
+
       // 导出完成
       this.exporting = false;
       this.exportType = "";

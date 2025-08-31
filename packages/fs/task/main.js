@@ -197,17 +197,33 @@ export const moveHandle = async (froms, to) => {
 };
 
 // 导出文件
-export const exportHandle = async (paths, zipFileName) => {
+export const exportHandle = async (paths, fileName) => {
   const taskItem = addTaskItem({
     icon: "file",
     name: getText("exporting", "fs-task"),
   });
 
-  if (paths.length === 1 && !zipFileName) {
+  if (paths.length === 1) {
     const handle = await get(paths[0]);
 
     if (handle.kind === "file") {
-      const file = await handle.file();
+      let file = await handle.file();
+
+      if (fileName) {
+        // 查找最后一个点的索引，分离文件名和扩展名
+        const lastDotIndex = fileName.lastIndexOf(".");
+        const beforeExt =
+          lastDotIndex === -1 ? fileName : fileName.slice(0, lastDotIndex);
+        const ext = lastDotIndex === -1 ? "" : fileName.slice(lastDotIndex + 1);
+
+        // 生成带时间戳的文件名，并清理非法字符
+        const timestamp = new Date().toLocaleString();
+        const cleanFileName = `${beforeExt}-${timestamp}.${ext}`
+          .replace(/[\/\\:*?"<>|]/g, "")
+          .replace(/\s+/g, "-");
+
+        file = new File([file], cleanFileName);
+      }
 
       taskItem.done = true;
       taskItem.name = getText("exportFileSuccess", "fs-task", {
@@ -275,7 +291,7 @@ export const exportHandle = async (paths, zipFileName) => {
 
   downloadFile(
     finnalFile,
-    zipFileName ? `${zipFileName}.zip` : `noneos-${currentTime}.zip`
+    fileName ? `${fileName}.zip` : `noneos-${currentTime}.zip`
   );
 
   taskItem.name = getText("exportSuccess", "fs-task");

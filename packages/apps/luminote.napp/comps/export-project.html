@@ -50,12 +50,13 @@
     </p-button>
     <localized-content>
       <p lang="cn">
-        将项目打包成一个独立的文档网站压缩包，无需安装 Luminote
-        即可在其他设备上便捷打开。
+        将项目打包为一个独立的文档网站压缩包，内含 sitemap.xml、llms.txt
+        等文件，方便部署到服务器作为网站进行访问。
       </p>
       <p lang="en">
-        Export project as a standalone website zip package, no need to install
-        Luminote on other devices.
+        Export project as a standalone website zip package, containing
+        sitemap.xml, llms.txt, and other files, for easy deployment as a
+        website.
       </p>
       <p lang="ja">
         プロジェクトをウェブサイトとしてエクスポートし、他のデバイスでインポートしてプロジェクトを続行できます。
@@ -88,29 +89,28 @@
   <div class="line">
     <p-button
       variant="outlined"
-      on:click="exportLlms"
+      on:click="exportFullsite"
       attr:disabled="exporting"
     >
       <localized-content>
-        <span lang="cn">打包为llms.txt</span>
-        <span lang="en">Export as llms.txt</span>
+        <span lang="cn">打包为fullsite.txt</span>
+        <span lang="en">Export as fullsite.txt</span>
         <span lang="ja">
-          プロジェクトをllms.txtファイルとしてエクスポート
+          プロジェクトをfullsite.txtファイルとしてエクスポート
         </span>
       </localized-content>
     </p-button>
     <localized-content>
       <p lang="cn">
-        将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
+        将项目打包为 fullsite.txt
+        文件，该文件囊括整个项目的完整数据，便于大模型开展分析或训练工作。
       </p>
       <p lang="en">
-        Export project as an llms.txt file, which will organize the key content
-        of the project in a structured format for efficient retrieval and
-        analysis by various AI models, meeting the needs of data mining,
-        knowledge extraction, etc.
+        Export project as a fullsite.txt file, containing all project data for
+        easy analysis or training by large language models.
       </p>
       <p lang="ja">
-        プロジェクトをllms.txtファイルとしてエクスポートし、他のマークダウンエディターで開くことができます。
+        プロジェクトをfullsite.txtファイルとしてエクスポートし、大言語モデルが分析やトレーニングを容易に行えるようにします。
       </p>
     </localized-content>
   </div>
