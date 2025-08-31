@@ -118,7 +118,11 @@
     </o-if>
     <o-else>
       <p-switch sync:value="appConfigData.useAITranslate" disabled>
-        使用AI功能
+        <localized-content>
+          <span lang="cn">使用AI功能</span>
+          <span lang="en">Use AI features</span>
+          <span lang="ja">AI機能を使用する</span>
+        </localized-content>
       </p-switch>
 
       <p-tooltips>
@@ -227,7 +231,11 @@
         style="color: var(--md-sys-color-primary)"
         target="_blank"
       >
-        官方使用文档
+        <localized-content>
+          <span lang="en">Official use documentation</span>
+          <span lang="cn">官方使用文档</span>
+          <span lang="ja">公式使用ドキュメント</span>
+        </localized-content>
       </a>
     </div>
   </div>

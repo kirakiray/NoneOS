@@ -78,7 +78,6 @@
     export default async ({ load, url }) => {
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
-      const { unzip } = await load("/packages/libs/zip/main.js");
 
       const { toast } = await load("/packages/pui/util.js");
 
@@ -118,7 +117,6 @@
             }
 
             const file = await fetch(urlObj).then((e) => e.blob());
-            const files = await unzip(file);
             const app = this.host.parent;
 
             const projectItem = await importProject({

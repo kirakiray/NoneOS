@@ -1,4 +1,7 @@
 import { createArticleData } from "./util/create-article-data.js";
+import { importProject } from "./util/import-project.js";
+import { getSetting } from "/packages/none-os/setting.js";
+import { changeLang } from "./lumi/util/change-lang.js";
 
 export const home = "./pages/home.html";
 
@@ -364,6 +367,52 @@ const getOpenHistory = async (app) => {
 
   if (configData.lastOpen) {
     data = configData.lastOpen.toJSON();
+  } else {
+    // 代表第一次进入，导入初始化项目
+    // await importProject();
+    const quickstartFile = await fetch("./source/quickstart.luminote.zip").then(
+      (e) => e.blob()
+    );
+
+    const projectItem = await importProject({
+      app,
+      file: quickstartFile,
+      onError: async (e) => {},
+      onProgress: (progress) => {},
+    });
+
+    await projectItem.data.ready(true);
+
+    const settingData = await getSetting();
+
+    if (projectItem.data.mainLang !== settingData.lang) {
+      // 切换语种
+      await changeLang(projectItem.data, settingData.lang);
+      await projectItem.data.ready(true);
+    }
+
+    projectItem.data.main[0].aid = Math.random().toString(32).slice(2); // 重置文章的id
+    projectItem.data.projectName = "quick start";
+    data[0].dirName = projectItem.__handle.name;
+
+    await new Promise((res) => setTimeout(res, 600));
+
+    // 切换过去
+    setTimeout(() => {
+      // 切换到第一篇文章
+      try {
+        app
+          .$("o-page")
+          .shadow.$(`p-list-item[data-project-userid]`)
+          .$(".article-list-item")
+          .ele.click();
+      } catch (err) {}
+    }, 300);
+
+    setTimeout(() => {
+      // 保存打开的记录
+      saveOpenHistory(app);
+    }, 600);
   }
 
   return data;
