@@ -31,6 +31,33 @@
             color: var(--md-sys-color-primary);
             text-decoration: none;
           }
+
+          .focused {
+            animation: shake 1s ease-in-out;
+            animation-delay: 0.5s;
+          }
+
+          @keyframes shake {
+            0% {
+              transform: translateX(0);
+            }
+            25% {
+              transform: translateX(-5px);
+              color: var(--md-sys-color-on-primary);
+              background-color: var(--md-sys-color-primary);
+            }
+            50% {
+              transform: translateX(5px);
+            }
+            75% {
+              transform: translateX(-5px);
+              color: var(--md-sys-color-on-primary);
+              background-color: var(--md-sys-color-primary);
+            }
+            100% {
+              transform: translateX(0);
+            }
+          }
         </style>
         <article>
           {{article}}
@@ -55,7 +82,9 @@
           // export const parent = "../_static/layout.html"; // 正式模式
           // export const parent =
           //   "/packages/apps/luminote.napp/source/doc-static/_static/layout.html"; // debugmode
-          export default async ({ load, url }) => {
+          export default async ({ load, url, query }) => {
+            console.log(query);
+
             return {
               parent:
                 location.port != 5559
@@ -73,6 +102,23 @@
                   },
                 },
               },
+              proto: {
+                focusTarget(index) {
+                  const target = this.shadow.$("article")[parseInt(index)];
+
+                  if (target) {
+                    target.classList.add("focused");
+                    target.ele.scrollIntoView({
+                      behavior: "smooth",
+                      block: "center",
+                    });
+
+                    setTimeout(() => {
+                      target.classList.remove("focused");
+                    }, 1500);
+                  }
+                },
+              },
               attached() {
                 (async () => {
                   this.footer = await this.parent.getFooter(
@@ -82,6 +128,10 @@
                       .replace(".html", "")
                   );
                 })();
+
+                if (query.index) {
+                  this.focusTarget(query.index);
+                }
               },
             };
           };

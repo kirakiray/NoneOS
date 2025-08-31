@@ -156,8 +156,6 @@ export const proto = {
         }
       );
 
-      debugger;
-
       // 写入搜索数据
       await searchFile.write(JSON.stringify(searchData));
     }
