@@ -21,8 +21,6 @@ export const proto = {
     listData.forEach((e) => {
       const articleContent = getMdContent(e);
       content += articleContent;
-
-      debugger;
     });
 
     this.exporting = false;
@@ -50,7 +48,9 @@ const getMdContent = (articleData) => {
       el.style.display = "none";
       $("body").push(el);
 
-      debugger;
+      content += el.mdContent;
+
+      el.remove();
     }
   }
 
