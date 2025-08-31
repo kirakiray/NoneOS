@@ -379,10 +379,13 @@ const getOpenHistory = async (app) => {
       onProgress: (progress) => {},
     });
 
+    await projectItem.data.ready(true);
+
+    projectItem.data.main[0].aid = Math.random().toString(32).slice(2); // 重置文章的id
     projectItem.data.projectName = "quick start";
     data[0].dirName = projectItem.__handle.name;
 
-    await new Promise((res) => setTimeout(res, 700));
+    await new Promise((res) => setTimeout(res, 600));
 
     // 切换过去
     setTimeout(() => {
