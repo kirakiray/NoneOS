@@ -11,13 +11,24 @@
       background-color: var(--md-sys-color-on-normal);
       border-radius: 16px;
     }
+
+    .outer-container {
+      max-width: 800px;
+      width: 80vw;
+      height: 80vh;
+    }
+
+    @media (max-width: 768px) {
+      .outer-container {
+        width: auto;
+        height: auto;
+        max-height: 90vh;
+      }
+    }
   </style>
 
   <p-dialog class="search-dialog" :open="open" on:click-mask="open = false">
-    <div
-      style="max-width: 800px; width: 90vw; height: 80vh"
-      on:click="open = false"
-    >
+    <div class="outer-container" on:click="open = false">
       <div class="search-main" on:click="$event.stopPropagation()">
         <p-input
           size="large"
