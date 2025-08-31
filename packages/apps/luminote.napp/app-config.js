@@ -369,10 +369,9 @@ const getOpenHistory = async (app) => {
     data = configData.lastOpen.toJSON();
   } else {
     // 代表第一次进入，导入初始化项目
-    // await importProject();
-    const quickstartFile = await fetch("./source/quickstart.luminote.zip").then(
-      (e) => e.blob()
-    );
+    const quickstartFile = await fetch(
+      import.meta.resolve("./source/quickstart.luminote.zip")
+    ).then((e) => e.blob());
 
     const projectItem = await importProject({
       app,
