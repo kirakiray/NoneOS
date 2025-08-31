@@ -28,7 +28,11 @@
         proto: {
           setValue() {},
           get textContent() {
-            return this.host.host._currentTextContent;
+            try {
+              return this.host.host._currentTextContent;
+            } catch (e) {
+              return this.text;
+            }
           },
           get htmlContent() {
             const html = this.host.host._currentHtmlContent;

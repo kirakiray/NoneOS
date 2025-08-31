@@ -17,50 +17,160 @@
   </style>
   <div class="line">
     <p-button attr:disabled="exporting" on:click="exportFile">
-      导出项目文件
+      <localized-content>
+        <span lang="cn">导出项目文件</span>
+        <span lang="en">Export Project File</span>
+        <span lang="ja"> プロジェクトファイルをエクスポート </span>
+      </localized-content>
     </p-button>
-    <p>导出项目源文件，方便在其他设备上导入并继续项目操作。</p>
+    <localized-content>
+      <p lang="cn">导出项目源文件，方便在其他设备上导入并继续项目操作。</p>
+      <p lang="en">
+        Export project source files for easy import on other devices.
+      </p>
+      <p lang="ja">
+        プロジェクトのソースファイルをエクスポートし、他のデバイスでインポートしてプロジェクトを続行できます。
+      </p>
+    </localized-content>
   </div>
   <div class="line">
     <p-button variant="outlined" attr:disabled="exporting" on:click="exportWeb">
-      打包为网站
+      <localized-content>
+        <span lang="cn">打包为网站</span>
+        <span lang="en">Export as Website</span>
+        <span lang="ja"> プロジェクトをウェブサイトとしてエクスポート </span>
+      </localized-content>
     </p-button>
     <p-button size="mini" variant="outlined" on:click="openAnalyticsDialog">
-      配置谷歌分析代码
+      <localized-content>
+        <span lang="cn">配置谷歌分析代码</span>
+        <span lang="en">Configure Google Analytics Code</span>
+        <span lang="ja"> プロジェクトをウェブサイトとしてエクスポート </span>
+      </localized-content>
     </p-button>
-    <p>
-      将项目打包成一个独立的文档网站压缩包，无需安装 Luminote
-      即可在其他设备上便捷打开。
-    </p>
+    <localized-content>
+      <p lang="cn">
+        将项目打包为一个独立的文档网站压缩包，内含 sitemap.xml、llms.txt
+        等文件，方便部署到服务器作为网站进行访问。
+      </p>
+      <p lang="en">
+        Export project as a standalone website zip package, containing
+        sitemap.xml, llms.txt, and other files, for easy deployment as a
+        website.
+      </p>
+      <p lang="ja">
+        プロジェクトをウェブサイトとしてエクスポートし、他のデバイスでインポートしてプロジェクトを続行できます。
+      </p>
+    </localized-content>
   </div>
+  <!-- <div class="line">
+    <p-button variant="outlined" disabled>
+      <localized-content>
+        <span lang="cn">打包为markdown</span>
+        <span lang="en">Export as Markdown</span>
+        <span lang="ja">
+          プロジェクトをマークダウンファイルとしてエクスポート
+        </span>
+      </localized-content>
+    </p-button>
+    <localized-content>
+      <p lang="cn">
+        将项目打包为markdown文件，方便在其他Markdown编辑器中打开。
+      </p>
+      <p lang="en">
+        Export project as a markdown file, for easy opening in other Markdown
+        editors.
+      </p>
+      <p lang="ja">
+        プロジェクトをマークダウンファイルとしてエクスポートし、他のマークダウンエディターで開くことができます。
+      </p>
+    </localized-content>
+  </div> -->
   <div class="line">
-    <p-button variant="outlined" disabled>打包为markdown</p-button>
-    <p>将项目打包为markdown文件，方便在其他Markdown编辑器中打开。</p>
-  </div>
-  <div class="line">
-    <p-button variant="outlined" disabled>打包为llms.txt</p-button>
-    <p>
-      将项目打包为llms.txt文件，该文件会把项目中的关键内容以结构化的格式整理存储，方便各类AI模型对项目内容进行高效检索和分析，满足数据挖掘、知识提取等应用场景需求。
-    </p>
+    <p-button
+      variant="outlined"
+      on:click="exportFullsite"
+      attr:disabled="exporting"
+    >
+      <localized-content>
+        <span lang="cn">打包为fullsite.txt</span>
+        <span lang="en">Export as fullsite.txt</span>
+        <span lang="ja">
+          プロジェクトをfullsite.txtファイルとしてエクスポート
+        </span>
+      </localized-content>
+    </p-button>
+    <localized-content>
+      <p lang="cn">
+        将项目打包为 fullsite.txt
+        文件，该文件囊括整个项目的完整数据，便于大模型开展分析或训练工作。
+      </p>
+      <p lang="en">
+        Export project as a fullsite.txt file, containing all project data for
+        easy analysis or training by large language models.
+      </p>
+      <p lang="ja">
+        プロジェクトをfullsite.txtファイルとしてエクスポートし、大言語モデルが分析やトレーニングを容易に行えるようにします。
+      </p>
+    </localized-content>
   </div>
   <p-dialog :open="openAnalytics" on:click-mask="openAnalytics = false">
-    <div slot="title">配置分析代码</div>
-    <p style="max-width: 50vw">
-      当您在下方文本框中填写谷歌分析代码后，生成的静态 HTML 文件将会在每个页面的
-      &lt;head&gt;
-      元素结束之后立即插入这段代码。这有助于您借助谷歌分析功能，精准地收集和分析网站的访问数据，从而深入了解用户行为和网站性能。
-    </p>
+    <div slot="title">
+      <localized-content>
+        <span lang="cn">配置分析代码</span>
+        <span lang="en">Configure Analytics Code</span>
+        <span lang="ja"> 分析コードを構成 </span>
+      </localized-content>
+    </div>
+    <localized-content>
+      <p lang="cn" style="max-width: 50vw">
+        当您在下方文本框中填写谷歌分析代码后，生成的静态 HTML
+        文件将会在每个页面的 &lt;head&gt;
+        元素结束之后立即插入这段代码。这有助于您借助谷歌分析功能，精准地收集和分析网站的访问数据，从而深入了解用户行为和网站性能。
+      </p>
+      <p lang="en" style="max-width: 50vw">
+        When you enter the Google Analytics code in the text box below, the
+        generated static HTML file will insert this code immediately after the
+        &lt;head&gt; element of each page. This helps you collect and analyze
+        website access data accurately using Google Analytics, enabling you to
+        understand user behavior and website performance.
+      </p>
+      <p lang="ja" style="max-width: 50vw">
+        分析コードを構成し、プロジェクトをウェブサイトとしてエクスポートします。
+      </p>
+    </localized-content>
     <p-textarea sync:value="analyticsCode" style="margin: 8px 0 16px">
-      <label>请输入谷歌分析代码</label>
+      <label>
+        <localized-content>
+          <span lang="cn">请输入谷歌分析代码</span>
+          <span lang="en">Please enter Google Analytics code</span>
+          <span lang="ja"> 谷歌分析コードを入力してください </span>
+        </localized-content>
+      </label>
     </p-textarea>
-    <p-button on:click="confirmAnalyticsCode"> 确认 </p-button>
+    <p-button on:click="confirmAnalyticsCode">
+      <localized-content>
+        <span lang="cn">确认</span>
+        <span lang="en">Confirm</span>
+        <span lang="ja"> 確認 </span>
+      </localized-content>
+    </p-button>
   </p-dialog>
   <script>
     export default async ({ load }) => {
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const { exportHandle } = await load("/packages/fs/task/main.js");
       const { get } = await load("/packages/fs/main.js");
       const { confirm, toast } = await load("/packages/pui/util.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
+      const { proto: exportWebProto } = await load(
+        "./export-project/export-web.js"
+      );
+      const { proto: exportMdProto } = await load(
+        "./export-project/export-md.js"
+      );
+
+      const { getListData } = await load("./export-project/get-list-data.js");
 
       return {
         tag: "lumi-export-project",
@@ -72,10 +182,16 @@
         },
 
         proto: {
+          ...exportWebProto,
+          ...exportMdProto,
           async confirmAnalyticsCode() {
             if (!this.analyticsCode.trim()) {
               toast({
-                content: "请输入分析代码",
+                content: await getLocalized({
+                  cn: "请输入分析代码",
+                  en: "Please enter Google Analytics code",
+                  ja: " 谷歌分析コードを入力してください ",
+                }),
                 color: "error",
               });
               return;
@@ -88,7 +204,13 @@
 
             projectInfo.data.analyticsCode = this.analyticsCode;
 
-            toast("分析代码配置成功");
+            toast({
+              content: await getLocalized({
+                cn: "分析代码配置成功",
+                en: "Analytics code configuration successful",
+                ja: " 分析コードの構成が成功しました ",
+              }),
+            });
 
             this.openAnalytics = false;
           },
@@ -104,261 +226,7 @@
               this.analyticsCode = projectInfo.data.analyticsCode;
             }
           },
-          async exportWeb() {
-            this.exporting = true;
 
-            // 导出为网站
-            const projectInfo = await this.app.getProject(
-              this.projectDirname,
-              "self"
-            );
-
-            const analyticsCode = projectInfo.data.analyticsCode;
-
-            await projectInfo.data.ready(true);
-
-            // 获取预览的文件夹
-            let webDirHandle = await projectInfo.__handle.get("web");
-
-            if (webDirHandle) {
-              // 先清理旧的
-              await webDirHandle.remove();
-            }
-
-            const { mainLang } = projectInfo.data; // 主体语言
-
-            // 拷贝模板文件到web
-            const tempDir = await get(
-              "/packages/apps/luminote.napp/source/doc-static"
-            );
-            await tempDir.copyTo(projectInfo.__handle, "web");
-            webDirHandle = await projectInfo.__handle.get("web");
-
-            {
-              // 写入依赖的 packages 那部份文件
-              const pui = await get("/packages/pui");
-              const pkgDirHandle = await webDirHandle.get("packages", {
-                create: "dir",
-              });
-              await pui.copyTo(pkgDirHandle);
-
-              const hljsLib = await get("/packages/libs/hljs-es");
-              const libsDirHandle = await pkgDirHandle.get("libs", {
-                create: "dir",
-              });
-              await hljsLib.copyTo(libsDirHandle);
-
-              const blockDir = await get(
-                "/packages/apps/luminote.napp/lumi/block"
-              );
-              const inlineDir = await get(
-                "/packages/apps/luminote.napp/lumi/inline"
-              );
-              const lumiDirHandle = await pkgDirHandle.get(
-                "apps/luminote.napp/lumi",
-                {
-                  create: "dir",
-                }
-              );
-              await blockDir.copyTo(lumiDirHandle);
-              await inlineDir.copyTo(lumiDirHandle);
-            }
-
-            // 获取模板文件内容
-            let tempContent = await fetch(
-              "/packages/apps/luminote.napp/source/doc-static/_temp.html"
-            ).then((e) => e.text());
-
-            tempContent = tempContent.replace(
-              "<!-- Analytics Code -->",
-              analyticsCode
-            );
-
-            {
-              // 拷贝sources
-              const sourceDirHandle = await projectInfo.__handle.get("source");
-
-              if (sourceDirHandle) {
-                await sourceDirHandle.copyTo(webDirHandle);
-              }
-            }
-
-            let homeAid; // 第一个页面当成首页
-
-            // 写入特定语言到项目
-            const writeProject = async (lang) => {
-              // 获取所有文章目录
-              const listData = await getListData({
-                list: projectInfo.data.main,
-                lang,
-                mainLang,
-                callback: async (item) => {
-                  const aid = item.aid || item._dataId;
-
-                  if (!homeAid) {
-                    homeAid = aid;
-                  }
-
-                  // 写入文章数据
-                  const articleFile = await webDirHandle.get(
-                    `${lang}/${aid}.html`,
-                    {
-                      create: "file",
-                    }
-                  );
-
-                  let title = item.title;
-
-                  if (mainLang !== lang) {
-                    if (item.titleI18nContent && item.titleI18nContent[lang]) {
-                      title = item.titleI18nContent[lang].value;
-                    }
-                  }
-
-                  let articleContent = `<h1>${title}</h1>\n\n`;
-
-                  // 内容转html
-                  for (const e of item.content) {
-                    let type = e.type;
-
-                    if (e.removed) {
-                      continue;
-                    }
-
-                    if (type === "article") {
-                      articleContent += `<a href="./${e.aid}.html" olink style="display:block;">${e.title}</a>`;
-                      continue;
-                    }
-
-                    if (e.type === "paragraph") {
-                      type = "p";
-                    }
-                    let content = e.value;
-
-                    if (mainLang !== lang) {
-                      if (e.i18nContent && e.i18nContent[lang]) {
-                        content = e.i18nContent[lang].value;
-                      }
-                    }
-
-                    let attrStr = "";
-
-                    if (e.attrs) {
-                      Object.entries(e.attrs).forEach(([key, value]) => {
-                        if (key === "dataStatus") {
-                          return;
-                        }
-
-                        attrStr += ` ${key}="${value}"`;
-                      });
-                    }
-
-                    if (e.tab) {
-                      articleContent += `<${type}${attrStr} style="margin-left: ${
-                        e.tab * 16
-                      }px;">${content}</${type}>\n\n`;
-                    } else {
-                      articleContent += `<${type}${attrStr}>${content}</${type}>\n\n`;
-                    }
-                  }
-
-                  // 最终要写入的内容
-                  let finalContent = tempContent.replace(
-                    "{{article}}",
-                    articleContent
-                  );
-
-                  finalContent = finalContent.replace("{{title}}", title);
-
-                  await articleFile.write(finalContent);
-                },
-              });
-
-              // 存放 list 数据
-              const listFile = await webDirHandle.get(
-                `_data/${lang}_list.json`,
-                {
-                  create: "file",
-                }
-              );
-
-              await listFile.write(JSON.stringify(listData));
-            };
-
-            await writeProject(projectInfo.data.mainLang);
-            for (let lang of projectInfo.data.otherLang) {
-              await writeProject(lang);
-            }
-
-            // 写入支持的语言
-            const langFile = await webDirHandle.get(
-              `_data/supported-lang.json`,
-              {
-                create: "file",
-              }
-            );
-
-            // 添加首页自动跳转代码
-            {
-              let indexContent = await fetch(
-                "/packages/apps/luminote.napp/source/doc-static/_index.html"
-              ).then((e) => e.text());
-
-              indexContent = indexContent.replace(
-                /aaa\.html/g,
-                `${homeAid}.html`
-              );
-
-              if (analyticsCode) {
-                indexContent = indexContent.replace(
-                  "<!-- Analytics Code -->",
-                  analyticsCode
-                );
-              }
-
-              // 写入首页
-              const indexFile = await webDirHandle.get(`index.html`, {
-                create: "file",
-              });
-              await indexFile.write(indexContent);
-            }
-
-            await langFile.write(
-              JSON.stringify([
-                {
-                  value: projectInfo.data.mainLang,
-                  label: getRealLang(projectInfo.data.mainLang),
-                  projectName: projectInfo.data.projectName,
-                },
-                ...projectInfo.data.otherLang.map((e) => ({
-                  value: e,
-                  label: getRealLang(e),
-                  projectName: projectInfo.data.projectName,
-                })),
-              ])
-            );
-
-            // 导出文件
-            const fileArr = [];
-            for await (let [name, item] of webDirHandle.entries()) {
-              if (
-                name === "_demo.html" ||
-                name === "_temp.html" ||
-                name === "_index.html"
-              ) {
-                // 忽略无用文件
-                continue;
-              }
-
-              fileArr.push(item.path);
-            }
-
-            await exportHandle(fileArr, projectInfo.data.projectName);
-
-            this.exporting = false;
-
-            toast("导出网页成功");
-          },
           async exportFile() {
             // 导出为项目文件
             this.exporting = true;
@@ -400,44 +268,6 @@
         },
         detached() {},
       };
-    };
-
-    const getListData = async ({ list, lang, mainLang, callback }) => {
-      let listData = await Promise.all(
-        list.map(async (item) => {
-          if (item.type === "article" && !item.removed) {
-            const data = {
-              aid: item.aid,
-              title: item.title,
-            };
-
-            if (mainLang !== lang) {
-              if (item.titleI18nContent && item.titleI18nContent[lang]) {
-                data.title = item.titleI18nContent[lang].value;
-              }
-            }
-
-            if (callback) {
-              await callback(item, lang);
-            }
-
-            const subList = await getListData({
-              list: item.content,
-              lang,
-              mainLang,
-              callback,
-            });
-
-            if (subList.length) {
-              data.list = subList;
-            }
-
-            return data;
-          }
-        })
-      );
-
-      return listData.filter((e) => !!e);
     };
   </script>
 </template>
