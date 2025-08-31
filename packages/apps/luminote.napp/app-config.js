@@ -1,4 +1,5 @@
 import { createArticleData } from "./util/create-article-data.js";
+import { importProject } from "./util/import-project.js";
 
 export const home = "./pages/home.html";
 
@@ -364,6 +365,41 @@ const getOpenHistory = async (app) => {
 
   if (configData.lastOpen) {
     data = configData.lastOpen.toJSON();
+  } else {
+    // 代表第一次进入，导入初始化项目
+    // await importProject();
+    const quickstartFile = await fetch("./source/quickstart.luminote.zip").then(
+      (e) => e.blob()
+    );
+
+    const projectItem = await importProject({
+      app,
+      file: quickstartFile,
+      onError: async (e) => {},
+      onProgress: (progress) => {},
+    });
+
+    projectItem.data.projectName = "quick start";
+    data[0].dirName = projectItem.__handle.name;
+
+    await new Promise((res) => setTimeout(res, 700));
+
+    // 切换过去
+    setTimeout(() => {
+      // 切换到第一篇文章
+      try {
+        app
+          .$("o-page")
+          .shadow.$(`p-list-item[data-project-userid]`)
+          .$(".article-list-item")
+          .ele.click();
+      } catch (err) {}
+    }, 300);
+
+    setTimeout(() => {
+      // 保存打开的记录
+      saveOpenHistory(app);
+    }, 600);
   }
 
   return data;
