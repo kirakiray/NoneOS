@@ -59,6 +59,9 @@ export const proto = {
       // 生成llms.txt
       await this._generateLlmsTxt(projectInfo, webDirHandle);
 
+      // 生成搜索索引
+      await this._generateSearchIndex(projectInfo, webDirHandle);
+
       // 导出文件
       await this._exportFiles(webDirHandle, projectName);
 
@@ -71,6 +74,90 @@ export const proto = {
       this.exporting = false;
       this.exportType = "";
       toast(`导出失败: ${error.message}`);
+    }
+  },
+
+  // 生成搜索索引
+  async _generateSearchIndex(projectInfo, webDirHandle) {
+    // 获取所有语言
+    const allLangs = [projectInfo.data.mainLang, ...projectInfo.data.otherLang];
+
+    // 为每种语言生成搜索索引
+    for (let lang of allLangs) {
+      // 收集该语言的搜索数据
+      const searchData = [];
+
+      // 获取该语言的所有文章
+      const listData = await getListData({
+        list: projectInfo.data.main,
+        lang,
+        mainLang: projectInfo.data.mainLang,
+        needContent: true,
+      });
+
+      // 递归收集搜索数据
+      const collectSearchData = (items, parentPath = "") => {
+        items.forEach((item) => {
+          if (item.aid && !item.removed) {
+            // 获取标题
+            let title = item.title;
+            if (lang !== projectInfo.data.mainLang) {
+              if (item.titleI18nContent && item.titleI18nContent[lang]) {
+                title = item.titleI18nContent[lang].value;
+              }
+            }
+
+            // 提取内容
+            const content = [];
+            if (item.content) {
+              for (let index = 0; index < item.content.length; index++) {
+                const e = item.content[index];
+                if (e.value) {
+                  let paragraphContent = e.value;
+                  if (lang !== projectInfo.data.mainLang) {
+                    if (e.i18nContent && e.i18nContent[lang]) {
+                      paragraphContent = e.i18nContent[lang].value;
+                    }
+                  }
+
+                  // 只保留纯文本即可
+                  const temp = $(`<template>${paragraphContent}</template>`);
+
+                  content.push({
+                    i: index,
+                    v: temp.ele.content.textContent.trim(),
+                  });
+                }
+              }
+            }
+
+            // 添加到搜索数据
+            searchData.push({
+              id: `${lang}/${item.aid}`,
+              lang,
+              title,
+              content: content, // 保留组件 index 的数组
+              url: `${lang}/${item.aid}.html`,
+            });
+          }
+          if (item.list && item.list.length > 0) {
+            collectSearchData(item.list, parentPath + (item.title || "") + "/");
+          }
+        });
+      };
+
+      collectSearchData(listData);
+
+      // 创建该语言的搜索索引文件
+      const searchFile = await webDirHandle.get(
+        `_data/search-index-${lang}.json`,
+        {
+          create: "file",
+        }
+      );
+
+      // 写入搜索数据
+      await searchFile.write(JSON.stringify(searchData));
     }
   },
 
