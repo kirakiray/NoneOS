@@ -86,7 +86,11 @@
     </localized-content>
   </div>
   <div class="line">
-    <p-button variant="outlined" disabled>
+    <p-button
+      variant="outlined"
+      on:click="exportLlms"
+      attr:disabled="exporting"
+    >
       <localized-content>
         <span lang="cn">打包为llms.txt</span>
         <span lang="en">Export as llms.txt</span>
@@ -162,6 +166,9 @@
       const { proto: exportWebProto } = await load(
         "./export-project/export-web.js"
       );
+      const { proto: exportMdProto } = await load(
+        "./export-project/export-md.js"
+      );
 
       const { getListData } = await load("./export-project/get-list-data.js");
 
@@ -176,6 +183,7 @@
 
         proto: {
           ...exportWebProto,
+          ...exportMdProto,
           async confirmAnalyticsCode() {
             if (!this.analyticsCode.trim()) {
               toast({

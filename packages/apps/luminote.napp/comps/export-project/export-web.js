@@ -16,6 +16,7 @@ export const proto = {
         this.projectDirname,
         "self"
       );
+
       const projectName = projectInfo.data.projectName;
 
       // 初始化web目录
