@@ -1,5 +1,7 @@
 import { createArticleData } from "./util/create-article-data.js";
 import { importProject } from "./util/import-project.js";
+import { getSetting } from "/packages/none-os/setting.js";
+import { changeLang } from "./lumi/util/change-lang.js";
 
 export const home = "./pages/home.html";
 
@@ -380,6 +382,14 @@ const getOpenHistory = async (app) => {
     });
 
     await projectItem.data.ready(true);
+
+    const settingData = await getSetting();
+
+    if (projectItem.data.mainLang !== settingData.lang) {
+      // 切换语种
+      await changeLang(projectItem.data, settingData.lang);
+      await projectItem.data.ready(true);
+    }
 
     projectItem.data.main[0].aid = Math.random().toString(32).slice(2); // 重置文章的id
     projectItem.data.projectName = "quick start";

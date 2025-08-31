@@ -118,7 +118,11 @@
     </o-if>
     <o-else>
       <p-switch sync:value="appConfigData.useAITranslate" disabled>
-        使用AI功能
+        <localized-content>
+          <span lang="cn">使用AI功能</span>
+          <span lang="en">Use AI features</span>
+          <span lang="ja">AI機能を使用する</span>
+        </localized-content>
       </p-switch>
 
       <p-tooltips>
