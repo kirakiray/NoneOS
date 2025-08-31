@@ -165,6 +165,7 @@
           size="large"
           placeholder="输入要搜索的内容"
           on:input="changeSearch"
+          sync:value="searchText"
         >
           <div
             slot="prefix"
@@ -358,6 +359,7 @@
   <script>
     export default async ({ load }) => {
       await load("/packages/pui/public/init.js");
+      const { search } = await load("./search.js");
 
       // const lang = "cn";
       const lang = window.location.pathname.split("/").slice(-2)[0];
@@ -371,16 +373,22 @@
           openLeftMenu: true,
           langs: [],
           projectName: "",
+          searchText: "",
           showSearchDialog: true,
           searching: false,
         },
         proto: {
           changeSearch() {
             clearTimeout(this._searchTimeout);
-            this._searchTimeout = setTimeout(() => {
+            this._searchTimeout = setTimeout(async () => {
               this.searching = true;
 
               // 开始搜索内容
+              const result = await search(this.searchText, this.lang);
+
+              debugger;
+
+              this.searching = false;
             }, 300);
           },
           changeLang(event) {
