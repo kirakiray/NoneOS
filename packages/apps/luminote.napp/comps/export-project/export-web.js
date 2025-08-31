@@ -59,6 +59,9 @@ export const proto = {
       // 生成llms.txt
       await this._generateLlmsTxt(projectInfo, webDirHandle);
 
+      // 生成搜索索引
+      await this._generateSearchIndex(projectInfo, webDirHandle);
+
       // 导出文件
       await this._exportFiles(webDirHandle, projectName);
 
@@ -72,6 +75,11 @@ export const proto = {
       this.exportType = "";
       toast(`导出失败: ${error.message}`);
     }
+  },
+
+  // 生成搜索索引
+  async _generateSearchIndex(projectInfo, webDirHandle) {
+    debugger;
   },
 
   // 初始化web目录
