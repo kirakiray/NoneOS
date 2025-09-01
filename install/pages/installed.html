@@ -20,16 +20,39 @@
   <h1>
     <n-desc name="installSucceed" space="installer"></n-desc>
   </h1>
-  <p-button>
-    <a href="/">
-      <n-desc name="entrySystem" space="installer"></n-desc>
-    </a>
-  </p-button>
+  <o-if :value="redirectPath">
+    <div style="display: flex">
+      <p-button style="margin: 4px">
+        <a attr:href="redirectPath">
+          <localized-content>
+            <span lang="cn">进入应用{{appName}}</span>
+            <span lang="en">Enter App {{appName}}</span>
+            <span lang="ja">アプリを開く {{appName}}</span>
+          </localized-content>
+        </a>
+      </p-button>
+
+      <p-button variant="outlined" style="margin: 4px">
+        <a href="/">
+          <n-desc name="entrySystem" space="installer"></n-desc>
+        </a>
+      </p-button>
+    </div>
+  </o-if>
+  <o-else>
+    <p-button>
+      <a href="/">
+        <n-desc name="entrySystem" space="installer"></n-desc>
+      </a>
+    </p-button>
+  </o-else>
   <script>
     export default async ({ load }) => {
       return {
         data: {
           files: [],
+          redirectPath: "",
+          appName: "",
         },
         attached() {
           if (window.__useOnlinePkgTimer) {
@@ -53,10 +76,25 @@
                   console.log("Service worker updated");
                 });
             }
-
-            load("/sw/register.js");
             // import("/sw/register.js");
           }
+
+          const redirectPath = new URLSearchParams(location.search).get(
+            "redirect"
+          );
+          if (redirectPath) {
+            this.redirectPath = decodeURIComponent(redirectPath);
+          }
+
+          load("/sw/register.js");
+
+          (async () => {
+            // 尝试获取应用名
+            const appData = await fetch(this.redirectPath + "/app.json").then(
+              (e) => e.json()
+            );
+            this.appName = appData.name;
+          })();
         },
       };
     };
