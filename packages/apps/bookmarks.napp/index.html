@@ -38,17 +38,17 @@
     <script type="module">
       const load = lm(import.meta);
 
-      const { ready } = await load("/sw/register.js"); // Register the service worker
-      await load("/packages/none-os/none-os.html"); // Load system components and initialize them
+      const { ready } = await load("/sw/register.js"); // 注册服务工作线程
+      await load("/packages/none-os/none-os.html"); // 加载系统组件，让其初始化
 
       setTimeout(async () => {
         setTimeout(() => {
-          // Wait for 2 seconds, reload if it doesn't work
+          // 等待 2 秒，不行就刷新
           location.reload();
         }, 2000);
         await ready();
 
-        // Redirect to the current application
+        // 重定向跳转到当前应用
         location.pathname =
           location.pathname.replace(/([\d\D]+\.napp)\/?/, "$1") + "/";
       }, 300);
