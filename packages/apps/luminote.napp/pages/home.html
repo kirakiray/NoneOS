@@ -150,11 +150,20 @@
         <div slot="tips">
           <o-if :value="!aiAvailable">
             <localized-content>
-              <span lang="cn">当前环境中未检测到可用的本地AI</span>
-              <span lang="en"
-                >Current environment did not detect available local AI</span
-              >
-              <span lang="ja">ローカルAIが利用可能</span>
+              <p lang="cn">
+                当前环境中未检测到可用的本地AI
+                <br />
+                请访问
+                <a
+                  href="https://noneos-tutorial.pages.dev/en/1jkt4rm60o4-rt2i5ec94rk"
+                  target="_blank"
+                >
+                  此链接
+                </a>
+                了解如何开启本地AI功能。
+              </p>
+              <p lang="en"></p>
+              <p lang="ja"></p>
             </localized-content>
           </o-if>
           <o-else>
