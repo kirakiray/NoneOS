@@ -163,6 +163,7 @@
       const { get } = await load("/packages/fs/main.js");
       const { confirm, toast } = await load("/packages/pui/util.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
+      const { clearSource } = await load("../util/clear-source.js");
       const { proto: exportWebProto } = await load(
         "./export-project/export-web.js"
       );
@@ -230,6 +231,9 @@
           async exportFile() {
             // 导出为项目文件
             this.exporting = true;
+
+            // 先清除无用缓存文件
+            await clearSource(this.app, this.projectDirname);
 
             const projectInfo = await this.app.getProject(
               this.projectDirname,

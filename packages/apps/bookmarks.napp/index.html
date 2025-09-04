@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" />
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
+          "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
+          "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
+          "Segoe UI Emoji", "Segoe UI Symbol";
+        -webkit-font-smoothing: auto;
+      }
+      .container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">Loading...</div>
+    <script type="module">
+      const load = lm(import.meta);
+
+      const { ready } = await load("/sw/register.js"); // 注册服务工作线程
+      await load("/packages/none-os/none-os.html"); // 加载系统组件，让其初始化
+
+      setTimeout(async () => {
+        setTimeout(() => {
+          // 等待 2 秒，不行就刷新
+          location.reload();
+        }, 2000);
+        await ready();
+
+        // 重定向跳转到当前应用
+        location.pathname =
+          location.pathname.replace(/([\d\D]+\.napp)\/?/, "$1") + "/";
+      }, 300);
+    </script>
+  </body>
+</html>

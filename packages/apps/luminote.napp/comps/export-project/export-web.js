@@ -3,12 +3,16 @@ import { exportHandle } from "/packages/fs/task/main.js";
 import { get } from "/packages/fs/main.js";
 import { toast } from "/packages/pui/util.js";
 import { getRealLang } from "../../util/get-real-lang.js";
+import { clearSource } from "../../util/clear-source.js";
 
 export const proto = {
   async exportWeb() {
     // 设置导出状态
     this.exporting = true;
     this.exportType = "web";
+
+    // 先清除无用缓存文件
+    await clearSource(this.app, this.projectDirname);
 
     try {
       // 获取项目信息
