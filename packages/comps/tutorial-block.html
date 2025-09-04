@@ -161,13 +161,7 @@
             this.openMenu = "on";
           },
           openWeb() {
-            if (settingData.lang === "cn") {
-              window.open("/tutorial/cn/index.html");
-            } else if (settingData.lang === "ja") {
-              window.open("/tutorial/ja/index.html");
-            } else {
-              window.open("/tutorial/en/index.html");
-            }
+            window.open("https://noneos-tutorial.pages.dev/");
             this.openMenu = "off";
             this.active = false;
           },

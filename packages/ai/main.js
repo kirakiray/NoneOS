@@ -45,19 +45,21 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
     }
   };
 
-  // 检查本地 LM Studio
-  const localUrl = `http://localhost:${setting.lmstudio.port}`;
-  if (await checkModelsAvailable(localUrl)) {
-    availableConfigs.push({
-      url: localUrl,
-      model: setting.lmstudio.model,
-      type: "local",
-    });
-    callback?.({
-      url: localUrl,
-      model: setting.lmstudio.model,
-      type: "local",
-    });
+  if (setting.lmstudio) {
+    // 检查本地 LM Studio
+    const localUrl = `http://localhost:${setting.lmstudio.port}`;
+    if (await checkModelsAvailable(localUrl)) {
+      availableConfigs.push({
+        url: localUrl,
+        model: setting.lmstudio.model,
+        type: "local",
+      });
+      callback?.({
+        url: localUrl,
+        model: setting.lmstudio.model,
+        type: "local",
+      });
+    }
   }
 
   // 检查其他 AI 配置
