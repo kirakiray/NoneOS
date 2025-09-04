@@ -10,7 +10,6 @@
     :host {
       display: block;
       max-height: calc(90dvh - 80px);
-      overflow-y: auto;
     }
   </style>
   <h4>
@@ -64,7 +63,7 @@
       <span lang="ja">ローカルプロジェクト</span>
     </localized-content>
   </h4>
-  <p-list>
+  <p-list style="overflow: visible;">
     <o-fill :value="existProjects" fill-key="projectDataId">
       <p-list-item
         on:click="$host.switchProject($data)"
