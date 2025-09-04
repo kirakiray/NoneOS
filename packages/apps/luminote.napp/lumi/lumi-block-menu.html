@@ -130,34 +130,6 @@
         </localized-content>
       </o-else>
     </p-menu-item>
-    <!-- <hr />
-    <p-menu-item
-      on:click="handleBeautify"
-      attr:disabled="!aiAvailable || isInBeautify"
-    >
-      <n-local-icon name="ai-beautify" slot="prefix"></n-local-icon>
-      <localized-content>
-        <span lang="en">Polish</span>
-        <span lang="cn">润色</span>
-        <span lang="ja">修正</span>
-      </localized-content>
-    </p-menu-item> -->
-    <!-- <p-menu-item>
-      <n-local-icon name="translate" slot="prefix"></n-local-icon>
-      <localized-content>
-        <span lang="cn">切换语言</span>
-        <span lang="en">Switch Language</span>
-        <span lang="ja">言語を切り替える</span>
-      </localized-content>
-      <p-menu>
-        <o-fill :value="langOption">
-          <p-menu-item on:click="$host.switchLang($data)">
-            <span slot="prefix" :html="$data.icon"></span>
-            {{$data.name}}
-          </p-menu-item>
-        </o-fill>
-      </p-menu>
-    </p-menu-item> -->
   </p-menu>
   <script>
     export default async ({ load }) => {
@@ -165,7 +137,6 @@
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const { blockComps } = await load("./block/config.js"); // 块组件的配置
       const { copySelectedBlock } = await load("./util/lumi-util.js");
-      const { isAIAvailable, ask } = await load("/packages/ai/main.js");
 
       return {
         tag: "lumi-block-menu",
@@ -176,7 +147,6 @@
           itemData: {},
           blockComps,
           _blockEl: null,
-          aiAvailable: await isAIAvailable(),
           langOption: [
             {
               icon: "🇺🇸",

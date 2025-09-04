@@ -30,6 +30,8 @@ export const initBlockMenu = (lumipage) => {
 
     const lumiBlockMenu = lumipage.shadow.$("lumi-block-menu");
 
+    console.log(lumiBlockMenu.ele);
+
     // 修正定位
     const btnRect = menuBtn.getBoundingClientRect();
     const menuRect = lumiBlockMenu.ele.getBoundingClientRect();
