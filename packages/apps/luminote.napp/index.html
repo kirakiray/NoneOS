@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Install Luminote</title>
+    <title>Redirecting...</title>
     <script src="/packages/libs/ofa/ofa.js"></script>
     <link rel="stylesheet" href="/packages/pui/css/public.css" />
     <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
@@ -18,9 +18,6 @@
       }
 
       body {
-        /* font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
-          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
-          Segoe UI Emoji; */
         font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
           "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
           "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
@@ -38,37 +35,19 @@
   </head>
   <body>
     <div class="container">Loading...</div>
-    <!-- <script type="module" src="/sw/register.js"></script> -->
     <script type="module">
       const load = lm(import.meta);
 
-      // 判断本地是否有安装程序，没有的话跳转
-      (async () => {
-        const { get } = await load("/packages/fs/main.js");
+      const { ready } = await load("/sw/register.js"); // 注册服务工作线程
+      await load("/packages/none-os/none-os.html"); // 加载系统组件，让其初始化
 
-        const appPath =
-          location.pathname.split("/").slice(0, -1).join("/") + "/";
+      setTimeout(async () => {
+        await ready();
 
-        const goInstall = () => {
-          location.href = "/install/?redirect=" + encodeURIComponent(appPath);
-        };
-
-        try {
-          const hashes = await get("packages/hashes.json");
-          const content = await hashes.text();
-
-          if (!content) {
-            // 没有安装系统
-            goInstall();
-            return;
-          }
-
-          // 有安装，直接跳转
-          location.pathname = appPath;
-        } catch (err) {
-          goInstall();
-        }
-      })();
+        // 重定向跳转到当前应用
+        location.pathname =
+          location.pathname.replace(/([\d\D]+\.napp)\/?/, "$1") + "/";
+      }, 300);
     </script>
   </body>
 </html>
