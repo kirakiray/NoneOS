@@ -40,8 +40,17 @@ export const getSetting = async () => {
 
     // 如果没有初始化数据，直接添加初始化数据
     if (!settingData.lang) {
+      let lang = "en";
+
+      // 根据本地语言，进行修正
+      if (navigator.language.toLowerCase().includes("zh")) {
+        lang = "cn";
+      } else if (navigator.language.toLowerCase().includes("ja")) {
+        lang = "ja";
+      }
+
       Object.assign(settingData, {
-        lang: "en", // 系统默认语言
+        lang, // 系统默认语言
         dockDirection: "auto", // 程序坞方向
         theme: "auto", // 系统主题
       });
