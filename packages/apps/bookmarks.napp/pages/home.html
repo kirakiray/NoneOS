@@ -408,6 +408,8 @@
               create: "dir",
             });
 
+            let hasUpdate = false;
+
             for (let item of remoteHandles) {
               try {
                 const { handle, userId, userName, hasData } = item;
@@ -438,23 +440,28 @@
                     remoteBookmarkData.disconnect();
                     continue;
                   }
-
-                  // 保存一份数据
-                  const bookmarkBackupData = remoteBookmarkData.toJSON();
-
-                  // 销毁数据
-                  remoteBookmarkData.disconnect();
-
-                  // 备份到本地
-                  await backupFileHandle.write(
-                    JSON.stringify(bookmarkBackupData)
-                  );
                 }
+
+                // 保存一份数据
+                const bookmarkBackupData = remoteBookmarkData.toJSON();
+
+                // 销毁数据
+                remoteBookmarkData.disconnect();
+
+                // 备份到本地
+                await backupFileHandle.write(
+                  JSON.stringify(bookmarkBackupData)
+                );
+
+                hasUpdate = true;
               } catch (err) {
                 // 同步单个用户数据出错,继续同步下一个
                 console.warn("同步用户数据出错:", err);
                 continue;
               }
+            }
+            if (hasUpdate) {
+              this.loadBackupUserOptions();
             }
 
             this.syncing = false;
