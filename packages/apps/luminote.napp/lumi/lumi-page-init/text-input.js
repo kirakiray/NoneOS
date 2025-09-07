@@ -606,8 +606,8 @@ const handleBackspace = async (
   }
 
   if (!lumiBlock.itemData.value.trim()) {
-    // 如果它的前面也没有其他元素了，就不执行了
-    if (!lumiBlock.prev) {
+    // 如果它的前面也没有其他元素了，且它是最后一个元素
+    if (!lumiBlock.prev && lumiBlock.siblings.length === 0) {
       return;
     }
 
