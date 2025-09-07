@@ -250,7 +250,7 @@ ${lumiBlock.itemData.value}
         }
 
         // 在没有内容时按了返回，等于清空内容
-        handleBackspace(lumipage, { lumiBlock, selectionData });
+        handleBackspace(lumipage, { lumiBlock, selectionData, event: e });
         return;
       }
 
@@ -576,9 +576,26 @@ const handleSelectAll = (lumipage, lumiBlock, originEvent) => {
 // 按了删除键
 const handleBackspace = async (
   lumipage,
-  { lumiBlock, selectionData: selectionRangeData }
+  { lumiBlock, selectionData: selectionRangeData, event }
 ) => {
   const { index } = lumiBlock;
+
+  if (event.metaKey) {
+    // 检查当前块是否为唯一块，若是则不删除
+    if (lumiBlock.prev || lumiBlock.siblings.length > 0) {
+      let nextFocus = lumiBlock.prev;
+
+      if (!nextFocus) {
+        nextFocus = lumiBlock.next;
+      }
+
+      nextFocus && nextFocus.focus();
+
+      // 直接删除当前段落组件
+      lumipage.itemData.content.splice(index, 1);
+      return;
+    }
+  }
 
   if (
     selectionRangeData.startOffset === 0 &&
