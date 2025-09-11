@@ -1,0 +1,16 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
+    "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
+    "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
+    "Segoe UI Emoji", "Segoe UI Symbol";
+  -webkit-font-smoothing: auto;
+}

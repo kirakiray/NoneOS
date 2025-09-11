@@ -1,0 +1,29 @@
+<template page>
+  <l-m src="../comp/project-list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+  </style>
+  <div class="container">
+    <h1>选择目标项目导出为网站</h1>
+    <lumi-project-list></lumi-project-list>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {},
+        proto: {
+          async selectProject() {},
+        },
+      };
+    };
+  </script>
+</template>
