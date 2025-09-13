@@ -93,7 +93,13 @@
   <o-if :value="isEnd">
     <div class="nexts">
       <o-fill :value="nextArticles">
-        <div class="btn" attr:data-aid="$data.aid">{{$data.title}}</div>
+        <div
+          class="btn"
+          attr:data-aid="$data.aid"
+          on:click="$host.clickNext($data.aid)"
+        >
+          {{$data.title}}
+        </div>
       </o-fill>
     </div>
   </o-if>
@@ -109,6 +115,9 @@
           isEnd: false,
         },
         proto: {
+          clickNext(data) {
+            this.emit("click-next", { data });
+          },
           loadData() {
             const targetData = this.host.allArticleData.find(
               (e) => e.aid === this.aid
@@ -124,16 +133,19 @@
             const mainElement = this.shadow.$(".main");
             mainElement.html = "";
             let s_content = "";
-            const interval = setInterval(() => {
-              if (index < content.length) {
-                s_content += content[index];
-                mainElement.html = s_content;
-                index++;
-              } else {
-                this.isEnd = true;
-                clearInterval(interval);
-              }
-            }, 10); // 一秒钟20个字，每个字间隔50毫秒
+            const interval = setInterval(
+              () => {
+                if (index < content.length) {
+                  s_content += content[index];
+                  mainElement.html = s_content;
+                  index++;
+                } else {
+                  this.isEnd = true;
+                  clearInterval(interval);
+                }
+              },
+              targetData.html.length < 500 ? 10 : 1
+            ); // 一秒钟20个字，每个字间隔50毫秒
 
             this.nextArticles = Object.values(targetData.nexts);
           },

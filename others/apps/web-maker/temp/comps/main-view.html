@@ -6,18 +6,23 @@
       height: 100%;
     }
     .main {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
       height: 100%;
       overflow-y: auto;
     }
+    .top,
+    .bottom {
+      height: 30vh;
+    }
   </style>
   <div class="main">
+    <div class="top"></div>
     <o-fill :value="list">
-      <block-view attr:aid="$data.aid"></block-view>
+      <block-view
+        attr:aid="$data.aid"
+        on:click-next="$host.clickNext($event)"
+      ></block-view>
     </o-fill>
+    <div class="bottom"></div>
   </div>
   <script>
     export default async ({ load }) => {
@@ -31,6 +36,11 @@
           list: [],
         },
         proto: {
+          clickNext({ data: nextAid }) {
+            this.list.push({
+              aid: nextAid,
+            });
+          },
           async loadContentData() {
             const previewCacheFile = await get(
               "local/others/_web-marker-preview.json"
