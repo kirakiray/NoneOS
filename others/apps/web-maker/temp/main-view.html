@@ -1,0 +1,23 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "main-view",
+        data: {},
+        proto: {
+          async loadData() {
+            
+          },
+        },
+        attached() {
+          this.loadData();
+        },
+      };
+    };
+  </script>
+</template>

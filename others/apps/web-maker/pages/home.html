@@ -15,6 +15,20 @@
   <div class="container">
     <h1>选择目标项目导出为网站</h1>
     <lumi-project-list on:select="selectProject"></lumi-project-list>
+    <o-if :value="!!listData.length">
+      <h5>请选择首页</h5>
+      <p-list>
+        <o-fill :value="listData">
+          <p-list-item
+            button
+            on:click="$host.selectIndex($data)"
+            attr:active-item="$host.homeId == $data.articleData.aid"
+          >
+            {{$data.articleData.title}}
+          </p-list-item>
+        </o-fill>
+      </p-list>
+    </o-if>
   </div>
   <script>
     export default async ({ load }) => {
@@ -23,8 +37,29 @@
       const { get } = await load("/packages/fs/main.js");
 
       return {
-        data: {},
+        data: {
+          listData: [],
+          homeId: null,
+        },
         proto: {
+          async selectIndex(data) {
+            this.homeId = data.articleData.aid;
+
+            // 保存到一个缓存文件夹上
+            const cacheFile = await get(
+              "local/others/_web-marker-preview.json",
+              {
+                create: "file",
+              }
+            );
+
+            await cacheFile.write(
+              JSON.stringify({
+                homeid: data.articleData.aid,
+                list: this.listData,
+              })
+            );
+          },
           async selectProject({ data }) {
             console.log("data: ", data);
 
@@ -36,15 +71,7 @@
 
             const article = await transArticle(projectData);
 
-            // 保存到一个缓存文件夹上
-            const cacheFile = await get(
-              "local/others/_web-marker-preview.json",
-              {
-                create: "file",
-              }
-            );
-
-            await cacheFile.write(JSON.stringify(article));
+            this.listData = article;
           },
         },
       };
