@@ -14,14 +14,29 @@
   </style>
   <div class="container">
     <h1>选择目标项目导出为网站</h1>
-    <lumi-project-list></lumi-project-list>
+    <lumi-project-list on:select="selectProject"></lumi-project-list>
   </div>
   <script>
     export default async ({ load }) => {
+      const { loadData } = await load("/packages/hybird-data/main.js");
+      const { transArticle } = await load("../util/trans-article.js");
+
       return {
         data: {},
         proto: {
-          async selectProject() {},
+          async selectProject({ data }) {
+            console.log("data: ", data);
+
+            // 加载全部的数据
+            const projectData = await loadData({
+              handle: await data._handle.get("article"),
+              level: 100,
+            });
+
+            const article = await transArticle(projectData);
+
+            debugger;
+          },
         },
       };
     };

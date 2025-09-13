@@ -7,7 +7,9 @@
   </style>
   <p-list>
     <o-fill :value="list">
-      <p-list-item button on:click=""> {{$data.projectName}} </p-list-item>
+      <p-list-item button on:click="$host.clickItem($data)">
+        {{$data.projectName}}
+      </p-list-item>
     </o-fill>
   </p-list>
   <script>
@@ -21,6 +23,9 @@
           list: [],
         },
         proto: {
+          clickItem(data) {
+            this.emit("select", { data });
+          },
           async loadList() {
             const listDirHandle = await get("local/dedicated/luminote");
 
