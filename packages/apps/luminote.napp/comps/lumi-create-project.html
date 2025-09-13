@@ -128,6 +128,8 @@
 
             projectItem.data.projectName = projectName;
 
+            projectItem.data.main[0].aid = Math.random().toString(32).slice(2); // 重置文章的id
+
             if (this.mainLang !== projectItem.data.mainLang) {
               await projectItem.data.ready(true);
               await new Promise((resolve) => setTimeout(resolve, 600));
