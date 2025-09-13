@@ -1,7 +1,6 @@
 export const transArticle = async (articleData) => {
   const articles = await transArticleList(articleData.main);
 
-  debugger;
   return articles;
 };
 

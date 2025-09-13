@@ -20,6 +20,7 @@
     export default async ({ load }) => {
       const { loadData } = await load("/packages/hybird-data/main.js");
       const { transArticle } = await load("../util/trans-article.js");
+      const { get } = await load("/packages/fs/main.js");
 
       return {
         data: {},
@@ -35,7 +36,15 @@
 
             const article = await transArticle(projectData);
 
-            debugger;
+            // 保存到一个缓存文件夹上
+            const cacheFile = await get(
+              "local/others/_web-marker-preview.json",
+              {
+                create: "file",
+              }
+            );
+
+            await cacheFile.write(JSON.stringify(article));
           },
         },
       };
