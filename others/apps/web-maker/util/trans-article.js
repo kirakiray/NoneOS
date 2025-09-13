@@ -1,71 +1,78 @@
 export const transArticle = async (articleData) => {
   const articles = await transArticleList(articleData.main);
-
   return articles;
 };
 
+/**
+ * 递归转换文章列表数据
+ * @param {Array} articleListData - 文章列表数据
+ * @param {string} lang - 语言标识
+ * @returns {Array} 转换后的文章数据数组
+ */
 const transArticleList = async (articleListData, lang) => {
-  const pool = [];
+  const articlePool = [];
 
-  // 计算最大数组
-  for (let item of Object.values(articleListData)) {
-    if (item.type === "article") {
+  // 遍历文章列表数据
+  for (const articleItem of Object.values(articleListData)) {
+    if (articleItem.type === "article") {
       const articleData = {
-        aid: item.aid,
+        aid: articleItem.aid,
+        title: articleItem.title,
         html: "",
       };
-
-      articleData.title = item.title;
 
       let isEnd = false;
       let nexts = [];
 
-      for (let comp of Object.values(item.content)) {
-        if (comp.type === "article") {
-          const subPool = await transArticleList([comp], lang);
-
-          pool.push(...subPool);
+      // 处理文章内容组件
+      for (const component of Object.values(articleItem.content)) {
+        // 递归处理嵌套文章
+        if (component.type === "article") {
+          const subArticlePool = await transArticleList([component], lang);
+          articlePool.push(...subArticlePool);
           continue;
         }
 
-        if (isEnd && comp.type === "lumi-list-item") {
-          // 判断是否link，是的话截取内容
-          const temp = $(`<div>${comp.value}</div>`);
-          const target = temp.$("[selected-article-id]");
-          if (target) {
-            const aid = target.attr("selected-article-id");
+        // 处理下一章链接
+        if (isEnd && component.type === "lumi-list-item") {
+          // 判断是否为链接，如果是则提取内容
+          const tempElement = $(`<div>${component.value}</div>`);
+          const targetElement = tempElement.$("[selected-article-id]");
 
+          if (targetElement) {
+            const aid = targetElement.attr("selected-article-id");
             nexts.push({
-              title: temp.text,
+              title: tempElement.text,
               aid,
             });
           }
           continue;
         }
 
-        if (comp.type === "h4" && comp.value === "next") {
-          // 内容结束，开始获取下一章的内容
+        // 标记内容结束，开始获取下一章内容
+        if (component.type === "h4" && component.value === "next") {
           isEnd = true;
           continue;
         }
 
+        // 构建HTML内容
         let content = "";
-
-        if (comp.type === "paragraph") {
-          content = `<p>${comp.value}</p>\n`;
+        if (component.type === "paragraph") {
+          content = `<p>${component.value}</p>\n`;
         } else {
-          content = `<${comp.type}>${comp.value}</${comp.type}>\n`;
+          content = `<${component.type}>${component.value}</${component.type}>\n`;
         }
 
         articleData.html += content;
       }
 
-      pool.push({
-        articleData,
+      // 将处理后的文章数据添加到结果池中
+      articlePool.push({
+        ...articleData,
         nexts,
       });
     }
   }
 
-  return pool;
+  return articlePool;
 };

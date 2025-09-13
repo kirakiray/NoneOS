@@ -1,0 +1,77 @@
+<template component>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    p {
+      padding: 0;
+      margin: 0;
+      margin: 0.5em 0;
+    }
+
+    .nexts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      margin: 8px;
+      padding: 8px 16px;
+      border-radius: 36px;
+      cursor: pointer;
+      color: #69afff;
+      border: #69afff solid 1px;
+    }
+  </style>
+  <div class="main">Loading...</div>
+  <div class="nexts">
+    <o-fill :value="nextArticles">
+      <div class="btn" attr:data-aid="$data.aid">{{$data.title}}</div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "block-view",
+        attrs: {
+          aid: null,
+        },
+        data: {
+          nextArticles: [],
+        },
+        proto: {
+          loadData() {
+            const targetData = this.host.allArticleData.find(
+              (e) => e.aid === this.aid
+            );
+
+            this.shadow.$(
+              ".main"
+            ).html = `<h2>${targetData.title}</h2>\n${targetData.html}`;
+
+            this.nextArticles = Object.values(targetData.nexts);
+          },
+        },
+        attached() {
+          this.loadData();
+        },
+      };
+    };
+  </script>
+</template>

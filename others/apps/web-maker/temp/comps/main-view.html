@@ -1,0 +1,60 @@
+<template component>
+  <l-m src="./block-view.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100%;
+      overflow-y: auto;
+    }
+  </style>
+  <div class="main">
+    <o-fill :value="list">
+      <block-view attr:aid="$data.aid"></block-view>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        tag: "main-view",
+        data: {
+          currentContentData: {},
+          allArticleData: [],
+          list: [],
+        },
+        proto: {
+          async loadContentData() {
+            const previewCacheFile = await get(
+              "local/others/_web-marker-preview.json"
+            );
+
+            let previewData = await previewCacheFile.text();
+            previewData = JSON.parse(previewData);
+            this.allArticleData = previewData.list;
+
+            const currentContent = previewData.list.find(
+              (item) => item.aid === previewData.homeid
+            );
+
+            this.list = [
+              {
+                aid: currentContent.aid,
+              },
+            ];
+          },
+        },
+        attached() {
+          this.loadContentData();
+        },
+      };
+    };
+  </script>
+</template>

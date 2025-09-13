@@ -4,8 +4,30 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Preview</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
+          "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
+          "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
+          "Segoe UI Emoji", "Segoe UI Symbol";
+        -webkit-font-smoothing: auto;
+        background-color: #131313;
+        color: #f9f9f9;
+      }
+    </style>
   </head>
   <body>
-    
+    <l-m src="./comps/main-view.html"></l-m>
+    <main-view></main-view>
   </body>
 </html>

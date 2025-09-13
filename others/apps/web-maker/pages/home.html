@@ -22,9 +22,9 @@
           <p-list-item
             button
             on:click="$host.selectIndex($data)"
-            attr:active-item="$host.homeId == $data.articleData.aid"
+            attr:active-item="$host.homeId == $data.aid"
           >
-            {{$data.articleData.title}}
+            {{$data.title}}
           </p-list-item>
         </o-fill>
       </p-list>
@@ -43,7 +43,7 @@
         },
         proto: {
           async selectIndex(data) {
-            this.homeId = data.articleData.aid;
+            this.homeId = data.aid;
 
             // 保存到一个缓存文件夹上
             const cacheFile = await get(
@@ -55,7 +55,7 @@
 
             await cacheFile.write(
               JSON.stringify({
-                homeid: data.articleData.aid,
+                homeid: data.aid,
                 list: this.listData,
               })
             );
