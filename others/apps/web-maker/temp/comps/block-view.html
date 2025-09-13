@@ -38,6 +38,36 @@
       cursor: pointer;
       color: #a1c9ff;
       border: #a1c9ff solid 1px;
+      transition: all 0.3s ease; /* 添加过渡效果，使状态变化更平滑 */
+      user-select: none;
+    }
+    .btn:hover {
+      color: #fff;
+      background-color: #004880;
+      animation: random-move 5s infinite alternate ease-in-out;
+    }
+
+    @keyframes random-move {
+      0% {
+        transform: translate(0, 0);
+      }
+      25% {
+        transform: translate(2px, -2px);
+      }
+      50% {
+        transform: translate(-2px, 2px);
+      }
+      75% {
+        transform: translate(2px, 2px);
+      }
+      100% {
+        transform: translate(-2px, -2px);
+      }
+    }
+    .btn:active {
+      color: #fff;
+      background-color: #027ad1;
+      transform: scale(0.98); /* 点击时轻微缩小 */
     }
 
     .big1 {
