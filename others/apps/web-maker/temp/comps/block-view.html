@@ -114,7 +114,7 @@
         <div
           class="btn"
           attr:data-aid="$data.aid"
-          on:click="$host.clickNext($data.aid)"
+          on:click="$host.clickNext($data)"
         >
           {{$data.title}}
         </div>
@@ -131,6 +131,13 @@
         data: {
           nextArticles: [],
           isEnd: false,
+        },
+        watch: {
+          aid(aid) {
+            if (aid) {
+              this.loadData();
+            }
+          },
         },
         proto: {
           clickNext(data) {
@@ -168,9 +175,7 @@
             this.nextArticles = Object.values(targetData.nexts);
           },
         },
-        attached() {
-          this.loadData();
-        },
+        attached() {},
       };
     };
   </script>

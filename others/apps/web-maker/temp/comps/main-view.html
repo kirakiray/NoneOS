@@ -13,14 +13,27 @@
     .bottom {
       height: 30vh;
     }
+
+    .que-block {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: right;
+    }
   </style>
   <div class="main">
     <!-- <div class="top"></div> -->
     <o-fill :value="list">
-      <block-view
-        attr:aid="$data.aid"
-        on:click-next="$host.clickNext($event)"
-      ></block-view>
+      <div>
+        <o-if :value="$data.aid">
+          <block-view
+            attr:aid="$data.aid"
+            on:click-next="$host.clickNext($event)"
+          ></block-view>
+        </o-if>
+        <o-else>
+          <div class="que-block">{{$data.question}}</div>
+        </o-else>
+      </div>
     </o-fill>
     <div class="bottom"></div>
   </div>
@@ -36,10 +49,15 @@
           list: [],
         },
         proto: {
-          clickNext({ data: nextAid }) {
-            this.list.push({
-              aid: nextAid,
-            });
+          clickNext({ data }) {
+            this.list.push(
+              {
+                question: data.title,
+              },
+              {
+                aid: data.aid,
+              }
+            );
           },
           async loadContentData() {
             const previewCacheFile = await get(
