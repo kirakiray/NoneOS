@@ -92,19 +92,26 @@
       }
     }
 
+    lumi-link {
+      display: inline-block !important;
+      color: var(--md-sys-color-primary);
+      text-decoration: underline;
+    }
+
     lumi-list-item {
-      display: flex !important;
-      align-items: center;
+      display: block !important;
       margin: 4px 0;
     }
+
     lumi-list-item::before {
-      display: block;
+      display: inline-block;
       content: "";
       width: 4px;
       height: 4px;
       border-radius: 4px;
       margin-right: 8px;
       background-color: var(--md-sys-color-normal);
+      vertical-align: middle;
     }
   </style>
   <div class="main">Loading...</div>
