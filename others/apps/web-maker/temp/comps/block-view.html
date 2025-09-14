@@ -45,6 +45,52 @@
       transition: all 0.3s ease; /* 添加过渡效果，使状态变化更平滑 */
       user-select: none;
     }
+
+    .btn.fadein {
+      animation: btn-fadein ease 0.3s both;
+      &:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      &:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      &:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      &:nth-child(5) {
+        animation-delay: 0.5s;
+      }
+      &:nth-child(6) {
+        animation-delay: 0.6s;
+      }
+      &:nth-child(7) {
+        animation-delay: 0.7s;
+      }
+      &:nth-child(8) {
+        animation-delay: 0.8s;
+      }
+      &:nth-child(9) {
+        animation-delay: 0.9s;
+      }
+      &:nth-child(10) {
+        animation-delay: 1s;
+      }
+    }
+
+    @keyframes btn-fadein {
+      0% {
+        opacity: 0;
+        transform: translate(50px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+    }
+
     .btn:hover {
       color: var(--md-ref-palette-primary100);
       background-color: var(--md-ref-palette-primary30);
@@ -68,10 +114,20 @@
         transform: translate(-2px, -2px);
       }
     }
+
     .btn:active {
       color: var(--md-ref-palette-primary100);
       background-color: var(--md-ref-palette-primary50);
       transform: scale(0.98); /* 点击时轻微缩小 */
+    }
+
+    .hide-nexts {
+      .btn {
+        margin: 0;
+        padding: 0;
+        line-height: 0;
+        opacity: 0;
+      }
     }
 
     .big1 {
@@ -149,12 +205,13 @@
     </div>
   </div>
   <o-if :value="isEnd">
-    <div class="nexts">
+    <div class="nexts" class:hide-nexts="hideNexts">
       <o-fill :value="nextArticles">
         <div
-          class="btn"
+          class="btn fadein"
           attr:data-aid="$data.aid"
           on:click="$host.clickNext($data)"
+          on:mouseenter="$host.enterBtn($event)"
         >
           {{$data.title}}
         </div>
@@ -171,6 +228,7 @@
         data: {
           nextArticles: [],
           isEnd: false,
+          hideNexts: true,
         },
         watch: {
           aid(aid) {
@@ -180,6 +238,9 @@
           },
         },
         proto: {
+          enterBtn(e) {
+            e.target.classList.remove("fadein");
+          },
           clickNext(data) {
             this.emit("click-next", { data });
           },
@@ -209,11 +270,14 @@
                     index++;
                   } else {
                     this.isEnd = true;
+                    setTimeout(() => {
+                      this.hideNexts = false;
+                    }, 100);
                     clearInterval(interval);
                   }
                 },
                 targetData.html.length < 500 ? 10 : 0
-              ); // 一秒钟20个字，每个字间隔50毫秒
+              );
 
               this.nextArticles = Object.values(targetData.nexts);
             }, 500 + Math.random() * 1000);
