@@ -63,6 +63,19 @@ const transArticleList = async (articleListData, lang) => {
           content = `<${component.type}>${component.value}</${component.type}>\n`;
         }
 
+        // 替换内部的lumi-link 为 a 标签
+        const temp = $(`<div>${content}</div>`);
+        if (temp.$("lumi-link")) {
+          temp.all("lumi-link").forEach((item) => {
+            const href = item.attr("href");
+            item.parent.before(
+              `<a href="${href}" target="_blank">${item.text}</a>`
+            );
+            item.parent.remove();
+          });
+          content = temp.html;
+        }
+
         articleData.html += content;
       }
 
