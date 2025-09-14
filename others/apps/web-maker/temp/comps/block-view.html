@@ -265,9 +265,17 @@
               const interval = setInterval(
                 () => {
                   if (index < content.length) {
-                    s_content += content[index];
+                    // 当内容长度大于1000字时，一次性塞3个字符
+                    if (content.length > 1000) {
+                      for (let i = 0; i < 5 && index < content.length; i++) {
+                        s_content += content[index];
+                        index++;
+                      }
+                    } else {
+                      s_content += content[index];
+                      index++;
+                    }
                     mainElement.html = s_content;
-                    index++;
                   } else {
                     this.isEnd = true;
                     setTimeout(() => {
