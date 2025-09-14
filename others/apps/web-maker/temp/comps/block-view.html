@@ -2,15 +2,18 @@
   <style>
     :host {
       position: relative;
-      display: block;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
       max-width: 800px;
       margin: 0 auto;
+      padding: 64px 16px;
+      min-height: 50vh;
     }
     .main {
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 0 16px;
     }
 
     h1,
@@ -36,14 +39,14 @@
       padding: 8px 16px;
       border-radius: 36px;
       cursor: pointer;
-      color: #a1c9ff;
-      border: #a1c9ff solid 1px;
+      color: var(--md-ref-palette-primary80);
+      border: var(--md-ref-palette-primary80) solid 1px;
       transition: all 0.3s ease; /* 添加过渡效果，使状态变化更平滑 */
       user-select: none;
     }
     .btn:hover {
-      color: #fff;
-      background-color: #004880;
+      color: var(--md-ref-palette-primary100);
+      background-color: var(--md-ref-palette-primary30);
       animation: random-move 5s infinite alternate ease-in-out;
     }
 
@@ -65,8 +68,8 @@
       }
     }
     .btn:active {
-      color: #fff;
-      background-color: #027ad1;
+      color: var(--md-ref-palette-primary100);
+      background-color: var(--md-ref-palette-primary50);
       transform: scale(0.98); /* 点击时轻微缩小 */
     }
 
@@ -87,6 +90,21 @@
       h1 {
         font-size: 36px;
       }
+    }
+
+    lumi-list-item {
+      display: flex !important;
+      align-items: center;
+      margin: 4px 0;
+    }
+    lumi-list-item::before {
+      display: block;
+      content: "";
+      width: 4px;
+      height: 4px;
+      border-radius: 4px;
+      margin-right: 8px;
+      background-color: var(--md-sys-color-normal);
     }
   </style>
   <div class="main">Loading...</div>
@@ -144,7 +162,7 @@
                   clearInterval(interval);
                 }
               },
-              targetData.html.length < 500 ? 10 : 1
+              targetData.html.length < 500 ? 10 : 0
             ); // 一秒钟20个字，每个字间隔50毫秒
 
             this.nextArticles = Object.values(targetData.nexts);
