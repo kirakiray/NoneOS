@@ -52,7 +52,7 @@
           ></block-view>
         </o-if>
         <o-else>
-          <div class="que-block">
+          <div class="que-block" attr:data-queaid="$data.queaid">
             <div class="que-inner">{{$data.question}}</div>
           </div>
         </o-else>
@@ -76,11 +76,25 @@
             this.list.push(
               {
                 question: data.title,
+                queaid: data.aid,
               },
               {
                 aid: data.aid,
               }
             );
+
+            setTimeout(() => {
+              const targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
+
+              if (targetBlock) {
+                targetBlock.ele.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                  inline: "nearest",
+                  scrollMarginTop: 32,
+                });
+              }
+            }, 50);
           },
           async loadContentData() {
             const previewCacheFile = await get(

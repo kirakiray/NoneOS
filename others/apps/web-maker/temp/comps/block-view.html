@@ -216,7 +216,7 @@
               ); // 一秒钟20个字，每个字间隔50毫秒
 
               this.nextArticles = Object.values(targetData.nexts);
-            }, 1000);
+            }, 500 + Math.random() * 1000);
           },
         },
         attached() {},
