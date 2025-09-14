@@ -115,8 +115,39 @@
       background-color: var(--md-sys-color-normal);
       vertical-align: middle;
     }
+    /* 添加旋转动画 */
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--md-ref-palette-primary80);
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
   </style>
-  <div class="main">Loading...</div>
+  <div class="main">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <span class="loading-spinner"></span>
+    </div>
+  </div>
   <o-if :value="isEnd">
     <div class="nexts">
       <o-fill :value="nextArticles">
@@ -153,35 +184,39 @@
             this.emit("click-next", { data });
           },
           loadData() {
-            const targetData = this.host.allArticleData.find(
-              (e) => e.aid === this.aid
-            );
+            clearTimeout(this._timer);
 
-            if (targetData.html.length < 500) {
-              this.shadow.$(".main").classList.add("big1");
-            }
+            this._timer = setTimeout(() => {
+              const targetData = this.host.allArticleData.find(
+                (e) => e.aid === this.aid
+              );
 
-            const content = `<h2>${targetData.title}</h2>\n${targetData.html}`;
+              if (targetData.html.length < 500) {
+                this.shadow.$(".main").classList.add("big1");
+              }
 
-            let index = 0;
-            const mainElement = this.shadow.$(".main");
-            mainElement.html = "";
-            let s_content = "";
-            const interval = setInterval(
-              () => {
-                if (index < content.length) {
-                  s_content += content[index];
-                  mainElement.html = s_content;
-                  index++;
-                } else {
-                  this.isEnd = true;
-                  clearInterval(interval);
-                }
-              },
-              targetData.html.length < 500 ? 10 : 0
-            ); // 一秒钟20个字，每个字间隔50毫秒
+              const content = `<h2>${targetData.title}</h2>\n${targetData.html}`;
 
-            this.nextArticles = Object.values(targetData.nexts);
+              let index = 0;
+              const mainElement = this.shadow.$(".main");
+              mainElement.html = "";
+              let s_content = "";
+              const interval = setInterval(
+                () => {
+                  if (index < content.length) {
+                    s_content += content[index];
+                    mainElement.html = s_content;
+                    index++;
+                  } else {
+                    this.isEnd = true;
+                    clearInterval(interval);
+                  }
+                },
+                targetData.html.length < 500 ? 10 : 0
+              ); // 一秒钟20个字，每个字间隔50毫秒
+
+              this.nextArticles = Object.values(targetData.nexts);
+            }, 1000);
           },
         },
         attached() {},
