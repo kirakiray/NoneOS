@@ -242,6 +242,7 @@
           aid: null,
         },
         data: {
+          gid: -1, // 当前在第几个
           nextArticles: [],
           isEnd: false,
           hideNexts: true,
@@ -260,7 +261,12 @@
           },
           clickNext(data) {
             this.checkedAid = data.aid;
-            this.emit("click-next", { data });
+            this.emit("click-next", {
+              data: {
+                ...data,
+                gid: this.gid,
+              },
+            });
           },
           loadData() {
             clearTimeout(this._timer);

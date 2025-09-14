@@ -48,6 +48,7 @@
         <o-if :value="$data.aid">
           <block-view
             attr:aid="$data.aid"
+            :gid="$index"
             on:click-next="$host.clickNext($event)"
           ></block-view>
         </o-if>
@@ -73,8 +74,13 @@
         },
         proto: {
           clickNext({ data }) {
+            const { gid } = data;
+
             // 查看是否已经存在
             let targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
+
+            // 去掉之前
+            this.list.splice(gid + 1, 100);
 
             if (!targetBlock) {
               this.list.push(
