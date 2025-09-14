@@ -36,6 +36,8 @@
     }
 
     .btn {
+      display: flex;
+      align-items: center;
       margin: 8px;
       padding: 8px 16px;
       border-radius: 36px;
@@ -115,7 +117,8 @@
       }
     }
 
-    .btn:active {
+    .btn:active,
+    .btn.checked {
       color: var(--md-ref-palette-primary100);
       background-color: var(--md-ref-palette-primary50);
       transform: scale(0.98); /* 点击时轻微缩小 */
@@ -191,6 +194,17 @@
       margin-right: 8px;
       vertical-align: middle;
     }
+
+    .tick {
+      display: inline-block;
+      width: 0px;
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
+
+    .btn.checked .tick {
+      width: 20px;
+    }
   </style>
   <div class="main">
     <div
@@ -210,9 +224,11 @@
         <div
           class="btn fadein"
           attr:data-aid="$data.aid"
+          class:checked="$data.aid === $host.checkedAid"
           on:click="$host.clickNext($data)"
           on:mouseenter="$host.enterBtn($event)"
         >
+          <span class="tick"> ✅ </span>
           {{$data.title}}
         </div>
       </o-fill>
@@ -229,6 +245,7 @@
           nextArticles: [],
           isEnd: false,
           hideNexts: true,
+          checkedAid: null,
         },
         watch: {
           aid(aid) {
@@ -242,6 +259,7 @@
             e.target.classList.remove("fadein");
           },
           clickNext(data) {
+            this.checkedAid = data.aid;
             this.emit("click-next", { data });
           },
           loadData() {

@@ -73,28 +73,31 @@
         },
         proto: {
           clickNext({ data }) {
-            this.list.push(
-              {
-                question: data.title,
-                queaid: data.aid,
-              },
-              {
-                aid: data.aid,
-              }
-            );
+            // 查看是否已经存在
+            let targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
+
+            if (!targetBlock) {
+              this.list.push(
+                {
+                  question: data.title,
+                  queaid: data.aid,
+                },
+                {
+                  aid: data.aid,
+                }
+              );
+            }
 
             setTimeout(() => {
-              const targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
+              targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
 
-              if (targetBlock) {
-                targetBlock.ele.scrollIntoView({
-                  behavior: "smooth",
-                  block: "start",
-                  inline: "nearest",
-                  scrollMarginTop: 32,
-                });
-              }
-            }, 50);
+              targetBlock.ele.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+                inline: "nearest",
+                scrollMarginTop: 32,
+              });
+            }, 100);
           },
           async loadContentData() {
             const previewCacheFile = await get(
