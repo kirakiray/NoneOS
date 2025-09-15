@@ -151,14 +151,14 @@
       }
     }
 
-    lumi-link,
     a {
       display: inline-block !important;
       color: var(--md-sys-color-primary);
       text-decoration: underline;
     }
 
-    lumi-list-item {
+    lumi-list-item,
+    li {
       display: block !important;
       margin: 4px 0;
       word-break: break-all;
@@ -195,6 +195,38 @@
       vertical-align: middle;
     }
 
+    /* 美化输入框样式 */
+    .custom-input {
+      display: block;
+      width: 100%;
+      max-width: 500px;
+      margin: 16px auto;
+      padding: 12px 16px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-normal);
+      border-radius: 16px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .custom-input:focus {
+      border-color: var(--md-sys-color-primary);
+      box-shadow: 0 0 0 2px rgba(98, 0, 238, 0.2);
+    }
+
+    .custom-input::placeholder {
+      color: var(--md-sys-color-normal);
+      opacity: 0.7;
+    }
+
+    .custom-input:hover {
+      border-color: var(--md-sys-color-primary);
+    }
+
     .tick {
       display: inline-block;
       width: 0px;
@@ -219,7 +251,7 @@
     </div>
   </div>
   <o-if :value="isEnd">
-    <h5>你可能的疑问</h5>
+    <h5>继续追问</h5>
     <div class="nexts" class:hide-nexts="hideNexts">
       <o-fill :value="nextArticles">
         <div
@@ -233,6 +265,14 @@
           {{$data.title}}
         </div>
       </o-fill>
+    </div>
+    <div style="width: 100%; text-align: center">
+      <input
+        class="custom-input"
+        type="text"
+        sync:value="newQuestion"
+        placeholder="请输入您的问题..."
+      />
     </div>
   </o-if>
   <script>
@@ -250,6 +290,7 @@
           isEnd: false,
           hideNexts: true,
           checkedAid: null,
+          newQuestion: "",
         },
         watch: {
           aid(aid) {

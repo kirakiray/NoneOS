@@ -71,6 +71,30 @@
 
             const article = await transArticle(projectData);
 
+            let llmstxt = "";
+
+            // 组装数据
+            article.forEach((e) => {
+              const { aid, html, title } = e;
+
+              // 假设你已经通过 script 标签引入了 Turndown
+              const turndownService = new TurndownService({
+                headingStyle: "atx", // 设置标题样式为 ATX (使用 #)
+              });
+
+              const markdown = turndownService.turndown(
+                `<h1>${title}</h1>\n${html}`
+              );
+
+              llmstxt += `--文章ID: ${aid} 内容开始--\n${markdown}\n--文章ID: ${aid} 内容结束--\n\n`;
+            });
+
+            const llmsFile = await get("local/others/_web-marker-llms.txt", {
+              create: "file",
+            });
+
+            await llmsFile.write(llmstxt);
+
             this.listData = article;
           },
         },

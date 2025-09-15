@@ -57,7 +57,11 @@ const transArticleList = async (articleListData, lang) => {
 
         // 构建HTML内容
         let content = "";
-        if (component.type === "paragraph") {
+
+        if (component.type === "lumi-list-item") {
+          // 如果是list，转成li
+          content = `<li>${component.value}</li>\n`;
+        } else if (component.type === "paragraph") {
           content = `<p>${component.value}</p>\n`;
         } else {
           content = `<${component.type}>${component.value}</${component.type}>\n`;
