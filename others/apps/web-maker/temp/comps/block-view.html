@@ -235,6 +235,8 @@
     </div>
   </o-if>
   <script>
+    const cached = {}; // 已经加载过的文章id
+
     export default async ({ load }) => {
       return {
         tag: "block-view",
@@ -270,6 +272,7 @@
           },
           loadData() {
             clearTimeout(this._timer);
+            const mainElement = this.shadow.$(".main");
 
             this._timer = setTimeout(() => {
               const targetData = this.host.allArticleData.find(
@@ -282,8 +285,16 @@
 
               const content = `<h2>${targetData.title}</h2>\n${targetData.html}`;
 
+              if (cached[this.aid]) {
+                mainElement.html = content;
+                this.isEnd = true;
+                setTimeout(() => {
+                  this.hideNexts = false;
+                }, 100);
+                return;
+              }
+
               let index = 0;
-              const mainElement = this.shadow.$(".main");
               mainElement.html = "";
               let s_content = "";
               const interval = setInterval(
@@ -302,6 +313,7 @@
                     mainElement.html = s_content;
                   } else {
                     this.isEnd = true;
+                    cached[this.aid] = true;
                     setTimeout(() => {
                       this.hideNexts = false;
                     }, 100);
