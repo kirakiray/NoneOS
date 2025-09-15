@@ -126,7 +126,11 @@
       <div class="list">
         <div style="height: 100px"></div>
         <o-fill :value="list">
-          <div class="list-item" class:hide="!$data.question">
+          <div
+            class="list-item"
+            on:click="$host.clickItem($data)"
+            class:hide="!$data.question"
+          >
             {{$data.question}}
           </div>
         </o-fill>
@@ -168,6 +172,15 @@
           list: [],
         },
         proto: {
+          clickItem(data) {
+            const targetBlock = this.shadow.$(`[data-queaid="${data.queaid}"]`);
+            targetBlock.ele.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+              inline: "nearest",
+              scrollMarginTop: 32,
+            });
+          },
           clickNext({ data }) {
             const { gid } = data;
 
