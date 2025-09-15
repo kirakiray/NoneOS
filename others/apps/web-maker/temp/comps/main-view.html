@@ -6,8 +6,29 @@
       height: 100%;
     }
     .main {
+      display: flex;
+      height: 100%;
+    }
+    .left,
+    .right {
+      /* background-color: red; */
+      flex: 1 0 200px;
+    }
+
+    .article-outer {
+      position: relative;
+      max-width: 800px;
+      flex: 10 0 auto;
+    }
+
+    .article {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
       height: 100%;
       overflow-y: auto;
+      /* background-color: blue; */
     }
     .top,
     .bottom {
@@ -40,26 +61,44 @@
       color: var(--md-sys-color-surface);
       animation: slideInFromRight 0.3s ease; /* 添加动画效果 */
     }
+
+    @media screen and (max-width: 1200px) {
+      .article-outer {
+        flex: 10 0 auto;
+      }
+      .left {
+        flex: 1 0 200px;
+      }
+      .right {
+        display: none;
+      }
+    }
   </style>
   <div class="main">
-    <!-- <div class="top"></div> -->
-    <o-fill :value="list">
-      <div>
-        <o-if :value="$data.aid">
-          <block-view
-            attr:aid="$data.aid"
-            :gid="$index"
-            on:click-next="$host.clickNext($event)"
-          ></block-view>
-        </o-if>
-        <o-else>
-          <div class="que-block" attr:data-queaid="$data.queaid">
-            <div class="que-inner">{{$data.question}}</div>
+    <div class="left"></div>
+    <div class="article-outer">
+      <div class="article">
+        <!-- <div class="top"></div> -->
+        <o-fill :value="list">
+          <div>
+            <o-if :value="$data.aid">
+              <block-view
+                attr:aid="$data.aid"
+                :gid="$index"
+                on:click-next="$host.clickNext($event)"
+              ></block-view>
+            </o-if>
+            <o-else>
+              <div class="que-block" attr:data-queaid="$data.queaid">
+                <div class="que-inner">{{$data.question}}</div>
+              </div>
+            </o-else>
           </div>
-        </o-else>
+        </o-fill>
+        <div class="bottom"></div>
       </div>
-    </o-fill>
-    <div class="bottom"></div>
+    </div>
+    <div class="right"></div>
   </div>
   <script>
     export default async ({ load }) => {
