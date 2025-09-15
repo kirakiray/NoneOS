@@ -62,20 +62,76 @@
       animation: slideInFromRight 0.3s ease; /* 添加动画效果 */
     }
 
+    .left {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+
     @media screen and (max-width: 1200px) {
       .article-outer {
         flex: 10 0 auto;
       }
       .left {
-        flex: 1 0 200px;
+        flex: 1 0 100px;
       }
       .right {
         display: none;
       }
     }
+
+    @media screen and (max-width: 600px) {
+      .left {
+        display: none;
+      }
+    }
+
+    .list {
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .list-item {
+      margin: 4px;
+      padding: 4px 16px;
+      max-width: 200px;
+      font-size: 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 1px;
+      animation: item-fadein 0.3s ease;
+      overflow: hidden;
+    }
+
+    @keyframes item-fadein {
+      0% {
+        transform: translate(20px, 0);
+        opacity: 0;
+        line-height: 0em;
+      }
+      100% {
+        transform: translate(0, 0);
+        opacity: 1;
+        line-height: 1.4em;
+      }
+    }
+
+    .hide {
+      display: none;
+    }
   </style>
   <div class="main">
-    <div class="left"></div>
+    <div class="left">
+      <div class="list">
+        <div style="height: 100px"></div>
+        <o-fill :value="list">
+          <div class="list-item" class:hide="!$data.question">
+            {{$data.question}}
+          </div>
+        </o-fill>
+      </div>
+    </div>
     <div class="article-outer">
       <div class="article">
         <!-- <div class="top"></div> -->
