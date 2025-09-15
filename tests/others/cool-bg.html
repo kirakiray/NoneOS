@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sci-Fi WebGL Animation</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #000;
+        overflow: hidden;
+        font-family: "Courier New", monospace;
+      }
+
+      canvas {
+        display: block;
+        cursor: crosshair;
+      }
+
+      .info {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: #00ffff;
+        font-size: 14px;
+        z-index: 100;
+        text-shadow: 0 0 10px #00ffff;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="info">
+      <div>SYSTEM ONLINE</div>
+      <div>NEURAL NETWORK: ACTIVE</div>
+      <div>GRID STATUS: OPERATIONAL</div>
+    </div>
+    <canvas id="glCanvas"></canvas>
+
+    <script>
+      class SciFiAnimation {
+        constructor() {
+          this.canvas = document.getElementById("glCanvas");
+          this.gl =
+            this.canvas.getContext("webgl") ||
+            this.canvas.getContext("experimental-webgl");
+
+          if (!this.gl) {
+            alert("WebGL not supported");
+            return;
+          }
+
+          this.time = 0;
+          this.mouseX = 0;
+          this.mouseY = 0;
+
+          this.init();
+          this.setupEventListeners();
+          this.animate();
+        }
+
+        init() {
+          this.resizeCanvas();
+          this.setupShaders();
+          this.setupBuffers();
+          this.setupParticles();
+        }
+
+        resizeCanvas() {
+          this.canvas.width = window.innerWidth;
+          this.canvas.height = window.innerHeight;
+          this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        setupShaders() {
+                const vertexShaderSource = `
+                    precision mediump float;
+                    attribute vec2 a_position;
+                    attribute float a_size;
+                    attribute vec3 a_color;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    uniform vec2 u_mouse;
+                    
+                    varying vec3 v_color;
+                    varying float v_alpha;
+                    
+                    void main() {
+                        vec2 position = a_position;
+                        
+                        // Add wave effect based on time
+                        position.x += sin(u_time * 2.0 + position.y * 10.0) * 0.01;
+                        position.y += cos(u_time * 1.5 + position.x * 8.0) * 0.01;
+                        
+                        // Mouse interaction
+                        vec2 mouseInfluence = (position - u_mouse) * 0.1;
+                        position += mouseInfluence * 0.05;
+                        
+                        vec2 clipSpace = ((position / u_resolution) * 2.0) - 1.0;
+                        clipSpace.y *= -1.0;
+                        
+                        gl_Position = vec4(clipSpace, 0.0, 1.0);
+                        gl_PointSize = a_size * (1.0 + sin(u_time * 3.0) * 0.3);
+                        
+                        v_color = a_color;
+                        v_alpha = 1.0 - (length(mouseInfluence) * 2.0);
+                    }
+                `;
+
+                const fragmentShaderSource = `
+                    precision mediump float;
+                    
+                    varying vec3 v_color;
+                    varying float v_alpha;
+                    uniform float u_time;
+                    
+                    void main() {
+                        vec2 coord = gl_PointCoord - vec2(0.5);
+                        float distance = length(coord);
+                        
+                        if (distance > 0.5) discard;
+                        
+                        // Create glowing effect
+                        float glow = 1.0 - (distance * 2.0);
+                        glow = pow(glow, 2.0);
+                        
+                        // Add pulsing effect
+                        float pulse = sin(u_time * 4.0) * 0.2 + 0.8;
+                        
+                        vec3 color = v_color * pulse;
+                        float alpha = glow * v_alpha * 0.8;
+                        
+                        gl_FragColor = vec4(color, alpha);
+                    }
+                `;
+
+                const gridVertexShader = `
+                    precision mediump float;
+                    attribute vec2 a_position;
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    
+                    varying vec3 v_color;
+                    
+                    void main() {
+                        vec2 position = a_position;
+                        
+                        // Animated grid distortion
+                        float wave = sin(position.x * 0.01 + u_time) * cos(position.y * 0.01 + u_time * 0.7);
+                        position.y += wave * 20.0;
+                        
+                        vec2 clipSpace = ((position / u_resolution) * 2.0) - 1.0;
+                        clipSpace.y *= -1.0;
+                        
+                        gl_Position = vec4(clipSpace, 0.0, 1.0);
+                        
+                        // Color based on position and time
+                        float intensity = (sin(u_time + position.x * 0.005) + 1.0) * 0.5;
+                        v_color = vec3(0.0, intensity * 0.8 + 0.2, intensity);
+                    }
+                `;
+
+                const gridFragmentShader = `
+                    precision mediump float;
+                    varying vec3 v_color;
+                    uniform float u_time;
+                    
+                    void main() {
+                        float alpha = 0.3 + sin(u_time * 2.0) * 0.1;
+                        gl_FragColor = vec4(v_color, alpha);
+                    }
+                `;
+
+          this.program = this.createProgram(
+            vertexShaderSource,
+            fragmentShaderSource
+          );
+          this.gridProgram = this.createProgram(
+            gridVertexShader,
+            gridFragmentShader
+          );
+        }
+
+        createShader(type, source) {
+          const shader = this.gl.createShader(type);
+          this.gl.shaderSource(shader, source);
+          this.gl.compileShader(shader);
+
+          if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            console.error(
+              "Shader compilation error:",
+              this.gl.getShaderInfoLog(shader)
+            );
+            this.gl.deleteShader(shader);
+            return null;
+          }
+
+          return shader;
+        }
+
+        createProgram(vertexSource, fragmentSource) {
+          const vertexShader = this.createShader(
+            this.gl.VERTEX_SHADER,
+            vertexSource
+          );
+          const fragmentShader = this.createShader(
+            this.gl.FRAGMENT_SHADER,
+            fragmentSource
+          );
+
+          const program = this.gl.createProgram();
+          this.gl.attachShader(program, vertexShader);
+          this.gl.attachShader(program, fragmentShader);
+          this.gl.linkProgram(program);
+
+          if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+            console.error(
+              "Program linking error:",
+              this.gl.getProgramInfoLog(program)
+            );
+            return null;
+          }
+
+          return program;
+        }
+
+        setupBuffers() {
+          // Grid vertices
+          const gridVertices = [];
+          const gridSize = 50;
+          const width = this.canvas.width;
+          const height = this.canvas.height;
+
+          for (let x = 0; x <= width; x += gridSize) {
+            gridVertices.push(x, 0);
+            gridVertices.push(x, height);
+          }
+
+          for (let y = 0; y <= height; y += gridSize) {
+            gridVertices.push(0, y);
+            gridVertices.push(width, y);
+          }
+
+          this.gridBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gridBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(gridVertices),
+            this.gl.STATIC_DRAW
+          );
+          this.gridVertexCount = gridVertices.length / 2;
+        }
+
+        setupParticles() {
+          const particleCount = 200;
+          const positions = [];
+          const sizes = [];
+          const colors = [];
+
+          for (let i = 0; i < particleCount; i++) {
+            positions.push(
+              Math.random() * this.canvas.width,
+              Math.random() * this.canvas.height
+            );
+
+            sizes.push(Math.random() * 4 + 1);
+
+            // Cyan to blue color range
+            colors.push(
+              0.0,
+              Math.random() * 0.5 + 0.5,
+              Math.random() * 0.3 + 0.7
+            );
+          }
+
+          this.particlePositions = new Float32Array(positions);
+          this.particleSizes = new Float32Array(sizes);
+          this.particleColors = new Float32Array(colors);
+
+          this.positionBuffer = this.gl.createBuffer();
+          this.sizeBuffer = this.gl.createBuffer();
+          this.colorBuffer = this.gl.createBuffer();
+        }
+
+        setupEventListeners() {
+          window.addEventListener("resize", () => this.resizeCanvas());
+
+          this.canvas.addEventListener("mousemove", (e) => {
+            this.mouseX = e.clientX;
+            this.mouseY = e.clientY;
+          });
+
+          this.canvas.addEventListener("click", () => {
+            // Add burst effect on click
+            this.addBurstEffect();
+          });
+        }
+
+        addBurstEffect() {
+          // Create temporary burst particles
+          const burstCount = 30;
+          const burstPositions = [];
+          const burstSizes = [];
+          const burstColors = [];
+
+          for (let i = 0; i < burstCount; i++) {
+            const angle = (i / burstCount) * Math.PI * 2;
+            const distance = Math.random() * 100 + 50;
+
+            burstPositions.push(
+              this.mouseX + Math.cos(angle) * distance,
+              this.mouseY + Math.sin(angle) * distance
+            );
+
+            burstSizes.push(Math.random() * 6 + 2);
+
+            burstColors.push(1.0, 1.0, 1.0); // White burst
+          }
+
+          // Temporary effect - would need more complex system for full implementation
+          console.log("Burst effect at:", this.mouseX, this.mouseY);
+        }
+
+        render() {
+          this.gl.clearColor(0.0, 0.0, 0.05, 1.0);
+          this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+          // Enable blending for transparency
+          this.gl.enable(this.gl.BLEND);
+          this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+          // Render grid
+          this.renderGrid();
+
+          // Render particles
+          this.renderParticles();
+        }
+
+        renderGrid() {
+          this.gl.useProgram(this.gridProgram);
+
+          const positionLocation = this.gl.getAttribLocation(
+            this.gridProgram,
+            "a_position"
+          );
+          const resolutionLocation = this.gl.getUniformLocation(
+            this.gridProgram,
+            "u_resolution"
+          );
+          const timeLocation = this.gl.getUniformLocation(
+            this.gridProgram,
+            "u_time"
+          );
+
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.gridBuffer);
+          this.gl.enableVertexAttribArray(positionLocation);
+          this.gl.vertexAttribPointer(
+            positionLocation,
+            2,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          this.gl.uniform2f(
+            resolutionLocation,
+            this.canvas.width,
+            this.canvas.height
+          );
+          this.gl.uniform1f(timeLocation, this.time);
+
+          this.gl.drawArrays(this.gl.LINES, 0, this.gridVertexCount);
+        }
+
+        renderParticles() {
+          this.gl.useProgram(this.program);
+
+          const positionLocation = this.gl.getAttribLocation(
+            this.program,
+            "a_position"
+          );
+          const sizeLocation = this.gl.getAttribLocation(
+            this.program,
+            "a_size"
+          );
+          const colorLocation = this.gl.getAttribLocation(
+            this.program,
+            "a_color"
+          );
+
+          const resolutionLocation = this.gl.getUniformLocation(
+            this.program,
+            "u_resolution"
+          );
+          const timeLocation = this.gl.getUniformLocation(
+            this.program,
+            "u_time"
+          );
+          const mouseLocation = this.gl.getUniformLocation(
+            this.program,
+            "u_mouse"
+          );
+
+          // Update particle positions
+          for (let i = 0; i < this.particlePositions.length; i += 2) {
+            this.particlePositions[i] += Math.sin(this.time + i) * 0.5;
+            this.particlePositions[i + 1] += Math.cos(this.time + i) * 0.3;
+
+            // Wrap around screen
+            if (this.particlePositions[i] < 0)
+              this.particlePositions[i] = this.canvas.width;
+            if (this.particlePositions[i] > this.canvas.width)
+              this.particlePositions[i] = 0;
+            if (this.particlePositions[i + 1] < 0)
+              this.particlePositions[i + 1] = this.canvas.height;
+            if (this.particlePositions[i + 1] > this.canvas.height)
+              this.particlePositions[i + 1] = 0;
+          }
+
+          // Bind position buffer
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.positionBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            this.particlePositions,
+            this.gl.DYNAMIC_DRAW
+          );
+          this.gl.enableVertexAttribArray(positionLocation);
+          this.gl.vertexAttribPointer(
+            positionLocation,
+            2,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          // Bind size buffer
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.sizeBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            this.particleSizes,
+            this.gl.STATIC_DRAW
+          );
+          this.gl.enableVertexAttribArray(sizeLocation);
+          this.gl.vertexAttribPointer(
+            sizeLocation,
+            1,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          // Bind color buffer
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            this.particleColors,
+            this.gl.STATIC_DRAW
+          );
+          this.gl.enableVertexAttribArray(colorLocation);
+          this.gl.vertexAttribPointer(
+            colorLocation,
+            3,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          // Set uniforms
+          this.gl.uniform2f(
+            resolutionLocation,
+            this.canvas.width,
+            this.canvas.height
+          );
+          this.gl.uniform1f(timeLocation, this.time);
+          this.gl.uniform2f(mouseLocation, this.mouseX, this.mouseY);
+
+          this.gl.drawArrays(
+            this.gl.POINTS,
+            0,
+            this.particlePositions.length / 2
+          );
+        }
+
+        animate() {
+          this.time += 0.016;
+          this.render();
+          requestAnimationFrame(() => this.animate());
+        }
+      }
+
+      // Initialize animation when page loads
+      window.addEventListener("load", () => {
+        new SciFiAnimation();
+      });
+    </script>
+  </body>
+</html>

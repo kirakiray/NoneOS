@@ -1,5 +1,6 @@
 <template component>
   <l-m src="./block-view.html"></l-m>
+  <l-m src="../comps/bg-one.html"></l-m>
   <style>
     :host {
       display: block;
@@ -8,6 +9,8 @@
     .main {
       display: flex;
       height: 100%;
+      position: relative;
+      z-index: 1;
     }
     .left,
     .right {
@@ -121,6 +124,7 @@
       display: none;
     }
   </style>
+  <bg-one style="position: absolute; left: 0; top: 0; z-index: 0"></bg-one>
   <div class="main">
     <div class="left">
       <div class="list">
