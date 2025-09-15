@@ -26,6 +26,9 @@
         attached() {
           this.init();
         },
+        detached() {
+          this._canvas._isend = true;
+        },
       };
     };
 
@@ -720,6 +723,9 @@
       }
 
       animate() {
+        if (this._isend) {
+          return;
+        }
         this.time += 0.016;
         this.render();
         requestAnimationFrame(() => this.animate());

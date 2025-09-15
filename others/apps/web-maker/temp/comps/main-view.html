@@ -63,6 +63,7 @@
       background-color: var(--md-sys-color-on-surface);
       color: var(--md-sys-color-surface);
       animation: slideInFromRight 0.3s ease; /* 添加动画效果 */
+      text-align: left;
     }
 
     .left {
@@ -166,8 +167,6 @@
   </div>
   <script>
     export default async ({ load }) => {
-      const { get } = await load("/packages/fs/main.js");
-
       return {
         tag: "main-view",
         data: {
@@ -218,12 +217,21 @@
             }, 100);
           },
           async loadContentData() {
-            const previewCacheFile = await get(
-              "local/others/_web-marker-preview.json"
-            );
+            let previewData = null;
+            try {
+              const { get } = await load("/packages/fs/main.js");
 
-            let previewData = await previewCacheFile.text();
-            previewData = JSON.parse(previewData);
+              const previewCacheFile = await get(
+                "local/others/_web-marker-preview.json"
+              );
+              previewData = await previewCacheFile.text();
+              previewData = JSON.parse(previewData);
+            } catch (err) {
+              // console.error(err);
+              // 从上级获取数据
+              previewData = await load("../data.json");
+            }
+
             this.allArticleData = previewData.list;
 
             const currentContent = previewData.list.find(
