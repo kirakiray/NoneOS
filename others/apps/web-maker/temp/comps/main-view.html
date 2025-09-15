@@ -79,10 +79,10 @@
             // 查看是否已经存在
             let targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
 
-            // 去掉之前
-            this.list.splice(gid + 1, 100);
-
             if (!targetBlock) {
+              // 去掉之前
+              this.list.splice(gid + 1, 100);
+
               this.list.push(
                 {
                   question: data.title,
