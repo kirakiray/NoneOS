@@ -208,6 +208,22 @@
                 queryAnswer: data.question,
               }
             );
+
+            // 在提交问题后滚动到新添加的问题
+            setTimeout(() => {
+              let targetBlock = this.shadow.$(
+                `[query-answer="${data.question}"]`
+              );
+
+              if (targetBlock) {
+                targetBlock.ele.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                  inline: "nearest",
+                  scrollMarginTop: 32,
+                });
+              }
+            }, 100);
           },
           clickNext({ data }) {
             const { gid } = data;
@@ -247,7 +263,7 @@
               const { get } = await load("/packages/fs/main.js");
 
               const previewCacheFile = await get(
-                "local/others/_web-marker-preview.json"
+                "local/others/web-maker/_web-marker-preview.json"
               );
               previewData = await previewCacheFile.text();
               previewData = JSON.parse(previewData);

@@ -47,7 +47,7 @@
 
             // 保存到一个缓存文件夹上
             const cacheFile = await get(
-              "local/others/_web-marker-preview.json",
+              "local/others/web-maker/_web-marker-preview.json",
               {
                 create: "file",
               }
@@ -59,6 +59,17 @@
                 list: this.listData,
               })
             );
+
+            // 写入 index.html
+            const indexFile = await get("local/others/web-maker/index.html", {
+              create: "file",
+            });
+
+            const indexText = await fetch(
+              "/others/apps/web-maker/temp/preview.html"
+            ).then((e) => e.text());
+
+            await indexFile.write(indexText);
           },
           async selectProject({ data }) {
             console.log("data: ", data);
