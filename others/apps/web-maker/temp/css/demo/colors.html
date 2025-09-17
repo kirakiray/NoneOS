@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>colors</title>
+    <link rel="stylesheet" href="../public.css" />
+    <style>
+      .con {
+        display: flex;
+        flex-wrap: wrap;
+        color: #c9c605;
+        font-size: 12px;
+      }
+      .block {
+        width: 200px;
+        height: 50px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        margin: 4px;
+        border-radius: 6px;
+        user-select: all;
+        border: #7c7c7c solid 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="con"></div>
+    <script type="module">
+      const con = document.querySelector(".con");
+      const arr = [
+        // {
+        //   name: "1",
+        //   color: "red",
+        // },
+        // {
+        //   name: "2",
+        //   color: "green",
+        // },
+        // {
+        //   name: "3",
+        //   color: "blue",
+        // },
+      ];
+
+      const content = await fetch("../colors.css").then((res) => res.text());
+
+      content
+        .match(/--.+:/g)
+        .map((e) => e.replace(":", ""))
+        .forEach((e) => {
+          arr.push({
+            name: e,
+            color: `var(${e})`,
+          });
+        });
+
+      arr.forEach((item) => {
+        const div = document.createElement("div");
+        div.classList.add("block");
+        div.style.backgroundColor = item.color;
+        div.innerHTML = item.name;
+        con.appendChild(div);
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web3 WebGL Background</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #0c0c14;
+        overflow: hidden;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      canvas {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: -1;
+      }
+
+      .content {
+        position: relative;
+        z-index: 10;
+        color: white;
+        text-align: center;
+        padding: 100px 20px;
+      }
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 20px;
+        text-shadow: 0 0 10px rgba(100, 100, 255, 0.7);
+      }
+
+      p {
+        font-size: 1.2rem;
+        max-width: 600px;
+        margin: 0 auto 30px;
+        line-height: 1.6;
+      }
+
+      .glow-button {
+        background: rgba(100, 100, 255, 0.2);
+        border: 1px solid rgba(100, 100, 255, 0.5);
+        color: #fff;
+        padding: 12px 30px;
+        font-size: 1rem;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+      }
+
+      .glow-button:hover {
+        background: rgba(100, 100, 255, 0.4);
+        box-shadow: 0 0 20px rgba(100, 100, 255, 0.7);
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="webglCanvas"></canvas>
+
+    <!-- <div class="content">
+      <h1>WEB3 UNIVERSE</h1>
+      <p>
+        Experience the future of decentralized technology with our cutting-edge
+        blockchain solutions
+      </p>
+      <button class="glow-button">ENTER DAPP</button>
+    </div> -->
+
+    <script>
+      class Web3Background {
+        constructor() {
+          this.canvas = document.getElementById("webglCanvas");
+          this.gl =
+            this.canvas.getContext("webgl") ||
+            this.canvas.getContext("experimental-webgl");
+
+          if (!this.gl) {
+            console.error("WebGL not supported");
+            return;
+          }
+
+          this.time = 0;
+          this.nodes = [];
+          this.connections = [];
+          this.particles = [];
+          this.mouseX = 0;
+          this.mouseY = 0;
+
+          this.init();
+          this.setupEventListeners();
+          this.animate();
+        }
+
+        init() {
+          this.resizeCanvas();
+          this.setupShaders();
+          this.createNodes();
+          this.createParticles();
+        }
+
+        resizeCanvas() {
+          this.canvas.width = window.innerWidth;
+          this.canvas.height = window.innerHeight;
+          this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        }
+
+        setupShaders() {
+          // Node shader
+          const nodeVertexShader = `
+                    precision mediump float;
+                    attribute vec2 a_position;
+                    attribute vec3 a_color;
+                    attribute float a_size;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    uniform vec2 u_mouse;
+                    
+                    varying vec3 v_color;
+                    varying float v_alpha;
+                    
+                    void main() {
+                        vec2 position = a_position;
+                        
+                        // Pulsing effect
+                        float pulse = sin(u_time * 2.0 + position.x * 0.01 + position.y * 0.01) * 0.5 + 0.5;
+                        float size = a_size * (1.0 + pulse * 0.3);
+                        
+                        // Mouse interaction
+                        vec2 mouseVec = u_mouse - position;
+                        float mouseDist = length(mouseVec);
+                        if (mouseDist < 150.0) {
+                            position += normalize(mouseVec) * (150.0 - mouseDist) * 0.1;
+                        }
+                        
+                        vec2 clipSpace = ((position / u_resolution) * 2.0) - 1.0;
+                        clipSpace.y *= -1.0;
+                        
+                        gl_Position = vec4(clipSpace, 0.0, 1.0);
+                        gl_PointSize = size;
+                        
+                        v_color = a_color;
+                        v_alpha = 0.8 + pulse * 0.2;
+                    }
+                `;
+
+          const nodeFragmentShader = `
+                    precision mediump float;
+                    varying vec3 v_color;
+                    varying float v_alpha;
+                    
+                    void main() {
+                        vec2 coord = gl_PointCoord - vec2(0.5);
+                        float distance = length(coord);
+                        
+                        if (distance > 0.5) discard;
+                        
+                        // Create a glowing effect
+                        float alpha = 1.0 - (distance * 2.0);
+                        alpha = pow(alpha, 2.0) * v_alpha;
+                        
+                        gl_FragColor = vec4(v_color, alpha);
+                    }
+                `;
+
+          // Connection shader
+          const connectionVertexShader = `
+                    precision mediump float;
+                    attribute vec2 a_position;
+                    attribute vec3 a_color;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    
+                    varying vec3 v_color;
+                    
+                    void main() {
+                        vec2 position = a_position;
+                        vec2 clipSpace = ((position / u_resolution) * 2.0) - 1.0;
+                        clipSpace.y *= -1.0;
+                        
+                        gl_Position = vec4(clipSpace, 0.0, 1.0);
+                        v_color = a_color;
+                    }
+                `;
+
+          const connectionFragmentShader = `
+                    precision mediump float;
+                    varying vec3 v_color;
+                    uniform float u_time;
+                    
+                    void main() {
+                        gl_FragColor = vec4(v_color, 0.3);
+                    }
+                `;
+
+          // Particle shader
+          const particleVertexShader = `
+                    precision mediump float;
+                    attribute vec2 a_position;
+                    attribute vec3 a_color;
+                    attribute float a_size;
+                    
+                    uniform vec2 u_resolution;
+                    uniform float u_time;
+                    
+                    varying vec3 v_color;
+                    
+                    void main() {
+                        vec2 position = a_position;
+                        
+                        // Move particles upward
+                        position.y -= mod(u_time * 20.0 + a_position.x * 0.1, 200.0);
+                        
+                        vec2 clipSpace = ((position / u_resolution) * 2.0) - 1.0;
+                        clipSpace.y *= -1.0;
+                        
+                        gl_Position = vec4(clipSpace, 0.0, 1.0);
+                        gl_PointSize = a_size;
+                        
+                        v_color = a_color;
+                    }
+                `;
+
+          const particleFragmentShader = `
+                    precision mediump float;
+                    varying vec3 v_color;
+                    
+                    void main() {
+                        vec2 coord = gl_PointCoord - vec2(0.5);
+                        float distance = length(coord);
+                        
+                        if (distance > 0.5) discard;
+                        
+                        // Create a soft glow
+                        float alpha = 1.0 - (distance * 2.0);
+                        alpha = pow(alpha, 2.0) * 0.7;
+                        
+                        gl_FragColor = vec4(v_color, alpha);
+                    }
+                `;
+
+          this.nodeProgram = this.createProgram(
+            nodeVertexShader,
+            nodeFragmentShader
+          );
+          this.connectionProgram = this.createProgram(
+            connectionVertexShader,
+            connectionFragmentShader
+          );
+          this.particleProgram = this.createProgram(
+            particleVertexShader,
+            particleFragmentShader
+          );
+        }
+
+        createShader(type, source) {
+          const shader = this.gl.createShader(type);
+          this.gl.shaderSource(shader, source);
+          this.gl.compileShader(shader);
+
+          if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            console.error(
+              "Shader compilation error:",
+              this.gl.getShaderInfoLog(shader)
+            );
+            this.gl.deleteShader(shader);
+            return null;
+          }
+
+          return shader;
+        }
+
+        createProgram(vertexSource, fragmentSource) {
+          const vertexShader = this.createShader(
+            this.gl.VERTEX_SHADER,
+            vertexSource
+          );
+          const fragmentShader = this.createShader(
+            this.gl.FRAGMENT_SHADER,
+            fragmentSource
+          );
+
+          const program = this.gl.createProgram();
+          this.gl.attachShader(program, vertexShader);
+          this.gl.attachShader(program, fragmentShader);
+          this.gl.linkProgram(program);
+
+          if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+            console.error(
+              "Program linking error:",
+              this.gl.getProgramInfoLog(program)
+            );
+            return null;
+          }
+
+          return program;
+        }
+
+        createNodes() {
+          const nodeCount = 50;
+          this.nodes = [];
+
+          for (let i = 0; i < nodeCount; i++) {
+            this.nodes.push({
+              x: Math.random() * this.canvas.width,
+              y: Math.random() * this.canvas.height,
+              size: Math.random() * 8 + 4,
+              color: [
+                Math.random() * 0.5 + 0.5, // R
+                Math.random() * 0.5, // G
+                Math.random() * 0.8 + 0.2, // B
+              ],
+              // 添加移动速度属性
+              vx: (Math.random() - 0.5) * 0.5,
+              vy: (Math.random() - 0.5) * 0.5,
+            });
+          }
+
+          // Create connections between nearby nodes
+          this.connections = [];
+          for (let i = 0; i < this.nodes.length; i++) {
+            for (let j = i + 1; j < this.nodes.length; j++) {
+              const nodeA = this.nodes[i];
+              const nodeB = this.nodes[j];
+              const dx = nodeA.x - nodeB.x;
+              const dy = nodeA.y - nodeB.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance < 150) {
+                this.connections.push({
+                  x1: nodeA.x,
+                  y1: nodeA.y,
+                  x2: nodeB.x,
+                  y2: nodeB.y,
+                  color: [
+                    (nodeA.color[0] + nodeB.color[0]) / 2,
+                    (nodeA.color[1] + nodeB.color[1]) / 2,
+                    (nodeA.color[2] + nodeB.color[2]) / 2,
+                  ],
+                });
+              }
+            }
+          }
+        }
+
+        createParticles() {
+          const particleCount = 200;
+          this.particles = [];
+
+          for (let i = 0; i < particleCount; i++) {
+            this.particles.push({
+              x: Math.random() * this.canvas.width,
+              y: Math.random() * this.canvas.height + this.canvas.height,
+              size: Math.random() * 3 + 1,
+              color: [
+                Math.random() * 0.3 + 0.7, // R
+                Math.random() * 0.3 + 0.7, // G
+                Math.random() * 0.5 + 0.5, // B
+              ],
+              // 添加横向速度
+              vx: (Math.random() - 0.5) * 0.3,
+            });
+          }
+        }
+
+        setupEventListeners() {
+          window.addEventListener("resize", () => {
+            this.resizeCanvas();
+            this.createNodes(); // Recreate nodes on resize
+          });
+
+          document.addEventListener("mousemove", (e) => {
+            this.mouseX = e.clientX;
+            this.mouseY = e.clientY;
+          });
+        }
+
+        renderNodes() {
+          if (!this.nodeProgram) return;
+
+          this.gl.useProgram(this.nodeProgram);
+
+          // 更新节点位置
+          for (const node of this.nodes) {
+            // 更新位置
+            node.x += node.vx;
+            node.y += node.vy;
+
+            // 边缘反弹
+            if (node.x < 0 || node.x > this.canvas.width) {
+              node.vx *= -1;
+              node.x = node.x < 0 ? 0 : this.canvas.width;
+            }
+            if (node.y < 0 || node.y > this.canvas.height) {
+              node.vy *= -1;
+              node.y = node.y < 0 ? 0 : this.canvas.height;
+            }
+          }
+
+          // Prepare node data
+          const positions = [];
+          const colors = [];
+          const sizes = [];
+
+          for (const node of this.nodes) {
+            positions.push(node.x, node.y);
+            colors.push(...node.color);
+            sizes.push(node.size);
+          }
+
+          // Create buffers
+          const positionBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            this.gl.STATIC_DRAW
+          );
+
+          const colorBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(colors),
+            this.gl.STATIC_DRAW
+          );
+
+          const sizeBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, sizeBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(sizes),
+            this.gl.STATIC_DRAW
+          );
+
+          // Set up attributes
+          const positionLocation = this.gl.getAttribLocation(
+            this.nodeProgram,
+            "a_position"
+          );
+          this.gl.enableVertexAttribArray(positionLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+          this.gl.vertexAttribPointer(
+            positionLocation,
+            2,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          const colorLocation = this.gl.getAttribLocation(
+            this.nodeProgram,
+            "a_color"
+          );
+          this.gl.enableVertexAttribArray(colorLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+          this.gl.vertexAttribPointer(
+            colorLocation,
+            3,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          const sizeLocation = this.gl.getAttribLocation(
+            this.nodeProgram,
+            "a_size"
+          );
+          this.gl.enableVertexAttribArray(sizeLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, sizeBuffer);
+          this.gl.vertexAttribPointer(
+            sizeLocation,
+            1,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          // Set up uniforms
+          const resolutionLocation = this.gl.getUniformLocation(
+            this.nodeProgram,
+            "u_resolution"
+          );
+          this.gl.uniform2f(
+            resolutionLocation,
+            this.canvas.width,
+            this.canvas.height
+          );
+
+          const timeLocation = this.gl.getUniformLocation(
+            this.nodeProgram,
+            "u_time"
+          );
+          this.gl.uniform1f(timeLocation, this.time);
+
+          const mouseLocation = this.gl.getUniformLocation(
+            this.nodeProgram,
+            "u_mouse"
+          );
+          this.gl.uniform2f(mouseLocation, this.mouseX || 0, this.mouseY || 0);
+
+          // Draw
+          this.gl.drawArrays(this.gl.POINTS, 0, this.nodes.length);
+        }
+
+        renderConnections() {
+          if (!this.connectionProgram) return;
+
+          this.gl.useProgram(this.connectionProgram);
+
+          // 重新计算连接线
+          this.connections = [];
+          for (let i = 0; i < this.nodes.length; i++) {
+            for (let j = i + 1; j < this.nodes.length; j++) {
+              const nodeA = this.nodes[i];
+              const nodeB = this.nodes[j];
+              const dx = nodeA.x - nodeB.x;
+              const dy = nodeA.y - nodeB.y;
+              const distance = Math.sqrt(dx * dx + dy * dy);
+
+              if (distance < 150) {
+                this.connections.push({
+                  x1: nodeA.x,
+                  y1: nodeA.y,
+                  x2: nodeB.x,
+                  y2: nodeB.y,
+                  color: [
+                    (nodeA.color[0] + nodeB.color[0]) / 2,
+                    (nodeA.color[1] + nodeB.color[1]) / 2,
+                    (nodeA.color[2] + nodeB.color[2]) / 2,
+                  ],
+                });
+              }
+            }
+          }
+
+          // Prepare connection data
+          const positions = [];
+          const colors = [];
+
+          for (const connection of this.connections) {
+            positions.push(
+              connection.x1,
+              connection.y1,
+              connection.x2,
+              connection.y2
+            );
+            colors.push(...connection.color, ...connection.color);
+          }
+
+          // Create buffers
+          const positionBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            this.gl.STATIC_DRAW
+          );
+
+          const colorBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(colors),
+            this.gl.STATIC_DRAW
+          );
+
+          // Set up attributes
+          const positionLocation = this.gl.getAttribLocation(
+            this.connectionProgram,
+            "a_position"
+          );
+          this.gl.enableVertexAttribArray(positionLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+          this.gl.vertexAttribPointer(
+            positionLocation,
+            2,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          const colorLocation = this.gl.getAttribLocation(
+            this.connectionProgram,
+            "a_color"
+          );
+          this.gl.enableVertexAttribArray(colorLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+          this.gl.vertexAttribPointer(
+            colorLocation,
+            3,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          // Set up uniforms
+          const resolutionLocation = this.gl.getUniformLocation(
+            this.connectionProgram,
+            "u_resolution"
+          );
+          this.gl.uniform2f(
+            resolutionLocation,
+            this.canvas.width,
+            this.canvas.height
+          );
+
+          const timeLocation = this.gl.getUniformLocation(
+            this.connectionProgram,
+            "u_time"
+          );
+          this.gl.uniform1f(timeLocation, this.time);
+
+          // Draw
+          this.gl.drawArrays(this.gl.LINES, 0, this.connections.length * 2);
+        }
+
+        renderParticles() {
+          if (!this.particleProgram) return;
+
+          this.gl.useProgram(this.particleProgram);
+
+          // 更新粒子位置
+          for (const particle of this.particles) {
+            // 更新位置
+            particle.x += particle.vx;
+            particle.y -= 2; // 向上移动
+
+            // 如果粒子超出屏幕顶部，重置到底部
+            if (particle.y < 0) {
+              particle.x = Math.random() * this.canvas.width;
+              particle.y = this.canvas.height + Math.random() * 100;
+            }
+          }
+
+          // Prepare particle data
+          const positions = [];
+          const colors = [];
+          const sizes = [];
+
+          for (const particle of this.particles) {
+            positions.push(particle.x, particle.y);
+            colors.push(...particle.color);
+            sizes.push(particle.size);
+          }
+
+          // Create buffers
+          const positionBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            this.gl.STATIC_DRAW
+          );
+
+          const colorBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(colors),
+            this.gl.STATIC_DRAW
+          );
+
+          const sizeBuffer = this.gl.createBuffer();
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, sizeBuffer);
+          this.gl.bufferData(
+            this.gl.ARRAY_BUFFER,
+            new Float32Array(sizes),
+            this.gl.STATIC_DRAW
+          );
+
+          // Set up attributes
+          const positionLocation = this.gl.getAttribLocation(
+            this.particleProgram,
+            "a_position"
+          );
+          this.gl.enableVertexAttribArray(positionLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+          this.gl.vertexAttribPointer(
+            positionLocation,
+            2,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          const colorLocation = this.gl.getAttribLocation(
+            this.particleProgram,
+            "a_color"
+          );
+          this.gl.enableVertexAttribArray(colorLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+          this.gl.vertexAttribPointer(
+            colorLocation,
+            3,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          const sizeLocation = this.gl.getAttribLocation(
+            this.particleProgram,
+            "a_size"
+          );
+          this.gl.enableVertexAttribArray(sizeLocation);
+          this.gl.bindBuffer(this.gl.ARRAY_BUFFER, sizeBuffer);
+          this.gl.vertexAttribPointer(
+            sizeLocation,
+            1,
+            this.gl.FLOAT,
+            false,
+            0,
+            0
+          );
+
+          // Set up uniforms
+          const resolutionLocation = this.gl.getUniformLocation(
+            this.particleProgram,
+            "u_resolution"
+          );
+          this.gl.uniform2f(
+            resolutionLocation,
+            this.canvas.width,
+            this.canvas.height
+          );
+
+          const timeLocation = this.gl.getUniformLocation(
+            this.particleProgram,
+            "u_time"
+          );
+          this.gl.uniform1f(timeLocation, this.time);
+
+          // Draw
+          this.gl.drawArrays(this.gl.POINTS, 0, this.particles.length);
+        }
+
+        render() {
+          // Clear canvas
+          this.gl.clearColor(0.047, 0.047, 0.078, 1.0); // #0c0c14
+          this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+          // Enable blending
+          this.gl.enable(this.gl.BLEND);
+          this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+
+          // Render components
+          this.renderConnections();
+          this.renderNodes();
+          this.renderParticles();
+        }
+
+        animate() {
+          this.time += 0.016;
+          this.render();
+          requestAnimationFrame(() => this.animate());
+        }
+      }
+
+      // Initialize when page loads
+      window.addEventListener("load", () => {
+        new Web3Background();
+      });
+    </script>
+  </body>
+</html>

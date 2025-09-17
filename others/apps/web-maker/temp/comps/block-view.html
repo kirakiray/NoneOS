@@ -1,0 +1,376 @@
+<template component>
+  <style>
+    :host {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin: 0 auto;
+      padding: 64px 16px;
+      min-height: 50vh;
+      overflow: hidden;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    p {
+      padding: 0;
+      margin: 0;
+      margin: 0.5em 0;
+      line-height: 1.4em;
+    }
+
+    .nexts {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      margin: 8px;
+      padding: 8px 16px;
+      border-radius: 36px;
+      cursor: pointer;
+      color: var(--md-ref-palette-primary80);
+      border: var(--md-ref-palette-primary80) solid 1px;
+      transition: all 0.3s ease; /* 添加过渡效果，使状态变化更平滑 */
+      user-select: none;
+    }
+
+    .btn.fadein {
+      animation: btn-fadein ease 0.3s both;
+      &:nth-child(1) {
+        animation-delay: 0.1s;
+      }
+      &:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      &:nth-child(3) {
+        animation-delay: 0.3s;
+      }
+      &:nth-child(4) {
+        animation-delay: 0.4s;
+      }
+      &:nth-child(5) {
+        animation-delay: 0.5s;
+      }
+      &:nth-child(6) {
+        animation-delay: 0.6s;
+      }
+      &:nth-child(7) {
+        animation-delay: 0.7s;
+      }
+      &:nth-child(8) {
+        animation-delay: 0.8s;
+      }
+      &:nth-child(9) {
+        animation-delay: 0.9s;
+      }
+      &:nth-child(10) {
+        animation-delay: 1s;
+      }
+    }
+
+    @keyframes btn-fadein {
+      0% {
+        opacity: 0;
+        transform: translate(50px, 0);
+      }
+      100% {
+        opacity: 1;
+        transform: translate(0, 0);
+      }
+    }
+
+    .btn:hover {
+      color: var(--md-ref-palette-primary100);
+      background-color: var(--md-ref-palette-primary30);
+      animation: random-move 5s infinite alternate ease-in-out;
+    }
+
+    @keyframes random-move {
+      0% {
+        transform: translate(0, 0);
+      }
+      25% {
+        transform: translate(2px, -2px);
+      }
+      50% {
+        transform: translate(-2px, 2px);
+      }
+      75% {
+        transform: translate(2px, 2px);
+      }
+      100% {
+        transform: translate(-2px, -2px);
+      }
+    }
+
+    .btn:active,
+    .btn.checked {
+      color: var(--md-ref-palette-primary100);
+      background-color: var(--md-ref-palette-primary50);
+      transform: scale(0.98); /* 点击时轻微缩小 */
+    }
+
+    .hide-nexts {
+      .btn {
+        margin: 0;
+        padding: 0;
+        line-height: 0;
+        opacity: 0;
+      }
+    }
+
+    .big1 {
+      h5,
+      p {
+        font-size: 20px;
+      }
+      h4 {
+        font-size: 24px;
+      }
+      h3 {
+        font-size: 28px;
+      }
+      h2 {
+        font-size: 32px;
+      }
+      h1 {
+        font-size: 36px;
+      }
+    }
+
+    a {
+      display: inline-block !important;
+      color: var(--md-sys-color-primary);
+      text-decoration: underline;
+    }
+
+    lumi-list-item,
+    li {
+      display: block !important;
+      margin: 4px 0;
+      word-break: break-all;
+    }
+
+    lumi-list-item::before {
+      display: inline-block;
+      content: "";
+      width: 4px;
+      height: 4px;
+      border-radius: 4px;
+      margin-right: 8px;
+      background-color: var(--md-sys-color-normal);
+      vertical-align: middle;
+    }
+    /* 添加旋转动画 */
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(0, 0, 0, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--md-ref-palette-primary80);
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+
+    /* 美化输入框样式 */
+    .custom-input {
+      display: block;
+      width: 100%;
+      max-width: 500px;
+      margin: 16px auto;
+      padding: 12px 16px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--md-sys-color-on-normal-container);
+      background-color: var(--md-sys-color-surface);
+      border: 1px solid var(--md-sys-color-normal);
+      border-radius: 16px;
+      box-sizing: border-box;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    .custom-input:focus {
+      border-color: var(--md-sys-color-primary);
+      box-shadow: 0 0 0 2px rgba(98, 0, 238, 0.2);
+    }
+
+    .custom-input::placeholder {
+      color: var(--md-sys-color-normal);
+      opacity: 0.7;
+    }
+
+    .custom-input:hover {
+      border-color: var(--md-sys-color-primary);
+    }
+
+    .tick {
+      display: inline-block;
+      width: 0px;
+      overflow: hidden;
+      transition: all ease 0.3s;
+    }
+
+    .btn.checked .tick {
+      width: 20px;
+    }
+  </style>
+  <div class="main">
+    <div
+      style="
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <span class="loading-spinner"></span>
+    </div>
+  </div>
+  <o-if :value="isEnd">
+    <h5>继续追问</h5>
+    <div class="nexts" class:hide-nexts="hideNexts">
+      <o-fill :value="nextArticles">
+        <div
+          class="btn fadein"
+          attr:data-aid="$data.aid"
+          class:checked="$data.aid === $host.checkedAid"
+          on:click="$host.clickNext($data)"
+          on:mouseenter="$host.enterBtn($event)"
+        >
+          <span class="tick"> ✅ </span>
+          {{$data.title}}
+        </div>
+      </o-fill>
+    </div>
+    <div style="width: 100%; text-align: center">
+      <input
+        class="custom-input"
+        type="text"
+        sync:value="newQuestion"
+        placeholder="请输入您的问题..."
+      />
+    </div>
+  </o-if>
+  <script>
+    const cached = {}; // 已经加载过的文章id
+
+    export default async ({ load }) => {
+      return {
+        tag: "block-view",
+        attrs: {
+          aid: null,
+        },
+        data: {
+          gid: -1, // 当前在第几个
+          nextArticles: [],
+          isEnd: false,
+          hideNexts: true,
+          checkedAid: null,
+          newQuestion: "",
+        },
+        watch: {
+          aid(aid) {
+            if (aid) {
+              this.loadData();
+            }
+          },
+        },
+        proto: {
+          enterBtn(e) {
+            e.target.classList.remove("fadein");
+          },
+          clickNext(data) {
+            this.checkedAid = data.aid;
+            this.emit("click-next", {
+              data: {
+                ...data,
+                gid: this.gid,
+              },
+            });
+          },
+          loadData() {
+            clearTimeout(this._timer);
+            const mainElement = this.shadow.$(".main");
+
+            this._timer = setTimeout(() => {
+              const targetData = this.host.allArticleData.find(
+                (e) => e.aid === this.aid
+              );
+
+              if (targetData.html.length < 500) {
+                this.shadow.$(".main").classList.add("big1");
+              }
+
+              const content = `<h2>${targetData.title}</h2>\n${targetData.html}`;
+
+              if (cached[this.aid]) {
+                mainElement.html = content;
+                this.isEnd = true;
+                setTimeout(() => {
+                  this.hideNexts = false;
+                }, 100);
+                return;
+              }
+
+              let index = 0;
+              mainElement.html = "";
+              let s_content = "";
+              const interval = setInterval(
+                () => {
+                  if (index < content.length) {
+                    // 当内容长度大于1000字时，一次性塞3个字符
+                    if (content.length > 1000) {
+                      for (let i = 0; i < 5 && index < content.length; i++) {
+                        s_content += content[index];
+                        index++;
+                      }
+                    } else {
+                      s_content += content[index];
+                      index++;
+                    }
+                    mainElement.html = s_content;
+                  } else {
+                    this.isEnd = true;
+                    cached[this.aid] = true;
+                    setTimeout(() => {
+                      this.hideNexts = false;
+                    }, 100);
+                    clearInterval(interval);
+                  }
+                },
+                targetData.html.length < 500 ? 10 : 0
+              );
+
+              this.nextArticles = Object.values(targetData.nexts);
+            }, 500 + Math.random() * 1000);
+          },
+        },
+        attached() {},
+      };
+    };
+  </script>
+</template>

@@ -1,0 +1,254 @@
+<template component>
+  <l-m src="./block-view.html"></l-m>
+  <l-m src="../comps/bg-one.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+    .main {
+      display: flex;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .left,
+    .right {
+      /* background-color: red; */
+      flex: 1 0 200px;
+    }
+
+    .article-outer {
+      position: relative;
+      max-width: 800px;
+      flex: 10 0 auto;
+    }
+
+    .article {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      /* background-color: blue; */
+    }
+    .top,
+    .bottom {
+      height: 30vh;
+    }
+
+    .que-block {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: right;
+    }
+
+    @keyframes slideInFromRight {
+      0% {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .que-inner {
+      display: inline-block;
+      padding: 8px 16px;
+      margin-right: 16px;
+      border-radius: 16px;
+      background-color: var(--md-sys-color-on-surface);
+      color: var(--md-sys-color-surface);
+      animation: slideInFromRight 0.3s ease; /* 添加动画效果 */
+      text-align: left;
+    }
+
+    .left {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+
+    @media screen and (max-width: 1200px) {
+      .article-outer {
+        flex: 10 0 auto;
+      }
+      .left {
+        flex: 1 0 100px;
+      }
+      .right {
+        display: none;
+      }
+    }
+
+    @media screen and (max-width: 600px) {
+      .left {
+        display: none;
+      }
+    }
+
+    .list {
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .list-item {
+      margin: 4px;
+      padding: 4px 16px;
+      max-width: 200px;
+      font-size: 12px;
+      border-radius: 30px;
+      cursor: pointer;
+      color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 1px;
+      animation: item-fadein 0.3s ease;
+      overflow: hidden;
+    }
+
+    @keyframes item-fadein {
+      0% {
+        transform: translate(20px, 0);
+        opacity: 0;
+        line-height: 0em;
+      }
+      100% {
+        transform: translate(0, 0);
+        opacity: 1;
+        line-height: 1.4em;
+      }
+    }
+
+    .hide {
+      display: none;
+    }
+  </style>
+  <bg-one style="position: absolute; left: 0; top: 0; z-index: 0"></bg-one>
+  <div class="main">
+    <div class="left">
+      <div class="list">
+        <div style="height: 100px"></div>
+        <o-fill :value="list">
+          <div
+            class="list-item"
+            on:click="$host.clickItem($data)"
+            class:hide="!$data.question"
+          >
+            {{$data.question}}
+          </div>
+        </o-fill>
+      </div>
+    </div>
+    <div class="article-outer">
+      <div class="article">
+        <!-- <div class="top"></div> -->
+        <o-fill :value="list">
+          <div>
+            <o-if :value="$data.aid">
+              <block-view
+                attr:aid="$data.aid"
+                :gid="$index"
+                on:click-next="$host.clickNext($event)"
+              ></block-view>
+            </o-if>
+            <o-else>
+              <div class="que-block" attr:data-queaid="$data.queaid">
+                <div class="que-inner">{{$data.question}}</div>
+              </div>
+            </o-else>
+          </div>
+        </o-fill>
+        <div class="bottom"></div>
+      </div>
+    </div>
+    <div class="right"></div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "main-view",
+        data: {
+          currentContentData: {},
+          allArticleData: [],
+          list: [],
+        },
+        proto: {
+          clickItem(data) {
+            const targetBlock = this.shadow.$(`[data-queaid="${data.queaid}"]`);
+            targetBlock.ele.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+              inline: "nearest",
+              scrollMarginTop: 32,
+            });
+          },
+          clickNext({ data }) {
+            const { gid } = data;
+
+            // 查看是否已经存在
+            let targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
+
+            if (!targetBlock) {
+              // 去掉之前
+              this.list.splice(gid + 1, 100);
+
+              this.list.push(
+                {
+                  question: data.title,
+                  queaid: data.aid,
+                },
+                {
+                  aid: data.aid,
+                }
+              );
+            }
+
+            setTimeout(() => {
+              targetBlock = this.shadow.$(`[data-queaid="${data.aid}"]`);
+
+              targetBlock.ele.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+                inline: "nearest",
+                scrollMarginTop: 32,
+              });
+            }, 100);
+          },
+          async loadContentData() {
+            let previewData = null;
+            try {
+              const { get } = await load("/packages/fs/main.js");
+
+              const previewCacheFile = await get(
+                "local/others/_web-marker-preview.json"
+              );
+              previewData = await previewCacheFile.text();
+              previewData = JSON.parse(previewData);
+            } catch (err) {
+              // console.error(err);
+              // 从上级获取数据
+              previewData = await load("../data.json");
+            }
+
+            this.allArticleData = previewData.list;
+
+            const currentContent = previewData.list.find(
+              (item) => item.aid === previewData.homeid
+            );
+
+            this.list = [
+              {
+                aid: currentContent.aid,
+              },
+            ];
+          },
+        },
+        attached() {
+          this.loadContentData();
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,0 +1,58 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <p-list>
+    <o-fill :value="list">
+      <p-list-item button on:click="$host.clickItem($data)">
+        {{$data.projectName}}
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { get } = await load("/packages/fs/main.js");
+      const { loadData } = await load("/packages/hybird-data/main.js");
+
+      return {
+        tag: "lumi-project-list",
+        data: {
+          list: [],
+        },
+        proto: {
+          clickItem(data) {
+            this.emit("select", { data });
+          },
+          async loadList() {
+            const listDirHandle = await get("local/dedicated/luminote");
+
+            const list = [];
+
+            // 遍历获取数据
+            for await (let item of listDirHandle.values()) {
+              if (item.kind === "dir") {
+                // 获取数据
+                const data = await loadData({
+                  handle: await item.get("article"),
+                });
+
+                list.push({
+                  _handle: item,
+                  ...data,
+                });
+              }
+            }
+
+            this.list = list;
+          },
+        },
+        attached() {
+          this.loadList();
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,0 +1,104 @@
+<template page>
+  <l-m src="../comp/project-list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+    }
+  </style>
+  <div class="container">
+    <h1>选择目标项目导出为网站</h1>
+    <lumi-project-list on:select="selectProject"></lumi-project-list>
+    <o-if :value="!!listData.length">
+      <h5>请选择首页</h5>
+      <p-list>
+        <o-fill :value="listData">
+          <p-list-item
+            button
+            on:click="$host.selectIndex($data)"
+            attr:active-item="$host.homeId == $data.aid"
+          >
+            {{$data.title}}
+          </p-list-item>
+        </o-fill>
+      </p-list>
+    </o-if>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { loadData } = await load("/packages/hybird-data/main.js");
+      const { transArticle } = await load("../util/trans-article.js");
+      const { get } = await load("/packages/fs/main.js");
+
+      return {
+        data: {
+          listData: [],
+          homeId: null,
+        },
+        proto: {
+          async selectIndex(data) {
+            this.homeId = data.aid;
+
+            // 保存到一个缓存文件夹上
+            const cacheFile = await get(
+              "local/others/_web-marker-preview.json",
+              {
+                create: "file",
+              }
+            );
+
+            await cacheFile.write(
+              JSON.stringify({
+                homeid: data.aid,
+                list: this.listData,
+              })
+            );
+          },
+          async selectProject({ data }) {
+            console.log("data: ", data);
+
+            // 加载全部的数据
+            const projectData = await loadData({
+              handle: await data._handle.get("article"),
+              level: 100,
+            });
+
+            const article = await transArticle(projectData);
+
+            let llmstxt = "";
+
+            // 组装数据
+            article.forEach((e) => {
+              const { aid, html, title } = e;
+
+              // 假设你已经通过 script 标签引入了 Turndown
+              const turndownService = new TurndownService({
+                headingStyle: "atx", // 设置标题样式为 ATX (使用 #)
+              });
+
+              const markdown = turndownService.turndown(
+                `<h1>${title}</h1>\n${html}`
+              );
+
+              llmstxt += `--文章ID: ${aid} 内容开始--\n${markdown}\n--文章ID: ${aid} 内容结束--\n\n`;
+            });
+
+            const llmsFile = await get("local/others/_web-marker-llms.txt", {
+              create: "file",
+            });
+
+            await llmsFile.write(llmstxt);
+
+            this.listData = article;
+          },
+        },
+      };
+    };
+  </script>
+</template>

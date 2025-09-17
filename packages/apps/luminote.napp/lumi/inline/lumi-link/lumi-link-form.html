@@ -33,15 +33,33 @@
   </style>
   <div style="height: 32px">
     <p-tabs auto-active sync:active-id="activeId">
-      <p-tab> 外部连接 </p-tab>
-      <p-tab> 内部文章 </p-tab>
+      <p-tab>
+        <localized-content>
+          <span lang="cn">外部连接</span>
+          <span lang="en">External link</span>
+          <span lang="ja">外部リンク</span>
+        </localized-content>
+      </p-tab>
+      <p-tab>
+        <localized-content>
+          <span lang="cn">内部文章</span>
+          <span lang="en">Internal article</span>
+          <span lang="ja">内部記事</span>
+        </localized-content>
+      </p-tab>
     </p-tabs>
   </div>
 
   <o-if :value="activeId == 0">
     <div style="padding: 8px">
       <p-textarea variant="filled" size="small" sync:value="target.href">
-        <label>外链地址</label>
+        <label>
+          <localized-content>
+            <span lang="cn">外链地址</span>
+            <span lang="en">External link address</span>
+            <span lang="ja">外部リンクアドレス</span>
+          </localized-content>
+        </label>
       </p-textarea>
     </div>
   </o-if>
@@ -71,16 +89,36 @@
                 "
               >
               </n-local-icon>
-              <div slot="tips">该文章已被移至回收站</div>
+              <div slot="tips">
+                <localized-content>
+                  <span lang="cn">该文章已被移至回收站</span>
+                  <span lang="en"
+                    >The article has been moved to the recycle bin</span
+                  >
+                  <span lang="ja">この記事はゴミ箱に移動しました</span>
+                </localized-content>
+              </div>
             </p-tooltips>
           </o-if>
           <o-else-if :value="isRemoved === 2">
-            <div style="color: var(--md-sys-color-error)">该文章已被删除</div>
+            <div style="color: var(--md-sys-color-error)">
+              <localized-content>
+                <span lang="cn">该文章已被删除</span>
+                <span lang="en">The article has been deleted</span>
+                <span lang="ja">この記事は削除されました</span>
+              </localized-content>
+            </div>
           </o-else-if>
         </div>
       </o-if>
       <o-else>
-        <div class="article-title">未选择文章</div>
+        <div class="article-title">
+          <localized-content>
+            <span lang="cn">未选择文章</span>
+            <span lang="en">No article selected</span>
+            <span lang="ja">記事を選択してください</span>
+          </localized-content>
+        </div>
       </o-else>
       <p-button
         size="mini"
@@ -88,8 +126,20 @@
         attr:disabled="showArticleList"
         style="margin-left: auto"
       >
-        <o-if :value="!target.selectedArticleId"> 选择文章 </o-if>
-        <o-else> 修改文章 </o-else>
+        <o-if :value="!target.selectedArticleId">
+          <localized-content>
+            <span lang="cn">选择文章</span>
+            <span lang="en">Select article</span>
+            <span lang="ja">記事を選択</span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">修改文章</span>
+            <span lang="en">Edit article</span>
+            <span lang="ja">記事を編集</span>
+          </localized-content>
+        </o-else>
       </p-button>
     </div>
   </o-else>
@@ -99,6 +149,7 @@
       sync:selected="target.selectedArticleId"
       :current-dir-name="currentDirName"
       :current-user-id="currentUserId"
+      style="max-height: 300px; overflow-y: auto"
     ></lumi-article-list>
   </o-if>
 
