@@ -151,13 +151,23 @@
                 attr:aid="$data.aid"
                 :gid="$index"
                 on:click-next="$host.clickNext($event)"
+                on:submit-question="$host.submitQuestion($event)"
               ></block-view>
             </o-if>
-            <o-else>
+            <o-else-if :value="$data.question">
               <div class="que-block" attr:data-queaid="$data.queaid">
                 <div class="que-inner">{{$data.question}}</div>
               </div>
-            </o-else>
+            </o-else-if>
+            <o-else-if :value="$data.queryAnswer">
+              <block-view
+                attr:aid="$data.aid"
+                attr:query-answer="$data.queryAnswer"
+                :gid="$index"
+                on:click-next="$host.clickNext($event)"
+                on:submit-question="$host.submitQuestion($event)"
+              ></block-view>
+            </o-else-if>
           </div>
         </o-fill>
         <div class="bottom"></div>
@@ -176,13 +186,28 @@
         },
         proto: {
           clickItem(data) {
-            const targetBlock = this.shadow.$(`[data-queaid="${data.queaid}"]`);
+            let targetBlock = this.shadow.$(`[data-queaid="${data.queaid}"]`);
+
+            if (!targetBlock) {
+              targetBlock = this.shadow.$(`[query-answer="${data.question}"]`);
+            }
+
             targetBlock.ele.scrollIntoView({
               behavior: "smooth",
               block: "start",
               inline: "nearest",
               scrollMarginTop: 32,
             });
+          },
+          submitQuestion({ data }) {
+            this.list.push(
+              {
+                question: data.question,
+              },
+              {
+                queryAnswer: data.question,
+              }
+            );
           },
           clickNext({ data }) {
             const { gid } = data;
