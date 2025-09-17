@@ -259,7 +259,10 @@
           },
           async loadContentData() {
             let previewData = null;
+
             try {
+              previewData = await load("../data.json");
+            } catch (err) {
               const { get } = await load("/packages/fs/main.js");
 
               const previewCacheFile = await get(
@@ -267,10 +270,6 @@
               );
               previewData = await previewCacheFile.text();
               previewData = JSON.parse(previewData);
-            } catch (err) {
-              // console.error(err);
-              // 从上级获取数据
-              previewData = await load("../data.json");
             }
 
             this.allArticleData = previewData.list;

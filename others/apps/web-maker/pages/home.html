@@ -53,7 +53,17 @@
               }
             );
 
+            const dataFile = await get("local/others/web-maker/data.json", {
+              create: "file",
+            });
+
             await cacheFile.write(
+              JSON.stringify({
+                homeid: data.aid,
+                list: this.listData,
+              })
+            );
+            await dataFile.write(
               JSON.stringify({
                 homeid: data.aid,
                 list: this.listData,
@@ -70,6 +80,28 @@
             ).then((e) => e.text());
 
             await indexFile.write(indexText);
+
+            const othersFile = [
+              "comps/bg-one.html",
+              "comps/block-view.html",
+              "comps/colors.css",
+              "comps/main-view.html",
+              "css/colors.css",
+              "css/public.css",
+              "css/theme.css",
+            ];
+
+            for (let path of othersFile) {
+              const file = await get("local/others/web-maker/" + path, {
+                create: "file",
+              });
+
+              const text = await fetch(
+                location.origin + "/others/apps/web-maker/temp/" + path
+              ).then((e) => e.text());
+
+              await file.write(text);
+            }
           },
           async selectProject({ data }) {
             console.log("data: ", data);
