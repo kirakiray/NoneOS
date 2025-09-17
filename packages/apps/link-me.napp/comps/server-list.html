@@ -53,6 +53,17 @@
           <n-desc name="handServer" space="linkme"></n-desc>
         </span>
         ({{servers.length}})
+        <p-button
+          on:click="resetServers"
+          size="mini"
+          style="z-index: 3; margin-left: 8px"
+        >
+          <localized-content>
+            <span lang="cn">重置</span>
+            <span lang="en">Reset</span>
+            <span lang="jp">リセット</span>
+          </localized-content>
+        </p-button>
       </div>
       <i toggle-collapse triangle slot="suffix"></i>
 
@@ -171,6 +182,12 @@
         "/packages/user/main.js"
       );
 
+      const { getOfficialHandshakeServer } = await load(
+        "/packages/user/hand-server/main.js"
+      );
+
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
       const { toast, confirm } = await load("/packages/pui/util.js");
 
       const servers = await getServers();
@@ -182,6 +199,49 @@
           newUrl: "",
         },
         proto: {
+          async resetServers(e) {
+            e.stopPropagation();
+
+            // 重置服务器
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "重置服务器",
+                en: "Reset servers",
+                ja: "サーバーをリセットする",
+              }),
+              content: await getLocalized({
+                cn: "您确定要重置为官方的握手服务器吗？此操作不可逆，请谨慎操作。",
+                en: "Are you sure you want to reset to the official handshake server? This action is irreversible, please proceed with caution.",
+                ja: "サーバーを公式のハンドシェイクサーバーにリセットしますか? この操作は逆操作ではありません。慎重に操作してください。",
+              }),
+              yes: await getLocalized({
+                cn: "重置",
+                en: "Reset",
+                ja: "リセット",
+              }),
+              cancel: await getLocalized({
+                cn: "取消",
+                en: "Cancel",
+                ja: "キャンセル",
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            // 删除已经存在的
+            for (let item of this.servers) {
+              await removeServer(item.serverUrl);
+            }
+
+            // 添加新的
+            const offices = getOfficialHandshakeServer();
+
+            for (let item of offices) {
+              addServer(item.url);
+            }
+          },
           ping(item) {
             item.ping();
           },
@@ -191,7 +251,7 @@
             }
             return new Date(item.connectedTime).toLocaleString();
           },
-          addServer() {
+          async addServer() {
             let { newUrl } = this;
 
             if (!/:\/\//.test(newUrl)) {
@@ -208,7 +268,11 @@
               })
             ) {
               toast({
-                content: `不能添加重复的服务器: ${this.newUrl}`,
+                content: await getLocalized({
+                  cn: `不能添加重复的服务器: ${this.newUrl}`,
+                  en: `Duplicate server: ${this.newUrl}`,
+                  ja: `重複したサーバーを追加できません: ${this.newUrl}`,
+                }),
                 color: "error",
               });
               return;
@@ -219,10 +283,26 @@
           },
           async removeServer(item) {
             const result = await confirm({
-              title: "删除服务器",
-              content: `确定要删除服务器: ${item.serverUrl} 吗?`,
-              yes: "删除",
-              cancel: "取消",
+              title: await getLocalized({
+                cn: "删除服务器",
+                en: "Delete server",
+                ja: "サーバーを削除する",
+              }),
+              content: await getLocalized({
+                cn: `确定要删除服务器: ${item.serverUrl} 吗?`,
+                en: `Are you sure you want to delete server: ${item.serverUrl}?`,
+                ja: `サーバーを削除しますか? ${item.serverUrl}`,
+              }),
+              yes: await getLocalized({
+                cn: "删除",
+                en: "Delete",
+                ja: "削除",
+              }),
+              cancel: await getLocalized({
+                cn: "取消",
+                en: "Cancel",
+                ja: "キャンセル",
+              }),
             });
 
             if (result) {

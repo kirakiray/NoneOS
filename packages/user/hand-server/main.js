@@ -3,6 +3,34 @@ import { initServers } from "./init-servers.js";
 
 const pool = {};
 
+/**
+ * 获取官方握手服务器列表
+ * @returns {Array} 官方握手服务器列表
+ */
+export const getOfficialHandshakeServer = () => {
+  if (location.host.includes("localhost") && location.port == 5559) {
+    // 测试环境下
+    return [
+      {
+        url: "ws://localhost:5579/",
+      },
+      {
+        url: "ws://localhost:5589/",
+      },
+    ];
+  } else {
+    // 加入正式地址
+    return [
+      {
+        url: "wss://hand-jp1.noneos.com",
+      },
+      {
+        url: "wss://hand-us1.noneos.com",
+      },
+    ];
+  }
+};
+
 // 获取服务器列表
 export const getServers = async (useLocalUserDirName) => {
   useLocalUserDirName = useLocalUserDirName || "main";
@@ -18,34 +46,14 @@ export const getServers = async (useLocalUserDirName) => {
     // 初始化服务器列表
     if (!selfUserStore.servers || selfUserStore.servers.length === 0) {
       selfUserStore.servers = [];
-      if (location.host.includes("localhost") && location.port == 5559) {
-        // 测试环境下
-        await selfUserStore.servers.ready();
+      // 获取官方握手服务器列表
+      const officialServers = getOfficialHandshakeServer();
 
-        // 加入测试地址
-        selfUserStore.servers.push(
-          {
-            url: "ws://localhost:5579/",
-          },
-          {
-            url: "ws://localhost:5589/",
-          }
-        );
+      // 准备好才可进行加入数据
+      await selfUserStore.servers.ready();
 
-        await selfUserStore.servers.ready(true);
-      } else {
-        // 加入正式地址
-        selfUserStore.servers.push(
-          {
-            url: "wss://hand-jp1.noneos.com",
-          },
-          {
-            url: "wss://hand-us1.noneos.com",
-          }
-        );
-
-        await selfUserStore.servers.ready(true);
-      }
+      // 加入官方地址
+      selfUserStore.servers.push(...officialServers);
     }
 
     await selfUserStore.servers.ready(true);
