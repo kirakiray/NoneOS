@@ -31,6 +31,8 @@
     </o-if>
   </div>
   <script>
+    import { exportHandle } from "/packages/fs/task/main.js";
+
     export default async ({ load }) => {
       const { loadData } = await load("/packages/hybird-data/main.js");
       const { transArticle } = await load("../util/trans-article.js");
@@ -47,7 +49,7 @@
 
             // 保存到一个缓存文件夹上
             const cacheFile = await get(
-              "local/others/web-maker/_web-marker-preview.json",
+              "local/others/_web-marker-preview.json",
               {
                 create: "file",
               }
@@ -102,6 +104,15 @@
 
               await file.write(text);
             }
+
+            const subs = [];
+            const previewerHandle = await get("local/others/web-maker");
+            for await (let item of previewerHandle.values()) {
+              subs.push(item.path);
+            }
+
+            // 下载文件
+            exportHandle(subs, "final-web");
           },
           async selectProject({ data }) {
             console.log("data: ", data);

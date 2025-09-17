@@ -266,7 +266,7 @@
               const { get } = await load("/packages/fs/main.js");
 
               const previewCacheFile = await get(
-                "local/others/web-maker/_web-marker-preview.json"
+                "local/others/_web-marker-preview.json"
               );
               previewData = await previewCacheFile.text();
               previewData = JSON.parse(previewData);
