@@ -3,7 +3,7 @@ import https from "https";
 import url from "url";
 
 const PORT = 30100;
-const TARGET_HOST = "os.tutous.com";
+const TARGET_HOST = "os.noneos.com";
 const TARGET_PORT = 443;
 
 // 创建代理服务器

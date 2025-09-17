@@ -15,7 +15,7 @@ Short-term goal: To create a lightweight NAS system based on the browser, achiev
 
 ## Quick Start
 
-Directly visit the official site: [https://os.tutous.com/](https://os.tutous.com/)
+Directly visit the official site: [https://os.noneos.com/](https://os.noneos.com/)
 
 ### Local Run
 1. Clone or download the project and ensure that nodejs is installed locally.

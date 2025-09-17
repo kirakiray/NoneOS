@@ -13,7 +13,7 @@ NoneOS是一个创新的浏览器虚拟操作系统解决方案，采用纯静�
 
 ## 快速开始
 
-直接访问官方站点: [https://os.tutous.com/](https://os.tutous.com/)
+直接访问官方站点: [https://os.noneos.com/](https://os.noneos.com/)
 
 ### 本地运行
 1. 克隆或下载项目，并确保本地安装了 nodejs。

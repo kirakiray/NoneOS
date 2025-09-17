@@ -5,7 +5,6 @@ import { cacheFile } from "../cache/main.js";
 
 // ice服务器
 const iceServers = [
-  { urls: "stun:stun.tutous.com" },
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun1.l.google.com:19302" },
   { urls: "stun:stun.cloudflare.com" },
