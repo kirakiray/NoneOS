@@ -403,7 +403,7 @@
             );
 
             await chat({
-              url: "ws://localhost:3000/chat",
+              url: window.chaturl,
               prompt: this.queryAnswer,
               onMessage: ({ content }) => {
                 if (content.length < 500) {

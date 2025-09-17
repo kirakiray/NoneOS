@@ -7,6 +7,7 @@
     <script src="/packages/libs/ofa/ofa.js#debug"></script>
     <link rel="stylesheet" href="./css/public.css" />
     <link rel="stylesheet" href="./comps/colors.css" />
+
     <style>
       html,
       body {
@@ -30,6 +31,9 @@
   </head>
   <body>
     <l-m src="./comps/main-view.html"></l-m>
+    <script>
+      window.chaturl = "ws://localhost:3000/chat";
+    </script>
     <main-view></main-view>
   </body>
 </html>
