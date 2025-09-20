@@ -257,26 +257,7 @@ export default {
         return project;
       }
 
-      // const getRandomId = () => {
-      //   return Math.random().toString(32).slice(2);
-      // };
-
-      // // 查看每个文章不存在aid进行补充
-      // const fixAid = (list) => {
-      //   list.forEach((data) => {
-      //     if (data.type === "article") {
-      //       if (!data.aid) {
-      //         data.aid = getRandomId();
-      //       }
-      //     }
-
-      //     if (data.content) {
-      //       fixAid(data.content);
-      //     }
-      //   });
-      // };
-
-      // fixAid(project.data.main);
+      await fixProject(project);
 
       this._openedProjects.push({
         ...project,
@@ -390,7 +371,6 @@ const getOpenHistory = async (app) => {
       await projectItem.data.ready(true);
     }
 
-    projectItem.data.main[0].aid = Math.random().toString(32).slice(2); // 重置文章的id
     projectItem.data.projectName = "quick start";
     data[0].dirName = projectItem.__handle.name;
 
@@ -427,4 +407,35 @@ const saveOpenHistory = async (app) => {
       userId: e.userId,
     };
   });
+};
+
+const getRandomId = () => {
+  return Math.random().toString(32).slice(2);
+};
+
+const currentVersion = 1; // 当前项目使用的文件格式版本号
+
+const fixProject = async (project) => {
+  if (project.data.version && project.data.version >= currentVersion) {
+    return;
+  }
+
+  // 查看每个文章不存在aid进行补充
+  const fixAid = (list) => {
+    list.forEach((data) => {
+      if (data.type === "article") {
+        if (!data.aid) {
+          data.aid = getRandomId();
+        }
+      }
+
+      if (data.content) {
+        fixAid(data.content);
+      }
+    });
+  };
+
+  fixAid(project.data.main);
+
+  project.data.version = currentVersion;
 };
