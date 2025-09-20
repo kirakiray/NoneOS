@@ -1,10 +1,16 @@
 export const findArticle = async ({
   app,
   dataId,
+  aid,
   userId = "self",
   dirName,
   isAddProject,
 }) => {
+  if (dataId) {
+    debugger;
+    aid = dataId;
+  }
+
   let project;
   if (isAddProject) {
     project = await app.pushProject(dirName, userId, {
@@ -17,13 +23,12 @@ export const findArticle = async ({
   const articleData = project.data;
   const { main } = articleData;
 
-  return await findTargetArticle(main, dataId);
+  return await findTargetArticle(main, aid);
 };
 
-const findTargetArticle = async (content, dataId) => {
+const findTargetArticle = async (content, aid) => {
   for (let e of content) {
-    // TODO: 后期会逐渐淘汰 _dataId 作为文章的主id；要以 aid 为准
-    if (e.aid === dataId || e._dataId === dataId) {
+    if (e.aid === aid) {
       return {
         target: e,
         paths: [e],
@@ -31,10 +36,7 @@ const findTargetArticle = async (content, dataId) => {
     }
 
     if (e.content) {
-      let { target, paths: subPaths } = await findTargetArticle(
-        e.content,
-        dataId
-      );
+      let { target, paths: subPaths } = await findTargetArticle(e.content, aid);
       if (target) {
         return {
           target,
