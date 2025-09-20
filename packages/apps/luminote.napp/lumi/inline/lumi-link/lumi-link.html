@@ -16,9 +16,12 @@
 
     :host([data-is-removed="1"]),
     :host([data-is-removed="2"]) {
-      cursor: not-allowed;
       color: var(--md-sys-color-error);
       border-bottom: var(--md-sys-color-error) dashed 1px;
+    }
+
+    :host([data-is-removed="2"]) {
+      cursor: not-allowed;
     }
   </style>
   <slot></slot>
