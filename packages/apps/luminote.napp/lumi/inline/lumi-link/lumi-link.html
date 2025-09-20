@@ -13,6 +13,13 @@
       color: var(--md-sys-color-normal);
       border-bottom: var(--md-sys-color-normal) dashed 1px;
     }
+
+    :host([data-is-removed="1"]),
+    :host([data-is-removed="2"]) {
+      cursor: not-allowed;
+      color: var(--md-sys-color-error);
+      border-bottom: var(--md-sys-color-error) dashed 1px;
+    }
   </style>
   <slot></slot>
   <script>
@@ -25,27 +32,75 @@
           selectedArticleId: "",
         },
         data: {
-          removed: false,
+          isRemoved: 0, // 0未删除 1回收站 2已删除
+        },
+        watch: {
+          isRemoved(isRemoved) {
+            this.data.isRemoved = isRemoved;
+          },
+          selectedArticleId(selectedArticleId) {
+            if (!this.ele.isConnected) {
+              return;
+            }
+
+            // 查询是否已经被删除
+            if (this.type === "internal" && selectedArticleId) {
+              const notePage = this.notePage;
+
+              setTimeout(async () => {
+                const { findArticle } = await load(
+                  "/packages/apps/luminote.napp/util/find-article-data.js"
+                );
+
+                let app = this.composedPath().find(
+                  (e) => e.tagName === "O-APP"
+                );
+                app = $(app);
+
+                const { target: targetArticle } = await findArticle({
+                  app,
+                  aid: selectedArticleId,
+                  userId: notePage.currentUserId,
+                  dirName: notePage.currentDirName,
+                });
+
+                if (!targetArticle) {
+                  this.isRemoved = 2;
+                } else if (targetArticle.removed) {
+                  this.isRemoved = 1;
+                } else {
+                  this.isRemoved = 0;
+                }
+              }, 1000);
+            }
+          },
+        },
+        proto: {
+          get notePage() {
+            let notePage = this.parents.find(
+              (e) => e.src && e.src.includes("note.html")
+            );
+
+            if (!notePage) {
+              // 在翻译模式下，可能会嵌套在 lumi-block 中
+              notePage = this.host.parents.find(
+                (e) => e.src && e.src.includes("note.html")
+              );
+            }
+
+            return notePage;
+          },
         },
         attached() {
           this.on("click", () => {
-            if (this.removed) {
+            if (this.isRemoved === 2) {
               return;
             }
 
             if (this.type === "external" && this.href) {
               window.open(this.href);
             } else if (this.type === "internal" && this.selectedArticleId) {
-              let notePage = this.parents.find(
-                (e) => e.src && e.src.includes("note.html")
-              );
-
-              if (!notePage) {
-                // 在翻译模式下，可能会嵌套在 lumi-block 中
-                notePage = this.host.parents.find(
-                  (e) => e.src && e.src.includes("note.html")
-                );
-              }
+              const notePage = this.notePage;
 
               if (!notePage) {
                 // 还是找不到 notePage，代表是文档模式
