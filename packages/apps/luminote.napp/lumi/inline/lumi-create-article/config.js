@@ -50,7 +50,7 @@ const defaults = {
 
     return {
       // 给内联组件添加文章的id
-      selectedArticleId: realItemData._dataId,
+      selectedArticleId: realItemData.aid,
       type: "internal",
     };
   },
