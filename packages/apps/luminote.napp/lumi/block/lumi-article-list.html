@@ -15,10 +15,10 @@
 
   <template name="article-item">
     <p-list-item
-      attr:data-id="$data._dataId"
+      attr:data-aid="$data.aid"
       button
       on:click="$host.selectItem($data)"
-      attr:active-item="$host.selected === $data._dataId"
+      attr:active-item="$host.selected === $data.aid"
     >
       <n-local-icon
         name="article"
@@ -35,7 +35,7 @@
       <n-local-icon
         slot="suffix"
         name="tick-circle"
-        class:hide="$data._dataId !== $host.selected"
+        class:hide="$data.aid !== $host.selected"
         style="
           display: block;
           font-size: 18px;
@@ -62,7 +62,7 @@
         },
         proto: {
           selectItem(data) {
-            this.selected = data.aid || data._dataId;
+            this.selected = data.aid;
           },
           async loadList() {
             if (!this.currentDirName) {
@@ -98,7 +98,6 @@
           reList.push({
             title: e.title,
             aid: e.aid,
-            _dataId: e._dataId,
             childs: await findArticle(e.content),
           });
         }

@@ -322,15 +322,15 @@
         <template name="article-list-item">
           <p-list-item
             class="article-list-item"
-            attr:data-id="$data._dataId"
+            attr:data-aid="$data.aid"
             class:hide="$data.removed"
             button
-            attr:active-item="$data.aid === $host.currentArticleDataId || $data._dataId === $host.currentArticleDataId"
+            attr:active-item="$data.aid === $host.currentArticleDataId || $data.aid === $host.currentArticleDataId"
             collapse-childs="open"
             on:click="$host.handleClickArticle($data,$event)"
           >
             <dnd-box
-              attr:data-dnd-lumi-article="$data._dataId"
+              attr:data-dnd-lumi-article="$data.aid"
               accept="lumi"
               on:dnd-drop="$host.handleDndDrop($data,$event)"
               style="display: flex; align-items: center"
@@ -365,7 +365,7 @@
               <o-fill
                 :value="$host.getSubArticles($data)"
                 name="article-list-item"
-                fill-key="_dataId"
+                fill-key="aid"
               ></o-fill>
             </p-list>
           </p-list-item>
@@ -645,6 +645,7 @@
               if (to.paths.length === 1) {
                 targetParent = projectData.main;
                 targetItem = toArticleId;
+                debugger;
                 index = targetParent.findIndex((e) => e._dataId === targetItem);
               } else {
                 targetParent = toParent.content;
@@ -726,9 +727,7 @@
           },
           clickBread(item) {
             this.goto(
-              `./note.html?article_id=${item.aid || item._dataId}&user_id=${
-                this.currentUserId
-              }&dir_name=${this.currentDirName}`
+              `./note.html?article_id=${item.aid}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
             );
           },
           async handleUpdateBreadcrumbs(e) {
@@ -766,7 +765,7 @@
               case "addSubNote":
                 const { target: targetArticle } = await findArticle({
                   app: this.app,
-                  dataId: selected.data.id,
+                  aid: selected.data.aid,
                   userId: this.currentUserId,
                   dirName: this.currentDirName,
                   isAddProject: 1,
@@ -817,7 +816,7 @@
 
             // 模拟点击
             this.handleClickArticle(target, {
-              target: this.shadow.$(`[data-id="${target._dataId}"]`).ele,
+              target: this.shadow.$(`[data-aid="${target._dataId}"]`).ele,
             });
           },
           handleActiveArticle(e) {
