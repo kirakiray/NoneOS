@@ -50,9 +50,9 @@
           {{$data.projectName}}
         </div>
         <div class="container">
-          <o-fill :value="$data.removeds" fill-key="_dataId">
+          <o-fill :value="$data.removeds" fill-key="aid">
             <p-card elevated>
-              <h3>{{$data.item.title || '无标题'}}</h3>
+              <h3>{{$data._item.title || '无标题'}}</h3>
               <div style="font-size: 12px">
                 <localized-content>
                   <span lang="en">Deleted Time:</span>
@@ -60,11 +60,11 @@
                   <span lang="ja">削除日時:</span>
                 </localized-content>
                 <n-moment-span
-                  :time="$data.item.removedTime"
+                  :time="$data._item.removedTime"
                   style="color: var(--md-sys-color-error)"
                 ></n-moment-span>
               </div>
-              <p>{{$data.item.content[0].value}}</p>
+              <p>{{$data._item.content[0].value}}</p>
               <p>...</p>
               <div style="display: flex">
                 <p-button
@@ -134,26 +134,28 @@
           removesGroup: [],
           projects: [],
         },
-        watch: {
-          projects() {
-            // clearTimeout(this.__timer);
-            this.__timer = setTimeout(() => {
-              // console.log("haschange: ", this.projects);
-              this.loadRemovedArticles();
-            }, 100);
-          },
-        },
+        // watch: {
+        //   projects() {
+        //     // clearTimeout(this.__timer);
+        //     this.__timer = setTimeout(() => {
+        //       // console.log("haschange: ", this.projects);
+        //       this.loadRemovedArticles();
+        //     }, 100);
+        //   },
+        // },
         proto: {
           async clickRevert(data, index) {
-            data.item.removed = undefined;
-            data.item.removedTime = undefined;
+            data._item.removed = undefined;
+            data._item.removedTime = undefined;
+
+            this.loadRemovedArticles();
           },
           async clickRemove(data, index) {
             const result = await confirm({
               content: await getLocalized({
-                en: `Are you sure you want to permanently delete "${data.item.title}"? This action cannot be undone.`,
-                cn: `确认要删除 "${data.item.title}"？该操作不可撤销。`,
-                ja: `"${data.item.title}"を完全に削除してもよろしいですか？この操作は元に戻せません。`,
+                en: `Are you sure you want to permanently delete "${data._item.title}"? This action cannot be undone.`,
+                cn: `确认要删除 "${data._item.title}"？该操作不可撤销。`,
+                ja: `"${data._item.title}"を完全に削除してもよろしいですか？この操作は元に戻せません。`,
               }),
               color: "error",
               yes: await getLocalized({
@@ -173,16 +175,22 @@
             }
 
             // 彻底删除
-            const targetIndex = data._parent.findIndex((e) => e === data.item);
+            const targetIndex = data._parent.findIndex((e) => e === data._item);
             if (targetIndex > -1) {
               data._parent.splice(targetIndex, 1);
             }
+
+            this.loadRemovedArticles();
           },
           // 加载回收站的网站
           async loadRemovedArticles() {
             this.removesGroup = await Promise.all(
               this.projects.map(async (e) => {
                 const { projectName } = e.data;
+
+                const removeds = await findRemovedArticles(e.data.main);
+
+                debugger;
 
                 return {
                   projectName,
@@ -195,6 +203,8 @@
         },
         attached() {
           this.projects = this.app._openedProjects;
+
+          this.loadRemovedArticles();
 
           this.emit("active-article", {
             composed: true,
@@ -226,8 +236,8 @@
         if (item.removed) {
           removeds.push({
             _parent: content,
-            item,
-            _dataId: item._dataId,
+            _item: item,
+            aid: item.aid,
           });
         }
 

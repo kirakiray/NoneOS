@@ -79,7 +79,7 @@
               this.currentUserId
             );
 
-            const list = await findArticle(projectItem.data.main);
+            const list = await getArticleListData(projectItem.data.main);
 
             console.log("list: ", list);
 
@@ -89,7 +89,7 @@
       };
     };
 
-    const findArticle = async (list) => {
+    const getArticleListData = async (list) => {
       const reList = [];
 
       for (let i = 0; i < list.length; i++) {
@@ -98,7 +98,7 @@
           reList.push({
             title: e.title,
             aid: e.aid,
-            childs: await findArticle(e.content),
+            childs: await getArticleListData(e.content),
           });
         }
       }
