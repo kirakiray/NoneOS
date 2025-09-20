@@ -193,11 +193,9 @@
               return;
             }
 
-            debugger;
-
             const { target: targetArticle } = await findArticle({
               app,
-              dataId: this.target.selectedArticleId,
+              aid: this.target.selectedArticleId,
               userId: this.currentUserId,
               dirName: this.currentDirName,
             });
