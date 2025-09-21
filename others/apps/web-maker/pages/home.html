@@ -13,6 +13,14 @@
     }
   </style>
   <div class="container">
+    <div>
+      title
+      <input type="text" placeholder="title" sync:value="titleVal" />
+    </div>
+    <div>
+      chaturl
+      <input type="text" placeholder="chat url" sync:value="chatUrlVal" />
+    </div>
     <h1>选择目标项目导出为网站</h1>
     <lumi-project-list on:select="selectProject"></lumi-project-list>
     <o-if :value="!!listData.length">
@@ -42,6 +50,16 @@
         data: {
           listData: [],
           homeId: null,
+          titleVal: localStorage.getItem("webmaker_titleVal") || "",
+          chatUrlVal: localStorage.getItem("webmaker_chatUrlVal") || "",
+        },
+        watch: {
+          titleVal(titleVal) {
+            localStorage.setItem("webmaker_titleVal", titleVal);
+          },
+          chatUrlVal(chatUrlVal) {
+            localStorage.setItem("webmaker_chatUrlVal", chatUrlVal);
+          },
         },
         proto: {
           async selectIndex(data) {
@@ -77,9 +95,20 @@
               create: "file",
             });
 
-            const indexText = await fetch(
+            let indexText = await fetch(
               "/others/apps/web-maker/temp/preview.html"
             ).then((e) => e.text());
+
+            indexText = indexText.replace(
+              "<title>Preview</title>",
+              `<title>${this.titleVal}</title>`
+            );
+            indexText = indexText.replace(
+              'window.chaturl = "ws://localhost:3000/chat";',
+              `window.chaturl = "${this.chatUrlVal}";`
+            );
+
+            debugger;
 
             await indexFile.write(indexText);
 

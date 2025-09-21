@@ -50,7 +50,10 @@ const transArticleList = async (articleListData, lang) => {
         }
 
         // 标记内容结束，开始获取下一章内容
-        if (component.type === "h4" && component.value === "next") {
+        if (
+          component.type === "h4" &&
+          component.value.toLowerCase() === "next"
+        ) {
           isEnd = true;
           continue;
         }
