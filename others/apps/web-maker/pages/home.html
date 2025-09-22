@@ -48,10 +48,12 @@
 
       return {
         data: {
+          _allData: {},
           listData: [],
           homeId: null,
           titleVal: localStorage.getItem("webmaker_titleVal") || "",
           chatUrlVal: localStorage.getItem("webmaker_chatUrlVal") || "",
+          langs: [],
         },
         watch: {
           titleVal(titleVal) {
@@ -65,32 +67,22 @@
           async selectIndex(data) {
             this.homeId = data.aid;
 
-            // 保存到一个缓存文件夹上
-            const cacheFile = await get(
-              "local/others/_web-marker-preview.json",
-              {
-                create: "file",
-              }
-            );
+            for (let lang of this.langs) {
+              const dataFile = await get(
+                `local/others/web-maker/data-${lang}.json`,
+                {
+                  create: "file",
+                }
+              );
 
-            const dataFile = await get("local/others/web-maker/data.json", {
-              create: "file",
-            });
+              await dataFile.write(
+                JSON.stringify({
+                  homeid: data.aid,
+                  list: this._allData[lang],
+                })
+              );
+            }
 
-            await cacheFile.write(
-              JSON.stringify({
-                homeid: data.aid,
-                list: this.listData,
-              })
-            );
-            await dataFile.write(
-              JSON.stringify({
-                homeid: data.aid,
-                list: this.listData,
-              })
-            );
-
-            // 写入 index.html
             const indexFile = await get("local/others/web-maker/index.html", {
               create: "file",
             });
@@ -104,11 +96,13 @@
               `<title>${this.titleVal}</title>`
             );
             indexText = indexText.replace(
+              '["en", "cn"]',
+              JSON.stringify(this.langs)
+            );
+            indexText = indexText.replace(
               'window.chaturl = "ws://localhost:3000/chat";',
               `window.chaturl = "${this.chatUrlVal}";`
             );
-
-            debugger;
 
             await indexFile.write(indexText);
 
@@ -152,11 +146,13 @@
               level: 100,
             });
 
-            // const langs = [projectData.mainLang, ...projectData.otherLang];
+            this.langs = [projectData.mainLang, ...projectData.otherLang];
 
             const artiches = [];
 
             const mainArticle = await transArticle(projectData);
+
+            this._allData[projectData.mainLang] = mainArticle;
 
             artiches.push({
               lang: projectData.mainLang,
@@ -164,9 +160,10 @@
             });
 
             for (const lang of projectData.otherLang) {
+              this._allData[lang] = await transArticle(projectData, lang);
               artiches.push({
                 lang,
-                article: await transArticle(projectData, lang),
+                article: this._allData[lang],
               });
             }
 

@@ -126,6 +126,7 @@
     }
   </style>
   <bg-one style="position: absolute; left: 0; top: 0; z-index: 0"></bg-one>
+  <div class="top"></div>
   <div class="main">
     <div class="left">
       <div class="list">
@@ -261,12 +262,12 @@
             let previewData = null;
 
             try {
-              previewData = await load("../data.json");
+              previewData = await load("../data-cn.json");
             } catch (err) {
               const { get } = await load("/packages/fs/main.js");
 
               const previewCacheFile = await get(
-                "local/others/_web-marker-preview.json"
+                "local/others/web-maker/data-cn.json"
               );
               previewData = await previewCacheFile.text();
               previewData = JSON.parse(previewData);
