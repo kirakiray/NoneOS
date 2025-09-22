@@ -152,33 +152,56 @@
               level: 100,
             });
 
-            const article = await transArticle(projectData);
+            // const langs = [projectData.mainLang, ...projectData.otherLang];
 
-            let llmstxt = "";
+            const artiches = [];
 
-            // 组装数据
-            article.forEach((e) => {
-              const { aid, html, title } = e;
+            const mainArticle = await transArticle(projectData);
 
-              // 假设你已经通过 script 标签引入了 Turndown
-              const turndownService = new TurndownService({
-                headingStyle: "atx", // 设置标题样式为 ATX (使用 #)
+            artiches.push({
+              lang: projectData.mainLang,
+              article: mainArticle,
+            });
+
+            for (const lang of projectData.otherLang) {
+              artiches.push({
+                lang,
+                article: await transArticle(projectData, lang),
+              });
+            }
+
+            for (let item of artiches) {
+              const { lang, article } = item;
+
+              let llmstxt = "";
+
+              // 组装数据
+              article.forEach((e) => {
+                const { aid, html, title } = e;
+
+                // 假设你已经通过 script 标签引入了 Turndown
+                const turndownService = new TurndownService({
+                  headingStyle: "atx", // 设置标题样式为 ATX (使用 #)
+                });
+
+                const markdown = turndownService.turndown(
+                  `<h1>${title}</h1>\n${html}`
+                );
+
+                llmstxt += `--文章ID: ${aid} 内容开始--\n${markdown}\n--文章ID: ${aid} 内容结束--\n\n`;
               });
 
-              const markdown = turndownService.turndown(
-                `<h1>${title}</h1>\n${html}`
+              const llmsFile = await get(
+                `local/others/_web-marker-llms-${lang}.txt`,
+                {
+                  create: "file",
+                }
               );
 
-              llmstxt += `--文章ID: ${aid} 内容开始--\n${markdown}\n--文章ID: ${aid} 内容结束--\n\n`;
-            });
+              await llmsFile.write(llmstxt);
+            }
 
-            const llmsFile = await get("local/others/_web-marker-llms.txt", {
-              create: "file",
-            });
-
-            await llmsFile.write(llmstxt);
-
-            this.listData = article;
+            this.listData = mainArticle;
           },
         },
       };

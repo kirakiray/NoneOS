@@ -50,7 +50,6 @@ export const loadData = async ({ handle, level = 2, dataId }) => {
 
   for (let [key, value] of Object.entries(data)) {
     if (/\D/.test(key)) {
-      console.log("非数组", key);
       isArray = false;
     } else if (isArray && maxLength < parseInt(key)) {
       maxLength = parseInt(key);
