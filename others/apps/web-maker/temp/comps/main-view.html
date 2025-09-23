@@ -9,6 +9,7 @@
     }
     .main {
       display: flex;
+      justify-content: center;
       height: 100%;
       position: relative;
       z-index: 1;
@@ -17,6 +18,7 @@
     .right {
       /* background-color: red; */
       flex: 1 0 200px;
+      transition: all ease 0.3s;
     }
 
     .article-outer {
@@ -83,6 +85,10 @@
       .right {
         display: none;
       }
+
+      .left.hide-left {
+        flex: 0 0 0;
+      }
     }
 
     @media screen and (max-width: 600px) {
@@ -129,7 +135,7 @@
   <bg-one style="position: absolute; left: 0; top: 0; z-index: 0"></bg-one>
   <main-top :current-lang="currentLang"></main-top>
   <div class="main">
-    <div class="left">
+    <div class="left" class:hide-left="list.length == 1">
       <div class="list">
         <div style="height: 100px"></div>
         <o-fill :value="list">
@@ -147,7 +153,7 @@
       <div class="article">
         <!-- <div class="top"></div> -->
         <o-fill :value="list">
-          <div>
+          <div style="margin: 0 auto">
             <o-if :value="$data.aid">
               <block-view
                 attr:aid="$data.aid"
