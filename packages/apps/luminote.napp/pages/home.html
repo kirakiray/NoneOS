@@ -304,7 +304,7 @@
     import { getLocalized } from "/packages/i18n/localized-object.js";
 
     export default async ({ load }) => {
-      const { prompt, toast, confirm } = await load("/packages/pui/util.js");
+      const { toast, confirm } = await load("/packages/pui/util.js");
       const { isAIAvailable } = await load("/packages/ai/main.js");
       const { importProject } = await load(
         "/packages/apps/luminote.napp/util/import-project.js"

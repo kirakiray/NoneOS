@@ -1,6 +1,7 @@
 <template component>
   <l-m src="./block-view.html"></l-m>
   <l-m src="../comps/bg-one.html"></l-m>
+  <l-m src="../comps/top.html"></l-m>
   <style>
     :host {
       display: block;
@@ -126,7 +127,7 @@
     }
   </style>
   <bg-one style="position: absolute; left: 0; top: 0; z-index: 0"></bg-one>
-  <div class="top"></div>
+  <main-top :current-lang="currentLang"></main-top>
   <div class="main">
     <div class="left">
       <div class="list">
@@ -184,6 +185,7 @@
           currentContentData: {},
           allArticleData: [],
           list: [],
+          currentLang: "",
         },
         proto: {
           clickItem(data) {
@@ -258,16 +260,16 @@
               });
             }, 100);
           },
-          async loadContentData() {
+          async loadContentData(lang) {
             let previewData = null;
 
             try {
-              previewData = await load("../data-cn.json");
+              previewData = await load(`../data-${lang}.json`);
             } catch (err) {
               const { get } = await load("/packages/fs/main.js");
 
               const previewCacheFile = await get(
-                "local/others/web-maker/data-cn.json"
+                `local/others/web-maker/data-${lang}.json`
               );
               previewData = await previewCacheFile.text();
               previewData = JSON.parse(previewData);
@@ -287,7 +289,29 @@
           },
         },
         attached() {
-          this.loadContentData();
+          let currentLang = localStorage.getItem("webmaker_currentLang");
+
+          // 如果未被设置，则根据用户系统默认语言进行调整
+          if (!currentLang) {
+            const systemLang = navigator.language.toLocaleLowerCase();
+
+            if (window.langs) {
+              langs.some((lang) => {
+                if (systemLang.includes(lang)) {
+                  currentLang = lang;
+                  return true;
+                }
+              });
+
+              if (!currentLang) {
+                currentLang = "en";
+              }
+            }
+          }
+
+          this.currentLang = currentLang;
+
+          this.loadContentData(currentLang);
         },
       };
     };

@@ -1,0 +1,42 @@
+<template component>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 50px;
+      z-index: 2;
+    }
+
+    .lang-selector {
+      margin: 0 16px 0 auto;
+      height: 26px;
+    }
+  </style>
+  <select class="lang-selector" sync:value="currentLang" on:change="changeLang">
+    <option value="cn">中文</option>
+    <option value="en">English</option>
+    <option value="ja">日本語</option>
+  </select>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "main-top",
+        data: {
+          currentLang: "",
+        },
+        proto: {
+          changeLang(e) {
+            const lang = e.target.value;
+
+            localStorage.setItem("webmaker_currentLang", lang);
+            location.reload();
+          },
+        },
+      };
+    };
+  </script>
+</template>

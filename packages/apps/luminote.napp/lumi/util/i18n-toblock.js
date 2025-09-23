@@ -136,6 +136,23 @@ export const translateItemData = async ({
     return;
   }
 
+  const trimmedContent = itemData[hostKey].trim();
+
+  // 检查是否只包含特殊符号或emoji符号
+  const specialCharOrEmojiRegex =
+    /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})+$/gu;
+  if (!trimmedContent || specialCharOrEmojiRegex.test(trimmedContent)) {
+    i18nContent[lang] = {
+      originHash: currentHash,
+      modelName: "auto",
+      value: trimmedContent,
+      time: Date.now(),
+    };
+
+    finalCall && finalCall(trimmedContent);
+    return;
+  }
+
   const _cancelTranslate = solicit({
     groupTitle,
     desc,
