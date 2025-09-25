@@ -1,6 +1,21 @@
 import http from "http";
 import https from "https";
 import url from "url";
+import { parseArgs } from "util";
+
+// 解析命令行参数
+const { values } = parseArgs({
+  args: process.argv.slice(2),
+  options: {
+    port: {
+      type: "string",
+      short: "p",
+      default: process.env.PORT || "3000",
+    },
+  },
+});
+
+const PORT = parseInt(values.port) || 3000;
 
 const server = http.createServer((req, res) => {
   // 设置CORS头部
@@ -73,7 +88,6 @@ const server = http.createServer((req, res) => {
   req.pipe(proxyReq);
 });
 
-const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`CORS Proxy server running on port ${PORT}`);
 });
