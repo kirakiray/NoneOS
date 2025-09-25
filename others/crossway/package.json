@@ -1,5 +1,5 @@
 {
-  "name": "cors-proxy",
+  "name": "crossway",
   "version": "1.0.0",
   "description": "A simple CORS proxy server to bypass CORS restrictions",
   "license": "Apache-2.0",

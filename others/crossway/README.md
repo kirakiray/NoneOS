@@ -1,4 +1,4 @@
-# CORS Proxy
+# Crossway
 
 A simple CORS proxy server to bypass browser CORS restrictions.
 
