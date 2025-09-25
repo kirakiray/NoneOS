@@ -12,12 +12,25 @@ const { values } = parseArgs({
       short: "p",
       default: process.env.PORT || "3000",
     },
+    path: {
+      type: "string",
+      short: "P",
+      default: "/",
+    },
   },
 });
 
 const PORT = parseInt(values.port) || 3000;
+const PATH = values.path || "/";
 
 const server = http.createServer((req, res) => {
+  // 检查请求路径是否匹配配置的路径
+  if (!req.url.startsWith(PATH)) {
+    res.writeHead(404);
+    res.end("");
+    return;
+  }
+
   // 设置CORS头部
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader(
@@ -90,4 +103,5 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`CORS Proxy server running on port ${PORT}`);
+  console.log(`Access path: ${PATH}`);
 });

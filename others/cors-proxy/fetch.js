@@ -1,3 +1,8 @@
+export const config = {
+  port: 3000,
+  path: "/",
+};
+
 /**
  * 通过CORS代理发送请求的fetch封装
  * @param {string} targetUrl - 目标URL
@@ -6,7 +11,9 @@
  */
 function proxyFetch(targetUrl, options = {}) {
   // 构建代理URL
-  const proxyUrl = `http://localhost:3000?url=${encodeURIComponent(targetUrl)}`;
+  const proxyUrl = `http://localhost:${config.port}${
+    config.path
+  }?url=${encodeURIComponent(targetUrl)}`;
 
   // 使用标准fetch API发送请求到代理服务器
   return fetch(proxyUrl, options);
