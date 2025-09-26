@@ -193,13 +193,6 @@
         attrs: {
           defaultai: null,
         },
-        watch: {
-          item(item) {
-            if (item && (item.url || item.port)) {
-              this.initModels();
-            }
-          },
-        },
         proto: {
           async testModel() {
             this.responsing = true;
@@ -288,9 +281,13 @@
             }
           },
         },
-        attached() {},
+        attached() {
+          this.initModels();
+        },
         detached() {
-          this.item = {};
+          this.item = {
+            port: "",
+          };
         },
       };
     };

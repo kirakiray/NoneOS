@@ -159,13 +159,6 @@
           fullResponse: "",
           responsing: false,
         },
-        watch: {
-          item(item) {
-            if (item && item.apiKey) {
-              this.initModels();
-            }
-          },
-        },
         proto: {
           async testModel() {
             this.responsing = true;
@@ -260,6 +253,8 @@
               this.item.proxyPrefix = "";
             }
           }, 500);
+
+          this.initModels();
         },
         detached() {
           this.item = {};
