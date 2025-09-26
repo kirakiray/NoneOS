@@ -72,7 +72,7 @@
                 attr:active-item="$host.item.model === $data.id"
               >
                 <n-local-icon name="ai-chip" slot="prefix"></n-local-icon>
-                {{$data.name}}
+                {{$data.name || $data.id}}
                 <o-if :value="$host.item.model === $data.id" slot="suffix">
                   <n-local-icon
                     name="tick-circle"
@@ -189,9 +189,11 @@
             this.testModel();
           },
           async initModels() {
+            const apiKey = this.item.apiKey;
+
             try {
               // Moonshot 使用固定模型列表
-              const list = await getModels();
+              const list = await getModels({ apiKey });
 
               list.sort((a, b) => {
                 if (a.id < b.id) {

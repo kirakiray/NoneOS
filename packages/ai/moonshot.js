@@ -102,16 +102,39 @@ export async function chat({ apiKey, onChunk, model, messages }) {
  * 获取Moonshot AI的固定模型列表
  * @returns {Promise<Array>} 返回固定模型列表数组
  */
-export async function getModels() {
-  // Moonshot AI 的固定模型列表
-  // 根据搜索结果，Moonshot AI 提供以下模型：
-  return [
-    { id: "kimi-latest", name: "Kimi v2 Latest" },
-    { id: "kimi-k2-0711-preview", name: "Kimi v2 0711 Preview" },
-    { id: "kimi-k2-turbo-preview", name: "Kimi v2 Turbo Preview" },
-    { id: "kimi-k2-0905-preview", name: "Kimi v2 0905 Preview" },
-    { id: "moonshot-v1-8k", name: "Moonshot v1 8K" },
-    { id: "moonshot-v1-32k", name: "Moonshot v1 32K" },
-    { id: "moonshot-v1-128k", name: "Moonshot v1 128K" },
-  ];
+// export async function getModels() {
+//   // Moonshot AI 的固定模型列表
+//   // 根据搜索结果，Moonshot AI 提供以下模型：
+//   return [
+//     { id: "kimi-latest", name: "Kimi v2 Latest" },
+//     { id: "kimi-k2-0711-preview", name: "Kimi v2 0711 Preview" },
+//     { id: "kimi-k2-turbo-preview", name: "Kimi v2 Turbo Preview" },
+//     { id: "kimi-k2-0905-preview", name: "Kimi v2 0905 Preview" },
+//     { id: "moonshot-v1-8k", name: "Moonshot v1 8K" },
+//     { id: "moonshot-v1-32k", name: "Moonshot v1 32K" },
+//     { id: "moonshot-v1-128k", name: "Moonshot v1 128K" },
+//   ];
+// }
+
+export async function getModels({ apiKey }) {
+  try {
+    const res = await fetch("https://api.moonshot.cn/v1/models", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+
+    return data.data || [];
+  } catch (error) {
+    console.error("Error in Moonshot getModels:", error);
+    throw error;
+  }
 }
