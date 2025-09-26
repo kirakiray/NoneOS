@@ -120,9 +120,15 @@ export async function chat({ apiKey, onChunk, model, messages, proxyPrefix }) {
 //   ];
 // }
 
-export async function getModels({ apiKey }) {
+export async function getModels({ apiKey, proxyPrefix }) {
   try {
-    const res = await fetch("https://api.moonshot.cn/v1/models", {
+    let fetchUrl = "https://api.moonshot.cn/v1/models";
+
+    if (proxyPrefix) {
+      fetchUrl = `${proxyPrefix}${encodeURIComponent(fetchUrl)}`;
+    }
+
+    const res = await fetch(fetchUrl, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
