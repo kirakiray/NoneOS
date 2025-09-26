@@ -1,5 +1,3 @@
-import { fetch } from "../util/fetch.js";
-
 /**
  * 与Moonshot AI模型进行对话
  * @param {Object} options - 配置选项
@@ -9,7 +7,7 @@ import { fetch } from "../util/fetch.js";
  * @param {Function} [options.onChunk] - 流式响应回调函数
  * @returns {Promise<string>} 返回AI响应内容
  */
-export async function chat({ apiKey, onChunk, model, messages }) {
+export async function chat({ apiKey, onChunk, model, messages, proxyPrefix }) {
   if (!apiKey) {
     throw new Error("API Key is required");
   }
@@ -25,8 +23,14 @@ export async function chat({ apiKey, onChunk, model, messages }) {
   // 根据是否存在 onChunk 来决定是否使用流式传输
   const useStream = Boolean(onChunk && typeof onChunk === "function");
 
+  let fetchUrl = "https://api.moonshot.cn/v1/chat/completions";
+
+  if (proxyPrefix) {
+    fetchUrl = `${proxyPrefix}${encodeURIComponent(fetchUrl)}`;
+  }
+
   try {
-    const res = await fetch("https://api.moonshot.cn/v1/chat/completions", {
+    const res = await fetch(fetchUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

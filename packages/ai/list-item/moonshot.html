@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
   <style>
     :host {
       display: block;
@@ -118,6 +119,32 @@
           </p-button>
         </div>
       </p-list-item>
+      <p-list-item>
+        <div style="display: flex; flex-wrap: wrap; align-items: center">
+          <p-switch size="small" sync:value="item.useProxy">
+            <localized-content>
+              <span lang="cn"> 使用代理</span>
+              <span lang="en"> Use proxy</span>
+              <span lang="ja"> プロキシを使用</span>
+            </localized-content>
+          </p-switch>
+          <o-if :value="item.useProxy === 'on'">
+            <p-input
+              size="small"
+              sync:value="item.proxyPrefix"
+              style="margin-left: 8px; width: 280px"
+            >
+              <label>
+                <localized-content>
+                  <span lang="cn"> 填写代理前缀</span>
+                  <span lang="en"> Proxy Prefix</span>
+                  <span lang="ja"> プロキシプレフィックス</span>
+                </localized-content>
+              </label>
+            </p-input>
+          </o-if>
+        </div>
+      </p-list-item>
     </p-list>
   </p-list-item>
   <script>
@@ -155,23 +182,25 @@
                 return;
               }
 
-              const model = this.item.model;
+              const fetchOptions = {
+                apiKey,
+                model: this.item.model,
+              };
+
+              if (this.item.useProxy === "on" && this.item.proxyPrefix) {
+                fetchOptions.proxyPrefix = this.item.proxyPrefix;
+              }
 
               const result = await chat({
-                apiKey,
-                model,
+                ...fetchOptions,
                 messages: [{ role: "user", content: prompt }],
                 onChunk: (e) => {
                   const { fullResponse } = e;
-                  if (this.item.model === model) {
-                    this.fullResponse = fullResponse;
-                  }
+                  this.fullResponse = fullResponse;
                 },
               });
 
-              if (this.item.model === model) {
-                this.fullResponse = result;
-              }
+              this.fullResponse = result;
 
               this.fullResponse = result;
             } catch (err) {
@@ -192,8 +221,16 @@
             const apiKey = this.item.apiKey;
 
             try {
+              const fetchOptions = {
+                apiKey,
+              };
+
+              if (this.item.useProxy === "on" && this.item.proxyPrefix) {
+                fetchOptions.proxyPrefix = this.item.proxyPrefix;
+              }
+
               // Moonshot 使用固定模型列表
-              const list = await getModels({ apiKey });
+              const list = await getModels(fetchOptions);
 
               list.sort((a, b) => {
                 if (a.id < b.id) {
@@ -213,7 +250,17 @@
             }
           },
         },
-        attached() {},
+        attached() {
+          setTimeout(() => {
+            // 检查并修正 proxyPrefix 为空字符串
+            if (
+              !this.item.proxyPrefix ||
+              this.item.proxyPrefix === "undefined"
+            ) {
+              this.item.proxyPrefix = "";
+            }
+          }, 500);
+        },
         detached() {
           this.item = {};
         },

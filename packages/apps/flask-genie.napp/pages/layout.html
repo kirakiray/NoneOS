@@ -57,18 +57,6 @@
             <span lang="ja"> 他のデバイスのAI </span>
           </localized-content>
         </p-list-item>
-        <p-list-item
-          attr:active-item="currentTab == 'network'"
-          on:click="goto('./network.html')"
-          attr:button="currentTab !== 'network'"
-        >
-          <n-local-icon name="network" slot="prefix"></n-local-icon>
-          <localized-content>
-            <span lang="en"> Network </span>
-            <span lang="cn"> 网络请求 </span>
-            <span lang="ja"> ネットワーク要求 </span>
-          </localized-content>
-        </p-list-item>
       </p-list>
     </div>
     <slot></slot>
