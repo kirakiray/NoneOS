@@ -1,3 +1,5 @@
+import { fetch } from "../util/fetch.js";
+
 /**
  * 与Moonshot AI模型进行对话
  * @param {Object} options - 配置选项
