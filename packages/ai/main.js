@@ -3,6 +3,7 @@ export { solicit } from "./solicit.js";
 
 import { getAISetting } from "./custom-data.js";
 import { getModels } from "./lmstudio.js";
+import { getModels as getMoonshotModels } from "./moonshot.js";
 
 let availablePms = null;
 
@@ -45,6 +46,16 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
     }
   };
 
+  // 检查 Moonshot AI 可用性
+  const checkMoonshotModelsAvailable = async (apiKey) => {
+    try {
+      const models = await getMoonshotModels({ apiKey });
+      return models.length > 0;
+    } catch {
+      return false;
+    }
+  };
+
   if (setting.lmstudio) {
     // 检查本地 LM Studio
     const localUrl = `http://localhost:${setting.lmstudio.port}`;
@@ -76,6 +87,21 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
             url: item.url,
             model: item.model,
             type: "local-fetch",
+          });
+        }
+      } else if (item.name === "Moonshot" && item.apiKey) {
+        if (await checkMoonshotModelsAvailable(item.apiKey)) {
+          availableConfigs.push({
+            url: "https://api.moonshot.cn/v1",
+            model: item.model || "moonshot-v1-8k",
+            type: "moonshot",
+            apiKey: setting.moonshot.apiKey,
+          });
+          callback?.({
+            url: "https://api.moonshot.cn/v1",
+            model: item.model || "moonshot-v1-8k",
+            type: "moonshot",
+            apiKey: setting.moonshot.apiKey,
           });
         }
       }
