@@ -25,6 +25,15 @@
       const data2 = await createSingleData({
         handle: tFileHandle,
       });
+      // const data3 = await createSingleData({
+      //   handle: tFileHandle,
+      // });
+      // const data4 = await createSingleData({
+      //   handle: tFileHandle,
+      // });
+      // const data5 = await createSingleData({
+      //   handle: tFileHandle,
+      // });
 
       data1.val = Math.random();
       data1.obj1 = {
@@ -37,7 +46,8 @@
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const valSync = data1.val === data2.val;
-      const objSync = data1.obj1 !== data2.obj1 && data1.obj1.a === data2.obj1.a;
+      const objSync =
+        data1.obj1 !== data2.obj1 && data1.obj1.a === data2.obj1.a;
       const keySync = data1.obj1[key2] === data2.obj1[key2];
 
       return {
