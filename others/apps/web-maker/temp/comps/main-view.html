@@ -1,6 +1,6 @@
 <template component>
   <l-m src="./block-view.html"></l-m>
-  <l-m src="../comps/bg-one.html"></l-m>
+  <!-- <l-m src="../comps/bg-one.html"></l-m> -->
   <l-m src="../comps/top.html"></l-m>
   <style>
     :host {
@@ -185,6 +185,8 @@
   </div>
   <script>
     export default async ({ load }) => {
+      await load("../comps/bg-one.html");
+
       return {
         tag: "main-view",
         data: {

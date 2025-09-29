@@ -36,6 +36,27 @@
             location.reload();
           },
         },
+        attached() {
+          setTimeout(() => {
+            // 判断当前系统是否黑夜模式
+            const isDarkMode =
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+            // let isDark = isDarkMode;
+            let isDark = false;
+
+            if (isDark) {
+              document.documentElement.classList.add("theme-dark-mode");
+              document.documentElement.classList.remove("theme-light-mode");
+              this.host.shadow.$("bg-one").setDayMode(false);
+            } else {
+              document.documentElement.classList.remove("theme-dark-mode");
+              document.documentElement.classList.add("theme-light-mode");
+              this.host.shadow.$("bg-one").setDayMode(true);
+            }
+          }, 100);
+        },
       };
     };
   </script>

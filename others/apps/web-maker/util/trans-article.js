@@ -23,7 +23,7 @@ const transArticleList = async (articleListData, lang) => {
 
       if (lang) {
         articleData.title =
-          articleItem.titleI18nContent[lang].value || articleItem.title;
+          articleItem.titleI18nContent[lang]?.value || articleItem.title;
       }
 
       let isEnd = false;
