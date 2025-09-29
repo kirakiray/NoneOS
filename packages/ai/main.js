@@ -95,13 +95,13 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
             url: "https://api.moonshot.cn/v1",
             model: item.model || "moonshot-v1-8k",
             type: "moonshot",
-            apiKey: setting.moonshot.apiKey,
+            apiKey: item.apiKey,
           });
           callback?.({
             url: "https://api.moonshot.cn/v1",
             model: item.model || "moonshot-v1-8k",
             type: "moonshot",
-            apiKey: setting.moonshot.apiKey,
+            apiKey: item.apiKey,
           });
         }
       }

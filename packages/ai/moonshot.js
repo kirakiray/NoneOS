@@ -120,7 +120,13 @@ export async function chat({ apiKey, onChunk, model, messages, proxyPrefix }) {
 //   ];
 // }
 
+let getModelsCache = null;
+
 export async function getModels({ apiKey, proxyPrefix }) {
+  if (getModelsCache) {
+    return getModelsCache;
+  }
+
   try {
     let fetchUrl = "https://api.moonshot.cn/v1/models";
 
@@ -142,7 +148,13 @@ export async function getModels({ apiKey, proxyPrefix }) {
 
     const data = await res.json();
 
-    return data.data || [];
+    getModelsCache = data.data || [];
+
+    setTimeout(() => {
+      getModelsCache = null;
+    }, 3000);
+
+    return getModelsCache;
   } catch (error) {
     console.error("Error in Moonshot getModels:", error);
     throw error;
