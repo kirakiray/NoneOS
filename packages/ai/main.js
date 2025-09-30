@@ -3,6 +3,7 @@ export { solicit } from "./solicit.js";
 
 import { getAISetting } from "./custom-data.js";
 import { getModels } from "./lmstudio.js";
+import { getModels as getDeepSeekModels } from "./deepseek.js";
 import { getModels as getMoonshotModels } from "./moonshot.js";
 
 let availablePms = null;
@@ -56,11 +57,17 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
     }
   };
 
-  if (setting.lmstudio) {
-    if (setting.lmstudio.disabeld) {
-      debugger;
+  // 检查 DeepSeek AI 可用性
+  const checkDeepSeekModelsAvailable = async (apiKey) => {
+    try {
+      const models = await getDeepSeekModels({ apiKey });
+      return models.length > 0;
+    } catch {
+      return false;
     }
+  };
 
+  if (setting.lmstudio && setting.lmstudio.disabled !== "on") {
     // 检查本地 LM Studio
     const localUrl = `http://localhost:${setting.lmstudio.port}`;
     if (await checkModelsAvailable(localUrl)) {
@@ -109,6 +116,22 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
             url: "https://api.moonshot.cn/v1",
             model: item.model || "moonshot-v1-8k",
             type: "moonshot",
+            apiKey: item.apiKey,
+          });
+        }
+      } else if (item.name === "DeepSeek" && item.apiKey) {
+        if (await checkDeepSeekModelsAvailable(item.apiKey)) {
+          // DeepSeek 使用固定模型列表，直接添加到可用配置中
+          availableConfigs.push({
+            url: "https://api.deepseek.com/v1",
+            model: item.model || "deepseek-chat",
+            type: "deepseek",
+            apiKey: item.apiKey,
+          });
+          callback?.({
+            url: "https://api.deepseek.com/v1",
+            model: item.model || "deepseek-chat",
+            type: "deepseek",
             apiKey: item.apiKey,
           });
         }

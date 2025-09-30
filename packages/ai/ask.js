@@ -1,5 +1,6 @@
 import { chat as lmstudioChat } from "./lmstudio.js";
 import { chat as moonshotChat } from "./moonshot.js";
+import { chat as deepseekChat } from "./deepseek.js";
 import { getAvailableAIConfigs } from "./main.js";
 
 let availableConfigs = null;
@@ -52,6 +53,24 @@ export const ask = async (prompt, options) => {
       },
     });
     role = "moonshot";
+    modelName = model;
+  } else if (configData.type === "deepseek") {
+    // 使用 DeepSeek AI
+    result = await deepseekChat({
+      apiKey: configData.apiKey,
+      model,
+      messages: [{ role: "user", content: prompt }],
+      onChunk: (e) => {
+        onChunk &&
+          onChunk({
+            role: "deepseek",
+            modelName: model,
+            responseText: e.fullResponse,
+            currentToken: e.delta,
+          });
+      },
+    });
+    role = "deepseek";
     modelName = model;
   } else {
     // 使用 LM Studio 或其他本地模型

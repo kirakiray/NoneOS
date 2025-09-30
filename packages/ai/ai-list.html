@@ -27,6 +27,9 @@
           <o-if :value="$data.name === 'Moonshot'">
             <o-page src="./list-item/moonshot.html" :item="$data"></o-page>
           </o-if>
+          <o-if :value="$data.name === 'DeepSeek'">
+            <o-page src="./list-item/deepseek.html" :item="$data"></o-page>
+          </o-if>
         </div>
       </o-fill>
     </o-if>

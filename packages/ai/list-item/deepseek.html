@@ -14,14 +14,14 @@
   </style>
   <p-list-item collapse-childs="close" button="suffix">
     <img
-      src="../sources/moonshot.svg"
+      src="../sources/deepseek.svg"
       width="18"
       height="18"
       slot="prefix"
       style="margin-right: 4px"
     />
 
-    <div style="display: flex; align-items: center">Moonshot</div>
+    <div style="display: flex; align-items: center">DeepSeek</div>
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs" style="--ladder-left: 16px">
       <p-list-item>
@@ -44,14 +44,14 @@
       <o-if :value="error">
         <localized-content>
           <div lang="cn">
-            无法连接到 Moonshot AI，请检查您的 API 密钥是否正确。
+            无法连接到 DeepSeek AI，请检查您的 API 密钥是否正确。
           </div>
           <div lang="en">
-            Unable to connect to Moonshot AI, please check if your API key is
+            Unable to connect to DeepSeek AI, please check if your API key is
             correct.
           </div>
           <div lang="ja">
-            Moonshot AI に接続できません。API
+            DeepSeek AI に接続できません。API
             キーが正しいかどうか確認してください。
           </div>
         </localized-content>
@@ -158,7 +158,7 @@
   </p-list-item>
   <script>
     export default async ({ load }) => {
-      const { chat, getModels } = await load("../moonshot.js");
+      const { chat, getModels } = await load("../deepseek.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
@@ -203,8 +203,6 @@
               });
 
               this.fullResponse = result;
-
-              this.fullResponse = result;
             } catch (err) {
               this.fullResponse = await getLocalized({
                 cn: "测试模型失败",
@@ -231,7 +229,7 @@
                 fetchOptions.proxyPrefix = this.item.proxyPrefix;
               }
 
-              // Moonshot 使用固定模型列表
+              // DeepSeek 使用固定模型列表
               const list = await getModels(fetchOptions);
 
               list.sort((a, b) => {
