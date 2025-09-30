@@ -16,7 +16,7 @@ export const isAIAvailable = async () => {
     await getAvailableAIConfigs({
       callback: () => {
         // 只要有一个成功代表可用
-        resolve(true);
+        resolve && resolve(true);
         resolve = null;
       },
     });
@@ -57,6 +57,10 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
   };
 
   if (setting.lmstudio) {
+    if (setting.lmstudio.disabeld) {
+      debugger;
+    }
+
     // 检查本地 LM Studio
     const localUrl = `http://localhost:${setting.lmstudio.port}`;
     if (await checkModelsAvailable(localUrl)) {
@@ -76,6 +80,10 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
   // 检查其他 AI 配置
   if (setting.otherAI && Array.isArray(setting.otherAI)) {
     for (const item of setting.otherAI) {
+      if (item.disabled === "on") {
+        continue;
+      }
+
       if (item.name === "LM Studio" && item.url) {
         if (await checkModelsAvailable(item.url)) {
           availableConfigs.push({
