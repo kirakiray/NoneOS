@@ -3,6 +3,7 @@ export { solicit } from "./solicit.js";
 
 import { getAISetting } from "./custom-data.js";
 import { getModels } from "./lmstudio.js";
+import { getModels as getDeepSeekModels } from "./deepseek.js";
 import { getModels as getMoonshotModels } from "./moonshot.js";
 
 let availablePms = null;
@@ -50,6 +51,16 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
   const checkMoonshotModelsAvailable = async (apiKey) => {
     try {
       const models = await getMoonshotModels({ apiKey });
+      return models.length > 0;
+    } catch {
+      return false;
+    }
+  };
+
+  // 检查 DeepSeek AI 可用性
+  const checkDeepSeekModelsAvailable = async (apiKey) => {
+    try {
+      const models = await getDeepSeekModels({ apiKey });
       return models.length > 0;
     } catch {
       return false;
@@ -112,6 +123,24 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
             apiKey: item.apiKey,
           });
         }
+      } else if (item.name === "DeepSeek" && item.apiKey) {
+        if (item.disabled === "on") {
+          continue;
+        }
+        
+        // DeepSeek 使用固定模型列表，直接添加到可用配置中
+        availableConfigs.push({
+          url: "https://api.deepseek.com/v1",
+          model: item.model || "deepseek-chat",
+          type: "deepseek",
+          apiKey: item.apiKey,
+        });
+        callback?.({
+          url: "https://api.deepseek.com/v1",
+          model: item.model || "deepseek-chat",
+          type: "deepseek",
+          apiKey: item.apiKey,
+        });
       }
     }
   }

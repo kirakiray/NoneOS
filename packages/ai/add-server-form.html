@@ -99,13 +99,13 @@
       </label>
     </p-input>
   </o-if>
-  <o-else-if :value="selected === 'Moonshot'">
+  <o-else-if :value="selected === 'Moonshot' || selected === 'DeepSeek'">
     <p-input sync:value="apiKey" size="small" style="margin-bottom: 16px">
       <label>
         <localized-content>
-          <span lang="cn"> Moonshot API密钥</span>
-          <span lang="en"> Moonshot API key</span>
-          <span lang="ja"> Moonshot APIキー</span>
+          <span lang="cn"> {{selected}} API密钥</span>
+          <span lang="en"> {{selected}} API key</span>
+          <span lang="ja"> {{selected}} APIキー</span>
         </localized-content>
       </label>
     </p-input>
@@ -163,7 +163,6 @@
                 en: "Used to add the DeepSeek API key to connect to the DeepSeek model service.",
                 ja: "DeepSeek APIキーを追加してDeepSeekモデルサービスに接続するために使用します。",
               },
-              disabled: true,
             },
             {
               name: "Moonshot",
@@ -192,7 +191,8 @@
               !this.selected ||
               this.notReady ||
               (!this.serverUrl && this.selected === "LM Studio") ||
-              (!this.apiKey && this.selected === "Moonshot")
+              (!this.apiKey && this.selected === "Moonshot") ||
+              (!this.apiKey && this.selected === "DeepSeek")
             );
           },
           async clickItem(data) {
@@ -215,7 +215,6 @@
                 break;
               case "DeepSeek":
               case "Moonshot":
-                debugger;
                 this.aiSetting.otherAI.push({
                   name: this.selected,
                   apiKey: this.apiKey,

@@ -1,0 +1,240 @@
+<template page>
+  <p-list-item>
+    <div>
+      <div style="display: flex; align-items: center">
+        <img
+          src="../sources/deepseek.svg"
+          alt="DeepSeek"
+          style="width: 24px; height: 24px; margin-right: 8px"
+        />
+        <span>DeepSeek</span>
+      </div>
+      <p style="font-size: 12px; opacity: 0.7; margin: 4px 0 0 32px">
+        <localized-content>
+          <span lang="cn"> 在线AI模型 </span>
+          <span lang="en"> Online AI Model </span>
+          <span lang="ja"> オンラインAIモデル </span>
+        </localized-content>
+      </p>
+    </div>
+  </p-list-item>
+  <p-list-item>
+    <p-input size="small" sync:value="item.apiKey" password>
+      <label>
+        <localized-content>
+          <span lang="cn"> API Key </span>
+          <span lang="en"> API Key </span>
+          <span lang="ja"> APIキー </span>
+        </localized-content>
+      </label>
+    </p-input>
+  </p-list-item>
+  <p-list-item>
+    <p-select sync:value="item.model">
+      <label>
+        <localized-content>
+          <span lang="cn"> 选择模型 </span>
+          <span lang="en"> Select Model </span>
+          <span lang="ja"> モデルを選択 </span>
+        </localized-content>
+      </label>
+      <o-if :value="!list.length">
+        <option value="">--</option>
+      </o-if>
+      <o-else>
+        <o-for :list="list">
+          <option :value="$data.id">{{$data.name}}</option>
+        </o-for>
+      </o-else>
+    </p-select>
+  </p-list-item>
+  <o-if :value="error">
+    <p-list-item>
+      <p style="color: var(--md-sys-color-error)">{{error}}</p>
+    </p-list-item>
+  </o-if>
+  <o-else>
+    <p-list-item>
+      <div>
+        {{fullResponse}}
+        <p-button
+          on:click="testModel"
+          size="mini"
+          attr:disabled="responsing"
+          variant="outlined"
+          style="margin: 4px"
+        >
+          <localized-content>
+            <span lang="cn"> 你是？</span>
+            <span lang="en"> Who are you?</span>
+            <span lang="ja"> あなたは？</span>
+          </localized-content>
+        </p-button>
+      </div>
+    </p-list-item>
+  </o-else>
+  <p-list-item>
+    <div style="display: flex">
+      <p-button
+        color="error"
+        size="small"
+        variant="outlined"
+        on:click="emit('click-delete')"
+      >
+        <localized-content>
+          <span lang="cn"> 删除该AI</span>
+          <span lang="en"> Delete this AI</span>
+          <span lang="ja"> このAIを削除</span>
+        </localized-content>
+      </p-button>
+    </div>
+  </p-list-item>
+  <p-list-item>
+    <div style="display: flex; flex-wrap: wrap; align-items: center">
+      <p-switch sync:value="item.useProxy">
+        <localized-content>
+          <span lang="cn"> 使用代理</span>
+          <span lang="en"> Use proxy</span>
+          <span lang="ja"> プロキシを使用</span>
+        </localized-content>
+      </p-switch>
+      <o-if :value="item.useProxy === 'on'">
+        <p-input
+          size="small"
+          sync:value="item.proxyPrefix"
+          style="margin-left: 8px; width: 280px"
+        >
+          <label>
+            <localized-content>
+              <span lang="cn"> 填写代理前缀</span>
+              <span lang="en"> Proxy Prefix</span>
+              <span lang="ja"> プロキシプレフィックス</span>
+            </localized-content>
+          </label>
+        </p-input>
+      </o-if>
+    </div>
+  </p-list-item>
+  <p-list-item>
+    <p-switch color="error" sync:value="item.disabled">
+      <localized-content>
+        <span lang="cn"> 禁用当前AI</span>
+        <span lang="en"> Disable current AI</span>
+        <span lang="ja"> 当前AIを無効にする</span>
+      </localized-content>
+    </p-switch>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { chat, getModels } = await load("../deepseek.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        data: {
+          error: "",
+          list: [], // 模型列表
+          fullResponse: "",
+          responsing: false,
+        },
+        proto: {
+          async testModel() {
+            this.responsing = true;
+
+            const prompt = await getLocalized({
+              cn: "你是谁？回答的内容简短一点",
+              en: "Who are you? Just answer",
+              ja: "あなたは？直接回答してください。",
+            });
+
+            try {
+              const apiKey = this.item.apiKey;
+              if (!apiKey || apiKey === "undefined") {
+                return;
+              }
+
+              const fetchOptions = {
+                apiKey,
+                model: this.item.model,
+              };
+
+              if (this.item.useProxy === "on" && this.item.proxyPrefix) {
+                fetchOptions.proxyPrefix = this.item.proxyPrefix;
+              }
+
+              const result = await chat({
+                ...fetchOptions,
+                messages: [{ role: "user", content: prompt }],
+                onChunk: (e) => {
+                  const { fullResponse } = e;
+                  this.fullResponse = fullResponse;
+                },
+              });
+
+              this.fullResponse = result;
+            } catch (err) {
+              this.fullResponse = await getLocalized({
+                cn: "测试模型失败",
+                en: "Test model failed",
+                ja: "モデルのテストが失敗しました",
+              });
+            } finally {
+              this.responsing = false;
+            }
+          },
+          useIt(data) {
+            this.item.model = data.id;
+            this.testModel();
+          },
+          async initModels() {
+            const apiKey = this.item.apiKey;
+
+            try {
+              const fetchOptions = {
+                apiKey,
+              };
+
+              if (this.item.useProxy === "on" && this.item.proxyPrefix) {
+                fetchOptions.proxyPrefix = this.item.proxyPrefix;
+              }
+
+              // DeepSeek 使用固定模型列表
+              const list = await getModels(fetchOptions);
+
+              list.sort((a, b) => {
+                if (a.id < b.id) {
+                  return -1;
+                }
+                if (a.id > b.id) {
+                  return 1;
+                }
+                return 0;
+              });
+
+              this.list = list;
+              this.error = "";
+            } catch (err) {
+              this.error = err.message;
+              this.list = [];
+            }
+          },
+        },
+        attached() {
+          setTimeout(() => {
+            // 检查并修正 proxyPrefix 为空字符串
+            if (
+              !this.item.proxyPrefix ||
+              this.item.proxyPrefix === "undefined"
+            ) {
+              this.item.proxyPrefix = "";
+            }
+          }, 500);
+
+          this.initModels();
+        },
+        detached() {
+          this.item = {};
+        },
+      };
+    };
+  </script>
+</template>
