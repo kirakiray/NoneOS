@@ -121,7 +121,7 @@
       </p-list-item>
       <p-list-item>
         <div style="display: flex; flex-wrap: wrap; align-items: center">
-          <p-switch size="small" sync:value="item.useProxy">
+          <p-switch sync:value="item.useProxy">
             <localized-content>
               <span lang="cn"> 使用代理</span>
               <span lang="en"> Use proxy</span>
@@ -144,6 +144,15 @@
             </p-input>
           </o-if>
         </div>
+      </p-list-item>
+      <p-list-item>
+        <p-switch color="error" sync:value="item.disabled">
+          <localized-content>
+            <span lang="cn"> 禁用当前AI</span>
+            <span lang="en"> Disable current AI</span>
+            <span lang="ja"> 当前AIを無効にする</span>
+          </localized-content>
+        </p-switch>
       </p-list-item>
     </p-list>
   </p-list-item>
