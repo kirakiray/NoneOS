@@ -67,11 +67,7 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
     }
   };
 
-  if (setting.lmstudio) {
-    if (setting.lmstudio.disabeld) {
-      debugger;
-    }
-
+  if (setting.lmstudio && setting.lmstudio.disabled !== "on") {
     // 检查本地 LM Studio
     const localUrl = `http://localhost:${setting.lmstudio.port}`;
     if (await checkModelsAvailable(localUrl)) {
@@ -124,23 +120,21 @@ export const getAvailableAIConfigs = async ({ callback } = {}) => {
           });
         }
       } else if (item.name === "DeepSeek" && item.apiKey) {
-        if (item.disabled === "on") {
-          continue;
+        if (await checkDeepSeekModelsAvailable(item.apiKey)) {
+          // DeepSeek 使用固定模型列表，直接添加到可用配置中
+          availableConfigs.push({
+            url: "https://api.deepseek.com/v1",
+            model: item.model || "deepseek-chat",
+            type: "deepseek",
+            apiKey: item.apiKey,
+          });
+          callback?.({
+            url: "https://api.deepseek.com/v1",
+            model: item.model || "deepseek-chat",
+            type: "deepseek",
+            apiKey: item.apiKey,
+          });
         }
-        
-        // DeepSeek 使用固定模型列表，直接添加到可用配置中
-        availableConfigs.push({
-          url: "https://api.deepseek.com/v1",
-          model: item.model || "deepseek-chat",
-          type: "deepseek",
-          apiKey: item.apiKey,
-        });
-        callback?.({
-          url: "https://api.deepseek.com/v1",
-          model: item.model || "deepseek-chat",
-          type: "deepseek",
-          apiKey: item.apiKey,
-        });
       }
     }
   }
