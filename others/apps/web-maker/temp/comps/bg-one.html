@@ -22,9 +22,26 @@
               this.shadow.$("#webglCanvas").ele
             );
           },
+          // 暴露切换白天模式的方法
+          toggleDayMode() {
+            if (this._canvas) {
+              this._canvas.toggleDayMode();
+            }
+          },
+          // 暴露设置白天模式的方法
+          setDayMode(isDayMode) {
+            if (this._canvas) {
+              this._canvas.setDayMode(isDayMode);
+            }
+          },
+          // 获取当前模式状态
+          isDayMode() {
+            return this._canvas ? this._canvas.isDayMode : false;
+          }
         },
         attached() {
           this.init();
+
         },
         detached() {
           this._canvas._isend = true;
@@ -50,10 +67,48 @@
         this.particles = [];
         this.mouseX = 0;
         this.mouseY = 0;
+        
+        // 检测设备类型和屏幕尺寸
+        this.isMobile = this.detectMobile();
+        this.config = this.getOptimizedConfig();
+        
+        // 添加白天模式属性，默认为夜间模式
+        this.isDayMode = false;
 
         this.init();
         this.setupEventListeners();
         this.animate();
+      }
+      
+      detectMobile() {
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isTouchDevice = 'ontouchstart' in window;
+        const screenWidth = window.innerWidth;
+        
+        return isTouchDevice || 
+               userAgent.includes('mobile') || 
+               userAgent.includes('android') || 
+               userAgent.includes('iphone') || 
+               userAgent.includes('ipad') ||
+               screenWidth <= 768;
+      }
+      
+      getOptimizedConfig() {
+        if (this.isMobile) {
+          return {
+            nodeCount: 20,      // 移动端减少节点数量
+            particleCount: 80,    // 移动端减少粒子数量
+            connectionDistance: 100, // 移动端减少连接距离
+            maxConnections: 30   // 移动端限制最大连接数
+          };
+        } else {
+          return {
+            nodeCount: 50,      // 桌面版保持原有数量
+            particleCount: 200,
+            connectionDistance: 150,
+            maxConnections: Infinity
+          };
+        }
       }
 
       init() {
@@ -80,6 +135,7 @@
                     uniform vec2 u_resolution;
                     uniform float u_time;
                     uniform vec2 u_mouse;
+                    uniform bool u_isDayMode; // 新增：白天模式标志
                     
                     varying vec3 v_color;
                     varying float v_alpha;
@@ -105,7 +161,12 @@
                         gl_PointSize = size;
                         
                         v_color = a_color;
-                        v_alpha = 0.8 + pulse * 0.2;
+                        // 根据模式调整透明度
+                        if (u_isDayMode) {
+                            v_alpha = 0.9 + pulse * 0.1; // 白天模式更高的不透明度
+                        } else {
+                            v_alpha = 0.8 + pulse * 0.2;
+                        }
                     }
                 `;
 
@@ -113,6 +174,7 @@
                     precision mediump float;
                     varying vec3 v_color;
                     varying float v_alpha;
+                    uniform bool u_isDayMode; // 新增：白天模式标志
                     
                     void main() {
                         vec2 coord = gl_PointCoord - vec2(0.5);
@@ -124,7 +186,15 @@
                         float alpha = 1.0 - (distance * 2.0);
                         alpha = pow(alpha, 2.0) * v_alpha;
                         
-                        gl_FragColor = vec4(v_color, alpha);
+                        // 根据模式调整最终颜色
+                        vec3 finalColor = v_color;
+                        if (u_isDayMode) {
+                            // 白天模式稍微提高亮度
+                            finalColor = min(vec3(1.0), finalColor * 1.2);
+                            alpha = alpha * 0.9; // 稍微降低透明度
+                        }
+                        
+                        gl_FragColor = vec4(finalColor, alpha);
                     }
                 `;
 
@@ -136,6 +206,7 @@
                     
                     uniform vec2 u_resolution;
                     uniform float u_time;
+                    uniform bool u_isDayMode; // 新增：白天模式标志
                     
                     varying vec3 v_color;
                     
@@ -153,9 +224,15 @@
                     precision mediump float;
                     varying vec3 v_color;
                     uniform float u_time;
+                    uniform bool u_isDayMode; // 新增：白天模式标志
                     
                     void main() {
-                        gl_FragColor = vec4(v_color, 0.3);
+                        // 根据模式调整透明度
+                        float alpha = 0.3;
+                        if (u_isDayMode) {
+                            alpha = 0.2; // 白天模式稍微降低透明度
+                        }
+                        gl_FragColor = vec4(v_color, alpha);
                     }
                 `;
 
@@ -168,6 +245,7 @@
                     
                     uniform vec2 u_resolution;
                     uniform float u_time;
+                    uniform bool u_isDayMode; // 新增：白天模式标志
                     
                     varying vec3 v_color;
                     
@@ -190,6 +268,7 @@
         const particleFragmentShader = `
                     precision mediump float;
                     varying vec3 v_color;
+                    uniform bool u_isDayMode; // 新增：白天模式标志
                     
                     void main() {
                         vec2 coord = gl_PointCoord - vec2(0.5);
@@ -200,6 +279,11 @@
                         // Create a soft glow
                         float alpha = 1.0 - (distance * 2.0);
                         alpha = pow(alpha, 2.0) * 0.7;
+                        
+                        // 根据模式调整透明度
+                        if (u_isDayMode) {
+                            alpha = alpha * 0.8; // 白天模式稍微降低透明度
+                        }
                         
                         gl_FragColor = vec4(v_color, alpha);
                     }
@@ -263,19 +347,32 @@
       }
 
       createNodes() {
-        const nodeCount = 50;
+        const nodeCount = this.config.nodeCount; // 使用配置中的节点数量
         this.nodes = [];
 
         for (let i = 0; i < nodeCount; i++) {
+          let color;
+          if (this.isDayMode) {
+            // 白天模式使用更明亮的颜色
+            color = [
+              Math.random() * 0.3 + 0.7, // R (0.7-1.0)
+              Math.random() * 0.3 + 0.5, // G (0.5-0.8)
+              Math.random() * 0.5 + 0.3, // B (0.3-0.8)
+            ];
+          } else {
+            // 夜间模式使用深色
+            color = [
+              Math.random() * 0.5 + 0.5, // R
+              Math.random() * 0.5, // G
+              Math.random() * 0.8 + 0.2, // B
+            ];
+          }
+          
           this.nodes.push({
             x: Math.random() * this.canvas.width,
             y: Math.random() * this.canvas.height,
             size: Math.random() * 8 + 4,
-            color: [
-              Math.random() * 0.5 + 0.5, // R
-              Math.random() * 0.5, // G
-              Math.random() * 0.8 + 0.2, // B
-            ],
+            color: color,
             // 添加移动速度属性
             vx: (Math.random() - 0.5) * 0.5,
             vy: (Math.random() - 0.5) * 0.5,
@@ -292,7 +389,7 @@
             const dy = nodeA.y - nodeB.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
 
-            if (distance < 150) {
+            if (distance < this.config.connectionDistance) { // 使用配置中的连接距离
               this.connections.push({
                 x1: nodeA.x,
                 y1: nodeA.y,
@@ -304,25 +401,46 @@
                   (nodeA.color[2] + nodeB.color[2]) / 2,
                 ],
               });
+              
+              // 移动端限制连接数量
+              if (this.config.maxConnections !== Infinity && this.connections.length >= this.config.maxConnections) {
+                break;
+              }
             }
+          }
+          if (this.config.maxConnections !== Infinity && this.connections.length >= this.config.maxConnections) {
+            break;
           }
         }
       }
 
       createParticles() {
-        const particleCount = 200;
+        const particleCount = this.config.particleCount; // 使用配置中的粒子数量
         this.particles = [];
 
         for (let i = 0; i < particleCount; i++) {
+          let color;
+          if (this.isDayMode) {
+            // 白天模式使用更明亮的颜色
+            color = [
+              Math.random() * 0.2 + 0.6, // R (0.6-0.8)
+              Math.random() * 0.3 + 0.5, // G (0.5-0.8)
+              Math.random() * 0.2 + 0.6, // B (0.6-0.8)
+            ];
+          } else {
+            // 夜间模式使用深色
+            color = [
+              Math.random() * 0.3 + 0.7, // R
+              Math.random() * 0.3 + 0.7, // G
+              Math.random() * 0.5 + 0.5, // B
+            ];
+          }
+          
           this.particles.push({
             x: Math.random() * this.canvas.width,
             y: Math.random() * this.canvas.height + this.canvas.height,
             size: Math.random() * 3 + 1,
-            color: [
-              Math.random() * 0.3 + 0.7, // R
-              Math.random() * 0.3 + 0.7, // G
-              Math.random() * 0.5 + 0.5, // B
-            ],
+            color: color,
             // 添加横向速度
             vx: (Math.random() - 0.5) * 0.3,
           });
@@ -332,7 +450,14 @@
       setupEventListeners() {
         window.addEventListener("resize", () => {
           this.resizeCanvas();
+          // 重新检测设备类型和配置
+          const newIsMobile = this.detectMobile();
+          if (newIsMobile !== this.isMobile) {
+            this.isMobile = newIsMobile;
+            this.config = this.getOptimizedConfig();
+          }
           this.createNodes(); // Recreate nodes on resize
+          this.createParticles(); // 重新创建粒子
         });
 
         document.addEventListener("mousemove", (e) => {
@@ -467,6 +592,13 @@
           "u_mouse"
         );
         this.gl.uniform2f(mouseLocation, this.mouseX || 0, this.mouseY || 0);
+        
+        // 传递白天模式标志
+        const isDayModeLocation = this.gl.getUniformLocation(
+          this.nodeProgram,
+          "u_isDayMode"
+        );
+        this.gl.uniform1i(isDayModeLocation, this.isDayMode);
 
         // Draw
         this.gl.drawArrays(this.gl.POINTS, 0, this.nodes.length);
@@ -581,6 +713,13 @@
           "u_time"
         );
         this.gl.uniform1f(timeLocation, this.time);
+        
+        // 传递白天模式标志
+        const isDayModeLocation = this.gl.getUniformLocation(
+          this.connectionProgram,
+          "u_isDayMode"
+        );
+        this.gl.uniform1i(isDayModeLocation, this.isDayMode);
 
         // Draw
         this.gl.drawArrays(this.gl.LINES, 0, this.connections.length * 2);
@@ -702,14 +841,25 @@
           "u_time"
         );
         this.gl.uniform1f(timeLocation, this.time);
-
+        
+        // 传递白天模式标志
+        const isDayModeLocation = this.gl.getUniformLocation(
+          this.particleProgram,
+          "u_isDayMode"
+        );
+        this.gl.uniform1i(isDayModeLocation, this.isDayMode);
+ 
         // Draw
         this.gl.drawArrays(this.gl.POINTS, 0, this.particles.length);
       }
 
       render() {
-        // Clear canvas
-        this.gl.clearColor(0.047, 0.047, 0.078, 1.0); // #0c0c14
+        // Clear canvas based on mode
+        if (this.isDayMode) {
+          this.gl.clearColor(0.85, 0.9, 0.95, 1.0); // 浅蓝白色背景
+        } else {
+          this.gl.clearColor(0.047, 0.047, 0.078, 1.0); // #0c0c14 深蓝黑色背景
+        }
         this.gl.clear(this.gl.COLOR_BUFFER_BIT);
 
         // Enable blending
@@ -729,6 +879,24 @@
         this.time += 0.016;
         this.render();
         requestAnimationFrame(() => this.animate());
+      }
+      
+      // 切换白天/夜间模式
+      toggleDayMode() {
+        this.isDayMode = !this.isDayMode;
+        // 重新创建节点和粒子以使用新模式的颜色
+        this.createNodes();
+        this.createParticles();
+      }
+      
+      // 设置白天模式
+      setDayMode(isDayMode) {
+        if (this.isDayMode !== isDayMode) {
+          this.isDayMode = isDayMode;
+          // 重新创建节点和粒子以使用新模式的颜色
+          this.createNodes();
+          this.createParticles();
+        }
       }
     }
   </script>

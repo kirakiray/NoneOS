@@ -242,7 +242,7 @@ export const proto = {
         lang,
         mainLang,
         callback: async (item) => {
-          const aid = item.aid || item._dataId;
+          const aid = item.aid;
 
           if (!homeAid) {
             homeAid = aid;

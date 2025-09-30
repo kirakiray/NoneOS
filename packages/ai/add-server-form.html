@@ -99,11 +99,19 @@
       </label>
     </p-input>
   </o-if>
+  <o-else-if :value="selected === 'Moonshot'">
+    <p-input sync:value="apiKey" size="small" style="margin-bottom: 16px">
+      <label>
+        <localized-content>
+          <span lang="cn"> Moonshot API密钥</span>
+          <span lang="en"> Moonshot API key</span>
+          <span lang="ja"> Moonshot APIキー</span>
+        </localized-content>
+      </label>
+    </p-input>
+  </o-else-if>
 
-  <p-button
-    attr:disabled="!selected || notReady || !serverUrl"
-    on:click="addServer"
-  >
+  <p-button attr:disabled="confirmBtnDisabled" on:click="addServer">
     <localized-content>
       <span lang="cn"> 确认</span>
       <span lang="en"> Confirm</span>
@@ -125,6 +133,7 @@
           selected: "",
           desc: "",
           serverUrl: "",
+          apiKey: "",
           notReady: false,
           servers: [
             {
@@ -146,16 +155,6 @@
               },
             },
             {
-              name: "OpenAI",
-              icon: resolveUrl("./sources/openai.svg"),
-              desc: {
-                cn: "用于添加OpenAI API密钥以连接OpenAI模型服务。",
-                en: "Used to add the OpenAI API key to connect to the OpenAI model service.",
-                ja: "OpenAI APIキーを追加してOpenAIモデルサービスに接続するために使用します。",
-              },
-              disabled: true,
-            },
-            {
               name: "DeepSeek",
               icon: resolveUrl("./sources/deepseek.svg"),
               iconColor: "#536af6",
@@ -174,11 +173,28 @@
                 en: "Used to add the Moonshot API key to connect to the Moonshot model service.",
                 ja: "Moonshot APIキーを追加してMoonshotモデルサービスに接続するために使用します。",
               },
+            },
+            {
+              name: "OpenAI",
+              icon: resolveUrl("./sources/openai.svg"),
+              desc: {
+                cn: "用于添加OpenAI API密钥以连接OpenAI模型服务。",
+                en: "Used to add the OpenAI API key to connect to the OpenAI model service.",
+                ja: "OpenAI APIキーを追加してOpenAIモデルサービスに接続するために使用します。",
+              },
               disabled: true,
             },
           ],
         },
         proto: {
+          get confirmBtnDisabled() {
+            return (
+              !this.selected ||
+              this.notReady ||
+              (!this.serverUrl && this.selected === "LM Studio") ||
+              (!this.apiKey && this.selected === "Moonshot")
+            );
+          },
           async clickItem(data) {
             this.selected = data.name;
             this.notReady = !!data.disabled;
@@ -195,6 +211,14 @@
                 this.aiSetting.otherAI.push({
                   name: this.selected,
                   url: this.serverUrl,
+                });
+                break;
+              case "DeepSeek":
+              case "Moonshot":
+                debugger;
+                this.aiSetting.otherAI.push({
+                  name: this.selected,
+                  apiKey: this.apiKey,
                 });
                 break;
             }

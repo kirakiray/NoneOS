@@ -24,7 +24,7 @@ export const createData = async (handle, options) => {
 // level 加载几层的数据
 // dataId 目标数据id
 export const loadData = async ({ handle, level = 2, dataId }) => {
-  const finnalData = {};
+  let finnalData = {};
 
   if (level <= 0) {
     Object.defineProperties(finnalData, {
@@ -45,7 +45,16 @@ export const loadData = async ({ handle, level = 2, dataId }) => {
   const content = await dataFileHandle.text();
   const data = JSON.parse(content);
 
+  let isArray = true;
+  let maxLength = 0;
+
   for (let [key, value] of Object.entries(data)) {
+    if (/\D/.test(key)) {
+      isArray = false;
+    } else if (isArray && maxLength < parseInt(key)) {
+      maxLength = parseInt(key);
+    }
+
     if (/^__dataid__/.test(value)) {
       const subDataId = value.replace(/^__dataid__/, "");
 
@@ -60,6 +69,11 @@ export const loadData = async ({ handle, level = 2, dataId }) => {
     } else {
       finnalData[key] = value;
     }
+  }
+
+  if (isArray) {
+    finnalData.length = maxLength + 1;
+    finnalData = Array.from(finnalData);
   }
 
   Object.defineProperties(finnalData, {

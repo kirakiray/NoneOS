@@ -1,6 +1,11 @@
 // 创建存储在单个文件上的会自动保存的数据对象
 import { Stanz } from "/packages/libs/stanz/main.js";
 
+/**
+ * 更新数据，让右边数据替换左边数据
+ * @param {Object} originData - 原始数据对象
+ * @param {Object} afterData - 新数据对象
+ */
 const updateData = (originData, afterData) => {
   for (let [key, value] of Object.entries(afterData)) {
     if (originData[key] === undefined) {
@@ -29,14 +34,18 @@ const refreshData = async (data, handle) => {
     await saving[handle.path];
   }
 
-  // 先获取内容
-  const content = await handle.text();
+  try {
+    // 先获取内容
+    const content = await handle.text();
 
-  if (!content) {
-    return;
+    if (!content) {
+      return;
+    }
+
+    updateData(data, JSON.parse(content));
+  } catch (e) {
+    console.error(e, data, handle);
   }
-
-  updateData(data, JSON.parse(content));
 };
 
 const saving = {};
@@ -48,8 +57,12 @@ const saveData = async (data, handle) => {
   }
 
   const selfPms = (saving[handle.path] = (async () => {
-    // 写入数据
-    await handle.write(JSON.stringify(data));
+    // 判断内容是否已经改变后，确认有改变在执行写入
+    const content = await handle.text();
+    if (content !== JSON.stringify(data)) {
+      // 写入数据
+      await handle.write(JSON.stringify(data));
+    }
 
     if (selfPms === saving[handle.path]) {
       saving[handle.path] = null;

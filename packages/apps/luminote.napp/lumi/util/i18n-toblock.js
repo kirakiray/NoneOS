@@ -136,19 +136,54 @@ export const translateItemData = async ({
     return;
   }
 
+  const trimmedContent = itemData[hostKey].trim();
+
+  // 检查是否只包含特殊符号或emoji符号
+  const specialCharOrEmojiRegex =
+    /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Emoji_Modifier_Base}\p{Emoji_Modifier})+$/gu;
+  if (!trimmedContent || specialCharOrEmojiRegex.test(trimmedContent)) {
+    i18nContent[lang] = {
+      originHash: currentHash,
+      modelName: "auto",
+      value: trimmedContent,
+      time: Date.now(),
+    };
+
+    finalCall && finalCall(trimmedContent);
+    return;
+  }
+
   const _cancelTranslate = solicit({
     groupTitle,
     desc,
     target,
     execute,
     onstart: () => {
-      return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
-1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
-2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
-3. 仅将显示在页面上的自然语言文本翻译成${getRealLang(lang)}；
-4. 不要添加或删除任何标签。
+      //       return `你是一名专业本地化工程师。接下来我会给你一段 HTML 源码，请逐字翻译其中的人类可读文本，同时：
+      // 1. 保留所有标签、属性、占位符、实体、注释及代码结构不变；
+      // 2. 不要翻译标签名、属性名、class、id、URL、脚本、样式内容；
+      // 3. 仅将显示在页面上的自然语言文本翻译成${getRealLang(lang)}；
+      // 4. 不要添加或删除任何标签。
+      // 5. 请返回格式正确的 HTML 代码。
+      // HTML 如下：
+      // ${itemData[hostKey]}
+      // `;
 
-HTML 如下：
+      return `你是一名本地化工程师，任务是把下面这段 HTML 翻译成 ${getRealLang(
+        lang
+      )}，要求严格遵守以下规则：
+
+1. 只翻译**人类可读**的文本节点，任何标签、属性、变量、占位符、注释、CDATA、JS/CSS 代码均不得改动。  
+2. 保留原始缩进、换行与标签大小写；输出必须是标准 HTML，可直接 diff。  
+3. 遇到以下情况保持原样，不做翻译：  
+   - HTML 实体（如 \`&nbsp;\`、\`&amp;\`）  
+   - 变量/占位符（如 \`{{userName}}\`、\`%{count}\`、\`{{__discount__}}\`）  
+   - 缩写、品牌名、专有名词（如 \`USB\`、\`iPhone\`、\`GitHub\`）  
+   - 已本地化或无需翻译的属性（如 \`alt="Logo"\` 若公司规定不译）  
+4. 如果原文无歧义但目标语言需调整语序，可在 \`<span translate="no">...</span>\` 内保留原文顺序；否则直接翻译。  
+5. 输出只给翻译后的完整 HTML，不要附加任何解释或 markdown 代码围栏。
+
+待翻译 HTML：
 ${itemData[hostKey]}
 `;
     },

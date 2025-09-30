@@ -1,0 +1,111 @@
+<template component>
+  <style>
+    :host {
+      display: flex;
+      align-items: center;
+      position: fixed;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 50px;
+      z-index: 2;
+    }
+
+    .lang-selector {
+      margin: 0 16px 0 0;
+      height: 26px;
+    }
+
+    .theme-toggle {
+      margin: 0 16px 0 0;
+      height: 26px;
+      background: transparent;
+      border: 1px solid var(--md-sys-color-normal40);
+      border-radius: 4px;
+      cursor: pointer;
+      padding: 0 10px;
+    }
+
+    .theme-toggle:hover {
+      background: var(--md-ref-palette-translucent-normal50);
+    }
+
+    .theme-dark-mode .theme-toggle {
+      color: white;
+      border-color: var(--md-sys-color-normal70);
+    }
+
+    .theme-dark-mode .theme-toggle:hover {
+      background: var(--md-ref-palette-translucent-normal60);
+    }
+  </style>
+  <button style="margin-left: auto;" class="theme-toggle" on:click="toggleTheme">🌙</button>
+  <select class="lang-selector" sync:value="currentLang" on:change="changeLang">
+    <option value="cn">中文</option>
+    <option value="en">English</option>
+    <option value="ja">日本語</option>
+  </select>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "main-top",
+        data: {
+          currentLang: "",
+        },
+        proto: {
+          changeLang(e) {
+            const lang = e.target.value;
+
+            localStorage.setItem("webmaker_currentLang", lang);
+            location.reload();
+          },
+          // 设置主题模式的公共方法
+          setThemeMode(isDark) {
+            if (isDark) {
+              // 设置为黑夜模式
+              document.documentElement.classList.remove("theme-light-mode");
+              document.documentElement.classList.add("theme-dark-mode");
+              localStorage.setItem("webmaker_isDarkMode", "true");
+              this.host.shadow.$("bg-one").setDayMode(false);
+              // 更新按钮显示
+              this.shadow.$(".theme-toggle").ele.textContent = "☀️";
+            } else {
+              // 设置为白天模式
+              document.documentElement.classList.remove("theme-dark-mode");
+              document.documentElement.classList.add("theme-light-mode");
+              localStorage.setItem("webmaker_isDarkMode", "false");
+              this.host.shadow.$("bg-one").setDayMode(true);
+              // 更新按钮显示
+              this.shadow.$(".theme-toggle").ele.textContent = "🌙";
+            }
+          },
+          toggleTheme() {
+            // 获取当前是否为黑暗模式
+            const isCurrentlyDark =
+              document.documentElement.classList.contains("theme-dark-mode");
+
+            // 切换到相反的模式
+            this.setThemeMode(!isCurrentlyDark);
+          },
+        },
+        attached() {
+          setTimeout(() => {
+            // 判断当前系统是否黑夜模式
+            const isDarkMode =
+              window.matchMedia &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+            let isDark = isDarkMode;
+            // let isDark = false;
+            if (localStorage.getItem("webmaker_isDarkMode")) {
+              isDark = localStorage.getItem("webmaker_isDarkMode") === "true";
+            }
+
+            // 使用公共方法设置主题
+            this.setThemeMode(isDark);
+          }, 100);
+        },
+      };
+    };
+  </script>
+</template>

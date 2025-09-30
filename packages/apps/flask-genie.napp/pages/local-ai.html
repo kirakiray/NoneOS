@@ -30,6 +30,7 @@
 
     export default async ({ load }) => {
       const { getAISetting } = await load("/packages/ai/custom-data.js");
+
       const aiSetting = await getAISetting();
 
       return {

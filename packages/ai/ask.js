@@ -1,4 +1,5 @@
-import { chat } from "./lmstudio.js";
+import { chat as lmstudioChat } from "./lmstudio.js";
+import { chat as moonshotChat } from "./moonshot.js";
 import { getAvailableAIConfigs } from "./main.js";
 
 let availableConfigs = null;
@@ -30,24 +31,51 @@ export const ask = async (prompt, options) => {
 
   const model = configData.model;
 
-  const result = await chat({
-    serverUrl: configData.url,
-    model,
-    messages: [{ role: "user", content: prompt }],
-    onChunk: (e) => {
-      onChunk &&
-        onChunk({
-          role: "lmstudio",
-          modelName: model,
-          responseText: e.fullResponse,
-          currentToken: e.delta,
-        });
-    },
-  });
+  let result;
+  let role;
+  let modelName;
+
+  if (configData.type === "moonshot") {
+    // 使用 Moonshot AI
+    result = await moonshotChat({
+      apiKey: configData.apiKey,
+      model,
+      messages: [{ role: "user", content: prompt }],
+      onChunk: (e) => {
+        onChunk &&
+          onChunk({
+            role: "moonshot",
+            modelName: model,
+            responseText: e.fullResponse,
+            currentToken: e.delta,
+          });
+      },
+    });
+    role = "moonshot";
+    modelName = model;
+  } else {
+    // 使用 LM Studio 或其他本地模型
+    result = await lmstudioChat({
+      serverUrl: configData.url,
+      model,
+      messages: [{ role: "user", content: prompt }],
+      onChunk: (e) => {
+        onChunk &&
+          onChunk({
+            role: "lmstudio",
+            modelName: model,
+            responseText: e.fullResponse,
+            currentToken: e.delta,
+          });
+      },
+    });
+    role = "lmstudio";
+    modelName = model;
+  }
 
   return {
-    role: "lmstudio",
-    modelName: model,
+    role,
+    modelName,
     responseText: result,
   };
 };

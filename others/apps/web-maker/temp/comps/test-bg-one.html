@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WebGL背景测试 - 白天/夜间模式</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+    }
+    
+    #controls {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 100;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      color: white;
+    }
+    
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    
+    #toggleBtn {
+      background: #4CAF50;
+      color: white;
+    }
+    
+    #dayBtn {
+      background: #2196F3;
+      color: white;
+    }
+    
+    #nightBtn {
+      background: #607D8B;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <h3>WebGL背景测试</h3>
+    <button id="toggleBtn">切换模式</button>
+    <button id="dayBtn">白天模式</button>
+    <button id="nightBtn">夜间模式</button>
+    <p>当前模式: <span id="modeText">夜间模式</span></p>
+  </div>
+  
+  <bg-one id="bgElement"></bg-one>
+  
+  <script src="/packages/libs/ofa/ofa.js"></script>
+  <script>
+    // 等待页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      const bgElement = document.getElementById('bgElement');
+      const toggleBtn = document.getElementById('toggleBtn');
+      const dayBtn = document.getElementById('dayBtn');
+      const nightBtn = document.getElementById('nightBtn');
+      const modeText = document.getElementById('modeText');
+      
+      // 切换模式按钮事件
+      toggleBtn.addEventListener('click', function() {
+        bgElement.toggleDayMode();
+        updateModeText();
+      });
+      
+      // 白天模式按钮事件
+      dayBtn.addEventListener('click', function() {
+        bgElement.setDayMode(true);
+        updateModeText();
+      });
+      
+      // 夜间模式按钮事件
+      nightBtn.addEventListener('click', function() {
+        bgElement.setDayMode(false);
+        updateModeText();
+      });
+      
+      // 更新模式显示文本
+      function updateModeText() {
+        modeText.textContent = bgElement.isDayMode() ? '白天模式' : '夜间模式';
+      }
+    });
+  </script>
+</body>
+</html>

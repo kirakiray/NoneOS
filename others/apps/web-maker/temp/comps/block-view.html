@@ -41,8 +41,8 @@
       padding: 8px 16px;
       border-radius: 36px;
       cursor: pointer;
-      color: var(--md-ref-palette-primary80);
-      border: var(--md-ref-palette-primary80) solid 1px;
+      color: var(--md-sys-color-primary);
+      border: var(--md-sys-color-primary) solid 1px;
       transition: all 0.3s ease; /* 添加过渡效果，使状态变化更平滑 */
       user-select: none;
     }
@@ -93,8 +93,8 @@
     }
 
     .btn:hover {
-      color: var(--md-ref-palette-primary100);
-      background-color: var(--md-ref-palette-primary30);
+      color: var(--md-sys-color-primary);
+      background-color: var(--md-sys-color-on-primary);
       animation: random-move 5s infinite alternate ease-in-out;
     }
 
@@ -200,7 +200,7 @@
       display: block;
       width: 100%;
       max-width: 500px;
-      margin: 16px auto;
+      margin: 16px 0;
       padding: 12px 16px;
       font-size: 16px;
       line-height: 1.5;
@@ -227,6 +227,51 @@
       border-color: var(--md-sys-color-primary);
     }
 
+    /* 美化提交按钮样式 */
+    .submit-btn {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      border-radius: 30px;
+      box-sizing: border-box;
+      height: 36px;
+      padding: 0 24px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 14px;
+      font-weight: 500;
+      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-on-primary);
+      border: none;
+      transition: all ease 0.2s;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .submit-btn:active {
+      background-color: var(--md-ref-palette-primary50);
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .submit-btn:focus {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(98, 0, 238, 0.3);
+    }
+
+    .submit-btn[disabled] {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      opacity: 0.5;
+      background-color: var(--md-ref-palette-primary50);
+    }
+
+    .submit-btn[disabled]:hover {
+      background-color: var(--md-ref-palette-primary50);
+      transform: none;
+      box-shadow: none;
+    }
+
     .tick {
       display: inline-block;
       width: 0px;
@@ -251,7 +296,7 @@
     </div>
   </div>
   <o-if :value="isEnd">
-    <h5>继续追问</h5>
+    <h5>Continue</h5>
     <div class="nexts" class:hide-nexts="hideNexts">
       <o-fill :value="nextArticles">
         <div
@@ -266,13 +311,31 @@
         </div>
       </o-fill>
     </div>
-    <div style="width: 100%; text-align: center">
+    <div
+      style="
+        width: 100%;
+        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
       <input
         class="custom-input"
         type="text"
         sync:value="newQuestion"
-        placeholder="请输入您的问题..."
+        placeholder="Enter your questions..."
+        attr:disabled="questionSubmited"
+        on:keydown="queKeydown"
+        style="flex: 1; margin-right: 8px"
       />
+      <button
+        class="submit-btn"
+        on:click="submitQuestion"
+        attr:disabled="questionSubmited"
+      >
+        Submit
+      </button>
     </div>
   </o-if>
   <script>
@@ -283,6 +346,7 @@
         tag: "block-view",
         attrs: {
           aid: null,
+          queryAnswer: null,
         },
         data: {
           gid: -1, // 当前在第几个
@@ -291,20 +355,39 @@
           hideNexts: true,
           checkedAid: null,
           newQuestion: "",
+          questionSubmited: false,
         },
         watch: {
           aid(aid) {
             if (aid) {
-              this.loadData();
+              this.loadArticle();
+            }
+          },
+          queryAnswer(queryAnswer) {
+            if (queryAnswer) {
+              this.loadQuestion();
             }
           },
         },
         proto: {
+          queKeydown(e) {
+            if (e.key === "Enter") {
+              this.submitQuestion();
+            }
+          },
+          submitQuestion() {
+            this.emit("submit-question", {
+              data: { question: this.newQuestion },
+            });
+            this.questionSubmited = true;
+          },
           enterBtn(e) {
             e.target.classList.remove("fadein");
           },
           clickNext(data) {
             this.checkedAid = data.aid;
+            this.questionSubmited = false;
+            this.newQuestion = "";
             this.emit("click-next", {
               data: {
                 ...data,
@@ -312,7 +395,29 @@
               },
             });
           },
-          loadData() {
+          async loadQuestion() {
+            const mainElement = this.shadow.$(".main");
+
+            const { chat } = await load(
+              "https://cdn.jsdelivr.net/npm/ai-tunnel/static/chat.js"
+            );
+
+            await chat({
+              url: window.chaturl,
+              prompt: this.queryAnswer,
+              onMessage: ({ content }) => {
+                if (content.length < 500) {
+                  mainElement.classList.add("big1");
+                }
+                mainElement.html = content;
+              },
+            }).catch((error) => {
+              console.error("聊天出错:", error);
+            });
+
+            this.isEnd = true;
+          },
+          loadArticle() {
             clearTimeout(this._timer);
             const mainElement = this.shadow.$(".main");
 

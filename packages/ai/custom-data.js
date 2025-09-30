@@ -8,12 +8,16 @@ const aiPms = {};
 export const getAISetting = ({ useLocalUserDirName = "main" } = {}) => {
   useLocalUserDirName = useLocalUserDirName || "main";
 
+  if (aiPms[useLocalUserDirName]) {
+    return aiPms[useLocalUserDirName];
+  }
+
   return (aiPms[useLocalUserDirName] = (async () => {
-    const settingDir = await get(`system/ai/${useLocalUserDirName}.json`, {
+    const settingFile = await get(`system/ai/${useLocalUserDirName}.json`, {
       create: "file",
     });
 
-    const aiSettingData = await createData(settingDir);
+    const aiSettingData = await createData(settingFile);
 
     if (!aiSettingData.userPreferences) {
       // 专门给AI食用的用户偏好

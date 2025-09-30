@@ -195,14 +195,13 @@
 
             const { target: targetArticle } = await findArticle({
               app,
-              dataId: this.target.selectedArticleId,
+              aid: this.target.selectedArticleId,
               userId: this.currentUserId,
               dirName: this.currentDirName,
             });
 
             if (!targetArticle) {
               this.isRemoved = 2;
-              this.target.removed = true;
               this.selectedArticleName = "";
               return;
             }
@@ -213,7 +212,6 @@
               this.isRemoved = 0;
             }
 
-            this.target.removed = false;
             this.selectedArticleName = targetArticle.title;
           },
         },

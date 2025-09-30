@@ -306,7 +306,7 @@
                   <o-fill
                     :value="$data?.data?.main"
                     name="article-list-item"
-                    fill-key="_dataId"
+                    fill-key="aid"
                   >
                   </o-fill>
                 </p-list>
@@ -322,15 +322,15 @@
         <template name="article-list-item">
           <p-list-item
             class="article-list-item"
-            attr:data-id="$data._dataId"
+            attr:data-aid="$data.aid"
             class:hide="$data.removed"
             button
-            attr:active-item="$data.aid === $host.currentArticleDataId || $data._dataId === $host.currentArticleDataId"
+            attr:active-item="$data.aid === $host.currentArticleDataId || $data.aid === $host.currentArticleDataId"
             collapse-childs="open"
             on:click="$host.handleClickArticle($data,$event)"
           >
             <dnd-box
-              attr:data-dnd-lumi-article="$data._dataId"
+              attr:data-dnd-lumi-article="$data.aid"
               accept="lumi"
               on:dnd-drop="$host.handleDndDrop($data,$event)"
               style="display: flex; align-items: center"
@@ -365,7 +365,7 @@
               <o-fill
                 :value="$host.getSubArticles($data)"
                 name="article-list-item"
-                fill-key="_dataId"
+                fill-key="aid"
               ></o-fill>
             </p-list>
           </p-list-item>
@@ -484,16 +484,6 @@
                 <lumi-view-lang
                   :project-data="currentProjectData"
                 ></lumi-view-lang>
-
-                <!-- <p-button
-                  size="small"
-                  variant="text"
-                  color="normal"
-                  icon
-                  on:click="openProjectSettingDialog = true"
-                >
-                  <n-local-icon name="config"></n-local-icon>
-                </p-button> -->
               </div>
             </div>
             <div
@@ -563,14 +553,14 @@
               // 查找目标文章
               const from = await findArticle({
                 app: this.app,
-                dataId: dndData.lumiArticle,
+                aid: dndData.lumiArticle,
                 userId: this.currentUserId,
                 dirName: this.currentDirName,
               });
 
               const to = await findArticle({
                 app: this.app,
-                dataId: toArticleId,
+                aid: toArticleId,
                 userId: this.currentUserId,
                 dirName: this.currentDirName,
               });
@@ -645,7 +635,7 @@
               if (to.paths.length === 1) {
                 targetParent = projectData.main;
                 targetItem = toArticleId;
-                index = targetParent.findIndex((e) => e._dataId === targetItem);
+                index = targetParent.findIndex((e) => e.aid === targetItem);
               } else {
                 targetParent = toParent.content;
                 targetItem = to.target;
@@ -726,9 +716,7 @@
           },
           clickBread(item) {
             this.goto(
-              `./note.html?article_id=${item.aid || item._dataId}&user_id=${
-                this.currentUserId
-              }&dir_name=${this.currentDirName}`
+              `./note.html?article_id=${item.aid}&user_id=${this.currentUserId}&dir_name=${this.currentDirName}`
             );
           },
           async handleUpdateBreadcrumbs(e) {
@@ -766,7 +754,7 @@
               case "addSubNote":
                 const { target: targetArticle } = await findArticle({
                   app: this.app,
-                  dataId: selected.data.id,
+                  aid: selected.data.aid,
                   userId: this.currentUserId,
                   dirName: this.currentDirName,
                   isAddProject: 1,
@@ -799,9 +787,7 @@
             });
 
             this.goto(
-              `./note.html?article_id=${data.aid || data._dataId}&user_id=${
-                projectItem.data.projectUserid
-              }&dir_name=${projectItem.data.projectDirname}`
+              `./note.html?article_id=${data.aid}&user_id=${projectItem.data.projectUserid}&dir_name=${projectItem.data.projectDirname}`
             );
           },
           async handleAddNote(e, item) {
@@ -817,7 +803,7 @@
 
             // 模拟点击
             this.handleClickArticle(target, {
-              target: this.shadow.$(`[data-id="${target._dataId}"]`).ele,
+              target: this.shadow.$(`[data-aid="${target.aid}"]`).ele,
             });
           },
           handleActiveArticle(e) {

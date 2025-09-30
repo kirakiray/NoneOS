@@ -8,6 +8,10 @@
     .hide {
       display: none !important;
     }
+
+    .removed {
+      color: var(--md-sys-color-error);
+    }
   </style>
   <p-list style="--ladder-left: 8px">
     <o-fill :value="list" name="article-item"> </o-fill>
@@ -15,10 +19,11 @@
 
   <template name="article-item">
     <p-list-item
-      attr:data-id="$data._dataId"
+      attr:data-aid="$data.aid"
       button
       on:click="$host.selectItem($data)"
-      attr:active-item="$host.selected === $data._dataId"
+      attr:active-item="$host.selected === $data.aid"
+      class:removed="$data.removed"
     >
       <n-local-icon
         name="article"
@@ -35,7 +40,7 @@
       <n-local-icon
         slot="suffix"
         name="tick-circle"
-        class:hide="$data._dataId !== $host.selected"
+        class:hide="$data.aid !== $host.selected"
         style="
           display: block;
           font-size: 18px;
@@ -62,7 +67,7 @@
         },
         proto: {
           selectItem(data) {
-            this.selected = data.aid || data._dataId;
+            this.selected = data.aid;
           },
           async loadList() {
             if (!this.currentDirName) {
@@ -79,9 +84,7 @@
               this.currentUserId
             );
 
-            const list = await findArticle(projectItem.data.main);
-
-            console.log("list: ", list);
+            const list = await getArticleListData(projectItem.data.main);
 
             this.list = list;
           },
@@ -89,7 +92,7 @@
       };
     };
 
-    const findArticle = async (list) => {
+    const getArticleListData = async (list) => {
       const reList = [];
 
       for (let i = 0; i < list.length; i++) {
@@ -98,8 +101,8 @@
           reList.push({
             title: e.title,
             aid: e.aid,
-            _dataId: e._dataId,
-            childs: await findArticle(e.content),
+            removed: e.removed,
+            childs: await getArticleListData(e.content),
           });
         }
       }

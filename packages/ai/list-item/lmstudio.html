@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
   <style>
     :host {
       display: block;
@@ -156,6 +157,15 @@
             </p-button>
           </div>
         </p-list-item>
+        <p-list-item>
+          <p-switch color="error" sync:value="item.disabled">
+            <localized-content>
+              <span lang="cn"> 禁用当前AI</span>
+              <span lang="en"> Disable current AI</span>
+              <span lang="ja"> 当前AIを無効にする</span>
+            </localized-content>
+          </p-switch>
+        </p-list-item>
       </o-else>
       <o-if :value="!defaultai">
         <p-list-item>
@@ -192,13 +202,6 @@
         },
         attrs: {
           defaultai: null,
-        },
-        watch: {
-          item(item) {
-            if (item && (item.url || item.port)) {
-              this.initModels();
-            }
-          },
         },
         proto: {
           async testModel() {
@@ -288,9 +291,13 @@
             }
           },
         },
-        attached() {},
+        attached() {
+          this.initModels();
+        },
         detached() {
-          this.item = {};
+          this.item = {
+            port: "",
+          };
         },
       };
     };

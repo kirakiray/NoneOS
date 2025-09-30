@@ -1,0 +1,265 @@
+<template page>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    n-local-icon {
+      display: block;
+      margin-right: 4px;
+      color: var(--md-sys-color-primary);
+      font-size: 18px;
+    }
+  </style>
+  <p-list-item collapse-childs="close" button="suffix">
+    <img
+      src="../sources/moonshot.svg"
+      width="18"
+      height="18"
+      slot="prefix"
+      style="margin-right: 4px"
+    />
+
+    <div style="display: flex; align-items: center">Moonshot</div>
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs" style="--ladder-left: 16px">
+      <p-list-item>
+        <div style="display: flex; align-items: center">
+          <p-input
+            size="small"
+            sync:value="item.apiKey"
+            style="width: 100%; margin-left: 4px"
+          >
+            <label>
+              <localized-content>
+                <span lang="cn"> API密钥 </span>
+                <span lang="en"> API Key </span>
+                <span lang="ja"> APIキー </span>
+              </localized-content>
+            </label>
+          </p-input>
+        </div>
+      </p-list-item>
+      <o-if :value="error">
+        <localized-content>
+          <div lang="cn">
+            无法连接到 Moonshot AI，请检查您的 API 密钥是否正确。
+          </div>
+          <div lang="en">
+            Unable to connect to Moonshot AI, please check if your API key is
+            correct.
+          </div>
+          <div lang="ja">
+            Moonshot AI に接続できません。API
+            キーが正しいかどうか確認してください。
+          </div>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <p-list-item collapse-childs="open" button="suffix">
+          <n-local-icon name="ai-model" slot="prefix"></n-local-icon>
+          <localized-content>
+            <span lang="cn"> 请选择默认AI模型：</span>
+            <span lang="en"> Please select the default AI model:</span>
+            <span lang="ja"> デフォルトのAIモデルを選択してください：</span>
+          </localized-content>
+          <i toggle-collapse triangle slot="suffix"></i>
+          <p-list slot="childs">
+            <o-fill :value="list" fill-key="id">
+              <p-list-item
+                button
+                on:click="$host.useIt($data)"
+                attr:active-item="$host.item.model === $data.id"
+              >
+                <n-local-icon name="ai-chip" slot="prefix"></n-local-icon>
+                {{$data.name || $data.id}}
+                <o-if :value="$host.item.model === $data.id" slot="suffix">
+                  <n-local-icon
+                    name="tick-circle"
+                    style="color: var(--md-sys-color-success)"
+                  ></n-local-icon>
+                </o-if>
+              </p-list-item>
+            </o-fill>
+          </p-list>
+        </p-list-item>
+        <p-list-item>
+          <div>
+            {{fullResponse}}
+            <p-button
+              on:click="testModel"
+              size="mini"
+              attr:disabled="responsing"
+              variant="outlined"
+              style="margin: 4px"
+            >
+              <localized-content>
+                <span lang="cn"> 你是？</span>
+                <span lang="en"> Who are you?</span>
+                <span lang="ja"> あなたは？</span>
+              </localized-content>
+            </p-button>
+          </div>
+        </p-list-item>
+      </o-else>
+      <p-list-item>
+        <div style="display: flex">
+          <p-button
+            color="error"
+            size="small"
+            variant="outlined"
+            on:click="emit('click-delete')"
+          >
+            <localized-content>
+              <span lang="cn"> 删除该AI</span>
+              <span lang="en"> Delete this AI</span>
+              <span lang="ja"> このAIを削除</span>
+            </localized-content>
+          </p-button>
+        </div>
+      </p-list-item>
+      <p-list-item>
+        <div style="display: flex; flex-wrap: wrap; align-items: center">
+          <p-switch size="small" sync:value="item.useProxy">
+            <localized-content>
+              <span lang="cn"> 使用代理</span>
+              <span lang="en"> Use proxy</span>
+              <span lang="ja"> プロキシを使用</span>
+            </localized-content>
+          </p-switch>
+          <o-if :value="item.useProxy === 'on'">
+            <p-input
+              size="small"
+              sync:value="item.proxyPrefix"
+              style="margin-left: 8px; width: 280px"
+            >
+              <label>
+                <localized-content>
+                  <span lang="cn"> 填写代理前缀</span>
+                  <span lang="en"> Proxy Prefix</span>
+                  <span lang="ja"> プロキシプレフィックス</span>
+                </localized-content>
+              </label>
+            </p-input>
+          </o-if>
+        </div>
+      </p-list-item>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { chat, getModels } = await load("../moonshot.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        data: {
+          error: "",
+          list: [], // 模型列表
+          fullResponse: "",
+          responsing: false,
+        },
+        proto: {
+          async testModel() {
+            this.responsing = true;
+
+            const prompt = await getLocalized({
+              cn: "你是谁？回答的内容简短一点",
+              en: "Who are you? Just answer",
+              ja: "あなたは？直接回答してください。",
+            });
+
+            try {
+              const apiKey = this.item.apiKey;
+              if (!apiKey || apiKey === "undefined") {
+                return;
+              }
+
+              const fetchOptions = {
+                apiKey,
+                model: this.item.model,
+              };
+
+              if (this.item.useProxy === "on" && this.item.proxyPrefix) {
+                fetchOptions.proxyPrefix = this.item.proxyPrefix;
+              }
+
+              const result = await chat({
+                ...fetchOptions,
+                messages: [{ role: "user", content: prompt }],
+                onChunk: (e) => {
+                  const { fullResponse } = e;
+                  this.fullResponse = fullResponse;
+                },
+              });
+
+              this.fullResponse = result;
+
+              this.fullResponse = result;
+            } catch (err) {
+              this.fullResponse = await getLocalized({
+                cn: "测试模型失败",
+                en: "Test model failed",
+                ja: "モデルのテストが失敗しました",
+              });
+            } finally {
+              this.responsing = false;
+            }
+          },
+          useIt(data) {
+            this.item.model = data.id;
+            this.testModel();
+          },
+          async initModels() {
+            const apiKey = this.item.apiKey;
+
+            try {
+              const fetchOptions = {
+                apiKey,
+              };
+
+              if (this.item.useProxy === "on" && this.item.proxyPrefix) {
+                fetchOptions.proxyPrefix = this.item.proxyPrefix;
+              }
+
+              // Moonshot 使用固定模型列表
+              const list = await getModels(fetchOptions);
+
+              list.sort((a, b) => {
+                if (a.id < b.id) {
+                  return -1;
+                }
+                if (a.id > b.id) {
+                  return 1;
+                }
+                return 0;
+              });
+
+              this.list = list;
+              this.error = "";
+            } catch (err) {
+              this.error = err.message;
+              this.list = [];
+            }
+          },
+        },
+        attached() {
+          setTimeout(() => {
+            // 检查并修正 proxyPrefix 为空字符串
+            if (
+              !this.item.proxyPrefix ||
+              this.item.proxyPrefix === "undefined"
+            ) {
+              this.item.proxyPrefix = "";
+            }
+          }, 500);
+
+          this.initModels();
+        },
+        detached() {
+          this.item = {};
+        },
+      };
+    };
+  </script>
+</template>

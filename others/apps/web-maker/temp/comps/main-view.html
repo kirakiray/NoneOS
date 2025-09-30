@@ -1,6 +1,7 @@
 <template component>
   <l-m src="./block-view.html"></l-m>
-  <l-m src="../comps/bg-one.html"></l-m>
+  <!-- <l-m src="../comps/bg-one.html"></l-m> -->
+  <l-m src="../comps/top.html"></l-m>
   <style>
     :host {
       display: block;
@@ -8,6 +9,7 @@
     }
     .main {
       display: flex;
+      justify-content: center;
       height: 100%;
       position: relative;
       z-index: 1;
@@ -16,6 +18,7 @@
     .right {
       /* background-color: red; */
       flex: 1 0 200px;
+      transition: all ease 0.3s;
     }
 
     .article-outer {
@@ -82,6 +85,10 @@
       .right {
         display: none;
       }
+
+      .left.hide-left {
+        flex: 0 0 0;
+      }
     }
 
     @media screen and (max-width: 600px) {
@@ -126,8 +133,9 @@
     }
   </style>
   <bg-one style="position: absolute; left: 0; top: 0; z-index: 0"></bg-one>
+  <main-top :current-lang="currentLang"></main-top>
   <div class="main">
-    <div class="left">
+    <div class="left" class:hide-left="list.length == 1">
       <div class="list">
         <div style="height: 100px"></div>
         <o-fill :value="list">
@@ -145,19 +153,29 @@
       <div class="article">
         <!-- <div class="top"></div> -->
         <o-fill :value="list">
-          <div>
+          <div style="margin: 0 auto">
             <o-if :value="$data.aid">
               <block-view
                 attr:aid="$data.aid"
                 :gid="$index"
                 on:click-next="$host.clickNext($event)"
+                on:submit-question="$host.submitQuestion($event)"
               ></block-view>
             </o-if>
-            <o-else>
+            <o-else-if :value="$data.question">
               <div class="que-block" attr:data-queaid="$data.queaid">
                 <div class="que-inner">{{$data.question}}</div>
               </div>
-            </o-else>
+            </o-else-if>
+            <o-else-if :value="$data.queryAnswer">
+              <block-view
+                attr:aid="$data.aid"
+                attr:query-answer="$data.queryAnswer"
+                :gid="$index"
+                on:click-next="$host.clickNext($event)"
+                on:submit-question="$host.submitQuestion($event)"
+              ></block-view>
+            </o-else-if>
           </div>
         </o-fill>
         <div class="bottom"></div>
@@ -167,22 +185,56 @@
   </div>
   <script>
     export default async ({ load }) => {
+      await load("../comps/bg-one.html");
+
       return {
         tag: "main-view",
         data: {
           currentContentData: {},
           allArticleData: [],
           list: [],
+          currentLang: "",
         },
         proto: {
           clickItem(data) {
-            const targetBlock = this.shadow.$(`[data-queaid="${data.queaid}"]`);
+            let targetBlock = this.shadow.$(`[data-queaid="${data.queaid}"]`);
+
+            if (!targetBlock) {
+              targetBlock = this.shadow.$(`[query-answer="${data.question}"]`);
+            }
+
             targetBlock.ele.scrollIntoView({
               behavior: "smooth",
               block: "start",
               inline: "nearest",
               scrollMarginTop: 32,
             });
+          },
+          submitQuestion({ data }) {
+            this.list.push(
+              {
+                question: data.question,
+              },
+              {
+                queryAnswer: data.question,
+              }
+            );
+
+            // 在提交问题后滚动到新添加的问题
+            setTimeout(() => {
+              let targetBlock = this.shadow.$(
+                `[query-answer="${data.question}"]`
+              );
+
+              if (targetBlock) {
+                targetBlock.ele.scrollIntoView({
+                  behavior: "smooth",
+                  block: "start",
+                  inline: "nearest",
+                  scrollMarginTop: 32,
+                });
+              }
+            }, 100);
           },
           clickNext({ data }) {
             const { gid } = data;
@@ -216,20 +268,19 @@
               });
             }, 100);
           },
-          async loadContentData() {
+          async loadContentData(lang) {
             let previewData = null;
+
             try {
+              previewData = await load(`../data-${lang}.json`);
+            } catch (err) {
               const { get } = await load("/packages/fs/main.js");
 
               const previewCacheFile = await get(
-                "local/others/_web-marker-preview.json"
+                `local/others/web-maker/data-${lang}.json`
               );
               previewData = await previewCacheFile.text();
               previewData = JSON.parse(previewData);
-            } catch (err) {
-              // console.error(err);
-              // 从上级获取数据
-              previewData = await load("../data.json");
             }
 
             this.allArticleData = previewData.list;
@@ -246,7 +297,29 @@
           },
         },
         attached() {
-          this.loadContentData();
+          let currentLang = localStorage.getItem("webmaker_currentLang");
+
+          // 如果未被设置，则根据用户系统默认语言进行调整
+          if (!currentLang) {
+            const systemLang = navigator.language.toLocaleLowerCase();
+
+            if (window.langs) {
+              langs.some((lang) => {
+                if (systemLang.includes(lang)) {
+                  currentLang = lang;
+                  return true;
+                }
+              });
+
+              if (!currentLang) {
+                currentLang = "en";
+              }
+            }
+          }
+
+          this.currentLang = currentLang;
+
+          this.loadContentData(currentLang);
         },
       };
     };

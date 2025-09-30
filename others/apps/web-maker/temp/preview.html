@@ -4,9 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Preview</title>
-    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <script src="https://cdn.jsdelivr.net/gh/kirakiray/ofa.js/dist/ofa.min.js#debug"></script>
     <link rel="stylesheet" href="./css/public.css" />
     <link rel="stylesheet" href="./comps/colors.css" />
+
     <style>
       html,
       body {
@@ -23,12 +24,16 @@
           "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
           "Segoe UI Emoji", "Segoe UI Symbol";
         -webkit-font-smoothing: auto;
-        background-color: #131313;
-        color: #f9f9f9;
+        /* background-color: #131313; */
+        /* color: #f9f9f9; */
       }
     </style>
   </head>
   <body>
+    <script>
+      window.langs = ["en", "cn"];
+      window.chaturl = "ws://localhost:3000/chat";
+    </script>
     <l-m src="./comps/main-view.html"></l-m>
     <main-view></main-view>
   </body>

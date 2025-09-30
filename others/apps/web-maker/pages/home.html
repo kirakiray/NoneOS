@@ -13,6 +13,14 @@
     }
   </style>
   <div class="container">
+    <div>
+      title
+      <input type="text" placeholder="title" sync:value="titleVal" />
+    </div>
+    <div>
+      chaturl
+      <input type="text" placeholder="chat url" sync:value="chatUrlVal" />
+    </div>
     <h1>选择目标项目导出为网站</h1>
     <lumi-project-list on:select="selectProject"></lumi-project-list>
     <o-if :value="!!listData.length">
@@ -31,6 +39,8 @@
     </o-if>
   </div>
   <script>
+    import { exportHandle } from "/packages/fs/task/main.js";
+
     export default async ({ load }) => {
       const { loadData } = await load("/packages/hybird-data/main.js");
       const { transArticle } = await load("../util/trans-article.js");
@@ -38,27 +48,95 @@
 
       return {
         data: {
+          _allData: {},
           listData: [],
           homeId: null,
+          titleVal: localStorage.getItem("webmaker_titleVal") || "",
+          chatUrlVal: localStorage.getItem("webmaker_chatUrlVal") || "",
+          langs: [],
+        },
+        watch: {
+          titleVal(titleVal) {
+            localStorage.setItem("webmaker_titleVal", titleVal);
+          },
+          chatUrlVal(chatUrlVal) {
+            localStorage.setItem("webmaker_chatUrlVal", chatUrlVal);
+          },
         },
         proto: {
           async selectIndex(data) {
             this.homeId = data.aid;
 
-            // 保存到一个缓存文件夹上
-            const cacheFile = await get(
-              "local/others/_web-marker-preview.json",
-              {
-                create: "file",
-              }
+            for (let lang of this.langs) {
+              const dataFile = await get(
+                `local/others/web-maker/data-${lang}.json`,
+                {
+                  create: "file",
+                }
+              );
+
+              await dataFile.write(
+                JSON.stringify({
+                  homeid: data.aid,
+                  list: this._allData[lang],
+                })
+              );
+            }
+
+            const indexFile = await get("local/others/web-maker/index.html", {
+              create: "file",
+            });
+
+            let indexText = await fetch(
+              "/others/apps/web-maker/temp/preview.html"
+            ).then((e) => e.text());
+
+            indexText = indexText.replace(
+              "<title>Preview</title>",
+              `<title>${this.titleVal}</title>`
+            );
+            indexText = indexText.replace(
+              '["en", "cn"]',
+              JSON.stringify(this.langs)
+            );
+            indexText = indexText.replace(
+              'window.chaturl = "ws://localhost:3000/chat";',
+              `window.chaturl = "${this.chatUrlVal}";`
             );
 
-            await cacheFile.write(
-              JSON.stringify({
-                homeid: data.aid,
-                list: this.listData,
-              })
-            );
+            await indexFile.write(indexText);
+
+            const othersFile = [
+              "comps/bg-one.html",
+              "comps/top.html",
+              "comps/block-view.html",
+              "comps/colors.css",
+              "comps/main-view.html",
+              "css/colors.css",
+              "css/public.css",
+              "css/theme.css",
+            ];
+
+            for (let path of othersFile) {
+              const file = await get("local/others/web-maker/" + path, {
+                create: "file",
+              });
+
+              const text = await fetch(
+                location.origin + "/others/apps/web-maker/temp/" + path
+              ).then((e) => e.text());
+
+              await file.write(text);
+            }
+
+            const subs = [];
+            const previewerHandle = await get("local/others/web-maker");
+            for await (let item of previewerHandle.values()) {
+              subs.push(item.path);
+            }
+
+            // 下载文件
+            exportHandle(subs, "final-web");
           },
           async selectProject({ data }) {
             console.log("data: ", data);
@@ -69,33 +147,59 @@
               level: 100,
             });
 
-            const article = await transArticle(projectData);
+            this.langs = [projectData.mainLang, ...projectData.otherLang];
 
-            let llmstxt = "";
+            const artiches = [];
 
-            // 组装数据
-            article.forEach((e) => {
-              const { aid, html, title } = e;
+            const mainArticle = await transArticle(projectData);
 
-              // 假设你已经通过 script 标签引入了 Turndown
-              const turndownService = new TurndownService({
-                headingStyle: "atx", // 设置标题样式为 ATX (使用 #)
+            this._allData[projectData.mainLang] = mainArticle;
+
+            artiches.push({
+              lang: projectData.mainLang,
+              article: mainArticle,
+            });
+
+            for (const lang of projectData.otherLang) {
+              this._allData[lang] = await transArticle(projectData, lang);
+              artiches.push({
+                lang,
+                article: this._allData[lang],
+              });
+            }
+
+            for (let item of artiches) {
+              const { lang, article } = item;
+
+              let llmstxt = "";
+
+              // 组装数据
+              article.forEach((e) => {
+                const { aid, html, title } = e;
+
+                // 假设你已经通过 script 标签引入了 Turndown
+                const turndownService = new TurndownService({
+                  headingStyle: "atx", // 设置标题样式为 ATX (使用 #)
+                });
+
+                const markdown = turndownService.turndown(
+                  `<h1>${title}</h1>\n${html}`
+                );
+
+                llmstxt += `--文章ID: ${aid} 内容开始--\n${markdown}\n--文章ID: ${aid} 内容结束--\n\n`;
               });
 
-              const markdown = turndownService.turndown(
-                `<h1>${title}</h1>\n${html}`
+              const llmsFile = await get(
+                `local/others/_web-marker-llms-${lang}.txt`,
+                {
+                  create: "file",
+                }
               );
 
-              llmstxt += `--文章ID: ${aid} 内容开始--\n${markdown}\n--文章ID: ${aid} 内容结束--\n\n`;
-            });
+              await llmsFile.write(llmstxt);
+            }
 
-            const llmsFile = await get("local/others/_web-marker-llms.txt", {
-              create: "file",
-            });
-
-            await llmsFile.write(llmstxt);
-
-            this.listData = article;
+            this.listData = mainArticle;
           },
         },
       };

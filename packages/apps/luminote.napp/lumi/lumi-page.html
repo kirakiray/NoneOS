@@ -166,7 +166,7 @@
             const { recordData, revoke } = await getRecordByPageId({
               targetUserId: notePage.currentUserId,
               projectDirName: notePage.currentDirName,
-              articleId: this.itemData._dataId,
+              articleId: this.itemData.aid,
               app: this.parents.find((e) => e.tag === "o-app"),
             });
 

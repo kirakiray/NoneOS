@@ -63,7 +63,7 @@
       <span lang="ja">ローカルプロジェクト</span>
     </localized-content>
   </h4>
-  <p-list style="overflow: visible;">
+  <p-list style="overflow: visible">
     <o-fill :value="existProjects" fill-key="projectDataId">
       <p-list-item
         on:click="$host.switchProject($data)"
@@ -452,12 +452,10 @@
 
             setTimeout(() => {
               // 切换到第一篇文章
-              try {
-                this.host.parent.shadow
-                  .$(`p-list-item[data-project-userid]`)
-                  .$(".article-list-item")
-                  .ele.click();
-              } catch (err) {}
+              this.host.parent.shadow
+                .$(`p-list-item[data-project-userid]`)
+                .$(".article-list-item")
+                .ele.click();
             }, 300);
           },
           // 删除项目
