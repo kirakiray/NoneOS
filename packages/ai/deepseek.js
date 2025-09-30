@@ -41,7 +41,7 @@ export async function chat({ apiKey, onChunk, model, messages, proxyPrefix }) {
         model: model,
         messages: messages,
         temperature: 0.7,
-        max_tokens: 1024 * 32,
+        max_tokens: 8192,
         stream: useStream,
       }),
     });
@@ -113,9 +113,57 @@ let getModelsCache = null;
  * @returns {Promise<Array>} 返回模型列表数组
  */
 export async function getModels({ apiKey, proxyPrefix }) {
-  // DeepSeek API 不提供动态模型列表接口，返回固定的模型列表
-  return [
-    { id: "deepseek-chat", name: "DeepSeek Chat" },
-    { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
-  ];
+  if (!apiKey) {
+    throw new Error("API Key is required");
+  }
+
+  // 使用缓存避免重复请求
+  if (getModelsCache) {
+    return getModelsCache;
+  }
+
+  let fetchUrl = "https://api.deepseek.com/v1/models";
+
+  if (proxyPrefix) {
+    fetchUrl = `${proxyPrefix}${encodeURIComponent(fetchUrl)}`;
+  }
+
+  try {
+    const res = await fetch(fetchUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    const data = await res.json();
+
+    // 解析模型列表
+    const models = data.data || [];
+    const modelList = models.map((model) => ({
+      id: model.id,
+      name: model.id,
+      object: model.object,
+      created: model.created,
+      owned_by: model.owned_by,
+    }));
+
+    // 缓存结果
+    getModelsCache = modelList;
+
+    return modelList;
+  } catch (error) {
+    console.error("Error fetching DeepSeek models:", error);
+
+    // 如果在线请求失败，返回默认的模型列表作为降级方案
+    return [
+      { id: "deepseek-chat", name: "DeepSeek Chat" },
+      { id: "deepseek-reasoner", name: "DeepSeek Reasoner" },
+    ];
+  }
 }
