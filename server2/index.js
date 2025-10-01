@@ -27,6 +27,11 @@ function onMessage(ws, message) {
       // 广播消息给所有连接的客户端
       server._broadcastMessage(message);
       break;
+      
+    case "ping":
+      // 处理客户端的ping消息，返回pong响应
+      ws.send(JSON.stringify({ type: "pong" }));
+      break;
 
     default:
       ws.send(

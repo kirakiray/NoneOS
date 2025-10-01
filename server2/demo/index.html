@@ -135,6 +135,7 @@
 
     <script>
       let socket = null;
+      let pingInterval = null;
 
       const statusElement = document.getElementById("status");
       const connectBtn = document.getElementById("connectBtn");
@@ -156,11 +157,25 @@
           connectBtn.disabled = true;
           disconnectBtn.disabled = false;
           sendBtn.disabled = false;
+
+          // 设置ping间隔，每30秒发送一次ping
+          pingInterval = setInterval(() => {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+              socket.send(JSON.stringify({ type: "ping" }));
+            }
+          }, 30000);
         });
 
         // 监听消息接收事件
         socket.addEventListener("message", function (event) {
           const data = JSON.parse(event.data);
+          
+          // 处理pong消息
+          if (data.type === "pong") {
+            addMessageToHistory("系统: 收到服务器pong响应", "system");
+            return;
+          }
+          
           addMessageToHistory(
             `服务器: ${data.type} - ${data.message}`,
             "received"
@@ -174,6 +189,13 @@
           connectBtn.disabled = false;
           disconnectBtn.disabled = true;
           sendBtn.disabled = true;
+          
+          // 清除ping间隔
+          if (pingInterval) {
+            clearInterval(pingInterval);
+            pingInterval = null;
+          }
+          
           socket = null;
         });
 
