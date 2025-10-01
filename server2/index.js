@@ -32,6 +32,37 @@ function onMessage(ws, message) {
       // 处理客户端的ping消息，返回pong响应
       ws.send(JSON.stringify({ type: "pong" }));
       break;
+      
+    case "get_connections":
+      // 获取所有连接的客户端信息
+      const connectionsInfo = server.getConnectionsInfo();
+      ws.send(
+        JSON.stringify({
+          type: "connections_info",
+          clients: connectionsInfo,
+        })
+      );
+      break;
+      
+    case "disconnect_client":
+      // 断开指定客户端的连接
+      if (message.clientId) {
+        server.disconnectClient(message.clientId);
+        ws.send(
+          JSON.stringify({
+            type: "success",
+            message: `已断开客户端 ${message.clientId} 的连接`,
+          })
+        );
+      } else {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "缺少客户端ID参数",
+          })
+        );
+      }
+      break;
 
     default:
       ws.send(
