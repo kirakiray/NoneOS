@@ -4,7 +4,7 @@
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static": "node scripts/static-server & node server/test-server.js & node server/test-server2.js & node server/crossway-server.js",
+    "static": "node scripts/static-server & node server/test-server.js & node server/test-server2.js",
     "update-test": "node scripts/update-test.js && node scripts/generate-specs.js",
     "test": "npx playwright test",
     "bu": "npm run build-sw && npm run build-sw-min && npm run build-server && npm run buhash && npm run zippkg && npm run update-test",
@@ -14,7 +14,7 @@
     "build-sw-min": "rollup sw/main.js --file sw/dist.min.js --format iife --plugin terser",
     "build-server": "rollup server/main.js --file server/dist.js --sourcemap",
     "hand": "nodemon --inspect server/test-server.js",
-    "dev": "node scripts/static-server & node --inspect server/test-server.js & node server/test-server2.js & node server/crossway-server.js",
+    "dev": "node scripts/static-server & node --inspect server/test-server.js & node server/test-server2.js",
     "ci-test": "node scripts/ci-test.js"
   },
   "repository": {
