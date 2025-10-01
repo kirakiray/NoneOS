@@ -1,84 +1,227 @@
-import WebSocket from "ws";
+// WebSocketServer.js
+export class WebSocketServer {
+  constructor() {
+    this.wss = null;
+    this.clients = new Set(); // 用于存储Bun环境下的客户端连接
+  }
 
-// 创建WebSocket服务器，监听在8080端口
-const wss = new WebSocket.Server({ port: 8080 });
+  /**
+   * 启动WebSocket服务器
+   * @param {number} port - 服务器监听端口
+   */
+  start(port = 8080) {
+    if (typeof Bun !== "undefined") {
+      this._startBunServer(port);
+    } else {
+      this._startNodeServer(port);
+    }
+  }
 
-console.log("WebSocket服务器启动，监听端口 8080");
+  /**
+   * 在Bun环境下启动WebSocket服务器
+   * @param {number} port - 服务器监听端口
+   */
+  _startBunServer(port) {
+    console.log("使用Bun原生WebSocket服务器");
 
-// 处理连接事件
-wss.on("connection", function connection(ws) {
-  console.log("新的客户端连接");
+    // 创建WebSocket处理器
+    const websocketHandler = {
+      open: (ws) => {
+        console.log("新的客户端连接");
+        this.clients.add(ws);
 
-  // 向客户端发送欢迎消息
-  ws.send(
-    JSON.stringify({
-      type: "welcome",
-      message: "欢迎连接到WebSocket服务器",
-    })
-  );
+        // 向客户端发送欢迎消息
+        ws.send(
+          JSON.stringify({
+            type: "welcome",
+            message: "欢迎连接到WebSocket服务器(Bun)",
+          })
+        );
+      },
 
-  // 监听客户端消息
-  ws.on("message", function incoming(data) {
-    console.log("收到客户端消息:", data.toString());
+      message: (ws, data) => {
+        console.log("收到客户端消息:", data);
 
-    try {
-      // 解析客户端发送的JSON数据
-      const message = JSON.parse(data.toString());
+        try {
+          // 解析客户端发送的JSON数据
+          const message = JSON.parse(data);
 
-      // 根据消息类型处理
-      switch (message.type) {
-        case "echo":
-          // 回显消息
-          ws.send(
-            JSON.stringify({
-              type: "echo",
-              message: message.message,
-              timestamp: new Date().toISOString(),
-            })
-          );
-          break;
-
-        case "broadcast":
-          // 广播消息给所有连接的客户端
-          wss.clients.forEach(function each(client) {
-            if (client.readyState === WebSocket.OPEN) {
-              client.send(
-                JSON.stringify({
-                  type: "broadcast",
-                  message: message.message,
-                  timestamp: new Date().toISOString(),
-                })
-              );
-            }
-          });
-          break;
-
-        default:
+          // 根据消息类型处理
+          this._handleMessage(ws, message);
+        } catch (error) {
+          console.error("处理消息时出错:", error);
           ws.send(
             JSON.stringify({
               type: "error",
-              message: "未知的消息类型",
+              message: "消息格式错误",
             })
           );
-      }
+        }
+      },
+
+      close: (ws, code, message) => {
+        console.log("客户端断开连接:", code, message);
+        this.clients.delete(ws);
+      },
+
+      error: (ws, error) => {
+        console.error("WebSocket错误:", error);
+      },
+    };
+
+    // 使用Bun.serve创建HTTP服务器并处理WebSocket连接
+    this.server = Bun.serve({
+      port: port,
+      fetch: (req, server) => {
+        // 升级到WebSocket连接
+        if (server.upgrade(req)) {
+          return; // 不返回响应，因为连接已升级为WebSocket
+        }
+
+        // 对于非WebSocket请求，返回404
+        return new Response("无法找到该页面", { status: 404 });
+      },
+
+      websocket: websocketHandler,
+    });
+
+    console.log(`Bun WebSocket服务器启动，监听端口 ${port}`);
+  }
+
+  /**
+   * 在Node.js环境下启动WebSocket服务器
+   * @param {number} port - 服务器监听端口
+   */
+  async _startNodeServer(port) {
+    console.log("使用Node.js ws库");
+
+    try {
+      const { WebSocketServer } = await import("ws");
+      // 创建WebSocket服务器，监听在指定端口
+      this.wss = new WebSocketServer({ port: port });
+
+      console.log(`WebSocket服务器启动，监听端口 ${port}`);
+
+      // 处理连接事件
+      this.wss.on("connection", (ws) => {
+        console.log("新的客户端连接");
+
+        // 向客户端发送欢迎消息
+        ws.send(
+          JSON.stringify({
+            type: "welcome",
+            message: "欢迎连接到WebSocket服务器(Node.js)",
+          })
+        );
+
+        // 监听客户端消息
+        ws.on("message", (data) => {
+          console.log("收到客户端消息:", data.toString());
+
+          try {
+            // 解析客户端发送的JSON数据
+            const message = JSON.parse(data.toString());
+
+            // 根据消息类型处理
+            this._handleMessage(ws, message);
+          } catch (error) {
+            console.error("处理消息时出错:", error);
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: "消息格式错误",
+              })
+            );
+          }
+        });
+
+        // 监听连接关闭事件
+        ws.on("close", () => {
+          console.log("客户端断开连接");
+        });
+
+        // 监听错误事件
+        ws.on("error", (err) => {
+          console.error("WebSocket错误:", err);
+        });
+      });
     } catch (error) {
-      console.error("处理消息时出错:", error);
-      ws.send(
-        JSON.stringify({
-          type: "error",
-          message: "消息格式错误",
-        })
-      );
+      console.error("无法加载ws库:", error);
     }
-  });
+  }
 
-  // 监听连接关闭事件
-  ws.on("close", function close() {
-    console.log("客户端断开连接");
-  });
+  /**
+   * 处理客户端消息
+   * @param {WebSocket} ws - WebSocket连接对象
+   * @param {Object} message - 客户端发送的消息
+   */
+  _handleMessage(ws, message) {
+    switch (message.type) {
+      case "echo":
+        // 回显消息
+        ws.send(
+          JSON.stringify({
+            type: "echo",
+            message: message.message,
+            timestamp: new Date().toISOString(),
+          })
+        );
+        break;
 
-  // 监听错误事件
-  ws.on("error", function error(err) {
-    console.error("WebSocket错误:", err);
-  });
-});
+      case "broadcast":
+        // 广播消息给所有连接的客户端
+        this._broadcastMessage(message);
+        break;
+
+      default:
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "未知的消息类型",
+          })
+        );
+    }
+  }
+
+  /**
+   * 广播消息给所有连接的客户端
+   * @param {Object} message - 要广播的消息
+   */
+  _broadcastMessage(message) {
+    const broadcastData = JSON.stringify({
+      type: "broadcast",
+      message: message.message,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (typeof Bun !== "undefined") {
+      // Bun环境下广播消息
+      this.clients.forEach((client) => {
+        if (client.readyState === undefined || client.readyState === 1) {
+          // Bun WebSocket没有readyState属性，或者1表示OPEN状态
+          client.send(broadcastData);
+        }
+      });
+    } else if (this.wss) {
+      // Node.js环境下广播消息
+      this.wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(broadcastData);
+        }
+      });
+    }
+  }
+
+  /**
+   * 停止WebSocket服务器
+   */
+  stop() {
+    if (typeof Bun !== "undefined" && this.server) {
+      this.server.stop();
+      console.log("Bun WebSocket服务器已停止");
+    } else if (this.wss) {
+      this.wss.close();
+      console.log("Node.js WebSocket服务器已停止");
+    }
+  }
+}
