@@ -3,6 +3,12 @@
 // index.js - WebSocket服务器入口文件
 import { WebSocketServer } from "./ws-server.js";
 
+// 定义连接处理函数
+function handleConnect(ws) {
+  console.log("新客户端已连接");
+  // 可以在这里添加连接时的处理逻辑
+}
+
 // 定义消息处理函数
 function handleMessage(ws, message) {
   switch (message.type) {
@@ -32,8 +38,8 @@ function handleMessage(ws, message) {
   }
 }
 
-// 创建WebSocket服务器实例，传入消息处理函数
-const server = new WebSocketServer(handleMessage);
+// 创建WebSocket服务器实例，传入消息处理函数和连接处理函数
+const server = new WebSocketServer(handleMessage, handleConnect);
 
 // 启动服务器，监听18290端口
 server.start(18290);

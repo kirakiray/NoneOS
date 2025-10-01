@@ -1,6 +1,6 @@
 // WebSocketServer.js
 export class WebSocketServer {
-  constructor(messageHandler) {
+  constructor(messageHandler, connectHandler) {
     this.wss = null;
     this.clients = new Set(); // 用于存储Bun环境下的客户端连接
     
@@ -10,6 +10,13 @@ export class WebSocketServer {
     }
     
     this.messageHandler = messageHandler; // 消息处理回调函数（必需）
+    
+    // 验证 connectHandler 是否为函数（可选）
+    if (connectHandler && typeof connectHandler !== 'function') {
+      throw new Error('connectHandler 必须是一个函数');
+    }
+    
+    this.connectHandler = connectHandler; // 连接处理回调函数（可选）
   }
 
   /**
@@ -36,6 +43,11 @@ export class WebSocketServer {
       open: (ws) => {
         console.log("新的客户端连接");
         this.clients.add(ws);
+
+        // 如果提供了连接处理回调函数，则调用它
+        if (this.connectHandler) {
+          this.connectHandler(ws);
+        }
 
         // 向客户端发送欢迎消息
         ws.send(
@@ -123,6 +135,11 @@ export class WebSocketServer {
       // 处理连接事件
       this.wss.on("connection", (ws) => {
         console.log("新的客户端连接");
+
+        // 如果提供了连接处理回调函数，则调用它
+        if (this.connectHandler) {
+          this.connectHandler(ws);
+        }
 
         // 向客户端发送欢迎消息
         ws.send(
