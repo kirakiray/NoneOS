@@ -4,41 +4,36 @@ export class WebSocketServer {
     this.wss = null;
     this.clients = new Set(); // 用于存储Bun环境下的客户端连接
     this.clientInfo = new Map(); // 存储客户端信息
-    
+
     // 解构options对象，设置默认值
-    const {
-      onMessage,
-      onConnect,
-      onClose,
-      onError
-    } = options;
-    
+    const { onMessage, onConnect, onClose, onError } = options;
+
     // 验证 onMessage 是否为函数
-    if (typeof onMessage !== 'function') {
-      throw new Error('onMessage 必须是一个函数');
+    if (typeof onMessage !== "function") {
+      throw new Error("onMessage 必须是一个函数");
     }
-    
+
     this.onMessage = onMessage; // 消息处理回调函数（必需）
-    
+
     // 验证 onConnect 是否为函数（可选）
-    if (onConnect && typeof onConnect !== 'function') {
-      throw new Error('onConnect 必须是一个函数');
+    if (onConnect && typeof onConnect !== "function") {
+      throw new Error("onConnect 必须是一个函数");
     }
-    
+
     this.onConnect = onConnect; // 连接处理回调函数（可选）
-    
+
     // 验证 onClose 是否为函数（可选）
-    if (onClose && typeof onClose !== 'function') {
-      throw new Error('onClose 必须是一个函数');
+    if (onClose && typeof onClose !== "function") {
+      throw new Error("onClose 必须是一个函数");
     }
-    
+
     this.onClose = onClose; // 连接关闭处理回调函数（可选）
-    
+
     // 验证 onError 是否为函数（可选）
-    if (onError && typeof onError !== 'function') {
-      throw new Error('onError 必须是一个函数');
+    if (onError && typeof onError !== "function") {
+      throw new Error("onError 必须是一个函数");
     }
-    
+
     this.onError = onError; // 错误处理回调函数（可选）
   }
 
@@ -66,9 +61,11 @@ export class WebSocketServer {
       open: (ws) => {
         console.log("新的客户端连接");
         this.clients.add(ws);
-        
+
         // 记录客户端信息
-        const clientId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const clientId = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
         this.clientInfo.set(ws, {
           id: clientId,
           connectTime: new Date(),
@@ -93,6 +90,17 @@ export class WebSocketServer {
         console.log("收到客户端消息:", data);
 
         try {
+          if (typeof data !== "string") {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: "消息格式错误",
+              })
+            );
+
+            debugger;
+            return;
+          }
           // 解析客户端发送的JSON数据
           const message = JSON.parse(data);
 
@@ -122,11 +130,11 @@ export class WebSocketServer {
       close: (ws, code, message) => {
         console.log("客户端断开连接:", code, message);
         this.clients.delete(ws);
-        
+
         // 清理客户端信息
         const clientInfo = this.clientInfo.get(ws);
         this.clientInfo.delete(ws);
-        
+
         // 如果提供了连接关闭处理回调函数，则调用它
         if (this.onClose) {
           this.onClose(ws, code, message);
@@ -135,7 +143,7 @@ export class WebSocketServer {
 
       error: (ws, error) => {
         console.error("WebSocket错误:", error);
-        
+
         // 如果提供了错误处理回调函数，则调用它
         if (this.onError) {
           this.onError(ws, error);
@@ -171,7 +179,7 @@ export class WebSocketServer {
 
     try {
       const { WebSocketServer } = await import("ws");
-      
+
       // 创建WebSocket服务器，监听在指定端口
       this.wss = new WebSocketServer({ port: port });
 
@@ -182,11 +190,13 @@ export class WebSocketServer {
         console.log("新的客户端连接");
 
         // 记录客户端信息
-        const clientId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const clientId = `${Date.now()}-${Math.random()
+          .toString(36)
+          .substr(2, 9)}`;
         this.clientInfo.set(ws, {
           id: clientId,
           connectTime: new Date(),
-          ip: req.socket.remoteAddress
+          ip: req.socket.remoteAddress,
         });
 
         // 如果提供了连接处理回调函数，则调用它
@@ -236,11 +246,11 @@ export class WebSocketServer {
         // 监听连接关闭事件
         ws.on("close", (code, reason) => {
           console.log("客户端断开连接");
-          
+
           // 清理客户端信息
           const clientInfo = this.clientInfo.get(ws);
           this.clientInfo.delete(ws);
-          
+
           // 如果提供了连接关闭处理回调函数，则调用它
           if (this.onClose) {
             this.onClose(ws, code, reason);
@@ -250,7 +260,7 @@ export class WebSocketServer {
         // 监听错误事件
         ws.on("error", (err) => {
           console.error("WebSocket错误:", err);
-          
+
           // 如果提供了错误处理回调函数，则调用它
           if (this.onError) {
             this.onError(ws, err);
@@ -261,8 +271,6 @@ export class WebSocketServer {
       console.error("无法加载ws库:", error);
     }
   }
-
-
 
   /**
    * 广播消息给所有连接的客户端
@@ -299,7 +307,7 @@ export class WebSocketServer {
    */
   getConnectionsInfo() {
     const clientsInfo = [];
-    
+
     if (typeof Bun !== "undefined") {
       // Bun环境下获取客户端信息
       this.clients.forEach((client) => {
@@ -320,12 +328,12 @@ export class WebSocketServer {
           clientsInfo.push({
             id: info.id,
             connectTime: info.connectTime,
-            ip: info.ip
+            ip: info.ip,
           });
         }
       });
     }
-    
+
     return clientsInfo;
   }
 
@@ -335,7 +343,7 @@ export class WebSocketServer {
    */
   disconnectClient(clientId) {
     let clientToDisconnect = null;
-    
+
     if (typeof Bun !== "undefined") {
       // Bun环境下查找并断开客户端连接
       for (const client of this.clients) {
@@ -345,7 +353,7 @@ export class WebSocketServer {
           break;
         }
       }
-      
+
       if (clientToDisconnect) {
         clientToDisconnect.close();
       }
@@ -358,7 +366,7 @@ export class WebSocketServer {
           break;
         }
       }
-      
+
       if (clientToDisconnect) {
         clientToDisconnect.close();
       }
