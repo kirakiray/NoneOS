@@ -15,7 +15,9 @@
     "build-server": "rollup server/main.js --file server/dist.js --sourcemap",
     "hand": "nodemon --inspect server/test-server.js",
     "dev": "node scripts/static-server & node --inspect server/test-server.js & node server/test-server2.js",
-    "ci-test": "node scripts/ci-test.js"
+    "ci-test": "node scripts/ci-test.js",
+    "node2": " node server2/index.js",
+    "bun2": "bun server2/index.js"
   },
   "repository": {
     "type": "git",

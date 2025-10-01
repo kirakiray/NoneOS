@@ -97,6 +97,7 @@ export class WebSocketServer {
 
     try {
       const { WebSocketServer } = await import("ws");
+      
       // 创建WebSocket服务器，监听在指定端口
       this.wss = new WebSocketServer({ port: port });
 
