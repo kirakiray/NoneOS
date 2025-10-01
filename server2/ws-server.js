@@ -1,8 +1,15 @@
 // WebSocketServer.js
 export class WebSocketServer {
-  constructor() {
+  constructor(messageHandler) {
     this.wss = null;
     this.clients = new Set(); // 用于存储Bun环境下的客户端连接
+    
+    // 验证 messageHandler 是否为函数
+    if (typeof messageHandler !== 'function') {
+      throw new Error('messageHandler 必须是一个函数');
+    }
+    
+    this.messageHandler = messageHandler; // 消息处理回调函数（必需）
   }
 
   /**
@@ -46,8 +53,18 @@ export class WebSocketServer {
           // 解析客户端发送的JSON数据
           const message = JSON.parse(data);
 
-          // 根据消息类型处理
-          this._handleMessage(ws, message);
+          // 调用消息处理回调函数（现在是必需的）
+          if (this.messageHandler) {
+            this.messageHandler(ws, message);
+          } else {
+            // 如果没有提供消息处理函数，返回错误
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: "服务器未配置消息处理函数",
+              })
+            );
+          }
         } catch (error) {
           console.error("处理消息时出错:", error);
           ws.send(
@@ -123,8 +140,18 @@ export class WebSocketServer {
             // 解析客户端发送的JSON数据
             const message = JSON.parse(data.toString());
 
-            // 根据消息类型处理
-            this._handleMessage(ws, message);
+            // 调用消息处理回调函数（现在是必需的）
+            if (this.messageHandler) {
+              this.messageHandler(ws, message);
+            } else {
+              // 如果没有提供消息处理函数，返回错误
+              ws.send(
+                JSON.stringify({
+                  type: "error",
+                  message: "服务器未配置消息处理函数",
+                })
+              );
+            }
           } catch (error) {
             console.error("处理消息时出错:", error);
             ws.send(
@@ -151,38 +178,7 @@ export class WebSocketServer {
     }
   }
 
-  /**
-   * 处理客户端消息
-   * @param {WebSocket} ws - WebSocket连接对象
-   * @param {Object} message - 客户端发送的消息
-   */
-  _handleMessage(ws, message) {
-    switch (message.type) {
-      case "echo":
-        // 回显消息
-        ws.send(
-          JSON.stringify({
-            type: "echo",
-            message: message.message,
-            timestamp: new Date().toISOString(),
-          })
-        );
-        break;
 
-      case "broadcast":
-        // 广播消息给所有连接的客户端
-        this._broadcastMessage(message);
-        break;
-
-      default:
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            message: "未知的消息类型",
-          })
-        );
-    }
-  }
 
   /**
    * 广播消息给所有连接的客户端
