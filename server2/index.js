@@ -40,7 +40,12 @@ function onMessage(ws, message) {
 
 // 定义连接关闭处理函数
 function onClose(ws, code, reason) {
-  console.log("客户端断开连接，代码:", code, "原因:", reason ? reason.toString() : "无");
+  console.log(
+    "客户端断开连接，代码:",
+    code,
+    "原因:",
+    reason ? reason.toString() : "无"
+  );
   // 可以在这里添加连接关闭时的处理逻辑
 }
 
@@ -52,10 +57,10 @@ function onError(ws, error) {
 
 // 创建WebSocket服务器实例，使用option对象传入处理函数
 const server = new WebSocketServer({
-  messageHandler: onMessage,
-  connectHandler: onConnect,
-  closeHandler: onClose,
-  errorHandler: onError
+  onMessage,
+  onConnect,
+  onClose,
+  onError,
 });
 
 // 启动服务器，监听18290端口

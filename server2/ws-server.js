@@ -6,39 +6,39 @@ export class WebSocketServer {
     
     // 解构options对象，设置默认值
     const {
-      messageHandler,
-      connectHandler,
-      closeHandler,
-      errorHandler
+      onMessage,
+      onConnect,
+      onClose,
+      onError
     } = options;
     
-    // 验证 messageHandler 是否为函数
-    if (typeof messageHandler !== 'function') {
-      throw new Error('messageHandler 必须是一个函数');
+    // 验证 onMessage 是否为函数
+    if (typeof onMessage !== 'function') {
+      throw new Error('onMessage 必须是一个函数');
     }
     
-    this.messageHandler = messageHandler; // 消息处理回调函数（必需）
+    this.onMessage = onMessage; // 消息处理回调函数（必需）
     
-    // 验证 connectHandler 是否为函数（可选）
-    if (connectHandler && typeof connectHandler !== 'function') {
-      throw new Error('connectHandler 必须是一个函数');
+    // 验证 onConnect 是否为函数（可选）
+    if (onConnect && typeof onConnect !== 'function') {
+      throw new Error('onConnect 必须是一个函数');
     }
     
-    this.connectHandler = connectHandler; // 连接处理回调函数（可选）
+    this.onConnect = onConnect; // 连接处理回调函数（可选）
     
-    // 验证 closeHandler 是否为函数（可选）
-    if (closeHandler && typeof closeHandler !== 'function') {
-      throw new Error('closeHandler 必须是一个函数');
+    // 验证 onClose 是否为函数（可选）
+    if (onClose && typeof onClose !== 'function') {
+      throw new Error('onClose 必须是一个函数');
     }
     
-    this.closeHandler = closeHandler; // 连接关闭处理回调函数（可选）
+    this.onClose = onClose; // 连接关闭处理回调函数（可选）
     
-    // 验证 errorHandler 是否为函数（可选）
-    if (errorHandler && typeof errorHandler !== 'function') {
-      throw new Error('errorHandler 必须是一个函数');
+    // 验证 onError 是否为函数（可选）
+    if (onError && typeof onError !== 'function') {
+      throw new Error('onError 必须是一个函数');
     }
     
-    this.errorHandler = errorHandler; // 错误处理回调函数（可选）
+    this.onError = onError; // 错误处理回调函数（可选）
   }
 
   /**
@@ -67,8 +67,8 @@ export class WebSocketServer {
         this.clients.add(ws);
 
         // 如果提供了连接处理回调函数，则调用它
-        if (this.connectHandler) {
-          this.connectHandler(ws);
+        if (this.onConnect) {
+          this.onConnect(ws);
         }
 
         // 向客户端发送欢迎消息
@@ -88,8 +88,8 @@ export class WebSocketServer {
           const message = JSON.parse(data);
 
           // 调用消息处理回调函数（现在是必需的）
-          if (this.messageHandler) {
-            this.messageHandler(ws, message);
+          if (this.onMessage) {
+            this.onMessage(ws, message);
           } else {
             // 如果没有提供消息处理函数，返回错误
             ws.send(
@@ -115,8 +115,8 @@ export class WebSocketServer {
         this.clients.delete(ws);
         
         // 如果提供了连接关闭处理回调函数，则调用它
-        if (this.closeHandler) {
-          this.closeHandler(ws, code, message);
+        if (this.onClose) {
+          this.onClose(ws, code, message);
         }
       },
 
@@ -124,8 +124,8 @@ export class WebSocketServer {
         console.error("WebSocket错误:", error);
         
         // 如果提供了错误处理回调函数，则调用它
-        if (this.errorHandler) {
-          this.errorHandler(ws, error);
+        if (this.onError) {
+          this.onError(ws, error);
         }
       },
     };
@@ -169,8 +169,8 @@ export class WebSocketServer {
         console.log("新的客户端连接");
 
         // 如果提供了连接处理回调函数，则调用它
-        if (this.connectHandler) {
-          this.connectHandler(ws);
+        if (this.onConnect) {
+          this.onConnect(ws);
         }
 
         // 向客户端发送欢迎消息
@@ -190,8 +190,8 @@ export class WebSocketServer {
             const message = JSON.parse(data.toString());
 
             // 调用消息处理回调函数（现在是必需的）
-            if (this.messageHandler) {
-              this.messageHandler(ws, message);
+            if (this.onMessage) {
+              this.onMessage(ws, message);
             } else {
               // 如果没有提供消息处理函数，返回错误
               ws.send(
@@ -217,8 +217,8 @@ export class WebSocketServer {
           console.log("客户端断开连接");
           
           // 如果提供了连接关闭处理回调函数，则调用它
-          if (this.closeHandler) {
-            this.closeHandler(ws, code, reason);
+          if (this.onClose) {
+            this.onClose(ws, code, reason);
           }
         });
 
@@ -227,8 +227,8 @@ export class WebSocketServer {
           console.error("WebSocket错误:", err);
           
           // 如果提供了错误处理回调函数，则调用它
-          if (this.errorHandler) {
-            this.errorHandler(ws, err);
+          if (this.onError) {
+            this.onError(ws, err);
           }
         });
       });
