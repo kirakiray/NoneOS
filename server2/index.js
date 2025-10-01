@@ -4,13 +4,13 @@
 import { WebSocketServer } from "./ws-server.js";
 
 // 定义连接处理函数
-function handleConnect(ws) {
+function onConnect(ws) {
   console.log("新客户端已连接");
   // 可以在这里添加连接时的处理逻辑
 }
 
 // 定义消息处理函数
-function handleMessage(ws, message) {
+function onMessage(ws, message) {
   switch (message.type) {
     case "echo":
       // 回显消息
@@ -38,8 +38,25 @@ function handleMessage(ws, message) {
   }
 }
 
-// 创建WebSocket服务器实例，传入消息处理函数和连接处理函数
-const server = new WebSocketServer(handleMessage, handleConnect);
+// 定义连接关闭处理函数
+function onClose(ws, code, reason) {
+  console.log("客户端断开连接，代码:", code, "原因:", reason ? reason.toString() : "无");
+  // 可以在这里添加连接关闭时的处理逻辑
+}
+
+// 定义错误处理函数
+function onError(ws, error) {
+  console.error("WebSocket错误:", error);
+  // 可以在这里添加错误处理逻辑
+}
+
+// 创建WebSocket服务器实例，使用option对象传入处理函数
+const server = new WebSocketServer({
+  messageHandler: onMessage,
+  connectHandler: onConnect,
+  closeHandler: onClose,
+  errorHandler: onError
+});
 
 // 启动服务器，监听18290端口
 server.start(18290);

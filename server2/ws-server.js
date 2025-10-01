@@ -1,8 +1,16 @@
 // WebSocketServer.js
 export class WebSocketServer {
-  constructor(messageHandler, connectHandler) {
+  constructor(options = {}) {
     this.wss = null;
     this.clients = new Set(); // 用于存储Bun环境下的客户端连接
+    
+    // 解构options对象，设置默认值
+    const {
+      messageHandler,
+      connectHandler,
+      closeHandler,
+      errorHandler
+    } = options;
     
     // 验证 messageHandler 是否为函数
     if (typeof messageHandler !== 'function') {
@@ -17,6 +25,20 @@ export class WebSocketServer {
     }
     
     this.connectHandler = connectHandler; // 连接处理回调函数（可选）
+    
+    // 验证 closeHandler 是否为函数（可选）
+    if (closeHandler && typeof closeHandler !== 'function') {
+      throw new Error('closeHandler 必须是一个函数');
+    }
+    
+    this.closeHandler = closeHandler; // 连接关闭处理回调函数（可选）
+    
+    // 验证 errorHandler 是否为函数（可选）
+    if (errorHandler && typeof errorHandler !== 'function') {
+      throw new Error('errorHandler 必须是一个函数');
+    }
+    
+    this.errorHandler = errorHandler; // 错误处理回调函数（可选）
   }
 
   /**
@@ -91,10 +113,20 @@ export class WebSocketServer {
       close: (ws, code, message) => {
         console.log("客户端断开连接:", code, message);
         this.clients.delete(ws);
+        
+        // 如果提供了连接关闭处理回调函数，则调用它
+        if (this.closeHandler) {
+          this.closeHandler(ws, code, message);
+        }
       },
 
       error: (ws, error) => {
         console.error("WebSocket错误:", error);
+        
+        // 如果提供了错误处理回调函数，则调用它
+        if (this.errorHandler) {
+          this.errorHandler(ws, error);
+        }
       },
     };
 
@@ -181,13 +213,23 @@ export class WebSocketServer {
         });
 
         // 监听连接关闭事件
-        ws.on("close", () => {
+        ws.on("close", (code, reason) => {
           console.log("客户端断开连接");
+          
+          // 如果提供了连接关闭处理回调函数，则调用它
+          if (this.closeHandler) {
+            this.closeHandler(ws, code, reason);
+          }
         });
 
         // 监听错误事件
         ws.on("error", (err) => {
           console.error("WebSocket错误:", err);
+          
+          // 如果提供了错误处理回调函数，则调用它
+          if (this.errorHandler) {
+            this.errorHandler(ws, err);
+          }
         });
       });
     } catch (error) {
