@@ -133,140 +133,15 @@
       <div id="messageHistory" class="message-history"></div>
     </div>
 
-    <script>
-      let socket = null;
-      let pingInterval = null;
-
-      const statusElement = document.getElementById("status");
-      const connectBtn = document.getElementById("connectBtn");
-      const disconnectBtn = document.getElementById("disconnectBtn");
-      const sendBtn = document.getElementById("sendBtn");
-      const messageInput = document.getElementById("messageInput");
-      const messageType = document.getElementById("messageType");
-      const messageHistory = document.getElementById("messageHistory");
-
-      // 连接WebSocket服务器
-      function connect() {
-        // 创建WebSocket连接
-        socket = new WebSocket("ws://localhost:18290");
-
-        // 监听连接打开事件
-        socket.addEventListener("open", function (event) {
-          updateStatus("已连接到服务器", true);
-          addMessageToHistory("系统: WebSocket连接已建立", "system");
-          connectBtn.disabled = true;
-          disconnectBtn.disabled = false;
-          sendBtn.disabled = false;
-
-          // 设置ping间隔，每30秒发送一次ping
-          pingInterval = setInterval(() => {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-              socket.send(JSON.stringify({ type: "ping" }));
-            }
-          }, 30000);
-        });
-
-        // 监听消息接收事件
-        socket.addEventListener("message", function (event) {
-          const data = JSON.parse(event.data);
-          
-          // 处理pong消息
-          if (data.type === "pong") {
-            addMessageToHistory("系统: 收到服务器pong响应", "system");
-            return;
-          }
-          
-          addMessageToHistory(
-            `服务器: ${data.type} - ${data.message}`,
-            "received"
-          );
-        });
-
-        // 监听连接关闭事件
-        socket.addEventListener("close", function (event) {
-          updateStatus("未连接到服务器", false);
-          addMessageToHistory("系统: WebSocket连接已关闭", "system");
-          connectBtn.disabled = false;
-          disconnectBtn.disabled = true;
-          sendBtn.disabled = true;
-          
-          // 清除ping间隔
-          if (pingInterval) {
-            clearInterval(pingInterval);
-            pingInterval = null;
-          }
-          
-          socket = null;
-        });
-
-        // 监听错误事件
-        socket.addEventListener("error", function (event) {
-          addMessageToHistory("系统: WebSocket连接发生错误", "system");
-          console.error("WebSocket错误:", event);
-        });
-      }
-
-      // 断开WebSocket连接
-      function disconnect() {
-        if (socket) {
-          socket.close();
-        }
-      }
-
-      // 发送消息到服务器
-      function sendMessage() {
-        if (!socket || socket.readyState !== WebSocket.OPEN) {
-          addMessageToHistory("系统: 未连接到服务器", "system");
-          return;
-        }
-
-        const message = messageInput.value.trim();
-        if (message) {
-          const type = messageType.value;
-          const data = {
-            type: type,
-            message: message,
-          };
-
-          socket.send(JSON.stringify(data));
-          addMessageToHistory(`客户端: ${type} - ${message}`, "sent");
-          messageInput.value = "";
-        }
-      }
-
-      // 更新连接状态显示
-      function updateStatus(text, isConnected) {
-        statusElement.textContent = text;
-        statusElement.className =
-          "connection-status " + (isConnected ? "connected" : "disconnected");
-      }
-
-      // 添加消息到历史记录
-      function addMessageToHistory(message, type) {
-        const messageElement = document.createElement("div");
-        messageElement.className = `message ${type}`;
-        messageElement.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
-        messageHistory.appendChild(messageElement);
-        messageHistory.scrollTop = messageHistory.scrollHeight;
-      }
-
-      // 事件监听器
-      connectBtn.addEventListener("click", connect);
-      disconnectBtn.addEventListener("click", disconnect);
-      sendBtn.addEventListener("click", sendMessage);
-
-      messageInput.addEventListener("keypress", function (event) {
-        if (event.key === "Enter") {
-          sendMessage();
-        }
-      });
-
+    <script type="module">
+      import { WebSocketUI } from './websocket-ui.js';
+      
+      // 创建WebSocket UI实例
+      const wsUI = new WebSocketUI("ws://localhost:18290");
+      
       // 页面加载完成后的初始化
       document.addEventListener("DOMContentLoaded", function () {
-        addMessageToHistory(
-          '系统: 页面已加载，请点击"连接服务器"按钮开始连接',
-          "system"
-        );
+        wsUI.init();
       });
     </script>
   </body>
