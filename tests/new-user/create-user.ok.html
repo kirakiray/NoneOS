@@ -9,11 +9,19 @@
     <script type="module">
       import { createUser } from "/packages/new-user/main.js";
 
-      //   const user = await createUser("test-user1");
-      const user = await createUser();
+      const user = await createUser("test-user1");
 
-      console.log(user);
-      console.log(user.userId);
+      const signedData = await user.sign({
+        message: "Original message",
+      });
+
+      console.log("signedData: ", signedData);
+
+      const verifyResult = await user.verify(signedData);
+      console.log("verifyResult: ", verifyResult);
+
+      console.log("user: ", user);
+      console.log("user.userId: ", user.userId);
     </script>
   </body>
 </html>
