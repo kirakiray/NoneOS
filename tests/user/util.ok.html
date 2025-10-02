@@ -16,7 +16,7 @@
         importPublicKey,
         createSigner,
         createVerifier,
-      } from "/packages/user/util.js";
+      } from "/packages/crypto/crypto-ecdsa.js";
 
       await test("Generate KeyPair Test", async () => {
         const keyPair = await generateKeyPair();

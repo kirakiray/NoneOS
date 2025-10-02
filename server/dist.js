@@ -36,6 +36,16 @@ const getHash = async (data) => {
   }
 };
 
+/**
+ * ECDSA 签名相关工具函数
+ */
+
+
+/**
+ * 导入公钥
+ * @param {string} publicKeyBase64 - base64 编码的公钥
+ * @returns {Promise<CryptoKey>} CryptoKey 对象
+ */
 async function importPublicKey(publicKeyBase64) {
   try {
     // 将 base64 转回二进制格式
@@ -62,6 +72,11 @@ async function importPublicKey(publicKeyBase64) {
   }
 }
 
+/**
+ * 创建验证函数
+ * @param {string} publicKeyBase64 - base64 编码的公钥
+ * @returns {Promise<Function>} 验证函数
+ */
 const createVerifier = async (publicKeyBase64) => {
   try {
     const publicKey = await importPublicKey(publicKeyBase64);

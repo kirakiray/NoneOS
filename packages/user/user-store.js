@@ -1,6 +1,6 @@
 import { get, init } from "/packages/fs/main.js";
 import { createData } from "/packages/hybird-data/main.js";
-import { generateKeyPair } from "./util.js";
+import { generateKeyPair } from "/packages/crypto/crypto-ecdsa.js";
 import { getHash } from "/packages/fs/util.js";
 
 // 自身用户对象
