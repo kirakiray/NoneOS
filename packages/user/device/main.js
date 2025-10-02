@@ -2,7 +2,7 @@ import { createData } from "/packages/hybird-data/main.js";
 import { get } from "/packages/fs/main.js";
 import { getServers } from "../hand-server/main.js";
 import { on } from "../event.js";
-import { verifyData } from "../verify.js";
+import { verifyData } from "/packages/crypto/crypto-verify.js";
 import { getHash } from "/packages/fs/util.js";
 import { signData } from "../sign.js";
 import { getMyCardData } from "../card/main.js";

@@ -3,7 +3,7 @@ import { Stanz } from "../../libs/stanz/main.js";
 import { HandServer } from "./handserver.js";
 import { getUserStore } from "../user-store.js";
 import { emit } from "../event.js";
-import { verifyData } from "../verify.js";
+import { verifyData } from "/packages/crypto/crypto-verify.js";
 import { getHash } from "../../fs/util.js";
 
 export const serverPool = {};

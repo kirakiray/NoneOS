@@ -1,5 +1,5 @@
 import { getHash } from "../../packages/fs/util.js";
-import { verifyData } from "../../packages/user/verify.js";
+import { verifyData } from "../../packages/crypto/crypto-verify.js";
 import { authenticatedUsers } from "../client.js";
 
 export const auth = async (

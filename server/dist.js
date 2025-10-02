@@ -101,7 +101,18 @@ const createVerifier = async (publicKeyBase64) => {
   }
 };
 
-// 验证数据
+/**
+ * 数据验证相关工具函数
+ */
+
+
+/**
+ * 验证数据签名
+ * @param {Object} params - 验证参数
+ * @param {Object} params.data - 包含公钥和数据的对象
+ * @param {string} params.signature - base64 编码的签名
+ * @returns {Promise<boolean>} 验证结果
+ */
 const verifyData = async ({ data, signature }) => {
   const { publicKey } = data;
 
