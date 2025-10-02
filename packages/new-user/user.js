@@ -58,8 +58,6 @@ export class User {
     // 签名数据
     const signature = await this.#signer(msg);
 
-    console.log("signature1: ", new Uint8Array(signature));
-
     return {
       msg,
       signature: btoa(String.fromCharCode(...new Uint8Array(signature))),
@@ -78,8 +76,6 @@ export class User {
     const signatureBuffer = new Uint8Array(
       [...atob(signature)].map((c) => c.charCodeAt(0))
     ).buffer;
-
-    console.log("signature2: ", new Uint8Array(signatureBuffer));
 
     // 验证数据
     const isValid = await this.#verifier(msg, signatureBuffer);
