@@ -63,31 +63,19 @@ function connect() {
   }
 }
 
+const password = "admin123";
+
 // 处理从服务器接收到的消息
 function handleMessage(data) {
   switch (data.type) {
     case "welcome":
       logMessage("INFO", `服务器欢迎消息: ${data.message}`);
       // 发送请求获取当前连接信息
-      adminSocket.send(JSON.stringify({ type: "get_connections" }));
+      adminSocket.send(JSON.stringify({ type: "get_connections", password }));
       break;
 
     case "connections_info":
       updateClientsList(data.clients);
-      break;
-
-    case "client_connected":
-      totalConnections++;
-      totalConnectionsEl.textContent = totalConnections;
-      logMessage("INFO", `新客户端连接: ${data.clientId}`);
-      // 请求更新客户端列表
-      adminSocket.send(JSON.stringify({ type: "get_connections" }));
-      break;
-
-    case "client_disconnected":
-      logMessage("INFO", `客户端断开连接: ${data.clientId}`);
-      // 请求更新客户端列表
-      adminSocket.send(JSON.stringify({ type: "get_connections" }));
       break;
 
     case "broadcast":
