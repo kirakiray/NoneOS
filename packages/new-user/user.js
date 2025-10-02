@@ -4,15 +4,15 @@ import {
   createSigner,
   createVerifier,
 } from "../crypto/crypto-ecdsa.js";
-import { getHash } from "../fs/util.js";
 
-export const USERID = Symbol("userId");
+import { getHash } from "../fs/util.js";
 
 export class User {
   #dirHandle;
   #signer;
   #verifier;
   #publicKey;
+  #userId;
 
   constructor(dirHandle) {
     if (typeof dirHandle === "string") {
@@ -23,7 +23,7 @@ export class User {
   }
 
   get userId() {
-    return this[USERID];
+    return this.#userId;
   }
 
   get publicKey() {
@@ -38,7 +38,7 @@ export class User {
 
     if (this.#publicKey && !this.#dirHandle) {
       // 公钥模式
-      this[USERID] = await getHash(this.#publicKey);
+      this.#userId = await getHash(this.#publicKey);
       this.#verifier = await createVerifier(this.#publicKey);
       return;
     }
@@ -54,7 +54,7 @@ export class User {
       Object.assign(pairData, pair);
     }
 
-    this[USERID] = await getHash(pairData.publicKey);
+    this.#userId = await getHash(pairData.publicKey);
     this.#publicKey = pairData.publicKey;
     this.#verifier = await createVerifier(pairData.publicKey);
 

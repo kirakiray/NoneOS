@@ -1,4 +1,4 @@
-import { User, USERID } from "./user.js";
+import { User } from "./user.js";
 
 export class LocalUser extends User {
   #dirHandle;
