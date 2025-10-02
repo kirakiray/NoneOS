@@ -70,16 +70,22 @@ export class User {
 
     // 验证数据是否存在
     if (!msg || !signature) {
-      throw new Error("数据或签名不存在");
+      console.log("数据或签名不存在");
+      return false;
     }
 
-    const signatureBuffer = new Uint8Array(
-      [...atob(signature)].map((c) => c.charCodeAt(0))
-    ).buffer;
+    try {
+      const signatureBuffer = new Uint8Array(
+        [...atob(signature)].map((c) => c.charCodeAt(0))
+      ).buffer;
 
-    // 验证数据
-    const isValid = await this.#verifier(msg, signatureBuffer);
+      // 验证数据
+      const isValid = await this.#verifier(msg, signatureBuffer);
 
-    return isValid;
+      return isValid;
+    } catch (err) {
+      console.log("签名格式错误", err);
+      return false;
+    }
   }
 }
