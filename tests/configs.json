@@ -1,5 +1,7 @@
 {
   "cases": [
+    "../tests/crypto/crypto-ecdsa.ok.html",
+    "../tests/crypto/crypto-rsa.ok.html",
     "../tests/fs/handle/copy-to.ok.html",
     "../tests/fs/handle/fetch.ok.html",
     "../tests/fs/handle/flat.ok.html",
@@ -25,8 +27,6 @@
     "../tests/user/handserver.ok.html",
     "../tests/user/invite-code.ok.html",
     "../tests/user/main.ok.html",
-    "../tests/user/rsa-util.ok.html",
-    "../tests/user/util.ok.html",
     "../tests/user/worker-agent-data.ok.html"
   ]
 }

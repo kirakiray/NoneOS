@@ -38,7 +38,11 @@
         const isPrivateKeyBase64 = isBase64(keyPair.privateKey);
 
         return {
-          assert: hasPublicKey && hasPrivateKey && isPublicKeyBase64 && isPrivateKeyBase64,
+          assert:
+            hasPublicKey &&
+            hasPrivateKey &&
+            isPublicKeyBase64 &&
+            isPrivateKeyBase64,
           content: {
             message: "ECDSA 密钥对生成成功",
             publicKeyLength: keyPair.publicKey.length,

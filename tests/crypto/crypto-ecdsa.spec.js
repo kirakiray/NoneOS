@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
-test("util Test", async ({ page }) => {
-  await page.goto("tests/user/util.ok.html");
+test("crypto-ecdsa Test", async ({ page }) => {
+  await page.goto("tests/crypto/crypto-ecdsa.ok.html");
 
   // 每个案例记得更新这个值
   const count = 3;
