@@ -1,5 +1,6 @@
 import { get, init } from "/packages/fs/handle/main.js";
 import { User } from "./user.js";
+import { LocalUser } from "./local-user.js";
 
 // 添加 tabSessionID
 export const tabSessionid = Math.random().toString(36).slice(2);
@@ -24,7 +25,7 @@ export const createUser = async (opts) => {
       create: "dir",
     });
 
-    user = new User(userDirHandle);
+    user = new LocalUser(userDirHandle);
   }
 
   await user.init();

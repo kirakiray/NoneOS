@@ -6,9 +6,10 @@ import {
 } from "../crypto/crypto-ecdsa.js";
 import { getHash } from "../fs/util.js";
 
+export const USERID = Symbol("userId");
+
 export class User {
   #dirHandle;
-  #userId;
   #signer;
   #verifier;
   #publicKey;
@@ -22,7 +23,7 @@ export class User {
   }
 
   get userId() {
-    return this.#userId;
+    return this[USERID];
   }
 
   get publicKey() {
@@ -37,7 +38,7 @@ export class User {
 
     if (this.#publicKey && !this.#dirHandle) {
       // 公钥模式
-      this.#userId = await getHash(this.#publicKey);
+      this[USERID] = await getHash(this.#publicKey);
       this.#verifier = await createVerifier(this.#publicKey);
       return;
     }
@@ -53,13 +54,18 @@ export class User {
       Object.assign(pairData, pair);
     }
 
-    this.#userId = await getHash(pairData.publicKey);
+    this[USERID] = await getHash(pairData.publicKey);
     this.#publicKey = pairData.publicKey;
     this.#verifier = await createVerifier(pairData.publicKey);
 
     if (pairData.privateKey) {
       this.#signer = await createSigner(pairData.privateKey);
     }
+
+    // 清除数据监听
+    setTimeout(() => {
+      pairData.disconnect();
+    }, 1000);
   }
 
   get sign() {
