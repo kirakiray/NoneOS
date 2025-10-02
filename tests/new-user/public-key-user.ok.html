@@ -9,18 +9,27 @@
     <script type="module">
       import { createUser } from "/packages/new-user/main.js";
 
-      const pair = {
-        publicKey:
-          "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYJjTnNmV0CCr28gsxWfNFYn60GPHefYayhCj9/LQbteWYlCAie0+WgxSxpbqtmcXASoto1cYyeLBRYMjjftGTg==",
-        privateKey:
-          "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgOIdCvFNTeKLqy2bkZUjycvPmA/IaFuaIE5KESwprbGihRANCAARgmNOc2ZXQIKvbyCzFZ80VifrQY8d59hrKEKP38tBu15ZiUICJ7T5aDFLGluq2ZxcBKi2jVxjJ4sFFgyON+0ZO",
-      };
-
-      const user = await createUser({
-        publicKey: pair.publicKey,
+      const user1 = await createUser({
+        user: "test-user1",
       });
 
-      console.log(user);
+      console.log(!!user1.sign); // true
+
+      const user2 = await createUser({
+        publicKey: user1.publicKey,
+      });
+
+      console.log(!!user2.sign); // false
+
+      const signedData = await user1.sign({
+        message: "Hello, World!",
+      });
+
+      const verifyResult = await user2.verify(signedData);
+
+      console.log(verifyResult); // true
+
+      console.log(signedData);
     </script>
   </body>
 </html>

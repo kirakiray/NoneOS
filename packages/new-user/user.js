@@ -53,12 +53,13 @@ export class User {
       Object.assign(pairData, pair);
     }
 
-    this.#publicKey = pairData.publicKey;
     this.#userId = await getHash(pairData.publicKey);
-
-    // 创建签名器和验证器
-    this.#signer = await createSigner(pairData.privateKey);
+    this.#publicKey = pairData.publicKey;
     this.#verifier = await createVerifier(pairData.publicKey);
+
+    if (pairData.privateKey) {
+      this.#signer = await createSigner(pairData.privateKey);
+    }
   }
 
   get sign() {
