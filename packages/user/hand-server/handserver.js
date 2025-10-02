@@ -1,6 +1,9 @@
 import { signData } from "../sign.js";
 import { Stanz } from "../../libs/stanz/main.js";
-import { generateRSAKeyPair, decryptMessage } from "/packages/user/rsa-util.js";
+import {
+  generateRSAKeyPair,
+  decryptMessage,
+} from "/packages/crypto/crypto-rsa.js";
 
 const keyPairPms = generateRSAKeyPair();
 

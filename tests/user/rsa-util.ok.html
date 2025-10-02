@@ -14,7 +14,7 @@
         generateRSAKeyPair,
         encryptMessage,
         decryptMessage,
-      } from "/packages/user/rsa-util.js";
+      } from "/packages/crypto/crypto-rsa.js";
 
       await test("RSA Key Generation Test", async () => {
         const { publicKey, privateKey } = await generateRSAKeyPair();

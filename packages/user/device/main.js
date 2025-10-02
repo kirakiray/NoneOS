@@ -7,7 +7,7 @@ import { getHash } from "/packages/fs/util.js";
 import { signData } from "../sign.js";
 import { getMyCardData } from "../card/main.js";
 import { getUserStore } from "../user-store.js";
-import { encryptMessage } from "../rsa-util.js";
+import { encryptMessage } from "/packages/crypto/crypto-rsa.js";
 
 const deviceStoreCache = {};
 
