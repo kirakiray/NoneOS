@@ -9,6 +9,8 @@ function onConnect(ws) {
   // 可以在这里添加连接时的处理逻辑
 }
 
+const password = "admin123";
+
 // 定义消息处理函数
 function onMessage(ws, message) {
   switch (message.type) {
@@ -34,6 +36,17 @@ function onMessage(ws, message) {
       break;
 
     case "get_connections":
+      // 验证密码
+      if (message.password !== password) {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "密码错误",
+          })
+        );
+        break;
+      }
+
       // 获取所有连接的客户端信息
       const connectionsInfo = server.getConnectionsInfo();
       ws.send(

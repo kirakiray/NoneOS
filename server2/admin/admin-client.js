@@ -139,7 +139,7 @@ function disconnectClient(clientId) {
 // 刷新客户端列表
 function refreshClientsList() {
   if (adminSocket && adminSocket.readyState === WebSocket.OPEN) {
-    adminSocket.send(JSON.stringify({ type: "get_connections" }));
+    adminSocket.send(JSON.stringify({ type: "get_connections", password }));
     logMessage("INFO", "已发送刷新客户端列表请求");
   } else {
     logMessage("ERROR", "WebSocket连接未建立，无法发送刷新请求");
