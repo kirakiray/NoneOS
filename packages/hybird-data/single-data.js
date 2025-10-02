@@ -78,7 +78,7 @@ export const createSingleData = async ({ handle }) => {
   // 监听数据变动
   const wid = data.watchTick((e) => {
     saveData(data, handle);
-  });
+  }, 10);
 
   // 监听文件变动
   const handleRevoke = await handle.observe(async () => {
