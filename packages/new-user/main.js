@@ -5,7 +5,7 @@ import { User } from "./user.js";
 export const tabSessionid = Math.random().toString(36).slice(2);
 
 // 创建用户数据
-export const createUser = async (dirName) => {
+export const createUser = async (dirName = "main") => {
   await init("system");
 
   const userDirHandle = await get(`system/user/${dirName}`, {
