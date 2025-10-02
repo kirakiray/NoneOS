@@ -3,33 +3,158 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Public Key User Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
   </head>
   <body>
     <script type="module">
+      import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/new-user/main.js";
 
-      const user1 = await createUser({
-        user: "test-user1",
+      await test("Create User with Public Key Test", async () => {
+        // 创建一个完整用户（拥有私钥）
+        const user1 = await createUser({
+          user: "test-user1",
+        });
+
+        // 检查用户1是否正确创建
+        const hasUser1Id = !!user1.userId;
+        const hasUser1SignMethod = typeof user1.sign === "function";
+        const hasUser1VerifyMethod = typeof user1.verify === "function";
+
+        // 使用公钥创建一个验证专用用户（没有私钥）
+        const user2 = await createUser({
+          publicKey: user1.publicKey,
+        });
+
+        // 检查用户2是否正确创建（只能验证，不能签名）
+        const hasUser2Id = !!user2.userId;
+        const hasUser2SignMethod = user2.sign === null;
+        const hasUser2VerifyMethod = typeof user2.verify === "function";
+
+        return {
+          assert:
+            hasUser1Id &&
+            hasUser1SignMethod &&
+            hasUser1VerifyMethod &&
+            hasUser2Id &&
+            hasUser2SignMethod &&
+            hasUser2VerifyMethod,
+          content: {
+            message: "使用公钥创建用户测试成功",
+            user1: {
+              userId: user1.userId,
+              hasSignMethod: hasUser1SignMethod,
+              hasVerifyMethod: hasUser1VerifyMethod,
+            },
+            user2: {
+              userId: user2.userId,
+              hasSignMethod: user2.sign === null,
+              hasVerifyMethod: hasUser2VerifyMethod,
+            },
+          },
+        };
       });
 
-      console.log(!!user1.sign); // true
+      await test("Sign and Verify with Public Key User Test", async () => {
+        // 创建一个完整用户（拥有私钥）
+        const user1 = await createUser({
+          user: "test-user2",
+        });
 
-      const user2 = await createUser({
-        publicKey: user1.publicKey,
+        // 使用公钥创建一个验证专用用户（没有私钥）
+        const user2 = await createUser({
+          publicKey: user1.publicKey,
+        });
+
+        // 用户1签名数据
+        const testData = {
+          message: "Hello, NoneOS!",
+          type: "text",
+          extra: {
+            foo: "bar",
+            num: 123,
+          },
+        };
+
+        const signedData = await user1.sign(testData);
+
+        // 用户2验证签名
+        const verifyResult = await user2.verify(signedData);
+
+        return {
+          assert: verifyResult === true,
+          content: {
+            message: "使用公钥用户签名和验证成功",
+            testData,
+            signedData,
+            verified: verifyResult,
+          },
+        };
       });
 
-      console.log(!!user2.sign); // false
+      await test("Tampered Data Verification with Public Key User Test", async () => {
+        // 创建一个完整用户（拥有私钥）
+        const user1 = await createUser({
+          user: "test-user3",
+        });
 
-      const signedData = await user1.sign({
-        message: "Hello, World!",
+        // 使用公钥创建一个验证专用用户（没有私钥）
+        const user2 = await createUser({
+          publicKey: user1.publicKey,
+        });
+
+        const originalData = {
+          message: "Original message",
+          timestamp: Date.now(),
+        };
+
+        // 签名原始数据
+        const signedData = await user1.sign(originalData);
+
+        // 创建几个篡改后的数据
+        const tamperedTests = [
+          {
+            name: "修改数据内容",
+            data: {
+              ...signedData,
+              msg: signedData.msg.replace(
+                /"Original message"/,
+                '"Tampered message"'
+              ),
+            },
+          },
+          {
+            name: "修改签名",
+            data: {
+              ...signedData,
+              signature: signedData.signature.slice(0, -1) + "A",
+            },
+          },
+        ];
+
+        // 验证所有篡改情况
+        const results = await Promise.all(
+          tamperedTests.map(async (test) => {
+            const verifyResult = await user2.verify(test.data);
+            return {
+              name: test.name,
+              verified: verifyResult,
+            };
+          })
+        );
+
+        const allTamperedFailed = results.every((r) => r.verified === false);
+
+        return {
+          assert: allTamperedFailed,
+          content: {
+            message: "使用公钥用户篡改验证测试成功",
+            results,
+            allTamperedFailed,
+          },
+        };
       });
-
-      const verifyResult = await user2.verify(signedData);
-
-      console.log(verifyResult); // true
-
-      console.log(signedData);
     </script>
   </body>
 </html>
