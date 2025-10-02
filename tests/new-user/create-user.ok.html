@@ -14,7 +14,7 @@
 
       await test("Create User Test", async () => {
         // 创建新用户
-        const user = await createUser("test-user1");
+        const user = await createUser({ user: "test-user1" });
 
         // 检查用户对象是否正确创建
         const hasUserId = !!user.userId;
@@ -34,7 +34,7 @@
 
       await test("User Sign and Verify Test", async () => {
         // 创建新用户
-        const user = await createUser("test-user2");
+        const user = await createUser({ user: "test-user2" });
 
         const testData = {
           message: "Hello, NoneOS!",
@@ -64,8 +64,8 @@
 
       await test("Multiple Users Independent Keys Test", async () => {
         // 创建两个不同的用户
-        const user1 = await createUser("test-user3");
-        const user2 = await createUser("test-user4");
+        const user1 = await createUser({ user: "test-user3" });
+        const user2 = await createUser({ user: "test-user4" });
 
         const testData = {
           message: "Multi-user test message",
@@ -100,7 +100,7 @@
 
       await test("Tampered Data Verification Test", async () => {
         // 创建新用户
-        const user = await createUser("test-user5");
+        const user = await createUser({ user: "test-user5" });
 
         const originalData = {
           message: "Original message",

@@ -5,14 +5,27 @@ import { User } from "./user.js";
 export const tabSessionid = Math.random().toString(36).slice(2);
 
 // 创建用户数据
-export const createUser = async (dirName = "main") => {
-  await init("system");
+export const createUser = async (opts) => {
+  const options = {
+    user: "main",
+    // publicKey:""
+  };
 
-  const userDirHandle = await get(`system/user/${dirName}`, {
-    create: "dir",
-  });
+  Object.assign(options, opts);
 
-  const user = new User(userDirHandle);
+  let user;
+
+  if (options.publicKey) {
+    user = new User(options.publicKey);
+  } else {
+    await init("system");
+
+    const userDirHandle = await get(`system/user/${options.user}`, {
+      create: "dir",
+    });
+
+    user = new User(userDirHandle);
+  }
 
   await user.init();
 

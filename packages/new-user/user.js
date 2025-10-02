@@ -14,15 +14,34 @@ export class User {
   #publicKey;
 
   constructor(dirHandle) {
-    this.#dirHandle = dirHandle;
+    if (typeof dirHandle === "string") {
+      this.#publicKey = dirHandle;
+    } else {
+      this.#dirHandle = dirHandle;
+    }
   }
 
   get userId() {
     return this.#userId;
   }
 
+  get publicKey() {
+    return this.#publicKey;
+  }
+
   // 初始化用户钥匙对
   async init() {
+    if (!this.#dirHandle && !this.#publicKey) {
+      throw new Error("用户目录句柄或公钥至少要有一个");
+    }
+
+    if (this.#publicKey && !this.#dirHandle) {
+      // 公钥模式
+      this.#userId = await getHash(this.#publicKey);
+      this.#verifier = await createVerifier(this.#publicKey);
+      return;
+    }
+
     const pariHandle = await this.#dirHandle.get("pair.json", {
       create: "file",
     });
@@ -42,9 +61,18 @@ export class User {
     this.#verifier = await createVerifier(pairData.publicKey);
   }
 
+  get sign() {
+    if (!this.#signer) {
+      // 公钥模式下没有私钥，无法签名
+      return null;
+    }
+
+    return this._sign;
+  }
+
   // 签名数据
   // 拥有 privateKey 才能签名
-  async sign(data) {
+  async _sign(data) {
     if (!this.#signer) {
       throw new Error("用户没有私钥，无法签名");
     }
@@ -70,7 +98,8 @@ export class User {
 
     // 验证数据是否存在
     if (!msg || !signature) {
-      console.log("数据或签名不存在");
+      const error = new Error("Data or signature does not exist");
+      console.error(error);
       return false;
     }
 
@@ -84,7 +113,8 @@ export class User {
 
       return isValid;
     } catch (err) {
-      console.log("签名格式错误", err);
+      const error = new Error("Signature format error", { cause: err });
+      console.error(error);
       return false;
     }
   }

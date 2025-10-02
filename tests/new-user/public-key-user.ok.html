@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/new-user/main.js";
+
+      const pair = {
+        publicKey:
+          "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEYJjTnNmV0CCr28gsxWfNFYn60GPHefYayhCj9/LQbteWYlCAie0+WgxSxpbqtmcXASoto1cYyeLBRYMjjftGTg==",
+        privateKey:
+          "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgOIdCvFNTeKLqy2bkZUjycvPmA/IaFuaIE5KESwprbGihRANCAARgmNOc2ZXQIKvbyCzFZ80VifrQY8d59hrKEKP38tBu15ZiUICJ7T5aDFLGluq2ZxcBKi2jVxjJ4sFFgyON+0ZO",
+      };
+
+      const user = await createUser({
+        publicKey: pair.publicKey,
+      });
+
+      console.log(user);
+    </script>
+  </body>
+</html>
