@@ -65,7 +65,7 @@ export class WebSocketServer {
         // 记录客户端信息
         const clientId = `${Date.now()}-${Math.random()
           .toString(36)
-          .substr(2, 9)}`;
+          .slice(2, 9)}`;
         this.clientInfo.set(ws, {
           id: clientId,
           connectTime: new Date(),
@@ -124,7 +124,6 @@ export class WebSocketServer {
         this.clients.delete(ws);
 
         // 清理客户端信息
-        const clientInfo = this.clientInfo.get(ws);
         this.clientInfo.delete(ws);
 
         // 如果提供了连接关闭处理回调函数，则调用它
@@ -184,7 +183,7 @@ export class WebSocketServer {
         // 记录客户端信息
         const clientId = `${Date.now()}-${Math.random()
           .toString(36)
-          .substr(2, 9)}`;
+          .slice(2, 9)}`;
         this.clientInfo.set(ws, {
           id: clientId,
           connectTime: new Date(),
@@ -210,12 +209,7 @@ export class WebSocketServer {
 
           try {
             // 检查是否为二进制数据
-            if (
-              isBinary ||
-              data instanceof ArrayBuffer ||
-              data instanceof Uint8Array ||
-              data instanceof Buffer
-            ) {
+            if (isBinary) {
               // 对于二进制数据，直接传递给 onMessage 处理函数
               this.onMessage(ws, data);
               return;
@@ -242,7 +236,6 @@ export class WebSocketServer {
           console.log("客户端断开连接");
 
           // 清理客户端信息
-          const clientInfo = this.clientInfo.get(ws);
           this.clientInfo.delete(ws);
 
           // 如果提供了连接关闭处理回调函数，则调用它
