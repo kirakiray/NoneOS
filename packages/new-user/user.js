@@ -101,6 +101,7 @@ export class User {
   }
 
   // 验证数据是否正确
+  // 使用自身的公钥验证，会比verifyData更快
   async verify(data) {
     const { msg, signature } = data;
 

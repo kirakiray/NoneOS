@@ -8,12 +8,20 @@
   <body>
     <script type="module">
       import { createUser } from "/packages/new-user/main.js";
+      import { paste } from "/packages/crypto/crypto-verify.js";
 
       const user = await createUser({ user: "test-user1" });
 
       window.info1 = await user.info();
 
-      console.log("info1: ", info1);
+      const card = await user.createCard();
+
+      console.log("card: ", card);
+
+      // 解析卡片数据
+      const cardData = await paste(card);
+
+      console.log("cardData: ", cardData);
     </script>
   </body>
 </html>

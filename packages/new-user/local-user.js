@@ -34,4 +34,18 @@ export class LocalUser extends User {
 
     return infoData;
   }
+
+  // 生成卡片
+  async createCard() {
+    const info = await this.info();
+
+    const card = {
+      name: info.name,
+      userId: this.userId,
+    };
+
+    const signedData = await this.sign(card);
+
+    return signedData;
+  }
 }
