@@ -12,6 +12,7 @@ class HandClient {
     this.cid = ws._cid = Math.random().toString(36).slice(2, 10);
     this.ws = ws;
     this.server = server;
+    this.connectTime = new Date(); // 记录连接时间
   }
 
   send(data) {
@@ -31,6 +32,22 @@ class HandClient {
   close() {
     this.ws.close();
   }
+
+  /**
+   * 获取所有连接的客户端信息
+   * @returns {Array} 客户端信息数组
+   */
+  getConnectionsInfo() {
+    const clientsInfo = [];
+    // 使用 server 中的 clients Map 来获取客户端信息
+    for (const [cid, client] of this.server.clients) {
+      clientsInfo.push({
+        id: client.cid,
+        connectTime: client.connectTime,
+      });
+    }
+    return clientsInfo;
+  }
 }
 
 export const initServer = async ({ password, port = 8081 }) => {
@@ -39,7 +56,7 @@ export const initServer = async ({ password, port = 8081 }) => {
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new HandClient(ws, server);
+    const client = new HandClient(ws, { clients }); // 传递 clients Map 给 HandClient
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
   }
@@ -98,7 +115,13 @@ export const initServer = async ({ password, port = 8081 }) => {
         }
 
         // 获取所有连接的客户端信息
-        const connectionsInfo = server.getConnectionsInfo();
+        // 找到任意一个客户端实例来调用 getConnectionsInfo 方法
+        let connectionsInfo = [];
+        const firstClient = clients.values().next().value;
+        if (firstClient) {
+          connectionsInfo = firstClient.getConnectionsInfo();
+        }
+
         ws.send(
           JSON.stringify({
             type: "connections_info",
@@ -121,14 +144,26 @@ export const initServer = async ({ password, port = 8081 }) => {
 
         // 断开指定客户端的连接
         if (message.clientId) {
-          server.disconnectClient(message.clientId);
+          // 找到任意一个客户端实例来调用 disconnectClient 方法
+          const targetClient = clients.get(message.clientId);
+          let result = false;
+          if (targetClient) {
+            result = targetClient.close();
 
-          ws.send(
-            JSON.stringify({
-              type: "success",
-              message: `已断开客户端 ${message.clientId} 的连接`,
-            })
-          );
+            ws.send(
+              JSON.stringify({
+                type: "success",
+                message: `已断开客户端 ${message.clientId} 的连接`,
+              })
+            );
+          } else {
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: `未找到客户端 ${message.clientId}`,
+              })
+            );
+          }
         } else {
           ws.send(
             JSON.stringify({
@@ -157,6 +192,9 @@ export const initServer = async ({ password, port = 8081 }) => {
     onClose,
     onError,
   });
+
+  // 将 clients Map 添加到 server 实例上，以便 HandClient 可以访问
+  server.clients = clients;
 
   // 启动服务器，监听指定端口
   server.start(port);

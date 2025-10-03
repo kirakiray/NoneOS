@@ -3,8 +3,6 @@
 export class WebSocketServer {
   constructor(options = {}) {
     this.wss = null;
-    this.clients = new Set(); // 用于存储Bun环境下的客户端连接
-    this.clientInfo = new Map(); // 存储客户端信息
 
     // 解构options对象，设置默认值
     const { onMessage, onConnect, onClose, onError } = options;
@@ -61,18 +59,6 @@ export class WebSocketServer {
     const websocketHandler = {
       open: (ws) => {
         console.log("新的客户端连接");
-        this.clients.add(ws);
-
-        // 记录客户端信息
-        const clientId = `${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2, 9)}`;
-        ws._clientId = clientId;
-        this.clientInfo.set(ws, {
-          id: clientId,
-          connectTime: new Date(),
-          // 注意：Bun环境下获取客户端IP的方法可能不同
-        });
 
         // 如果提供了连接处理回调函数，则调用它
         if (this.onConnect) {
@@ -123,10 +109,6 @@ export class WebSocketServer {
 
       close: (ws, code, message) => {
         console.log("客户端断开连接:", code, message);
-        this.clients.delete(ws);
-
-        // 清理客户端信息
-        this.clientInfo.delete(ws);
 
         // 如果提供了连接关闭处理回调函数，则调用它
         if (this.onClose) {
@@ -182,18 +164,6 @@ export class WebSocketServer {
       this.wss.on("connection", (ws, req) => {
         console.log("新的客户端连接");
 
-        // 记录客户端信息
-        const clientId = `${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2, 9)}`;
-
-        ws._clientId = clientId;
-        this.clientInfo.set(ws, {
-          id: clientId,
-          connectTime: new Date(),
-          ip: req.socket.remoteAddress,
-        });
-
         // 如果提供了连接处理回调函数，则调用它
         if (this.onConnect) {
           this.onConnect(ws);
@@ -239,9 +209,6 @@ export class WebSocketServer {
         ws.on("close", (code, reason) => {
           console.log("客户端断开连接");
 
-          // 清理客户端信息
-          this.clientInfo.delete(ws);
-
           // 如果提供了连接关闭处理回调函数，则调用它
           if (this.onClose) {
             this.onClose(ws, code, reason);
@@ -260,78 +227,6 @@ export class WebSocketServer {
       });
     } catch (error) {
       console.error("无法加载ws库:", error);
-    }
-  }
-
-  /**
-   * 获取所有连接的客户端信息
-   * @returns {Array} 客户端信息数组
-   */
-  getConnectionsInfo() {
-    const clientsInfo = [];
-
-    if (typeof Bun !== "undefined") {
-      // Bun环境下获取客户端信息
-      this.clients.forEach((client) => {
-        const info = this.clientInfo.get(client);
-        if (info) {
-          clientsInfo.push({
-            id: info.id,
-            connectTime: info.connectTime,
-            // Bun环境下暂时无法获取IP地址
-          });
-        }
-      });
-    } else if (this.wss) {
-      // Node.js环境下获取客户端信息
-      this.wss.clients.forEach((client) => {
-        const info = this.clientInfo.get(client);
-        if (info) {
-          clientsInfo.push({
-            id: info.id,
-            connectTime: info.connectTime,
-            ip: info.ip,
-          });
-        }
-      });
-    }
-
-    return clientsInfo;
-  }
-
-  /**
-   * 断开指定客户端的连接
-   * @param {string} clientId - 客户端ID
-   */
-  disconnectClient(clientId) {
-    let clientToDisconnect = null;
-
-    if (typeof Bun !== "undefined") {
-      // Bun环境下查找并断开客户端连接
-      for (const client of this.clients) {
-        const info = this.clientInfo.get(client);
-        if (info && info.id === clientId) {
-          clientToDisconnect = client;
-          break;
-        }
-      }
-
-      if (clientToDisconnect) {
-        clientToDisconnect.close();
-      }
-    } else if (this.wss) {
-      // Node.js环境下查找并断开客户端连接
-      for (const client of this.wss.clients) {
-        const info = this.clientInfo.get(client);
-        if (info && info.id === clientId) {
-          clientToDisconnect = client;
-          break;
-        }
-      }
-
-      if (clientToDisconnect) {
-        clientToDisconnect.close();
-      }
     }
   }
 
