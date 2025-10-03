@@ -128,6 +128,7 @@ function disconnectClient(clientId) {
       JSON.stringify({
         type: "disconnect_client",
         clientId: clientId,
+        password,
       })
     );
     logMessage("INFO", `已发送断开客户端 ${clientId} 的连接请求`);

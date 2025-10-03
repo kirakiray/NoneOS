@@ -3,7 +3,32 @@
 // index.js - WebSocket服务器入口文件
 import { WebSocketServer } from "./ws-server.js";
 
-export const initServer = async ({ password, port = 18290 }) => {
+class HandClient {
+  constructor(ws, server) {
+    this.ws = ws;
+    this.server = server;
+  }
+
+  send(data) {
+    // 判断是二进制则直接发送，对象则发送字符串
+    if (
+      data instanceof ArrayBuffer ||
+      data instanceof Uint8Array ||
+      data instanceof Buffer ||
+      typeof data === "string"
+    ) {
+      this.ws.send(data);
+    } else {
+      this.ws.send(JSON.stringify(data));
+    }
+  }
+
+  close() {
+    this.ws.close();
+  }
+}
+
+export const initServer = async ({ password, port = 8081 }) => {
   // 定义连接处理函数
   function onConnect(ws) {
     console.log("新客户端已连接");
