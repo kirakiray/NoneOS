@@ -5,6 +5,11 @@ import { WebSocketServer } from "./ws-server.js";
 
 class HandClient {
   constructor(ws, server) {
+    if (ws._cid) {
+      throw new Error("客户端已经初始化过:" + ws._cid);
+    }
+
+    this.cid = ws._cid = Math.random().toString(36).slice(2, 10);
     this.ws = ws;
     this.server = server;
   }
@@ -29,10 +34,36 @@ class HandClient {
 }
 
 export const initServer = async ({ password, port = 8081 }) => {
+  let server;
+  const clients = new Map();
+
   // 定义连接处理函数
   function onConnect(ws) {
-    console.log("新客户端已连接");
-    // 可以在这里添加连接时的处理逻辑
+    const client = new HandClient(ws, server);
+    clients.set(client.cid, client);
+    console.log("新客户端已连接: ", client.cid);
+  }
+
+  // 定义连接关闭处理函数
+  function onClose(ws, code, reason) {
+    console.log(
+      "客户端断开连接，代码:",
+      code,
+      "原因:",
+      reason ? reason.toString() : "无"
+    );
+
+    // 从Map中移除断开连接的客户端
+    clients.delete(ws._cid);
+  }
+
+  // 定义错误处理函数
+  function onError(ws, error) {
+    console.error("WebSocket错误:", error);
+
+    if (ws._cid) {
+      clients.delete(ws._cid);
+    }
   }
 
   // 定义消息处理函数
@@ -119,26 +150,8 @@ export const initServer = async ({ password, port = 8081 }) => {
     }
   }
 
-  // 定义连接关闭处理函数
-  function onClose(ws, code, reason) {
-    console.log(
-      "客户端断开连接，代码:",
-      code,
-      "原因:",
-      reason ? reason.toString() : "无"
-    );
-    // 可以在这里添加连接关闭时的处理逻辑
-  }
-
-  // 定义错误处理函数
-  function onError(ws, error) {
-    console.error("WebSocket错误:", error);
-
-    // 可以在这里添加错误处理逻辑
-  }
-
   // 创建WebSocket服务器实例，使用option对象传入处理函数
-  const server = new WebSocketServer({
+  server = new WebSocketServer({
     onMessage,
     onConnect,
     onClose,
