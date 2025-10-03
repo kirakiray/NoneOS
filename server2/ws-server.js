@@ -272,35 +272,6 @@ export class WebSocketServer {
   }
 
   /**
-   * 广播消息给所有连接的客户端
-   * @param {Object} message - 要广播的消息
-   */
-  _broadcastMessage(message) {
-    const broadcastData = JSON.stringify({
-      type: "broadcast",
-      message: message.message,
-      timestamp: new Date().toISOString(),
-    });
-
-    if (typeof Bun !== "undefined") {
-      // Bun环境下广播消息
-      this.clients.forEach((client) => {
-        if (client.readyState === undefined || client.readyState === 1) {
-          // Bun WebSocket没有readyState属性，或者1表示OPEN状态
-          client.send(broadcastData);
-        }
-      });
-    } else if (this.wss) {
-      // Node.js环境下广播消息
-      this.wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-          client.send(broadcastData);
-        }
-      });
-    }
-  }
-
-  /**
    * 获取所有连接的客户端信息
    * @returns {Array} 客户端信息数组
    */

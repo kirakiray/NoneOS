@@ -25,17 +25,13 @@ function onMessage(ws, message) {
       );
       break;
 
-    case "broadcast":
-      // 广播消息给所有连接的客户端
-      server._broadcastMessage(message);
-      break;
-
     case "ping":
       // 处理客户端的ping消息，返回pong响应
       ws.send(JSON.stringify({ type: "pong" }));
       break;
 
     case "get_connections":
+      // 获取所有连接的客户端信息
       // 验证密码
       if (message.password !== password) {
         ws.send(
@@ -58,6 +54,18 @@ function onMessage(ws, message) {
       break;
 
     case "disconnect_client":
+      // 强制断开指定客户端的连接
+      // 验证密码
+      if (message.password !== password) {
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            message: "密码错误",
+          })
+        );
+        break;
+      }
+
       // 断开指定客户端的连接
       if (message.clientId) {
         server.disconnectClient(message.clientId);

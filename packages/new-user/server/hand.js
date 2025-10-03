@@ -26,6 +26,7 @@ export class HandServerClient {
   _onOpen() {
     console.log("WebSocket连接已打开");
 
+    clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this.socket.send(JSON.stringify({ type: "ping" }));
@@ -40,11 +41,13 @@ export class HandServerClient {
 
   // 处理WebSocket关闭事件
   _onClose(event) {
+    clearInterval(this.pingInterval);
     console.log("WebSocket连接已关闭:", event);
   }
 
   // 处理WebSocket错误事件
   _onError(event) {
+    clearInterval(this.pingInterval);
     console.error("WebSocket错误:", event);
   }
 }
