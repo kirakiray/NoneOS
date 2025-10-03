@@ -1,4 +1,5 @@
 // WebSocketServer.js
+// 兼容 nodejs 和 bun 环境的 WebSocket 服务器类
 export class WebSocketServer {
   constructor(options = {}) {
     this.wss = null;
@@ -66,6 +67,7 @@ export class WebSocketServer {
         const clientId = `${Date.now()}-${Math.random()
           .toString(36)
           .slice(2, 9)}`;
+        ws._clientId = clientId;
         this.clientInfo.set(ws, {
           id: clientId,
           connectTime: new Date(),
@@ -184,6 +186,8 @@ export class WebSocketServer {
         const clientId = `${Date.now()}-${Math.random()
           .toString(36)
           .slice(2, 9)}`;
+
+        ws._clientId = clientId;
         this.clientInfo.set(ws, {
           id: clientId,
           connectTime: new Date(),
