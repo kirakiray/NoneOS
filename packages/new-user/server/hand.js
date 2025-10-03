@@ -25,6 +25,12 @@ export class HandServerClient {
   // 处理WebSocket打开事件
   _onOpen() {
     console.log("WebSocket连接已打开");
+
+    this.pingInterval = setInterval(() => {
+      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+        this.socket.send(JSON.stringify({ type: "ping" }));
+      }
+    }, 30000);
   }
 
   // 处理WebSocket消息事件

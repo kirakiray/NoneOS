@@ -98,7 +98,6 @@ export class WebSocketServer {
               })
             );
 
-            debugger;
             return;
           }
           // 解析客户端发送的JSON数据
