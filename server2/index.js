@@ -33,22 +33,6 @@ class HandClient {
   close() {
     this.ws.close();
   }
-
-  /**
-   * 获取所有连接的客户端信息
-   * @returns {Array} 客户端信息数组
-   */
-  getConnectionsInfo() {
-    const clientsInfo = [];
-    // 使用 server 中的 clients Map 来获取客户端信息
-    for (const [cid, client] of this.server.clients) {
-      clientsInfo.push({
-        id: client.cid,
-        connectTime: client.connectTime,
-      });
-    }
-    return clientsInfo;
-  }
 }
 
 export const initServer = async ({ password, port = 8081 }) => {
@@ -115,13 +99,13 @@ export const initServer = async ({ password, port = 8081 }) => {
         }
 
         // 获取所有连接的客户端信息
-        // 找到任意一个客户端实例来调用 getConnectionsInfo 方法
         let connectionsInfo = [];
-        const firstClient = clients.values().next().value;
-        if (firstClient) {
-          connectionsInfo = firstClient.getConnectionsInfo();
+        for (const client of clients.values()) {
+          connectionsInfo.push({
+            id: client.cid,
+            connectTime: client.connectTime,
+          });
         }
-
         ws._client.send({
           type: "connections_info",
           clients: connectionsInfo,
