@@ -5,11 +5,12 @@ import { WebSocketServer } from "./ws-server.js";
 
 class HandClient {
   constructor(ws, server) {
-    if (ws._cid) {
-      throw new Error("客户端已经初始化过:" + ws._cid);
+    if (ws._client) {
+      throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
 
-    this.cid = ws._cid = Math.random().toString(36).slice(2, 10);
+    this.cid = Math.random().toString(36).slice(2, 10);
+    ws._client = this;
     this.ws = ws;
     this.server = server;
     this.connectTime = new Date(); // 记录连接时间
@@ -71,15 +72,15 @@ export const initServer = async ({ password, port = 8081 }) => {
     );
 
     // 从Map中移除断开连接的客户端
-    clients.delete(ws._cid);
+    clients.delete(ws._client.cid);
   }
 
   // 定义错误处理函数
   function onError(ws, error) {
     console.error("WebSocket错误:", error);
 
-    if (ws._cid) {
-      clients.delete(ws._cid);
+    if (ws._client) {
+      clients.delete(ws._client.cid);
     }
   }
 
@@ -88,29 +89,28 @@ export const initServer = async ({ password, port = 8081 }) => {
     switch (message.type) {
       case "echo":
         // 回显消息
-        ws.send(
-          JSON.stringify({
-            type: "echo",
-            message: message.message,
-            timestamp: new Date().toISOString(),
-          })
-        );
+        ws._client.send({
+          type: "echo",
+          message: message.message,
+          timestamp: new Date().toISOString(),
+        });
         break;
 
       case "ping":
         // 处理客户端的ping消息，返回pong响应
-        ws.send(JSON.stringify({ type: "pong" }));
+        ws._client.send({
+          type: "pong",
+          timestamp: new Date().toISOString(),
+        });
         break;
 
       case "get_connections":
         // 验证密码，通过才允许获取所有连接的客户端信息
         if (message.password !== password) {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "密码错误",
-            })
-          );
+          ws._client.send({
+            type: "error",
+            message: "密码错误",
+          });
           break;
         }
 
@@ -122,23 +122,19 @@ export const initServer = async ({ password, port = 8081 }) => {
           connectionsInfo = firstClient.getConnectionsInfo();
         }
 
-        ws.send(
-          JSON.stringify({
-            type: "connections_info",
-            clients: connectionsInfo,
-          })
-        );
+        ws._client.send({
+          type: "connections_info",
+          clients: connectionsInfo,
+        });
         break;
 
       case "disconnect_client":
         // 验证密码，通过才允许断开指定客户端的连接
         if (message.password !== password) {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "密码错误",
-            })
-          );
+          ws._client.send({
+            type: "error",
+            message: "密码错误",
+          });
           break;
         }
 
@@ -150,38 +146,30 @@ export const initServer = async ({ password, port = 8081 }) => {
           if (targetClient) {
             result = targetClient.close();
 
-            ws.send(
-              JSON.stringify({
-                type: "success",
-                message: `已断开客户端 ${message.clientId} 的连接`,
-              })
-            );
+            ws._client.send({
+              type: "success",
+              message: `已断开客户端 ${message.clientId} 的连接`,
+            });
           } else {
-            ws.send(
-              JSON.stringify({
-                type: "error",
-                message: `未找到客户端 ${message.clientId}`,
-              })
-            );
+            ws._client.send({
+              type: "error",
+              message: `未找到客户端 ${message.clientId}`,
+            });
           }
         } else {
-          ws.send(
-            JSON.stringify({
-              type: "error",
-              message: "缺少客户端ID参数",
-            })
-          );
+          ws._client.send({
+            type: "error",
+            message: "缺少客户端ID参数",
+          });
         }
         break;
 
       default:
-        ws.send(
-          JSON.stringify({
-            type: "error",
-            message: "未知的消息类型",
-            response: message,
-          })
-        );
+        ws._client.send({
+          type: "error",
+          message: "未知的消息类型",
+          response: message,
+        });
     }
   }
 
