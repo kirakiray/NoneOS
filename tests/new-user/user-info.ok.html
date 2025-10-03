@@ -3,25 +3,127 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>User Info and Card Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
   </head>
   <body>
     <script type="module">
+      import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/new-user/main.js";
       import { paste } from "/packages/crypto/crypto-verify.js";
 
-      const user = await createUser({ user: "test-user1" });
+      await test("User Info Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user1" });
 
-      window.info1 = await user.info();
+        // 获取用户信息
+        const info = await user.info();
 
-      const card = await user.createCard();
+        // 检查用户信息对象是否正确创建
+        const hasName = !!info.name;
+        const hasUserId = !!user.userId;
 
-      console.log("card: ", card);
+        return {
+          assert: hasName && hasUserId,
+          content: {
+            message: "用户信息获取成功",
+            userName: info.name,
+            userId: user.userId,
+            hasName,
+            hasUserId,
+          },
+        };
+      });
 
-      // 解析卡片数据
-      const cardData = await paste(card);
+      await test("User Card Creation Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user2" });
 
-      console.log("cardData: ", cardData);
+        // 创建用户卡片
+        const card = await user.createCard();
+
+        // 检查卡片是否正确创建
+        const hasMsg = !!card.msg;
+        const hasSignature = !!card.signature;
+
+        return {
+          assert: hasMsg && hasSignature,
+          content: {
+            message: "用户卡片创建成功",
+            card,
+            hasMsg,
+            hasSignature,
+          },
+        };
+      });
+
+      await test("User Card Verification Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user3" });
+        const userInfo = await user.info();
+
+        // 创建用户卡片
+        const card = await user.createCard();
+
+        // 解析卡片数据
+        const cardData = await paste(card);
+
+        // 验证卡片数据
+        const hasName = !!cardData.name;
+        const hasUserId = !!cardData.userId;
+        const isUserIdMatch =
+          cardData.userId === user.userId && cardData.name === userInfo.name;
+
+        return {
+          assert: hasName && hasUserId && isUserIdMatch,
+          content: {
+            message: "用户卡片验证成功",
+            cardData,
+            hasName,
+            hasUserId,
+            isUserIdMatch,
+          },
+        };
+      });
+
+      await test("Multiple Users Independent Cards Test", async () => {
+        // 创建两个不同的用户
+        const user1 = await createUser({ user: "test-user4" });
+        const user2 = await createUser({ user: "test-user5" });
+
+        // 获取用户信息
+        const info1 = await user1.info();
+        const info2 = await user2.info();
+
+        // 创建用户卡片
+        const card1 = await user1.createCard();
+        const card2 = await user2.createCard();
+
+        // 解析卡片数据
+        const cardData1 = await paste(card1);
+        const cardData2 = await paste(card2);
+
+        // 验证两个用户的卡片数据是否独立
+        const differentNames = info1.name !== info2.name;
+        const differentUserIds = user1.userId !== user2.userId;
+        const differentCardUserIds = cardData1.userId !== cardData2.userId;
+
+        return {
+          assert: differentNames && differentUserIds && differentCardUserIds,
+          content: {
+            message: "多用户独立卡片测试成功",
+            user1Name: info1.name,
+            user2Name: info2.name,
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+            card1UserId: cardData1.userId,
+            card2UserId: cardData2.userId,
+            differentNames,
+            differentUserIds,
+            differentCardUserIds,
+          },
+        };
+      });
     </script>
   </body>
 </html>
