@@ -1,8 +1,17 @@
+// 启动 WebSocket 服务器
+// node --inspect server2/start.js --port=8081
+// bun server2/start.js --port=8081
+
 import { initServer } from "./index.js";
+
+const port =
+  parseInt(
+    process.argv.find((arg) => arg.startsWith("--port="))?.split("=")[1]
+  ) || 8081;
 
 const server = await initServer({
   password: "admin123",
-  port: 18290,
+  port: port,
 });
 
 // 优雅关闭服务器
@@ -18,4 +27,4 @@ process.on("SIGTERM", () => {
   process.exit(0);
 });
 
-console.log("WebSocket服务器已启动，按 Ctrl+C 关闭服务器");
+console.log(`WebSocket服务器已启动，监听端口 ${port}`);
