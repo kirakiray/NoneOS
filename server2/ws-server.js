@@ -90,31 +90,24 @@ export class WebSocketServer {
         console.log("收到客户端消息:", data);
 
         try {
-          if (typeof data !== "string") {
-            ws.send(
-              JSON.stringify({
-                type: "error",
-                message: "消息格式错误",
-              })
-            );
+          // 检查是否为二进制数据
+          if (
+            data instanceof ArrayBuffer ||
+            data instanceof Uint8Array ||
+            data instanceof Buffer ||
+            (typeof data !== "string" && !(data instanceof String))
+          ) {
+            // 对于二进制数据或非字符串数据，直接传递给 onMessage 处理函数
+            this.onMessage(ws, data);
 
             return;
           }
+
           // 解析客户端发送的JSON数据
           const message = JSON.parse(data);
 
           // 调用消息处理回调函数（现在是必需的）
-          if (this.onMessage) {
-            this.onMessage(ws, message);
-          } else {
-            // 如果没有提供消息处理函数，返回错误
-            ws.send(
-              JSON.stringify({
-                type: "error",
-                message: "服务器未配置消息处理函数",
-              })
-            );
-          }
+          this.onMessage(ws, message);
         } catch (error) {
           console.error("处理消息时出错:", error);
           ws.send(
@@ -212,25 +205,27 @@ export class WebSocketServer {
         );
 
         // 监听客户端消息
-        ws.on("message", (data) => {
+        ws.on("message", (data, isBinary) => {
           console.log("收到客户端消息:", data.toString());
 
           try {
+            // 检查是否为二进制数据
+            if (
+              isBinary ||
+              data instanceof ArrayBuffer ||
+              data instanceof Uint8Array ||
+              data instanceof Buffer
+            ) {
+              // 对于二进制数据，直接传递给 onMessage 处理函数
+              this.onMessage(ws, data);
+              return;
+            }
+
             // 解析客户端发送的JSON数据
             const message = JSON.parse(data.toString());
 
             // 调用消息处理回调函数（现在是必需的）
-            if (this.onMessage) {
-              this.onMessage(ws, message);
-            } else {
-              // 如果没有提供消息处理函数，返回错误
-              ws.send(
-                JSON.stringify({
-                  type: "error",
-                  message: "服务器未配置消息处理函数",
-                })
-              );
-            }
+            this.onMessage(ws, message);
           } catch (error) {
             console.error("处理消息时出错:", error);
             ws.send(

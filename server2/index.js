@@ -110,6 +110,7 @@ function onClose(ws, code, reason) {
 // 定义错误处理函数
 function onError(ws, error) {
   console.error("WebSocket错误:", error);
+
   // 可以在这里添加错误处理逻辑
 }
 
