@@ -1,4 +1,5 @@
 import { createSingleData } from "../hybird-data/single-data.js";
+
 import {
   generateKeyPair,
   createSigner,
@@ -62,8 +63,8 @@ export class User {
       this.#signer = await createSigner(pairData.privateKey);
     }
 
-    // 清除数据监听
     setTimeout(() => {
+      // 防止保存数据，延迟清除监听
       pairData.disconnect();
     }, 1000);
   }

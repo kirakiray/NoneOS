@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/new-user/main.js";
+
+      const user = await createUser({ user: "test-user1" });
+
+      window.info1 = await user.info();
+
+      console.log("info1: ", info1);
+    </script>
+  </body>
+</html>
