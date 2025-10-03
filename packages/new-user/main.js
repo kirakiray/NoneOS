@@ -2,9 +2,6 @@ import { get, init } from "/packages/fs/handle/main.js";
 import { User } from "./user.js";
 import { LocalUser } from "./local-user.js";
 
-// 添加 tabSessionID
-export const tabSessionid = Math.random().toString(36).slice(2);
-
 // 创建用户数据
 export const createUser = async (opts) => {
   const options = {
