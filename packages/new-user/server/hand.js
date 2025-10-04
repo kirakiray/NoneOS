@@ -1,10 +1,10 @@
 export class HandServerClient {
-  #userSessionId;
   #url;
-  constructor({ sessionId, url }) {
-    this.#userSessionId = sessionId;
+  #user;
+  constructor({ sessionId, url, user }) {
     this.#url = url;
     this.socket = null;
+    this.#user = user;
   }
 
   async init() {
@@ -16,10 +16,10 @@ export class HandServerClient {
     this.socket = new WebSocket(this.#url);
 
     // 绑定事件监听器
-    this.socket.addEventListener("open", this._onOpen);
-    this.socket.addEventListener("message", this._onMessage);
-    this.socket.addEventListener("close", this._onClose);
-    this.socket.addEventListener("error", this._onError);
+    this.socket.addEventListener("open", this._onOpen.bind(this));
+    this.socket.addEventListener("message", this._onMessage.bind(this));
+    this.socket.addEventListener("close", this._onClose.bind(this));
+    this.socket.addEventListener("error", this._onError.bind(this));
   }
 
   // 处理WebSocket打开事件
@@ -35,8 +35,24 @@ export class HandServerClient {
   }
 
   // 处理WebSocket消息事件
-  _onMessage(event) {
+  async _onMessage(event) {
     console.log("收到消息:", event.data);
+
+    const data = JSON.parse(event.data);
+
+    if (data.type === "need_auth") {
+      const info = await this.#user.info();
+
+      // 签名信息
+      const signedData = await this.#user.sign({
+        cid: data.cid,
+        userSessionId: this.#user.sessionId,
+        info,
+      });
+
+      // 发送签名信息，证明是用户本人
+      this.socket.send(JSON.stringify({ type: "authentication", signedData }));
+    }
   }
 
   // 处理WebSocket关闭事件

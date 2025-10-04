@@ -29,6 +29,7 @@ export const initServer = async ({
     client.send({
       type: "need_auth",
       cid: client.cid,
+      time: new Date().toISOString(),
     });
 
     // 发送服务端的数据给对方

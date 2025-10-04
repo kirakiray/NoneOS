@@ -93,8 +93,8 @@ export class LocalUser extends User {
       return this.#serverConnects[url];
     }
     const serverClient = new HandServerClient({
-      sessionId: this.#sessionId,
       url,
+      user: this,
     });
 
     await serverClient.init();
