@@ -3,36 +3,298 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin</title>
+    <title>Admin Dashboard</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+
+      .header {
+        background-color: #333;
+        color: white;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+
+      .dashboard {
+        display: grid;
+        grid-template-columns: 1fr 300px;
+        gap: 20px;
+      }
+
+      .main-content {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .sidebar {
+        background-color: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .client-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .client-item {
+        padding: 10px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .client-item:last-child {
+        border-bottom: none;
+      }
+
+      .disconnect-btn {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+      }
+
+      .disconnect-btn:hover {
+        background-color: #c82333;
+      }
+
+      .status-indicator {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+
+      .status-connected {
+        background-color: #28a745;
+      }
+
+      .status-disconnected {
+        background-color: #dc3545;
+      }
+
+      .refresh-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+      }
+
+      .refresh-btn:hover {
+        background-color: #0069d9;
+      }
+
+      .log-area {
+        background-color: #333;
+        color: #00ff00;
+        padding: 15px;
+        border-radius: 5px;
+        height: 200px;
+        overflow-y: auto;
+        font-family: monospace;
+        margin-top: 20px;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        background-color: white;
+        padding: 15px;
+        border-radius: 5px;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        flex: 1;
+        margin: 0 10px;
+      }
+
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #007bff;
+      }
+    </style>
   </head>
   <body>
+    <div class="header">
+      <h1>WebSocket Server Admin Dashboard</h1>
+      <p>管理服务器连接和客户端</p>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-number" id="clientCount">0</div>
+        <div>在线客户端</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="serverStatus">-</div>
+        <div>服务器状态</div>
+      </div>
+    </div>
+
+    <div class="dashboard">
+      <div class="main-content">
+        <h2>客户端管理</h2>
+        <button class="refresh-btn" id="refreshBtn">刷新客户端列表</button>
+
+        <div class="log-area" id="logArea">
+          <div>系统日志将显示在这里...</div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <h3>在线客户端</h3>
+        <ul class="client-list" id="clientList">
+          <li>暂无客户端连接</li>
+        </ul>
+      </div>
+    </div>
+
     <script type="module">
       import { createUser } from "/packages/new-user/main.js";
 
+      // 创建管理员用户
       const user = await createUser({ user: "test-admin1" });
 
       const serverUrl = "ws://localhost:18290";
 
+      // 连接到服务器（管理员模式）
       const serverClient = await user.connectServer(serverUrl, {
         admin: 1,
         password: "admin123",
       });
 
-      console.log("serverClient: ", serverClient);
+      // 更新日志区域
+      function updateLog(message) {
+        const logArea = document.getElementById("logArea");
+        const time = new Date().toLocaleTimeString();
+        logArea.innerHTML += `<div>[${time}] ${message}</div>`;
+        logArea.scrollTop = logArea.scrollHeight;
+      }
 
-      setTimeout(() => {
-        serverClient.addEventListener("message", (event) => {
-          const { type } = event.detail;
+      // 更新客户端列表
+      function updateClientList(clients) {
+        const clientList = document.getElementById("clientList");
+        const clientCount = document.getElementById("clientCount");
 
-          if (type === "connections_info") {
-            const { clients } = event.detail;
-            console.log("clients: ", clients);
-          }
+        clientCount.textContent = clients.length;
+
+        if (clients.length === 0) {
+          clientList.innerHTML = "<li>暂无客户端连接</li>";
+          return;
+        }
+
+        clientList.innerHTML = "";
+
+        clients.forEach((client) => {
+          const li = document.createElement("li");
+          li.className = "client-item";
+
+          const connectTime = new Date(client.connectTime).toLocaleString();
+
+          li.innerHTML = `
+            <div>
+              <span class="status-indicator status-connected"></span>
+              <strong>ID:</strong> ${client.id}<br>
+              <small>连接时间: ${connectTime}</small>
+            </div>
+            <button class="disconnect-btn" data-client-id="${client.id}">断开</button>
+          `;
+
+          clientList.appendChild(li);
         });
 
-        // 等待服务器响应
-        console.log("serverClient.admin: ", serverClient.refreshClientsList());
+        // 为断开按钮添加事件监听器
+        document.querySelectorAll(".disconnect-btn").forEach((button) => {
+          button.addEventListener("click", async (e) => {
+            const clientId = e.target.getAttribute("data-client-id");
+            try {
+              await serverClient.disconnectClient(clientId);
+              updateLog(`已发送断开客户端 ${clientId} 的连接请求`);
+              // 延迟刷新列表以显示断开结果
+              setTimeout(() => {
+                serverClient.refreshClientsList();
+              }, 1000);
+            } catch (error) {
+              updateLog(`断开客户端 ${clientId} 失败: ${error.message}`);
+            }
+          });
+        });
+      }
+
+      // 监听服务器消息
+      serverClient.addEventListener("message", (event) => {
+        const { type } = event.detail;
+
+        if (type === "connections_info") {
+          const { clients } = event.detail;
+          updateLog(`获取到 ${clients.length} 个客户端连接信息`);
+          updateClientList(clients);
+        } else if (type === "success") {
+          updateLog(`操作成功: ${event.detail.message}`);
+        } else if (type === "error") {
+          updateLog(`错误: ${event.detail.message}`);
+        } else {
+          updateLog(`收到消息: ${type}`);
+        }
+      });
+
+      // 刷新按钮事件
+      document.getElementById("refreshBtn").addEventListener("click", () => {
+        serverClient.refreshClientsList();
+        updateLog("正在刷新客户端列表...");
+      });
+
+      // 页面加载完成后自动刷新一次
+      setTimeout(() => {
+        serverClient.refreshClientsList();
+        updateLog("初始化客户端列表...");
+
+        // 更新服务器状态
+        const serverStatus = document.getElementById("serverStatus");
+        if (
+          serverClient.socket &&
+          serverClient.socket.readyState === WebSocket.OPEN
+        ) {
+          serverStatus.textContent = "运行中";
+          serverStatus.style.color = "#28a745";
+        } else {
+          serverStatus.textContent = "离线";
+          serverStatus.style.color = "#dc3545";
+        }
       }, 300);
+
+      // 监听连接状态变化
+      serverClient.addEventListener("authed", () => {
+        updateLog("管理员已认证");
+      });
+
+      serverClient.addEventListener("close", () => {
+        updateLog("与服务器的连接已断开");
+        const serverStatus = document.getElementById("serverStatus");
+        serverStatus.textContent = "离线";
+        serverStatus.style.color = "#dc3545";
+      });
     </script>
   </body>
 </html>
