@@ -1,8 +1,8 @@
-import { HandServerClient } from "/packages/new-user/server/hand.js";
+import { HandServerClient } from "./hand.js";
 
 export class AdminHandServerClient extends HandServerClient {
-  constructor(ws, server, password) {
-    super(ws, server);
+  constructor({ url, user, password }) {
+    super({ url, user });
     this.password = password;
   }
 

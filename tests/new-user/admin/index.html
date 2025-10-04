@@ -5,5 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Admin</title>
   </head>
-  <body></body>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/new-user/main.js";
+
+      const user = await createUser({ user: "test-admin1" });
+
+      const serverUrl = "ws://localhost:18290";
+
+      const serverClient = await user.connectServer(serverUrl, {
+        admin: 1,
+        password: "admin123",
+      });
+
+      console.log("serverClient: ", serverClient);
+    </script>
+  </body>
 </html>

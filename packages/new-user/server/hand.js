@@ -1,7 +1,7 @@
 export class HandServerClient extends EventTarget {
   #url;
   #user;
-  constructor({ sessionId, url, user }) {
+  constructor({ url, user }) {
     super();
     this.#url = url;
     this.socket = null;

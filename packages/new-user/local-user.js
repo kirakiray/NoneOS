@@ -88,14 +88,28 @@ export class LocalUser extends User {
   }
 
   // 连接服务器
-  async connectServer(url) {
+  async connectServer(url, options = {}) {
     if (this.#serverConnects[url]) {
       return this.#serverConnects[url];
     }
-    const serverClient = new HandServerClient({
-      url,
-      user: this,
-    });
+
+    let serverClient = null;
+
+    if (options.admin && options.password) {
+      // 管理员模式
+      const { AdminHandServerClient } = await import("./server/admin-hand.js");
+
+      serverClient = new AdminHandServerClient({
+        url,
+        user: this,
+        password: options.password,
+      });
+    } else {
+      serverClient = new HandServerClient({
+        url,
+        user: this,
+      });
+    }
 
     await serverClient.init();
 
