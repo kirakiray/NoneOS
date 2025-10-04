@@ -4,6 +4,8 @@ export class HandClient {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
 
+    this.state = "unauth"; // 未认证：unauth；认证完成：authed
+
     this.cid = Math.random().toString(36).slice(2, 10);
     this.ws = ws;
     this.server = server;

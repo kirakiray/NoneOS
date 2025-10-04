@@ -5,6 +5,7 @@ export class HandServerClient {
     this.#url = url;
     this.socket = null;
     this.#user = user;
+    this.state = "unauth"; // 未认证：unauth；认证中：authing；认证完成：authed
   }
 
   async init() {
@@ -36,9 +37,21 @@ export class HandServerClient {
 
   // 处理WebSocket消息事件
   async _onMessage(event) {
-    console.log("收到消息:", event.data);
+    let data;
 
-    const data = JSON.parse(event.data);
+    try {
+      data = JSON.parse(event.data);
+
+      if (data.type === "pong") {
+        return;
+      }
+
+      console.log("收到消息:", data);
+    } catch (e) {
+      console.log("收到消息:", event.data);
+      console.error(e);
+      return;
+    }
 
     if (data.type === "need_auth") {
       const info = await this.#user.info();
@@ -50,8 +63,19 @@ export class HandServerClient {
         info,
       });
 
+      this._changeState("authing");
+
       // 发送签名信息，证明是用户本人
       this.socket.send(JSON.stringify({ type: "authentication", signedData }));
+    } else if (data.type === "auth_success") {
+      this._changeState("authed");
+    }
+  }
+
+  _changeState(state) {
+    this.state = state;
+    if (this.onchange) {
+      this.onchange(this);
     }
   }
 
