@@ -2,7 +2,7 @@
 // node --inspect server2/start.js --port=8081
 // bun server2/start.js --port=8081
 
-import { initServer } from "./index.js";
+import { initServer } from "./src/index.js";
 
 const port =
   parseInt(
