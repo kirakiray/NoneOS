@@ -21,7 +21,7 @@ export const initServer = async ({
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new HandClient(ws, { clients }); // 传递 clients Map 给 HandClient
+    const client = new HandClient(ws, server); // 传递 clients Map 给 HandClient
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
