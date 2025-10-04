@@ -1,7 +1,8 @@
-export class HandServerClient {
+export class HandServerClient extends EventTarget {
   #url;
   #user;
   constructor({ sessionId, url, user }) {
+    super();
     this.#url = url;
     this.socket = null;
     this.#user = user;
@@ -70,10 +71,13 @@ export class HandServerClient {
     } else if (data.type === "auth_success") {
       this._changeState("authed");
     }
+
+    this.dispatchEvent(new Event("message", { detail: data }));
   }
 
   _changeState(state) {
     this.state = state;
+    this.dispatchEvent(new Event(state));
     if (this.onchange) {
       this.onchange(this);
     }
