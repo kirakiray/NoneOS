@@ -6,7 +6,7 @@ export class HandClient {
 
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
 
-    this.cid = Math.random().toString(36).slice(2, 10);
+    this.cid = Math.random().toString(36).slice(2, 8);
     this.ws = ws;
     this.server = server;
     this.connectTime = new Date(); // 记录连接时间

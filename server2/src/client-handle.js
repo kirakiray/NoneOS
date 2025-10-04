@@ -17,6 +17,9 @@ export const options = {
       client.userId = await getHash(data.publicKey);
       client.state = "authed";
 
+      // 清除认证定时器
+      clearTimeout(client._authTimer);
+
       // 认证成功后，发送确认消息
       client.send({
         type: "auth_success",

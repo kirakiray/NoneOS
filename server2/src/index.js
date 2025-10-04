@@ -14,7 +14,7 @@ const packageJson = require("../package.json");
 export const initServer = async ({
   password,
   port = 8081,
-  serverName = "hand server",
+  serverName = "handserver",
 }) => {
   let server;
   const clients = new Map();
@@ -25,6 +25,10 @@ export const initServer = async ({
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
+
+    client._authTimer = setTimeout(() => {
+      client.close();
+    }, 1000 * 3); // 3秒未认证则关闭连接
 
     client.send({
       type: "need_auth",
