@@ -232,8 +232,13 @@
               await serverClient.disconnectClient(clientId);
               updateLog(`已发送断开客户端 ${clientId} 的连接请求`);
               // 延迟刷新列表以显示断开结果
-              setTimeout(() => {
-                serverClient.refreshClientsList();
+              setTimeout(async () => {
+                try {
+                  const clients = await serverClient.getClients();
+                  updateClientList(clients);
+                } catch (error) {
+                  updateLog(`刷新客户端列表失败: ${error.message}`);
+                }
               }, 1000);
             } catch (error) {
               updateLog(`断开客户端 ${clientId} 失败: ${error.message}`);
@@ -260,15 +265,25 @@
       });
 
       // 刷新按钮事件
-      document.getElementById("refreshBtn").addEventListener("click", () => {
-        serverClient.refreshClientsList();
-        updateLog("正在刷新客户端列表...");
+      document.getElementById("refreshBtn").addEventListener("click", async () => {
+        try {
+          const clients = await serverClient.getClients();
+          updateLog("正在刷新客户端列表...");
+          updateClientList(clients);
+        } catch (error) {
+          updateLog(`刷新客户端列表失败: ${error.message}`);
+        }
       });
 
       // 页面加载完成后自动刷新一次
-      setTimeout(() => {
-        serverClient.refreshClientsList();
-        updateLog("初始化客户端列表...");
+      setTimeout(async () => {
+        try {
+          const clients = await serverClient.getClients();
+          updateLog("初始化客户端列表...");
+          updateClientList(clients);
+        } catch (error) {
+          updateLog(`初始化客户端列表失败: ${error.message}`);
+        }
 
         // 更新服务器状态
         const serverStatus = document.getElementById("serverStatus");
