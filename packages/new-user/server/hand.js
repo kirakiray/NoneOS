@@ -72,7 +72,7 @@ export class HandServerClient extends EventTarget {
       this._changeState("authed");
     }
 
-    this.dispatchEvent(new Event("message", { detail: data }));
+    this.dispatchEvent(new CustomEvent("message", { detail: data }));
   }
 
   _changeState(state) {

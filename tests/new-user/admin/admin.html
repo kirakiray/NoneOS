@@ -19,6 +19,20 @@
       });
 
       console.log("serverClient: ", serverClient);
+
+      setTimeout(() => {
+        serverClient.addEventListener("message", (event) => {
+          const { type } = event.detail;
+
+          if (type === "connections_info") {
+            const { clients } = event.detail;
+            console.log("clients: ", clients);
+          }
+        });
+
+        // 等待服务器响应
+        console.log("serverClient.admin: ", serverClient.refreshClientsList());
+      }, 300);
     </script>
   </body>
 </html>
