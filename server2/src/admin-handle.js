@@ -1,3 +1,4 @@
+// 和服务端的交互，使用下划线驼峰命名法
 const options = {
   // 获取所有连接的客户端信息
   get_connections({ client, clients, message }) {

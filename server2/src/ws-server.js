@@ -64,14 +64,6 @@ export class WebSocketServer {
         if (this.onConnect) {
           this.onConnect(ws);
         }
-
-        // 向客户端发送欢迎消息
-        ws.send(
-          JSON.stringify({
-            type: "welcome",
-            message: "欢迎连接到WebSocket服务器(Bun)",
-          })
-        );
       },
 
       message: (ws, data) => {
@@ -168,14 +160,6 @@ export class WebSocketServer {
         if (this.onConnect) {
           this.onConnect(ws);
         }
-
-        // 向客户端发送欢迎消息
-        ws.send(
-          JSON.stringify({
-            type: "welcome",
-            message: "欢迎连接到WebSocket服务器(Node.js)",
-          })
-        );
 
         // 监听客户端消息
         ws.on("message", (data, isBinary) => {

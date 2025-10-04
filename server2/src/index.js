@@ -5,8 +5,17 @@ import { WebSocketServer } from "./ws-server.js";
 import { HandClient } from "./hand-client.js";
 import adminHandle from "./admin-handle.js";
 import clientHandle from "./client-handle.js";
+import { createRequire } from "node:module";
 
-export const initServer = async ({ password, port = 8081 }) => {
+const require = createRequire(import.meta.url);
+
+const packageJson = require("../package.json");
+
+export const initServer = async ({
+  password,
+  port = 8081,
+  serverName = "hand server",
+}) => {
   let server;
   const clients = new Map();
 
@@ -16,6 +25,21 @@ export const initServer = async ({ password, port = 8081 }) => {
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
+
+    client.send({
+      type: "need_auth",
+      cid: client.cid,
+    });
+
+    // 发送服务端的数据给对方
+    // 兼容操作 旧版本客户端
+    client.send({
+      type: "update-server-info",
+      data: {
+        serverName,
+        serverVersion: packageJson.version,
+      },
+    });
   }
 
   // 定义连接关闭处理函数
@@ -36,6 +60,11 @@ export const initServer = async ({ password, port = 8081 }) => {
   // 定义消息处理函数
   function onMessage(ws, message) {
     const client = ws._client;
+
+    if (clientHandle[message.type]) {
+      clientHandle[message.type]({ client, clients, message });
+      return;
+    }
 
     switch (message.type) {
       case "ping":
@@ -71,11 +100,6 @@ export const initServer = async ({ password, port = 8081 }) => {
         break;
 
       default:
-        if (clientHandle[message.type]) {
-          clientHandle[message.type]({ client, clients, message });
-          break;
-        }
-
         client.send({
           type: "error",
           message: "未知的消息类型",

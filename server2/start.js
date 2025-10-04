@@ -9,9 +9,14 @@ const port =
     process.argv.find((arg) => arg.startsWith("--port="))?.split("=")[1]
   ) || 8081;
 
+const serverName =
+  process.argv.find((arg) => arg.startsWith("--name="))?.split("=")[1] ||
+  "hand server";
+
 const server = await initServer({
   password: "admin123",
   port: port,
+  serverName,
 });
 
 // 优雅关闭服务器
