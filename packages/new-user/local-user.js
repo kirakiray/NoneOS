@@ -8,6 +8,7 @@ const servers = {};
 export class LocalUser extends User {
   #dirHandle;
   #sessionId;
+  #serverConnects = {};
   constructor(handle) {
     super(handle);
     this.#dirHandle = handle;
@@ -88,12 +89,17 @@ export class LocalUser extends User {
 
   // 连接服务器
   async connectServer(url) {
+    if (this.#serverConnects[url]) {
+      return this.#serverConnects[url];
+    }
     const serverClient = new HandServerClient({
       sessionId: this.#sessionId,
       url,
     });
 
     await serverClient.init();
+
+    this.#serverConnects[url] = serverClient;
 
     return serverClient;
   }

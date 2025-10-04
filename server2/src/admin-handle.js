@@ -1,7 +1,6 @@
 const options = {
   // 获取所有连接的客户端信息
   get_connections({ client, clients, message }) {
-    // 获取所有连接的客户端信息
     let connectionsInfo = [];
     for (const client2 of clients.values()) {
       connectionsInfo.push({
@@ -16,7 +15,6 @@ const options = {
   },
   // 断开指定客户端的连接
   disconnect_client({ client, clients, message }) {
-    // 断开指定客户端的连接
     if (message.clientId) {
       // 找到任意一个客户端实例来调用 disconnectClient 方法
       const targetClient = clients.get(message.clientId);
