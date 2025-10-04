@@ -2,38 +2,9 @@
 
 // index.js - WebSocket服务器入口文件
 import { WebSocketServer } from "./ws-server.js";
-
-class HandClient {
-  constructor(ws, server) {
-    if (ws._client) {
-      throw new Error("客户端已经初始化过:" + ws._client.cid);
-    }
-
-    this.cid = Math.random().toString(36).slice(2, 10);
-    ws._client = this;
-    this.ws = ws;
-    this.server = server;
-    this.connectTime = new Date(); // 记录连接时间
-  }
-
-  send(data) {
-    // 判断是二进制则直接发送，对象则发送字符串
-    if (
-      data instanceof ArrayBuffer ||
-      data instanceof Uint8Array ||
-      data instanceof Buffer ||
-      typeof data === "string"
-    ) {
-      this.ws.send(data);
-    } else {
-      this.ws.send(JSON.stringify(data));
-    }
-  }
-
-  close() {
-    this.ws.close();
-  }
-}
+import { HandClient } from "./hand-client.js";
+import adminHandle from "./admin-handle.js";
+import clientHandle from "./client-handle.js";
 
 export const initServer = async ({ password, port = 8081 }) => {
   let server;
@@ -42,27 +13,21 @@ export const initServer = async ({ password, port = 8081 }) => {
   // 定义连接处理函数
   function onConnect(ws) {
     const client = new HandClient(ws, { clients }); // 传递 clients Map 给 HandClient
+    ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
   }
 
   // 定义连接关闭处理函数
   function onClose(ws, code, reason) {
-    console.log(
-      "客户端断开连接，代码:",
-      code,
-      "原因:",
-      reason ? reason.toString() : "无"
-    );
-
+    // TODO: 同步应该记录下关闭连接的客户端信息
     // 从Map中移除断开连接的客户端
     clients.delete(ws._client.cid);
   }
 
   // 定义错误处理函数
   function onError(ws, error) {
-    console.error("WebSocket错误:", error);
-
+    // TODO: 应该记录下错误信息
     if (ws._client) {
       clients.delete(ws._client.cid);
     }
@@ -70,86 +35,48 @@ export const initServer = async ({ password, port = 8081 }) => {
 
   // 定义消息处理函数
   function onMessage(ws, message) {
+    const client = ws._client;
+
     switch (message.type) {
+      case "ping":
+        // 处理客户端的ping消息，返回pong响应
+        client.send({
+          type: "pong",
+          timestamp: new Date().toISOString(),
+        });
+        break;
+
       case "echo":
         // 回显消息
-        ws._client.send({
+        client.send({
           type: "echo",
           message: message.message,
           timestamp: new Date().toISOString(),
         });
         break;
 
-      case "ping":
-        // 处理客户端的ping消息，返回pong响应
-        ws._client.send({
-          type: "pong",
-          timestamp: new Date().toISOString(),
-        });
-        break;
-
       case "get_connections":
+      case "disconnect_client":
         // 验证密码，通过才允许获取所有连接的客户端信息
         if (message.password !== password) {
-          ws._client.send({
+          client.send({
             type: "error",
             message: "密码错误",
           });
           break;
         }
 
-        // 获取所有连接的客户端信息
-        let connectionsInfo = [];
-        for (const client of clients.values()) {
-          connectionsInfo.push({
-            id: client.cid,
-            connectTime: client.connectTime,
-          });
-        }
-        ws._client.send({
-          type: "connections_info",
-          clients: connectionsInfo,
-        });
-        break;
-
-      case "disconnect_client":
-        // 验证密码，通过才允许断开指定客户端的连接
-        if (message.password !== password) {
-          ws._client.send({
-            type: "error",
-            message: "密码错误",
-          });
-          break;
-        }
-
-        // 断开指定客户端的连接
-        if (message.clientId) {
-          // 找到任意一个客户端实例来调用 disconnectClient 方法
-          const targetClient = clients.get(message.clientId);
-          let result = false;
-          if (targetClient) {
-            result = targetClient.close();
-
-            ws._client.send({
-              type: "success",
-              message: `已断开客户端 ${message.clientId} 的连接`,
-            });
-          } else {
-            ws._client.send({
-              type: "error",
-              message: `未找到客户端 ${message.clientId}`,
-            });
-          }
-        } else {
-          ws._client.send({
-            type: "error",
-            message: "缺少客户端ID参数",
-          });
-        }
+        // 调用 adminHandle 中的方法处理消息
+        adminHandle[message.type]({ client, clients, message });
         break;
 
       default:
-        ws._client.send({
+        if (clientHandle[message.type]) {
+          clientHandle[message.type]({ client, clients, message });
+          break;
+        }
+
+        client.send({
           type: "error",
           message: "未知的消息类型",
           response: message,
