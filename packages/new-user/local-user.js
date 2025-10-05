@@ -113,9 +113,9 @@ export class LocalUser extends BaseUser {
       });
     }
 
-    await serverClient.init();
-
     this.#serverConnects[url] = serverClient;
+
+    await serverClient.init();
 
     return serverClient;
   }
