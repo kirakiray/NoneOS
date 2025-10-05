@@ -6,6 +6,7 @@ import { HandClient } from "./hand-client.js";
 import adminHandle from "./admin-handle.js";
 import clientHandle from "./client-handle.js";
 import { createRequire } from "node:module";
+import { toData } from "../../packages/new-user/buffer-data.js";
 
 const require = createRequire(import.meta.url);
 
@@ -73,8 +74,23 @@ export const initServer = async ({
   function onMessage(ws, message) {
     const client = ws._client;
 
+    // 二进制数据
+    let binaryData = null;
+
+    if (message instanceof Buffer) {
+      const { data, info } = toData(message);
+      binaryData = data;
+      message = info;
+    }
+
     if (clientHandle[message.type]) {
-      clientHandle[message.type]({ client, clients, users, message });
+      clientHandle[message.type]({
+        client,
+        clients,
+        users,
+        message,
+        binaryData,
+      });
       return;
     }
 

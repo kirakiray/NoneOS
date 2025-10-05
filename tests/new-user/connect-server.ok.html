@@ -114,6 +114,53 @@
         };
       });
 
+      await test("Uint8Array Transmission Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-sender2" });
+        const user2 = await createUser({ user: "test-receiver2" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 两者都连上同一个服务器
+        const serverClient1 = await user1.connectServer(serverUrl);
+        const serverClient2 = await user2.connectServer(serverUrl);
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 创建测试用的 Uint8Array 数据
+        const testData = new Uint8Array([1, 2, 3, 4, 5]);
+
+        // 设置接收数据的Promise
+        const receiveDataPromise = new Promise((resolve) => {
+          serverClient2.onData = (fromUserId, data) => {
+            resolve({ fromUserId, data });
+          };
+        });
+
+        // 发送 Uint8Array 数据给对方
+        serverClient1.sendData({ userId: user2.userId }, testData);
+
+        // 等待接收数据
+        const received = await receiveDataPromise;
+        const isCorrectSender = received.fromUserId === user1.userId;
+        const isCorrectData =
+          received.data.length === testData.length &&
+          received.data.every((value, index) => value === testData[index]);
+
+        return {
+          assert: isCorrectSender && isCorrectData,
+          content: {
+            message: "Uint8Array 数据传输测试成功",
+            sentData: Array.from(testData),
+            receivedData: Array.from(received.data),
+            fromUserId: received.fromUserId,
+            isCorrectSender,
+            isCorrectData,
+          },
+        };
+      });
+
       await test("Multiple Users Independent Connections Test", async () => {
         // 创建多个用户
         const user1 = await createUser({ user: "test-multi-user1" });

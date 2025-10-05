@@ -1,5 +1,6 @@
 import { paste } from "../../packages/crypto/crypto-verify.js";
 import { getHash } from "../../packages/fs/util.js";
+import { toBuffer } from "../../packages/new-user/buffer-data.js";
 
 export const options = {
   // 认证用户信息
@@ -56,8 +57,21 @@ export const options = {
   },
 
   // 转发用户数据
-  async agent_data({ client, clients, users, message }) {
+  async agent_data({ client, clients, users, message, binaryData }) {
     const { data, options } = message;
+    if (binaryData) {
+      if (options.userId) {
+        const reBuffer = toBuffer(binaryData, {
+          type: "agent_data",
+          fromUserId: client.userId,
+        });
+        const targetClient = users.get(options.userId);
+        if (targetClient) {
+          targetClient.send(reBuffer);
+        }
+        return;
+      }
+    }
     if (options.userId) {
       const targetClient = users.get(options.userId);
       if (targetClient) {
