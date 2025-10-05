@@ -3,7 +3,7 @@ import { getHash } from "../../packages/fs/util.js";
 
 export const options = {
   // 认证用户信息
-  async authentication({ client, clients, message }) {
+  async authentication({ client, clients, users, message }) {
     try {
       // 验证签名并获取数据
       const data = await paste(message.signedData);
@@ -19,6 +19,8 @@ export const options = {
 
       // 清除认证定时器
       clearTimeout(client._authTimer);
+
+      users.set(client.userId, client);
 
       // 认证成功后，发送确认消息
       client.send({

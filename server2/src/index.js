@@ -17,7 +17,8 @@ export const initServer = async ({
   serverName = "handserver",
 }) => {
   let server;
-  const clients = new Map();
+  const clients = new Map(); // 用户cid索引数据
+  const users = new Map(); // 用户userId索引数据
 
   // 定义连接处理函数
   function onConnect(ws) {
@@ -52,6 +53,9 @@ export const initServer = async ({
     // TODO: 同步应该记录下关闭连接的客户端信息
     // 从Map中移除断开连接的客户端
     clients.delete(ws._client.cid);
+    if (ws._client.userId) {
+      users.delete(ws._client.userId);
+    }
   }
 
   // 定义错误处理函数
@@ -59,6 +63,9 @@ export const initServer = async ({
     // TODO: 应该记录下错误信息
     if (ws._client) {
       clients.delete(ws._client.cid);
+      if (ws._client.userId) {
+        users.delete(ws._client.userId);
+      }
     }
   }
 
@@ -67,7 +74,7 @@ export const initServer = async ({
     const client = ws._client;
 
     if (clientHandle[message.type]) {
-      clientHandle[message.type]({ client, clients, message });
+      clientHandle[message.type]({ client, clients, users, message });
       return;
     }
 
@@ -123,6 +130,7 @@ export const initServer = async ({
 
   // 将 clients Map 添加到 server 实例上，以便 HandClient 可以访问
   server.clients = clients;
+  server.users = users;
 
   // 启动服务器，监听指定端口
   server.start(port);
