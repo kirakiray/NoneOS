@@ -5,6 +5,8 @@ export class HandClient {
     }
 
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
+    this.userId = null; // 认证完成后设置用户ID
+    this.userInfo = null; // 认证完成后设置用户信息
 
     this.cid = Math.random().toString(36).slice(2, 8);
     this.ws = ws;

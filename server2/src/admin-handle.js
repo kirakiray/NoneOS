@@ -6,7 +6,11 @@ const options = {
     for (const client2 of clients.values()) {
       connectionsInfo.push({
         id: client2.cid,
+        userId: client2.userId,
+        userInfo: client2.userInfo,
         connectTime: client2.connectTime,
+        state: client2.state,
+        username: client2.username,
       });
     }
     client.send({
