@@ -101,6 +101,11 @@ export const options = {
       }
     }
   },
+  // 更新延迟时间
+  async update_delay({ client, clients, users, message }) {
+    const { delay } = message;
+    client.delay = delay;
+  },
 };
 
 export default options;

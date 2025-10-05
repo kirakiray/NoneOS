@@ -9,6 +9,7 @@ export class HandServerClient extends EventTarget {
     this.socket = null;
     this.#user = user;
     this.state = "unauth"; // 未认证：unauth；认证中：authing；认证完成：authed
+    this.delay = 0;
   }
 
   async init() {
@@ -83,6 +84,7 @@ export class HandServerClient extends EventTarget {
     this.pingInterval = setInterval(() => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
         this._send({ type: "ping" });
+        this._pingTime = Date.now();
       }
     }, 30000);
   }
@@ -117,6 +119,14 @@ export class HandServerClient extends EventTarget {
       responseData = JSON.parse(event.data);
 
       if (responseData.type === "pong") {
+        this.delay = Date.now() - this._pingTime;
+        this.dispatchEvent(
+          new CustomEvent("check-delay", { detail: this.delay })
+        );
+        this._pingTime = null;
+
+        // 告诉服务端延迟时间
+        this._send({ type: "update_delay", delay: this.delay });
         return;
       }
 

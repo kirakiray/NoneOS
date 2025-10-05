@@ -2,7 +2,7 @@
 
 // index.js - WebSocket服务器入口文件
 import { WebSocketServer } from "./ws-server.js";
-import { HandClient } from "./hand-client.js";
+import { DeviceClient } from "./device-client.js";
 import adminHandle from "./admin-handle.js";
 import clientHandle from "./client-handle.js";
 import { createRequire } from "node:module";
@@ -23,7 +23,7 @@ export const initServer = async ({
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new HandClient(ws, server); // 传递 clients Map 给 HandClient
+    const client = new DeviceClient(ws, server); // 传递 clients Map 给 DeviceClient
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
@@ -150,7 +150,7 @@ export const initServer = async ({
     onError,
   });
 
-  // 将 clients Map 添加到 server 实例上，以便 HandClient 可以访问
+  // 将 clients Map 添加到 server 实例上，以便 DeviceClient 可以访问
   server.clients = clients;
   server.users = users;
 

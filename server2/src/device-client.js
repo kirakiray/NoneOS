@@ -1,4 +1,4 @@
-export class HandClient {
+export class DeviceClient {
   constructor(ws, server) {
     if (ws._client) {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
@@ -8,6 +8,7 @@ export class HandClient {
     this.userId = null; // 认证完成后设置用户ID
     this.userInfo = null; // 认证完成后设置用户信息
     this.userSessionId = null; // 认证完成后设置用户会话ID
+    this.delay = 0; // 延迟时间
 
     let cid = Math.random().toString(36).slice(2, 8);
 
