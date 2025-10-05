@@ -61,7 +61,15 @@ export const options = {
     client.send({
       type: "response_user_online",
       userId,
-      pool: userPool ? Array.from(userPool) : [],
+      pool: userPool
+        ? Array.from(userPool).map((c) => {
+            return {
+              cid: c.cid,
+              connectTime: c.connectTime,
+              userSessionId: c.userSessionId,
+            };
+          })
+        : [],
       isOnline: userPool && userPool.size > 0,
     });
   },
