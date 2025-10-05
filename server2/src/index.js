@@ -55,7 +55,10 @@ export const initServer = async ({
     // 从Map中移除断开连接的客户端
     clients.delete(ws._client.cid);
     if (ws._client.userId) {
-      users.delete(ws._client.userId);
+      const userPool = users.get(ws._client.userId);
+      if (userPool) {
+        userPool.delete(ws._client);
+      }
     }
   }
 
@@ -65,7 +68,10 @@ export const initServer = async ({
     if (ws._client) {
       clients.delete(ws._client.cid);
       if (ws._client.userId) {
-        users.delete(ws._client.userId);
+        const userPool = users.get(ws._client.userId);
+        if (userPool) {
+          userPool.delete(ws._client);
+        }
       }
     }
   }

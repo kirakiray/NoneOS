@@ -67,8 +67,6 @@ export class WebSocketServer {
       },
 
       message: (ws, data) => {
-        console.log("收到客户端消息:", data);
-
         try {
           // 检查是否为二进制数据
           if (

@@ -17,11 +17,19 @@ export const options = {
       client.userInfo = data.info;
       client.userId = await getHash(data.publicKey);
       client.state = "authed";
+      client.userSessionId = data.userSessionId;
 
       // 清除认证定时器
       clearTimeout(client._authTimer);
 
-      users.set(client.userId, client);
+      // 添加到用户映射对象
+      let userPool = users.get(client.userId);
+      if (!userPool) {
+        userPool = new Set();
+        users.set(client.userId, userPool);
+      }
+
+      userPool.add(client);
 
       // 认证成功后，发送确认消息
       client.send({
@@ -48,11 +56,13 @@ export const options = {
   // 检查用户是否在线
   async is_user_online({ client, clients, users, message }) {
     const { userId } = message;
-    const isOnline = users.has(userId);
+    const userPool = users.get(userId);
+
     client.send({
       type: "response_user_online",
       userId,
-      isOnline,
+      pool: userPool ? Array.from(userPool) : [],
+      isOnline: userPool && userPool.size > 0,
     });
   },
 
@@ -76,7 +86,11 @@ export const options = {
             fromUserId: client.userId,
           };
 
-      targetClient.send(sendData);
+      // 发送给第一个客户
+      const firstClient = targetClient.values().next().value;
+      if (firstClient) {
+        firstClient.send(sendData);
+      }
     }
   },
 };

@@ -1,3 +1,4 @@
+// 本地用户相关的类
 import { createSingleData } from "../hybird-data/single-data.js";
 import { User } from "./user.js";
 import { HandServerClient } from "./server/hand.js";
