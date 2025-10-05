@@ -24,6 +24,47 @@ export class HandServerClient extends EventTarget {
     this.socket.addEventListener("error", this._onError.bind(this));
   }
 
+  async isUserOnline(userId) {
+    if (this.state !== "authed") {
+      throw new Error("用户未认证");
+    }
+
+    await this.send({ type: "is_user_online", userId });
+
+    return new Promise((resolve, reject) => {
+      const handler = (event) => {
+        const data = event.detail;
+
+        if (data.type === "response_user_online" && data.userId === userId) {
+          // 判断成功后，注销监听
+          this.removeEventListener("message", handler);
+          resolve(data.isOnline);
+        }
+      };
+      this.addEventListener("message", handler);
+    });
+  }
+
+  sendData(options, data) {
+    if (this.state !== "authed") {
+      throw new Error("用户未认证");
+    }
+
+    if (options.userId) {
+      this.send({ type: "agent_data", options, data });
+    }
+  }
+
+  send(data) {
+    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) {
+      throw new Error("WebSocket连接未打开");
+    }
+
+    if (typeof data === "object") {
+      this.socket.send(JSON.stringify(data));
+    }
+  }
+
   // 处理WebSocket打开事件
   _onOpen() {
     console.log("WebSocket连接已打开");
@@ -31,7 +72,7 @@ export class HandServerClient extends EventTarget {
     clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this.socket.send(JSON.stringify({ type: "ping" }));
+        this.send({ type: "ping" });
       }
     }, 30000);
   }
@@ -67,9 +108,14 @@ export class HandServerClient extends EventTarget {
       this._changeState("authing");
 
       // 发送签名信息，证明是用户本人
-      this.socket.send(JSON.stringify({ type: "authentication", signedData }));
+      this.send({ type: "authentication", signedData });
     } else if (data.type === "auth_success") {
       this._changeState("authed");
+    } else if (data.type === "agent_data") {
+      this.dispatchEvent(new CustomEvent("agent_data", { detail: data }));
+      if (this.onData) {
+        this.onData(data.fromUserId, data.data);
+      }
     }
 
     this.dispatchEvent(new CustomEvent("message", { detail: data }));

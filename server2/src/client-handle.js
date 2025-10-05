@@ -44,6 +44,31 @@ export const options = {
       return;
     }
   },
+  // 检查用户是否在线
+  async is_user_online({ client, clients, users, message }) {
+    const { userId } = message;
+    const isOnline = users.has(userId);
+    client.send({
+      type: "response_user_online",
+      userId,
+      isOnline,
+    });
+  },
+
+  // 转发用户数据
+  async agent_data({ client, clients, users, message }) {
+    const { data, options } = message;
+    if (options.userId) {
+      const targetClient = users.get(options.userId);
+      if (targetClient) {
+        targetClient.send({
+          type: "agent_data",
+          data,
+          fromUserId: client.userId,
+        });
+      }
+    }
+  },
 };
 
 export default options;
