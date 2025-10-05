@@ -26,6 +26,7 @@ export class HandServerClient extends EventTarget {
     this.socket.addEventListener("error", this._onError.bind(this));
   }
 
+  // 检查用户是否在线
   async isUserOnline(userId) {
     if (this.state !== "authed") {
       throw new Error("用户未认证");
@@ -47,6 +48,7 @@ export class HandServerClient extends EventTarget {
     });
   }
 
+  // 发送数据给指定用户
   sendData(options, data) {
     if (this.state !== "authed") {
       throw new Error("用户未认证");
