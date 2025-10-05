@@ -83,8 +83,8 @@ export class HandServerClient extends EventTarget {
     clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {
       if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this._send({ type: "ping" });
         this._pingTime = Date.now();
+        this._send({ type: "ping" });
       }
     }, 30000);
   }
@@ -123,6 +123,7 @@ export class HandServerClient extends EventTarget {
         this.dispatchEvent(
           new CustomEvent("check-delay", { detail: this.delay })
         );
+
         this._pingTime = null;
 
         // 告诉服务端延迟时间
@@ -153,6 +154,8 @@ export class HandServerClient extends EventTarget {
       this._send({ type: "authentication", signedData });
     } else if (responseData.type === "auth_success") {
       this._changeState("authed");
+      this._pingTime = Date.now();
+      this._send({ type: "ping" }); // 即使发送延迟测试
     } else if (responseData.type === "agent_data") {
       this.dispatchEvent(
         new CustomEvent("agent_data", { detail: responseData })

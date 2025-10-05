@@ -11,6 +11,7 @@ const options = {
         connectTime: client2.connectTime,
         state: client2.state,
         username: client2.userInfo.name,
+        delay: client2.delay,
       });
     }
     client.send({
