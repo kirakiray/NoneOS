@@ -58,29 +58,25 @@ export const options = {
 
   // 转发用户数据
   async agent_data({ client, clients, users, message, binaryData }) {
-    const { data, options } = message;
-    if (binaryData) {
-      if (options.userId) {
-        const reBuffer = toBuffer(binaryData, {
-          type: "agent_data",
-          fromUserId: client.userId,
-        });
-        const targetClient = users.get(options.userId);
-        if (targetClient) {
-          targetClient.send(reBuffer);
-        }
-        return;
-      }
-    }
-    if (options.userId) {
-      const targetClient = users.get(options.userId);
-      if (targetClient) {
-        targetClient.send({
-          type: "agent_data",
-          data,
-          fromUserId: client.userId,
-        });
-      }
+    const { options, data } = message;
+    const { userId } = options;
+
+    if (userId) {
+      const targetClient = users.get(userId);
+      if (!targetClient) return;
+
+      const sendData = binaryData
+        ? toBuffer(binaryData, {
+            type: "agent_data",
+            fromUserId: client.userId,
+          })
+        : {
+            type: "agent_data",
+            data,
+            fromUserId: client.userId,
+          };
+
+      targetClient.send(sendData);
     }
   },
 };
