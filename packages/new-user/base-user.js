@@ -8,7 +8,7 @@ import {
 
 import { getHash } from "../fs/util.js";
 
-export class User {
+export class BaseUser {
   #dirHandle;
   #signer;
   #verifier;

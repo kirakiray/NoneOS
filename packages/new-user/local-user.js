@@ -1,12 +1,13 @@
 // 本地用户相关的类
 import { createSingleData } from "../hybird-data/single-data.js";
-import { User } from "./user.js";
+import { BaseUser } from "./base-user.js";
 import { HandServerClient } from "./server/hand.js";
 
 const infos = {};
 const servers = {};
 
-export class LocalUser extends User {
+// 本地用户类
+export class LocalUser extends BaseUser {
   #dirHandle;
   #sessionId;
   #serverConnects = {};
@@ -60,7 +61,7 @@ export class LocalUser extends User {
     return signedData;
   }
 
-  // 用户的握手服务器列表
+  // 用户保存的握手服务器列表
   async servers() {
     if (servers[this.#dirHandle.path]) {
       return servers[this.#dirHandle.path];
@@ -117,5 +118,19 @@ export class LocalUser extends User {
     this.#serverConnects[url] = serverClient;
 
     return serverClient;
+  }
+
+  // 获取用户已有的设备数据
+  async myDevices() {
+    const devicesHandle = await this.#dirHandle.get("devices.json", {
+      create: "file",
+    });
+
+    const devicesData = await createSingleData({
+      handle: devicesHandle,
+      disconnect: false,
+    });
+
+    return devicesData;
   }
 }
