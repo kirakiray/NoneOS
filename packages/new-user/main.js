@@ -5,7 +5,7 @@ import { LocalUser } from "./local-user.js";
 const localUsers = {};
 
 // 创建用户数据
-export const createUser = (opts) => {
+export const createUser = async (opts) => {
   const options = {
     user: "main",
     // publicKey:""
@@ -13,25 +13,26 @@ export const createUser = (opts) => {
 
   Object.assign(options, opts);
 
+  if (options.publicKey) {
+    const user = new BaseUser(options.publicKey);
+    await user.init();
+    return user;
+  }
+
   if (localUsers[options.user]) {
     return localUsers[options.user];
   }
 
   return (localUsers[options.user] = (async () => {
-    let user;
+    await init("system");
 
-    if (options.publicKey) {
-      user = new BaseUser(options.publicKey);
-    } else {
-      await init("system");
+    const userDirHandle = await get(`system/user/${options.user}`, {
+      create: "dir",
+    });
 
-      const userDirHandle = await get(`system/user/${options.user}`, {
-        create: "dir",
-      });
-      user = new LocalUser(userDirHandle);
+    const user = new LocalUser(userDirHandle);
 
-      localUsers[options.user] = user;
-    }
+    localUsers[options.user] = user;
 
     await user.init();
 
