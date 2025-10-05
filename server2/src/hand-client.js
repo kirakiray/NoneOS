@@ -8,7 +8,14 @@ export class HandClient {
     this.userId = null; // 认证完成后设置用户ID
     this.userInfo = null; // 认证完成后设置用户信息
 
-    this.cid = Math.random().toString(36).slice(2, 8);
+    let cid = Math.random().toString(36).slice(2, 8);
+
+    // 检查CID是否已存在
+    while (server.clients.has(cid)) {
+      cid = Math.random().toString(36).slice(2, 8);
+    }
+
+    this.cid = cid;
     this.ws = ws;
     this.server = server;
     this.connectTime = new Date(); // 记录连接时间

@@ -16,15 +16,63 @@
       .header {
         background-color: #333;
         color: white;
-        padding: 20px;
+        padding: 10px 20px;
         border-radius: 5px;
         margin-bottom: 20px;
+        font-size: 16px;
+        height: 100px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        box-sizing: border-box;
+      }
+
+      .header h1 {
+        font-size: 24px;
+        margin: 0;
+      }
+
+      .header p {
+        margin: 5px 0 0 0;
+        font-size: 14px;
+        opacity: 0.9;
+      }
+
+      .user-info {
+        font-size: 14px;
+        margin-top: 10px;
+        opacity: 0.9;
       }
 
       .dashboard {
         display: grid;
-        grid-template-columns: 1fr 300px;
+        grid-template-columns: 1fr;
         gap: 20px;
+      }
+
+      .stats {
+        display: flex;
+        justify-content: flex-start;
+        gap: 20px;
+        margin-bottom: 20px;
+        background-color: white;
+        padding: 15px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card {
+        background-color: #f8f9fa;
+        padding: 10px 15px;
+        border-radius: 5px;
+        text-align: center;
+        min-width: 120px;
+      }
+
+      .stat-number {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: #007bff;
       }
 
       .main-content {
@@ -34,11 +82,59 @@
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
 
-      .sidebar {
+      .log-container {
+        margin-top: 20px;
         background-color: white;
-        padding: 20px;
         border-radius: 5px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .log-header {
+        padding: 10px 15px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .log-title {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .log-toggle {
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+      }
+
+      .log-area {
+        background-color: #333;
+        color: #00ff00;
+        padding: 15px;
+        border-radius: 0 0 5px 5px;
+        height: 200px;
+        overflow-y: auto;
+        font-family: monospace;
+        display: none;
+      }
+
+      .log-area.expanded {
+        display: block;
+      }
+
+      .client-section {
+        margin-bottom: 20px;
+      }
+
+      .section-title {
+        margin-top: 0;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
       }
 
       .client-list {
@@ -47,11 +143,32 @@
       }
 
       .client-item {
-        padding: 10px;
+        padding: 15px;
         border-bottom: 1px solid #eee;
         display: flex;
         justify-content: space-between;
-        align-items: center;
+        align-items: flex-start;
+      }
+
+      .client-info {
+        flex-grow: 1;
+        margin-right: 15px;
+      }
+
+      .client-info small {
+        display: block;
+        margin-top: 5px;
+        color: #666;
+      }
+
+      .client-info pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        background-color: #f8f9fa;
+        padding: 5px;
+        border-radius: 3px;
+        max-width: 500px;
+        overflow-x: auto;
       }
 
       .client-item:last-child {
@@ -139,6 +256,7 @@
     <div class="header">
       <h1>WebSocket Server Admin Dashboard</h1>
       <p>管理服务器连接和客户端</p>
+      <div class="user-info">当前用户: <span id="currentUsername">加载中...</span></div>
     </div>
 
     <div class="stats">
@@ -154,19 +272,23 @@
 
     <div class="dashboard">
       <div class="main-content">
-        <h2>客户端管理</h2>
-        <button class="refresh-btn" id="refreshBtn">刷新客户端列表</button>
-
-        <div class="log-area" id="logArea">
-          <div>系统日志将显示在这里...</div>
+        <div class="client-section">
+          <h2 class="section-title">在线客户端</h2>
+          <button class="refresh-btn" id="refreshBtn">刷新客户端列表</button>
+          <ul class="client-list" id="clientList">
+            <li>暂无客户端连接</li>
+          </ul>
         </div>
-      </div>
 
-      <div class="sidebar">
-        <h3>在线客户端</h3>
-        <ul class="client-list" id="clientList">
-          <li>暂无客户端连接</li>
-        </ul>
+        <div class="log-container">
+          <div class="log-header" id="logHeader">
+            <h3 class="log-title">系统日志</h3>
+            <button class="log-toggle" id="logToggle">﹀</button>
+          </div>
+          <div class="log-area" id="logArea">
+            <div>系统日志将显示在这里...</div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -175,6 +297,14 @@
 
       // 创建管理员用户
       const user = await createUser({ user: "test-admin1" });
+
+      // 显示当前用户名
+      const currentUsernameElement = document.getElementById("currentUsername");
+      if (user && user.name) {
+        currentUsernameElement.textContent = user.name;
+      } else {
+        currentUsernameElement.textContent = "未知用户";
+      }
 
       const serverUrl = "ws://localhost:18290";
 
@@ -212,11 +342,26 @@
 
           const connectTime = new Date(client.connectTime).toLocaleString();
 
+          // 格式化用户信息
+          let userInfo = '';
+          if (client.userInfo) {
+            try {
+              userInfo = typeof client.userInfo === 'string' ? 
+                client.userInfo : JSON.stringify(client.userInfo, null, 2);
+            } catch (e) {
+              userInfo = '[无法解析的用户信息]';
+            }
+          }
+
           li.innerHTML = `
-            <div>
+            <div class="client-info">
               <span class="status-indicator status-connected"></span>
               <strong>ID:</strong> ${client.id}<br>
-              <small>连接时间: ${connectTime}</small>
+              <strong>用户名:</strong> ${client.username || 'N/A'}<br>
+              <strong>用户ID:</strong> ${client.userId || 'N/A'}<br>
+              <strong>状态:</strong> ${client.state || 'N/A'}<br>
+              <small>连接时间: ${connectTime}</small><br>
+              <small>用户信息: <pre>${userInfo || 'N/A'}</pre></small>
             </div>
             <button class="disconnect-btn" data-client-id="${client.id}">断开</button>
           `;
@@ -309,6 +454,16 @@
         const serverStatus = document.getElementById("serverStatus");
         serverStatus.textContent = "离线";
         serverStatus.style.color = "#dc3545";
+      });
+
+      // 日志区域折叠功能
+      const logHeader = document.getElementById("logHeader");
+      const logArea = document.getElementById("logArea");
+      const logToggle = document.getElementById("logToggle");
+
+      logHeader.addEventListener("click", () => {
+        logArea.classList.toggle("expanded");
+        logToggle.textContent = logArea.classList.contains("expanded") ? "︿" : "﹀";
       });
     </script>
   </body>

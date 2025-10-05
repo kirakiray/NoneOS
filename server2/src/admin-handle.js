@@ -10,7 +10,7 @@ const options = {
         userInfo: client2.userInfo,
         connectTime: client2.connectTime,
         state: client2.state,
-        username: client2.username,
+        username: client2.userInfo.name,
       });
     }
     client.send({
