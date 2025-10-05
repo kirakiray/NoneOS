@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Connect Server Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      await test("Server Connection Test", async () => {
+        // 创建用户
+        const user = await createUser({ user: "test-connection-user" });
+        const serverUrl = "ws://localhost:18290";
+
+        // 连接服务器
+        const serverClient = await user.connectServer(serverUrl);
+
+        // 检查连接是否成功
+        const hasServerClient = !!serverClient;
+        const hasSendDataMethod = typeof serverClient.sendData === "function";
+        const hasIsUserOnlineMethod =
+          typeof serverClient.isUserOnline === "function";
+
+        return {
+          assert: hasServerClient && hasSendDataMethod && hasIsUserOnlineMethod,
+          content: {
+            message: "服务器连接成功",
+            hasServerClient,
+            hasSendDataMethod,
+            hasIsUserOnlineMethod,
+          },
+        };
+      });
+
+      await test("User Online Status Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 两者都连上同一个服务器
+        const serverClient1 = await user1.connectServer(serverUrl);
+        const serverClient2 = await user2.connectServer(serverUrl);
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 查找对方是否在线
+        const isUser2Online = await serverClient1.isUserOnline(user2.userId);
+        const isUser1Online = await serverClient2.isUserOnline(user1.userId);
+
+        return {
+          assert: isUser2Online && isUser1Online,
+          content: {
+            message: "用户在线状态检测成功",
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+            isUser2Online,
+            isUser1Online,
+          },
+        };
+      });
+
+      await test("Data Transmission Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-sender" });
+        const user2 = await createUser({ user: "test-receiver" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 两者都连上同一个服务器
+        const serverClient1 = await user1.connectServer(serverUrl);
+        const serverClient2 = await user2.connectServer(serverUrl);
+
+        // 设置接收数据的Promise
+        const receiveDataPromise = new Promise((resolve) => {
+          serverClient2.onData = (fromUserId, data) => {
+            resolve({ fromUserId, data });
+          };
+        });
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 发送数据给对方
+        const testData = {
+          val: "hello test-receiver",
+          timestamp: Date.now(),
+        };
+
+        serverClient1.sendData({ userId: user2.userId }, testData);
+
+        // 等待接收数据
+        const received = await receiveDataPromise;
+        const isCorrectSender = received.fromUserId === user1.userId;
+        const isCorrectData =
+          JSON.stringify(received.data) === JSON.stringify(testData);
+
+        return {
+          assert: isCorrectSender && isCorrectData,
+          content: {
+            message: "数据传输测试成功",
+            sentData: testData,
+            receivedData: received.data,
+            fromUserId: received.fromUserId,
+            isCorrectSender,
+            isCorrectData,
+          },
+        };
+      });
+
+      await test("Multiple Users Independent Connections Test", async () => {
+        // 创建多个用户
+        const user1 = await createUser({ user: "test-multi-user1" });
+        const user2 = await createUser({ user: "test-multi-user2" });
+        const user3 = await createUser({ user: "test-multi-user3" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 所有用户连接到同一个服务器
+        const serverClient1 = await user1.connectServer(serverUrl);
+        const serverClient2 = await user2.connectServer(serverUrl);
+        const serverClient3 = await user3.connectServer(serverUrl);
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 检查所有用户都在线
+        const isUser2Online = await serverClient1.isUserOnline(user2.userId);
+        const isUser3Online = await serverClient1.isUserOnline(user3.userId);
+        const isUser1OnlineFrom2 = await serverClient2.isUserOnline(
+          user1.userId
+        );
+        const isUser3OnlineFrom2 = await serverClient2.isUserOnline(
+          user3.userId
+        );
+
+        return {
+          assert:
+            isUser2Online &&
+            isUser3Online &&
+            isUser1OnlineFrom2 &&
+            isUser3OnlineFrom2,
+          content: {
+            message: "多用户独立连接测试成功",
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+            user3Id: user3.userId,
+            isUser2Online,
+            isUser3Online,
+            isUser1OnlineFrom2,
+            isUser3OnlineFrom2,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>
