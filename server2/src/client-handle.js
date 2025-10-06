@@ -57,22 +57,15 @@ export const options = {
   // 检查用户是否在线
   async find_user({ client, clients, users, message }) {
     const { userId } = message;
-    const userPool = users.get(userId);
+    let userPool = users.get(userId);
+    userPool = userPool ? Array.from(userPool) : [];
 
     client.send({
       type: "response_find_user",
       userId,
-      publicKey: client.publicKey,
-      tabs: userPool
-        ? Array.from(userPool).map((c) => {
-            return {
-              cid: c.cid,
-              connectTime: c.connectTime,
-              userSessionId: c.userSessionId,
-            };
-          })
-        : [],
-      isOnline: userPool && userPool.size > 0,
+      publicKey: userPool.length > 0 ? userPool[0].publicKey : null, // 目标用户的publicKey
+      tabs: userPool,
+      isOnline: userPool && userPool.length > 0,
     });
   },
 

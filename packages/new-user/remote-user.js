@@ -1,7 +1,9 @@
 import { BaseUser } from "./base-user.js";
 
 export class RemoteUser extends BaseUser {
-  constructor(options = {}) {
+  constructor(options) {
     super(options);
   }
+
+  
 }

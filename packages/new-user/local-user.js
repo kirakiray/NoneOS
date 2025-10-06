@@ -2,6 +2,8 @@
 import { createSingleData } from "../hybird-data/single-data.js";
 import { BaseUser } from "./base-user.js";
 import { HandServerClient } from "./hand/client.js";
+import { getHash } from "../fs/util.js";
+import { RemoteUser } from "./remote-user.js";
 
 const infos = {};
 const servers = {};
@@ -145,18 +147,31 @@ export class LocalUser extends BaseUser {
 
     // TODO: 先查看是否有用户本地卡片
 
-    // 从在线的服务器上查找用户卡片
-    for (let server of serversData) {
-      const serverClient = await this.connectServer(server.url);
+    // 从在线服务器上查找用户卡片
+    const userData = await Promise.race(
+      serversData.map(async (server) => {
+        const serverClient = await this.connectServer(server.url);
 
-      const userData = await serverClient.findUser(options.userId);
+        const userData = await serverClient.findUser(options.userId);
 
-      debugger;
+        if (userData.publicKey) {
+          // 判断publicKey是否伪造
+          const publicKeyHash = await getHash(userData.publicKey);
 
-      // await serverClient.connectUser({ userId });
-    }
+          if (publicKeyHash !== options.userId) {
+            throw new Error("publicKey伪造");
+          }
 
-    debugger;
+          return userData;
+        }
+      })
+    );
+
+    const user = new RemoteUser(userData.publicKey);
+
+    await user.init();
+
+    return user;
   }
 
   // 获取用户已有的设备数据

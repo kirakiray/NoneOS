@@ -37,36 +37,42 @@ export class BaseUser {
       throw new Error("用户目录句柄或公钥至少要有一个");
     }
 
-    if (this.#publicKey && !this.#dirHandle) {
-      // 公钥模式
-      this.#userId = await getHash(this.#publicKey);
-      this.#verifier = await createVerifier(this.#publicKey);
-      return;
+    if (this.__inited) {
+      return this.__inited;
     }
 
-    const pariHandle = await this.#dirHandle.get("pair.json", {
-      create: "file",
-    });
+    this.__inited = (async () => {
+      if (this.#publicKey && !this.#dirHandle) {
+        // 公钥模式
+        this.#userId = await getHash(this.#publicKey);
+        this.#verifier = await createVerifier(this.#publicKey);
+        return;
+      }
 
-    const pairData = await createSingleData({ handle: pariHandle });
+      const pariHandle = await this.#dirHandle.get("pair.json", {
+        create: "file",
+      });
 
-    if (!pairData.publicKey) {
-      const pair = await generateKeyPair();
-      Object.assign(pairData, pair);
-    }
+      const pairData = await createSingleData({ handle: pariHandle });
 
-    this.#userId = await getHash(pairData.publicKey);
-    this.#publicKey = pairData.publicKey;
-    this.#verifier = await createVerifier(pairData.publicKey);
+      if (!pairData.publicKey) {
+        const pair = await generateKeyPair();
+        Object.assign(pairData, pair);
+      }
 
-    if (pairData.privateKey) {
-      this.#signer = await createSigner(pairData.privateKey);
-    }
+      this.#userId = await getHash(pairData.publicKey);
+      this.#publicKey = pairData.publicKey;
+      this.#verifier = await createVerifier(pairData.publicKey);
 
-    setTimeout(() => {
-      // 防止保存数据，延迟清除监听
-      pairData.disconnect();
-    }, 1000);
+      if (pairData.privateKey) {
+        this.#signer = await createSigner(pairData.privateKey);
+      }
+
+      setTimeout(() => {
+        // 防止保存数据，延迟清除监听
+        pairData.disconnect();
+      }, 1000);
+    })();
   }
 
   get sign() {
