@@ -21,16 +21,16 @@
 
         // 检查连接是否成功
         const hasServerClient = !!serverClient;
-        const hasSendDataMethod = typeof serverClient.sendData === "function";
+        const hasSendToMethod = typeof serverClient.sendTo === "function";
         const hasIsUserOnlineMethod =
           typeof serverClient.isUserOnline === "function";
 
         return {
-          assert: hasServerClient && hasSendDataMethod && hasIsUserOnlineMethod,
+          assert: hasServerClient && hasSendToMethod && hasIsUserOnlineMethod,
           content: {
             message: "服务器连接成功",
             hasServerClient,
-            hasSendDataMethod,
+            hasSendToMethod,
             hasIsUserOnlineMethod,
           },
         };
@@ -93,7 +93,7 @@
           timestamp: Date.now(),
         };
 
-        serverClient1.sendData({ userId: user2.userId }, testData);
+        serverClient1.sendTo({ userId: user2.userId }, testData);
 
         // 等待接收数据
         const received = await receiveDataPromise;
@@ -139,7 +139,7 @@
         });
 
         // 发送 Uint8Array 数据给对方
-        serverClient1.sendData({ userId: user2.userId }, testData);
+        serverClient1.sendTo({ userId: user2.userId }, testData);
 
         // 等待接收数据
         const received = await receiveDataPromise;

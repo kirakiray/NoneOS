@@ -8,7 +8,7 @@ import {
 
 import { getHash } from "../fs/util.js";
 
-export class BaseUser {
+export class BaseUser extends EventTarget {
   #dirHandle;
   #signer;
   #verifier;
@@ -17,6 +17,7 @@ export class BaseUser {
   #_inited;
 
   constructor(dirHandle) {
+    super();
     if (typeof dirHandle === "string") {
       this.#publicKey = dirHandle;
     } else {

@@ -57,7 +57,7 @@ export class HandServerClient extends EventTarget {
   }
 
   // 发送数据给指定用户
-  sendData(options, data) {
+  sendTo(options, data) {
     if (this.state !== "authed") {
       throw new Error("用户未认证");
     }

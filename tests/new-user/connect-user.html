@@ -20,17 +20,22 @@
       const servers = await user2.servers();
       await user2.connectServer(servers[0].url);
 
-      setTimeout(async () => {
-        // 直接连接 user2
-        let remoteUser2;
-        try {
-          remoteUser2 = await user1.connectUser({ userId: user2.userId });
-        } catch (error) {
-          console.log("连接用户失败:", error);
-        }
+      // 直接连接 user2
+      let remoteUser2;
+      try {
+        remoteUser2 = await user1.connectUser({ userId: user2.userId });
+      } catch (error) {
+        console.log("连接用户失败:", error);
+      }
 
-        debugger;
-      }, 500);
+      // 发送数据给对方
+      const data1 = {
+        val: "hello user2",
+      };
+
+      remoteUser2.post(data1);
+
+      debugger;
 
       // const serverUrl = "ws://localhost:18290";
       // // 两者都连上同一个服务器
@@ -59,7 +64,7 @@
       //   const data1 = {
       //     val: "hello user2",
       //   };
-      //   serverClient1.sendData({ userId: user2.userId }, data1);
+      //   serverClient1.sendTo({ userId: user2.userId }, data1);
       // }, 300);
     </script>
   </body>

@@ -61,14 +61,31 @@ export class RemoteUser extends BaseUser {
 
     if (this.#mode === 0) {
       // 如果之前是不可用的，则更新连接状态
-      this.#mode = 1;
+      this._changeMode(1);
     }
   }
 
-  // 发送消息
-  send(msg) {
+  _changeMode(mode) {
+    this.#mode = mode;
+    this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
+  }
+
+  // 发送消息给这个远端用户
+  post(msg) {
     if (this.#mode === 1 && !this.serverState) {
       throw new Error("未连接到对方");
     }
+
+    // 发送消息给服务端
+    for (let server of this.#servers) {
+      server.sendTo(
+        {
+          userId: this.userId,
+        },
+        msg
+      );
+    }
+
+    debugger;
   }
 }
