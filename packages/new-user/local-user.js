@@ -143,10 +143,13 @@ export class LocalUser extends BaseUser {
   async connectUser(options = {}) {
     const serversData = await this.servers();
 
+    // TODO: 先查看是否有用户本地卡片
+
+    // 从在线的服务器上查找用户卡片
     for (let server of serversData) {
       const serverClient = await this.connectServer(server.url);
 
-      const result = await serverClient.isUserOnline(options.userId);
+      const userData = await serverClient.findUser(options.userId);
 
       debugger;
 

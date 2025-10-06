@@ -54,12 +54,12 @@ export const options = {
     }
   },
   // 检查用户是否在线
-  async is_user_online({ client, clients, users, message }) {
+  async find_user({ client, clients, users, message }) {
     const { userId } = message;
     const userPool = users.get(userId);
 
     client.send({
-      type: "response_user_online",
+      type: "response_find_user",
       userId,
       pool: userPool
         ? Array.from(userPool).map((c) => {

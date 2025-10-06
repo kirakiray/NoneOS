@@ -27,26 +27,33 @@ export class HandServerClient extends EventTarget {
     this.socket.addEventListener("error", this._onError.bind(this));
   }
 
-  // 检查用户是否在线
-  async isUserOnline(userId) {
+  async findUser(userId) {
     if (this.state !== "authed") {
       throw new Error("用户未认证");
     }
 
-    await this._send({ type: "is_user_online", userId });
+    await this._send({ type: "find_user", userId });
 
     return new Promise((resolve, reject) => {
       const handler = (event) => {
         const data = event.detail;
 
-        if (data.type === "response_user_online" && data.userId === userId) {
+        if (data.type === "response_find_user" && data.userId === userId) {
           // 判断成功后，注销监听
           this.removeEventListener("message", handler);
-          resolve(data.isOnline);
+          const reData = { ...data };
+          delete reData.type;
+          resolve(reData);
         }
       };
       this.addEventListener("message", handler);
     });
+  }
+
+  // 检查用户是否在线
+  async isUserOnline(userId) {
+    const userData = await this.findUser(userId);
+    return userData.isOnline;
   }
 
   // 发送数据给指定用户
