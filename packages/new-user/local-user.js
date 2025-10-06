@@ -1,7 +1,7 @@
 // 本地用户相关的类
 import { createSingleData } from "../hybird-data/single-data.js";
 import { BaseUser } from "./base-user.js";
-import { HandServerClient } from "./server/hand.js";
+import { HandServerClient } from "./hand/client.js";
 
 const infos = {};
 const servers = {};
@@ -110,7 +110,7 @@ export class LocalUser extends BaseUser {
 
     if (options.admin && options.password) {
       // 管理员模式
-      const { AdminHandServerClient } = await import("./server/admin-hand.js");
+      const { AdminHandServerClient } = await import("./hand/admin-client.js");
 
       serverClient = new AdminHandServerClient({
         url,

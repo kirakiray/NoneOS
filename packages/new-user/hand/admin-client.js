@@ -1,4 +1,4 @@
-import { HandServerClient } from "./hand.js";
+import { HandServerClient } from "./client.js";
 
 export class AdminHandServerClient extends HandServerClient {
   constructor({ url, user, password }) {
