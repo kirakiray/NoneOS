@@ -211,38 +211,35 @@
         const user1 = await createUser({ user: "test-direct-user1" });
         const user2 = await createUser({ user: "test-direct-user2" });
 
+        const serverUrl = "ws://localhost:18290";
+
         // 保证user2连上服务器
-        const servers = await user2.servers();
-        await user2.connectServer(servers[0].url);
+        // 原代码使用 user2.servers() 获取服务器列表，这里应该直接使用已知的 serverUrl
+        await user2.connectServer(serverUrl);
 
         // 设置接收数据的Promise
         const receiveDataPromise = new Promise((resolve) => {
           user2.addEventListener("receive-data", (e) => {
-            const { fromUserId, data, fromUserSessionId } = e.detail;
-            resolve({ fromUserId, data, fromUserSessionId });
+            const { fromUserId, fromUserSessionId, data, server } = e.detail;
+            resolve({ fromUserId, fromUserSessionId, data, server });
           });
         });
 
-        // 等待连接建立
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        // 保证user1也连上服务器，因为直接用户连接可能需要双方都连接到服务器
+        await user1.connectServer(serverUrl);
 
         // 直接连接 user2
         let remoteUser2;
         try {
           remoteUser2 = await user1.connectUser({ userId: user2.userId });
         } catch (error) {
-          return {
-            assert: false,
-            content: {
-              message: "连接用户失败",
-              error: error.message,
-            },
-          };
+          console.log("连接用户失败:", error);
+          throw error;
         }
 
         // 发送数据给对方
         const testData = {
-          val: "hello user2 from direct connection",
+          val: "hello user2",
           timestamp: Date.now(),
         };
 
@@ -252,23 +249,21 @@
         // 等待接收数据
         const received = await receiveDataPromise;
         const isCorrectSender = received.fromUserId === user1.userId;
+        const isCorrectSession = received.fromUserSessionId === user1.sessionId;
         const isCorrectData =
           JSON.stringify(received.data) === JSON.stringify(testData);
-        const hasFromUserSessionId = !!received.fromUserSessionId;
 
         return {
-          assert: isCorrectSender && isCorrectData && hasFromUserSessionId,
+          assert: isCorrectSender && isCorrectSession && isCorrectData,
           content: {
-            message: "直接用户连接和数据传输测试成功",
+            message: "直接用户连接测试成功",
             sentData: testData,
             receivedData: received.data,
             fromUserId: received.fromUserId,
             fromUserSessionId: received.fromUserSessionId,
             isCorrectSender,
+            isCorrectSession,
             isCorrectData,
-            hasFromUserSessionId,
-            user1Id: user1.userId,
-            user2Id: user2.userId,
           },
         };
       });
