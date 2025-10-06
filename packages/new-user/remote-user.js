@@ -76,24 +76,15 @@ export class RemoteUser extends BaseUser {
       throw new Error("未连接到对方");
     }
 
+    const msgId = Math.random().toString(32).slice(2);
+
     // 直接通过第一个发送
     this.#servers[0].sendTo(
       {
         userId: this.userId,
-        msgId: Math.random().toString(32).slice(2),
+        msgId,
       },
       msg
     );
-
-    // // 发送消息给服务端
-    // for (let server of this.#servers) {
-    //   server.sendTo(
-    //     {
-    //       userId: this.userId,
-    //       msgId: Math.random().toString(32).slice(2),
-    //     },
-    //     msg
-    //   );
-    // }
   }
 }
