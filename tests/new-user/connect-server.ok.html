@@ -205,6 +205,70 @@
           },
         };
       });
+
+      await test("Direct User Connection Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-direct-user1" });
+        const user2 = await createUser({ user: "test-direct-user2" });
+
+        // 保证user2连上服务器
+        const servers = await user2.servers();
+        await user2.connectServer(servers[0].url);
+
+        // 设置接收数据的Promise
+        const receiveDataPromise = new Promise((resolve) => {
+          user2.addEventListener("receive-data", (e) => {
+            const { fromUserId, data } = e.detail;
+            resolve({ fromUserId, data });
+          });
+        });
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 直接连接 user2
+        let remoteUser2;
+        try {
+          remoteUser2 = await user1.connectUser({ userId: user2.userId });
+        } catch (error) {
+          return {
+            assert: false,
+            content: {
+              message: "连接用户失败",
+              error: error.message,
+            },
+          };
+        }
+
+        // 发送数据给对方
+        const testData = {
+          val: "hello user2 from direct connection",
+          timestamp: Date.now(),
+        };
+
+        // 通过用户1生成的远端用户2实例发送数据到用户2上
+        remoteUser2.post(testData);
+
+        // 等待接收数据
+        const received = await receiveDataPromise;
+        const isCorrectSender = received.fromUserId === user1.userId;
+        const isCorrectData =
+          JSON.stringify(received.data) === JSON.stringify(testData);
+
+        return {
+          assert: isCorrectSender && isCorrectData,
+          content: {
+            message: "直接用户连接和数据传输测试成功",
+            sentData: testData,
+            receivedData: received.data,
+            fromUserId: received.fromUserId,
+            isCorrectSender,
+            isCorrectData,
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+          },
+        };
+      });
     </script>
   </body>
 </html>
