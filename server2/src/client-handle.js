@@ -16,6 +16,7 @@ export const options = {
       // 匹配成功后，填入信息
       client.userInfo = data.info;
       client.userId = await getHash(data.publicKey);
+      client.publicKey = data.publicKey;
       client.state = "authed";
       client.userSessionId = data.userSessionId;
 
@@ -61,7 +62,8 @@ export const options = {
     client.send({
       type: "response_find_user",
       userId,
-      pool: userPool
+      publicKey: client.publicKey,
+      tabs: userPool
         ? Array.from(userPool).map((c) => {
             return {
               cid: c.cid,

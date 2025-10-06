@@ -6,6 +6,7 @@ export class DeviceClient {
 
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null; // 认证完成后设置用户ID
+    this.publicKey = null; // 认证完成后设置用户公钥
     this.userInfo = null; // 认证完成后设置用户信息
     this.userSessionId = null; // 认证完成后设置用户会话ID
     this.delay = 0; // 延迟时间
