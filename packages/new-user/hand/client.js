@@ -165,7 +165,7 @@ export class HandServerClient extends EventTarget {
       this._send({ type: "ping" }); // 即使发送延迟测试
     } else if (responseData.type === "agent_data") {
       this.dispatchEvent(
-        new CustomEvent("agent_data", { detail: responseData })
+        new CustomEvent("agent-data", { detail: responseData })
       );
       if (this.onData) {
         this.onData(responseData.fromUserId, responseData.data, responseData);

@@ -13,6 +13,7 @@ export class LocalUser extends BaseUser {
   #dirHandle;
   #sessionId;
   #serverConnects = {};
+  #remotes = {};
   constructor(handle) {
     super(handle);
     this.#dirHandle = handle;
@@ -126,6 +127,11 @@ export class LocalUser extends BaseUser {
       });
     }
 
+    serverClient.addEventListener("agent-data", (e) => {
+      const { fromUserId, data } = e.detail;
+      debugger;
+    });
+
     return (this.#serverConnects[url] = (async () => {
       await serverClient.init();
 
@@ -145,35 +151,47 @@ export class LocalUser extends BaseUser {
   async connectUser(options = {}) {
     const serversData = await this.servers();
 
-    // TODO: 先查看是否有用户本地卡片
+    if (options.userId) {
+      const { userId } = options;
 
-    // 从在线服务器上查找用户卡片
-    const userData = await Promise.any(
-      serversData.map(async (server) => {
-        const serverClient = await this.connectServer(server.url);
+      if (this.#remotes[userId]) {
+        return this.#remotes[userId];
+      }
 
-        const userData = await serverClient.findUser(options.userId);
+      return (this.#remotes[userId] = (async () => {
+        // TODO: 先查看是否有用户本地卡片
 
-        if (userData.publicKey) {
-          // 判断publicKey是否伪造
-          const publicKeyHash = await getHash(userData.publicKey);
+        // 从在线服务器上查找用户卡片
+        const userData = await Promise.any(
+          serversData.map(async (server) => {
+            const serverClient = await this.connectServer(server.url);
 
-          if (publicKeyHash !== options.userId) {
-            throw new Error("publicKey伪造");
-          }
+            const userData = await serverClient.findUser(userId);
 
-          return userData;
-        }
-      })
-    );
+            if (userData.publicKey) {
+              // 判断publicKey是否伪造
+              const publicKeyHash = await getHash(userData.publicKey);
 
-    const user = new RemoteUser(userData.publicKey, this);
+              if (publicKeyHash !== userId) {
+                throw new Error("publicKey伪造");
+              }
 
-    await user.init();
+              return userData;
+            }
+          })
+        );
 
-    await user.checkState();
+        const user = new RemoteUser(userData.publicKey, this);
 
-    return user;
+        // 初始化逻辑
+        await user.init();
+
+        // 检查通信状态
+        await user.checkState();
+
+        return user;
+      })());
+    }
   }
 
   // 获取用户已有的设备数据
