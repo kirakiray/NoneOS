@@ -148,7 +148,7 @@ export class LocalUser extends BaseUser {
     // TODO: 先查看是否有用户本地卡片
 
     // 从在线服务器上查找用户卡片
-    const userData = await Promise.race(
+    const userData = await Promise.any(
       serversData.map(async (server) => {
         const serverClient = await this.connectServer(server.url);
 
@@ -167,9 +167,11 @@ export class LocalUser extends BaseUser {
       })
     );
 
-    const user = new RemoteUser(userData.publicKey);
+    const user = new RemoteUser(userData.publicKey, this);
 
     await user.init();
+
+    await user.checkState();
 
     return user;
   }

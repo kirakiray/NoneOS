@@ -14,6 +14,7 @@ export class BaseUser {
   #verifier;
   #publicKey;
   #userId;
+  #_inited;
 
   constructor(dirHandle) {
     if (typeof dirHandle === "string") {
@@ -37,11 +38,11 @@ export class BaseUser {
       throw new Error("用户目录句柄或公钥至少要有一个");
     }
 
-    if (this.__inited) {
-      return this.__inited;
+    if (this.#_inited) {
+      return this.#_inited;
     }
 
-    this.__inited = (async () => {
+    this.#_inited = (async () => {
       if (this.#publicKey && !this.#dirHandle) {
         // 公钥模式
         this.#userId = await getHash(this.#publicKey);
