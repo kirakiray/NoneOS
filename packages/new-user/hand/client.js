@@ -115,7 +115,7 @@ export class HandServerClient extends EventTarget {
           })
         );
         if (this.onData) {
-          this.onData(info.fromUserId, data);
+          this.onData(info.fromUserId, data, { ...info, data });
         }
       }
 
