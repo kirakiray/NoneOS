@@ -77,11 +77,22 @@ export class LocalUser extends BaseUser {
     });
 
     if (!serversData.length) {
-      // 如果没有，则添加默认的服务器
-      serversData.push({
-        url: "ws://localhost:18290",
-        disconnect: false,
-      });
+      if (location.host === "localhost:5559") {
+        // 如果没有，则添加默认的服务器
+        serversData.push({
+          url: "ws://localhost:18290",
+        });
+      } else {
+        // 添加在线版服务器
+        serversData.push(
+          {
+            url: "wss://hand-us1.noneos.com",
+          },
+          {
+            url: "wss://hand-jp1.noneos.com",
+          }
+        );
+      }
     }
 
     servers[this.#dirHandle.path] = serversData;
@@ -113,11 +124,36 @@ export class LocalUser extends BaseUser {
       });
     }
 
-    this.#serverConnects[url] = serverClient;
+    return (this.#serverConnects[url] = (async () => {
+      await serverClient.init();
 
-    await serverClient.init();
+      await new Promise((resolve) => {
+        const authHandle = (e) => {
+          serverClient.removeEventListener("authed", authHandle);
+          resolve();
+        };
+        serverClient.addEventListener("authed", authHandle);
+      });
 
-    return serverClient;
+      return serverClient;
+    })());
+  }
+
+  // 直接连接用户
+  async connectUser(options = {}) {
+    const serversData = await this.servers();
+
+    for (let server of serversData) {
+      const serverClient = await this.connectServer(server.url);
+
+      const result = await serverClient.isUserOnline(options.userId);
+
+      debugger;
+
+      // await serverClient.connectUser({ userId });
+    }
+
+    debugger;
   }
 
   // 获取用户已有的设备数据
