@@ -82,11 +82,13 @@ export const options = {
         ? toBuffer(binaryData, {
             type: "agent_data",
             fromUserId: client.userId,
+            fromUserSessionId: client.userSessionId,
           })
         : {
             type: "agent_data",
             data,
             fromUserId: client.userId,
+            fromUserSessionId: client.userSessionId,
           };
 
       // 发送给第一个客户

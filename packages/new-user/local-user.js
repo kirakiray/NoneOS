@@ -128,13 +128,14 @@ export class LocalUser extends BaseUser {
     }
 
     serverClient.addEventListener("agent-data", (e) => {
-      const { fromUserId, data } = e.detail;
+      const { fromUserId, data, fromUserSessionId } = e.detail;
 
       // 触发接收数据事件
       this.dispatchEvent(
         new CustomEvent("receive-data", {
           detail: {
             fromUserId,
+            fromUserSessionId,
             data,
             server: serverClient,
             options: e.detail,

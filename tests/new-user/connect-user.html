@@ -22,10 +22,11 @@
 
       // user2监听获取数据的事件
       user2.addEventListener("receive-data", (e) => {
-        const { fromUserId, data, server } = e.detail;
+        const { fromUserId, fromUserSessionId, data, server } = e.detail;
 
         console.log("user2收到数据:", fromUserId, data);
         console.log("是否从user1获取的数据:", fromUserId === user1.userId); // true
+        console.log("是否从user1的会话获取的数据:", fromUserSessionId === user1.sessionId); // true
         console.log("user2收到的数据:", data); // { val: "hello user2" }
       });
 
@@ -36,7 +37,7 @@
       } catch (error) {
         console.log("连接用户失败:", error);
       }
- 
+
       // 发送数据给对方
       const data1 = {
         val: "hello user2",
