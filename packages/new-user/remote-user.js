@@ -2,8 +2,7 @@ import { BaseUser } from "./base-user.js";
 import { getHash } from "../fs/util.js";
 
 export class RemoteUser extends BaseUser {
-  #serverState = 0; // 连接状态 0: 未连接 1: 已连接
-  #rtcState = 0; // 连接状态 0: 未连接 1: 已连接
+  //   #rtcState = 0; // 连接状态 0: 未连接 1: 已连接
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
@@ -12,13 +11,15 @@ export class RemoteUser extends BaseUser {
     this.#self = self;
   }
 
+  // 是否可通过服务端转发到对方
   get serverState() {
-    return this.#serverState;
+    return !!this.#servers.length;
   }
 
-  get rtcState() {
-    return this.#rtcState;
-  }
+  // 是否可通过点对点连接到对方
+  //   get rtcState() {
+  //     return this.#rtcState;
+  //   }
 
   get mode() {
     return this.#mode;
@@ -30,7 +31,6 @@ export class RemoteUser extends BaseUser {
     const servers = [];
 
     // 等待最快的服务器初始化完成
-    // const fastestServer = await Promise.any(
     await Promise.any(
       serversData.map(async (server) => {
         const serverClient = await this.#self.connectServer(server.url);
@@ -60,17 +60,14 @@ export class RemoteUser extends BaseUser {
     this.#servers = servers;
 
     if (this.#mode === 0) {
-      // 更新连接状态
-      this.#serverState = 1;
+      // 如果之前是不可用的，则更新连接状态
       this.#mode = 1;
-    } else {
-      debugger;
     }
   }
 
   // 发送消息
   send(msg) {
-    if (this.#serverState === 0) {
+    if (this.#mode === 1 && !this.serverState) {
       throw new Error("未连接到对方");
     }
   }
