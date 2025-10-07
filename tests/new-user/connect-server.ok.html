@@ -221,6 +221,7 @@
         const receiveDataPromise = new Promise((resolve) => {
           user2.addEventListener("receive-data", (e) => {
             const { fromUserId, fromUserSessionId, data, server } = e.detail;
+
             resolve({ fromUserId, fromUserSessionId, data, server });
           });
         });

@@ -1,11 +1,14 @@
 import { BaseUser } from "./base-user.js";
 import { getHash } from "../fs/util.js";
+import initRTC from "./remote/init-rtc.js";
 
 export class RemoteUser extends BaseUser {
   //   #rtcState = 0; // 连接状态 0: 未连接 1: 已连接
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
+  #rtcConnection = null; // RTC连接实例
+
   constructor(publicKey, self) {
     super(publicKey);
     this.#self = self;
@@ -13,7 +16,7 @@ export class RemoteUser extends BaseUser {
 
   // 是否可通过服务端转发到对方
   get serverState() {
-    return !!this.#servers.length;
+    return this.#servers.length ? 1 : 0;
   }
 
   // 是否可通过点对点连接到对方
@@ -59,10 +62,20 @@ export class RemoteUser extends BaseUser {
     // 更新可用服务器列表
     this.#servers = servers;
 
-    if (this.#mode === 0) {
+    if (servers.length && this.#mode === 0) {
       // 如果之前是不可用的，则更新连接状态
       this._changeMode(1);
     }
+  }
+
+  // 初始化RTC连接
+  async initRTC() {
+    if (this.serverState === 0) {
+      throw new Error("未找到合适的握手服务器");
+    }
+
+    // 初始化RTC连接
+    await initRTC(this);
   }
 
   _changeMode(mode) {
@@ -78,13 +91,16 @@ export class RemoteUser extends BaseUser {
 
     const msgId = Math.random().toString(32).slice(2);
 
-    // 直接通过第一个发送
-    this.#servers[0].sendTo(
-      {
-        userId: this.userId,
-        msgId,
-      },
-      msg
-    );
+    const data = {
+      userId: this.userId,
+      msgId,
+    };
+
+    if (this.#mode === 1) {
+      // 服务端转发模式，直接通过第一个发送
+      this.#servers[0].sendTo(data, msg);
+    } else if (this.#mode === 2) {
+      // TODO: 通过 rtc 连接发送
+    }
   }
 }
