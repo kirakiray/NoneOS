@@ -5,7 +5,7 @@ const iceServers = [
   { urls: "stun:stun.cloudflare.com" },
 ];
 
-export default async function initRTC(remoteUser) {
+export default async function initRTC(remoteUser, { offer } = {}) {
   if (remoteUser.serverState === 0) {
     throw new Error("未找到合适的握手服务器");
   }
@@ -18,46 +18,13 @@ export default async function initRTC(remoteUser) {
 
   rtcConnection._dataChannels = [];
 
-  // 创建数据通道
-  const dataChannel = rtcConnection.createDataChannel("message");
-  rtcConnection._dataChannels.push(dataChannel);
+  if (!offer) {
+    // 创建数据通道
+    const channel = rtcConnection.createDataChannel("message");
 
-  // 监听数据通道打开事件
-  dataChannel.onopen = () => {
-    // 更新连接模式为点对点模式
-    remoteUser._changeMode(2);
-  };
-
-  const refreshDataChannels = () => {
-    // 从 remoteUser 实例中移除该数据通道
-    const index = rtcConnection._dataChannels.indexOf(dataChannel);
-    if (index !== -1) {
-      rtcConnection._dataChannels.splice(index, 1);
-    }
-
-    if (!remoteUser._dataChannels.length) {
-      // 如果有服务器连接，则回退到服务器转发模式
-      if (remoteUser.serverState) {
-        remoteUser._changeMode(1);
-      } else {
-        remoteUser._changeMode(0);
-      }
-    }
-  };
-
-  // 监听数据通道关闭事件
-  dataChannel.onclose = () => {
-    console.log("RTC 数据通道已关闭");
-
-    refreshDataChannels();
-  };
-
-  // 监听数据通道错误事件
-  dataChannel.onerror = (error) => {
-    console.error("RTC 数据通道错误:", error);
-
-    refreshDataChannels();
-  };
+    // 初始化数据通道
+    initChannel(rtcConnection, channel);
+  }
 
   // 监听 ICE 候选者事件
   rtcConnection.onicecandidate = (event) => {
@@ -91,32 +58,97 @@ export default async function initRTC(remoteUser) {
   // 监听远程数据通道事件
   rtcConnection.ondatachannel = (event) => {
     const channel = event.channel;
-    rtcConnection._dataChannels.push(channel);
 
-    channel.onmessage = (event) => {
-      // 处理接收到的消息
-      _handleReceivedMessage(remoteUser, event.data);
-    };
-
-    channel.onopen = () => {
-      console.log("远程数据通道已打开");
-    };
-
-    channel.onclose = () => {
-      console.log("远程数据通道已关闭");
-      refreshDataChannels();
-    };
+    // 初始化数据通道
+    initChannel(rtcConnection, channel);
   };
 
-  // 创建并发送 offer
-  try {
-    const offer = await rtcConnection.createOffer();
-    await rtcConnection.setLocalDescription(offer);
+  if (!offer) {
+    // 创建并发送 offer
+    try {
+      const offer = await rtcConnection.createOffer();
+      await rtcConnection.setLocalDescription(offer);
 
-    // 通过服务器转发 offer
-    _sendOffer(remoteUser, offer);
-  } catch (error) {
-    console.error("创建 RTC offer 失败:", error);
+      // 通过服务器转发 offer
+      _sendOffer(remoteUser, offer);
+    } catch (error) {
+      console.error("创建 RTC offer 失败:", error);
+      // 如果有服务器连接，则回退到服务器转发模式
+      if (remoteUser.serverState) {
+        remoteUser._changeMode(1);
+      } else {
+        remoteUser._changeMode(0);
+      }
+    }
+  } else {
+    // 设置远程描述
+    try {
+      if (typeof offer === "string") {
+        offer = JSON.parse(offer);
+      }
+
+      await rtcConnection.setRemoteDescription(offer);
+
+      // 创建 answer
+      const answer = await rtcConnection.createAnswer();
+      await rtcConnection.setLocalDescription(answer);
+
+      _sendAnswer(remoteUser, answer);
+    } catch (error) {
+      console.error("设置远程描述失败:", error);
+      // 如果有服务器连接，则回退到服务器转发模式
+      if (remoteUser.serverState) {
+        remoteUser._changeMode(1);
+      } else {
+        remoteUser._changeMode(0);
+      }
+    }
+  }
+}
+
+const initChannel = (rtcConnection, channel) => {
+  rtcConnection._dataChannels.push(channel);
+
+  // 监听数据通道打开事件
+  channel.onopen = () => {
+    // 更新连接模式为点对点模式
+    remoteUser._changeMode(2);
+  };
+
+  channel.onmessage = (event) => {
+    // 处理接收到的消息
+    try {
+      const message = JSON.parse(data);
+      console.log("收到消息:", message);
+      debugger;
+    } catch (e) {
+      console.error("解析消息失败:", e);
+    }
+  };
+
+  // 监听数据通道关闭事件
+  channel.onclose = () => {
+    console.log("RTC 数据通道已关闭");
+
+    refreshDataChannels(rtcConnection, channel);
+  };
+
+  // 监听数据通道错误事件
+  channel.onerror = (error) => {
+    console.error("RTC 数据通道错误:", error);
+
+    refreshDataChannels(rtcConnection, channel);
+  };
+};
+
+const refreshDataChannels = (rtcConnection, channel) => {
+  // 从 remoteUser 实例中移除该数据通道
+  const index = rtcConnection._dataChannels.indexOf(channel);
+  if (index !== -1) {
+    rtcConnection._dataChannels.splice(index, 1);
+  }
+
+  if (!remoteUser._dataChannels.length) {
     // 如果有服务器连接，则回退到服务器转发模式
     if (remoteUser.serverState) {
       remoteUser._changeMode(1);
@@ -124,7 +156,7 @@ export default async function initRTC(remoteUser) {
       remoteUser._changeMode(0);
     }
   }
-}
+};
 
 // 发送 ICE 候选者信息
 function _sendIceCandidate(remoteUser, candidate) {
@@ -144,6 +176,7 @@ function _sendIceCandidate(remoteUser, candidate) {
   server.sendTo(remoteUser.userId, {
     type: "rtc-ice-candidate",
     candidate: JSON.stringify(candidate),
+    __internal_mark: 1,
   });
 }
 
@@ -164,6 +197,7 @@ function _sendOffer(remoteUser, offer) {
   servers[0].sendTo(remoteUser.userId, {
     type: "rtc-offer",
     offer: JSON.stringify(offer),
+    publicKey: remoteUser.self.publicKey, // 自身的公钥
     __internal_mark: 1,
   });
 }
@@ -186,16 +220,6 @@ function _sendAnswer(remoteUser, answer) {
   server.sendTo(remoteUser.userId, {
     type: "rtc-answer",
     answer: JSON.stringify(answer),
+    __internal_mark: 1,
   });
-}
-
-function _handleReceivedMessage(remoteUser, data) {
-  try {
-    const message = JSON.parse(data);
-    console.log("收到消息:", message);
-  } catch (e) {
-    console.error("解析消息失败:", e);
-  }
-
-  debugger;
 }

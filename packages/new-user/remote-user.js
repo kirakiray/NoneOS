@@ -19,6 +19,10 @@ export class RemoteUser extends BaseUser {
     return this.#servers.length ? 1 : 0;
   }
 
+  get self() {
+    return this.#self;
+  }
+
   get servers() {
     return [...this.#servers];
   }

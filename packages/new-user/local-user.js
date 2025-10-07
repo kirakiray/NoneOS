@@ -4,6 +4,7 @@ import { BaseUser } from "./base-user.js";
 import { HandServerClient } from "./hand/client.js";
 import { getHash } from "../fs/util.js";
 import { RemoteUser } from "./remote-user.js";
+import internal from "./internal/index.js";
 
 const infos = {};
 const servers = {};
@@ -28,7 +29,14 @@ export class LocalUser extends BaseUser {
 
       if (data.__internal_mark) {
         // 内部操作
-        debugger;
+        internal[data.type] &&
+          internal[data.type]({
+            fromUserId,
+            fromUserSessionId,
+            data,
+            server,
+            localUser: this,
+          });
         return;
       }
 
@@ -176,6 +184,11 @@ export class LocalUser extends BaseUser {
     if (options.userId) {
       const { userId } = options;
 
+      let publicKey = options.publicKey;
+      if (publicKey && (await getHash(publicKey)) !== userId) {
+        throw new Error("publicKey伪造");
+      }
+
       if (this.#remotes[userId]) {
         return this.#remotes[userId];
       }
@@ -183,27 +196,31 @@ export class LocalUser extends BaseUser {
       return (this.#remotes[userId] = (async () => {
         // TODO: 先查看是否有用户本地卡片
 
-        // 从在线服务器上查找用户卡片
-        const userData = await Promise.any(
-          serversData.map(async (server) => {
-            const serverClient = await this.connectServer(server.url);
+        if (!publicKey) {
+          // 从在线服务器上查找用户卡片
+          const userData = await Promise.any(
+            serversData.map(async (server) => {
+              const serverClient = await this.connectServer(server.url);
 
-            const userData = await serverClient.findUser(userId);
+              const userData = await serverClient.findUser(userId);
 
-            if (userData.publicKey) {
-              // 判断publicKey是否伪造
-              const publicKeyHash = await getHash(userData.publicKey);
+              if (userData.publicKey) {
+                // 判断publicKey是否伪造
+                const publicKeyHash = await getHash(userData.publicKey);
 
-              if (publicKeyHash !== userId) {
-                throw new Error("publicKey伪造");
+                if (publicKeyHash !== userId) {
+                  throw new Error("publicKey伪造");
+                }
+
+                return userData;
               }
+            })
+          );
 
-              return userData;
-            }
-          })
-        );
+          publicKey = userData.publicKey;
+        }
 
-        const user = new RemoteUser(userData.publicKey, this);
+        const user = new RemoteUser(publicKey, this);
 
         // 初始化逻辑
         await user.init();
