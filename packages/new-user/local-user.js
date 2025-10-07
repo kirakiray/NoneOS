@@ -26,6 +26,12 @@ export class LocalUser extends BaseUser {
         server,
       } = event.detail;
 
+      if (data.__internal_mark) {
+        // 内部操作
+        debugger;
+        return;
+      }
+
       // 触发接收数据事件
       this.dispatchEvent(
         new CustomEvent("receive-data", {

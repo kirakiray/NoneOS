@@ -7,8 +7,7 @@ export class RemoteUser extends BaseUser {
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
-  _rtcConnection = null; // RTC连接实例
-  _dataChannels = []; // 主数据通道
+  _rtcConnections = []; // RTC连接实例
 
   constructor(publicKey, self) {
     super(publicKey);

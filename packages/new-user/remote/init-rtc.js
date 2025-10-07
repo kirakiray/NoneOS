@@ -14,11 +14,13 @@ export default async function initRTC(remoteUser) {
   const rtcConnection = new RTCPeerConnection({ iceServers });
 
   // 保存到 remoteUser 实例中
-  remoteUser._rtcConnection = rtcConnection;
+  remoteUser._rtcConnections.push(rtcConnection);
+
+  rtcConnection._dataChannels = [];
 
   // 创建数据通道
   const dataChannel = rtcConnection.createDataChannel("message");
-  remoteUser._dataChannels.push(dataChannel);
+  rtcConnection._dataChannels.push(dataChannel);
 
   // 监听数据通道打开事件
   dataChannel.onopen = () => {
@@ -28,9 +30,9 @@ export default async function initRTC(remoteUser) {
 
   const refreshDataChannels = () => {
     // 从 remoteUser 实例中移除该数据通道
-    const index = remoteUser._dataChannels.indexOf(dataChannel);
+    const index = rtcConnection._dataChannels.indexOf(dataChannel);
     if (index !== -1) {
-      remoteUser._dataChannels.splice(index, 1);
+      rtcConnection._dataChannels.splice(index, 1);
     }
 
     if (!remoteUser._dataChannels.length) {
@@ -89,7 +91,7 @@ export default async function initRTC(remoteUser) {
   // 监听远程数据通道事件
   rtcConnection.ondatachannel = (event) => {
     const channel = event.channel;
-    remoteUser._dataChannels.push(channel);
+    rtcConnection._dataChannels.push(channel);
 
     channel.onmessage = (event) => {
       // 处理接收到的消息
@@ -162,6 +164,7 @@ function _sendOffer(remoteUser, offer) {
   servers[0].sendTo(remoteUser.userId, {
     type: "rtc-offer",
     offer: JSON.stringify(offer),
+    __internal_mark: 1,
   });
 }
 

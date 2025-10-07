@@ -30,7 +30,7 @@
       try {
         remoteUser2 = await user1.connectUser({ userId: user2.userId });
 
-        // 初始化RTC连接，完成后就会使用 rtcConnection 进行数据通信
+        // 初始化RTC连接，完成后就会使用点对点进行数据通信
         await remoteUser2.initRTC();
 
         debugger
