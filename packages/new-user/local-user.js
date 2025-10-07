@@ -18,6 +18,27 @@ export class LocalUser extends BaseUser {
     super(handle);
     this.#dirHandle = handle;
     this.#sessionId = Math.random().toString(36).slice(2);
+
+    // 接受到服务端转发过来的数据
+    this.addEventListener("received-agent-data", (event) => {
+      const {
+        response: { fromUserId, fromUserSessionId, data },
+        server,
+      } = event.detail;
+
+      // 触发接收数据事件
+      this.dispatchEvent(
+        new CustomEvent("receive-data", {
+          detail: {
+            fromUserId,
+            fromUserSessionId,
+            data,
+            server,
+            options: event.detail.response,
+          },
+        })
+      );
+    });
   }
 
   // 获取会话ID
@@ -126,23 +147,6 @@ export class LocalUser extends BaseUser {
         user: this,
       });
     }
-
-    serverClient.addEventListener("agent-data", (e) => {
-      const { fromUserId, data, fromUserSessionId } = e.detail;
-
-      // 触发接收数据事件
-      this.dispatchEvent(
-        new CustomEvent("receive-data", {
-          detail: {
-            fromUserId,
-            fromUserSessionId,
-            data,
-            server: serverClient,
-            options: e.detail,
-          },
-        })
-      );
-    });
 
     return (this.#serverConnects[url] = (async () => {
       await serverClient.init();

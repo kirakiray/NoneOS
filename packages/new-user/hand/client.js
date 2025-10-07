@@ -62,6 +62,10 @@ export class HandServerClient extends EventTarget {
       throw new Error("用户未认证");
     }
 
+    if (typeof options === "string") {
+      options = { userId: options };
+    }
+
     if (data instanceof Uint8Array) {
       const reBuffer = toBuffer(data, { type: "agent_data", options });
       this.socket.send(reBuffer);
@@ -114,9 +118,19 @@ export class HandServerClient extends EventTarget {
             detail: { ...info, data },
           })
         );
+
         if (this.onData) {
           this.onData(info.fromUserId, data, { ...info, data });
         }
+
+        this.#user.dispatchEvent(
+          new CustomEvent("received-agent-data", {
+            detail: {
+              response: { ...info, data },
+              server: this,
+            },
+          })
+        );
       }
 
       return;
@@ -167,9 +181,19 @@ export class HandServerClient extends EventTarget {
       this.dispatchEvent(
         new CustomEvent("agent-data", { detail: responseData })
       );
+
       if (this.onData) {
         this.onData(responseData.fromUserId, responseData.data, responseData);
       }
+
+      this.#user.dispatchEvent(
+        new CustomEvent("received-agent-data", {
+          detail: {
+            response: responseData,
+            server: this,
+          },
+        })
+      );
     }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));

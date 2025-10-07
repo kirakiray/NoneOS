@@ -7,7 +7,8 @@ export class RemoteUser extends BaseUser {
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
-  #rtcConnection = null; // RTC连接实例
+  _rtcConnection = null; // RTC连接实例
+  _dataChannels = []; // 主数据通道
 
   constructor(publicKey, self) {
     super(publicKey);
@@ -19,6 +20,9 @@ export class RemoteUser extends BaseUser {
     return this.#servers.length ? 1 : 0;
   }
 
+  get servers() {
+    return [...this.#servers];
+  }
   // 是否可通过点对点连接到对方
   //   get rtcState() {
   //     return this.#rtcState;
