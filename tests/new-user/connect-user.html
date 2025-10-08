@@ -78,7 +78,7 @@
 
             if (count === 0) {
               console.log("rtc已经关闭，是server转发的data:", !!server); // true
-              console.log(!!channel); // false
+              console.log("1channel: ", !!channel); // false
 
               console.log(
                 "user2收到数据:",
@@ -90,7 +90,7 @@
             } else if (count === 1) {
               // 第二次发送时应该已经rtc重连完成
               console.log("rtc已经重新连接，server转发的data:", !!server); // false
-              console.log(!!channel); // true
+              console.log("2channel: ", !!channel); // true
 
               console.log(
                 "user2收到数据:",

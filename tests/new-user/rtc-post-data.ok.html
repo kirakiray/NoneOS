@@ -80,7 +80,11 @@
         const isServerUndefined = receivedServerUndefined;
 
         return {
-          assert: isCorrectSender && isCorrectSession && isCorrectData && isServerUndefined,
+          assert:
+            isCorrectSender &&
+            isCorrectSession &&
+            isCorrectData &&
+            isServerUndefined,
           content: {
             message: "RTC连接后post数据测试成功",
             sentData: testData,
@@ -166,6 +170,129 @@
             isCorrectSender,
             isCorrectData,
             isServerExists,
+          },
+        };
+      });
+
+      await test("RTC Reconnection Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-rtc-reconnect-user1" });
+        const user2 = await createUser({ user: "test-rtc-reconnect-user2" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 保证user2连上服务器
+        await user2.connectServer(serverUrl);
+
+        // 保证user1也连上服务器
+        await user1.connectServer(serverUrl);
+
+        // 直接连接 user2
+        let remoteUser2;
+        try {
+          remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+          // 初始化RTC连接，完成后就会使用点对点进行数据通信
+          await remoteUser2.initRTC();
+        } catch (error) {
+          console.log("连接用户或rtc初始化失败:", error);
+          throw error;
+        }
+
+        // user2监听获取数据的事件
+        let receivedCount = 0;
+        let firstReceivedData = null;
+        let firstIsServer = false;
+        let firstReceivedServer = null;
+        let secondReceivedData = null;
+        let secondIsServer = false;
+        let secondReceivedChannel = null;
+
+        const receiveDataPromises = [
+          new Promise((resolve) => {
+            user2.addEventListener("receive-data", (e) => {
+              if (receivedCount === 0) {
+                const { data, server, channel } = e.detail;
+                firstReceivedData = data;
+                firstIsServer = !!server;
+                firstReceivedServer = server;
+                resolve();
+                setTimeout(() => {
+                  receivedCount++;
+                }, 0);
+              }
+            });
+          }),
+          new Promise((resolve) => {
+            user2.addEventListener("receive-data", (e) => {
+              if (receivedCount === 1) {
+                const { data, server, channel } = e.detail;
+                secondReceivedData = data;
+                secondIsServer = !!server;
+                secondReceivedChannel = channel;
+                resolve();
+                setTimeout(() => {
+                  receivedCount++;
+                }, 0);
+              }
+            });
+          }),
+        ];
+
+        // 发送第一条数据，应该通过RTC传输
+        const testData1 = {
+          val: "hello user2 via RTC",
+          timestamp: Date.now(),
+          type: "first",
+        };
+
+        remoteUser2.post(testData1);
+
+        // 等待第一条数据接收完成
+        await receiveDataPromises[0];
+
+        // 模拟RTC连接断开
+        remoteUser2._rtcConnections[0].close();
+
+        // 等待一小段时间确保连接关闭
+        await new Promise((resolve) => setTimeout(resolve, 200));
+
+        // 发送第二条数据，此时RTC已断开，应该通过服务器转发
+        const testData2 = {
+          val: "hello user2 via server fallback",
+          timestamp: Date.now(),
+          type: "second",
+        };
+
+        remoteUser2.post(testData2);
+
+        // 等待第二条数据接收完成
+        await receiveDataPromises[1];
+
+        // 验证结果
+        const isFirstDataCorrect =
+          JSON.stringify(firstReceivedData) === JSON.stringify(testData1);
+        const isSecondDataCorrect =
+          JSON.stringify(secondReceivedData) === JSON.stringify(testData2);
+        const isFirstViaRTC = !firstIsServer; // 第一次应该通过RTC，没有server字段
+        const isSecondViaServer = !!secondIsServer; // 第二次应该通过服务器，有server字段
+
+        return {
+          assert:
+            isFirstDataCorrect &&
+            isSecondDataCorrect &&
+            isFirstViaRTC &&
+            isSecondViaServer,
+          content: {
+            message: "RTC重连测试成功",
+            isFirstDataCorrect,
+            isSecondDataCorrect,
+            isFirstViaRTC,
+            isSecondViaServer,
+            firstReceivedData,
+            secondReceivedData,
+            firstReceivedServer: !!firstReceivedServer,
+            secondReceivedChannel: !!secondReceivedChannel,
           },
         };
       });

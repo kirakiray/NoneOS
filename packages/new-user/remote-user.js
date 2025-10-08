@@ -81,12 +81,12 @@ export class RemoteUser extends BaseUser {
 
   // 初始化RTC连接
   async initRTC() {
-    this._runInitRTC = 1; // 标记是否已运行过initRTC
-
     if (this._rtc_pairing) {
       // 如果正在配对中，则直接返回
       return this._rtc_pairing;
     }
+
+    this._runInitRTC = 1; // 标记是否已运行过initRTC
 
     if (this.serverState === 0) {
       throw new Error("未找到合适的握手服务器");
