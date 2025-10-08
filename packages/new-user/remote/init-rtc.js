@@ -16,21 +16,17 @@ export default async function initRTC(remoteUser, answerOptions) {
 
   // 保存到 remoteUser 实例中
   remoteUser._rtcConnections.push(rtcConnection);
-
   rtcConnection._dataChannels = [];
 
+  // 初始化数据通道（仅在发起方时创建）
   if (!answerOptions) {
-    // 创建数据通道
     const channel = rtcConnection.createDataChannel("message");
-
-    // 初始化数据通道
     initChannel(remoteUser, rtcConnection, channel);
   }
 
   // 监听 ICE 候选者事件
   rtcConnection.onicecandidate = (event) => {
     if (event.candidate) {
-      // 通过服务器转发 ICE 候选者信息
       _sendIceCandidate(remoteUser, rtcConnection, event.candidate);
     }
   };
@@ -39,6 +35,7 @@ export default async function initRTC(remoteUser, answerOptions) {
   rtcConnection.onconnectionstatechange = () => {
     console.log("RTC 连接状态:", rtcConnection.connectionState);
 
+    // 派发连接状态变化事件
     remoteUser.dispatchEvent(
       new CustomEvent("rtc-state-change", {
         detail: {
@@ -48,100 +45,161 @@ export default async function initRTC(remoteUser, answerOptions) {
       })
     );
 
-    if (rtcConnection.connectionState === "connected") {
-      console.log("RTC 连接已建立");
-      remoteUser._changeMode(2);
-    } else if (
-      rtcConnection.connectionState === "failed" ||
-      rtcConnection.connectionState === "disconnected"
-    ) {
-      console.log("RTC 连接失败或断开");
-
-      // 关闭连接
-      rtcConnection.close();
-
-      // 从连接池中移除已关闭的连接
-      const index = remoteUser._rtcConnections.indexOf(rtcConnection);
-      if (index !== -1) {
-        remoteUser._rtcConnections.splice(index, 1);
-      }
-
-      // 如果有服务器连接，则回退到服务器转发模式
-      if (remoteUser.serverState) {
-        remoteUser._changeMode(1);
-      } else {
-        remoteUser._changeMode(0);
-      }
+    // 根据连接状态处理
+    switch (rtcConnection.connectionState) {
+      case "connected":
+        console.log("RTC 连接已建立");
+        remoteUser._changeMode(2);
+        break;
+      case "failed":
+      case "disconnected":
+        console.log("RTC 连接失败或断开");
+        cleanupRTCConnection(remoteUser, rtcConnection);
+        handleConnectionError(remoteUser, null, "RTC连接");
+        break;
     }
   };
 
   // 监听远程数据通道事件
   rtcConnection.ondatachannel = (event) => {
-    const channel = event.channel;
-
-    // 初始化数据通道
-    initChannel(remoteUser, rtcConnection, channel);
+    initChannel(remoteUser, rtcConnection, event.channel);
   };
 
+  // 根据是否为应答方执行不同逻辑
   if (!answerOptions) {
-    // 创建并发送 offer
+    // 发起方：创建并发送 offer
     try {
       const offer = await rtcConnection.createOffer();
       await rtcConnection.setLocalDescription(offer);
 
-      // 通过服务器转发 offer
-      _sendOffer(remoteUser, rtcConnection, offer);
+      sendRTCMessage(remoteUser, {
+        type: "rtc-offer",
+        offer: JSON.stringify(offer),
+        publicKey: remoteUser.self.publicKey,
+        fromRTCId: rtcConnection._rtcId,
+        __internal_mark: 1,
+      });
     } catch (error) {
-      console.error("创建 RTC offer 失败:", error);
-      // 如果有服务器连接，则回退到服务器转发模式
-      if (remoteUser.serverState) {
-        remoteUser._changeMode(1);
-      } else {
-        remoteUser._changeMode(0);
-      }
+      handleConnectionError(remoteUser, error, "创建 RTC offer");
     }
   } else {
-    let { offer } = answerOptions;
-
-    // 保存对方的 RTC ID
-    rtcConnection.__oppositeRTCId = answerOptions.fromRTCId;
-
-    // 设置远程描述
+    // 应答方：处理 offer 并发送 answer
     try {
+      let { offer } = answerOptions;
+      rtcConnection.__oppositeRTCId = answerOptions.fromRTCId;
+
       if (typeof offer === "string") {
         offer = JSON.parse(offer);
       }
 
       await rtcConnection.setRemoteDescription(offer);
 
-      // 创建 answer
       const answer = await rtcConnection.createAnswer();
       await rtcConnection.setLocalDescription(answer);
 
-      _sendAnswer(remoteUser, rtcConnection, answer, answerOptions);
+      sendRTCMessage(
+        remoteUser,
+        {
+          type: "rtc-answer",
+          answer: JSON.stringify(answer),
+          fromRTCId: rtcConnection._rtcId,
+          toRtcId: answerOptions.fromRTCId,
+          __internal_mark: 1,
+        },
+        {
+          userId: remoteUser.userId,
+          userSessionId: answerOptions.fromUserSessionId,
+        }
+      );
     } catch (error) {
-      console.error("设置远程描述失败:", error);
-      // 如果有服务器连接，则回退到服务器转发模式
-      if (remoteUser.serverState) {
-        remoteUser._changeMode(1);
-      } else {
-        remoteUser._changeMode(0);
-      }
+      handleConnectionError(remoteUser, error, "设置远程描述");
     }
   }
 }
 
+// 通用错误处理函数
+const handleConnectionError = (remoteUser, error, action) => {
+  console.error(`${action}失败:`, error);
+  // 根据服务器状态切换模式
+  remoteUser._changeMode(remoteUser.serverState ? 1 : 0);
+};
+
+// 清理已关闭的RTC连接
+const cleanupRTCConnection = (remoteUser, rtcConnection) => {
+  // 关闭连接
+  rtcConnection.close();
+
+  // 从连接池中移除已关闭的连接
+  const index = remoteUser._rtcConnections.indexOf(rtcConnection);
+  if (index !== -1) {
+    remoteUser._rtcConnections.splice(index, 1);
+  }
+};
+
+// 发送 ICE 候选者信息
+function _sendIceCandidate(remoteUser, rtcConnection, candidate) {
+  // 检查服务器连接状态
+  if (!remoteUser.serverState) {
+    console.error("没有可用的服务器连接，无法发送 ICE 候选者");
+    return;
+  }
+
+  const servers = remoteUser.servers;
+  if (servers.length === 0) {
+    console.error("没有可用的服务器连接，无法发送 ICE 候选者");
+    return;
+  }
+
+  const sendIce = (toRtcId) => {
+    servers[0].sendTo(remoteUser.userId, {
+      type: "rtc-ice-candidate",
+      candidate: JSON.stringify(candidate),
+      toRtcId,
+      __internal_mark: 1,
+    });
+  };
+
+  // 根据是否已收到 answer 决定发送策略
+  if (rtcConnection._hasReceivedAnswer) {
+    sendIce(rtcConnection.__oppositeRTCId);
+  } else {
+    const pendingIceSends =
+      rtcConnection._pendingIceSends || (rtcConnection._pendingIceSends = []);
+    pendingIceSends.push(sendIce);
+  }
+}
+
+// 通用消息发送函数（用于offer和answer）
+const sendRTCMessage = (remoteUser, message, target) => {
+  // 检查服务器连接状态
+  if (!remoteUser.serverState) {
+    console.error("没有可用的服务器连接，无法发送消息");
+    return;
+  }
+
+  const servers = remoteUser.servers;
+  if (servers.length === 0) {
+    console.error("没有可用的服务器连接，无法发送消息");
+    return;
+  }
+
+  // 发送消息
+  if (target) {
+    servers[0].sendTo(target, message);
+  } else {
+    servers[0].sendTo(remoteUser.userId, message);
+  }
+};
+
 const initChannel = (remoteUser, rtcConnection, channel) => {
   rtcConnection._dataChannels.push(channel);
 
-  // 监听数据通道打开事件
+  // 监听数据通道事件
   channel.onopen = () => {
-    // 更新连接模式为点对点模式
     remoteUser._changeMode(2);
   };
 
   channel.onmessage = (event) => {
-    // 处理接收到的消息
     try {
       const message = JSON.parse(event.data);
       console.log("收到消息:", message);
@@ -151,132 +209,27 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
     }
   };
 
-  // 监听数据通道关闭事件
   channel.onclose = () => {
     console.log("RTC 数据通道已关闭");
-
     refreshDataChannels(remoteUser, rtcConnection, channel);
   };
 
-  // 监听数据通道错误事件
   channel.onerror = (error) => {
     console.error("RTC 数据通道错误:", error);
-
     refreshDataChannels(remoteUser, rtcConnection, channel);
   };
 };
 
 const refreshDataChannels = (remoteUser, rtcConnection, channel) => {
-  // 从 remoteUser 实例中移除该数据通道
+  // 从数据通道列表中移除已关闭的通道
   const index = rtcConnection._dataChannels.indexOf(channel);
   if (index !== -1) {
     rtcConnection._dataChannels.splice(index, 1);
   }
 
-  // 检查是否还有其他数据通道，如果没有则清理连接
+  // 如果没有数据通道了，清理连接并回退到服务器模式
   if (rtcConnection._dataChannels.length === 0) {
-    // 从连接池中移除已关闭的连接
-    const connIndex = remoteUser._rtcConnections.indexOf(rtcConnection);
-    if (connIndex !== -1) {
-      remoteUser._rtcConnections.splice(connIndex, 1);
-    }
-
-    // 如果有服务器连接，则回退到服务器转发模式
-    if (remoteUser.serverState) {
-      remoteUser._changeMode(1);
-    } else {
-      remoteUser._changeMode(0);
-    }
+    cleanupRTCConnection(remoteUser, rtcConnection);
+    handleConnectionError(remoteUser, null, "数据通道");
   }
 };
-
-// 发送 ICE 候选者信息
-function _sendIceCandidate(remoteUser, rtcConnection, candidate) {
-  if (!remoteUser.serverState) {
-    console.error("没有可用的服务器连接，无法发送 ICE 候选者");
-    return;
-  }
-
-  // 通过第一个可用的服务器发送 ICE 候选者
-  const servers = remoteUser.servers;
-  if (servers.length === 0) {
-    console.error("没有可用的服务器连接，无法发送 ICE 候选者");
-    return;
-  }
-
-  const sendIce = (toRtcId) => {
-    const server = servers[0];
-
-    server.sendTo(remoteUser.userId, {
-      type: "rtc-ice-candidate",
-      candidate: JSON.stringify(candidate),
-      toRtcId,
-      __internal_mark: 1,
-    });
-  };
-
-  // 查看是否已经得到了answer
-  if (rtcConnection._hasReceivedAnswer) {
-    // 如果已经得到了answer，直接发送
-    sendIce(rtcConnection.__oppositeRTCId);
-  } else {
-    const pendingIceSends =
-      rtcConnection._pendingIceSends || (rtcConnection._pendingIceSends = []);
-
-    // 先记录等得到answer后再发送
-    pendingIceSends.push(sendIce);
-  }
-}
-
-// 发送 offer
-function _sendOffer(remoteUser, rtcConnection, offer) {
-  if (!remoteUser.serverState) {
-    console.error("没有可用的服务器连接，无法发送 offer");
-    return;
-  }
-
-  // 通过第一个可用的服务器发送 offer
-  const servers = remoteUser.servers;
-  if (servers.length === 0) {
-    console.error("没有可用的服务器连接，无法发送 offer");
-    return;
-  }
-
-  servers[0].sendTo(remoteUser.userId, {
-    type: "rtc-offer",
-    offer: JSON.stringify(offer),
-    publicKey: remoteUser.self.publicKey, // 自身的公钥
-    fromRTCId: rtcConnection._rtcId,
-    __internal_mark: 1,
-  });
-}
-
-// 发送 answer
-function _sendAnswer(remoteUser, rtcConnection, answer, answerOptions) {
-  if (!remoteUser.serverState) {
-    console.error("没有可用的服务器连接，无法发送 answer");
-    return;
-  }
-
-  // 通过第一个可用的服务器发送 answer
-  const servers = remoteUser.servers;
-  if (servers.length === 0) {
-    console.error("没有可用的服务器连接，无法发送 answer");
-    return;
-  }
-
-  const server = servers[0];
-  server.sendTo(
-    {
-      userId: remoteUser.userId,
-      userSessionId: answerOptions.fromUserSessionId,
-    },
-    {
-      type: "rtc-answer",
-      answer: JSON.stringify(answer),
-      fromRTCId: rtcConnection._rtcId,
-      toRtcId: answerOptions.fromRTCId,
-      __internal_mark: 1,
-    }
-  );
-}
