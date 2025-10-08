@@ -173,7 +173,6 @@
           },
         };
       });
-
       await test("RTC Reconnection Test", async () => {
         // 创建两个用户
         const user1 = await createUser({ user: "test-rtc-reconnect-user1" });
@@ -207,6 +206,9 @@
         let secondReceivedData = null;
         let secondIsServer = false;
         let secondReceivedChannel = null;
+        let thirdReceivedData = null;
+        let thirdIsServer = false;
+        let thirdReceivedChannel = null;
 
         const receiveDataPromises = [
           new Promise((resolve) => {
@@ -230,6 +232,20 @@
                 secondReceivedData = data;
                 secondIsServer = !!server;
                 secondReceivedChannel = channel;
+                resolve();
+                setTimeout(() => {
+                  receivedCount++;
+                }, 0);
+              }
+            });
+          }),
+          new Promise((resolve) => {
+            user2.addEventListener("receive-data", (e) => {
+              if (receivedCount === 2) {
+                const { data, server, channel } = e.detail;
+                thirdReceivedData = data;
+                thirdIsServer = !!server;
+                thirdReceivedChannel = channel;
                 resolve();
                 setTimeout(() => {
                   receivedCount++;
@@ -269,30 +285,51 @@
         // 等待第二条数据接收完成
         await receiveDataPromises[1];
 
+        // 发送第三条数据，应该有channel
+        const testData3 = {
+          val: "hello user2 with channel",
+          timestamp: Date.now(),
+          type: "third",
+        };
+
+        remoteUser2.post(testData3);
+
+        // 等待第三条数据接收完成
+        await receiveDataPromises[2];
+
         // 验证结果
         const isFirstDataCorrect =
           JSON.stringify(firstReceivedData) === JSON.stringify(testData1);
         const isSecondDataCorrect =
           JSON.stringify(secondReceivedData) === JSON.stringify(testData2);
+        const isThirdDataCorrect =
+          JSON.stringify(thirdReceivedData) === JSON.stringify(testData3);
         const isFirstViaRTC = !firstIsServer; // 第一次应该通过RTC，没有server字段
         const isSecondViaServer = !!secondIsServer; // 第二次应该通过服务器，有server字段
+        const isThirdWithChannel = !thirdReceivedChannel; // 第三次应该有channel
 
         return {
           assert:
             isFirstDataCorrect &&
             isSecondDataCorrect &&
+            isThirdDataCorrect &&
             isFirstViaRTC &&
-            isSecondViaServer,
+            isSecondViaServer &&
+            isThirdWithChannel,
           content: {
             message: "RTC重连测试成功",
             isFirstDataCorrect,
             isSecondDataCorrect,
+            isThirdDataCorrect,
             isFirstViaRTC,
             isSecondViaServer,
+            isThirdWithChannel,
             firstReceivedData,
             secondReceivedData,
+            thirdReceivedData,
             firstReceivedServer: !!firstReceivedServer,
             secondReceivedChannel: !!secondReceivedChannel,
+            thirdReceivedChannel: !!thirdReceivedChannel,
           },
         };
       });
