@@ -43,7 +43,7 @@ export class BaseUser extends EventTarget {
       return this.#_inited;
     }
 
-    this.#_inited = (async () => {
+    return (this.#_inited = (async () => {
       if (this.#publicKey && !this.#dirHandle) {
         // 公钥模式
         this.#userId = await getHash(this.#publicKey);
@@ -74,7 +74,7 @@ export class BaseUser extends EventTarget {
         // 防止保存数据，延迟清除监听
         pairData.disconnect();
       }, 1000);
-    })();
+    })());
   }
 
   get sign() {
