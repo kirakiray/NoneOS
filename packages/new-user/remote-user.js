@@ -3,7 +3,6 @@ import { getHash } from "../fs/util.js";
 import initRTC from "./remote/init-rtc.js";
 
 export class RemoteUser extends BaseUser {
-  //   #rtcState = 0; // 连接状态 0: 未连接 1: 已连接
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
@@ -19,6 +18,15 @@ export class RemoteUser extends BaseUser {
     return this.#servers.length ? 1 : 0;
   }
 
+  // 是否可通过点对点连接到对方
+  get rtcState() {
+    return this._rtcConnections.some(
+      (conn) => conn.connectionState === "connected"
+    )
+      ? 1
+      : 0;
+  }
+
   get self() {
     return this.#self;
   }
@@ -26,10 +34,6 @@ export class RemoteUser extends BaseUser {
   get servers() {
     return [...this.#servers];
   }
-  // 是否可通过点对点连接到对方
-  //   get rtcState() {
-  //     return this.#rtcState;
-  //   }
 
   get mode() {
     return this.#mode;
@@ -83,6 +87,19 @@ export class RemoteUser extends BaseUser {
 
     // 初始化RTC连接
     await initRTC(this);
+
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error("RTC连接超时"));
+      }, 5000);
+
+      this.addEventListener("rtc-state-change", (event) => {
+        if (event.detail.connectionState === "connected") {
+          clearTimeout(timeout);
+          resolve(event.detail.rtcId);
+        }
+      });
+    });
   }
 
   _changeMode(mode) {
@@ -108,6 +125,7 @@ export class RemoteUser extends BaseUser {
       this.#servers[0].sendTo(data, msg);
     } else if (this.#mode === 2) {
       // TODO: 通过 rtc 连接发送
+      debugger;
     }
   }
 }

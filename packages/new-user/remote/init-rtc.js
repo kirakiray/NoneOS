@@ -39,6 +39,15 @@ export default async function initRTC(remoteUser, answerOptions) {
   rtcConnection.onconnectionstatechange = () => {
     console.log("RTC 连接状态:", rtcConnection.connectionState);
 
+    remoteUser.dispatchEvent(
+      new CustomEvent("rtc-state-change", {
+        detail: {
+          rtcId: rtcConnection._rtcId,
+          connectionState: rtcConnection.connectionState,
+        },
+      })
+    );
+
     if (rtcConnection.connectionState === "connected") {
       console.log("RTC 连接已建立");
       remoteUser._changeMode(2);
