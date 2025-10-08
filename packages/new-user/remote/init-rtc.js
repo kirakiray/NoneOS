@@ -5,32 +5,33 @@ const iceServers = [
   { urls: "stun:stun.cloudflare.com" },
 ];
 
-export default async function initRTC(remoteUser, { offer } = {}) {
+export default async function initRTC(remoteUser, answerOptions) {
   if (remoteUser.serverState === 0) {
     throw new Error("未找到合适的握手服务器");
   }
 
   // 创建 RTCPeerConnection 实例
   const rtcConnection = new RTCPeerConnection({ iceServers });
+  rtcConnection._rtcId = Math.random().toString(32).slice(2);
 
   // 保存到 remoteUser 实例中
   remoteUser._rtcConnections.push(rtcConnection);
 
   rtcConnection._dataChannels = [];
 
-  if (!offer) {
+  if (!answerOptions) {
     // 创建数据通道
     const channel = rtcConnection.createDataChannel("message");
 
     // 初始化数据通道
-    initChannel(rtcConnection, channel);
+    initChannel(remoteUser, rtcConnection, channel);
   }
 
   // 监听 ICE 候选者事件
   rtcConnection.onicecandidate = (event) => {
     if (event.candidate) {
       // 通过服务器转发 ICE 候选者信息
-      _sendIceCandidate(remoteUser, event.candidate);
+      _sendIceCandidate(remoteUser, rtcConnection, event.candidate);
     }
   };
 
@@ -60,17 +61,17 @@ export default async function initRTC(remoteUser, { offer } = {}) {
     const channel = event.channel;
 
     // 初始化数据通道
-    initChannel(rtcConnection, channel);
+    initChannel(remoteUser, rtcConnection, channel);
   };
 
-  if (!offer) {
+  if (!answerOptions) {
     // 创建并发送 offer
     try {
       const offer = await rtcConnection.createOffer();
       await rtcConnection.setLocalDescription(offer);
 
       // 通过服务器转发 offer
-      _sendOffer(remoteUser, offer);
+      _sendOffer(remoteUser, rtcConnection, offer);
     } catch (error) {
       console.error("创建 RTC offer 失败:", error);
       // 如果有服务器连接，则回退到服务器转发模式
@@ -81,6 +82,11 @@ export default async function initRTC(remoteUser, { offer } = {}) {
       }
     }
   } else {
+    let { offer } = answerOptions;
+
+    // 保存对方的 RTC ID
+    rtcConnection.__oppositeRTCId = answerOptions.fromRTCId;
+
     // 设置远程描述
     try {
       if (typeof offer === "string") {
@@ -93,7 +99,7 @@ export default async function initRTC(remoteUser, { offer } = {}) {
       const answer = await rtcConnection.createAnswer();
       await rtcConnection.setLocalDescription(answer);
 
-      _sendAnswer(remoteUser, answer);
+      _sendAnswer(remoteUser, rtcConnection, answer, answerOptions);
     } catch (error) {
       console.error("设置远程描述失败:", error);
       // 如果有服务器连接，则回退到服务器转发模式
@@ -106,7 +112,7 @@ export default async function initRTC(remoteUser, { offer } = {}) {
   }
 }
 
-const initChannel = (rtcConnection, channel) => {
+const initChannel = (remoteUser, rtcConnection, channel) => {
   rtcConnection._dataChannels.push(channel);
 
   // 监听数据通道打开事件
@@ -159,7 +165,7 @@ const refreshDataChannels = (rtcConnection, channel) => {
 };
 
 // 发送 ICE 候选者信息
-function _sendIceCandidate(remoteUser, candidate) {
+function _sendIceCandidate(remoteUser, rtcConnection, candidate) {
   if (!remoteUser.serverState) {
     console.error("没有可用的服务器连接，无法发送 ICE 候选者");
     return;
@@ -172,16 +178,33 @@ function _sendIceCandidate(remoteUser, candidate) {
     return;
   }
 
-  const server = servers[0];
-  server.sendTo(remoteUser.userId, {
-    type: "rtc-ice-candidate",
-    candidate: JSON.stringify(candidate),
-    __internal_mark: 1,
-  });
+  const sendIce = (toRtcId) => {
+    const server = servers[0];
+
+    server.sendTo(remoteUser.userId, {
+      type: "rtc-ice-candidate",
+      candidate: JSON.stringify(candidate),
+      toRtcId,
+      __internal_mark: 1,
+    });
+  };
+
+  // 查看是否已经得到了answer
+  if (rtcConnection._hasReceivedAnswer) {
+    // 如果已经得到了answer，直接发送
+    debugger;
+    sendIce();
+  } else {
+    const pendingIceSends =
+      rtcConnection._pendingIceSends || (rtcConnection._pendingIceSends = []);
+
+    // 先记录等得到answer后再发送
+    pendingIceSends.push(sendIce);
+  }
 }
 
 // 发送 offer
-function _sendOffer(remoteUser, offer) {
+function _sendOffer(remoteUser, rtcConnection, offer) {
   if (!remoteUser.serverState) {
     console.error("没有可用的服务器连接，无法发送 offer");
     return;
@@ -198,12 +221,13 @@ function _sendOffer(remoteUser, offer) {
     type: "rtc-offer",
     offer: JSON.stringify(offer),
     publicKey: remoteUser.self.publicKey, // 自身的公钥
+    fromRTCId: rtcConnection._rtcId,
     __internal_mark: 1,
   });
 }
 
 // 发送 answer
-function _sendAnswer(remoteUser, answer) {
+function _sendAnswer(remoteUser, rtcConnection, answer, answerOptions) {
   if (!remoteUser.serverState) {
     console.error("没有可用的服务器连接，无法发送 answer");
     return;
@@ -217,9 +241,17 @@ function _sendAnswer(remoteUser, answer) {
   }
 
   const server = servers[0];
-  server.sendTo(remoteUser.userId, {
-    type: "rtc-answer",
-    answer: JSON.stringify(answer),
-    __internal_mark: 1,
-  });
+  server.sendTo(
+    {
+      userId: remoteUser.userId,
+      userSessionId: answerOptions.fromUserSessionId,
+    },
+    {
+      type: "rtc-answer",
+      answer: JSON.stringify(answer),
+      fromRTCId: rtcConnection._rtcId,
+      toRtcId: answerOptions.fromRTCId,
+      __internal_mark: 1,
+    }
+  );
 }

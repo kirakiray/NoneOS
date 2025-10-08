@@ -186,7 +186,7 @@ export class LocalUser extends BaseUser {
 
       let publicKey = options.publicKey;
       if (publicKey && (await getHash(publicKey)) !== userId) {
-        throw new Error("publicKey伪造");
+        throw new Error("传入的publicKey是伪造的");
       }
 
       if (this.#remotes[userId]) {
