@@ -49,7 +49,7 @@ export default async function initRTC(remoteUser, answerOptions) {
     switch (rtcConnection.connectionState) {
       case "connected":
         console.log("RTC 连接已建立");
-        remoteUser._changeMode(2);
+        // remoteUser._changeMode(2);
         break;
       case "failed":
       case "disconnected":
@@ -201,9 +201,9 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
 
   channel.onmessage = (event) => {
     try {
+      debugger;
       const message = JSON.parse(event.data);
       console.log("收到消息:", message);
-      debugger;
     } catch (e) {
       console.error("解析消息失败:", e);
     }

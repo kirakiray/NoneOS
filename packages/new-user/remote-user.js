@@ -93,10 +93,10 @@ export class RemoteUser extends BaseUser {
         reject(new Error("RTC连接超时"));
       }, 5000);
 
-      this.addEventListener("rtc-state-change", (event) => {
-        if (event.detail.connectionState === "connected") {
+      this.addEventListener("mode-change", (event) => {
+        if (event.detail === 2) {
           clearTimeout(timeout);
-          resolve(event.detail.rtcId);
+          resolve(event.detail);
         }
       });
     });
@@ -124,8 +124,21 @@ export class RemoteUser extends BaseUser {
       // 服务端转发模式，直接通过第一个发送
       this.#servers[0].sendTo(data, msg);
     } else if (this.#mode === 2) {
-      // TODO: 通过 rtc 连接发送
-      debugger;
+      // 查找所有RTC连接中处于open状态的channel
+      const channel = this._rtcConnections
+        .flatMap((conn) => conn._dataChannels)
+        .find((chan) => chan.readyState === "open");
+
+      if (!channel) {
+        // 未找到可用的channel，降级改用服务端发送
+        this.#servers[0].sendTo(data, msg);
+        const err = new Error("未找到可用的RTC channel");
+        console.error(err);
+        return;
+      }
+
+      // 通过channel发送消息
+      channel.send(JSON.stringify(msg));
     }
   }
 }

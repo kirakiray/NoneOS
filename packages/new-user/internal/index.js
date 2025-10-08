@@ -20,6 +20,8 @@ export default {
       return;
     }
 
+    // TODO: 检查是否自己的设备，不是的话不能创建连接
+
     // 获取目标的远端用户
     const remoteUser = await localUser.connectUser({
       userId: fromUserId,
