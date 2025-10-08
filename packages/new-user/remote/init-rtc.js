@@ -192,8 +192,7 @@ function _sendIceCandidate(remoteUser, rtcConnection, candidate) {
   // 查看是否已经得到了answer
   if (rtcConnection._hasReceivedAnswer) {
     // 如果已经得到了answer，直接发送
-    debugger;
-    sendIce();
+    sendIce(rtcConnection.__oppositeRTCId);
   } else {
     const pendingIceSends =
       rtcConnection._pendingIceSends || (rtcConnection._pendingIceSends = []);
