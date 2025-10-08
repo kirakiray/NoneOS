@@ -22,7 +22,21 @@
 
       // user2监听获取数据的事件
       user2.addEventListener("receive-data", (e) => {
-        const { fromUserId, fromUserSessionId, data, server } = e.detail;
+        const { fromUserId, fromUserSessionId, data, server, channel } =
+          e.detail;
+
+        console.log(
+          "通过 RTC 转发，server 字段应不存在，当前 server 是否为 undefined:",
+          server === undefined
+        );
+
+        console.log(
+          "user2收到数据:",
+          data,
+          fromUserId,
+          fromUserSessionId,
+          channel
+        );
       });
 
       // 直接连接 user2

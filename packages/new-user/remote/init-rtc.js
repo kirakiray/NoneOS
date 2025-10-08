@@ -87,6 +87,7 @@ export default async function initRTC(remoteUser, answerOptions) {
     try {
       let { offer } = answerOptions;
       rtcConnection.__oppositeRTCId = answerOptions.fromRTCId;
+      rtcConnection.__oppositeUserSessionId = answerOptions.fromUserSessionId;
 
       if (typeof offer === "string") {
         offer = JSON.parse(offer);
@@ -200,13 +201,24 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
   };
 
   channel.onmessage = (event) => {
+    let message = event.data;
     try {
-      debugger;
-      const message = JSON.parse(event.data);
-      console.log("收到消息:", message);
+      message = JSON.parse(message);
     } catch (e) {
       console.error("解析消息失败:", e);
+      debugger;
     }
+
+    remoteUser.self.dispatchEvent(
+      new CustomEvent("rtc-message", {
+        detail: {
+          remoteUser,
+          message,
+          channel,
+          rtcConnection,
+        },
+      })
+    );
   };
 
   channel.onclose = () => {

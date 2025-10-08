@@ -21,7 +21,7 @@ export class LocalUser extends BaseUser {
     this.#sessionId = Math.random().toString(36).slice(2);
 
     // 接受到服务端转发过来的数据
-    this.addEventListener("received-agent-data", (event) => {
+    this.bind("received-agent-data", (event) => {
       const {
         response: { fromUserId, fromUserSessionId, data },
         server,
@@ -49,6 +49,22 @@ export class LocalUser extends BaseUser {
             data,
             server,
             options: event.detail.response,
+          },
+        })
+      );
+    });
+
+    this.bind("rtc-message", (event) => {
+      const { remoteUser, message, channel, rtcConnection } = event.detail;
+
+      // 触发接收数据事件
+      this.dispatchEvent(
+        new CustomEvent("receive-data", {
+          detail: {
+            channel,
+            data: message,
+            fromUserId: remoteUser.userId,
+            fromUserSessionId: rtcConnection.__oppositeUserSessionId,
           },
         })
       );
@@ -166,11 +182,10 @@ export class LocalUser extends BaseUser {
       await serverClient.init();
 
       await new Promise((resolve) => {
-        const authHandle = (e) => {
-          serverClient.removeEventListener("authed", authHandle);
+        const offBind = serverClient.bind("authed", () => {
+          offBind(); // 移除事件监听
           resolve();
-        };
-        serverClient.addEventListener("authed", authHandle);
+        });
       });
 
       return serverClient;

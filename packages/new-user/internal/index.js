@@ -60,6 +60,7 @@ export default {
     }
 
     rtcConnection.__oppositeRTCId = fromRTCId;
+    rtcConnection.__oppositeUserSessionId = fromUserSessionId;
 
     if (!rtcConnection) {
       console.error("未找到目标 RTC 连接");

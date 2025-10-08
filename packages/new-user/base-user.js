@@ -135,4 +135,12 @@ export class BaseUser extends EventTarget {
       return false;
     }
   }
+
+  bind(eventName, callback) {
+    this.addEventListener(eventName, callback);
+
+    return () => {
+      this.removeEventListener(eventName, callback);
+    };
+  }
 }

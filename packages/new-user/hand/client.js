@@ -218,4 +218,12 @@ export class HandServerClient extends EventTarget {
     clearInterval(this.pingInterval);
     console.error("WebSocket错误:", event);
   }
+
+  bind(eventName, callback) {
+    this.addEventListener(eventName, callback);
+
+    return () => {
+      this.removeEventListener(eventName, callback);
+    };
+  }
 }
