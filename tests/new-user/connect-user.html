@@ -32,10 +32,8 @@
 
         // 初始化RTC连接，完成后就会使用点对点进行数据通信
         await remoteUser2.initRTC();
-
-        debugger
       } catch (error) {
-        console.log("连接用户失败:", error);
+        console.log("连接用户或rtc初始化失败:", error);
       }
 
       // 发送数据给对方

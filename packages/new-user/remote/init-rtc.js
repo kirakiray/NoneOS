@@ -56,6 +56,16 @@ export default async function initRTC(remoteUser, answerOptions) {
       rtcConnection.connectionState === "disconnected"
     ) {
       console.log("RTC 连接失败或断开");
+
+      // 关闭连接
+      rtcConnection.close();
+
+      // 从连接池中移除已关闭的连接
+      const index = remoteUser._rtcConnections.indexOf(rtcConnection);
+      if (index !== -1) {
+        remoteUser._rtcConnections.splice(index, 1);
+      }
+
       // 如果有服务器连接，则回退到服务器转发模式
       if (remoteUser.serverState) {
         remoteUser._changeMode(1);
@@ -133,7 +143,7 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
   channel.onmessage = (event) => {
     // 处理接收到的消息
     try {
-      const message = JSON.parse(data);
+      const message = JSON.parse(event.data);
       console.log("收到消息:", message);
       debugger;
     } catch (e) {
@@ -145,25 +155,32 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
   channel.onclose = () => {
     console.log("RTC 数据通道已关闭");
 
-    refreshDataChannels(rtcConnection, channel);
+    refreshDataChannels(remoteUser, rtcConnection, channel);
   };
 
   // 监听数据通道错误事件
   channel.onerror = (error) => {
     console.error("RTC 数据通道错误:", error);
 
-    refreshDataChannels(rtcConnection, channel);
+    refreshDataChannels(remoteUser, rtcConnection, channel);
   };
 };
 
-const refreshDataChannels = (rtcConnection, channel) => {
+const refreshDataChannels = (remoteUser, rtcConnection, channel) => {
   // 从 remoteUser 实例中移除该数据通道
   const index = rtcConnection._dataChannels.indexOf(channel);
   if (index !== -1) {
     rtcConnection._dataChannels.splice(index, 1);
   }
 
-  if (!remoteUser._dataChannels.length) {
+  // 检查是否还有其他数据通道，如果没有则清理连接
+  if (rtcConnection._dataChannels.length === 0) {
+    // 从连接池中移除已关闭的连接
+    const connIndex = remoteUser._rtcConnections.indexOf(rtcConnection);
+    if (connIndex !== -1) {
+      remoteUser._rtcConnections.splice(connIndex, 1);
+    }
+
     // 如果有服务器连接，则回退到服务器转发模式
     if (remoteUser.serverState) {
       remoteUser._changeMode(1);
