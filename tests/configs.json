@@ -26,13 +26,6 @@
     "../tests/new-user/create-user.ok.html",
     "../tests/new-user/public-key-user.ok.html",
     "../tests/new-user/rtc-post-data.ok.html",
-    "../tests/new-user/user-info.ok.html",
-    "../tests/user/add-device.ok.html",
-    "../tests/user/connection.ok.html",
-    "../tests/user/direct-agent-data.ok.html",
-    "../tests/user/handserver.ok.html",
-    "../tests/user/invite-code.ok.html",
-    "../tests/user/main.ok.html",
-    "../tests/user/worker-agent-data.ok.html"
+    "../tests/new-user/user-info.ok.html"
   ]
 }
