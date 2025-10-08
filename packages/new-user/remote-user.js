@@ -81,25 +81,34 @@ export class RemoteUser extends BaseUser {
 
   // 初始化RTC连接
   async initRTC() {
+    this._runInitRTC = 1; // 标记是否已运行过initRTC
+
+    if (this._rtc_pairing) {
+      // 如果正在配对中，则直接返回
+      return this._rtc_pairing;
+    }
+
     if (this.serverState === 0) {
       throw new Error("未找到合适的握手服务器");
     }
 
     // 初始化RTC连接
-    await initRTC(this);
+    initRTC(this);
 
-    return new Promise((resolve, reject) => {
+    return (this._rtc_pairing = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {
         reject(new Error("RTC连接超时"));
+        this._rtc_pairing = null;
       }, 5000);
 
       this.addEventListener("mode-change", (event) => {
         if (event.detail === 2) {
           clearTimeout(timeout);
+          this._rtc_pairing = null;
           resolve(event.detail);
         }
       });
-    });
+    }));
   }
 
   _changeMode(mode) {
@@ -119,6 +128,11 @@ export class RemoteUser extends BaseUser {
       userId: this.userId,
       msgId,
     };
+
+    if (this._runInitRTC && !this._rtcConnections.length) {
+      // 如果运行过initRTC，则再进行一次初始化，让下次可以使用rtc发送
+      this.initRTC();
+    }
 
     if (this.#mode === 1) {
       // 服务端转发模式，直接通过第一个发送

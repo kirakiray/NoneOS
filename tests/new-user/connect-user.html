@@ -21,7 +21,7 @@
       await user2.connectServer(servers[0].url);
 
       // user2监听获取数据的事件
-      user2.addEventListener("receive-data", (e) => {
+      const cancel1 = user2.bind("receive-data", (e) => {
         const { fromUserId, fromUserSessionId, data, server, channel } =
           e.detail;
 
@@ -37,10 +37,13 @@
           fromUserSessionId,
           channel
         );
+
+        cancel1();
       });
 
       // 直接连接 user2
-      let remoteUser2;
+      // let remoteUser2;
+      window.remoteUser2 = null;
       try {
         remoteUser2 = await user1.connectUser({ userId: user2.userId });
 
@@ -57,6 +60,73 @@
 
       // 通过用户1生成的远端用户2实例发送数据到用户2上
       remoteUser2.post(data1);
+
+      setTimeout(() => {
+        // 尝试关闭 rtc 连接，模拟rtc断网过程
+        remoteUser2._rtcConnections[0].close();
+
+        setTimeout(() => {
+          console.log(
+            "1 _rtcConnections.length: ",
+            remoteUser2._rtcConnections.length
+          ); // => 0
+
+          let count = 0;
+          const cancel2 = user2.bind("receive-data", (e) => {
+            const { fromUserId, fromUserSessionId, data, server, channel } =
+              e.detail;
+
+            if (count === 0) {
+              console.log("rtc已经关闭，是server转发的data:", !!server); // true
+              console.log(!!channel); // false
+
+              console.log(
+                "user2收到数据:",
+                data,
+                fromUserId,
+                fromUserSessionId,
+                server
+              );
+            } else if (count === 1) {
+              // 第二次发送时应该已经rtc重连完成
+              console.log("rtc已经重新连接，server转发的data:", !!server); // false
+              console.log(!!channel); // true
+
+              console.log(
+                "user2收到数据:",
+                data,
+                fromUserId,
+                fromUserSessionId,
+                channel
+              );
+              console.log(
+                "2 _rtcConnections.length: ",
+                remoteUser2._rtcConnections.length
+              ); // => 1
+            }
+
+            count++;
+          });
+
+          const data2 = {
+            val: "hello user2 again",
+            time: Date.now(),
+          };
+
+          const data3 = {
+            val: "hello user2 again2",
+            time: Date.now(),
+          };
+
+          // 尝试重新发送数据，因为 rtc 关闭了，所以会使用server转发
+          remoteUser2.post(data2);
+
+          setTimeout(() => {
+            // 第三次发送时应该已经rtc重连完成
+            remoteUser2.post(data3);
+          }, 1000);
+        }, 200);
+      }, 200);
     </script>
   </body>
 </html>
