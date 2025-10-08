@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test";
 
-test("connect-server Test", async ({ page }) => {
-  await page.goto("tests/new-user/connect-server.ok.html");
+test("rtc-post-data Test", async ({ page }) => {
+  await page.goto("tests/new-user/rtc-post-data.ok.html");
 
   // 每个案例记得更新这个值
-  const count = 6;
+  const count = 2;
 
   // 等待出现 All tests completed 元素
   await page.getByTestId("test-completion-notification").click();

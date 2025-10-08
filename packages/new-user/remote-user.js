@@ -115,14 +115,14 @@ export class RemoteUser extends BaseUser {
 
     const msgId = Math.random().toString(32).slice(2);
 
-    const data = {
+    const options = {
       userId: this.userId,
       msgId,
     };
 
     if (this.#mode === 1) {
       // 服务端转发模式，直接通过第一个发送
-      this.#servers[0].sendTo(data, msg);
+      this.#servers[0].sendTo(options, msg);
     } else if (this.#mode === 2) {
       // 查找所有RTC连接中处于open状态的channel
       const channel = this._rtcConnections
@@ -131,7 +131,7 @@ export class RemoteUser extends BaseUser {
 
       if (!channel) {
         // 未找到可用的channel，降级改用服务端发送
-        this.#servers[0].sendTo(data, msg);
+        this.#servers[0].sendTo(options, msg);
         const err = new Error("未找到可用的RTC channel");
         console.error(err);
         return;

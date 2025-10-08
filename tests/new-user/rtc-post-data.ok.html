@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RTC Post Data Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      await test("RTC Connection and Post Data Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-rtc-user1" });
+        const user2 = await createUser({ user: "test-rtc-user2" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 保证user2连上服务器
+        await user2.connectServer(serverUrl);
+
+        // user2监听获取数据的事件
+        let receivedData = null;
+        let receivedFromUserId = null;
+        let receivedFromUserSessionId = null;
+        let receivedChannel = null;
+        let receivedServerUndefined = false;
+
+        const receiveDataPromise = new Promise((resolve) => {
+          user2.addEventListener("receive-data", (e) => {
+            const { fromUserId, fromUserSessionId, data, server, channel } =
+              e.detail;
+
+            // 通过 RTC 转发，server 字段应不存在
+            receivedServerUndefined = server === undefined;
+
+            receivedData = data;
+            receivedFromUserId = fromUserId;
+            receivedFromUserSessionId = fromUserSessionId;
+            receivedChannel = channel;
+
+            resolve({ fromUserId, fromUserSessionId, data, server, channel });
+          });
+        });
+
+        // 保证user1也连上服务器
+        await user1.connectServer(serverUrl);
+
+        // 直接连接 user2
+        let remoteUser2;
+        try {
+          remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+          // 初始化RTC连接，完成后就会使用点对点进行数据通信
+          await remoteUser2.initRTC();
+        } catch (error) {
+          console.log("连接用户或rtc初始化失败:", error);
+          throw error;
+        }
+
+        // 发送数据给对方
+        const testData = {
+          val: "hello user2 via RTC",
+          timestamp: Date.now(),
+        };
+
+        // 通过用户1生成的远端用户2实例发送数据到用户2上
+        remoteUser2.post(testData);
+
+        // 等待接收数据
+        await receiveDataPromise;
+
+        // 验证接收到的数据
+        const isCorrectSender = receivedFromUserId === user1.userId;
+        const isCorrectSession = receivedFromUserSessionId === user1.sessionId;
+        const isCorrectData =
+          JSON.stringify(receivedData) === JSON.stringify(testData);
+        const isServerUndefined = receivedServerUndefined;
+
+        return {
+          assert: isCorrectSender && isCorrectSession && isCorrectData && isServerUndefined,
+          content: {
+            message: "RTC连接后post数据测试成功",
+            sentData: testData,
+            receivedData: receivedData,
+            fromUserId: receivedFromUserId,
+            fromUserSessionId: receivedFromUserSessionId,
+            isCorrectSender,
+            isCorrectSession,
+            isCorrectData,
+            isServerUndefined,
+          },
+        };
+      });
+
+      await test("RTC Connection Fallback to Server Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-rtc-fallback-user1" });
+        const user2 = await createUser({ user: "test-rtc-fallback-user2" });
+
+        const serverUrl = "ws://localhost:18290";
+
+        // 保证user2连上服务器
+        await user2.connectServer(serverUrl);
+
+        // user2监听获取数据的事件
+        let receivedData = null;
+        let receivedFromUserId = null;
+        let receivedServerExists = false;
+
+        const receiveDataPromise = new Promise((resolve) => {
+          user2.addEventListener("receive-data", (e) => {
+            const { fromUserId, data, server } = e.detail;
+
+            // 通过服务器转发，server 字段应存在
+            receivedServerExists = server !== undefined;
+
+            receivedData = data;
+            receivedFromUserId = fromUserId;
+
+            resolve({ fromUserId, data, server });
+          });
+        });
+
+        // 保证user1也连上服务器
+        await user1.connectServer(serverUrl);
+
+        // 直接连接 user2
+        let remoteUser2;
+        try {
+          remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+          // 不初始化RTC连接，直接发送数据，应该会降级到服务器转发
+        } catch (error) {
+          console.log("连接用户失败:", error);
+          throw error;
+        }
+
+        // 发送数据给对方
+        const testData = {
+          val: "hello user2 via server fallback",
+          timestamp: Date.now(),
+        };
+
+        // 通过用户1生成的远端用户2实例发送数据到用户2上
+        remoteUser2.post(testData);
+
+        // 等待接收数据
+        await receiveDataPromise;
+
+        // 验证接收到的数据
+        const isCorrectSender = receivedFromUserId === user1.userId;
+        const isCorrectData =
+          JSON.stringify(receivedData) === JSON.stringify(testData);
+        const isServerExists = receivedServerExists;
+
+        return {
+          assert: isCorrectSender && isCorrectData && isServerExists,
+          content: {
+            message: "RTC连接失败降级到服务器转发测试成功",
+            sentData: testData,
+            receivedData: receivedData,
+            fromUserId: receivedFromUserId,
+            isCorrectSender,
+            isCorrectData,
+            isServerExists,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>
