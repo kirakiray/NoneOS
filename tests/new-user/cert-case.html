@@ -24,16 +24,16 @@
       console.log("user2", user2);
 
       // 初始化角色管理器
-      const roleManager1 = await user1.roleManager();
+      const certManager1 = await user1.certManager();
 
       // 授权给用户2管理员权限
-      const cert = await roleManager1.issue({
+      const cert = await certManager1.issue({
         userId: user2.userId,
         role: "admin",
       });
 
       console.log("cert", cert);
-      console.log("roleManager1", roleManager1);
+      console.log("certManager1", certManager1);
     </script>
   </body>
 </html>

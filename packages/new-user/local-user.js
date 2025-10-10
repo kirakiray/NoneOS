@@ -5,7 +5,7 @@ import { HandServerClient } from "./hand/client.js";
 import { getHash } from "../fs/util.js";
 import { RemoteUser } from "./remote-user.js";
 import internal from "./internal/index.js";
-import RoleManager from "./role-manager.js";
+import CertManager from "./cert-manager.js";
 
 const infos = {};
 const servers = {};
@@ -253,7 +253,7 @@ export class LocalUser extends BaseUser {
     }
   }
 
-  async roleManager() {
-    return new RoleManager(this);
+  async certManager() {
+    return new CertManager(this);
   }
 }

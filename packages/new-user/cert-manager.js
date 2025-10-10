@@ -1,4 +1,4 @@
-export default class RoleManager {
+export default class CertManager {
   #user;
   constructor(user) {
     this.#user = user;
