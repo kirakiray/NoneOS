@@ -99,14 +99,40 @@ export class RemoteUser extends BaseUser {
       const timeout = setTimeout(() => {
         reject(new Error("RTC连接超时"));
         this._rtc_pairing = null;
+        cancel1();
+        cancel2();
       }, 5000);
 
-      this.addEventListener("mode-change", (event) => {
-        if (event.detail === 2) {
+      const cancel1 = this.bind("mode-change", (event) => {
+        if (this.mode === 2) {
           clearTimeout(timeout);
           this._rtc_pairing = null;
           resolve(event.detail);
+          cancel1();
+          cancel2();
         }
+      });
+
+      const cancel2 = this.bind("init-rtc-error", (event) => {
+        const detail = event.detail;
+
+        // 查找目标 connections
+        const conn = this._rtcConnections.find(
+          (conn) => conn._rtcId === detail.toRTCId
+        );
+
+        if (!conn) {
+          // 未找到目标连接
+          return;
+        }
+
+        // 关闭配对
+        conn.close();
+
+        reject(detail.message);
+        this._rtc_pairing = null;
+        cancel1();
+        cancel2();
       });
     }));
   }

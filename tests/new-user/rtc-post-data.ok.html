@@ -184,7 +184,7 @@
         const user1 = await createUser({ user: "test-rtc-reconnect-user1" });
         const user2 = await createUser({ user: "test-rtc-reconnect-user2" });
 
-        user1._ignoreCert = true;
+        user1._ignoreCert = true; // _ignoreCert 用于忽略 rtc 的配对的设备判断行为，仅用于测试环境
         user2._ignoreCert = true;
 
         const serverUrl = "ws://localhost:18290";

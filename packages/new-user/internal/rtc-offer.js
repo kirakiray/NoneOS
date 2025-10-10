@@ -18,14 +18,27 @@ export default async function rtcOfferHandler({
     return;
   }
 
-  // _ignoreCert 为 true 时，不检查公钥；用于测试环境的参数.
-  if (!localUser._ignoreCert) {
-    if (!(await localUser.isMyDevice(fromUserId))) {
-      // 通知对方连接失败
-      debugger;
-      console.error("不是自己的设备，不能创建连接");
-      return;
-    }
+  // 当 _ignoreCert 为 true 时，跳过公钥验证，此参数主要用于测试环境。
+  if (!localUser._ignoreCert && !(await localUser.isMyDevice(fromUserId))) {
+    // 记录非自身设备尝试创建连接的错误信息
+    console.error(
+      `检测到非本地设备尝试建立连接，连接请求已拒绝。请求设备用户 ID: ${fromUserId}`
+    );
+
+    server.sendTo(
+      {
+        userId: fromUserId,
+        userSessionId: fromUserSessionId,
+      },
+      {
+        type: "rtc-offer-error",
+        message: "非本地设备尝试建立连接，连接请求已拒绝",
+        toRTCId: fromRTCId,
+        __internal_mark: 1,
+      }
+    );
+
+    return;
   }
 
   // 获取目标的远端用户
