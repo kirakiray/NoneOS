@@ -72,10 +72,6 @@ export class LocalUser extends BaseUser {
     });
   }
 
-  get dirName() {
-    return this.#dirHandle.name;
-  }
-
   // 获取会话ID
   get sessionId() {
     return this.#sessionId;
@@ -254,6 +250,6 @@ export class LocalUser extends BaseUser {
   }
 
   async certManager() {
-    return new CertManager(this);
+    return new CertManager(this.#dirHandle.name);
   }
 }
