@@ -1,16 +1,20 @@
-import { paste } from "../../packages/crypto/crypto-verify.js";
+// import { paste } from "../../packages/crypto/crypto-verify.js";
+import { verify } from "../../packages/new-user/util/verify.js";
 import { getHash } from "../../packages/fs/util.js";
 import { toBuffer } from "../../packages/new-user/buffer-data.js";
 
 export const options = {
   // 认证用户信息
-  async authentication({ client, clients, users, message }) {
+  async authentication({ client, clients, users, data }) {
     try {
-      // 验证签名并获取数据
-      const data = await paste(message.signedData);
-
       if (data.cid !== client.cid) {
         throw new Error("cid 不匹配");
+      }
+
+      // 验证签名并获取数据
+      const result = await verify(data);
+      if (!result) {
+        throw new Error("签名被篡改");
       }
 
       // 匹配成功后，填入信息

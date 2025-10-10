@@ -32,37 +32,3 @@ export const verifyData = async ({ data, signature }) => {
     return false;
   }
 };
-
-export const verify = async ({ msg, signature }) => {
-  const data = JSON.parse(msg);
-
-  const { publicKey } = data;
-
-  // 生成验证器
-  const verify = await createVerifier(publicKey);
-
-  try {
-    // 将 base64 转换回原始格式并验证签名
-    const signatureBuffer = new Uint8Array(
-      [...atob(signature)].map((c) => c.charCodeAt(0))
-    ).buffer;
-
-    const result = await verify(msg, signatureBuffer);
-
-    return result;
-  } catch (err) {
-    // 抛出错误信息
-    console.error(err);
-    return false;
-  }
-};
-
-export const paste = async ({ msg, signature }) => {
-  const result = await verify({ msg, signature });
-
-  if (!result) {
-    throw new Error("Signature verification failed");
-  }
-
-  return JSON.parse(msg);
-};

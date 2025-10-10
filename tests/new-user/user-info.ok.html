@@ -96,7 +96,6 @@
           },
         };
       });
-
       await test("Multiple Users Independent Cards Test", async () => {
         // 创建两个不同的用户
         const user1 = await createUser({ user: "test-user4" });
@@ -107,20 +106,28 @@
         const info2 = await user2.info();
 
         // 创建用户卡片
-        const card1 = await user1.createCard();
-        const card2 = await user2.createCard();
+        const cardData1 = await user1.createCard();
+        const cardData2 = await user2.createCard();
 
         // 解析卡片数据
-        const cardData1 = await paste(card1);
-        const cardData2 = await paste(card2);
+        const cardData1Valid = await verify(cardData1);
+        const cardData2Valid = await verify(cardData2);
+
+        // 验证卡片数据是否有效
+        const validCards = cardData1Valid && cardData2Valid;
 
         // 验证两个用户的卡片数据是否独立
         const differentNames = info1.name !== info2.name;
         const differentUserIds = user1.userId !== user2.userId;
         const differentCardUserIds = cardData1.userId !== cardData2.userId;
 
+        // 原 assert 缺少卡片有效性验证，添加 validCards 条件
         return {
-          assert: differentNames && differentUserIds && differentCardUserIds,
+          assert:
+            validCards &&
+            differentNames &&
+            differentUserIds &&
+            differentCardUserIds,
           content: {
             message: "多用户独立卡片测试成功",
             user1Name: info1.name,
@@ -132,6 +139,7 @@
             differentNames,
             differentUserIds,
             differentCardUserIds,
+            validCards,
           },
         };
       });
