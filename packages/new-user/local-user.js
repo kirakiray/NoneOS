@@ -5,6 +5,7 @@ import { HandServerClient } from "./hand/client.js";
 import { getHash } from "../fs/util.js";
 import { RemoteUser } from "./remote-user.js";
 import internal from "./internal/index.js";
+import RoleManager from "./role-manager.js";
 
 const infos = {};
 const servers = {};
@@ -248,17 +249,7 @@ export class LocalUser extends BaseUser {
     }
   }
 
-  // 获取用户已有的设备数据
-  async myDevices() {
-    const devicesHandle = await this.#dirHandle.get("devices.json", {
-      create: "file",
-    });
-
-    const devicesData = await createSingleData({
-      handle: devicesHandle,
-      disconnect: false,
-    });
-
-    return devicesData;
+  async roleManager() {
+    return new RoleManager(this);
   }
 }

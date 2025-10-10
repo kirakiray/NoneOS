@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add Device</title>
+    <title>Role Case</title>
     <style>
       body {
         margin: 0;
@@ -23,7 +23,10 @@
       console.log("user1", user1);
       console.log("user2", user2);
 
-      debugger;
+      // 初始化角色管理器
+      const roleManager1 = await user1.roleManager();
+
+      console.log("roleManager1", roleManager1);
     </script>
   </body>
 </html>
