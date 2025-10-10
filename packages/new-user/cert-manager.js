@@ -160,6 +160,7 @@ export default class CertManager {
       "signTime",
       "signature",
     ];
+
     if (!keys.every((key) => key in data)) {
       throw new Error(
         `数据不完整，缺少必要字段: ${keys
@@ -191,7 +192,7 @@ export default class CertManager {
   }
 
   // 删除数据库中存在的该证书
-  async delete({ id }) {
+  async delete(id) {
     return new Promise((resolve, reject) => {
       const transaction = this.#db.transaction(["certificates"], "readwrite");
       const objectStore = transaction.objectStore("certificates");
