@@ -185,18 +185,16 @@
           role: "user",
         });
 
-        // 保存一个新的证书
-        const newCertData = {
+        // 使用用户1的签名功能创建一个新的证书数据
+        const signedCertData = await user1.sign({
           role: "moderator",
           issuedBy: user1.userId,
           issuedTo: user2.userId,
           publicKey: user1.publicKey,
-          signTime: Date.now(),
-          signature: "test-signature",
-        };
+        });
 
         // 保存证书
-        const savedCert = await certManager1.save(newCertData);
+        const savedCert = await certManager1.save(signedCertData);
 
         // 查询保存的证书
         const savedCerts = await certManager1.query({

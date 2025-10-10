@@ -170,18 +170,18 @@ export default class CertManager {
           .join(", ")}`
       );
     }
+    
+    const result = await verify(data);
+
+    if (!result) {
+      throw new Error("证书验证失败");
+    }
 
     // 添加时间戳作为ID以确保唯一性
     const certData = {
       id: `${data.role}-${data.issuedBy}-${data.issuedTo}}`,
       ...data,
     };
-
-    const result = await verify(certData);
-
-    if (!result) {
-      throw new Error("证书验证失败");
-    }
 
     return new Promise((resolve, reject) => {
       const transaction = this.#db.transaction(["certificates"], "readwrite");
