@@ -5,7 +5,9 @@ export default class RoleManager {
   }
 
   // 使用自己的用户签名给目标用户签发证书
-  async issue({ userId, role, ...data }) {}
+  async issue({ userId, role, ...data }) {
+    
+  }
 
   // 查询数据库中是否存在该证书
   async has({ role, issuedBy, issuedTo }) {

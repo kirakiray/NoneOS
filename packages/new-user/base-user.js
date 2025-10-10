@@ -93,17 +93,17 @@ export class BaseUser extends EventTarget {
       throw new Error("用户没有私钥，无法签名");
     }
 
-    const msg = JSON.stringify({
+    const recordData = {
       ...data,
       signTime: Date.now(),
       publicKey: this.#publicKey,
-    });
+    };
 
     // 签名数据
-    const signature = await this.#signer(msg);
+    const signature = await this.#signer(JSON.stringify(recordData));
 
     return {
-      msg,
+      ...recordData,
       signature: btoa(String.fromCharCode(...new Uint8Array(signature))),
     };
   }
@@ -111,7 +111,11 @@ export class BaseUser extends EventTarget {
   // 验证数据是否正确
   // 使用自身的公钥验证，会比verifyData更快
   async verify(data) {
-    const { msg, signature } = data;
+    const redata = { ...data };
+    delete redata.signature;
+
+    const { signature } = data;
+    const msg = JSON.stringify(redata);
 
     // 验证数据是否存在
     if (!msg || !signature) {
