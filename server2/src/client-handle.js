@@ -5,8 +5,10 @@ import { toBuffer } from "../../packages/new-user/buffer-data.js";
 
 export const options = {
   // 认证用户信息
-  async authentication({ client, clients, users, data }) {
+  async authentication({ client, clients, users, message }) {
     try {
+      const data = message.signedData;
+
       if (data.cid !== client.cid) {
         throw new Error("cid 不匹配");
       }
