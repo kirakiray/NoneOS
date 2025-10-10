@@ -177,8 +177,16 @@ export class RemoteUser extends BaseUser {
         return;
       }
 
-      // 通过channel发送消息
-      channel.send(JSON.stringify(msg));
+      // 根据消息类型选择发送方式，二进制类型直接发送，对象则转换为字符串发送
+      if (
+        msg instanceof Blob ||
+        msg instanceof ArrayBuffer ||
+        ArrayBuffer.isView(msg)
+      ) {
+        channel.send(msg);
+      } else {
+        channel.send(JSON.stringify(msg));
+      }
     }
   }
 }

@@ -203,7 +203,9 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
   channel.onmessage = (event) => {
     let message = event.data;
     try {
-      message = JSON.parse(message);
+      if (typeof message === "string") {
+        message = JSON.parse(message);
+      }
     } catch (e) {
       console.error("解析消息失败:", e);
       debugger;

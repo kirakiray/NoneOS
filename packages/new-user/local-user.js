@@ -33,7 +33,7 @@ export class LocalUser extends BaseUser {
 
       if (data.__internal_mark) {
         // 内部操作
-        internal[data.type] &&
+        if (internal[data.type]) {
           internal[data.type]({
             fromUserId,
             fromUserSessionId,
@@ -41,6 +41,9 @@ export class LocalUser extends BaseUser {
             server,
             localUser: this,
           });
+        } else {
+          console.warn(`未实现的内部操作类型: ${data.type}`, data);
+        }
         return;
       }
 
