@@ -92,7 +92,6 @@
           },
         };
       });
-
       await test("Tampered Data Verification with Public Key User Test", async () => {
         // 创建一个完整用户（拥有私钥）
         const user1 = await createUser({
@@ -118,10 +117,7 @@
             name: "修改数据内容",
             data: {
               ...signedData,
-              msg: signedData.msg.replace(
-                /"Original message"/,
-                '"Tampered message"'
-              ),
+              message: "Tampered message",
             },
           },
           {
@@ -135,10 +131,11 @@
 
         // 验证所有篡改情况
         const results = await Promise.all(
-          tamperedTests.map(async (test) => {
-            const verifyResult = await user2.verify(test.data);
+          tamperedTests.map(async (testCase) => {
+            // 避免与外部 test 函数名冲突，将参数改为 testCase
+            const verifyResult = await user2.verify(testCase.data);
             return {
-              name: test.name,
+              name: testCase.name,
               verified: verifyResult,
             };
           })
