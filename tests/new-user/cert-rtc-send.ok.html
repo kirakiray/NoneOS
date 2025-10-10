@@ -151,8 +151,10 @@
           let remoteUser2;
           try {
             remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+            await remoteUser2.initRTC(); // 即便尝试初始化RTC连接，但由于对方未添加设备，RTC连接将失败，数据会通过服务端进行转发
           } catch (error) {
-            throw new Error("连接用户失败: " + error.message);
+            console.error("连接用户或rtc初始化失败:", error.message);
           }
 
           // 通过用户1发送二进制数据给用户2（应该通过服务器转发）

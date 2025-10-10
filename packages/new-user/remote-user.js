@@ -129,7 +129,7 @@ export class RemoteUser extends BaseUser {
         // 关闭配对
         conn.close();
 
-        reject(detail.message);
+        reject(new Error(detail.message));
         this._rtc_pairing = null;
         cancel1();
         cancel2();
