@@ -110,12 +110,10 @@ export class BaseUser extends EventTarget {
 
   // 验证数据是否正确
   // 使用自身的公钥验证，会比verifyData更快
-  async verify(data) {
-    const redata = { ...data };
-    delete redata.signature;
+  async verify(signedData) {
+    const { signature, ...data } = signedData;
 
-    const { signature } = data;
-    const msg = JSON.stringify(redata);
+    const msg = JSON.stringify(data);
 
     // 验证数据是否存在
     if (!msg || !signature) {

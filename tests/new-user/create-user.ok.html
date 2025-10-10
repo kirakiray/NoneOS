@@ -81,17 +81,15 @@
         const isUser2Valid = await user2.verify(user2SignedData);
 
         // 验证公钥是否不同
-        const user1ParsedData = JSON.parse(user1SignedData.msg);
-        const user2ParsedData = JSON.parse(user2SignedData.msg);
         const differentKeys =
-          user1ParsedData.publicKey !== user2ParsedData.publicKey;
+          user1SignedData.publicKey !== user2SignedData.publicKey;
 
         return {
           assert: isUser1Valid && isUser2Valid && differentKeys,
           content: {
             message: "多用户独立密钥测试成功",
-            user1PublicKey: user1ParsedData.publicKey,
-            user2PublicKey: user2ParsedData.publicKey,
+            user1PublicKey: user1SignedData.publicKey,
+            user2PublicKey: user2SignedData.publicKey,
             bothSignaturesValid: isUser1Valid && isUser2Valid,
             differentPublicKeys: differentKeys,
           },
