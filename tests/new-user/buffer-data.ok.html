@@ -9,7 +9,7 @@
   <body>
     <script type="module">
       import { test } from "/ok-test/main.js";
-      import { toBuffer, toData } from "/packages/new-user/buffer-data.js";
+      import { toBuffer, toData } from "/packages/new-user/util/buffer-data.js";
 
       await test("Buffer Data Conversion Test", async () => {
         // 生成随机原始数据
@@ -164,13 +164,22 @@
           corruptedBufferError = error.message;
         }
 
-        const hasToBufferTypeError = toBufferError === "originBuffer must be a Uint8Array";
-        const hasLargeInfoError = largeInfoError === "Info data is too large, must be less than 255 bytes";
-        const hasToDataTypeError = toDataError === "buffer must be a Uint8Array";
-        const hasCorruptedBufferError = corruptedBufferError === "buffer is corrupted or format is incorrect";
+        const hasToBufferTypeError =
+          toBufferError === "originBuffer must be a Uint8Array";
+        const hasLargeInfoError =
+          largeInfoError ===
+          "Info data is too large, must be less than 255 bytes";
+        const hasToDataTypeError =
+          toDataError === "buffer must be a Uint8Array";
+        const hasCorruptedBufferError =
+          corruptedBufferError === "buffer is corrupted or format is incorrect";
 
         return {
-          assert: hasToBufferTypeError && hasLargeInfoError && hasToDataTypeError && hasCorruptedBufferError,
+          assert:
+            hasToBufferTypeError &&
+            hasLargeInfoError &&
+            hasToDataTypeError &&
+            hasCorruptedBufferError,
           content: {
             message: "Buffer数据错误处理测试成功",
             hasToBufferTypeError,

@@ -1,4 +1,4 @@
-import { toBuffer, toData } from "../buffer-data.js";
+import { toBuffer, toData } from "../util/buffer-data.js";
 
 export class HandServerClient extends EventTarget {
   #url;

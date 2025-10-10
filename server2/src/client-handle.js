@@ -1,7 +1,6 @@
-// import { paste } from "../../packages/crypto/crypto-verify.js";
 import { verify } from "../../packages/new-user/util/verify.js";
 import { getHash } from "../../packages/fs/util.js";
-import { toBuffer } from "../../packages/new-user/buffer-data.js";
+import { toBuffer } from "../../packages/new-user/util/buffer-data.js";
 
 export const options = {
   // 认证用户信息
