@@ -23,6 +23,10 @@
       console.log("user1", user1);
       console.log("user2", user2);
 
+      // 保证user2连上服务器
+      const servers = await user2.servers();
+      await user2.connectServer(servers[0].url);
+
       debugger;
     </script>
   </body>

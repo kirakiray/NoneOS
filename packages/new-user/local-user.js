@@ -16,6 +16,9 @@ export class LocalUser extends BaseUser {
   #sessionId;
   #serverConnects = {};
   #remotes = {};
+  #certManager = null;
+  #myDeviceCache = {};
+
   constructor(handle) {
     super(handle);
     this.#dirHandle = handle;
@@ -250,8 +253,38 @@ export class LocalUser extends BaseUser {
   }
 
   async certManager() {
-    const certManager = new CertManager(this.#dirHandle.name, this);
-    await certManager.initDB();
-    return certManager;
+    if (this.#certManager) {
+      return this.#certManager;
+    }
+
+    return (async () => {
+      const certManager = new CertManager(this.#dirHandle.name, this);
+      await certManager.initDB();
+      return certManager;
+    })();
+  }
+
+  // 判断对方id是否是我的设备
+  async isMyDevice(deviceId) {
+    // 先从缓存中查找
+    if (this.#myDeviceCache[deviceId] !== undefined) {
+      return this.#myDeviceCache[deviceId];
+    }
+
+    const certManager = await this.certManager();
+    const certs = await certManager.get({
+      role: "device",
+      issuedTo: deviceId,
+    });
+
+    // 缓存结果
+    this.#myDeviceCache[deviceId] = !!certs.length;
+
+    setTimeout(() => {
+      // 缓存5秒
+      delete this.#myDeviceCache[deviceId];
+    }, 1000 * 5);
+
+    return !!certs.length;
   }
 }

@@ -18,7 +18,15 @@ export default async function rtcOfferHandler({
     return;
   }
 
-  // TODO: 检查是否自己的设备，不是的话不能创建连接
+  // _ignoreCert 为 true 时，不检查公钥；用于测试环境的参数.
+  if (!localUser._ignoreCert) {
+    if (!(await localUser.isMyDevice(fromUserId))) {
+      // 通知对方连接失败
+      debugger;
+      console.error("不是自己的设备，不能创建连接");
+      return;
+    }
+  }
 
   // 获取目标的远端用户
   const remoteUser = await localUser.connectUser({

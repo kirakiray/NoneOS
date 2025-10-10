@@ -16,6 +16,9 @@
         const user1 = await createUser({ user: "test-rtc-user1" });
         const user2 = await createUser({ user: "test-rtc-user2" });
 
+        user1._ignoreCert = true;
+        user2._ignoreCert = true;
+
         const serverUrl = "ws://localhost:18290";
 
         // 保证user2连上服务器
@@ -104,6 +107,9 @@
         const user1 = await createUser({ user: "test-rtc-fallback-user1" });
         const user2 = await createUser({ user: "test-rtc-fallback-user2" });
 
+        user1._ignoreCert = true;
+        user2._ignoreCert = true;
+
         const serverUrl = "ws://localhost:18290";
 
         // 保证user2连上服务器
@@ -177,6 +183,9 @@
         // 创建两个用户
         const user1 = await createUser({ user: "test-rtc-reconnect-user1" });
         const user2 = await createUser({ user: "test-rtc-reconnect-user2" });
+
+        user1._ignoreCert = true;
+        user2._ignoreCert = true;
 
         const serverUrl = "ws://localhost:18290";
 
