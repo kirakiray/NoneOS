@@ -22,21 +22,48 @@ export default class CertManager {
     return signedData;
   }
 
+  // 查询数据库中所有符合条件的证书数据
+  async query({ role, issuedBy, issuedTo }) {}
+
+  // 获取我的对应条件的证书
+  async get({ role, issuedTo }) {
+    // 查询数据库中是否存在该证书
+    const certs = await this.query({
+      role,
+      issuedBy: this.#user.userId,
+      issuedTo,
+    });
+
+    return certs;
+  }
+
   // 查询数据库中是否存在该证书
-  async has({ role, issuedBy, issuedTo }) {
-    // 如果没有issuedBy，默认为自己的userId
-    if (!issuedBy) {
-      issuedBy = this.#user.userId;
-    }
+  async has({ role, issuedTo }) {
+    const certs = await this.get({ role, issuedTo });
+
+    return certs.length > 0;
   }
 
   // 保存证书到数据库
   async save(data) {
     // 如果不含有下面字段，则是非法的数据
-    const keys = ["role", "issuedBy", "issuedTo", "publicKey", "signTime"];
+    const keys = [
+      "role",
+      "issuedBy",
+      "issuedTo",
+      "publicKey",
+      "signTime",
+      "signature",
+    ];
     if (!keys.every((key) => key in data)) {
-      throw new Error("数据不完整，缺少必要字段");
+      throw new Error(
+        `数据不完整，缺少必要字段: ${keys
+          .filter((key) => !(key in data))
+          .join(", ")}`
+      );
     }
+
+    debugger;
   }
 
   // 删除数据库中存在的该证书
