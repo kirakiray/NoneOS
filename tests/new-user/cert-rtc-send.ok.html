@@ -114,6 +114,84 @@
           throw error;
         }
       });
+
+      await test("Server Forwarding Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user3" });
+        const user2 = await createUser({ user: "test-user4" });
+
+        try {
+          // 保证user2连上服务器
+          const servers = await user2.servers();
+          await user2.connectServer(servers[0].url);
+
+          // 用于接收数据的Promise
+          const receiveDataPromise = new Promise((resolve) => {
+            // user2监听获取数据的事件
+            const cancel1 = user2.bind("receive-data", (e) => {
+              const { fromUserId, fromUserSessionId, data, server, channel } =
+                e.detail;
+
+              // 通过服务器转发，server 字段应该存在
+              const isServerDefined = !!server;
+
+              cancel1();
+              resolve({
+                data,
+                fromUserId,
+                fromUserSessionId,
+                channel,
+                isServerDefined,
+                server,
+              });
+            });
+          });
+
+          // 直接连接 user2
+          let remoteUser2;
+          try {
+            remoteUser2 = await user1.connectUser({ userId: user2.userId });
+          } catch (error) {
+            throw new Error("连接用户失败: " + error.message);
+          }
+
+          // 通过用户1发送二进制数据给用户2（应该通过服务器转发）
+          const binaryData = new Uint8Array([0x57, 0x6f, 0x72, 0x6c, 0x64]); // "World" in ASCII
+          remoteUser2.post(binaryData);
+
+          // 等待接收数据，设置超时
+          const receivedData = await Promise.race([
+            receiveDataPromise,
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("接收数据超时")), 5000)
+            ),
+          ]);
+
+          // 验证接收到的数据
+          const isArrayEqual = Array.from(
+            new Uint8Array(receivedData.data)
+          ).every((value, index) => value === binaryData[index]);
+
+          const isFromCorrectUser = receivedData.fromUserId === user1.userId;
+          const isServerDefined = receivedData.isServerDefined;
+
+          return {
+            assert: isArrayEqual && isFromCorrectUser && isServerDefined,
+            content: {
+              message: "服务器转发测试成功",
+              sentData: Array.from(binaryData),
+              receivedData: Array.from(receivedData.data),
+              fromUserId: receivedData.fromUserId,
+              isFromCorrectUser,
+              isServerDefined,
+              serverUrl: receivedData.server?.url,
+              isArrayEqual,
+            },
+          };
+        } catch (error) {
+          throw error;
+        }
+      });
     </script>
   </body>
 </html>
