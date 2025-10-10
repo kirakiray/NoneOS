@@ -1,6 +1,9 @@
 export default class CertManager {
   #user;
-  constructor(name) {}
+  constructor(name, user) {
+    this.#user = user;
+    // const myUserId = this.#user.userId;
+  }
 
   // 使用自己的用户签名给目标用户签发证书
   async issue({ userId, role, ...data }) {
