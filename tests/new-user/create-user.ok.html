@@ -95,7 +95,6 @@
           },
         };
       });
-
       await test("Tampered Data Verification Test", async () => {
         // 创建新用户
         const user = await createUser({ user: "test-user5" });
@@ -114,10 +113,8 @@
             name: "修改数据内容",
             data: {
               ...signedData,
-              msg: signedData.msg.replace(
-                /"Original message"/,
-                '"Tampered message"'
-              ),
+              // 假设原始数据的 message 字段在签名后存储在 signedData 里也是 `message` 字段
+              message: "Tampered message",
             },
           },
           {
@@ -131,10 +128,10 @@
 
         // 验证所有篡改情况
         const results = await Promise.all(
-          tamperedTests.map(async (test) => {
-            const verifyResult = await user.verify(test.data);
+          tamperedTests.map(async (testCase) => { // 将变量名 test 改为 testCase，避免与外部 test 函数冲突
+            const verifyResult = await user.verify(testCase.data);
             return {
-              name: test.name,
+              name: testCase.name,
               verified: verifyResult,
             };
           })
