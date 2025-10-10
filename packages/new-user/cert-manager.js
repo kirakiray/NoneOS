@@ -1,8 +1,61 @@
 export default class CertManager {
   #user;
+  #dbName;
+  #db;
+
   constructor(name, user) {
     this.#user = user;
-    // const myUserId = this.#user.userId;
+    this.#dbName = "noneos-certs-" + name;
+  }
+
+  // 初始化数据库
+  async initDB() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open(this.#dbName, 1);
+
+      request.onerror = (event) => {
+        reject(new Error(`Database error: ${event.target.error}`));
+      };
+
+      request.onsuccess = (event) => {
+        this.#db = event.target.result;
+        resolve();
+      };
+
+      request.onupgradeneeded = (event) => {
+        this.#db = event.target.result;
+
+        // 创建对象存储空间 (table)
+        if (!this.#db.objectStoreNames.contains("certificates")) {
+          const objectStore = this.#db.createObjectStore("certificates", {
+            keyPath: "id",
+          });
+
+          // 创建复合索引
+          objectStore.createIndex(
+            "role_issuedBy_issuedTo",
+            ["role", "issuedBy", "issuedTo"],
+            { unique: false }
+          );
+          objectStore.createIndex(
+            "issuedBy_issuedTo",
+            ["issuedBy", "issuedTo"],
+            { unique: false }
+          );
+          objectStore.createIndex("role_issuedBy", ["role", "issuedBy"], {
+            unique: false,
+          });
+          objectStore.createIndex("role_issuedTo", ["role", "issuedTo"], {
+            unique: false,
+          });
+
+          // 创建其他可能有用的索引
+          objectStore.createIndex("role", "role", { unique: false });
+          objectStore.createIndex("issuedBy", "issuedBy", { unique: false });
+          objectStore.createIndex("issuedTo", "issuedTo", { unique: false });
+        }
+      };
+    });
   }
 
   // 使用自己的用户签名给目标用户签发证书
@@ -22,7 +75,60 @@ export default class CertManager {
   }
 
   // 查询数据库中所有符合条件的证书数据
-  async query({ role, issuedBy, issuedTo }) {}
+  async query({ role, issuedBy, issuedTo }) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.#db.transaction(["certificates"], "readonly");
+      const objectStore = transaction.objectStore("certificates");
+
+      // 根据提供的条件选择合适的索引和查询方式
+      let request;
+
+      if (
+        role !== undefined &&
+        issuedBy !== undefined &&
+        issuedTo !== undefined
+      ) {
+        // 三个条件都存在，使用复合索引
+        const index = objectStore.index("role_issuedBy_issuedTo");
+        request = index.getAll(IDBKeyRange.only([role, issuedBy, issuedTo]));
+      } else if (role !== undefined && issuedBy !== undefined) {
+        // 只有 role 和 issuedBy 存在
+        const index = objectStore.index("role_issuedBy");
+        request = index.getAll(IDBKeyRange.only([role, issuedBy]));
+      } else if (role !== undefined && issuedTo !== undefined) {
+        // 只有 role 和 issuedTo 存在
+        const index = objectStore.index("role_issuedTo");
+        request = index.getAll(IDBKeyRange.only([role, issuedTo]));
+      } else if (issuedBy !== undefined && issuedTo !== undefined) {
+        // 只有 issuedBy 和 issuedTo 存在
+        const index = objectStore.index("issuedBy_issuedTo");
+        request = index.getAll(IDBKeyRange.only([issuedBy, issuedTo]));
+      } else if (role !== undefined) {
+        // 只有 role 存在
+        const index = objectStore.index("role");
+        request = index.getAll(IDBKeyRange.only(role));
+      } else if (issuedBy !== undefined) {
+        // 只有 issuedBy 存在
+        const index = objectStore.index("issuedBy");
+        request = index.getAll(IDBKeyRange.only(issuedBy));
+      } else if (issuedTo !== undefined) {
+        // 只有 issuedTo 存在
+        const index = objectStore.index("issuedTo");
+        request = index.getAll(IDBKeyRange.only(issuedTo));
+      } else {
+        // 没有条件，获取所有证书
+        request = objectStore.getAll();
+      }
+
+      request.onsuccess = () => {
+        resolve(request.result);
+      };
+
+      request.onerror = () => {
+        reject(new Error("Query failed"));
+      };
+    });
+  }
 
   // 获取我的对应条件的证书
   async get({ role, issuedTo }) {
@@ -62,14 +168,43 @@ export default class CertManager {
       );
     }
 
-    debugger;
+    // 添加时间戳作为ID以确保唯一性
+    const certData = {
+      id: `${data.role}-${data.issuedBy}-${data.issuedTo}}`,
+      ...data,
+    };
+
+    return new Promise((resolve, reject) => {
+      const transaction = this.#db.transaction(["certificates"], "readwrite");
+      const objectStore = transaction.objectStore("certificates");
+
+      const request = objectStore.put(certData);
+
+      request.onsuccess = () => {
+        resolve(certData);
+      };
+
+      request.onerror = () => {
+        reject(new Error("Save failed"));
+      };
+    });
   }
 
   // 删除数据库中存在的该证书
-  async delete({ role, issuedBy, issuedTo }) {
-    // 如果没有issuedBy，默认为自己的userId
-    if (!issuedBy) {
-      issuedBy = this.#user.userId;
-    }
+  async delete({ id }) {
+    return new Promise((resolve, reject) => {
+      const transaction = this.#db.transaction(["certificates"], "readwrite");
+      const objectStore = transaction.objectStore("certificates");
+
+      const request = objectStore.delete(id);
+
+      request.onsuccess = () => {
+        resolve(id);
+      };
+
+      request.onerror = () => {
+        reject(new Error("Delete query failed"));
+      };
+    });
   }
 }

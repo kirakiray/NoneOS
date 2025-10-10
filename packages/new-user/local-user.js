@@ -250,6 +250,8 @@ export class LocalUser extends BaseUser {
   }
 
   async certManager() {
-    return new CertManager(this.#dirHandle.name);
+    const certManager = new CertManager(this.#dirHandle.name, this);
+    await certManager.initDB();
+    return certManager;
   }
 }
