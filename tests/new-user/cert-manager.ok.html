@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cert Manager Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+      import { verify } from "/packages/new-user/util/verify.js";
+
+      await test("Create Users and CertManager Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        // 检查用户是否正确创建
+        const hasUser1Id = !!user1.userId;
+        const hasUser2Id = !!user2.userId;
+
+        // 初始化角色管理器
+        const certManager1 = await user1.certManager();
+
+        return {
+          assert: hasUser1Id && hasUser2Id && !!certManager1,
+          content: {
+            message: "用户和CertManager创建成功",
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+            hasUser1Id,
+            hasUser2Id,
+            hasCertManager: !!certManager1,
+          },
+        };
+      });
+
+      await test("Issue Certificate Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user3" });
+        const user2 = await createUser({ user: "test-user4" });
+
+        // 初始化角色管理器
+        const certManager1 = await user1.certManager();
+
+        // 授权给用户2管理员权限
+        const cert = await certManager1.issue({
+          userId: user2.userId,
+          role: "admin",
+        });
+
+        // 验证证书是否正确签发
+        const isCertValid = await verify(cert);
+        const hasCorrectRole = cert.role === "admin";
+        const hasCorrectIssuedBy = cert.issuedBy === user1.userId;
+        const hasCorrectIssuedTo = cert.issuedTo === user2.userId;
+
+        return {
+          assert:
+            isCertValid &&
+            hasCorrectRole &&
+            hasCorrectIssuedBy &&
+            hasCorrectIssuedTo,
+          content: {
+            message: "证书签发成功",
+            cert,
+            isCertValid,
+            hasCorrectRole,
+            hasCorrectIssuedBy,
+            hasCorrectIssuedTo,
+          },
+        };
+      });
+
+      await test("Query Certificate Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user5" });
+        const user2 = await createUser({ user: "test-user6" });
+
+        // 初始化角色管理器
+        const certManager1 = await user1.certManager();
+
+        // 授权给用户2管理员权限
+        const cert = await certManager1.issue({
+          userId: user2.userId,
+          role: "admin",
+        });
+
+        // 查询证书 - 使用所有三个条件
+        const certs1 = await certManager1.query({
+          role: "admin",
+          issuedBy: user1.userId,
+          issuedTo: user2.userId,
+        });
+
+        // 查询证书 - 使用两个条件
+        const certs2 = await certManager1.query({
+          role: "admin",
+          issuedBy: user1.userId,
+        });
+
+        // 查询证书 - 使用一个条件
+        const certs3 = await certManager1.query({
+          role: "admin",
+        });
+
+        // 查询证书 - 不使用条件
+        const certs4 = await certManager1.query({});
+
+        const hasCertInTwoConditions = certs2.length > 0;
+        const hasCertInOneCondition = certs3.length > 0;
+        const hasCertInNoConditions = certs4.length > 0;
+
+        return {
+          assert:
+            hasCertInTwoConditions &&
+            hasCertInOneCondition &&
+            hasCertInNoConditions,
+          content: {
+            message: "证书查询成功",
+            hasCertInTwoConditions,
+            hasCertInOneCondition,
+            hasCertInNoConditions,
+            certs1Count: certs1.length,
+            certs2Count: certs2.length,
+            certs3Count: certs3.length,
+            certs4Count: certs4.length,
+          },
+        };
+      });
+
+      await test("Get and Has Certificate Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user7" });
+        const user2 = await createUser({ user: "test-user8" });
+
+        // 初始化角色管理器
+        const certManager1 = await user1.certManager();
+
+        // 授权给用户2管理员权限
+        await certManager1.issue({
+          userId: user2.userId,
+          role: "admin",
+        });
+
+        // 获取证书
+        const certs = await certManager1.get({
+          role: "admin",
+          issuedTo: user2.userId,
+        });
+
+        // 检查证书是否存在
+        const hasCert = await certManager1.has({
+          role: "admin",
+          issuedTo: user2.userId,
+        });
+
+        const hasCerts = certs.length > 0;
+        const isHasCertTrue = hasCert === true;
+
+        return {
+          assert: hasCerts && isHasCertTrue,
+          content: {
+            message: "证书获取和存在性检查成功",
+            hasCerts,
+            isHasCertTrue,
+            certsCount: certs.length,
+          },
+        };
+      });
+
+      await test("Save and Delete Certificate Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user9" });
+        const user2 = await createUser({ user: "test-user10" });
+
+        // 初始化角色管理器
+        const certManager1 = await user1.certManager();
+
+        // 授权给用户2管理员权限
+        const cert = await certManager1.issue({
+          userId: user2.userId,
+          role: "user",
+        });
+
+        // 保存一个新的证书
+        const newCertData = {
+          role: "moderator",
+          issuedBy: user1.userId,
+          issuedTo: user2.userId,
+          publicKey: user1.publicKey,
+          signTime: Date.now(),
+          signature: "test-signature",
+        };
+
+        // 保存证书
+        const savedCert = await certManager1.save(newCertData);
+
+        // 查询保存的证书
+        const savedCerts = await certManager1.query({
+          role: "moderator",
+          issuedBy: user1.userId,
+          issuedTo: user2.userId,
+        });
+
+        // 删除证书
+        await certManager1.delete(savedCert.id);
+
+        // 再次查询已删除的证书
+        const deletedCerts = await certManager1.query({
+          role: "moderator",
+          issuedBy: user1.userId,
+          issuedTo: user2.userId,
+        });
+
+        const isSavedCertValid = savedCerts.length > 0;
+        const isDeletedCertGone = deletedCerts.length === 0;
+
+        return {
+          assert: isSavedCertValid && isDeletedCertGone,
+          content: {
+            message: "证书保存和删除成功",
+            isSavedCertValid,
+            isDeletedCertGone,
+            savedCertsCount: savedCerts.length,
+            deletedCertsCount: deletedCerts.length,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>
