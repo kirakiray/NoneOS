@@ -10,7 +10,7 @@
     <script type="module">
       import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/new-user/main.js";
-      import { paste } from "/packages/crypto/crypto-verify.js";
+      import { verify } from "/packages/new-user/util/verify.js";
 
       await test("User Info Test", async () => {
         // 创建新用户
@@ -42,17 +42,27 @@
         // 创建用户卡片
         const card = await user.createCard();
 
-        // 检查卡片是否正确创建
-        const hasMsg = !!card.msg;
-        const hasSignature = !!card.signature;
+        const cardKeys = Object.keys(card);
+
+        // 5个key，最后一个是签名
+        const lengthOK = cardKeys.length === 5;
+        const hasSignature = cardKeys.includes("signature");
+        const hasSignTime = cardKeys.includes("signTime");
+        const hasPublicKey = cardKeys.includes("publicKey");
+
+        const userIdOK = card.userId === user.userId;
 
         return {
-          assert: hasMsg && hasSignature,
+          assert:
+            lengthOK && hasSignature && hasSignTime && hasPublicKey && userIdOK,
           content: {
             message: "用户卡片创建成功",
             card,
-            hasMsg,
+            lengthOK,
             hasSignature,
+            hasSignTime,
+            hasPublicKey,
+            userIdOK,
           },
         };
       });
@@ -63,10 +73,10 @@
         const userInfo = await user.info();
 
         // 创建用户卡片
-        const card = await user.createCard();
+        const cardData = await user.createCard();
 
         // 解析卡片数据
-        const cardData = await paste(card);
+        const isSignatureValid = await verify(cardData); // 检查签名是否有效
 
         // 验证卡片数据
         const hasName = !!cardData.name;
@@ -75,13 +85,14 @@
           cardData.userId === user.userId && cardData.name === userInfo.name;
 
         return {
-          assert: hasName && hasUserId && isUserIdMatch,
+          assert: hasName && hasUserId && isUserIdMatch && isSignatureValid,
           content: {
             message: "用户卡片验证成功",
             cardData,
             hasName,
             hasUserId,
             isUserIdMatch,
+            isSignatureValid,
           },
         };
       });
