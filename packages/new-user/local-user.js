@@ -72,6 +72,10 @@ export class LocalUser extends BaseUser {
     });
   }
 
+  get dirName() {
+    return this.#dirHandle.name;
+  }
+
   // 获取会话ID
   get sessionId() {
     return this.#sessionId;
