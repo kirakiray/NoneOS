@@ -71,9 +71,7 @@ export default class CertManager {
     });
 
     // 保存证书到数据库
-    await this.save(signedData);
-
-    return signedData;
+    return this.save(signedData);
   }
 
   // 查询数据库中所有符合条件的证书数据
