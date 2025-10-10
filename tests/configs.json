@@ -22,6 +22,7 @@
     "../tests/hybird-data/remote-hybird-data.ok.html",
     "../tests/hybird-data/single-data.ok.html",
     "../tests/new-user/buffer-data.ok.html",
+    "../tests/new-user/cert-manager.ok.html",
     "../tests/new-user/connect-server.ok.html",
     "../tests/new-user/create-user.ok.html",
     "../tests/new-user/public-key-user.ok.html",

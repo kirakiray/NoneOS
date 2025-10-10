@@ -170,7 +170,7 @@ export default class CertManager {
           .join(", ")}`
       );
     }
-    
+
     const result = await verify(data);
 
     if (!result) {
