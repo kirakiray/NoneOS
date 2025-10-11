@@ -166,6 +166,11 @@ export class RemoteUser extends BaseUser {
     } else if (this.#mode === 2) {
       // 查找所有RTC连接中处于open状态的channel
       const channel = this._rtcConnections
+        .filter(
+          (conn) =>
+            conn.connectionState === "connected" ||
+            conn.connectionState === "connecting"
+        )
         .flatMap((conn) => conn._dataChannels)
         .find((chan) => chan.readyState === "open");
 

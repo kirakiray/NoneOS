@@ -228,9 +228,9 @@
                 firstIsServer = !!server;
                 firstReceivedServer = server;
                 resolve();
-                setTimeout(() => {
+                Promise.resolve().then(() => {
                   receivedCount++;
-                }, 0);
+                });
               }
             });
           }),
@@ -242,9 +242,9 @@
                 secondIsServer = !!server;
                 secondReceivedChannel = channel;
                 resolve();
-                setTimeout(() => {
+                Promise.resolve().then(() => {
                   receivedCount++;
-                }, 0);
+                });
               }
             });
           }),
@@ -256,9 +256,9 @@
                 thirdIsServer = !!server;
                 thirdReceivedChannel = channel;
                 resolve();
-                setTimeout(() => {
+                Promise.resolve().then(() => {
                   receivedCount++;
-                }, 0);
+                });
               }
             });
           }),
