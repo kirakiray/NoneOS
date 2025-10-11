@@ -176,8 +176,9 @@ export default class CertManager {
     }
 
     // 添加时间戳作为ID以确保唯一性
+    const id = `${data.role}-${data.issuedBy}-${data.issuedTo}}`;
     const certData = {
-      id: `${data.role}-${data.issuedBy}-${data.issuedTo}}`,
+      id,
       ...data,
     };
 
@@ -188,6 +189,14 @@ export default class CertManager {
       const request = objectStore.put(certData);
 
       request.onsuccess = () => {
+        // 从返回的数据中删除ID，确保ID不可修改
+        delete certData.id;
+
+        Object.defineProperty(certData, "id", {
+          writable: false,
+          value: id,
+        });
+
         resolve(certData);
       };
 
