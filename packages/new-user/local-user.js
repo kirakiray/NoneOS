@@ -64,6 +64,10 @@ export class LocalUser extends BaseUser {
     this.bind("rtc-message", (event) => {
       const { remoteUser, message, channel, rtcConnection } = event.detail;
 
+      if (message.__internal_mark) {
+        debugger;
+      }
+
       // 触发接收数据事件
       this.dispatchEvent(
         new CustomEvent("receive-data", {
