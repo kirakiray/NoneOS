@@ -6,6 +6,7 @@ import { getHash } from "../fs/util.js";
 import { RemoteUser } from "./remote-user.js";
 import internal from "./internal/index.js";
 import CertManager from "./cert-manager.js";
+import { toData } from "./util/buffer-data.js";
 
 const infos = {};
 const servers = {};
@@ -26,10 +27,13 @@ export class LocalUser extends BaseUser {
 
     // 接受到服务端转发过来的数据
     this.bind("received-agent-data", (event) => {
-      const {
-        response: { fromUserId, fromUserSessionId, data },
-        server,
-      } = event.detail;
+      const options = event.detail.response;
+      const { fromUserId, fromUserSessionId, data } = options;
+      const { server } = event.detail;
+
+      if (!data) {
+        return;
+      }
 
       if (data.__internal_mark) {
         // 内部操作
@@ -55,17 +59,28 @@ export class LocalUser extends BaseUser {
             fromUserSessionId,
             data,
             server,
-            options: event.detail.response,
+            options,
           },
         })
       );
     });
 
     this.bind("rtc-message", (event) => {
-      const { remoteUser, message, channel, rtcConnection } = event.detail;
+      let { remoteUser, message, channel, rtcConnection } = event.detail;
+
+      if (message instanceof ArrayBuffer) {
+        const { data, info } = toData(new Uint8Array(message));
+
+        // 重组消息对象
+        message = {
+          ...info,
+          data,
+        };
+      }
 
       if (message.__internal_mark) {
         debugger;
+        return;
       }
 
       // 触发接收数据事件
@@ -74,8 +89,9 @@ export class LocalUser extends BaseUser {
           detail: {
             fromUserId: remoteUser.userId,
             fromUserSessionId: rtcConnection.__oppositeUserSessionId,
-            data: message,
+            data: message.data,
             channel,
+            options: { ...message },
           },
         })
       );

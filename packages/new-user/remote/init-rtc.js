@@ -216,6 +216,7 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
         detail: {
           remoteUser,
           message,
+
           channel,
           rtcConnection,
         },

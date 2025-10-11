@@ -12,7 +12,22 @@
   </head>
   <body>
     <script type="module">
-        
+      import { createGet } from "../../../packages/fs/re-remote/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      const user1 = await createUser({ user: "test-user1" });
+      const user2 = await createUser({ user: "test-user2" });
+
+      // 保证user2连上服务器
+      await user2.connectServer("ws://localhost:18290");
+
+      const remoteUser2 = await user1.connectUser(user2.userId);
+
+      const get = createGet({ remoteUser: remoteUser2 });
+
+      const handle = await get("local");
+
+      console.log(handle);
     </script>
   </body>
 </html>

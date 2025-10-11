@@ -1,6 +1,7 @@
 import { BaseUser } from "./base-user.js";
 import { getHash } from "../fs/util.js";
 import initRTC from "./remote/init-rtc.js";
+import { toBuffer } from "./util/buffer-data.js";
 
 export class RemoteUser extends BaseUser {
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
@@ -143,7 +144,7 @@ export class RemoteUser extends BaseUser {
   }
 
   // 发送消息给这个远端用户
-  post(msg) {
+  post(msg, opts) {
     if (this.#mode === 1 && !this.serverState) {
       throw new Error("未连接到对方");
     }
@@ -151,6 +152,7 @@ export class RemoteUser extends BaseUser {
     const msgId = Math.random().toString(32).slice(2);
 
     const options = {
+      ...opts,
       userId: this.userId,
       msgId,
     };
@@ -188,9 +190,20 @@ export class RemoteUser extends BaseUser {
         msg instanceof ArrayBuffer ||
         ArrayBuffer.isView(msg)
       ) {
-        channel.send(msg);
+        channel.send(
+          toBuffer(msg, {
+            ...opts,
+            msgId,
+          })
+        );
       } else {
-        channel.send(JSON.stringify(msg));
+        channel.send(
+          JSON.stringify({
+            ...opts,
+            msgId,
+            data: msg,
+          })
+        );
       }
     }
   }

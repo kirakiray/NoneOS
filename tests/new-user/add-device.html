@@ -20,6 +20,9 @@
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
 
+      user1._ignoreCert = true;
+      user2._ignoreCert = true;
+
       // user1授权给user2设备证书
       const certManager2 = await user2.certManager();
       const cert = await certManager2.issue({
@@ -70,6 +73,10 @@
       // 通过用户1发送二进制数据给用户2
       const binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
       remoteUser2.post(binaryData);
+
+      // remoteUser2.post({
+      //   val: "haha",
+      // });
 
       // 删除证书授权，方便下次测试
       await certManager2.delete(cert.id);

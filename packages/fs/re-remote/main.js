@@ -1,5 +1,6 @@
-export const createGet = (localUser, remoteUserId) => {
+export const createGet = ({ remoteUser }) => {
   return (path, options) => {
-    
+    remoteUser.post();
+    debugger;
   };
 };
