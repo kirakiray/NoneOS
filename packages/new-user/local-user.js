@@ -27,6 +27,11 @@ export class LocalUser extends BaseUser {
 
     const msgIdCaches = new Set();
 
+    // 定时清除msgIdCaches
+    setInterval(() => {
+      msgIdCaches.clear();
+    }, 1000 * 30);
+
     // 接受到服务端转发过来的数据
     this.bind("received-agent-data", (event) => {
       const options = event.detail.response;
