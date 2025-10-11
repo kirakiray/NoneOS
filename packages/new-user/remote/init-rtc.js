@@ -76,7 +76,7 @@ export default async function initRTC(remoteUser, rtcOptions) {
         userId: remoteUser.userId,
       };
 
-      if (rtcOptions.userSessionId) {
+      if (rtcOptions?.userSessionId) {
         targetOpts.userSessionId = rtcOptions.userSessionId;
       }
 
@@ -164,7 +164,11 @@ function _sendIceCandidate(remoteUser, rtcConnection, candidate, rtcOptions) {
   }
 
   const sendIce = (toRtcId) => {
-    const { userSessionId } = rtcOptions;
+    let userSessionId;
+
+    if (rtcOptions?.userSessionId) {
+      userSessionId = rtcOptions.userSessionId;
+    }
 
     servers[0].sendTo(
       { userId: remoteUser.userId, userSessionId },
