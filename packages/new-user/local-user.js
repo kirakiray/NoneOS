@@ -68,10 +68,10 @@ export class LocalUser extends BaseUser {
       this.dispatchEvent(
         new CustomEvent("receive-data", {
           detail: {
-            channel,
-            data: message,
             fromUserId: remoteUser.userId,
             fromUserSessionId: rtcConnection.__oppositeUserSessionId,
+            data: message,
+            channel,
           },
         })
       );
