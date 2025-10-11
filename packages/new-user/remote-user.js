@@ -81,7 +81,7 @@ export class RemoteUser extends BaseUser {
   }
 
   // 初始化RTC连接
-  async initRTC() {
+  async initRTC(options) {
     if (this._rtc_pairing) {
       // 如果正在配对中，则直接返回
       return this._rtc_pairing;
@@ -94,7 +94,7 @@ export class RemoteUser extends BaseUser {
     }
 
     // 初始化RTC连接
-    initRTC(this);
+    initRTC(this, options);
 
     return (this._rtc_pairing = new Promise((resolve, reject) => {
       const timeout = setTimeout(() => {

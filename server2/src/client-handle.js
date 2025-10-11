@@ -77,11 +77,11 @@ export const options = {
   // 转发用户数据
   async agent_data({ client, clients, users, message, binaryData }) {
     const { options, data } = message;
-    const { userId } = options;
+    const { userId, userSessionId } = options;
 
     if (userId) {
-      const targetClient = users.get(userId);
-      if (!targetClient) return;
+      const targetUserClients = users.get(userId);
+      if (!targetUserClients) return;
 
       const sendData = binaryData
         ? toBuffer(binaryData, {
@@ -96,10 +96,19 @@ export const options = {
             fromUserSessionId: client.userSessionId,
           };
 
-      // 发送给第一个客户
-      const firstClient = targetClient.values().next().value;
-      if (firstClient) {
-        firstClient.send(sendData);
+      let targetDeviceClient = null;
+
+      if (userSessionId) {
+        targetDeviceClient = Array.from(targetUserClients).find(
+          (client) => client.userSessionId === userSessionId
+        );
+      } else {
+        targetDeviceClient = targetUserClients.values().next().value;
+      }
+
+      // 发送给目标客户
+      if (targetDeviceClient) {
+        targetDeviceClient.send(sendData);
       }
     }
   },

@@ -5,7 +5,7 @@ const iceServers = [
   { urls: "stun:stun.cloudflare.com" },
 ];
 
-export default async function initRTC(remoteUser, answerOptions) {
+export default async function initRTC(remoteUser, rtcOptions) {
   if (remoteUser.serverState === 0) {
     throw new Error("未找到合适的握手服务器");
   }
@@ -19,7 +19,7 @@ export default async function initRTC(remoteUser, answerOptions) {
   rtcConnection._dataChannels = [];
 
   // 初始化数据通道（仅在发起方时创建）
-  if (!answerOptions) {
+  if (!(rtcOptions && rtcOptions.offer)) {
     const channel = rtcConnection.createDataChannel("message");
     initChannel(remoteUser, rtcConnection, channel);
   }
@@ -27,7 +27,7 @@ export default async function initRTC(remoteUser, answerOptions) {
   // 监听 ICE 候选者事件
   rtcConnection.onicecandidate = (event) => {
     if (event.candidate) {
-      _sendIceCandidate(remoteUser, rtcConnection, event.candidate);
+      _sendIceCandidate(remoteUser, rtcConnection, event.candidate, rtcOptions);
     }
   };
 
@@ -66,28 +66,40 @@ export default async function initRTC(remoteUser, answerOptions) {
   };
 
   // 根据是否为应答方执行不同逻辑
-  if (!answerOptions) {
+  if (!(rtcOptions && rtcOptions.offer)) {
     // 发起方：创建并发送 offer
     try {
       const offer = await rtcConnection.createOffer();
       await rtcConnection.setLocalDescription(offer);
 
-      sendRTCMessage(remoteUser, {
-        type: "rtc-offer",
-        offer: JSON.stringify(offer),
-        publicKey: remoteUser.self.publicKey,
-        fromRTCId: rtcConnection._rtcId,
-        __internal_mark: 1,
-      });
+      const targetOpts = {
+        userId: remoteUser.userId,
+      };
+
+      if (rtcOptions.userSessionId) {
+        targetOpts.userSessionId = rtcOptions.userSessionId;
+      }
+
+      sendRTCMessage(
+        remoteUser,
+        {
+          type: "rtc-offer",
+          offer: JSON.stringify(offer),
+          publicKey: remoteUser.self.publicKey,
+          fromRTCId: rtcConnection._rtcId,
+          __internal_mark: 1,
+        },
+        targetOpts
+      );
     } catch (error) {
       handleConnectionError(remoteUser, error, "创建 RTC offer");
     }
   } else {
     // 应答方：处理 offer 并发送 answer
     try {
-      let { offer } = answerOptions;
-      rtcConnection.__oppositeRTCId = answerOptions.fromRTCId;
-      rtcConnection.__oppositeUserSessionId = answerOptions.fromUserSessionId;
+      let { offer } = rtcOptions;
+      rtcConnection.__oppositeRTCId = rtcOptions.fromRTCId;
+      rtcConnection.__oppositeUserSessionId = rtcOptions.fromUserSessionId;
 
       if (typeof offer === "string") {
         offer = JSON.parse(offer);
@@ -104,12 +116,12 @@ export default async function initRTC(remoteUser, answerOptions) {
           type: "rtc-answer",
           answer: JSON.stringify(answer),
           fromRTCId: rtcConnection._rtcId,
-          toRtcId: answerOptions.fromRTCId,
+          toRtcId: rtcOptions.fromRTCId,
           __internal_mark: 1,
         },
         {
           userId: remoteUser.userId,
-          userSessionId: answerOptions.fromUserSessionId,
+          userSessionId: rtcOptions.fromUserSessionId,
         }
       );
     } catch (error) {
@@ -138,7 +150,7 @@ const cleanupRTCConnection = (remoteUser, rtcConnection) => {
 };
 
 // 发送 ICE 候选者信息
-function _sendIceCandidate(remoteUser, rtcConnection, candidate) {
+function _sendIceCandidate(remoteUser, rtcConnection, candidate, rtcOptions) {
   // 检查服务器连接状态
   if (!remoteUser.serverState) {
     console.error("没有可用的服务器连接，无法发送 ICE 候选者");
@@ -152,12 +164,17 @@ function _sendIceCandidate(remoteUser, rtcConnection, candidate) {
   }
 
   const sendIce = (toRtcId) => {
-    servers[0].sendTo(remoteUser.userId, {
-      type: "rtc-ice-candidate",
-      candidate: JSON.stringify(candidate),
-      toRtcId,
-      __internal_mark: 1,
-    });
+    const { userSessionId } = rtcOptions;
+
+    servers[0].sendTo(
+      { userId: remoteUser.userId, userSessionId },
+      {
+        type: "rtc-ice-candidate",
+        candidate: JSON.stringify(candidate),
+        toRtcId,
+        __internal_mark: 1,
+      }
+    );
   };
 
   // 根据是否已收到 answer 决定发送策略
