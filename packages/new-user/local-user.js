@@ -205,6 +205,10 @@ export class LocalUser extends BaseUser {
 
   // 直接连接用户
   async connectUser(options = {}) {
+    if (typeof options === "string") {
+      options = { userId: options };
+    }
+
     const serversData = await this.servers();
 
     if (options.userId) {
@@ -242,6 +246,10 @@ export class LocalUser extends BaseUser {
               }
             })
           );
+
+          if (!userData) {
+            throw new Error("未查找到用户卡片，无法连接");
+          }
 
           publicKey = userData.publicKey;
         }
