@@ -77,7 +77,7 @@ export const options = {
   // 转发用户数据
   async agent_data({ client, clients, users, message, binaryData }) {
     const { options, data } = message;
-    const { userId, userSessionId } = options;
+    const { userId, userSessionId, ...otherData } = options;
 
     if (userId) {
       const targetUserClients = users.get(userId);
@@ -85,11 +85,13 @@ export const options = {
 
       const sendData = binaryData
         ? toBuffer(binaryData, {
+            ...otherData,
             type: "agent_data",
             fromUserId: client.userId,
             fromUserSessionId: client.userSessionId,
           })
         : {
+            ...otherData,
             type: "agent_data",
             data,
             fromUserId: client.userId,

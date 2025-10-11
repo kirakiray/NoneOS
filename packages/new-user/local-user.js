@@ -25,6 +25,8 @@ export class LocalUser extends BaseUser {
     this.#dirHandle = handle;
     this.#sessionId = Math.random().toString(36).slice(2);
 
+    const msgIdCaches = new Set();
+
     // 接受到服务端转发过来的数据
     this.bind("received-agent-data", (event) => {
       const options = event.detail.response;
@@ -33,6 +35,15 @@ export class LocalUser extends BaseUser {
 
       if (!data) {
         return;
+      }
+
+      if (options.msgId) {
+        // 防止和rtc数据接收重复
+        if (msgIdCaches.has(options.msgId)) {
+          return;
+        }
+
+        msgIdCaches.add(options.msgId);
       }
 
       if (data.__internal_mark) {
@@ -76,6 +87,15 @@ export class LocalUser extends BaseUser {
           ...info,
           data,
         };
+      }
+
+      if (message.msgId) {
+        // 防止和服务端转发重复
+        if (msgIdCaches.has(message.msgId)) {
+          return;
+        }
+
+        msgIdCaches.add(message.msgId);
       }
 
       if (message.__internal_mark) {
