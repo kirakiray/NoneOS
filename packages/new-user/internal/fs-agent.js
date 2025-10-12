@@ -11,16 +11,26 @@ export default async function fsAgent({
 
   const { name, path, args, taskId } = data;
 
-  const targetHandle = await get(path);
+  try {
+    const targetHandle = await get(path);
+    const result = await targetHandle[name](...args);
 
-  const result = await targetHandle[name](...args);
-
-  // 发送回去
-  remoteUser.post({
-    type: "response-fs-agent",
-    taskId,
-    path,
-    args,
-    result,
-  });
+    // 发送成功结果回去
+    remoteUser.post({
+      type: "response-fs-agent",
+      taskId,
+      result,
+    });
+  } catch (error) {
+    // 发送错误信息回去
+    remoteUser.post({
+      type: "response-fs-agent",
+      taskId,
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      },
+    });
+  }
 }

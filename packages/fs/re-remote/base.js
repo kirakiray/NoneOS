@@ -15,7 +15,16 @@ export const agentData = async (remoteUser, options) => {
       const { data } = e.detail;
 
       if (data.type === "response-fs-agent" && data.taskId === taskId) {
-        resolve(data);
+        // 检查是否有错误信息
+        if (data.error) {
+          // 创建一个新的错误对象并抛出
+          const error = new Error(data.error.message);
+          error.name = data.error.name;
+          error.stack = data.error.stack;
+          reject(error);
+        } else {
+          resolve(data);
+        }
       }
     });
   });
