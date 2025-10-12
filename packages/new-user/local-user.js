@@ -103,8 +103,21 @@ export class LocalUser extends BaseUser {
         msgIdCaches.add(message.msgId);
       }
 
-      if (message.__internal_mark) {
-        debugger;
+      const data = message.data;
+
+      if (data.__internal_mark) {
+        // 内部操作
+        if (internal[data.type]) {
+          internal[data.type]({
+            fromUserId: remoteUser.userId,
+            fromUserSessionId: rtcConnection.__oppositeUserSessionId,
+            data,
+            channel,
+            localUser: this,
+          });
+        } else {
+          console.warn(`未实现的内部操作类型: ${data.type}`, data);
+        }
         return;
       }
 
@@ -114,7 +127,7 @@ export class LocalUser extends BaseUser {
           detail: {
             fromUserId: remoteUser.userId,
             fromUserSessionId: rtcConnection.__oppositeUserSessionId,
-            data: message.data,
+            data,
             channel,
             options: { ...message },
           },

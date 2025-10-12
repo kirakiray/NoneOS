@@ -18,18 +18,33 @@
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
 
+      // 初始化角色管理器
+      const certManager = await user2.certManager();
+
+      // 授权给用户2设备权限
+      const cert = await certManager.issue({
+        userId: user1.userId,
+        role: "device",
+      });
+
       // 保证user2连上服务器
       await user2.connectServer("ws://localhost:18290");
 
       const remoteUser2 = await user1.connectUser(user2.userId);
 
+      await remoteUser2.initRTC();
+
       const get = createGet({ remoteUser: remoteUser2 });
 
       const handle = await get("local");
 
-      const testHandle = await handle.get("test2");
+      const testHandle = await handle.get("test/single-data.json");
 
-      console.log(handle);
+      const content = await testHandle.text();
+      console.log(content);
+
+      // 删除证书授权，方便下次测试
+      await certManager.delete(cert.id);
     </script>
   </body>
 </html>
