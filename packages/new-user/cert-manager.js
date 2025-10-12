@@ -1,4 +1,5 @@
 import { verify } from "./util/verify.js";
+import { initDB } from "./util/init-db.js";
 
 export default class CertManager {
   #user;
@@ -7,57 +8,12 @@ export default class CertManager {
 
   constructor(name, user) {
     this.#user = user;
-    this.#dbName = "noneos-certs-" + name;
+    this.#dbName = "noneos-" + name;
   }
 
   // 初始化数据库
   async initDB() {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.#dbName, 1);
-
-      request.onerror = (event) => {
-        reject(new Error(`Database error: ${event.target.error}`));
-      };
-
-      request.onsuccess = (event) => {
-        this.#db = event.target.result;
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        this.#db = event.target.result;
-
-        // 创建对象存储空间 (table)
-        if (!this.#db.objectStoreNames.contains("certificates")) {
-          const objectStore = this.#db.createObjectStore("certificates", {
-            keyPath: "id",
-          });
-
-          // 创建复合索引
-          objectStore.createIndex(
-            "role_issuedBy_issuedTo",
-            ["role", "issuedBy", "issuedTo"],
-            { unique: false }
-          );
-          objectStore.createIndex(
-            "issuedBy_issuedTo",
-            ["issuedBy", "issuedTo"],
-            { unique: false }
-          );
-          objectStore.createIndex("role_issuedBy", ["role", "issuedBy"], {
-            unique: false,
-          });
-          objectStore.createIndex("role_issuedTo", ["role", "issuedTo"], {
-            unique: false,
-          });
-
-          // 创建其他可能有用的索引
-          objectStore.createIndex("role", "role", { unique: false });
-          objectStore.createIndex("issuedBy", "issuedBy", { unique: false });
-          objectStore.createIndex("issuedTo", "issuedTo", { unique: false });
-        }
-      };
-    });
+    this.#db = await initDB(this.#dbName);
   }
 
   // 使用自己的用户签名给目标用户签发证书
