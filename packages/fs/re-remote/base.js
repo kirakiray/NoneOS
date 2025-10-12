@@ -1,5 +1,26 @@
 import { PublicBaseHandle } from "../public/base.js";
 
+export const agentData = async (remoteUser, options) => {
+  const taskId = Math.random().toString(36).slice(2);
+
+  return new Promise((resolve, reject) => {
+    remoteUser.post({
+      ...options,
+      type: "fs-agent",
+      taskId,
+      __internal_mark: 1,
+    });
+
+    remoteUser.self.bind("receive-data", (e) => {
+      const { data } = e.detail;
+
+      if (data.type === "response-fs-agent" && data.taskId === taskId) {
+        resolve(data);
+      }
+    });
+  });
+};
+
 export class RemoteBaseHandle extends PublicBaseHandle {
   #path;
 

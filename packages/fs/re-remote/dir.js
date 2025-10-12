@@ -1,4 +1,4 @@
-import { RemoteBaseHandle } from "./base.js";
+import { RemoteBaseHandle, agentData } from "./base.js";
 import { extendDirHandle } from "../public/dir.js";
 import { RemoteFileHandle } from "./file.js";
 
@@ -10,12 +10,13 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   }
 
   async get(...args) {
-    this.#remoteUser.post({
-      type: "fs-agent",
+    const result = await agentData(this.#remoteUser, {
       name: "get",
       path: this.path,
       args,
     });
+
+    debugger;
   }
 
   async length() {}

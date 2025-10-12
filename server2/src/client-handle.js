@@ -104,7 +104,9 @@ export const options = {
         targetDeviceClient = Array.from(targetUserClients).find(
           (client) => client.userSessionId === userSessionId
         );
-      } else {
+      }
+
+      if (!targetDeviceClient) {
         targetDeviceClient = targetUserClients.values().next().value;
       }
 
