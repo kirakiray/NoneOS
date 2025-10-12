@@ -1,5 +1,6 @@
 import { RemoteBaseHandle, agentData } from "./base.js";
 import { extendFileHandle } from "../public/file.js";
+import { getChunk } from "../../chunk/main.js";
 
 export class RemoteFileHandle extends RemoteBaseHandle {
   #remoteUser;
@@ -17,8 +18,21 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       path: this.path,
     });
 
+    const chunkOptions = {
+      remoteUser: this.#remoteUser,
+      chunkSize: result.chunkSize,
+      path: this.path,
+    };
+
+    const { hashes } = result;
+
     // 从块模块上获取文件内容
-    debugger;
+    for (let i = 0; i < hashes.length; i++) {
+      const hash = hashes[i];
+      const chunk = await getChunk({ hash, index: i, ...chunkOptions });
+
+      debugger;
+    }
 
     // return result;
   }

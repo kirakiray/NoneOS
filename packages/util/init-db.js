@@ -1,6 +1,6 @@
 export async function initDB(dbName) {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 1);
+    const request = indexedDB.open(dbName, 2);
 
     request.onerror = (event) => {
       reject(new Error(`Database error: ${event.target.error}`));
@@ -12,6 +12,16 @@ export async function initDB(dbName) {
 
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
+
+      // 创建缓存块用的存储空间 (table)
+      if (!db.objectStoreNames.contains("chunks")) {
+        const objectStore = db.createObjectStore("chunks", {
+          keyPath: "hash",
+        });
+
+        // 创建索引
+        objectStore.createIndex("hash", "hash", { unique: true });
+      }
 
       // 创建证书用的存储空间 (table)
       if (!db.objectStoreNames.contains("certificates")) {

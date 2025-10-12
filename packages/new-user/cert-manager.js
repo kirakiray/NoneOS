@@ -6,9 +6,9 @@ export default class CertManager {
   #dbName;
   #db;
 
-  constructor(name, user) {
+  constructor(user) {
     this.#user = user;
-    this.#dbName = "noneos-" + name;
+    this.#dbName = "noneos-" + user.dirName;
   }
 
   // 初始化数据库

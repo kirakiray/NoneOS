@@ -32,12 +32,17 @@ export default async function fsAgent({
     if (name === "get-file-hash") {
       const file = await targetHandle.file();
       const hashes = await calculateFileChunkHashes(file);
+      const size = file.size;
 
       // 发送成功结果回去
       remoteUser.post({
         type: "response-fs-agent",
         taskId,
-        result: { hashes },
+        result: {
+          chunkSize: 192,
+          hashes,
+          size,
+        },
       });
 
       return;

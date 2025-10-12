@@ -141,6 +141,10 @@ export class LocalUser extends BaseUser {
     return this.#sessionId;
   }
 
+  get dirName() {
+    return this.#dirHandle.name;
+  }
+
   // 获取用户信息对象
   async info() {
     if (infos[this.#dirHandle.path]) {
@@ -327,7 +331,7 @@ export class LocalUser extends BaseUser {
     }
 
     return (async () => {
-      const certManager = new CertManager(this.#dirHandle.name, this);
+      const certManager = new CertManager(this);
       await certManager.initDB();
       return certManager;
     })();
