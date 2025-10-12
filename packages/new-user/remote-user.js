@@ -162,8 +162,6 @@ export class RemoteUser extends BaseUser {
       this.initRTC();
     }
 
-    debugger
-
     if (this.#mode === 1) {
       // 服务端转发模式，直接通过第一个发送
       this.#servers[0].sendTo(options, msg);

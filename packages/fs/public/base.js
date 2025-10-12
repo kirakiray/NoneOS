@@ -110,7 +110,7 @@ export class PublicBaseHandle {
       func,
       handle: this,
     };
-    
+
     observers.add(obj);
 
     return () => {

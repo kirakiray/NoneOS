@@ -124,7 +124,7 @@ export class HandServerClient extends EventTarget {
         }
 
         this.#user.dispatchEvent(
-          new CustomEvent("received-agent-data", {
+          new CustomEvent("received-server-agent-data", {
             detail: {
               response: { ...info, data },
               server: this,
@@ -151,11 +151,9 @@ export class HandServerClient extends EventTarget {
         this._send({ type: "update_delay", delay: this.delay });
         return;
       }
-
-      console.log("收到消息:", responseData);
     } catch (e) {
-      console.log("收到消息:", event.data);
       console.error(e);
+      console.log("收到消息:", event.data);
       return;
     }
 
@@ -186,8 +184,10 @@ export class HandServerClient extends EventTarget {
         this.onData(responseData.fromUserId, responseData.data, responseData);
       }
 
+      console.log("收到agent消息:", responseData);
+
       this.#user.dispatchEvent(
-        new CustomEvent("received-agent-data", {
+        new CustomEvent("received-server-agent-data", {
           detail: {
             response: responseData,
             server: this,

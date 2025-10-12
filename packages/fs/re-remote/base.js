@@ -1,15 +1,27 @@
 import { PublicBaseHandle } from "../public/base.js";
 
 export class RemoteBaseHandle extends PublicBaseHandle {
-  constructor() {}
+  #path;
 
-  get name() {}
+  constructor(options) {
+    super(options);
+    const { path } = options;
+    this.#path = path;
+  }
+
+  get name() {
+    return this.#path.split("/").pop();
+  }
 
   get remoteUserId() {}
 
-  get path() {}
+  get path() {
+    return this.#path;
+  }
 
-  get parent() {}
+  get parent() {
+    debugger;
+  }
 
   get root() {}
 

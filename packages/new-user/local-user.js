@@ -33,7 +33,7 @@ export class LocalUser extends BaseUser {
     }, 1000 * 30);
 
     // 接受到服务端转发过来的数据
-    this.bind("received-agent-data", (event) => {
+    this.bind("received-server-agent-data", (event) => {
       const options = event.detail.response;
       const { fromUserId, fromUserSessionId, data } = options;
       const { server } = event.detail;
