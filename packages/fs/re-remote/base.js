@@ -23,7 +23,7 @@ export const agentData = async (remoteUser, options) => {
           error.stack = data.error.stack;
           reject(error);
         } else {
-          resolve(data);
+          resolve(data.result);
         }
       }
     });

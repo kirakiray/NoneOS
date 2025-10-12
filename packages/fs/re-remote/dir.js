@@ -16,7 +16,21 @@ export class RemoteDirHandle extends RemoteBaseHandle {
       args,
     });
 
-    debugger;
+    if (!result) {
+      return result;
+    }
+
+    if (result.kind === "file") {
+      return new RemoteFileHandle({
+        remoteUser: this.#remoteUser,
+        path: result.path,
+      });
+    } else if (result.kind === "dir") {
+      return new RemoteDirHandle({
+        remoteUser: this.#remoteUser,
+        path: result.path,
+      });
+    }
   }
 
   async length() {}
