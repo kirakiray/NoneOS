@@ -11,13 +11,16 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
   // 读取文件
   async read(options) {
+    // 获取块信息后，在通过block模块进行组装内容
     const result = await agentData(this.#remoteUser, {
-      name: "read",
+      name: "get-file-hash",
       path: this.path,
-      args: [options],
     });
 
-    return result;
+    // 从块模块上获取文件内容
+    debugger;
+
+    // return result;
   }
 
   async write(...args) {

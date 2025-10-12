@@ -1,4 +1,5 @@
 import { get } from "../../../packages/fs/main.js";
+import { calculateFileChunkHashes } from "../../../packages/fs/util.js";
 
 export default async function fsAgent({
   fromUserId,
@@ -27,6 +28,21 @@ export default async function fsAgent({
 
   try {
     const targetHandle = await get(path);
+
+    if (name === "get-file-hash") {
+      const file = await targetHandle.file();
+      const hashes = await calculateFileChunkHashes(file);
+
+      // 发送成功结果回去
+      remoteUser.post({
+        type: "response-fs-agent",
+        taskId,
+        result: { hashes },
+      });
+
+      return;
+    }
+
     const result = await targetHandle[name](...(args || []));
 
     // 发送成功结果回去

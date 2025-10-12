@@ -1,5 +1,5 @@
 import { verify } from "./util/verify.js";
-import { initDB } from "./util/init-db.js";
+import { initDB } from "../util/init-db.js";
 
 export default class CertManager {
   #user;
