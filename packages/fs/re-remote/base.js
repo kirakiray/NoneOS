@@ -43,8 +43,6 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     return this.#path.split("/").pop();
   }
 
-  get remoteUserId() {}
-
   get path() {
     return this.#path;
   }
@@ -53,7 +51,9 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     debugger;
   }
 
-  get root() {}
+  get root() {
+    debugger;
+  }
 
   async id() {}
 

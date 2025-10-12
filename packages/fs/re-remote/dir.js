@@ -33,7 +33,12 @@ export class RemoteDirHandle extends RemoteBaseHandle {
     }
   }
 
-  async length() {}
+  async length() {
+    return agentData(this.#remoteUser, {
+      name: "length",
+      path: this.path,
+    });
+  }
 
   async *keys() {
     debugger;

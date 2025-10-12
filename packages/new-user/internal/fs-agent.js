@@ -7,13 +7,27 @@ export default async function fsAgent({
   server,
   localUser,
 }) {
+  const result = await localUser.isMyDevice(fromUserId);
+
+  if (!result) {
+    // 如果不是我的设备，返回错误
+    remoteUser.post({
+      type: "response-fs-agent",
+      taskId,
+      error: {
+        message: "Not my device",
+      },
+    });
+    return;
+  }
+
   const remoteUser = await localUser.connectUser(fromUserId);
 
   const { name, path, args, taskId } = data;
 
   try {
     const targetHandle = await get(path);
-    const result = await targetHandle[name](...args);
+    const result = await targetHandle[name](...(args || []));
 
     // 发送成功结果回去
     remoteUser.post({

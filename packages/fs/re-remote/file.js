@@ -24,7 +24,12 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     debugger;
   }
 
-  async lastModified() {}
+  async lastModified() {
+    return agentData(this.#remoteUser, {
+      name: "lastModified",
+      path: this.path,
+    });
+  }
 }
 
 extendFileHandle(RemoteFileHandle);

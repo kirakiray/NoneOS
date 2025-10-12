@@ -41,6 +41,8 @@
       const testHandle = await handle.get("test/single-data.json");
       // const testHandle = await handle.get("test/bigpic.jpg");
 
+      console.log(await testHandle.lastModified());
+
       const content = await testHandle.text();
       console.log(content);
 
