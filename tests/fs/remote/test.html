@@ -20,13 +20,20 @@
       const user2 = await createUser({ user: "test-user2" });
 
       // 初始化角色管理器
-      const certManager = await user2.certManager();
+      const certManager1 = await user1.certManager();
+      const certManager2 = await user2.certManager();
 
       // 授权给用户2设备权限
-      const cert = await certManager.issue({
+      const cert1 = await certManager2.issue({
         userId: user1.userId,
         role: "device",
       });
+      // 授权给用户1设备权限
+      const cert2 = await certManager1.issue({
+        userId: user2.userId,
+        role: "device",
+      });
+
 
       // 保证user2连上服务器
       await user2.connectServer("ws://localhost:18290");
@@ -77,13 +84,25 @@
       const handle = await get("local");
       const testHandle = await handle.get("test/random-1m.txt");
 
+      const newFile = oneMFile;
+      // const newFile = new File([oneMFileContent], "random-1m-2.txt", {
+      //   type: "text/plain",
+      // });
+
+      // 写入文件
+      const handle2 = await handle.get("test/random-1m-2.txt", {
+        create: "file",
+      });
+      await handle2.write(newFile);
+
       console.log(await testHandle.lastModified());
 
       const content = await testHandle.text();
       console.log(content);
 
       // 删除证书授权，方便下次测试
-      await certManager.delete(cert.id);
+      await certManager1.delete(cert2.id);
+      await certManager2.delete(cert1.id);
     </script>
   </body>
 </html>

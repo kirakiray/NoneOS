@@ -1,6 +1,7 @@
 import { RemoteBaseHandle, agentData } from "./base.js";
 import { extendFileHandle } from "../public/file.js";
-import { getChunk } from "../../chunk/main.js";
+import { getChunk, saveChunk } from "../../chunk/main.js";
+import { getHash } from "../../fs/util.js";
 
 export class RemoteFileHandle extends RemoteBaseHandle {
   #remoteUser;
@@ -54,8 +55,40 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     }
   }
 
-  async write(...args) {
-    debugger;
+  // 写入内容
+  async write(data) {
+    const blob = new Blob([data]);
+
+    // 将文件分片，并写入到缓存中
+    const chunkSize = 192; // kb
+    const realChunkSize = chunkSize * 1024; // 转换为字节
+    const chunkCount = Math.ceil(blob.size / realChunkSize);
+
+    const hashes = [];
+
+    for (let i = 0; i < chunkCount; i++) {
+      const start = i * realChunkSize;
+      const end = start + realChunkSize;
+      const chunk = blob.slice(start, end);
+
+      const hash = await getHash(chunk);
+
+      // 先保存块到本地缓存，并记录hash
+      await saveChunk({
+        hash,
+        chunk,
+        userDirName: this.#remoteUser.self.dirName,
+      });
+
+      hashes.push(hash);
+    }
+
+    // 发送给对方去写入
+    await agentData(this.#remoteUser, {
+      name: "write-file-chunk",
+      path: this.path,
+      hashes,
+    });
   }
 
   async lastModified() {

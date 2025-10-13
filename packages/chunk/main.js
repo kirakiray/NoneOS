@@ -73,12 +73,10 @@ export const getChunk = async ({ hash, remoteUser, ...options }) => {
 export const saveChunk = async ({ hash, chunk, userDirName }) => {
   const db = await getDB(userDirName);
 
-  debugger;
-
   // 保存 chunk 到数据库
   const transaction = db.transaction(["chunks"], "readwrite");
   const objectStore = transaction.objectStore("chunks");
-  const request = objectStore.put({ hash, chunk });
+  const request = objectStore.put({ hash, chunk, time: Date.now() });
 
   return new Promise((resolve, reject) => {
     request.onsuccess = () => {

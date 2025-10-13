@@ -3,6 +3,10 @@ import { get as systemHandleGet } from "./handle/main.js";
 import { createGet } from "./remote/main.js";
 
 export const get = async (path, options) => {
+  if (!path) {
+    throw new Error("path is required");
+  }
+
   // 判断是否有远端用户的目录引用
   const pathArr = path.split("/");
   const rootName = pathArr[0];
