@@ -37,6 +37,8 @@ export default async function fsAgent({
       const hashes = await calculateFileChunkHashes(file);
       const size = file.size;
 
+      const lastModified = await targetHandle.lastModified();
+
       // 发送成功结果回去
       remoteUser.post({
         _type: "response-fs-agent",
@@ -45,6 +47,8 @@ export default async function fsAgent({
           chunkSize: 192, // 每个 chunk 的大小，单位kb
           hashes,
           size,
+          lastModified,
+          type: file.type,
         },
       });
 

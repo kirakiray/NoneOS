@@ -26,13 +26,23 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
     const { hashes } = result;
 
+    const chunks = [];
+
     // 从块模块上获取文件内容
     for (let i = 0; i < hashes.length; i++) {
       const hash = hashes[i];
-      const chunk = await getChunk({ hash, index: i, ...chunkOptions });
-
-      debugger;
+      const { chunk } = await getChunk({ hash, index: i, ...chunkOptions });
+      chunks.push(chunk);
     }
+
+    const fileName = this.path.split("/").pop();
+
+    const file = new File(chunks, fileName, {
+      type: result.type,
+      lastModified: result.lastModified,
+    });
+
+    debugger;
 
     // return result;
   }
