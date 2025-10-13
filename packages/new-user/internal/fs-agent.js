@@ -63,7 +63,7 @@ export default async function fsAgent({
         _type: "response-fs-agent",
         taskId,
         result: {
-          chunkSize: 192, // 每个 chunk 的大小，单位kb
+          chunkSize: 192 * 1024, // 每个 chunk 的大小
           hashes,
           size,
           lastModified,
@@ -78,14 +78,12 @@ export default async function fsAgent({
     if (name === "get-file-chunk") {
       const { hash, index, chunkSize } = data;
 
-      const realChunkSize = chunkSize * 1024; // 转换为字节
-
       const file = await targetHandle.file();
       console.log("get-file-chunk: ", file, file.size);
 
       const chunk = await file.slice(
-        index * realChunkSize,
-        (index + 1) * realChunkSize
+        index * chunkSize,
+        (index + 1) * chunkSize
       );
 
       // 计算hash
@@ -119,7 +117,7 @@ export default async function fsAgent({
         const hash = hashes[i];
         const chunk = await getChunk({ hash, remoteUser });
 
-        chunks.push(chunk);
+        chunks.push(new Blob([chunk]));
       }
 
       debugger;

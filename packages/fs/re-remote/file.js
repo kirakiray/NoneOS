@@ -34,7 +34,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     for (let i = 0; i < hashes.length; i++) {
       const hash = hashes[i];
       const { chunk } = await getChunk({ hash, index: i, ...chunkOptions });
-      chunks.push(chunk);
+      chunks.push(new Blob([chunk]));
     }
 
     const fileName = this.path.split("/").pop();
@@ -60,15 +60,14 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     const blob = new Blob([data]);
 
     // 将文件分片，并写入到缓存中
-    const chunkSize = 192; // kb
-    const realChunkSize = chunkSize * 1024; // 转换为字节
-    const chunkCount = Math.ceil(blob.size / realChunkSize);
+    const chunkSize = 192 * 1024;
+    const chunkCount = Math.ceil(blob.size / chunkSize);
 
     const hashes = [];
 
     for (let i = 0; i < chunkCount; i++) {
-      const start = i * realChunkSize;
-      const end = start + realChunkSize;
+      const start = i * chunkSize;
+      const end = start + chunkSize;
       const chunk = blob.slice(start, end);
 
       const hash = await getHash(chunk);
