@@ -111,7 +111,7 @@ export default async function fsAgent({
       // 从块模块上获取文件内容
       for (let i = 0; i < hashes.length; i++) {
         const hash = hashes[i];
-        const chunk = await getChunk({ hash, remoteUser });
+        const { chunk } = await getChunk({ hash, remoteUser });
 
         chunks.push(new Blob([chunk]));
       }

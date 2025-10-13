@@ -36,13 +36,13 @@ export const getHash = async (data) => {
  * 计算文件的分块哈希值
  * @param {File|ArrayBuffer|String} file - 要计算哈希的文件对象、ArrayBuffer或字符串
  * @returns {Promise<string[]>} 返回包含所有分块哈希值的数组
- * @description 将文件分割成192KB大小的块，并计算每个块的SHA-256哈希值
+ * @description 将文件分割成128KB大小的块，并计算每个块的SHA-256哈希值
  */
 export const calculateFileChunkHashes = async (
   file,
   { callback, chunkSize } = {}
 ) => {
-  const CHUNK_SIZE = chunkSize || 192 * 1024; // 192kb
+  const CHUNK_SIZE = chunkSize || 128 * 1024; // 128kb
   // 获取文件的 ArrayBuffer
   const getBuffer = async (file) => {
     if (file instanceof Blob) {
@@ -92,7 +92,7 @@ export const calculateFileChunkHashes = async (
  * 获取文件的总体哈希值
  * @param {File} file - 要计算哈希的文件对象
  * @returns {Promise<string>} 返回文件的总体哈希值
- * @description 将文件分割成192kb大小的块，计算每个块的SHA-256哈希值，
+ * @description 将文件分割成128kb大小的块，计算每个块的SHA-256哈希值，
  *             然后将所有块的哈希值拼接成字符串，最后计算这个字符串的哈希值作为文件的总体哈希值
  */
 export const getFileHash = async (file) =>
