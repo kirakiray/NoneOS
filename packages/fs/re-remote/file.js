@@ -42,9 +42,15 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       lastModified: result.lastModified,
     });
 
-    debugger;
-
-    // return result;
+    switch (options.type) {
+      case "file":
+        return file;
+      case "buffer":
+        return file.arrayBuffer();
+      case "text":
+      default:
+        return file.text();
+    }
   }
 
   async write(...args) {
