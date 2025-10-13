@@ -83,11 +83,13 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     }
 
     // 发送给对方去写入
-    await agentData(this.#remoteUser, {
+    const result = await agentData(this.#remoteUser, {
       name: "write-file-chunk",
       path: this.path,
       hashes,
     });
+
+    return result;
   }
 
   async lastModified() {

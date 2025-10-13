@@ -104,11 +104,7 @@ export default async function fsAgent({
     }
 
     if (name === "write-file-chunk") {
-      const { hashes, path } = data;
-
-      remoteUser;
-
-      debugger;
+      const { hashes } = data;
 
       const chunks = [];
 
@@ -120,23 +116,14 @@ export default async function fsAgent({
         chunks.push(new Blob([chunk]));
       }
 
-      debugger;
+      // 写入文件
+      await targetHandle.write(new Blob(chunks));
 
-      // // 验证所有 chunk 的 hash 是否存在
-      // const validHashes = await Promise.all(
-      //   hashes.map(async (hash) => {
-      //     const chunk = await getChunk(hash, userDirName);
-      //     return chunk !== undefined;
-      //   })
-      // );
-
-      // if (!validHashes.every((valid) => valid)) {
-      //   throw new Error("Some chunks are missing");
-      // }
-
-      // // 写入文件
-      // await targetHandle.write(hashes);
-
+      remoteUser.post({
+        _type: "response-fs-agent",
+        taskId,
+        result: true,
+      });
       return;
     }
 
