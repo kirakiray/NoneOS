@@ -12,18 +12,30 @@ export const agentData = async (remoteUser, options) => {
     });
 
     remoteUser.self.bind("receive-data", (e) => {
-      const { data } = e.detail;
+      const { data, options } = e.detail;
 
-      if (data.type === "response-fs-agent" && data.taskId === taskId) {
+      let finalData = data;
+
+      if (data instanceof Uint8Array && options._type) {
+        finalData = {
+          ...options,
+          result: data,
+        };
+      }
+
+      if (
+        finalData._type === "response-fs-agent" &&
+        finalData.taskId === taskId
+      ) {
         // 检查是否有错误信息
-        if (data.error) {
+        if (finalData.error) {
           // 创建一个新的错误对象并抛出
-          const error = new Error(data.error.message);
-          error.name = data.error.name;
-          error.stack = data.error.stack;
+          const error = new Error(finalData.error.message);
+          error.name = finalData.error.name;
+          error.stack = finalData.error.stack;
           reject(error);
         } else {
-          resolve(data.result);
+          resolve(finalData.result);
         }
       }
     });

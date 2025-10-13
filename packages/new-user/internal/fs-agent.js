@@ -1,5 +1,8 @@
 import { get } from "../../../packages/fs/main.js";
-import { calculateFileChunkHashes } from "../../../packages/fs/util.js";
+import {
+  calculateFileChunkHashes,
+  getHash,
+} from "../../../packages/fs/util.js";
 
 export default async function fsAgent({
   fromUserId,
@@ -13,7 +16,7 @@ export default async function fsAgent({
   if (!result) {
     // 如果不是我的设备，返回错误
     remoteUser.post({
-      type: "response-fs-agent",
+      _type: "response-fs-agent",
       taskId,
       error: {
         message: "Not my device",
@@ -36,15 +39,40 @@ export default async function fsAgent({
 
       // 发送成功结果回去
       remoteUser.post({
-        type: "response-fs-agent",
+        _type: "response-fs-agent",
         taskId,
         result: {
-          chunkSize: 192,
+          chunkSize: 192, // 每个 chunk 的大小，单位kb
           hashes,
           size,
         },
       });
 
+      return;
+    } else if (name === "get-file-chunk") {
+      const { hash, index, chunkSize } = data;
+      const realChunkSize = chunkSize * 1024; // 转换为字节
+
+      const file = await targetHandle.file();
+      const chunk = await file.slice(
+        index * realChunkSize,
+        (index + 1) * realChunkSize
+      );
+
+      // 计算hash
+      const chunkHash = await getHash(chunk);
+
+      // 对比hash
+      if (chunkHash !== hash) {
+        throw new Error(
+          `Hash not match. Path: ${path}, Index: ${index}, Expected: ${hash}, Actual: ${chunkHash}`
+        );
+      }
+
+      remoteUser.post(new Uint8Array(await chunk.arrayBuffer()), {
+        _type: "response-fs-agent",
+        taskId,
+      });
       return;
     }
 
@@ -52,14 +80,14 @@ export default async function fsAgent({
 
     // 发送成功结果回去
     remoteUser.post({
-      type: "response-fs-agent",
+      _type: "response-fs-agent",
       taskId,
       result,
     });
   } catch (error) {
     // 发送错误信息回去
     remoteUser.post({
-      type: "response-fs-agent",
+      _type: "response-fs-agent",
       taskId,
       error: {
         message: error.message,

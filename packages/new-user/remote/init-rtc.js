@@ -1,3 +1,5 @@
+import { toData } from "../util/buffer-data.js";
+
 // WebRTC ICE 服务器配置
 const iceServers = [
   { urls: "stun:stun.l.google.com:19302" },
@@ -230,6 +232,16 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
     } catch (e) {
       console.error("解析消息失败:", e);
       debugger;
+    }
+
+    if (message instanceof ArrayBuffer) {
+      const { data, info } = toData(new Uint8Array(message));
+
+      // 重组消息对象
+      message = {
+        ...info,
+        data,
+      };
     }
 
     remoteUser.self.dispatchEvent(

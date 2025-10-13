@@ -6,7 +6,6 @@ import { getHash } from "../fs/util.js";
 import { RemoteUser } from "./remote-user.js";
 import internal from "./internal/index.js";
 import CertManager from "./cert-manager.js";
-import { toData } from "./util/buffer-data.js";
 
 const infos = {};
 const servers = {};
@@ -83,16 +82,6 @@ export class LocalUser extends BaseUser {
 
     this.bind("rtc-message", (event) => {
       let { remoteUser, message, channel, rtcConnection } = event.detail;
-
-      if (message instanceof ArrayBuffer) {
-        const { data, info } = toData(new Uint8Array(message));
-
-        // 重组消息对象
-        message = {
-          ...info,
-          data,
-        };
-      }
 
       if (message.msgId) {
         // 防止和服务端转发重复
