@@ -34,9 +34,12 @@ export default async function fsAgent({
 
     if (name === "get-file-hash") {
       const file = await targetHandle.file();
-      const hashes = await calculateFileChunkHashes(file);
-      const size = file.size;
 
+      const hashes = await calculateFileChunkHashes(file, {
+        chunkSize: 192 * 1024,
+      });
+
+      const size = file.size;
       const lastModified = await targetHandle.lastModified();
 
       // 发送成功结果回去
@@ -58,6 +61,8 @@ export default async function fsAgent({
       const realChunkSize = chunkSize * 1024; // 转换为字节
 
       const file = await targetHandle.file();
+      console.log("get-file-chunk: ", file, file.size);
+
       const chunk = await file.slice(
         index * realChunkSize,
         (index + 1) * realChunkSize

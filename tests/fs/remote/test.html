@@ -12,6 +12,7 @@
   </head>
   <body>
     <script type="module">
+      import { get as localGet } from "/packages/fs/handle/main.js";
       import { createGet } from "../../../packages/fs/re-remote/main.js";
       import { createUser } from "/packages/new-user/main.js";
 
@@ -36,10 +37,45 @@
 
       const get = createGet({ remoteUser: remoteUser2 });
 
-      const handle = await get("local");
+      // TODO生成一个1m 的txt file对象，内容随机
+      const generateRandomString = (length) => {
+        let result = "";
+        const characters =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+          );
+        }
+        return result;
+      };
 
-      const testHandle = await handle.get("test/single-data.json");
-      // const testHandle = await handle.get("test/bigpic.jpg");
+      let oneMFile = null;
+
+      {
+        let oneMFileHandle = await localGet("local/test/random-1m.txt");
+
+        if (!oneMFileHandle) {
+          // 生成1MB随机字符串
+          const oneMFileContent = generateRandomString(1024 * 1024);
+          oneMFile = new File([oneMFileContent], "random-1m.txt", {
+            type: "text/plain",
+          });
+
+          // 写入文件到当前目录
+          oneMFileHandle = await localGet("local/test/random-1m.txt", {
+            create: "file",
+          });
+          await oneMFileHandle.write(oneMFile);
+        } else {
+          oneMFile = await oneMFileHandle.file();
+        }
+      }
+
+      // 远端获取
+      const handle = await get("local");
+      const testHandle = await handle.get("test/random-1m.txt");
 
       console.log(await testHandle.lastModified());
 

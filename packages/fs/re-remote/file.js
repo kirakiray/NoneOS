@@ -16,6 +16,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     const result = await agentData(this.#remoteUser, {
       name: "get-file-hash",
       path: this.path,
+      options,
     });
 
     const chunkOptions = {
