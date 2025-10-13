@@ -2,6 +2,8 @@ import { get } from "/packages/fs/main.js";
 import { calculateFileChunkHashes, getHash } from "/packages/fs/util.js";
 import { getChunk } from "/packages/chunk/main.js";
 
+import { setting } from "/packages/fs/re-remote/file.js";
+
 export default async function fsAgent({
   fromUserId,
   fromUserSessionId,
@@ -52,7 +54,7 @@ export default async function fsAgent({
       const file = await targetHandle.file();
 
       const hashes = await calculateFileChunkHashes(file, {
-        chunkSize: 192 * 1024,
+        chunkSize: setting.chunkSize,
       });
 
       const size = file.size;
@@ -63,7 +65,7 @@ export default async function fsAgent({
         _type: "response-fs-agent",
         taskId,
         result: {
-          chunkSize: 192 * 1024, // 每个 chunk 的大小
+          chunkSize: setting.chunkSize, // 每个 chunk 的大小
           hashes,
           size,
           lastModified,
