@@ -162,6 +162,8 @@
       {
         const id = await handle2.id();
         const handle2_backup = await get(handle2._path);
+        const size = await handle2.size();
+        console.log("size: ", size);
         console.log("id: ", id);
         console.log(
           "isSame: ",

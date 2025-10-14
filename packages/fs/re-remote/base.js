@@ -53,8 +53,6 @@ export class RemoteBaseHandle extends PublicBaseHandle {
 
   async remove() {}
 
-  async size() {}
-
   async isSame(target) {
     return (await this.id()) === (await target.id());
   }
