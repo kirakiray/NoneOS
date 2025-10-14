@@ -45,64 +45,45 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     } else {
       // 刚好处在那个范围的，读取范围数据
       const start = options.start || 0;
-      const end = options.end || result.size;
+      const end = options.end
+        ? Math.min(options.end, result.size)
+        : result.size;
 
       // 从块模块上获取文件内容
       for (let i = 0; i < hashes.length; i++) {
         const hash = hashes[i];
 
-        // 计算当前块需要的范围数据
-        const currentChunkStart = i * result.chunkSize;
+        const chunkStart = i * result.chunkSize;
+        const chunkEnd = Math.min((i + 1) * result.chunkSize, result.size);
 
-        const currentChunkEnd = Math.min(
-          (i + 1) * result.chunkSize,
-          result.size
-        );
+        // 复合范围的块才进行获取
+        if (chunkEnd < start || chunkStart > end) {
+          continue;
+        }
 
-        let finalChunk = null;
+        const { chunk } = await getChunk({
+          hash,
+          index: i,
+          ...chunkOptions,
+        });
 
-        let runned = false;
-        const run = async () => {
-          if (runned) {
-            return;
-          }
-          const result = await getChunk({ hash, index: i, ...chunkOptions });
-          finalChunk = result.chunk;
-          runned = true;
-        };
+        let finalChunk = chunk;
+        let isCutStart = false;
 
-        let inRange = false;
+        if (chunkStart < start) {
+          finalChunk = finalChunk.slice(start - chunkStart);
+          isCutStart = true;
+        }
 
-        if (currentChunkStart >= start && currentChunkEnd <= end) {
-          // 属于在中间块内，不需要修正
-          inRange = true;
-          await run();
-        } else {
-          let isCutStart = false;
-          // 在边缘块上或不在范围内
-          if (currentChunkStart < start && currentChunkEnd > start) {
-            // 属于在第一个可用块内，修正范围
-            await run();
-            finalChunk = finalChunk.slice(start - currentChunkStart);
-            inRange = true;
-            isCutStart = true;
-          }
-
-          if (currentChunkStart < end && currentChunkEnd > end) {
-            // 属于在最后一个可用块内，修正范围
-            await run();
-            if (isCutStart) {
-              finalChunk = finalChunk.slice(0, end - start);
-            } else {
-              finalChunk = finalChunk.slice(0, end - currentChunkStart);
-            }
-            inRange = true;
+        if (chunkEnd > end) {
+          if (isCutStart) {
+            finalChunk = finalChunk.slice(0, end - start);
+          } else {
+            finalChunk = finalChunk.slice(0, end - chunkStart);
           }
         }
 
-        if (inRange) {
-          chunks.push(new Blob([finalChunk]));
-        }
+        chunks.push(finalChunk);
       }
     }
 
