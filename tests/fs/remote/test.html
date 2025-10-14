@@ -121,8 +121,8 @@
 
       {
         // 获取同一个块区间的数据模拟远端获取同一个块区间的数据
-        const start = 255 * 1024 + 100; // 刚好占用第2个块的100字节
-        const end = 255 * 1024 + 200; // 第二块的200字节
+        const start = 255 * 1024 + 120; // 从第2个块的第120字节开始
+        const end = 255 * 1024 + 300; // 第2个块的第300字节结束
 
         const someContent2 = await handle2.text({
           start: start,

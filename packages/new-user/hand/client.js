@@ -89,7 +89,7 @@ export class HandServerClient extends EventTarget {
 
   // 处理WebSocket打开事件
   _onOpen() {
-    console.log("WebSocket连接已打开");
+    // console.log("WebSocket连接已打开");
 
     clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {

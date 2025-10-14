@@ -61,9 +61,14 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
         let finalChunk = null;
 
+        let runned = false;
         const run = async () => {
+          if (runned) {
+            return;
+          }
           const result = await getChunk({ hash, index: i, ...chunkOptions });
           finalChunk = result.chunk;
+          runned = true;
         };
 
         let inRange = false;
@@ -73,18 +78,24 @@ export class RemoteFileHandle extends RemoteBaseHandle {
           inRange = true;
           await run();
         } else {
+          let isCutStart = false;
           // 在边缘块上或不在范围内
           if (currentChunkStart < start && currentChunkEnd > start) {
             // 属于在第一个可用块内，修正范围
             await run();
             finalChunk = finalChunk.slice(start - currentChunkStart);
             inRange = true;
+            isCutStart = true;
           }
 
           if (currentChunkStart < end && currentChunkEnd > end) {
             // 属于在最后一个可用块内，修正范围
             await run();
-            finalChunk = finalChunk.slice(0, end - currentChunkStart);
+            if (isCutStart) {
+              finalChunk = finalChunk.slice(0, end - start);
+            } else {
+              finalChunk = finalChunk.slice(0, end - currentChunkStart);
+            }
             inRange = true;
           }
         }
