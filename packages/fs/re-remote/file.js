@@ -34,7 +34,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
     const chunks = [];
 
-    console.log("hashes: ", hashes);
+    // console.log("hashes: ", hashes);
 
     if (!options || (!options.start && !options.end)) {
       for (let i = 0; i < hashes.length; i++) {
