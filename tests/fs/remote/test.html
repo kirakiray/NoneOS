@@ -105,8 +105,8 @@
       await handle2.write(newFile);
 
       {
-        const start = 255 * 1024 + 1; // 刚好占用第2个块
-        const end = 255 * 1024 * 2 + 1; // 刚好占用第3个块
+        const start = 255 * 1024 - 1; // 刚好占用第2个块
+        const end = 255 * 1024 * 2 + 5; // 刚好占用第4个块
         // 获取隔开1个块的数据
         const someContent1 = await handle2.text({
           start: start,

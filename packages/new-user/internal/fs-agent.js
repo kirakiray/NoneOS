@@ -69,7 +69,7 @@ export default async function fsAgent({
       // 根据范围缓存块的
       for (let i = 0; i < file.size; i += chunkSize) {
         // 若当前块在指定范围内，则计算其哈希值并加入 hashes 数组；若不在范围内，则以 0 填充
-        if (i >= start - chunkSize && i < end + chunkSize) {
+        if (i > start - chunkSize && i < end + chunkSize) {
           const chunk = file.slice(i, i + chunkSize);
           const hash = await getHash(chunk);
           hashes.push(hash);
