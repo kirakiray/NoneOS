@@ -161,7 +161,13 @@
 
       {
         const id = await handle2.id();
+        const handle2_backup = await get(handle2._path);
         console.log("id: ", id);
+        console.log(
+          "isSame: ",
+          await handle2.isSame(handle2_backup),
+          handle2_backup === handle2
+        );
       }
 
       // 删除证书授权，方便下次测试

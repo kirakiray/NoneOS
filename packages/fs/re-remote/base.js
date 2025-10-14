@@ -55,7 +55,9 @@ export class RemoteBaseHandle extends PublicBaseHandle {
 
   async size() {}
 
-  async isSame(target) {}
+  async isSame(target) {
+    return (await this.id()) === (await target.id());
+  }
 
   async observe(func) {}
 
