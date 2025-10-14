@@ -58,13 +58,14 @@
       };
 
       let oneMFile = null;
+      let oneMFileContent;
 
       {
         let oneMFileHandle = await localGet("local/test/random-1m.txt");
 
         if (!oneMFileHandle) {
           // 生成1MB随机字符串
-          const oneMFileContent = generateRandomString(1024 * 1024);
+          oneMFileContent = generateRandomString(1024 * 1024);
           oneMFile = new File([oneMFileContent], "random-1m.txt", {
             type: "text/plain",
           });
@@ -76,28 +77,69 @@
           await oneMFileHandle.write(oneMFile);
         } else {
           oneMFile = await oneMFileHandle.file();
+          oneMFileContent = await oneMFile.text();
         }
       }
 
-      // 远端获取
-      const handle = await get("local");
-      const testHandle = await handle.get("test/random-1m.txt");
+      const remoteHandle = await get("local");
+
+      // {
+      //   // 模拟远端获取完整的文件;
+      //   const testHandle = await remoteHandle.get("test/random-1m.txt");
+      //   // 读取远程文件内容
+      //   const content = await testHandle.text();
+      //   // console.log("content: ", content);
+      //   console.log("bool1: ", content === oneMFileContent); //  true
+      // }
 
       const newFile = oneMFile;
+      const newFileContent = await newFile.text();
       // const newFile = new File([oneMFileContent], "random-1m-2.txt", {
       //   type: "text/plain",
       // });
 
-      // 写入文件
-      const handle2 = await handle.get("test/random-1m-2.txt", {
+      // 写入远程文件
+      const handle2 = await remoteHandle.get("test/random-1m-2.txt", {
         create: "file",
       });
       await handle2.write(newFile);
 
-      console.log(await testHandle.lastModified());
+      {
+        const start = 255 * 1024 + 1; // 刚好占用第2个块
+        const end = 255 * 1024 * 2 + 1; // 刚好占用第4个块
+        // 获取隔开1个块的数据
+        const someContent1 = await handle2.text({
+          start: start,
+          end: end,
+        });
 
-      const content = await testHandle.text();
-      console.log(content);
+        console.log(
+          "bool2: ",
+          someContent1 === newFileContent.slice(start, end)
+        ); // true
+
+        debugger;
+
+        console.log("someContent1: ", someContent1);
+      }
+
+      // {
+      //   // 获取同一个块区间的数据模拟远端获取同一个块区间的数据
+      //   const start = 255 * 1024 + 100; // 刚好占用第2个块的100字节
+      //   const end = 255 * 1024 + 200; // 第二块的200字节
+
+      //   const someContent2 = await handle2.text({
+      //     start: start,
+      //     end: end,
+      //   });
+
+      //   console.log(
+      //     "bool3: ",
+      //     someContent2 === newFileContent.slice(start, end)
+      //   ); // true
+
+      //   console.log("someContent2: ", someContent2);
+      // }
 
       // 删除证书授权，方便下次测试
       await certManager1.delete(cert2.id);

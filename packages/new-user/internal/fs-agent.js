@@ -1,5 +1,5 @@
 import { get } from "/packages/fs/main.js";
-import { calculateFileChunkHashes, getHash } from "/packages/fs/util.js";
+import { getHash } from "/packages/fs/util.js";
 import { getChunk } from "/packages/chunk/main.js";
 
 import { setting } from "/packages/fs/re-remote/file.js";
@@ -53,9 +53,30 @@ export default async function fsAgent({
     if (name === "get-file-hash") {
       const file = await targetHandle.file();
 
-      const hashes = await calculateFileChunkHashes(file, {
-        chunkSize: setting.chunkSize,
-      });
+      let hashes = [];
+
+      let { start, end } = data.options || {};
+
+      if (start === undefined) {
+        start = 0;
+      }
+      if (end === undefined) {
+        end = file.size;
+      }
+
+      const { chunkSize } = setting;
+
+      // 根据范围缓存块的
+      for (let i = 0; i < file.size; i += chunkSize) {
+        // 若当前块在指定范围内，则计算其哈希值并加入 hashes 数组；若不在范围内，则以 0 填充
+        if (i >= start - chunkSize && i < end + chunkSize) {
+          const chunk = file.slice(i, i + chunkSize);
+          const hash = await getHash(chunk);
+          hashes.push(hash);
+        } else {
+          hashes.push(0);
+        }
+      }
 
       const size = file.size;
       const lastModified = await targetHandle.lastModified();

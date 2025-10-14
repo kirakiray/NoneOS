@@ -34,12 +34,50 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
     const chunks = [];
 
+    console.log("hashes: ", hashes);
+
     // 从块模块上获取文件内容
     for (let i = 0; i < hashes.length; i++) {
       const hash = hashes[i];
+      if (!hash) {
+        continue;
+      }
+
       const { chunk } = await getChunk({ hash, index: i, ...chunkOptions });
-      chunks.push(new Blob([chunk]));
+
+      let finalChunk = chunk;
+
+      // 刚好处在那个范围的，读取范围数据
+      if (options && (options.start || options.end)) {
+        const start = options.start || 0;
+        const end = options.end || result.size;
+
+        // 计算当前块需要的范围数据
+        const currentChunkStart = i * setting.chunkSize;
+
+        const currentChunkEnd = Math.min(
+          (i + 1) * setting.chunkSize,
+          result.size
+        );
+
+        if (currentChunkStart < start && currentChunkEnd > start) {
+          // 属于在第一个可用块内，修正范围
+          finalChunk = finalChunk.slice(start - currentChunkStart);
+          // debugger;
+        }
+
+        if (currentChunkStart < end && currentChunkEnd > end) {
+          // 属于在最后一个可用块内
+          debugger;
+          // 属于在最后一个可用块内，修正范围
+          finalChunk = finalChunk.slice(0, end - currentChunkStart);
+        }
+      }
+
+      chunks.push(new Blob([finalChunk]));
     }
+
+    debugger;
 
     const fileName = this.path.split("/").pop();
 
