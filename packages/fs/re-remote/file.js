@@ -50,43 +50,45 @@ export class RemoteFileHandle extends RemoteBaseHandle {
         : result.size;
 
       // 从块模块上获取文件内容
-      for (let i = 0; i < hashes.length; i++) {
-        const hash = hashes[i];
+      for (let chunkIndex = 0; chunkIndex < hashes.length; chunkIndex++) {
+        const chunkHash = hashes[chunkIndex];
 
-        const chunkStart = i * result.chunkSize;
-        const chunkEnd = Math.min((i + 1) * result.chunkSize, result.size);
+        const currentChunkStart = chunkIndex * result.chunkSize;
+        const currentChunkEnd = Math.min(
+          (chunkIndex + 1) * result.chunkSize,
+          result.size
+        );
 
-        // 复合范围的块才进行获取
-        if (chunkEnd < start || chunkStart > end) {
+        // 符合范围的块才进行获取
+        if (currentChunkEnd < start || currentChunkStart > end) {
           continue;
         }
 
         const { chunk } = await getChunk({
-          hash,
-          index: i,
+          hash: chunkHash,
+          index: chunkIndex,
           ...chunkOptions,
         });
 
-        let finalChunk = chunk;
-        let isCutStart = false;
+        let processedChunk = chunk;
+        let isStartTrimmed = false;
 
-        if (chunkStart < start) {
-          finalChunk = finalChunk.slice(start - chunkStart);
-          isCutStart = true;
+        if (currentChunkStart < start) {
+          processedChunk = processedChunk.slice(start - currentChunkStart);
+          isStartTrimmed = true;
         }
 
-        if (chunkEnd > end) {
-          if (isCutStart) {
-            finalChunk = finalChunk.slice(0, end - start);
+        if (currentChunkEnd > end) {
+          if (isStartTrimmed) {
+            processedChunk = processedChunk.slice(0, end - start);
           } else {
-            finalChunk = finalChunk.slice(0, end - chunkStart);
+            processedChunk = processedChunk.slice(0, end - currentChunkStart);
           }
         }
 
-        chunks.push(finalChunk);
+        chunks.push(processedChunk);
       }
     }
-
     const fileName = this.path.split("/").pop();
 
     const file = new File(chunks, fileName, {
