@@ -158,6 +158,20 @@ export default async function fsAgent({
       return;
     }
 
+    if (name === "keys") {
+      const keys = [];
+      for await (let key of targetHandle.keys()) {
+        keys.push(key);
+      }
+
+      remoteUser.post({
+        _type: "response-fs-agent",
+        taskId,
+        result: keys,
+      });
+      return;
+    }
+
     const result = await targetHandle[name](...(args || []));
 
     // 发送成功结果回去

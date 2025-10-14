@@ -41,7 +41,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   }
 
   async *keys() {
-    debugger;
+    const keys = await agentData(this.#remoteUser, {
+      name: "keys",
+      path: this.path,
+    });
+
+    for (let key of keys) {
+      yield key;
+    }
   }
 }
 

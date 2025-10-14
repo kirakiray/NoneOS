@@ -4,7 +4,7 @@ import { getChunk, saveChunk } from "../../chunk/main.js";
 import { getHash } from "../../fs/util.js";
 
 export const setting = {
-  chunkSize: 255 * 1024, // 发送给对方的粉块大小，不能大于255kb
+  chunkSize: 255 * 1024, // 发送给对方的分块大小，不能大于255kb
 };
 
 export class RemoteFileHandle extends RemoteBaseHandle {

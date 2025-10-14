@@ -137,6 +137,14 @@
         console.log("someContent2: ", someContent2);
       }
 
+      {
+        const dirs = [];
+        for await (let key of remoteHandle.keys()) {
+          dirs.push(key);
+        }
+        console.log("dirs: ", dirs);
+      }
+
       // 删除证书授权，方便下次测试
       await certManager1.delete(cert2.id);
       await certManager2.delete(cert1.id);
