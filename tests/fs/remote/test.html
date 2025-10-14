@@ -138,11 +138,30 @@
       }
 
       {
-        const dirs = [];
+        const keys = [];
         for await (let key of remoteHandle.keys()) {
-          dirs.push(key);
+          keys.push(key);
+        }
+        console.log("keys: ", keys);
+      }
+
+      {
+        const dirs = [];
+        for await (let dir of remoteHandle.values()) {
+          dirs.push(dir);
         }
         console.log("dirs: ", dirs);
+      }
+
+      {
+        const { parent } = handle2;
+        console.log("parent: ", parent);
+        console.log("parent.length: ", await parent.length());
+      }
+
+      {
+        const id = await handle2.id();
+        console.log("id: ", id);
       }
 
       // 删除证书授权，方便下次测试

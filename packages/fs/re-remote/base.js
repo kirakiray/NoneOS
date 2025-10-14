@@ -1,4 +1,68 @@
 import { PublicBaseHandle } from "../public/base.js";
+import { RemoteDirHandle } from "./dir.js";
+import { getHash } from "../../fs/util.js";
+
+export class RemoteBaseHandle extends PublicBaseHandle {
+  #path;
+  #remoteUser;
+
+  constructor(options) {
+    super(options);
+    const { path } = options;
+    this.#path = path;
+    this.#remoteUser = options.remoteUser;
+  }
+
+  get name() {
+    return this.#path.split("/").pop();
+  }
+
+  get path() {
+    return `$user-${this.#remoteUser.userId}:${this.#path}`;
+  }
+
+  get _path() {
+    return this.#path;
+  }
+
+  get parent() {
+    const pathArr = this.#path.split("/");
+
+    if (pathArr.length === 1) {
+      return null;
+    }
+
+    return new RemoteDirHandle({
+      remoteUser: this.#remoteUser,
+      path: pathArr.slice(0, -1).join("/"),
+    });
+  }
+
+  get root() {
+    const pathArr = this.#path.split("/");
+
+    return new RemoteDirHandle({
+      remoteUser: this.#remoteUser,
+      path: pathArr[0],
+    });
+  }
+
+  async id() {
+    return await getHash(this.path);
+  }
+
+  async remove() {}
+
+  async size() {}
+
+  async isSame(target) {}
+
+  async observe(func) {}
+
+  get _mark() {
+    return "remote";
+  }
+}
 
 export const agentData = async (remoteUser, options) => {
   const taskId = Math.random().toString(36).slice(2);
@@ -41,43 +105,3 @@ export const agentData = async (remoteUser, options) => {
     });
   });
 };
-
-export class RemoteBaseHandle extends PublicBaseHandle {
-  #path;
-
-  constructor(options) {
-    super(options);
-    const { path } = options;
-    this.#path = path;
-  }
-
-  get name() {
-    return this.#path.split("/").pop();
-  }
-
-  get path() {
-    return this.#path;
-  }
-
-  get parent() {
-    debugger;
-  }
-
-  get root() {
-    debugger;
-  }
-
-  async id() {}
-
-  async remove() {}
-
-  async size() {}
-
-  async isSame(target) {}
-
-  async observe(func) {}
-
-  get _mark() {
-    return "remote";
-  }
-}

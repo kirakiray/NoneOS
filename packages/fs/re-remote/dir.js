@@ -12,7 +12,7 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   async get(...args) {
     const result = await agentData(this.#remoteUser, {
       name: "get",
-      path: this.path,
+      path: this._path,
       args,
     });
 
@@ -36,14 +36,14 @@ export class RemoteDirHandle extends RemoteBaseHandle {
   async length() {
     return agentData(this.#remoteUser, {
       name: "length",
-      path: this.path,
+      path: this._path,
     });
   }
 
   async *keys() {
     const keys = await agentData(this.#remoteUser, {
       name: "keys",
-      path: this.path,
+      path: this._path,
     });
 
     for (let key of keys) {

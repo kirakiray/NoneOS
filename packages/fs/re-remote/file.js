@@ -20,14 +20,14 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     // 获取块信息后，在通过block模块进行组装内容
     const result = await agentData(this.#remoteUser, {
       name: "get-file-hash",
-      path: this.path,
+      path: this._path,
       options,
     });
 
     const chunkOptions = {
       remoteUser: this.#remoteUser,
       chunkSize: result.chunkSize,
-      path: this.path,
+      path: this._path,
     };
 
     const { hashes } = result;
@@ -89,7 +89,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
         chunks.push(processedChunk);
       }
     }
-    const fileName = this.path.split("/").pop();
+    const fileName = this._path.split("/").pop();
 
     const file = new File(chunks, fileName, {
       type: result.type,
@@ -137,7 +137,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     // 发送给对方去写入
     const result = await agentData(this.#remoteUser, {
       name: "write-file-chunk",
-      path: this.path,
+      path: this._path,
       hashes,
     });
 
@@ -147,7 +147,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
   async lastModified() {
     return agentData(this.#remoteUser, {
       name: "lastModified",
-      path: this.path,
+      path: this._path,
     });
   }
 }
