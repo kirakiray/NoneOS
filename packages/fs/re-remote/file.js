@@ -21,7 +21,7 @@ export class RemoteFileHandle extends RemoteBaseHandle {
     const result = await agentData(this.#remoteUser, {
       name: "get-file-hash",
       path: this.path,
-      options,
+      // options,
     });
 
     const chunkOptions = {
@@ -36,48 +36,64 @@ export class RemoteFileHandle extends RemoteBaseHandle {
 
     console.log("hashes: ", hashes);
 
-    // 从块模块上获取文件内容
-    for (let i = 0; i < hashes.length; i++) {
-      const hash = hashes[i];
-      if (!hash) {
-        continue;
+    if (!options || (!options.start && !options.end)) {
+      for (let i = 0; i < hashes.length; i++) {
+        const hash = hashes[i];
+        const { chunk } = await getChunk({ hash, index: i, ...chunkOptions });
+        chunks.push(chunk);
       }
-
-      const { chunk } = await getChunk({ hash, index: i, ...chunkOptions });
-
-      let finalChunk = chunk;
-
+    } else {
       // 刚好处在那个范围的，读取范围数据
-      if (options && (options.start || options.end)) {
-        const start = options.start || 0;
-        const end = options.end || result.size;
+      const start = options.start || 0;
+      const end = options.end || result.size;
+
+      // 从块模块上获取文件内容
+      for (let i = 0; i < hashes.length; i++) {
+        const hash = hashes[i];
 
         // 计算当前块需要的范围数据
-        const currentChunkStart = i * setting.chunkSize;
+        const currentChunkStart = i * result.chunkSize;
 
         const currentChunkEnd = Math.min(
-          (i + 1) * setting.chunkSize,
+          (i + 1) * result.chunkSize,
           result.size
         );
 
-        if (currentChunkStart < start && currentChunkEnd > start) {
-          // 属于在第一个可用块内，修正范围
-          finalChunk = finalChunk.slice(start - currentChunkStart);
-          // debugger;
+        let finalChunk = null;
+
+        const run = async () => {
+          const result = await getChunk({ hash, index: i, ...chunkOptions });
+          finalChunk = result.chunk;
+        };
+
+        let inRange = false;
+
+        if (currentChunkStart >= start && currentChunkEnd <= end) {
+          // 属于在中间块内，不需要修正
+          inRange = true;
+          await run();
+        } else {
+          // 在边缘块上或不在范围内
+          if (currentChunkStart < start && currentChunkEnd > start) {
+            // 属于在第一个可用块内，修正范围
+            await run();
+            finalChunk = finalChunk.slice(start - currentChunkStart);
+            inRange = true;
+          }
+
+          if (currentChunkStart < end && currentChunkEnd > end) {
+            // 属于在最后一个可用块内，修正范围
+            await run();
+            finalChunk = finalChunk.slice(0, end - currentChunkStart);
+            inRange = true;
+          }
         }
 
-        if (currentChunkStart < end && currentChunkEnd > end) {
-          // 属于在最后一个可用块内
-          debugger;
-          // 属于在最后一个可用块内，修正范围
-          finalChunk = finalChunk.slice(0, end - currentChunkStart);
+        if (inRange) {
+          chunks.push(new Blob([finalChunk]));
         }
       }
-
-      chunks.push(new Blob([finalChunk]));
     }
-
-    debugger;
 
     const fileName = this.path.split("/").pop();
 

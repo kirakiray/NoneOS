@@ -83,14 +83,14 @@
 
       const remoteHandle = await get("local");
 
-      // {
-      //   // 模拟远端获取完整的文件;
-      //   const testHandle = await remoteHandle.get("test/random-1m.txt");
-      //   // 读取远程文件内容
-      //   const content = await testHandle.text();
-      //   // console.log("content: ", content);
-      //   console.log("bool1: ", content === oneMFileContent); //  true
-      // }
+      {
+        // 模拟远端获取完整的文件;
+        const testHandle = await remoteHandle.get("test/random-1m.txt");
+        // 读取远程文件内容
+        const content = await testHandle.text();
+        // console.log("content: ", content);
+        console.log("bool1: ", content === oneMFileContent); //  true
+      }
 
       const newFile = oneMFile;
       const newFileContent = await newFile.text();
@@ -106,7 +106,7 @@
 
       {
         const start = 255 * 1024 + 1; // 刚好占用第2个块
-        const end = 255 * 1024 * 2 + 1; // 刚好占用第4个块
+        const end = 255 * 1024 * 2 + 1; // 刚好占用第3个块
         // 获取隔开1个块的数据
         const someContent1 = await handle2.text({
           start: start,
@@ -117,29 +117,25 @@
           "bool2: ",
           someContent1 === newFileContent.slice(start, end)
         ); // true
-
-        debugger;
-
-        console.log("someContent1: ", someContent1);
       }
 
-      // {
-      //   // 获取同一个块区间的数据模拟远端获取同一个块区间的数据
-      //   const start = 255 * 1024 + 100; // 刚好占用第2个块的100字节
-      //   const end = 255 * 1024 + 200; // 第二块的200字节
+      {
+        // 获取同一个块区间的数据模拟远端获取同一个块区间的数据
+        const start = 255 * 1024 + 100; // 刚好占用第2个块的100字节
+        const end = 255 * 1024 + 200; // 第二块的200字节
 
-      //   const someContent2 = await handle2.text({
-      //     start: start,
-      //     end: end,
-      //   });
+        const someContent2 = await handle2.text({
+          start: start,
+          end: end,
+        });
 
-      //   console.log(
-      //     "bool3: ",
-      //     someContent2 === newFileContent.slice(start, end)
-      //   ); // true
+        console.log(
+          "bool3: ",
+          someContent2 === newFileContent.slice(start, end)
+        ); // true
 
-      //   console.log("someContent2: ", someContent2);
-      // }
+        console.log("someContent2: ", someContent2);
+      }
 
       // 删除证书授权，方便下次测试
       await certManager1.delete(cert2.id);
