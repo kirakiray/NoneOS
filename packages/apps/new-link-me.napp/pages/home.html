@@ -1,12 +1,36 @@
 <template page>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      margin: 0 auto;
+      max-width: 800px;
+    }
+  </style>
   <div>
     <h1>Link Me</h1>
+    <div>{{info.name}}</div>
+    <jdent-icon attr:value="userId"></jdent-icon>
+    <div>{{userId}}</div>
   </div>
   <script>
     export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+
+      const user = await createUser();
+
       return {
-        data: {},
+        data: {
+          userId: user.userId,
+          info: {},
+        },
         proto: {},
+        async attached() {
+          this.info = await user.info();
+        },
+        detached() {
+          this.info = {};
+        },
       };
     };
   </script>

@@ -6,6 +6,7 @@ import { getHash } from "../fs/util.js";
 import { RemoteUser } from "./remote-user.js";
 import internal from "./internal/index.js";
 import CertManager from "./cert-manager.js";
+import { generate } from "../util/rand-adj-noun.js";
 
 const infos = {};
 const servers = {};
@@ -151,7 +152,7 @@ export class LocalUser extends BaseUser {
 
     // 如果没有默认信息，则添加默认信息
     if (!infoData.name) {
-      infoData.name = `User-${Math.random().toString(36).slice(2, 6)}`;
+      infoData.name = generate();
     }
 
     infos[this.#dirHandle.path] = infoData;
