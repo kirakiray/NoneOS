@@ -1,6 +1,5 @@
 export { init } from "./handle/main.js";
 import { get as systemHandleGet } from "./handle/main.js";
-// import { createGet } from "./remote/main.js";
 import { createGet } from "./re-remote/main.js";
 import { createUser } from "../new-user/main.js";
 
