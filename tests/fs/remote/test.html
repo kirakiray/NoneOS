@@ -92,11 +92,12 @@
         console.log("bool1: ", content === oneMFileContent); //  true
       }
 
-      const newFile = oneMFile;
-      const newFileContent = await newFile.text();
-      // const newFile = new File([oneMFileContent], "random-1m-2.txt", {
-      //   type: "text/plain",
-      // });
+      // const newFile = oneMFile;
+      // const newFileContent = await newFile.text();
+      const newFileContent = generateRandomString(1024 * 1024);
+      const newFile = new File([newFileContent], "random-1m-2.txt", {
+        type: "text/plain",
+      });
 
       // 写入远程文件
       const handle2 = await remoteHandle.get("test/random-1m-2.txt", {
@@ -169,8 +170,26 @@
           "isSame: ",
           await handle2.isSame(handle2_backup),
           handle2_backup === handle2
-        );
+        ); // true false
       }
+
+      // {
+      //   const parent = await handle2.parent;
+      //   const cancelFunc1 = await parent.observe((...args) => {
+      //     console.log("observe");
+      //   });
+
+      //   // 模拟本地修改内容
+      //   const handle = await localGet("local/test/random-1m.txt");
+      //   await handle.write();
+
+      //   debugger;
+      //   await new Promise((resolve) => {
+      //     setTimeout(() => {
+      //       resolve();
+      //     }, 1000);
+      //   });
+      // }
 
       // 删除证书授权，方便下次测试
       await certManager1.delete(cert2.id);

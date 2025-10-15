@@ -51,13 +51,39 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     return await getHash(this.path);
   }
 
-  async remove() {}
+  async remove() {
+    return await agentData(this.#remoteUser, {
+      name: "remove",
+      path: this._path,
+    });
+  }
 
   async isSame(target) {
     return (await this.id()) === (await target.id());
   }
 
-  async observe(func) {}
+  // 监听文件或目录是否被修改
+  async observe(func) {
+    const obsId = Math.random().toString(36).slice(2);
+
+    await agentData(this.#remoteUser, {
+      name: "observe",
+      path: this._path,
+      obsId,
+    });
+
+    observePool.set(obsId, func);
+
+    return async () => {
+      await agentData(this.#remoteUser, {
+        name: "cancel-observe",
+        path: this._path,
+        obsId,
+      });
+
+      observePool.delete(obsId);
+    };
+  }
 
   get _mark() {
     return "remote";
@@ -70,6 +96,9 @@ export class RemoteBaseHandle extends PublicBaseHandle {
     });
   }
 }
+
+// 监听池
+export const observePool = new Map();
 
 export const agentData = async (remoteUser, options) => {
   const taskId = Math.random().toString(36).slice(2);

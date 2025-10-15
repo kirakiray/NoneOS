@@ -158,6 +158,41 @@ export default async function fsAgent({
       return;
     }
 
+    if (name === "observe") {
+      const { obsId } = data;
+
+      const cancel = targetHandle.observe((event) => {
+        debugger;
+      });
+
+      remoteObservePool.set(obsId, {
+        cancel,
+        fromUserSessionId,
+        fromUserId,
+      });
+
+      remoteUser.post({
+        _type: "response-fs-agent",
+        taskId,
+      });
+      return;
+    }
+
+    if (name === "cancel-observe") {
+      const { obsId } = data;
+
+      const { cancel } = remoteObservePool.get(obsId);
+
+      cancel();
+      remoteObservePool.delete(obsId);
+
+      remoteUser.post({
+        _type: "response-fs-agent",
+        taskId,
+      });
+      return;
+    }
+
     if (name === "keys") {
       const keys = [];
       for await (let key of targetHandle.keys()) {
@@ -193,3 +228,7 @@ export default async function fsAgent({
     });
   }
 }
+
+const remoteObservePool = new Map();
+
+// TODO: 定时检查 fromUserSessionId 是否过期，清除 remoteObservePool 中过期的项
