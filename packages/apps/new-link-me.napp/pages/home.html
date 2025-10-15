@@ -4,131 +4,19 @@
     :host {
       display: block;
       margin: 0 auto;
-      max-width: 600px;
-      padding: 15px;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .container {
-      border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-      padding: 25px;
-      margin-top: 30px;
-    }
-
-    .user-profile {
-      display: flex;
-      align-items: center;
-      border-radius: 10px;
-      padding: 15px;
-      backdrop-filter: blur(5px);
-    }
-
-    .avatar {
-      flex-shrink: 0;
-      margin-right: 20px;
-    }
-
-    jdent-icon {
-      width: 80px;
-      height: 80px;
-      border: 1px solid rgb(122, 122, 122);
-      border-radius: 50%;
-      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
-    }
-
-    .user-details {
-      flex-grow: 1;
-      overflow: hidden;
-    }
-
-    .info-name {
-      font-size: 22px;
-      font-weight: 600;
-      margin-bottom: 8px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .user-info-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .user-id-label {
-      font-size: 14px;
-      opacity: 0.9;
-      flex-shrink: 0;
-    }
-
-    .user-id {
-      font-size: 16px;
-      font-weight: 500;
-      word-break: break-all;
-      font-family: "Courier New", monospace;
-      background: rgba(0, 0, 0, 0.1);
-      padding: 6px 10px;
-      border-radius: 6px;
-    }
-
-    @media (max-width: 600px) {
-      :host {
-        padding: 10px;
-      }
-
-      .container {
-        padding: 20px;
-        margin-top: 20px;
-      }
-
-      jdent-icon {
-        width: 70px;
-        height: 70px;
-      }
-
-      .user-profile {
-        padding: 12px;
-      }
-
-      .info-name {
-        font-size: 19px;
-      }
+      max-width: 800px;
     }
   </style>
-  <div class="container">
-    <div class="user-profile">
-      <div class="avatar">
-        <jdent-icon attr:value="userId"></jdent-icon>
-      </div>
-      <div class="user-details">
-        <div class="info-name">{{info.name}}</div>
-        <div class="user-info-row">
-          <div class="user-id-label">User ID:</div>
-          <div class="user-id">{{userId}}</div>
-        </div>
-      </div>
-    </div>
-  </div>
+
+  <o-page src="./self-info.html"></o-page>
+
   <script>
     export default async ({ load }) => {
-      const { createUser } = await load("/packages/new-user/main.js");
-
-      const user = await createUser();
-
       return {
-        data: {
-          userId: user.userId,
-          info: {},
-        },
+        data: {},
         proto: {},
-        async attached() {
-          this.info = await user.info();
-        },
-        detached() {
-          this.info = {};
-        },
+        async attached() {},
+        detached() {},
       };
     };
   </script>
