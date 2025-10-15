@@ -6,12 +6,11 @@
     <title>Remote FS Test</title>
   </head>
   <body>
-    <script src="/sw/register.js" type="module"></script>
     <script type="module">
       import { get as localGet } from "/packages/fs/handle/main.js";
-      import { createGet } from "/packages/fs/remote/main.js";
       import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/new-user/main.js";
+      import { createGet } from "/packages/fs/re-remote/main.js";
 
       // 生成随机字符串函数
       const generateRandomString = (length) => {

@@ -1,7 +1,13 @@
 import { PublicBaseHandle } from "../public/base.js";
-import { RemoteDirHandle } from "./dir.js";
 import { getHash } from "../../fs/util.js";
 import { observePool, agentData } from "./public.js";
+
+// import { RemoteDirHandle } from "./dir.js";
+
+let RemoteDirHandle = null;
+import("./dir.js").then((module) => {
+  RemoteDirHandle = module.RemoteDirHandle;
+});
 
 export class RemoteBaseHandle extends PublicBaseHandle {
   #path;
