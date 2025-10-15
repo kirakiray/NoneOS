@@ -1,13 +1,13 @@
 import { PublicBaseHandle } from "../public/base.js";
 import { getHash } from "../../fs/util.js";
 import { observePool, agentData } from "./public.js";
-
 // import { RemoteDirHandle } from "./dir.js";
 
 let RemoteDirHandle = null;
-import("./dir.js").then((module) => {
+export const initialized = (async () => {
+  const module = await import("./dir.js");
   RemoteDirHandle = module.RemoteDirHandle;
-});
+})();
 
 export class RemoteBaseHandle extends PublicBaseHandle {
   #path;
