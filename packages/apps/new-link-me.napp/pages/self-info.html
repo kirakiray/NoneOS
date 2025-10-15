@@ -38,7 +38,7 @@
     }
 
     .info-name {
-      font-size: 14px;
+      font-size: 16px;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
@@ -96,7 +96,18 @@
         <jdent-icon attr:value="userId"></jdent-icon>
       </div>
       <div class="user-details">
-        <div class="info-name">{{info.name}}</div>
+        <o-if :value="renameMode">
+          <input type="text" sync:value="renameVal" />
+          <button on:click="clickSave" attr:disabled="renameVal.length === 0">
+            Save
+          </button>
+        </o-if>
+        <o-else>
+          <div class="info-name">
+            {{info.name}}
+            <button on:click="renameMode = true">Edit</button>
+          </div>
+        </o-else>
         <div class="user-info-row">
           <div class="user-id-label">User ID:</div>
           <div class="user-id">{{userId}}</div>
@@ -109,15 +120,23 @@
       const { createUser } = await load("/packages/new-user/main.js");
 
       const user = await createUser();
+      const userInfo = await user.info();
 
       return {
         data: {
           userId: user.userId,
           info: {},
+          renameVal: userInfo.name,
+          renameMode: false,
         },
-        proto: {},
+        proto: {
+          clickSave() {
+            userInfo.name = this.renameVal;
+            this.renameMode = false;
+          },
+        },
         async attached() {
-          this.info = await user.info();
+          this.info = userInfo;
         },
         detached() {
           this.info = {};
