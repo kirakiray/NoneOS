@@ -161,8 +161,15 @@ export default async function fsAgent({
     if (name === "observe") {
       const { obsId } = data;
 
-      const cancel = targetHandle.observe((event) => {
-        debugger;
+      const cancel = targetHandle.observe((e) => {
+        const { path, type, remark } = e;
+
+        remoteUser.post({
+          type: "receive-observe",
+          obsId,
+          options: { path, type, remark },
+          __internal_mark: 1,
+        });
       });
 
       remoteObservePool.set(obsId, {

@@ -173,23 +173,26 @@
         ); // true false
       }
 
-      // {
-      //   const parent = await handle2.parent;
-      //   const cancelFunc1 = await parent.observe((...args) => {
-      //     console.log("observe");
-      //   });
+      {
+        const parent = await handle2.parent;
+        const cancelFunc1 = await parent.observe((e) => {
+          remoteUser2;
+          console.log(
+            "observe path",
+            e.path === `$user-${user2.userId}:local/test/random-1m.txt`
+          ); //  true
+        });
 
-      //   // 模拟本地修改内容
-      //   const handle = await localGet("local/test/random-1m.txt");
-      //   await handle.write();
+        // 模拟本地修改内容
+        const handle = await localGet("local/test/random-1m.txt");
+        await handle.write("haha-" + Math.random().toString().slice(2));
 
-      //   debugger;
-      //   await new Promise((resolve) => {
-      //     setTimeout(() => {
-      //       resolve();
-      //     }, 1000);
-      //   });
-      // }
+        await new Promise((resolve) => {
+          setTimeout(() => {
+            resolve();
+          }, 500);
+        });
+      }
 
       // 删除证书授权，方便下次测试
       await certManager1.delete(cert2.id);
