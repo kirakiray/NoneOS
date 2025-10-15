@@ -15,6 +15,7 @@
       import { get as localGet } from "/packages/fs/handle/main.js";
       import { createGet } from "../../../packages/fs/re-remote/main.js";
       import { createUser } from "/packages/new-user/main.js";
+      import { get as mainGet } from "/packages/fs/main.js";
 
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
@@ -36,6 +37,8 @@
 
       // 保证user2连上服务器
       await user2.connectServer("ws://localhost:18290");
+
+      const lo2 = await mainGet(`$user-${user2.userId}:local`);
 
       const remoteUser2 = await user1.connectUser(user2.userId);
 

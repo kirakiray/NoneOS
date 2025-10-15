@@ -1,6 +1,8 @@
 export { init } from "./handle/main.js";
 import { get as systemHandleGet } from "./handle/main.js";
-import { createGet } from "./remote/main.js";
+// import { createGet } from "./remote/main.js";
+import { createGet } from "./re-remote/main.js";
+import { createUser } from "../new-user/main.js";
 
 export const get = async (path, options) => {
   if (!path) {
@@ -18,8 +20,11 @@ export const get = async (path, options) => {
       userId = mark.split("-")[1];
     }
 
+    const localUser = await createUser();
+    const remoteUser = await localUser.connectUser(userId);
+
     // 远端用户的目录引用
-    const remoteGet = createGet(userId);
+    const remoteGet = createGet({ remoteUser });
     const rePath = [reRootName, ...pathArr.slice(1)].join("/");
 
     return remoteGet(rePath, options);
