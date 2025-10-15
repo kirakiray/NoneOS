@@ -201,12 +201,14 @@
         // 测试文件观察
         let observeCalled = false;
         let observePathCorrect = false;
+        let obsCount = 0;
         const parent = await handle2.parent;
 
         const cancelFunc = await parent.observe((e) => {
           observeCalled = true;
           observePathCorrect =
             e.path === `$user-${testUser2.userId}:local/test/random-1m.txt`;
+          obsCount++;
         });
 
         // 触发文件修改
@@ -225,8 +227,8 @@
         await certManager2.delete(cert1.id);
 
         return {
-          assert: observeCalled && observePathCorrect,
-          content: `Observe called: ${observeCalled}, Path correct: ${observePathCorrect}`,
+          assert: observeCalled && observePathCorrect && obsCount === 1,
+          content: `Observe called: ${observeCalled}, Path correct: ${observePathCorrect}, Count: ${obsCount}`,
         };
       });
     </script>

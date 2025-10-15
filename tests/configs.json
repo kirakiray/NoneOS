@@ -13,7 +13,7 @@
     "../tests/fs/handle/some.ok.html",
     "../tests/fs/handle/values.ok.html",
     "../tests/fs/handle/write-and-get.ok.html",
-    "../tests/fs/remote/get-and-set.ok.html",
+    "../tests/fs/remote/remote-file-system-test.ok.html",
     "../tests/fs/util/get-file-hash.ok.html",
     "../tests/fs/util/get-hash.ok.html",
     "../tests/hybird-data/change-file.ok.html",
