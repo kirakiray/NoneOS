@@ -1,7 +1,8 @@
-import { RemoteBaseHandle, agentData } from "./base.js";
+import { RemoteBaseHandle } from "./base.js";
 import { extendFileHandle } from "../public/file.js";
 import { getChunk, saveChunk } from "../../chunk/main.js";
 import { getHash } from "../../fs/util.js";
+import { agentData } from "./public.js";
 
 export const setting = {
   chunkSize: 255 * 1024, // 发送给对方的分块大小，不能大于255kb

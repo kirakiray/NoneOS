@@ -1,5 +1,5 @@
 import { initDB } from "../util/init-db.js";
-import { agentData } from "../fs/re-remote/base.js";
+import { agentData } from "../fs/re-remote/public.js";
 import { getHash } from "../fs/util.js";
 
 const dbPool = {};

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Remote FS Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { get as localGet } from "/packages/fs/handle/main.js";
+      import { createGet } from "/packages/fs/remote/main.js";
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      // 生成随机字符串函数
+      const generateRandomString = (length) => {
+        let result = "";
+        const characters =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+          );
+        }
+        return result;
+      };
+
+      // 测试远程文件系统基本操作
+      await test("Remote File System Basic Operations", async () => {
+        // 创建测试用户
+        const testUser1 = await createUser({ user: "test-user1" });
+        const testUser2 = await createUser({ user: "test-user2" });
+
+        // 初始化证书管理器
+        const certManager1 = await testUser1.certManager();
+        const certManager2 = await testUser2.certManager();
+
+        // 相互授权设备权限
+        const cert1 = await certManager2.issue({
+          userId: testUser1.userId,
+          role: "device",
+        });
+        const cert2 = await certManager1.issue({
+          userId: testUser2.userId,
+          role: "device",
+        });
+
+        // 连接服务器
+        await testUser2.connectServer("ws://localhost:18290");
+        const remoteUser2 = await testUser1.connectUser(testUser2.userId);
+        await remoteUser2.initRTC();
+
+        const get = createGet({ remoteUser: remoteUser2 });
+
+        // 生成1MB测试文件
+        let oneMFileContent;
+        let oneMFileHandle = await localGet("local/test/random-1m.txt");
+
+        if (!oneMFileHandle) {
+          oneMFileContent = generateRandomString(1024 * 1024);
+          const oneMFile = new File([oneMFileContent], "random-1m.txt", {
+            type: "text/plain",
+          });
+          oneMFileHandle = await localGet("local/test/random-1m.txt", {
+            create: "file",
+          });
+          await oneMFileHandle.write(oneMFile);
+        } else {
+          const oneMFile = await oneMFileHandle.file();
+          oneMFileContent = await oneMFile.text();
+        }
+
+        const remoteHandle = await get("local");
+
+        // 测试远程读取完整文件
+        const testHandle = await remoteHandle.get("test/random-1m.txt");
+        const content = await testHandle.text();
+        const fullFileMatch = content === oneMFileContent;
+
+        // 测试远程写入文件
+        const newFileContent = generateRandomString(1024 * 1024);
+        const newFile = new File([newFileContent], "random-1m-2.txt", {
+          type: "text/plain",
+        });
+
+        const handle2 = await remoteHandle.get("test/random-1m-2.txt", {
+          create: "file",
+        });
+        await handle2.write(newFile);
+
+        // 测试分块读取
+        const start1 = 255 * 1024 + 1;
+        const end1 = 255 * 1024 * 2 + 5;
+        const someContent1 = await handle2.text({
+          start: start1,
+          end: end1,
+        });
+        const blockReadMatch1 =
+          someContent1 === newFileContent.slice(start1, end1);
+
+        const start2 = 255 * 1024 + 120;
+        const end2 = 255 * 1024 + 300;
+        const someContent2 = await handle2.text({
+          start: start2,
+          end: end2,
+        });
+        const blockReadMatch2 =
+          someContent2 === newFileContent.slice(start2, end2);
+
+        // 测试文件系统遍历
+        const keys = [];
+        for await (let key of remoteHandle.keys()) {
+          keys.push(key);
+        }
+        const hasKeys = keys.length > 0;
+
+        const dirs = [];
+        for await (let dir of remoteHandle.values()) {
+          dirs.push(dir);
+        }
+        const hasDirs = dirs.length > 0;
+
+        // 测试文件属性
+        const { parent } = handle2;
+        const parentExists = parent !== null;
+        const parentLength = await parent.length();
+
+        const id = await handle2.id();
+        const handle2Backup = await get(handle2._path);
+        const size = await handle2.size();
+        const isSame = await handle2.isSame(handle2Backup);
+
+        // 清理证书
+        await certManager1.delete(cert2.id);
+        await certManager2.delete(cert1.id);
+
+        return {
+          assert:
+            fullFileMatch &&
+            blockReadMatch1 &&
+            blockReadMatch2 &&
+            hasKeys &&
+            hasDirs &&
+            parentExists &&
+            parentLength >= 0 &&
+            id &&
+            size > 0 &&
+            isSame,
+          content:
+            `Full file match: ${fullFileMatch}, Block reads: ${blockReadMatch1}/${blockReadMatch2}, ` +
+            `Has keys: ${hasKeys}, Has dirs: ${hasDirs}, Parent exists: ${parentExists}, ` +
+            `Size: ${size}, Is same: ${isSame}`,
+        };
+      });
+
+      // 测试文件观察功能
+      await test("Remote File Observation Test", async () => {
+        // 创建测试用户
+        const testUser1 = await createUser({ user: "test-user1" });
+        const testUser2 = await createUser({ user: "test-user2" });
+
+        // 初始化证书管理器
+        const certManager1 = await testUser1.certManager();
+        const certManager2 = await testUser2.certManager();
+
+        // 相互授权设备权限
+        const cert1 = await certManager2.issue({
+          userId: testUser1.userId,
+          role: "device",
+        });
+        const cert2 = await certManager1.issue({
+          userId: testUser2.userId,
+          role: "device",
+        });
+
+        // 连接服务器
+        await testUser2.connectServer("ws://localhost:18290");
+        const remoteUser2 = await testUser1.connectUser(testUser2.userId);
+        await remoteUser2.initRTC();
+
+        const get = createGet({ remoteUser: remoteUser2 });
+
+        // 生成测试文件
+        const testContent = generateRandomString(1024 * 1024);
+        const testFile = new File([testContent], "random-1m.txt", {
+          type: "text/plain",
+        });
+
+        let testHandle = await localGet("local/test/random-1m.txt");
+        if (!testHandle) {
+          testHandle = await localGet("local/test/random-1m.txt", {
+            create: "file",
+          });
+        }
+        await testHandle.write(testFile);
+
+        const remoteHandle = await get("local");
+        const handle2 = await remoteHandle.get("test/random-1m.txt");
+
+        // 测试文件观察
+        let observeCalled = false;
+        let observePathCorrect = false;
+        const parent = await handle2.parent;
+
+        const cancelFunc = await parent.observe((e) => {
+          observeCalled = true;
+          observePathCorrect =
+            e.path === `$user-${testUser2.userId}:local/test/random-1m.txt`;
+        });
+
+        // 触发文件修改
+        const handle = await localGet("local/test/random-1m.txt");
+        await handle.write("haha-" + Math.random().toString().slice(2));
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        cancelFunc();
+
+        // 再次写入，应该不会再触发观察
+        await handle.write("haha-" + Math.random().toString().slice(2));
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 清理证书
+        await certManager1.delete(cert2.id);
+        await certManager2.delete(cert1.id);
+
+        return {
+          assert: observeCalled && observePathCorrect,
+          content: `Observe called: ${observeCalled}, Path correct: ${observePathCorrect}`,
+        };
+      });
+    </script>
+  </body>
+</html>

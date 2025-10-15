@@ -1,6 +1,7 @@
-import { RemoteBaseHandle, agentData } from "./base.js";
+import { RemoteBaseHandle } from "./base.js";
 import { extendDirHandle } from "../public/dir.js";
 import { RemoteFileHandle } from "./file.js";
+import { agentData } from "./public.js";
 
 export class RemoteDirHandle extends RemoteBaseHandle {
   #remoteUser;
