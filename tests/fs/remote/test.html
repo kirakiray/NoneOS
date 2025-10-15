@@ -174,24 +174,30 @@
       }
 
       {
+        let count = 0;
         const parent = await handle2.parent;
         const cancelFunc1 = await parent.observe((e) => {
+          if (count > 0) {
+            throw new Error("observe should only be called once");
+          }
           remoteUser2;
           console.log(
             "observe path",
             e.path === `$user-${user2.userId}:local/test/random-1m.txt`
           ); //  true
+          count++;
         });
 
         // 模拟本地修改内容
         const handle = await localGet("local/test/random-1m.txt");
         await handle.write("haha-" + Math.random().toString().slice(2));
 
-        await new Promise((resolve) => {
-          setTimeout(() => {
-            resolve();
-          }, 500);
-        });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        cancelFunc1();
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await handle.write("haha-" + Math.random().toString().slice(2)); // 因为已经取消了监听，再次写入则不会被触发
       }
 
       // 删除证书授权，方便下次测试

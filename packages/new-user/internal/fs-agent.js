@@ -161,7 +161,7 @@ export default async function fsAgent({
     if (name === "observe") {
       const { obsId } = data;
 
-      const cancel = targetHandle.observe((e) => {
+      const cancel = await targetHandle.observe((e) => {
         const { path, type, remark } = e;
 
         remoteUser.post({
@@ -188,7 +188,7 @@ export default async function fsAgent({
     if (name === "cancel-observe") {
       const { obsId } = data;
 
-      const { cancel } = remoteObservePool.get(obsId);
+      const { cancel } = await remoteObservePool.get(obsId);
 
       cancel();
       remoteObservePool.delete(obsId);
