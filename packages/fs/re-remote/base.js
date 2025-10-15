@@ -62,6 +62,13 @@ export class RemoteBaseHandle extends PublicBaseHandle {
   get _mark() {
     return "remote";
   }
+
+  async size() {
+    return await agentData(this.#remoteUser, {
+      name: "size",
+      path: this._path,
+    });
+  }
 }
 
 export const agentData = async (remoteUser, options) => {

@@ -48,6 +48,15 @@ export class BaseHandle extends PublicBaseHandle {
     });
   }
 
+  async size() {
+    if (this.kind === "file") {
+      const file = await this.file();
+      return file.size;
+    }
+
+    return null;
+  }
+
   get _mark() {
     return "system";
   }

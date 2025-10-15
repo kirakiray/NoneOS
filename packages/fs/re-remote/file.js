@@ -150,13 +150,6 @@ export class RemoteFileHandle extends RemoteBaseHandle {
       path: this._path,
     });
   }
-
-  async size() {
-    return await agentData(this.#remoteUser, {
-      name: "size",
-      path: this._path,
-    });
-  }
 }
 
 extendFileHandle(RemoteFileHandle);

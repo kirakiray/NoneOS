@@ -80,11 +80,6 @@ export class FileHandle extends BaseHandle {
       remark: options.remark,
     });
   }
-
-  async size() {
-    const file = await this.file();
-    return file.size;
-  }
 }
 
 extendFileHandle(FileHandle);
