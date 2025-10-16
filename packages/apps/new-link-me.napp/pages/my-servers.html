@@ -25,14 +25,28 @@
     <p-list slot="childs">
       <o-fill :value="list">
         <p-list-item>
-          <n-server-item :url="$data.url"></n-server-item>
+          <n-server-item :url="$data.url">
+            <div>
+              <p-button
+                on:click="$host.deleteServer($index,$data)"
+                variant="outlined"
+                color="error"
+                size="small"
+                style="display: inline-block"
+              >
+                删除该服务器
+              </p-button>
+            </div>
+          </n-server-item>
         </p-list-item>
       </o-fill>
     </p-list>
   </p-list-item>
   <script>
     export default async ({ load }) => {
+      const { confirm } = await load("/packages/pui/util.js");
       const { createUser } = await load("/packages/new-user/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const user = await createUser();
 
       const serverManager = await user.serverManager();
@@ -41,11 +55,30 @@
         data: {
           list: [],
         },
-        proto: {},
+        proto: {
+          async deleteServer(index, item) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除握手服务器 ",
+              }),
+              content: await getLocalized({
+                cn: `确定删除第${index + 1}个握手服务器(${item.url})吗？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            this.list.splice(index, 1);
+          },
+        },
         async attached() {
           this.list = serverManager.data;
         },
-        detached() {},
+        detached() {
+          this.list = [];
+        },
       };
     };
   </script>

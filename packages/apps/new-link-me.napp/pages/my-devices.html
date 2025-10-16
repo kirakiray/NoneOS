@@ -25,7 +25,14 @@
         data: {
           devices: [],
         },
-        attached() {},
+        proto: {
+          async getDevices() {
+            
+          },
+        },
+        attached() {
+          this.getDevices();
+        },
         detached() {},
       };
     };

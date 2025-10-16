@@ -157,7 +157,6 @@
         </div>
         <div class="url-text">{{url}}</div>
       </div>
-      <!-- {{url}} - {{state}} - {{serverName}} - {{serverVersion}} -->
     </div>
 
     <i toggle-collapse triangle slot="suffix"></i>
@@ -238,6 +237,9 @@
           </localized-content>
           <n-copy-span>{{serverCid}}</n-copy-span>
         </div>
+      </p-list-item>
+      <p-list-item>
+        <slot></slot>
       </p-list-item>
     </p-list>
   </p-list-item>
