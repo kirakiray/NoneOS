@@ -47,7 +47,7 @@
         </p-list-item>
       </o-fill>
       <p-list-item>
-        <p-input sync:value="newServerUrl">
+        <p-input sync:value="newServerUrl" on:keydown="handleKeydown">
           <label> 添加新服务器 </label>
           <p-button
             on:click="addServer"
@@ -64,7 +64,7 @@
   </p-list-item>
   <script>
     export default async ({ load }) => {
-      const { confirm } = await load("/packages/pui/util.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
       const { createUser } = await load("/packages/new-user/main.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const user = await createUser();
@@ -77,11 +77,32 @@
           newServerUrl: "",
         },
         proto: {
+          // 验证URL是否有效
+          isValidUrl(string) {
+            try {
+              const url = new URL(string);
+            } catch (_) {
+              return false;
+            }
+          },
           async addServer() {
-            debugger;
             if (!this.newServerUrl) {
               return;
             }
+
+            // 验证URL有效性
+            if (!this.isValidUrl(this.newServerUrl)) {
+              toast({
+                content: await getLocalized({
+                  cn: "无效的服务器地址，请输入有效的HTTP或HTTPS协议地址",
+                  en: "Invalid server address, please enter a valid HTTP or HTTPS protocol address",
+                  jp: "無効なサーバーアドレスです、有効なHTTPまたはHTTPSプロトコルアドレスを入力してください",
+                }),
+                color: "error",
+              });
+              return;
+            }
+
             this.list.push({ url: this.newServerUrl });
             this.newServerUrl = "";
           },
