@@ -11,27 +11,25 @@
       padding: 0;
     }
   </style>
-  <p-list>
-    <p-list-item button="suffix" collapse-childs="open">
-      <h4>
-        <localized-content>
-          <span lang="en">My Servers</span>
-          <span lang="cn">我的服务器</span>
-          <span lang="jp">マイサーバー</span>
-        </localized-content>
-        ({{ list.length }})
-      </h4>
+  <p-list-item button="suffix" collapse-childs="open">
+    <h4>
+      <localized-content>
+        <span lang="en">My Servers</span>
+        <span lang="cn">我的服务器</span>
+        <span lang="jp">マイサーバー</span>
+      </localized-content>
+      ({{ list.length }})
+    </h4>
 
-      <i toggle-collapse triangle slot="suffix"></i>
-      <p-list slot="childs" style="--ladder-left: 8px">
-        <o-fill :value="list">
-          <p-list-item>
-            <n-server-item :url="$data.url"></n-server-item>
-          </p-list-item>
-        </o-fill>
-      </p-list>
-    </p-list-item>
-  </p-list>
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs">
+      <o-fill :value="list">
+        <p-list-item>
+          <n-server-item :url="$data.url"></n-server-item>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </p-list-item>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
