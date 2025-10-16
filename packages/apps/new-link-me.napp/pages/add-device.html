@@ -1,0 +1,16 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <div>asdasdasd a asd</div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+
+      const user = await createUser();
+
+      return {
+        data: {},
+        proto: {},
+      };
+    };
+  </script>
+</template>

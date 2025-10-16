@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <style>
     :host {
       display: block;
@@ -12,14 +13,27 @@
     }
   </style>
   <p-list-item button="suffix" collapse-childs="open">
-    <h4>
-      <localized-content style="color: var(--md-sys-color-primary)">
-        <span lang="en">My Devices</span>
-        <span lang="cn">我的设备</span>
-        <span lang="jp">マイデバイス</span>
-      </localized-content>
-      ({{ devices.length }})
-    </h4>
+    <div style="display: flex; align-items: center">
+      <h4>
+        <localized-content style="color: var(--md-sys-color-primary)">
+          <span lang="en">My Devices</span>
+          <span lang="cn">我的设备</span>
+          <span lang="jp">マイデバイス</span>
+        </localized-content>
+        ({{ devices.length }})
+      </h4>
+      <p-button
+        size="mini"
+        on:click="clickAddDevice"
+        style="position: relative; z-index: 3; margin-left: 16px"
+      >
+        <localized-content>
+          <span lang="en">Add Device</span>
+          <span lang="cn">添加设备</span>
+          <span lang="jp">デバイスを追加</span>
+        </localized-content>
+      </p-button>
+    </div>
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs">
       <o-if :value="devices.length > 0">
@@ -39,6 +53,17 @@
     </p-list>
   </p-list-item>
 
+  <p-dialog :open="openDialog" on:click-mask="openDialog = false">
+    <div slot="title">
+      <localized-content>
+        <span lang="en">Add Device</span>
+        <span lang="cn">添加设备</span>
+        <span lang="jp">デバイスを追加</span>
+      </localized-content>
+    </div>
+    <o-page src="./add-device.html"></o-page>
+  </p-dialog>
+
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
@@ -50,8 +75,13 @@
       return {
         data: {
           devices: [],
+          openDialog: true,
         },
         proto: {
+          async clickAddDevice(e) {
+            e.stopPropagation();
+            this.openDialog = true;
+          },
           async getDevices() {},
         },
         attached() {
