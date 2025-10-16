@@ -18,7 +18,6 @@
       const { createUser } = await load("/packages/new-user/main.js");
       const user = await createUser();
 
-      const servers = await user.servers();
       const serverManager = await user.serverManager();
 
       debugger;

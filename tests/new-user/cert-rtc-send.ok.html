@@ -25,8 +25,8 @@
           });
 
           // 保证user2连上服务器
-          const servers = await user2.servers();
-          await user2.connectServer(servers[0].url);
+          const serverManager2 = await user2.serverManager();
+          await user2.connectServer(serverManager2.data[0].url);
 
           // 用于接收数据的Promise
           const receiveDataPromise = new Promise((resolve) => {
@@ -124,8 +124,8 @@
 
         try {
           // 保证user2连上服务器
-          const servers = await user2.servers();
-          await user2.connectServer(servers[0].url);
+          const serverManager2 = await user2.serverManager();
+          await user2.connectServer(serverManager2.data[0].url);
 
           // 用于接收数据的Promise
           const receiveDataPromise = new Promise((resolve) => {
