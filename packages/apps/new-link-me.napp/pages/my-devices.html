@@ -1,18 +1,44 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
     }
+    h4 {
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
   </style>
-  <div>
+  <p-list-item button="suffix" collapse-childs="open">
     <h4>
-      <localized-content>
+      <localized-content style="color: var(--md-sys-color-primary)">
         <span lang="en">My Devices</span>
         <span lang="cn">我的设备</span>
         <span lang="jp">マイデバイス</span>
       </localized-content>
+      ({{ devices.length }})
     </h4>
-  </div>
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs">
+      <o-if :value="devices.length > 0">
+        <o-fill :value="devices">
+          <p-list-item> {{$data}} </p-list-item>
+        </o-fill>
+      </o-if>
+      <o-else>
+        <localized-content
+          style="color: var(--md-sys-color-normal); text-align: center"
+        >
+          <span lang="cn">没有配对过设备</span>
+          <span lang="en">No paired devices</span>
+          <span lang="jp">ペアリングされたデバイスがありません</span>
+        </localized-content>
+      </o-else>
+    </p-list>
+  </p-list-item>
+
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
@@ -26,9 +52,7 @@
           devices: [],
         },
         proto: {
-          async getDevices() {
-            
-          },
+          async getDevices() {},
         },
         attached() {
           this.getDevices();
