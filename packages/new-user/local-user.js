@@ -9,8 +9,6 @@ import CertManager from "./cert-manager.js";
 import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
 
-const infos = {};
-
 // 本地用户类
 export class LocalUser extends BaseUser {
   #dirHandle;
@@ -20,6 +18,7 @@ export class LocalUser extends BaseUser {
   #certManager = null;
   #serverManager = null;
   #myDeviceCache = {};
+  #info = null;
 
   constructor(handle) {
     super(handle);
@@ -138,27 +137,27 @@ export class LocalUser extends BaseUser {
 
   // 获取用户信息对象
   async info() {
-    if (infos[this.#dirHandle.path]) {
-      return infos[this.#dirHandle.path];
+    if (this.#info) {
+      return this.#info;
     }
 
-    const infoHandle = await this.#dirHandle.get("info.json", {
-      create: "file",
-    });
+    return (this.#info = (async () => {
+      const infoHandle = await this.#dirHandle.get("info.json", {
+        create: "file",
+      });
 
-    const infoData = await createSingleData({
-      handle: infoHandle,
-      disconnect: false,
-    });
+      const infoData = await createSingleData({
+        handle: infoHandle,
+        disconnect: false,
+      });
 
-    // 如果没有默认信息，则添加默认信息
-    if (!infoData.name) {
-      infoData.name = generate();
-    }
+      // 如果没有默认信息，则添加默认信息
+      if (!infoData.name) {
+        infoData.name = generate();
+      }
 
-    infos[this.#dirHandle.path] = infoData;
-
-    return infoData;
+      return infoData;
+    })());
   }
 
   // 生成带上用户签名的卡片
