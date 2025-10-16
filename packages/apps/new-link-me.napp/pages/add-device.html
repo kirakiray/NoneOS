@@ -1,15 +1,39 @@
 <template page>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
-  <div>asdasdasd a asd</div>
+  <localized-content>
+    <p lang="cn">请复制下方地址，在需要添加并配对 NoneOS 的浏览器中打开。</p>
+    <p lang="en">
+      Please copy the address below and open it in the browser to add and pair
+      NoneOS.
+    </p>
+    <p lang="jp">
+      NoneOS
+      を追加およびペアリングするには、下記のアドレスをコピーしてブラウザで開いてください。
+    </p>
+  </localized-content>
+  <div style="max-width: 600px; color: var(--md-sys-color-primary)">
+    <n-copy-span> {{url}} </n-copy-span>
+  </div>
+  <o-page src="./pair-device.html" style="margin-top: 16px"></o-page>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
-
       const user = await createUser();
 
       return {
-        data: {},
-        proto: {},
+        data: {
+          userId: user.userId,
+        },
+        proto: {
+          get url() {
+            return `${location.origin}/others/apps/invite/?userId=${this.userId}`;
+          },
+          async clickAddDevice(e) {
+            e.stopPropagation();
+            this.openDialog = true;
+          },
+        },
       };
     };
   </script>

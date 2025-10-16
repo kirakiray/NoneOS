@@ -1,0 +1,36 @@
+<template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div style="display: flex; align-items: center">
+    <n-local-icon
+      name="loading"
+      style="margin-right: 8px; display: block"
+    ></n-local-icon>
+
+    等待设备配对
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+      const user = await createUser();
+
+      return {
+        data: {},
+        attached() {
+          this._off = user.bind("receive-data", (e) => {
+            const { data } = e.detail;
+
+            debugger;
+          });
+        },
+        detached() {
+          this._off();
+        },
+      };
+    };
+  </script>
+</template>

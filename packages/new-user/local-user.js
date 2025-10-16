@@ -216,7 +216,6 @@ export class LocalUser extends BaseUser {
             });
           });
         } else {
-          
         }
       }
 
@@ -275,6 +274,8 @@ export class LocalUser extends BaseUser {
 
                 return userData;
               }
+
+              throw new Error("没有 publicKey");
             })
           );
 

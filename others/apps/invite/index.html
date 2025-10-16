@@ -3,9 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>添加设备</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" />
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        /* font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
+          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
+          Segoe UI Emoji; */
+        font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
+          "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
+          "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
+          "Segoe UI Emoji", "Segoe UI Symbol";
+        -webkit-font-smoothing: auto;
+      }
+
+      #snackbar-container {
+        box-sizing: border-box;
+        padding-bottom: 40px;
+      }
+    </style>
   </head>
   <body>
-    
+    <o-page src="./invite.html"> </o-page>
   </body>
 </html>

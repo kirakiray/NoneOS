@@ -1,0 +1,35 @@
+<template page>
+  <div>
+    <h1>添加设备</h1>
+    {{targetUserId}}
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+      const user = await createUser();
+
+      // 获取连接参数
+      const params = new URLSearchParams(location.search);
+      const targetUserId = params.get("userId"); // 对面设备的userId
+
+      return {
+        data: {
+          targetUserId,
+        },
+        proto: {
+          async sendInvite() {
+            const remoteUser = await user.connectUser({
+              userId: targetUserId,
+            });
+
+            debugger;
+          },
+        },
+        attached() {
+          this.sendInvite();
+        },
+        detached() {},
+      };
+    };
+  </script>
+</template>
