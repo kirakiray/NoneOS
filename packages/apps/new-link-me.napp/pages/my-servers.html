@@ -37,9 +37,9 @@
                 style="display: inline-block"
               >
                 <localized-content>
-                  <span lang="en">Delete</span>
-                  <span lang="cn">删除</span>
-                  <span lang="jp">削除</span>
+                  <span lang="cn">删除该服务器</span>
+                  <span lang="en">Delete Server</span>
+                  <span lang="jp">サーバーを削除</span>
                 </localized-content>
               </p-button>
             </div>
@@ -48,7 +48,13 @@
       </o-fill>
       <p-list-item>
         <p-input sync:value="newServerUrl" on:keydown="handleKeydown">
-          <label> 添加新服务器 </label>
+          <label>
+            <localized-content>
+              <span lang="en">Add New Server</span>
+              <span lang="cn">添加新服务器</span>
+              <span lang="jp">新しいサーバーを追加</span>
+            </localized-content>
+          </label>
           <p-button
             on:click="addServer"
             variant="text"
@@ -56,7 +62,11 @@
             slot="suffix"
             attr:disabled="!newServerUrl.length"
           >
-            添加
+            <localized-content>
+              <span lang="en">Add</span>
+              <span lang="cn">添加</span>
+              <span lang="jp">追加</span>
+            </localized-content>
           </p-button>
         </p-input>
       </p-list-item>
