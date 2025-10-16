@@ -13,6 +13,7 @@ export class HandServerClient extends EventTarget {
     this.delay = 0; // 延迟时间
     this.serverName = null; // 服务器名称
     this.serverVersion = null; // 服务器版本
+    this.serverCid = null; // 服务器CID
   }
 
   async init() {
@@ -208,6 +209,7 @@ export class HandServerClient extends EventTarget {
     } else if (responseData.type === "server_info") {
       this.serverName = responseData.serverName;
       this.serverVersion = responseData.serverVersion;
+      this.serverCid = responseData.cid;
       this.dispatchEvent(
         new CustomEvent("server-info", { detail: responseData })
       );

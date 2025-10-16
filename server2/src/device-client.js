@@ -29,6 +29,7 @@ export class DeviceClient {
       type: "server_info",
       serverName: this.server.serverName,
       serverVersion: this.server.serverVersion,
+      cid: this.cid,
     });
   }
 

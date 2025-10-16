@@ -137,6 +137,17 @@
           <n-copy-span>{{url}}</n-copy-span>
         </div>
       </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex">
+          <localized-content class="label">
+            <span lang="cn">服务器CID</span>
+            <span lang="en">Server CID</span>
+            <span lang="jp">サーバーCID</span>
+          </localized-content>
+          <n-copy-span>{{serverCid}}</n-copy-span>
+        </div>
+      </p-list-item>
     </p-list>
   </p-list-item>
   <script>
@@ -150,6 +161,7 @@
           url: "",
           serverName: "",
           serverVersion: "",
+          serverCid: "",
           delay: "-",
           stateUpdateTime: "-",
         },
@@ -172,6 +184,7 @@
             this.serverName = this._serverClient.serverName;
             this.serverVersion = this._serverClient.serverVersion;
             this.delay = this._serverClient.delay;
+            this.serverCid = this._serverClient.serverCid;
             this.stateUpdateTime = new Date(
               this._serverClient.stateUpdateTime
             ).toLocaleString();
