@@ -17,8 +17,9 @@
       console.log("user2", user2);
 
       // 保证user2连上服务器
-      const servers = await user2.servers();
-      await user2.connectServer(servers[0].url);
+      const serverManager = await user2.serverManager();
+
+      await user2.connectServer(serverManager.data[0].url);
 
       // user2监听获取数据的事件
       const cancel1 = user2.bind("receive-data", (e) => {

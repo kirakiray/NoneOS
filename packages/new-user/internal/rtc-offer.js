@@ -22,7 +22,7 @@ export default async function rtcOfferHandler({
   if (!localUser._ignoreCert && !(await localUser.isMyDevice(fromUserId))) {
     // 记录非自身设备尝试创建连接的错误信息
     console.error(
-      `检测到非本地设备尝试建立连接，连接请求已拒绝。请求设备用户 ID: ${fromUserId}`
+      `检测到非我的设备尝试建立连接，连接请求已拒绝。请求设备用户 ID: ${fromUserId}`
     );
 
     server.sendTo(
@@ -32,7 +32,7 @@ export default async function rtcOfferHandler({
       },
       {
         type: "rtc-offer-error",
-        message: "非本地设备尝试建立连接，连接请求已拒绝",
+        message: "非我的设备尝试建立连接，连接请求已拒绝",
         toRTCId: fromRTCId,
         __internal_mark: 1,
       }

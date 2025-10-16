@@ -41,13 +41,13 @@ export class RemoteUser extends BaseUser {
   }
 
   async checkState() {
-    const serversData = await this.#self.servers();
+    const serverManager = await this.#self.serverManager();
 
     const servers = [];
 
     // 等待最快的服务器初始化完成
     await Promise.any(
-      serversData.map(async (server) => {
+      serverManager.data.map(async (server) => {
         const serverClient = await this.#self.connectServer(server.url);
 
         const userData = await serverClient.findUser(this.userId);

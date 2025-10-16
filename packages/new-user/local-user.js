@@ -7,6 +7,7 @@ import { RemoteUser } from "./remote-user.js";
 import internal from "./internal/index.js";
 import CertManager from "./cert-manager.js";
 import { generate } from "../util/rand-adj-noun.js";
+import { ServerManager } from "./server-manager.js";
 
 const infos = {};
 const servers = {};
@@ -18,6 +19,7 @@ export class LocalUser extends BaseUser {
   #serverConnects = {};
   #remotes = {};
   #certManager = null;
+  #serverManager = null;
   #myDeviceCache = {};
 
   constructor(handle) {
@@ -174,45 +176,6 @@ export class LocalUser extends BaseUser {
     return signedData;
   }
 
-  // 用户保存的握手服务器列表
-  async servers() {
-    if (servers[this.#dirHandle.path]) {
-      return servers[this.#dirHandle.path];
-    }
-
-    const serversHandle = await this.#dirHandle.get("servers.json", {
-      create: "file",
-    });
-
-    const serversData = await createSingleData({
-      handle: serversHandle,
-      disconnect: false,
-    });
-
-    if (!serversData.length) {
-      if (location.host === "localhost:5559") {
-        // 如果没有，则添加默认的服务器
-        serversData.push({
-          url: "ws://localhost:18290",
-        });
-      } else {
-        // 添加在线版服务器
-        serversData.push(
-          {
-            url: "wss://hand-us1.noneos.com",
-          },
-          {
-            url: "wss://hand-jp1.noneos.com",
-          }
-        );
-      }
-    }
-
-    servers[this.#dirHandle.path] = serversData;
-
-    return serversData;
-  }
-
   // 连接服务器
   async connectServer(url, options = {}) {
     if (this.#serverConnects[url]) {
@@ -257,7 +220,7 @@ export class LocalUser extends BaseUser {
       options = { userId: options };
     }
 
-    const serversData = await this.servers();
+    const serverManager = await this.serverManager();
 
     if (options.userId) {
       const { userId } = options;
@@ -277,7 +240,7 @@ export class LocalUser extends BaseUser {
         if (!publicKey) {
           // 从在线服务器上查找用户卡片
           const userData = await Promise.any(
-            serversData.map(async (server) => {
+            serverManager.data.map(async (server) => {
               const serverClient = await this.connectServer(server.url);
 
               const userData = await serverClient.findUser(userId);
@@ -315,16 +278,28 @@ export class LocalUser extends BaseUser {
     }
   }
 
+  async serverManager() {
+    if (this.#serverManager) {
+      return this.#serverManager;
+    }
+
+    return (this.#serverManager = (async () => {
+      const serverManager = new ServerManager(this, this.#dirHandle);
+      await serverManager.init();
+      return serverManager;
+    })());
+  }
+
   async certManager() {
     if (this.#certManager) {
       return this.#certManager;
     }
 
-    return (async () => {
+    return (this.#certManager = (async () => {
       const certManager = new CertManager(this);
       await certManager.initDB();
       return certManager;
-    })();
+    })());
   }
 
   // 判断对方id是否是我的设备
