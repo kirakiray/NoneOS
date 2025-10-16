@@ -77,10 +77,17 @@
           newServerUrl: "",
         },
         proto: {
+          // 处理键盘事件
+          handleKeydown(e) {
+            if (e.key === "Enter") {
+              this.addServer();
+            }
+          },
           // 验证URL是否有效
           isValidUrl(string) {
             try {
               const url = new URL(string);
+              return url.protocol === "ws:" || url.protocol === "wss:";
             } catch (_) {
               return false;
             }
@@ -94,9 +101,9 @@
             if (!this.isValidUrl(this.newServerUrl)) {
               toast({
                 content: await getLocalized({
-                  cn: "无效的服务器地址，请输入有效的HTTP或HTTPS协议地址",
-                  en: "Invalid server address, please enter a valid HTTP or HTTPS protocol address",
-                  jp: "無効なサーバーアドレスです、有効なHTTPまたはHTTPSプロトコルアドレスを入力してください",
+                  cn: "无效的服务器地址，请输入有效的WS或WSS协议地址",
+                  en: "Invalid server address, please enter a valid WS or WSS protocol address",
+                  jp: "無効なサーバーアドレスです、有効なWSまたはWSSプロトコルアドレスを入力してください",
                 }),
                 color: "error",
               });
