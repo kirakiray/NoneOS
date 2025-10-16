@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
 
   <style>
     :host {
@@ -11,6 +12,14 @@
       display: block;
       color: var(--md-sys-color-normal);
       margin-right: 8px;
+    }
+
+    .circle {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 16px;
     }
 
     [state="unauth"] {
@@ -24,16 +33,40 @@
     [state="authed"] {
       color: var(--md-sys-color-success);
     }
+
+    [circle-state="unauth"] {
+      background-color: var(--md-sys-color-error);
+    }
+
+    [circle-state="authing"] {
+      background-color: var(--md-sys-color-normal);
+    }
+
+    [circle-state="authed"] {
+      background-color: var(--md-sys-color-success);
+    }
   </style>
 
   <p-list-item button="suffix" collapse-childs="open">
-    <div style="display: flex">
-      <div
-        class="circle"
-        style="width: 8px; height: 8px; border-radius: 50%; margin-right: 8px"
-      ></div>
-      <div class="info"></div>
-      {{url}} - {{state}} - {{serverName}} - {{serverVersion}}
+    <div style="display: flex; align-items: center">
+      <div class="circle" attr:circle-state="state"></div>
+      <div class="info">
+        <div>
+          <span style="font-weight: bold">{{serverName}}</span>
+          <span
+            style="
+              margin-left: 8px;
+              font-size: 12px;
+              color: var(--md-sys-color-normal);
+            "
+            >Version: {{serverVersion}}
+          </span>
+        </div>
+        <div style="color: var(--md-sys-color-normal); font-size: 13px">
+          {{url}}
+        </div>
+      </div>
+      <!-- {{url}} - {{state}} - {{serverName}} - {{serverVersion}} -->
     </div>
 
     <i toggle-collapse triangle slot="suffix"></i>
@@ -101,7 +134,7 @@
             <span lang="en">Server URL</span>
             <span lang="jp">サーバーアドレス</span>
           </localized-content>
-          {{url}}
+          <n-copy-span>{{url}}</n-copy-span>
         </div>
       </p-list-item>
     </p-list>
