@@ -97,6 +97,23 @@
               return;
             }
 
+            // 检查重复
+            // 检查是否有重复的服务器地址
+            const isDuplicate = this.list.some(
+              (item) => item.url === this.newServerUrl
+            );
+            if (isDuplicate) {
+              toast({
+                content: await getLocalized({
+                  cn: "服务器地址已存在，请不要重复添加",
+                  en: "The server address already exists, please do not add it repeatedly",
+                  jp: "サーバーアドレスは既に存在します。重複して追加しないでください",
+                }),
+                color: "error",
+              });
+              return;
+            }
+
             // 验证URL有效性
             if (!this.isValidUrl(this.newServerUrl)) {
               toast({
