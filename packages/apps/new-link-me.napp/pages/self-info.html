@@ -100,17 +100,33 @@
         <o-if :value="renameMode">
           <input type="text" sync:value="renameVal" />
           <button on:click="clickSave" attr:disabled="renameVal.length === 0">
-            Save
+            <localized-content>
+              <span lang="en">Save</span>
+              <span lang="cn">保存</span>
+              <span lang="jp">保存</span>
+            </localized-content>
           </button>
         </o-if>
         <o-else>
           <div class="info-name">
             {{info.name}}
-            <button on:click="renameMode = true">Edit</button>
+            <button on:click="renameMode = true">
+              <localized-content>
+                <span lang="en">Edit</span>
+                <span lang="cn">编辑</span>
+                <span lang="jp">編集</span>
+              </localized-content>
+            </button>
           </div>
         </o-else>
         <div class="user-info-row">
-          <div class="user-id-label">User ID:</div>
+          <div class="user-id-label">
+            <localized-content>
+              <span lang="en">UserID</span>
+              <span lang="cn">用户ID</span>
+              <span lang="jp">ユーザーID</span>
+            </localized-content>
+          </div>
           <div class="user-id">{{userId}}</div>
         </div>
       </div>
