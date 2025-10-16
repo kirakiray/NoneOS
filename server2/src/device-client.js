@@ -24,6 +24,14 @@ export class DeviceClient {
     this.connectTime = new Date(); // 记录连接时间
   }
 
+  sendServerInfo() {
+    this.send({
+      type: "server_info",
+      serverName: this.server.serverName,
+      serverVersion: this.server.serverVersion,
+    });
+  }
+
   send(data) {
     // 判断是二进制则直接发送，对象则发送字符串
     if (

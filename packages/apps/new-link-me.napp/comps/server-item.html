@@ -4,7 +4,7 @@
       display: block;
     }
   </style>
-  {{url}} - {{state}}
+  {{url}} - {{state}} - {{serverName}} - {{serverVersion}}
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
@@ -14,10 +14,12 @@
         tag: "n-server-item",
         attrs: {
           url: "",
+          serverName: "",
+          serverVersion: "",
         },
         data: {
           state: "",
-          _off: null,
+          _offs: [],
           _serverClient: null,
         },
         watch: {
@@ -28,10 +30,13 @@
         proto: {
           async updateInfo() {
             this.state = this._serverClient.state;
+            this.serverName = this._serverClient.serverName;
+            this.serverVersion = this._serverClient.serverVersion;
           },
           async initServerState() {
-            if (this._off) {
-              this._off();
+            if (this._offs.length) {
+              this._offs.forEach((off) => off());
+              this._offs = [];
             }
 
             const { url } = this;
@@ -42,14 +47,16 @@
 
             this.updateInfo();
 
-            this._off = this._serverClient.bind("change-state", () =>
-              this.updateInfo()
+            this._offs.push(
+              this._serverClient.bind("change-state", () => this.updateInfo()),
+              this._serverClient.bind("server-info", () => this.updateInfo())
             );
           },
         },
         detached() {
-          if (this._off) {
-            this._off();
+          if (this._offs.length) {
+            this._offs.forEach((off) => off());
+            this._offs = [];
           }
         },
       };

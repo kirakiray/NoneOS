@@ -9,7 +9,10 @@ export class HandServerClient extends EventTarget {
     this.socket = null;
     this.#user = user;
     this.state = "unauth"; // 未认证：unauth；认证中：authing；认证完成：authed
-    this.delay = 0;
+    this.stateUpdateTime = Date.now(); // 最近更新状态时间
+    this.delay = 0; // 延迟时间
+    this.serverName = null; // 服务器名称
+    this.serverVersion = null; // 服务器版本
   }
 
   async init() {
@@ -194,6 +197,12 @@ export class HandServerClient extends EventTarget {
           },
         })
       );
+    } else if (responseData.type === "server_info") {
+      this.serverName = responseData.serverName;
+      this.serverVersion = responseData.serverVersion;
+      this.dispatchEvent(
+        new CustomEvent("server-info", { detail: responseData })
+      );
     }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));
@@ -201,6 +210,7 @@ export class HandServerClient extends EventTarget {
 
   _changeState(state) {
     this.state = state;
+    this.stateUpdateTime = Date.now(); // 最近更新状态时间
     this.dispatchEvent(new Event(state));
     this.dispatchEvent(new Event("change-state"));
     if (this.onchange) {

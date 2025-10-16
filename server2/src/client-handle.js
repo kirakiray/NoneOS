@@ -44,6 +44,8 @@ export const options = {
         userId: client.userId,
         message: "认证成功",
       });
+
+      client.sendServerInfo();
     } catch (err) {
       console.error(err);
       // 发送认证失败消息

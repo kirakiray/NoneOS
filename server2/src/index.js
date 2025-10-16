@@ -153,6 +153,8 @@ export const initServer = async ({
   // 将 clients Map 添加到 server 实例上，以便 DeviceClient 可以访问
   server.clients = clients;
   server.users = users;
+  server.serverName = serverName;
+  server.serverVersion = packageJson.version;
 
   // 启动服务器，监听指定端口
   server.start(port);
