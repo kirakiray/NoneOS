@@ -1,0 +1,29 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>
+    <h4>
+      <localized-content>
+        <span lang="en">My Servers</span>
+        <span lang="cn">我的服务器</span>
+        <span lang="jp">マイサーバー</span>
+      </localized-content>
+    </h4>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+      const user = await createUser();
+
+      return {
+        data: {},
+        proto: {},
+        async attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

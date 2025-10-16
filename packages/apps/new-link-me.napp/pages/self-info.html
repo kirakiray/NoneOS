@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -127,7 +128,9 @@
               <span lang="jp">ユーザーID</span>
             </localized-content>
           </div>
-          <div class="user-id">{{userId}}</div>
+          <div class="user-id">
+            <n-copy-span>{{userId}}</n-copy-span>
+          </div>
         </div>
       </div>
     </div>

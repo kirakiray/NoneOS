@@ -1,0 +1,33 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>
+    <h4>
+      <localized-content>
+        <span lang="en">My Devices</span>
+        <span lang="cn">我的设备</span>
+        <span lang="jp">マイデバイス</span>
+      </localized-content>
+    </h4>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+
+      const user = await createUser();
+
+      const certManager = await user.certManager();
+
+      return {
+        data: {
+          devices: [],
+        },
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>
