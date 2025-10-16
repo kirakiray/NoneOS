@@ -180,6 +180,12 @@ export class LocalUser extends BaseUser {
       return this.#serverConnects[url];
     }
 
+    options = { ...options };
+
+    if (options.waitForAuthed === undefined) {
+      options.waitForAuthed = true;
+    }
+
     let serverClient = null;
 
     if (options.admin && options.password) {
@@ -201,12 +207,18 @@ export class LocalUser extends BaseUser {
     return (this.#serverConnects[url] = (async () => {
       await serverClient.init();
 
-      await new Promise((resolve) => {
-        const offBind = serverClient.bind("authed", () => {
-          offBind(); // 移除事件监听
-          resolve();
-        });
-      });
+      if (this.state !== "authed") {
+        if (options.waitForAuthed) {
+          await new Promise((resolve) => {
+            const offBind = serverClient.bind("authed", () => {
+              offBind(); // 移除事件监听
+              resolve();
+            });
+          });
+        } else {
+          
+        }
+      }
 
       return serverClient;
     })());

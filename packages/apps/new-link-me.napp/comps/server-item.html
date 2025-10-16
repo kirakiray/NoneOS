@@ -1,0 +1,58 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  {{url}} - {{state}}
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+      const user = await createUser();
+
+      return {
+        tag: "n-server-item",
+        attrs: {
+          url: "",
+        },
+        data: {
+          state: "",
+          _off: null,
+          _serverClient: null,
+        },
+        watch: {
+          url(newVal) {
+            this.initServerState();
+          },
+        },
+        proto: {
+          async updateInfo() {
+            this.state = this._serverClient.state;
+          },
+          async initServerState() {
+            if (this._off) {
+              this._off();
+            }
+
+            const { url } = this;
+
+            this._serverClient = await user.connectServer(url, {
+              waitForAuthed: false,
+            });
+
+            this.updateInfo();
+
+            this._off = this._serverClient.bind("change-state", () =>
+              this.updateInfo()
+            );
+          },
+        },
+        detached() {
+          if (this._off) {
+            this._off();
+          }
+        },
+      };
+    };
+  </script>
+</template>

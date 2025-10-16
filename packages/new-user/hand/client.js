@@ -202,6 +202,7 @@ export class HandServerClient extends EventTarget {
   _changeState(state) {
     this.state = state;
     this.dispatchEvent(new Event(state));
+    this.dispatchEvent(new Event("change-state"));
     if (this.onchange) {
       this.onchange(this);
     }
