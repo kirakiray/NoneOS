@@ -1,9 +1,28 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
 
   <style>
     :host {
       display: block;
+    }
+
+    .label {
+      display: block;
+      color: var(--md-sys-color-normal);
+      margin-right: 8px;
+    }
+
+    [state="unauth"] {
+      color: var(--md-sys-color-error);
+    }
+
+    [state="authing"] {
+      color: var(--md-sys-color-normal);
+    }
+
+    [state="authed"] {
+      color: var(--md-sys-color-success);
     }
   </style>
 
@@ -21,13 +40,7 @@
     <p-list slot="childs" style="--ladder-left: 8px">
       <p-list-item>
         <div style="display: flex">
-          <localized-content
-            style="
-              display: block;
-              color: var(--md-sys-color-normal);
-              margin-right: 8px;
-            "
-          >
+          <localized-content class="label">
             <span lang="cn">服务器名称</span>
             <span lang="en">Server Name</span>
             <span lang="jp">サーバー名</span>
@@ -38,47 +51,41 @@
 
       <p-list-item>
         <div style="display: flex">
-          <localized-content
-            style="
-              display: block;
-              color: var(--md-sys-color-normal);
-              margin-right: 8px;
-            "
-          >
+          <localized-content class="label">
             <span lang="cn">状态</span>
             <span lang="en">State</span>
             <span lang="jp">状態</span>
           </localized-content>
-          {{state}}
+          <span attr:state="state"> {{state}} </span>
         </div>
       </p-list-item>
 
       <p-list-item>
-        <div style="display: flex">
-          <localized-content
-            style="
-              display: block;
-              color: var(--md-sys-color-normal);
-              margin-right: 8px;
-            "
-          >
+        <div style="display: flex; align-items: center">
+          <localized-content class="label">
             <span lang="cn">延迟</span>
             <span lang="en">Latency</span>
             <span lang="jp">遅延</span>
           </localized-content>
           {{delay}} ms
+          <p-button
+            size="mini"
+            on:click="checkDelay"
+            variant="text"
+            style="margin-left: 8px"
+          >
+            <localized-content>
+              <span lang="cn">检查延迟</span>
+              <span lang="en">Check Latency</span>
+              <span lang="jp">遅延を確認</span>
+            </localized-content>
+          </p-button>
         </div>
       </p-list-item>
 
       <p-list-item>
         <div style="display: flex">
-          <localized-content
-            style="
-              display: block;
-              color: var(--md-sys-color-normal);
-              margin-right: 8px;
-            "
-          >
+          <localized-content class="label">
             <span lang="cn">状态更新时间</span>
             <span lang="en">State Update Time</span>
             <span lang="jp">状態更新時間</span>
@@ -89,13 +96,7 @@
 
       <p-list-item>
         <div style="display: flex">
-          <localized-content
-            style="
-              display: block;
-              color: var(--md-sys-color-normal);
-              margin-right: 8px;
-            "
-          >
+          <localized-content class="label">
             <span lang="cn">服务器地址</span>
             <span lang="en">Server URL</span>
             <span lang="jp">サーバーアドレス</span>
@@ -130,6 +131,9 @@
           },
         },
         proto: {
+          checkDelay() {
+            this._serverClient.checkDelay();
+          },
           async updateInfo() {
             this.state = this._serverClient.state;
             this.serverName = this._serverClient.serverName;
@@ -155,7 +159,8 @@
 
             this._offs.push(
               this._serverClient.bind("change-state", () => this.updateInfo()),
-              this._serverClient.bind("server-info", () => this.updateInfo())
+              this._serverClient.bind("server-info", () => this.updateInfo()),
+              this._serverClient.bind("check-delay", () => this.updateInfo())
             );
           },
         },

@@ -96,11 +96,19 @@ export class HandServerClient extends EventTarget {
 
     clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {
-      if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-        this._pingTime = Date.now();
-        this._send({ type: "ping" });
-      }
+      this.checkDelay();
     }, 30000);
+  }
+
+  async checkDelay() {
+    if (this.state !== "authed") {
+      throw new Error("用户未认证");
+    }
+
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this._pingTime = Date.now();
+      this._send({ type: "ping" });
+    }
   }
 
   // 处理WebSocket消息事件
