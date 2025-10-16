@@ -9,6 +9,11 @@
 
   <p-list-item button="suffix" collapse-childs="open">
     <div style="display: flex">
+      <div
+        class="circle"
+        style="width: 8px; height: 8px; border-radius: 50%; margin-right: 8px"
+      ></div>
+      <div class="info"></div>
       {{url}} - {{state}} - {{serverName}} - {{serverVersion}}
     </div>
 
@@ -30,6 +35,74 @@
           {{serverName}}
         </div>
       </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex">
+          <localized-content
+            style="
+              display: block;
+              color: var(--md-sys-color-normal);
+              margin-right: 8px;
+            "
+          >
+            <span lang="cn">状态</span>
+            <span lang="en">State</span>
+            <span lang="jp">状態</span>
+          </localized-content>
+          {{state}}
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex">
+          <localized-content
+            style="
+              display: block;
+              color: var(--md-sys-color-normal);
+              margin-right: 8px;
+            "
+          >
+            <span lang="cn">延迟</span>
+            <span lang="en">Latency</span>
+            <span lang="jp">遅延</span>
+          </localized-content>
+          {{delay}} ms
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex">
+          <localized-content
+            style="
+              display: block;
+              color: var(--md-sys-color-normal);
+              margin-right: 8px;
+            "
+          >
+            <span lang="cn">状态更新时间</span>
+            <span lang="en">State Update Time</span>
+            <span lang="jp">状態更新時間</span>
+          </localized-content>
+          {{stateUpdateTime}}
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex">
+          <localized-content
+            style="
+              display: block;
+              color: var(--md-sys-color-normal);
+              margin-right: 8px;
+            "
+          >
+            <span lang="cn">服务器地址</span>
+            <span lang="en">Server URL</span>
+            <span lang="jp">サーバーアドレス</span>
+          </localized-content>
+          {{url}}
+        </div>
+      </p-list-item>
     </p-list>
   </p-list-item>
   <script>
@@ -43,6 +116,8 @@
           url: "",
           serverName: "",
           serverVersion: "",
+          delay: "-",
+          stateUpdateTime: "-",
         },
         data: {
           state: "",
@@ -59,6 +134,10 @@
             this.state = this._serverClient.state;
             this.serverName = this._serverClient.serverName;
             this.serverVersion = this._serverClient.serverVersion;
+            this.delay = this._serverClient.delay;
+            this.stateUpdateTime = new Date(
+              this._serverClient.stateUpdateTime
+            ).toLocaleString();
           },
           async initServerState() {
             if (this._offs.length) {
