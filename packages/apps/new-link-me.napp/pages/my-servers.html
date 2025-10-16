@@ -1,5 +1,7 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="../comps/server-item.html"></l-m>
   <style>
     :host {
@@ -34,12 +36,30 @@
                 size="small"
                 style="display: inline-block"
               >
-                删除该服务器
+                <localized-content>
+                  <span lang="en">Delete</span>
+                  <span lang="cn">删除</span>
+                  <span lang="jp">削除</span>
+                </localized-content>
               </p-button>
             </div>
           </n-server-item>
         </p-list-item>
       </o-fill>
+      <p-list-item>
+        <p-input sync:value="newServerUrl">
+          <label> 添加新服务器 </label>
+          <p-button
+            on:click="addServer"
+            variant="text"
+            size="small"
+            slot="suffix"
+            attr:disabled="!newServerUrl.length"
+          >
+            添加
+          </p-button>
+        </p-input>
+      </p-list-item>
     </p-list>
   </p-list-item>
   <script>
@@ -54,15 +74,32 @@
       return {
         data: {
           list: [],
+          newServerUrl: "",
         },
         proto: {
+          async addServer() {
+            debugger;
+            if (!this.newServerUrl) {
+              return;
+            }
+            this.list.push({ url: this.newServerUrl });
+            this.newServerUrl = "";
+          },
           async deleteServer(index, item) {
             const result = await confirm({
               title: await getLocalized({
                 cn: "删除握手服务器 ",
+                en: "Delete Handshake Server ",
+                jp: "ハンドシェイクサーバーを削除する ",
               }),
               content: await getLocalized({
                 cn: `确定删除第${index + 1}个握手服务器(${item.url})吗？`,
+                en: `Are you sure you want to delete the ${
+                  index + 1
+                }th handshake server (${item.url})?`,
+                jp: `第${index + 1}つのハンドシェイクサーバー (${
+                  item.url
+                }) を削除しますか？`,
               }),
             });
 

@@ -16,8 +16,9 @@
     "hand": "nodemon --inspect server/test-server.js",
     "dev": "node scripts/static-server & node --inspect server/test-server.js & node server/test-server2.js",
     "ci-test": "node scripts/ci-test.js",
+    "both2": "npm run node2 & npm run bun2",
     "node2": "node --inspect server2/start.js --port=18290 --name=node-hand-server2",
-    "bun2": "bun --inspect server2/start.js --port=18290 --name=bun-hand-server2"
+    "bun2": "bun --inspect server2/start.js --port=18291 --name=bun-hand-server2"
   },
   "repository": {
     "type": "git",
