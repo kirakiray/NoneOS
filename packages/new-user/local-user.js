@@ -10,7 +10,6 @@ import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
 
 const infos = {};
-const servers = {};
 
 // 本地用户类
 export class LocalUser extends BaseUser {
@@ -212,6 +211,16 @@ export class LocalUser extends BaseUser {
 
       return serverClient;
     })());
+  }
+
+  async connectAllServers() {
+    const serverManager = await this.serverManager();
+
+    await Promise.all(
+      serverManager.data.map(async (server) => {
+        await this.connectServer(server.url);
+      })
+    );
   }
 
   // 直接连接用户
