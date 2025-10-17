@@ -26,7 +26,7 @@
 
       // 获取远端用户
       const remoteUser2 = await user1.connectUser(user2.userId);
-      const info2 = await remoteUser2.info();
+      const info2 = await remoteUser2.info({ useOnline: true });
 
       console.log(info2);
     </script>

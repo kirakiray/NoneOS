@@ -144,12 +144,17 @@ export class RemoteUser extends BaseUser {
   }
 
   // 获取用户信息
-  async info() {
+  async info(
+    options = {
+      // 使用在线查询的用户数据
+      useOnline: false,
+    }
+  ) {
     // 尝试从本地卡片库上获取
     const cardManager = await this.#self.cardManager();
     const card = await cardManager.get(this.userId);
 
-    if (card) {
+    if (!options.useOnline && card) {
       // 验证卡片是否被篡改
       const result = await this.verify(card);
 
@@ -164,16 +169,35 @@ export class RemoteUser extends BaseUser {
       );
     }
 
-    // 直接尝试从对方获取卡片信息
-    this.post({
-      type: "get-card",
-      userId: [this.userId],
-      __internal_mark: 1,
-    });
-
     return new Promise((resolve, reject) => {
-      const off = cardManager.bind("update", (event) => {
+      // 直接尝试从对方获取卡片信息
+      this.post({
+        type: "get-card",
+        userId: [this.userId],
+        __internal_mark: 1,
+      });
+
+      // 超时
+      const timeout = setTimeout(() => {
+        reject(new Error("获取用户信息超时"));
+        off();
+      }, 10000);
+
+      const off = cardManager.bind("update", async (event) => {
         if (event.detail.userId === this.userId) {
+          // 验证卡片是否被篡改
+          const result = await this.verify(event.detail);
+
+          if (!result) {
+            console.error(
+              new Error(
+                `卡片验证失败：检测到从对方获取的用户卡片数据（用户ID：${this.userId}）已被篡改`
+              )
+            );
+            return;
+          }
+
+          clearTimeout(timeout);
           resolve(event.detail);
           off();
         }
