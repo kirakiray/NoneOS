@@ -29,9 +29,17 @@
       // 用户1 保存卡片
       await cardManager.save(card2);
 
-      // 连接所有服务器
-      //   await user1.connectAllServers();
-      //   await user2.connectAllServers();
+      // 获取用户卡片
+      const card2_b = await cardManager.get(user2.userId);
+
+      console.log(card2_b);
+
+      await cardManager.delete(user2.userId);
+
+      // 再次获取用户卡片
+      const card2_c = await cardManager.get(user2.userId);
+
+      console.log(card2_c);
 
       console.log(cardManager);
     </script>

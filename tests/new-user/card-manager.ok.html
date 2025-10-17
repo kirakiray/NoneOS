@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Card Manager Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+      import { verify } from "/packages/new-user/util/verify.js";
+
+      await test("Create Users and CardManager Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        // 检查用户是否正确创建
+        const hasUser1Id = !!user1.userId;
+        const hasUser2Id = !!user2.userId;
+
+        // 初始化卡片管理器
+        const cardManager = await user1.cardManager();
+
+        return {
+          assert: hasUser1Id && hasUser2Id && !!cardManager,
+          content: {
+            message: "用户和CardManager创建成功",
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+            hasUser1Id,
+            hasUser2Id,
+            hasCardManager: !!cardManager,
+          },
+        };
+      });
+
+      await test("Create and Save User Card Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user3" });
+        const user2 = await createUser({ user: "test-user4" });
+
+        // 初始化卡片管理器
+        const cardManager = await user1.cardManager();
+
+        // 用户2 创建卡片
+        const card2 = await user2.createCard();
+
+        // 验证卡片是否正确创建
+        const isCardValid = await verify(card2);
+        const hasCorrectUserId = card2.userId === user2.userId;
+        const hasRequiredKeys = ["name", "userId", "publicKey", "signTime", "signature"].every(
+          (key) => key in card2
+        );
+
+        // 用户1 保存卡片
+        const savedCard = await cardManager.save(card2);
+
+        return {
+          assert: isCardValid && hasCorrectUserId && hasRequiredKeys && !!savedCard,
+          content: {
+            message: "用户卡片创建和保存成功",
+            card: card2,
+            isCardValid,
+            hasCorrectUserId,
+            hasRequiredKeys,
+            hasSavedCard: !!savedCard,
+          },
+        };
+      });
+
+      await test("Get User Card Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user5" });
+        const user2 = await createUser({ user: "test-user6" });
+
+        // 初始化卡片管理器
+        const cardManager = await user1.cardManager();
+
+        // 用户2 创建卡片
+        const card2 = await user2.createCard();
+
+        // 用户1 保存卡片
+        await cardManager.save(card2);
+
+        // 获取用户卡片
+        const card2_b = await cardManager.get(user2.userId);
+
+        // 验证获取的卡片
+        const hasCard = !!card2_b;
+        const isSameUserId = card2_b.userId === user2.userId;
+        const isSameSignature = card2_b.signature === card2.signature;
+
+        return {
+          assert: hasCard && isSameUserId && isSameSignature,
+          content: {
+            message: "用户卡片获取成功",
+            hasCard,
+            isSameUserId,
+            isSameSignature,
+            retrievedCard: card2_b,
+          },
+        };
+      });
+
+      await test("Delete User Card Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user7" });
+        const user2 = await createUser({ user: "test-user8" });
+
+        // 初始化卡片管理器
+        const cardManager = await user1.cardManager();
+
+        // 用户2 创建卡片
+        const card2 = await user2.createCard();
+
+        // 用户1 保存卡片
+        await cardManager.save(card2);
+
+        // 删除用户卡片
+        await cardManager.delete(user2.userId);
+
+        // 再次获取用户卡片
+        const card2_c = await cardManager.get(user2.userId);
+
+        // 验证卡片已被删除
+        const isCardDeleted = card2_c === null;
+
+        return {
+          assert: isCardDeleted,
+          content: {
+            message: "用户卡片删除成功",
+            isCardDeleted,
+            retrievedCardAfterDelete: card2_c,
+          },
+        };
+      });
+
+      await test("Multiple Cards Management Test", async () => {
+        // 创建三个用户
+        const user1 = await createUser({ user: "test-user9" });
+        const user2 = await createUser({ user: "test-user10" });
+        const user3 = await createUser({ user: "test-user11" });
+
+        // 初始化卡片管理器
+        const cardManager = await user1.cardManager();
+
+        // 用户2和用户3创建卡片
+        const card2 = await user2.createCard();
+        const card3 = await user3.createCard();
+
+        // 用户1保存卡片
+        await cardManager.save(card2);
+        await cardManager.save(card3);
+
+        // 获取所有卡片
+        const retrievedCard2 = await cardManager.get(user2.userId);
+        const retrievedCard3 = await cardManager.get(user3.userId);
+
+        // 验证所有卡片都正确保存和获取
+        const hasCard2 = !!retrievedCard2;
+        const hasCard3 = !!retrievedCard3;
+        const isCard2Valid = retrievedCard2.userId === user2.userId;
+        const isCard3Valid = retrievedCard3.userId === user3.userId;
+
+        // 删除一个卡片
+        await cardManager.delete(user2.userId);
+
+        // 再次获取卡片
+        const deletedCard = await cardManager.get(user2.userId);
+        const remainingCard = await cardManager.get(user3.userId);
+
+        const isCard2Deleted = deletedCard === null;
+        const isCard3StillExists = !!remainingCard;
+
+        return {
+          assert: 
+            hasCard2 && 
+            hasCard3 && 
+            isCard2Valid && 
+            isCard3Valid && 
+            isCard2Deleted && 
+            isCard3StillExists,
+          content: {
+            message: "多用户卡片管理测试成功",
+            hasCard2,
+            hasCard3,
+            isCard2Valid,
+            isCard3Valid,
+            isCard2Deleted,
+            isCard3StillExists,
+            remainingCard,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>
