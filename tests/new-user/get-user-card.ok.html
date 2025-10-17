@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get UserCard Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      await test("Get Remote User Card Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        // 连接服务器
+        await user1.connectAllServers();
+        await user2.connectAllServers();
+
+        // 获取远端用户
+        const remoteUser2 = await user1.connectUser(user2.userId);
+        // 远端用户获取用户卡片数据
+        const info2 = await remoteUser2.info({ useOnline: true });
+
+        // 验证获取的用户信息
+        const hasInfo = !!info2;
+        const hasCorrectUserId = info2.userId === user2.userId;
+        const hasRequiredKeys = [
+          "name",
+          "userId",
+          "publicKey",
+          "signTime",
+          "signature",
+        ].every((key) => key in info2);
+
+        return {
+          assert: hasInfo && hasCorrectUserId && hasRequiredKeys,
+          content: {
+            message: "远程用户卡片获取成功",
+            userInfo: info2,
+            hasInfo,
+            hasCorrectUserId,
+            hasRequiredKeys,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>
