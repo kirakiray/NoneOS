@@ -153,13 +153,15 @@ export class RemoteUser extends BaseUser {
       // 验证卡片是否被篡改
       const result = await this.verify(card);
 
-      if (!result) {
-        debugger;
+      if (result) {
+        return card;
       }
 
-      debugger;
-
-      return card;
+      console.error(
+        new Error(
+          `卡片验证失败：检测到本地用户卡片数据（用户ID：${this.userId}）已被篡改`
+        )
+      );
     }
 
     // 直接尝试从对方获取卡片信息
