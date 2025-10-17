@@ -1,14 +1,16 @@
 import { initDB } from "../util/init-db.js";
 import { verify } from "./util/verify.js";
 
-export class CardManager {
+export class CardManager extends EventTarget {
+  #self;
   #db = null;
   constructor(user) {
-    this.self = user;
+    super();
+    this.#self = user;
   }
 
   async init() {
-    this.#db = await initDB("noneos-" + this.self.dirName);
+    this.#db = await initDB("noneos-" + this.#self.dirName);
   }
 
   async save(cardData) {
@@ -20,6 +22,7 @@ export class CardManager {
       "signTime",
       "signature",
     ];
+
     if (!requiredKeys.every((key) => key in cardData)) {
       throw new Error(
         `数据不完整，缺少必要字段: ${requiredKeys
@@ -43,6 +46,11 @@ export class CardManager {
 
       request.onsuccess = () => {
         resolve(cardData);
+        this.dispatchEvent(
+          new CustomEvent("update", {
+            detail: cardData,
+          })
+        );
       };
 
       request.onerror = () => {
@@ -106,5 +114,13 @@ export class CardManager {
         reject(new Error("删除卡片失败"));
       };
     });
+  }
+
+  bind(eventName, callback) {
+    this.addEventListener(eventName, callback);
+
+    return () => {
+      this.removeEventListener(eventName, callback);
+    };
   }
 }

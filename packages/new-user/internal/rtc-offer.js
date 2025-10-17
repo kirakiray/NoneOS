@@ -42,10 +42,7 @@ export default async function rtcOfferHandler({
   }
 
   // 获取目标的远端用户
-  const remoteUser = await localUser.connectUser({
-    userId: fromUserId,
-    fromUserId,
-  });
+  const remoteUser = await localUser.connectUser(fromUserId);
 
   await initRTC(remoteUser, {
     offer,

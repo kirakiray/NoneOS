@@ -20,28 +20,15 @@
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
 
-      // 卡片数据
-      const cardManager = await user1.cardManager();
+      // 连接服务器
+      await user1.connectAllServers();
+      await user2.connectAllServers();
 
-      // 用户2 创建卡片
-      const card2 = await user2.createCard();
+      // 获取远端用户
+      const remoteUser2 = await user1.connectUser(user2.userId);
+      const info2 = await remoteUser2.info();
 
-      // 用户1 保存卡片
-      await cardManager.save(card2);
-
-      // 获取用户卡片
-      const card2_b = await cardManager.get(user2.userId);
-
-      console.log(card2_b);
-
-      await cardManager.delete(user2.userId);
-
-      // 再次获取用户卡片
-      const card2_c = await cardManager.get(user2.userId);
-
-      console.log(card2_c);
-
-      console.log(cardManager);
+      console.log(info2);
     </script>
   </body>
 </html>

@@ -4,6 +4,8 @@ import rtcIceCandidateHandler from "./rtc-ice-candidate.js";
 import rtcOfferErrorHandler from "./rtc-offer-error.js";
 import fsAgent from "./fs-agent.js";
 import receiveObserve from "./fs-receive-observe.js";
+import getCard from "./get-card.js";
+import updateUserCard from "./update-user-card.js";
 
 // 内部操作相关的函数
 export default {
@@ -13,4 +15,6 @@ export default {
   "rtc-ice-candidate": rtcIceCandidateHandler,
   "fs-agent": fsAgent,
   "receive-observe": receiveObserve,
+  "get-card": getCard,
+  "update-user-card": updateUserCard,
 };

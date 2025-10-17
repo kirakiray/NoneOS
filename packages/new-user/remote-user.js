@@ -143,6 +143,42 @@ export class RemoteUser extends BaseUser {
     this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
   }
 
+  // 获取用户信息
+  async info() {
+    // 尝试从本地卡片库上获取
+    const cardManager = await this.#self.cardManager();
+    const card = await cardManager.get(this.userId);
+
+    if (card) {
+      // 验证卡片是否被篡改
+      const result = await this.verify(card);
+
+      if (!result) {
+        debugger;
+      }
+
+      debugger;
+
+      return card;
+    }
+
+    // 直接尝试从对方获取卡片信息
+    this.post({
+      type: "get-card",
+      userId: [this.userId],
+      __internal_mark: 1,
+    });
+
+    return new Promise((resolve, reject) => {
+      const off = cardManager.bind("update", (event) => {
+        if (event.detail.userId === this.userId) {
+          resolve(event.detail);
+          off();
+        }
+      });
+    });
+  }
+
   // 发送消息给这个远端用户
   post(msg, opts) {
     if (this.#mode === 1 && !this.serverState) {

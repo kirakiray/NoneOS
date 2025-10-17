@@ -1,12 +1,13 @@
 import { verify } from "./util/verify.js";
 import { initDB } from "../util/init-db.js";
 
-export default class CertManager {
+export default class CertManager extends EventTarget {
   #user;
   #dbName;
   #db;
 
   constructor(user) {
+    super();
     this.#user = user;
     this.#dbName = "noneos-" + user.dirName;
   }
@@ -178,5 +179,13 @@ export default class CertManager {
         reject(new Error("Delete query failed"));
       };
     });
+  }
+
+  bind(eventName, callback) {
+    this.addEventListener(eventName, callback);
+
+    return () => {
+      this.removeEventListener(eventName, callback);
+    };
   }
 }
