@@ -1,6 +1,6 @@
 export async function initDB(dbName) {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(dbName, 2);
+    const request = indexedDB.open(dbName, 3);
 
     request.onerror = (event) => {
       reject(new Error(`Database error: ${event.target.error}`));
@@ -49,6 +49,16 @@ export async function initDB(dbName) {
         objectStore.createIndex("role", "role", { unique: false });
         objectStore.createIndex("issuedBy", "issuedBy", { unique: false });
         objectStore.createIndex("issuedTo", "issuedTo", { unique: false });
+      }
+
+      // 创建卡片用的存储空间 (table)
+      if (!db.objectStoreNames.contains("cards")) {
+        const objectStore = db.createObjectStore("cards", {
+          keyPath: "userId",
+        });
+
+        // signature 索引
+        objectStore.createIndex("signature", "signature", { unique: true });
       }
     };
   });

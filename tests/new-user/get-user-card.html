@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get UserCard</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/new-user/main.js";
+
+      // 创建两个用户
+      const user1 = await createUser({ user: "test-user1" });
+      const user2 = await createUser({ user: "test-user2" });
+
+      // 卡片数据
+      const cardManager = await user1.cardManager();
+
+      // 用户2 创建卡片
+      const card2 = await user2.createCard();
+
+      // 用户1 保存卡片
+      await cardManager.save(card2);
+
+      // 连接所有服务器
+      //   await user1.connectAllServers();
+      //   await user2.connectAllServers();
+
+      console.log(cardManager);
+    </script>
+  </body>
+</html>

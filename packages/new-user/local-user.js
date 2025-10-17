@@ -8,6 +8,7 @@ import internal from "./internal/index.js";
 import CertManager from "./cert-manager.js";
 import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
+import { CardManager } from "./card-manager.js";
 
 // 本地用户类
 export class LocalUser extends BaseUser {
@@ -17,6 +18,8 @@ export class LocalUser extends BaseUser {
   #remotes = {};
   #certManager = null;
   #serverManager = null;
+  #cardManager = null;
+
   #myDeviceCache = {};
   #info = null;
 
@@ -299,6 +302,20 @@ export class LocalUser extends BaseUser {
     }
   }
 
+  // 获取卡片管理器
+  async cardManager() {
+    if (this.#cardManager) {
+      return this.#cardManager;
+    }
+
+    return (this.#cardManager = (async () => {
+      const cardManager = new CardManager(this);
+      await cardManager.init();
+      return cardManager;
+    })());
+  }
+
+  // 获取服务器管理器
   async serverManager() {
     if (this.#serverManager) {
       return this.#serverManager;
@@ -311,6 +328,7 @@ export class LocalUser extends BaseUser {
     })());
   }
 
+  // 获取证书管理器
   async certManager() {
     if (this.#certManager) {
       return this.#certManager;
