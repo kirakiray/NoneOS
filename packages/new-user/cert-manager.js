@@ -1,5 +1,6 @@
 import { verify } from "./util/verify.js";
 import { initDB } from "../util/init-db.js";
+import { getHash } from "../fs/util.js";
 
 export default class CertManager extends EventTarget {
   #user;
@@ -124,6 +125,13 @@ export default class CertManager extends EventTarget {
           .filter((key) => !(key in data))
           .join(", ")}`
       );
+    }
+
+    // 对比用户id
+    const keyUserId = await getHash(data.publicKey);
+
+    if (keyUserId !== data.issuedBy) {
+      throw new Error("用户ID与公钥不匹配");
     }
 
     const result = await verify(data);

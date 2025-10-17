@@ -1,5 +1,6 @@
 import { initDB } from "../util/init-db.js";
 import { verify } from "./util/verify.js";
+import { getHash } from "../fs/util.js";
 
 export class CardManager extends EventTarget {
   #self;
@@ -29,6 +30,13 @@ export class CardManager extends EventTarget {
           .filter((key) => !(key in cardData))
           .join(", ")}`
       );
+    }
+
+    // 对比用户id
+    const keyUserId = await getHash(cardData.publicKey);
+
+    if (keyUserId !== cardData.userId) {
+      throw new Error("用户ID与公钥不匹配");
     }
 
     // 验证签名
