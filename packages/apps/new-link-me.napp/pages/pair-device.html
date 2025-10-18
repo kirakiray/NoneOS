@@ -10,8 +10,10 @@
       name="loading"
       style="margin-right: 8px; display: block"
     ></n-local-icon>
-    等待对方确认中...
+    <o-if :value="waitConfirmUsers.length === 0"> 等待对方确认中... </o-if>
+    <o-else> 有 {{waitConfirmUsers.length}} 个用户等待确认 </o-else>
   </div>
+
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
@@ -25,63 +27,67 @@
         },
         attached() {
           this._off = localUser.bind("receive-data", async (e) => {
-            const { data, fromUserId } = e.detail;
+            const { data: receivedData, fromUserId: senderUserId } = e.detail;
 
-            if (data.goal === "pair-confirm") {
+            if (receivedData.goal === "pair-confirm") {
               this.clicked = true;
             }
 
-            let sessionInviteCode = sessionStorage.getItem(
+            let storedInviteCode = sessionStorage.getItem(
               "__sessionInviteCode"
             );
 
-            if (data.inviteCode !== sessionInviteCode) {
+            if (receivedData.inviteCode !== storedInviteCode) {
               // TODO: 邀请码不匹配，提示用户可能有攻击
               debugger;
               return;
             }
 
-            const result = await verify(data);
+            const verificationResult = await verify(receivedData);
 
-            if (!result) {
+            if (!verificationResult) {
               // TODO: 验证失败，提示用户可能有攻击
               throw new Error("用户卡片签名错误，可能有攻击");
             }
 
-            const dataUserId = await getHash(data.publicKey);
+            const receivedUserId = await getHash(receivedData.publicKey);
 
-            if (dataUserId !== data.userId) {
+            if (receivedUserId !== receivedData.userId) {
               // TODO: 用户ID不匹配，提示用户可能有攻击
               throw new Error("用户ID不匹配，可能有攻击");
             }
 
             // 验证证书内容是否正确
-            const cert = data.cert;
+            const deviceCertificate = receivedData.cert;
 
-            const certResult = await verify(cert);
+            const certificateVerificationResult = await verify(
+              deviceCertificate
+            );
 
-            if (!certResult) {
+            if (!certificateVerificationResult) {
               // TODO: 验证失败，提示用户可能有攻击
               throw new Error("证书签名错误，可能有攻击");
             }
 
-            const certPublicKeyHash = await getHash(cert.publicKey);
+            const certificatePublicKeyHash = await getHash(
+              deviceCertificate.publicKey
+            );
 
             if (
-              certPublicKeyHash !== cert.issuedBy ||
-              certPublicKeyHash !== dataUserId
+              certificatePublicKeyHash !== deviceCertificate.issuedBy ||
+              certificatePublicKeyHash !== receivedUserId
             ) {
               // TODO: 用户ID不匹配，提示用户可能有攻击
               throw new Error("用户ID不匹配，可能有攻击");
             }
 
-            if (cert.issuedTo !== localUser.userId) {
+            if (deviceCertificate.issuedTo !== localUser.userId) {
               // TODO: 用户ID不匹配，提示用户可能有攻击
               throw new Error("不是授权给我的设备证书，可能有攻击");
             }
 
             // 确认成功，加入等待用户
-            this.waitConfirmUsers.push(data);
+            this.waitConfirmUsers.push(receivedData);
           });
         },
         detached() {
