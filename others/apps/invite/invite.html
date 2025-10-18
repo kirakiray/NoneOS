@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -29,6 +30,18 @@
         <div>UserID: {{targetUserId}}</div>
       </div>
     </div>
+
+    <p>确认添加 {{userName}} 作为你的设备吗？</p>
+    <p>
+      注意：此操作不可逆，一旦授予对方权限，对方将能够访问该设备的数据，请仔细确认后再操作。
+    </p>
+
+    <div style="margin-top: 16px">
+      <p-button on:click="confirmAdd" attr:disabled="clicked">
+        <o-if :value="clicked"> 等待对方确认 </o-if>
+        <o-else> 确认添加设备 </o-else>
+      </p-button>
+    </div>
   </div>
   <script>
     export default async ({ load }) => {
@@ -38,21 +51,33 @@
       // 获取连接参数
       const params = new URLSearchParams(location.search);
       const targetUserId = params.get("userId"); // 对面设备的userId
+      const inviteCode = params.get("inviteCode"); // 邀请ID
 
       return {
         data: {
           targetUserId,
           userName: "",
+          _remoteUser: null,
+          clicked: false,
         },
         proto: {
           async sendInvite() {
-            const remoteUser = await user.connectUser({
+            const remoteUser = (this._remoteUser = await user.connectUser({
               userId: targetUserId,
-            });
+            }));
 
             // 获取对方的用户卡片
             const info = await remoteUser.info();
             this.userName = info.name;
+          },
+          async confirmAdd() {
+            const remoteUser = this._remoteUser;
+            this.clicked = true;
+
+            await remoteUser.post({
+              goal: "pair-confirm",
+              inviteCode,
+            });
           },
         },
         attached() {

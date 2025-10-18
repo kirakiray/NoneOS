@@ -21,13 +21,19 @@
       const { createUser } = await load("/packages/new-user/main.js");
       const user = await createUser();
 
+      let sessionInviteCode = sessionStorage.getItem("__sessionInviteCode");
+      if (!sessionInviteCode) {
+        sessionInviteCode = Math.random().toString(36).slice(2);
+        sessionStorage.setItem("__sessionInviteCode", sessionInviteCode);
+      }
+
       return {
         data: {
           userId: user.userId,
         },
         proto: {
           get url() {
-            return `${location.origin}/others/apps/invite/?userId=${this.userId}`;
+            return `${location.origin}/others/apps/invite/?userId=${this.userId}&inviteCode=${sessionInviteCode}`;
           },
           async clickAddDevice(e) {
             e.stopPropagation();

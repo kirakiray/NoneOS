@@ -10,7 +10,7 @@
       name="loading"
       style="margin-right: 8px; display: block"
     ></n-local-icon>
-    等待配对中...
+    等待对方确认中...
   </div>
   <script>
     export default async ({ load }) => {
@@ -21,7 +21,23 @@
         data: {},
         attached() {
           this._off = user.bind("receive-data", (e) => {
-            const { data } = e.detail;
+            const { data, fromUserId } = e.detail;
+
+            if (data.goal === "pair-confirm") {
+              this.clicked = true;
+            }
+
+            const { inviteCode } = data;
+
+            let sessionInviteCode = sessionStorage.getItem(
+              "__sessionInviteCode"
+            );
+
+            if (inviteCode !== sessionInviteCode) {
+              // TODO: 邀请码不匹配，提示用户可能有攻击
+              debugger;
+              return;
+            }
 
             debugger;
           });
