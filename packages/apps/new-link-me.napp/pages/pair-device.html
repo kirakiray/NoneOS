@@ -85,6 +85,7 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
       const localUser = await createUser();
+      const { confirm } = await load("/packages/pui/util.js");
       const { verifyDeviceData } = await load("../util/verify-device-data.js");
 
       return {
@@ -93,9 +94,36 @@
         },
         proto: {
           async confirmAdd(data) {
+            // 确认添加设备
+            const confirmed = await confirm({
+              title: "确认添加设备",
+              content: `是否确认添加 ${data.name} 的设备？此操作不可逆，确认后对方将能查看你的设备数据，请谨慎操作。`,
+            });
+
+            if (!confirmed) {
+              return;
+            }
+
             const certManager = await localUser.certManager();
 
-            debugger;
+            // 签发证书给对方
+            const deviceCertificate = await certManager.issue({
+              role: "device",
+              userId: data.userId,
+            });
+
+            const signedData = await localUser.createCard({
+              goal: "response-pair-confirm",
+              cert: deviceCertificate,
+            });
+
+            // 保存两张证书
+            await certManager.save(deviceCertificate);
+            await certManager.save(data.cert);
+
+            // 返回证书给对方
+            const remoteUser = await localUser.connectUser(data.userId);
+            await remoteUser.post(signedData);
           },
           rejectAdd(data, index) {
             this.waitConfirmUsers.splice(index, 1);

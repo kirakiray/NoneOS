@@ -45,8 +45,11 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { verifyDeviceData } = await load(
+        "/packages/apps/new-link-me.napp/util/verify-device-data.js"
+      );
       const { createUser } = await load("/packages/new-user/main.js");
-      const user = await createUser();
+      const localUser = await createUser();
 
       // 获取连接参数
       const params = new URLSearchParams(location.search);
@@ -62,7 +65,7 @@
         },
         proto: {
           async sendInvite() {
-            const remoteUser = (this._remoteUser = await user.connectUser({
+            const remoteUser = (this._remoteUser = await localUser.connectUser({
               userId: targetUserId,
             }));
 
@@ -75,7 +78,7 @@
             this.clicked = true;
 
             // 添加授权证书
-            const certManager = await user.certManager();
+            const certManager = await localUser.certManager();
 
             // 给对方签发设备证书
             const cert = await certManager.issue({
@@ -83,7 +86,10 @@
               userId: targetUserId,
             });
 
-            const signedData = await user.createCard({
+            // 保存授权给对方的设备证书
+            this._authorizedDeviceCert = cert;
+
+            const signedData = await localUser.createCard({
               goal: "pair-confirm",
               inviteCode,
               cert,
@@ -94,8 +100,30 @@
         },
         attached() {
           this.sendInvite();
+
+          this._off = localUser.bind("receive-data", async (event) => {
+            const { data } = event.detail;
+
+            if (data && data.goal === "response-pair-confirm") {
+              try {
+                // 验证设备数据
+                await verifyDeviceData(data, localUser);
+              } catch (error) {
+                // TODO: 验证失败，提示用户可能有攻击
+                debugger;
+                return;
+              }
+
+              const certManager = await localUser.certManager();
+              // 保存双方的设备证书
+              await certManager.save(data.cert);
+              await certManager.save(this._authorizedDeviceCert);
+            }
+          });
         },
-        detached() {},
+        detached() {
+          this._off && this._off();
+        },
       };
     };
   </script>
