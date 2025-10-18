@@ -164,10 +164,11 @@ export class LocalUser extends BaseUser {
   }
 
   // 生成带上用户签名的卡片
-  async createCard() {
+  async createCard(options) {
     const info = await this.info();
 
     const card = {
+      ...options,
       name: info.name,
       userId: this.userId,
     };

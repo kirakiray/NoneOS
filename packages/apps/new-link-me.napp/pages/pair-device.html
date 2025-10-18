@@ -15,31 +15,73 @@
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
-      const user = await createUser();
+      const { verify } = await load("/packages/new-user/util/verify.js");
+      const { getHash } = await load("/packages/fs/util.js");
+      const localUser = await createUser();
 
       return {
-        data: {},
+        data: {
+          waitConfirmUsers: [], // 等待确认的用户
+        },
         attached() {
-          this._off = user.bind("receive-data", (e) => {
+          this._off = localUser.bind("receive-data", async (e) => {
             const { data, fromUserId } = e.detail;
 
             if (data.goal === "pair-confirm") {
               this.clicked = true;
             }
 
-            const { inviteCode } = data;
-
             let sessionInviteCode = sessionStorage.getItem(
               "__sessionInviteCode"
             );
 
-            if (inviteCode !== sessionInviteCode) {
+            if (data.inviteCode !== sessionInviteCode) {
               // TODO: 邀请码不匹配，提示用户可能有攻击
               debugger;
               return;
             }
 
-            debugger;
+            const result = await verify(data);
+
+            if (!result) {
+              // TODO: 验证失败，提示用户可能有攻击
+              throw new Error("用户卡片签名错误，可能有攻击");
+            }
+
+            const dataUserId = await getHash(data.publicKey);
+
+            if (dataUserId !== data.userId) {
+              // TODO: 用户ID不匹配，提示用户可能有攻击
+              throw new Error("用户ID不匹配，可能有攻击");
+            }
+
+            // 验证证书内容是否正确
+            const cert = data.cert;
+
+            const certResult = await verify(cert);
+
+            if (!certResult) {
+              // TODO: 验证失败，提示用户可能有攻击
+              throw new Error("证书签名错误，可能有攻击");
+            }
+
+            const certPublicKeyHash = await getHash(cert.publicKey);
+
+            if (
+              certPublicKeyHash !== cert.issuedBy ||
+              certPublicKeyHash !== dataUserId
+            ) {
+              // TODO: 用户ID不匹配，提示用户可能有攻击
+              throw new Error("用户ID不匹配，可能有攻击");
+            }
+
+            if (cert.issuedTo !== localUser.userId) {
+              // TODO: 用户ID不匹配，提示用户可能有攻击
+              throw new Error("不是授权给我的设备证书，可能有攻击");
+            }
+
+            // 确认成功，加入等待用户
+            this.waitConfirmUsers.push(data);
           });
         },
         detached() {

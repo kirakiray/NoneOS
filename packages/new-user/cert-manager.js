@@ -20,6 +20,14 @@ export default class CertManager extends EventTarget {
 
   // 使用自己的用户签名给目标用户签发证书
   async issue({ userId, role, ...data }) {
+    if (!role) {
+      throw new Error("role is required");
+    }
+
+    if (!userId) {
+      throw new Error("userId is required");
+    }
+
     // 对数据进行签名
     const signedData = await this.#user.sign({
       ...data,

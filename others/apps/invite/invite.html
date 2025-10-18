@@ -74,10 +74,22 @@
             const remoteUser = this._remoteUser;
             this.clicked = true;
 
-            await remoteUser.post({
+            // 添加授权证书
+            const certManager = await user.certManager();
+
+            // 给对方签发设备证书
+            const cert = await certManager.issue({
+              role: "device",
+              userId: targetUserId,
+            });
+
+            const signedData = await user.createCard({
               goal: "pair-confirm",
               inviteCode,
+              cert,
             });
+
+            await remoteUser.post(signedData);
           },
         },
         attached() {
