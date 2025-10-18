@@ -1,29 +1,105 @@
 <template page>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    .header {
+      display: flex;
+      align-items: center;
+    }
+
+    .loading-icon {
+      margin-right: 8px;
+      display: block;
+    }
+
+    .user-card {
+      padding: 12px;
+      margin: 8px 0;
+      border: 1px solid var(--md-sys-color-normal);
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .user-avatar {
+      width: 60px;
+      height: 60px;
+      margin-right: 16px;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .info {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .username {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .userid {
+      font-size: 14px;
+      color: var(--md-sys-color-normal);
+    }
   </style>
-  <div style="display: flex; align-items: center">
-    <n-local-icon
-      name="loading"
-      style="margin-right: 8px; display: block"
-    ></n-local-icon>
+  <div class="header">
+    <n-local-icon name="loading" class="loading-icon"></n-local-icon>
     <o-if :value="waitConfirmUsers.length === 0"> 等待对方确认中... </o-if>
     <o-else> 有 {{waitConfirmUsers.length}} 个用户等待确认 </o-else>
+  </div>
+  <div>
+    <o-fill :value="waitConfirmUsers">
+      <div class="user-card">
+        <div style="display: flex; align-items: center">
+          <jdent-icon :value="$data.userId" class="user-avatar"></jdent-icon>
+          <div class="info">
+            <div class="username">用户名: {{$data.name}}</div>
+            <div class="userid">UserID: {{$data.userId}}</div>
+          </div>
+        </div>
+        <div style="padding-top: 8px; padding-left: 76px">
+          <p-button on:click="$host.confirmAdd($data)" size="small">
+            确认添加设备
+          </p-button>
+          <p-button
+            on:click="$host.rejectAdd($data,$index)"
+            size="small"
+            color="error"
+            variant="outlined"
+          >
+            拒绝添加设备
+          </p-button>
+        </div>
+      </div>
+    </o-fill>
   </div>
 
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
-      const { verify } = await load("/packages/new-user/util/verify.js");
-      const { getHash } = await load("/packages/fs/util.js");
       const localUser = await createUser();
+      const { verifyDeviceData } = await load("../util/verify-device-data.js");
 
       return {
         data: {
           waitConfirmUsers: [], // 等待确认的用户
+        },
+        proto: {
+          async confirmAdd(data) {
+            const certManager = await localUser.certManager();
+
+            debugger;
+          },
+          rejectAdd(data, index) {
+            this.waitConfirmUsers.splice(index, 1);
+          },
         },
         attached() {
           this._off = localUser.bind("receive-data", async (e) => {
@@ -43,51 +119,17 @@
               return;
             }
 
-            const verificationResult = await verify(receivedData);
+            try {
+              // 验证设备数据
+              await verifyDeviceData(receivedData, localUser);
 
-            if (!verificationResult) {
+              // 确认成功，加入等待用户
+              this.waitConfirmUsers.push(receivedData);
+            } catch (error) {
               // TODO: 验证失败，提示用户可能有攻击
-              throw new Error("用户卡片签名错误，可能有攻击");
+              debugger;
+              return;
             }
-
-            const receivedUserId = await getHash(receivedData.publicKey);
-
-            if (receivedUserId !== receivedData.userId) {
-              // TODO: 用户ID不匹配，提示用户可能有攻击
-              throw new Error("用户ID不匹配，可能有攻击");
-            }
-
-            // 验证证书内容是否正确
-            const deviceCertificate = receivedData.cert;
-
-            const certificateVerificationResult = await verify(
-              deviceCertificate
-            );
-
-            if (!certificateVerificationResult) {
-              // TODO: 验证失败，提示用户可能有攻击
-              throw new Error("证书签名错误，可能有攻击");
-            }
-
-            const certificatePublicKeyHash = await getHash(
-              deviceCertificate.publicKey
-            );
-
-            if (
-              certificatePublicKeyHash !== deviceCertificate.issuedBy ||
-              certificatePublicKeyHash !== receivedUserId
-            ) {
-              // TODO: 用户ID不匹配，提示用户可能有攻击
-              throw new Error("用户ID不匹配，可能有攻击");
-            }
-
-            if (deviceCertificate.issuedTo !== localUser.userId) {
-              // TODO: 用户ID不匹配，提示用户可能有攻击
-              throw new Error("不是授权给我的设备证书，可能有攻击");
-            }
-
-            // 确认成功，加入等待用户
-            this.waitConfirmUsers.push(receivedData);
           });
         },
         detached() {
