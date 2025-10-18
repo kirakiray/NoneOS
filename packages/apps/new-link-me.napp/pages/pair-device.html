@@ -117,6 +117,8 @@
               cert: deviceCertificate,
             });
 
+            debugger
+
             // 保存两张证书
             await certManager.save(deviceCertificate);
             await certManager.save(data.cert);

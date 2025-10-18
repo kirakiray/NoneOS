@@ -149,7 +149,7 @@ export default class CertManager extends EventTarget {
     }
 
     // 添加时间戳作为ID以确保唯一性
-    const id = `${data.role}-${data.issuedBy}-${data.issuedTo}}`;
+    const id = `${data.role}-${data.issuedBy}-${data.issuedTo}`;
     const certData = {
       id,
       ...data,
