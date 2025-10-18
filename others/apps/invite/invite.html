@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,8 +38,12 @@
     </p>
 
     <div style="margin-top: 16px">
-      <p-button on:click="confirmAdd" attr:disabled="clicked">
-        <o-if :value="clicked"> 等待对方确认 </o-if>
+      <p-button on:click="confirmAdd" attr:disabled="isAuthorized || clicked">
+        <o-if :value="isAuthorized"> 已授权 </o-if>
+        <o-else-if :value="clicked">
+          等待对方确认
+          <n-local-icon></n-local-icon>
+        </o-else-if>
         <o-else> 确认添加设备 </o-else>
       </p-button>
     </div>
@@ -50,6 +55,7 @@
       );
       const { createUser } = await load("/packages/new-user/main.js");
       const localUser = await createUser();
+      const certManager = await localUser.certManager();
 
       // 获取连接参数
       const params = new URLSearchParams(location.search);
@@ -62,8 +68,31 @@
           userName: "",
           _remoteUser: null,
           clicked: false,
+          isAuthorized: false, // 是否已经授权
         },
         proto: {
+          async refreshState() {
+            // 检查是否已经存在我授权给对方的设备证书
+            const myCertIssuedToRemote = await certManager.get({
+              role: "device",
+              issuedTo: targetUserId,
+            });
+
+            // 查看对方是否有授权给我的设备证书
+            const remoteCertIssuedToMe = await certManager.query({
+              role: "device",
+              issuedTo: localUser.userId,
+              issuedBy: targetUserId,
+            });
+
+            if (
+              myCertIssuedToRemote.length > 0 ||
+              remoteCertIssuedToMe.length > 0
+            ) {
+              // 已经存在授权关系
+              this.isAuthorized = true;
+            }
+          },
           async sendInvite() {
             const remoteUser = (this._remoteUser = await localUser.connectUser({
               userId: targetUserId,
@@ -76,9 +105,6 @@
           async confirmAdd() {
             const remoteUser = this._remoteUser;
             this.clicked = true;
-
-            // 添加授权证书
-            const certManager = await localUser.certManager();
 
             // 给对方签发设备证书
             const cert = await certManager.issue({
@@ -100,6 +126,7 @@
         },
         attached() {
           this.sendInvite();
+          this.refreshState();
 
           this._off = localUser.bind("receive-data", async (event) => {
             const { data } = event.detail;
@@ -114,7 +141,6 @@
                 return;
               }
 
-              const certManager = await localUser.certManager();
               // 保存双方的设备证书
               await certManager.save(data.cert);
               await certManager.save(this._authorizedDeviceCert);
