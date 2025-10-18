@@ -122,7 +122,7 @@
       </div>
     </div>
 
-    <o-if :value="!isAuthorized">
+    <o-if :value="!isAuthorized && !isMe">
       <p class="confirm-text">
         确认添加 <strong>{{userName}}</strong> 作为你的设备吗？
       </p>
@@ -135,16 +135,25 @@
       </div>
     </o-if>
 
-    <div class="button-container">
-      <p-button on:click="confirmAdd" attr:disabled="isAuthorized || clicked">
-        <o-if :value="isAuthorized"> 已授权 </o-if>
-        <o-else-if :value="clicked">
-          等待对方确认
-          <n-local-icon></n-local-icon>
-        </o-else-if>
-        <o-else> 确认添加设备 </o-else>
-      </p-button>
-    </div>
+    <o-if :value="isMe">
+      <p class="confirm-text">请将此地址发送给您想要添加的其他设备。</p>
+    </o-if>
+    <o-else>
+      <div class="button-container">
+        <p-button
+          on:click="confirmAdd"
+          attr:disabled="isAuthorized || clicked || isMe"
+        >
+          <o-if :value="isMe"> 不能添加自己 </o-if>
+          <o-else-if :value="isAuthorized"> 已授权 </o-else-if>
+          <o-else-if :value="clicked">
+            等待对方确认
+            <n-local-icon></n-local-icon>
+          </o-else-if>
+          <o-else> 确认添加设备 </o-else>
+        </p-button>
+      </div>
+    </o-else>
   </div>
   <script>
     export default async ({ load }) => {
@@ -167,6 +176,7 @@
           _remoteUser: null,
           clicked: false,
           isAuthorized: false, // 是否已经授权
+          isMe: targetUserId === localUser.userId,
         },
         proto: {
           async refreshState() {
