@@ -1,26 +1,36 @@
 <template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
-      width: 8px;
-      height: 8px;
-      border-radius: 2px;
-      /* background-color: var(--md-sys-color-normal); */
-      background-color: #6d6d6d;
+      color: var(--md-sys-color-normal);
+      font-size: 20px;
     }
 
     :host([state="error"]) {
-      background-color: red;
+      color: red;
     }
 
     :host([state="server"]) {
-      background-color: var(--md-sys-color-primary);
+      color: var(--md-sys-color-primary);
     }
 
     :host([state="rtc"]) {
-      background-color: var(--md-sys-color-success);
+      color: var(--md-sys-color-success);
     }
   </style>
+  <o-if :value="state === 'server'">
+    <n-local-icon name="server-proxy"></n-local-icon>
+  </o-if>
+  <o-else-if :value="state === 'rtc'">
+    <n-local-icon name="p2p"></n-local-icon>
+  </o-else-if>
+  <o-else-if :value="state === 'error'">
+    <n-local-icon name="error"></n-local-icon>
+  </o-else-if>
+  <o-else>
+    <n-local-icon name="loading"></n-local-icon>
+  </o-else>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
