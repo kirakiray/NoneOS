@@ -290,7 +290,7 @@
             });
 
             if (
-              myCertIssuedToRemote.length > 0 ||
+              myCertIssuedToRemote.length > 0 &&
               remoteCertIssuedToMe.length > 0
             ) {
               // 已经存在授权关系
@@ -353,6 +353,8 @@
               // 保存双方的设备证书
               await certManager.save(data.cert);
               await certManager.save(this._authorizedDeviceCert);
+
+              this.refreshState();
             }
           });
         },

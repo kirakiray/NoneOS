@@ -118,11 +118,23 @@
               return;
             }
 
+            // 获取对方授权给我的证书
+            const certs = await certManager.query({
+              role: "device",
+              issuedTo: localUser.userId,
+            });
+
+            if (certs.length) {
+              certs.forEach(async (cert) => {
+                await certManager.delete(cert.id);
+              });
+            }
+
             try {
               await certManager.delete(item.id);
 
               await this.refreshDevices();
-              
+
               toast({
                 content: await getLocalized({
                   cn: "证书删除成功",
