@@ -51,8 +51,25 @@
   </style>
   <div class="header">
     <n-local-icon name="loading" class="loading-icon"></n-local-icon>
-    <o-if :value="waitConfirmUsers.length === 0"> 等待对方确认中... </o-if>
-    <o-else> 有 {{waitConfirmUsers.length}} 个用户等待确认 </o-else>
+    <o-if :value="waitConfirmUsers.length === 0">
+      <localized-content>
+        <span lang="cn">等待对方确认中...</span>
+        <span lang="en">Waiting for the other user to confirm...</span>
+        <span lang="ja">他のユーザーが確認するのを待っています...</span>
+      </localized-content>
+    </o-if>
+    <o-else>
+      <localized-content>
+        <span lang="cn">有 {{waitConfirmUsers.length}} 个用户等待确认</span>
+        <span lang="en"
+          >There are {{waitConfirmUsers.length}} users waiting for
+          confirmation</span
+        >
+        <span lang="ja"
+          >待ち受け中のユーザーは {{waitConfirmUsers.length}} 人です</span
+        >
+      </localized-content>
+    </o-else>
   </div>
   <div>
     <o-fill :value="waitConfirmUsers">
@@ -60,13 +77,24 @@
         <div style="display: flex; align-items: center">
           <jdent-icon :value="$data.userId" class="user-avatar"></jdent-icon>
           <div class="info">
-            <div class="username">用户名: {{$data.name}}</div>
+            <div class="username">
+              <localized-content>
+                <span lang="cn">用户名</span>
+                <span lang="en">Username</span>
+                <span lang="ja">ユーザー名</span>
+              </localized-content>
+              : {{$data.name}}
+            </div>
             <div class="userid">UserID: {{$data.userId}}</div>
           </div>
         </div>
         <div style="padding-top: 8px; padding-left: 76px">
           <p-button on:click="$host.confirmAdd($data)" size="small">
-            确认添加设备
+            <localized-content>
+              <span lang="cn">确认添加设备</span>
+              <span lang="en">Confirm Add Device</span>
+              <span lang="ja">デバイスを追加するを確認</span>
+            </localized-content>
           </p-button>
           <p-button
             on:click="$host.rejectAdd($data,$index)"
@@ -74,7 +102,11 @@
             color="error"
             variant="outlined"
           >
-            拒绝添加设备
+            <localized-content>
+              <span lang="cn">拒绝添加设备</span>
+              <span lang="en">Reject Add Device</span>
+              <span lang="ja">デバイスを追加するを拒否</span>
+            </localized-content>
           </p-button>
         </div>
       </div>
@@ -87,6 +119,7 @@
       const localUser = await createUser();
       const { confirm } = await load("/packages/pui/util.js");
       const { verifyDeviceData } = await load("../util/verify-device-data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         data: {
@@ -96,8 +129,16 @@
           async confirmAdd(data) {
             // 确认添加设备
             const confirmed = await confirm({
-              title: "确认添加设备",
-              content: `是否确认添加 ${data.name} 的设备？此操作不可逆，确认后对方将能查看你的设备数据，请谨慎操作。`,
+              title: getLocalized({
+                cn: "确认添加设备",
+                en: "Confirm Add Device",
+                ja: "デバイスを追加するを確認",
+              }),
+              content: getLocalized({
+                cn: `是否确认添加 ${data.name} 的设备？此操作不可逆，确认后对方将能查看你的设备数据，请谨慎操作。`,
+                en: `Are you sure you want to add ${data.name}'s device? This action is irreversible, and after confirmation, the other user will be able to view your device data. Please proceed with caution.`,
+                ja: `${data.name} のデバイスを追加するを確認しますか？この操作は逆操作ではありません。確認後、他のユーザーはあなたのデバイスデータを確認できるようになります。慎重に操作してください。`,
+              }),
             });
 
             if (!confirmed) {
@@ -116,8 +157,6 @@
               goal: "response-pair-confirm",
               cert: deviceCertificate,
             });
-
-            debugger;
 
             // 保存两张证书
             await certManager.save(deviceCertificate);
