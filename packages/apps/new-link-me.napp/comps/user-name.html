@@ -1,0 +1,25 @@
+<template component>
+  {{name}}
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/new-user/main.js");
+      const localUser = await createUser();
+
+      const cardManager = await localUser.cardManager();
+
+      return {
+        tag: "n-user-name",
+        data: {
+          userid: null,
+          name: "",
+        },
+        watch: {
+          async userid(userId) {
+            const card = await cardManager.get(userId);
+            this.name = card.name;
+          },
+        },
+      };
+    };
+  </script>
+</template>
