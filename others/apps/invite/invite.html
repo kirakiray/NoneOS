@@ -2,6 +2,7 @@
   <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -100,7 +101,13 @@
     }
   </style>
   <div class="container">
-    <h1>添加设备</h1>
+    <h1>
+      <localized-content>
+        <span lang="cn">添加设备</span>
+        <span lang="en">Add Device</span>
+        <span lang="ja">デバイスを追加</span>
+      </localized-content>
+    </h1>
     <div class="user-card">
       <div class="avatar-container">
         <jdent-icon
@@ -110,11 +117,23 @@
       </div>
       <div class="info">
         <div>
-          <span class="label">用户名:</span>
+          <span class="label">
+            <localized-content>
+              <span lang="cn">用户名</span>
+              <span lang="en">Username</span>
+              <span lang="ja">ユーザー名</span>
+            </localized-content>
+          </span>
           <span class="value">{{userName}}</span>
         </div>
         <div>
-          <span class="label">UserID:</span>
+          <span class="label">
+            <localized-content>
+              <span lang="cn">UserID</span>
+              <span lang="en">UserID</span>
+              <span lang="ja">ユーザーID</span>
+            </localized-content>
+          </span>
           <span class="value" style="word-break: break-word"
             >{{targetUserId}}</span
           >
@@ -124,22 +143,73 @@
 
     <o-if :value="!isAuthorized && !isMe">
       <p class="confirm-text">
-        确认添加 <strong>{{userName}}</strong> 作为你的设备吗？
+        <localized-content>
+          <span lang="cn"
+            >确认添加 <strong>{{userName}}</strong> 作为你的设备吗？</span
+          >
+          <span lang="en"
+            >Confirm adding <strong>{{userName}}</strong> as your device?</span
+          >
+          <span lang="ja"
+            >ユーザー
+            <strong>{{userName}}</strong>
+            をあなたのデバイスとして追加しますか？</span
+          >
+        </localized-content>
       </p>
 
       <div class="warning">
-        <div class="warning-title">重要提醒</div>
+        <div class="warning-title">
+          <localized-content>
+            <span lang="cn">重要提醒</span>
+            <span lang="en">Important Reminder</span>
+            <span lang="ja">重要な注意事項</span>
+          </localized-content>
+        </div>
         <div>
-          此操作不可逆，一旦授予对方权限，对方将能够访问该设备的数据，请仔细确认后再操作。
+          <localized-content>
+            <span lang="cn"
+              >此操作不可逆，一旦授予对方权限，对方将能够访问该设备的数据，请仔细确认后再操作。</span
+            >
+            <span lang="en"
+              >This action is irreversible. Once you grant permission to the
+              other user, they will be able to access your device data. Please
+              confirm carefully before proceeding.</span
+            >
+            <span lang="ja"
+              >この操作は不可逆です。他のユーザーに権限を与えると、彼らがあなたのデバイスデータにアクセスできるようになります。操作を続行する前に、十分に確認してください。</span
+            >
+          </localized-content>
         </div>
       </div>
     </o-if>
 
     <o-if :value="!foundUser && !isAuthorized">
-      <p class="confirm-text">未能找到对方设备，请确保该设备处于开启状态。</p>
+      <p class="confirm-text">
+        <localized-content>
+          <span lang="cn">未能找到对方设备，请确保该设备处于开启状态。</span>
+          <span lang="en"
+            >Failed to find the other user's device. Please ensure that the
+            device is turned on.</span
+          >
+          <span lang="ja"
+            >他のユーザーのデバイスを見つけることができませんでした。デバイスがオンになっていることを確認してください。</span
+          >
+        </localized-content>
+      </p>
     </o-if>
     <o-else-if :value="isMe">
-      <p class="confirm-text">请将此地址发送给您想要添加的其他设备。</p>
+      <p class="confirm-text">
+        <localized-content>
+          <span lang="cn">请将此地址发送给您想要添加的其他设备。</span>
+          <span lang="en"
+            >Please send this address to the other device you want to add.</span
+          >
+          <span lang="ja"
+            >他のユーザーに追加したいデバイスにこのアドレスを送信してください。</span
+          >
+        </localized-content>
+      </p>
     </o-else-if>
     <o-else>
       <div class="button-container">
@@ -147,13 +217,35 @@
           on:click="confirmAdd"
           attr:disabled="isAuthorized || clicked || isMe"
         >
-          <o-if :value="isMe"> 不能添加自己 </o-if>
-          <o-else-if :value="isAuthorized"> 已授权 </o-else-if>
+          <o-if :value="isMe">
+            <localized-content>
+              <span lang="cn">不能添加自己</span>
+              <span lang="en">Cannot add yourself</span>
+              <span lang="ja">自分自身を追加することはできません</span>
+            </localized-content>
+          </o-if>
+          <o-else-if :value="isAuthorized">
+            <localized-content>
+              <span lang="cn">已授权</span>
+              <span lang="en">Authorized</span>
+              <span lang="ja">承認済み</span>
+            </localized-content>
+          </o-else-if>
           <o-else-if :value="clicked">
-            等待对方确认
+            <localized-content>
+              <span lang="cn">等待对方确认</span>
+              <span lang="en">Waiting for the other user to confirm</span>
+              <span lang="ja">他のユーザーが確認するのを待っています</span>
+            </localized-content>
             <n-local-icon></n-local-icon>
           </o-else-if>
-          <o-else> 确认添加设备 </o-else>
+          <o-else>
+            <localized-content>
+              <span lang="cn">确认添加设备</span>
+              <span lang="en">Confirm adding device</span>
+              <span lang="ja">デバイスを追加する</span>
+            </localized-content>
+          </o-else>
         </p-button>
       </div>
     </o-else>
