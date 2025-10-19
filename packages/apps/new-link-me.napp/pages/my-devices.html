@@ -81,7 +81,10 @@
         <span lang="jp">デバイスを追加</span>
       </localized-content>
     </div>
-    <o-page src="./add-device.html"></o-page>
+    <o-page
+      src="./add-device.html"
+      on:add-device-success="refreshDevices()"
+    ></o-page>
   </p-dialog>
 
   <script>

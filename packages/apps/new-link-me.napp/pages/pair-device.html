@@ -89,7 +89,7 @@
           </div>
         </div>
         <div style="padding-top: 8px; padding-left: 76px">
-          <p-button on:click="$host.confirmAdd($data)" size="small">
+          <p-button on:click="$host.confirmAdd($data, $index)" size="small">
             <localized-content>
               <span lang="cn">确认添加设备</span>
               <span lang="en">Confirm Add Device</span>
@@ -117,7 +117,7 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
       const localUser = await createUser();
-      const { confirm } = await load("/packages/pui/util.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
       const { verifyDeviceData } = await load("../util/verify-device-data.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
@@ -126,7 +126,7 @@
           waitConfirmUsers: [], // 等待确认的用户
         },
         proto: {
-          async confirmAdd(data) {
+          async confirmAdd(data, index) {
             // 确认添加设备
             const confirmed = await confirm({
               title: await getLocalized({
@@ -165,6 +165,20 @@
             // 返回证书给对方
             const remoteUser = await localUser.connectUser(data.userId);
             await remoteUser.post(signedData);
+
+            this.waitConfirmUsers.splice(index, 1);
+
+            toast({
+              message: await getLocalized({
+                cn: "添加成功",
+                en: "Add Success",
+                ja: "追加成功",
+              }),
+            });
+
+            this.emit("add-device-success", {
+              composed: true,
+            });
           },
           rejectAdd(data, index) {
             this.waitConfirmUsers.splice(index, 1);
