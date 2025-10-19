@@ -135,9 +135,12 @@
       </div>
     </o-if>
 
-    <o-if :value="isMe">
-      <p class="confirm-text">请将此地址发送给您想要添加的其他设备。</p>
+    <o-if :value="!foundUser && !isAuthorized">
+      <p class="confirm-text">未能找到对方设备，请确保该设备处于开启状态。</p>
     </o-if>
+    <o-else-if :value="isMe">
+      <p class="confirm-text">请将此地址发送给您想要添加的其他设备。</p>
+    </o-else-if>
     <o-else>
       <div class="button-container">
         <p-button
@@ -172,11 +175,12 @@
       return {
         data: {
           targetUserId,
-          userName: "",
+          userName: "Unknown",
           _remoteUser: null,
           clicked: false,
           isAuthorized: false, // 是否已经授权
           isMe: targetUserId === localUser.userId,
+          foundUser: true, // 是否找到用户
         },
         proto: {
           async refreshState() {
@@ -202,13 +206,18 @@
             }
           },
           async sendInvite() {
-            const remoteUser = (this._remoteUser = await localUser.connectUser({
-              userId: targetUserId,
-            }));
+            try {
+              const remoteUser = (this._remoteUser =
+                await localUser.connectUser({
+                  userId: targetUserId,
+                }));
 
-            // 获取对方的用户卡片
-            const info = await remoteUser.info();
-            this.userName = info.name;
+              // 获取对方的用户卡片
+              const info = await remoteUser.info();
+              this.userName = info.name;
+            } catch (error) {
+              this.foundUser = false;
+            }
           },
           async confirmAdd() {
             const remoteUser = this._remoteUser;
