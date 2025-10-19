@@ -43,6 +43,21 @@
           async refreshState() {
             try {
               const remoteUser = await localUser.connectUser(this.userid);
+
+              if (this._oldRemoteUser !== remoteUser) {
+                if (this._cancel) {
+                  this._cancel();
+                }
+
+                this._cancel = remoteUser.bind("mode-change", (mode) => {
+                  this.refreshState();
+                });
+
+                remoteUser.initRTC();
+
+                this._oldRemoteUser = remoteUser;
+              }
+
               if (remoteUser.mode === 1) {
                 this.state = "server";
               } else if (remoteUser.mode === 2) {
@@ -54,6 +69,7 @@
             }
           },
         },
+        detached() {},
       };
     };
   </script>
