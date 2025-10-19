@@ -40,7 +40,20 @@
       <o-if :value="devices.length > 0">
         <o-fill :value="devices">
           <p-list-item>
-            <n-cert-item :item="$data"></n-cert-item>
+            <n-cert-item :item="$data">
+              <p-button
+                size="small"
+                color="error"
+                variant="outlined"
+                on:click="$host.deleteCert($data,$index)"
+              >
+                <localized-content>
+                  <span lang="cn">删除证书</span>
+                  <span lang="en">Delete Certificate</span>
+                  <span lang="jp">証明書を取り消す</span>
+                </localized-content>
+              </p-button>
+            </n-cert-item>
           </p-list-item>
         </o-fill>
       </o-if>
@@ -81,6 +94,9 @@
           openDialog: false,
         },
         proto: {
+          async deleteCert(item) {
+            debugger;
+          },
           async clickAddDevice(e) {
             e.stopPropagation();
             this.openDialog = true;
