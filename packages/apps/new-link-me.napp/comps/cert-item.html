@@ -1,7 +1,8 @@
 <template component>
-  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
-  <l-m src="./user-name.html"></l-m>
+  <!-- <l-m src="/packages/comps/local-icon/local-icon.html"></l-m> -->
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="./user-name.html"></l-m>
+  <l-m src="./user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -11,7 +12,8 @@
   </style>
   <p-list-item>
     <div style="margin-right: 8px" slot="prefix">
-      <n-local-icon name="device" style="font-size: 18px"></n-local-icon>
+      <n-user-state :userid="item.issuedTo"></n-user-state>
+      <!-- <n-local-icon name="device" style="font-size: 18px"></n-local-icon> -->
     </div>
     <n-user-name :userid="item.issuedTo"></n-user-name>
   </p-list-item>
