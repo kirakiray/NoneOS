@@ -87,6 +87,10 @@ export class RemoteUser extends BaseUser {
       return this._rtc_pairing;
     }
 
+    if (this.#mode === 2) {
+      return;
+    }
+
     this._runInitRTC = 1; // 标记是否已运行过initRTC
 
     if (this.serverState === 0) {
