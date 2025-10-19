@@ -4,21 +4,35 @@
       display: block;
       width: 8px;
       height: 8px;
-      border-radius: 5px;
+      border-radius: 2px;
       /* background-color: var(--md-sys-color-normal); */
       background-color: #6d6d6d;
+    }
+
+    :host([state="error"]) {
+      background-color: red;
+    }
+
+    :host([state="server"]) {
+      background-color: var(--md-sys-color-primary);
+    }
+
+    :host([state="rtc"]) {
+      background-color: var(--md-sys-color-success);
     }
   </style>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
-      const user = await createUser();
+      const localUser = await createUser();
 
       return {
         tag: "n-user-state",
         data: {
           userid: null,
-          state: "",
+        },
+        attrs: {
+          state: null,
         },
         watch: {
           async userid(userId) {
@@ -26,7 +40,19 @@
           },
         },
         proto: {
-          refreshState() {},
+          async refreshState() {
+            try {
+              const remoteUser = await localUser.connectUser(this.userid);
+              if (remoteUser.mode === 1) {
+                this.state = "server";
+              } else if (remoteUser.mode === 2) {
+                this.state = "rtc";
+              }
+            } catch (error) {
+              // 找不到用户
+              this.state = "error";
+            }
+          },
         },
       };
     };
