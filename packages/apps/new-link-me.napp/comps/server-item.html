@@ -169,6 +169,9 @@
             <span lang="jp">サーバー名</span>
           </localized-content>
           {{serverName}}
+
+          <div style="width: 32px"></div>
+          <slot></slot>
         </div>
       </p-list-item>
 
@@ -237,9 +240,6 @@
           </localized-content>
           <n-copy-span>{{serverCid}}</n-copy-span>
         </div>
-      </p-list-item>
-      <p-list-item>
-        <slot></slot>
       </p-list-item>
     </p-list>
   </p-list-item>

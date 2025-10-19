@@ -13,8 +13,11 @@
       padding: 0;
     }
 
+    p-list-item:not(.root-item)::part(main) {
+      padding: 2px 0;
+    }
   </style>
-  <p-list-item button="suffix" collapse-childs="open">
+  <p-list-item button="suffix" collapse-childs="open" class="root-item">
     <h4>
       <localized-content style="color: var(--md-sys-color-primary)">
         <span lang="en">My Servers</span>
@@ -48,6 +51,7 @@
         </p-list-item>
       </o-fill>
       <p-list-item>
+        <div style="height: 8px"></div>
         <p-input sync:value="newServerUrl" on:keydown="handleKeydown">
           <label>
             <localized-content>

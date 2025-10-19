@@ -1,0 +1,31 @@
+<template component>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      max-width: 100%;
+      word-break: break-all;
+    }
+  </style>
+  <div style="display: flex; align-items: center">
+    <div style="flex-shrink: 0; margin-right: 8px">
+      <n-local-icon name="device" style="font-size: 18px"></n-local-icon>
+    </div>
+    <div>
+      <span>{{item}}</span>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-cert-item",
+        data: {
+          item: null,
+        },
+        detached() {
+          this.item = null;
+        },
+      };
+    };
+  </script>
+</template>

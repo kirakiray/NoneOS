@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="../comps/cert-item.html"></l-m>
   <style>
     :host {
       display: block;
@@ -38,7 +39,9 @@
     <p-list slot="childs">
       <o-if :value="devices.length > 0">
         <o-fill :value="devices">
-          <p-list-item> {{$data}} </p-list-item>
+          <p-list-item>
+            <n-cert-item :item="$data"></n-cert-item>
+          </p-list-item>
         </o-fill>
       </o-if>
       <o-else>
@@ -68,24 +71,29 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
 
-      const user = await createUser();
+      const localUser = await createUser();
 
-      const certManager = await user.certManager();
+      const certManager = await localUser.certManager();
 
       return {
         data: {
           devices: [],
-          openDialog: true,
+          openDialog: false,
         },
         proto: {
           async clickAddDevice(e) {
             e.stopPropagation();
             this.openDialog = true;
           },
-          async getDevices() {},
+          async refreshDevices() {
+            // 获取我授权的设备证书
+            const devices = await certManager.get("device");
+
+            this.devices = devices;
+          },
         },
         attached() {
-          this.getDevices();
+          this.refreshDevices();
         },
         detached() {},
       };

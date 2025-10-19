@@ -41,7 +41,12 @@ export default class CertManager extends EventTarget {
   }
 
   // 查询数据库中所有符合条件的证书数据
-  async query({ role, issuedBy, issuedTo }) {
+  async query({ role, issuedBy, issuedTo, ...others }) {
+    // 如果还有其他条件，答应并告知暂不支持这些属性
+    if (Object.keys(others).length > 0) {
+      console.warn("暂不支持查询其他属性: ", Object.keys(others));
+    }
+
     return new Promise((resolve, reject) => {
       const transaction = this.#db.transaction(["certificates"], "readonly");
       const objectStore = transaction.objectStore("certificates");
@@ -97,7 +102,15 @@ export default class CertManager extends EventTarget {
   }
 
   // 获取我的对应条件的证书
-  async get({ role, issuedTo }) {
+  async get(options) {
+    let role, issuedTo;
+
+    if (typeof options === "object") {
+      ({ role, issuedTo } = options);
+    } else if (typeof options === "string") {
+      role = options;
+    }
+
     // 查询数据库中是否存在该证书
     const certs = await this.query({
       role,
