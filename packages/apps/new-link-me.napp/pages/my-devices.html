@@ -12,8 +12,12 @@
       margin: 0;
       padding: 0;
     }
+
+    p-list-item:not(.root-item)::part(main) {
+      padding: 2px 0;
+    }
   </style>
-  <p-list-item button="suffix" collapse-childs="open">
+  <p-list-item button="suffix" collapse-childs="open" class="root-item">
     <div style="display: flex; align-items: center">
       <h4>
         <localized-content style="color: var(--md-sys-color-primary)">
@@ -82,7 +86,9 @@
 
   <script>
     export default async ({ load }) => {
+      const { confirm, toast } = await load("/packages/pui/util.js");
       const { createUser } = await load("/packages/new-user/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       const localUser = await createUser();
 
@@ -94,8 +100,46 @@
           openDialog: false,
         },
         proto: {
-          async deleteCert(item) {
-            debugger;
+          async deleteCert(item, index) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除设备证书",
+                en: "Delete Device Certificate",
+                jp: "デバイス証明書の削除",
+              }),
+              content: await getLocalized({
+                cn: `确定删除设备 ${item.issuedTo} 的证书吗？`,
+                en: `Are you sure you want to delete the certificate for device ${item.issuedTo}?`,
+                jp: `デバイス ${item.issuedTo} の証明書を削除しますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            try {
+              await certManager.delete(item.id);
+
+              await this.refreshDevices();
+              
+              toast({
+                content: await getLocalized({
+                  cn: "证书删除成功",
+                  en: "Certificate deleted successfully",
+                  jp: "証明書が正常に削除されました",
+                }),
+              });
+            } catch (error) {
+              toast({
+                content: await getLocalized({
+                  cn: "证书删除失败: " + error.message,
+                  en: "Failed to delete certificate: " + error.message,
+                  jp: "証明書の削除に失敗しました: " + error.message,
+                }),
+                color: "error",
+              });
+            }
           },
           async clickAddDevice(e) {
             e.stopPropagation();
