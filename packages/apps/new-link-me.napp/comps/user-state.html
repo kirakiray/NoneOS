@@ -4,6 +4,9 @@
     :host {
       display: block;
       color: var(--md-sys-color-normal);
+    }
+
+    n-local-icon {
       font-size: 20px;
     }
 
@@ -19,18 +22,52 @@
       color: var(--md-sys-color-success);
     }
   </style>
-  <o-if :value="state === 'server'">
-    <n-local-icon name="server-proxy"></n-local-icon>
-  </o-if>
-  <o-else-if :value="state === 'rtc'">
-    <n-local-icon name="p2p"></n-local-icon>
-  </o-else-if>
-  <o-else-if :value="state === 'error'">
-    <n-local-icon name="error"></n-local-icon>
-  </o-else-if>
-  <o-else>
-    <n-local-icon name="loading"></n-local-icon>
-  </o-else>
+  <div style="display: flex; align-items: center">
+    <o-if :value="state === 'server'">
+      <n-local-icon name="server-proxy"></n-local-icon>
+    </o-if>
+    <o-else-if :value="state === 'rtc'">
+      <n-local-icon name="p2p"></n-local-icon>
+    </o-else-if>
+    <o-else-if :value="state === 'error'">
+      <n-local-icon name="error"></n-local-icon>
+    </o-else-if>
+    <o-else>
+      <n-local-icon name="loading"></n-local-icon>
+    </o-else>
+    <o-if :value="showText !== null">
+      <div style="margin-left: 8px">
+        <o-if :value="state === 'server'">
+          <localized-content>
+            <span lang="cn">服务器中转模式</span>
+            <span lang="en">Server Proxy Mode</span>
+            <span lang="jp">サーバープロキシモード</span>
+          </localized-content>
+        </o-if>
+        <o-else-if :value="state === 'rtc'">
+          <localized-content>
+            <span lang="cn">实时通信模式</span>
+            <span lang="en">Real-time Communication Mode</span>
+            <span lang="jp">リアルタイム通信モード</span>
+          </localized-content>
+        </o-else-if>
+        <o-else-if :value="state === 'error'">
+          <localized-content>
+            <span lang="cn">无法连接对方</span>
+            <span lang="en">Failed to Connect</span>
+            <span lang="jp">接続に失敗しました</span>
+          </localized-content>
+        </o-else-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">加载中</span>
+            <span lang="en">Loading</span>
+            <span lang="jp">ローディング中</span>
+          </localized-content>
+        </o-else>
+      </div>
+    </o-if>
+  </div>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
@@ -42,6 +79,7 @@
           userid: null,
         },
         attrs: {
+          showText: null,
           state: null,
         },
         watch: {
@@ -62,6 +100,8 @@
                 this._cancel = remoteUser.bind("mode-change", (mode) => {
                   this.refreshState();
                 });
+
+                remoteUser.initRTC();
 
                 this._oldRemoteUser = remoteUser;
               }
