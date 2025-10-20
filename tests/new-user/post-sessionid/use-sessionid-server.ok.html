@@ -22,12 +22,12 @@
       await test("Post Data to Specific Sessions Test", async () => {
         // 创建用户
         const user1 = await createUser({ user: "test-user1" });
-        
+
         const serverUrl = "ws://localhost:18290";
         const serverClient1 = await user1.connectServer(serverUrl);
 
         // 等待连接建立
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // 获取页面中的 iframe 元素
         const iframes = document.querySelectorAll("iframe");
@@ -48,7 +48,7 @@
         const user2_3 = iframes[2].contentWindow.user2;
 
         // 等待连接建立
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // 直接连接 user2_1
         const remoteUser2 = await user1.connectUser(user2_1.userId);
@@ -84,24 +84,27 @@
         const [received1, received2, received3] = await Promise.all([
           receivePromise1,
           receivePromise2,
-          receivePromise3
+          receivePromise3,
         ]);
 
         // 验证每个 iframe 是否收到了正确的数据
-        const isCorrect1 = received1.fromUserId === user1.userId && 
-                          received1.fromUserSessionId === user1.sessionId && 
-                          JSON.stringify(received1.data) === JSON.stringify(testData1) &&
-                          received1.data.val === received1.expectedData;
+        const isCorrect1 =
+          received1.fromUserId === user1.userId &&
+          received1.fromUserSessionId === user1.sessionId &&
+          JSON.stringify(received1.data) === JSON.stringify(testData1) &&
+          received1.data.val === received1.expectedData;
 
-        const isCorrect2 = received2.fromUserId === user1.userId && 
-                          received2.fromUserSessionId === user1.sessionId && 
-                          JSON.stringify(received2.data) === JSON.stringify(testData2) &&
-                          received2.data.val === received2.expectedData;
+        const isCorrect2 =
+          received2.fromUserId === user1.userId &&
+          received2.fromUserSessionId === user1.sessionId &&
+          JSON.stringify(received2.data) === JSON.stringify(testData2) &&
+          received2.data.val === received2.expectedData;
 
-        const isCorrect3 = received3.fromUserId === user1.userId && 
-                          received3.fromUserSessionId === user1.sessionId && 
-                          JSON.stringify(received3.data) === JSON.stringify(testData3) &&
-                          received3.data.val === received3.expectedData;
+        const isCorrect3 =
+          received3.fromUserId === user1.userId &&
+          received3.fromUserSessionId === user1.sessionId &&
+          JSON.stringify(received3.data) === JSON.stringify(testData3) &&
+          received3.data.val === received3.expectedData;
 
         return {
           assert: isCorrect1 && isCorrect2 && isCorrect3,
@@ -112,21 +115,21 @@
                 targetSessionId: user2_1.sessionId,
                 receivedData: received1.data,
                 expectedData: testData1,
-                isCorrect: isCorrect1
+                isCorrect: isCorrect1,
               },
               {
                 targetSessionId: user2_2.sessionId,
                 receivedData: received2.data,
                 expectedData: testData2,
-                isCorrect: isCorrect2
+                isCorrect: isCorrect2,
               },
               {
                 targetSessionId: user2_3.sessionId,
                 receivedData: received3.data,
                 expectedData: testData3,
-                isCorrect: isCorrect3
-              }
-            ]
+                isCorrect: isCorrect3,
+              },
+            ],
           },
         };
       });

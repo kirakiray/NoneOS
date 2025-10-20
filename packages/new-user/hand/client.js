@@ -196,7 +196,7 @@ export class HandServerClient extends EventTarget {
         this.onData(responseData.fromUserId, responseData.data, responseData);
       }
 
-      console.log("收到agent消息:", responseData);
+      // console.log("收到agent消息:", responseData);
 
       this.#user.dispatchEvent(
         new CustomEvent("received-server-agent-data", {

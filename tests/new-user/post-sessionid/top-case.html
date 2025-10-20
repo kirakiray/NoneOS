@@ -36,14 +36,20 @@
         await user1.connectAllServers();
 
         // 在等待一下
-        await new Promise((resolve) => setTimeout(resolve, 300));
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         // 从第一个iframe中获取user2
         const user2_1 = iframes[0].ele.contentWindow.user2;
         const user2_2 = iframes[1].ele.contentWindow.user2;
         const user2_3 = iframes[2].ele.contentWindow.user2;
 
+        // 忽略user2的证书验证
+        iframes.forEach((iframe) => {
+          iframe.ele.contentWindow.user2._ignoreCert = true;
+        });
+
         const remoteUser2 = await user1.connectUser(user2_1.userId);
+        await remoteUser2.initRTC();
 
         // 发送数据
         remoteUser2.post(

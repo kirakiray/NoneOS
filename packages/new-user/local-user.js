@@ -9,6 +9,7 @@ import CertManager from "./cert-manager.js";
 import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
 import { CardManager } from "./card-manager.js";
+import { broadcast } from "./util/broadcast.js";
 
 // 本地用户类
 export class LocalUser extends BaseUser {
@@ -85,7 +86,22 @@ export class LocalUser extends BaseUser {
     });
 
     this.bind("rtc-message", (event) => {
-      let { remoteUser, message, channel, rtcConnection } = event.detail;
+      let { remoteUser, message, channel, rtcConnection, proxySessionId } =
+        event.detail;
+
+      let publicDetail = {};
+
+      if (proxySessionId) {
+        publicDetail = {
+          fromUserId: event.detail.fromUserId,
+          fromUserSessionId: event.detail.fromUserSessionId,
+        };
+      } else {
+        publicDetail = {
+          fromUserId: remoteUser.userId,
+          fromUserSessionId: rtcConnection.__oppositeUserSessionId,
+        };
+      }
 
       if (message.msgId) {
         // 防止和服务端转发重复
@@ -97,6 +113,22 @@ export class LocalUser extends BaseUser {
       }
 
       const data = message.data;
+
+      if (message.userSessionId && message.userSessionId !== this.sessionId) {
+        // 转发到指定的session标签页，并且不是当前session
+        broadcast.postMessage({
+          type: "rtc-agent-message",
+          detail: {
+            ...publicDetail,
+            message,
+            proxySessionId: this.sessionId,
+            toUserSessionId: message.userSessionId,
+            userDirName: this.dirName,
+          },
+        });
+
+        return;
+      }
 
       if (data.__internal_mark) {
         // 内部操作
@@ -118,8 +150,7 @@ export class LocalUser extends BaseUser {
       this.dispatchEvent(
         new CustomEvent("receive-data", {
           detail: {
-            fromUserId: remoteUser.userId,
-            fromUserSessionId: rtcConnection.__oppositeUserSessionId,
+            ...publicDetail,
             data,
             channel,
             options: { ...message },
