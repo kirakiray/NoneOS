@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Use SessionId Server Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+    <style>
+      iframe {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe src="./receive-case.html?tab1" frameborder="0"></iframe>
+    <iframe src="./receive-case.html?tab2" frameborder="0"></iframe>
+    <iframe src="./receive-case.html?tab3" frameborder="0"></iframe>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      await test("Post Data to Specific Session Test", async () => {
+        // 创建用户
+        const user1 = await createUser({ user: "test-user1" });
+
+        const serverUrl = "ws://localhost:18290";
+        const serverClient1 = await user1.connectServer(serverUrl);
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 获取页面中的 iframe 元素
+        const iframes = document.querySelectorAll("iframe");
+
+        // 等待所有 iframe 加载完成
+        // await Promise.all(
+        //   Array.from(iframes).map(
+        //     (iframe) =>
+        //       new Promise((resolve) => {
+        //         iframe.onload = resolve;
+        //       })
+        //   )
+        // );
+
+        // 从 iframe 中获取用户实例
+        const user2_1 = iframes[0].contentWindow.user2;
+        const user2_2 = iframes[1].contentWindow.user2;
+        const user2_3 = iframes[2].contentWindow.user2;
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        // 直接连接 user2_1
+        const remoteUser2 = await user1.connectUser(user2_1.userId);
+
+        // 设置接收数据的Promise，用于验证数据是否正确发送到指定的session
+        const receiveDataPromise = new Promise((resolve) => {
+          // 监听第二个 iframe 中的数据接收事件
+          const handler = (event) => {
+            const { fromUserId, fromUserSessionId, data } = event.detail;
+            // 移除事件监听器
+            user2_2.removeEventListener("receive-data", handler);
+            resolve({ fromUserId, fromUserSessionId, data });
+          };
+
+          user2_2.addEventListener("receive-data", handler);
+        });
+
+        // 发送数据到 user2_2 的特定 session
+        const testData = {
+          type: "test",
+          val: "hello2",
+        };
+
+        remoteUser2.post(testData, {
+          userSessionId: user2_2.sessionId,
+        });
+
+        // 等待接收数据
+        const received = await receiveDataPromise;
+        const isCorrectSender = received.fromUserId === user1.userId;
+        const isCorrectSession = received.fromUserSessionId === user1.sessionId;
+        const isCorrectData =
+          JSON.stringify(received.data) === JSON.stringify(testData);
+
+        // 验证第三个 iframe 中没有接收到数据
+        let isThirdIframeUnchanged = true;
+        const thirdIframeData =
+          iframes[2].contentWindow.document.getElementById(
+            "receive-data"
+          ).textContent;
+        if (thirdIframeData) {
+          isThirdIframeUnchanged = thirdIframeData !== "hello2";
+        }
+
+        return {
+          assert:
+            isCorrectSender &&
+            isCorrectSession &&
+            isCorrectData &&
+            isThirdIframeUnchanged,
+          content: {
+            message: "向指定sessionId发送数据测试成功",
+            sentData: testData,
+            receivedData: received.data,
+            fromUserId: received.fromUserId,
+            fromUserSessionId: received.fromUserSessionId,
+            targetSessionId: user2_2.sessionId,
+            isCorrectSender,
+            isCorrectSession,
+            isCorrectData,
+            isThirdIframeUnchanged,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

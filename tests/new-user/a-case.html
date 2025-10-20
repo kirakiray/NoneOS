@@ -18,18 +18,38 @@
 
       // 创建两个用户
       const user1 = await createUser({ user: "test-user1" });
-      const user2 = await createUser({ user: "test-user2" });
+      const user2_1 = await createUser({ user: "test-user2" });
+      const user2_2 = await createUser({ user: "test-user2" });
+      const user2_3 = await createUser({ user: "test-user2" });
 
       // 连接服务器
       await user1.connectAllServers();
-      await user2.connectAllServers();
+      await user2_1.connectAllServers();
+      await user2_2.connectAllServers();
+      await user2_3.connectAllServers();
+
+      user2_1.bind("receive-data", (event) => {
+        console.log(event);
+      });
+      user2_2.bind("receive-data", (event) => {
+        console.log(event);
+      });
+      user2_3.bind("receive-data", (event) => {
+        console.log(event);
+      });
 
       // 获取远端用户
-      const remoteUser2 = await user1.connectUser(user2.userId);
-      // 远端用户获取用户卡片数据
-      const info2 = await remoteUser2.info({ useOnline: true });
+      const remoteUser2 = await user1.connectUser(user2_1.userId);
 
-      console.log(info2);
+      // 向对方发送数据
+      await remoteUser2.post({
+        type: "test",
+        data: {
+          message: "Hello, World!",
+        },
+      });
+
+      debugger;
     </script>
   </body>
 </html>
