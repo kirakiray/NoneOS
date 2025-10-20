@@ -154,7 +154,6 @@
             });
 
             const signedData = await localUser.createCard({
-              goal: "response-pair-confirm",
               cert: deviceCertificate,
             });
 
@@ -164,7 +163,8 @@
 
             // 返回证书给对方
             const remoteUser = await localUser.connectUser(data.userId);
-            await remoteUser.post(signedData);
+
+            remoteUser.trigger("response-pair-confirm", signedData);
 
             this.waitConfirmUsers.splice(index, 1);
 
@@ -185,13 +185,9 @@
           },
         },
         attached() {
-          this._off = localUser.bind("receive-data", async (e) => {
-            const { data: receivedData, fromUserId: senderUserId } = e.detail;
-
-            if (receivedData.goal === "pair-confirm") {
-              this.clicked = true;
-            }
-
+          this._unregister = localUser.register("pair-confirm", async (e) => {
+            const { data: receivedData, fromUserId: senderUserId } = e;
+            this.clicked = true;
             let storedInviteCode = sessionStorage.getItem(
               "__sessionInviteCode"
             );
@@ -205,7 +201,6 @@
             try {
               // 验证设备数据
               await verifyDeviceData(receivedData, localUser);
-
               // 确认成功，加入等待用户
               this.waitConfirmUsers.push(receivedData);
             } catch (error) {
@@ -216,7 +211,7 @@
           });
         },
         detached() {
-          this._off();
+          this._unregister();
         },
       };
     };

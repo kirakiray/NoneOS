@@ -15,6 +15,10 @@
         },
         watch: {
           async userid(userId) {
+            if (!userId) {
+              this.name = "";
+              return;
+            }
             const card = await cardManager.get(userId);
             this.name = card.name;
           },

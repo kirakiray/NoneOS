@@ -325,41 +325,41 @@
             this._authorizedDeviceCert = cert;
 
             const signedData = await localUser.createCard({
-              goal: "pair-confirm",
               inviteCode,
               cert,
             });
 
-            await remoteUser.post(signedData);
+            // 触发对方的事件
+            remoteUser.trigger("pair-confirm", signedData);
           },
         },
         attached() {
           this.sendInvite();
           this.refreshState();
 
-          this._off = localUser.bind("receive-data", async (event) => {
-            const { data } = event.detail;
-
-            if (data && data.goal === "response-pair-confirm") {
-              try {
-                // 验证设备数据
-                await verifyDeviceData(data, localUser);
-              } catch (error) {
-                // TODO: 验证失败，提示用户可能有攻击
-                debugger;
-                return;
+          this._unregister = localUser.register(
+            "response-pair-confirm",
+            async (e) => {
+              const { data } = e;
+              if (data) {
+                try {
+                  // 验证设备数据
+                  await verifyDeviceData(data, localUser);
+                } catch (error) {
+                  // TODO: 验证失败，提示用户可能有攻击
+                  debugger;
+                  return;
+                }
+                // 保存双方的设备证书
+                await certManager.save(data.cert);
+                await certManager.save(this._authorizedDeviceCert);
+                this.refreshState();
               }
-
-              // 保存双方的设备证书
-              await certManager.save(data.cert);
-              await certManager.save(this._authorizedDeviceCert);
-
-              this.refreshState();
             }
-          });
+          );
         },
         detached() {
-          this._off && this._off();
+          this._unregister();
         },
       };
     };
