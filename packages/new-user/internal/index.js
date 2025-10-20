@@ -6,6 +6,7 @@ import fsAgent from "./fs-agent.js";
 import receiveObserve from "./fs-receive-observe.js";
 import getCard from "./get-card.js";
 import updateUserCard from "./update-user-card.js";
+import trigger from "./trigger.js";
 
 // 内部操作相关的函数
 export default {
@@ -17,4 +18,5 @@ export default {
   "receive-observe": receiveObserve,
   "get-card": getCard,
   "update-user-card": updateUserCard,
+  trigger: trigger,
 };

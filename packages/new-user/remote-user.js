@@ -273,4 +273,13 @@ export class RemoteUser extends BaseUser {
       }
     }
   }
+
+  async trigger(name, data) {
+    this.post({
+      type: "trigger",
+      name,
+      data,
+      __internal_mark: 1,
+    });
+  }
 }

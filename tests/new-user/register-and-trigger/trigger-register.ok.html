@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trigger Register Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+    <style>
+      iframe {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe src="./receiver.html?tab1" frameborder="0"></iframe>
+    <iframe src="./receiver.html?tab2" frameborder="0"></iframe>
+    <iframe src="./receiver.html?tab3" frameborder="0"></iframe>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/new-user/main.js";
+
+      await test("Trigger Registered Events Test", async () => {
+        // 创建用户
+        const user1 = await createUser({ user: "test-user1" });
+        await user1.connectAllServers();
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // 获取页面中的 iframe 元素
+        const iframes = document.querySelectorAll("iframe");
+
+        // 从 iframe 中获取用户实例
+        const user2_1 = iframes[0].contentWindow.user2;
+        const user2_2 = iframes[1].contentWindow.user2;
+        const user2_3 = iframes[2].contentWindow.user2;
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // 直接连接 user2_1
+        const remoteUser2 = await user1.connectUser(user2_1.userId);
+
+        // 为每个 iframe 设置接收数据的 Promise
+        const createReceivePromise = (user, eventName, expectedData) => {
+          return new Promise((resolve) => {
+            const handler = (event) => {
+              const { fromUserId, fromUserSessionId, data } = event.detail;
+              // 移除事件监听器
+              user.removeEventListener(eventName, handler);
+              resolve({ fromUserId, fromUserSessionId, data, expectedData });
+            };
+            user.addEventListener(eventName, handler);
+          });
+        };
+
+        // 创建两个 Promise 来监听数据接收 (只监听应该触发的事件)
+        const receivePromise1 = createReceivePromise(user2_1, "test1", "Hello, World!");
+        const receivePromise2 = createReceivePromise(user2_2, "test1", "Hello, World!");
+
+        // 触发事件
+        remoteUser2.trigger("test1", {
+          message: "Hello, World!",
+        });
+
+        // 等待接收数据
+        const [received1, received2] = await Promise.all([
+          receivePromise1,
+          receivePromise2,
+        ]);
+
+        // 验证每个 iframe 是否收到了正确的数据
+        const isCorrect1 =
+          received1.fromUserId === user1.userId &&
+          JSON.stringify(received1.data) === JSON.stringify({ message: "Hello, World!" }) &&
+          received1.data.message === received1.expectedData;
+
+        const isCorrect2 =
+          received2.fromUserId === user1.userId &&
+          JSON.stringify(received2.data) === JSON.stringify({ message: "Hello, World!" }) &&
+          received2.data.message === received2.expectedData;
+
+        // 验证 user2_3 没有收到不应该触发的事件
+        // 给一点时间确保事件不会被错误触发
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        return {
+          assert: isCorrect1 && isCorrect2,
+          content: {
+            message: "触发注册事件测试成功",
+            results: [
+              {
+                targetUserId: user2_1.userId,
+                receivedData: received1.data,
+                expectedData: { message: "Hello, World!" },
+                isCorrect: isCorrect1,
+              },
+              {
+                targetUserId: user2_2.userId,
+                receivedData: received2.data,
+                expectedData: { message: "Hello, World!" },
+                isCorrect: isCorrect2,
+              },
+            ],
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

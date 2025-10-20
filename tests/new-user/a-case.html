@@ -28,28 +28,23 @@
       await user2_2.connectAllServers();
       await user2_3.connectAllServers();
 
-      user2_1.bind("receive-data", (event) => {
-        console.log(event);
-      });
-      user2_2.bind("receive-data", (event) => {
-        console.log(event);
-      });
-      user2_3.bind("receive-data", (event) => {
-        console.log(event);
+      user2_1.register("test1", ({ data }) => {
+        console.log(data);
       });
 
-      // 获取远端用户
+      user2_2.register("test1", ({ data }) => {
+        console.log(data);
+      });
+
+      user2_3.register("test3", ({ data }) => {
+        throw new Error("不应该触发");
+      });
+
       const remoteUser2 = await user1.connectUser(user2_1.userId);
 
-      // 向对方发送数据
-      await remoteUser2.post({
-        type: "test",
-        data: {
-          message: "Hello, World!",
-        },
+      remoteUser2.trigger("test1", {
+        message: "Hello, World!",
       });
-
-      debugger;
     </script>
   </body>
 </html>

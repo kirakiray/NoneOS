@@ -23,6 +23,7 @@ export class LocalUser extends BaseUser {
 
   #myDeviceCache = {};
   #info = null;
+  #registers = {};
 
   constructor(handle) {
     super(handle);
@@ -167,6 +168,20 @@ export class LocalUser extends BaseUser {
 
   get dirName() {
     return this.#dirHandle.name;
+  }
+
+  get registers() {
+    return this.#registers;
+  }
+
+  // 注册让远端触发的事件
+  register(name, func) {
+    const pool = this.#registers[name] || (this.#registers[name] = new Set());
+    pool.add(func);
+
+    return () => {
+      pool.delete(func);
+    };
   }
 
   // 获取用户信息对象
