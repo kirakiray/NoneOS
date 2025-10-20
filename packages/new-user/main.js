@@ -2,8 +2,9 @@ import { get, init } from "/packages/fs/handle/main.js";
 import { BaseUser } from "./base-user.js";
 import { LocalUser } from "./local-user.js";
 import { broadcast } from "./util/broadcast.js";
+import trigger from "./internal/trigger.js";
 
-broadcast.onmessage = (event) => {
+broadcast.addEventListener("message", (event) => {
   const { type, detail } = event.data;
 
   console.log("收到消息:", type, detail);
@@ -34,8 +35,28 @@ broadcast.onmessage = (event) => {
         );
       }
     });
+  } else if (type === "agent-trigger") {
+    const {
+      fromUserId,
+      fromUserSessionId,
+      data,
+      proxySessionId,
+      localUserDirName,
+    } = detail;
+
+    if (localUsers[localUserDirName]) {
+      const localUser = localUsers[localUserDirName];
+
+      trigger({
+        fromUserId,
+        fromUserSessionId,
+        data,
+        proxySessionId,
+        localUser,
+      });
+    }
   }
-};
+});
 
 const localUsers = {};
 
