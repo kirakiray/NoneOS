@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Use SessionId Server Test</title>
+    <title>Use SessionId RTC Test</title>
     <script src="/packages/libs/ofa/ofa.js" type="module"></script>
     <style>
       iframe {
@@ -19,12 +19,10 @@
       import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/new-user/main.js";
 
-      await test("Post Data to Specific Sessions Test", async () => {
+      await test("Post Data to Specific Sessions via RTC Test", async () => {
         // 创建用户
         const user1 = await createUser({ user: "test-user1" });
-
-        const serverUrl = "ws://localhost:18290";
-        const serverClient1 = await user1.connectServer(serverUrl);
+        await user1.connectAllServers();
 
         // 等待连接建立
         await new Promise((resolve) => setTimeout(resolve, 500));
@@ -37,17 +35,26 @@
         const user2_2 = iframes[1].contentWindow.user2;
         const user2_3 = iframes[2].contentWindow.user2;
 
+        // 忽略user2的证书验证
+        iframes.forEach((iframe) => {
+          iframe.contentWindow.user2._ignoreCert = true;
+        });
+
         // 等待连接建立
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        // 直接连接 user2_1
+        // 直接连接 user2_1 并初始化 RTC
         const remoteUser2 = await user1.connectUser(user2_1.userId);
+        await remoteUser2.initRTC();
 
         // 为每个 iframe 设置接收数据的 Promise
         const createReceivePromise = (user, expectedData) => {
           return new Promise((resolve) => {
             const handler = (event) => {
               const { fromUserId, fromUserSessionId, data } = event.detail;
+
+              debugger
+
               // 移除事件监听器
               user.removeEventListener("receive-data", handler);
               resolve({ fromUserId, fromUserSessionId, data, expectedData });
@@ -99,7 +106,7 @@
         return {
           assert: isCorrect1 && isCorrect2 && isCorrect3,
           content: {
-            message: "向三个不同sessionId发送数据测试成功",
+            message: "通过RTC向三个不同sessionId发送数据测试成功",
             results: [
               {
                 targetSessionId: user2_1.sessionId,
