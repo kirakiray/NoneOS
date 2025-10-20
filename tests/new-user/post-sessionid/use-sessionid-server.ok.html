@@ -19,10 +19,10 @@
       import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/new-user/main.js";
 
-      await test("Post Data to Specific Session Test", async () => {
+      await test("Post Data to Specific Sessions Test", async () => {
         // 创建用户
         const user1 = await createUser({ user: "test-user1" });
-
+        
         const serverUrl = "ws://localhost:18290";
         const serverClient1 = await user1.connectServer(serverUrl);
 
@@ -32,7 +32,7 @@
         // 获取页面中的 iframe 元素
         const iframes = document.querySelectorAll("iframe");
 
-        // 等待所有 iframe 加载完成
+        // // 等待所有 iframe 加载完成
         // await Promise.all(
         //   Array.from(iframes).map(
         //     (iframe) =>
@@ -53,63 +53,80 @@
         // 直接连接 user2_1
         const remoteUser2 = await user1.connectUser(user2_1.userId);
 
-        // 设置接收数据的Promise，用于验证数据是否正确发送到指定的session
-        const receiveDataPromise = new Promise((resolve) => {
-          // 监听第二个 iframe 中的数据接收事件
-          const handler = (event) => {
-            const { fromUserId, fromUserSessionId, data } = event.detail;
-            // 移除事件监听器
-            user2_2.removeEventListener("receive-data", handler);
-            resolve({ fromUserId, fromUserSessionId, data });
-          };
-
-          user2_2.addEventListener("receive-data", handler);
-        });
-
-        // 发送数据到 user2_2 的特定 session
-        const testData = {
-          type: "test",
-          val: "hello2",
+        // 为每个 iframe 设置接收数据的 Promise
+        const createReceivePromise = (user, expectedData) => {
+          return new Promise((resolve) => {
+            const handler = (event) => {
+              const { fromUserId, fromUserSessionId, data } = event.detail;
+              // 移除事件监听器
+              user.removeEventListener("receive-data", handler);
+              resolve({ fromUserId, fromUserSessionId, data, expectedData });
+            };
+            user.addEventListener("receive-data", handler);
+          });
         };
 
-        remoteUser2.post(testData, {
-          userSessionId: user2_2.sessionId,
-        });
+        // 创建三个 Promise 来监听数据接收
+        const receivePromise1 = createReceivePromise(user2_1, "hello1");
+        const receivePromise2 = createReceivePromise(user2_2, "hello2");
+        const receivePromise3 = createReceivePromise(user2_3, "hello3");
+
+        // 发送不同数据到不同的 session
+        const testData1 = { type: "test", val: "hello1" };
+        const testData2 = { type: "test", val: "hello2" };
+        const testData3 = { type: "test", val: "hello3" };
+
+        remoteUser2.post(testData1, { userSessionId: user2_1.sessionId });
+        remoteUser2.post(testData2, { userSessionId: user2_2.sessionId });
+        remoteUser2.post(testData3, { userSessionId: user2_3.sessionId });
 
         // 等待接收数据
-        const received = await receiveDataPromise;
-        const isCorrectSender = received.fromUserId === user1.userId;
-        const isCorrectSession = received.fromUserSessionId === user1.sessionId;
-        const isCorrectData =
-          JSON.stringify(received.data) === JSON.stringify(testData);
+        const [received1, received2, received3] = await Promise.all([
+          receivePromise1,
+          receivePromise2,
+          receivePromise3
+        ]);
 
-        // 验证第三个 iframe 中没有接收到数据
-        let isThirdIframeUnchanged = true;
-        const thirdIframeData =
-          iframes[2].contentWindow.document.getElementById(
-            "receive-data"
-          ).textContent;
-        if (thirdIframeData) {
-          isThirdIframeUnchanged = thirdIframeData !== "hello2";
-        }
+        // 验证每个 iframe 是否收到了正确的数据
+        const isCorrect1 = received1.fromUserId === user1.userId && 
+                          received1.fromUserSessionId === user1.sessionId && 
+                          JSON.stringify(received1.data) === JSON.stringify(testData1) &&
+                          received1.data.val === received1.expectedData;
+
+        const isCorrect2 = received2.fromUserId === user1.userId && 
+                          received2.fromUserSessionId === user1.sessionId && 
+                          JSON.stringify(received2.data) === JSON.stringify(testData2) &&
+                          received2.data.val === received2.expectedData;
+
+        const isCorrect3 = received3.fromUserId === user1.userId && 
+                          received3.fromUserSessionId === user1.sessionId && 
+                          JSON.stringify(received3.data) === JSON.stringify(testData3) &&
+                          received3.data.val === received3.expectedData;
 
         return {
-          assert:
-            isCorrectSender &&
-            isCorrectSession &&
-            isCorrectData &&
-            isThirdIframeUnchanged,
+          assert: isCorrect1 && isCorrect2 && isCorrect3,
           content: {
-            message: "向指定sessionId发送数据测试成功",
-            sentData: testData,
-            receivedData: received.data,
-            fromUserId: received.fromUserId,
-            fromUserSessionId: received.fromUserSessionId,
-            targetSessionId: user2_2.sessionId,
-            isCorrectSender,
-            isCorrectSession,
-            isCorrectData,
-            isThirdIframeUnchanged,
+            message: "向三个不同sessionId发送数据测试成功",
+            results: [
+              {
+                targetSessionId: user2_1.sessionId,
+                receivedData: received1.data,
+                expectedData: testData1,
+                isCorrect: isCorrect1
+              },
+              {
+                targetSessionId: user2_2.sessionId,
+                receivedData: received2.data,
+                expectedData: testData2,
+                isCorrect: isCorrect2
+              },
+              {
+                targetSessionId: user2_3.sessionId,
+                receivedData: received3.data,
+                expectedData: testData3,
+                isCorrect: isCorrect3
+              }
+            ]
           },
         };
       });
