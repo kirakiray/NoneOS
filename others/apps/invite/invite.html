@@ -330,7 +330,7 @@
             });
 
             // 触发对方的事件
-            remoteUser.trigger(`pair-confirm-${inviteCode}`, signedData);
+            remoteUser.trigger(`pair-confirm:${inviteCode}`, signedData);
           },
         },
         attached() {
@@ -338,7 +338,7 @@
           this.refreshState();
 
           this._unregister = localUser.register(
-            `response-pair-confirm-${inviteCode}`,
+            `response-pair-confirm:${inviteCode}`,
             async (e) => {
               const { data } = e;
               if (data) {

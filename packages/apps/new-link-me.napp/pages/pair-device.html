@@ -166,7 +166,7 @@
             const remoteUser = await localUser.connectUser(data.userId);
 
             remoteUser.trigger(
-              `response-pair-confirm-${this.inviteCode}`,
+              `response-pair-confirm:${this.inviteCode}`,
               signedData
             );
 
@@ -190,7 +190,7 @@
         },
         attached() {
           this._unregister = localUser.register(
-            `pair-confirm-${this.inviteCode}`,
+            `pair-confirm:${this.inviteCode}`,
             async (e) => {
               const { data: receivedData, fromUserId: senderUserId } = e;
               this.clicked = true;
