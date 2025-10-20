@@ -15,7 +15,11 @@
   <div style="max-width: 600px; color: var(--md-sys-color-primary)">
     <n-copy-span> {{url}} </n-copy-span>
   </div>
-  <o-page src="./pair-device.html" style="margin-top: 16px"></o-page>
+  <o-page
+    src="./pair-device.html"
+    :invite-code="sessionInviteCode"
+    style="margin-top: 16px"
+  ></o-page>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/new-user/main.js");
@@ -30,6 +34,7 @@
       return {
         data: {
           userId: user.userId,
+          sessionInviteCode,
         },
         proto: {
           get url() {

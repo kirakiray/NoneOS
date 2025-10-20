@@ -124,6 +124,7 @@
       return {
         data: {
           waitConfirmUsers: [], // 等待确认的用户
+          // inviteCode: null,
         },
         proto: {
           async confirmAdd(data, index) {
@@ -164,7 +165,10 @@
             // 返回证书给对方
             const remoteUser = await localUser.connectUser(data.userId);
 
-            remoteUser.trigger("response-pair-confirm", signedData);
+            remoteUser.trigger(
+              `response-pair-confirm-${this.inviteCode}`,
+              signedData
+            );
 
             this.waitConfirmUsers.splice(index, 1);
 
@@ -185,30 +189,30 @@
           },
         },
         attached() {
-          this._unregister = localUser.register("pair-confirm", async (e) => {
-            const { data: receivedData, fromUserId: senderUserId } = e;
-            this.clicked = true;
-            let storedInviteCode = sessionStorage.getItem(
-              "__sessionInviteCode"
-            );
+          this._unregister = localUser.register(
+            `pair-confirm-${this.inviteCode}`,
+            async (e) => {
+              const { data: receivedData, fromUserId: senderUserId } = e;
+              this.clicked = true;
 
-            if (receivedData.inviteCode !== storedInviteCode) {
-              // TODO: 邀请码不匹配，提示用户可能有攻击
-              debugger;
-              return;
-            }
+              if (receivedData.inviteCode !== this.inviteCode) {
+                // TODO: 邀请码不匹配，提示用户可能有攻击
+                debugger;
+                return;
+              }
 
-            try {
-              // 验证设备数据
-              await verifyDeviceData(receivedData, localUser);
-              // 确认成功，加入等待用户
-              this.waitConfirmUsers.push(receivedData);
-            } catch (error) {
-              // TODO: 验证失败，提示用户可能有攻击
-              debugger;
-              return;
+              try {
+                // 验证设备数据
+                await verifyDeviceData(receivedData, localUser);
+                // 确认成功，加入等待用户
+                this.waitConfirmUsers.push(receivedData);
+              } catch (error) {
+                // TODO: 验证失败，提示用户可能有攻击
+                debugger;
+                return;
+              }
             }
-          });
+          );
         },
         detached() {
           this._unregister();
