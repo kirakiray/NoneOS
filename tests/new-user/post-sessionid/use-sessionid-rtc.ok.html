@@ -53,8 +53,6 @@
             const handler = (event) => {
               const { fromUserId, fromUserSessionId, data } = event.detail;
 
-              debugger
-
               // 移除事件监听器
               user.removeEventListener("receive-data", handler);
               resolve({ fromUserId, fromUserSessionId, data, expectedData });

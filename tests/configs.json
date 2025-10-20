@@ -28,6 +28,8 @@
     "../tests/new-user/connect-server.ok.html",
     "../tests/new-user/create-user.ok.html",
     "../tests/new-user/get-user-card.ok.html",
+    "../tests/new-user/post-sessionid/use-sessionid-rtc.ok.html",
+    "../tests/new-user/post-sessionid/use-sessionid-server.ok.html",
     "../tests/new-user/public-key-user.ok.html",
     "../tests/new-user/rtc-post-data.ok.html",
     "../tests/new-user/user-info.ok.html"
