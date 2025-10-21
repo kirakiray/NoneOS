@@ -44,6 +44,11 @@ export default async function rtcOfferHandler({
   // 获取目标的远端用户
   const remoteUser = await localUser.connectUser(fromUserId);
 
+  if (!remoteUser.serverState) {
+    // serverState 为空，说明用户还没有连接到服务器；但是对方已经发了 offer 了，说明已经在线，这时候要重新查询服务器是否在线
+    await remoteUser.checkServer();
+  }
+
   await initRTC(remoteUser, {
     offer,
     fromUserId,

@@ -301,8 +301,6 @@ export class LocalUser extends BaseUser {
         return this.#remotes[userId];
       }
 
-      const serverManager = await this.serverManager();
-
       return (this.#remotes[userId] = (async () => {
         // 优先从本地卡片库查找用户
         const cardManager = await this.cardManager();
@@ -314,6 +312,8 @@ export class LocalUser extends BaseUser {
         }
 
         if (!publicKey) {
+          const serverManager = await this.serverManager();
+
           // 从在线服务器上查找用户卡片
           const userData = await Promise.any(
             serverManager.data.map(async (server) => {
@@ -350,6 +350,15 @@ export class LocalUser extends BaseUser {
 
         // 检查通信状态
         await user.checkState();
+
+        // 确认对方在线，判断并进行rtc连接
+        if (user.mode === 1) {
+          const isMydevice = await this.isMyDevice(user.userId);
+
+          if (isMydevice) {
+            user.initRTC();
+          }
+        }
 
         return user;
       })());
