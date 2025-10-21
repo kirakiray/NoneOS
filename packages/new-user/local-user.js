@@ -327,10 +327,10 @@ export class LocalUser extends BaseUser {
 
               throw new Error("没有 publicKey");
             })
-          );
+          ).catch(() => null);
 
           if (!userData) {
-            throw new Error("未查找到用户卡片，无法连接");
+            throw new Error("未能在任何在线服务器上找到该用户，连接失败");
           }
 
           publicKey = userData.publicKey;

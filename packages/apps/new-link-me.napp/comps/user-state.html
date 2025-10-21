@@ -90,7 +90,11 @@
         proto: {
           async refreshState() {
             try {
+              debugger;
               const remoteUser = await localUser.connectUser(this.userid);
+
+              window.aaa = remoteUser;
+              debugger;
 
               if (this._oldRemoteUser !== remoteUser) {
                 if (this._cancel) {
@@ -116,6 +120,7 @@
                 this.state = "error";
               }
             } catch (error) {
+              console.error("refreshState error:", error);
               // 找不到用户
               this.state = "error";
             }
