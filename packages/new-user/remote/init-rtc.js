@@ -135,7 +135,8 @@ export default async function initRTC(remoteUser, rtcOptions) {
 const handleConnectionError = (remoteUser, error, action) => {
   console.error(`${action}失败:`, error);
   // 根据服务器状态切换模式
-  remoteUser._changeMode(remoteUser.serverState ? 1 : 0);
+
+  remoteUser.checkState();
 };
 
 // 清理已关闭的RTC连接
@@ -219,7 +220,7 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
 
   // 监听数据通道事件
   channel.onopen = () => {
-    remoteUser._changeMode(2);
+    remoteUser.checkState();
   };
 
   channel.onmessage = (event) => {

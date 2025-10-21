@@ -106,10 +106,14 @@
                 this._oldRemoteUser = remoteUser;
               }
 
+              console.log("refreshState", remoteUser.mode);
+
               if (remoteUser.mode === 1) {
                 this.state = "server";
               } else if (remoteUser.mode === 2) {
                 this.state = "rtc";
+              } else if (remoteUser.mode === 0) {
+                this.state = "error";
               }
             } catch (error) {
               // 找不到用户

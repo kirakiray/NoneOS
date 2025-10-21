@@ -41,12 +41,34 @@ export class RemoteUser extends BaseUser {
   }
 
   async checkState() {
+    console.log("checkState before");
+
+    // 先判断是否有rtc通道可用
+    if (this._rtcConnections.length) {
+      const hasConnected = this._rtcConnections.some(
+        (conn) => conn.connectionState === "connected"
+      );
+
+      if (hasConnected) {
+        // 如果有已连接的rtc通道，则更新连接状态
+        this._changeMode(2);
+        return;
+      }
+    }
+    // 没有rtc通道可用，判断是否有服务端转发通道可用
     await this.checkServer();
+
+    console.log("checkState after1");
 
     if (this.#servers.length && this.#mode === 0) {
       // 如果之前是不可用的，则更新连接状态
       this._changeMode(1);
+      return;
     }
+
+    this._changeMode(0);
+
+    console.log("checkState after");
   }
 
   async checkServer() {
