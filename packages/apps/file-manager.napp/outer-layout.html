@@ -6,7 +6,6 @@
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
-  <l-m src="/packages/comps/user-connected-area.html"></l-m>
   <style>
     :host {
       display: block;
@@ -72,6 +71,16 @@
           </span>
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
+            <o-fill :value="remotes">
+              <p-list-item collapse-childs="open" button="suffix">
+                
+                
+                {{$data.name}}
+                <p-list slot="childs" style="--padding-left: 16px">
+                  <o-fill :value="$data.dirs" name="path-item"></o-fill>
+                </p-list>
+              </p-list-item>
+            </o-fill>
             <!-- <o-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
                 <n-id-avatar
@@ -140,7 +149,6 @@
   <script>
     export default async ({ load, url }) => {
       const { get } = await load("/packages/fs/main.js");
-      // const { getRemotes } = await load("/packages/util/get-remotes.js");
       const { setSpace } = await load("/packages/i18n/data.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
@@ -252,7 +260,9 @@
           });
         },
         async attached() {
-          // this.remotes = await getRemotes();
+          const remotes = await localUser.myDevices();
+          debugger;
+          //  this.remotes = remotes;
         },
         detached() {
           this._cancel && this._cancel();

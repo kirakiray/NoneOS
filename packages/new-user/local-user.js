@@ -420,4 +420,32 @@ export class LocalUser extends BaseUser {
 
     return !!certs.length;
   }
+
+  // 获取我的所有设备
+  async myDevices() {
+    const certManager = await this.certManager();
+    const users = [];
+    const cardManager = await this.cardManager();
+
+    const certs = await certManager.get("device");
+    const giveMeCerts = await certManager.query({
+      role: "device",
+      issuedTo: this.userId,
+    });
+
+    for (let cert of certs) {
+      const found = giveMeCerts.find((item) => item.issuedBy === cert.issuedTo);
+
+      if (!found) {
+        // 我给了对方，但对方没给我授权，就不是我的设备了
+        continue;
+      }
+
+      const userCard = await cardManager.get(cert.issuedTo);
+
+      users.push(userCard);
+    }
+
+    return users;
+  }
 }

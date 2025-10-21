@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
   <l-m src="./user-name.html"></l-m>
   <l-m src="./user-state.html"></l-m>
 
@@ -25,6 +26,8 @@
     }
 
     .info {
+      display: flex;
+      align-items: center;
       flex: 1;
       min-width: 0;
     }
@@ -88,11 +91,15 @@
 
   <p-list-item button="suffix" collapse-childs="close">
     <div class="flex-align-center">
-      <div style="margin-right: 12px">
-        <n-user-state :userid="item.issuedTo"></n-user-state>
-      </div>
+      <jdent-icon
+        :value="item.issuedTo"
+        style="width: 20px; height: 20px; margin-right: 4px"
+      ></jdent-icon>
       <div class="info">
         <n-user-name :userid="item.issuedTo"></n-user-name>
+        <div style="margin-left: 8px">
+          <n-user-state :userid="item.issuedTo"></n-user-state>
+        </div>
       </div>
     </div>
 
