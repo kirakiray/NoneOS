@@ -246,22 +246,28 @@
         async attached() {
           const remotes = await localUser.myDevices();
 
-          this.remotes = remotes.map((e) => {
-            // 尝试连接对方
-            localUser.connectUser(e.userId);
+          this.remotes = await Promise.all(
+            remotes.map(async (e) => {
+              // 尝试连接对方
+              localUser.connectUser(e.userId);
 
-            return {
-              userId: e.userId,
-              userName: e.name,
-              dirs: [
-                {
-                  name: "虚拟本地",
-                  path: `$user-${e.userId}:local`,
-                },
-              ],
-            };
-            return;
-          });
+              return {
+                userId: e.userId,
+                userName: e.name,
+                dirs: [
+                  {
+                    name: await getLocalized({
+                      cn: "虚拟本地",
+                      en: "Virtual Local",
+                      ja: "仮想ローカル",
+                    }),
+                    path: `$user-${e.userId}:local`,
+                  },
+                ],
+              };
+              return;
+            })
+          );
         },
         detached() {
           this._cancel && this._cancel();
