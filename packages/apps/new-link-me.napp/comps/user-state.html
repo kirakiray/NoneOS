@@ -84,45 +84,55 @@
         },
         watch: {
           async userid(userId) {
+            await this.init();
             this.refreshState();
           },
         },
         proto: {
-          async refreshState() {
+          async init() {
+            if (this._cancel) {
+              this._cancel();
+            }
+
+            if (!this.userid) {
+              // 组件被清空，不需要初始化
+              return;
+            }
+
             try {
               const remoteUser = await localUser.connectUser(this.userid);
 
-              window.aaa = remoteUser;
+              this._remoteUser = remoteUser;
 
-              if (this._oldRemoteUser !== remoteUser) {
-                if (this._cancel) {
-                  this._cancel();
-                }
+              this._cancel = remoteUser.bind("mode-change", (mode) => {
+                this.refreshState();
+              });
 
-                this._cancel = remoteUser.bind("mode-change", (mode) => {
-                  this.refreshState();
-                });
-
-                this._oldRemoteUser = remoteUser;
-              }
-
-              console.log("refreshState", remoteUser.mode);
-
-              if (remoteUser.mode === 1) {
-                this.state = "server";
-              } else if (remoteUser.mode === 2) {
-                this.state = "rtc";
-              } else if (remoteUser.mode === 0) {
-                this.state = "error";
-              }
+              this.refreshState();
             } catch (error) {
               console.error("refreshState error:", error);
               // 找不到用户
               this.state = "error";
             }
           },
+          async refreshState() {
+            if (!this._remoteUser) {
+              this.state = "loading";
+              return;
+            }
+
+            if (this._remoteUser.mode === 1) {
+              this.state = "server";
+            } else if (this._remoteUser.mode === 2) {
+              this.state = "rtc";
+            } else if (this._remoteUser.mode === 0) {
+              this.state = "error";
+            }
+          },
         },
-        detached() {},
+        detached() {
+          this._cancel && this._cancel();
+        },
       };
     };
   </script>
