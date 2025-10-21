@@ -289,8 +289,6 @@ export class LocalUser extends BaseUser {
       options = { userId: options };
     }
 
-    const serverManager = await this.serverManager();
-
     if (options.userId) {
       const { userId } = options;
 
@@ -303,8 +301,17 @@ export class LocalUser extends BaseUser {
         return this.#remotes[userId];
       }
 
+      const serverManager = await this.serverManager();
+
       return (this.#remotes[userId] = (async () => {
-        // TODO: 先查看是否有用户本地卡片
+        // 优先从本地卡片库查找用户
+        const cardManager = await this.cardManager();
+
+        const card = await cardManager.get(userId);
+
+        if (card) {
+          publicKey = card.publicKey;
+        }
 
         if (!publicKey) {
           // 从在线服务器上查找用户卡片

@@ -90,11 +90,9 @@
         proto: {
           async refreshState() {
             try {
-              debugger;
               const remoteUser = await localUser.connectUser(this.userid);
 
               window.aaa = remoteUser;
-              debugger;
 
               if (this._oldRemoteUser !== remoteUser) {
                 if (this._cancel) {
@@ -104,8 +102,6 @@
                 this._cancel = remoteUser.bind("mode-change", (mode) => {
                   this.refreshState();
                 });
-
-                remoteUser.initRTC();
 
                 this._oldRemoteUser = remoteUser;
               }

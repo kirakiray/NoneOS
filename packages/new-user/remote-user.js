@@ -105,7 +105,6 @@ export class RemoteUser extends BaseUser {
       // 所有服务器都失败，这里可以记录日志或做其他处理
       // 例如：console.warn("所有服务器尝试失败", aggregateError.errors);
       console.warn("所有服务器尝试失败", aggregateError.errors);
-      debugger
     }
 
     // 更新可用服务器列表
