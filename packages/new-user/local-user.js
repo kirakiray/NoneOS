@@ -353,11 +353,11 @@ export class LocalUser extends BaseUser {
 
         // 确认对方在线，判断并进行rtc连接
         if (user.mode === 1) {
-          const isMydevice = await this.isMyDevice(user.userId);
-
-          if (isMydevice) {
-            user.initRTC();
-          }
+          this.isMyDevice(user.userId).then((bool) => {
+            if (bool) {
+              user.initRTC();
+            }
+          });
         }
 
         return user;
