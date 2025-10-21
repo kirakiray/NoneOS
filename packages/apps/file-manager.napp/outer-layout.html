@@ -5,7 +5,7 @@
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
-  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -73,18 +73,8 @@
           <p-list slot="childs">
             <o-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
-                
-                
-                {{$data.name}}
-                <p-list slot="childs" style="--padding-left: 16px">
-                  <o-fill :value="$data.dirs" name="path-item"></o-fill>
-                </p-list>
-              </p-list-item>
-            </o-fill>
-            <!-- <o-fill :value="remotes">
-              <p-list-item collapse-childs="open" button="suffix">
-                <n-id-avatar
-                  :val="$data.userId"
+                <jdent-icon
+                  :value="$data.userId"
                   slot="prefix"
                   style="
                     width: 20px;
@@ -93,19 +83,13 @@
                     border-radius: 3px;
                     overflow: hidden;
                   "
-                ></n-id-avatar>
+                ></jdent-icon>
                 {{$data.userName}}
-
-                <user-connected-area
-                  slot="suffix"
-                  :user-id="$data.userId"
-                  style="position: relative; z-index: 4"
-                ></user-connected-area>
                 <p-list slot="childs" style="--padding-left: 16px">
                   <o-fill :value="$data.dirs" name="path-item"></o-fill>
                 </p-list>
               </p-list-item>
-            </o-fill> -->
+            </o-fill>
             <o-if :value="!remotes.length">
               <p-list-item>
                 <div style="text-align: center; color: #7d7d7d">
@@ -261,8 +245,23 @@
         },
         async attached() {
           const remotes = await localUser.myDevices();
-          debugger;
-          //  this.remotes = remotes;
+
+          this.remotes = remotes.map((e) => {
+            // 尝试连接对方
+            localUser.connectUser(e.userId);
+
+            return {
+              userId: e.userId,
+              userName: e.name,
+              dirs: [
+                {
+                  name: "虚拟本地",
+                  path: `$user-${e.userId}:local`,
+                },
+              ],
+            };
+            return;
+          });
         },
         detached() {
           this._cancel && this._cancel();
