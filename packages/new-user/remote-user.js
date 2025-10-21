@@ -41,6 +41,15 @@ export class RemoteUser extends BaseUser {
   }
 
   async checkState() {
+    await this.checkServer();
+
+    if (this.#servers.length && this.#mode === 0) {
+      // 如果之前是不可用的，则更新连接状态
+      this._changeMode(1);
+    }
+  }
+
+  async checkServer() {
     const serverManager = await this.#self.serverManager();
 
     const servers = [];
@@ -73,11 +82,6 @@ export class RemoteUser extends BaseUser {
 
     // 更新可用服务器列表
     this.#servers = servers;
-
-    if (servers.length && this.#mode === 0) {
-      // 如果之前是不可用的，则更新连接状态
-      this._changeMode(1);
-    }
   }
 
   // 初始化RTC连接
