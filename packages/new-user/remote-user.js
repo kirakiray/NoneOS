@@ -43,9 +43,19 @@ export class RemoteUser extends BaseUser {
   async checkState() {
     // 先判断是否有rtc通道可用
     if (this._rtcConnections.length) {
-      const hasConnected = this._rtcConnections.some(
-        (conn) => conn.connectionState === "connected"
-      );
+      const hasConnected = this._rtcConnections.some((conn) => {
+        if (conn.connectionState === "connected") {
+          const hasConnectedChannel = conn._dataChannels.some(
+            (channel) => channel.readyState === "open"
+          );
+
+          console.log("hasConnectedChannel: ", hasConnectedChannel);
+
+          return true;
+        }
+
+        return false;
+      });
 
       if (hasConnected) {
         // 如果有已连接的rtc通道，则更新连接状态

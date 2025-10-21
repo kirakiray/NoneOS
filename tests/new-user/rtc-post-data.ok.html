@@ -179,7 +179,8 @@
           },
         };
       });
-      await test("RTC Reconnection Test", async () => {
+
+      await test("Simulate Sudden P2P Disconnection", async () => {
         // 创建两个用户
         const user1 = await createUser({ user: "test-rtc-reconnect-user1" });
         const user2 = await createUser({ user: "test-rtc-reconnect-user2" });
@@ -187,18 +188,14 @@
         user1._ignoreCert = true; // _ignoreCert 用于忽略 rtc 的配对的设备判断行为，仅用于测试环境
         user2._ignoreCert = true;
 
-        const serverUrl = "ws://localhost:18290";
-
-        // 保证user2连上服务器
-        await user2.connectServer(serverUrl);
-
-        // 保证user1也连上服务器
-        await user1.connectServer(serverUrl);
+        await user1.connectAllServers();
+        await user2.connectAllServers();
 
         // 直接连接 user2
         let remoteUser2;
         try {
-          remoteUser2 = await user1.connectUser({ userId: user2.userId });
+          // remoteUser2 = await user1.connectUser({ userId: user2.userId });
+          remoteUser2 = await user1.connectUser(user2.userId);
 
           // 初始化RTC连接，完成后就会使用点对点进行数据通信
           await remoteUser2.initRTC();

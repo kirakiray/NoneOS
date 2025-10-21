@@ -279,4 +279,6 @@ const refreshDataChannels = (remoteUser, rtcConnection, channel) => {
     cleanupRTCConnection(remoteUser, rtcConnection);
     handleConnectionError(remoteUser, null, "数据通道");
   }
+
+  remoteUser.checkState();
 };
