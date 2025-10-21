@@ -6,6 +6,7 @@
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
   <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/apps/new-link-me.napp/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -84,7 +85,13 @@
                     overflow: hidden;
                   "
                 ></jdent-icon>
-                {{$data.userName}}
+                <div style="display: flex; align-items: center">
+                  {{$data.userName}}
+                  <n-user-state
+                    :userid="$data.userId"
+                    style="margin-left: 8px"
+                  ></n-user-state>
+                </div>
                 <p-list slot="childs" style="--padding-left: 16px">
                   <o-fill :value="$data.dirs" name="path-item"></o-fill>
                 </p-list>
@@ -249,7 +256,7 @@
           this.remotes = await Promise.all(
             remotes.map(async (e) => {
               // 尝试连接对方
-              localUser.connectUser(e.userId);
+              window.aa = await localUser.connectUser(e.userId);
 
               return {
                 userId: e.userId,

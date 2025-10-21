@@ -37,9 +37,10 @@ export default async function rtcAnswerHandler({
   await rtcConnection.setRemoteDescription(answer);
 
   // 发送准备好的ice候选者
-  rtcConnection._pendingIceSends.forEach((sendIce) => {
-    sendIce(fromRTCId);
-  });
+  rtcConnection._pendingIceSends &&
+    rtcConnection._pendingIceSends.forEach((sendIce) => {
+      sendIce(fromRTCId);
+    });
 
   rtcConnection._hasReceivedAnswer = true;
 }

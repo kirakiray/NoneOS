@@ -40,7 +40,16 @@ export class RemoteUser extends BaseUser {
     return this.#mode;
   }
 
+  // 检查连接状态
   async checkState() {
+    if (this._checkStateTimer) {
+      return;
+    }
+
+    this._checkStateTimer = 1;
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     // 先判断是否有rtc通道可用
     if (this._rtcConnections.length) {
       const hasConnected = this._rtcConnections.some((conn) => {
@@ -48,8 +57,6 @@ export class RemoteUser extends BaseUser {
           const hasConnectedChannel = conn._dataChannels.some(
             (channel) => channel.readyState === "open"
           );
-
-          console.log("hasConnectedChannel: ", hasConnectedChannel);
 
           return true;
         }
@@ -73,6 +80,12 @@ export class RemoteUser extends BaseUser {
     }
 
     this._changeMode(0);
+  }
+
+  _changeMode(mode) {
+    this._checkStateTimer = null;
+    this.#mode = mode;
+    this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
   }
 
   async checkServer() {
@@ -188,11 +201,6 @@ export class RemoteUser extends BaseUser {
         cancel2();
       });
     }));
-  }
-
-  _changeMode(mode) {
-    this.#mode = mode;
-    this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
   }
 
   // 获取用户信息
