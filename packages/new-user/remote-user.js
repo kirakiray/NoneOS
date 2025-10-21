@@ -51,34 +51,39 @@ export class RemoteUser extends BaseUser {
 
   async checkServer() {
     const serverManager = await this.#self.serverManager();
-
     const servers = [];
 
     // 等待最快的服务器初始化完成
-    await Promise.any(
-      serverManager.data.map(async (server) => {
-        const serverClient = await this.#self.connectServer(server.url);
+    try {
+      await Promise.any(
+        serverManager.data.map(async (server) => {
+          const serverClient = await this.#self.connectServer(server.url);
 
-        const userData = await serverClient.findUser(this.userId);
+          const userData = await serverClient.findUser(this.userId);
 
-        if (userData.isOnline && userData.publicKey) {
-          // 判断publicKey是否伪造
-          const publicKeyHash = await getHash(userData.publicKey);
+          if (userData.isOnline && userData.publicKey) {
+            // 判断publicKey是否伪造
+            const publicKeyHash = await getHash(userData.publicKey);
 
-          if (publicKeyHash !== this.userId) {
-            // 伪造的publicKey，直接等待到最后
-            throw new Error("publicKey伪造");
+            if (publicKeyHash !== this.userId) {
+              // 伪造的publicKey，直接等待到最后
+              throw new Error("publicKey伪造");
+            }
+
+            // 可用服务器按照延迟顺序排序
+            servers.push(serverClient);
+
+            return userData;
           }
 
-          // 可用服务器按照延迟顺序排序
-          servers.push(serverClient);
-
-          return userData;
-        }
-
-        throw new Error("用户不在线");
-      })
-    );
+          throw new Error("用户不在线");
+        })
+      );
+    } catch (aggregateError) {
+      // 所有服务器都失败，这里可以记录日志或做其他处理
+      // 例如：console.warn("所有服务器尝试失败", aggregateError.errors);
+      console.warn("所有服务器尝试失败", aggregateError.errors);
+    }
 
     // 更新可用服务器列表
     this.#servers = servers;

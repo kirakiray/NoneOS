@@ -51,7 +51,6 @@ export default async function initRTC(remoteUser, rtcOptions) {
     switch (rtcConnection.connectionState) {
       case "connected":
         // console.log("RTC 连接已建立");
-        // remoteUser._changeMode(2);
         break;
       case "failed":
       case "disconnected":
