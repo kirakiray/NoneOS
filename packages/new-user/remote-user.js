@@ -42,23 +42,13 @@ export class RemoteUser extends BaseUser {
 
   // 检查连接状态
   async checkState() {
-    if (this._checkStateTimer) {
-      return;
-    }
-
-    this._checkStateTimer = 1;
-
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     // 先判断是否有rtc通道可用
     if (this._rtcConnections.length) {
       const hasConnected = this._rtcConnections.some((conn) => {
         if (conn.connectionState === "connected") {
-          const hasConnectedChannel = conn._dataChannels.some(
+          return conn._dataChannels.some(
             (channel) => channel.readyState === "open"
           );
-
-          return true;
         }
 
         return false;
@@ -83,7 +73,6 @@ export class RemoteUser extends BaseUser {
   }
 
   _changeMode(mode) {
-    this._checkStateTimer = null;
     this.#mode = mode;
     this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
   }

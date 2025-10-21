@@ -220,10 +220,10 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
 
   // 监听数据通道事件
   channel.onopen = () => {
-    // setTimeout(() => {
-    // 等待数据通道打开后再检查状态
-    remoteUser.checkState();
-    // }, 100);
+    setTimeout(() => {
+      // 等待数据通道打开后再检查状态
+      remoteUser.checkState();
+    }, 100);
   };
 
   channel.onmessage = (event) => {
