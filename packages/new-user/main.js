@@ -4,7 +4,7 @@ import { LocalUser } from "./local-user.js";
 import { broadcast } from "./util/broadcast.js";
 import trigger from "./internal/trigger.js";
 
-broadcast.addEventListener("message", (event) => {
+broadcast.addEventListener("message", async (event) => {
   const { type, detail } = event.data;
 
   console.log("收到消息:", type, detail);
@@ -54,6 +54,18 @@ broadcast.addEventListener("message", (event) => {
         proxySessionId,
         localUser,
       });
+    }
+  } else if (type === "user-online") {
+    const { fromUserId, localUserDirName } = detail;
+
+    if (localUsers[localUserDirName]) {
+      const localUser = localUsers[localUserDirName];
+
+      const remoteUser = await localUser.connectUser(fromUserId);
+
+      // 重新检查
+      await remoteUser.checkState();
+      remoteUser.refreshMode();
     }
   }
 });

@@ -105,6 +105,19 @@ export class RemoteUser extends BaseUser {
     this.#servers = servers;
   }
 
+  // 更新连接模式
+  // 如果用户已经server状态，则可以切换到rtc模式
+  async refreshMode() {
+    // 确认对方在线，判断并进行rtc连接
+    if (this.mode === 1) {
+      const bool = await this.#self.isMyDevice(this.userId);
+
+      if (bool) {
+        this.initRTC();
+      }
+    }
+  }
+
   // 初始化RTC连接
   async initRTC(options) {
     if (this._rtc_pairing) {

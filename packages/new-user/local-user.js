@@ -351,14 +351,7 @@ export class LocalUser extends BaseUser {
         // 检查通信状态
         await user.checkState();
 
-        // 确认对方在线，判断并进行rtc连接
-        if (user.mode === 1) {
-          this.isMyDevice(user.userId).then((bool) => {
-            if (bool) {
-              user.initRTC();
-            }
-          });
-        }
+        user.refreshMode();
 
         return user;
       })());

@@ -1,5 +1,6 @@
 import { getHash } from "../../fs/util.js";
 import initRTC from "../remote/init-rtc.js";
+import { broadcast } from "../util/broadcast.js";
 
 export default async function rtcOfferHandler({
   fromUserId,
@@ -46,7 +47,18 @@ export default async function rtcOfferHandler({
 
   if (!remoteUser.serverState) {
     // serverState 为空，说明用户还没有连接到服务器；但是对方已经发了 offer 了，说明已经在线，这时候要重新查询服务器是否在线
-    await remoteUser.checkServer();
+    const serverCheckPromise = remoteUser.checkServer();
+
+    // 顺便通知其他标签，用户已经连接到服务器了
+    broadcast.postMessage({
+      type: "user-online",
+      detail: {
+        fromUserId,
+        localUserDirName: localUser.dirName,
+      },
+    });
+
+    await serverCheckPromise;
   }
 
   await initRTC(remoteUser, {
