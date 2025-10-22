@@ -22,10 +22,12 @@ export const get = async (path, options) => {
     const localUser = await createUser();
     const remoteUser = await localUser.connectUser(userId);
 
-    // if (remoteUser.mode === 1) {
-    //   // 如果只是服务器中转模式，请等一下
-    //   await new Promise((resolve) => setTimeout(resolve, 200));
-    // }
+    // 等待 rtc 初始化操作
+    try {
+      await remoteUser.initRTC();
+    } catch (error) {
+      console.log("initRTC error", error);
+    }
 
     // 远端用户的目录引用
     const remoteGet = createGet({ remoteUser });
