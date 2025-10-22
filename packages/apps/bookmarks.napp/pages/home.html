@@ -154,22 +154,37 @@
   <div class="tool">
     <div class="tool-container">
       <div class="breadcrumbs">
+        <o-if :value="showNoneosBtn" slot="suffix">
+          <p-button
+            icon
+            size="small"
+            variant="outlined"
+            on:click="clickNoneOS"
+            style="margin-right: 8px; font-size: 12px"
+          >
+            <img
+              src="/packages/others/logo.png"
+              alt="None"
+              style="width: 18px"
+            />
+          </p-button>
+        </o-if>
         <p-button
-          slot="suffix"
-          icon
           size="small"
           variant="outlined"
-          style="margin-right: 8px; font-size: 12px"
+          on:click="showSelectDevice = true"
+          style="margin-right: 8px"
         >
-          <n-local-icon name="home"></n-local-icon>
-        </p-button>
-        <p-button size="small" variant="outlined" style="margin-right: 8px">
           <n-local-icon
             name="device"
             slot="prefix"
             style="display: block; margin-right: 8px"
           ></n-local-icon>
-          其他设备
+          <localized-content>
+            <span lang="cn">其他设备</span>
+            <span lang="en">Other Devices</span>
+            <span lang="ja">他のデバイス</span>
+          </localized-content>
         </p-button>
 
         <o-fill :value="paths">
@@ -295,6 +310,10 @@
     :item="dialogData.item"
     on:click-save="saveEditedData"
   ></bm-common-dialog>
+
+  <p-dialog :open="showSelectDevice" on:click-mask="showSelectDevice = false">
+    <o-page src="./select-device.html"></o-page>
+  </p-dialog>
   <script>
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");
@@ -331,7 +350,9 @@
               ...defaultItemData,
             },
           },
+          showSelectDevice: false,
           menuTargetType: null,
+          showNoneosBtn: !$("none-os"),
           setting: {
             width: 200,
             height: 80,
@@ -379,53 +400,10 @@
           },
         },
         proto: {
-          // 加载本地备份的用户数据
-          async loadBackupUserOptions() {
-            const handle = await this.app.dedicatedHandle();
-            const backupHandle = await handle.get("backup");
-            if (!backupHandle) {
-              return;
-            }
-            for await (let item of backupHandle.values()) {
-              const userId = item.name.replace(/\.json$/, "");
-              const userName = "my-device";
-              const data = {};
-              try {
-                let fdata = await item.text();
-                fdata = JSON.parse(fdata);
-                Object.assign(data, fdata);
-              } catch (err) {
-                console.warn(err);
-              }
-              // 查看是否已存在，已存在就更新 _mainData
-              const target = this.allDatas.find((e) => e.userId === userId);
-              if (target) {
-                target._mainData = data;
-                continue;
-              }
-              this.allDatas.push({
-                userName,
-                userId,
-                _mainData: data,
-              });
-            }
-            // 更新卡片
-            const target = this.allDatas.find(
-              (e) => e.userId === this.usedUserId
-            );
-            if (target) {
-              this.cards = target._mainData.cards;
-              this.paths = [
-                {
-                  name: await getLocalized({
-                    cn: "根目录",
-                    en: "Root Directory",
-                    ja: "ルート ディレクトリ",
-                  }),
-                },
-              ];
-            }
+          clickNoneOS() {
+            location.href = "/";
           },
+          // 加载本地备份的用户数据
           async clickBack() {
             if (this.paths.length === 2) {
               this.paths.splice(1);
@@ -669,8 +647,6 @@
               _mainData: mainData,
             },
           ];
-
-          this.loadBackupUserOptions();
 
           if (!this.setting.bgurl) {
             // 设置默认背景图

@@ -1,0 +1,67 @@
+<template page>
+  <style>
+    :host {
+      display: blocks;
+    }
+  </style>
+  <script>
+    export default async ({ load }) => {
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        data: {},
+        proto: {
+          async loadBackupUserOptions() {
+            const handle = await this.app.dedicatedHandle();
+            const backupHandle = await handle.get("backup");
+            if (!backupHandle) {
+              return;
+            }
+            for await (let item of backupHandle.values()) {
+              const userId = item.name.replace(/\.json$/, "");
+              const userName = "my-device";
+              const data = {};
+              try {
+                let fdata = await item.text();
+                fdata = JSON.parse(fdata);
+                Object.assign(data, fdata);
+              } catch (err) {
+                console.warn(err);
+              }
+              // 查看是否已存在，已存在就更新 _mainData
+              const target = this.allDatas.find((e) => e.userId === userId);
+              if (target) {
+                target._mainData = data;
+                continue;
+              }
+              this.allDatas.push({
+                userName,
+                userId,
+                _mainData: data,
+              });
+            }
+            // 更新卡片
+            const target = this.allDatas.find(
+              (e) => e.userId === this.usedUserId
+            );
+            if (target) {
+              this.cards = target._mainData.cards;
+              this.paths = [
+                {
+                  name: await getLocalized({
+                    cn: "根目录",
+                    en: "Root Directory",
+                    ja: "ルート ディレクトリ",
+                  }),
+                },
+              ];
+            }
+          },
+        },
+        attached() {
+          this.loadBackupUserOptions();
+        },
+      };
+    };
+  </script>
+</template>
