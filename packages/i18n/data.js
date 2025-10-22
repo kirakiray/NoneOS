@@ -38,20 +38,20 @@ export const createGetText = (spaceName) => {
 };
 
 const spaceWaiter = {};
-export const getSpaceData = (name, isWaitSpace) => {
-  if (!space[name]) {
-    space[name] = {};
-  }
+// export const getSpaceData = (name, isWaitSpace) => {
+//   if (!space[name]) {
+//     space[name] = {};
+//   }
 
-  if (isWaitSpace && spaceWaiter[name] !== 1) {
-    return new Promise((resolve) => {
-      const targetMaps = spaceWaiter[name] || (spaceWaiter[name] = []);
-      targetMaps.push(resolve);
-    });
-  }
+//   if (isWaitSpace && spaceWaiter[name] !== 1) {
+//     return new Promise((resolve) => {
+//       const targetMaps = spaceWaiter[name] || (spaceWaiter[name] = []);
+//       targetMaps.push(resolve);
+//     });
+//   }
 
-  return space[name];
-};
+//   return space[name];
+// };
 
 // 获取当前语言
 // export const getLang = () => settingData.lang;
