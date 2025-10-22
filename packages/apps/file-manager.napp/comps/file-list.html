@@ -96,13 +96,35 @@
   <div class="container">
     <div class="file-item head">
       <div class="file-item-cell">
-        <div style="padding-left: 20px">{{spaceData.fileName}}</div>
+        <div style="padding-left: 20px">
+          <localized-content>
+            <span lang="en">File Name</span>
+            <span lang="cn">文件名</span>
+            <span lang="ja">ファイル名</span>
+          </localized-content>
+        </div>
       </div>
       <div class="file-item-cell" style="flex-grow: 0">
-        {{spaceData.modifyTime}}
+        <localized-content>
+          <span lang="en">Modify Time</span>
+          <span lang="cn">修改时间</span>
+          <span lang="ja">変更日時</span>
+        </localized-content>
       </div>
-      <div class="file-item-cell small-cell">{{spaceData.fileSize}}</div>
-      <div class="file-item-cell small-cell">{{spaceData.fileType}}</div>
+      <div class="file-item-cell small-cell">
+        <localized-content>
+          <span lang="en">File Size</span>
+          <span lang="cn">文件大小</span>
+          <span lang="ja">ファイルサイズ</span>
+        </localized-content>
+      </div>
+      <div class="file-item-cell small-cell">
+        <localized-content>
+          <span lang="en">File Type</span>
+          <span lang="cn">文件类型</span>
+          <span lang="ja">ファイルタイプ</span>
+        </localized-content>
+      </div>
     </div>
     <div style="position: relative; margin-top: 0.5px">
       <div class="stripe-bg"></div>
@@ -156,7 +178,11 @@
   </div>
   <o-if :value="noMatch">
     <div style="text-align: center; font-size: 14px; padding-top: 16px">
-      {{spaceData.noMatch}}
+      <localized-content>
+        <span lang="en">No matching results</span>
+        <span lang="cn">没有匹配的结果</span>
+        <span lang="ja">一致する結果がありません</span>
+      </localized-content>
     </div>
   </o-if>
   <o-consumer name="clipboard" watch:desc="clipboard"></o-consumer>
@@ -164,30 +190,7 @@
   <style id="clipboard-style"></style>
   <script>
     export default async ({ load }) => {
-      const { localizedObject, getLocalized } = await load("/packages/i18n/localized-object.js");
-
-      const spaceData = localizedObject({
-        noMatch: {
-          cn: "没有匹配的结果",
-          en: "No matching results",
-          ja: "一致する結果がありません"
-        },
-        openFail: {
-          cn: "打开失败",
-          en: "Open failed",
-          ja: "開くのに失敗しました"
-        },
-        file: {
-          cn: "文件",
-          en: "File",
-          ja: "ファイル"
-        },
-        folder: {
-          cn: "文件夹",
-          en: "Folder",
-          ja: "フォルダ"
-        }
-      });
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "n-file-list",
@@ -197,7 +200,6 @@
           needRename: null, // 需要重命名的文件
           search: "", // 搜索内容
           noMatch: false, // 没有搜索到结果为true
-          spaceData: {},
         },
         watch: {
           search() {
@@ -284,7 +286,11 @@
                       this.emit("open-dialog", {
                         composed: true,
                         data: {
-                          title: this.spaceData.openFail,
+                          title: await getLocalized({
+                            cn: "打开失败",
+                            en: "Open failed",
+                            ja: "開くのに失敗しました",
+                          }),
                           content: await getLocalized({
                             cn: `打开 ${data.path} 失败，没有有找到对应的程序`,
                             en: `Failed to open ${data.path}, no corresponding application found`,
@@ -333,18 +339,14 @@
           getKind(kind) {
             switch (kind) {
               case "dir":
-                return spaceData.folder;
+                return "文件夹";
               case "file":
-                return spaceData.file;
+                return "文件";
             }
           },
         },
-        attached() {
-          this.spaceData = spaceData;
-        },
-        detached() {
-          this.spaceData = {};
-        },
+        attached() {},
+        detached() {},
       };
     };
   </script>

@@ -139,9 +139,6 @@
 
   <script>
     export default async ({ load, url }) => {
-      const { setSpace } = await load("/packages/i18n/data.js");
-      await setSpace("files", new URL("./lang", url).href);
-
       const { get } = await load("/packages/fs/main.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");

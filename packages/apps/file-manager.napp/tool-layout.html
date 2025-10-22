@@ -94,13 +94,13 @@
       </p-button>
     </p-button-group>
 
-    <p-input
-      size="small"
-      class="search-input"
-      attr:placeholder="spaceData.searchWithCurrent"
-      sync:value="search"
-    >
+    <p-input size="small" class="search-input" sync:value="search">
       <n-local-icon name="search" slot="prefix"></n-local-icon>
+      <localized-content slot="placeholder">
+        <span lang="en">Search in current directory</span>
+        <span lang="cn">在当前目录中搜索</span>
+        <span lang="ja">現在のディレクトリで検索</span>
+      </localized-content>
     </p-input>
   </div>
   <div class="main" on:select-files="selectFiles">
@@ -131,7 +131,11 @@
         on:click="cProvider.desc = null"
         style="margin: 0 8px"
       >
-        {{spaceData.clickToCancel}}
+        <localized-content>
+          <span lang="en">Click to cancel</span>
+          <span lang="cn">点击取消</span>
+          <span lang="ja">クリックしてキャンセル</span>
+        </localized-content>
       </p-button>
     </o-if>
   </div>
@@ -150,30 +154,7 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { localizedObject } = await load("/packages/i18n/localized-object.js");
-
-      const spaceData = localizedObject({
-        searchWithCurrent: {
-          cn: "在当前目录中搜索",
-          en: "Search in current directory",
-          ja: "現在のディレクトリで検索"
-        },
-        clickToCancel: {
-          cn: "点击取消",
-          en: "Click to cancel",
-          ja: "クリックしてキャンセル"
-        },
-        copy: {
-          cn: "复制",
-          en: "Copy",
-          ja: "コピー"
-        },
-        cut: {
-          cn: "剪切",
-          en: "Cut",
-          ja: "切り取り"
-        }
-      });
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         data: {
@@ -195,7 +176,6 @@
             count: 0, // 已经删除的数量
             total: 0, // 总共文件
           },
-          spaceData: {},
         },
         watch: {
           search(text) {
@@ -221,9 +201,17 @@
 
               switch (this?.clipboard?.type) {
                 case "copy":
-                  return `${this.spaceData.copy} ${sources}`;
+                  return `${getLocalized({
+                    cn: "复制",
+                    en: "Copy",
+                    ja: "コピー",
+                  })} ${sources}`;
                 case "cut":
-                  return `${this.spaceData.cut} ${sources}`;
+                  return `${getLocalized({
+                    cn: "剪切",
+                    en: "Cut",
+                    ja: "切り取り",
+                  })} ${sources}`;
               }
             }
           },
@@ -258,12 +246,8 @@
             this.search = "";
           });
         },
-        attached() {
-          this.spaceData = spaceData;
-        },
-        detached() {
-          this.spaceData = {};
-        },
+        attached() {},
+        detached() {},
       };
     };
 

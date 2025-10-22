@@ -221,7 +221,13 @@
       <div class="center-box">{{errorStr}}</div>
     </o-else-if>
     <o-else-if :value="files.length === 0 && !loading">
-      <div class="center-box">{{spaceData.emptyDir}}</div>
+      <div class="center-box">
+        <localized-content>
+          <span lang="en">Empty directory</span>
+          <span lang="cn">空目录</span>
+          <span lang="ja">空のディレクトリ</span>
+        </localized-content>
+      </div>
     </o-else-if>
   </div>
 
@@ -230,9 +236,7 @@
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { localizedObject, getLocalized } = await load(
-        "/packages/i18n/localized-object.js"
-      );
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const {
         importFile,
         importDir,
@@ -254,7 +258,6 @@
           loading: true,
           search: "",
           errorStr: null, // 报错
-          spaceData: {},
           selecteds: [], // 选择的文件或文件夹
           clipboard: {
             // 等待中的操作
@@ -340,7 +343,11 @@
                         this.emit("open-dialog", {
                           composed: true,
                           data: {
-                            title: this.spaceData.openFail,
+                            title: await getLocalized({
+                              cn: "打开失败",
+                              en: "Open failed",
+                              ja: "開くのに失敗しました",
+                            }),
                             content: await getLocalized({
                               cn: `打开 ${selectedData.path} 失败，没有有找到对应的程序`,
                               en: `Failed to open ${selectedData.path}, no corresponding application found`,
@@ -470,14 +477,6 @@
           },
         },
         async attached() {
-          this.spaceData = localizedObject({
-            openFail: {
-              cn: "打开失败",
-              en: "Open failed",
-              ja: "開くのに失敗しました",
-            },
-          });
-
           this.apps = apps
             .map((appInfo) => {
               if (appInfo.appData.accept) {
@@ -492,9 +491,7 @@
             })
             .filter((e) => e);
         },
-        detached() {
-          this.spaceData = {};
-        },
+        detached() {},
       };
     };
 
