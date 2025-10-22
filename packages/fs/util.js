@@ -96,4 +96,6 @@ export const calculateFileChunkHashes = async (
  *             然后将所有块的哈希值拼接成字符串，最后计算这个字符串的哈希值作为文件的总体哈希值
  */
 export const getFileHash = async (file) =>
-  getHash((await calculateFileChunkHashes(file)).join(""));
+  getHash(
+    (await calculateFileChunkHashes(file, { chunkSize: 128 * 1024 })).join("")
+  );
