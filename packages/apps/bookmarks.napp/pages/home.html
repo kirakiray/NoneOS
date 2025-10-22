@@ -227,7 +227,6 @@
         attr:disabled="menuTargetType !== 'page'"
       >
         <n-local-icon name="tab" slot="prefix"></n-local-icon>
-        <!-- <n-desc name="openInNewTab" space="bookmarks"></n-desc> -->
         <localized-content>
           <span lang="cn">在新标签页打开</span>
           <span lang="en">Open in New Tab</span>
@@ -240,7 +239,11 @@
         attr:disabled="localSelfUserId !== usedUserId"
       >
         <n-local-icon name="edit" slot="prefix"></n-local-icon>
-        <n-desc name="editWeb" space="bookmarks"></n-desc>
+        <localized-content>
+          <span lang="cn">编辑网页</span>
+          <span lang="en">Edit Web</span>
+          <span lang="ja">Webを編集</span>
+        </localized-content>
         <!-- 编辑网页 -->
       </p-menu-item>
       <p-menu-item
@@ -248,14 +251,22 @@
         attr:disabled="menuTargetType !== 'page'"
       >
         <n-local-icon name="copy" slot="prefix"></n-local-icon>
-        <n-desc name="copyUrl" space="bookmarks"></n-desc>
+        <localized-content>
+          <span lang="cn">复制链接</span>
+          <span lang="en">Copy URL</span>
+          <span lang="ja">URLをコピー</span>
+        </localized-content>
       </p-menu-item>
       <p-menu-item
         on:click="deleteItem"
         attr:disabled="localSelfUserId !== usedUserId"
       >
         <n-local-icon name="delete" slot="prefix"></n-local-icon>
-        <n-desc name="deleteWeb" space="bookmarks"></n-desc>
+        <localized-content>
+          <span lang="cn">删除网页</span>
+          <span lang="en">Delete Web</span>
+          <span lang="ja">Webを削除</span>
+        </localized-content>
       </p-menu-item>
     </p-menu>
     <div class="main-inner">
@@ -297,7 +308,11 @@
         </bm-drag-container>
         <o-if :value="!cards?.length && localSelfUserId !== usedUserId">
           <div style="text-align: center">
-            <n-desc name="noData" space="bookmarks"></n-desc>
+            <localized-content>
+              <span lang="cn">暂无数据</span>
+              <span lang="en">No Data</span>
+              <span lang="ja">データなし</span>
+            </localized-content>
           </div>
         </o-if>
       </o-else>
