@@ -312,8 +312,9 @@
       const { getText } = await load("/packages/i18n/data.js");
 
       const { defaultItemData } = await load("../common/default-item-data.js");
-      // const { getUserName } = await load("/packages/util/get-user-info.js");
       const { getUserStore } = await load("/packages/user/user-store.js");
+
+      debugger;
 
       const selfUserStore = await getUserStore();
 
@@ -496,7 +497,7 @@
 
             for await (let item of backupHandle.values()) {
               const userId = item.name.replace(/\.json$/, "");
-              // const userName = await getUserName(userId);
+              const userName = "my-device";
 
               const data = {};
 
@@ -769,7 +770,6 @@
           this.allDatas = [
             {
               userId: selfUserStore.userId,
-              // userName: selfUserStore.userName,
               userName: getText("localDevice", "bookmarks"),
               _mainData: mainData,
             },
