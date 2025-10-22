@@ -139,16 +139,16 @@
 
   <script>
     export default async ({ load, url }) => {
-      const { get } = await load("/packages/fs/main.js");
       const { setSpace } = await load("/packages/i18n/data.js");
+      await setSpace("files", new URL("./lang", url).href);
+
+      const { get } = await load("/packages/fs/main.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       const { createUser } = await load("/packages/new-user/main.js");
 
       const localUser = await createUser();
-
-      await setSpace("files", new URL("./lang", url).href);
 
       return {
         data: {

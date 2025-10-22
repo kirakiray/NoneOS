@@ -182,8 +182,6 @@
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      // const { createGet } = await load("/packages/fs/remote/main.js");
-      const createGet = () => {};
       const { getSpaceData, getText } = await load("/packages/i18n/data.js");
       const {
         importFile,
@@ -193,6 +191,7 @@
         moveHandle,
         exportHandle,
       } = await load("/packages/fs/task/main.js");
+
       const { getApps } = await load("/packages/none-os/app.js");
 
       const apps = await getApps();

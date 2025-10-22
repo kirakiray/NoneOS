@@ -131,7 +131,7 @@ export class RemoteUser extends BaseUser {
   }
 
   // 初始化RTC连接
-  async initRTC(options) {
+  initRTC(options) {
     if (this._rtc_pairing) {
       // 如果正在配对中，则直接返回
       return this._rtc_pairing;
