@@ -150,7 +150,30 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { getSpaceData } = await load("/packages/i18n/data.js");
+      const { localizedObject } = await load("/packages/i18n/localized-object.js");
+
+      const spaceData = localizedObject({
+        searchWithCurrent: {
+          cn: "在当前目录中搜索",
+          en: "Search in current directory",
+          ja: "現在のディレクトリで検索"
+        },
+        clickToCancel: {
+          cn: "点击取消",
+          en: "Click to cancel",
+          ja: "クリックしてキャンセル"
+        },
+        copy: {
+          cn: "复制",
+          en: "Copy",
+          ja: "コピー"
+        },
+        cut: {
+          cn: "剪切",
+          en: "Cut",
+          ja: "切り取り"
+        }
+      });
 
       return {
         data: {
@@ -236,7 +259,7 @@
           });
         },
         attached() {
-          this.spaceData = getSpaceData("files");
+          this.spaceData = spaceData;
         },
         detached() {
           this.spaceData = {};

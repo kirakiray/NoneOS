@@ -230,8 +230,9 @@
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { localizedObject, getLocalized } = await load(
+        "/packages/i18n/localized-object.js"
+      );
       const {
         importFile,
         importDir,
@@ -469,7 +470,13 @@
           },
         },
         async attached() {
-          this.spaceData = getSpaceData("files");
+          this.spaceData = localizedObject({
+            openFail: {
+              cn: "打开失败",
+              en: "Open failed",
+              ja: "開くのに失敗しました",
+            },
+          });
 
           this.apps = apps
             .map((appInfo) => {

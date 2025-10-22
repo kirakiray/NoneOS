@@ -164,10 +164,30 @@
   <style id="clipboard-style"></style>
   <script>
     export default async ({ load }) => {
-      const { getSpaceData } = await load("/packages/i18n/data.js");
-      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { localizedObject, getLocalized } = await load("/packages/i18n/localized-object.js");
 
-      const spaceData = await getSpaceData("files", true);
+      const spaceData = localizedObject({
+        noMatch: {
+          cn: "没有匹配的结果",
+          en: "No matching results",
+          ja: "一致する結果がありません"
+        },
+        openFail: {
+          cn: "打开失败",
+          en: "Open failed",
+          ja: "開くのに失敗しました"
+        },
+        file: {
+          cn: "文件",
+          en: "File",
+          ja: "ファイル"
+        },
+        folder: {
+          cn: "文件夹",
+          en: "Folder",
+          ja: "フォルダ"
+        }
+      });
 
       return {
         tag: "n-file-list",
