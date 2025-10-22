@@ -187,7 +187,7 @@
     export default async ({ load }) => {
       const { getFileHash } = await load("/packages/fs/util.js");
       const { toast } = await load("/packages/pui/util.js");
-      const { getText } = await load("/packages/i18n/data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "bm-img-selector",
@@ -337,11 +337,19 @@
 
               if (pasteSucceed) {
                 // toast("已成功粘贴图片");
-                toast(getText("pasteSucceed", "bookmarks"));
+                toast(await getLocalized({
+                  cn: "已成功粘贴图片",
+                  en: "Image pasted successfully",
+                  ja: "画像の貼り付けに成功しました"
+                }));
               } else {
                 toast({
                   color: "error",
-                  content: getText("pasteFail", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "粘贴图片失败",
+                    en: "Failed to paste image",
+                    ja: "画像の貼り付けに失敗しました"
+                  }),
                 });
               }
 

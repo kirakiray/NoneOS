@@ -329,7 +329,6 @@
     export default async ({ load }) => {
       const { createData } = await load("/packages/hybird-data/main.js");
       const { toast } = await load("/packages/pui/util.js");
-      const { getText } = await load("/packages/i18n/data.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
@@ -421,7 +420,11 @@
               remoteHandles = await this.app.dedicatedRemoteHandle();
             } catch (err) {
               toast({
-                content: getText("syncError", "bookmarks"),
+                content: await getLocalized({
+                  cn: "同步用户数据出错",
+                  en: "Sync user data error",
+                  ja: "ユーザー データの同期エラー",
+                }),
                 color: "error",
               });
               this.syncing = false;
@@ -505,7 +508,11 @@
             this.usedUserId = value;
             this.paths = [
               {
-                name: getText("rootDirectory", "bookmarks"),
+                name: await getLocalized({
+                  cn: "根目录",
+                  en: "Root Directory",
+                  ja: "ルート ディレクトリ",
+                }),
               },
             ];
             this.cards = targetItem._mainData.cards;
@@ -558,7 +565,11 @@
               this.cards = target._mainData.cards;
               this.paths = [
                 {
-                  name: getText("rootDirectory", "bookmarks"),
+                  name: await getLocalized({
+                    cn: "根目录",
+                    en: "Root Directory",
+                    ja: "ルート ディレクトリ",
+                  }),
                 },
               ];
             }
@@ -626,7 +637,7 @@
 
             this.cards.splice(targetIndex, 0, from);
           },
-          clickCopyLink() {
+          async clickCopyLink() {
             // const { _target } = this.shadow.$("p-bind-contextmenu");
             const _target = this._menuTarget;
             const data = _target.item;
@@ -634,7 +645,11 @@
             // 复制网址
             copyTextToClipboard(data.url);
             toast({
-              content: getText("copySuccess", "bookmarks"),
+              content: await getLocalized({
+                cn: "已复制到剪贴板",
+                en: "Copied to clipboard",
+                ja: "クリップボードにコピーしました",
+              }),
               color: "success",
             });
           },
@@ -795,7 +810,6 @@
           this.allDatas = [
             {
               userId: localUser.userId,
-              // userName: getText("localDevice", "bookmarks"),
               userName: await getLocalized({
                 cn: "本地设备",
                 en: "Local Device",

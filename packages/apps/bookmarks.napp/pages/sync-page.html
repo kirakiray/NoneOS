@@ -114,7 +114,7 @@
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { createData } = await load("/packages/hybird-data/main.js");
-      const { getText } = await load("/packages/i18n/data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         data: {
@@ -128,9 +128,21 @@
             if (this.cardsLength) {
               // 查看是否已经有数据，有的话提示覆盖
               const res = await confirm({
-                content: getText("importConfirm", "bookmarks"),
-                yes: getText("overwrite", "bookmarks"),
-                cancel: getText("cancel", "bookmarks"),
+                content: await getLocalized({
+                  cn: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
+                  en: "Existing bookmark data detected. Importing will overwrite the current content. Continue?",
+                  ja: "既存のブックマークデータが検出されました。インポートすると現在のコンテンツが上書きされます。続行しますか？"
+                }),
+                yes: await getLocalized({
+                  cn: "覆盖",
+                  en: "Overwrite",
+                  ja: "上書き"
+                }),
+                cancel: await getLocalized({
+                  cn: "取消",
+                  en: "Cancel",
+                  ja: "キャンセル"
+                }),
               });
 
               if (!res) return;
@@ -160,13 +172,19 @@
                 Object.assign(mainData.setting, data.setting);
                 this.cardsLength = mainData.cards.length;
                 toast({
-                  content: getText("importSuccess", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "导入成功",
+                    en: "Import successful",
+                    ja: "インポート成功"
+                  }),
                   color: "success",
                 });
               } catch (err) {
                 toast({
-                  content: getText("importFailed", "bookmarks", {
-                    error: err.message,
+                  content: await getLocalized({
+                    cn: "导入失败: " + err.message,
+                    en: "Import failed: " + err.message,
+                    ja: "インポート失敗: " + err.message
                   }),
                   color: "error",
                 });
@@ -186,7 +204,11 @@
             a.download = "bookmarks.json";
             a.click();
             toast({
-              content: getText("exportSuccess", "bookmarks"),
+              content: await getLocalized({
+                cn: "导出成功",
+                en: "Export successful",
+                ja: "エクスポート成功"
+              }),
               color: "success",
             });
             URL.revokeObjectURL(a.href); // 释放URL对象
@@ -196,16 +218,36 @@
             await mainData.ready(true);
             const res = await confirm({
               color: "error",
-              title: getText("clearData", "bookmarks"),
-              content: getText("clearConfirm", "bookmarks"),
-              yes: getText("clear", "bookmarks"),
-              cancel: getText("cancel", "bookmarks"),
+              title: await getLocalized({
+                cn: "清空数据",
+                en: "Clear data",
+                ja: "データクリア"
+              }),
+              content: await getLocalized({
+                cn: "此操作将永久删除所有数据且无法恢复，建议您先导出备份。确定要清空全部数据吗？",
+                en: "This operation will permanently delete all data and cannot be recovered. It is recommended that you export a backup first. Are you sure you want to clear all data?",
+                ja: "この操作により、すべてのデータが永久に削除され、復元できなくなります。まずはバックアップをエクスポートすることをお勧めします。すべてのデータをクリアしてもよろしいですか？"
+              }),
+              yes: await getLocalized({
+                cn: "清空",
+                en: "Clear",
+                ja: "クリア"
+              }),
+              cancel: await getLocalized({
+                cn: "取消",
+                en: "Cancel",
+                ja: "キャンセル"
+              }),
             });
             if (!res) return;
             mainData.cards.splice(0, mainData.cards.length);
             this.cardsLength = 0;
             toast({
-              content: getText("clearSuccess", "bookmarks"),
+              content: await getLocalized({
+                cn: "清空成功",
+                en: "Clear successful",
+                ja: "クリア成功"
+              }),
               color: "success",
             });
           },

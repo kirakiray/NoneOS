@@ -97,7 +97,7 @@
   <script>
     export default async ({ load }) => {
       const { toast, confirm } = await load("/packages/pui/util.js");
-      const { getText } = await load("/packages/i18n/data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         data: {
@@ -109,10 +109,26 @@
           async clearClickCount() {
             const result = await confirm({
               // title: this.$t("bookmarks.confirmClearClickCount"),
-              title: getText("confirmClearClickCount", "bookmarks"),
-              content: getText("clearClickCountWarning", "bookmarks"),
-              yes: getText("clear", "bookmarks"),
-              cancel: getText("cancel", "bookmarks"),
+              title: await getLocalized({
+                cn: "确认清空点击次数",
+                en: "Confirm Clear Click Count",
+                ja: "クリック数のクリア確認"
+              }),
+              content: await getLocalized({
+                cn: "此操作将清空所有书签的点击次数，且无法恢复。确定要清空吗？",
+                en: "This operation will clear the click count of all bookmarks and cannot be recovered. Are you sure you want to clear it?",
+                ja: "この操作により、すべてのブックマークのクリック数がクリアされ、復元できません。クリアしてもよろしいですか？"
+              }),
+              yes: await getLocalized({
+                cn: "清空",
+                en: "Clear",
+                ja: "クリア"
+              }),
+              cancel: await getLocalized({
+                cn: "取消",
+                en: "Cancel",
+                ja: "キャンセル"
+              }),
             });
 
             if (!result) {
@@ -137,7 +153,11 @@
             await clearCount(mainData.cards);
 
             toast({
-              content: getText("clearSuccess", "bookmarks"),
+              content: await getLocalized({
+                cn: "清空成功",
+                en: "Clear successful",
+                ja: "クリア成功"
+              }),
               color: "success",
             });
           },

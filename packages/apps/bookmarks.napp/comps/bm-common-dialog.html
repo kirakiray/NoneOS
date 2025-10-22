@@ -70,8 +70,8 @@
           <localized-content>
             <span lang="cn">编辑</span>
             <span lang="en">Edit</span>
-            <span lang="ja">編集</span>
-          </localized-content>{{itemTypeText}}
+            <span lang="ja">編集</span> </localized-content
+          >{{itemTypeText}}
         </div>
       </o-if>
       <o-else>
@@ -79,8 +79,8 @@
           <localized-content>
             <span lang="cn">添加新</span>
             <span lang="en">Add new</span>
-            <span lang="ja">新規追加</span>
-          </localized-content>{{itemTypeText}}
+            <span lang="ja">新規追加</span> </localized-content
+          >{{itemTypeText}}
         </div>
       </o-else>
 
@@ -132,20 +132,20 @@
           <p-input sync:value="item.url" style="flex: 2">
             <label>
               <localized-content>
-              <span lang="cn">网址</span>
-              <span lang="en">URL</span>
-              <span lang="ja">URL</span>
-            </localized-content>
+                <span lang="cn">网址</span>
+                <span lang="en">URL</span>
+                <span lang="ja">URL</span>
+              </localized-content>
               <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
           <p-input sync:value="item.webTitle">
             <label>
               <localized-content>
-              <span lang="cn">标题（选填）</span>
-              <span lang="en">Title (optional)</span>
-              <span lang="ja">タイトル（オプション）</span>
-            </localized-content>
+                <span lang="cn">标题（选填）</span>
+                <span lang="en">Title (optional)</span>
+                <span lang="ja">タイトル（オプション）</span>
+              </localized-content>
             </label>
           </p-input>
         </o-if>
@@ -153,21 +153,23 @@
           <p-input sync:value="item.webTitle">
             <label>
               <localized-content>
-              <span lang="cn">标题</span>
-              <span lang="en">Title</span>
-              <span lang="ja">タイトル</span>
-            </localized-content>
+                <span lang="cn">标题</span>
+                <span lang="en">Title</span>
+                <span lang="ja">タイトル</span>
+              </localized-content>
               <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
         </o-else-if>
       </div>
       <o-if :value="isValidUrl && item.type === 'page'">
-        <h4><localized-content>
-        <span lang="cn">自定义缩略图</span>
-        <span lang="en">Custom thumbnail</span>
-        <span lang="ja">カスタムサムネイル</span>
-      </localized-content></h4>
+        <h4>
+          <localized-content>
+            <span lang="cn">自定义缩略图</span>
+            <span lang="en">Custom thumbnail</span>
+            <span lang="ja">カスタムサムネイル</span>
+          </localized-content>
+        </h4>
         <bm-img-selector
           sync:type="item.logoType"
           sync:default-pic="item.defaultPic"
@@ -184,21 +186,23 @@
           <span lang="cn">取消</span>
           <span lang="en">Cancel</span>
           <span lang="ja">キャンセル</span>
-        </localized-content
-      ></p-button>
+        </localized-content></p-button
+      >
       <p-button on:click="clickSave"
         ><localized-content>
           <span lang="cn">保存</span>
           <span lang="en">Save</span>
           <span lang="ja">保存</span>
-        </localized-content
-      ></p-button>
+        </localized-content></p-button
+      >
     </div>
   </p-dialog>
   <script>
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
-      const { getText } = await load("/packages/i18n/data.js");
+      const { getLocalized, getLocalizedSync } = await load(
+        "/packages/i18n/localized-object.js"
+      );
 
       const { defaultItemData } = await load("../common/default-item-data.js");
 
@@ -227,21 +231,31 @@
           },
           get itemTypeText() {
             return this.item.type === "page"
-              ? getText("webpage", "bookmarks")
-              : getText("webfolder", "bookmarks");
+              ? getLocalizedSync({
+                  cn: "网页",
+                  en: "Webpage",
+                  ja: "ウェブページ",
+                })
+              : getLocalizedSync({
+                  cn: "文件夹",
+                  en: "Folder",
+                  ja: "フォルダ",
+                });
           },
           get isValidUrl() {
             const arr = this.item.url.split(".");
             return arr.length >= 2 && !!arr[arr.length - 1].trim();
           },
-          clickSave() {
+          async clickSave() {
             if (this.item.type === "page") {
               // 页面类型
 
               if (!this.isValidUrl) {
                 toast({
-                  content: `${getText("invalidUrl", "bookmarks", {
-                    url: this.item.url,
+                  content: `${await getLocalized({
+                    cn: "无效的网址: " + this.item.url,
+                    en: "Invalid URL: " + this.item.url,
+                    ja: "無効なURL: " + this.item.url,
                   })}`,
                   color: "error",
                 });
@@ -250,7 +264,11 @@
 
               if (this.item.logoType === "upload" && !this.item.selectedPic) {
                 toast({
-                  content: getText("pleaseSelectImage", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "请选择图片",
+                    en: "Please select an image",
+                    ja: "画像を選択してください",
+                  }),
                   color: "error",
                 });
                 return;
@@ -261,7 +279,11 @@
                 !this.item.pastePic.trim()
               ) {
                 toast({
-                  content: getText("noImagePasted", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "没有粘贴图片",
+                    en: "No image pasted",
+                    ja: "画像が貼り付けられていません",
+                  }),
                   color: "error",
                 });
                 return;
@@ -272,7 +294,11 @@
                 !this.item.customPic.trim()
               ) {
                 toast({
-                  content: getText("enterCustomThumbnailUrl", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "请输入自定义缩略图网址",
+                    en: "Please enter custom thumbnail URL",
+                    ja: "カスタムサムネイルのURLを入力してください",
+                  }),
                   color: "error",
                 });
                 return;
@@ -281,7 +307,11 @@
               // 文件夹类型
               if (!this.item.webTitle.trim()) {
                 toast({
-                  content: getText("enterFolderName", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "请输入文件夹名称",
+                    en: "Please enter folder name",
+                    ja: "フォルダ名を入力してください",
+                  }),
                   color: "error",
                 });
                 return;
