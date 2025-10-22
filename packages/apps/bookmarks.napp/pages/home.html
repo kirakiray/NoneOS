@@ -227,7 +227,12 @@
         attr:disabled="menuTargetType !== 'page'"
       >
         <n-local-icon name="tab" slot="prefix"></n-local-icon>
-        <n-desc name="openInNewTab" space="bookmarks"></n-desc>
+        <!-- <n-desc name="openInNewTab" space="bookmarks"></n-desc> -->
+        <localized-content>
+          <span lang="cn">在新标签页打开</span>
+          <span lang="en">Open in New Tab</span>
+          <span lang="ja">新タブで開く</span>
+        </localized-content>
       </p-menu-item>
       <hr />
       <p-menu-item
@@ -311,6 +316,8 @@
       const { toast } = await load("/packages/pui/util.js");
       const { getText } = await load("/packages/i18n/data.js");
 
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
       const { defaultItemData } = await load("../common/default-item-data.js");
 
       const { createUser } = await load("/packages/new-user/main.js");
@@ -326,7 +333,11 @@
           // 当前目录路径
           paths: [
             {
-              name: getText("rootDirectory", "bookmarks"),
+              name: await getLocalized({
+                cn: "根目录",
+                en: "Root Directory",
+                ja: "ルートディレクトリ",
+              }),
             },
           ],
           cards: [], // 当前显示的数据
@@ -769,7 +780,12 @@
           this.allDatas = [
             {
               userId: localUser.userId,
-              userName: getText("localDevice", "bookmarks"),
+              // userName: getText("localDevice", "bookmarks"),
+              userName: await getLocalized({
+                cn: "本地设备",
+                en: "Local Device",
+                ja: "ローカルデバイス",
+              }),
               _mainData: mainData,
             },
           ];
