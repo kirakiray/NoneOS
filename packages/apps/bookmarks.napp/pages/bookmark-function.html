@@ -14,24 +14,52 @@
     }
   </style>
 
-  <h4><n-desc name="basicFunctions" space="bookmarks"></n-desc></h4>
+  <h4>
+    <localized-content>
+      <span lang="cn">基本功能</span>
+      <span lang="en">Basic Functions</span>
+      <span lang="ja">基本機能</span>
+    </localized-content>
+  </h4>
   <div style="padding: 8px 0">
     <p-select sync:value="setting.sort">
-      <label><n-desc name="bookmarkSort" space="bookmarks"></n-desc></label>
-      <p-option value="custom"
-        ><n-desc name="manualSort" space="bookmarks"></n-desc
-      ></p-option>
-      <p-option value="click" disabled
-        ><n-desc name="clickSort" space="bookmarks"></n-desc
-      ></p-option>
-      <p-option value="name" disabled
-        ><n-desc name="nameSort" space="bookmarks"></n-desc
-      ></p-option>
+      <label>
+        <localized-content>
+          <span lang="cn">书签排序</span>
+          <span lang="en">Bookmark Sort</span>
+          <span lang="ja">ブックマークの並べ替え</span>
+        </localized-content>
+      </label>
+      <p-option value="custom">
+        <localized-content>
+          <span lang="cn">手动排序</span>
+          <span lang="en">Manual Sort</span>
+          <span lang="ja">手動並べ替え</span>
+        </localized-content>
+      </p-option>
+      <p-option value="click" disabled>
+        <localized-content>
+          <span lang="cn">点击次数排序</span>
+          <span lang="en">Click Count Sort</span>
+          <span lang="ja">クリック数で並べ替え</span>
+        </localized-content>
+      </p-option>
+      <p-option value="name" disabled>
+        <localized-content>
+          <span lang="cn">名称排序</span>
+          <span lang="en">Name Sort</span>
+          <span lang="ja">名前で並べ替え</span>
+        </localized-content>
+      </p-option>
     </p-select>
   </div>
   <div style="padding: 8px 0">
     <p-switch sync:value="setting.showCardTitle">
-      <n-desc name="showBookmarkTitle" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">显示书签标题</span>
+        <span lang="en">Show Bookmark Title</span>
+        <span lang="ja">ブックマークタイトルを表示</span>
+      </localized-content>
     </p-switch>
   </div>
   <div style="padding: 8px 0">
@@ -39,10 +67,20 @@
       attr:disabled="setting.showCardTitle === 'off'"
       sync:value="setting.showClickCount"
     >
-      <n-desc name="showClickCount" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">显示点击次数</span>
+        <span lang="en">Show Click Count</span>
+        <span lang="ja">クリック数を表示</span>
+      </localized-content>
     </p-switch>
   </div>
-  <h4><n-desc name="accessStatistics" space="bookmarks"></n-desc></h4>
+  <h4>
+    <localized-content>
+      <span lang="cn">访问统计</span>
+      <span lang="en">Access Statistics</span>
+      <span lang="ja">アクセス統計</span>
+    </localized-content>
+  </h4>
   <!-- <div style="color: var(--md-sys-color-normal)">还在开发中...</div> -->
   <p-button
     size="small"
@@ -50,7 +88,11 @@
     on:click="clearClickCount"
     style="margin: 8px 0 0 1px"
   >
-    <n-desc name="clearClickCount" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn">清空点击次数</span>
+      <span lang="en">Clear Click Count</span>
+      <span lang="ja">クリック数をクリア</span>
+    </localized-content>
   </p-button>
   <script>
     export default async ({ load }) => {

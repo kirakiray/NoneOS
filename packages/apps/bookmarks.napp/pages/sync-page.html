@@ -13,22 +13,76 @@
       margin-top: 0;
     }
   </style>
-  <h4><n-desc name="otherDevices" space="bookmarks"></n-desc></h4>
+  <h4>
+    <localized-content>
+      <span lang="cn">其他设备</span>
+      <span lang="en">Other devices</span>
+      <span lang="ja">他のデバイス</span>
+    </localized-content>
+  </h4>
   <div style="font-size: 12px; margin-bottom: 4px">
-    <n-desc name="syncTips" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn"
+        >点击设备后可将其书签数据同步到当前本地，请确保目标设备已连接网络。</span
+      >
+      <span lang="en"
+        >Click on a device to sync its bookmark data to the current local
+        device. Please ensure the target device is connected to the
+        network.</span
+      >
+      <span lang="ja"
+        >デバイスをクリックすると、そのブックマークデータを現在のローカルデバイスに同期できます。ターゲットデバイスがネットワークに接続されていることを確認してください。</span
+      >
+    </localized-content>
   </div>
-  <h4><n-desc name="localOperations" space="bookmarks"></n-desc></h4>
+  <h4>
+    <localized-content>
+      <span lang="cn">本地操作</span>
+      <span lang="en">Local operations</span>
+      <span lang="ja">ローカル操作</span>
+    </localized-content>
+  </h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
-    <n-desc name="exportData" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn">导出数据</span>
+      <span lang="en">Export data</span>
+      <span lang="ja">データエクスポート</span>
+    </localized-content>
   </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    <n-desc name="exportDataDesc" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn"
+        >将所有书签数据（包含访问记录和个性化设置）导出至本地文件，方便您进行数据备份与迁移。</span
+      >
+      <span lang="en"
+        >Export all bookmark data (including visit history and personal
+        settings) to a local file for backup and migration purposes.</span
+      >
+      <span lang="ja"
+        >すべてのブックマークデータ（アクセス履歴と個人設定を含む）をローカルファイルにエクスポートし、データのバックアップと移行を容易にします。</span
+      >
+    </localized-content>
   </div>
-  <p-button on:click="clickInput"
-    ><n-desc name="importData" space="bookmarks"></n-desc
-  ></p-button>
+  <p-button on:click="clickInput">
+    <localized-content>
+      <span lang="cn">导入数据</span>
+      <span lang="en">Import data</span>
+      <span lang="ja">データインポート</span>
+    </localized-content>
+  </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    <n-desc name="importDataDesc" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn"
+        >从本地文件导入书签数据，导入后将覆盖当前所有书签数据，请谨慎操作。</span
+      >
+      <span lang="en"
+        >Import bookmark data from a local file. After import, all current
+        bookmark data will be overwritten. Please proceed with caution.</span
+      >
+      <span lang="ja"
+        >ローカルファイルからブックマークデータをインポートします。インポート後、現在のすべてのブックマークデータが上書きされますので、注意して操作してください。</span
+      >
+    </localized-content>
   </div>
   <input
     style="display: none"
@@ -37,11 +91,24 @@
     accept="application/json"
     on:change="inputChange"
   />
-  <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength"
-    ><n-desc name="clearData" space="bookmarks"></n-desc
-  ></p-button>
+  <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength">
+    <localized-content>
+      <span lang="cn">清空数据</span>
+      <span lang="en">Clear data</span>
+      <span lang="ja">データクリア</span>
+    </localized-content>
+  </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    <n-desc name="clearDataDesc" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn">清空所有本地书签数据，此操作不可恢复，请谨慎操作。</span>
+      <span lang="en"
+        >Clear all local bookmark data. This operation cannot be undone. Please
+        proceed with caution.</span
+      >
+      <span lang="ja"
+        >すべてのローカルブックマークデータをクリアします。この操作は元に戻せませんので、注意して操作してください。</span
+      >
+    </localized-content>
   </div>
   <script>
     export default async ({ load }) => {

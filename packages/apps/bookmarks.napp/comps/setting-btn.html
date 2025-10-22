@@ -76,7 +76,13 @@
   </p-button>
 
   <p-dialog :open="open" on:click-mask="open = false">
-    <div slot="title" style="position: relative"><n-desc name="settings" space="bookmarks"></n-desc></div>
+    <div slot="title" style="position: relative">
+      <localized-content>
+        <span lang="cn">设置</span>
+        <span lang="en">Settings</span>
+        <span lang="ja">設定</span>
+      </localized-content>
+    </div>
     <p-button
       icon
       variant="text"
@@ -95,7 +101,11 @@
               on:click="activeName = 'display'"
             >
               <n-local-icon name="dial" slot="prefix"></n-local-icon>
-              <n-desc name="displaySettings" space="bookmarks"></n-desc>
+              <localized-content>
+                <span lang="cn">显示设置</span>
+                <span lang="en">Display Settings</span>
+                <span lang="ja">表示設定</span>
+              </localized-content>
             </p-list-item>
             <p-list-item
               button
@@ -103,7 +113,11 @@
               on:click="activeName = 'function'"
             >
               <n-local-icon name="function-add" slot="prefix"></n-local-icon>
-              <n-desc name="functionSettings" space="bookmarks"></n-desc>
+              <localized-content>
+                <span lang="cn">功能设置</span>
+                <span lang="en">Function Settings</span>
+                <span lang="ja">機能設定</span>
+              </localized-content>
             </p-list-item>
 
             <p-list-item
@@ -112,7 +126,11 @@
               on:click="activeName = 'sync'"
             >
               <n-local-icon name="sync" slot="prefix"></n-local-icon>
-              <n-desc name="syncSettings" space="bookmarks"></n-desc>
+              <localized-content>
+                <span lang="cn">同步设置</span>
+                <span lang="en">Sync Settings</span>
+                <span lang="ja">同期設定</span>
+              </localized-content>
             </p-list-item>
 
             <p-list-item
@@ -121,7 +139,11 @@
               on:click="activeName = 'about'"
             >
               <n-local-icon name="about" slot="prefix"></n-local-icon>
-              <n-desc name="aboutBookmarks" space="bookmarks"></n-desc>
+              <localized-content>
+                <span lang="cn">关于书签</span>
+                <span lang="en">About Bookmarks</span>
+                <span lang="ja">ブックマークについて</span>
+              </localized-content>
             </p-list-item>
           </p-list>
         </div>
@@ -146,9 +168,33 @@
           >
             <img src="../icon.svg" width="80" />
             <h3>Web Favorites</h3>
-            <div><n-desc name="bookmarksDesc" space="bookmarks"></n-desc></div>
             <div>
-              <n-desc name="bookmarksPrivacyDesc" space="bookmarks"></n-desc>
+              <localized-content>
+                <span lang="cn"
+                  >一个简单高效的书签管理工具，帮助您更好地组织和管理网络收藏。</span
+                >
+                <span lang="en"
+                  >A simple and efficient bookmark management tool to help you
+                  better organize and manage your web favorites.</span
+                >
+                <span lang="ja"
+                  >シンプルで効率的なブックマーク管理ツールで、ウェブのお気に入りをより良く整理・管理するのに役立ちます。</span
+                >
+              </localized-content>
+            </div>
+            <div>
+              <localized-content>
+                <span lang="cn"
+                  >所有数据均存储在本地，我们不会收集或传输任何您的个人信息。</span
+                >
+                <span lang="en"
+                  >All data is stored locally. We do not collect or transmit any
+                  of your personal information.</span
+                >
+                <span lang="ja"
+                  >すべてのデータはローカルに保存されます。個人情報を収集または送信することはありません。</span
+                >
+              </localized-content>
             </div>
           </div>
         </o-else-if>

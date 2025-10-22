@@ -67,12 +67,20 @@
 
       <o-if :value="editmode">
         <div>
-          <n-desc name="edit" space="bookmarks"></n-desc>{{itemTypeText}}
+          <localized-content>
+            <span lang="cn">编辑</span>
+            <span lang="en">Edit</span>
+            <span lang="ja">編集</span>
+          </localized-content>{{itemTypeText}}
         </div>
       </o-if>
       <o-else>
         <div>
-          <n-desc name="addNew" space="bookmarks"></n-desc>{{itemTypeText}}
+          <localized-content>
+            <span lang="cn">添加新</span>
+            <span lang="en">Add new</span>
+            <span lang="ja">新規追加</span>
+          </localized-content>{{itemTypeText}}
         </div>
       </o-else>
 
@@ -90,7 +98,11 @@
               name="folder"
               style="display: block; margin-right: 6px"
             ></n-local-icon>
-            <n-desc name="switchToNewFolder" space="bookmarks"></n-desc>
+            <localized-content>
+              <span lang="cn">切换到创建文件夹</span>
+              <span lang="en">Switch to create folder</span>
+              <span lang="ja">フォルダ作成に切り替え</span>
+            </localized-content>
           </p-button>
         </o-if>
         <o-else>
@@ -105,7 +117,11 @@
               name="link"
               style="display: block; margin-right: 6px"
             ></n-local-icon>
-            <n-desc name="switchToNewWeb" space="bookmarks"></n-desc>
+            <localized-content>
+              <span lang="cn">切换到创建网页</span>
+              <span lang="en">Switch to create webpage</span>
+              <span lang="ja">ウェブページ作成に切り替え</span>
+            </localized-content>
           </p-button>
         </o-else>
       </o-if>
@@ -115,27 +131,43 @@
         <o-if :value="item.type === 'page'">
           <p-input sync:value="item.url" style="flex: 2">
             <label>
-              <n-desc name="url" space="bookmarks"></n-desc>
+              <localized-content>
+              <span lang="cn">网址</span>
+              <span lang="en">URL</span>
+              <span lang="ja">URL</span>
+            </localized-content>
               <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
           <p-input sync:value="item.webTitle">
             <label>
-              <n-desc name="titleOptional" space="bookmarks"></n-desc>
+              <localized-content>
+              <span lang="cn">标题（选填）</span>
+              <span lang="en">Title (optional)</span>
+              <span lang="ja">タイトル（オプション）</span>
+            </localized-content>
             </label>
           </p-input>
         </o-if>
         <o-else-if :value="item.type === 'folder'">
           <p-input sync:value="item.webTitle">
             <label>
-              <n-desc name="title" space="bookmarks"></n-desc>
+              <localized-content>
+              <span lang="cn">标题</span>
+              <span lang="en">Title</span>
+              <span lang="ja">タイトル</span>
+            </localized-content>
               <b style="color: var(--md-sys-color-error)">*</b>
             </label>
           </p-input>
         </o-else-if>
       </div>
       <o-if :value="isValidUrl && item.type === 'page'">
-        <h4><n-desc name="customThumbnail" space="bookmarks"></n-desc></h4>
+        <h4><localized-content>
+        <span lang="cn">自定义缩略图</span>
+        <span lang="en">Custom thumbnail</span>
+        <span lang="ja">カスタムサムネイル</span>
+      </localized-content></h4>
         <bm-img-selector
           sync:type="item.logoType"
           sync:default-pic="item.defaultPic"
@@ -148,10 +180,18 @@
     </div>
     <div slot="bottom">
       <p-button variant="outlined" on:click="clickClose"
-        ><n-desc name="cancel" space="bookmarks"></n-desc
+        ><localized-content>
+          <span lang="cn">取消</span>
+          <span lang="en">Cancel</span>
+          <span lang="ja">キャンセル</span>
+        </localized-content
       ></p-button>
       <p-button on:click="clickSave"
-        ><n-desc name="save" space="bookmarks"></n-desc
+        ><localized-content>
+          <span lang="cn">保存</span>
+          <span lang="en">Save</span>
+          <span lang="ja">保存</span>
+        </localized-content
       ></p-button>
     </div>
   </p-dialog>
