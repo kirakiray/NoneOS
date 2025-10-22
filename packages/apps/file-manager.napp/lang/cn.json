@@ -1,8 +1,5 @@
 {
-  "currentStorage": "当前空间",
-  "virLocal": "虚拟空间",
   "apps": "应用",
-  "empty": "无",
   "notConnected": "未连接",
   "otherDevice": "其他设备",
   "searchWithCurrent": "在当前设备中搜索",

@@ -230,7 +230,8 @@
   <script>
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { getSpaceData, getText } = await load("/packages/i18n/data.js");
+      const { getSpaceData } = await load("/packages/i18n/data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
       const {
         importFile,
         importDir,
@@ -339,8 +340,10 @@
                           composed: true,
                           data: {
                             title: this.spaceData.openFail,
-                            content: getText("openFailContent", "files", {
-                              path: selectedData.path,
+                            content: await getLocalized({
+                              cn: `打开 ${selectedData.path} 失败，没有有找到对应的程序`,
+                              en: `Failed to open ${selectedData.path}, no corresponding application found`,
+                              ja: `${selectedData.path} を開けませんでした。対応するアプリケーションが見つかりません`,
                             }),
                           },
                         });
