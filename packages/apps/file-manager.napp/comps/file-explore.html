@@ -3,7 +3,7 @@
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/pui/menu/menu.html"></l-m>
-  <l-m src="/packages/i18n/n-desc.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -83,11 +83,19 @@
           <x-else>
             <n-local-icon name="open-file" slot="prefix"></n-local-icon>
           </x-else>
-          <n-desc name="open" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Open</span>
+            <span lang="cn">打开</span>
+            <span lang="ja">開く</span>
+          </localized-content>
         </p-menu-item>
         <p-menu-item attr:disabled="isFolder">
           <n-local-icon name="open-file" slot="prefix"></n-local-icon>
-          <n-desc name="openWith" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Open With</span>
+            <span lang="cn">打开方式</span>
+            <span lang="ja">アプリケーションで開く</span>
+          </localized-content>
           <p-menu>
             <o-fill :value="apps">
               <p-menu-item on:click="$host.openWith($data)">
@@ -108,27 +116,47 @@
         <hr />
         <p-menu-item on:click="clickMenuItem('cut')" attr:disabled="isSystem">
           <n-local-icon name="cut" slot="prefix"></n-local-icon>
-          <n-desc name="cut" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Cut</span>
+            <span lang="cn">剪切</span>
+            <span lang="ja">切り取り</span>
+          </localized-content>
         </p-menu-item>
         <p-menu-item on:click="clickMenuItem('copy')">
           <n-local-icon name="copy" slot="prefix"></n-local-icon>
-          <n-desc name="copy" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Copy</span>
+            <span lang="cn">复制</span>
+            <span lang="ja">コピー</span>
+          </localized-content>
         </p-menu-item>
         <p-menu-item
           on:click="clickMenuItem('rename')"
           attr:disabled="isSystem"
         >
           <n-local-icon name="rename" slot="prefix"></n-local-icon>
-          <n-desc name="rename" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Rename</span>
+            <span lang="cn">重命名</span>
+            <span lang="ja">名前変更</span>
+          </localized-content>
         </p-menu-item>
         <p-menu-item on:click="clickRemove" attr:disabled="isSystem">
           <n-local-icon name="delete" slot="prefix"></n-local-icon>
-          <n-desc name="delete" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Delete</span>
+            <span lang="cn">删除</span>
+            <span lang="ja">削除</span>
+          </localized-content>
         </p-menu-item>
         <hr />
         <p-menu-item on:click="exportFiles">
           <n-local-icon name="export" slot="prefix"></n-local-icon>
-          <n-desc name="exportFile" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Export File</span>
+            <span lang="cn">导出文件</span>
+            <span lang="ja">ファイルをエクスポート</span>
+          </localized-content>
         </p-menu-item>
       </p-menu>
 
@@ -139,28 +167,48 @@
             on:click="clickPaste"
           >
             <n-local-icon name="paste" slot="prefix"></n-local-icon>
-            <n-desc name="paste" space="files"></n-desc>
+            <localized-content>
+              <span lang="en">Paste</span>
+              <span lang="cn">粘贴</span>
+              <span lang="ja">貼り付け</span>
+            </localized-content>
           </p-menu-item>
           <hr />
         </o-if>
         <p-menu-item on:click="app.current.refreshFiles()">
           <n-local-icon name="reload" slot="prefix"></n-local-icon>
 
-          <n-desc name="reload" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Refresh</span>
+            <span lang="cn">刷新</span>
+            <span lang="ja">更新</span>
+          </localized-content>
         </p-menu-item>
         <hr />
 
         <p-menu-item on:click="createDir">
           <n-local-icon name="new-folder" slot="prefix"></n-local-icon>
-          <n-desc name="newDir" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">New Folder</span>
+            <span lang="cn">新建文件夹</span>
+            <span lang="ja">新しいフォルダ</span>
+          </localized-content>
         </p-menu-item>
         <p-menu-item on:click="clickImportFile">
           <n-local-icon name="import-file" slot="prefix"></n-local-icon>
-          <n-desc name="importFile" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Import File</span>
+            <span lang="cn">导入文件</span>
+            <span lang="ja">ファイルをインポート</span>
+          </localized-content>
         </p-menu-item>
         <p-menu-item on:click="importDir">
           <n-local-icon name="import-dir" slot="prefix"></n-local-icon>
-          <n-desc name="importDir" space="files"></n-desc>
+          <localized-content>
+            <span lang="en">Import Directory</span>
+            <span lang="cn">导入文件夹</span>
+            <span lang="ja">フォルダをインポート</span>
+          </localized-content>
         </p-menu-item>
       </p-menu>
     </p-bind-contextmenu>

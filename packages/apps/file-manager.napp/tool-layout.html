@@ -5,6 +5,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="./comps/bottom-address.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: flex;
@@ -113,7 +114,11 @@
   <div class="bottom-area" class:hide="!clipboard?.sources?.length">
     <o-if :value="clipboard?.sources?.length">
       {{clipboardText}},
-      <n-desc space="files" name="clickToPaste" set-type="html"></n-desc>
+      <localized-content>
+        <span lang="en">Click <n-local-icon name='paste'></n-local-icon> to paste.</span>
+        <span lang="cn">点击 <n-local-icon name='paste'></n-local-icon> 进行粘贴。</span>
+        <span lang="ja"><n-local-icon name='paste'></n-local-icon> をクリックして貼り付け</span>
+      </localized-content>
       <p-button
         size="small"
         on:click="cProvider.desc = null"
