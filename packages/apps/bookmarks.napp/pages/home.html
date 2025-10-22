@@ -312,17 +312,16 @@
       const { getText } = await load("/packages/i18n/data.js");
 
       const { defaultItemData } = await load("../common/default-item-data.js");
-      const { getUserStore } = await load("/packages/user/user-store.js");
 
-      debugger;
+      const { createUser } = await load("/packages/new-user/main.js");
 
-      const selfUserStore = await getUserStore();
+      const localUser = await createUser();
 
       return {
         data: {
           // usedUserId: null, // 当前标签使用中的用户id
-          usedUserId: selfUserStore.userId, // 当前标签使用中的用户id
-          localSelfUserId: selfUserStore.userId, // 本机设备用户id
+          usedUserId: localUser.userId, // 当前标签使用中的用户id
+          localSelfUserId: localUser.userId, // 本机设备用户id
           allDatas: [], // 所有数据
           // 当前目录路径
           paths: [
@@ -769,7 +768,7 @@
           // 保存初始的数据
           this.allDatas = [
             {
-              userId: selfUserStore.userId,
+              userId: localUser.userId,
               userName: getText("localDevice", "bookmarks"),
               _mainData: mainData,
             },
