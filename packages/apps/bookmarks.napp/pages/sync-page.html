@@ -1,5 +1,4 @@
 <template page>
-  <l-m src="/packages/comps/device-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -18,7 +17,6 @@
   <div style="font-size: 12px; margin-bottom: 4px">
     <n-desc name="syncTips" space="bookmarks"></n-desc>
   </div>
-  <n-device-list on:click-device="clickDeviceItem"></n-device-list>
   <h4><n-desc name="localOperations" space="bookmarks"></n-desc></h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
     <n-desc name="exportData" space="bookmarks"></n-desc>
@@ -47,7 +45,6 @@
   </div>
   <script>
     export default async ({ load }) => {
-      const { getConnection } = await load("/packages/user/connection/main.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { createData } = await load("/packages/hybird-data/main.js");
       const { getText } = await load("/packages/i18n/data.js");
@@ -57,116 +54,6 @@
           cardsLength: 0,
         },
         proto: {
-          // 点击了目标用户item
-          async clickDeviceItem(e) {
-            const { item, itemEl } = e.data;
-            const targetUserId = item.toOppoCertificate.data.authTo;
-            let remoteHandles;
-            try {
-              // 从远端获取对应应用目录
-              remoteHandles = await this.app.dedicatedRemoteHandle();
-            } catch (err) {
-              toast({
-                content: err.toString(),
-                color: "error",
-              });
-              return;
-            }
-            const targetRemoteHandle = remoteHandles.find((remote) => {
-              return remote.userId === targetUserId;
-            });
-
-            // 列表山的时间元素
-            const shadowTimeEl = itemEl.$('[slot="suffix"]');
-
-            shadowTimeEl && (shadowTimeEl.text = "Loading...");
-
-            // 本地保存的专属目录
-            const localAppHandle = await this.app.dedicatedHandle();
-
-            const bookmarkBackupDirHandle = await localAppHandle.get("backup", {
-              create: "dir",
-            });
-
-            const backupFileHandle = await bookmarkBackupDirHandle.get(
-              `${targetUserId}.json`,
-              {
-                create: "file",
-              }
-            );
-
-            if (!targetRemoteHandle.handle) {
-              shadowTimeEl &&
-                (shadowTimeEl.text = getText("syncFailed", "bookmarks"));
-
-              toast({
-                content: getText("syncFailed", "bookmarks"),
-                color: "error",
-              });
-              return;
-            }
-
-            // 从文件夹中获取数据
-            const remoteDataHandle = await targetRemoteHandle.handle.get(
-              "data"
-            );
-
-            const remoteBookmarkData = await createData(remoteDataHandle);
-
-            await remoteBookmarkData.ready();
-
-            const { cardsLastModified } = remoteBookmarkData;
-
-            {
-              // 查看是否有更新
-              const data = await backupFileHandle.text();
-              if (data) {
-                const backupData = JSON.parse(data);
-                if (backupData.cardsLastModified === cardsLastModified) {
-                  shadowTimeEl &&
-                    (shadowTimeEl.text = new Date(
-                      cardsLastModified
-                    ).toLocaleString());
-
-                  toast({
-                    content: getText("syncLatest", "bookmarks", {
-                      userName: targetRemoteHandle.userName,
-                    }),
-                    color: "success",
-                  });
-                  return;
-                }
-              }
-            }
-
-            // 等待全部数据加载完成
-            await remoteBookmarkData.ready(true);
-
-            // 保存一份数据
-            const bookmarkBackupData = remoteBookmarkData.toJSON();
-
-            // 销毁数据
-            remoteBookmarkData.disconnect();
-
-            await backupFileHandle.write(JSON.stringify(bookmarkBackupData));
-
-            toast({
-              content: getText("syncSuccess", "bookmarks", {
-                userName: targetRemoteHandle.userName,
-              }),
-              color: "success",
-            });
-
-            this.app.current?.loadBackupUserOptions();
-
-            // 更新列表上的时间
-            shadowTimeEl &&
-              (shadowTimeEl.text = new Date(
-                cardsLastModified
-              ).toLocaleString());
-
-            console.log("bookmarkBackupData: ", bookmarkBackupData);
-          },
           async clickInput() {
             const mainData = await this.app._mainData;
             await mainData.ready(true);
@@ -256,65 +143,7 @@
             });
           },
         },
-        async attached() {
-          const mainData = await this.app._mainData;
-          await mainData.ready();
-          await mainData.cards.ready();
-          this.cardsLength = mainData.cards.length;
-
-          setTimeout(async () => {
-            // 更新列表上
-            const localAppHandle = await this.app.dedicatedHandle();
-
-            const bookmarkBackupDirHandle = await localAppHandle.get("backup");
-
-            if (!bookmarkBackupDirHandle) {
-              return;
-            }
-
-            const cached = [];
-            for await (let handle of bookmarkBackupDirHandle.values()) {
-              try {
-                const text = await handle.text();
-                const data = JSON.parse(text);
-
-                const userId = handle.name.replace(".json", "");
-                const { cardsLastModified } = data;
-
-                if (cardsLastModified) {
-                  const shadowEl = this.shadow
-                    .$("n-device-list")
-                    .shadow.$(`[data-user-id="${userId}"]`);
-
-                  // 添加更新时间
-                  shadowEl.push(
-                    `<div slot="suffix">${new Date(
-                      cardsLastModified
-                    ).toLocaleString()}</div>`
-                  );
-                }
-              } catch (err) {
-                // 处理文件读取或解析错误
-                console.error("处理备份文件时出错:", err);
-                continue;
-              }
-            }
-
-            // 列表内未存在的代表没有备份过
-            const items = this.shadow
-              .$("n-device-list")
-              .shadow.all("p-list-item");
-
-            items.forEach((e) => {
-              const hasTime = e.$('[slot="suffix"]');
-              if (!hasTime) {
-                e.push(
-                  `<div slot="suffix">${getText("noSync", "bookmarks")}</div>`
-                );
-              }
-            });
-          }, 500);
-        },
+        async attached() {},
       };
     };
   </script>
