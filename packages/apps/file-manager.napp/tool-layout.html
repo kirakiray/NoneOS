@@ -115,9 +115,16 @@
     <o-if :value="clipboard?.sources?.length">
       {{clipboardText}},
       <localized-content>
-        <span lang="en">Click <n-local-icon name='paste'></n-local-icon> to paste.</span>
-        <span lang="cn">点击 <n-local-icon name='paste'></n-local-icon> 进行粘贴。</span>
-        <span lang="ja"><n-local-icon name='paste'></n-local-icon> をクリックして貼り付け</span>
+        <span lang="en"
+          >Click <n-local-icon name="paste"></n-local-icon> to paste.</span
+        >
+        <span lang="cn"
+          >点击 <n-local-icon name="paste"></n-local-icon> 进行粘贴。</span
+        >
+        <span lang="ja"
+          ><n-local-icon name="paste"></n-local-icon>
+          をクリックして貼り付け</span
+        >
       </localized-content>
       <p-button
         size="small"
