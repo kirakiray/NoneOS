@@ -1,5 +1,12 @@
 {
   "cases": [
+    "../old/user/add-device.ok.html",
+    "../old/user/connection.ok.html",
+    "../old/user/direct-agent-data.ok.html",
+    "../old/user/handserver.ok.html",
+    "../old/user/invite-code.ok.html",
+    "../old/user/main.ok.html",
+    "../old/user/worker-agent-data.ok.html",
     "../tests/crypto/crypto-ecdsa.ok.html",
     "../tests/crypto/crypto-rsa.ok.html",
     "../tests/fs/handle/copy-to.ok.html",
