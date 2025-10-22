@@ -154,7 +154,9 @@
 
     export default async ({ load }) => {
       const { get } = await load("/packages/fs/main.js");
-      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { getLocalizedSync } = await load(
+        "/packages/i18n/localized-object.js"
+      );
 
       return {
         data: {
@@ -201,13 +203,13 @@
 
               switch (this?.clipboard?.type) {
                 case "copy":
-                  return `${getLocalized({
+                  return `${getLocalizedSync({
                     cn: "复制",
                     en: "Copy",
                     ja: "コピー",
                   })} ${sources}`;
                 case "cut":
-                  return `${getLocalized({
+                  return `${getLocalizedSync({
                     cn: "剪切",
                     en: "Cut",
                     ja: "切り取り",
