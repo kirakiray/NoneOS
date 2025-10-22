@@ -62,12 +62,17 @@
       const { getUserStore } = await load("/packages/user/user-store.js");
       const { getUserName } = await load("/packages/util/get-user-info.js");
 
+      const { createUser } = await load("/packages/new-user/main.js");
+      const localUser = await createUser();
+
       const { getConnectionStore } = await load(
         "/packages/user/connection/main.js"
       );
 
       const userStore = await getUserStore();
       const selfUserId = userStore.userId;
+
+      debugger;
 
       const connections = await getConnectionStore();
 

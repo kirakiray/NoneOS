@@ -37,86 +37,29 @@ Object.defineProperties($.fn, {
 
       const mark = getAppMark(this);
 
-      const { getServers } = await load("/packages/user/hand-server/main.js");
+      const { createUser } = await load("/packages/new-user/main.js");
+      const localUser = await createUser();
 
-      const servers = await getServers();
+      await localUser.connectAllServers();
 
-      // 确保有服务器在线
-      await Promise.all(
-        servers.map((server) => {
-          if (
-            server.connectionState === "disconnected" ||
-            server.connectionState === "error"
-          ) {
-            server.connect();
-          }
-
-          return server.ready().catch(() => null);
-        })
-      );
-
-      // 确保 servers 是否有一个能用的
-      const usableServer = servers.find(
-        (server) => server.connectionState === "connected"
-      );
-
-      if (!usableServer) {
-        throw new Error("No usable server found");
-      }
-
-      const { getRemotes } = await load("/packages/util/get-remotes.js");
-      const { connect } = await load("/packages/user/connection/main.js");
-
-      const remotes = await getRemotes();
-
-      // 等待连接成功
-      const conns = await Promise.all(
-        remotes.map(async (remote) => {
-          const connection = connect({
-            userId: remote.userId,
-          });
-
-          // 等待连接成功
-          await connection
-            .watchUntil(
-              () =>
-                connection.state === "ready" ||
-                connection.state === "not-find-user"
-            )
-            .catch(() => null);
-
-          return connection; // 返回连接对象或其他标识
-        })
-      );
+      // 获取我的设备
+      const myDevices = await localUser.myDevices();
 
       const { get } = await load("/packages/fs/main.js");
-      const { getUserName } = await load("/packages/util/get-user-info.js");
 
-      // 从已连接的设备中并行获取handle和用户信息
       const remoteHandles = await Promise.all(
-        conns.map(async (connection) => {
-          // 获取远程用户的用户名
-          const userName = await getUserName(connection.userId);
-
-          if (connection.state !== "ready") {
-            return {
-              userName,
-              userId: connection.userId,
-              handle: null,
-              hasData: false,
-            };
-          }
-
-          // 获取远程用户的专属handle
+        myDevices.map(async (device) => {
           const handle = await get(
-            `$user-${connection.userId}:local/dedicated/${mark}`
+            `$user-${device.userId}:local/dedicated/${mark}`
           );
 
+          const hasData = (await handle.length()) > 0;
+
           return {
-            userName,
-            userId: connection.userId,
+            userName: device.name,
+            userId: device.userId,
             handle,
-            hasData: (await handle.length()) > 0,
+            hasData,
           };
         })
       );
