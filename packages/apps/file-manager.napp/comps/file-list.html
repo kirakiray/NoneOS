@@ -259,7 +259,7 @@
               this.emit("open-app", {
                 data: {
                   path: data.path,
-                  callback: (result) => {
+                  callback: async (result) => {
                     if (!result) {
                       this.emit("open-dialog", {
                         composed: true,
