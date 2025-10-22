@@ -10,6 +10,8 @@ export const saveUserCord = async ({
   projectDirName, // 文章所在项目目录名
   app, // 应用实例
 }) => {
+  debugger;
+
   const userStore = await getUserStore();
   const { userId } = userStore;
 

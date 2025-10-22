@@ -59,30 +59,27 @@
   <script>
     export default async ({ load }) => {
       // 加载用户信息
-      const { getUserStore } = await load("/packages/user/user-store.js");
-      const { getUserName } = await load("/packages/util/get-user-info.js");
+      // const { getUserName } = await load("/packages/util/get-user-info.js");
 
       const { createUser } = await load("/packages/new-user/main.js");
       const localUser = await createUser();
 
-      const { getConnectionStore } = await load(
-        "/packages/user/connection/main.js"
-      );
+      // 主要查看有哪些用户在线的
+      // const { getConnectionStore } = await load(
+      //   "/packages/user/connection/main.js"
+      // );
 
-      const userStore = await getUserStore();
-      const selfUserId = userStore.userId;
+      // const connections = await getConnectionStore();
 
-      debugger;
-
-      const connections = await getConnectionStore();
+      const connections = [];
 
       return {
         tag: "lumi-remote-mark",
         data: {
           userId: "",
           blockId: "",
-          selfUserId,
-          userName: "",
+          selfUserId: localUser.userId,
+          userName: "unknown",
         },
         proto: {
           async refreshPosition() {
@@ -112,7 +109,7 @@
               return;
             }
 
-            this.userName = await getUserName(this.userId);
+            // this.userName = await getUserName(this.userId);
 
             const { offsetTop, offsetLeft } = targetBlock.ele;
 
