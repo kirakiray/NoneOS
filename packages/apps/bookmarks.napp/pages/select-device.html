@@ -9,7 +9,9 @@
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
-        data: {},
+        data: {
+          allDatas: [],
+        },
         proto: {
           async loadBackupUserOptions() {
             const handle = await this.app.dedicatedHandle();

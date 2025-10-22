@@ -181,9 +181,9 @@
             style="display: block; margin-right: 8px"
           ></n-local-icon>
           <localized-content>
-            <span lang="cn">其他设备</span>
-            <span lang="en">Other Devices</span>
-            <span lang="ja">他のデバイス</span>
+            <span lang="cn">切换设备</span>
+            <span lang="en">Switch Device</span>
+            <span lang="ja">デバイスを切り替える</span>
           </localized-content>
         </p-button>
 
@@ -312,6 +312,13 @@
   ></bm-common-dialog>
 
   <p-dialog :open="showSelectDevice" on:click-mask="showSelectDevice = false">
+    <div slot="title">
+      <localized-content>
+        <span lang="cn">选择设备</span>
+        <span lang="en">Select Device</span>
+        <span lang="ja">デバイスを選択</span>
+      </localized-content>
+    </div>
     <o-page src="./select-device.html"></o-page>
   </p-dialog>
   <script>
