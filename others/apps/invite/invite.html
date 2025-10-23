@@ -253,7 +253,7 @@
   <script>
     export default async ({ load }) => {
       const { verifyDeviceData } = await load(
-        "/packages/apps/new-link-me.napp/util/verify-device-data.js"
+        "/packages/apps/link-me.napp/util/verify-device-data.js"
       );
       const { createUser } = await load("/packages/new-user/main.js");
       const localUser = await createUser();

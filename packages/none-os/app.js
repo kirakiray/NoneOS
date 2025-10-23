@@ -5,7 +5,7 @@ const defaultAppsPaths = [
   "/packages/apps/setting.napp",
   "/packages/apps/file-manager.napp",
   // "/packages/apps/link-me.napp",
-  "/packages/apps/new-link-me.napp",
+  "/packages/apps/link-me.napp",
   "/packages/apps/luminote.napp",
   "/packages/apps/flask-genie.napp",
   "/packages/apps/bookmarks.napp",
