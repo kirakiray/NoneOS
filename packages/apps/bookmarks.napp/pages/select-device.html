@@ -119,7 +119,7 @@
         "/packages/hybird-data/main.js"
       );
 
-      const { createUser } = await load("/packages/new-user/main.js");
+      const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
 
       return {

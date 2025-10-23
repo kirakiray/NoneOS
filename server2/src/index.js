@@ -6,7 +6,7 @@ import { DeviceClient } from "./device-client.js";
 import adminHandle from "./admin-handle.js";
 import clientHandle from "./client-handle.js";
 import { createRequire } from "node:module";
-import { toData } from "../../packages/new-user/util/buffer-data.js";
+import { toData } from "../../packages/user/util/buffer-data.js";
 
 const require = createRequire(import.meta.url);
 

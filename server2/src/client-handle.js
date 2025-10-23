@@ -1,6 +1,6 @@
-import { verify } from "../../packages/new-user/util/verify.js";
+import { verify } from "../../packages/user/util/verify.js";
 import { getHash } from "../../packages/fs/util.js";
-import { toBuffer } from "../../packages/new-user/util/buffer-data.js";
+import { toBuffer } from "../../packages/user/util/buffer-data.js";
 
 export const options = {
   // 认证用户信息

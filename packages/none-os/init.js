@@ -37,7 +37,7 @@ Object.defineProperties($.fn, {
 
       const mark = getAppMark(this);
 
-      const { createUser } = await load("/packages/new-user/main.js");
+      const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
 
       await localUser.connectAllServers();

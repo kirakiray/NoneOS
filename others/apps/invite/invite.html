@@ -255,7 +255,7 @@
       const { verifyDeviceData } = await load(
         "/packages/apps/link-me.napp/util/verify-device-data.js"
       );
-      const { createUser } = await load("/packages/new-user/main.js");
+      const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
       const certManager = await localUser.certManager();
 

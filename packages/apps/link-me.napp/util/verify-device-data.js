@@ -1,5 +1,5 @@
 import { getHash } from "../../../fs/util.js";
-import { verify } from "../../../new-user/util/verify.js";
+import { verify } from "../../../user/util/verify.js";
 
 export async function verifyDeviceData(receivedData, localUser) {
   const verificationResult = await verify(receivedData);

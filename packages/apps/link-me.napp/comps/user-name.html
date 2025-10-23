@@ -2,7 +2,7 @@
   {{name}}
   <script>
     export default async ({ load }) => {
-      const { createUser } = await load("/packages/new-user/main.js");
+      const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
 
       const cardManager = await localUser.cardManager();

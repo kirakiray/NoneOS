@@ -1,6 +1,6 @@
 // 保存每个用户在当前项目中的操作改动信息
 
-import { createUser } from "/packages/new-user/main.js";
+import { createUser } from "/packages/user/main.js";
 
 // 保存当前的用户id
 export const saveUserCord = async ({

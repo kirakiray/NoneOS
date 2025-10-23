@@ -253,7 +253,7 @@
   </p-list-item>
   <script>
     export default async ({ load }) => {
-      const { createUser } = await load("/packages/new-user/main.js");
+      const { createUser } = await load("/packages/user/main.js");
       const user = await createUser();
 
       return {
