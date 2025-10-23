@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="/packages/apps/new-link-me.napp/comps/user-name.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
   <style>
     :host {
       display: block;
@@ -11,7 +12,11 @@
   </style>
   <p-list>
     <o-fill :value="allDevices">
-      <p-list-item button on:click="$host.clickItem($data)">
+      <p-list-item
+        button
+        attr:disabled="$data.isEmpty"
+        on:click="$host.clickItem($data)"
+      >
         <n-id-avatar
           :val="$data.userId"
           slot="prefix"
@@ -33,6 +38,20 @@
                 <span lang="en"> Selected</span>
                 <span lang="ja"> 選択済み</span>
               </localized-content>
+            </div>
+          </o-if>
+          <o-if :value="$data.isEmpty">
+            <div style="margin-left: 16px; color: var(--md-sys-color-normal)">
+              <localized-content>
+                <span lang="cn">未同步数据</span>
+                <span lang="en"> Not synced data</span>
+                <span lang="ja"> 未同期データ</span>
+              </localized-content>
+            </div>
+          </o-if>
+          <o-if :value="$data.time">
+            <div style="margin-left: auto">
+              <n-moment-span :time="$data.time"></n-moment-span>
             </div>
           </o-if>
         </div>
@@ -61,7 +80,9 @@
   <script>
     export default async ({ load }) => {
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
-      const { createData } = await load("/packages/hybird-data/main.js");
+      const { createData, loadData } = await load(
+        "/packages/hybird-data/main.js"
+      );
 
       const { createUser } = await load("/packages/new-user/main.js");
       const localUser = await createUser();
@@ -118,10 +139,40 @@
             await Promise.all(
               remotes.map(async (e) => {
                 if (e.error) {
-                  debugger;
                   return;
                 }
-                debugger;
+
+                const { handle } = e;
+                // 获取data目录
+                const dataHandle = await handle.get("data");
+
+                if (dataHandle) {
+                  // 先读取一层的数据，判断是否有数据变动
+                  let data = await loadData({
+                    handle: dataHandle,
+                  });
+
+                  // 保存数据
+                  const targetFileHandle = await backupDir.get(
+                    `${e.userId}.json`,
+                    {
+                      create: "file",
+                    }
+                  );
+
+                  const cachedData = await targetFileHandle.json();
+
+                  if (cachedData.cardsLastModified !== data.cardsLastModified) {
+                    // 获取所有的数据
+                    data = await loadData({
+                      handle: dataHandle,
+                      level: 100,
+                    });
+
+                    // 写入数据
+                    await targetFileHandle.write(JSON.stringify(data));
+                  }
+                }
               })
             );
 
@@ -163,31 +214,47 @@
           async loadOtherDevices() {
             const handle = await this.app.dedicatedHandle();
             const backupHandle = await handle.get("backup");
-            if (!backupHandle) {
-              return;
+            if (backupHandle) {
+              for await (let item of backupHandle.values()) {
+                const userId = item.name.replace(/\.json$/, "");
+                const data = {};
+                try {
+                  let fdata = await item.text();
+                  fdata = JSON.parse(fdata);
+                  Object.assign(data, fdata);
+                } catch (err) {
+                  console.warn(err);
+                }
+
+                // 查看是否已存在，已存在就更新 _mainData
+                const target = this.allDevices.find((e) => e.userId === userId);
+                if (target) {
+                  target._mainData = data;
+                  continue;
+                }
+
+                this.allDevices.push({
+                  userId,
+                  _mainData: data,
+                  time: data.cardsLastModified,
+                });
+              }
             }
-            for await (let item of backupHandle.values()) {
-              const userId = item.name.replace(/\.json$/, "");
-              const data = {};
-              try {
-                let fdata = await item.text();
-                fdata = JSON.parse(fdata);
-                Object.assign(data, fdata);
-              } catch (err) {
-                console.warn(err);
-              }
 
-              // 查看是否已存在，已存在就更新 _mainData
-              const target = this.allDevices.find((e) => e.userId === userId);
-              if (target) {
-                target._mainData = data;
-                continue;
-              }
+            // 补充没有出现的设备项目
+            const devices = await localUser.myDevices();
 
-              this.allDevices.push({
-                userId,
-                _mainData: data,
-              });
+            for (let device of devices) {
+              const exited = this.allDevices.find(
+                (e) => e.userId === device.userId
+              );
+
+              if (!exited) {
+                this.allDevices.push({
+                  userId: device.userId,
+                  isEmpty: true,
+                });
+              }
             }
           },
         },

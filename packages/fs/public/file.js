@@ -20,6 +20,10 @@ class PublicFileHandle {
     });
   }
 
+  async json() {
+    return JSON.parse(await this.text());
+  }
+
   async base64(options) {
     const file = await this.file(options);
     return new Promise((resolve, reject) => {
