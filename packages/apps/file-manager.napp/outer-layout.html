@@ -250,31 +250,71 @@
         async attached() {
           const remotes = await localUser.myDevices();
 
-          this.remotes = await Promise.all(
-            remotes.map(async (e) => {
-              // 尝试连接对方
-              window.aa = await localUser.connectUser(e.userId);
+          this._cancels = [];
+          this.remotes = [];
 
-              return {
+          for (const e of remotes) {
+            // 尝试连接对方
+            const remoteUser = await localUser.connectUser(e.userId);
+
+            if (this.ele.isConnected) {
+              this._cancels.push(
+                remoteUser.bind("mode-change", async () => {
+                  const targetItem = this.remotes.find(
+                    (item) => item.userId === remoteUser.userId
+                  );
+
+                  // 确保可用的时候，加上目录
+                  if (targetItem && !targetItem.dirs.length) {
+                    targetItem.dirs.push({
+                      name: await getLocalized({
+                        cn: "虚拟本地",
+                        en: "Virtual Local",
+                        ja: "仮想ローカル",
+                      }),
+                      path: `$user-${e.userId}:local`,
+                    });
+                  }
+                })
+              );
+
+              this.remotes.push({
                 userId: e.userId,
                 userName: e.name,
                 dirs: [
-                  {
+                  // {
+                  //   name: await getLocalized({
+                  //     cn: "虚拟本地",
+                  //     en: "Virtual Local",
+                  //     ja: "仮想ローカル",
+                  //   }),
+                  //   path: `$user-${e.userId}:local`,
+                  // },
+                ],
+              });
+
+              if (remoteUser.mode === 2) {
+                const targetItem = this.remotes.find(
+                  (item) => item.userId === remoteUser.userId
+                );
+
+                // 确保可用的时候，加上目录
+                if (targetItem && !targetItem.dirs.length) {
+                  targetItem.dirs.push({
                     name: await getLocalized({
                       cn: "虚拟本地",
                       en: "Virtual Local",
                       ja: "仮想ローカル",
                     }),
                     path: `$user-${e.userId}:local`,
-                  },
-                ],
-              };
-              return;
-            })
-          );
+                  });
+                }
+              }
+            }
+          }
         },
         detached() {
-          this._cancel && this._cancel();
+          this._cancels && this._cancels.forEach((f) => f());
           this.remotes = [];
         },
       };

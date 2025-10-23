@@ -30,7 +30,7 @@ export const get = async (path, options) => {
         console.log("initRTC error", error);
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await new Promise((resolve) => setTimeout(resolve, 500));
     }
 
     // 远端用户的目录引用
