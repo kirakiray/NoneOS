@@ -15,31 +15,9 @@
   </style>
   <h4>
     <localized-content>
-      <span lang="cn">其他设备</span>
-      <span lang="en">Other devices</span>
-      <span lang="ja">他のデバイス</span>
-    </localized-content>
-  </h4>
-  <div style="font-size: 12px; margin-bottom: 4px">
-    <localized-content>
-      <span lang="cn"
-        >点击设备后可将其书签数据同步到当前本地，请确保目标设备已连接网络。</span
-      >
-      <span lang="en"
-        >Click on a device to sync its bookmark data to the current local
-        device. Please ensure the target device is connected to the
-        network.</span
-      >
-      <span lang="ja"
-        >デバイスをクリックすると、そのブックマークデータを現在のローカルデバイスに同期できます。ターゲットデバイスがネットワークに接続されていることを確認してください。</span
-      >
-    </localized-content>
-  </div>
-  <h4>
-    <localized-content>
-      <span lang="cn">本地操作</span>
-      <span lang="en">Local operations</span>
-      <span lang="ja">ローカル操作</span>
+      <span lang="cn">数据操作</span>
+      <span lang="en">Data operations</span>
+      <span lang="ja">データ操作</span>
     </localized-content>
   </h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
@@ -131,17 +109,17 @@
                 content: await getLocalized({
                   cn: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
                   en: "Existing bookmark data detected. Importing will overwrite the current content. Continue?",
-                  ja: "既存のブックマークデータが検出されました。インポートすると現在のコンテンツが上書きされます。続行しますか？"
+                  ja: "既存のブックマークデータが検出されました。インポートすると現在のコンテンツが上書きされます。続行しますか？",
                 }),
                 yes: await getLocalized({
                   cn: "覆盖",
                   en: "Overwrite",
-                  ja: "上書き"
+                  ja: "上書き",
                 }),
                 cancel: await getLocalized({
                   cn: "取消",
                   en: "Cancel",
-                  ja: "キャンセル"
+                  ja: "キャンセル",
                 }),
               });
 
@@ -175,7 +153,7 @@
                   content: await getLocalized({
                     cn: "导入成功",
                     en: "Import successful",
-                    ja: "インポート成功"
+                    ja: "インポート成功",
                   }),
                   color: "success",
                 });
@@ -184,7 +162,7 @@
                   content: await getLocalized({
                     cn: "导入失败: " + err.message,
                     en: "Import failed: " + err.message,
-                    ja: "インポート失敗: " + err.message
+                    ja: "インポート失敗: " + err.message,
                   }),
                   color: "error",
                 });
@@ -207,7 +185,7 @@
               content: await getLocalized({
                 cn: "导出成功",
                 en: "Export successful",
-                ja: "エクスポート成功"
+                ja: "エクスポート成功",
               }),
               color: "success",
             });
@@ -221,22 +199,22 @@
               title: await getLocalized({
                 cn: "清空数据",
                 en: "Clear data",
-                ja: "データクリア"
+                ja: "データクリア",
               }),
               content: await getLocalized({
                 cn: "此操作将永久删除所有数据且无法恢复，建议您先导出备份。确定要清空全部数据吗？",
                 en: "This operation will permanently delete all data and cannot be recovered. It is recommended that you export a backup first. Are you sure you want to clear all data?",
-                ja: "この操作により、すべてのデータが永久に削除され、復元できなくなります。まずはバックアップをエクスポートすることをお勧めします。すべてのデータをクリアしてもよろしいですか？"
+                ja: "この操作により、すべてのデータが永久に削除され、復元できなくなります。まずはバックアップをエクスポートすることをお勧めします。すべてのデータをクリアしてもよろしいですか？",
               }),
               yes: await getLocalized({
                 cn: "清空",
                 en: "Clear",
-                ja: "クリア"
+                ja: "クリア",
               }),
               cancel: await getLocalized({
                 cn: "取消",
                 en: "Cancel",
-                ja: "キャンセル"
+                ja: "キャンセル",
               }),
             });
             if (!res) return;
@@ -246,13 +224,15 @@
               content: await getLocalized({
                 cn: "清空成功",
                 en: "Clear successful",
-                ja: "クリア成功"
+                ja: "クリア成功",
               }),
               color: "success",
             });
           },
         },
-        async attached() {},
+        async attached() {
+          this.cardsLength = this.app._mainData.cards.length;
+        },
       };
     };
   </script>
