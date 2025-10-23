@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("buffer-data Test", async ({ page }) => {
-  await page.goto("tests/user/buffer-data.ok.html");
+  await page.goto("tests/new-user/buffer-data.ok.html");
 
   // 每个案例记得更新这个值
   const count = 4;

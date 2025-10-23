@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("use-sessionid-rtc Test", async ({ page }) => {
-  await page.goto("tests/user/post-sessionid/use-sessionid-rtc.ok.html");
+  await page.goto("tests/new-user/post-sessionid/use-sessionid-rtc.ok.html");
 
   // 每个案例记得更新这个值
   const count = 1;
