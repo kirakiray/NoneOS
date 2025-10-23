@@ -130,12 +130,15 @@
             const certs = await certManager.query({
               role: "device",
               issuedTo: localUser.userId,
+              issuedBy: item.issuedTo,
             });
 
-            if (certs.length) {
+            if (certs.length === 1) {
               certs.forEach(async (cert) => {
                 await certManager.delete(cert.id);
               });
+            } else {
+              alert("存在多张证书");
             }
 
             try {
