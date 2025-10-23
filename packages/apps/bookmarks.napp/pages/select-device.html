@@ -1,19 +1,66 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/apps/new-link-me.napp/comps/user-name.html"></l-m>
   <style>
     :host {
       display: blocks;
     }
   </style>
+  <p-list>
+    <o-fill :value="allDevices">
+      <p-list-item button on:click="$host.clickItem($data)">
+        <n-id-avatar
+          :val="$data.userId"
+          slot="prefix"
+          style="width: 20px"
+        ></n-id-avatar>
+        <n-user-name :userid="$data.userId"></n-user-name>
+      </p-list-item>
+    </o-fill>
+  </p-list>
   <script>
     export default async ({ load }) => {
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { createData } = await load("/packages/hybird-data/main.js");
+
+      const { createUser } = await load("/packages/new-user/main.js");
+      const localUser = await createUser();
 
       return {
         data: {
-          allDatas: [],
+          allDevices: [],
+          usedUserId: null, // 使用中的用户Id
         },
         proto: {
-          async loadBackupUserOptions() {
+          clickItem(item) {
+            this.emit("click-item", {
+              data: item,
+            });
+          },
+          async loadLocal() {
+            // 获取专属文件句柄
+            const handle = await this.app.dedicatedHandle();
+
+            const dataHandle = await handle.get("data", {
+              create: "dir",
+            });
+
+            const mainData = await createData(dataHandle);
+
+            await mainData.ready(true);
+
+            this.app._mainData = mainData;
+
+            this.allDevices.unshift({
+              userId: localUser.userId,
+              _mainData: mainData,
+            });
+
+            // 初次加载时，进行一次冒泡让上层也更新
+            this.clickItem(this.allDevices[0]);
+          },
+          async loadOtherDevices() {
             const handle = await this.app.dedicatedHandle();
             const backupHandle = await handle.get("backup");
             if (!backupHandle) {
@@ -21,7 +68,6 @@
             }
             for await (let item of backupHandle.values()) {
               const userId = item.name.replace(/\.json$/, "");
-              const userName = "my-device";
               const data = {};
               try {
                 let fdata = await item.text();
@@ -30,38 +76,32 @@
               } catch (err) {
                 console.warn(err);
               }
+
               // 查看是否已存在，已存在就更新 _mainData
-              const target = this.allDatas.find((e) => e.userId === userId);
+              const target = this.allDevices.find((e) => e.userId === userId);
               if (target) {
                 target._mainData = data;
                 continue;
               }
-              this.allDatas.push({
-                userName,
+              console.log(data);
+
+              this.allDevices.push({
                 userId,
                 _mainData: data,
               });
             }
-            // 更新卡片
-            const target = this.allDatas.find(
-              (e) => e.userId === this.usedUserId
-            );
-            if (target) {
-              this.cards = target._mainData.cards;
-              this.paths = [
-                {
-                  name: await getLocalized({
-                    cn: "根目录",
-                    en: "Root Directory",
-                    ja: "ルート ディレクトリ",
-                  }),
-                },
-              ];
-            }
           },
         },
-        attached() {
-          this.loadBackupUserOptions();
+        async attached() {
+          await this.loadLocal();
+          this.loadOtherDevices();
+        },
+        detached() {
+          if (this.app._mainData) {
+            const mainData = this.app._mainData;
+            mainData.disconnect();
+            this.app._mainData = null;
+          }
         },
       };
     };

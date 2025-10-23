@@ -20,7 +20,11 @@
               return;
             }
             const card = await cardManager.get(userId);
-            this.name = card.name;
+            if (card) {
+              this.name = card.name;
+            } else {
+              this.name = userId;
+            }
           },
         },
       };

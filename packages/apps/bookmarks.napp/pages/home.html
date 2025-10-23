@@ -319,7 +319,11 @@
         <span lang="ja">デバイスを選択</span>
       </localized-content>
     </div>
-    <o-page src="./select-device.html"></o-page>
+    <o-page
+      on:click-item="changeUser"
+      id="devices-page"
+      src="./select-device.html"
+    ></o-page>
   </p-dialog>
   <script>
     export default async ({ load }) => {
@@ -336,10 +340,8 @@
 
       return {
         data: {
-          // usedUserId: null, // 当前标签使用中的用户id
-          usedUserId: localUser.userId, // 当前标签使用中的用户id
+          usedUserId: null, // 当前标签使用中的用户id
           localSelfUserId: localUser.userId, // 本机设备用户id
-          allDatas: [], // 所有数据
           // 当前目录路径
           paths: [
             {
@@ -359,7 +361,7 @@
           },
           showSelectDevice: false,
           menuTargetType: null,
-          showNoneosBtn: !$("none-os"),
+          showNoneosBtn: !$("none-os"), // 是否显示none-os按钮
           setting: {
             width: 200,
             height: 80,
@@ -410,14 +412,35 @@
           clickNoneOS() {
             location.href = "/";
           },
+          async changeUser(e) {
+            // 切换用户
+            const { userId, _mainData } = e.data;
+
+            this.showSelectDevice = false;
+
+            this.usedUserId = userId;
+            this.paths = [
+              {
+                name: await getLocalized({
+                  cn: "根目录",
+                  en: "Root Directory",
+                  ja: "ルート ディレクトリ",
+                }),
+              },
+            ];
+            this.cards = _mainData.cards;
+          },
+
           // 加载本地备份的用户数据
           async clickBack() {
             if (this.paths.length === 2) {
               this.paths.splice(1);
 
-              const mainData = this.allDatas.find(
-                (e) => e.userId === this.usedUserId
-              )._mainData;
+              const device = this.shadow
+                .$("#devices-page")
+                .allDevices.find((e) => e.userId === this.usedUserId);
+
+              this.shadow.$("o-page").clickItem(device);
 
               // 点击根目录
               this.cards = mainData.cards;
@@ -567,106 +590,8 @@
             this.cards.push({ ...data });
           },
         },
-        async attached() {
-          let resolve;
-          this.app._mainData = new Promise((r) => (resolve = r));
-
-          // 获取专属文件句柄
-          const handle = await this.app.dedicatedHandle();
-
-          const dataHandle = await handle.get("data", {
-            create: "dir",
-          });
-
-          const mainData = await createData(dataHandle);
-
-          await mainData.ready(true);
-
-          this.app._mainData = mainData;
-
-          if (!mainData.cards) {
-            // 初始化本地数据
-            mainData.cards = [];
-
-            await mainData.ready(true);
-          }
-
-          this.cards = mainData.cards;
-
-          let ingoredFirst = false;
-          mainData.watchTick((e) => {
-            if (e.hasModified("cards")) {
-              if (!ingoredFirst) {
-                ingoredFirst = true;
-                // 忽略第一次修改
-                return;
-              }
-
-              // 忽略dataStatus和count的修改
-              const usefullModified = Array.from(e).filter((item) => {
-                return item.name !== "dataStatus" && item.name !== "count";
-              });
-
-              if (usefullModified.length === 0) {
-                return;
-              }
-
-              // 更新时间
-              mainData.cardsLastModified = Date.now();
-            }
-          }, 500);
-
-          // 获取配置数据
-          if (!mainData.setting) {
-            mainData.setting = {};
-          }
-
-          const settingData = mainData.setting;
-          await settingData.ready(true);
-
-          // 判断是否有设置数据
-          if (!settingData.width) {
-            // 初始化设置数据
-            Object.assign(settingData, this.setting);
-          }
-
-          // 遍历默认设定，看是否有新的配置项目
-          for (const key in this.setting) {
-            if (!(key in settingData)) {
-              settingData[key] = this.setting[key];
-            }
-          }
-
-          // 设置主数据
-          resolve(mainData);
-
-          this.setting = settingData;
-
-          // 保存初始的数据
-          this.allDatas = [
-            {
-              userId: localUser.userId,
-              userName: await getLocalized({
-                cn: "本地设备",
-                en: "Local Device",
-                ja: "ローカルデバイス",
-              }),
-              _mainData: mainData,
-            },
-          ];
-
-          if (!this.setting.bgurl) {
-            // 设置默认背景图
-            this.setting.bgurl =
-              "/packages/apps/bookmarks.napp/sources/bg/erone-stuff-unsplash.svg";
-          }
-        },
+        async attached() {},
         async detached() {
-          if (this.app._mainData) {
-            const mainData = await this.app._mainData;
-            mainData.disconnect();
-            this.app._mainData = null;
-          }
           this.cards = [];
           this.setting = {};
         },
