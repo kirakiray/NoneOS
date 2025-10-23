@@ -25,6 +25,9 @@ export class ServerManager {
         serversData.push({
           url: "ws://localhost:18290",
         });
+        serversData.push({
+          url: "ws://localhost:18291",
+        });
       } else {
         // 添加在线版服务器
         serversData.push(

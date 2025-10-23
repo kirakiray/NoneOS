@@ -1,39 +1,349 @@
-import { WebSocketServer } from 'ws';
-import { readFile } from 'node:fs/promises';
+#!/usr/bin/env node
+import { createRequire } from 'node:module';
 
-/**
- * @file util.js
- * @author yao
- * 传入一个数据，计算哈希值
- * @param {ArrayBuffer|Blob|String} data 数据
- * @return {Promise<string>} 哈希值
- */
-const getHash = async (data) => {
-  if (!globalThis.crypto) {
-    // Node.js 环境
-    const crypto = await import('crypto');
-    if (typeof data === "string") {
-      data = new TextEncoder().encode(data);
-    } else if (data instanceof Blob) {
-      data = await data.arrayBuffer();
+// WebSocketServer.js
+// 兼容 nodejs 和 bun 环境的 WebSocket 服务器类
+class WebSocketServer {
+  constructor(options = {}) {
+    this.wss = null;
+
+    // 解构options对象，设置默认值
+    const { onMessage, onConnect, onClose, onError } = options;
+
+    // 验证 onMessage 是否为函数
+    if (typeof onMessage !== "function") {
+      throw new Error("onMessage 必须是一个函数");
     }
-    const hash = crypto.createHash("sha256");
-    hash.update(Buffer.from(data));
-    return hash.digest("hex");
-  } else {
-    // 浏览器环境
-    if (typeof data === "string") {
-      data = new TextEncoder().encode(data);
-    } else if (data instanceof Blob) {
-      data = await data.arrayBuffer();
+
+    this.onMessage = onMessage; // 消息处理回调函数（必需）
+
+    // 验证 onConnect 是否为函数（可选）
+    if (onConnect && typeof onConnect !== "function") {
+      throw new Error("onConnect 必须是一个函数");
     }
-    const hash = await crypto.subtle.digest("SHA-256", data);
-    const hashArray = Array.from(new Uint8Array(hash));
-    const hashHex = hashArray
-      .map((bytes) => bytes.toString(16).padStart(2, "0"))
-      .join("");
-    return hashHex;
+
+    this.onConnect = onConnect; // 连接处理回调函数（可选）
+
+    // 验证 onClose 是否为函数（可选）
+    if (onClose && typeof onClose !== "function") {
+      throw new Error("onClose 必须是一个函数");
+    }
+
+    this.onClose = onClose; // 连接关闭处理回调函数（可选）
+
+    // 验证 onError 是否为函数（可选）
+    if (onError && typeof onError !== "function") {
+      throw new Error("onError 必须是一个函数");
+    }
+
+    this.onError = onError; // 错误处理回调函数（可选）
   }
+
+  /**
+   * 启动WebSocket服务器
+   * @param {number} port - 服务器监听端口
+   */
+  start(port = 8080) {
+    if (typeof Bun !== "undefined") {
+      this._startBunServer(port);
+    } else {
+      this._startNodeServer(port);
+    }
+  }
+
+  /**
+   * 在Bun环境下启动WebSocket服务器
+   * @param {number} port - 服务器监听端口
+   */
+  _startBunServer(port) {
+    console.log("使用Bun原生WebSocket服务器");
+
+    // 创建WebSocket处理器
+    const websocketHandler = {
+      open: (ws) => {
+        console.log("新的客户端连接");
+
+        // 如果提供了连接处理回调函数，则调用它
+        if (this.onConnect) {
+          this.onConnect(ws);
+        }
+      },
+
+      message: (ws, data) => {
+        try {
+          // 检查是否为二进制数据
+          if (
+            data instanceof ArrayBuffer ||
+            data instanceof Uint8Array ||
+            data instanceof Buffer ||
+            (typeof data !== "string" && !(data instanceof String))
+          ) {
+            // 对于二进制数据或非字符串数据，直接传递给 onMessage 处理函数
+            this.onMessage(ws, data);
+
+            return;
+          }
+
+          // 解析客户端发送的JSON数据
+          const message = JSON.parse(data);
+
+          // 调用消息处理回调函数（现在是必需的）
+          this.onMessage(ws, message);
+        } catch (error) {
+          console.error("处理消息时出错:", error);
+          ws.send(
+            JSON.stringify({
+              type: "error",
+              message: "消息格式错误",
+            })
+          );
+        }
+      },
+
+      close: (ws, code, message) => {
+        console.log("客户端断开连接:", code, message);
+
+        // 如果提供了连接关闭处理回调函数，则调用它
+        if (this.onClose) {
+          this.onClose(ws, code, message);
+        }
+      },
+
+      error: (ws, error) => {
+        console.error("WebSocket错误:", error);
+
+        // 如果提供了错误处理回调函数，则调用它
+        if (this.onError) {
+          this.onError(ws, error);
+        }
+      },
+    };
+
+    // 使用Bun.serve创建HTTP服务器并处理WebSocket连接
+    this.server = Bun.serve({
+      port: port,
+      fetch: (req, server) => {
+        // 升级到WebSocket连接
+        if (server.upgrade(req)) {
+          return; // 不返回响应，因为连接已升级为WebSocket
+        }
+
+        // 对于非WebSocket请求，返回404
+        return new Response("无法找到该页面", { status: 404 });
+      },
+
+      websocket: websocketHandler,
+    });
+
+    console.log(`Bun WebSocket服务器启动，监听端口 ${port}`);
+  }
+
+  /**
+   * 在Node.js环境下启动WebSocket服务器
+   * @param {number} port - 服务器监听端口
+   */
+  async _startNodeServer(port) {
+    console.log("使用Node.js ws库");
+
+    try {
+      const { WebSocketServer } = await import('ws');
+
+      // 创建WebSocket服务器，监听在指定端口
+      this.wss = new WebSocketServer({ port: port });
+
+      console.log(`WebSocket服务器启动，监听端口 ${port}`);
+
+      // 处理连接事件
+      this.wss.on("connection", (ws, req) => {
+        console.log("新的客户端连接");
+
+        // 如果提供了连接处理回调函数，则调用它
+        if (this.onConnect) {
+          this.onConnect(ws);
+        }
+
+        // 监听客户端消息
+        ws.on("message", (data, isBinary) => {
+          console.log("收到客户端消息:", data.toString());
+
+          try {
+            // 检查是否为二进制数据
+            if (isBinary) {
+              // 对于二进制数据，直接传递给 onMessage 处理函数
+              this.onMessage(ws, data);
+              return;
+            }
+
+            // 解析客户端发送的JSON数据
+            const message = JSON.parse(data.toString());
+
+            // 调用消息处理回调函数（现在是必需的）
+            this.onMessage(ws, message);
+          } catch (error) {
+            console.error("处理消息时出错:", error);
+            ws.send(
+              JSON.stringify({
+                type: "error",
+                message: "消息格式错误",
+              })
+            );
+          }
+        });
+
+        // 监听连接关闭事件
+        ws.on("close", (code, reason) => {
+          console.log("客户端断开连接");
+
+          // 如果提供了连接关闭处理回调函数，则调用它
+          if (this.onClose) {
+            this.onClose(ws, code, reason);
+          }
+        });
+
+        // 监听错误事件
+        ws.on("error", (err) => {
+          console.error("WebSocket错误:", err);
+
+          // 如果提供了错误处理回调函数，则调用它
+          if (this.onError) {
+            this.onError(ws, err);
+          }
+        });
+      });
+    } catch (error) {
+      console.error("无法加载ws库:", error);
+    }
+  }
+
+  /**
+   * 停止WebSocket服务器
+   */
+  stop() {
+    if (typeof Bun !== "undefined" && this.server) {
+      this.server.stop();
+      console.log("Bun WebSocket服务器已停止");
+    } else if (this.wss) {
+      this.wss.close();
+      console.log("Node.js WebSocket服务器已停止");
+    }
+  }
+}
+
+class DeviceClient {
+  constructor(ws, server) {
+    if (ws._client) {
+      throw new Error("客户端已经初始化过:" + ws._client.cid);
+    }
+
+    this.state = "unauth"; // 未认证：unauth；认证完成：authed
+    this.userId = null; // 认证完成后设置用户ID
+    this.publicKey = null; // 认证完成后设置用户公钥
+    this.userInfo = null; // 认证完成后设置用户信息
+    this.userSessionId = null; // 认证完成后设置用户会话ID
+    this.delay = 0; // 延迟时间
+
+    let cid = Math.random().toString(36).slice(2, 8);
+
+    // 检查CID是否已存在
+    while (server.clients.has(cid)) {
+      cid = Math.random().toString(36).slice(2, 8);
+    }
+
+    this.cid = cid;
+    this.ws = ws;
+    this.server = server;
+    this.connectTime = new Date(); // 记录连接时间
+  }
+
+  sendServerInfo() {
+    this.send({
+      type: "server_info",
+      serverName: this.server.serverName,
+      serverVersion: this.server.serverVersion,
+      cid: this.cid,
+    });
+  }
+
+  send(data) {
+    // 判断是二进制则直接发送，对象则发送字符串
+    if (
+      data instanceof ArrayBuffer ||
+      data instanceof Uint8Array ||
+      data instanceof Buffer ||
+      typeof data === "string"
+    ) {
+      this.ws.send(data);
+    } else {
+      try {
+        this.ws.send(JSON.stringify(data));
+      } catch (error) {
+        debugger;
+        console.error("发送数据失败:", error);
+      }
+    }
+  }
+
+  close() {
+    this.ws.close();
+  }
+
+  toJSON() {
+    return {
+      cid: this.cid,
+      userId: this.userId,
+      userInfo: this.userInfo,
+      userSessionId: this.userSessionId,
+      connectTime: this.connectTime.toISOString(),
+    };
+  }
+}
+
+// 和服务端的交互，使用下划线驼峰命名法
+const options$1 = {
+  // 获取所有连接的客户端信息
+  get_connections({ client, clients, message }) {
+    let connectionsInfo = [];
+    for (const client2 of clients.values()) {
+      connectionsInfo.push({
+        id: client2.cid,
+        userId: client2.userId,
+        userInfo: client2.userInfo,
+        connectTime: client2.connectTime,
+        state: client2.state,
+        username: client2.userInfo.name,
+        delay: client2.delay,
+      });
+    }
+    client.send({
+      type: "connections_info",
+      clients: connectionsInfo,
+    });
+  },
+  // 断开指定客户端的连接
+  disconnect_client({ client, clients, message }) {
+    if (message.clientId) {
+      // 找到任意一个客户端实例来调用 disconnectClient 方法
+      const targetClient = clients.get(message.clientId);
+      if (targetClient) {
+        targetClient.close();
+
+        client.send({
+          type: "success",
+          message: `已断开客户端 ${message.clientId} 的连接`,
+        });
+      } else {
+        client.send({
+          type: "error",
+          message: `未找到客户端 ${message.clientId}`,
+        });
+      }
+    } else {
+      client.send({
+        type: "error",
+        message: "缺少客户端ID参数",
+      });
+    }
+  },
 };
 
 /**
@@ -101,19 +411,10 @@ const createVerifier = async (publicKeyBase64) => {
   }
 };
 
-/**
- * 数据验证相关工具函数
- */
+const verify = async (signedData) => {
+  const { signature, ...data } = signedData;
+  const msg = JSON.stringify(data);
 
-
-/**
- * 验证数据签名
- * @param {Object} params - 验证参数
- * @param {Object} params.data - 包含公钥和数据的对象
- * @param {string} params.signature - base64 编码的签名
- * @returns {Promise<boolean>} 验证结果
- */
-const verifyData = async ({ data, signature }) => {
   const { publicKey } = data;
 
   // 生成验证器
@@ -125,7 +426,7 @@ const verifyData = async ({ data, signature }) => {
       [...atob(signature)].map((c) => c.charCodeAt(0))
     ).buffer;
 
-    const result = await verify(JSON.stringify(data), signatureBuffer);
+    const result = await verify(msg, signatureBuffer);
 
     return result;
   } catch (err) {
@@ -135,464 +436,395 @@ const verifyData = async ({ data, signature }) => {
   }
 };
 
-const auth = async (
-  parsedMessage,
-  client,
-  { serverOptions, serverVersion }
-) => {
-  // 验证用户身份
-  const result = await verifyData(parsedMessage.authedData);
-  const { data } = parsedMessage.authedData;
-  const { publicKey, time: accountCreationTime } =
-    parsedMessage.authedData.data;
+/**
+ * @file util.js
+ * @author yao
+ * 传入一个数据，计算哈希值
+ * @param {ArrayBuffer|Blob|String} data 数据
+ * @return {Promise<string>} 哈希值
+ */
+const getHash = async (data) => {
+  if (!globalThis.crypto) {
+    // Node.js 环境
+    const crypto = await import('crypto');
+    if (typeof data === "string") {
+      data = new TextEncoder().encode(data);
+    } else if (data instanceof Blob) {
+      data = await data.arrayBuffer();
+    }
+    const hash = crypto.createHash("sha256");
+    hash.update(Buffer.from(data));
+    return hash.digest("hex");
+  } else {
+    // 浏览器环境
+    if (typeof data === "string") {
+      data = new TextEncoder().encode(data);
+    } else if (data instanceof Blob) {
+      data = await data.arrayBuffer();
+    }
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hash));
+    const hashHex = hashArray
+      .map((bytes) => bytes.toString(16).padStart(2, "0"))
+      .join("");
+    return hashHex;
+  }
+};
 
-  // 验证签名
-  if (!result) {
-    console.log("身份验证失败：签名无效");
-    client.closeConnection();
-    return;
+/**
+ * 将数据和对象信息组装成一个buffer对象
+ * 格式：[prefixLength][prefixBuffer][originBuffer]
+ * @param {Uint8Array} originBuffer - 原始二进制数据
+ * @param {Object} info - 要附加的对象信息
+ * @returns {Uint8Array} 组装后的buffer对象
+ * @throws {Error} 当参数类型不正确时抛出错误
+ */
+const toBuffer = (originBuffer, info) => {
+  // 参数类型检查
+  if (!(originBuffer instanceof Uint8Array)) {
+    throw new Error("originBuffer must be a Uint8Array");
   }
 
-  // 验证会话标识符
-  if (data.markid !== client.sessionId) {
-    console.log("身份验证失败：会话标识符不匹配");
-    client.closeConnection();
-    return;
+  // 将对象信息转换为JSON字符串并编码为Uint8Array
+  const infoJson = JSON.stringify(info);
+  const infoBuffer = new TextEncoder().encode(infoJson);
+
+  // 检查长度是否超出限制（255字节）
+  if (infoBuffer.length > 255) {
+    throw new Error("Info data is too large, must be less than 255 bytes");
   }
 
-  client.userInfo = data;
-  client.authedData = parsedMessage.authedData;
+  // 第一个字节存储infoBuffer的长度
+  const prefixLength = infoBuffer.length;
 
-  // 验证成功，清除超时计时器
-  clearTimeout(client._authenticationTimer);
+  // 创建组合buffer：prefixLength + infoBuffer + originBuffer
+  const combinedBuffer = new Uint8Array(1 + prefixLength + originBuffer.length);
 
-  // 生成用户ID并存储用户信息
-  const userId = await getHash(publicKey);
-  client._userId = userId;
+  // 设置各部分数据
+  combinedBuffer[0] = prefixLength;
+  combinedBuffer.set(infoBuffer, 1);
+  combinedBuffer.set(originBuffer, 1 + prefixLength);
 
-  // 判断用户是否已认证
-  if (authenticatedUsers.has(userId)) {
-    // 已存在就删除旧的
-    const old = authenticatedUsers.get(userId);
-    old.client.closeConnection();
+  return combinedBuffer;
+};
+
+/**
+ * 从buffer对象中解析出原始数据和附加信息
+ * @param {Uint8Array} buffer - 包含数据和信息的buffer对象
+ * @returns {Object} 包含data和info属性的对象
+ * @throws {Error} 当buffer格式不正确或数据损坏时抛出错误
+ */
+const toData = (buffer) => {
+  // 参数检查
+  if (!(buffer instanceof Uint8Array)) {
+    throw new Error("buffer must be a Uint8Array");
   }
 
-  authenticatedUsers.set(userId, {
-    client,
-    publicKey,
-    authedTime: Date.now(),
-  });
-
-  // 发送服务器信息
-  client.sendMessage({
-    type: "update-server-info",
-    data: {
-      serverName: serverOptions.name,
-      serverVersion,
-    },
-  });
-
-  // 发送认证成功响应
-  return {
-    type: "authed",
-  };
-};
-
-// 获取所有用户信息，管理员专用
-
-const mapAuthenticatedUser = ([userid, e]) => ({
-  sessionId: e.client.sessionId,
-  userInfo: e.client.userInfo,
-  userId: e.client._userId,
-  __inviteCode: e.client.__inviteCode,
-});
-
-const mapUnauthenticatedUser = (client) => ({
-  sessionId: client.sessionId,
-});
-
-var getAll = {
-  admin: true,
-  handler: async () => {
-    const authenticateds =
-      Array.from(authenticatedUsers).map(mapAuthenticatedUser);
-    const unauthenticateds = Array.from(activeConnections)
-      .filter((e) => !e._userId)
-      .map(mapUnauthenticatedUser);
-
-    return {
-      unauthenticateds,
-      authenticateds,
-    };
-  },
-};
-
-var findFriend = {
-  handler: async (requestBody, client) => {
-    const { friendId } = requestBody;
-    const friendData = authenticatedUsers.get(friendId);
-
-    if (!friendData) {
-      throw new Error("用户不在线");
-    }
-
-    return {
-      authedTime: friendData.authedTime,
-      // 返回数据让用户验证
-      authedData: friendData.client.authedData,
-    };
-  },
-};
-
-// 存储代理数据的Map
-const agentTaskPool = new Map();
-
-// 默认超时时间（毫秒）
-const DEFAULT_TIMEOUT = 5000;
-
-var agentData = {
-  handler: async (requestBody, client) => {
-    const {
-      friendId: targetUserId,
-      data,
-      timeout = DEFAULT_TIMEOUT,
-    } = requestBody;
-
-    if (!targetUserId) {
-      throw new Error("缺少 friendId");
-    }
-
-    if (!data) {
-      throw new Error("没有要转发的数据");
-    }
-
-    // 生成唯一的代理任务ID
-    const agentTaskId = `agent_${Date.now()}_${Math.random()
-      .toString(36)
-      .slice(2)}`;
-
-    // 检查目标用户是否存在且在线
-    const targetUser = authenticatedUsers.get(targetUserId);
-    if (!targetUser) {
-      throw new Error(`目标用户(${targetUserId})不在线`);
-    }
-
-    try {
-      // 转发数据到目标用户
-      targetUser.client.sendMessage({
-        type: "agent-data",
-        fromUserId: client._userId,
-        agentTaskId,
-        data,
-      });
-
-      const agentResponse = await Promise.race([
-        new Promise((resolve, reject) => {
-          const taskPromiseHandlers = { resolve, reject };
-          agentTaskPool.set(agentTaskId, taskPromiseHandlers);
-        }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("转发数据超时")), timeout)
-        ),
-      ]);
-
-      return {
-        code: 200,
-        success: true,
-        msg: "数据已成功转发",
-        result: agentResponse,
-      };
-    } catch (error) {
-      throw error;
-    } finally {
-      agentTaskPool.delete(agentTaskId);
-    }
-  },
-};
-
-var confirmAgent = {
-  handler: async (requestBody, client) => {
-    const { agentTaskId } = requestBody;
-
-    if (!agentTaskId) {
-      throw new Error("缺少agentTaskId参数");
-    }
-
-    const taskPromiseHandlers = agentTaskPool.get(agentTaskId);
-    if (!taskPromiseHandlers) {
-      throw new Error(`未找到对应的转发任务: ${agentTaskId}`);
-    }
-
-    try {
-      taskPromiseHandlers.resolve({
-        confirmedBy: client._userId,
-        confirmedAt: Date.now()
-      });
-      return { success: true };
-    } catch (error) {
-      throw new Error(`确认转发失败: ${error.message}`);
-    }
-  },
-};
-
-// 邀请码对应的用户
-const invites = new Map();
-
-var inviteCode = {
-  handler: async (requestBody, client) => {
-    if (requestBody.setInviteCode) {
-      if (client.__inviteCode && invites.get(client.__inviteCode) === client) {
-        // 已经设置过邀请码，删除旧的
-        invites.delete(client.__inviteCode);
-      }
-
-      const inviteCode = requestBody.setInviteCode;
-
-      if (invites.get(inviteCode)) {
-        throw new Error("邀请码已被使用: " + inviteCode);
-      }
-
-      const code = (client.__inviteCode = inviteCode);
-
-      invites.set(code, client);
-
-      // 监听删除
-      client._webSocket.on("close", () => {
-        if (invites.get(code) === client) {
-          invites.delete(code);
-        }
-      });
-
-      return {
-        setInviteCode: true,
-        id: client._userId,
-      };
-    }
-
-    if (requestBody.setInviteCode === 0) {
-      // 清空邀请码
-      if (client.__inviteCode && invites.get(client.__inviteCode) === client) {
-        // 已经设置过邀请码，删除旧的
-        invites.delete(client.__inviteCode);
-        client.__inviteCode = undefined;
-      }
-    }
-
-    if (requestBody.findInviteCode) {
-      const inviteCode = requestBody.findInviteCode;
-      const inviteClient = invites.get(inviteCode);
-      if (!inviteClient) {
-        throw new Error("邀请码不存在");
-      }
-      return {
-        findInviteCode: true,
-        id: inviteClient._userId,
-        authedData: inviteClient.authedData,
-      };
-    }
-
-    // client.__inviteCode = requestBody.inviteCode;
-
-    return null;
-  },
-};
-
-var postHandlers = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  agentData: agentData,
-  confirmAgent: confirmAgent,
-  findFriend: findFriend,
-  getAll: getAll,
-  inviteCode: inviteCode
-});
-
-const createResponse = (taskId, success, data) => ({
-  type: "post-response",
-  taskId,
-  success,
-  data,
-});
-
-const errorResponse = (taskId, message) => 
-  createResponse(taskId, 0, { msg: message });
-
-const successResponse = (taskId, data) =>
-  createResponse(taskId, 1, data);
-
-const post = async (
-  { taskId, data },
-  client,
-  { serverOptions, ...otherOptions }
-) => {
-  const { type } = data;
-  const realType = toCamelCase(type);
-
-  const handler = postHandlers[realType];
-  if (!handler) {
-    return errorResponse(taskId, "未知的post请求类型");
+  if (buffer.length < 1) {
+    throw new Error("buffer is too short");
   }
 
-  const { handler: handlerFn, admin } = handler;
- 
-  if (admin && !(await checkAdminPermission(client, serverOptions))) {
-    return errorResponse(
-      taskId,
-      serverOptions?.admin ? "您不是管理员" : "未配置管理员"
-    );
+  // 读取infoBuffer的长度
+  const prefixLength = buffer[0];
+
+  // 边界检查
+  if (1 + prefixLength > buffer.length) {
+    throw new Error("buffer is corrupted or format is incorrect");
   }
 
+  // 提取infoBuffer和originBuffer
+  const infoBuffer = buffer.slice(1, 1 + prefixLength);
+  const originBuffer = buffer.slice(1 + prefixLength);
+
+  // 解码infoBuffer为对象
   try {
-    const respData = await handlerFn(data, client, {
-      serverOptions,
-      ...otherOptions,
-    });
-    return successResponse(taskId, respData);
+    const infoJson = new TextDecoder().decode(infoBuffer);
+    const info = JSON.parse(infoJson);
+
+    return {
+      data: originBuffer,
+      info: info,
+    };
   } catch (error) {
-    console.error(`Handler ${realType} error:`, error);
-    return errorResponse(taskId, error.message || "处理请求时发生错误");
+    throw new Error("Failed to parse info data: " + error.message);
   }
 };
 
-const checkAdminPermission = async (client, serverOptions) => {
-  if (!serverOptions?.admin) return false;
-  return serverOptions.admin.includes(client._userId);
+const options = {
+  // 认证用户信息
+  async authentication({ client, clients, users, message }) {
+    try {
+      const data = message.signedData;
+
+      if (data.cid !== client.cid) {
+        throw new Error("cid 不匹配");
+      }
+
+      // 验证签名并获取数据
+      const result = await verify(data);
+      if (!result) {
+        throw new Error("签名被篡改");
+      }
+
+      // 匹配成功后，填入信息
+      client.userInfo = data.info;
+      client.userId = await getHash(data.publicKey);
+      client.publicKey = data.publicKey;
+      client.state = "authed";
+      client.userSessionId = data.userSessionId;
+
+      // 清除认证定时器
+      clearTimeout(client._authTimer);
+
+      // 添加到用户映射对象
+      let userPool = users.get(client.userId);
+      if (!userPool) {
+        userPool = new Set();
+        users.set(client.userId, userPool);
+      }
+
+      userPool.add(client);
+
+      // 认证成功后，发送确认消息
+      client.send({
+        type: "auth_success",
+        userInfo: client.userInfo,
+        userId: client.userId,
+        message: "认证成功",
+      });
+
+      client.sendServerInfo();
+    } catch (err) {
+      console.error(err);
+      // 发送认证失败消息
+      client.send({
+        type: "error",
+        kind: "authentication",
+        message: err.message,
+      });
+
+      setTimeout(() => {
+        client.close();
+      }, 100);
+      return;
+    }
+  },
+  // 检查用户是否在线
+  async find_user({ client, clients, users, message }) {
+    const { userId } = message;
+    let userPool = users.get(userId);
+    userPool = userPool ? Array.from(userPool) : [];
+
+    client.send({
+      type: "response_find_user",
+      userId,
+      publicKey: userPool.length > 0 ? userPool[0].publicKey : null, // 目标用户的publicKey
+      tabs: userPool,
+      isOnline: userPool && userPool.length > 0,
+    });
+  },
+
+  // 转发用户数据
+  async agent_data({ client, clients, users, message, binaryData }) {
+    const { options, data } = message;
+    const { userId, userSessionId, ...otherData } = options;
+
+    if (userId) {
+      const targetUserClients = users.get(userId);
+      if (!targetUserClients) return;
+
+      const sendData = binaryData
+        ? toBuffer(binaryData, {
+            ...otherData,
+            type: "agent_data",
+            fromUserId: client.userId,
+            fromUserSessionId: client.userSessionId,
+          })
+        : {
+            ...otherData,
+            type: "agent_data",
+            data,
+            fromUserId: client.userId,
+            fromUserSessionId: client.userSessionId,
+          };
+
+      let targetDeviceClient = null;
+
+      if (userSessionId) {
+        targetDeviceClient = Array.from(targetUserClients).find(
+          (client) => client.userSessionId === userSessionId
+        );
+      }
+
+      if (!targetDeviceClient) {
+        targetDeviceClient = targetUserClients.values().next().value;
+      }
+
+      // 发送给目标客户
+      if (targetDeviceClient) {
+        targetDeviceClient.send(sendData);
+      }
+    }
+  },
+  // 更新延迟时间
+  async update_delay({ client, clients, users, message }) {
+    const { delay } = message;
+    client.delay = delay;
+  },
 };
 
-function toCamelCase(str) {
-  return str.replace(/-(\w)/g, (_, letter) => letter.toUpperCase());
-}
+const require = createRequire(import.meta.url);
 
-var handlers = /*#__PURE__*/Object.freeze({
-  __proto__: null,
-  auth: auth,
-  post: post
-});
+const packageJson = require("../package.json");
 
-// 全局连接管理
-const activeConnections = new Set(); // 存储所有活动的WebSocket连接
-const authenticatedUsers = new Map(); // 存储已认证用户的信息
-const packageJson = JSON.parse(
-  await readFile(new URL("./package.json", import.meta.url))
-);
+const initServer = async ({
+  password,
+  port = 8081,
+  serverName = "handserver",
+}) => {
+  let server;
+  const clients = new Map(); // 用户cid索引数据
+  const users = new Map(); // 用户userId索引数据
 
-const serverVersion = packageJson.version;
+  // 定义连接处理函数
+  function onConnect(ws) {
+    const client = new DeviceClient(ws, server); // 传递 clients Map 给 DeviceClient
+    ws._client = client;
+    clients.set(client.cid, client);
+    console.log("新客户端已连接: ", client.cid);
 
-class ServerHandClient {
-  constructor(webSocket, { serverOptions } = {}) {
-    this._webSocket = webSocket; // WebSocket连接
-    this._userId = null; // 用户ID
-    this._serverName = serverOptions.name || "unknown server"; // 服务器名称
-    this.userInfo = {}; // 存储用户信息
-    this.authedData = null; // 验证用的数据
+    client._authTimer = setTimeout(() => {
+      client.close();
+    }, 1000 * 3); // 3秒未认证则关闭连接
 
-    // 生成唯一的会话标识符
-    this.sessionId = Math.random().toString(36).slice(2);
-
-    // 设置认证超时处理（5秒内必须完成认证）
-    this._authenticationTimer = setTimeout(() => {
-      this._webSocket.close();
-    }, 5000);
-
-    activeConnections.add(this);
-
-    // 发送初始化消息，包含会话标识符
-    this.sendMessage({
-      type: "init",
-      mark: this.sessionId,
+    client.send({
+      type: "need_auth",
+      cid: client.cid,
+      time: new Date().toISOString(),
     });
 
-    // 处理接收到的消息
-    webSocket.on("message", async (message) => {
-      console.log("接收到客户端消息:", message.toString());
-
-      let parsedMessage;
-      try {
-        parsedMessage = JSON.parse(message.toString());
-      } catch (error) {
-        console.log("消息格式错误：非JSON格式");
-        return;
-      }
-
-      if (handlers[parsedMessage.type]) {
-        try {
-          const redata = await handlers[parsedMessage.type](
-            parsedMessage,
-            this,
-            { serverOptions, serverVersion }
-          );
-
-          // 发送认证成功响应
-          this.sendMessage(redata);
-        } catch (error) {
-          // 处理错误并发送错误响应给客户端
-          console.error("处理消息时发生错误:", error);
-          this.sendMessage({
-            type: "error",
-            error: error.message || "处理请求时发生错误",
-          });
-        }
-        return;
-      }
-
-      if (parsedMessage.type === "ping") {
-        this.sendMessage({
-          type: "pong",
-        });
-        return;
-      }
-
-      // 没有找到对应的消息处理函数
-      console.error("未找到对应的消息处理函数", parsedMessage);
-    });
-
-    // 处理连接关闭
-    webSocket.on("close", () => {
-      this.cleanup();
-      console.log("客户端连接已关闭");
-    });
-
-    // 处理错误
-    webSocket.on("error", (error) => {
-      this.cleanup();
-      console.log("WebSocket错误:", error);
+    // 发送服务端的数据给对方
+    // 兼容操作 旧版本客户端
+    client.send({
+      type: "update-server-info",
+      data: {
+        serverName,
+        serverVersion: packageJson.version,
+      },
     });
   }
 
-  // 发送消息到客户端
-  sendMessage(data) {
-    this._webSocket.send(JSON.stringify(data));
-  }
-
-  // 关闭连接
-  closeConnection() {
-    this._webSocket.close();
-  }
-
-  // 清理连接资源
-  cleanup() {
-    activeConnections.delete(this);
-    // 确认是这个对象才进行删除，避免删除其他对象的用户信息
-    const exitedItem = authenticatedUsers.get(this._userId);
-    if (this._userId && exitedItem && exitedItem.client === this) {
-      authenticatedUsers.delete(this._userId);
+  // 定义连接关闭处理函数
+  function onClose(ws, code, reason) {
+    // TODO: 同步应该记录下关闭连接的客户端信息
+    // 从Map中移除断开连接的客户端
+    clients.delete(ws._client.cid);
+    if (ws._client.userId) {
+      const userPool = users.get(ws._client.userId);
+      if (userPool) {
+        userPool.delete(ws._client);
+      }
     }
   }
-}
 
-const initServer = async (options = {}) => {
-  const wss = new WebSocketServer({ port: options.port });
+  // 定义错误处理函数
+  function onError(ws, error) {
+    // TODO: 应该记录下错误信息
+    if (ws._client) {
+      clients.delete(ws._client.cid);
+      if (ws._client.userId) {
+        const userPool = users.get(ws._client.userId);
+        if (userPool) {
+          userPool.delete(ws._client);
+        }
+      }
+    }
+  }
 
-  wss.on("connection", function connection(ws) {
-    const client = new ServerHandClient(ws, {
-      serverOptions: options,
-    });
+  // 定义消息处理函数
+  function onMessage(ws, message) {
+    const client = ws._client;
 
-    console.log("新的客户端连接", client);
+    // 二进制数据
+    let binaryData = null;
+
+    if (message instanceof Buffer) {
+      const { data, info } = toData(message);
+      binaryData = data;
+      message = info;
+    }
+
+    if (options[message.type]) {
+      options[message.type]({
+        client,
+        clients,
+        users,
+        message,
+        binaryData,
+      });
+      return;
+    }
+
+    switch (message.type) {
+      case "ping":
+        // 处理客户端的ping消息，返回pong响应
+        client.send({
+          type: "pong",
+          timestamp: new Date().toISOString(),
+        });
+        break;
+
+      case "echo":
+        // 回显消息
+        client.send({
+          type: "echo",
+          message: message.message,
+          timestamp: new Date().toISOString(),
+        });
+        break;
+
+      case "get_connections":
+      case "disconnect_client":
+        // 验证密码，通过才允许获取所有连接的客户端信息
+        if (message.password !== password) {
+          client.send({
+            type: "error",
+            message: "密码错误",
+          });
+          break;
+        }
+
+        // 调用 adminHandle 中的方法处理消息
+        options$1[message.type]({ client, clients, message });
+        break;
+
+      default:
+        client.send({
+          type: "error",
+          message: "未知的消息类型",
+          response: message,
+        });
+    }
+  }
+
+  // 创建WebSocket服务器实例，使用option对象传入处理函数
+  server = new WebSocketServer({
+    onMessage,
+    onConnect,
+    onClose,
+    onError,
   });
 
-  console.log("WebSocket 服务器运行在 ws://localhost:" + options.port + "/");
+  // 将 clients Map 添加到 server 实例上，以便 DeviceClient 可以访问
+  server.clients = clients;
+  server.users = users;
+  server.serverName = serverName;
+  server.serverVersion = packageJson.version;
 
-  return wss;
+  // 启动服务器，监听指定端口
+  server.start(port);
+
+  return server;
 };
 
 export { initServer };
