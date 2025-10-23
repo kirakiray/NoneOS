@@ -519,6 +519,8 @@
             const targetIndex = this.cards.indexOf(to);
 
             this.cards.splice(targetIndex, 0, from);
+
+            this.app._mainData.cardsLastModified = Date.now();
           },
           async clickCopyLink() {
             const _target = this._menuTarget;
@@ -579,6 +581,8 @@
             Object.assign(this.dialogData.item, {
               ...defaultItemData,
             });
+
+            this.app._mainData.cardsLastModified = Date.now();
           },
           async editItem() {
             // const { _target } = this.shadow.$("p-bind-contextmenu");
@@ -608,9 +612,12 @@
                 this.cards.splice(targetIndex, 1);
               }
             };
+
+            this.app._mainData.cardsLastModified = Date.now();
           },
           async addWeb({ data }) {
             this.cards.push({ ...data });
+            this.app._mainData.cardsLastModified = Date.now();
           },
         },
         async attached() {},
