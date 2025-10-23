@@ -66,13 +66,11 @@
       </div>
 
       <o-if :value="editmode">
-        <div style="display: flex">
-          <localized-content>
-            <span lang="cn">编辑</span>
-            <span lang="en">Edit</span>
-            <span lang="ja">編集</span> </localized-content
-          >{{itemTypeText}}
-        </div>
+        <localized-content>
+          <span lang="cn">编辑</span>
+          <span lang="en">Edit</span>
+          <span lang="ja">編集</span> </localized-content
+        >{{itemTypeText}}
       </o-if>
       <o-else>
         <div>

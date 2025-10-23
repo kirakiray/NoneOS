@@ -176,11 +176,6 @@
           on:click="showSelectDevice = true"
           style="margin-right: 8px"
         >
-          <!-- <n-local-icon
-            name="device"
-            slot="prefix"
-            style="display: block; margin-right: 8px"
-          ></n-local-icon> -->
           <n-id-avatar
             :val="usedUserId"
             slot="prefix"
@@ -230,12 +225,20 @@
         attr:disabled="localSelfUserId !== usedUserId"
       >
         <n-local-icon name="edit" slot="prefix"></n-local-icon>
-        <localized-content>
-          <span lang="cn">编辑网页</span>
-          <span lang="en">Edit Web</span>
-          <span lang="ja">Webを編集</span>
-        </localized-content>
-        <!-- 编辑网页 -->
+        <o-if :value="menuTargetType === 'page'">
+          <localized-content>
+            <span lang="cn">编辑网页</span>
+            <span lang="en">Edit Web</span>
+            <span lang="ja">Webを編集</span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">编辑文件夹</span>
+            <span lang="en">Edit Folder</span>
+            <span lang="ja">フォルダを編集</span>
+          </localized-content>
+        </o-else>
       </p-menu-item>
       <p-menu-item
         on:click="clickCopyLink"
@@ -253,11 +256,20 @@
         attr:disabled="localSelfUserId !== usedUserId"
       >
         <n-local-icon name="delete" slot="prefix"></n-local-icon>
-        <localized-content>
-          <span lang="cn">删除网页</span>
-          <span lang="en">Delete Web</span>
-          <span lang="ja">Webを削除</span>
-        </localized-content>
+        <o-if :value="menuTargetType === 'page'">
+          <localized-content>
+            <span lang="cn">删除网页</span>
+            <span lang="en">Delete Web</span>
+            <span lang="ja">Webを削除</span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">删除文件夹</span>
+            <span lang="en">Delete Folder</span>
+            <span lang="ja">フォルダを削除</span>
+          </localized-content>
+        </o-else>
       </p-menu-item>
     </p-menu>
     <div class="main-inner">

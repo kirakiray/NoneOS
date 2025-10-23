@@ -88,6 +88,11 @@
       background-color: rgba(120, 120, 120, 0.7);
     }
 
+    [card-type="folder"] {
+      border: var(--md-sys-color-on-normal) solid 1px;
+      border-radius: 0;
+    }
+
     .creenshots {
       position: absolute;
       left: 0;
@@ -148,7 +153,7 @@
     }
   </style>
 
-  <div class="card" on:click="openWeb(null,$event)">
+  <div class="card" attr:card-type="item.type" on:click="openWeb(null,$event)">
     <div class="logo-line">
       <o-if :value="item.type === 'folder'">
         <o-if :value="smallScreenshots.length">

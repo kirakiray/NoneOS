@@ -32,7 +32,7 @@
           refreshStyle() {
             this.shadow.$("#lang-style").html = `
               ::slotted([lang="${settingData.lang}"]) {
-                display: block;
+                display: inherit;
               }
             `;
           },
