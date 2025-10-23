@@ -40,7 +40,18 @@
               </localized-content>
             </div>
           </o-if>
-          <o-if :value="$data.isEmpty">
+          <o-if :value="$data.syncError">
+            <div
+              style="
+                color: var(--md-sys-color-error);
+                margin-left: 16px;
+                max-width: 300px;
+              "
+            >
+              {{$data.syncError}}
+            </div>
+          </o-if>
+          <o-else-if :value="$data.isEmpty">
             <div style="margin-left: 16px; color: var(--md-sys-color-normal)">
               <localized-content>
                 <span lang="cn">未同步数据</span>
@@ -48,7 +59,7 @@
                 <span lang="ja"> 未同期データ</span>
               </localized-content>
             </div>
-          </o-if>
+          </o-else-if>
           <o-if :value="$data.time">
             <div style="margin-left: auto">
               <n-moment-span :time="$data.time"></n-moment-span>
@@ -139,6 +150,14 @@
             await Promise.all(
               remotes.map(async (e) => {
                 if (e.error) {
+                  const targetItem = this.allDevices.find(
+                    (item) => item.userId === e.userId
+                  );
+
+                  if (targetItem) {
+                    targetItem.syncError = e.error.toString();
+                  }
+
                   return;
                 }
 
