@@ -174,7 +174,9 @@
             </localized-content>
           </p-menu-item>
         </o-if>
-        <hr />
+        <x-if :value="clipboard?.sources?.length">
+          <hr />
+        </x-if>
         <p-menu-item on:click="app.current.refreshFiles()">
           <n-local-icon name="reload" slot="prefix"></n-local-icon>
 
