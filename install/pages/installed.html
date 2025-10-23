@@ -88,13 +88,16 @@
 
           load("/sw/register.js");
 
-          (async () => {
-            // 尝试获取应用名
-            const appData = await fetch(this.redirectPath + "/app.json").then(
-              (e) => e.json()
-            );
-            this.appName = appData.name;
-          })();
+          if (this.redirectPath) {
+            (async () => {
+              // 尝试获取应用名
+              const appData = await fetch(this.redirectPath + "/app.json").then(
+                (e) => e.json()
+              );
+
+              this.appName = appData.name;
+            })();
+          }
         },
       };
     };
