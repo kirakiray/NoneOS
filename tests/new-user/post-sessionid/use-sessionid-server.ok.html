@@ -12,9 +12,9 @@
     </style>
   </head>
   <body>
-    <iframe src="./receive-case.html?tab1" frameborder="0"></iframe>
+    <!-- <iframe src="./receive-case.html?tab1" frameborder="0"></iframe>
     <iframe src="./receive-case.html?tab2" frameborder="0"></iframe>
-    <iframe src="./receive-case.html?tab3" frameborder="0"></iframe>
+    <iframe src="./receive-case.html?tab3" frameborder="0"></iframe> -->
     <script type="module">
       import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/user/main.js";
@@ -28,26 +28,46 @@
       await test("Post Data to Specific Sessions Test", async () => {
         // 创建用户
         const user1 = await createUser({ user: "test-user1" });
+        console.log("用户1创建完成", user1);
 
         const serverUrl = "ws://localhost:18290";
         const serverClient1 = await user1.connectServer(serverUrl);
+        console.log("用户1连接服务器完成", serverClient1);
 
         // 等待连接建立
         await new Promise((resolve) => setTimeout(resolve, 500));
+        console.log("等待连接建立 500ms 完成");
+
+        // 按时塞入3个新的iframe 元素，每个添加的时候延迟100毫秒
+        for (let i = 0; i < 3; i++) {
+          const iframe = document.createElement("iframe");
+          iframe.src = "./receive-case.html?tab" + (i + 1);
+          iframe.frameborder = "0";
+          document.body.appendChild(iframe);
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
 
         // 获取页面中的 iframe 元素
         const iframes = document.querySelectorAll("iframe");
+        console.log("获取 iframe 元素完成", iframes);
 
         // 从 iframe 中获取用户实例
         const user2_1 = iframes[0].contentWindow.user2;
         const user2_2 = iframes[1].contentWindow.user2;
         const user2_3 = iframes[2].contentWindow.user2;
+        console.log("从 iframe 获取用户实例完成", {
+          user2_1,
+          user2_2,
+          user2_3,
+        });
 
         // 等待连接建立
         await new Promise((resolve) => setTimeout(resolve, 500));
+        console.log("再次等待连接建立 500ms 完成");
 
         // 直接连接 user2_1
         const remoteUser2 = await user1.connectUser(user2_1.userId);
+        console.log("用户1连接 user2_1 完成", remoteUser2);
 
         // 为每个 iframe 设置接收数据的 Promise
         const createReceivePromise = (user, expectedData) => {
@@ -61,20 +81,28 @@
             user.addEventListener("receive-data", handler);
           });
         };
+        console.log("createReceivePromise 函数定义完成");
 
         // 创建三个 Promise 来监听数据接收
         const receivePromise1 = createReceivePromise(user2_1, "hello1");
         const receivePromise2 = createReceivePromise(user2_2, "hello2");
         const receivePromise3 = createReceivePromise(user2_3, "hello3");
+        console.log("三个接收 Promise 创建完成", {
+          receivePromise1,
+          receivePromise2,
+          receivePromise3,
+        });
 
         // 发送不同数据到不同的 session
         const testData1 = { type: "test", val: "hello1" };
         const testData2 = { type: "test", val: "hello2" };
         const testData3 = { type: "test", val: "hello3" };
+        console.log("测试数据准备完成", { testData1, testData2, testData3 });
 
         remoteUser2.post(testData1, { userSessionId: user2_1.sessionId });
         remoteUser2.post(testData2, { userSessionId: user2_2.sessionId });
         remoteUser2.post(testData3, { userSessionId: user2_3.sessionId });
+        console.log("数据发送完成，分别发送到三个 session");
 
         // 等待接收数据
         const [received1, received2, received3] = await Promise.all([
@@ -82,6 +110,11 @@
           receivePromise2,
           receivePromise3,
         ]);
+        console.log("三个接收 Promise 全部完成", {
+          received1,
+          received2,
+          received3,
+        });
 
         // 验证每个 iframe 是否收到了正确的数据
         const isCorrect1 =
@@ -89,19 +122,21 @@
           received1.fromUserSessionId === user1.sessionId &&
           JSON.stringify(received1.data) === JSON.stringify(testData1) &&
           received1.data.val === received1.expectedData;
+        console.log("验证 received1 结果", isCorrect1);
 
         const isCorrect2 =
           received2.fromUserId === user1.userId &&
           received2.fromUserSessionId === user1.sessionId &&
           JSON.stringify(received2.data) === JSON.stringify(testData2) &&
           received2.data.val === received2.expectedData;
+        console.log("验证 received2 结果", isCorrect2);
 
         const isCorrect3 =
           received3.fromUserId === user1.userId &&
           received3.fromUserSessionId === user1.sessionId &&
           JSON.stringify(received3.data) === JSON.stringify(testData3) &&
           received3.data.val === received3.expectedData;
-
+        console.log("验证 received3 结果", isCorrect3);
         return {
           assert: isCorrect1 && isCorrect2 && isCorrect3,
           content: {

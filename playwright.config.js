@@ -45,10 +45,12 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
 
-    {
-      name: "firefox",
-      use: { ...devices["Desktop Firefox"] },
-    },
+    // 在 Firefox 隐私模式下，调用 WebRTC 后将无法获得 OPFS 权限。
+    // In Firefox private browsing mode, OPFS permissions become unavailable after calling WebRTC.
+    // {
+    //   name: "firefox",
+    //   use: { ...devices["Desktop Firefox"] },
+    // },
 
     // playwright中的 webkit 不支持 storage-access 权限，因此无法使用
     // 解决方法：使用自带的 Safari 浏览器，打开 http://localhost:5559/tests/collector.html 进行测试
