@@ -10,6 +10,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/select/select.html"></l-m>
   <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <l-m src="../comps/bm-drag-container.html"></l-m>
   <l-m src="../comps/setting-btn.html"></l-m>
   <link rel="stylesheet" href="../common/common.css" />
@@ -175,11 +176,16 @@
           on:click="showSelectDevice = true"
           style="margin-right: 8px"
         >
-          <n-local-icon
+          <!-- <n-local-icon
             name="device"
             slot="prefix"
             style="display: block; margin-right: 8px"
-          ></n-local-icon>
+          ></n-local-icon> -->
+          <n-id-avatar
+            :val="usedUserId"
+            slot="prefix"
+            style="display: block; width: 20px; height: 20px; margin-right: 8px"
+          ></n-id-avatar>
           <localized-content>
             <span lang="cn">切换设备</span>
             <span lang="en">Switch Device</span>
@@ -322,6 +328,7 @@
     <o-page
       on:click-item="changeUser"
       on:local-loaded="localLoaded"
+      :used-user-id="usedUserId"
       id="devices-page"
       src="./select-device.html"
     ></o-page>

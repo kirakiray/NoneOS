@@ -9,17 +9,31 @@
   </style>
   <p-list>
     <o-fill :value="allDevices">
-      <p-list-item
-        button
-        attr:disabled="$host.usedUserId === $data.userId"
-        on:click="$host.clickItem($data)"
-      >
+      <p-list-item button on:click="$host.clickItem($data)">
         <n-id-avatar
           :val="$data.userId"
           slot="prefix"
           style="width: 20px"
         ></n-id-avatar>
-        <n-user-name :userid="$data.userId"></n-user-name>
+        <div style="display: flex; align-items: center">
+          <n-user-name :userid="$data.userId"></n-user-name>
+          <o-if :value="$host.localUserId === $data.userId">
+            <localized-content>
+              <span lang="cn"> (本机)</span>
+              <span lang="en"> (This device)</span>
+              <span lang="ja"> (この端末)</span>
+            </localized-content>
+          </o-if>
+          <o-if :value="$host.usedUserId === $data.userId">
+            <div style="margin-left: 16px; color: var(--md-sys-color-primary)">
+              <localized-content>
+                <span lang="cn"> 已选中</span>
+                <span lang="en"> Selected</span>
+                <span lang="ja"> 選択済み</span>
+              </localized-content>
+            </div>
+          </o-if>
+        </div>
       </p-list-item>
     </o-fill>
   </p-list>
@@ -34,7 +48,8 @@
       return {
         data: {
           allDevices: [],
-          usedUserId: null, // 使用中的用户Id
+          localUserId: localUser.userId,
+          //   usedUserId: null, // 使用中的用户Id
         },
         proto: {
           clickItem(item) {
