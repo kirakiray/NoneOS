@@ -4,7 +4,9 @@
   <l-m src="/packages/apps/new-link-me.napp/comps/user-name.html"></l-m>
   <style>
     :host {
-      display: blocks;
+      display: block;
+      min-width: 50vw;
+      max-width: 800px;
     }
   </style>
   <p-list>
@@ -37,6 +39,25 @@
       </p-list-item>
     </o-fill>
   </p-list>
+  <p-button
+    size="small"
+    variant="outlined"
+    attr:disabled="syncing"
+    on:click="syncData"
+    style="margin: 8px 0 0 16px"
+  >
+    <o-if :value="syncing" slot="prefix">
+      <n-local-icon
+        name="loading"
+        style="display: block; margin-right: 8px"
+      ></n-local-icon>
+    </o-if>
+    <localized-content>
+      <span lang="cn"> 立刻同步数据</span>
+      <span lang="en"> Sync data</span>
+      <span lang="ja"> データを同期する</span>
+    </localized-content>
+  </p-button>
   <script>
     export default async ({ load }) => {
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
@@ -49,9 +70,63 @@
         data: {
           allDevices: [],
           localUserId: localUser.userId,
+          syncing: false,
           //   usedUserId: null, // 使用中的用户Id
         },
         proto: {
+          async syncData() {
+            if (this.syncing) {
+              return;
+            }
+
+            this.syncing = true;
+
+            const devices = await localUser.myDevices();
+
+            const allDeviceId = devices.map((e) => e.userId);
+            allDeviceId.unshift(localUser.userId);
+
+            // 获取已经被去除的设备
+            const removeds = this.allDevices.filter(
+              (e) => !allDeviceId.includes(e.userId)
+            );
+
+            // 删除掉不存在的用户数据
+            this.allDevices = this.allDevices.filter((e) =>
+              allDeviceId.includes(e.userId)
+            );
+
+            const localHandle = await this.app.dedicatedHandle();
+            const backupDir = await localHandle.get("backup");
+
+            if (backupDir) {
+              // 删除已经不是我的设备的数据
+              await Promise.all(
+                removeds.map(async ({ userId }) => {
+                  const targetFile = await backupDir.get(`${userId}.json`);
+
+                  if (targetFile) {
+                    await targetFile.remove();
+                  }
+                })
+              );
+            }
+
+            // 尝试获取其他端的项目文件
+            const remotes = await this.app.dedicatedRemoteHandle();
+
+            await Promise.all(
+              remotes.map(async (e) => {
+                if (e.error) {
+                  debugger;
+                  return;
+                }
+                debugger;
+              })
+            );
+
+            this.syncing = false;
+          },
           clickItem(item) {
             this.emit("click-item", {
               data: item,
@@ -108,7 +183,6 @@
                 target._mainData = data;
                 continue;
               }
-              console.log(data);
 
               this.allDevices.push({
                 userId,

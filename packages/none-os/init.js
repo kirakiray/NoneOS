@@ -49,18 +49,26 @@ Object.defineProperties($.fn, {
 
       const remoteHandles = await Promise.all(
         myDevices.map(async (device) => {
-          const handle = await get(
-            `$user-${device.userId}:local/dedicated/${mark}`
-          );
+          try {
+            const handle = await get(
+              `$user-${device.userId}:local/dedicated/${mark}`
+            );
 
-          const hasData = (await handle.length()) > 0;
+            const hasData = (await handle.length()) > 0;
 
-          return {
-            userName: device.name,
-            userId: device.userId,
-            handle,
-            hasData,
-          };
+            return {
+              userName: device.name,
+              userId: device.userId,
+              handle,
+              hasData,
+            };
+          } catch (error) {
+            return {
+              userName: device.name,
+              userId: device.userId,
+              error,
+            };
+          }
         })
       );
 
