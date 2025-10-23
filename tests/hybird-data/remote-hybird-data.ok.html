@@ -14,6 +14,11 @@
       import { createData } from "/packages/hybird-data/main.js";
       import { createUser } from "/packages/user/main.js";
 
+      // 初始化几个重要目录
+      await init("local"); // 用户的本地数据
+      // 建立测试目录
+      await get("local/test", { create: "dir" });
+
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
 

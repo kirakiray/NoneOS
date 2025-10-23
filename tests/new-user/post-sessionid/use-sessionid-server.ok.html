@@ -19,6 +19,12 @@
       import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/user/main.js";
 
+      import { init, get as fsMainGet } from "/packages/fs/main.js";
+      // 初始化几个重要目录
+      await init("local"); // 用户的本地数据
+      // 建立测试目录
+      await fsMainGet("local/test", { create: "dir" });
+
       await test("Post Data to Specific Sessions Test", async () => {
         // 创建用户
         const user1 = await createUser({ user: "test-user1" });
