@@ -321,6 +321,7 @@
     </div>
     <o-page
       on:click-item="changeUser"
+      on:local-loaded="localLoaded"
       id="devices-page"
       src="./select-device.html"
     ></o-page>
@@ -411,6 +412,11 @@
         proto: {
           clickNoneOS() {
             location.href = "/";
+          },
+          async localLoaded(e) {
+            const { mainData } = e.data;
+
+            this.setting = mainData.setting;
           },
           async changeUser(e) {
             // 切换用户

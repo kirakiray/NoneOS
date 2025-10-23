@@ -9,7 +9,11 @@
   </style>
   <p-list>
     <o-fill :value="allDevices">
-      <p-list-item button on:click="$host.clickItem($data)">
+      <p-list-item
+        button
+        attr:disabled="$host.usedUserId === $data.userId"
+        on:click="$host.clickItem($data)"
+      >
         <n-id-avatar
           :val="$data.userId"
           slot="prefix"
@@ -59,6 +63,12 @@
 
             // 初次加载时，进行一次冒泡让上层也更新
             this.clickItem(this.allDevices[0]);
+
+            this.emit("local-loaded", {
+              data: {
+                mainData,
+              },
+            });
           },
           async loadOtherDevices() {
             const handle = await this.app.dedicatedHandle();
