@@ -10,6 +10,7 @@ broadcast.addEventListener("message", async (event) => {
   console.log("收到消息:", type, detail);
 
   if (type === "rtc-agent-message") {
+    // 别的标签接受到rtc数据后，转发到当前标签的数据
     const {
       fromUserId,
       fromUserSessionId,
@@ -36,6 +37,7 @@ broadcast.addEventListener("message", async (event) => {
       }
     });
   } else if (type === "agent-trigger") {
+    // 远端设备事件触发
     const {
       fromUserId,
       fromUserSessionId,
@@ -56,6 +58,7 @@ broadcast.addEventListener("message", async (event) => {
       });
     }
   } else if (type === "user-online") {
+    // 其他标签收到用户重新连接的在线通知
     const { fromUserId, localUserDirName } = detail;
 
     if (localUsers[localUserDirName]) {
@@ -67,6 +70,20 @@ broadcast.addEventListener("message", async (event) => {
       await remoteUser.checkState();
       remoteUser.refreshMode();
     }
+  } else if (type === "card-change") {
+    // 其他标签接受到了用户卡片
+    const { fromUserId, fromUserSessionId, localUserDirName, card } = detail;
+
+    const localUser = localUsers[localUserDirName];
+
+    const cardManager = await localUser.cardManager();
+
+    // 同时触发卡片更新事件
+    cardManager.dispatchEvent(
+      new CustomEvent("update", {
+        detail: card,
+      })
+    );
   }
 });
 

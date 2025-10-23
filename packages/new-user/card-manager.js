@@ -1,6 +1,7 @@
 import { initDB } from "../util/init-db.js";
 import { verify } from "./util/verify.js";
 import { getHash } from "../fs/util.js";
+import { broadcast } from "./util/broadcast.js";
 
 export class CardManager extends EventTarget {
   #self;
@@ -54,6 +55,15 @@ export class CardManager extends EventTarget {
 
       request.onsuccess = () => {
         resolve(cardData);
+        broadcast.postMessage({
+          type: "card-change",
+          detail: {
+            fromUserSessionId: this.#self.sessionId,
+            fromUserId: this.#self.userId,
+            localUserDirName: this.#self.dirName,
+            card: cardData,
+          },
+        });
         this.dispatchEvent(
           new CustomEvent("update", {
             detail: cardData,
