@@ -41,7 +41,7 @@ export class RemoteUser extends BaseUser {
   }
 
   // 检查连接状态
-  async checkState() {
+  async repairState() {
     // 先判断是否有rtc通道可用
     if (this._rtcConnections.length) {
       const hasConnected = this._rtcConnections.some((conn) => {
@@ -60,9 +60,6 @@ export class RemoteUser extends BaseUser {
         return;
       }
     }
-
-    // 没有rtc通道可用，判断是否有服务端转发通道可用
-    await this.checkServer();
 
     if (this.#servers.length && this.#mode === 0) {
       // 如果之前是不可用的，则更新连接状态
@@ -116,6 +113,8 @@ export class RemoteUser extends BaseUser {
 
     // 更新可用服务器列表
     this.#servers = servers;
+
+    this.repairState();
   }
 
   // 更新连接模式

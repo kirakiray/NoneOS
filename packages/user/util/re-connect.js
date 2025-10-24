@@ -1,7 +1,7 @@
 const reconnectTimerSym = Symbol("reconnectTimer");
 
 // 进行重连
-export const checkConnection = (localUser, options) => {
+export const checkAllConnection = (localUser, options) => {
   clearTimeout(localUser[reconnectTimerSym]);
   localUser[reconnectTimerSym] = setTimeout(async () => {
     for (const url of Object.keys(localUser.serverConnects)) {
@@ -13,6 +13,7 @@ export const checkConnection = (localUser, options) => {
         await serverClient.init();
       }
     }
+
     // 检查所有设备
     for (const deviceId of Object.keys(localUser.remotes)) {
       try {
@@ -37,7 +38,7 @@ export const checkConnection = (localUser, options) => {
     if (options && options.loop) {
       // 循环检查
       setTimeout(() => {
-        checkConnection(localUser, options);
+        checkAllConnection(localUser, options);
       }, 5000);
     }
   }, 100);

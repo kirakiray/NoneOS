@@ -375,11 +375,13 @@ export class LocalUser extends BaseUser {
 
         const user = new RemoteUser(publicKey, this);
 
-        // 初始化逻辑
+        // 初始化基础类的逻辑
         await user.init();
 
+        debugger;
+
         // 检查通信状态
-        await user.checkState();
+        await user.checkServer();
 
         user.refreshMode();
 
