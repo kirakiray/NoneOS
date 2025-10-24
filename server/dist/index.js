@@ -828,4 +828,4 @@ const initServer = async ({
 };
 
 export { initServer };
-//# sourceMappingURL=dist.js.map
+//# sourceMappingURL=index.js.map
