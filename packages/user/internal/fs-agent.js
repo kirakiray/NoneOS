@@ -17,6 +17,30 @@ export default async function fsAgent({
 
   const { name, path, args, taskId } = data;
 
+  // 返回任务结果给对方
+  const returnData = async (options, userSessionId, blob) => {
+    if (blob) {
+      remoteUser.post(new Uint8Array(await blob.arrayBuffer()), {
+        _type: "response-fs-agent",
+        taskId,
+        ...options,
+        userSessionId: fromUserSessionId,
+      });
+      return;
+    }
+
+    remoteUser.post(
+      {
+        _type: "response-fs-agent",
+        taskId,
+        ...options,
+      },
+      {
+        userSessionId,
+      }
+    );
+  };
+
   if (!result) {
     // 如果不是我的设备，返回错误
     remoteUser.post(
