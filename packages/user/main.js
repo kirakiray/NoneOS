@@ -7,7 +7,7 @@ import trigger from "./internal/trigger.js";
 broadcast.addEventListener("message", async (event) => {
   const { type, detail } = event.data;
 
-  console.log("收到消息:", type, detail);
+  // console.log("收到消息:", type, detail);
 
   if (type === "rtc-agent-message") {
     // 别的标签接受到rtc数据后，转发到当前标签的数据

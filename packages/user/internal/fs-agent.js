@@ -18,12 +18,12 @@ export default async function fsAgent({
   const { name, path, args, taskId } = data;
 
   // 返回任务结果给对方
-  const returnData = async (options, userSessionId, blob) => {
+  const returnData = async (data, blob) => {
     if (blob) {
       remoteUser.post(new Uint8Array(await blob.arrayBuffer()), {
         _type: "response-fs-agent",
         taskId,
-        ...options,
+        ...data,
         userSessionId: fromUserSessionId,
       });
       return;
@@ -33,28 +33,21 @@ export default async function fsAgent({
       {
         _type: "response-fs-agent",
         taskId,
-        ...options,
+        ...data,
       },
       {
-        userSessionId,
+        userSessionId: fromUserSessionId,
       }
     );
   };
 
   if (!result) {
     // 如果不是我的设备，返回错误
-    remoteUser.post(
-      {
-        _type: "response-fs-agent",
-        taskId,
-        error: {
-          message: "Not my device",
-        },
+    await returnData({
+      error: {
+        message: "Not my device",
       },
-      {
-        userSessionId: fromUserSessionId,
-      }
-    );
+    });
     return;
   }
 
@@ -68,11 +61,7 @@ export default async function fsAgent({
       }
 
       // 发送成功结果回去
-      remoteUser.post(new Uint8Array(await chunk.arrayBuffer()), {
-        _type: "response-fs-agent",
-        taskId,
-        userSessionId: fromUserSessionId,
-      });
+      await returnData({}, chunk);
 
       return;
     }
@@ -120,22 +109,15 @@ export default async function fsAgent({
       const lastModified = await targetHandle.lastModified();
 
       // 发送成功结果回去
-      remoteUser.post(
-        {
-          _type: "response-fs-agent",
-          taskId,
-          result: {
-            chunkSize: setting.chunkSize, // 每个 chunk 的大小
-            hashes,
-            size,
-            lastModified,
-            type: file.type,
-          },
+      await returnData({
+        result: {
+          chunkSize: setting.chunkSize, // 每个 chunk 的大小
+          hashes,
+          size,
+          lastModified,
+          type: file.type,
         },
-        {
-          userSessionId: fromUserSessionId,
-        }
-      );
+      });
 
       return;
     }
@@ -162,11 +144,7 @@ export default async function fsAgent({
         );
       }
 
-      remoteUser.post(new Uint8Array(await chunk.arrayBuffer()), {
-        _type: "response-fs-agent",
-        taskId,
-        userSessionId: fromUserSessionId,
-      });
+      await returnData({}, chunk);
       return;
     }
 
@@ -186,16 +164,9 @@ export default async function fsAgent({
       // 写入文件
       await targetHandle.write(new Blob(chunks));
 
-      remoteUser.post(
-        {
-          _type: "response-fs-agent",
-          taskId,
-          result: true,
-        },
-        {
-          userSessionId: fromUserSessionId,
-        }
-      );
+      await returnData({
+        result: true,
+      });
       return;
     }
 
@@ -224,15 +195,7 @@ export default async function fsAgent({
         fromUserId,
       });
 
-      remoteUser.post(
-        {
-          _type: "response-fs-agent",
-          taskId,
-        },
-        {
-          userSessionId: fromUserSessionId,
-        }
-      );
+      await returnData({});
       return;
     }
 
@@ -244,15 +207,7 @@ export default async function fsAgent({
       cancel();
       remoteObservePool.delete(obsId);
 
-      remoteUser.post(
-        {
-          _type: "response-fs-agent",
-          taskId,
-        },
-        {
-          userSessionId: fromUserSessionId,
-        }
-      );
+      await returnData({});
       return;
     }
 
@@ -262,48 +217,27 @@ export default async function fsAgent({
         keys.push(key);
       }
 
-      remoteUser.post(
-        {
-          _type: "response-fs-agent",
-          taskId,
-          result: keys,
-        },
-        {
-          userSessionId: fromUserSessionId,
-        }
-      );
+      await returnData({
+        result: keys,
+      });
       return;
     }
 
     const result = await targetHandle[name](...(args || []));
 
     // 发送成功结果回去
-    remoteUser.post(
-      {
-        _type: "response-fs-agent",
-        taskId,
-        result,
-      },
-      {
-        userSessionId: fromUserSessionId,
-      }
-    );
+    await returnData({
+      result,
+    });
   } catch (error) {
     // 发送错误信息回去
-    remoteUser.post(
-      {
-        _type: "response-fs-agent",
-        taskId,
-        error: {
-          message: error.message,
-          stack: error.stack,
-          name: error.name,
-        },
+    await returnData({
+      error: {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
       },
-      {
-        userSessionId: fromUserSessionId,
-      }
-    );
+    });
   }
 }
 
