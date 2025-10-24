@@ -1,5 +1,7 @@
 // 监听池
-export const observePool = new Map();
+export const observePool = new Map(); // remote handle 使用的监听池
+
+const agentTaskPool = new Map(); // fs-agent 使用的监听池
 
 export const agentData = async (remoteUser, options) => {
   const taskId = Math.random().toString(36).slice(2);
@@ -12,7 +14,7 @@ export const agentData = async (remoteUser, options) => {
       __internal_mark: 1,
     });
 
-    remoteUser.self.bind("receive-data", (e) => {
+    const cancel = remoteUser.self.bind("receive-data", (e) => {
       const { data, options } = e.detail;
 
       let finalData = data;
@@ -28,6 +30,8 @@ export const agentData = async (remoteUser, options) => {
         finalData._type === "response-fs-agent" &&
         finalData.taskId === taskId
       ) {
+        cancel(); // 接收到目标后，取消监听
+
         // 检查是否有错误信息
         if (finalData.error) {
           // 创建一个新的错误对象并抛出

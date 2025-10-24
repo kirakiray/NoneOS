@@ -73,6 +73,7 @@ export class RemoteBaseHandle extends PublicBaseHandle {
   async observe(func) {
     const obsId = Math.random().toString(36).slice(2);
 
+    // 通知对方进行监听
     await agentData(this.#remoteUser, {
       name: "observe",
       path: this._path,

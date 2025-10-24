@@ -206,22 +206,32 @@ export default async function fsAgent({
         keys.push(key);
       }
 
-      remoteUser.post({
-        _type: "response-fs-agent",
-        taskId,
-        result: keys,
-      });
+      remoteUser.post(
+        {
+          _type: "response-fs-agent",
+          taskId,
+          result: keys,
+        },
+        {
+          userSessionId: fromUserSessionId,
+        }
+      );
       return;
     }
 
     const result = await targetHandle[name](...(args || []));
 
     // 发送成功结果回去
-    remoteUser.post({
-      _type: "response-fs-agent",
-      taskId,
-      result,
-    });
+    remoteUser.post(
+      {
+        _type: "response-fs-agent",
+        taskId,
+        result,
+      },
+      {
+        userSessionId: fromUserSessionId,
+      }
+    );
   } catch (error) {
     // 发送错误信息回去
     remoteUser.post({
