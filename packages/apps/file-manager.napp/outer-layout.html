@@ -253,7 +253,7 @@
           this._cancels = [];
           this.remotes = [];
 
-          for (const e of remotes) {
+          remotes.forEach(async (e) => {
             // 尝试连接对方
             const remoteUser = await localUser.connectUser(e.userId);
 
@@ -311,7 +311,7 @@
                 }
               }
             }
-          }
+          });
         },
         detached() {
           this._cancels && this._cancels.forEach((f) => f());

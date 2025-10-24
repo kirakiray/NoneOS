@@ -60,6 +60,7 @@ export class RemoteUser extends BaseUser {
         return;
       }
     }
+
     // 没有rtc通道可用，判断是否有服务端转发通道可用
     await this.checkServer();
 
