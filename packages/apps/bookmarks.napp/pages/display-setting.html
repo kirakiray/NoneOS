@@ -153,17 +153,24 @@
         </o-if>
 
         <div>
-          <localized-content>
-            <span lang="cn">更改背景</span>
-            <span lang="en">Change Background</span>
-            <span lang="ja">背景を変更</span>
-          </localized-content>
-          <bm-img-selector
-            sync:value="setting.bgurl"
-            name="bgurl"
-            type="image"
+          <input
+            type="file"
             accept="image/*"
-          ></bm-img-selector>
+            style="display: none"
+            id="bgimgInputer"
+            on:change="changeBgImg"
+          />
+          <p-button
+            size="small"
+            on:click="shadow.$('#bgimgInputer').ele.click()"
+            style="margin-left: 8px; margin-top: 4px"
+          >
+            <localized-content>
+              <span lang="cn">更改背景</span>
+              <span lang="en">Change Background</span>
+              <span lang="ja">背景を変更</span>
+            </localized-content>
+          </p-button>
         </div>
       </div>
     </div>
@@ -375,10 +382,12 @@
           });
         },
       },
-      async attached() {
-        const mainData = await this.app._mainData;
+      attached() {
+        setTimeout(() => {
+          const mainData = this.app._mainData;
 
-        mainData && (this.setting = mainData.setting);
+          mainData && (this.setting = mainData.setting);
+        }, 1000);
       },
       detached() {
         this.setting = {};
