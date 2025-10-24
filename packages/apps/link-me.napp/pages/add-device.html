@@ -58,17 +58,13 @@
             this.openDialog = true;
           },
           async refreshErcode() {
-            const { default: QRCode } = await load(
-              "https://esm.sh/qrcode@1.5.3"
+            const { generateQrCodeImage } = await load(
+              "/packages/libs/dfts-qrcode.js"
             );
 
-            // 生成 Data URL
-            const url = await QRCode.toDataURL(this.url);
-            const img = document.createElement("img");
-            img.src = url;
+            const { image, dataUrl } = generateQrCodeImage(this.url);
 
-            this.shadow.$("#qrcode-container").push(img);
-            // document.body.appendChild(img);
+            this.shadow.$("#qrcode-container").push(image);
           },
         },
         attached() {
