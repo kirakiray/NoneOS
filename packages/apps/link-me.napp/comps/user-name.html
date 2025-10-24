@@ -31,6 +31,13 @@
               this.name = card.name;
             } else {
               this.name = userId;
+
+              // 尝试通过远端请求
+              const remoteUser = await localUser.connectUser(userId);
+              const remoteUserInfo = await remoteUser.info();
+              if (remoteUserInfo) {
+                this.name = remoteUserInfo.name;
+              }
             }
           },
         },

@@ -136,7 +136,7 @@ const handleConnectionError = (remoteUser, error, action) => {
   console.error(`${action}失败:`, error);
   // 根据服务器状态切换模式
 
-  remoteUser.checkState();
+  remoteUser.repairState();
 };
 
 // 清理已关闭的RTC连接
@@ -222,7 +222,7 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
   channel.onopen = () => {
     setTimeout(() => {
       // 等待数据通道打开后再检查状态
-      remoteUser.checkState();
+      remoteUser.repairState();
     }, 100);
   };
 
@@ -283,5 +283,5 @@ const refreshDataChannels = (remoteUser, rtcConnection, channel) => {
     handleConnectionError(remoteUser, null, "数据通道");
   }
 
-  remoteUser.checkState();
+  remoteUser.repairState();
 };

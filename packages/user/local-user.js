@@ -171,7 +171,15 @@ export class LocalUser extends BaseUser {
   }
 
   get registers() {
-    return this.#registers;
+    return { ...this.#registers };
+  }
+
+  get serverConnects() {
+    return { ...this.#serverConnects };
+  }
+
+  get remotes() {
+    return { ...this.#remotes };
   }
 
   // 注册让远端触发的事件
@@ -259,13 +267,30 @@ export class LocalUser extends BaseUser {
 
       if (this.state !== "authed") {
         if (options.waitForAuthed) {
-          await new Promise((resolve) => {
-            const offBind = serverClient.bind("authed", () => {
-              offBind(); // 移除事件监听
+          await new Promise((resolve, reject) => {
+            const cleanup = (reason) => {
+              clearTimeout(timeout);
+              offBind();
+              serverClient.disconnect();
               resolve();
+              console.error("连接服务器超时", reason);
+            };
+
+            // 超时
+            const timeout = setTimeout(() => cleanup("连接服务器超时"), 8000);
+
+            const offBind = serverClient.bind("change-state", () => {
+              if (serverClient.state === "authed") {
+                clearTimeout(timeout);
+                offBind();
+                resolve();
+              } else if (serverClient.state === "closed") {
+                debugger;
+                // 发生关闭事件
+                cleanup("服务器关闭");
+              }
             });
           });
-        } else {
         }
       }
 
@@ -273,10 +298,15 @@ export class LocalUser extends BaseUser {
     })());
   }
 
-  async connectAllServers() {
+  async connectAllServers(name = "any") {
     const serverManager = await this.serverManager();
 
-    await Promise.all(
+    // name只允许指定的名字
+    if (name !== "any" && name !== "all" && name !== "race") {
+      throw new Error("name只允许指定为'any'、'all'或'race'");
+    }
+
+    await Promise[name](
       serverManager.data.map(async (server) => {
         await this.connectServer(server.url);
       })
@@ -345,11 +375,11 @@ export class LocalUser extends BaseUser {
 
         const user = new RemoteUser(publicKey, this);
 
-        // 初始化逻辑
+        // 初始化基础类的逻辑
         await user.init();
 
         // 检查通信状态
-        await user.checkState();
+        await user.checkServer();
 
         user.refreshMode();
 
