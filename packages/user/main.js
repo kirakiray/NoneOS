@@ -3,6 +3,7 @@ import { BaseUser } from "./base-user.js";
 import { LocalUser } from "./local-user.js";
 import { broadcast } from "./util/broadcast.js";
 import trigger from "./internal/trigger.js";
+import { checkAllConnection } from "./util/connection-checker.js";
 
 broadcast.addEventListener("message", async (event) => {
   const { type, detail } = event.data;
@@ -67,7 +68,7 @@ broadcast.addEventListener("message", async (event) => {
       const remoteUser = await localUser.connectUser(fromUserId);
 
       // 重新检查
-      await remoteUser.checkState();
+      await remoteUser.checkServer();
       remoteUser.refreshMode();
     }
   } else if (type === "card-change") {
@@ -120,6 +121,8 @@ export const createUser = async (opts) => {
     localUsers[options.user] = user;
 
     await user.init();
+
+    checkAllConnection(user, { loop: true });
 
     return user;
   })());

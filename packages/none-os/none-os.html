@@ -116,8 +116,6 @@
       const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
 
-      localUser.connectAllServers();
-
       // 初始化几个重要目录
       await init("local"); // 用户的本地数据
       await init("apps"); // 应用目录

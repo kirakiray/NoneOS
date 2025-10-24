@@ -29,6 +29,7 @@
       border-radius: 50%;
       margin-right: 16px;
       flex-shrink: 0;
+      background-color: var(--md-sys-color-normal);
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
     }
 
@@ -72,7 +73,8 @@
     }
 
     [state="unauth"],
-    [state="closed"] {
+    [state="closed"],
+    [state="error"] {
       color: var(--md-sys-color-error);
       font-weight: 500;
     }
@@ -88,7 +90,8 @@
     }
 
     [circle-state="unauth"],
-    [circle-state="closed"] {
+    [circle-state="closed"],
+    [circle-state="error"] {
       background-color: var(--md-sys-color-error);
       box-shadow: 0 0 6px var(--md-sys-color-error);
     }
@@ -263,13 +266,13 @@
         attrs: {
           url: "",
           serverName: "",
-          serverVersion: "",
+          serverVersion: "-",
           serverCid: "",
           delay: "-",
           stateUpdateTime: "-",
         },
         data: {
-          state: "",
+          state: "0",
           _offs: [],
           _serverClient: null,
         },
@@ -283,6 +286,11 @@
             this._serverClient.checkDelay();
           },
           async updateInfo() {
+            if (!this._serverClient) {
+              this.state = "error";
+              this.serverName = "unknown";
+              return;
+            }
             this.state = this._serverClient.state;
             this.serverName = this._serverClient.serverName;
             this.serverVersion = this._serverClient.serverVersion;
@@ -300,9 +308,13 @@
 
             const { url } = this;
 
-            this._serverClient = await user.connectServer(url, {
-              waitForAuthed: false,
-            });
+            try {
+              this._serverClient = await user.connectServer(url, {
+                waitForAuthed: false,
+              });
+            } catch (err) {
+              console.error("connect server error", err);
+            }
 
             this.updateInfo();
 

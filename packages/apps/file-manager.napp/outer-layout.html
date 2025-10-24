@@ -253,27 +253,31 @@
           this._cancels = [];
           this.remotes = [];
 
-          for (const e of remotes) {
+          remotes.forEach(async (e) => {
             // 尝试连接对方
             const remoteUser = await localUser.connectUser(e.userId);
 
             if (this.ele.isConnected) {
               this._cancels.push(
-                remoteUser.bind("mode-change", async () => {
+                remoteUser.bind("mode-change", async (e) => {
                   const targetItem = this.remotes.find(
                     (item) => item.userId === remoteUser.userId
                   );
 
-                  // 确保可用的时候，加上目录
-                  if (targetItem && !targetItem.dirs.length) {
-                    targetItem.dirs.push({
-                      name: await getLocalized({
-                        cn: "虚拟本地",
-                        en: "Virtual Local",
-                        ja: "仮想ローカル",
-                      }),
-                      path: `$user-${e.userId}:local`,
-                    });
+                  if (e.detail === 2) {
+                    // 确保可用的时候，加上目录
+                    if (targetItem && !targetItem.dirs.length) {
+                      targetItem.dirs = [
+                        {
+                          name: await getLocalized({
+                            cn: "虚拟本地",
+                            en: "Virtual Local",
+                            ja: "仮想ローカル",
+                          }),
+                          path: `$user-${targetItem.userId}:local`,
+                        },
+                      ];
+                    }
                   }
                 })
               );
@@ -311,7 +315,7 @@
                 }
               }
             }
-          }
+          });
         },
         detached() {
           this._cancels && this._cancels.forEach((f) => f());
