@@ -1,8 +1,6 @@
 // 监听池
 export const observePool = new Map(); // remote handle 使用的监听池
 
-const agentTaskPool = new Map(); // fs-agent 使用的监听池
-
 export const agentData = async (remoteUser, options) => {
   const taskId = Math.random().toString(36).slice(2);
 
