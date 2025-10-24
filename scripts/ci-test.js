@@ -1,5 +1,5 @@
 import { initServer as initSer1 } from "../server/src/index.js";
-import { initServer as initSer2 } from "../server/dist.js";
+import { initServer as initSer2 } from "../server/dist/index.js";
 import staticSer from "./static-server.js";
 import shell from "shelljs";
 
