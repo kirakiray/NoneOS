@@ -1,4 +1,4 @@
-import { observePool } from "/packages/fs/re-remote/public.js";
+import { observePool } from "/packages/fs/fs-remote/public.js";
 
 export default function receiveObserve({
   fromUserId,
