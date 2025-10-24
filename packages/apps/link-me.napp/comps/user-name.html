@@ -19,6 +19,13 @@
               this.name = "";
               return;
             }
+
+            if (userId === localUser.userId) {
+              const info = await localUser.info();
+              this.name = info.name || "Me";
+              return;
+            }
+
             const card = await cardManager.get(userId);
             if (card) {
               this.name = card.name;
