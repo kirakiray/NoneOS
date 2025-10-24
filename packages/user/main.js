@@ -3,7 +3,7 @@ import { BaseUser } from "./base-user.js";
 import { LocalUser } from "./local-user.js";
 import { broadcast } from "./util/broadcast.js";
 import trigger from "./internal/trigger.js";
-import { checkAllConnection } from "./util/re-connect.js";
+import { checkAllConnection } from "./util/connection-checker.js";
 
 broadcast.addEventListener("message", async (event) => {
   const { type, detail } = event.data;
