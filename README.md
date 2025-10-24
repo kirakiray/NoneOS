@@ -10,8 +10,8 @@ Short-term goal: To create a lightweight NAS system based on the browser, achiev
 
 - [x] Support for browser-based file management
 - [x] Bookmark synchronization application
+- [x] Note synchronization application (similar to Notion)
 - [ ] File transfer application (similar to LocalSend)
-- [ ] Note synchronization application (similar to Notion)
 
 ## Quick Start
 

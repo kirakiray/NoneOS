@@ -9,7 +9,7 @@
     let currentPath = "";
     let currentDir = opfsRoot;
     while (paths.length > 1) {
-      const dirName = paths.shift();
+      let dirName = decodeURIComponent(paths.shift());
       currentPath += `${dirName}/`;
       const dirHandle = await currentDir
         .getDirectoryHandle(dirName)
@@ -20,7 +20,9 @@
       currentDir = dirHandle;
     }
     // 获取文件
-    const fileHandle = await currentDir.getFileHandle(paths[0]).catch(() => null);
+    const fileHandle = await currentDir
+      .getFileHandle(decodeURIComponent(paths[0]))
+      .catch(() => null);
 
     if (!fileHandle) {
       throw new Error(`文件 ${filepath} 不存在`);
