@@ -29,6 +29,7 @@
       border-radius: 50%;
       margin-right: 16px;
       flex-shrink: 0;
+      background-color: var(--md-sys-color-normal);
       box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
     }
 
@@ -269,7 +270,7 @@
           stateUpdateTime: "-",
         },
         data: {
-          state: "",
+          state: "0",
           _offs: [],
           _serverClient: null,
         },
@@ -283,6 +284,7 @@
             this._serverClient.checkDelay();
           },
           async updateInfo() {
+            debugger;
             this.state = this._serverClient.state;
             this.serverName = this._serverClient.serverName;
             this.serverVersion = this._serverClient.serverVersion;
@@ -299,6 +301,8 @@
             }
 
             const { url } = this;
+
+            debugger;
 
             this._serverClient = await user.connectServer(url, {
               waitForAuthed: false,

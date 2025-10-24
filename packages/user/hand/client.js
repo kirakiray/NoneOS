@@ -14,23 +14,12 @@ export class HandServerClient extends EventTarget {
     this.serverName = null; // 服务器名称
     this.serverVersion = null; // 服务器版本
     this.serverCid = null; // 服务器CID
-
-    // 重连相关属性
-    this.reconnectAttempts = 0; // 重连尝试次数
-    this.maxReconnectAttempts = 5; // 最大重连尝试次数
-    this.reconnectDelay = 1000; // 初始重连延迟（毫秒）
-    this.maxReconnectDelay = 30000; // 最大重连延迟（毫秒）
-    this.reconnectTimeout = null; // 重连定时器
-    this.shouldReconnect = true; // 是否应该自动重连
   }
 
   async init() {
     if (this.socket) {
       return;
     }
-
-    // 重置重连状态
-    this.shouldReconnect = true;
 
     // 创建WebSocket连接
     this.socket = new WebSocket(this.#url);
@@ -44,73 +33,12 @@ export class HandServerClient extends EventTarget {
 
   // 主动断开连接（不进行重连）
   disconnect() {
-    this.shouldReconnect = false;
-    this._clearReconnectTimeout();
-
     if (this.socket) {
       this.socket.close();
       this.socket = null;
     }
 
     this._changeState("closed");
-  }
-
-  // 重新连接
-  async reconnect() {
-    // 清除现有连接
-    if (this.socket) {
-      this.socket.close();
-      this.socket = null;
-    }
-
-    // 清除重连定时器
-    this._clearReconnectTimeout();
-
-    // 初始化新连接
-    await this.init();
-  }
-
-  // 执行重连逻辑
-  _attemptReconnect() {
-    if (!this.shouldReconnect) {
-      return;
-    }
-
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.log(`重连失败：已达到最大重连次数 ${this.maxReconnectAttempts}`);
-      this.dispatchEvent(new CustomEvent("reconnect-failed"));
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
-      this.maxReconnectDelay
-    );
-
-    console.log(`${delay}ms 后进行第 ${this.reconnectAttempts} 次重连...`);
-    this.dispatchEvent(
-      new CustomEvent("reconnecting", {
-        detail: { attempt: this.reconnectAttempts, delay },
-      })
-    );
-
-    this.reconnectTimeout = setTimeout(async () => {
-      try {
-        await this.reconnect();
-      } catch (error) {
-        console.error("重连失败:", error);
-        this._attemptReconnect(); // 继续下一次重连尝试
-      }
-    }, delay);
-  }
-
-  // 清除重连定时器
-  _clearReconnectTimeout() {
-    if (this.reconnectTimeout) {
-      clearTimeout(this.reconnectTimeout);
-      this.reconnectTimeout = null;
-    }
   }
 
   async findUser(userId) {
@@ -181,17 +109,6 @@ export class HandServerClient extends EventTarget {
   // 处理WebSocket打开事件
   _onOpen() {
     // console.log("WebSocket连接已打开");
-
-    // 检查是否是重连成功
-    const wasReconnecting = this.reconnectAttempts > 0;
-
-    // 重置重连计数
-    this.reconnectAttempts = 0;
-
-    // 触发重连成功事件
-    if (wasReconnecting) {
-      this.dispatchEvent(new CustomEvent("reconnected"));
-    }
 
     clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {
@@ -338,11 +255,6 @@ export class HandServerClient extends EventTarget {
     clearInterval(this.pingInterval);
     this._changeState("closed");
     console.log("WebSocket连接已关闭:", event);
-
-    // 尝试重连（如果应该重连）
-    if (this.shouldReconnect) {
-      this._attemptReconnect();
-    }
   }
 
   // 处理WebSocket错误事件
@@ -359,31 +271,6 @@ export class HandServerClient extends EventTarget {
 
     return () => {
       this.removeEventListener(eventName, callback);
-    };
-  }
-
-  // 配置重连参数
-  setReconnectConfig({ maxAttempts, initialDelay, maxDelay }) {
-    if (maxAttempts !== undefined) {
-      this.maxReconnectAttempts = maxAttempts;
-    }
-    if (initialDelay !== undefined) {
-      this.reconnectDelay = initialDelay;
-    }
-    if (maxDelay !== undefined) {
-      this.maxReconnectDelay = maxDelay;
-    }
-  }
-
-  // 获取重连状态信息
-  getReconnectInfo() {
-    return {
-      attempts: this.reconnectAttempts,
-      maxAttempts: this.maxReconnectAttempts,
-      delay: this.reconnectDelay,
-      maxDelay: this.maxReconnectDelay,
-      shouldReconnect: this.shouldReconnect,
-      isReconnecting: this.reconnectTimeout !== null,
     };
   }
 }
