@@ -378,8 +378,6 @@ export class LocalUser extends BaseUser {
         // 初始化基础类的逻辑
         await user.init();
 
-        debugger;
-
         // 检查通信状态
         await user.checkServer();
 
