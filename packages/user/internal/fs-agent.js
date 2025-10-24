@@ -19,26 +19,23 @@ export default async function fsAgent({
 
   // 返回任务结果给对方
   const returnData = async (data, blob) => {
+    const basePayload = {
+      _type: "response-fs-agent",
+      taskId,
+      ...data,
+    };
+
     if (blob) {
       remoteUser.post(new Uint8Array(await blob.arrayBuffer()), {
-        _type: "response-fs-agent",
-        taskId,
-        ...data,
+        ...basePayload,
         userSessionId: fromUserSessionId,
       });
       return;
     }
 
-    remoteUser.post(
-      {
-        _type: "response-fs-agent",
-        taskId,
-        ...data,
-      },
-      {
-        userSessionId: fromUserSessionId,
-      }
-    );
+    remoteUser.post(basePayload, {
+      userSessionId: fromUserSessionId,
+    });
   };
 
   if (!result) {
@@ -62,8 +59,12 @@ export default async function fsAgent({
 
       // 发送成功结果回去
       await returnData({}, chunk);
-
       return;
+    }
+
+    // 如果没有路径信息且不是通过hash获取chunk的请求，则返回错误
+    if (!path) {
+      throw new Error("Path is required for this operation");
     }
 
     const targetHandle = await get(path);
@@ -81,18 +82,13 @@ export default async function fsAgent({
           chunkSize: setting.chunkSize,
         });
       } else {
-        if (start === undefined) {
-          start = 0;
-        }
-        if (end === undefined) {
-          end = file.size;
-        }
-        start = Math.max(0, start);
-        end = Math.min(file.size, end);
+        // 设置默认值并确保边界正确
+        start = Math.max(0, start || 0);
+        end = Math.min(file.size, end || file.size);
 
         const { chunkSize } = setting;
 
-        // 根据范围缓存块的
+        // 根据范围计算块的哈希值
         for (let i = 0; i < file.size; i += chunkSize) {
           // 若当前块在指定范围内，则计算其哈希值并加入 hashes 数组；若不在范围内，则以 0 填充
           if (i > start - chunkSize && i < end) {
@@ -127,7 +123,6 @@ export default async function fsAgent({
       const { hash, index, chunkSize } = data;
 
       const file = await targetHandle.file();
-      console.log("get-file-chunk: ", file, file.size);
 
       const chunk = await file.slice(
         index * chunkSize,
@@ -151,15 +146,13 @@ export default async function fsAgent({
     if (name === "write-file-chunk") {
       const { hashes } = data;
 
-      const chunks = [];
-
       // 从块模块上获取文件内容
-      for (let i = 0; i < hashes.length; i++) {
-        const hash = hashes[i];
-        const { chunk } = await getChunk({ hash, remoteUser });
-
-        chunks.push(new Blob([chunk]));
-      }
+      const chunks = await Promise.all(
+        hashes.map(async (hash) => {
+          const { chunk } = await getChunk({ hash, remoteUser });
+          return new Blob([chunk]);
+        })
+      );
 
       // 写入文件
       await targetHandle.write(new Blob(chunks));
@@ -172,6 +165,10 @@ export default async function fsAgent({
 
     if (name === "observe") {
       const { obsId } = data;
+
+      if (!obsId) {
+        throw new Error("obsId is required for observe operation");
+      }
 
       const cancel = await targetHandle.observe((e) => {
         const { path, type, remark } = e;
@@ -202,7 +199,16 @@ export default async function fsAgent({
     if (name === "cancel-observe") {
       const { obsId } = data;
 
-      const { cancel } = await remoteObservePool.get(obsId);
+      if (!obsId) {
+        throw new Error("obsId is required for cancel-observe operation");
+      }
+
+      const observer = remoteObservePool.get(obsId);
+      if (!observer) {
+        throw new Error(`No observer found for obsId: ${obsId}`);
+      }
+
+      const { cancel } = observer;
 
       cancel();
       remoteObservePool.delete(obsId);
@@ -212,6 +218,7 @@ export default async function fsAgent({
     }
 
     if (name === "keys") {
+      // 验证targetHandle是否支持keys方法
       const keys = [];
       for await (let key of targetHandle.keys()) {
         keys.push(key);

@@ -8,7 +8,7 @@ export class HandServerClient extends EventTarget {
     this.#url = url;
     this.socket = null;
     this.#user = user;
-    this.state = "unauth"; // 未认证：unauth；认证中：authing；认证完成：authed
+    this.state = "unauth"; // 未认证：unauth；认证中：authing；认证完成：authed; 已关闭：closed
     this.stateUpdateTime = Date.now(); // 最近更新状态时间
     this.delay = 0; // 延迟时间
     this.serverName = null; // 服务器名称
@@ -231,6 +231,7 @@ export class HandServerClient extends EventTarget {
   // 处理WebSocket关闭事件
   _onClose(event) {
     clearInterval(this.pingInterval);
+    this._changeState("closed");
     console.log("WebSocket连接已关闭:", event);
   }
 

@@ -71,7 +71,8 @@
       margin-top: 2px;
     }
 
-    [state="unauth"] {
+    [state="unauth"],
+    [state="closed"] {
       color: var(--md-sys-color-error);
       font-weight: 500;
     }
@@ -86,7 +87,8 @@
       font-weight: 500;
     }
 
-    [circle-state="unauth"] {
+    [circle-state="unauth"],
+    [circle-state="closed"] {
       background-color: var(--md-sys-color-error);
       box-shadow: 0 0 6px var(--md-sys-color-error);
     }
