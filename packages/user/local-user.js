@@ -259,13 +259,19 @@ export class LocalUser extends BaseUser {
 
       if (this.state !== "authed") {
         if (options.waitForAuthed) {
-          await new Promise((resolve) => {
+          await new Promise((resolve, reject) => {
+            // 超时
+            const timeout = setTimeout(() => {
+              reject(new Error("连接服务器超时"));
+              offBind();
+            }, 8000);
+
             const offBind = serverClient.bind("authed", () => {
+              clearTimeout(timeout);
               offBind(); // 移除事件监听
               resolve();
             });
           });
-        } else {
         }
       }
 

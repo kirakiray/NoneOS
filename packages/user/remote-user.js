@@ -88,7 +88,11 @@ export class RemoteUser extends BaseUser {
         serverManager.data.map(async (server) => {
           const serverClient = await this.#self.connectServer(server.url);
 
+          console.log("before: ", this.userId);
+
           const userData = await serverClient.findUser(this.userId);
+
+          console.log("after1: ", this.userId);
 
           if (userData.isOnline && userData.publicKey) {
             // 判断publicKey是否伪造
@@ -99,12 +103,15 @@ export class RemoteUser extends BaseUser {
               throw new Error("publicKey伪造");
             }
 
+            console.log("after3: ", this.userId);
+
             // 可用服务器按照延迟顺序排序
             servers.push(serverClient);
 
             return userData;
           }
 
+          console.log("after2: ", this.userId);
           throw new Error("用户不在线");
         })
       );
