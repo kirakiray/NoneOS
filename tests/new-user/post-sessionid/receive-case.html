@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        color: #fff;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <div>
+    <div>test-user2 - sessionId: <span id="user2-sessionId"></span></div>
+    <div id="receive-data"></div>
+  </div>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/user/main.js";
+
+      const user2 = await createUser({ user: "test-user2" });
+      await user2.connectAllServers();
+
+      document.getElementById("user2-sessionId").innerHTML = user2.sessionId;
+
+      window.user2 = user2;
+
+      user2.bind("receive-data", (event) => {
+        console.log(event);
+        document.getElementById("receive-data").innerHTML =
+          event.detail.data.val;
+      });
+    </script>
+  </body>
+</html>

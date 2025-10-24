@@ -174,7 +174,9 @@
             });
 
             if (target) {
-              this.targetOptionText = target.text || target.value;
+              this.targetOptionText = target[0]
+                ? target[0].text || target.value
+                : target.text || target.value;
               return;
             }
 
@@ -195,7 +197,8 @@
             opts.forEach((e) => {
               const option = $("<option></option>");
               option.value = e.value;
-              option.text = e.text;
+              // option.text = e.text;
+              option.text = e[0] ? e[0].text || e.value : e.text || e.value;
               option.disabled = e.disabled !== null ? true : false;
               frag.push(option);
             });

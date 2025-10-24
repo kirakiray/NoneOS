@@ -1,0 +1,168 @@
+<template page>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 14px;
+    }
+
+    .container {
+      border-radius: 12px;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      border-radius: 10px;
+      padding: 15px;
+      backdrop-filter: blur(5px);
+    }
+
+    .avatar {
+      flex-shrink: 0;
+      margin-right: 15px;
+    }
+
+    jdent-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 6px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .user-details {
+      flex-grow: 1;
+      overflow: hidden;
+    }
+
+    .info-name {
+      font-size: 16px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-info-row {
+      display: flex;
+      align-items: flex-end;
+      margin: 6px 0 0;
+      gap: 10px;
+    }
+
+    .user-id-label {
+      font-size: 14px;
+      opacity: 0.9;
+      flex-shrink: 0;
+    }
+
+    .user-id {
+      padding: 0 6px;
+      font-size: 14px;
+      line-height: 1em;
+      font-weight: 500;
+      word-break: break-all;
+      font-family: "Courier New", monospace;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+    }
+
+    @media (max-width: 600px) {
+      :host {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 20px;
+        margin-top: 20px;
+      }
+
+      jdent-icon {
+        width: 40px;
+        height: 40px;
+      }
+
+      .user-profile {
+        padding: 12px;
+      }
+
+      .info-name {
+        font-size: 14px;
+      }
+    }
+  </style>
+  <div class="container">
+    <div class="user-profile">
+      <div class="avatar">
+        <jdent-icon attr:value="userId"></jdent-icon>
+      </div>
+      <div class="user-details">
+        <o-if :value="renameMode">
+          <input type="text" sync:value="renameVal" />
+          <button on:click="clickSave" attr:disabled="renameVal.length === 0">
+            <localized-content>
+              <span lang="en">Save</span>
+              <span lang="cn">保存</span>
+              <span lang="jp">保存</span>
+            </localized-content>
+          </button>
+        </o-if>
+        <o-else>
+          <div class="info-name">
+            {{info.name}}
+            <button on:click="renameMode = true">
+              <localized-content>
+                <span lang="en">Edit</span>
+                <span lang="cn">编辑</span>
+                <span lang="jp">編集</span>
+              </localized-content>
+            </button>
+          </div>
+        </o-else>
+        <div class="user-info-row">
+          <div class="user-id-label">
+            <localized-content>
+              <span lang="en">UserID</span>
+              <span lang="cn">用户ID</span>
+              <span lang="jp">ユーザーID</span>
+            </localized-content>
+          </div>
+          <div class="user-id">
+            <n-copy-span>{{userId}}</n-copy-span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+
+      const user = await createUser();
+      const userInfo = await user.info();
+
+      return {
+        data: {
+          userId: user.userId,
+          info: {},
+          renameVal: userInfo.name,
+          renameMode: false,
+        },
+        proto: {
+          clickSave() {
+            userInfo.name = this.renameVal;
+            this.renameMode = false;
+          },
+        },
+        async attached() {
+          this.info = userInfo;
+        },
+        detached() {
+          this.info = {};
+        },
+      };
+    };
+  </script>
+</template>

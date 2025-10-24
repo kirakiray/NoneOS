@@ -1,219 +1,184 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
-  <l-m src="/packages/comps/moment-span.html"></l-m>
-  <l-m src="/packages/comps/copy-span.html"></l-m>
-  <l-m src="/packages/comps/id-avatar.html"></l-m>
-  <l-m src="/packages/i18n/n-desc.html"></l-m>
-  <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="../comps/cert-item.html"></l-m>
   <style>
     :host {
       display: block;
     }
-
-    .root-item {
-      color: var(--md-sys-color-primary);
-      font-weight: bold;
-    }
-
-    .no-devices {
+    h4 {
       display: flex;
-      align-items: center;
-      padding-left: 100px;
-      height: 40px;
-      color: #7c7c7c;
-      font-size: 12px;
+      margin: 0;
+      padding: 0;
     }
 
-    .device-item:last-child {
-      padding-bottom: 16px;
+    p-list-item:not(.root-item)::part(main) {
+      padding: 2px 0;
     }
   </style>
-
-  <p-list>
-    <p-list-item collapse-childs="open" button="suffix">
-      <div style="display: flex; align-items: center">
-        <span class="root-item">
-          <n-desc name="myDevices" space="linkme"></n-desc>
-        </span>
-        ({{devices.length}})
-        <p-button
-          size="mini"
-          on:click="clickAddBtn"
-          style="margin-left: 60px; z-index: 3"
-        >
-          <n-desc space="linkme" name="addDevice"></n-desc>
-        </p-button>
-      </div>
-
-      <i toggle-collapse triangle slot="suffix"></i>
-      <p-list slot="childs">
-        <o-if :value="!devices.length">
-          <div class="no-devices">
-            <n-desc name="noOtherDevices" space="linkme"></n-desc>
-          </div>
-        </o-if>
+  <p-list-item button="suffix" collapse-childs="open" class="root-item">
+    <div style="display: flex; align-items: center">
+      <h4>
+        <localized-content style="color: var(--md-sys-color-primary)">
+          <span lang="en">My Devices</span>
+          <span lang="cn">我的设备</span>
+          <span lang="jp">マイデバイス</span>
+        </localized-content>
+        ({{ devices.length }})
+      </h4>
+      <p-button
+        size="mini"
+        on:click="clickAddDevice"
+        style="position: relative; z-index: 3; margin-left: 16px"
+      >
+        <localized-content>
+          <span lang="en">Add Device</span>
+          <span lang="cn">添加设备</span>
+          <span lang="jp">デバイスを追加</span>
+        </localized-content>
+      </p-button>
+    </div>
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs">
+      <o-if :value="devices.length > 0">
         <o-fill :value="devices">
-          <p-list-item
-            class="device-item"
-            button="suffix"
-            collapse-childs="close"
-          >
-            <n-user-state
-              attr:user-id="$data.toOppoCertificate.data.authTo"
-              slot="prefix"
-            ></n-user-state>
-
-            <n-id-avatar
-              slot="prefix"
-              :val="$data.toOppoCertificate.data.authTo"
-              style="
-                width: 20px;
-                height: 20px;
-                border-radius: 3px;
-                overflow: hidden;
-              "
-            ></n-id-avatar>
-
-            {{$data.userCard.data.userName}}
-
-            <i toggle-collapse triangle slot="suffix"></i>
-
-            <p-list slot="childs" style="padding-left: 16px">
-              <p-list-item>
-                <n-local-icon
-                  name="id"
-                  slot="prefix"
-                  style="
-                    display: inline-block;
-                    margin-right: 4px;
-                    font-size: 22px;
-                  "
-                ></n-local-icon>
-                <n-copy-span>
-                  {{$data.toOppoCertificate.data.authTo}}
-                </n-copy-span>
-              </p-list-item>
-              <p-list-item collapse-childs="close" button="suffix">
-                <n-local-icon
-                  name="cert"
-                  slot="prefix"
-                  style="
-                    display: inline-block;
-                    margin-right: 4px;
-                    font-size: 22px;
-                  "
-                ></n-local-icon>
-                <n-desc name="toMeCerts" space="linkme"></n-desc>
-                <i toggle-collapse triangle slot="suffix"></i>
-                <p-list slot="childs" style="padding-left: 29px">
-                  <p-list-item>
-                    <n-desc name="issueTime" space="linkme"></n-desc>
-                    :
-                    <n-moment-span
-                      :time="$data.toMeCertificate.data.signTime"
-                    ></n-moment-span>
-                  </p-list-item>
-                  <p-list-item>
-                    <n-desc name="validUntil" space="linkme"></n-desc>:
-                    <n-moment-span
-                      :time="$data.toMeCertificate.data.expire"
-                    ></n-moment-span>
-                  </p-list-item>
-                </p-list>
-              </p-list-item>
-              <p-list-item collapse-childs="close" button="suffix">
-                <n-local-icon
-                  name="cert"
-                  slot="prefix"
-                  style="
-                    display: inline-block;
-                    margin-right: 4px;
-                    font-size: 22px;
-                  "
-                ></n-local-icon>
-                <n-desc name="myCerts" space="linkme"></n-desc>
-                <i toggle-collapse triangle slot="suffix"></i>
-                <p-list slot="childs" style="padding-left: 29px">
-                  <p-list-item>
-                    <n-desc name="issueTime" space="linkme"></n-desc>
-                    :
-                    <n-moment-span
-                      :time="$data.toOppoCertificate.data.signTime"
-                    ></n-moment-span>
-                  </p-list-item>
-                  <p-list-item>
-                    <n-desc name="validUntil" space="linkme"></n-desc>:
-                    <n-moment-span
-                      :time="$data.toOppoCertificate.data.expire"
-                    ></n-moment-span>
-                  </p-list-item>
-                </p-list>
-              </p-list-item>
-
-              <p-list-item>
-                <div>
-                  <p-button
-                    color="error"
-                    size="small"
-                    on:click="$host.clickDevice($data)"
-                  >
-                    <n-desc name="deleteDevice" space="linkme"></n-desc>
-                  </p-button>
-                </div>
-              </p-list-item>
-            </p-list>
+          <p-list-item>
+            <n-cert-item :item="$data">
+              <p-button
+                size="small"
+                color="error"
+                variant="outlined"
+                on:click="$host.deleteCert($data,$index)"
+              >
+                <localized-content>
+                  <span lang="cn">删除证书</span>
+                  <span lang="en">Delete Certificate</span>
+                  <span lang="jp">証明書を取り消す</span>
+                </localized-content>
+              </p-button>
+            </n-cert-item>
           </p-list-item>
         </o-fill>
-      </p-list>
-    </p-list-item>
-  </p-list>
+      </o-if>
+      <o-else>
+        <localized-content
+          style="
+            display: block;
+            color: var(--md-sys-color-normal);
+            text-align: center;
+            margin: 0 16px;
+          "
+        >
+          <span lang="cn">没有配对过设备</span>
+          <span lang="en">No paired devices</span>
+          <span lang="jp">ペアリングされたデバイスがありません</span>
+        </localized-content>
+      </o-else>
+    </p-list>
+  </p-list-item>
+
+  <p-dialog :open="openDialog" on:click-mask="openDialog = false">
+    <div slot="title">
+      <localized-content>
+        <span lang="en">Add Device</span>
+        <span lang="cn">添加设备</span>
+        <span lang="jp">デバイスを追加</span>
+      </localized-content>
+    </div>
+    <o-page
+      src="./add-device.html"
+      on:add-device-success="refreshDevices()"
+    ></o-page>
+  </p-dialog>
+
   <script>
     export default async ({ load }) => {
-      const { getDeviceStore } = await load("/packages/user/main.js");
-      const { getText } = await load("/packages/i18n/data.js");
-      const { toast, confirm } = await load("/packages/pui/util.js");
-      const devices = await getDeviceStore();
+      const { confirm, toast } = await load("/packages/pui/util.js");
+      const { createUser } = await load("/packages/user/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
-      console.log("devices", devices);
+      const localUser = await createUser();
+
+      const certManager = await localUser.certManager();
 
       return {
         data: {
-          val: "my devices",
-          devices: [], // 所有设备
+          devices: [],
+          openDialog: false,
         },
         proto: {
-          clickAddBtn(event) {
-            this.emit("click-add-device-btn");
-            event.stopPropagation();
-          },
-          async clickDevice(item) {
-            const confirmResult = await confirm({
-              content: getText("removeUserTips", "linkme", {
-                userName: item.userCard.data.userName,
+          async deleteCert(item, index) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除设备证书",
+                en: "Delete Device Certificate",
+                jp: "デバイス証明書の削除",
               }),
-              yes: getText("yes", "linkme"),
+              content: await getLocalized({
+                cn: `确定删除设备 ${item.issuedTo} 的证书吗？`,
+                en: `Are you sure you want to delete the certificate for device ${item.issuedTo}?`,
+                jp: `デバイス ${item.issuedTo} の証明書を削除しますか？`,
+              }),
             });
 
-            if (!confirmResult) {
+            if (!result) {
               return;
             }
 
-            const targetIndex = this.devices.findIndex(
-              (e) => e.unId === item.unId
-            );
+            // 获取对方授权给我的证书
+            const certs = await certManager.query({
+              role: "device",
+              issuedTo: localUser.userId,
+              issuedBy: item.issuedTo,
+            });
 
-            if (targetIndex > -1) {
-              this.devices.splice(targetIndex, 1);
+            if (certs.length === 1) {
+              certs.forEach(async (cert) => {
+                await certManager.delete(cert.id);
+              });
+            } else {
+              alert("存在多张证书");
+            }
+
+            try {
+              await certManager.delete(item.id);
+
+              await this.refreshDevices();
+
+              toast({
+                content: await getLocalized({
+                  cn: "证书删除成功",
+                  en: "Certificate deleted successfully",
+                  jp: "証明書が正常に削除されました",
+                }),
+              });
+            } catch (error) {
+              toast({
+                content: await getLocalized({
+                  cn: "证书删除失败: " + error.message,
+                  en: "Failed to delete certificate: " + error.message,
+                  jp: "証明書の削除に失敗しました: " + error.message,
+                }),
+                color: "error",
+              });
             }
           },
-          getUserId() {},
+          async clickAddDevice(e) {
+            e.stopPropagation();
+            this.openDialog = true;
+          },
+          async refreshDevices() {
+            // 获取我授权的设备证书
+            const devices = await certManager.get("device");
+
+            this.devices = devices;
+          },
         },
         attached() {
-          this.devices = devices;
+          this.refreshDevices();
         },
-        detached() {
-          this.devices = [];
-        },
+        detached() {},
       };
     };
   </script>

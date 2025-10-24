@@ -1,0 +1,225 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="../comps/server-item.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    h4 {
+      display: flex;
+      margin: 0;
+      padding: 0;
+    }
+
+    p-list-item:not(.root-item)::part(main) {
+      padding: 2px 0;
+    }
+  </style>
+  <p-list-item button="suffix" collapse-childs="open" class="root-item">
+    <h4 style="display: flex; align-items: center">
+      <localized-content style="color: var(--md-sys-color-primary)">
+        <span lang="cn">握手服务器</span>
+        <span lang="en">Handshake Servers</span>
+        <span lang="jp">ハンドシェイクサーバー</span>
+      </localized-content>
+      ({{ list.length }})
+
+      <p-button
+        size="mini"
+        variant="outlined"
+        on:click="resetServers"
+        style="margin-left: 16px; z-index: 3"
+      >
+        <localized-content>
+          <span lang="cn">重置服务器</span>
+          <span lang="en">Reset Servers</span>
+          <span lang="jp">サーバーをリセット</span>
+        </localized-content>
+      </p-button>
+    </h4>
+
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs">
+      <o-fill :value="list">
+        <p-list-item>
+          <n-server-item :url="$data.url">
+            <div>
+              <p-button
+                on:click="$host.deleteServer($index,$data)"
+                variant="outlined"
+                color="error"
+                size="small"
+                style="display: inline-block"
+              >
+                <localized-content>
+                  <span lang="cn">删除该服务器</span>
+                  <span lang="en">Delete Server</span>
+                  <span lang="jp">サーバーを削除</span>
+                </localized-content>
+              </p-button>
+            </div>
+          </n-server-item>
+        </p-list-item>
+      </o-fill>
+      <p-list-item>
+        <div style="height: 8px"></div>
+        <p-input sync:value="newServerUrl" on:keydown="handleKeydown">
+          <label>
+            <localized-content>
+              <span lang="en">Add New Server</span>
+              <span lang="cn">添加新服务器</span>
+              <span lang="jp">新しいサーバーを追加</span>
+            </localized-content>
+          </label>
+          <p-button
+            on:click="addServer"
+            variant="text"
+            size="small"
+            slot="suffix"
+            attr:disabled="!newServerUrl.length"
+          >
+            <localized-content>
+              <span lang="en">Add</span>
+              <span lang="cn">添加</span>
+              <span lang="jp">追加</span>
+            </localized-content>
+          </p-button>
+        </p-input>
+      </p-list-item>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { confirm, toast } = await load("/packages/pui/util.js");
+      const { createUser } = await load("/packages/user/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const user = await createUser();
+
+      const serverManager = await user.serverManager();
+
+      return {
+        data: {
+          list: [],
+          newServerUrl: "",
+        },
+        proto: {
+          async resetServers(e) {
+            e.stopPropagation();
+
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "重置握手服务器",
+                en: "Reset Handshake Servers",
+                jp: "ハンドシェイクサーバーをリセット",
+              }),
+              content: await getLocalized({
+                cn: "确认重置所有握手服务器？此操作不可撤销。",
+                en: "Are you sure you want to reset all handshake servers? This action cannot be undone.",
+                jp: "すべてのハンドシェイクサーバーをリセットしますか？この操作は元に戻せません。",
+              }),
+            });
+            if (!result) {
+              return;
+            }
+            await serverManager.reset();
+
+            this.list = serverManager.data;
+
+            toast({
+              content: await getLocalized({
+                cn: "握手服务器已重置",
+                en: "Handshake servers have been reset",
+                jp: "ハンドシェイクサーバーがリセットされました",
+              }),
+            });
+          },
+          // 处理键盘事件
+          handleKeydown(e) {
+            if (e.key === "Enter") {
+              this.addServer();
+            }
+          },
+          // 验证URL是否有效
+          isValidUrl(string) {
+            try {
+              const url = new URL(string);
+              return url.protocol === "ws:" || url.protocol === "wss:";
+            } catch (_) {
+              return false;
+            }
+          },
+          async addServer() {
+            if (!this.newServerUrl) {
+              return;
+            }
+
+            // 检查重复
+            // 检查是否有重复的服务器地址
+            const isDuplicate = this.list.some(
+              (item) => item.url === this.newServerUrl
+            );
+            if (isDuplicate) {
+              toast({
+                content: await getLocalized({
+                  cn: "服务器地址已存在，请不要重复添加",
+                  en: "The server address already exists, please do not add it repeatedly",
+                  jp: "サーバーアドレスは既に存在します。重複して追加しないでください",
+                }),
+                color: "error",
+              });
+              return;
+            }
+
+            // 验证URL有效性
+            if (!this.isValidUrl(this.newServerUrl)) {
+              toast({
+                content: await getLocalized({
+                  cn: "无效的服务器地址，请输入有效的WS或WSS协议地址",
+                  en: "Invalid server address, please enter a valid WS or WSS protocol address",
+                  jp: "無効なサーバーアドレスです、有効なWSまたはWSSプロトコルアドレスを入力してください",
+                }),
+                color: "error",
+              });
+              return;
+            }
+
+            this.list.push({ url: this.newServerUrl });
+            this.newServerUrl = "";
+          },
+          async deleteServer(index, item) {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除握手服务器 ",
+                en: "Delete Handshake Server ",
+                jp: "ハンドシェイクサーバーを削除する ",
+              }),
+              content: await getLocalized({
+                cn: `确定删除第${index + 1}个握手服务器(${item.url})吗？`,
+                en: `Are you sure you want to delete the ${
+                  index + 1
+                }th handshake server (${item.url})?`,
+                jp: `第${index + 1}つのハンドシェイクサーバー (${
+                  item.url
+                }) を削除しますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            this.list.splice(index, 1);
+          },
+        },
+        async attached() {
+          this.list = serverManager.data;
+        },
+        detached() {
+          this.list = [];
+        },
+      };
+    };
+  </script>
+</template>

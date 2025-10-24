@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Info and Card Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/user/main.js";
+      import { verify } from "/packages/user/util/verify.js";
+
+      await test("User Info Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user1" });
+
+        // 获取用户信息
+        const info = await user.info();
+
+        // 检查用户信息对象是否正确创建
+        const hasName = !!info.name;
+        const hasUserId = !!user.userId;
+
+        return {
+          assert: hasName && hasUserId,
+          content: {
+            message: "用户信息获取成功",
+            userName: info.name,
+            userId: user.userId,
+            hasName,
+            hasUserId,
+          },
+        };
+      });
+
+      await test("User Card Creation Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user2" });
+
+        // 创建用户卡片
+        const card = await user.createCard();
+
+        const cardKeys = Object.keys(card);
+
+        // 5个key，最后一个是签名
+        const lengthOK = cardKeys.length === 5;
+        const hasSignature = cardKeys.includes("signature");
+        const hasSignTime = cardKeys.includes("signTime");
+        const hasPublicKey = cardKeys.includes("publicKey");
+
+        const userIdOK = card.userId === user.userId;
+
+        return {
+          assert:
+            lengthOK && hasSignature && hasSignTime && hasPublicKey && userIdOK,
+          content: {
+            message: "用户卡片创建成功",
+            card,
+            lengthOK,
+            hasSignature,
+            hasSignTime,
+            hasPublicKey,
+            userIdOK,
+          },
+        };
+      });
+
+      await test("User Card Verification Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user3" });
+        const userInfo = await user.info();
+
+        // 创建用户卡片
+        const cardData = await user.createCard();
+
+        // 解析卡片数据
+        const isSignatureValid = await verify(cardData); // 检查签名是否有效
+
+        // 验证卡片数据
+        const hasName = !!cardData.name;
+        const hasUserId = !!cardData.userId;
+        const isUserIdMatch =
+          cardData.userId === user.userId && cardData.name === userInfo.name;
+
+        return {
+          assert: hasName && hasUserId && isUserIdMatch && isSignatureValid,
+          content: {
+            message: "用户卡片验证成功",
+            cardData,
+            hasName,
+            hasUserId,
+            isUserIdMatch,
+            isSignatureValid,
+          },
+        };
+      });
+      await test("Multiple Users Independent Cards Test", async () => {
+        // 创建两个不同的用户
+        const user1 = await createUser({ user: "test-user4" });
+        const user2 = await createUser({ user: "test-user5" });
+
+        // 获取用户信息
+        const info1 = await user1.info();
+        const info2 = await user2.info();
+
+        // 创建用户卡片
+        const cardData1 = await user1.createCard();
+        const cardData2 = await user2.createCard();
+
+        // 解析卡片数据
+        const cardData1Valid = await verify(cardData1);
+        const cardData2Valid = await verify(cardData2);
+
+        // 验证卡片数据是否有效
+        const validCards = cardData1Valid && cardData2Valid;
+
+        // 验证两个用户的卡片数据是否独立
+        const differentNames = info1.name !== info2.name;
+        const differentUserIds = user1.userId !== user2.userId;
+        const differentCardUserIds = cardData1.userId !== cardData2.userId;
+
+        // 原 assert 缺少卡片有效性验证，添加 validCards 条件
+        return {
+          assert:
+            validCards &&
+            differentNames &&
+            differentUserIds &&
+            differentCardUserIds,
+          content: {
+            message: "多用户独立卡片测试成功",
+            user1Name: info1.name,
+            user2Name: info2.name,
+            user1Id: user1.userId,
+            user2Id: user2.userId,
+            card1UserId: cardData1.userId,
+            card2UserId: cardData2.userId,
+            differentNames,
+            differentUserIds,
+            differentCardUserIds,
+            validCards,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

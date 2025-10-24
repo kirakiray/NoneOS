@@ -1,0 +1,325 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .flex-align-center {
+      display: flex;
+      align-items: center;
+    }
+
+    .label {
+      display: block;
+      color: var(--md-sys-color-normal);
+      margin-right: 12px;
+      font-weight: 500;
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+
+    .circle {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 16px;
+      flex-shrink: 0;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .info > div:first-child {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .server-name {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .server-version {
+      margin-left: 12px;
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+      background-color: var(--md-sys-color-surface-variant);
+      padding: 2px 8px;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    .server-url {
+      color: var(--md-sys-color-normal);
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    [state="unauth"],
+    [state="closed"] {
+      color: var(--md-sys-color-error);
+      font-weight: 500;
+    }
+
+    [state="authing"] {
+      color: var(--md-sys-color-normal);
+      font-weight: 500;
+    }
+
+    [state="authed"] {
+      color: var(--md-sys-color-success);
+      font-weight: 500;
+    }
+
+    [circle-state="unauth"],
+    [circle-state="closed"] {
+      background-color: var(--md-sys-color-error);
+      box-shadow: 0 0 6px var(--md-sys-color-error);
+    }
+
+    [circle-state="authing"] {
+      background-color: var(--md-sys-color-normal);
+      box-shadow: 0 0 6px var(--md-sys-color-normal);
+    }
+
+    [circle-state="authed"] {
+      background-color: var(--md-sys-color-success);
+      box-shadow: 0 0 6px var(--md-sys-color-success);
+    }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      min-height: 40px;
+    }
+
+    .detail-value {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .latency-container {
+      display: flex;
+      align-items: center;
+    }
+
+    .latency-value {
+      min-width: 50px;
+    }
+
+    .check-button {
+      margin-left: 12px;
+    }
+
+    .bold-text {
+      font-weight: bold;
+    }
+
+    .version-text {
+      margin-left: 8px;
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+    }
+
+    .url-text {
+      color: var(--md-sys-color-normal);
+      font-size: 13px;
+    }
+  </style>
+
+  <p-list-item button="suffix" collapse-childs="close">
+    <div class="flex-align-center">
+      <div class="circle" attr:circle-state="state"></div>
+      <div class="info">
+        <div>
+          <span class="bold-text">{{serverName}}</span>
+          <span class="version-text">Version: {{serverVersion}}</span>
+        </div>
+        <div class="url-text">{{url}}</div>
+      </div>
+    </div>
+
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs" style="--ladder-left: 8px">
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">服务器名称</span>
+            <span lang="en">Server Name</span>
+            <span lang="jp">サーバー名</span>
+          </localized-content>
+          {{serverName}}
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex; align-items: center">
+          <localized-content class="label">
+            <span lang="cn">操作</span>
+            <span lang="en">Operation</span>
+            <span lang="jp">操作</span>
+          </localized-content>
+          <slot></slot>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">状态</span>
+            <span lang="en">State</span>
+            <span lang="jp">状態</span>
+          </localized-content>
+          <span attr:state="state"> {{state}} </span>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">延迟</span>
+            <span lang="en">Latency</span>
+            <span lang="jp">遅延</span>
+          </localized-content>
+          {{delay}} ms
+          <p-button
+            size="mini"
+            on:click="checkDelay"
+            variant="text"
+            style="margin-left: 8px"
+          >
+            <localized-content>
+              <span lang="cn">检查延迟</span>
+              <span lang="en">Check Latency</span>
+              <span lang="jp">遅延を確認</span>
+            </localized-content>
+          </p-button>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">状态更新时间</span>
+            <span lang="en">State Update Time</span>
+            <span lang="jp">状態更新時間</span>
+          </localized-content>
+          {{stateUpdateTime}}
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">服务器地址</span>
+            <span lang="en">Server URL</span>
+            <span lang="jp">サーバーアドレス</span>
+          </localized-content>
+          <n-copy-span>{{url}}</n-copy-span>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">服务器CID</span>
+            <span lang="en">Server CID</span>
+            <span lang="jp">サーバーCID</span>
+          </localized-content>
+          <n-copy-span>{{serverCid}}</n-copy-span>
+        </div>
+      </p-list-item>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const user = await createUser();
+
+      return {
+        tag: "n-server-item",
+        attrs: {
+          url: "",
+          serverName: "",
+          serverVersion: "",
+          serverCid: "",
+          delay: "-",
+          stateUpdateTime: "-",
+        },
+        data: {
+          state: "",
+          _offs: [],
+          _serverClient: null,
+        },
+        watch: {
+          url(newVal) {
+            this.initServerState();
+          },
+        },
+        proto: {
+          checkDelay() {
+            this._serverClient.checkDelay();
+          },
+          async updateInfo() {
+            this.state = this._serverClient.state;
+            this.serverName = this._serverClient.serverName;
+            this.serverVersion = this._serverClient.serverVersion;
+            this.delay = this._serverClient.delay;
+            this.serverCid = this._serverClient.serverCid;
+            this.stateUpdateTime = new Date(
+              this._serverClient.stateUpdateTime
+            ).toLocaleString();
+          },
+          async initServerState() {
+            if (this._offs.length) {
+              this._offs.forEach((off) => off());
+              this._offs = [];
+            }
+
+            const { url } = this;
+
+            this._serverClient = await user.connectServer(url, {
+              waitForAuthed: false,
+            });
+
+            this.updateInfo();
+
+            this._offs.push(
+              this._serverClient.bind("change-state", () => this.updateInfo()),
+              this._serverClient.bind("server-info", () => this.updateInfo()),
+              this._serverClient.bind("check-delay", () => this.updateInfo())
+            );
+          },
+        },
+        detached() {
+          if (this._offs.length) {
+            this._offs.forEach((off) => off());
+            this._offs = [];
+          }
+        },
+      };
+    };
+  </script>
+</template>

@@ -70,7 +70,7 @@ const saveData = async (data, handle) => {
   })());
 };
 
-export const createSingleData = async ({ handle }) => {
+export const createSingleData = async ({ handle, disconnect = true }) => {
   const data = new Stanz({});
 
   await refreshData(data, handle);
@@ -78,7 +78,7 @@ export const createSingleData = async ({ handle }) => {
   // 监听数据变动
   const wid = data.watchTick((e) => {
     saveData(data, handle);
-  });
+  }, 10);
 
   // 监听文件变动
   const handleRevoke = await handle.observe(async () => {
@@ -88,6 +88,11 @@ export const createSingleData = async ({ handle }) => {
   Object.defineProperties(data, {
     disconnect: {
       value() {
+        if (disconnect === false) {
+          // 不允许手动撤销监听
+          console.error("Manual revocation of monitoring is not allowed", this);
+          return;
+        }
         handleRevoke();
         data.unwatch(wid);
         data.revoke();

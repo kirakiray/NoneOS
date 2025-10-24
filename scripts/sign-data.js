@@ -1,4 +1,4 @@
-import { createSigner } from "../packages/user/util.js";
+import { createSigner } from "../packages/crypto/crypto-ecdsa.js";
 
 export const signDataByPair = async (originData, pair) => {
   let data = {

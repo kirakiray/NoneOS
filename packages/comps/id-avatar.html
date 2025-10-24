@@ -1,25 +1,23 @@
 <template component>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
   <style>
     :host {
       display: inline-block;
     }
 
-    img {
+    jdent-icon {
       display: block;
       width: 100%;
       height: 100%;
     }
   </style>
-  <img attr:src="url" />
+  <jdent-icon :value="val"></jdent-icon>
   <script>
     export default async ({ load }) => {
-      const { getUserStore } = await load("/packages/user/user-store.js");
+      const { createUser } = await load("/packages/user/main.js");
 
       return {
         tag: "n-id-avatar",
-        data: {
-          url: "",
-        },
         attrs: {
           val: "",
         },
@@ -27,78 +25,14 @@
           val(val) {
             if (val === "self") {
               (async () => {
-                const selfUSerStore = await getUserStore();
-                this.val = selfUSerStore.userId;
+                const localUser = await createUser();
+                this.val = localUser.userId;
               })();
               return;
             }
-
-            this.url = generateAvatarBase64(this.val);
           },
         },
       };
     };
-
-    function generateAvatarBase64(text) {
-      const canvas = document.createElement("canvas");
-      const size = 200; // 图片尺寸
-      const gridSize = 6; // 总网格尺寸（需为偶数）
-      const halfGrid = gridSize / 2;
-      const cellSize = size / gridSize;
-
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext("2d");
-
-      // 生成哈希值
-      const hash = stringHash(text);
-
-      // 设置背景颜色
-      ctx.fillStyle = "#f0f0f0";
-      ctx.fillRect(0, 0, size, size);
-
-      // 生成主颜色
-      const hue = ((hash & 0xff) * 1.41) % 360;
-      const saturation = 60 + ((hash >> 8) % 35);
-      const lightness = 40 + ((hash >> 16) % 40);
-      ctx.fillStyle = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-      // 仅生成左半区并镜像
-      for (let i = 0; i < gridSize; i++) {
-        for (let j = 0; j < halfGrid; j++) {
-          // 只遍历左半区
-          const bitPos = i * halfGrid + j; // 哈希位定位算法
-          if ((hash >>> bitPos) & 1) {
-            // 使用无符号右移
-            // 原始方块坐标
-            const offset = (hash >> bitPos) % 5;
-            const x = j * cellSize + offset;
-            const y = i * cellSize + offset;
-            const w = cellSize - offset * 2;
-
-            // 绘制左侧方块
-            ctx.fillRect(x, y, w, w);
-
-            // 镜像绘制右侧方块（对称轴在中心）
-            const mirrorX = size - (j + 1) * cellSize + offset;
-            ctx.fillRect(mirrorX, y, w, w);
-          }
-        }
-      }
-
-      return canvas.toDataURL();
-    }
-
-    // 哈希函数保持不变
-    function stringHash(str) {
-      if (!str) {
-        return 0;
-      }
-      let hash = 5381;
-      for (let i = 0; i < str.length; i++) {
-        hash = (hash << 5) + hash + str.charCodeAt(i);
-      }
-      return hash >>> 0;
-    }
   </script>
 </template>

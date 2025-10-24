@@ -48,28 +48,48 @@
   </style>
   <div>
     <h4 class="hide-in-mobile">
-      <n-desc name="sizeSettings" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">尺寸设置</span>
+        <span lang="en">Size Settings</span>
+        <span lang="ja">サイズ設定</span>
+      </localized-content>
     </h4>
     <div class="inputer-line hide-in-mobile">
-      <n-desc name="blockWidth" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">块宽度</span>
+        <span lang="en">Block Width</span>
+        <span lang="ja">ブロック幅</span>
+      </localized-content>
       <p-slider no-bubble sync:value="setting.width" min="100" max="300">
       </p-slider>
       <p-input readonly sync:value="setting.width" size="small"></p-input>
     </div>
     <div class="inputer-line hide-in-mobile">
-      <n-desc name="blockHeight" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">块高度</span>
+        <span lang="en">Block Height</span>
+        <span lang="ja">ブロック高さ</span>
+      </localized-content>
       <p-slider no-bubble sync:value="setting.height" min="50" max="150">
       </p-slider>
       <p-input readonly sync:value="setting.height" size="small"></p-input>
     </div>
     <div class="inputer-line hide-in-mobile">
-      <n-desc name="blockSpacing" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">块间距</span>
+        <span lang="en">Block Spacing</span>
+        <span lang="ja">ブロック間隔</span>
+      </localized-content>
       <p-slider no-bubble sync:value="setting.space" min="2" max="40">
       </p-slider>
       <p-input readonly sync:value="setting.space" size="small"></p-input>
     </div>
     <div class="inputer-line hide-in-mobile">
-      <n-desc name="containerWidth" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">容器宽度</span>
+        <span lang="en">Container Width</span>
+        <span lang="ja">コンテナ幅</span>
+      </localized-content>
       <p-slider
         no-bubble
         sync:value="setting.containerMaxWidth"
@@ -89,9 +109,19 @@
       class="hide-in-mobile"
       style="margin-top: 8px"
     >
-      <n-desc name="restoreDefaultSize" space="bookmarks"></n-desc>
+      <localized-content>
+        <span lang="cn">恢复默认尺寸</span>
+        <span lang="en">Restore Default Size</span>
+        <span lang="ja">デフォルトサイズに戻す</span>
+      </localized-content>
     </p-button>
-    <h4><n-desc name="backgroundSettings" space="bookmarks"></n-desc></h4>
+    <h4>
+      <localized-content>
+        <span lang="cn">背景设置</span>
+        <span lang="en">Background Settings</span>
+        <span lang="ja">背景設定</span>
+      </localized-content>
+    </h4>
     <div style="display: flex; align-items: flex-end">
       <div
         style="
@@ -113,91 +143,157 @@
               on:click="setting.bgurl = defaultBgurl"
               style="margin-left: 8px"
             >
-              <n-desc
-                name="restoreDefaultBackground"
-                space="bookmarks"
-              ></n-desc>
+              <localized-content>
+                <span lang="cn">恢复默认背景</span>
+                <span lang="en">Restore Default Background</span>
+                <span lang="ja">デフォルト背景に戻す</span>
+              </localized-content>
             </p-button>
           </div>
         </o-if>
 
         <div>
-          <p-button
-            size="small"
-            on:click="shadow.$('#bgimgInputer').ele.click()"
-            style="margin-left: 8px; margin-top: 4px"
-          >
-            <n-desc name="changeBackground" space="bookmarks"></n-desc>
-          </p-button>
-          <input
-            type="file"
+          <localized-content>
+            <span lang="cn">更改背景</span>
+            <span lang="en">Change Background</span>
+            <span lang="ja">背景を変更</span>
+          </localized-content>
+          <bm-img-selector
+            sync:value="setting.bgurl"
+            name="bgurl"
+            type="image"
             accept="image/*"
-            style="display: none"
-            id="bgimgInputer"
-            on:change="changeBgImg"
-          />
+          ></bm-img-selector>
         </div>
       </div>
     </div>
     <div class="bg-opts">
       <p-select size="small" sync:value="setting.bgposition">
         <label
-          ><n-desc name="backgroundAlign" space="bookmarks"></n-desc
-        ></label>
+          ><localized-content>
+            <span lang="cn">背景对齐</span>
+            <span lang="en">Background Align</span>
+            <span lang="ja">背景配置</span>
+          </localized-content></label
+        >
         <p-option value="center top"
-          ><n-desc name="topCenter" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">顶部居中</span>
+            <span lang="en">Top Center</span>
+            <span lang="ja">上中央</span>
+          </localized-content></p-option
+        >
         <p-option value="center center"
-          ><n-desc name="center" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">居中</span>
+            <span lang="en">Center</span>
+            <span lang="ja">中央</span>
+          </localized-content></p-option
+        >
         <p-option value="center bottom"
-          ><n-desc name="bottomCenter" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">底部居中</span>
+            <span lang="en">Bottom Center</span>
+            <span lang="ja">下中央</span>
+          </localized-content></p-option
+        >
         <p-option value="left top"
-          ><n-desc name="topLeft" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">左上角</span>
+            <span lang="en">Top Left</span>
+            <span lang="ja">左上</span>
+          </localized-content></p-option
+        >
         <p-option value="left center"
-          ><n-desc name="leftCenter" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">左侧居中</span>
+            <span lang="en">Left Center</span>
+            <span lang="ja">左中央</span>
+          </localized-content></p-option
+        >
         <p-option value="left bottom"
-          ><n-desc name="bottomLeft" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">左下角</span>
+            <span lang="en">Bottom Left</span>
+            <span lang="ja">左下</span>
+          </localized-content></p-option
+        >
         <p-option value="right top"
-          ><n-desc name="topRight" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">右上角</span>
+            <span lang="en">Top Right</span>
+            <span lang="ja">右上</span>
+          </localized-content></p-option
+        >
         <p-option value="right center"
-          ><n-desc name="rightCenter" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">右侧居中</span>
+            <span lang="en">Right Center</span>
+            <span lang="ja">右中央</span>
+          </localized-content></p-option
+        >
         <p-option value="right bottom"
-          ><n-desc name="bottomRight" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">右下角</span>
+            <span lang="en">Bottom Right</span>
+            <span lang="ja">右下</span>
+          </localized-content></p-option
+        >
       </p-select>
       <p-select size="small" sync:value="setting.bgsize">
         <label
-          ><n-desc name="backgroundDisplayMode" space="bookmarks"></n-desc
-        ></label>
+          ><localized-content>
+            <span lang="cn">背景显示模式</span>
+            <span lang="en">Background Display Mode</span>
+            <span lang="ja">背景表示モード</span>
+          </localized-content></label
+        >
         <p-option value="cover"
-          ><n-desc name="fillMode" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">填充模式</span>
+            <span lang="en">Fill Mode</span>
+            <span lang="ja">フィルモード</span>
+          </localized-content></p-option
+        >
         <p-option value="contain"
-          ><n-desc name="fitMode" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">适应模式</span>
+            <span lang="en">Fit Mode</span>
+            <span lang="ja">フィットモード</span>
+          </localized-content></p-option
+        >
         <p-option value="auto"
-          ><n-desc name="originalSize" space="bookmarks"></n-desc
-        ></p-option>
+          ><localized-content>
+            <span lang="cn">原始尺寸</span>
+            <span lang="en">Original Size</span>
+            <span lang="ja">元のサイズ</span>
+          </localized-content></p-option
+        >
       </p-select>
       <o-if :value="setting.bgsize !== 'cover'">
-        <p-select size="small" sync:value="setting.bgrepeat">
-          <label
-            ><n-desc name="backgroundTile" space="bookmarks"></n-desc
-          ></label>
-          <p-option value="no-repeat"
-            ><n-desc name="noTile" space="bookmarks"></n-desc
-          ></p-option>
-          <p-option value="repeat"
-            ><n-desc name="tile" space="bookmarks"></n-desc
-          ></p-option>
-        </p-select>
+        <label>
+          <localized-content>
+            <span lang="cn">背景平铺</span>
+            <span lang="en">Background Tile</span>
+            <span lang="ja">背景タイル</span>
+          </localized-content>
+        </label>
+        <p-switch sync:value="setting.bgrepeat">
+          <p-option :value="false">
+            <localized-content>
+              <span lang="cn">不平铺</span>
+              <span lang="en">No Tile</span>
+              <span lang="ja">タイルなし</span>
+            </localized-content>
+          </p-option>
+          <p-option :value="true">
+            <localized-content>
+              <span lang="cn">平铺</span>
+              <span lang="en">Tile</span>
+              <span lang="ja">タイル</span>
+            </localized-content>
+          </p-option>
+        </p-switch>
       </o-if>
     </div>
 
@@ -205,9 +301,13 @@
       class="bg-opts"
       style="display: flex; align-items: flex-start; margin-top: 16px"
     >
-      <span style="display: inline-block; padding-top: 8px"
-        ><n-desc name="backgroundColor" space="bookmarks"></n-desc
-      ></span>
+      <span style="display: inline-block; padding-top: 8px">
+        <localized-content>
+          <span lang="cn">背景颜色</span>
+          <span lang="en">Background Color</span>
+          <span lang="ja">背景色</span>
+        </localized-content>
+      </span>
       <p-color-picker
         sync:value="setting.bgcolor"
         style="margin-left: 8px"

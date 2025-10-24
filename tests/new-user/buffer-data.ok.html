@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Buffer Data Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { toBuffer, toData } from "/packages/user/util/buffer-data.js";
+
+      await test("Buffer Data Conversion Test", async () => {
+        // 生成随机原始数据
+        const originBuffer = crypto.getRandomValues(new Uint8Array(16)); // 128位 = 16字节
+
+        // 创建测试信息对象
+        const info = {
+          message: "Original message " + Math.random(),
+          timestamp: Date.now(),
+        };
+
+        // 将原始数据和信息对象转换为buffer
+        const buffer = toBuffer(originBuffer, info);
+
+        // 从buffer中解析出数据和信息
+        const { data: parsedData, info: parsedInfo } = toData(buffer);
+
+        // 验证转换结果
+        const isArrayEqual = parsedData.every(
+          (value, index) => value === originBuffer[index]
+        );
+        const isInfoEqual =
+          parsedInfo.message === info.message &&
+          parsedInfo.timestamp === info.timestamp;
+
+        return {
+          assert: isArrayEqual && isInfoEqual,
+          content: {
+            message: "Buffer数据转换测试成功",
+            originData: Array.from(originBuffer),
+            parsedData: Array.from(parsedData),
+            originInfo: info,
+            parsedInfo: parsedInfo,
+            isArrayEqual,
+            isInfoEqual,
+          },
+        };
+      });
+
+      await test("Buffer Data Empty Info Test", async () => {
+        // 生成随机原始数据
+        const originBuffer = crypto.getRandomValues(new Uint8Array(8));
+
+        // 使用空对象作为信息
+        const info = {};
+
+        // 将原始数据和信息对象转换为buffer
+        const buffer = toBuffer(originBuffer, info);
+
+        // 从buffer中解析出数据和信息
+        const { data: parsedData, info: parsedInfo } = toData(buffer);
+
+        // 验证转换结果
+        const isArrayEqual = parsedData.every(
+          (value, index) => value === originBuffer[index]
+        );
+        const isInfoEqual = JSON.stringify(parsedInfo) === JSON.stringify(info);
+
+        return {
+          assert: isArrayEqual && isInfoEqual,
+          content: {
+            message: "Buffer数据空信息测试成功",
+            originData: Array.from(originBuffer),
+            parsedData: Array.from(parsedData),
+            originInfo: info,
+            parsedInfo: parsedInfo,
+            isArrayEqual,
+            isInfoEqual,
+          },
+        };
+      });
+
+      await test("Buffer Data Complex Info Test", async () => {
+        // 生成随机原始数据
+        const originBuffer = crypto.getRandomValues(new Uint8Array(32));
+
+        // 创建复杂的信息对象
+        const info = {
+          id: Math.random().toString(36).substring(2, 15),
+          nested: {
+            value: Math.floor(Math.random() * 1000),
+            array: [1, 2, 3, "test"],
+            boolean: true,
+          },
+          timestamp: Date.now(),
+          tags: ["tag1", "tag2", "tag3"],
+        };
+
+        // 将原始数据和信息对象转换为buffer
+        const buffer = toBuffer(originBuffer, info);
+
+        // 从buffer中解析出数据和信息
+        const { data: parsedData, info: parsedInfo } = toData(buffer);
+
+        // 验证转换结果
+        const isArrayEqual = parsedData.every(
+          (value, index) => value === originBuffer[index]
+        );
+        const isInfoEqual = JSON.stringify(parsedInfo) === JSON.stringify(info);
+
+        return {
+          assert: isArrayEqual && isInfoEqual,
+          content: {
+            message: "Buffer数据复杂信息测试成功",
+            originData: Array.from(originBuffer),
+            parsedData: Array.from(parsedData),
+            originInfo: info,
+            parsedInfo: parsedInfo,
+            isArrayEqual,
+            isInfoEqual,
+          },
+        };
+      });
+
+      await test("Buffer Data Error Handling Test", async () => {
+        let toBufferError = null;
+        let toDataError = null;
+
+        // 测试 toBuffer 错误处理 - 传入非Uint8Array参数
+        try {
+          toBuffer("not a buffer", { test: "data" });
+        } catch (error) {
+          toBufferError = error.message;
+        }
+
+        // 创建一个太大的info对象来测试长度限制
+        let largeInfoError = null;
+        try {
+          const largeInfo = {};
+          for (let i = 0; i < 100; i++) {
+            largeInfo[`key${i}`] = "a".repeat(10);
+          }
+          const smallBuffer = new Uint8Array(10);
+          toBuffer(smallBuffer, largeInfo);
+        } catch (error) {
+          largeInfoError = error.message;
+        }
+
+        // 测试 toData 错误处理 - 传入非Uint8Array参数
+        try {
+          toData("not a buffer");
+        } catch (error) {
+          toDataError = error.message;
+        }
+
+        // 测试 toData 错误处理 - 传入损坏的buffer
+        let corruptedBufferError = null;
+        try {
+          const corruptedBuffer = new Uint8Array([10, 1, 2]); // 长度为10但实际只有2个字节
+          toData(corruptedBuffer);
+        } catch (error) {
+          corruptedBufferError = error.message;
+        }
+
+        const hasToBufferTypeError =
+          toBufferError === "originBuffer must be a Uint8Array";
+        const hasLargeInfoError =
+          largeInfoError ===
+          "Info data is too large, must be less than 255 bytes";
+        const hasToDataTypeError =
+          toDataError === "buffer must be a Uint8Array";
+        const hasCorruptedBufferError =
+          corruptedBufferError === "buffer is corrupted or format is incorrect";
+
+        return {
+          assert:
+            hasToBufferTypeError &&
+            hasLargeInfoError &&
+            hasToDataTypeError &&
+            hasCorruptedBufferError,
+          content: {
+            message: "Buffer数据错误处理测试成功",
+            hasToBufferTypeError,
+            toBufferError,
+            hasLargeInfoError,
+            largeInfoError,
+            hasToDataTypeError,
+            toDataError,
+            hasCorruptedBufferError,
+            corruptedBufferError,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

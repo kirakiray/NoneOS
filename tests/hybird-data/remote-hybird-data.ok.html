@@ -8,106 +8,46 @@
   <body>
     <script src="/sw/register.js" type="module"></script>
     <script type="module">
-      import { createGet } from "/packages/fs/remote/main.js";
+      import { createGet } from "/packages/fs/fs-remote/main.js";
       import { init, get } from "/packages/fs/main.js";
-      import { getUserStore, getServers } from "/packages/user/main.js";
       import { test } from "/ok-test/main.js";
       import { createData } from "/packages/hybird-data/main.js";
-      import { on } from "/packages/user/main.js";
-      import {
-        findDevice,
-        onEntryDevice,
-        authDevice,
-        getDeviceStore,
-      } from "/packages/user/device/main.js";
+      import { createUser } from "/packages/user/main.js";
 
-      {
-        const local = await init("local");
-        await local.get("test", { create: "dir" });
-      }
+      // 初始化几个重要目录
+      await init("local"); // 用户的本地数据
+      // 建立测试目录
+      await get("local/test", { create: "dir" });
 
-      // 初始化测试目录
-      const testDirectory = await init("test-get-set");
+      const user1 = await createUser({ user: "test-user1" });
+      const user2 = await createUser({ user: "test-user2" });
 
-      // 测试用户存储
-      const user1 = await getUserStore("user1");
+      await user1.connectAllServers();
+      await user2.connectAllServers();
 
-      const mainSers = await getServers("main");
-      const user1Sers = await getServers("user1");
-      await mainSers.watchUntil(() => {
-        return !mainSers.some((e) => e.connectionState !== "connected");
+      // 初始化角色管理器
+      const certManager1 = await user1.certManager();
+      const certManager2 = await user2.certManager();
+
+      // 授权给用户2设备权限
+      const cert1 = await certManager2.issue({
+        userId: user1.userId,
+        role: "device",
       });
-      await user1Sers.watchUntil(() => {
-        return !user1Sers.some((e) => e.connectionState !== "connected");
+      // 授权给用户1设备权限
+      const cert2 = await certManager1.issue({
+        userId: user2.userId,
+        role: "device",
       });
-
-      const mainTabId = "user1-tab-" + Math.random().toString(36).slice(2, 8);
-
-      // 先给对方配对，交换证书
-      {
-        const user1 = await getUserStore("user1");
-        const user2 = await getUserStore("main");
-
-        const devices1 = await getDeviceStore("user1");
-        const devices2 = await getDeviceStore("main");
-
-        const hasDevice = devices2.find((e) => {
-          return e.toMeCertificate.data.publicKey === user1.pair.publicKey;
-        });
-
-        if (!hasDevice) {
-          // 执行授权仪式
-
-          const beforeDevice1Len = devices1.length;
-          const beforeDevice2Len = devices2.length;
-
-          // 生成设备码和验证码
-          const deviceCode = Math.random().toString(36).substring(2, 6);
-          const verifyCode = Math.random().toString(36).substring(2, 6);
-
-          // 设置设备监听
-          await onEntryDevice(
-            {
-              deviceCode,
-              verifyCode,
-              async confirm({ userData, waitingTime }) {
-                if (
-                  userData.userName === user1.userName &&
-                  userData.publicKey === user1.pair.publicKey
-                ) {
-                  await new Promise((resolve) => setTimeout(resolve, 200));
-                  return true;
-                }
-                return false;
-              },
-            },
-            "main"
-          );
-
-          await new Promise((resolve) => setTimeout(resolve, 200));
-
-          // 查找并授权设备
-          const users = await findDevice(deviceCode, "user1");
-          const result = await authDevice(
-            {
-              userId: users[0].userId,
-              rsaPublicKey: users[0].rsaPublicKey,
-              verifyCode,
-              servers: users[0].serversData.map((e) => e.serverUrl),
-            },
-            "user1"
-          );
-
-          await new Promise((resolve) => setTimeout(resolve, 200));
-        }
-      }
 
       // 测试访问其他用户内容
       await test("Test Remote Directory Observation", async () => {
+        const remoteUser2 = await user1.connectUser(user2.userId);
+        await remoteUser2.initRTC();
+
         // 访问user1的内容
-        const remoteAccessor = createGet(user1.userId, {
-          useLocalUserDirName: "main",
-          selfTabId: mainTabId,
+        const remoteAccessor = createGet({
+          remoteUser: remoteUser2,
         });
 
         // 访问本地目录
@@ -166,10 +106,12 @@
       });
 
       await test("Hybrid Data Remote Sync Test", async () => {
+        const remoteUser2 = await user1.connectUser(user2.userId);
+        await remoteUser2.initRTC();
+
         // user1的远程访问器
-        const remoteAccessor = createGet(user1.userId, {
-          useLocalUserDirName: "main",
-          selfTabId: mainTabId,
+        const remoteAccessor = createGet({
+          remoteUser: remoteUser2,
         });
 
         // 访问本地目录
@@ -222,7 +164,6 @@
           remoteHybridData.val === remoteModification;
 
         if (!remoteSyncCheck) {
-          debugger;
           throw new Error(
             "Remote modification sync check failed: Local data not synced with remote changes"
           );
@@ -265,10 +206,12 @@
       });
 
       await test("Hybrid Data Remote Sync Array Test", async () => {
+        const remoteUser2 = await user1.connectUser(user2.userId);
+        await remoteUser2.initRTC();
+
         // user1的远程访问器
-        const remoteAccessor = createGet(user1.userId, {
-          useLocalUserDirName: "main",
-          selfTabId: mainTabId,
+        const remoteAccessor = createGet({
+          remoteUser: remoteUser2,
         });
 
         // 访问本地目录
@@ -283,18 +226,13 @@
 
         // 创建本地混合数据实例
         const localHybridData = await createData(localDirectory);
-        window.localHybridData = localHybridData;
 
         // 创建远程混合数据实例
         const remoteHybridData = await createData(remoteDirectory);
-        window.remoteHybridData = remoteHybridData;
 
         const val1 = "test - " + Math.random().toString(32).slice(2);
 
         // 从远端对象添加数组数据
-        // remoteHybridData.push({
-        //   val: val1,
-        // });
         remoteHybridData.splice(0, 100, {
           val: val1,
         });
@@ -318,6 +256,10 @@
                 `.trim(),
         };
       });
+
+      // 删除证书授权，方便下次测试
+      await certManager1.delete(cert2.id);
+      await certManager2.delete(cert1.id);
     </script>
   </body>
 </html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Get UserCard</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/user/main.js";
+
+      // 创建两个用户
+      const user1 = await createUser({ user: "test-user1" });
+      const user2_1 = await createUser({ user: "test-user2" });
+      const user2_2 = await createUser({ user: "test-user2" });
+      const user2_3 = await createUser({ user: "test-user2" });
+
+      // 连接服务器
+      await user1.connectAllServers();
+      await user2_1.connectAllServers();
+      await user2_2.connectAllServers();
+      await user2_3.connectAllServers();
+
+      user2_1.register("test1", ({ data }) => {
+        console.log(data);
+      });
+
+      user2_2.register("test1", ({ data }) => {
+        console.log(data);
+      });
+
+      user2_3.register("test3", ({ data }) => {
+        throw new Error("不应该触发");
+      });
+
+      const remoteUser2 = await user1.connectUser(user2_1.userId);
+
+      remoteUser2.trigger("test1", {
+        message: "Hello, World!",
+      });
+    </script>
+  </body>
+</html>

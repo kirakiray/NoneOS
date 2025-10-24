@@ -46,7 +46,9 @@
   </div>
   <script>
     export default async ({ load }) => {
-      const { getRemotes } = await load("/packages/util/get-remotes.js");
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+      const cardManager = await localUser.cardManager();
 
       return {
         tag: "n-bottom-address",
@@ -62,11 +64,11 @@
               return;
             }
 
-            const remotes = await getRemotes();
-
             const arr = [];
 
-            path.split("/").forEach((e, index) => {
+            const pathArr = path.split("/");
+            for (let index = 0; index < pathArr.length; index++) {
+              const e = pathArr[index];
               pathStr += `${e}/`;
 
               if (index === 0) {
@@ -77,12 +79,10 @@
                     const [mark, rootName] = e.split(":");
                     const userId = mark.split("-")[1];
 
-                    const targetDevice = remotes.find(
-                      (e) => e.userId === userId
-                    );
+                    const userInfo = await cardManager.get(userId);
 
                     arr.push({
-                      name: targetDevice ? targetDevice.userName : userId,
+                      name: userInfo ? userInfo.name : userId,
                       kind: "user",
                       path: "root-user",
                       userId,
@@ -94,7 +94,7 @@
                       kind: "dir",
                       path: e,
                     });
-                    return;
+                    continue;
                   }
                 }
               }
@@ -104,7 +104,7 @@
                 name: e,
                 path: pathStr.replace(/\/$/, ""),
               });
-            });
+            }
 
             this.pathArr = arr;
           },

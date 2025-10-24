@@ -280,7 +280,7 @@
     }
 
     export default async ({ load }) => {
-      const { verifyData } = await load("/packages/user/verify.js");
+      const { verifyData } = await load("/packages/crypto/crypto-verify.js");
       const rootCert = await load("/packages/user/cert/root-cert.json");
       const rootOK = await verifyData(rootCert).catch(() => false);
       const { unzip } = await load("/packages/libs/zip/main.js");

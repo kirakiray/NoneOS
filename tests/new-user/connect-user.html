@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/user/main.js";
+
+      // 创建两个用户
+      const user1 = await createUser({ user: "test-user1" });
+      const user2 = await createUser({ user: "test-user2" });
+
+      console.log("user1", user1);
+      console.log("user2", user2);
+
+      // 保证user2连上服务器
+      const serverManager = await user2.serverManager();
+
+      await user2.connectServer(serverManager.data[0].url);
+
+      // user2监听获取数据的事件
+      const cancel1 = user2.bind("receive-data", (e) => {
+        const { fromUserId, fromUserSessionId, data, server, channel } =
+          e.detail;
+
+        console.log(
+          "通过 RTC 转发，server 字段应不存在，当前 server 是否为 undefined:",
+          server === undefined
+        );
+
+        console.log(
+          "user2收到数据:",
+          data,
+          fromUserId,
+          fromUserSessionId,
+          channel
+        );
+
+        cancel1();
+      });
+
+      // 直接连接 user2
+      // let remoteUser2;
+      window.remoteUser2 = null;
+      try {
+        remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+        // 初始化RTC连接，完成后就会使用点对点进行数据通信
+        await remoteUser2.initRTC();
+      } catch (error) {
+        console.log("连接用户或rtc初始化失败:", error);
+      }
+
+      // 通过用户1发送二进制数据给用户2
+      const binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
+      remoteUser2.post(binaryData);
+    </script>
+  </body>
+</html>

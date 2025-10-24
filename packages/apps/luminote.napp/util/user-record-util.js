@@ -1,6 +1,6 @@
 // 保存每个用户在当前项目中的操作改动信息
 
-import { getUserStore } from "/packages/user/user-store.js";
+import { createUser } from "/packages/user/main.js";
 
 // 保存当前的用户id
 export const saveUserCord = async ({
@@ -10,8 +10,8 @@ export const saveUserCord = async ({
   projectDirName, // 文章所在项目目录名
   app, // 应用实例
 }) => {
-  const userStore = await getUserStore();
-  const { userId } = userStore;
+  const localUser = await createUser();
+  const { userId } = localUser;
 
   // 调用 getRecordData 获取项目的记录数据
   const recordData = await getRecordData({ projectDirName, targetUserId, app });
@@ -58,8 +58,8 @@ export const getRecordByPageId = async ({
 
   const pageRecordData = $.stanz([]);
 
-  const userStore = await getUserStore();
-  const { userId: selfUserId } = userStore;
+  const localUser = await createUser();
+  const { userId: selfUserId } = localUser;
 
   const refresh = () => {
     const newRecordData = [];

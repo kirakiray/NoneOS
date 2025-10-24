@@ -1,5 +1,4 @@
 <template page>
-  <l-m src="/packages/comps/device-list.html"></l-m>
   <style>
     :host {
       display: block;
@@ -14,23 +13,54 @@
       margin-top: 0;
     }
   </style>
-  <h4><n-desc name="otherDevices" space="bookmarks"></n-desc></h4>
-  <div style="font-size: 12px; margin-bottom: 4px">
-    <n-desc name="syncTips" space="bookmarks"></n-desc>
-  </div>
-  <n-device-list on:click-device="clickDeviceItem"></n-device-list>
-  <h4><n-desc name="localOperations" space="bookmarks"></n-desc></h4>
+  <h4>
+    <localized-content>
+      <span lang="cn">数据操作</span>
+      <span lang="en">Data operations</span>
+      <span lang="ja">データ操作</span>
+    </localized-content>
+  </h4>
   <p-button on:click="clickOutput" attr:disabled="!cardsLength">
-    <n-desc name="exportData" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn">导出数据</span>
+      <span lang="en">Export data</span>
+      <span lang="ja">データエクスポート</span>
+    </localized-content>
   </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    <n-desc name="exportDataDesc" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn"
+        >将所有书签数据（包含访问记录和个性化设置）导出至本地文件，方便您进行数据备份与迁移。</span
+      >
+      <span lang="en"
+        >Export all bookmark data (including visit history and personal
+        settings) to a local file for backup and migration purposes.</span
+      >
+      <span lang="ja"
+        >すべてのブックマークデータ（アクセス履歴と個人設定を含む）をローカルファイルにエクスポートし、データのバックアップと移行を容易にします。</span
+      >
+    </localized-content>
   </div>
-  <p-button on:click="clickInput"
-    ><n-desc name="importData" space="bookmarks"></n-desc
-  ></p-button>
+  <p-button on:click="clickInput">
+    <localized-content>
+      <span lang="cn">导入数据</span>
+      <span lang="en">Import data</span>
+      <span lang="ja">データインポート</span>
+    </localized-content>
+  </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    <n-desc name="importDataDesc" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn"
+        >从本地文件导入书签数据，导入后将覆盖当前所有书签数据，请谨慎操作。</span
+      >
+      <span lang="en"
+        >Import bookmark data from a local file. After import, all current
+        bookmark data will be overwritten. Please proceed with caution.</span
+      >
+      <span lang="ja"
+        >ローカルファイルからブックマークデータをインポートします。インポート後、現在のすべてのブックマークデータが上書きされますので、注意して操作してください。</span
+      >
+    </localized-content>
   </div>
   <input
     style="display: none"
@@ -39,134 +69,36 @@
     accept="application/json"
     on:change="inputChange"
   />
-  <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength"
-    ><n-desc name="clearData" space="bookmarks"></n-desc
-  ></p-button>
+  <p-button on:click="clickClear" color="error" attr:disabled="!cardsLength">
+    <localized-content>
+      <span lang="cn">清空数据</span>
+      <span lang="en">Clear data</span>
+      <span lang="ja">データクリア</span>
+    </localized-content>
+  </p-button>
   <div style="font-size: 12px; margin-bottom: 16px; margin-top: 4px">
-    <n-desc name="clearDataDesc" space="bookmarks"></n-desc>
+    <localized-content>
+      <span lang="cn">清空所有本地书签数据，此操作不可恢复，请谨慎操作。</span>
+      <span lang="en"
+        >Clear all local bookmark data. This operation cannot be undone. Please
+        proceed with caution.</span
+      >
+      <span lang="ja"
+        >すべてのローカルブックマークデータをクリアします。この操作は元に戻せませんので、注意して操作してください。</span
+      >
+    </localized-content>
   </div>
   <script>
     export default async ({ load }) => {
-      const { getConnection } = await load("/packages/user/connection/main.js");
       const { toast, confirm } = await load("/packages/pui/util.js");
       const { createData } = await load("/packages/hybird-data/main.js");
-      const { getText } = await load("/packages/i18n/data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         data: {
           cardsLength: 0,
         },
         proto: {
-          // 点击了目标用户item
-          async clickDeviceItem(e) {
-            const { item, itemEl } = e.data;
-            const targetUserId = item.toOppoCertificate.data.authTo;
-            let remoteHandles;
-            try {
-              // 从远端获取对应应用目录
-              remoteHandles = await this.app.dedicatedRemoteHandle();
-            } catch (err) {
-              toast({
-                content: err.toString(),
-                color: "error",
-              });
-              return;
-            }
-            const targetRemoteHandle = remoteHandles.find((remote) => {
-              return remote.userId === targetUserId;
-            });
-
-            // 列表山的时间元素
-            const shadowTimeEl = itemEl.$('[slot="suffix"]');
-
-            shadowTimeEl && (shadowTimeEl.text = "Loading...");
-
-            // 本地保存的专属目录
-            const localAppHandle = await this.app.dedicatedHandle();
-
-            const bookmarkBackupDirHandle = await localAppHandle.get("backup", {
-              create: "dir",
-            });
-
-            const backupFileHandle = await bookmarkBackupDirHandle.get(
-              `${targetUserId}.json`,
-              {
-                create: "file",
-              }
-            );
-
-            if (!targetRemoteHandle.handle) {
-              shadowTimeEl &&
-                (shadowTimeEl.text = getText("syncFailed", "bookmarks"));
-
-              toast({
-                content: getText("syncFailed", "bookmarks"),
-                color: "error",
-              });
-              return;
-            }
-
-            // 从文件夹中获取数据
-            const remoteDataHandle = await targetRemoteHandle.handle.get(
-              "data"
-            );
-
-            const remoteBookmarkData = await createData(remoteDataHandle);
-
-            await remoteBookmarkData.ready();
-
-            const { cardsLastModified } = remoteBookmarkData;
-
-            {
-              // 查看是否有更新
-              const data = await backupFileHandle.text();
-              if (data) {
-                const backupData = JSON.parse(data);
-                if (backupData.cardsLastModified === cardsLastModified) {
-                  shadowTimeEl &&
-                    (shadowTimeEl.text = new Date(
-                      cardsLastModified
-                    ).toLocaleString());
-
-                  toast({
-                    content: getText("syncLatest", "bookmarks", {
-                      userName: targetRemoteHandle.userName,
-                    }),
-                    color: "success",
-                  });
-                  return;
-                }
-              }
-            }
-
-            // 等待全部数据加载完成
-            await remoteBookmarkData.ready(true);
-
-            // 保存一份数据
-            const bookmarkBackupData = remoteBookmarkData.toJSON();
-
-            // 销毁数据
-            remoteBookmarkData.disconnect();
-
-            await backupFileHandle.write(JSON.stringify(bookmarkBackupData));
-
-            toast({
-              content: getText("syncSuccess", "bookmarks", {
-                userName: targetRemoteHandle.userName,
-              }),
-              color: "success",
-            });
-
-            this.app.current?.loadBackupUserOptions();
-
-            // 更新列表上的时间
-            shadowTimeEl &&
-              (shadowTimeEl.text = new Date(
-                cardsLastModified
-              ).toLocaleString());
-
-            console.log("bookmarkBackupData: ", bookmarkBackupData);
-          },
           async clickInput() {
             const mainData = await this.app._mainData;
             await mainData.ready(true);
@@ -174,9 +106,21 @@
             if (this.cardsLength) {
               // 查看是否已经有数据，有的话提示覆盖
               const res = await confirm({
-                content: getText("importConfirm", "bookmarks"),
-                yes: getText("overwrite", "bookmarks"),
-                cancel: getText("cancel", "bookmarks"),
+                content: await getLocalized({
+                  cn: "检测到已有书签数据，导入将覆盖现有内容。是否继续？",
+                  en: "Existing bookmark data detected. Importing will overwrite the current content. Continue?",
+                  ja: "既存のブックマークデータが検出されました。インポートすると現在のコンテンツが上書きされます。続行しますか？",
+                }),
+                yes: await getLocalized({
+                  cn: "覆盖",
+                  en: "Overwrite",
+                  ja: "上書き",
+                }),
+                cancel: await getLocalized({
+                  cn: "取消",
+                  en: "Cancel",
+                  ja: "キャンセル",
+                }),
               });
 
               if (!res) return;
@@ -206,13 +150,19 @@
                 Object.assign(mainData.setting, data.setting);
                 this.cardsLength = mainData.cards.length;
                 toast({
-                  content: getText("importSuccess", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "导入成功",
+                    en: "Import successful",
+                    ja: "インポート成功",
+                  }),
                   color: "success",
                 });
               } catch (err) {
                 toast({
-                  content: getText("importFailed", "bookmarks", {
-                    error: err.message,
+                  content: await getLocalized({
+                    cn: "导入失败: " + err.message,
+                    en: "Import failed: " + err.message,
+                    ja: "インポート失敗: " + err.message,
                   }),
                   color: "error",
                 });
@@ -232,7 +182,11 @@
             a.download = "bookmarks.json";
             a.click();
             toast({
-              content: getText("exportSuccess", "bookmarks"),
+              content: await getLocalized({
+                cn: "导出成功",
+                en: "Export successful",
+                ja: "エクスポート成功",
+              }),
               color: "success",
             });
             URL.revokeObjectURL(a.href); // 释放URL对象
@@ -242,78 +196,42 @@
             await mainData.ready(true);
             const res = await confirm({
               color: "error",
-              title: getText("clearData", "bookmarks"),
-              content: getText("clearConfirm", "bookmarks"),
-              yes: getText("clear", "bookmarks"),
-              cancel: getText("cancel", "bookmarks"),
+              title: await getLocalized({
+                cn: "清空数据",
+                en: "Clear data",
+                ja: "データクリア",
+              }),
+              content: await getLocalized({
+                cn: "此操作将永久删除所有数据且无法恢复，建议您先导出备份。确定要清空全部数据吗？",
+                en: "This operation will permanently delete all data and cannot be recovered. It is recommended that you export a backup first. Are you sure you want to clear all data?",
+                ja: "この操作により、すべてのデータが永久に削除され、復元できなくなります。まずはバックアップをエクスポートすることをお勧めします。すべてのデータをクリアしてもよろしいですか？",
+              }),
+              yes: await getLocalized({
+                cn: "清空",
+                en: "Clear",
+                ja: "クリア",
+              }),
+              cancel: await getLocalized({
+                cn: "取消",
+                en: "Cancel",
+                ja: "キャンセル",
+              }),
             });
             if (!res) return;
             mainData.cards.splice(0, mainData.cards.length);
             this.cardsLength = 0;
             toast({
-              content: getText("clearSuccess", "bookmarks"),
+              content: await getLocalized({
+                cn: "清空成功",
+                en: "Clear successful",
+                ja: "クリア成功",
+              }),
               color: "success",
             });
           },
         },
         async attached() {
-          const mainData = await this.app._mainData;
-          await mainData.ready();
-          await mainData.cards.ready();
-          this.cardsLength = mainData.cards.length;
-
-          setTimeout(async () => {
-            // 更新列表上
-            const localAppHandle = await this.app.dedicatedHandle();
-
-            const bookmarkBackupDirHandle = await localAppHandle.get("backup");
-
-            if (!bookmarkBackupDirHandle) {
-              return;
-            }
-
-            const cached = [];
-            for await (let handle of bookmarkBackupDirHandle.values()) {
-              try {
-                const text = await handle.text();
-                const data = JSON.parse(text);
-
-                const userId = handle.name.replace(".json", "");
-                const { cardsLastModified } = data;
-
-                if (cardsLastModified) {
-                  const shadowEl = this.shadow
-                    .$("n-device-list")
-                    .shadow.$(`[data-user-id="${userId}"]`);
-
-                  // 添加更新时间
-                  shadowEl.push(
-                    `<div slot="suffix">${new Date(
-                      cardsLastModified
-                    ).toLocaleString()}</div>`
-                  );
-                }
-              } catch (err) {
-                // 处理文件读取或解析错误
-                console.error("处理备份文件时出错:", err);
-                continue;
-              }
-            }
-
-            // 列表内未存在的代表没有备份过
-            const items = this.shadow
-              .$("n-device-list")
-              .shadow.all("p-list-item");
-
-            items.forEach((e) => {
-              const hasTime = e.$('[slot="suffix"]');
-              if (!hasTime) {
-                e.push(
-                  `<div slot="suffix">${getText("noSync", "bookmarks")}</div>`
-                );
-              }
-            });
-          }, 500);
+          this.cardsLength = this.app._mainData.cards.length;
         },
       };
     };

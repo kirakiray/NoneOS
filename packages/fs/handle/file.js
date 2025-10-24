@@ -43,6 +43,7 @@ export class FileHandle extends BaseHandle {
           path: this.path,
           content: data instanceof Blob ? await data.arrayBuffer() : data,
         });
+
         worker.onmessage = async (event) => {
           const { success, error } = event.data;
 

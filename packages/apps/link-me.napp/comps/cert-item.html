@@ -1,0 +1,171 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="./user-name.html"></l-m>
+  <l-m src="./user-state.html"></l-m>
+
+  <style>
+    :host {
+      display: block;
+    }
+
+    .flex-align-center {
+      display: flex;
+      align-items: center;
+    }
+
+    .label {
+      display: block;
+      color: var(--md-sys-color-normal);
+      margin-right: 12px;
+      font-weight: 500;
+      min-width: 100px;
+      flex-shrink: 0;
+    }
+
+    .info {
+      display: flex;
+      align-items: center;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .info > div:first-child {
+      display: flex;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .cert-title {
+      font-weight: 600;
+      font-size: 16px;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .cert-id {
+      color: var(--md-sys-color-normal);
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .detail-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      min-height: 40px;
+    }
+
+    .detail-value {
+      flex: 1;
+      min-width: 0;
+      font-size: 14px;
+      color: var(--md-sys-color-on-surface);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bold-text {
+      font-weight: bold;
+    }
+
+    .id-text {
+      margin-left: 8px;
+      font-size: 12px;
+      color: var(--md-sys-color-normal);
+    }
+
+    .url-text {
+      color: var(--md-sys-color-normal);
+      font-size: 13px;
+    }
+  </style>
+
+  <p-list-item button="suffix" collapse-childs="close">
+    <div class="flex-align-center">
+      <jdent-icon
+        :value="item.issuedTo"
+        style="width: 20px; height: 20px; margin-right: 4px"
+      ></jdent-icon>
+      <div class="info">
+        <n-user-name :userid="item.issuedTo"></n-user-name>
+        <div style="margin-left: 8px">
+          <n-user-state :userid="item.issuedTo"></n-user-state>
+        </div>
+      </div>
+    </div>
+
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs" style="--ladder-left: 8px">
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">设备ID</span>
+            <span lang="en">Device ID</span>
+            <span lang="jp">デバイスID</span>
+          </localized-content>
+          <n-copy-span>{{item.issuedTo}}</n-copy-span>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div style="display: flex">
+          <localized-content class="label">
+            <span lang="cn">状态</span>
+            <span lang="en">State</span>
+            <span lang="jp">状態</span>
+          </localized-content>
+          <n-user-state :userid="item.issuedTo" show-text></n-user-state>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">签发时间</span>
+            <span lang="en">Sign Time</span>
+            <span lang="jp">署名時間</span>
+          </localized-content>
+          <span>{{signTime}}</span>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">操作</span>
+            <span lang="en">Operation</span>
+            <span lang="jp">操作</span>
+          </localized-content>
+          <slot></slot>
+        </div>
+      </p-list-item>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-cert-item",
+        data: {
+          item: null,
+        },
+        proto: {
+          get signTime() {
+            return new Date(this.item.signTime).toLocaleString();
+          },
+        },
+        detached() {
+          this.item = null;
+        },
+      };
+    };
+  </script>
+</template>

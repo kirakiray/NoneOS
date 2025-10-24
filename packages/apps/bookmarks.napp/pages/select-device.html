@@ -1,0 +1,336 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/apps/link-me.napp/comps/user-name.html"></l-m>
+  <l-m src="/packages/comps/moment-span.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      min-width: 50vw;
+      max-width: 800px;
+    }
+  </style>
+  <p-list>
+    <p-list-item>
+      <div
+        style="
+          display: flex;
+          color: var(--md-sys-color-normal);
+          font-size: 12px;
+        "
+      >
+        <div>
+          <localized-content>
+            <span lang="cn">设备名</span>
+            <span lang="en">Device Name</span>
+            <span lang="ja">デバイス名</span>
+          </localized-content>
+        </div>
+        <div style="margin-left: auto">
+          <localized-content>
+            <span lang="cn">最后更新时间</span>
+            <span lang="en">Last Updated</span>
+            <span lang="ja">最終更新日時</span>
+          </localized-content>
+        </div>
+      </div>
+    </p-list-item>
+    <o-fill :value="allDevices">
+      <p-list-item
+        button
+        attr:disabled="$data.isEmpty"
+        on:click="$host.clickItem($data)"
+      >
+        <n-id-avatar
+          :val="$data.userId"
+          slot="prefix"
+          style="width: 20px"
+        ></n-id-avatar>
+        <div style="display: flex; align-items: center">
+          <n-user-name :userid="$data.userId"></n-user-name>
+          <o-if :value="$host.localUserId === $data.userId">
+            <localized-content>
+              <span lang="cn"> (本机)</span>
+              <span lang="en"> (This device)</span>
+              <span lang="ja"> (この端末)</span>
+            </localized-content>
+          </o-if>
+          <o-if :value="$host.usedUserId === $data.userId">
+            <div style="margin-left: 16px; color: var(--md-sys-color-primary)">
+              <localized-content>
+                <span lang="cn"> 已选中</span>
+                <span lang="en"> Selected</span>
+                <span lang="ja"> 選択済み</span>
+              </localized-content>
+            </div>
+          </o-if>
+          <o-if :value="$data.syncError">
+            <div
+              style="
+                color: var(--md-sys-color-error);
+                margin-left: 16px;
+                max-width: 300px;
+              "
+            >
+              {{$data.syncError}}
+            </div>
+          </o-if>
+          <o-else-if :value="$data.isEmpty">
+            <div style="margin-left: 16px; color: var(--md-sys-color-normal)">
+              <localized-content>
+                <span lang="cn">未同步数据</span>
+                <span lang="en"> Not synced data</span>
+                <span lang="ja"> 未同期データ</span>
+              </localized-content>
+            </div>
+          </o-else-if>
+          <o-if :value="$data.time">
+            <div style="margin-left: auto">
+              <n-moment-span :time="$data.time"></n-moment-span>
+            </div>
+          </o-if>
+        </div>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <p-button
+    size="small"
+    variant="outlined"
+    attr:disabled="syncing"
+    on:click="syncData"
+    style="margin: 8px 0 0 16px"
+  >
+    <o-if :value="syncing" slot="prefix">
+      <n-local-icon
+        name="loading"
+        style="display: block; margin-right: 8px"
+      ></n-local-icon>
+    </o-if>
+    <localized-content>
+      <span lang="cn"> 立刻同步数据</span>
+      <span lang="en"> Sync data</span>
+      <span lang="ja"> データを同期する</span>
+    </localized-content>
+  </p-button>
+  <script>
+    export default async ({ load }) => {
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { createData, loadData } = await load(
+        "/packages/hybird-data/main.js"
+      );
+
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      return {
+        data: {
+          allDevices: [],
+          localUserId: localUser.userId,
+          syncing: false,
+          //   usedUserId: null, // 使用中的用户Id
+        },
+        proto: {
+          async syncData() {
+            if (this.syncing) {
+              return;
+            }
+
+            this.syncing = true;
+
+            const devices = await localUser.myDevices();
+
+            const allDeviceId = devices.map((e) => e.userId);
+            allDeviceId.unshift(localUser.userId);
+
+            // 获取已经被去除的设备
+            const removeds = this.allDevices.filter(
+              (e) => !allDeviceId.includes(e.userId)
+            );
+
+            // 删除掉不存在的用户数据
+            this.allDevices = this.allDevices.filter((e) =>
+              allDeviceId.includes(e.userId)
+            );
+
+            const localHandle = await this.app.dedicatedHandle();
+            const backupDir = await localHandle.get("backup");
+
+            if (backupDir) {
+              // 删除已经不是我的设备的数据
+              await Promise.all(
+                removeds.map(async ({ userId }) => {
+                  const targetFile = await backupDir.get(`${userId}.json`);
+
+                  if (targetFile) {
+                    await targetFile.remove();
+                  }
+                })
+              );
+            }
+
+            // 尝试获取其他端的项目文件
+            const remotes = await this.app.dedicatedRemoteHandle();
+
+            await Promise.all(
+              remotes.map(async (e) => {
+                if (e.error) {
+                  const targetItem = this.allDevices.find(
+                    (item) => item.userId === e.userId
+                  );
+
+                  if (targetItem) {
+                    targetItem.syncError = e.error.toString();
+                  }
+
+                  return;
+                }
+
+                const { handle } = e;
+                // 获取data目录
+                const dataHandle = await handle.get("data");
+
+                if (dataHandle) {
+                  // 先读取一层的数据，判断是否有数据变动
+                  let data = await loadData({
+                    handle: dataHandle,
+                  });
+
+                  // 保存数据
+                  const targetFileHandle = await backupDir.get(
+                    `${e.userId}.json`,
+                    {
+                      create: "file",
+                    }
+                  );
+
+                  const cachedData = await targetFileHandle.json();
+
+                  if (cachedData.cardsLastModified !== data.cardsLastModified) {
+                    // 获取所有的数据
+                    data = await loadData({
+                      handle: dataHandle,
+                      level: 100,
+                    });
+
+                    // 写入数据
+                    await targetFileHandle.write(JSON.stringify(data));
+
+                    const targetItem = this.allDevices.find(
+                      (item) => item.userId === e.userId
+                    );
+
+                    if (targetItem) {
+                      targetItem.time = data.cardsLastModified;
+                      targetItem._mainData = data;
+                    }
+                  }
+                }
+              })
+            );
+
+            this.syncing = false;
+          },
+          clickItem(item) {
+            this.emit("click-item", {
+              data: item,
+            });
+          },
+          async loadLocal() {
+            // 获取专属文件句柄
+            const handle = await this.app.dedicatedHandle();
+
+            const dataHandle = await handle.get("data", {
+              create: "dir",
+            });
+
+            const mainData = await createData(dataHandle);
+
+            await mainData.ready(true);
+
+            this.app._mainData = mainData;
+
+            this.allDevices.unshift({
+              userId: localUser.userId,
+              _mainData: mainData,
+            });
+
+            // 初次加载时，进行一次冒泡让上层也更新
+            this.clickItem(this.allDevices[0]);
+
+            this.emit("local-loaded", {
+              data: {
+                mainData,
+              },
+            });
+          },
+          async loadOtherDevices() {
+            const handle = await this.app.dedicatedHandle();
+            const backupHandle = await handle.get("backup");
+            if (backupHandle) {
+              for await (let item of backupHandle.values()) {
+                const userId = item.name.replace(/\.json$/, "");
+                const data = {};
+                try {
+                  let fdata = await item.text();
+                  fdata = JSON.parse(fdata);
+                  Object.assign(data, fdata);
+                } catch (err) {
+                  console.warn(err);
+                }
+
+                // 查看是否已存在，已存在就更新 _mainData
+                const target = this.allDevices.find((e) => e.userId === userId);
+                if (target) {
+                  target._mainData = data;
+                  continue;
+                }
+
+                this.allDevices.push({
+                  userId,
+                  _mainData: data,
+                  time: data.cardsLastModified,
+                });
+              }
+            }
+
+            // 补充没有出现的设备项目
+            const devices = await localUser.myDevices();
+
+            for (let device of devices) {
+              const exited = this.allDevices.find(
+                (e) => e.userId === device.userId
+              );
+
+              if (!exited) {
+                this.allDevices.push({
+                  userId: device.userId,
+                  isEmpty: true,
+                });
+              }
+            }
+          },
+        },
+        async attached() {
+          await this.loadLocal();
+          this.loadOtherDevices();
+
+          (async () => {
+            const devices = await localUser.myDevices();
+
+            devices.forEach((e) => {
+              // 提前连接
+              localUser.connectUser(e.userId);
+            });
+          })();
+        },
+        detached() {
+          if (this.app._mainData) {
+            const mainData = this.app._mainData;
+            mainData.disconnect();
+            this.app._mainData = null;
+          }
+        },
+      };
+    };
+  </script>
+</template>

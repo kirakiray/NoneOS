@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>添加设备</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <link rel="stylesheet" href="/packages/pui/css/public.css" />
+    <link rel="stylesheet" href="/packages/others/colors.css" pui-colors />
+    <script type="module" src="/packages/pui/public/init.js"></script>
+    <style>
+      html,
+      body {
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        /* font: 400 1em/1.8 -apple-system, BlinkMacSystemFont, Segoe UI,
+          Microsoft Yahei, Helvetica, Arial, sans-serif, Apple Color Emoji,
+          Segoe UI Emoji; */
+        font: 16px / 24px ui-sans-serif, -apple-system, "system-ui",
+          "Segoe UI Variable Display", "Segoe UI", Helvetica, "PingFang SC",
+          "Microsoft YaHei", Helvetica, "Apple Color Emoji", Arial, sans-serif,
+          "Segoe UI Emoji", "Segoe UI Symbol";
+        -webkit-font-smoothing: auto;
+        background-size: cover;
+        background-position: center;
+        background-image: url("/others/bg/daniel-leone-g30P1zcOzXo-unsplash.jpg");
+      }
+
+      #snackbar-container {
+        box-sizing: border-box;
+        padding-bottom: 40px;
+      }
+
+      /* 弹窗样式 */
+      .popup-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+      }
+
+      .popup-container {
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+        max-width: 1000px;
+        max-height: 80vh;
+        width: 90%;
+        height: auto;
+        overflow: auto;
+        background-color: var(--md-sys-color-surface-variant);
+        backdrop-filter: blur(5px);
+      }
+
+      .popup-content {
+        padding: 12px 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="popup-overlay">
+      <div class="popup-container">
+        <div class="popup-content">
+          <o-page src="./invite.html"></o-page>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

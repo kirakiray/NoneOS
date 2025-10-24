@@ -1,0 +1,35 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+  <div class="main"></div>
+  <script>
+    export default async ({ load }) => {
+      const { toSvg } = await load("./jdenticon-module.mjs");
+
+      return {
+        tag: "jdent-icon",
+        attrs: {
+          value: "",
+        },
+        data: {
+          imgsrc: "",
+        },
+        watch: {
+          value(newValue) {
+            this.shadow.$(".main").html = toSvg(newValue, 128);
+          },
+        },
+      };
+    };
+  </script>
+</template>

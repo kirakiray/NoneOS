@@ -1,0 +1,367 @@
+<template page>
+  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+        Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    }
+
+    .container {
+      margin: 0 auto;
+      padding: 24px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 600;
+      text-align: center;
+      margin: 0 0 24px 0;
+      color: var(--md-sys-color-on-surface, #333);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 24px;
+      transition: box-shadow 0.2s ease;
+    }
+
+    .user-card:hover {
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .avatar-container {
+      flex-shrink: 0;
+    }
+
+    jdent-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .info {
+      margin-left: 16px;
+      flex: 1;
+    }
+
+    .info > div {
+      padding: 4px 0;
+    }
+
+    .label {
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface-variant, #666);
+      display: inline-block;
+      width: 70px;
+      margin-right: 8px;
+    }
+
+    .value {
+      color: var(--md-sys-color-on-surface, #333);
+      font-weight: 400;
+    }
+
+    .confirm-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: var(--md-sys-color-on-surface, #333);
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .warning {
+      padding: 16px;
+      background: #fff8e1;
+      border-left: 4px solid #ffc107;
+      border-radius: 4px;
+      margin: 24px 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .warning-title {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #e65100;
+    }
+
+    .button-container {
+      margin-top: 16px;
+      text-align: center;
+    }
+  </style>
+  <div class="container">
+    <h1>
+      <localized-content>
+        <span lang="cn">添加设备</span>
+        <span lang="en">Add Device</span>
+        <span lang="ja">デバイスを追加</span>
+      </localized-content>
+    </h1>
+    <div class="user-card">
+      <div class="avatar-container">
+        <jdent-icon
+          :value="targetUserId"
+          style="width: 72px; height: 72px"
+        ></jdent-icon>
+      </div>
+      <div class="info">
+        <div>
+          <span class="label">
+            <localized-content>
+              <span lang="cn">用户名</span>
+              <span lang="en">Username</span>
+              <span lang="ja">ユーザー名</span>
+            </localized-content>
+          </span>
+          <span class="value">{{userName}}</span>
+        </div>
+        <div>
+          <span class="label">
+            <localized-content>
+              <span lang="cn">UserID</span>
+              <span lang="en">UserID</span>
+              <span lang="ja">ユーザーID</span>
+            </localized-content>
+          </span>
+          <span class="value" style="word-break: break-word"
+            >{{targetUserId}}</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <o-if :value="!isAuthorized && !isMe">
+      <p class="confirm-text">
+        <localized-content>
+          <span lang="cn"
+            >确认添加 <strong>{{userName}}</strong> 作为你的设备吗？</span
+          >
+          <span lang="en"
+            >Confirm adding <strong>{{userName}}</strong> as your device?</span
+          >
+          <span lang="ja"
+            >ユーザー
+            <strong>{{userName}}</strong>
+            をあなたのデバイスとして追加しますか？</span
+          >
+        </localized-content>
+      </p>
+
+      <div class="warning">
+        <div class="warning-title">
+          <localized-content>
+            <span lang="cn">重要提醒</span>
+            <span lang="en">Important Reminder</span>
+            <span lang="ja">重要な注意事項</span>
+          </localized-content>
+        </div>
+        <div>
+          <localized-content>
+            <span lang="cn"
+              >此操作不可逆，一旦授予对方权限，对方将能够访问该设备的数据，请仔细确认后再操作。</span
+            >
+            <span lang="en"
+              >This action is irreversible. Once you grant permission to the
+              other user, they will be able to access your device data. Please
+              confirm carefully before proceeding.</span
+            >
+            <span lang="ja"
+              >この操作は不可逆です。他のユーザーに権限を与えると、彼らがあなたのデバイスデータにアクセスできるようになります。操作を続行する前に、十分に確認してください。</span
+            >
+          </localized-content>
+        </div>
+      </div>
+    </o-if>
+
+    <o-if :value="!foundUser && !isAuthorized">
+      <p class="confirm-text">
+        <localized-content>
+          <span lang="cn">未能找到对方设备，请确保该设备处于开启状态。</span>
+          <span lang="en"
+            >Failed to find the other user's device. Please ensure that the
+            device is turned on.</span
+          >
+          <span lang="ja"
+            >他のユーザーのデバイスを見つけることができませんでした。デバイスがオンになっていることを確認してください。</span
+          >
+        </localized-content>
+      </p>
+    </o-if>
+    <o-else-if :value="isMe">
+      <p class="confirm-text">
+        <localized-content>
+          <span lang="cn">请将此地址发送给您想要添加的其他设备。</span>
+          <span lang="en"
+            >Please send this address to the other device you want to add.</span
+          >
+          <span lang="ja"
+            >他のユーザーに追加したいデバイスにこのアドレスを送信してください。</span
+          >
+        </localized-content>
+      </p>
+    </o-else-if>
+    <o-else>
+      <div class="button-container">
+        <p-button
+          on:click="confirmAdd"
+          attr:disabled="isAuthorized || clicked || isMe"
+        >
+          <o-if :value="isMe">
+            <localized-content>
+              <span lang="cn">不能添加自己</span>
+              <span lang="en">Cannot add yourself</span>
+              <span lang="ja">自分自身を追加することはできません</span>
+            </localized-content>
+          </o-if>
+          <o-else-if :value="isAuthorized">
+            <localized-content>
+              <span lang="cn">已授权</span>
+              <span lang="en">Authorized</span>
+              <span lang="ja">承認済み</span>
+            </localized-content>
+          </o-else-if>
+          <o-else-if :value="clicked">
+            <localized-content>
+              <span lang="cn">等待对方确认</span>
+              <span lang="en">Waiting for the other user to confirm</span>
+              <span lang="ja">他のユーザーが確認するのを待っています</span>
+            </localized-content>
+            <n-local-icon></n-local-icon>
+          </o-else-if>
+          <o-else>
+            <localized-content>
+              <span lang="cn">确认添加设备</span>
+              <span lang="en">Confirm adding device</span>
+              <span lang="ja">デバイスを追加する</span>
+            </localized-content>
+          </o-else>
+        </p-button>
+      </div>
+    </o-else>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { verifyDeviceData } = await load(
+        "/packages/apps/link-me.napp/util/verify-device-data.js"
+      );
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+      const certManager = await localUser.certManager();
+
+      // 获取连接参数
+      const params = new URLSearchParams(location.search);
+      const targetUserId = params.get("userId"); // 对面设备的userId
+      const inviteCode = params.get("inviteCode"); // 邀请ID
+
+      return {
+        data: {
+          targetUserId,
+          userName: "Unknown",
+          _remoteUser: null,
+          clicked: false,
+          isAuthorized: false, // 是否已经授权
+          isMe: targetUserId === localUser.userId,
+          foundUser: true, // 是否找到用户
+        },
+        proto: {
+          async refreshState() {
+            // 检查是否已经存在我授权给对方的设备证书
+            const myCertIssuedToRemote = await certManager.get({
+              role: "device",
+              issuedTo: targetUserId,
+            });
+
+            // 查看对方是否有授权给我的设备证书
+            const remoteCertIssuedToMe = await certManager.query({
+              role: "device",
+              issuedTo: localUser.userId,
+              issuedBy: targetUserId,
+            });
+
+            if (
+              myCertIssuedToRemote.length > 0 &&
+              remoteCertIssuedToMe.length > 0
+            ) {
+              // 已经存在授权关系
+              this.isAuthorized = true;
+            }
+          },
+          async sendInvite() {
+            try {
+              const remoteUser = (this._remoteUser =
+                await localUser.connectUser({
+                  userId: targetUserId,
+                }));
+
+              // 获取对方的用户卡片
+              const info = await remoteUser.info();
+              this.userName = info.name;
+            } catch (error) {
+              this.foundUser = false;
+            }
+          },
+          async confirmAdd() {
+            const remoteUser = this._remoteUser;
+            this.clicked = true;
+
+            // 给对方签发设备证书
+            const cert = await certManager.issue({
+              role: "device",
+              userId: targetUserId,
+            });
+
+            // 保存授权给对方的设备证书
+            this._authorizedDeviceCert = cert;
+
+            const signedData = await localUser.createCard({
+              inviteCode,
+              cert,
+            });
+
+            // 触发对方的事件
+            remoteUser.trigger(`pair-confirm:${inviteCode}`, signedData);
+          },
+        },
+        attached() {
+          this.sendInvite();
+          this.refreshState();
+
+          this._unregister = localUser.register(
+            `response-pair-confirm:${inviteCode}`,
+            async (e) => {
+              const { data } = e;
+              if (data) {
+                try {
+                  // 验证设备数据
+                  await verifyDeviceData(data, localUser);
+                } catch (error) {
+                  // TODO: 验证失败，提示用户可能有攻击
+                  debugger;
+                  return;
+                }
+                // 保存双方的设备证书
+                await certManager.save(data.cert);
+                await certManager.save(this._authorizedDeviceCert);
+                this.refreshState();
+              }
+            }
+          );
+        },
+        detached() {
+          this._unregister();
+        },
+      };
+    };
+  </script>
+</template>

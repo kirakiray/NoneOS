@@ -1,10 +1,16 @@
 {
   "name": "noneos",
-  "version": "3.1.24",
+  "version": "3.2.0",
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
-    "static": "node scripts/static-server & node server/test-server.js & node server/test-server2.js & node server/crossway-server.js",
+    "static": "node scripts/static-server",
+    "start": "npm run static & npm run both-server",
+    "both-server": "node server/start.js --port=18290 --name=node-hand-server1 & node server/start.js --port=18291 --name=node-hand-server2",
+    "dev": "npm run static & npm run both2",
+    "both2": "npm run node2 & npm run bun2",
+    "node2": "node --inspect server/start.js --port=18290 --name=node-hand-server",
+    "bun2": "bun --inspect server/start.js --port=18291 --name=bun-hand-server",
     "update-test": "node scripts/update-test.js && node scripts/generate-specs.js",
     "test": "npx playwright test",
     "bu": "npm run build-sw && npm run build-sw-min && npm run build-server && npm run buhash && npm run zippkg && npm run update-test",
@@ -12,16 +18,15 @@
     "buhash": "node scripts/calculateHashes.js",
     "build-sw": "rollup sw/main.js --file sw/dist.js --format iife",
     "build-sw-min": "rollup sw/main.js --file sw/dist.min.js --format iife --plugin terser",
-    "build-server": "rollup server/main.js --file server/dist.js --sourcemap",
+    "build-server": "rollup server/src/index.js --file server/dist/index.js --sourcemap",
     "hand": "nodemon --inspect server/test-server.js",
-    "dev": "node scripts/static-server & node --inspect server/test-server.js & node server/test-server2.js & node server/crossway-server.js",
     "ci-test": "node scripts/ci-test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kirakiray/NoneOS.git"
   },
-  "author": "Yew",
+  "author": "Yao",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/kirakiray/NoneOS/issues"

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New User Creation Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <!-- <script src="/sw/register.js" type="module"></script> -->
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/user/main.js";
+
+      await test("Create User Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user1" });
+
+        // 检查用户对象是否正确创建
+        const hasUserId = !!user.userId;
+        const hasSignMethod = typeof user.sign === "function";
+        const hasVerifyMethod = typeof user.verify === "function";
+
+        return {
+          assert: hasUserId && hasSignMethod && hasVerifyMethod,
+          content: {
+            message: "用户创建成功",
+            userId: user.userId,
+            hasSignMethod,
+            hasVerifyMethod,
+          },
+        };
+      });
+
+      await test("User Sign and Verify Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user2" });
+
+        const testData = {
+          message: "Hello, NoneOS!",
+          type: "text",
+          extra: {
+            foo: "bar",
+            num: 123,
+          },
+        };
+
+        // 用户签名数据
+        const signedData = await user.sign(testData);
+
+        // 验证签名
+        const verifyResult = await user.verify(signedData);
+
+        return {
+          assert: verifyResult === true,
+          content: {
+            message: "用户签名和验证成功",
+            testData,
+            signedData,
+            verified: verifyResult,
+          },
+        };
+      });
+
+      await test("Multiple Users Independent Keys Test", async () => {
+        // 创建两个不同的用户
+        const user1 = await createUser({ user: "test-user3" });
+        const user2 = await createUser({ user: "test-user4" });
+
+        const testData = {
+          message: "Multi-user test message",
+          type: "text",
+        };
+
+        // 使用两个不同的用户签名相同的数据
+        const user1SignedData = await user1.sign(testData);
+        const user2SignedData = await user2.sign(testData);
+
+        // 验证两个签名
+        const isUser1Valid = await user1.verify(user1SignedData);
+        const isUser2Valid = await user2.verify(user2SignedData);
+
+        // 验证公钥是否不同
+        const differentKeys =
+          user1SignedData.publicKey !== user2SignedData.publicKey;
+
+        return {
+          assert: isUser1Valid && isUser2Valid && differentKeys,
+          content: {
+            message: "多用户独立密钥测试成功",
+            user1PublicKey: user1SignedData.publicKey,
+            user2PublicKey: user2SignedData.publicKey,
+            bothSignaturesValid: isUser1Valid && isUser2Valid,
+            differentPublicKeys: differentKeys,
+          },
+        };
+      });
+      await test("Tampered Data Verification Test", async () => {
+        // 创建新用户
+        const user = await createUser({ user: "test-user5" });
+
+        const originalData = {
+          message: "Original message",
+          timestamp: Date.now(),
+        };
+
+        // 签名原始数据
+        const signedData = await user.sign(originalData);
+
+        // 创建几个篡改后的数据
+        const tamperedTests = [
+          {
+            name: "修改数据内容",
+            data: {
+              ...signedData,
+              // 假设原始数据的 message 字段在签名后存储在 signedData 里也是 `message` 字段
+              message: "Tampered message",
+            },
+          },
+          {
+            name: "修改签名",
+            data: {
+              ...signedData,
+              signature: signedData.signature.slice(0, -1) + "A",
+            },
+          },
+        ];
+
+        // 验证所有篡改情况
+        const results = await Promise.all(
+          tamperedTests.map(async (testCase) => { // 将变量名 test 改为 testCase，避免与外部 test 函数冲突
+            const verifyResult = await user.verify(testCase.data);
+            return {
+              name: testCase.name,
+              verified: verifyResult,
+            };
+          })
+        );
+
+        const allTamperedFailed = results.every((r) => r.verified === false);
+
+        return {
+          assert: allTamperedFailed,
+          content: {
+            message: "篡改验证测试成功",
+            results,
+            allTamperedFailed,
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

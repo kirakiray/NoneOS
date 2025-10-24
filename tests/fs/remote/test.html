@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      html {
+        background-color: rgb(34, 34, 34);
+      }
+    </style>
+  </head>
+  <body>
+    <script type="module">
+      import { get as localGet } from "/packages/fs/handle/main.js";
+      import { createGet } from "../../../packages/fs/fs-remote/main.js";
+      import { createUser } from "/packages/user/main.js";
+      import { get as mainGet } from "/packages/fs/main.js";
+
+      const user1 = await createUser({ user: "test-user1" });
+      const user2 = await createUser({ user: "test-user2" });
+
+      // 初始化角色管理器
+      const certManager1 = await user1.certManager();
+      const certManager2 = await user2.certManager();
+
+      // 授权给用户2设备权限
+      const cert1 = await certManager2.issue({
+        userId: user1.userId,
+        role: "device",
+      });
+      // 授权给用户1设备权限
+      const cert2 = await certManager1.issue({
+        userId: user2.userId,
+        role: "device",
+      });
+
+      // 保证user2连上服务器
+      await user2.connectServer("ws://localhost:18290");
+
+      const lo2 = await mainGet(`$user-${user2.userId}:local`);
+
+      const remoteUser2 = await user1.connectUser(user2.userId);
+
+      await remoteUser2.initRTC();
+
+      const get = createGet({ remoteUser: remoteUser2 });
+
+      // TODO生成一个1m 的txt file对象，内容随机
+      const generateRandomString = (length) => {
+        let result = "";
+        const characters =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        const charactersLength = characters.length;
+        for (let i = 0; i < length; i++) {
+          result += characters.charAt(
+            Math.floor(Math.random() * charactersLength)
+          );
+        }
+        return result;
+      };
+
+      let oneMFile = null;
+      let oneMFileContent;
+
+      {
+        let oneMFileHandle = await localGet("local/test/random-1m.txt");
+
+        if (!oneMFileHandle) {
+          // 生成1MB随机字符串
+          oneMFileContent = generateRandomString(1024 * 1024);
+          oneMFile = new File([oneMFileContent], "random-1m.txt", {
+            type: "text/plain",
+          });
+
+          // 写入文件到当前目录
+          oneMFileHandle = await localGet("local/test/random-1m.txt", {
+            create: "file",
+          });
+          await oneMFileHandle.write(oneMFile);
+        } else {
+          oneMFile = await oneMFileHandle.file();
+          oneMFileContent = await oneMFile.text();
+        }
+      }
+
+      const remoteHandle = await get("local");
+
+      {
+        // 模拟远端获取完整的文件;
+        const testHandle = await remoteHandle.get("test/random-1m.txt");
+        // 读取远程文件内容
+        const content = await testHandle.text();
+        // console.log("content: ", content);
+        console.log("bool1: ", content === oneMFileContent); //  true
+      }
+
+      // const newFile = oneMFile;
+      // const newFileContent = await newFile.text();
+      const newFileContent = generateRandomString(1024 * 1024);
+      const newFile = new File([newFileContent], "random-1m-2.txt", {
+        type: "text/plain",
+      });
+
+      // 写入远程文件
+      const handle2 = await remoteHandle.get("test/random-1m-2.txt", {
+        create: "file",
+      });
+      await handle2.write(newFile);
+
+      {
+        const start = 255 * 1024 + 1; // 刚好占用第2个块
+        const end = 255 * 1024 * 2 + 5; // 刚好占用第4个块
+        // 获取隔开1个块的数据
+        const someContent1 = await handle2.text({
+          start: start,
+          end: end,
+        });
+
+        console.log(
+          "bool2: ",
+          someContent1 === newFileContent.slice(start, end)
+        ); // true
+      }
+
+      {
+        // 获取同一个块区间的数据模拟远端获取同一个块区间的数据
+        const start = 255 * 1024 + 120; // 从第2个块的第120字节开始
+        const end = 255 * 1024 + 300; // 第2个块的第300字节结束
+
+        const someContent2 = await handle2.text({
+          start: start,
+          end: end,
+        });
+
+        console.log(
+          "bool3: ",
+          someContent2 === newFileContent.slice(start, end)
+        ); // true
+
+        console.log("someContent2: ", someContent2);
+      }
+
+      {
+        const keys = [];
+        for await (let key of remoteHandle.keys()) {
+          keys.push(key);
+        }
+        console.log("keys: ", keys);
+      }
+
+      {
+        const dirs = [];
+        for await (let dir of remoteHandle.values()) {
+          dirs.push(dir);
+        }
+        console.log("dirs: ", dirs);
+      }
+
+      {
+        const { parent } = handle2;
+        console.log("parent: ", parent);
+        console.log("parent.length: ", await parent.length());
+      }
+
+      {
+        const id = await handle2.id();
+        const handle2_backup = await get(handle2._path);
+        const size = await handle2.size();
+        console.log("size: ", size);
+        console.log("id: ", id);
+        console.log(
+          "isSame: ",
+          await handle2.isSame(handle2_backup),
+          handle2_backup === handle2
+        ); // true false
+      }
+
+      {
+        let count = 0;
+        const parent = await handle2.parent;
+        const cancelFunc1 = await parent.observe((e) => {
+          if (count > 0) {
+            throw new Error("observe should only be called once");
+          }
+          remoteUser2;
+          console.log(
+            "observe path",
+            e.path === `$user-${user2.userId}:local/test/random-1m.txt`
+          ); //  true
+          count++;
+        });
+
+        // 模拟本地修改内容
+        const handle = await localGet("local/test/random-1m.txt");
+        await handle.write("haha-" + Math.random().toString().slice(2));
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        cancelFunc1();
+
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await handle.write("haha-" + Math.random().toString().slice(2)); // 因为已经取消了监听，再次写入则不会被触发
+      }
+
+      // 删除证书授权，方便下次测试
+      await certManager1.delete(cert2.id);
+      await certManager2.delete(cert1.id);
+    </script>
+  </body>
+</html>

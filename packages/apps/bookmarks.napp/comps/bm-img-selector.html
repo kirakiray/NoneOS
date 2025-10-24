@@ -9,6 +9,7 @@
     .container {
       display: flex;
       gap: 10px;
+      padding: 8px;
     }
 
     .block {
@@ -60,7 +61,11 @@
         <bm-img attr:src="defaultPic"></bm-img>
       </o-if>
       <div class="block-title">
-        <n-desc name="defaultThumbnail" space="bookmarks"></n-desc>
+        <localized-content>
+          <span lang="cn">默认缩略图</span>
+          <span lang="en">Default Thumbnail</span>
+          <span lang="ja">デフォルトサムネイル</span>
+        </localized-content>
       </div>
     </div>
     <div
@@ -75,7 +80,11 @@
         <n-local-icon name="link" style="font-size: 30px"></n-local-icon>
       </o-else>
       <div class="block-title">
-        <n-desc name="enterImageUrl" space="bookmarks"></n-desc>
+        <localized-content>
+          <span lang="cn">输入图片URL</span>
+          <span lang="en">Enter Image URL</span>
+          <span lang="ja">画像URLを入力</span>
+        </localized-content>
       </div>
     </div>
     <div
@@ -90,7 +99,11 @@
         <bm-img attr:src="pastePic"></bm-img>
       </o-else>
       <div class="block-title">
-        <n-desc name="directPasteImage" space="bookmarks"></n-desc>
+        <localized-content>
+          <span lang="cn">直接粘贴图片</span>
+          <span lang="en">Direct Paste Image</span>
+          <span lang="ja">直接貼り付け画像</span>
+        </localized-content>
       </div>
     </div>
     <div
@@ -109,7 +122,11 @@
         variant="text"
         style="margin-top: 6px"
         on:click="shadow.$('#fileInputer').ele.click()"
-        ><n-desc name="selectImage" space="bookmarks"></n-desc
+        ><localized-content>
+          <span lang="cn">选择图片</span>
+          <span lang="en">Select Image</span>
+          <span lang="ja">画像を選択</span>
+        </localized-content
       ></p-button>
     </div>
   </div>
@@ -132,7 +149,11 @@
     <div style="margin-top: 16px">
       <p-input sync:value="customPic">
         <label>
-          <n-desc name="enterCustomThumbnailUrl" space="bookmarks"></n-desc>
+          <localized-content>
+            <span lang="cn">输入自定义缩略图URL</span>
+            <span lang="en">Enter Custom Thumbnail URL</span>
+            <span lang="ja">カスタムサムネイルURLを入力</span>
+          </localized-content>
         </label>
       </p-input>
     </div>
@@ -140,15 +161,19 @@
 
   <o-if :value="type === 'paste-image'">
     <p-input
-      on:focus="focusInPasteInputer = true"
-      on:blur="focusInPasteInputer = false"
-      sync:value="pasterVal"
-      style="margin-top: 16px"
-    >
-      <label>
-        <n-desc name="pasteLabel" space="bookmarks"></n-desc>
-      </label>
-    </p-input>
+        on:focus="focusInPasteInputer = true"
+        on:blur="focusInPasteInputer = false"
+        sync:value="pasterVal"
+        style="margin-top: 16px"
+      >
+        <label>
+          <localized-content>
+            <span lang="cn">粘贴图片</span>
+            <span lang="en">Paste Image</span>
+            <span lang="ja">画像を貼り付け</span>
+          </localized-content>
+        </label>
+      </p-input>
   </o-if>
 
   <input
@@ -163,7 +188,7 @@
     export default async ({ load }) => {
       const { getFileHash } = await load("/packages/fs/util.js");
       const { toast } = await load("/packages/pui/util.js");
-      const { getText } = await load("/packages/i18n/data.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       return {
         tag: "bm-img-selector",
@@ -313,11 +338,19 @@
 
               if (pasteSucceed) {
                 // toast("已成功粘贴图片");
-                toast(getText("pasteSucceed", "bookmarks"));
+                toast(await getLocalized({
+                  cn: "已成功粘贴图片",
+                  en: "Image pasted successfully",
+                  ja: "画像の貼り付けに成功しました"
+                }));
               } else {
                 toast({
                   color: "error",
-                  content: getText("pasteFail", "bookmarks"),
+                  content: await getLocalized({
+                    cn: "粘贴图片失败",
+                    en: "Failed to paste image",
+                    ja: "画像の貼り付けに失敗しました"
+                  }),
                 });
               }
 

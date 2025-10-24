@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cert RTC Send Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/user/main.js";
+
+      await test("Cert RTC Send Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        try {
+          // user1授权给user2设备证书
+          const certManager2 = await user2.certManager();
+          const cert = await certManager2.issue({
+            userId: user1.userId,
+            role: "device",
+          });
+
+          // 保证user2连上服务器
+          const serverManager2 = await user2.serverManager();
+          await user2.connectServer(serverManager2.data[0].url);
+
+          // 用于接收数据的Promise
+          const receiveDataPromise = new Promise((resolve) => {
+            // user2监听获取数据的事件
+            const cancel1 = user2.bind("receive-data", (e) => {
+              const { fromUserId, fromUserSessionId, data, server, channel } =
+                e.detail;
+
+              // 通过 RTC 转发，server 字段应不存在
+              const isServerUndefined = server === undefined;
+
+              cancel1();
+              resolve({
+                data,
+                fromUserId,
+                fromUserSessionId,
+                channel,
+                isServerUndefined,
+              });
+            });
+          });
+
+          // 直接连接 user2
+          let remoteUser2;
+          try {
+            remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+            // 初始化RTC连接，完成后就会使用点对点进行数据通信
+            await remoteUser2.initRTC({
+              userSessionId: user2.sessionId,
+            });
+          } catch (error) {
+            throw new Error("连接用户或rtc初始化失败: " + error.message);
+          }
+
+          // 通过用户1发送二进制数据给用户2
+          const binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]); // "Hello" in ASCII
+          remoteUser2.post(binaryData);
+
+          // 等待接收数据，设置超时
+          const receivedData = await Promise.race([
+            receiveDataPromise,
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("接收数据超时")), 5000)
+            ),
+          ]);
+
+          // 验证接收到的数据
+          const isArrayEqual = Array.from(
+            new Uint8Array(receivedData.data)
+          ).every((value, index) => value === binaryData[index]);
+
+          const isFromCorrectUser = receivedData.fromUserId === user1.userId;
+          const isServerUndefined = receivedData.isServerUndefined;
+
+          // 删除证书授权，方便下次测试
+          await certManager2.delete(cert.id);
+
+          return {
+            assert: isArrayEqual && isFromCorrectUser && isServerUndefined,
+            content: {
+              message: "Cert RTC发送测试成功",
+              sentData: Array.from(binaryData),
+              receivedData: Array.from(receivedData.data),
+              fromUserId: receivedData.fromUserId,
+              isFromCorrectUser,
+              isServerUndefined,
+              isArrayEqual,
+            },
+          };
+        } catch (error) {
+          // 确保证书被删除，即使测试失败
+          try {
+            const certManager2 = await user2.certManager();
+            const certs = await certManager2.get({
+              role: "device",
+              issuedTo: user1.userId,
+            });
+
+            if (certs.length > 0) {
+              await certManager2.delete(certs[0].id);
+            }
+          } catch (deleteError) {
+            console.error("删除证书时出错:", deleteError);
+          }
+
+          throw error;
+        }
+      });
+
+      await test("Server Forwarding Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user3" });
+        const user2 = await createUser({ user: "test-user4" });
+
+        try {
+          // 保证user2连上服务器
+          const serverManager2 = await user2.serverManager();
+          await user2.connectServer(serverManager2.data[0].url);
+
+          // 用于接收数据的Promise
+          const receiveDataPromise = new Promise((resolve) => {
+            // user2监听获取数据的事件
+            const cancel1 = user2.bind("receive-data", (e) => {
+              const { fromUserId, fromUserSessionId, data, server, channel } =
+                e.detail;
+
+              // 通过服务器转发，server 字段应该存在
+              const isServerDefined = !!server;
+
+              cancel1();
+              resolve({
+                data,
+                fromUserId,
+                fromUserSessionId,
+                channel,
+                isServerDefined,
+                server,
+              });
+            });
+          });
+
+          // 直接连接 user2
+          let remoteUser2;
+          try {
+            remoteUser2 = await user1.connectUser({ userId: user2.userId });
+
+            await remoteUser2.initRTC(); // 即便尝试初始化RTC连接，但由于对方未添加设备，RTC连接将失败，数据会通过服务端进行转发
+          } catch (error) {
+            console.error("连接用户或rtc初始化失败:", error.message);
+          }
+
+          // 通过用户1发送二进制数据给用户2（应该通过服务器转发）
+          const binaryData = new Uint8Array([0x57, 0x6f, 0x72, 0x6c, 0x64]); // "World" in ASCII
+          remoteUser2.post(binaryData);
+
+          // 等待接收数据，设置超时
+          const receivedData = await Promise.race([
+            receiveDataPromise,
+            new Promise((_, reject) =>
+              setTimeout(() => reject(new Error("接收数据超时")), 5000)
+            ),
+          ]);
+
+          // 验证接收到的数据
+          const isArrayEqual = Array.from(
+            new Uint8Array(receivedData.data)
+          ).every((value, index) => value === binaryData[index]);
+
+          const isFromCorrectUser = receivedData.fromUserId === user1.userId;
+          const isServerDefined = receivedData.isServerDefined;
+
+          return {
+            assert: isArrayEqual && isFromCorrectUser && isServerDefined,
+            content: {
+              message: "服务器转发测试成功",
+              sentData: Array.from(binaryData),
+              receivedData: Array.from(receivedData.data),
+              fromUserId: receivedData.fromUserId,
+              isFromCorrectUser,
+              isServerDefined,
+              serverUrl: receivedData.server?.url,
+              isArrayEqual,
+            },
+          };
+        } catch (error) {
+          throw error;
+        }
+      });
+    </script>
+  </body>
+</html>

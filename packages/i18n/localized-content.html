@@ -15,7 +15,6 @@
   <script>
     export default async ({ load }) => {
       // 加载本机的语言
-      const { getLangAsync } = await load("./data.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
       const settingData = await getSetting();
 
@@ -23,10 +22,17 @@
         tag: "localized-content",
         data: {},
         proto: {
+          get text() {
+            const lang = settingData.lang;
+
+            const text = this.$(`[lang="${lang}"]`).text;
+
+            return text;
+          },
           refreshStyle() {
             this.shadow.$("#lang-style").html = `
               ::slotted([lang="${settingData.lang}"]) {
-                display: block;
+                display: inherit;
               }
             `;
           },

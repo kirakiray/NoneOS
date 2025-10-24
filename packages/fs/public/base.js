@@ -22,15 +22,6 @@ export class PublicBaseHandle {
     return this.name;
   }
 
-  async size() {
-    if (this.kind === "file") {
-      const file = await this.file();
-      return file.size;
-    }
-
-    return null;
-  }
-
   async copyTo(targetHandle, name) {
     const [finalTarget, finalName] = await resolveTargetAndName(
       targetHandle,
@@ -110,7 +101,7 @@ export class PublicBaseHandle {
       func,
       handle: this,
     };
-    
+
     observers.add(obj);
 
     return () => {

@@ -119,11 +119,6 @@
       await init("packages"); // 运行虚拟系统的文件
       await init("system"); // 存储系统初始化数据，这个目录不要暴露给用户
 
-      load("/packages/util/get-remotes.js"); // 初始化远端接收逻辑
-      load("/packages/user/main.js").then(({ init }) => {
-        init();
-      }); // 初始化服务端相关连接
-
       const { initHistory } = await load("./init-history.js");
       const { getSetting } = await load("/packages/none-os/setting.js");
       const { runApp, openApp, focusBarAppItem } = await load("./util.js");

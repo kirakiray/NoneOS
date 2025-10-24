@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>get file in change mode</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createGet } from "/packages/fs/fs-remote/main.js";
+      import { get as originGet } from "/packages/fs/main.js";
+      import { createUser } from "/packages/user/main.js";
+
+      // 创建两个用户
+      const user1 = await createUser({ user: "test-user1" });
+      const user2 = await createUser({ user: "test-user2" });
+
+      user1._ignoreCert = true;
+      user2._ignoreCert = true;
+
+      await user1.connectAllServers();
+      await user2.connectAllServers();
+
+      // user1授权给user2设备证书
+      const certManager2 = await user2.certManager();
+      const cert1 = await certManager2.issue({
+        userId: user1.userId,
+        role: "device",
+      });
+
+      // user2授权给user1设备证书
+      const certManager1 = await user1.certManager();
+      const cert2 = await certManager1.issue({
+        userId: user2.userId,
+        role: "device",
+      });
+
+      // 写入测试文件
+      const file1 = await originGet("local/test/test-file1.txt", {
+        create: "file",
+      });
+      await file1.write("hello world".repeat(100000));
+
+      const remoteUser = await user1.connectUser(user2.userId);
+
+      // 开始通过文件访问对方
+      const get = createGet({ remoteUser });
+
+      let remoteDirHandle = get("local/test");
+
+      // 请求时尝试转换模式
+      await remoteUser.initRTC();
+
+      remoteDirHandle = await remoteDirHandle;
+
+      const names = [];
+      for await (const entry of remoteDirHandle.values()) {
+        names.push(entry.name);
+      }
+
+      console.log(names);
+
+      await certManager2.delete(cert1.id);
+      await certManager1.delete(cert2.id);
+    </script>
+  </body>
+</html>
