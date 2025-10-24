@@ -15,6 +15,19 @@
   <div style="max-width: 600px; color: var(--md-sys-color-primary)">
     <n-copy-span> {{url}} </n-copy-span>
   </div>
+  <br />
+  <localized-content>
+    <p lang="cn">也可扫描二维码，在目标浏览器中打开。</p>
+    <p lang="en">
+      Alternatively, you can scan the QR code below to open it in the target
+      browser.
+    </p>
+    <p lang="jp">
+      または、下記の QR コードをスキャンして、ターゲット
+      ブラウザで開いてください。
+    </p>
+  </localized-content>
+  <div id="qrcode-container"></div>
   <o-page
     src="./pair-device.html"
     :invite-code="sessionInviteCode"
@@ -44,6 +57,22 @@
             e.stopPropagation();
             this.openDialog = true;
           },
+          async refreshErcode() {
+            const { default: QRCode } = await load(
+              "https://esm.sh/qrcode@1.5.3"
+            );
+
+            // 生成 Data URL
+            const url = await QRCode.toDataURL(this.url);
+            const img = document.createElement("img");
+            img.src = url;
+
+            this.shadow.$("#qrcode-container").push(img);
+            // document.body.appendChild(img);
+          },
+        },
+        attached() {
+          this.refreshErcode();
         },
       };
     };
