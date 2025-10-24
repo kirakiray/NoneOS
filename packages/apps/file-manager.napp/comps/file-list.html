@@ -91,6 +91,12 @@
       background: linear-gradient(to bottom, transparent 34px, var(--s-bg) 0);
       background-size: 34px 68px;
     }
+
+    @media (max-width: 768px) {
+      .hide-in-mobile {
+        display: none;
+      }
+    }
   </style>
 
   <div class="container">
@@ -104,7 +110,7 @@
           </localized-content>
         </div>
       </div>
-      <div class="file-item-cell" style="flex-grow: 0">
+      <div class="file-item-cell hide-in-mobile" style="flex-grow: 0">
         <localized-content>
           <span lang="en">Modify Time</span>
           <span lang="cn">修改时间</span>
@@ -118,7 +124,7 @@
           <span lang="ja">ファイルサイズ</span>
         </localized-content>
       </div>
-      <div class="file-item-cell small-cell">
+      <div class="file-item-cell small-cell hide-in-mobile">
         <localized-content>
           <span lang="en">File Type</span>
           <span lang="cn">文件类型</span>
@@ -165,11 +171,11 @@
               ></n-local-icon>
             </n-handle-block>
           </div>
-          <div class="file-item-cell" style="flex-grow: 0">
+          <div class="file-item-cell hide-in-mobile" style="flex-grow: 0">
             {{$data.lastModified}}
           </div>
           <div class="file-item-cell small-cell">{{$data.size || '--'}}</div>
-          <div class="file-item-cell small-cell">
+          <div class="file-item-cell small-cell hide-in-mobile">
             {{$host.getKind($data.kind)}}
           </div>
         </div>
