@@ -19,32 +19,39 @@ export class ServerManager {
       disconnect: false,
     });
 
-    if (!serversData.length) {
-      if (location.host === "localhost:5559") {
-        // 如果没有，则添加默认的服务器
-        serversData.push({
-          url: "ws://localhost:18290",
-        });
-        serversData.push({
-          url: "ws://localhost:18291",
-        });
-      } else {
-        // 添加在线版服务器
-        serversData.push(
-          {
-            url: "wss://hand-us1.noneos.com",
-          },
-          {
-            url: "wss://hand-jp1.noneos.com",
-          }
-        );
-      }
-    }
-
     this.#data = serversData;
+
+    if (!serversData.length) {
+      await this.reset();
+    }
   }
 
   get data() {
     return this.#data;
+  }
+
+  // 重置所有服务器
+  async reset() {
+    this.#data.splice(0, this.#data.length); // 先清空
+
+    if (location.host === "localhost:5559") {
+      // 如果没有，则添加默认的服务器
+      this.#data.push({
+        url: "ws://localhost:18290",
+      });
+      this.#data.push({
+        url: "ws://localhost:18291",
+      });
+    } else {
+      // 添加在线版服务器
+      this.#data.push(
+        {
+          url: "wss://hand-us1.noneos.com",
+        },
+        {
+          url: "wss://hand-jp1.noneos.com",
+        }
+      );
+    }
   }
 }
