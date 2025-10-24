@@ -3,6 +3,7 @@ import { BaseUser } from "./base-user.js";
 import { LocalUser } from "./local-user.js";
 import { broadcast } from "./util/broadcast.js";
 import trigger from "./internal/trigger.js";
+import { checkConnection } from "./util/re-connect.js";
 
 broadcast.addEventListener("message", async (event) => {
   const { type, detail } = event.data;
@@ -120,6 +121,8 @@ export const createUser = async (opts) => {
     localUsers[options.user] = user;
 
     await user.init();
+
+    checkConnection(user, { loop: true });
 
     return user;
   })());

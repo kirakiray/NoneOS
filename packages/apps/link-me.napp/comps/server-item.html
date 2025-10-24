@@ -73,7 +73,8 @@
     }
 
     [state="unauth"],
-    [state="closed"] {
+    [state="closed"],
+    [state="error"] {
       color: var(--md-sys-color-error);
       font-weight: 500;
     }
@@ -89,7 +90,8 @@
     }
 
     [circle-state="unauth"],
-    [circle-state="closed"] {
+    [circle-state="closed"],
+    [circle-state="error"] {
       background-color: var(--md-sys-color-error);
       box-shadow: 0 0 6px var(--md-sys-color-error);
     }
@@ -286,7 +288,7 @@
           async updateInfo() {
             if (!this._serverClient) {
               this.state = "error";
-              this.serverName = "Known";
+              this.serverName = "unknown";
               return;
             }
             this.state = this._serverClient.state;

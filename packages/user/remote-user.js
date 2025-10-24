@@ -88,8 +88,6 @@ export class RemoteUser extends BaseUser {
         serverManager.data.map(async (server) => {
           const serverClient = await this.#self.connectServer(server.url);
 
-          console.log("before: ", this.userId);
-
           const userData = await serverClient.findUser(this.userId);
 
           console.log("after1: ", this.userId);
