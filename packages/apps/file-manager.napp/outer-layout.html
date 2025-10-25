@@ -301,7 +301,7 @@
                 ],
               });
 
-              if (remoteUser.mode === 2) {
+              if (remoteUser.mode === 1 || remoteUser.mode === 2) {
                 const targetItem = this.remotes.find(
                   (item) => item.userId === remoteUser.userId
                 );
