@@ -45,7 +45,7 @@ export const checkAllConnection = (localUser, options) => {
 
             if (remoteUser.mode === 1) {
               // 再重新检查状态
-              await remoteUser.refreshMode();
+              // await remoteUser.refreshMode();
             }
           } catch (err) {
             console.warn("检查设备失败：", deviceId, err);

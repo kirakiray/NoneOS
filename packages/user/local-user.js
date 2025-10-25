@@ -380,7 +380,7 @@ export class LocalUser extends BaseUser {
         // 检查通信状态
         await user.checkServer();
 
-        user.refreshMode();
+        // user.refreshMode();
 
         return user;
       })());
