@@ -285,7 +285,6 @@ export class LocalUser extends BaseUser {
                 offBind();
                 resolve();
               } else if (serverClient.state === "closed") {
-                debugger;
                 // 发生关闭事件
                 cleanup("服务器关闭");
               }
@@ -381,7 +380,7 @@ export class LocalUser extends BaseUser {
         // 检查通信状态
         await user.checkServer();
 
-        user.refreshMode();
+        // user.refreshMode();
 
         return user;
       })());
