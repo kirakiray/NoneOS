@@ -264,7 +264,7 @@
                     (item) => item.userId === remoteUser.userId
                   );
 
-                  if (e.detail === 2) {
+                  if (e.detail === 2 || e.detail === 1) {
                     // 确保可用的时候，加上目录
                     if (targetItem && !targetItem.dirs.length) {
                       targetItem.dirs = [
@@ -277,6 +277,10 @@
                           path: `$user-${targetItem.userId}:local`,
                         },
                       ];
+                    }
+                  } else {
+                    if (targetItem && targetItem.dirs.length) {
+                      targetItem.dirs = [];
                     }
                   }
                 })
