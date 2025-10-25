@@ -12,6 +12,10 @@ document.addEventListener("visibilitychange", function () {
   }
 });
 
+window.addEventListener("blur", () => {
+  hasHidden = true;
+});
+
 // 进行重连
 export const checkAllConnection = (localUser, options) => {
   clearTimeout(localUser[reconnectTimerSym]);
