@@ -40,3 +40,24 @@ export const get = async (path, options) => {
 
   return systemHandleGet(path, options);
 };
+
+// 通过挂载的方式，将本地或远端的目录挂载到本地
+export const mount = async (options) => {
+  if (options) {
+    // 暂时还不支持 options 挂载模式
+    throw new Error("options is not supported");
+    return;
+  }
+
+  if (!window.showDirectoryPicker) {
+    throw new Error("showDirectoryPicker is not supported");
+  }
+
+  // 打开文件选择器
+  const directoryHandle = await window.showDirectoryPicker();
+
+  console.log("directoryHandle", directoryHandle);
+  // getUniqueId
+  const uniqueId = await directoryHandle.getUniqueId();
+  console.log("uniqueId", uniqueId);
+};
