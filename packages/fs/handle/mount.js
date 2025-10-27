@@ -1,5 +1,7 @@
 import { DirHandle } from "./dir.js";
 
+export const mountedDirs = [];
+
 export const mount = async (options) => {
   if (!window.showDirectoryPicker) {
     throw new Error("showDirectoryPicker is not supported");
@@ -9,13 +11,16 @@ export const mount = async (options) => {
 
   // 打开文件选择器
   const directoryHandle = await window.showDirectoryPicker({
+    id: options?.id,
     mode,
   });
 
-  //   const uniqueId = await directoryHandle.getUniqueId();
-  //   console.log("uniqueId", uniqueId);
+  const handle = new DirHandle(directoryHandle);
 
-  const dirHandle = new DirHandle(directoryHandle);
+  mountedDirs.push({
+    uniqueId: directoryHandle.getUniqueId(),
+    handle,
+  });
 
-  return dirHandle;
+  return handle;
 };
