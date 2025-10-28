@@ -75,6 +75,7 @@
       const { createUser } = await load("/packages/user/main.js");
 
       const localUser = await createUser();
+      localUser.connectAllServers();
       const myInfo = await localUser.info();
 
       return {
@@ -94,7 +95,9 @@
             }
           },
         },
-        attached() {},
+        attached() {
+          this.isSender = this.app.current.src.includes("sender.html");
+        },
       };
     };
   </script>

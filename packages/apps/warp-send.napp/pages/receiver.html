@@ -14,7 +14,10 @@
         <span lang="en">Waiting for file from other device...</span>
         <span lang="ja">他のデバイスからのファイルを待っています...</span>
       </localized-content>
-      <n-local-icon name="loading" style="margin-left: 8px;display: block;"></n-local-icon>
+      <n-local-icon
+        name="loading"
+        style="margin-left: 8px; display: block"
+      ></n-local-icon>
     </p>
     <p style="display: flex; align-items: center; justify-content: center">
       <localized-content>
@@ -42,9 +45,43 @@
     export const parent = "./layout.html";
 
     export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+
+      const localUser = await createUser();
+      const myInfo = await localUser.info();
+
       return {
         data: {},
-        proto: {},
+        proto: {
+          runRadiate(time) {
+            clearTimeout(this._radiate_timer);
+            // 每5秒广播一次
+            this._radiate_timer = setTimeout(() => {
+              //   localUser.trigger("warpsend-radiate", {
+              //     type: "file",
+              //     name: "test.txt",
+              //     size: 1024,
+              //   });
+
+              if (this.ele.isConnected) {
+                this.runRadiate();
+              }
+            }, time || 5000);
+          },
+        },
+        attached() {
+          this._cancels = [
+            localUser.register("warpsend-radiate", (data) => {
+              console.log("file received", data);
+            }),
+          ];
+
+          this.runRadiate(100); // 第一次快速广播
+        },
+        detached() {
+          clearTimeout(this._radiate_timer);
+          this._cancels.forEach((cancel) => cancel());
+        },
       };
     };
   </script>
