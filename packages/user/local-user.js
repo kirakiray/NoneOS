@@ -9,7 +9,7 @@ import CertManager from "./cert-manager.js";
 import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
 import { CardManager } from "./card-manager.js";
-import { broadcast } from "./util/broadcast.js";
+import { publicBroadcastChannel } from "./util/public-channel.js";
 
 // 本地用户类
 export class LocalUser extends BaseUser {
@@ -117,7 +117,7 @@ export class LocalUser extends BaseUser {
 
       if (message.userSessionId && message.userSessionId !== this.sessionId) {
         // 转发到指定的session标签页，并且不是当前session
-        broadcast.postMessage({
+        publicBroadcastChannel.postMessage({
           type: "rtc-agent-message",
           detail: {
             ...publicDetail,

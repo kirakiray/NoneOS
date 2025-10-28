@@ -1,7 +1,7 @@
 import { initDB } from "../util/init-db.js";
 import { verify } from "./util/verify.js";
 import { getHash } from "../fs/util.js";
-import { broadcast } from "./util/broadcast.js";
+import { publicBroadcastChannel } from "./util/public-channel.js";
 
 export class CardManager extends EventTarget {
   #self;
@@ -55,7 +55,7 @@ export class CardManager extends EventTarget {
 
       request.onsuccess = () => {
         resolve(cardData);
-        broadcast.postMessage({
+        publicBroadcastChannel.postMessage({
           type: "card-change",
           detail: {
             fromUserSessionId: this.#self.sessionId,

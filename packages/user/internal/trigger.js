@@ -1,4 +1,4 @@
-import { broadcast } from "../util/broadcast.js";
+import { publicBroadcastChannel } from "../util/public-channel.js";
 
 export default async function trigger({
   fromUserId,
@@ -23,7 +23,7 @@ export default async function trigger({
   // 如果是代理触发，不向其他标签发送数据
   if (!proxySessionId) {
     // 向其他标签发送数据
-    broadcast.postMessage({
+    publicBroadcastChannel.postMessage({
       type: "agent-trigger",
       detail: {
         proxySessionId: localUser.sessionId,
