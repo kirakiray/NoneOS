@@ -14,28 +14,39 @@
     }
   </style>
   <div class="title">
-    <h1>Warp Send</h1>
+    <h1 style="padding: 16px">WarpSend</h1>
     <p-button-group>
-      <p-button attr:variant="!isSender ? 'contained' : 'outlined'">
-        我是接收方
+      <p-button
+        on:click="clickType('receiver')"
+        attr:variant="!isSender ? 'contained' : 'outlined'"
+      >
+        <localized-content>
+          <span lang="cn">我是接收方</span>
+          <span lang="en">Receiver</span>
+          <span lang="ja">受信者</span>
+        </localized-content>
       </p-button>
-      <p-button attr:variant="isSender ? 'contained' : 'outlined'">
-        我是发送方
+      <p-button
+        on:click="clickType('sender')"
+        attr:variant="isSender ? 'contained' : 'outlined'"
+      >
+        <localized-content>
+          <span lang="cn">我是发送方</span>
+          <span lang="en">Sender</span>
+          <span lang="ja">送信者</span>
+        </localized-content>
       </p-button>
     </p-button-group>
   </div>
   <div style="flex: 1; position: relative">
     <div
-      style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        overflow-y: auto;
-      "
+      style="position: relative; margin: 0 auto; max-width: 800px; height: 100%"
     >
-      <slot></slot>
+      <div
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%"
+      >
+        <slot></slot>
+      </div>
     </div>
   </div>
   <script>
@@ -44,7 +55,17 @@
         data: {
           isSender: false,
         },
-        proto: {},
+        proto: {
+          clickType(type) {
+            this.isSender = type === "sender";
+
+            if (this.isSender) {
+              this.goto("./sender.html");
+            } else {
+              this.goto("./receiver.html");
+            }
+          },
+        },
         attached() {},
       };
     };

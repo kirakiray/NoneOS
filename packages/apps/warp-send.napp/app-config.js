@@ -16,3 +16,6 @@ export const pageAnime = {
 };
 
 export const allowForward = true;
+
+const load = lm(import.meta);
+load("/packages/i18n/localized-content.html");
