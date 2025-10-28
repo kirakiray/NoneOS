@@ -487,7 +487,16 @@ export class LocalUser extends BaseUser {
 
       const userCard = await cardManager.get(cert.issuedTo);
 
-      users.push(userCard);
+      if (userCard) {
+        users.push({
+          userId: cert.issuedTo,
+          userCard,
+        });
+      } else {
+        users.push({
+          userId: cert.issuedTo,
+        });
+      }
     }
 
     return users;

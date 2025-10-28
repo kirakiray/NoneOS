@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register Receiver user3</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        color: #fff;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <div>
+    <div>test-user3 - userId: <span id="user3-userId"></span></div>
+    <div id="receive-data"></div>
+  </div>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/user/main.js";
+
+      const user3 = await createUser({ user: "test-user3" });
+      await user3.connectAllServers();
+
+      document.getElementById("user3-userId").innerHTML = user3.userId;
+
+      window.user3 = user3;
+
+      // 注册事件处理器
+      user3.register("test1", ({ data, fromUserSessionId, fromUserId }) => {
+        console.log(
+          "Received test1 event:",
+          data,
+          fromUserSessionId,
+          fromUserId
+        );
+        document.getElementById("receive-data").innerHTML =
+          JSON.stringify(data);
+      });
+
+      user3.register("test3", ({ data }) => {
+        throw new Error("不应该触发");
+      });
+    </script>
+  </body>
+</html>

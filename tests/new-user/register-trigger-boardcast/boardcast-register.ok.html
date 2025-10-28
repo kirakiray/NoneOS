@@ -19,42 +19,66 @@
       const user2 = await createUser({ user: "test-user2" });
       const certManager2 = await user2.certManager();
 
-      // 互相授权设备证书
-      const cert1 = await certManager2.issue({
+      const user3 = await createUser({ user: "test-user3" });
+      const certManager3 = await user3.certManager();
+
+      // 让user2和user3授权给user1设备证书
+      const user2To1Cert = await certManager2.issue({
         userId: user1.userId,
         role: "device",
       });
-      const cert2 = await certManager1.issue({
+      const user1To2Cert = await certManager1.issue({
         userId: user2.userId,
         role: "device",
       });
-      await certManager2.save(cert2);
-      await certManager1.save(cert1);
+      const user3To1Cert = await certManager3.issue({
+        userId: user1.userId,
+        role: "device",
+      });
+      const user1To3Cert = await certManager1.issue({
+        userId: user3.userId,
+        role: "device",
+      });
+
+      await certManager1.save(user2To1Cert);
+      await certManager1.save(user3To1Cert);
+      await certManager2.save(user1To2Cert);
+      await certManager3.save(user1To3Cert);
 
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       // 按时塞入3个新的iframe 元素，每个添加的时候延迟100毫秒
       for (let i = 0; i < 3; i++) {
         const iframe = document.createElement("iframe");
-        iframe.src = "./receiver.html?tab" + (i + 1);
+        iframe.src = "./receiver-user2.html?tab" + (i + 1);
         iframe.frameborder = "0";
         document.body.appendChild(iframe);
+
+        const iframe2 = document.createElement("iframe");
+        iframe2.src = "./receiver-user3.html?tab" + (i + 1);
+        iframe2.frameborder = "0";
+        document.body.appendChild(iframe2);
+
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
 
       // 等待连接建立
       await new Promise((resolve) => setTimeout(resolve, 200));
 
-      // 开始发送广播
+      // user1开始发送广播
       await user1.broadcast("test1", {
         message: "Hello, World!",
       });
 
       // 删除证书授权，方便下次测试
-      await certManager1.delete(cert1.id);
-      await certManager1.delete(cert2.id);
-      await certManager2.delete(cert1.id);
-      await certManager2.delete(cert2.id);
+    //   await certManager1.delete(user2To1Cert.id);
+    //   await certManager1.delete(user1To2Cert.id);
+    //   await certManager1.delete(user1To3Cert.id);
+    //   await certManager1.delete(user3To1Cert.id);
+    //   await certManager2.delete(user2To1Cert.id);
+    //   await certManager2.delete(user1To2Cert.id);
+    //   await certManager3.delete(user3To1Cert.id);
+    //   await certManager3.delete(user1To3Cert.id);
     </script>
   </body>
 </html>
