@@ -30,9 +30,15 @@
       window.user2 = user2;
 
       // 注册事件处理器
-      user2.register("test1", ({ data }) => {
-        console.log("Received test1 event:", data);
-        document.getElementById("receive-data").innerHTML = JSON.stringify(data);
+      user2.register("test1", ({ data, fromUserSessionId, fromUserId }) => {
+        console.log(
+          "Received test1 event:",
+          data,
+          fromUserSessionId,
+          fromUserId
+        );
+        document.getElementById("receive-data").innerHTML =
+          JSON.stringify(data);
       });
 
       user2.register("test3", ({ data }) => {
