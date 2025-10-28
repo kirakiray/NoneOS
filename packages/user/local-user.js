@@ -198,10 +198,13 @@ export class LocalUser extends BaseUser {
     const myDevices = await this.myDevices();
 
     // 连接所有设备并发送数据
-    for (const device of myDevices) {
-      const remoteUser = await this.connectUser(device.userId);
-      remoteUser.trigger(name, data);
-    }
+    // 并行连接所有设备并触发事件
+    Promise.all(
+      myDevices.map(async (device) => {
+        const remoteUser = await this.connectUser(device.userId);
+        remoteUser.trigger(name, data);
+      })
+    );
   }
 
   // 获取用户信息对象
