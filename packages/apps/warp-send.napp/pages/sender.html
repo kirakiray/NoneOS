@@ -1,0 +1,19 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+    }
+  </style>
+  <div style="padding: 8px">发送方</div>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      return {
+        data: {},
+        proto: {},
+      };
+    };
+  </script>
+</template>

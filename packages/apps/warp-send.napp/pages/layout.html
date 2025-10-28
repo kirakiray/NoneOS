@@ -1,0 +1,52 @@
+<template page>
+  <l-m src="/packages/pui/button/group.html"></l-m>
+  <style>
+    :host {
+      display: flex !important;
+      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      background-color: var(--md-sys-color-surface-variant);
+    }
+    .title {
+      padding: 16px;
+      text-align: center;
+    }
+  </style>
+  <div class="title">
+    <h1>Warp Send</h1>
+    <p-button-group>
+      <p-button attr:variant="!isSender ? 'contained' : 'outlined'">
+        我是接收方
+      </p-button>
+      <p-button attr:variant="isSender ? 'contained' : 'outlined'">
+        我是发送方
+      </p-button>
+    </p-button-group>
+  </div>
+  <div style="flex: 1; position: relative">
+    <div
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+      "
+    >
+      <slot></slot>
+    </div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          isSender: false,
+        },
+        proto: {},
+        attached() {},
+      };
+    };
+  </script>
+</template>
