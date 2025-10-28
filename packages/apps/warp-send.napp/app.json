@@ -1,0 +1,15 @@
+{
+  "name": "WarpSend",
+  "icon": "logo.png",
+  "i18n": {
+    "cn": {
+      "name": "WarpSend"
+    },
+    "en": {
+      "name": "WarpSend"
+    },
+    "ja": {
+      "name": "WarpSend"
+    }
+  }
+}
