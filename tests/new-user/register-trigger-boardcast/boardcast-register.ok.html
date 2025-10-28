@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/user/main.js";
+
+      // 按时塞入3个新的iframe 元素，每个添加的时候延迟100毫秒
+      for (let i = 0; i < 3; i++) {
+        const iframe = document.createElement("iframe");
+        iframe.src = "./receive-case.html?tab" + (i + 1);
+        iframe.frameborder = "0";
+        document.body.appendChild(iframe);
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      // 创建一个新用户
+      const user1 = await createUser({ user: "test-user1" });
+      await user1.connectAllServers();
+
+      // 等待连接建立
+      await new Promise((resolve) => setTimeout(resolve, 200));
+
+      debugger;
+    </script>
+  </body>
+</html>
