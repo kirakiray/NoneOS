@@ -1,4 +1,5 @@
 <template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -6,7 +7,37 @@
       margin: 0 auto;
     }
   </style>
-  <div style="padding: 8px">接收方</div>
+  <div style="padding: 8px; text-align: center">
+    <p style="display: flex; align-items: center; justify-content: center">
+      <localized-content>
+        <span lang="cn">正在等待接收来自其他设备的文件…</span>
+        <span lang="en">Waiting for file from other device...</span>
+        <span lang="ja">他のデバイスからのファイルを待っています...</span>
+      </localized-content>
+      <n-local-icon name="loading" style="margin-left: 8px;display: block;"></n-local-icon>
+    </p>
+    <p style="display: flex; align-items: center; justify-content: center">
+      <localized-content>
+        <span lang="cn">文件将默认保存在：</span>
+        <span lang="en">Files will be saved to:</span>
+        <span lang="ja">ファイルは既定で保存されます：</span>
+      </localized-content>
+      <strong style="color: var(--primary-color)">
+        <localized-content>
+          <span lang="cn">浏览器缓存</span>
+          <span lang="en">Browser Cache</span>
+          <span lang="ja">ブラウザキャッシュ</span>
+        </localized-content>
+      </strong>
+      <p-button variant="outlined" size="small" style="margin-left: 8px">
+        <localized-content>
+          <span lang="cn">更改保存目录</span>
+          <span lang="en">Change Directory</span>
+          <span lang="ja">保存先を変更</span>
+        </localized-content>
+      </p-button>
+    </p>
+  </div>
   <script>
     export const parent = "./layout.html";
 

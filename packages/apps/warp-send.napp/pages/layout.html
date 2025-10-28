@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/pui/button/group.html"></l-m>
+  <l-m src="/packages/comps/id-avatar.html"></l-m>
   <style>
     :host {
       display: flex !important;
@@ -8,35 +9,55 @@
       height: 100%;
       background-color: var(--md-sys-color-surface-variant);
     }
-    .title {
+    .top {
       padding: 16px;
-      text-align: center;
     }
   </style>
-  <div class="title">
-    <h1 style="padding: 16px">WarpSend</h1>
-    <p-button-group>
-      <p-button
-        on:click="clickType('receiver')"
-        attr:variant="!isSender ? 'contained' : 'outlined'"
-      >
-        <localized-content>
-          <span lang="cn">我是接收方</span>
-          <span lang="en">Receiver</span>
-          <span lang="ja">受信者</span>
-        </localized-content>
-      </p-button>
-      <p-button
-        on:click="clickType('sender')"
-        attr:variant="isSender ? 'contained' : 'outlined'"
-      >
-        <localized-content>
-          <span lang="cn">我是发送方</span>
-          <span lang="en">Sender</span>
-          <span lang="ja">送信者</span>
-        </localized-content>
-      </p-button>
-    </p-button-group>
+  <div class="top">
+    <h1 style="padding: 16px 0 8px; text-align: center; font-size: 20px">
+      我的设备
+    </h1>
+    <div style="display: flex; align-items: center; justify-content: center">
+      <n-id-avatar
+        style="width: 48px; height: 48px; margin-right: 8px"
+        :val="userId"
+      ></n-id-avatar>
+      <div>
+        <div style="font-size: 16px">{{ userName }}</div>
+        <div style="font-size: 12px">
+          <localized-content>
+            <span lang="cn">用户ID</span>
+            <span lang="en">User ID</span>
+            <span lang="ja">ユーザーID</span>
+          </localized-content>
+          : {{ userId }}
+        </div>
+      </div>
+    </div>
+    <div style="text-align: center; margin-top: 16px">
+      <p-button-group>
+        <p-button
+          on:click="clickType('receiver')"
+          attr:variant="!isSender ? 'contained' : 'outlined'"
+        >
+          <localized-content>
+            <span lang="cn">我是接收方</span>
+            <span lang="en">Receiver</span>
+            <span lang="ja">受信者</span>
+          </localized-content>
+        </p-button>
+        <p-button
+          on:click="clickType('sender')"
+          attr:variant="isSender ? 'contained' : 'outlined'"
+        >
+          <localized-content>
+            <span lang="cn">我是发送方</span>
+            <span lang="en">Sender</span>
+            <span lang="ja">送信者</span>
+          </localized-content>
+        </p-button>
+      </p-button-group>
+    </div>
   </div>
   <div style="flex: 1; position: relative">
     <div
@@ -51,9 +72,16 @@
   </div>
   <script>
     export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+
+      const localUser = await createUser();
+      const myInfo = await localUser.info();
+
       return {
         data: {
           isSender: false,
+          userId: localUser.userId,
+          userName: myInfo.name,
         },
         proto: {
           clickType(type) {
