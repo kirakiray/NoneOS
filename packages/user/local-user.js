@@ -192,6 +192,18 @@ export class LocalUser extends BaseUser {
     };
   }
 
+  // 广播信息给所有设备
+  async broadcast(name, data) {
+    // 先获取所有的设备卡片
+    const myDevices = await this.myDevices();
+
+    // 连接所有设备并发送数据
+    for (const device of myDevices) {
+      const remoteUser = await this.connectUser(device.userId);
+      remoteUser.trigger(name, data);
+    }
+  }
+
   // 获取用户信息对象
   async info() {
     if (this.#info) {
