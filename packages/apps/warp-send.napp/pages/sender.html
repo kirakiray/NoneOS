@@ -12,6 +12,12 @@
       margin: 0 auto;
       padding: 16px;
     }
+    h4 {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      padding: 8px 0;
+    }
 
     n-user-avatar {
       margin-right: 8px;
@@ -21,6 +27,10 @@
 
     n-user-state {
       margin-left: 8px;
+    }
+
+    [show-only-sendable="on"] p-list-item[disabled] {
+      display: none;
     }
   </style>
   <h4>
@@ -33,7 +43,7 @@
       仅显示可发送设备
     </p-switch>
   </h4>
-  <p-list>
+  <p-list attr:show-only-sendable="showOnlySendable">
     <o-fill :value="devices">
       <p-list-item
         button
