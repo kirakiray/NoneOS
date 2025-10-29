@@ -3,11 +3,14 @@
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
   <style>
     :host {
       display: block;
+      box-sizing: border-box;
       height: 100%;
       margin: 0 auto;
+      padding: 16px;
     }
 
     n-user-avatar {
@@ -20,7 +23,16 @@
       margin-left: 8px;
     }
   </style>
-  <h4>选择发送到设备</h4>
+  <h4>
+    选择发送到设备
+    <p-switch
+      style="margin-left: 8px"
+      sync:value="showOnlySendable"
+      size="small"
+    >
+      仅显示可发送设备
+    </p-switch>
+  </h4>
   <p-list>
     <o-fill :value="devices">
       <p-list-item
@@ -57,6 +69,7 @@
         data: {
           receiverId: [], // 接收到的设备id
           devices: [],
+          showOnlySendable: "on",
         },
         proto: {
           async refreshDevices() {
