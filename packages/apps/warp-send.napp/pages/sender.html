@@ -4,6 +4,8 @@
   <l-m src="/packages/comps/user-state.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
@@ -42,6 +44,11 @@
       display: block;
       margin-left: 8px;
     }
+
+    n-local-icon {
+      display: block;
+      margin-right: 4px;
+    }
   </style>
   <h4>
     选择发送到设备
@@ -72,6 +79,16 @@
       </p-list-item>
     </o-fill>
   </p-list>
+  <div style="text-align: center; margin-top: 16px">
+    <p-button attr:disabled="!selectedUserId">
+      <n-local-icon name="file" slot="prefix"></n-local-icon>
+      选择文件
+    </p-button>
+    <p-button attr:disabled="!selectedUserId">
+      <n-local-icon name="folder" slot="prefix"></n-local-icon>
+      选择文件夹</p-button
+    >
+  </div>
   <script>
     export const parent = "./layout.html";
 
