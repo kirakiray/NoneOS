@@ -3,84 +3,178 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Broadcast Register Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+    <style>
+      iframe {
+        display: none;
+      }
+    </style>
   </head>
   <body>
     <script type="module">
+      import { test } from "/ok-test/main.js";
       import { createUser } from "/packages/user/main.js";
 
-      // 测试用户
-      const user1 = await createUser({ user: "test-user1" });
-      await user1.connectAllServers();
+      await test("Broadcast Registered Events Test", async () => {
+        // 创建用户
+        const user1 = await createUser({ user: "test-user1" });
+        await user1.connectAllServers();
 
-      // 提前授权设备证书
-      const certManager1 = await user1.certManager();
+        // 提前授权设备证书
+        const certManager1 = await user1.certManager();
 
-      const user2 = await createUser({ user: "test-user2" });
-      const certManager2 = await user2.certManager();
+        const user2 = await createUser({ user: "test-user2" });
+        const certManager2 = await user2.certManager();
 
-      const user3 = await createUser({ user: "test-user3" });
-      const certManager3 = await user3.certManager();
+        const user3 = await createUser({ user: "test-user3" });
+        const certManager3 = await user3.certManager();
 
-      // 让user2和user3授权给user1设备证书
-      const user2To1Cert = await certManager2.issue({
-        userId: user1.userId,
-        role: "device",
-      });
-      const user1To2Cert = await certManager1.issue({
-        userId: user2.userId,
-        role: "device",
-      });
-      const user3To1Cert = await certManager3.issue({
-        userId: user1.userId,
-        role: "device",
-      });
-      const user1To3Cert = await certManager1.issue({
-        userId: user3.userId,
-        role: "device",
-      });
+        // 让user2和user3授权给user1设备证书
+        const user2To1Cert = await certManager2.issue({
+          userId: user1.userId,
+          role: "device",
+        });
+        const user1To2Cert = await certManager1.issue({
+          userId: user2.userId,
+          role: "device",
+        });
+        const user3To1Cert = await certManager3.issue({
+          userId: user1.userId,
+          role: "device",
+        });
+        const user1To3Cert = await certManager1.issue({
+          userId: user3.userId,
+          role: "device",
+        });
 
-      await certManager1.save(user2To1Cert);
-      await certManager1.save(user3To1Cert);
-      await certManager2.save(user1To2Cert);
-      await certManager3.save(user1To3Cert);
-
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
-      // 按时塞入3个新的iframe 元素，每个添加的时候延迟100毫秒
-      for (let i = 0; i < 3; i++) {
-        const iframe = document.createElement("iframe");
-        iframe.src = "./receiver-user2.html?tab" + (i + 1);
-        iframe.frameborder = "0";
-        document.body.appendChild(iframe);
-
-        const iframe2 = document.createElement("iframe");
-        iframe2.src = "./receiver-user3.html?tab" + (i + 1);
-        iframe2.frameborder = "0";
-        document.body.appendChild(iframe2);
+        await certManager1.save(user2To1Cert);
+        await certManager1.save(user3To1Cert);
+        await certManager2.save(user1To2Cert);
+        await certManager3.save(user1To3Cert);
 
         await new Promise((resolve) => setTimeout(resolve, 100));
-      }
 
-      // 等待连接建立
-      await new Promise((resolve) => setTimeout(resolve, 200));
+        // 创建iframe来接收广播
+        const user2Iframes = [];
+        const user3Iframes = [];
 
-      // user1开始发送广播
-      await user1.broadcast("test1", {
-        message: "Hello, World!",
+        // 按时塞入3个新的iframe元素，每个添加的时候延迟100毫秒
+        for (let i = 0; i < 3; i++) {
+          const iframe = document.createElement("iframe");
+          iframe.src = "./receiver-user2.html?tab" + (i + 1);
+          iframe.frameborder = "0";
+          document.body.appendChild(iframe);
+          user2Iframes.push(iframe);
+
+          const iframe2 = document.createElement("iframe");
+          iframe2.src = "./receiver-user3.html?tab" + (i + 1);
+          iframe2.frameborder = "0";
+          document.body.appendChild(iframe2);
+          user3Iframes.push(iframe2);
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
+        }
+
+        // 等待连接建立
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
+        // 从iframe中获取用户实例
+        const user2Instances = user2Iframes.map(
+          (iframe) => iframe.contentWindow.user2
+        );
+        const user3Instances = user3Iframes.map(
+          (iframe) => iframe.contentWindow.user3
+        );
+
+        // 为每个用户实例设置接收数据的Promise
+        const createReceivePromise = (user, eventName, expectedData) => {
+          return new Promise((resolve) => {
+            const unregister = user.register(eventName, (e) => {
+              const { fromUserId, fromUserSessionId, data } = e;
+              resolve({ fromUserId, fromUserSessionId, data, expectedData });
+              unregister();
+            });
+          });
+        };
+
+        // 创建Promise来监听所有用户实例的数据接收
+        const receivePromises = [];
+
+        // 为user2的所有实例创建接收Promise
+        user2Instances.forEach((user2Instance, index) => {
+          receivePromises.push(
+            createReceivePromise(user2Instance, "test1", "Hello, World!")
+          );
+        });
+
+        // 为user3的所有实例创建接收Promise
+        user3Instances.forEach((user3Instance, index) => {
+          receivePromises.push(
+            createReceivePromise(user3Instance, "test1", "Hello, World!")
+          );
+        });
+
+        // user1开始发送广播
+        await user1.broadcast("test1", {
+          message: "Hello, World!",
+        });
+
+        // 等待所有用户实例接收数据
+        const receivedData = await Promise.all(receivePromises);
+
+        // 验证每个用户实例是否收到了正确的数据
+        let allCorrect = true;
+        const results = [];
+
+        receivedData.forEach((received, index) => {
+          const isUser2 = index < user2Instances.length;
+          const userIndex = isUser2 ? index : index - user2Instances.length;
+          const userId = isUser2
+            ? user2Instances[userIndex].userId
+            : user3Instances[userIndex].userId;
+
+          const isCorrect =
+            received.fromUserId === user1.userId &&
+            JSON.stringify(received.data) ===
+              JSON.stringify({ message: "Hello, World!" }) &&
+            received.data.message === received.expectedData;
+
+          if (!isCorrect) {
+            allCorrect = false;
+          }
+
+          results.push({
+            targetUserId: userId,
+            userType: isUser2 ? "user2" : "user3",
+            instanceIndex: userIndex,
+            receivedData: received.data,
+            expectedData: { message: "Hello, World!" },
+            isCorrect: isCorrect,
+          });
+        });
+
+        // 删除证书授权，方便下次测试
+        await certManager1.delete(user2To1Cert.id);
+        await certManager1.delete(user1To2Cert.id);
+        await certManager1.delete(user1To3Cert.id);
+        await certManager1.delete(user3To1Cert.id);
+        await certManager2.delete(user2To1Cert.id);
+        await certManager2.delete(user1To2Cert.id);
+        await certManager3.delete(user3To1Cert.id);
+        await certManager3.delete(user1To3Cert.id);
+
+        // 给一点时间确保事件不会被错误触发
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
+        return {
+          assert: allCorrect,
+          content: {
+            message: "广播注册事件测试成功",
+            results: results,
+          },
+        };
       });
-
-      // TODO: 这是查看 user2 和 user3 应该都收到了 test1 事件
-
-      // 删除证书授权，方便下次测试
-      //   await certManager1.delete(user2To1Cert.id);
-      //   await certManager1.delete(user1To2Cert.id);
-      //   await certManager1.delete(user1To3Cert.id);
-      //   await certManager1.delete(user3To1Cert.id);
-      //   await certManager2.delete(user2To1Cert.id);
-      //   await certManager2.delete(user1To2Cert.id);
-      //   await certManager3.delete(user3To1Cert.id);
-      //   await certManager3.delete(user1To3Cert.id);
     </script>
   </body>
 </html>
