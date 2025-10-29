@@ -46,7 +46,7 @@
   <h4>
     选择发送到设备
     <p-switch
-      style="margin-left: 8px"
+      style="margin-left: 20px"
       sync:value="showOnlySendable"
       size="small"
     >
@@ -58,7 +58,7 @@
       <p-list-item
         button
         attr:disabled="!$host.receiverId.includes($data.userId)"
-        on:click="$host.receiverId.includes($data.userId) && ($host.selectedUserId = $data.userId)"
+        on:click="$host.clickDevice($data,$ele)"
         attr:active-item="$host.selectedUserId == $data.userId"
       >
         <div style="display: flex; align-items: center">
@@ -87,6 +87,17 @@
           selectedUserId: "",
         },
         proto: {
+          async clickDevice(data, ele) {
+            if (ele.disabled !== null) {
+              return;
+            }
+
+            if (this.selectedUserId === data.userId) {
+              this.selectedUserId = "";
+            } else {
+              this.selectedUserId = data.userId;
+            }
+          },
           async refreshDevices() {
             const devices = await localUser.myDevices();
             this.devices = devices;
