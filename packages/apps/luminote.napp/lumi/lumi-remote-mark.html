@@ -1,5 +1,5 @@
 <template component>
-  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <style>
     :host {
       position: absolute;
@@ -43,7 +43,7 @@
       opacity: 0.8;
     }
 
-    n-id-avatar {
+    n-user-avatar {
       display: block;
       width: 16px;
       height: 16px;
@@ -52,7 +52,7 @@
   </style>
   <div class="main">
     <div class="username">
-      <n-id-avatar :val="userId"></n-id-avatar>
+      <n-user-avatar :userid="userId"></n-user-avatar>
       {{userName}}
     </div>
   </div>

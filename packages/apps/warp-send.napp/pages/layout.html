@@ -1,6 +1,6 @@
 <template page>
   <l-m src="/packages/pui/button/group.html"></l-m>
-  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <style>
     :host {
       display: flex !important;
@@ -18,10 +18,10 @@
       我的设备
     </h1>
     <div style="display: flex; align-items: center; justify-content: center">
-      <n-id-avatar
+      <n-user-avatar
         style="width: 48px; height: 48px; margin-right: 8px"
-        :val="userId"
-      ></n-id-avatar>
+        :userid="userId"
+      ></n-user-avatar>
       <div>
         <div style="font-size: 16px">{{ userName }}</div>
         <div style="font-size: 12px">

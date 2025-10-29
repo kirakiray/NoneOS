@@ -236,11 +236,11 @@
   <p-list>
     <o-fill :value="remotes">
       <p-list-item>
-        <n-id-avatar
-          attr:val="$data.userId"
+        <n-user-avatar
+          :userid="$data.userId"
           style="width: 16px; height: 16px"
           slot="prefix"
-        ></n-id-avatar>
+        ></n-user-avatar>
         {{$data.userName}}
         <p-list slot="childs" style="--ladder-left: 8px">
           <o-if :value="$data.noData">

@@ -1,6 +1,6 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
-  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/apps/link-me.napp/comps/user-name.html"></l-m>
   <l-m src="/packages/comps/moment-span.html"></l-m>
   <style>
@@ -41,11 +41,11 @@
         attr:disabled="$data.isEmpty"
         on:click="$host.clickItem($data)"
       >
-        <n-id-avatar
-          :val="$data.userId"
+        <n-user-avatar
+          :userid="$data.userId"
           slot="prefix"
           style="width: 20px"
-        ></n-id-avatar>
+        ></n-user-avatar>
         <div style="display: flex; align-items: center">
           <n-user-name :userid="$data.userId"></n-user-name>
           <o-if :value="$host.localUserId === $data.userId">
