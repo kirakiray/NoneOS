@@ -92,11 +92,13 @@
               return;
             }
 
-            if (this.selectedUserId === data.userId) {
-              this.selectedUserId = "";
-            } else {
-              this.selectedUserId = data.userId;
+            if (this.selectedUserId && this.selectedUserId !== data.userId) {
+              // TODO: 告诉之前的设备取消了选择它
             }
+
+            this.selectedUserId = data.userId;
+
+            // TODO: 通知对方准备接收文件
           },
           async refreshDevices() {
             const devices = await localUser.myDevices();
