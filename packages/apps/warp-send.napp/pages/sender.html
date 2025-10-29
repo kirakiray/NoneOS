@@ -86,8 +86,8 @@
     </p-button>
     <p-button attr:disabled="!selectedUserId">
       <n-local-icon name="folder" slot="prefix"></n-local-icon>
-      选择文件夹</p-button
-    >
+      选择文件夹
+    </p-button>
   </div>
   <script>
     export const parent = "./layout.html";
@@ -130,8 +130,6 @@
             localUser.register(
               "warpsend-radiate",
               ({ data, fromUserId, fromUserSessionId }) => {
-                console.log("warpsend-radiate", data);
-
                 if (!this.receiverId.includes(fromUserId)) {
                   this.receiverId.push(fromUserId);
                 }
