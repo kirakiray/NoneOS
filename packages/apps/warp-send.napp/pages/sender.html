@@ -32,6 +32,16 @@
     [show-only-sendable="on"] p-list-item[disabled] {
       display: none;
     }
+
+    [show-only-sendable="on"] .connected-mark {
+      display: none;
+    }
+
+    .connected-mark {
+      color: var(--md-sys-color-success);
+      display: block;
+      margin-left: 8px;
+    }
   </style>
   <h4>
     选择发送到设备
@@ -48,21 +58,15 @@
       <p-list-item
         button
         attr:disabled="!$host.receiverId.includes($data.userId)"
+        on:click="$host.receiverId.includes($data.userId) && ($host.selectedUserId = $data.userId)"
+        attr:active-item="$host.selectedUserId == $data.userId"
       >
         <div style="display: flex; align-items: center">
           <n-user-avatar :userid="$data.userId"> </n-user-avatar>
           <n-user-name :userid="$data.userId"></n-user-name>
           <n-user-state :userid="$data.userId"></n-user-state>
           <o-if :value="$host.receiverId.includes($data.userId)">
-            <span
-              style="
-                color: var(--md-sys-color-success);
-                display: block;
-                margin-left: 8px;
-              "
-            >
-              已连接
-            </span>
+            <span class="connected-mark"> 已连接 </span>
           </o-if>
         </div>
       </p-list-item>
@@ -80,6 +84,7 @@
           receiverId: [], // 接收到的设备id
           devices: [],
           showOnlySendable: "on",
+          selectedUserId: "",
         },
         proto: {
           async refreshDevices() {
