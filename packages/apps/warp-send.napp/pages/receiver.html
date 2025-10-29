@@ -22,23 +22,25 @@
     <p style="display: flex; align-items: center; justify-content: center">
       <localized-content>
         <span lang="cn">文件将默认保存在：</span>
-        <span lang="en">Files will be saved to : </span>
+        <span lang="en">Files will be saved to:</span>
         <span lang="ja">ファイルは既定で保存されます：</span>
       </localized-content>
-      <strong style="color: var(--md-sys-color-primary)">
+      <strong style="color: var(--md-sys-color-primary); margin-left: 4px">
         <localized-content>
           <span lang="cn">浏览器缓存</span>
           <span lang="en">Browser Cache</span>
           <span lang="ja">ブラウザキャッシュ</span>
         </localized-content>
       </strong>
-      <p-button variant="outlined" size="small" style="margin-left: 8px">
-        <localized-content>
-          <span lang="cn">更改保存目录</span>
-          <span lang="en">Change Directory</span>
-          <span lang="ja">保存先を変更</span>
-        </localized-content>
-      </p-button>
+      <o-if :value="canUsePicker">
+        <p-button variant="outlined" size="small" style="margin-left: 8px">
+          <localized-content>
+            <span lang="cn">更改保存目录</span>
+            <span lang="en">Change Directory</span>
+            <span lang="ja">保存先を変更</span>
+          </localized-content>
+        </p-button>
+      </o-if>
     </p>
     <p
       style="
@@ -73,6 +75,7 @@
       return {
         data: {
           receiverId: [],
+          canUsePicker: !!window.showDirectoryPicker,
         },
         proto: {
           runRadiate(time) {

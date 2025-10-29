@@ -49,9 +49,14 @@
       display: block;
       margin-right: 4px;
     }
+
+    .hide {
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
   <h4>
-    选择发送到设备
+    选择发送给
     <p-switch
       style="margin-left: 20px"
       sync:value="showOnlySendable"
@@ -79,9 +84,14 @@
       </p-list-item>
     </o-fill>
   </p-list>
-  <p-list-item collapse-childs="open" button="suffix" style="margin-top: 8px">
+  <p-list-item
+    collapse-childs="open"
+    button="suffix"
+    class:hide="!selectedUserId"
+    style="margin-top: 16px"
+  >
     <div style="display: flex; align-items: center">
-      <strong style="margin-right: 4px">选择文件</strong>(
+      <strong style="margin-right: 4px">待发送文件</strong> (
       <span style="color: var(--md-sys-color-primary)"> {{files.length}}</span>
       )
     </div>
@@ -93,21 +103,54 @@
             <n-local-icon
               :name="$data.type === 'file' ? 'file' : 'folder'"
               slot="prefix"
+              style="font-size: 20px"
             ></n-local-icon>
             <span style="margin-left: 4px">{{$data.name}}</span>
-            <span style="margin-left: 4px">({{$data.size}})</span>
+            <span style="margin-left: 4px"
+              >({{$host.getFileSize($data.size)}})</span
+            >
+            <p-button
+              on:click="$host.removeItem($index)"
+              size="small"
+              color="error"
+              variant="outlined"
+              style="margin-left: auto"
+            >
+              移除
+            </p-button>
           </div>
         </p-list-item>
       </o-fill>
     </p-list>
   </p-list-item>
-  <div style="text-align: center; margin-top: 16px">
+  <style>
+    .btn-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .btn-group p-button {
+      margin: 0 4px;
+    }
+  </style>
+  <div class="btn-group" class:hide="!selectedUserId">
+    <p-button
+      style="margin-right: auto"
+      attr:disabled="!selectedUserId || !files.length"
+      attr:variant="files.length ? 'contained' : 'outlined'"
+    >
+      发送这{{files.length}}个文件
+    </p-button>
     <p-button
       attr:disabled="!selectedUserId"
       on:click="shadow.$('#file-input').ele.click()"
+      attr:variant="!files.length ? 'contained' : 'outlined'"
     >
       <n-local-icon name="file" slot="prefix"></n-local-icon>
-      已选择文件
+      添加文件
     </p-button>
     <input
       type="file"
@@ -119,9 +162,10 @@
     <p-button
       attr:disabled="!selectedUserId"
       on:click="shadow.$('#folder-input').ele.click()"
+      attr:variant="!files.length ? 'contained' : 'outlined'"
     >
       <n-local-icon name="folder" slot="prefix"></n-local-icon>
-      选择文件夹
+      添加文件夹
     </p-button>
     <input
       type="file"
@@ -148,6 +192,9 @@
           files: [], // 已经选择的文件
         },
         proto: {
+          async removeItem(index) {
+            this.files.splice(index, 1);
+          },
           async fileChange(event) {
             const files = event.target.files;
 
@@ -184,6 +231,15 @@
             this.files.push(dirItem);
 
             event.target.value = "";
+          },
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
           },
           async clickDevice(data, ele) {
             if (ele.disabled !== null) {
