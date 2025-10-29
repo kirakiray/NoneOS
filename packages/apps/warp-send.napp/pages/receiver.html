@@ -51,17 +51,15 @@
       const myInfo = await localUser.info();
 
       return {
-        data: {},
+        data: {
+          receiverId: [],
+        },
         proto: {
           runRadiate(time) {
             clearTimeout(this._radiate_timer);
             // 每5秒广播一次
             this._radiate_timer = setTimeout(() => {
-              //   localUser.trigger("warpsend-radiate", {
-              //     type: "file",
-              //     name: "test.txt",
-              //     size: 1024,
-              //   });
+              localUser.broadcast("warpsend-radiate", {});
 
               if (this.ele.isConnected) {
                 this.runRadiate();
