@@ -86,24 +86,50 @@
       )
     </div>
     <i toggle-collapse triangle slot="suffix" style="margin-left: 32px"></i>
-    <p-list slot="childs" style="--ladder-left: 8px"> </p-list>
+    <p-list slot="childs" style="--ladder-left: 8px">
+      <o-fill :value="files">
+        <p-list-item>
+          <div style="display: flex; align-items: center">
+            <n-local-icon
+              :name="$data.type === 'file' ? 'file' : 'folder'"
+              slot="prefix"
+            ></n-local-icon>
+            <span style="margin-left: 4px">{{$data.name}}</span>
+            <span style="margin-left: 4px">({{$data.size}})</span>
+          </div>
+        </p-list-item>
+      </o-fill>
+    </p-list>
   </p-list-item>
   <div style="text-align: center; margin-top: 16px">
-    <p-button attr:disabled="!selectedUserId">
+    <p-button
+      attr:disabled="!selectedUserId"
+      on:click="shadow.$('#file-input').ele.click()"
+    >
       <n-local-icon name="file" slot="prefix"></n-local-icon>
       已选择文件
     </p-button>
-    <input type="file" id="file-input" style="display: none" multiple />
-    <p-button attr:disabled="!selectedUserId">
+    <input
+      type="file"
+      id="file-input"
+      on:change="fileChange"
+      style="display: none"
+      multiple
+    />
+    <p-button
+      attr:disabled="!selectedUserId"
+      on:click="shadow.$('#folder-input').ele.click()"
+    >
       <n-local-icon name="folder" slot="prefix"></n-local-icon>
       选择文件夹
     </p-button>
     <input
       type="file"
       id="folder-input"
+      on:change="folderChange"
       style="display: none"
+      webkitdirectory
       directory
-      multiple
     />
   </div>
   <script>
@@ -122,6 +148,43 @@
           files: [], // 已经选择的文件
         },
         proto: {
+          async fileChange(event) {
+            const files = event.target.files;
+
+            this.files.push(
+              ...Array.from(files).map((file) => {
+                return {
+                  name: file.name,
+                  size: file.size,
+                  type: "file",
+                  _file: file,
+                  task: [], // 进度记录
+                };
+              })
+            );
+
+            event.target.value = "";
+          },
+          async folderChange(event) {
+            const files = event.target.files;
+
+            const dirItem = {
+              name: files[0].webkitRelativePath.split("/")[0],
+              size: 0,
+              type: "directory",
+              _files: [],
+              task: [], // 进度记录
+            };
+
+            for (let file of files) {
+              dirItem.size += file.size;
+              dirItem._files.push(file);
+            }
+
+            this.files.push(dirItem);
+
+            event.target.value = "";
+          },
           async clickDevice(data, ele) {
             if (ele.disabled !== null) {
               return;
