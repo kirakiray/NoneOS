@@ -315,6 +315,9 @@
               }
             ),
           ];
+
+          // 快速广播一下进入了 sender 模式
+          localUser.broadcast("warp-send-sender-attached");
         },
         detached() {
           this._cancels.forEach((cancel) => cancel());

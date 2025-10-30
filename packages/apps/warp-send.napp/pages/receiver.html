@@ -96,6 +96,10 @@
             localUser.register("warpsend-radiate", (data) => {
               console.log("file received", data);
             }),
+            localUser.register("warp-send-sender-attached", (data) => {
+              // 有新的 sender 接入，快速广播一下自己的定位
+              this.runRadiate(100);
+            }),
             initReceiver({
               localUser,
               progress: (e) => {

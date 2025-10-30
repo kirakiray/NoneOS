@@ -18,7 +18,9 @@ export const toBuffer = (originBuffer, info) => {
 
   // 检查长度是否超出限制（255字节）
   if (infoBuffer.length > 255) {
-    throw new Error("Info data is too large, must be less than 255 bytes");
+    throw new Error(
+      "Info data is too large, must be less than 255 bytes: \n" + infoJson
+    );
   }
 
   // 第一个字节存储infoBuffer的长度

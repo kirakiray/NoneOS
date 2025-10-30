@@ -85,20 +85,26 @@ export const options = {
       const targetUserClients = users.get(userId);
       if (!targetUserClients) return;
 
-      const sendData = binaryData
-        ? toBuffer(binaryData, {
-            ...otherData,
-            type: "agent_data",
-            fromUserId: client.userId,
-            fromUserSessionId: client.userSessionId,
-          })
-        : {
-            ...otherData,
-            type: "agent_data",
-            data,
-            fromUserId: client.userId,
-            fromUserSessionId: client.userSessionId,
-          };
+      let sendData;
+      try {
+        sendData = binaryData
+          ? toBuffer(binaryData, {
+              ...otherData,
+              type: "agent_data",
+              fromUserId: client.userId,
+              fromUserSessionId: client.userSessionId,
+            })
+          : {
+              ...otherData,
+              type: "agent_data",
+              data,
+              fromUserId: client.userId,
+              fromUserSessionId: client.userSessionId,
+            };
+      } catch (err) {
+        console.error(err);
+        return;
+      }
 
       let targetDeviceClient = null;
 

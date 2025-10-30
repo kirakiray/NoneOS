@@ -161,8 +161,6 @@ export class WebSocketServer {
 
         // 监听客户端消息
         ws.on("message", (data, isBinary) => {
-          console.log("收到客户端消息:", data.toString());
-
           try {
             // 检查是否为二进制数据
             if (isBinary) {

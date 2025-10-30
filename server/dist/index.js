@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createRequire } from 'node:module';
+import { createRequire } from "node:module";
 
 // WebSocketServer.js
 // 兼容 nodejs 和 bun 环境的 WebSocket 服务器类
@@ -146,7 +146,7 @@ class WebSocketServer {
     console.log("使用Node.js ws库");
 
     try {
-      const { WebSocketServer } = await import('ws');
+      const { WebSocketServer } = await import("ws");
 
       // 创建WebSocket服务器，监听在指定端口
       this.wss = new WebSocketServer({ port: port });
@@ -164,8 +164,6 @@ class WebSocketServer {
 
         // 监听客户端消息
         ws.on("message", (data, isBinary) => {
-          console.log("收到客户端消息:", data.toString());
-
           try {
             // 检查是否为二进制数据
             if (isBinary) {
@@ -350,7 +348,6 @@ const options$1 = {
  * ECDSA 签名相关工具函数
  */
 
-
 /**
  * 导入公钥
  * @param {string} publicKeyBase64 - base64 编码的公钥
@@ -446,7 +443,7 @@ const verify = async (signedData) => {
 const getHash = async (data) => {
   if (!globalThis.crypto) {
     // Node.js 环境
-    const crypto = await import('crypto');
+    const crypto = await import("crypto");
     if (typeof data === "string") {
       data = new TextEncoder().encode(data);
     } else if (data instanceof Blob) {
