@@ -69,7 +69,7 @@
     <o-fill :value="devices">
       <p-list-item
         button
-        attr:disabled="!$host.receiverId.includes($data.userId)"
+        attr:disabled="!$host.receivers.some(e => e.fromUserId === $data.userId)"
         on:click="$host.clickDevice($data,$ele)"
         attr:active-item="$host.selectedUserId == $data.userId"
       >
@@ -77,7 +77,9 @@
           <n-user-avatar :userid="$data.userId"> </n-user-avatar>
           <n-user-name :userid="$data.userId"></n-user-name>
           <n-user-state :userid="$data.userId"></n-user-state>
-          <o-if :value="$host.receiverId.includes($data.userId)">
+          <o-if
+            :value="$host.receivers.some(e => e.fromUserId === $data.userId)"
+          >
             <span class="connected-mark"> 已连接 </span>
           </o-if>
         </div>
@@ -92,12 +94,14 @@
   >
     <div style="display: flex; align-items: center">
       <strong style="margin-right: 4px">待发送文件</strong> (
-      <span style="color: var(--md-sys-color-primary)"> {{files.length}}</span>
+      <span style="color: var(--md-sys-color-primary)">
+        {{selectedFiles.length}}</span
+      >
       )
     </div>
     <i toggle-collapse triangle slot="suffix" style="margin-left: 32px"></i>
     <p-list slot="childs" style="--ladder-left: 8px">
-      <o-fill :value="files">
+      <o-fill :value="selectedFiles">
         <p-list-item>
           <div style="display: flex; align-items: center">
             <n-local-icon
@@ -139,15 +143,16 @@
   <div class="btn-group" class:hide="!selectedUserId">
     <p-button
       style="margin-right: auto"
-      attr:disabled="!selectedUserId || !files.length"
-      attr:variant="files.length ? 'contained' : 'outlined'"
+      attr:disabled="!selectedUserId || !selectedFiles.length"
+      attr:variant="selectedFiles.length ? 'contained' : 'outlined'"
+      on:click="sendFiles"
     >
-      发送这{{files.length}}个文件
+      发送这{{selectedFiles.length}}个文件
     </p-button>
     <p-button
       attr:disabled="!selectedUserId"
       on:click="shadow.$('#file-input').ele.click()"
-      attr:variant="!files.length ? 'contained' : 'outlined'"
+      attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
     >
       <n-local-icon name="file" slot="prefix"></n-local-icon>
       添加文件
@@ -162,7 +167,7 @@
     <p-button
       attr:disabled="!selectedUserId"
       on:click="shadow.$('#folder-input').ele.click()"
-      attr:variant="!files.length ? 'contained' : 'outlined'"
+      attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
     >
       <n-local-icon name="folder" slot="prefix"></n-local-icon>
       添加文件夹
@@ -182,23 +187,24 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
+      const { copyTo } = await load("../util/copy-to.js");
 
       return {
         data: {
-          receiverId: [], // 接收到的设备id
+          receivers: [], // 接收到的设备id
           devices: [],
           showOnlySendable: "on",
           selectedUserId: "",
-          files: [], // 已经选择的文件
+          selectedFiles: [], // 已经选择的文件
         },
         proto: {
           async removeItem(index) {
-            this.files.splice(index, 1);
+            this.selectedFiles.splice(index, 1);
           },
           async fileChange(event) {
             const files = event.target.files;
 
-            this.files.push(
+            this.selectedFiles.push(
               ...Array.from(files).map((file) => {
                 return {
                   name: file.name,
@@ -228,9 +234,42 @@
               dirItem._files.push(file);
             }
 
-            this.files.push(dirItem);
+            this.selectedFiles.push(dirItem);
 
             event.target.value = "";
+          },
+          // 执行发送文件
+          async sendFiles() {
+            // 生成任务
+            const taskData = {};
+
+            const files = [];
+
+            this.selectedFiles.forEach((e) => {
+              if (e.type === "file") {
+                files.push(e._file);
+              } else if (e.type === "directory") {
+                files.push(...e._files);
+              }
+            });
+
+            const targetItem = this.receivers.find(
+              (e) => e.fromUserId === this.selectedUserId
+            );
+
+            if (!targetItem) {
+              throw new Error("请先选择接收设备");
+            }
+
+            await copyTo({
+              localUser,
+              files,
+              fromUserId: targetItem.fromUserId,
+              formSessionId: targetItem.fromUserSessionId,
+              progress: (e) => {
+                debugger;
+              },
+            });
           },
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
@@ -267,8 +306,11 @@
             localUser.register(
               "warpsend-radiate",
               ({ data, fromUserId, fromUserSessionId }) => {
-                if (!this.receiverId.includes(fromUserId)) {
-                  this.receiverId.push(fromUserId);
+                if (!this.receivers.some((e) => e.fromUserId === fromUserId)) {
+                  this.receivers.push({
+                    fromUserId,
+                    fromUserSessionId,
+                  });
                 }
               }
             ),

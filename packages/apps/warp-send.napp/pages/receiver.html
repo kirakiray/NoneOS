@@ -68,6 +68,7 @@
 
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
+      const { receive } = await load("../util/copy-to.js");
 
       const localUser = await createUser();
       const myInfo = await localUser.info();
@@ -95,6 +96,7 @@
             localUser.register("warpsend-radiate", (data) => {
               console.log("file received", data);
             }),
+            receive(),
           ];
 
           this.runRadiate(100); // 第一次快速广播
