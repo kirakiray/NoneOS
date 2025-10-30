@@ -261,7 +261,7 @@
               throw new Error("请先选择接收设备");
             }
 
-            await copyTo({
+            copyTo({
               localUser,
               files,
               fromUserId: targetItem.fromUserId,

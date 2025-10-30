@@ -448,21 +448,20 @@ export class LocalUser extends BaseUser {
       return this.#myDeviceCache[deviceId];
     }
 
-    const certManager = await this.certManager();
-    const certs = await certManager.get({
-      role: "device",
-      issuedTo: deviceId,
-    });
+    return (this.#myDeviceCache[deviceId] = (async () => {
+      const certManager = await this.certManager();
+      const certs = await certManager.get({
+        role: "device",
+        issuedTo: deviceId,
+      });
 
-    // 缓存结果
-    this.#myDeviceCache[deviceId] = !!certs.length;
+      setTimeout(() => {
+        // 结果只缓存5秒，5秒后删除缓存
+        delete this.#myDeviceCache[deviceId];
+      }, 1000 * 5);
 
-    setTimeout(() => {
-      // 缓存5秒
-      delete this.#myDeviceCache[deviceId];
-    }, 1000 * 5);
-
-    return !!certs.length;
+      return !!certs.length;
+    })());
   }
 
   // 获取我的所有设备
