@@ -36,8 +36,8 @@ export class FileHandle extends BaseHandle {
 
     if (isSafari) {
       return new Promise(async (resolve, reject) => {
-        // const worker = new Worker(import.meta.resolve("./write-worker.js"));
-        const worker = new Worker("/packages/fs/handle/write-worker.js");
+        const worker = new Worker(import.meta.resolve("./write-worker.js"));
+        // const worker = new Worker("/packages/fs/handle/write-worker.js");
 
         worker.postMessage({
           path: this.path,

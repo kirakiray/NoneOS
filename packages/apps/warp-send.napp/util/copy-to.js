@@ -132,9 +132,43 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
         return;
       }
 
-      debugger;
       // 先将块写入到缓存文件夹上
+      const chunkHandle = await chunksHandle.get(`${hash}`, {
+        create: "file",
+      });
 
+      await chunkHandle.write(data);
+
+      beforeReceiver.receivedChunks.push(hash);
+    }
+
+    // 当块全部收到时，进行合并
+    if (beforeReceiver.receivedChunks.length === beforeReceiver.hashes.length) {
+      console.log("文件接收完成");
+
+      // 合并文件
+      const fileHandle = await handle.get(beforeReceiver.name, {
+        create: "file",
+      });
+
+      let contents = [];
+
+      for (let hash of beforeReceiver.hashes) {
+        const chunkHandle = await chunksHandle.get(`${hash}`);
+        const chunk = await chunkHandle.file();
+        contents.push(chunk);
+      }
+
+      // 合并成完整的文件
+      const blob = new Blob(contents);
+
+      // 写入文件
+      await fileHandle.write(blob);
+
+      // 合并完成后，清空缓存文件
+      for await (const entry of chunksHandle.values()) {
+        await entry.remove();
+      }
       return;
     }
 
