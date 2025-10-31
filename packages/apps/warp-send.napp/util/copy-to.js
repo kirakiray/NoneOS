@@ -20,12 +20,16 @@ export const copyTo = ({
     }
 
     if (data.kind === "response-chunk-result") {
-      // 开始接收文件
-      // const fileHandle = await chunksHandle.get(data.name, {
-      //   create: "file",
-      // });
+      // 清除等待的hash
+      if (!sendingHash.has(data.hash)) {
+        return;
+      }
 
-      debugger;
+      sendingHash.delete(data.hash);
+      if (waitSendResolve) {
+        waitSendResolve();
+        waitSendResolve = null;
+      }
     }
   });
 
@@ -50,7 +54,10 @@ export const copyTo = ({
   };
 };
 
-const concurrentBlocksCount = 8; // 并发发送的块数量
+const concurrentBlocksCount = 2; // 并发发送的块数量
+const sendingHash = new Set(); // 正在发送的文件hash
+
+let waitSendResolve = null;
 
 // 发送文件给对方
 const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
@@ -76,7 +83,7 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
 
   // TODO: 逐步分块发送给对方
   for (let i = 0; i < chunkHashes.length; i++) {
-    // const hash = chunkHashes[i];
+    const hash = chunkHashes[i];
 
     let chunk = file.slice(i * setting.chunkSize, (i + 1) * setting.chunkSize);
 
@@ -90,5 +97,15 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
 
     // 发送块数据
     send(new Uint8Array(chunk));
+
+    sendingHash.add(hash);
+
+    // 判断是否已经超出并发发送的块数量
+    if (sendingHash.size >= concurrentBlocksCount) {
+      // 添加等待的函数
+      await new Promise((resolve) => {
+        waitSendResolve = resolve;
+      });
+    }
   }
 };

@@ -65,6 +65,8 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
 
       const remoteUser = await localUser.connectUser(fromUserId);
 
+      //   await new Promise((res) => setTimeout(res, 500)); // 模拟网络延迟
+
       // 返回已收到的块的信息
       remoteUser.post(
         {
