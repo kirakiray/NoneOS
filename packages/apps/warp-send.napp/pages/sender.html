@@ -261,7 +261,7 @@
               throw new Error("请先选择接收设备");
             }
 
-            copyTo({
+            const cancel = copyTo({
               localUser,
               files,
               fromUserId: targetItem.fromUserId,
@@ -269,7 +269,15 @@
               progress: (e) => {
                 debugger;
               },
+              end: () => {
+                const index = this._cancels.indexOf(cancel);
+                if (index !== -1) {
+                  this._cancels.splice(index, 1);
+                }
+              },
             });
+
+            this._cancels.push(cancel);
           },
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
@@ -304,7 +312,7 @@
 
           this._cancels = [
             localUser.register(
-              "warpsend-radiate",
+              "warp-send-radiate",
               ({ data, fromUserId, fromUserSessionId }) => {
                 if (!this.receivers.some((e) => e.fromUserId === fromUserId)) {
                   this.receivers.push({

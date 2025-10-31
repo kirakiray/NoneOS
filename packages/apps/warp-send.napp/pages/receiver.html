@@ -73,46 +73,81 @@
       const localUser = await createUser();
       const myInfo = await localUser.info();
 
+      const { createData } = await load("/packages/hybird-data/main.js");
+
       return {
         data: {
-          receiverId: [],
-          canUsePicker: !!window.showDirectoryPicker,
+          receiverId: [], // 已经接受到广播的 sender 列表
+          canUsePicker: !!window.showDirectoryPicker, // 是否支持浏览器目录选择的api
+          configData: {}, // 应用的设置目录
         },
         proto: {
           runRadiate(time) {
             clearTimeout(this._radiate_timer);
             // 每5秒广播一次
             this._radiate_timer = setTimeout(() => {
-              localUser.broadcast("warpsend-radiate", {});
+              localUser.broadcast("warp-send-radiate", {});
 
               if (this.ele.isConnected) {
                 this.runRadiate();
               }
             }, time || 5000);
           },
+          // 改变接收文件的目录
+          async changeReceiverHandle(handle) {
+            if (this._receiverInvoice) {
+              this._receiverInvoice();
+            }
+
+            if (!handle) {
+              throw new Error("请选择接收文件的目录");
+            }
+
+            this._receiverInvoice = await initReceiver({
+              localUser,
+              handle,
+              progress: (e) => {
+                console.log("initReceiver: ", e);
+              },
+            });
+          },
         },
-        attached() {
+        async attached() {
+          // 默认使用的目录
+          this._defaultDir = await this.app.dedicatedHandle();
+
+          // 从配置中加载目录
+          const configFile = await this._defaultDir.get("config.json", {
+            create: "file",
+          });
+
+          // 加载配置文件
+          this.configData = await createData(configFile);
+
           this._cancels = [
-            localUser.register("warpsend-radiate", (data) => {
-              console.log("file received", data);
-            }),
             localUser.register("warp-send-sender-attached", (data) => {
               // 有新的 sender 接入，快速广播一下自己的定位
               this.runRadiate(100);
             }),
-            initReceiver({
-              localUser,
-              progress: (e) => {
-                console.log("initReceiver: ", e);
-              },
-            }),
           ];
+
+          // 获取本地的临时收取目录
+          const tempDir = await this._defaultDir.get("receive-temp", {
+            create: "directory",
+          });
+
+          // 第一次进入，直接开始初始化
+          this.changeReceiverHandle(tempDir);
 
           this.runRadiate(100); // 第一次快速广播
         },
         detached() {
+          // 回收所有数据
+          this.configData.disconnect();
+          this.configData = {};
           clearTimeout(this._radiate_timer);
           this._cancels.forEach((cancel) => cancel());
+          this._revokeReceiver && this._revokeReceiver();
         },
       };
     };
