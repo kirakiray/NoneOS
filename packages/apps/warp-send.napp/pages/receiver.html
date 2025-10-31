@@ -10,7 +10,7 @@
     }
   </style>
   <div style="padding: 8px; text-align: center">
-    <p style="display: flex; align-items: center; justify-content: center">
+    <!-- <p style="display: flex; align-items: center; justify-content: center">
       <localized-content>
         <span lang="cn">正在等待接收来自其他设备的文件…</span>
         <span lang="en">Waiting for file from other device...</span>
@@ -20,7 +20,7 @@
         name="loading"
         style="margin-left: 8px; display: block"
       ></n-local-icon>
-    </p>
+    </p> -->
     <p style="display: flex; align-items: center; justify-content: center">
       <localized-content>
         <span lang="cn">文件将默认保存在：</span>
@@ -78,7 +78,10 @@
               {{$host.getFileSize($data.fileSize)}}
             </span>
           </div>
-          <p-progress :value="$data.progress" style="margin-top: 4px" />
+          <p-progress
+            :value="$data.progress"
+            style="margin-top: 4px; --progress-animation: none"
+          />
         </p-list-item>
       </o-fill>
     </p-list>
@@ -88,7 +91,7 @@
 
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
-      const { initReceiver } = await load("../util/copy-to.js");
+      const { initReceiver } = await load("../util/init-receiver.js");
 
       const localUser = await createUser();
       const myInfo = await localUser.info();
