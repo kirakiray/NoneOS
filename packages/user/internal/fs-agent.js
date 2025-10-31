@@ -1,5 +1,5 @@
 import { get } from "/packages/fs/main.js";
-import { getHash, calculateFileChunkHashes } from "/packages/fs/util.js";
+import { getHash, calculateFileChunkHashes } from "/packages/util/hash/main.js";
 import { getChunk } from "/packages/chunk/main.js";
 
 import { setting } from "/packages/fs/fs-remote/file.js";

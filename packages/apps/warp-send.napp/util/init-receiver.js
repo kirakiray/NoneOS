@@ -1,4 +1,4 @@
-import { getHash } from "/packages/fs/util.js";
+import { getHash } from "/packages/util/hash/main.js";
 
 // 初始化接收器
 export const initReceiver = async ({ localUser, progress, handle }) => {

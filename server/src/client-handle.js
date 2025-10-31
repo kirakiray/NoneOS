@@ -1,5 +1,5 @@
 import { verify } from "../../packages/user/util/verify.js";
-import { getHash } from "../../packages/fs/util.js";
+import { getHash } from "../../packages/util/hash/main.js";
 import { toBuffer } from "../../packages/user/util/buffer-data.js";
 
 export const options = {

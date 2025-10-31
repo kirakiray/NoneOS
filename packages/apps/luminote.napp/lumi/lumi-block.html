@@ -508,7 +508,7 @@
     export default async ({ load }) => {
       const { toast } = await load("/packages/pui/util.js");
       // const { saveUserCord } = await load("../util/user-record-util.js");
-      const { getHash } = await load("/packages/fs/util.js");
+      const { getHash } = await load("/packages/util/hash/main.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
 
       const { addLoadingTask, removeLoadingTask } = await load(

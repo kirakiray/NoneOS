@@ -284,7 +284,7 @@
       const rootCert = await load("/packages/user/cert/root-cert.json");
       const rootOK = await verifyData(rootCert).catch(() => false);
       const { unzip } = await load("/packages/libs/zip/main.js");
-      const { getFileHash } = await load("/packages/fs/util.js");
+      const { getFileHash } = await load("/packages/util/hash/main.js");
       const { get } = await load("/packages/fs/main.js");
       const { getText } = await load("/packages/i18n/data.js");
 

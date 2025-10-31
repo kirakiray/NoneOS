@@ -2,4 +2,4 @@ export {
   getHash,
   calculateFileChunkHashes,
   getFileHash,
-} from "../util/hash/main";
+} from "../util/hash/main.js";

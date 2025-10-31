@@ -1,4 +1,4 @@
-import { calculateFileChunkHashes, getHash } from "/packages/fs/util.js";
+import { calculateFileChunkHashes, getHash } from "/packages/util/hash/main.js";
 import { setting } from "/packages/fs/fs-remote/file.js";
 
 // 专门用于复制到远端设备中的方法

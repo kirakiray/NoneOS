@@ -1,5 +1,5 @@
 // 改变项目的主体语言
-import { getHash } from "/packages/fs/util.js";
+import { getHash } from "/packages/util/hash/main.js";
 
 export const changeLang = async (projectData, lang) => {
   for (let articleData of projectData.main) {
