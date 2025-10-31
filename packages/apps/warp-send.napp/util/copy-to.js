@@ -56,6 +56,7 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
   send({
     kind: "send-file",
     name: file.name,
+    fileSize: file.size,
     chunkSize: setting.chunkSize,
     hashes: chunkHashes,
   });
@@ -108,6 +109,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
         name: data.name, // 文件名称
         hashes: data.hashes, // 文件的hash列表
         receivedChunks: [], // 已经收到的块hash
+        fileSize: data.fileSize, // 文件大小
         chunkSize: data.chunkSize, // 每个块的最大大小
       };
 
@@ -140,10 +142,24 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       await chunkHandle.write(data);
 
       currentReceivingFile.receivedChunks.push(hash);
+
+      progress &&
+        progress({
+          kind: "receiving-chunk",
+          hash,
+          progress:
+            (currentReceivingFile.receivedChunks.length /
+              currentReceivingFile.hashes.length) *
+            100,
+          receivedChunks: currentReceivingFile.receivedChunks,
+        });
     }
 
     // 当块全部收到时，进行合并
-    if (currentReceivingFile.receivedChunks.length === currentReceivingFile.hashes.length) {
+    if (
+      currentReceivingFile.receivedChunks.length ===
+      currentReceivingFile.hashes.length
+    ) {
       console.log("文件接收完成");
 
       // 合并文件

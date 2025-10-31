@@ -1,5 +1,7 @@
 <template page>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <style>
     :host {
       display: block;
@@ -62,6 +64,24 @@
         >
       </localized-content>
     </p>
+    <p-list>
+      <o-fill :value="list">
+        <p-list-item>
+          <n-local-icon
+            name="file"
+            slot="prefix"
+            style="display: block; margin-right: 8px; font-size: 20px"
+          ></n-local-icon>
+          <div style="display: flex; align-items: center">
+            {{$data.name}}
+            <span style="margin-left: 8px">
+              {{$host.getFileSize($data.fileSize)}}
+            </span>
+          </div>
+          <p-progress :value="$data.progress" style="margin-top: 4px" />
+        </p-list-item>
+      </o-fill>
+    </p-list>
   </div>
   <script>
     export const parent = "./layout.html";
@@ -80,8 +100,18 @@
           receiverId: [], // 已经接受到广播的 sender 列表
           canUsePicker: !!window.showDirectoryPicker, // 是否支持浏览器目录选择的api
           configData: {}, // 应用的设置目录
+          list: [], // 接受中的文件列表
         },
         proto: {
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
+          },
           runRadiate(time) {
             clearTimeout(this._radiate_timer);
             // 每5秒广播一次
@@ -107,7 +137,22 @@
               localUser,
               handle,
               progress: (e) => {
-                console.log("initReceiver: ", e);
+                switch (e.kind) {
+                  case "send-file":
+                    console.log("send-file: ", e);
+                    this.list.unshift({
+                      name: e.name,
+                      fileSize: e.fileSize,
+                      hashes: e.hashes,
+                      progress: 0,
+                      task: [],
+                    });
+                    break;
+                  case "receiving-chunk":
+                    // 更新进度
+                    this.list[0].progress = e.progress;
+                    break;
+                }
               },
             });
           },
