@@ -41,15 +41,18 @@ export const copyTo = ({
     // 获取远端用户
     const remoteUser = await localUser.connectUser(userId);
 
+    let fileIndex = 0;
     for (let file of files) {
       // 然后开始发送小块给对方
       await sendFile({
         signal: controller.signal,
         file,
+        fileIndex,
         remoteUser,
         userSessionId,
         callback,
       });
+      fileIndex++;
     }
   })();
 
@@ -67,6 +70,7 @@ let waitForSendResolve = null;
 // 发送文件给对方
 const sendFile = async ({
   file,
+  fileIndex,
   signal,
   remoteUser,
   userSessionId,
@@ -96,6 +100,7 @@ const sendFile = async ({
     kind: "sending-start",
     name: file.name,
     total: chunkHashes.length,
+    fileIndex,
   });
 
   let sentCount = 0; // 已发送的块数量
@@ -124,6 +129,7 @@ const sendFile = async ({
       hash,
       count: ++sentCount,
       total: chunkHashes.length,
+      fileIndex,
     });
 
     pendingChunks.set(hash, () => {
@@ -133,6 +139,7 @@ const sendFile = async ({
         hash,
         count: ++sentSuccessCount,
         total: chunkHashes.length,
+        fileIndex,
       });
     });
 

@@ -5,6 +5,7 @@
   <l-m src="/packages/comps/user-name.html"></l-m>
   <l-m src="/packages/pui/switch/switch.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
@@ -53,6 +54,15 @@
     .hide {
       opacity: 0;
       pointer-events: none;
+    }
+
+    .progress-line {
+      height: 1px;
+      background-color: var(--md-sys-color-primary);
+      transition: width 0.1s ease-in-out;
+    }
+    .progress-line[color="success"] {
+      background-color: var(--md-sys-color-success);
     }
   </style>
   <h4>
@@ -104,17 +114,63 @@
       <o-fill :value="selectedFiles">
         <p-list-item>
           <div style="display: flex; align-items: center">
-            <n-local-icon
-              :name="$data.type === 'file' ? 'file' : 'folder'"
+            <o-if
+              :value="$data.sending && $data.sendedProgress < 100"
               slot="prefix"
-              style="font-size: 20px"
-            ></n-local-icon>
-            <span style="margin-left: 4px">{{$data.name}}</span>
-            <span style="margin-left: 4px"
-              >({{$host.getFileSize($data.size)}})</span
             >
+              <n-local-icon
+                name="loading"
+                style="font-size: 20px"
+              ></n-local-icon>
+            </o-if>
+            <o-else-if
+              :value="$data.sending && $data.sendedProgress === 100"
+              slot="prefix"
+            >
+              <n-local-icon
+                name="succeed"
+                style="font-size: 20px; color: var(--md-sys-color-success)"
+              ></n-local-icon>
+            </o-else-if>
+            <o-else slot="prefix">
+              <n-local-icon
+                :name="$data.type === 'file' ? 'file' : 'folder'"
+                style="font-size: 20px"
+              ></n-local-icon>
+            </o-else>
+            <div>
+              <div style="height: 6px"></div>
+              <div>
+                <span style="margin-left: 4px">{{$data.name}}</span>
+                <span style="margin-left: 4px"
+                  >({{$host.getFileSize($data.size)}})</span
+                >
+                <span
+                  class:hide="!$data.sending"
+                  style="
+                    margin-left: 4px;
+                    color: var(--md-sys-color-normal);
+                    font-size: 12px;
+                  "
+                  >{{$data.sendSuccessProgress}}%</span
+                >
+              </div>
+              <div
+                class="progress-line"
+                color="success"
+                class:hide="!$data.sending"
+                style="margin-top: 4px"
+                :style.width="$data.sendSuccessProgress + '%'"
+              ></div>
+              <div
+                class="progress-line"
+                class:hide="!$data.sending"
+                :style.width="$data.sendedProgress + '%'"
+              ></div>
+            </div>
             <p-button
               on:click="$host.removeItem($index)"
+              attr:disabled="$host.sendingFiles"
               size="small"
               color="error"
               variant="outlined"
@@ -143,14 +199,15 @@
   <div class="btn-group" class:hide="!selectedUserId">
     <p-button
       style="margin-right: auto"
-      attr:disabled="!selectedUserId || !selectedFiles.length"
+      attr:disabled="!selectedUserId || !selectedFiles.length || sendingFiles"
       attr:variant="selectedFiles.length ? 'contained' : 'outlined'"
       on:click="sendFiles"
     >
-      发送这{{selectedFiles.length}}个文件
+      <o-if :value="sendingFiles"> 发送中... </o-if>
+      <o-else> 发送这{{selectedFiles.length}}个文件 </o-else>
     </p-button>
     <p-button
-      attr:disabled="!selectedUserId"
+      attr:disabled="!selectedUserId || sendingFiles"
       on:click="shadow.$('#file-input').ele.click()"
       attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
     >
@@ -165,7 +222,7 @@
       multiple
     />
     <p-button
-      attr:disabled="!selectedUserId"
+      attr:disabled="!selectedUserId || sendingFiles"
       on:click="shadow.$('#folder-input').ele.click()"
       attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
     >
@@ -196,6 +253,7 @@
           showOnlySendable: "on",
           selectedUserId: "",
           selectedFiles: [], // 已经选择的文件
+          sendingFiles: false, // 是否正在发送文件
         },
         proto: {
           async removeItem(index) {
@@ -211,6 +269,9 @@
                   size: file.size,
                   type: "file",
                   _file: file,
+                  sending: false, // 是否正在发送
+                  sendedProgress: 0, // 已发送进度
+                  sendSuccessProgress: 0, // 发送成功进度
                   task: [], // 进度记录
                 };
               })
@@ -226,6 +287,7 @@
               size: 0,
               type: "directory",
               _files: [],
+              sending: false, // 是否正在发送
               task: [], // 进度记录
             };
 
@@ -273,6 +335,26 @@
                   if (index !== -1) {
                     this._cancels.splice(index, 1);
                   }
+                  return;
+                }
+                const fileItem = this.selectedFiles[e.fileIndex];
+
+                if (e.kind === "sending-start") {
+                  fileItem.sending = true;
+
+                  // 文件开始发送
+                  return;
+                }
+
+                if (e.kind === "sending-chunk") {
+                  fileItem.sendedProgress = (e.count / e.total) * 100;
+                  return;
+                }
+
+                if (e.kind === "send-chunk-succeed") {
+                  fileItem.sendSuccessProgress = Math.round(
+                    (e.count / e.total) * 100
+                  );
                   return;
                 }
 
