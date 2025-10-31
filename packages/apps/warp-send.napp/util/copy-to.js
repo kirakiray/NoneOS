@@ -7,8 +7,7 @@ export const copyTo = ({
   files,
   userId,
   userSessionId,
-  progress,
-  end,
+  callback,
 }) => {
   const controller = new AbortController();
 
@@ -21,9 +20,14 @@ export const copyTo = ({
 
     if (data.kind === "response-chunk-result") {
       // 清除等待的hash
-      if (!sendingHash.has(data.hash)) {
+      const resolve = sendingHash.get(data.hash);
+
+      if (!resolve) {
+        console.log("没有找到对应的hash", data.hash);
         return;
       }
+
+      resolve();
 
       sendingHash.delete(data.hash);
       if (waitSendResolve) {
@@ -44,6 +48,7 @@ export const copyTo = ({
         file,
         remoteUser,
         userSessionId,
+        callback,
       });
     }
   })();
@@ -55,12 +60,18 @@ export const copyTo = ({
 };
 
 const concurrentBlocksCount = 2; // 并发发送的块数量
-const sendingHash = new Set(); // 正在发送的文件hash
+const sendingHash = new Map(); // 正在发送的文件hash
 
 let waitSendResolve = null;
 
 // 发送文件给对方
-const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
+const sendFile = async ({
+  file,
+  signal,
+  remoteUser,
+  userSessionId,
+  callback,
+}) => {
   // 先给文件进行分块
   const chunkHashes = await calculateFileChunkHashes(file, {
     chunkSize: setting.chunkSize,
@@ -81,6 +92,15 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
     hashes: chunkHashes,
   });
 
+  callback({
+    kind: "sending-start",
+    name: file.name,
+    total: chunkHashes.length,
+  });
+
+  let sendedCount = 0; // 已发送的块数量
+  let sendSuccessCount = 0; // 已发送成功的块数量
+
   // TODO: 逐步分块发送给对方
   for (let i = 0; i < chunkHashes.length; i++) {
     const hash = chunkHashes[i];
@@ -98,7 +118,23 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
     // 发送块数据
     send(new Uint8Array(chunk));
 
-    sendingHash.add(hash);
+    callback({
+      kind: "sending-chunk",
+      name: file.name,
+      hash,
+      count: ++sendedCount,
+      total: chunkHashes.length,
+    });
+
+    sendingHash.set(hash, () => {
+      callback({
+        kind: "send-chunk-succeed",
+        name: file.name,
+        hash,
+        count: ++sendSuccessCount,
+        total: chunkHashes.length,
+      });
+    });
 
     // 判断是否已经超出并发发送的块数量
     if (sendingHash.size >= concurrentBlocksCount) {

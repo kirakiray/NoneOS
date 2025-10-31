@@ -266,14 +266,17 @@
               files,
               userId: targetItem.fromUserId,
               userSessionId: targetItem.fromUserSessionId,
-              progress: (e) => {
-                debugger;
-              },
-              end: () => {
-                const index = this._cancels.indexOf(cancel);
-                if (index !== -1) {
-                  this._cancels.splice(index, 1);
+              callback: (e) => {
+                if (e.done) {
+                  // 发送完成
+                  const index = this._cancels.indexOf(cancel);
+                  if (index !== -1) {
+                    this._cancels.splice(index, 1);
+                  }
+                  return;
                 }
+
+                console.log("发送进度", e);
               },
             });
 
