@@ -6,7 +6,7 @@ export const copyTo = ({
   localUser,
   files,
   fromUserId,
-  formSessionId,
+  fromSessionId,
   progress,
   end,
 }) => {
@@ -28,7 +28,7 @@ export const copyTo = ({
         signal: controller.signal,
         file,
         remoteUser,
-        userSessionId: formSessionId,
+        userSessionId: fromSessionId,
       });
     }
   })();
