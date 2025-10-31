@@ -20,7 +20,7 @@ export const copyTo = ({
 
     if (data.kind === "response-chunk-result") {
       // 清除等待的hash
-      const resolve = sendingHash.get(data.hash);
+      const resolve = pendingChunks.get(data.hash);
 
       if (!resolve) {
         console.log("没有找到对应的hash", data.hash);
@@ -29,10 +29,10 @@ export const copyTo = ({
 
       resolve();
 
-      sendingHash.delete(data.hash);
-      if (waitSendResolve) {
-        waitSendResolve();
-        waitSendResolve = null;
+      pendingChunks.delete(data.hash);
+      if (waitForSendResolve) {
+        waitForSendResolve();
+        waitForSendResolve = null;
       }
     }
   });
@@ -60,9 +60,9 @@ export const copyTo = ({
 };
 
 const concurrentBlocksCount = 2; // 并发发送的块数量
-const sendingHash = new Map(); // 正在发送的文件hash
+const pendingChunks = new Map(); // 正在等待确认的文件块
 
-let waitSendResolve = null;
+let waitForSendResolve = null;
 
 // 发送文件给对方
 const sendFile = async ({
@@ -98,8 +98,8 @@ const sendFile = async ({
     total: chunkHashes.length,
   });
 
-  let sendedCount = 0; // 已发送的块数量
-  let sendSuccessCount = 0; // 已发送成功的块数量
+  let sentCount = 0; // 已发送的块数量
+  let sentSuccessCount = 0; // 已发送成功的块数量
 
   // TODO: 逐步分块发送给对方
   for (let i = 0; i < chunkHashes.length; i++) {
@@ -122,25 +122,25 @@ const sendFile = async ({
       kind: "sending-chunk",
       name: file.name,
       hash,
-      count: ++sendedCount,
+      count: ++sentCount,
       total: chunkHashes.length,
     });
 
-    sendingHash.set(hash, () => {
+    pendingChunks.set(hash, () => {
       callback({
         kind: "send-chunk-succeed",
         name: file.name,
         hash,
-        count: ++sendSuccessCount,
+        count: ++sentSuccessCount,
         total: chunkHashes.length,
       });
     });
 
     // 判断是否已经超出并发发送的块数量
-    if (sendingHash.size >= concurrentBlocksCount) {
+    if (pendingChunks.size >= concurrentBlocksCount) {
       // 添加等待的函数
       await new Promise((resolve) => {
-        waitSendResolve = resolve;
+        waitForSendResolve = resolve;
       });
     }
   }
