@@ -76,6 +76,12 @@ const sendFile = async ({
   userSessionId,
   callback,
 }) => {
+  // 组装数据，告诉对方文件的大小
+  callback({
+    kind: "calculate-hash",
+    fileIndex,
+  });
+
   // 先给文件进行分块
   const chunkHashes = await calculateFileChunkHashes(file, {
     chunkSize: setting.chunkSize,

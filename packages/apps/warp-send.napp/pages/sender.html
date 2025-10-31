@@ -339,8 +339,15 @@
                 }
                 const fileItem = this.selectedFiles[e.fileIndex];
 
+                if (e.kind === "calculate-hash") {
+                  fileItem.sending = true;
+                  fileItem.task.push("正在计算文件哈希...");
+                  return;
+                }
+
                 if (e.kind === "sending-start") {
                   fileItem.sending = true;
+                  fileItem.task.push("正在发送文件...");
 
                   // 文件开始发送
                   return;
