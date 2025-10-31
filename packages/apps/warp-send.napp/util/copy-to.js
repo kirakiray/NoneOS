@@ -60,7 +60,7 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
     hashes: chunkHashes,
   });
 
-  // TODO: F逐步分块发送给对方
+  // TODO: 逐步分块发送给对方
   for (let i = 0; i < chunkHashes.length; i++) {
     // const hash = chunkHashes[i];
 
@@ -81,16 +81,16 @@ const sendFile = async ({ file, signal, remoteUser, userSessionId }) => {
 
 // 初始化接收器
 export const initReceiver = async ({ localUser, progress, handle }) => {
-  const receiver = [];
-  let beforeReceiver = null;
+  const receivedFiles = [];
+  let currentReceivingFile = null;
 
   // 存储块的目录
   const chunksHandle = await handle.get("__warp-send-chunks", {
     create: "dir",
   });
 
-  return localUser.bind("receive-data", async (e) => {
-    const { data, fromUserId, fromUserSessionId } = e.detail;
+  return localUser.bind("receive-data", async (event) => {
+    const { data, fromUserId, fromUserSessionId } = event.detail;
 
     // 确认对方是我的设备才进行操作
     const isMyDevice = await localUser.isMyDevice(fromUserId);
@@ -103,7 +103,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
 
     if (data.kind === "send-file") {
       // 记录文件描述
-      beforeReceiver = {
+      currentReceivingFile = {
         kind: "send-file",
         name: data.name, // 文件名称
         hashes: data.hashes, // 文件的hash列表
@@ -111,12 +111,12 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
         chunkSize: data.chunkSize, // 每个块的最大大小
       };
 
-      receiver.push(beforeReceiver);
+      receivedFiles.push(currentReceivingFile);
 
       // 收到了文件描述，开始准备接受文件
       progress &&
         progress({
-          ...beforeReceiver,
+          ...currentReceivingFile,
         });
       return;
     }
@@ -126,7 +126,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       const hash = await getHash(data);
 
       // 确认hash是否正确
-      const index = beforeReceiver.hashes.indexOf(hash);
+      const index = currentReceivingFile.hashes.indexOf(hash);
       if (index === -1) {
         console.log("hash 不匹配");
         return;
@@ -139,21 +139,21 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
 
       await chunkHandle.write(data);
 
-      beforeReceiver.receivedChunks.push(hash);
+      currentReceivingFile.receivedChunks.push(hash);
     }
 
     // 当块全部收到时，进行合并
-    if (beforeReceiver.receivedChunks.length === beforeReceiver.hashes.length) {
+    if (currentReceivingFile.receivedChunks.length === currentReceivingFile.hashes.length) {
       console.log("文件接收完成");
 
       // 合并文件
-      const fileHandle = await handle.get(beforeReceiver.name, {
+      const fileHandle = await handle.get(currentReceivingFile.name, {
         create: "file",
       });
 
       let contents = [];
 
-      for (let hash of beforeReceiver.hashes) {
+      for (let hash of currentReceivingFile.hashes) {
         const chunkHandle = await chunksHandle.get(`${hash}`);
         const chunk = await chunkHandle.file();
         contents.push(chunk);
