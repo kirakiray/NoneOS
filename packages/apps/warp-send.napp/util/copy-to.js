@@ -118,7 +118,8 @@ const sendFile = async ({
   let sentSuccessCount = 0; // 已发送成功的块数量
 
   // 复制一份hash数组，用于后续操作
-  const pendingChunkHashes = [...chunkHashes];
+  // 去重：确保重复内容的块只发送一次
+  const pendingChunkHashes = Array.from(new Set(chunkHashes));
 
   while (pendingChunkHashes.length) {
     const hash = pendingChunkHashes.shift();
@@ -141,21 +142,27 @@ const sendFile = async ({
     // 发送块数据
     send(new Uint8Array(chunk));
 
+    // 确认有多少个重复内容的块
+    const repeatCount = chunkHashes.filter((item) => item === hash).length;
+
+    sentCount += repeatCount;
+
     callback({
       kind: "sending-chunk",
       name: file.name,
       hash,
-      count: ++sentCount,
+      count: sentCount,
       total: chunkHashes.length,
       fileIndex,
     });
 
     pendingChunks.set(hash, () => {
+      sentSuccessCount += repeatCount;
       callback({
         kind: "send-chunk-succeed",
         name: file.name,
         hash,
-        count: ++sentSuccessCount,
+        count: sentSuccessCount,
         total: chunkHashes.length,
         fileIndex,
       });
@@ -165,11 +172,11 @@ const sendFile = async ({
     if (pendingChunks.size >= concurrentBlocksCount) {
       // 添加等待的函数
       await new Promise((resolve) => {
-        // 超时的话，将hash重新加入队列
+        // 超时的话，将hash重新加入队列下次再发送
         const timer = setTimeout(() => {
           pendingChunkHashes.push(hash);
-          sentCount--;
-          waitForSendResolve = null;
+          sentCount -= repeatCount;
+          pendingChunks.delete(hash);
 
           callback({
             kind: "send-chunk-timeout",
@@ -179,7 +186,10 @@ const sendFile = async ({
             total: chunkHashes.length,
             fileIndex,
           });
-        }, 5000);
+
+          waitForSendResolve = null;
+          resolve();
+        }, 8000);
 
         waitForSendResolve = () => {
           clearTimeout(timer);

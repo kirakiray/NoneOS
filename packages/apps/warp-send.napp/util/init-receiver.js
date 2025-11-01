@@ -106,7 +106,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
 
       for (let hash of currentReceivingFile.hashes) {
         const chunkHandle = await chunksHandle.get(`${hash}`);
-        const chunk = await chunkHandle.file();
+        const chunk = (await chunkHandle.file()).slice();
         contents.push(chunk);
       }
 
