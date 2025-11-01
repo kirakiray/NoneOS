@@ -127,7 +127,7 @@
               ></n-local-icon>
             </o-if>
             <o-else-if
-              :value="$data.sending && $data.sendedProgress === 100"
+              :value="$data.sending && $data.sendedProgress >= 100"
               slot="prefix"
             >
               <n-local-icon

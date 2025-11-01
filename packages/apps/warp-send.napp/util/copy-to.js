@@ -59,6 +59,11 @@ export const copyTo = ({
       });
       fileIndex++;
     }
+
+    callback({
+      kind: "sending-end",
+      done: true,
+    });
   })();
 
   return () => {
