@@ -1,3 +1,3 @@
 export { getHash } from "./get-hash.js";
-export { calculateFileChunkHashes } from "./calculate-file-chunk-hashes.js";
+export { getFileChunkHashes } from "./get-file-chunk-hashes.js";
 export { getFileHash } from "./get-file-hash.js";

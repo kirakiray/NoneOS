@@ -1,5 +1,5 @@
 export {
   getHash,
-  calculateFileChunkHashes,
+  getFileChunkHashes,
   getFileHash,
 } from "../util/hash/main.js";

@@ -1,4 +1,4 @@
-import { calculateFileChunkHashes } from "./calculate-file-chunk-hashes.js";
+import { getFileChunkHashes } from "./get-file-chunk-hashes.js";
 
 /**
  * 获取文件的总体哈希值
@@ -9,5 +9,5 @@ import { calculateFileChunkHashes } from "./calculate-file-chunk-hashes.js";
  */
 export const getFileHash = async (file) =>
   getHash(
-    (await calculateFileChunkHashes(file, { chunkSize: 128 * 1024 })).join("")
+    (await getFileChunkHashes(file, { chunkSize: 128 * 1024 })).join("")
   );

@@ -1,4 +1,4 @@
-import { calculateFileChunkHashes, getHash } from "/packages/util/hash/main.js";
+import { getFileChunkHashes, getHash } from "/packages/util/hash/main.js";
 import { setting } from "/packages/fs/fs-remote/file.js";
 
 // 专门用于复制到远端设备中的方法
@@ -83,7 +83,7 @@ const sendFile = async ({
   });
 
   // 先给文件进行分块
-  const chunkHashes = await calculateFileChunkHashes(file, {
+  const chunkHashes = await getFileChunkHashes(file, {
     chunkSize: setting.chunkSize,
   });
 

@@ -6,7 +6,7 @@ import { getHash } from "./get-hash.js";
  * @returns {Promise<string[]>} 返回包含所有分块哈希值的数组
  * @description 将文件分割成128KB大小的块，并计算每个块的SHA-256哈希值
  */
-export const calculateFileChunkHashes = async (
+export const getFileChunkHashes = async (
   file,
   { callback, chunkSize } = {}
 ) => {

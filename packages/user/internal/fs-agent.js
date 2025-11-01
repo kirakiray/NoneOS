@@ -1,5 +1,5 @@
 import { get } from "/packages/fs/main.js";
-import { getHash, calculateFileChunkHashes } from "/packages/util/hash/main.js";
+import { getHash, getFileChunkHashes } from "/packages/util/hash/main.js";
 import { getChunk } from "/packages/chunk/main.js";
 
 import { setting } from "/packages/fs/fs-remote/file.js";
@@ -78,7 +78,7 @@ export default async function fsAgent({
       let { start, end } = data.options || {};
 
       if (start === undefined && end === undefined) {
-        hashes = await calculateFileChunkHashes(file, {
+        hashes = await getFileChunkHashes(file, {
           chunkSize: setting.chunkSize,
         });
       } else {
