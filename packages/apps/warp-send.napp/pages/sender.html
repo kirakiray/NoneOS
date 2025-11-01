@@ -7,6 +7,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -69,13 +70,21 @@
     }
   </style>
   <h4>
-    选择发送给
+    <localized-content>
+      <span lang="cn">选择发送给</span>
+      <span lang="en">Select recipient</span>
+      <span lang="ja">送信先を選択</span>
+    </localized-content>
     <p-switch
       style="margin-left: 20px"
       sync:value="showOnlySendable"
       size="small"
     >
-      仅显示可发送设备
+      <localized-content>
+        <span lang="cn">仅显示可发送设备</span>
+        <span lang="en">Show only sendable devices</span>
+        <span lang="ja">送信可能なデバイスのみ表示</span>
+      </localized-content>
     </p-switch>
   </h4>
   <p-list attr:show-only-sendable="showOnlySendable">
@@ -93,7 +102,13 @@
           <o-if
             :value="$host.receivers.some(e => e.fromUserId === $data.userId)"
           >
-            <span class="connected-mark"> 已连接 </span>
+            <span class="connected-mark">
+              <localized-content>
+                <span lang="cn">已连接</span>
+                <span lang="en">Connected</span>
+                <span lang="ja">接続済み</span>
+              </localized-content>
+            </span>
           </o-if>
         </div>
       </p-list-item>
@@ -106,7 +121,14 @@
     style="margin-top: 16px"
   >
     <div style="display: flex; align-items: center">
-      <strong style="margin-right: 4px">待发送文件</strong> (
+      <strong style="margin-right: 4px">
+        <localized-content>
+          <span lang="cn">待发送文件</span>
+          <span lang="en">Files to send</span>
+          <span lang="ja">送信待ちファイル</span>
+        </localized-content>
+      </strong>
+      (
       <span style="color: var(--md-sys-color-primary)">
         {{selectedFiles.length}}</span
       >
@@ -184,7 +206,11 @@
               variant="outlined"
               style="margin-left: auto"
             >
-              移除
+              <localized-content>
+                <span lang="cn">移除</span>
+                <span lang="en">Remove</span>
+                <span lang="ja">削除</span>
+              </localized-content>
             </p-button>
           </div>
         </p-list-item>
@@ -213,10 +239,18 @@
           margin-left: auto;
         "
       >
-        发送成功
+        <localized-content>
+          <span lang="cn">发送成功</span>
+          <span lang="en">Sent successfully</span>
+          <span lang="ja">送信成功</span>
+        </localized-content>
       </p>
       <p-button color="success" on:click="clearFiles" style="margin: 0 16px">
-        清除项目
+        <localized-content>
+          <span lang="cn">清除项目</span>
+          <span lang="en">Clear items</span>
+          <span lang="ja">アイテムをクリア</span>
+        </localized-content>
       </p-button>
     </o-if>
     <o-else>
@@ -226,8 +260,22 @@
         attr:variant="selectedFiles.length ? 'contained' : 'outlined'"
         on:click="sendFiles"
       >
-        <o-if :value="sendingFiles"> 发送中... </o-if>
-        <o-else> 发送这{{selectedFiles.length}}个文件 </o-else>
+        <o-if :value="sendingFiles">
+          <localized-content>
+            <span lang="cn">发送中...</span>
+            <span lang="en">Sending...</span>
+            <span lang="ja">送信中...</span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">发送这{{selectedFiles.length}}个文件</span>
+            <span lang="en">Send these {{selectedFiles.length}} files</span>
+            <span lang="ja"
+              >これら{{selectedFiles.length}}つのファイルを送信</span
+            >
+          </localized-content>
+        </o-else>
       </p-button>
 
       <p-button
@@ -236,16 +284,24 @@
         attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
       >
         <n-local-icon name="file" slot="prefix"></n-local-icon>
-        添加文件
+        <localized-content>
+          <span lang="cn">添加文件</span>
+          <span lang="en">Add files</span>
+          <span lang="ja">ファイルを追加</span>
+        </localized-content>
       </p-button>
-      <p-button
+      <!-- <p-button
         attr:disabled="!selectedUserId || sendingFiles"
         on:click="shadow.$('#folder-input').ele.click()"
         attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
       >
         <n-local-icon name="folder" slot="prefix"></n-local-icon>
-        添加文件夹
-      </p-button>
+        <localized-content>
+          <span lang="cn">添加文件夹</span>
+          <span lang="en">Add folder</span>
+          <span lang="ja">フォルダを追加</span>
+        </localized-content>
+      </p-button> -->
     </o-else>
     <input
       type="file"
@@ -426,6 +482,10 @@
             }
 
             this.selectedUserId = data.userId;
+
+            // 初始化 rtc
+            const remoteUser = await localUser.connectUser(data.userId);
+            remoteUser.initRTC();
 
             // TODO: 通知对方准备接收文件
           },
