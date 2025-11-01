@@ -331,8 +331,6 @@
               throw new Error("请先选择接收设备");
             }
 
-            debugger;
-
             this.sendingFiles = true;
 
             const cancel = copyTo({
@@ -347,6 +345,8 @@
                   if (index !== -1) {
                     this._cancels.splice(index, 1);
                   }
+
+                  this.sendingFiles = false;
                   return;
                 }
                 const fileItem = this.selectedFiles[e.fileIndex];
@@ -382,8 +382,6 @@
             });
 
             this._cancels.push(cancel);
-
-            this.sendingFiles = false;
           },
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
