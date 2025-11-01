@@ -59,13 +59,13 @@
     .progress-line {
       width: 170px;
     }
-    .progress-line[color="success"] {
-      background-color: var(--md-sys-color-success);
-    }
     .progress-line .progress-line-inner {
       height: 1px;
       background-color: var(--md-sys-color-primary);
       transition: width 0.1s ease-in-out;
+    }
+    .progress-line[color="success"] .progress-line-inner {
+      background-color: var(--md-sys-color-success);
     }
   </style>
   <h4>
