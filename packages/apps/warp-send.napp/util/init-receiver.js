@@ -122,8 +122,5 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       }
       return;
     }
-
-    // 不明情况
-    debugger;
   });
 };

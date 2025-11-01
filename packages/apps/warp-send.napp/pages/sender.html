@@ -57,12 +57,15 @@
     }
 
     .progress-line {
-      height: 1px;
-      background-color: var(--md-sys-color-primary);
-      transition: width 0.1s ease-in-out;
+      width: 170px;
     }
     .progress-line[color="success"] {
       background-color: var(--md-sys-color-success);
+    }
+    .progress-line .progress-line-inner {
+      height: 1px;
+      background-color: var(--md-sys-color-primary);
+      transition: width 0.1s ease-in-out;
     }
   </style>
   <h4>
@@ -160,17 +163,22 @@
                 color="success"
                 class:hide="!$data.sending"
                 style="margin-top: 4px"
-                :style.width="$data.sendSuccessProgress + '%'"
-              ></div>
-              <div
-                class="progress-line"
-                class:hide="!$data.sending"
-                :style.width="$data.sendedProgress + '%'"
-              ></div>
+              >
+                <div
+                  class="progress-line-inner"
+                  :style.width="$data.sendSuccessProgress + '%'"
+                ></div>
+              </div>
+              <div class="progress-line" class:hide="!$data.sending">
+                <div
+                  class="progress-line-inner"
+                  :style.width="$data.sendedProgress + '%'"
+                ></div>
+              </div>
             </div>
             <p-button
               on:click="$host.removeItem($index)"
-              attr:disabled="$host.sendingFiles"
+              attr:disabled="!!$host.sendingFiles"
               size="small"
               color="error"
               variant="outlined"
@@ -323,6 +331,10 @@
               throw new Error("请先选择接收设备");
             }
 
+            debugger;
+
+            this.sendingFiles = true;
+
             const cancel = copyTo({
               localUser,
               files,
@@ -370,6 +382,8 @@
             });
 
             this._cancels.push(cancel);
+
+            this.sendingFiles = false;
           },
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
