@@ -418,19 +418,14 @@
             localUser.register(
               "warp-send-radiate",
               ({ data, fromUserId, fromUserSessionId }) => {
-                if (!this.receivers.some((e) => e.fromUserId === fromUserId)) {
-                  this.receivers.push({
-                    fromUserId,
-                    fromUserSessionId,
-                  });
+                const idx = this.receivers.findIndex(
+                  (e) => e.fromUserId === fromUserId
+                );
+                if (idx === -1) {
+                  this.receivers.push({ fromUserId, fromUserSessionId });
                 } else {
-                  // 已经存在了，代表要更新 fromUserSessionId
-                  const item = this.receivers.find(
-                    (e) => e.fromUserId === fromUserId
-                  );
-                  if (item) {
-                    item.fromUserSessionId = fromUserSessionId;
-                  }
+                  // 更新会话 ID
+                  this.receivers[idx].fromUserSessionId = fromUserSessionId;
                 }
               }
             ),
