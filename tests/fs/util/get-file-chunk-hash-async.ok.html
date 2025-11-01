@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>GetFileChunkHashesAsync Function Test</title>
+  </head>
+  <body>
+    <script src="/sw/register.js" type="module"></script>
+    <script type="module">
+      import { getFileChunkHashesAsync } from "/packages/util/hash/main.js";
+      import { test } from "/ok-test/main.js";
+
+      // Test small file (< 128KB)
+      await test("Test Small File with Async Chunk Hashes", async () => {
+        const content = "Hello, World!".repeat(1000); // ~13KB
+        const file = new File([content], "small.txt", {
+          type: "text/plain",
+        });
+        const hashes = await getFileChunkHashesAsync(file);
+
+        return {
+          assert:
+            Array.isArray(hashes) &&
+            hashes.length === 1 &&
+            typeof hashes[0] === "string" &&
+            hashes[0].length === 64,
+          content: `Hashes count: ${
+            hashes.length
+          }, First hash: ${hashes[0]?.substring(0, 32)}...`,
+        };
+      });
+
+      // Test medium file (exactly 128KB)
+      await test("Test Medium File (128KB) with Async Chunk Hashes", async () => {
+        const content = "A".repeat(128 * 1024); // 128KB
+        const file = new File([content], "medium.txt", {
+          type: "text/plain",
+        });
+        const hashes = await getFileChunkHashesAsync(file);
+
+        return {
+          assert:
+            Array.isArray(hashes) &&
+            hashes.length === 1 &&
+            typeof hashes[0] === "string" &&
+            hashes[0].length === 64,
+          content: `Hashes count: ${
+            hashes.length
+          }, First hash: ${hashes[0]?.substring(0, 32)}...`,
+        };
+      });
+
+      // Test large file (> 128KB)
+      await test("Test Large File with Async Chunk Hashes", async () => {
+        const content = "B".repeat(300 * 1024); // 300KB, should result in 3 chunks
+        const file = new File([content], "large.txt", {
+          type: "text/plain",
+        });
+        const hashes = await getFileChunkHashesAsync(file);
+
+        return {
+          assert:
+            Array.isArray(hashes) &&
+            hashes.length === 3 &&
+            hashes.every((h) => typeof h === "string" && h.length === 64),
+          content: `Hashes count: ${hashes.length}\nHashes: ${hashes
+            .map((h) => h.substring(0, 16) + "...")
+            .join(", ")}`,
+        };
+      });
+
+      // Test empty file
+      await test("Test Empty File with Async Chunk Hashes", async () => {
+        const file = new File([""], "empty.txt", {
+          type: "text/plain",
+        });
+        const hashes = await getFileChunkHashesAsync(file);
+
+        return {
+          assert: Array.isArray(hashes) && hashes.length === 0,
+          content: `Hashes count: ${hashes.length}, Hash: ${hashes[0]}`,
+        };
+      });
+
+      // Test with custom chunk size
+      await test("Test Custom Chunk Size with Async Chunk Hashes", async () => {
+        const content = "C".repeat(50 * 1024); // 50KB
+        const file = new File([content], "custom-chunk.txt", {
+          type: "text/plain",
+        });
+        const hashes = await getFileChunkHashesAsync(file, {
+          chunkSize: 25 * 1024,
+        }); // 25KB chunks
+
+        return {
+          assert:
+            Array.isArray(hashes) &&
+            hashes.length === 2 &&
+            hashes.every((h) => typeof h === "string" && h.length === 64),
+          content: `Hashes count: ${hashes.length}\nHashes: ${hashes
+            .map((h) => h.substring(0, 16) + "...")
+            .join(", ")}`,
+        };
+      });
+    </script>
+  </body>
+</html>
