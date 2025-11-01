@@ -423,6 +423,14 @@
                     fromUserId,
                     fromUserSessionId,
                   });
+                } else {
+                  // 已经存在了，代表要更新 fromUserSessionId
+                  const item = this.receivers.find(
+                    (e) => e.fromUserId === fromUserId
+                  );
+                  if (item) {
+                    item.fromUserSessionId = fromUserSessionId;
+                  }
                 }
               }
             ),

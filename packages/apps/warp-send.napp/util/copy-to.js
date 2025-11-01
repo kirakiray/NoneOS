@@ -35,8 +35,9 @@ export const copyTo = ({
 
       pendingChunks.delete(data.hash);
       if (waitForSendResolve) {
-        waitForSendResolve();
+        const backupResolve = waitForSendResolve;
         waitForSendResolve = null;
+        backupResolve();
       }
     }
   });
@@ -116,11 +117,18 @@ const sendFile = async ({
   let sentCount = 0; // 已发送的块数量
   let sentSuccessCount = 0; // 已发送成功的块数量
 
-  // TODO: 逐步分块发送给对方
-  for (let i = 0; i < chunkHashes.length; i++) {
-    const hash = chunkHashes[i];
+  // 复制一份hash数组，用于后续操作
+  const pendingChunkHashes = [...chunkHashes];
 
-    let chunk = file.slice(i * setting.chunkSize, (i + 1) * setting.chunkSize);
+  while (pendingChunkHashes.length) {
+    const hash = pendingChunkHashes.shift();
+
+    const index = chunkHashes.indexOf(hash);
+
+    let chunk = file.slice(
+      index * setting.chunkSize,
+      (index + 1) * setting.chunkSize
+    );
 
     if (chunk instanceof Blob) {
       chunk = await chunk.arrayBuffer();
@@ -160,7 +168,18 @@ const sendFile = async ({
     if (pendingChunks.size >= concurrentBlocksCount) {
       // 添加等待的函数
       await new Promise((resolve) => {
-        waitForSendResolve = resolve;
+        // 超时的话，将hash重新加入队列
+        const timer = setTimeout(() => {
+          if (waitForSendResolve) {
+            pendingChunkHashes.push(hash);
+            waitForSendResolve = null;
+          }
+        }, 5000);
+
+        waitForSendResolve = () => {
+          clearTimeout(timer);
+          resolve();
+        };
       });
     }
   }
