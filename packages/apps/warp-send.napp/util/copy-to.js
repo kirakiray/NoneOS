@@ -150,10 +150,7 @@ const sendFile = async ({
       fileIndex,
     });
 
-    console.log("sending-chunk: ", hash);
-
     pendingChunks.set(hash, () => {
-      console.log("send-chunk-succeed: ", hash);
       callback({
         kind: "send-chunk-succeed",
         name: file.name,
