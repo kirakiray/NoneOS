@@ -205,23 +205,48 @@
     }
   </style>
   <div class="btn-group" class:hide="!selectedUserId">
-    <p-button
-      style="margin-right: auto"
-      attr:disabled="!selectedUserId || !selectedFiles.length || sendingFiles"
-      attr:variant="selectedFiles.length ? 'contained' : 'outlined'"
-      on:click="sendFiles"
-    >
-      <o-if :value="sendingFiles"> 发送中... </o-if>
-      <o-else> 发送这{{selectedFiles.length}}个文件 </o-else>
-    </p-button>
-    <p-button
-      attr:disabled="!selectedUserId || sendingFiles"
-      on:click="shadow.$('#file-input').ele.click()"
-      attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
-    >
-      <n-local-icon name="file" slot="prefix"></n-local-icon>
-      添加文件
-    </p-button>
+    <o-if :value="sendEnd">
+      <p
+        style="
+          color: var(--md-sys-color-success);
+          font-size: 14px;
+          margin-left: auto;
+        "
+      >
+        发送成功
+      </p>
+      <p-button color="success" on:click="clearFiles" style="margin: 0 16px">
+        清除项目
+      </p-button>
+    </o-if>
+    <o-else>
+      <p-button
+        style="margin-right: auto"
+        attr:disabled="!selectedUserId || !selectedFiles.length || sendingFiles"
+        attr:variant="selectedFiles.length ? 'contained' : 'outlined'"
+        on:click="sendFiles"
+      >
+        <o-if :value="sendingFiles"> 发送中... </o-if>
+        <o-else> 发送这{{selectedFiles.length}}个文件 </o-else>
+      </p-button>
+
+      <p-button
+        attr:disabled="!selectedUserId || sendingFiles"
+        on:click="shadow.$('#file-input').ele.click()"
+        attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
+      >
+        <n-local-icon name="file" slot="prefix"></n-local-icon>
+        添加文件
+      </p-button>
+      <p-button
+        attr:disabled="!selectedUserId || sendingFiles"
+        on:click="shadow.$('#folder-input').ele.click()"
+        attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
+      >
+        <n-local-icon name="folder" slot="prefix"></n-local-icon>
+        添加文件夹
+      </p-button>
+    </o-else>
     <input
       type="file"
       id="file-input"
@@ -229,14 +254,6 @@
       style="display: none"
       multiple
     />
-    <p-button
-      attr:disabled="!selectedUserId || sendingFiles"
-      on:click="shadow.$('#folder-input').ele.click()"
-      attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
-    >
-      <n-local-icon name="folder" slot="prefix"></n-local-icon>
-      添加文件夹
-    </p-button>
     <input
       type="file"
       id="folder-input"
@@ -262,8 +279,13 @@
           selectedUserId: "",
           selectedFiles: [], // 已经选择的文件
           sendingFiles: false, // 是否正在发送文件
+          sendEnd: false, // 是否发送完成
         },
         proto: {
+          async clearFiles() {
+            this.selectedFiles = [];
+            this.sendEnd = false;
+          },
           async removeItem(index) {
             this.selectedFiles.splice(index, 1);
           },
@@ -347,8 +369,10 @@
                   }
 
                   this.sendingFiles = false;
+                  this.sendEnd = true;
                   return;
                 }
+
                 const fileItem = this.selectedFiles[e.fileIndex];
 
                 if (e.kind === "calculate-hash") {
