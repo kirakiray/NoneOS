@@ -167,10 +167,18 @@ const sendFile = async ({
       await new Promise((resolve) => {
         // 超时的话，将hash重新加入队列
         const timer = setTimeout(() => {
-          if (waitForSendResolve) {
-            pendingChunkHashes.push(hash);
-            waitForSendResolve = null;
-          }
+          pendingChunkHashes.push(hash);
+          sentCount--;
+          waitForSendResolve = null;
+
+          callback({
+            kind: "send-chunk-timeout",
+            name: file.name,
+            hash,
+            count: sentCount,
+            total: chunkHashes.length,
+            fileIndex,
+          });
         }, 5000);
 
         waitForSendResolve = () => {
