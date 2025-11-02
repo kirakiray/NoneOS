@@ -18,7 +18,9 @@ export const mount = async (options) => {
   const handle = new DirHandle(directoryHandle);
 
   mountedDirs.push({
-    uniqueId: directoryHandle.getUniqueId(),
+    uniqueId: directoryHandle.getUniqueId
+      ? await directoryHandle.getUniqueId()
+      : Math.random().toString(36).slice(2),
     handle,
   });
 

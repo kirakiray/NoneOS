@@ -35,7 +35,12 @@
         </localized-content>
       </strong>
       <o-if :value="canUsePicker">
-        <p-button variant="outlined" size="small" style="margin-left: 8px">
+        <p-button
+          variant="outlined"
+          on:click="changeDir"
+          size="small"
+          style="margin-left: 8px"
+        >
           <localized-content>
             <span lang="cn">更改保存目录</span>
             <span lang="en">Change Directory</span>
@@ -89,6 +94,7 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
       const { initReceiver } = await load("../util/init-receiver.js");
+      const { mount } = await load("/packages/fs/main.js");
 
       const localUser = await createUser();
       const myInfo = await localUser.info();
@@ -103,6 +109,11 @@
           list: [], // 接受中的文件列表
         },
         proto: {
+          async changeDir() {
+            const handle = await mount();
+
+            this.changeReceiverHandle(handle);
+          },
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
             let index = 0;

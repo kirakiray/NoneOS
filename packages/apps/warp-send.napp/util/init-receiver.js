@@ -5,6 +5,11 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
   const receivedFiles = [];
   let currentReceivingFile = null;
 
+  // 存储块的目录
+  const chunksHandle = await handle.get("__warp-send-chunks", {
+    create: "dir",
+  });
+
   return localUser.bind("receive-data", async (event) => {
     const { data, fromUserId, fromUserSessionId } = event.detail;
 
@@ -50,9 +55,9 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       }
 
       // 存储块的目录
-      const chunksHandle = await handle.get("__warp-send-chunks", {
-        create: "dir",
-      });
+      // const chunksHandle = await handle.get("__warp-send-chunks", {
+      //   create: "dir",
+      // });
 
       // 先将块写入到缓存文件夹上
       const chunkHandle = await chunksHandle.get(`${hash}`, {
@@ -105,9 +110,9 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       let contents = [];
 
       // 存储块的目录
-      const chunksHandle = await handle.get("__warp-send-chunks", {
-        create: "dir",
-      });
+      // const chunksHandle = await handle.get("__warp-send-chunks", {
+      //   create: "dir",
+      // });
 
       for (let hash of currentReceivingFile.hashes) {
         const chunkHandle = await chunksHandle.get(`${hash}`);
@@ -122,7 +127,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       await fileHandle.write(blob);
 
       // 合并完成后，清空缓存文件
-      await chunksHandle.remove();
+      // await chunksHandle.remove();
       // for await (const entry of chunksHandle.values()) {
       //   await entry.remove();
       // }

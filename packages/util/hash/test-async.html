@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test File Chunk Hashes Async</title>
+  </head>
+  <body>
+    <h1>测试文件分块哈希异步计算</h1>
+    <input type="file" id="fileInput" />
+    <button id="calculateBtn" disabled>计算哈希值</button>
+    <div id="result"></div>
+
+    <script type="module">
+      import { getFileChunkHashesAsync } from "./get-file-chunk-hashes-async.js";
+
+      const fileInput = document.getElementById("fileInput");
+      const calculateBtn = document.getElementById("calculateBtn");
+      const resultDiv = document.getElementById("result");
+
+      fileInput.addEventListener("change", (event) => {
+        calculateBtn.disabled = !event.target.files.length;
+      });
+
+      calculateBtn.addEventListener("click", async () => {
+        if (!fileInput.files.length) return;
+
+        const file = fileInput.files[0];
+        resultDiv.innerHTML = "<p>正在计算...</p>";
+
+        try {
+          const startTime = Date.now();
+          const hashes = await getFileChunkHashesAsync(file);
+          const endTime = Date.now();
+
+          debugger
+
+          resultDiv.innerHTML = `
+                    <h2>计算完成</h2>
+                    <p>耗时: ${endTime - startTime} ms</p>
+                    <p>块数量: ${hashes.length}</p>
+                    <p>前3个哈希值:</p>
+                    <ul>
+                        ${hashes
+                          .slice(0, 3)
+                          .map((h) => `<li>${h}</li>`)
+                          .join("")}
+                    </ul>
+                    ${
+                      hashes.length > 3
+                        ? `<p>...还有 ${hashes.length - 3} 个块</p>`
+                        : ""
+                    }
+                `;
+        } catch (error) {
+          resultDiv.innerHTML = `<p style="color: red;">错误: ${error.message}</p>`;
+        }
+      });
+    </script>
+  </body>
+</html>

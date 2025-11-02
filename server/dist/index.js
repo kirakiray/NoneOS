@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { createRequire } from "node:module";
+import { createRequire } from 'node:module';
 
 // WebSocketServer.js
 // 兼容 nodejs 和 bun 环境的 WebSocket 服务器类
@@ -146,7 +146,7 @@ class WebSocketServer {
     console.log("使用Node.js ws库");
 
     try {
-      const { WebSocketServer } = await import("ws");
+      const { WebSocketServer } = await import('ws');
 
       // 创建WebSocket服务器，监听在指定端口
       this.wss = new WebSocketServer({ port: port });
@@ -348,6 +348,7 @@ const options$1 = {
  * ECDSA 签名相关工具函数
  */
 
+
 /**
  * 导入公钥
  * @param {string} publicKeyBase64 - base64 编码的公钥
@@ -433,17 +434,10 @@ const verify = async (signedData) => {
   }
 };
 
-/**
- * @file util.js
- * @author yao
- * 传入一个数据，计算哈希值
- * @param {ArrayBuffer|Blob|String} data 数据
- * @return {Promise<string>} 哈希值
- */
 const getHash = async (data) => {
   if (!globalThis.crypto) {
     // Node.js 环境
-    const crypto = await import("crypto");
+    const crypto = await import('crypto');
     if (typeof data === "string") {
       data = new TextEncoder().encode(data);
     } else if (data instanceof Blob) {
@@ -468,6 +462,8 @@ const getHash = async (data) => {
   }
 };
 
+import.meta.resolve("./get-file-chunk-hashes.worker.js");
+
 /**
  * 将数据和对象信息组装成一个buffer对象
  * 格式：[prefixLength][prefixBuffer][originBuffer]
@@ -488,7 +484,9 @@ const toBuffer = (originBuffer, info) => {
 
   // 检查长度是否超出限制（255字节）
   if (infoBuffer.length > 255) {
-    throw new Error("Info data is too large, must be less than 255 bytes");
+    throw new Error(
+      "Info data is too large, must be less than 255 bytes: \n" + infoJson
+    );
   }
 
   // 第一个字节存储infoBuffer的长度
@@ -630,20 +628,26 @@ const options = {
       const targetUserClients = users.get(userId);
       if (!targetUserClients) return;
 
-      const sendData = binaryData
-        ? toBuffer(binaryData, {
-            ...otherData,
-            type: "agent_data",
-            fromUserId: client.userId,
-            fromUserSessionId: client.userSessionId,
-          })
-        : {
-            ...otherData,
-            type: "agent_data",
-            data,
-            fromUserId: client.userId,
-            fromUserSessionId: client.userSessionId,
-          };
+      let sendData;
+      try {
+        sendData = binaryData
+          ? toBuffer(binaryData, {
+              ...otherData,
+              type: "agent_data",
+              fromUserId: client.userId,
+              fromUserSessionId: client.userSessionId,
+            })
+          : {
+              ...otherData,
+              type: "agent_data",
+              data,
+              fromUserId: client.userId,
+              fromUserSessionId: client.userSessionId,
+            };
+      } catch (err) {
+        console.error(err);
+        return;
+      }
 
       let targetDeviceClient = null;
 
