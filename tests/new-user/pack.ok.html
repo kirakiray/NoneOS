@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pack Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { pack, unpack } from "/packages/user/util/pack.js";
+
+      await test("Basic Pack/Unpack Test", async () => {
+        // 创建测试对象和二进制数据
+        const testObj = {
+          name: "测试对象",
+          number: 42,
+          isActive: true,
+          nested: {
+            text: "嵌套文本",
+            value: 123.45,
+          },
+        };
+        const testData = new Uint8Array([1, 2, 3, 4, 5]);
+
+        // 打包数据
+        const packed = pack(testObj, testData);
+
+        // 解包数据
+        const { obj, data } = unpack(packed);
+
+        // 验证转换结果
+        const isNameEqual = obj.name === testObj.name;
+        const isNumberEqual = obj.number === testObj.number;
+        const isActiveEqual = obj.isActive === testObj.isActive;
+        const isNestedTextEqual = obj.nested.text === testObj.nested.text;
+        const isNestedValueEqual = obj.nested.value === testObj.nested.value;
+        const isDataEqual = data.every(
+          (value, index) => value === testData[index]
+        );
+
+        return {
+          assert:
+            isNameEqual &&
+            isNumberEqual &&
+            isActiveEqual &&
+            isNestedTextEqual &&
+            isNestedValueEqual &&
+            isDataEqual,
+          content: {
+            message: "基本打包解包测试成功",
+            originalObj: testObj,
+            originalData: testData,
+            packed: packed,
+            unpackedObj: obj,
+            unpackedData: data,
+            validations: {
+              isNameEqual,
+              isNumberEqual,
+              isActiveEqual,
+              isNestedTextEqual,
+              isNestedValueEqual,
+              isDataEqual,
+            },
+          },
+        };
+      });
+
+      await test("Empty Object Test", async () => {
+        // 创建空对象和空数据
+        const emptyObj = {};
+        const emptyData = new Uint8Array(0);
+
+        // 打包数据
+        const packed = pack(emptyObj, emptyData);
+
+        // 解包数据
+        const { obj, data } = unpack(packed);
+
+        // 验证转换结果
+        const isObjEmpty = Object.keys(obj).length === 0;
+        const isDataEmpty = data.length === 0;
+
+        return {
+          assert: isObjEmpty && isDataEmpty,
+          content: {
+            message: "空对象和空数据测试成功",
+            originalObj: emptyObj,
+            originalData: emptyData,
+            packed: packed,
+            unpackedObj: obj,
+            unpackedData: data,
+            validations: {
+              isObjEmpty,
+              isDataEmpty,
+            },
+          },
+        };
+      });
+
+      await test("Complex Data Test", async () => {
+        // 创建复杂对象和大数据
+        const complexObj = {
+          id: Math.random().toString(36).substring(2, 15),
+          timestamp: Date.now(),
+          arrays: [1, 2, 3, 4, 5],
+          nested: {
+            deeply: {
+              nested: {
+                value: "deep nested value",
+              },
+            },
+          },
+          mixed: ["string", 123, true, null, { key: "value" }],
+        };
+        const complexData = crypto.getRandomValues(new Uint8Array(32));
+
+        // 打包数据
+        const packed = pack(complexObj, complexData);
+
+        // 解包数据
+        const { obj, data } = unpack(packed);
+
+        // 验证转换结果
+        const isIdEqual = obj.id === complexObj.id;
+        const isTimestampEqual = obj.timestamp === complexObj.timestamp;
+        const isArraysEqual =
+          JSON.stringify(obj.arrays) === JSON.stringify(complexObj.arrays);
+        const isNestedEqual =
+          obj.nested.deeply.nested.value ===
+          complexObj.nested.deeply.nested.value;
+        const isMixedEqual =
+          JSON.stringify(obj.mixed) === JSON.stringify(complexObj.mixed);
+        const isDataEqual = data.every(
+          (value, index) => value === complexData[index]
+        );
+
+        return {
+          assert:
+            isIdEqual &&
+            isTimestampEqual &&
+            isArraysEqual &&
+            isNestedEqual &&
+            isMixedEqual &&
+            isDataEqual,
+          content: {
+            message: "复杂数据测试成功",
+            originalObj: complexObj,
+            originalData: Array.from(complexData),
+            packedLength: packed.length,
+            unpackedObj: obj,
+            unpackedData: Array.from(data),
+            validations: {
+              isIdEqual,
+              isTimestampEqual,
+              isArraysEqual,
+              isNestedEqual,
+              isMixedEqual,
+              isDataEqual,
+            },
+          },
+        };
+      });
+
+      await test("Large Data Test", async () => {
+        // 创建测试对象和大数据
+        const testObj = {
+          message: "Large data test",
+          size: 1024,
+        };
+        const largeData = crypto.getRandomValues(new Uint8Array(1024));
+
+        // 打包数据
+        const packed = pack(testObj, largeData);
+
+        // 解包数据
+        const { obj, data } = unpack(packed);
+
+        // 验证转换结果
+        const isMessageEqual = obj.message === testObj.message;
+        const isSizeEqual = obj.size === testObj.size;
+        const isDataLengthEqual = data.length === largeData.length;
+        const isDataEqual = data.every(
+          (value, index) => value === largeData[index]
+        );
+
+        return {
+          assert:
+            isMessageEqual && isSizeEqual && isDataLengthEqual && isDataEqual,
+          content: {
+            message: "大数据测试成功",
+            originalObj: testObj,
+            originalDataLength: largeData.length,
+            packedLength: packed.length,
+            unpackedObj: obj,
+            unpackedDataLength: data.length,
+            validations: {
+              isMessageEqual,
+              isSizeEqual,
+              isDataLengthEqual,
+              isDataEqual,
+            },
+          },
+        };
+      });
+
+      await test("Error Handling Test", async () => {
+        try {
+          // 测试无效缓冲区
+          const invalidBuffer = new Uint8Array([1, 2, 3]); // 长度小于4
+          unpack(invalidBuffer);
+          return {
+            assert: false,
+            content: {
+              message: "应该抛出错误但没有抛出",
+            },
+          };
+        } catch (error) {
+          return {
+            assert: error.message === "Invalid buffer",
+            content: {
+              message: "错误处理测试成功",
+              errorMessage: error.message,
+            },
+          };
+        }
+      });
+
+      await test("Unicode Text Test", async () => {
+        // 创建包含Unicode字符的对象
+        const unicodeObj = {
+          chinese: "你好世界",
+          japanese: "こんにちは",
+          emoji: "🚀✨🌟",
+          mixed: "Hello 世界 🌍",
+        };
+        const unicodeData = new TextEncoder().encode("Unicode data: 你好 🎉");
+
+        // 打包数据
+        const packed = pack(unicodeObj, unicodeData);
+
+        // 解包数据
+        const { obj, data } = unpack(packed);
+
+        // 验证转换结果
+        const isChineseEqual = obj.chinese === unicodeObj.chinese;
+        const isJapaneseEqual = obj.japanese === unicodeObj.japanese;
+        const isEmojiEqual = obj.emoji === unicodeObj.emoji;
+        const isMixedEqual = obj.mixed === unicodeObj.mixed;
+        const isDataEqual =
+          new TextDecoder().decode(data) ===
+          new TextDecoder().decode(unicodeData);
+
+        return {
+          assert:
+            isChineseEqual &&
+            isJapaneseEqual &&
+            isEmojiEqual &&
+            isMixedEqual &&
+            isDataEqual,
+          content: {
+            message: "Unicode文本测试成功",
+            originalObj: unicodeObj,
+            originalData: new TextDecoder().decode(unicodeData),
+            unpackedObj: obj,
+            unpackedData: new TextDecoder().decode(data),
+            validations: {
+              isChineseEqual,
+              isJapaneseEqual,
+              isEmojiEqual,
+              isMixedEqual,
+              isDataEqual,
+            },
+          },
+        };
+      });
+    </script>
+  </body>
+</html>
