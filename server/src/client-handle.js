@@ -1,6 +1,6 @@
 import { verify } from "../../packages/user/util/verify.js";
 import { getHash } from "../../packages/util/hash/main.js";
-import { toBuffer } from "../../packages/user/util/buffer-data.js";
+import { pack } from "../../packages/user/util/pack.js";
 
 export const options = {
   // 认证用户信息
@@ -79,7 +79,7 @@ export const options = {
   // 转发用户数据
   async agent_data({ client, clients, users, message, binaryData }) {
     const { options, data } = message;
-    const { userId, userSessionId, ...otherData } = options;
+    const { userId, userSessionId } = options;
 
     if (userId) {
       const targetUserClients = users.get(userId);
@@ -87,20 +87,14 @@ export const options = {
 
       let sendData;
       try {
-        sendData = binaryData
-          ? toBuffer(binaryData, {
-              ...otherData,
-              type: "agent_data",
-              fromUserId: client.userId,
-              fromUserSessionId: client.userSessionId,
-            })
-          : {
-              ...otherData,
-              type: "agent_data",
-              data,
-              fromUserId: client.userId,
-              fromUserSessionId: client.userSessionId,
-            };
+        sendData = pack(
+          {
+            type: "agent_data",
+            fromUserId: client.userId,
+            fromUserSessionId: client.userSessionId,
+          },
+          binaryData
+        );
       } catch (err) {
         console.error(err);
         return;

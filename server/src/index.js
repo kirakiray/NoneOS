@@ -6,7 +6,7 @@ import { DeviceClient } from "./device-client.js";
 import adminHandle from "./admin-handle.js";
 import clientHandle from "./client-handle.js";
 import { createRequire } from "node:module";
-import { toData } from "../../packages/user/util/buffer-data.js";
+import { unpack } from "../../packages/user/util/pack.js";
 
 const require = createRequire(import.meta.url);
 
@@ -84,9 +84,10 @@ export const initServer = async ({
     let binaryData = null;
 
     if (message instanceof Buffer) {
-      const { data, info } = toData(message);
+      const { obj, data } = unpack(message);
+
       binaryData = data;
-      message = info;
+      message = obj;
     }
 
     if (clientHandle[message.type]) {

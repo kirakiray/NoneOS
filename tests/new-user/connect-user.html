@@ -17,9 +17,8 @@
       console.log("user2", user2);
 
       // 保证user2连上服务器
-      const serverManager = await user2.serverManager();
-
-      await user2.connectServer(serverManager.data[0].url);
+      await user1.connectAllServers();
+      await user2.connectAllServers();
 
       // user2监听获取数据的事件
       const cancel1 = user2.bind("receive-data", (e) => {
@@ -49,14 +48,15 @@
         remoteUser2 = await user1.connectUser({ userId: user2.userId });
 
         // 初始化RTC连接，完成后就会使用点对点进行数据通信
-        await remoteUser2.initRTC();
+        // await remoteUser2.initRTC();
       } catch (error) {
         console.log("连接用户或rtc初始化失败:", error);
       }
 
       // 通过用户1发送二进制数据给用户2
-      const binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
-      remoteUser2.post(binaryData);
+      // const binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
+      // remoteUser2.post(binaryData);
+      remoteUser2.post("1234567");
     </script>
   </body>
 </html>

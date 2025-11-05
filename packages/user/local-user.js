@@ -10,6 +10,7 @@ import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
 import { CardManager } from "./card-manager.js";
 import { publicBroadcastChannel } from "./util/public-channel.js";
+import { uint8ArrayToObject } from "./util/msg-pack.js";
 
 // 本地用户类
 export class LocalUser extends BaseUser {
@@ -38,23 +39,28 @@ export class LocalUser extends BaseUser {
     }, 1000 * 30);
 
     // 接受到服务端转发过来的数据
-    this.bind("received-server-agent-data", (event) => {
+    this.bind("received-server-agent-data", async (event) => {
       const options = event.detail.response;
-      const { fromUserId, fromUserSessionId, data } = options;
+      let { fromUserId, fromUserSessionId, data } = options;
       const { server } = event.detail;
 
       if (!data) {
         return;
       }
 
-      if (options.msgId) {
+      // 还原数据
+      const originData = await uint8ArrayToObject(data);
+
+      if (originData.msgId) {
         // 防止和rtc数据接收重复
-        if (msgIdCaches.has(options.msgId)) {
+        if (msgIdCaches.has(originData.msgId)) {
           return;
         }
 
-        msgIdCaches.add(options.msgId);
+        msgIdCaches.add(originData.msgId);
       }
+
+      data = originData.msg;
 
       if (data.__internal_mark) {
         // 内部操作

@@ -1,4 +1,5 @@
-import { toBuffer, toData } from "../util/buffer-data.js";
+// import { toBuffer, toData } from "../util/buffer-data.js";
+import { pack, unpack } from "../util/pack.js";
 
 export class HandServerClient extends EventTarget {
   #url;
@@ -76,7 +77,7 @@ export class HandServerClient extends EventTarget {
   }
 
   // 发送数据给指定用户
-  sendTo(options, data) {
+  async sendTo(options, data) {
     if (this.state !== "authed") {
       throw new Error("用户未认证");
     }
@@ -85,15 +86,8 @@ export class HandServerClient extends EventTarget {
       options = { userId: options };
     }
 
-    if (data instanceof Uint8Array) {
-      const reBuffer = toBuffer(data, { type: "agent_data", options });
-      this.socket.send(reBuffer);
-      return;
-    }
-
-    if (options.userId) {
-      this._send({ type: "agent_data", options, data });
-    }
+    const packedData = await pack({ type: "agent_data", options }, data);
+    this.socket.send(packedData);
   }
 
   _send(data) {
@@ -137,7 +131,7 @@ export class HandServerClient extends EventTarget {
       const arrayBuffer = await event.data.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      const { data, info } = toData(uint8Array);
+      const { data, obj: info } = await unpack(uint8Array);
 
       if (info.type === "agent_data") {
         this.dispatchEvent(
