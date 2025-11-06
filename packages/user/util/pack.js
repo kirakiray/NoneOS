@@ -1,50 +1,55 @@
-const textEncoder = new TextEncoder();
-const textDecoder = new TextDecoder();
+/**
+ * 将对象和二进制数据打包成一个 Uint8Array
+ * @param {Object} obj - 要打包的对象
+ * @param {Uint8Array} data - 要打包的二进制数据
+ * @returns {Uint8Array} 打包后的数据
+ */
+export function pack(obj, data) {
+  // 将对象序列化为 JSON 字符串
+  const objString = JSON.stringify(obj);
+  const encoder = new TextEncoder();
+  const objData = encoder.encode(objString);
 
-function pack(obj, data) {
-  // 将对象序列化为JSON字符串并编码为字节
-  const jsonStr = JSON.stringify(obj);
-  const objBytes = textEncoder.encode(jsonStr);
+  // 计算总长度：对象数据长度(4字节) + 对象数据 + 二进制数据
+  const totalLength = 4 + objData.length + data.length;
+  const packed = new Uint8Array(totalLength);
 
-  // 创建结果缓冲区：4字节头 + JSON字节 + 原始数据
-  const result = new Uint8Array(4 + objBytes.length + data.length);
+  // 使用 DataView 写入对象数据长度（32位无符号整数）
+  const dataView = new DataView(packed.buffer);
+  dataView.setUint32(0, objData.length, true); // true 表示小端字节序
 
-  // 手动写入4字节大端序长度（避免DataView开销）
-  const len = objBytes.length;
-  result[0] = (len >>> 24) & 0xff;
-  result[1] = (len >>> 16) & 0xff;
-  result[2] = (len >>> 8) & 0xff;
-  result[3] = len & 0xff;
+  // 复制对象数据
+  packed.set(objData, 4);
 
-  // 高效复制字节数据（直接内存操作）
-  result.set(objBytes, 4);
-  result.set(data, 4 + objBytes.length);
+  // 复制二进制数据
+  packed.set(data, 4 + objData.length);
 
-  return result;
+  return packed;
 }
 
-function unpack(packed) {
-  // 读取4字节大端序头
-  const len =
-    (packed[0] << 24) | (packed[1] << 16) | (packed[2] << 8) | packed[3];
+/**
+ * 从打包的数据中解包出对象和二进制数据
+ * @param {Uint8Array} packed - 打包后的数据
+ * @returns {Object} 包含 obj 和 data 的对象
+ */
+export function unpack(packed) {
+  // 读取对象数据长度
+  const dataView = new DataView(packed.buffer);
+  const objDataLength = dataView.getUint32(0, true);
 
-  // 安全边界检查
-  if (4 + len > packed.length) {
-    throw new Error("Invalid packed data: declared length exceeds buffer size");
-  }
+  // 提取对象数据
+  const objData = packed.subarray(4, 4 + objDataLength);
 
-  // 零拷贝创建视图
-  const objBytes = packed.subarray(4, 4 + len);
-  const data = packed.subarray(4 + len);
+  // 提取二进制数据
+  const data = packed.subarray(4 + objDataLength);
 
-  // 解析JSON对象
-  const jsonStr = textDecoder.decode(objBytes);
-  const obj = JSON.parse(jsonStr);
+  // 将对象数据反序列化
+  const decoder = new TextDecoder();
+  const objString = decoder.decode(objData);
+  const obj = JSON.parse(objString);
 
   return { obj, data };
 }
-
-export { pack, unpack };
 
 // /* ========== 使用示例 ========== */
 // const originalObj = { name: "Alice", age: 23 };

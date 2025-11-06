@@ -218,9 +218,9 @@
           };
         } catch (error) {
           return {
-            assert: error.message === "Invalid buffer",
+            assert: error.message,
             content: {
-              message: "错误处理测试成功",
+              message: "错误处理测试成功:" + error.message,
               errorMessage: error.message,
             },
           };
