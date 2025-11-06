@@ -1,7 +1,6 @@
 import { BaseUser } from "./base-user.js";
 import { getHash } from "../fs/util.js";
 import initRTC from "./remote/init-rtc.js";
-import { toBuffer } from "./util/buffer-data.js";
 import { objectToUint8Array, uint8ArrayToObject } from "./util/msg-pack.js";
 
 export class RemoteUser extends BaseUser {

@@ -1,4 +1,3 @@
-// import { toBuffer, toData } from "../util/buffer-data.js";
 import { pack, unpack } from "../util/pack.js";
 import { objectToUint8Array } from "../util/msg-pack.js";
 
