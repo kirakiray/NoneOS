@@ -93,8 +93,13 @@ export class LocalUser extends BaseUser {
     });
 
     this.bind("rtc-message", (event) => {
-      let { remoteUser, message, channel, rtcConnection, proxySessionId } =
-        event.detail;
+      let {
+        remoteUser,
+        result: message,
+        channel,
+        rtcConnection,
+        proxySessionId,
+      } = event.detail;
 
       let publicDetail = {};
 
@@ -119,9 +124,12 @@ export class LocalUser extends BaseUser {
         msgIdCaches.add(message.msgId);
       }
 
-      const data = message.data;
-
       if (message.userSessionId && message.userSessionId !== this.sessionId) {
+        if (proxySessionId) {
+          // 已经在其他session中处理了，直接返回
+          return;
+        }
+
         // 转发到指定的session标签页，并且不是当前session
         publicBroadcastChannel.postMessage({
           type: "rtc-agent-message",
@@ -133,9 +141,10 @@ export class LocalUser extends BaseUser {
             userDirName: this.dirName,
           },
         });
-
         return;
       }
+
+      const data = message.msg;
 
       if (data.__internal_mark) {
         // 内部操作

@@ -13,6 +13,9 @@
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
 
+      user1._ignoreCert = true;
+      user2._ignoreCert = true;
+
       console.log("user1", user1);
       console.log("user2", user2);
 
@@ -48,15 +51,19 @@
         remoteUser2 = await user1.connectUser({ userId: user2.userId });
 
         // 初始化RTC连接，完成后就会使用点对点进行数据通信
-        // await remoteUser2.initRTC();
+        await remoteUser2.initRTC();
       } catch (error) {
         console.log("连接用户或rtc初始化失败:", error);
       }
 
       // 通过用户1发送二进制数据给用户2
-      // const binaryData = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
+      // remoteUser2.post("1234567");
+      const binaryData = new Uint8Array([71, 101, 108, 108, 111]);
       // remoteUser2.post(binaryData);
-      remoteUser2.post("1234567");
+      remoteUser2.post({
+        val: "test val",
+        binaryData,
+      });
     </script>
   </body>
 </html>

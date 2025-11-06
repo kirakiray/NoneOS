@@ -272,6 +272,7 @@ export class RemoteUser extends BaseUser {
     const data = await objectToUint8Array({
       msg,
       msgId: Math.random().toString(32).slice(2),
+      userSessionId, // 目标的会话id
     });
 
     if (this._runInitRTC && !this._rtcConnections.length) {
@@ -309,34 +310,11 @@ export class RemoteUser extends BaseUser {
           data
         );
 
-        const err = new Error("未找到可用的RTC channel，改用服务端发送");
-        console.warn(err);
+        console.warn(new Error("未找到可用的RTC channel，改用服务端发送"));
         return;
       }
 
-      debugger;
-
-      // 根据消息类型选择发送方式，二进制类型直接发送，对象则转换为字符串发送
-      if (
-        msg instanceof Blob ||
-        msg instanceof ArrayBuffer ||
-        ArrayBuffer.isView(msg)
-      ) {
-        channel.send(
-          toBuffer(msg, {
-            ...opts,
-            msgId,
-          })
-        );
-      } else {
-        channel.send(
-          JSON.stringify({
-            ...opts,
-            msgId,
-            data: msg,
-          })
-        );
-      }
+      channel.send(data);
     }
   }
 

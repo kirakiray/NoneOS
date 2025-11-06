@@ -1,4 +1,5 @@
-import { toData } from "../util/buffer-data.js";
+// import { toData } from "../util/buffer-data.js";
+import { uint8ArrayToObject } from "../util/msg-pack.js";
 
 // WebRTC ICE 服务器配置
 const iceServers = [
@@ -226,32 +227,12 @@ const initChannel = (remoteUser, rtcConnection, channel) => {
     }, 100);
   };
 
-  channel.onmessage = (event) => {
-    let message = event.data;
-    try {
-      if (typeof message === "string") {
-        message = JSON.parse(message);
-      }
-    } catch (e) {
-      console.error("解析消息失败:", e);
-      debugger;
-    }
-
-    if (message instanceof ArrayBuffer) {
-      const { data, info } = toData(new Uint8Array(message));
-
-      // 重组消息对象
-      message = {
-        ...info,
-        data,
-      };
-    }
-
+  channel.onmessage = async (event) => {
     remoteUser.self.dispatchEvent(
       new CustomEvent("rtc-message", {
         detail: {
           remoteUser,
-          message,
+          result: await uint8ArrayToObject(event.data),
           channel,
           rtcConnection,
         },

@@ -17,7 +17,7 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
       fromUserSessionId,
       proxySessionId,
       userDirName,
-      message,
+      result,
       toUserSessionId,
     } = detail;
 
@@ -31,7 +31,7 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
               fromUserSessionId,
               proxySessionId,
               userDirName,
-              message,
+              result,
             },
           })
         );
