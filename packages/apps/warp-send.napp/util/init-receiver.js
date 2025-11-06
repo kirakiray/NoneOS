@@ -78,9 +78,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
           kind: "response-chunk-result",
           hash,
         },
-        {
-          userSessionId: fromUserSessionId,
-        }
+        fromUserSessionId
       );
 
       progress &&

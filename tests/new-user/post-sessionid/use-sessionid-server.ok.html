@@ -99,9 +99,9 @@
         const testData3 = { type: "test", val: "hello3" };
         console.log("测试数据准备完成", { testData1, testData2, testData3 });
 
-        remoteUser2.post(testData1, { userSessionId: user2_1.sessionId });
-        remoteUser2.post(testData2, { userSessionId: user2_2.sessionId });
-        remoteUser2.post(testData3, { userSessionId: user2_3.sessionId });
+        remoteUser2.post(testData1, user2_1.sessionId);
+        remoteUser2.post(testData2, user2_2.sessionId);
+        remoteUser2.post(testData3, user2_3.sessionId);
         console.log("数据发送完成，分别发送到三个 session");
 
         // 等待接收数据

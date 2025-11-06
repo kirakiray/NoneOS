@@ -26,6 +26,7 @@ export default async function fsAgent({
     };
 
     if (blob) {
+      debugger;
       remoteUser.post(new Uint8Array(await blob.arrayBuffer()), {
         ...basePayload,
         userSessionId: fromUserSessionId,
@@ -180,9 +181,7 @@ export default async function fsAgent({
             options: { path, type, remark },
             __internal_mark: 1,
           },
-          {
-            userSessionId: fromUserSessionId,
-          }
+          fromUserSessionId
         );
       });
 

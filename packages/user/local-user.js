@@ -132,7 +132,7 @@ export class LocalUser extends BaseUser {
           type: "rtc-agent-message",
           detail: {
             ...publicDetail,
-            message,
+            result: message,
             proxySessionId: this.sessionId,
             toUserSessionId: message.userSessionId,
             userDirName: this.dirName,

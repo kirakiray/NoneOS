@@ -94,9 +94,7 @@ const sendFile = async ({
   });
 
   const send = (data) => {
-    remoteUser.post(data, {
-      userSessionId,
-    });
+    remoteUser.post(data, userSessionId);
   };
 
   // 组装数据，告诉对方文件的大小
