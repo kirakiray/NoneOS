@@ -1,40 +1,50 @@
-/**
- * 将任意可 JSON 序列化的对象 + 一个 Uint8Array 打包成一个新的 Uint8Array
- * @param {any} obj        可 JSON 序列化的对象
- * @param {Uint8Array} data 二进制数据
- * @returns {Uint8Array}   合并后的结果
- */
-export function pack(obj, data) {
-  const meta = new TextEncoder().encode(JSON.stringify(obj));
-  const header = new Uint8Array(4);
-  new DataView(header.buffer).setUint32(0, meta.length, true); // 小端 4 字节长度
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
-  const result = new Uint8Array(4 + meta.length + data.length);
-  result.set(header, 0);
-  result.set(meta, 4);
-  result.set(data, 4 + meta.length);
+function pack(obj, data) {
+  // 将对象序列化为JSON字符串并编码为字节
+  const jsonStr = JSON.stringify(obj);
+  const objBytes = textEncoder.encode(jsonStr);
+
+  // 创建结果缓冲区：4字节头 + JSON字节 + 原始数据
+  const result = new Uint8Array(4 + objBytes.length + data.length);
+
+  // 手动写入4字节大端序长度（避免DataView开销）
+  const len = objBytes.length;
+  result[0] = (len >>> 24) & 0xff;
+  result[1] = (len >>> 16) & 0xff;
+  result[2] = (len >>> 8) & 0xff;
+  result[3] = len & 0xff;
+
+  // 高效复制字节数据（直接内存操作）
+  result.set(objBytes, 4);
+  result.set(data, 4 + objBytes.length);
+
   return result;
 }
 
-/**
- * 将 pack 生成的 Uint8Array 还原成 { obj, data }
- * @param {Uint8Array} buffer 由 pack 产生的数据
- * @returns {{obj: any, data: Uint8Array}}
- */
-export function unpack(buffer) {
-  if (buffer.length < 4) throw new Error("Invalid buffer");
-  const metaLen = new DataView(buffer.buffer, buffer.byteOffset, 4).getUint32(
-    0,
-    true
-  );
-  if (4 + metaLen > buffer.length) throw new Error("Invalid meta length");
+function unpack(packed) {
+  // 读取4字节大端序头
+  const len =
+    (packed[0] << 24) | (packed[1] << 16) | (packed[2] << 8) | packed[3];
 
-  const metaBytes = buffer.slice(4, 4 + metaLen);
-  const data = buffer.slice(4 + metaLen);
+  // 安全边界检查
+  if (4 + len > packed.length) {
+    throw new Error("Invalid packed data: declared length exceeds buffer size");
+  }
 
-  const obj = JSON.parse(new TextDecoder().decode(metaBytes));
+  // 零拷贝创建视图
+  const objBytes = packed.subarray(4, 4 + len);
+  const data = packed.subarray(4 + len);
+
+  // 解析JSON对象
+  const jsonStr = textDecoder.decode(objBytes);
+  const obj = JSON.parse(jsonStr);
+
   return { obj, data };
 }
+
+export { pack, unpack };
 
 // /* ========== 使用示例 ========== */
 // const originalObj = { name: "Alice", age: 23 };
