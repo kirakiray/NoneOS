@@ -285,6 +285,7 @@ export class RemoteUser extends BaseUser {
         {
           userId: this.userId,
           userSessionId,
+          passWrapMsg: 1,
         },
         data
       );
@@ -305,6 +306,7 @@ export class RemoteUser extends BaseUser {
           {
             userId: this.userId,
             userSessionId,
+            passWrapMsg: 1,
           },
           data
         );

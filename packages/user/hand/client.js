@@ -1,5 +1,5 @@
 import { pack, unpack } from "../util/pack.js";
-import { objectToUint8Array } from "../util/msg-pack.js";
+import { objectToUint8Array, uint8ArrayToObject } from "../util/msg-pack.js";
 
 export class HandServerClient extends EventTarget {
   #url;
@@ -86,7 +86,7 @@ export class HandServerClient extends EventTarget {
       options = { userId: options };
     }
 
-    if (!(data instanceof Uint8Array)) {
+    if (!options.passWrapMsg) {
       data = await objectToUint8Array({ msg: data });
     }
 
@@ -132,9 +132,11 @@ export class HandServerClient extends EventTarget {
       const arrayBuffer = await event.data.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      const { data, obj: info } = await unpack(uint8Array);
+      let { data, obj: info } = await unpack(uint8Array);
 
       if (info.type === "agent_data") {
+        data = await uint8ArrayToObject(data);
+
         this.dispatchEvent(
           new CustomEvent("agent_data", {
             detail: { ...info, data },
@@ -142,7 +144,7 @@ export class HandServerClient extends EventTarget {
         );
 
         if (this.onData) {
-          this.onData(info.fromUserId, data, { ...info, data });
+          this.onData(info.fromUserId, data.msg, { ...info, data });
         }
 
         this.#user.dispatchEvent(
