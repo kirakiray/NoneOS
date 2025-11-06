@@ -26,17 +26,23 @@ export default async function fsAgent({
     };
 
     if (blob) {
-      debugger;
-      remoteUser.post(new Uint8Array(await blob.arrayBuffer()), {
-        ...basePayload,
-        userSessionId: fromUserSessionId,
-      });
+      if (blob instanceof Blob) {
+        blob = new Uint8Array(await blob.arrayBuffer());
+      }
+
+      console.log("发送文件大小：", blob.length / 1024, "KB");
+
+      remoteUser.post(
+        {
+          ...basePayload,
+          result: blob,
+        },
+        fromUserSessionId
+      );
       return;
     }
 
-    remoteUser.post(basePayload, {
-      userSessionId: fromUserSessionId,
-    });
+    remoteUser.post(basePayload, fromUserSessionId);
   };
 
   if (!result) {
