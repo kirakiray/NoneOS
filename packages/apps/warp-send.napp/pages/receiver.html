@@ -27,13 +27,20 @@
         <span lang="en">Files will be saved to:</span>
         <span lang="ja">ファイルは既定で保存されます：</span>
       </localized-content>
-      <strong style="color: var(--md-sys-color-primary); margin-left: 4px">
-        <localized-content>
-          <span lang="cn">浏览器缓存</span>
-          <span lang="en">Browser Cache</span>
-          <span lang="ja">ブラウザキャッシュ</span>
-        </localized-content>
-      </strong>
+      <o-if :value="dirName">
+        <strong style="color: var(--md-sys-color-primary); margin-left: 4px">
+          {{dirName}}
+        </strong>
+      </o-if>
+      <o-else>
+        <strong style="color: var(--md-sys-color-primary); margin-left: 4px">
+          <localized-content>
+            <span lang="cn">浏览器缓存</span>
+            <span lang="en">Browser Cache</span>
+            <span lang="ja">ブラウザキャッシュ</span>
+          </localized-content>
+        </strong>
+      </o-else>
       <o-if :value="canUsePicker">
         <p-button
           variant="outlined"
@@ -42,33 +49,35 @@
           style="margin-left: 8px"
         >
           <localized-content>
-            <span lang="cn">更改保存目录</span>
+            <span lang="cn">更改目录</span>
             <span lang="en">Change Directory</span>
-            <span lang="ja">保存先を変更</span>
+            <span lang="ja">ディレクトリを変更</span>
           </localized-content>
         </p-button>
       </o-if>
     </p>
-    <p
-      style="
-        margin-top: 12px;
-        color: var(--md-sys-color-normal);
-        font-size: 0.9em;
-      "
-    >
-      <localized-content>
-        <span lang="cn"
-          >文件将先暂存至浏览器缓存，接收完成后可一键转存到本地磁盘。</span
-        >
-        <span lang="en"
-          >Files are temporarily saved in browser cache and can be exported to
-          local disk after transfer.</span
-        >
-        <span lang="ja"
-          >ファイルは一旦ブラウザキャッシュに保存され、転送完了後にローカルディスクへ書き出せます。</span
-        >
-      </localized-content>
-    </p>
+    <o-if :value="!dirName">
+      <p
+        style="
+          margin-top: 12px;
+          color: var(--md-sys-color-normal);
+          font-size: 0.9em;
+        "
+      >
+        <localized-content>
+          <span lang="cn"
+            >文件将先暂存至浏览器缓存，接收完成后可一键转存到本地磁盘。</span
+          >
+          <span lang="en"
+            >Files are temporarily saved in browser cache and can be exported to
+            local disk after transfer.</span
+          >
+          <span lang="ja"
+            >ファイルは一旦ブラウザキャッシュに保存され、転送完了後にローカルディスクへ書き出せます。</span
+          >
+        </localized-content>
+      </p>
+    </o-if>
     <p-list>
       <o-fill :value="list">
         <p-list-item>
@@ -107,10 +116,13 @@
           canUsePicker: !!window.showDirectoryPicker, // 是否支持浏览器目录选择的api
           configData: {}, // 应用的设置目录
           list: [], // 接受中的文件列表
+          dirName: "", // 接收文件的目录名称
         },
         proto: {
           async changeDir() {
             const handle = await mount();
+
+            this.dirName = handle.name;
 
             this.changeReceiverHandle(handle);
           },
