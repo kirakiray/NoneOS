@@ -1,9 +1,18 @@
 import { getHash } from "/packages/util/hash/main.js";
 
 // 初始化接收器
-export const initReceiver = async ({ localUser, progress, handle }) => {
+export const initReceiver = async ({
+  localUser,
+  progress,
+  handle,
+  appDedicatedHandle,
+}) => {
   const tempHandles = {};
   const fileInfos = {};
+
+  const chunksHandle = await appDedicatedHandle.get("__chunks_temp", {
+    create: "dir",
+  });
 
   // 获取文件块的临时文件夹
   const getChunkTempHandle = (fileHash) => {
@@ -12,7 +21,7 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
     }
 
     return (tempHandles[fileHash] = (async () => {
-      return await handle.get("__" + fileHash, {
+      return await chunksHandle.get("__" + fileHash, {
         create: "dir",
       });
     })());

@@ -147,6 +147,7 @@
             this._receiverInvoice = await initReceiver({
               localUser,
               handle,
+              appDedicatedHandle: this._defaultDir,
               progress: (e) => {
                 switch (e.kind) {
                   case "send-file":
@@ -204,6 +205,8 @@
           clearTimeout(this._radiate_timer);
           this._cancels.forEach((cancel) => cancel());
           this._revokeReceiver && this._revokeReceiver();
+          this._receiverInvoice = null;
+          this._defaultDir = null;
         },
       };
     };
