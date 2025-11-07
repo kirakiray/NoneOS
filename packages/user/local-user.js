@@ -214,7 +214,7 @@ export class LocalUser extends BaseUser {
     Promise.all(
       myDevices.map(async (device) => {
         const remoteUser = await this.connectUser(device.userId);
-        remoteUser.trigger(name, data);
+        remoteUser.trigger(name, data).catch(() => null); // 忽略连接失败的错误
       })
     );
   }

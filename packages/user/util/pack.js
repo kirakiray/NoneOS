@@ -1,53 +1,38 @@
 /**
- * 将对象和二进制数据打包成一个 Uint8Array
- * @param {Object} obj - 要打包的对象
- * @param {Uint8Array} data - 要打包的二进制数据
- * @returns {Uint8Array} 打包后的数据
+ * 将任意可 JSON 序列化的对象 + 一个 Uint8Array 打包成一个新的 Uint8Array
+ * @param {any} obj        可 JSON 序列化的对象
+ * @param {Uint8Array} data 二进制数据
+ * @returns {Uint8Array}   合并后的结果
  */
 export function pack(obj, data) {
-  // 将对象序列化为 JSON 字符串
-  const objString = JSON.stringify(obj);
-  const encoder = new TextEncoder();
-  const objData = encoder.encode(objString);
+  const meta = new TextEncoder().encode(JSON.stringify(obj));
+  const header = new Uint8Array(4);
+  new DataView(header.buffer).setUint32(0, meta.length, true); // 小端 4 字节长度
 
-  // 计算总长度：对象数据长度(4字节) + 对象数据 + 二进制数据
-  const totalLength = 4 + objData.length + data.length;
-  const packed = new Uint8Array(totalLength);
-
-  // 使用 DataView 写入对象数据长度（32位无符号整数）
-  const dataView = new DataView(packed.buffer);
-  dataView.setUint32(0, objData.length, true); // true 表示小端字节序
-
-  // 复制对象数据
-  packed.set(objData, 4);
-
-  // 复制二进制数据
-  packed.set(data, 4 + objData.length);
-
-  return packed;
+  const result = new Uint8Array(4 + meta.length + data.length);
+  result.set(header, 0);
+  result.set(meta, 4);
+  result.set(data, 4 + meta.length);
+  return result;
 }
 
 /**
- * 从打包的数据中解包出对象和二进制数据
- * @param {Uint8Array} packed - 打包后的数据
- * @returns {Object} 包含 obj 和 data 的对象
+ * 将 pack 生成的 Uint8Array 还原成 { obj, data }
+ * @param {Uint8Array} buffer 由 pack 产生的数据
+ * @returns {{obj: any, data: Uint8Array}}
  */
-export function unpack(packed) {
-  // 读取对象数据长度
-  const dataView = new DataView(packed.buffer);
-  const objDataLength = dataView.getUint32(0, true);
+export function unpack(buffer) {
+  if (buffer.length < 4) throw new Error("Invalid buffer");
+  const metaLen = new DataView(buffer.buffer, buffer.byteOffset, 4).getUint32(
+    0,
+    true
+  );
+  if (4 + metaLen > buffer.length) throw new Error("Invalid meta length");
 
-  // 提取对象数据
-  const objData = packed.subarray(4, 4 + objDataLength);
+  const metaBytes = buffer.slice(4, 4 + metaLen);
+  const data = buffer.slice(4 + metaLen);
 
-  // 提取二进制数据
-  const data = packed.subarray(4 + objDataLength);
-
-  // 将对象数据反序列化
-  const decoder = new TextDecoder();
-  const objString = decoder.decode(objData);
-  const obj = JSON.parse(objString);
-
+  const obj = JSON.parse(new TextDecoder().decode(metaBytes));
   return { obj, data };
 }
 

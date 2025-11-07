@@ -274,11 +274,15 @@ export class RemoteUser extends BaseUser {
       userSessionId, // 目标的会话id
     });
 
-    console.log("打包后发送消息大小：", data.length / 1024, "KB");
+    // console.log("打包后发送消息大小：", data.length / 1024, "KB");
 
     if (this._runInitRTC && !this._rtcConnections.length) {
       // 如果运行过initRTC，则再进行一次初始化，让下次可以使用rtc发送
       this.initRTC();
+    }
+
+    if (this.#mode === 0) {
+      throw new Error("未连接到对方");
     }
 
     if (this.#mode === 1) {
@@ -322,7 +326,7 @@ export class RemoteUser extends BaseUser {
   }
 
   async trigger(name, data) {
-    this.post({
+    await this.post({
       type: "trigger",
       name,
       data,
