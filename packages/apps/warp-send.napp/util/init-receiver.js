@@ -42,6 +42,18 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       };
 
       getChunkTempHandle(fileHash); // 提前建立缓存文件夹
+
+      // 通知进度开始接收文件
+      progress &&
+        progress({
+          kind: "send-file",
+          name,
+          fileHash,
+          fileSize,
+          chunkSize,
+          hashes,
+        });
+
       return;
     }
 
@@ -77,6 +89,19 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
         fromUserSessionId
       );
 
+      // 更新进度
+      progress &&
+        progress({
+          kind: "receiving-chunk",
+          fileHash,
+          chunkHash,
+          progress:
+            (fileInfo.receivedChunks.length /
+              fileInfo.uniqueChunkHashes.length) *
+            100,
+          receivedChunks: fileInfo.receivedChunks,
+        });
+
       // 如果收到的块已经足够了，则开始合并文件
       if (
         fileInfo.receivedChunks.length === fileInfo.uniqueChunkHashes.length
@@ -98,6 +123,14 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
         await chunkTempHandle.remove();
         delete fileInfos[fileHash];
         delete tempHandles[fileHash];
+
+        // 通知进度文件接收完成
+        progress &&
+          progress({
+            kind: "file-received",
+            fileHash,
+            name: fileInfo.name,
+          });
       }
 
       return;
