@@ -1,4 +1,4 @@
-import { getFileChunkHashesAsync } from "/packages/util/hash/main.js";
+import { getFileChunkHashesAsync, getHash } from "/packages/util/hash/main.js";
 import { setting } from "/packages/fs/fs-remote/file.js";
 
 // 专门用于复制到远端设备中的方法
@@ -53,6 +53,7 @@ export const copyTo = ({
         userSessionId,
         callback,
       });
+
       fileIndex++;
     }
 
@@ -97,10 +98,13 @@ const sendFile = async ({
     remoteUser.post(data, userSessionId);
   };
 
+  const fileHash = await getHash(chunkHashes.join(""));
+
   // 组装数据，告诉对方文件的大小
   send({
-    kind: "send-file",
+    kind: "file-info",
     name: file.name,
+    fileHash,
     fileSize: file.size,
     chunkSize: setting.chunkSize,
     hashes: chunkHashes,
@@ -139,7 +143,12 @@ const sendFile = async ({
     }
 
     // 发送块数据
-    send(new Uint8Array(chunk));
+    send({
+      kind: "chunk",
+      fileHash,
+      chunkHash: hash,
+      chunk: new Uint8Array(chunk),
+    });
 
     // 确认有多少个重复内容的块
     const repeatCount = chunkHashes.filter((item) => item === hash).length;

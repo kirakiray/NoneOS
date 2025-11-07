@@ -2,13 +2,21 @@ import { getHash } from "/packages/util/hash/main.js";
 
 // 初始化接收器
 export const initReceiver = async ({ localUser, progress, handle }) => {
-  const receivedFiles = [];
-  let currentReceivingFile = null;
+  const tempHandles = {};
+  const fileInfos = {};
 
-  // 存储块的目录
-  const chunksHandle = await handle.get("__warp-send-chunks", {
-    create: "dir",
-  });
+  // 获取文件块的临时文件夹
+  const getChunkTempHandle = (fileHash) => {
+    if (tempHandles[fileHash]) {
+      return tempHandles[fileHash];
+    }
+
+    return (tempHandles[fileHash] = (async () => {
+      return await handle.get("__" + fileHash, {
+        create: "dir",
+      });
+    })());
+  };
 
   return localUser.bind("receive-data", async (event) => {
     const { data, fromUserId, fromUserSessionId } = event.detail;
@@ -22,113 +30,76 @@ export const initReceiver = async ({ localUser, progress, handle }) => {
       return;
     }
 
-    if (data.kind === "send-file") {
-      // 记录文件描述
-      currentReceivingFile = {
-        kind: "send-file",
-        name: data.name, // 文件名称
-        hashes: data.hashes, // 文件的hash列表
-        receivedChunks: [], // 已经收到的块hash
-        fileSize: data.fileSize, // 文件大小
-        chunkSize: data.chunkSize, // 每个块的最大大小
+    if (data.kind === "file-info") {
+      const { name, fileHash, fileSize, chunkSize, hashes } = data;
+      fileInfos[fileHash] = {
+        name,
+        fileSize,
+        chunkSize,
+        hashes,
+        uniqueChunkHashes: Array.from(new Set(hashes)),
+        receivedChunks: [],
       };
 
-      receivedFiles.push(currentReceivingFile);
-
-      // 收到了文件描述，开始准备接受文件
-      progress &&
-        progress({
-          ...currentReceivingFile,
-        });
+      getChunkTempHandle(fileHash); // 提前建立缓存文件夹
       return;
     }
 
-    if (data instanceof Uint8Array) {
-      // 收到了块文件，计算其hash
-      const hash = await getHash(data);
+    if (data.kind === "chunk") {
+      // 接收块文件
+      const { fileHash, chunkHash, chunk } = data;
+      const fileInfo = fileInfos[fileHash];
 
-      // 确认hash是否正确
-      const index = currentReceivingFile.hashes.indexOf(hash);
-      if (index === -1) {
-        console.log("hash 不匹配");
+      if (!fileInfo) {
+        console.warn("未收到文件信息，无法接收块文件");
         return;
       }
 
-      // 存储块的目录
-      // const chunksHandle = await handle.get("__warp-send-chunks", {
-      //   create: "dir",
-      // });
+      const chunkTempHandle = await getChunkTempHandle(fileHash);
 
-      // 先将块写入到缓存文件夹上
-      const chunkHandle = await chunksHandle.get(`${hash}`, {
+      fileInfo.receivedChunks.push(chunkHash);
+
+      // 存入块文件
+      const chunkFileHandle = await chunkTempHandle.get(chunkHash, {
         create: "file",
       });
 
-      await chunkHandle.write(data);
+      await chunkFileHandle.write(chunk);
 
-      currentReceivingFile.receivedChunks.push(hash);
+      // 通知对方已收到块文件
 
       const remoteUser = await localUser.connectUser(fromUserId);
-
-      //   await new Promise((res) => setTimeout(res, 500)); // 模拟网络延迟
-
-      // 返回已收到的块的信息
       remoteUser.post(
         {
           kind: "response-chunk-result",
-          hash,
+          hash: chunkHash,
         },
         fromUserSessionId
       );
 
-      progress &&
-        progress({
-          kind: "receiving-chunk",
-          hash,
-          progress:
-            (currentReceivingFile.receivedChunks.length /
-              currentReceivingFile.hashes.length) *
-            100,
-          receivedChunks: currentReceivingFile.receivedChunks,
+      // 如果收到的块已经足够了，则开始合并文件
+      if (
+        fileInfo.receivedChunks.length === fileInfo.uniqueChunkHashes.length
+      ) {
+        const content = [];
+        for (const chunkHash of fileInfo.hashes) {
+          const chunkFileHandle = await chunkTempHandle.get(chunkHash);
+          content.push(await chunkFileHandle.file());
+        }
+        const blob = new Blob(content);
+
+        // 写入目标文件
+        const fileHandle = await handle.get(fileInfo.name, {
+          create: "file",
         });
-    }
+        await fileHandle.write(blob);
 
-    // 当块全部收到时，进行合并
-    if (
-      currentReceivingFile.receivedChunks.length ===
-      currentReceivingFile.hashes.length
-    ) {
-      console.log("文件接收完成");
-
-      // 合并文件
-      const fileHandle = await handle.get(currentReceivingFile.name, {
-        create: "file",
-      });
-
-      let contents = [];
-
-      // 存储块的目录
-      // const chunksHandle = await handle.get("__warp-send-chunks", {
-      //   create: "dir",
-      // });
-
-      for (let hash of currentReceivingFile.hashes) {
-        const chunkHandle = await chunksHandle.get(`${hash}`);
-        const chunk = (await chunkHandle.file()).slice();
-        contents.push(chunk);
+        // 删除存储缓存的目录
+        await chunkTempHandle.remove();
+        delete fileInfos[fileHash];
+        delete tempHandles[fileHash];
       }
 
-      // 合并成完整的文件
-      const blob = new Blob(contents);
-
-      // 写入文件
-      await fileHandle.write(blob);
-
-      // 合并完成后，清空缓存文件
-      // await chunksHandle.remove();
-      // for await (const entry of chunksHandle.values()) {
-      //   await entry.remove();
-      // }
       return;
     }
   });
