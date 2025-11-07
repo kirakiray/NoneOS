@@ -69,7 +69,7 @@ export const copyTo = ({
   };
 };
 
-const concurrentBlocksCount = 2; // 并发发送的块数量
+const concurrentBlocksCount = 6; // 并发发送的块数量
 const pendingChunks = new Map(); // 正在等待确认的文件块
 
 let waitForSendResolve = null;
