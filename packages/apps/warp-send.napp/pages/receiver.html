@@ -79,8 +79,20 @@
       </p>
     </o-if>
     <o-if :value="!dirName && list.length > 0">
-      <p-button variant="outlined" attr:disabled="downloading">
+      <p-button
+        variant="outlined"
+        on:click="downloadAll"
+        attr:disabled="downloading"
+      >
         下载全部
+      </p-button>
+      <p-button
+        variant="outlined"
+        color="error"
+        on:click="deleteAll"
+        attr:disabled="downloading"
+      >
+        删除全部
       </p-button>
     </o-if>
     <p-list>
@@ -115,6 +127,8 @@
 
       const { createData } = await load("/packages/hybird-data/main.js");
 
+      const { exportHandle } = await load("/packages/fs/task/main.js");
+
       return {
         data: {
           receiverId: [], // 已经接受到广播的 sender 列表
@@ -125,6 +139,37 @@
           downloading: false, // 是否正在下载文件
         },
         proto: {
+          async deleteAll() {
+            // 删除文件夹内的文件
+            const tempDir = await this._defaultDir.get("receive-temp");
+            if (tempDir) {
+              for await (let item of tempDir.values()) {
+                await item.remove();
+              }
+            }
+
+            this.list = [];
+          },
+          async downloadAll() {
+            if (this.list.length === 0) {
+              return;
+            }
+
+            this.downloading = true;
+
+            const tempDir = await this._defaultDir.get("receive-temp");
+            const paths = [];
+
+            if (tempDir) {
+              for await (let item of tempDir.values()) {
+                paths.push(item.path);
+              }
+            }
+
+            await exportHandle(paths, "all");
+
+            this.downloading = false;
+          },
           async changeDir() {
             const handle = await mount();
 
