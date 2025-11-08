@@ -84,7 +84,11 @@
         on:click="downloadAllFile"
         attr:disabled="downloading"
       >
-        下载全部
+        <localized-content>
+          <span lang="cn">下载全部</span>
+          <span lang="en">Download All</span>
+          <span lang="ja">すべてダウンロード</span>
+        </localized-content>
       </p-button>
       <p-button
         variant="outlined"
@@ -92,7 +96,11 @@
         on:click="deleteAll"
         attr:disabled="downloading"
       >
-        删除全部
+        <localized-content>
+          <span lang="cn">删除全部</span>
+          <span lang="en">Delete All</span>
+          <span lang="ja">すべて削除</span>
+        </localized-content>
       </p-button>
     </o-if>
     <p-list>
@@ -122,7 +130,11 @@
             color="success"
             style="margin-left: 16px"
           >
-            下载
+            <localized-content>
+              <span lang="cn">下载</span>
+              <span lang="en">Download</span>
+              <span lang="ja">ダウンロード</span>
+            </localized-content>
           </p-button>
         </p-list-item>
       </o-fill>
