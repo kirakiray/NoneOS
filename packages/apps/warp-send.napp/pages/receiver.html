@@ -78,6 +78,11 @@
         </localized-content>
       </p>
     </o-if>
+    <o-if :value="!dirName && list.length > 0">
+      <p-button variant="outlined" attr:disabled="downloading">
+        下载全部
+      </p-button>
+    </o-if>
     <p-list>
       <o-fill :value="list">
         <p-list-item>
@@ -117,12 +122,15 @@
           configData: {}, // 应用的设置目录
           list: [], // 接受中的文件列表
           dirName: "", // 接收文件的目录名称
+          downloading: false, // 是否正在下载文件
         },
         proto: {
           async changeDir() {
             const handle = await mount();
 
             this.dirName = handle.name;
+
+            this.list = []; // 清空文件列表
 
             this.changeReceiverHandle(handle);
           },
@@ -171,10 +179,15 @@
                       progress: 0,
                       task: [],
                     });
+                    this.downloading = true;
                     break;
                   case "receiving-chunk":
                     // 更新进度
                     this.list[0].progress = e.progress;
+                    break;
+
+                  case "send-end":
+                    this.downloading = false;
                     break;
                 }
               },

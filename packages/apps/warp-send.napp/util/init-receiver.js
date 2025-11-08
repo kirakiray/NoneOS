@@ -144,5 +144,10 @@ export const initReceiver = async ({
 
       return;
     }
+
+    if (data.kind === "send-end") {
+      progress && progress({ kind: "send-end", done: true });
+      return;
+    }
   });
 };

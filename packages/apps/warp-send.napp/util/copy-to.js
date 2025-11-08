@@ -61,6 +61,13 @@ export const copyTo = ({
       kind: "sending-end",
       done: true,
     });
+
+    remoteUser.post(
+      {
+        kind: "send-end",
+      },
+      userSessionId
+    );
   })();
 
   return () => {
