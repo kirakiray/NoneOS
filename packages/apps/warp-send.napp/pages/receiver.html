@@ -81,7 +81,7 @@
     <o-if :value="!dirName && list.length > 0">
       <p-button
         variant="outlined"
-        on:click="downloadAll"
+        on:click="downloadAllFile"
         attr:disabled="downloading"
       >
         下载全部
@@ -109,7 +109,20 @@
               {{$host.getFileSize($data.fileSize)}}
             </span>
           </div>
-          <p-progress :value="$data.progress" style="margin-top: 4px" />
+          <o-if :value="!$data.temp">
+            <p-progress :value="$data.progress" style="margin-top: 4px" />
+          </o-if>
+
+          <p-button
+            variant="outlined"
+            on:click="$host.downloadFile($data)"
+            attr:disabled="$host.downloading"
+            slot="suffix"
+            size="small"
+            color="success"
+          >
+            下载
+          </p-button>
         </p-list-item>
       </o-fill>
     </p-list>
@@ -121,6 +134,7 @@
       const { createUser } = await load("/packages/user/main.js");
       const { initReceiver } = await load("../util/init-receiver.js");
       const { mount } = await load("/packages/fs/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
       const localUser = await createUser();
       const myInfo = await localUser.info();
@@ -128,6 +142,7 @@
       const { createData } = await load("/packages/hybird-data/main.js");
 
       const { exportHandle } = await load("/packages/fs/task/main.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
 
       return {
         data: {
@@ -140,6 +155,23 @@
         },
         proto: {
           async deleteAll() {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除全部缓存文件",
+                en: "Delete All Cache Files",
+                jp: "すべてのキャッシュファイルを削除",
+              }),
+              content: await getLocalized({
+                cn: `确认删除全部已下载文件？请务必先保存到本地电脑，此操作不可恢复。`,
+                en: `Are you sure you want to delete all downloaded files? Please make sure to save them to your local computer first. This action is irreversible.`,
+                jp: `すべてのダウンロードファイルを削除しますか？まずローカルディスクに保存してください。この操作は不可戻りです。`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
             // 删除文件夹内的文件
             const tempDir = await this._defaultDir.get("receive-temp");
             if (tempDir) {
@@ -150,7 +182,18 @@
 
             this.list = [];
           },
-          async downloadAll() {
+          async downloadFile(item) {
+            const tempDir = await this._defaultDir.get("receive-temp");
+
+            const fileHandle = await tempDir.get(item.name);
+
+            if (!fileHandle) {
+              throw new Error("文件不存在");
+            }
+
+            exportHandle([fileHandle.path]);
+          },
+          async downloadAllFile() {
             if (this.list.length === 0) {
               return;
             }
@@ -238,6 +281,21 @@
               },
             });
           },
+          // 加载临时文件存在的文件
+          async loadTempFiles() {
+            const tempDir = await this._defaultDir.get("receive-temp");
+            if (tempDir) {
+              for await (let item of tempDir.values()) {
+                const size = await item.size();
+
+                this.list.push({
+                  name: item.name,
+                  fileSize: size,
+                  temp: true,
+                });
+              }
+            }
+          },
         },
         async attached() {
           // 默认使用的目录
@@ -247,6 +305,8 @@
           const configFile = await this._defaultDir.get("config.json", {
             create: "file",
           });
+
+          this.loadTempFiles();
 
           // 加载配置文件
           this.configData = await createData(configFile);
