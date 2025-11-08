@@ -4,11 +4,11 @@ import { get } from "../fs/main.js";
 const defaultAppsPaths = [
   "/packages/apps/setting.napp",
   "/packages/apps/file-manager.napp",
-  // "/packages/apps/link-me.napp",
   "/packages/apps/link-me.napp",
   "/packages/apps/luminote.napp",
   "/packages/apps/flask-genie.napp",
   "/packages/apps/bookmarks.napp",
+  "/packages/apps/warp-send.napp",
   "/packages/apps/text-edit.napp",
   "/packages/apps/picture.napp",
 ];

@@ -1,11 +1,11 @@
 import { get, init } from "/packages/fs/handle/main.js";
 import { BaseUser } from "./base-user.js";
 import { LocalUser } from "./local-user.js";
-import { broadcast } from "./util/broadcast.js";
+import { publicBroadcastChannel } from "./util/public-channel.js";
 import trigger from "./internal/trigger.js";
 import { checkAllConnection } from "./util/connection-checker.js";
 
-broadcast.addEventListener("message", async (event) => {
+publicBroadcastChannel.addEventListener("message", async (event) => {
   const { type, detail } = event.data;
 
   // console.log("收到消息:", type, detail);
@@ -17,7 +17,7 @@ broadcast.addEventListener("message", async (event) => {
       fromUserSessionId,
       proxySessionId,
       userDirName,
-      message,
+      result,
       toUserSessionId,
     } = detail;
 
@@ -31,7 +31,7 @@ broadcast.addEventListener("message", async (event) => {
               fromUserSessionId,
               proxySessionId,
               userDirName,
-              message,
+              result,
             },
           })
         );

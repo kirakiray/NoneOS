@@ -9,7 +9,7 @@ import CertManager from "./cert-manager.js";
 import { generate } from "../util/rand-adj-noun.js";
 import { ServerManager } from "./server-manager.js";
 import { CardManager } from "./card-manager.js";
-import { broadcast } from "./util/broadcast.js";
+import { publicBroadcastChannel } from "./util/public-channel.js";
 
 // 本地用户类
 export class LocalUser extends BaseUser {
@@ -38,23 +38,26 @@ export class LocalUser extends BaseUser {
     }, 1000 * 30);
 
     // 接受到服务端转发过来的数据
-    this.bind("received-server-agent-data", (event) => {
+    this.bind("received-server-agent-data", async (event) => {
       const options = event.detail.response;
-      const { fromUserId, fromUserSessionId, data } = options;
+      let { fromUserId, fromUserSessionId, data: originData } = options;
       const { server } = event.detail;
 
-      if (!data) {
+      if (!originData) {
         return;
       }
 
-      if (options.msgId) {
+      // 还原数据
+      if (originData.msgId) {
         // 防止和rtc数据接收重复
-        if (msgIdCaches.has(options.msgId)) {
+        if (msgIdCaches.has(originData.msgId)) {
           return;
         }
 
-        msgIdCaches.add(options.msgId);
+        msgIdCaches.add(originData.msgId);
       }
+
+      const data = originData.msg;
 
       if (data.__internal_mark) {
         // 内部操作
@@ -87,8 +90,13 @@ export class LocalUser extends BaseUser {
     });
 
     this.bind("rtc-message", (event) => {
-      let { remoteUser, message, channel, rtcConnection, proxySessionId } =
-        event.detail;
+      let {
+        remoteUser,
+        result: message,
+        channel,
+        rtcConnection,
+        proxySessionId,
+      } = event.detail;
 
       let publicDetail = {};
 
@@ -113,23 +121,27 @@ export class LocalUser extends BaseUser {
         msgIdCaches.add(message.msgId);
       }
 
-      const data = message.data;
-
       if (message.userSessionId && message.userSessionId !== this.sessionId) {
+        if (proxySessionId) {
+          // 已经在其他session中处理了，直接返回
+          return;
+        }
+
         // 转发到指定的session标签页，并且不是当前session
-        broadcast.postMessage({
+        publicBroadcastChannel.postMessage({
           type: "rtc-agent-message",
           detail: {
             ...publicDetail,
-            message,
+            result: message,
             proxySessionId: this.sessionId,
             toUserSessionId: message.userSessionId,
             userDirName: this.dirName,
           },
         });
-
         return;
       }
+
+      const data = message.msg;
 
       if (data.__internal_mark) {
         // 内部操作
@@ -190,6 +202,21 @@ export class LocalUser extends BaseUser {
     return () => {
       pool.delete(func);
     };
+  }
+
+  // 广播信息给所有设备
+  async broadcast(name, data) {
+    // 先获取所有的设备卡片
+    const myDevices = await this.myDevices();
+
+    // 连接所有设备并发送数据
+    // 并行连接所有设备并触发事件
+    Promise.all(
+      myDevices.map(async (device) => {
+        const remoteUser = await this.connectUser(device.userId);
+        remoteUser.trigger(name, data).catch(() => null); // 忽略连接失败的错误
+      })
+    );
   }
 
   // 获取用户信息对象
@@ -433,21 +460,20 @@ export class LocalUser extends BaseUser {
       return this.#myDeviceCache[deviceId];
     }
 
-    const certManager = await this.certManager();
-    const certs = await certManager.get({
-      role: "device",
-      issuedTo: deviceId,
-    });
+    return (this.#myDeviceCache[deviceId] = (async () => {
+      const certManager = await this.certManager();
+      const certs = await certManager.get({
+        role: "device",
+        issuedTo: deviceId,
+      });
 
-    // 缓存结果
-    this.#myDeviceCache[deviceId] = !!certs.length;
+      setTimeout(() => {
+        // 结果只缓存5秒，5秒后删除缓存
+        delete this.#myDeviceCache[deviceId];
+      }, 1000 * 5);
 
-    setTimeout(() => {
-      // 缓存5秒
-      delete this.#myDeviceCache[deviceId];
-    }, 1000 * 5);
-
-    return !!certs.length;
+      return !!certs.length;
+    })());
   }
 
   // 获取我的所有设备
@@ -472,7 +498,16 @@ export class LocalUser extends BaseUser {
 
       const userCard = await cardManager.get(cert.issuedTo);
 
-      users.push(userCard);
+      if (userCard) {
+        users.push({
+          userId: cert.issuedTo,
+          userCard,
+        });
+      } else {
+        users.push({
+          userId: cert.issuedTo,
+        });
+      }
     }
 
     return users;

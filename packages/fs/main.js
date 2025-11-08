@@ -1,4 +1,5 @@
 export { init } from "./handle/main.js";
+export { mount } from "./handle/mount.js";
 import { get as systemHandleGet } from "./handle/main.js";
 import { createGet } from "./fs-remote/main.js";
 import { createUser } from "../user/main.js";

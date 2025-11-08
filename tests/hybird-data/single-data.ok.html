@@ -77,7 +77,7 @@
       data1.obj1[key2] = Math.random();
 
       // 等待 data2 更新数据
-      await new Promise((resolve) => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // 换个key
       delete data1.obj1[key2];
@@ -88,11 +88,15 @@
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       const newKeySync = data1.obj1[key3] === data2.obj1[key3];
-      const keyCountMatch = Object.keys(data1.obj1).length === Object.keys(data2.obj1).length && Object.keys(data2.obj1).length === 2;
+      const keyCountMatch =
+        Object.keys(data1.obj1).length === Object.keys(data2.obj1).length &&
+        Object.keys(data2.obj1).length === 2;
 
       return {
         assert: newKeySync && keyCountMatch,
-        content: `newKeySync: ${newKeySync}, keyCountMatch: ${keyCountMatch}, keys: ${Object.keys(data1.obj1)}`,
+        content: `newKeySync: ${newKeySync}, keyCountMatch: ${keyCountMatch}, keys: ${Object.keys(
+          data1.obj1
+        )}`,
       };
     });
 
@@ -109,8 +113,8 @@
       data1.persistedValue = testValue;
       data1.nested = {
         level1: {
-          level2: testValue
-        }
+          level2: testValue,
+        },
       };
 
       await new Promise((resolve) => setTimeout(resolve, 200));

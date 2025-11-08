@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MsgPack Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import {
+        objectToUint8Array,
+        uint8ArrayToObject,
+      } from "/packages/user/util/msg-pack.js";
+
+      await test("Basic Object Serialization Test", async () => {
+        // 创建测试对象
+        const testObject = {
+          name: "测试对象",
+          number: 42,
+          buffer: new Uint8Array([1, 2, 3, 4, 5]),
+          nested: {
+            data: new Uint8Array([10, 20, 30]),
+            text: "嵌套文本",
+          },
+        };
+
+        // 转换为 Uint8Array
+        const uint8Array = objectToUint8Array(testObject);
+
+        // 还原为对象
+        const restoredObject = uint8ArrayToObject(uint8Array);
+
+        // 验证转换结果
+        const isNameEqual = restoredObject.name === testObject.name;
+        const isNumberEqual = restoredObject.number === testObject.number;
+        const isArrayEqual = restoredObject.buffer.every(
+          (value, index) => value === testObject.buffer[index]
+        );
+        const isNestedTextEqual =
+          restoredObject.nested.text === testObject.nested.text;
+        const isNestedArrayEqual = restoredObject.nested.data.every(
+          (value, index) => value === testObject.nested.data[index]
+        );
+
+        return {
+          assert:
+            isNameEqual &&
+            isNumberEqual &&
+            isArrayEqual &&
+            isNestedTextEqual &&
+            isNestedArrayEqual,
+          content: {
+            message: "基本对象序列化测试成功",
+            originalObject: testObject,
+            restoredObject: restoredObject,
+            isNameEqual,
+            isNumberEqual,
+            isArrayEqual,
+            isNestedTextEqual,
+            isNestedArrayEqual,
+          },
+        };
+      });
+
+      await test("Empty Object Test", async () => {
+        // 创建空对象
+        const emptyObject = {};
+
+        // 转换为 Uint8Array
+        const uint8Array = objectToUint8Array(emptyObject);
+
+        // 还原为对象
+        const restoredObject = uint8ArrayToObject(uint8Array);
+
+        // 验证转换结果
+        const isEmpty = Object.keys(restoredObject).length === 0;
+
+        return {
+          assert: isEmpty,
+          content: {
+            message: "空对象测试成功",
+            originalObject: emptyObject,
+            restoredObject: restoredObject,
+            isEmpty,
+          },
+        };
+      });
+
+      await test("Complex Nested Object Test", async () => {
+        // 创建复杂嵌套对象
+        const complexObject = {
+          id: Math.random().toString(36).substring(2, 15),
+          buffers: {
+            buffer1: new Uint8Array([1, 2, 3]),
+            buffer2: new Uint8Array([4, 5, 6]),
+            deeply: {
+              nested: {
+                buffer3: new Uint8Array([7, 8, 9]),
+              },
+            },
+          },
+          array: [
+            { data: new Uint8Array([10, 11, 12]) },
+            { data: new Uint8Array([13, 14, 15]) },
+          ],
+          timestamp: Date.now(),
+          isActive: true,
+        };
+
+        // 转换为 Uint8Array
+        const uint8Array = objectToUint8Array(complexObject);
+
+        // 还原为对象
+        const restoredObject = uint8ArrayToObject(uint8Array);
+
+        // 验证转换结果
+        const isIdEqual = restoredObject.id === complexObject.id;
+        const isTimestampEqual =
+          restoredObject.timestamp === complexObject.timestamp;
+        const isActiveEqual =
+          restoredObject.isActive === complexObject.isActive;
+
+        const isBuffer1Equal = restoredObject.buffers.buffer1.every(
+          (value, index) => value === complexObject.buffers.buffer1[index]
+        );
+        const isBuffer2Equal = restoredObject.buffers.buffer2.every(
+          (value, index) => value === complexObject.buffers.buffer2[index]
+        );
+        const isBuffer3Equal =
+          restoredObject.buffers.deeply.nested.buffer3.every(
+            (value, index) =>
+              value === complexObject.buffers.deeply.nested.buffer3[index]
+          );
+
+        const isArrayFirstEqual = restoredObject.array[0].data.every(
+          (value, index) => value === complexObject.array[0].data[index]
+        );
+        const isArraySecondEqual = restoredObject.array[1].data.every(
+          (value, index) => value === complexObject.array[1].data[index]
+        );
+
+        return {
+          assert:
+            isIdEqual &&
+            isTimestampEqual &&
+            isActiveEqual &&
+            isBuffer1Equal &&
+            isBuffer2Equal &&
+            isBuffer3Equal &&
+            isArrayFirstEqual &&
+            isArraySecondEqual,
+          content: {
+            message: "复杂嵌套对象测试成功",
+            originalObject: complexObject,
+            restoredObject: restoredObject,
+            validations: {
+              isIdEqual,
+              isTimestampEqual,
+              isActiveEqual,
+              isBuffer1Equal,
+              isBuffer2Equal,
+              isBuffer3Equal,
+              isArrayFirstEqual,
+              isArraySecondEqual,
+            },
+          },
+        };
+      });
+
+      await test("Random Data Test", async () => {
+        // 生成随机原始数据
+        const randomBuffer1 = crypto.getRandomValues(new Uint8Array(16));
+        const randomBuffer2 = crypto.getRandomValues(new Uint8Array(8));
+
+        // 创建测试对象
+        const testObject = {
+          message: "Random message " + Math.random(),
+          buffers: {
+            data1: randomBuffer1,
+            data2: randomBuffer2,
+          },
+          timestamp: Date.now(),
+        };
+
+        // 转换为 Uint8Array
+        const uint8Array = objectToUint8Array(testObject);
+
+        // 还原为对象
+        const restoredObject = uint8ArrayToObject(uint8Array);
+
+        // 验证转换结果
+        const isMessageEqual = restoredObject.message === testObject.message;
+        const isTimestampEqual =
+          restoredObject.timestamp === testObject.timestamp;
+        const isBuffer1Equal = restoredObject.buffers.data1.every(
+          (value, index) => value === testObject.buffers.data1[index]
+        );
+        const isBuffer2Equal = restoredObject.buffers.data2.every(
+          (value, index) => value === testObject.buffers.data2[index]
+        );
+
+        return {
+          assert:
+            isMessageEqual &&
+            isTimestampEqual &&
+            isBuffer1Equal &&
+            isBuffer2Equal,
+          content: {
+            message: "随机数据测试成功",
+            originalObject: testObject,
+            restoredObject: restoredObject,
+            validations: {
+              isMessageEqual,
+              isTimestampEqual,
+              isBuffer1Equal,
+              isBuffer2Equal,
+            },
+          },
+        };
+      });
+    </script>
+  </body>
+</html>

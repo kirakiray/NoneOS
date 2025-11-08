@@ -1,4 +1,4 @@
-export const home = "./pages/local-ai.html";
+export const home = "./pages/home.html";
 
 export const pageAnime = {
   current: {

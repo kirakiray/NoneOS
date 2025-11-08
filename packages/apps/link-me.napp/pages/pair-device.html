@@ -1,6 +1,6 @@
 <template page>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
-  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
@@ -75,7 +75,7 @@
     <o-fill :value="waitConfirmUsers">
       <div class="user-card">
         <div style="display: flex; align-items: center">
-          <jdent-icon :value="$data.userId" class="user-avatar"></jdent-icon>
+          <n-user-avatar :userid="$data.userId" class="user-avatar"></n-user-avatar>
           <div class="info">
             <div class="username">
               <localized-content>

@@ -114,7 +114,7 @@
     export default async ({ load }) => {
       const { getMainLang } = await load("./util/i18n-toblock.js");
       const { getRealLang } = await load("../util/get-real-lang.js");
-      const { getHash } = await load("/packages/fs/util.js");
+      const { getHash } = await load("/packages/util/hash/main.js");
       const { translateItemData } = await load("./util/i18n-toblock.js");
 
       return {

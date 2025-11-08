@@ -1,4 +1,5 @@
-import { toBuffer, toData } from "../util/buffer-data.js";
+import { pack, unpack } from "../util/pack.js";
+import { objectToUint8Array, uint8ArrayToObject } from "../util/msg-pack.js";
 
 export class HandServerClient extends EventTarget {
   #url;
@@ -76,7 +77,7 @@ export class HandServerClient extends EventTarget {
   }
 
   // 发送数据给指定用户
-  sendTo(options, data) {
+  async sendTo(options, data) {
     if (this.state !== "authed") {
       throw new Error("用户未认证");
     }
@@ -85,15 +86,12 @@ export class HandServerClient extends EventTarget {
       options = { userId: options };
     }
 
-    if (data instanceof Uint8Array) {
-      const reBuffer = toBuffer(data, { type: "agent_data", options });
-      this.socket.send(reBuffer);
-      return;
+    if (!options.passWrapMsg) {
+      data = await objectToUint8Array({ msg: data });
     }
 
-    if (options.userId) {
-      this._send({ type: "agent_data", options, data });
-    }
+    const packedData = await pack({ type: "agent_data", options }, data);
+    this.socket.send(packedData);
   }
 
   _send(data) {
@@ -129,17 +127,16 @@ export class HandServerClient extends EventTarget {
 
   // 处理WebSocket消息事件
   async _onMessage(event) {
-    let responseData;
-
-    // if (typeof event.data !== "string") {
     if (event.data instanceof Blob) {
       // blob 转 uint8array
       const arrayBuffer = await event.data.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
 
-      const { data, info } = toData(uint8Array);
+      let { data, obj: info } = await unpack(uint8Array);
 
       if (info.type === "agent_data") {
+        data = await uint8ArrayToObject(data);
+
         this.dispatchEvent(
           new CustomEvent("agent_data", {
             detail: { ...info, data },
@@ -147,7 +144,7 @@ export class HandServerClient extends EventTarget {
         );
 
         if (this.onData) {
-          this.onData(info.fromUserId, data, { ...info, data });
+          this.onData(info.fromUserId, data.msg, { ...info, data });
         }
 
         this.#user.dispatchEvent(
@@ -162,6 +159,8 @@ export class HandServerClient extends EventTarget {
 
       return;
     }
+
+    let responseData;
 
     try {
       responseData = JSON.parse(event.data);
@@ -184,6 +183,7 @@ export class HandServerClient extends EventTarget {
       return;
     }
 
+    // 下面是跟服务端进行认证的相关逻辑
     if (responseData.type === "need_auth") {
       const info = await this.#user.info();
 
@@ -202,25 +202,6 @@ export class HandServerClient extends EventTarget {
       this._changeState("authed");
       this._pingTime = Date.now();
       this._send({ type: "ping" }); // 即使发送延迟测试
-    } else if (responseData.type === "agent_data") {
-      this.dispatchEvent(
-        new CustomEvent("agent-data", { detail: responseData })
-      );
-
-      if (this.onData) {
-        this.onData(responseData.fromUserId, responseData.data, responseData);
-      }
-
-      // console.log("收到agent消息:", responseData);
-
-      this.#user.dispatchEvent(
-        new CustomEvent("received-server-agent-data", {
-          detail: {
-            response: responseData,
-            server: this,
-          },
-        })
-      );
     } else if (responseData.type === "server_info") {
       this.serverName = responseData.serverName;
       this.serverVersion = responseData.serverVersion;
@@ -229,6 +210,26 @@ export class HandServerClient extends EventTarget {
         new CustomEvent("server-info", { detail: responseData })
       );
     }
+    // else if (responseData.type === "agent_data") {
+    //   this.dispatchEvent(
+    //     new CustomEvent("agent-data", { detail: responseData })
+    //   );
+
+    //   if (this.onData) {
+    //     this.onData(responseData.fromUserId, responseData.data, responseData);
+    //   }
+
+    //   // console.log("收到agent消息:", responseData);
+
+    //   this.#user.dispatchEvent(
+    //     new CustomEvent("received-server-agent-data", {
+    //       detail: {
+    //         response: responseData,
+    //         server: this,
+    //       },
+    //     })
+    //   );
+    // }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));
   }

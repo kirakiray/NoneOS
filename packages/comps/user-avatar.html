@@ -11,22 +11,22 @@
       height: 100%;
     }
   </style>
-  <jdent-icon :value="val"></jdent-icon>
+  <jdent-icon :value="userid"></jdent-icon>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
 
       return {
-        tag: "n-id-avatar",
+        tag: "n-user-avatar",
         attrs: {
-          val: "",
+          userid: "",
         },
         watch: {
-          val(val) {
-            if (val === "self") {
+          userid(userid) {
+            if (userid === "self") {
               (async () => {
                 const localUser = await createUser();
-                this.val = localUser.userId;
+                this.userid = localUser.userId;
               })();
               return;
             }

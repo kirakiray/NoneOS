@@ -1,5 +1,5 @@
 import { solicit } from "/packages/ai/main.js";
-import { getHash } from "/packages/fs/util.js";
+import { getHash } from "/packages/util/hash/main.js";
 import { getRealLang } from "../../util/get-real-lang.js";
 
 export const getMainLang = async (el) => {

@@ -2,9 +2,10 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
-  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
-  <l-m src="./user-name.html"></l-m>
-  <l-m src="./user-state.html"></l-m>
+
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-name.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
 
   <style>
     :host {
@@ -91,10 +92,10 @@
 
   <p-list-item button="suffix" collapse-childs="close">
     <div class="flex-align-center">
-      <jdent-icon
-        :value="item.issuedTo"
+      <n-user-avatar
+        :userid="item.issuedTo"
         style="width: 20px; height: 20px; margin-right: 4px"
-      ></jdent-icon>
+      ></n-user-avatar>
       <div class="info">
         <n-user-name :userid="item.issuedTo"></n-user-name>
         <div style="margin-left: 8px">

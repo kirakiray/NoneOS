@@ -2,7 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
-  <l-m src="/packages/comps/id-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/pui/menu/bind-contextmenu.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
@@ -267,15 +267,15 @@
                   <n-local-icon name="project" class="menu-icon"></n-local-icon>
                 </o-if>
                 <o-else slot="prefix">
-                  <n-id-avatar
-                    attr:val="$data.userId"
+                  <n-user-avatar
+                    :userid="$data.userId"
                     style="
                       width: 18px;
                       height: 18px;
                       margin-right: 8px;
                       box-shadow: var(--contained-shadow);
                     "
-                  ></n-id-avatar>
+                  ></n-user-avatar>
                 </o-else>
                 <i slot="suffix" toggle-collapse style="display: none"></i>
                 <span

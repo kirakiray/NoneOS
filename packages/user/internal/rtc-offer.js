@@ -1,6 +1,6 @@
 import { getHash } from "../../fs/util.js";
 import initRTC from "../remote/init-rtc.js";
-import { broadcast } from "../util/broadcast.js";
+import { publicBroadcastChannel } from "../util/public-channel.js";
 
 export default async function rtcOfferHandler({
   fromUserId,
@@ -50,7 +50,7 @@ export default async function rtcOfferHandler({
     const serverCheckPromise = remoteUser.checkServer();
 
     // 顺便通知其他标签，用户已经连接到服务器了
-    broadcast.postMessage({
+    publicBroadcastChannel.postMessage({
       type: "user-online",
       detail: {
         fromUserId,

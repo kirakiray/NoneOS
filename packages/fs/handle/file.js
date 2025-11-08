@@ -34,10 +34,13 @@ export class FileHandle extends BaseHandle {
   async write(data, options = {}) {
     // const isSafari = true;
 
-    if (isSafari) {
+    // 检查是否支持createWritable
+    const hasCreateWritable =
+      !!window?.FileSystemFileHandle?.prototype?.createWritable;
+
+    if (isSafari && !hasCreateWritable) {
       return new Promise(async (resolve, reject) => {
-        // const worker = new Worker(import.meta.resolve("./write-worker.js"));
-        const worker = new Worker("/packages/fs/handle/write-worker.js");
+        const worker = new Worker(import.meta.resolve("./write-worker.js"));
 
         worker.postMessage({
           path: this.path,

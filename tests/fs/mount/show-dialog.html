@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      /* 系统黑夜模式则改为黑色 */
+      body {
+        background-color: #000;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <button id="mount-btn">挂载目录</button>
+    <script type="module">
+      import { mount } from "../../../packages/fs/main.js";
+
+      document
+        .getElementById("mount-btn")
+        .addEventListener("click", async () => {
+          const handle = await mount();
+          console.log("handle", handle);
+        });
+    </script>
+  </body>
+</html>

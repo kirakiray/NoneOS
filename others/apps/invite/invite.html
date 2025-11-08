@@ -1,5 +1,5 @@
 <template page>
-  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
@@ -41,7 +41,7 @@
       flex-shrink: 0;
     }
 
-    jdent-icon {
+    n-user-avatar {
       width: 72px;
       height: 72px;
       border-radius: 50%;
@@ -110,10 +110,10 @@
     </h1>
     <div class="user-card">
       <div class="avatar-container">
-        <jdent-icon
-          :value="targetUserId"
+        <n-user-avatar
+          :userid="targetUserId"
           style="width: 72px; height: 72px"
-        ></jdent-icon>
+        ></n-user-avatar>
       </div>
       <div class="info">
         <div>

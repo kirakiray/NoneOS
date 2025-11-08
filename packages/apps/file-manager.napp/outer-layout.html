@@ -5,8 +5,9 @@
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="/packages/comps/horsp-pannel.html"></l-m>
   <l-m src="/packages/fs/task/task-list.html"></l-m>
-  <l-m src="/packages/libs/jdenticon/jdent-icon.html"></l-m>
-  <l-m src="/packages/apps/link-me.napp/comps/user-state.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-name.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -74,8 +75,8 @@
           <p-list slot="childs">
             <o-fill :value="remotes">
               <p-list-item collapse-childs="open" button="suffix">
-                <jdent-icon
-                  :value="$data.userId"
+                <n-user-avatar
+                  :userid="$data.userId"
                   slot="prefix"
                   style="
                     width: 20px;
@@ -84,9 +85,9 @@
                     border-radius: 3px;
                     overflow: hidden;
                   "
-                ></jdent-icon>
+                ></n-user-avatar>
                 <div style="display: flex; align-items: center">
-                  {{$data.userName}}
+                  <n-user-name :userid="$data.userId"></n-user-name>
                   <n-user-state
                     :userid="$data.userId"
                     style="margin-left: 8px"

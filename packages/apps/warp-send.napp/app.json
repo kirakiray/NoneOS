@@ -1,0 +1,15 @@
+{
+  "name": "WarpSend",
+  "icon": "logo.png",
+  "i18n": {
+    "cn": {
+      "name": "跃传"
+    },
+    "en": {
+      "name": "WarpSend"
+    },
+    "ja": {
+      "name": "WarpSend"
+    }
+  }
+}

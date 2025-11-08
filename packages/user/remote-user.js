@@ -1,7 +1,7 @@
 import { BaseUser } from "./base-user.js";
 import { getHash } from "../fs/util.js";
 import initRTC from "./remote/init-rtc.js";
-import { toBuffer } from "./util/buffer-data.js";
+import { objectToUint8Array, uint8ArrayToObject } from "./util/msg-pack.js";
 
 export class RemoteUser extends BaseUser {
   #mode = 0; // 连接模式 0: 未连接 1: 服务端转发模式 2: 点对点模式 3: 同时模式
@@ -256,27 +256,45 @@ export class RemoteUser extends BaseUser {
   }
 
   // 发送消息给这个远端用户
-  post(msg, opts) {
+  // post(msg, opts) {
+  async post(msg, userSessionId) {
     if (this.#mode === 1 && !this.serverState) {
       throw new Error("未连接到对方");
     }
 
-    const msgId = Math.random().toString(32).slice(2);
+    if (typeof userSessionId === "object") {
+      debugger;
+      throw new Error("userSessionId 格式错误");
+    }
 
-    const options = {
-      ...opts,
-      userId: this.userId,
-      msgId,
-    };
+    // 生成要发送的数据
+    const data = await objectToUint8Array({
+      msg,
+      msgId: Math.random().toString(32).slice(2),
+      userSessionId, // 目标的会话id
+    });
+
+    // console.log("打包后发送消息大小：", data.length / 1024, "KB");
 
     if (this._runInitRTC && !this._rtcConnections.length) {
       // 如果运行过initRTC，则再进行一次初始化，让下次可以使用rtc发送
       this.initRTC();
     }
 
+    if (this.#mode === 0) {
+      throw new Error("未连接到对方");
+    }
+
     if (this.#mode === 1) {
       // 服务端转发模式，直接通过第一个发送
-      this.#servers[0].sendTo(options, msg);
+      this.#servers[0].sendTo(
+        {
+          userId: this.userId,
+          userSessionId,
+          passWrapMsg: 1,
+        },
+        data
+      );
     } else if (this.#mode === 2) {
       // 查找所有RTC连接中处于open状态的channel
       const channel = this._rtcConnections
@@ -290,38 +308,25 @@ export class RemoteUser extends BaseUser {
 
       if (!channel) {
         // 未找到可用的channel，降级改用服务端发送
-        this.#servers[0].sendTo(options, msg);
-        const err = new Error("未找到可用的RTC channel");
-        console.error(err);
+        this.#servers[0].sendTo(
+          {
+            userId: this.userId,
+            userSessionId,
+            passWrapMsg: 1,
+          },
+          data
+        );
+
+        console.warn(new Error("未找到可用的RTC channel，改用服务端发送"));
         return;
       }
 
-      // 根据消息类型选择发送方式，二进制类型直接发送，对象则转换为字符串发送
-      if (
-        msg instanceof Blob ||
-        msg instanceof ArrayBuffer ||
-        ArrayBuffer.isView(msg)
-      ) {
-        channel.send(
-          toBuffer(msg, {
-            ...opts,
-            msgId,
-          })
-        );
-      } else {
-        channel.send(
-          JSON.stringify({
-            ...opts,
-            msgId,
-            data: msg,
-          })
-        );
-      }
+      channel.send(data);
     }
   }
 
   async trigger(name, data) {
-    this.post({
+    await this.post({
       type: "trigger",
       name,
       data,

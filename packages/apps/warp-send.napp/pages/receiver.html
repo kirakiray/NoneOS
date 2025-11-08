@@ -1,0 +1,361 @@
+<template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      height: 100%;
+      margin: 0 auto;
+    }
+  </style>
+  <div style="padding: 8px; text-align: center">
+    <!-- <p style="display: flex; align-items: center; justify-content: center">
+      <localized-content>
+        <span lang="cn">正在等待接收来自其他设备的文件…</span>
+        <span lang="en">Waiting for file from other device...</span>
+        <span lang="ja">他のデバイスからのファイルを待っています...</span>
+      </localized-content>
+      <n-local-icon
+        name="loading"
+        style="margin-left: 8px; display: block"
+      ></n-local-icon>
+    </p> -->
+    <p style="display: flex; align-items: center; justify-content: center">
+      <localized-content>
+        <span lang="cn">文件将默认保存在：</span>
+        <span lang="en">Files will be saved to:</span>
+        <span lang="ja">ファイルは既定で保存されます：</span>
+      </localized-content>
+      <o-if :value="dirName">
+        <strong style="color: var(--md-sys-color-primary); margin-left: 4px">
+          {{dirName}}
+        </strong>
+      </o-if>
+      <o-else>
+        <strong style="color: var(--md-sys-color-primary); margin-left: 4px">
+          <localized-content>
+            <span lang="cn">浏览器缓存</span>
+            <span lang="en">Browser Cache</span>
+            <span lang="ja">ブラウザキャッシュ</span>
+          </localized-content>
+        </strong>
+      </o-else>
+      <o-if :value="canUsePicker">
+        <p-button
+          variant="outlined"
+          on:click="changeDir"
+          size="small"
+          style="margin-left: 8px"
+        >
+          <localized-content>
+            <span lang="cn">更改目录</span>
+            <span lang="en">Change Directory</span>
+            <span lang="ja">ディレクトリを変更</span>
+          </localized-content>
+        </p-button>
+      </o-if>
+    </p>
+    <o-if :value="!dirName">
+      <p
+        style="
+          margin-top: 12px;
+          color: var(--md-sys-color-normal);
+          font-size: 0.9em;
+        "
+      >
+        <localized-content>
+          <span lang="cn"
+            >文件将先暂存至浏览器缓存，接收完成后可一键转存到本地磁盘。</span
+          >
+          <span lang="en"
+            >Files are temporarily saved in browser cache and can be exported to
+            local disk after transfer.</span
+          >
+          <span lang="ja"
+            >ファイルは一旦ブラウザキャッシュに保存され、転送完了後にローカルディスクへ書き出せます。</span
+          >
+        </localized-content>
+      </p>
+    </o-if>
+    <o-if :value="!dirName && list.length > 0">
+      <p-button
+        variant="outlined"
+        on:click="downloadAllFile"
+        attr:disabled="downloading"
+      >
+        <localized-content>
+          <span lang="cn">下载全部</span>
+          <span lang="en">Download All</span>
+          <span lang="ja">すべてダウンロード</span>
+        </localized-content>
+      </p-button>
+      <p-button
+        variant="outlined"
+        color="error"
+        on:click="deleteAll"
+        attr:disabled="downloading"
+      >
+        <localized-content>
+          <span lang="cn">删除全部</span>
+          <span lang="en">Delete All</span>
+          <span lang="ja">すべて削除</span>
+        </localized-content>
+      </p-button>
+    </o-if>
+    <p-list>
+      <o-fill :value="list">
+        <p-list-item>
+          <n-local-icon
+            name="file"
+            slot="prefix"
+            style="display: block; margin-right: 8px; font-size: 20px"
+          ></n-local-icon>
+          <div style="display: flex; align-items: center">
+            {{$data.name}}
+            <span style="margin-left: 8px">
+              {{$host.getFileSize($data.fileSize)}}
+            </span>
+          </div>
+          <o-if :value="!$data.temp">
+            <p-progress :value="$data.progress" style="margin-top: 4px" />
+          </o-if>
+
+          <p-button
+            variant="outlined"
+            on:click="$host.downloadFile($data)"
+            attr:disabled="$host.downloading"
+            slot="suffix"
+            size="small"
+            color="success"
+            style="margin-left: 16px"
+          >
+            <localized-content>
+              <span lang="cn">下载</span>
+              <span lang="en">Download</span>
+              <span lang="ja">ダウンロード</span>
+            </localized-content>
+          </p-button>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const { initReceiver } = await load("../util/init-receiver.js");
+      const { mount } = await load("/packages/fs/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      const localUser = await createUser();
+      const myInfo = await localUser.info();
+
+      const { createData } = await load("/packages/hybird-data/main.js");
+
+      const { exportHandle } = await load("/packages/fs/task/main.js");
+      const { confirm, toast } = await load("/packages/pui/util.js");
+
+      return {
+        data: {
+          receiverId: [], // 已经接受到广播的 sender 列表
+          canUsePicker: !!window.showDirectoryPicker, // 是否支持浏览器目录选择的api
+          configData: {}, // 应用的设置目录
+          list: [], // 接受中的文件列表
+          dirName: "", // 接收文件的目录名称
+          downloading: false, // 是否正在下载文件
+        },
+        proto: {
+          async deleteAll() {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "删除全部缓存文件",
+                en: "Delete All Cache Files",
+                jp: "すべてのキャッシュファイルを削除",
+              }),
+              content: await getLocalized({
+                cn: `确认删除全部已下载文件？请务必先保存到本地电脑，此操作不可恢复。`,
+                en: `Are you sure you want to delete all downloaded files? Please make sure to save them to your local computer first. This action is irreversible.`,
+                jp: `すべてのダウンロードファイルを削除しますか？まずローカルディスクに保存してください。この操作は不可戻りです。`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            // 删除文件夹内的文件
+            const tempDir = await this._defaultDir.get("receive-temp");
+            if (tempDir) {
+              for await (let item of tempDir.values()) {
+                await item.remove();
+              }
+            }
+
+            this.list = [];
+          },
+          async downloadFile(item) {
+            const tempDir = await this._defaultDir.get("receive-temp");
+
+            const fileHandle = await tempDir.get(item.name);
+
+            if (!fileHandle) {
+              throw new Error("文件不存在");
+            }
+
+            exportHandle([fileHandle.path]);
+          },
+          async downloadAllFile() {
+            if (this.list.length === 0) {
+              return;
+            }
+
+            this.downloading = true;
+
+            const tempDir = await this._defaultDir.get("receive-temp");
+            const paths = [];
+
+            if (tempDir) {
+              for await (let item of tempDir.values()) {
+                paths.push(item.path);
+              }
+            }
+
+            await exportHandle(paths, "all");
+
+            this.downloading = false;
+          },
+          async changeDir() {
+            const handle = await mount();
+
+            this.dirName = handle.name;
+
+            this.list = []; // 清空文件列表
+
+            this.changeReceiverHandle(handle);
+          },
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
+          },
+          runRadiate(time) {
+            clearTimeout(this._radiate_timer);
+            // 每5秒广播一次
+            this._radiate_timer = setTimeout(() => {
+              localUser.broadcast("warp-send-radiate", {});
+
+              if (this.ele.isConnected) {
+                this.runRadiate();
+              }
+            }, time || 5000);
+          },
+          // 改变接收文件的目录
+          async changeReceiverHandle(handle) {
+            if (this._receiverInvoice) {
+              this._receiverInvoice();
+            }
+
+            if (!handle) {
+              throw new Error("请选择接收文件的目录");
+            }
+
+            this._receiverInvoice = await initReceiver({
+              localUser,
+              handle,
+              appDedicatedHandle: this._defaultDir,
+              progress: (e) => {
+                switch (e.kind) {
+                  case "send-file":
+                    console.log("send-file: ", e);
+                    this.list.unshift({
+                      name: e.name,
+                      fileSize: e.fileSize,
+                      hashes: e.hashes,
+                      progress: 0,
+                      task: [],
+                    });
+                    this.downloading = true;
+                    break;
+                  case "receiving-chunk":
+                    // 更新进度
+                    this.list[0].progress = e.progress;
+                    break;
+
+                  case "send-end":
+                    this.downloading = false;
+                    break;
+                }
+              },
+            });
+          },
+          // 加载临时文件存在的文件
+          async loadTempFiles() {
+            const tempDir = await this._defaultDir.get("receive-temp");
+            if (tempDir) {
+              for await (let item of tempDir.values()) {
+                if (item.kind !== "file") {
+                  continue;
+                }
+
+                const size = await item.size();
+
+                this.list.push({
+                  name: item.name,
+                  fileSize: size,
+                  temp: true,
+                });
+              }
+            }
+          },
+        },
+        async attached() {
+          // 默认使用的目录
+          this._defaultDir = await this.app.dedicatedHandle();
+
+          // 从配置中加载目录
+          const configFile = await this._defaultDir.get("config.json", {
+            create: "file",
+          });
+
+          this.loadTempFiles();
+
+          // 加载配置文件
+          this.configData = await createData(configFile);
+
+          this._cancels = [
+            localUser.register("warp-send-sender-attached", (data) => {
+              // 有新的 sender 接入，快速广播一下自己的定位
+              this.runRadiate(100);
+            }),
+          ];
+
+          // 获取本地的临时收取目录
+          const tempDir = await this._defaultDir.get("receive-temp", {
+            create: "directory",
+          });
+
+          // 第一次进入，直接开始初始化
+          this.changeReceiverHandle(tempDir);
+
+          this.runRadiate(100); // 第一次快速广播
+        },
+        detached() {
+          // 回收所有数据
+          this.configData.disconnect();
+          this.configData = {};
+          clearTimeout(this._radiate_timer);
+          this._cancels.forEach((cancel) => cancel());
+          this._revokeReceiver && this._revokeReceiver();
+          this._receiverInvoice = null;
+          this._defaultDir = null;
+        },
+      };
+    };
+  </script>
+</template>

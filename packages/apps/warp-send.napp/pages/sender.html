@@ -1,0 +1,527 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="/packages/comps/user-name.html"></l-m>
+  <l-m src="/packages/pui/switch/switch.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      box-sizing: border-box;
+      height: 100%;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    h4 {
+      display: flex;
+      align-items: center;
+      margin: 0;
+      padding: 8px 0;
+    }
+
+    n-user-avatar {
+      margin-right: 8px;
+      width: 20px;
+      height: 20px;
+    }
+
+    n-user-state {
+      margin-left: 8px;
+    }
+
+    [show-only-sendable="on"] p-list-item[disabled] {
+      display: none;
+    }
+
+    [show-only-sendable="on"] .connected-mark {
+      display: none;
+    }
+
+    .connected-mark {
+      color: var(--md-sys-color-success);
+      display: block;
+      margin-left: 8px;
+    }
+
+    n-local-icon {
+      display: block;
+      margin-right: 4px;
+    }
+
+    .hide {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .progress-line {
+      width: 170px;
+    }
+    .progress-line .progress-line-inner {
+      height: 1px;
+      background-color: var(--md-sys-color-primary);
+      transition: width 0.1s ease-in-out;
+    }
+    .progress-line[color="success"] .progress-line-inner {
+      background-color: var(--md-sys-color-success);
+    }
+  </style>
+  <h4>
+    <localized-content>
+      <span lang="cn">选择发送给</span>
+      <span lang="en">Select recipient</span>
+      <span lang="ja">送信先を選択</span>
+    </localized-content>
+    <p-switch
+      style="margin-left: 20px"
+      sync:value="showOnlySendable"
+      size="small"
+    >
+      <localized-content>
+        <span lang="cn">仅显示可发送设备</span>
+        <span lang="en">Show only sendable devices</span>
+        <span lang="ja">送信可能なデバイスのみ表示</span>
+      </localized-content>
+    </p-switch>
+  </h4>
+  <p-list attr:show-only-sendable="showOnlySendable">
+    <o-fill :value="devices">
+      <p-list-item
+        button
+        attr:disabled="!$host.receivers.some(e => e.fromUserId === $data.userId)"
+        on:click="$host.clickDevice($data,$ele)"
+        attr:active-item="$host.selectedUserId == $data.userId"
+      >
+        <div style="display: flex; align-items: center">
+          <n-user-avatar :userid="$data.userId"> </n-user-avatar>
+          <n-user-name :userid="$data.userId"></n-user-name>
+          <n-user-state :userid="$data.userId"></n-user-state>
+          <o-if
+            :value="$host.receivers.some(e => e.fromUserId === $data.userId)"
+          >
+            <span class="connected-mark">
+              <localized-content>
+                <span lang="cn">已连接</span>
+                <span lang="en">Connected</span>
+                <span lang="ja">接続済み</span>
+              </localized-content>
+            </span>
+          </o-if>
+        </div>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <p-list-item
+    collapse-childs="open"
+    button="suffix"
+    class:hide="!selectedUserId"
+    style="margin-top: 16px"
+  >
+    <div style="display: flex; align-items: center">
+      <strong style="margin-right: 4px">
+        <localized-content>
+          <span lang="cn">待发送文件</span>
+          <span lang="en">Files to send</span>
+          <span lang="ja">送信待ちファイル</span>
+        </localized-content>
+      </strong>
+      (
+      <span style="color: var(--md-sys-color-primary)">
+        {{selectedFiles.length}}</span
+      >
+      )
+    </div>
+    <i toggle-collapse triangle slot="suffix" style="margin-left: 32px"></i>
+    <p-list slot="childs" style="--ladder-left: 8px">
+      <o-fill :value="selectedFiles">
+        <p-list-item>
+          <div style="display: flex; align-items: center">
+            <o-if
+              :value="$data.sending && $data.sendedProgress < 100"
+              slot="prefix"
+            >
+              <n-local-icon
+                name="loading"
+                style="font-size: 20px"
+              ></n-local-icon>
+            </o-if>
+            <o-else-if
+              :value="$data.sending && $data.sendedProgress >= 100"
+              slot="prefix"
+            >
+              <n-local-icon
+                name="succeed"
+                style="font-size: 20px; color: var(--md-sys-color-success)"
+              ></n-local-icon>
+            </o-else-if>
+            <o-else slot="prefix">
+              <n-local-icon
+                :name="$data.type === 'file' ? 'file' : 'folder'"
+                style="font-size: 20px"
+              ></n-local-icon>
+            </o-else>
+            <div>
+              <div style="height: 6px"></div>
+              <div>
+                <span style="margin-left: 4px">{{$data.name}}</span>
+                <span style="margin-left: 4px"
+                  >({{$host.getFileSize($data.size)}})</span
+                >
+                <span
+                  class:hide="!$data.sending"
+                  style="
+                    margin-left: 4px;
+                    color: var(--md-sys-color-normal);
+                    font-size: 12px;
+                  "
+                  >{{$data.sendSuccessProgress}}%</span
+                >
+              </div>
+              <div
+                class="progress-line"
+                color="success"
+                class:hide="!$data.sending"
+                style="margin-top: 4px"
+              >
+                <div
+                  class="progress-line-inner"
+                  :style.width="$data.sendSuccessProgress + '%'"
+                ></div>
+              </div>
+              <div class="progress-line" class:hide="!$data.sending">
+                <div
+                  class="progress-line-inner"
+                  :style.width="$data.sendedProgress + '%'"
+                ></div>
+              </div>
+            </div>
+            <p-button
+              on:click="$host.removeItem($index)"
+              attr:disabled="!!$host.sendingFiles"
+              size="small"
+              color="error"
+              variant="outlined"
+              style="margin-left: auto"
+            >
+              <localized-content>
+                <span lang="cn">移除</span>
+                <span lang="en">Remove</span>
+                <span lang="ja">削除</span>
+              </localized-content>
+            </p-button>
+          </div>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </p-list-item>
+  <style>
+    .btn-group {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    .btn-group p-button {
+      margin: 0 4px;
+    }
+  </style>
+  <div class="btn-group" class:hide="!selectedUserId">
+    <o-if :value="sendEnd">
+      <p
+        style="
+          color: var(--md-sys-color-success);
+          font-size: 14px;
+          margin-left: auto;
+        "
+      >
+        <localized-content>
+          <span lang="cn">发送成功</span>
+          <span lang="en">Sent successfully</span>
+          <span lang="ja">送信成功</span>
+        </localized-content>
+      </p>
+      <p-button color="success" on:click="clearFiles" style="margin: 0 16px">
+        <localized-content>
+          <span lang="cn">清除项目</span>
+          <span lang="en">Clear items</span>
+          <span lang="ja">アイテムをクリア</span>
+        </localized-content>
+      </p-button>
+    </o-if>
+    <o-else>
+      <p-button
+        style="margin-right: auto"
+        attr:disabled="!selectedUserId || !selectedFiles.length || sendingFiles"
+        attr:variant="selectedFiles.length ? 'contained' : 'outlined'"
+        on:click="sendFiles"
+      >
+        <o-if :value="sendingFiles">
+          <localized-content>
+            <span lang="cn">发送中...</span>
+            <span lang="en">Sending...</span>
+            <span lang="ja">送信中...</span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">发送这{{selectedFiles.length}}个文件</span>
+            <span lang="en">Send these {{selectedFiles.length}} files</span>
+            <span lang="ja"
+              >これら{{selectedFiles.length}}つのファイルを送信</span
+            >
+          </localized-content>
+        </o-else>
+      </p-button>
+
+      <p-button
+        attr:disabled="!selectedUserId || sendingFiles"
+        on:click="shadow.$('#file-input').ele.click()"
+        attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
+      >
+        <n-local-icon name="file" slot="prefix"></n-local-icon>
+        <localized-content>
+          <span lang="cn">添加文件</span>
+          <span lang="en">Add files</span>
+          <span lang="ja">ファイルを追加</span>
+        </localized-content>
+      </p-button>
+      <!-- <p-button
+        attr:disabled="!selectedUserId || sendingFiles"
+        on:click="shadow.$('#folder-input').ele.click()"
+        attr:variant="!selectedFiles.length ? 'contained' : 'outlined'"
+      >
+        <n-local-icon name="folder" slot="prefix"></n-local-icon>
+        <localized-content>
+          <span lang="cn">添加文件夹</span>
+          <span lang="en">Add folder</span>
+          <span lang="ja">フォルダを追加</span>
+        </localized-content>
+      </p-button> -->
+    </o-else>
+    <input
+      type="file"
+      id="file-input"
+      on:change="fileChange"
+      style="display: none"
+      multiple
+    />
+    <input
+      type="file"
+      id="folder-input"
+      on:change="folderChange"
+      style="display: none"
+      webkitdirectory
+      directory
+    />
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+      const { copyTo } = await load("../util/copy-to.js");
+
+      return {
+        data: {
+          receivers: [], // 接收到的设备id
+          devices: [],
+          showOnlySendable: "on",
+          selectedUserId: "",
+          selectedFiles: [], // 已经选择的文件
+          sendingFiles: false, // 是否正在发送文件
+          sendEnd: false, // 是否发送完成
+        },
+        proto: {
+          async clearFiles() {
+            this.selectedFiles = [];
+            this.sendEnd = false;
+          },
+          async removeItem(index) {
+            this.selectedFiles.splice(index, 1);
+          },
+          async fileChange(event) {
+            const files = event.target.files;
+
+            this.selectedFiles.push(
+              ...Array.from(files).map((file) => {
+                return {
+                  name: file.name,
+                  size: file.size,
+                  type: "file",
+                  _file: file,
+                  sending: false, // 是否正在发送
+                  sendedProgress: 0, // 已发送进度
+                  sendSuccessProgress: 0, // 发送成功进度
+                  task: [], // 进度记录
+                };
+              })
+            );
+
+            event.target.value = "";
+          },
+          async folderChange(event) {
+            const files = event.target.files;
+
+            const dirItem = {
+              name: files[0].webkitRelativePath.split("/")[0],
+              size: 0,
+              type: "directory",
+              _files: [],
+              sending: false, // 是否正在发送
+              task: [], // 进度记录
+            };
+
+            for (let file of files) {
+              dirItem.size += file.size;
+              dirItem._files.push(file);
+            }
+
+            this.selectedFiles.push(dirItem);
+
+            event.target.value = "";
+          },
+          // 执行发送文件
+          async sendFiles() {
+            // 生成任务
+            const taskData = {};
+
+            const files = [];
+
+            this.selectedFiles.forEach((e) => {
+              if (e.type === "file") {
+                files.push(e._file);
+              } else if (e.type === "directory") {
+                files.push(...e._files);
+              }
+            });
+
+            const targetItem = this.receivers.find(
+              (e) => e.fromUserId === this.selectedUserId
+            );
+
+            if (!targetItem) {
+              throw new Error("请先选择接收设备");
+            }
+
+            this.sendingFiles = true;
+
+            const cancel = copyTo({
+              localUser,
+              files,
+              userId: targetItem.fromUserId,
+              userSessionId: targetItem.fromUserSessionId,
+              callback: (e) => {
+                if (e.done) {
+                  // 发送完成
+                  const index = this._cancels.indexOf(cancel);
+                  if (index !== -1) {
+                    this._cancels.splice(index, 1);
+                  }
+
+                  this.sendingFiles = false;
+                  this.sendEnd = true;
+                  return;
+                }
+
+                const fileItem = this.selectedFiles[e.fileIndex];
+
+                if (e.kind === "calculate-hash") {
+                  fileItem.sending = true;
+                  fileItem.task.push("正在计算文件哈希...");
+                  return;
+                }
+
+                if (e.kind === "sending-start") {
+                  fileItem.sending = true;
+                  fileItem.task.push("正在发送文件...");
+
+                  // 文件开始发送
+                  return;
+                }
+
+                if (e.kind === "sending-chunk") {
+                  fileItem.sendedProgress = (e.count / e.total) * 100;
+                  return;
+                }
+
+                if (e.kind === "send-chunk-succeed") {
+                  fileItem.sendSuccessProgress = Math.round(
+                    (e.count / e.total) * 100
+                  );
+                  return;
+                }
+
+                console.log("发送进度", e);
+              },
+            });
+
+            this._cancels.push(cancel);
+          },
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
+          },
+          async clickDevice(data, ele) {
+            if (ele.disabled !== null) {
+              return;
+            }
+
+            if (this.selectedUserId && this.selectedUserId !== data.userId) {
+              // TODO: 告诉之前的设备取消了选择它
+            }
+
+            this.selectedUserId = data.userId;
+
+            // 初始化 rtc
+            const remoteUser = await localUser.connectUser(data.userId);
+            remoteUser.initRTC();
+
+            // TODO: 通知对方准备接收文件
+          },
+          async refreshDevices() {
+            const devices = await localUser.myDevices();
+            this.devices = devices;
+            console.log(devices);
+          },
+        },
+        attached() {
+          this.refreshDevices();
+
+          this._cancels = [
+            localUser.register(
+              "warp-send-radiate",
+              ({ data, fromUserId, fromUserSessionId }) => {
+                const idx = this.receivers.findIndex(
+                  (e) => e.fromUserId === fromUserId
+                );
+                if (idx === -1) {
+                  this.receivers.push({ fromUserId, fromUserSessionId });
+                } else {
+                  // 更新会话 ID
+                  this.receivers[idx].fromUserSessionId = fromUserSessionId;
+                }
+              }
+            ),
+          ];
+
+          // 快速广播一下进入了 sender 模式
+          localUser.broadcast("warp-send-sender-attached");
+        },
+        detached() {
+          this._cancels.forEach((cancel) => cancel());
+        },
+      };
+    };
+  </script>
+</template>

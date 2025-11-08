@@ -186,7 +186,7 @@
 
   <script>
     export default async ({ load }) => {
-      const { getFileHash } = await load("/packages/fs/util.js");
+      const { getFileHash } = await load("/packages/util/hash/main.js");
       const { toast } = await load("/packages/pui/util.js");
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 

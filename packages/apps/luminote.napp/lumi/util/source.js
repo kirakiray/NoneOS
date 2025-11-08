@@ -1,4 +1,4 @@
-import { getFileHash } from "/packages/fs/util.js";
+import { getFileHash } from "/packages/util/hash/main.js";
 
 // 保存文件
 export const saveFile = async ($ele, file) => {
