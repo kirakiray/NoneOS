@@ -120,6 +120,7 @@
             slot="suffix"
             size="small"
             color="success"
+            style="margin-left: 16px"
           >
             下载
           </p-button>
@@ -286,6 +287,10 @@
             const tempDir = await this._defaultDir.get("receive-temp");
             if (tempDir) {
               for await (let item of tempDir.values()) {
+                if (item.kind !== "file") {
+                  continue;
+                }
+
                 const size = await item.size();
 
                 this.list.push({
