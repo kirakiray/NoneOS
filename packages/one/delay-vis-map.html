@@ -2,11 +2,18 @@
   <style>
     :host {
       display: block;
+      padding: 16px;
+    }
+
+    #delayVisMap {
+      width: 100%;
+      height: 200px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
     }
   </style>
-  {{delays}}
   <div>
-    <canvas id="delayVisMap" width="100%" height="200px"></canvas>
+    <canvas id="delayVisMap"></canvas>
   </div>
 
   <script>
@@ -26,6 +33,136 @@
             { time: 1762784056626, delay: 40 },
             { time: 1762784046627, delay: 42 },
           ],
+        },
+        attached() {
+          this.drawChart();
+        },
+        proto: {
+          drawChart() {
+            const canvas = this.shadow.$("#delayVisMap").ele;
+            const ctx = canvas.getContext("2d");
+
+            // 设置 canvas 实际大小
+            const displayWidth = canvas.clientWidth;
+            const displayHeight = canvas.clientHeight;
+            const dpr = window.devicePixelRatio || 1;
+
+            canvas.width = displayWidth * dpr;
+            canvas.height = displayHeight * dpr;
+            ctx.scale(dpr, dpr);
+
+            // 设置 canvas 显示大小
+            canvas.style.width = displayWidth + "px";
+            canvas.style.height = displayHeight + "px";
+
+            // 清除画布
+            ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+            // 获取数据
+            const delays = this.delays;
+            if (!delays || delays.length === 0) return;
+
+            // 计算最大值和最小值
+            const delaysOnly = delays.map((d) => d.delay);
+            const minDelay = Math.min(...delaysOnly);
+            const maxDelay = Math.max(...delaysOnly);
+            const range = maxDelay - minDelay || 1; // 防止除零
+
+            // 计算时间范围
+            const times = delays.map((d) => d.time);
+            const minTime = Math.min(...times);
+            const maxTime = Math.max(...times);
+            const timeRange = maxTime - minTime || 1; // 防止除零
+
+            // 设置边距
+            const margin = { top: 20, right: 20, bottom: 30, left: 40 };
+            const width = displayWidth - margin.left - margin.right;
+            const height = displayHeight - margin.top - margin.bottom;
+
+            // 绘制坐标轴
+            ctx.beginPath();
+            ctx.strokeStyle = "#ccc";
+            ctx.lineWidth = 1;
+
+            // Y轴刻度
+            const yTicks = 5;
+            for (let i = 0; i <= yTicks; i++) {
+              const y = margin.top + height - (i * height) / yTicks;
+              ctx.moveTo(margin.left, y);
+              ctx.lineTo(margin.left + width, y);
+            }
+
+            // X轴刻度
+            const xTicks = 5;
+            for (let i = 0; i <= xTicks; i++) {
+              const x = margin.left + (i * width) / xTicks;
+              ctx.moveTo(x, margin.top);
+              ctx.lineTo(x, margin.top + height);
+            }
+
+            ctx.stroke();
+
+            // 绘制折线
+            ctx.beginPath();
+            ctx.strokeStyle = "#4285f4";
+            ctx.lineWidth = 2;
+            ctx.fillStyle = "#4285f4";
+
+            delays.forEach((point, index) => {
+              const x =
+                margin.left + ((point.time - minTime) / timeRange) * width;
+              const y =
+                margin.top +
+                height -
+                ((point.delay - minDelay) / range) * height;
+
+              if (index === 0) {
+                ctx.moveTo(x, y);
+              } else {
+                ctx.lineTo(x, y);
+              }
+
+              // 绘制数据点
+              ctx.beginPath();
+              ctx.arc(x, y, 4, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+            });
+
+            ctx.stroke();
+
+            // 绘制坐标轴标签
+            ctx.fillStyle = "#333";
+            ctx.font = "12px Arial";
+            ctx.textAlign = "center";
+
+            // Y轴标签
+            for (let i = 0; i <= yTicks; i++) {
+              const value = minDelay + (range * i) / yTicks;
+              const y = margin.top + height - (i * height) / yTicks;
+              ctx.fillText(value.toFixed(0), margin.left - 10, y + 4);
+            }
+
+            // X轴标签
+            ctx.textAlign = "center";
+            for (let i = 0; i <= xTicks; i++) {
+              const time = minTime + (timeRange * i) / xTicks;
+              const x = margin.left + (i * width) / xTicks;
+              // 格式化时间显示
+              const date = new Date(time);
+              const timeStr = date.toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+              ctx.fillText(timeStr, x, margin.top + height + 20);
+            }
+
+            // 绘制标题
+            ctx.textAlign = "center";
+            ctx.font = "bold 14px Arial";
+            ctx.fillText("延迟变化趋势图", displayWidth / 2, 15);
+          },
         },
       };
     };
