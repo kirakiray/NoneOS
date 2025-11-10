@@ -16,17 +16,19 @@
       border-radius: 50%;
       margin-right: 8px;
       background-color: var(--md-sys-color-normal);
+      box-shadow: 0 0 3px 1px var(--md-sys-color-normal);
     }
 
     .point[point-state="authed"] {
       background-color: var(--md-sys-color-success);
+      box-shadow: 0 0 3px 1px var(--md-sys-color-success);
     }
 
     .point[point-state="closed"] {
       background-color: var(--md-sys-color-error);
+      box-shadow: 0 0 3px 1px var(--md-sys-color-error);
     }
   </style>
-  server list: {{servers}}
   <p-list>
     <o-fill :value="servers">
       <p-list-item button="suffix" collapse-childs="close">
