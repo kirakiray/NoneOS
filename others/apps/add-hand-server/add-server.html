@@ -1,0 +1,76 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      text-align: center;
+    }
+  </style>
+  <o-if :value="urlError"> {{urlError}} </o-if>
+  <h3>添加握手服务器</h3>
+  <o-if :value="exited">
+    <p>
+      握手服务器
+      <span style="color: var(--md-sys-color-primary)"> {{url}} </span>
+      已经存在
+    </p>
+  </o-if>
+  <o-else>
+    <p>
+      确认要将
+      <span style="color: var(--md-sys-color-primary)"> {{url}} </span>
+      服务器添加到当前系统吗？
+    </p>
+  </o-else>
+  <p-button on:click="addServer" attr:disabled="!!urlError || exited">
+    <o-if :value="exited"> 已添加 </o-if>
+    <o-if :value="!exited"> 确认添加 </o-if>
+  </p-button>
+  <script>
+    export default async ({ load }) => {
+      const url = new URLSearchParams(location.search).get("url");
+      const { createUser } = await load("/packages/user/main.js");
+
+      const localUser = await createUser();
+      const serverManager = await localUser.serverManager();
+
+      return {
+        data: {
+          url,
+          urlError: "",
+          exited: false,
+        },
+        proto: {
+          addServer() {
+            serverManager.data.push({ url });
+            this.exited = true;
+          },
+        },
+        async attached() {
+          // 判断url是否合法
+          if (!url) {
+            this.urlError = "分享的握手服务器出错";
+            return;
+          }
+          let urlObj = null;
+          try {
+            urlObj = new URL(url);
+          } catch (error) {
+            this.urlError = "请输入正确的服务器地址";
+            return;
+          }
+
+          // 必须是 wss协议
+          if (urlObj.protocol !== "wss:") {
+            this.urlError = "请输入正确的服务器地址";
+            return;
+          }
+
+          // 查看是否已经添加过
+          const exited = serverManager.data.some((item) => item.url === url);
+          this.exited = exited;
+        },
+      };
+    };
+  </script>
+</template>

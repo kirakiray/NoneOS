@@ -241,6 +241,21 @@
             <span lang="jp">サーバーアドレス</span>
           </localized-content>
           <n-copy-span>{{url}}</n-copy-span>
+          <p-button
+            size="small"
+            on:click="clickShareServer"
+            variant="text"
+            icon
+            attr:color="clickedShare ? 'success' : ''"
+            style="margin-left: 4px"
+          >
+            <o-if :value="!clickedShare">
+              <n-local-icon name="share"></n-local-icon>
+            </o-if>
+            <o-else>
+              <n-local-icon name="tick"></n-local-icon>
+            </o-else>
+          </p-button>
         </div>
       </p-list-item>
 
@@ -275,6 +290,7 @@
           state: "0",
           _offs: [],
           _serverClient: null,
+          clickedShare: false,
         },
         watch: {
           url(newVal) {
@@ -282,6 +298,22 @@
           },
         },
         proto: {
+          clickShareServer(item) {
+            this.clickedShare = true;
+
+            setTimeout(() => {
+              this.clickedShare = false;
+            }, 1500);
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(
+              `${
+                location.origin
+              }/others/apps/add-hand-server/?url=${encodeURIComponent(
+                this.url
+              )}`
+            );
+          },
           checkDelay() {
             this._serverClient.checkDelay();
           },
