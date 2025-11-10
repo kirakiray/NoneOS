@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -37,18 +38,55 @@
         <i toggle-collapse triangle slot="suffix"></i>
         <p-list slot="childs" style="--ladder-left: 12px">
           <p-list-item>
-            <div>服务器版本: {{$data.version}}</div>
+            <div>
+              <localized-content>
+                <span lang="cn">服务器版本:</span>
+                <span lang="en">Server Version:</span>
+                <span lang="ja">サーバーバージョン:</span>
+              </localized-content>
+              {{$data.version}}
+            </div>
           </p-list-item>
           <p-list-item>
-            <div>状态: {{$data.state}}</div>
+            <div>
+              <localized-content>
+                <span lang="cn">状态:</span>
+                <span lang="en">Status:</span>
+                <span lang="ja">状態:</span>
+              </localized-content>
+              {{$data.state}}
+            </div>
           </p-list-item>
           <p-list-item>
-            <div>服务器地址: {{$data.url}}</div>
+            <div>
+              <localized-content>
+                <span lang="cn">服务器地址:</span>
+                <span lang="en">Server Address:</span>
+                <span lang="ja">サーバーアドレス:</span>
+              </localized-content>
+              {{$data.url}}
+            </div>
           </p-list-item>
           <p-list-item>
-            <div>服务器状态: {{$data.state}}</div>
+            <div>
+              <localized-content>
+                <span lang="cn">服务器状态:</span>
+                <span lang="en">Server Status:</span>
+                <span lang="ja">サーバー状態:</span>
+              </localized-content>
+              {{$data.state}}
+            </div>
           </p-list-item>
-          <p-list-item> 延迟: {{$data.delay}} </p-list-item>
+          <p-list-item>
+            <div>
+              <localized-content>
+                <span lang="cn">延迟:</span>
+                <span lang="en">Delay:</span>
+                <span lang="ja">遅延:</span>
+              </localized-content>
+              {{$data.delay}} ms
+            </div>
+          </p-list-item>
         </p-list>
       </p-list-item>
     </o-fill>
