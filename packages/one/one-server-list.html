@@ -1,6 +1,7 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="./delay-vis-map.html"></l-m>
   <style>
     :host {
       display: block;
@@ -107,6 +108,9 @@
               </localized-content>
               <span class="value-text">{{$data.delay}} ms</span>
             </div>
+          </p-list-item>
+          <p-list-item>
+            <n-delay-vis-map :delays="$data.delays"></n-delay-vis-map>
           </p-list-item>
         </p-list>
       </p-list-item>

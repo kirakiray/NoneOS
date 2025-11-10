@@ -124,6 +124,18 @@ export class HandServerClient extends EventTarget {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this._pingTime = Date.now();
       this._send({ type: "ping" });
+
+      // 超过8秒没有响应，认为延迟很大
+      this._delayTimeout = setTimeout(() => {
+        if (this._pingTime) {
+          this.delay = 8000;
+          this.dispatchEvent(
+            new CustomEvent("check-delay", { detail: this.delay })
+          );
+
+          this._pingTime = null;
+        }
+      }, 8000);
     }
   }
 
@@ -175,6 +187,7 @@ export class HandServerClient extends EventTarget {
           );
 
           this._pingTime = null;
+          clearTimeout(this._delayTimeout); // 清除之前的定时器
 
           // 告诉服务端延迟时间
           this._send({ type: "update_delay", delay: this.delay });
@@ -205,8 +218,7 @@ export class HandServerClient extends EventTarget {
     } else if (responseData.type === "auth_success") {
       this._changeState("authed");
       this.startDelayCheckLoop();
-      this._pingTime = Date.now();
-      this._send({ type: "ping" }); // 即使发送延迟测试
+      this.checkDelay();
     } else if (responseData.type === "server_info") {
       this.serverName = responseData.serverName;
       this.serverVersion = responseData.serverVersion;
@@ -215,26 +227,6 @@ export class HandServerClient extends EventTarget {
         new CustomEvent("server-info", { detail: responseData })
       );
     }
-    // else if (responseData.type === "agent_data") {
-    //   this.dispatchEvent(
-    //     new CustomEvent("agent-data", { detail: responseData })
-    //   );
-
-    //   if (this.onData) {
-    //     this.onData(responseData.fromUserId, responseData.data, responseData);
-    //   }
-
-    //   // console.log("收到agent消息:", responseData);
-
-    //   this.#user.dispatchEvent(
-    //     new CustomEvent("received-server-agent-data", {
-    //       detail: {
-    //         response: responseData,
-    //         server: this,
-    //       },
-    //     })
-    //   );
-    // }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));
   }
@@ -259,6 +251,7 @@ export class HandServerClient extends EventTarget {
   // 处理WebSocket关闭事件
   _onClose(event) {
     clearInterval(this.pingInterval);
+    clearTimeout(this._delayTimeout);
     this._changeState("closed");
     console.log("WebSocket连接已关闭:", event);
   }
@@ -266,6 +259,7 @@ export class HandServerClient extends EventTarget {
   // 处理WebSocket错误事件
   _onError(event) {
     clearInterval(this.pingInterval);
+    clearTimeout(this._delayTimeout);
     console.error("WebSocket错误:", event);
 
     // 触发错误事件

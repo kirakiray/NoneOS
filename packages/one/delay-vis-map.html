@@ -1,0 +1,33 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  {{delays}}
+  <div>
+    <canvas id="delayVisMap" width="100%" height="200px"></canvas>
+  </div>
+
+  <script>
+    export default async () => {
+      return {
+        tag: "n-delay-vis-map",
+        data: {
+          delays: [
+            { time: 1762784162213, delay: 35 },
+            { time: 1762784153180, delay: 37 },
+            { time: 1762784117181, delay: 37 },
+            { time: 1762784107179, delay: 36 },
+            { time: 1762784097178, delay: 37 },
+            { time: 1762784087180, delay: 37 },
+            { time: 1762784077182, delay: 39 },
+            { time: 1762784067181, delay: 37 },
+            { time: 1762784056626, delay: 40 },
+            { time: 1762784046627, delay: 42 },
+          ],
+        },
+      };
+    };
+  </script>
+</template>
