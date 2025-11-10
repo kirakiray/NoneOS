@@ -55,6 +55,7 @@ export class ServerManager {
         state: server.state,
         url,
         delay: "-",
+        delays: [], // 记录延迟的曲线
         _server: server,
       });
 
@@ -67,7 +68,18 @@ export class ServerManager {
 
       server.bind("server-info", updateInfo);
       server.bind("change-state", updateInfo);
-      server.bind("check-delay", updateInfo);
+      server.bind("check-delay", () => {
+        updateInfo();
+        item.delays.unshift({
+          time: Date.now(),
+          delay: server.delay,
+        });
+
+        // 超过60条记录，删除最旧的一条
+        if (item.delays.length > 60) {
+          item.delays.pop();
+        }
+      });
 
       this.#xdata.push(item);
     });

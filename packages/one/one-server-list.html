@@ -1,25 +1,56 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
     }
 
-    .server-item {
+    p-list-item {
       display: block;
-      padding: 4px;
+    }
+
+    .point {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 8px;
+      background-color: var(--md-sys-color-normal);
+    }
+
+    .point[point-state="authed"] {
+      background-color: var(--md-sys-color-success);
+    }
+
+    .point[point-state="closed"] {
+      background-color: var(--md-sys-color-error);
     }
   </style>
   server list: {{servers}}
-  <div>
+  <p-list>
     <o-fill :value="servers">
-      <div class="server-item">
-        <div>服务器名称: {{$data.name}}</div>
-        <div>服务器版本: {{$data.version}}</div>
-        <div>服务器状态: {{$data.state}}</div>
-        <div>{{$data._server}}</div>
-      </div>
+      <p-list-item button="suffix" collapse-childs="close">
+        <div class="point" attr:point-state="$data.state" slot="prefix"></div>
+        {{$data.name}}
+        <i toggle-collapse triangle slot="suffix"></i>
+        <p-list slot="childs" style="--ladder-left: 12px">
+          <p-list-item>
+            <div>服务器版本: {{$data.version}}</div>
+          </p-list-item>
+          <p-list-item>
+            <div>状态: {{$data.state}}</div>
+          </p-list-item>
+          <p-list-item>
+            <div>服务器地址: {{$data.url}}</div>
+          </p-list-item>
+          <p-list-item>
+            <div>服务器状态: {{$data.state}}</div>
+          </p-list-item>
+          <p-list-item> 延迟: {{$data.delay}} </p-list-item>
+        </p-list>
+      </p-list-item>
     </o-fill>
-  </div>
+  </p-list>
   <script>
     export default async ({ load }) => {
       return {
