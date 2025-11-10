@@ -107,11 +107,13 @@ export class HandServerClient extends EventTarget {
   // 处理WebSocket打开事件
   _onOpen() {
     // console.log("WebSocket连接已打开");
+  }
 
+  startDelayCheckLoop() {
     clearInterval(this.pingInterval);
     this.pingInterval = setInterval(() => {
       this.checkDelay();
-    }, 30000);
+    }, 10000);
   }
 
   async checkDelay() {
@@ -166,15 +168,17 @@ export class HandServerClient extends EventTarget {
       responseData = JSON.parse(event.data);
 
       if (responseData.type === "pong") {
-        this.delay = Date.now() - this._pingTime;
-        this.dispatchEvent(
-          new CustomEvent("check-delay", { detail: this.delay })
-        );
+        if (this._pingTime) {
+          this.delay = Date.now() - this._pingTime;
+          this.dispatchEvent(
+            new CustomEvent("check-delay", { detail: this.delay })
+          );
 
-        this._pingTime = null;
+          this._pingTime = null;
 
-        // 告诉服务端延迟时间
-        this._send({ type: "update_delay", delay: this.delay });
+          // 告诉服务端延迟时间
+          this._send({ type: "update_delay", delay: this.delay });
+        }
         return;
       }
     } catch (e) {
@@ -200,6 +204,7 @@ export class HandServerClient extends EventTarget {
       this._send({ type: "authentication", signedData });
     } else if (responseData.type === "auth_success") {
       this._changeState("authed");
+      this.startDelayCheckLoop();
       this._pingTime = Date.now();
       this._send({ type: "ping" }); // 即使发送延迟测试
     } else if (responseData.type === "server_info") {

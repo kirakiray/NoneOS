@@ -142,8 +142,6 @@ export class RemoteUser extends BaseUser {
       return;
     }
 
-    this._runInitRTC = 1; // 标记是否已运行过initRTC
-
     if (this.serverState === 0) {
       throw new Error("未找到合适的握手服务器");
     }
@@ -275,11 +273,6 @@ export class RemoteUser extends BaseUser {
     });
 
     // console.log("打包后发送消息大小：", data.length / 1024, "KB");
-
-    if (this._runInitRTC && !this._rtcConnections.length) {
-      // 如果运行过initRTC，则再进行一次初始化，让下次可以使用rtc发送
-      this.initRTC();
-    }
 
     if (this.#mode === 0) {
       throw new Error("未连接到对方");

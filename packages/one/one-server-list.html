@@ -1,0 +1,52 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .server-item {
+      display: block;
+      padding: 4px;
+    }
+  </style>
+  server list: {{servers}}
+  <div>
+    <o-fill :value="servers">
+      <div class="server-item">
+        <div>服务器名称: {{$data.name}}</div>
+        <div>服务器版本: {{$data.version}}</div>
+        <div>服务器状态: {{$data.state}}</div>
+        <div>{{$data._server}}</div>
+      </div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-one-server-list",
+        data: {
+          _localUser: null, // 本地用户
+          servers: [], // 服务器列表
+        },
+        proto: {
+          async init(localUser) {
+            this._localUser = localUser;
+
+            const serverManager = await localUser.serverManager();
+            const servers = await serverManager.xdata();
+
+            if (!this.ele.isConnected) {
+              return;
+            }
+
+            this.servers = servers;
+          },
+        },
+        detached() {
+          this._localUser = null;
+          this.servers = []; // 组件销毁时，清空服务器列表
+        },
+      };
+    };
+  </script>
+</template>

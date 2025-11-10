@@ -4,6 +4,7 @@ export class ServerManager {
   #self;
   #data;
   #dirHandle;
+  #xdata;
   constructor(user, dirHandle) {
     this.#self = user;
     this.#dirHandle = dirHandle;
@@ -28,6 +29,57 @@ export class ServerManager {
 
   get data() {
     return this.#data;
+  }
+
+  // 获取stanz格式的数据列表
+  // 这个列表会自动更新数据，不需要手动更新
+  //
+  async xdata() {
+    if (this.#xdata) {
+      return this.#xdata;
+    }
+
+    this.#xdata = $.stanz([]);
+
+    // 获取服务器列表
+    const serverManager = await this.#self.serverManager();
+
+    serverManager.data.forEach(async ({ url }) => {
+      const server = await this.#self.connectServer(url, {
+        waitForAuthed: false,
+      });
+
+      const item = $.stanz({
+        name: "", // 服务器名称
+        version: "-", // 服务器版本
+        state: server.state,
+        url,
+        delay: "-",
+        _server: server,
+      });
+
+      const updateInfo = () => {
+        item.name = server.serverName; // 服务器名称
+        item.version = server.serverVersion; // 服务器版本
+        item.delay = server.delay;
+        item.state = server.state;
+      };
+
+      server.bind("server-info", updateInfo);
+      server.bind("change-state", updateInfo);
+      server.bind("check-delay", updateInfo);
+
+      console.log("连接服务器", item);
+
+      this.#xdata.push(item);
+    });
+
+    this.#data.watchTick(() => {
+      // TODO: 握手服务器列表有更新，同步更新xdata
+      debugger;
+    });
+
+    return this.#xdata;
   }
 
   // 重置所有服务器
