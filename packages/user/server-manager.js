@@ -50,7 +50,7 @@ export class ServerManager {
       });
 
       const item = $.stanz({
-        name: "", // 服务器名称
+        name: "unknown", // 服务器名称
         version: "-", // 服务器版本
         state: server.state,
         url,
@@ -68,8 +68,6 @@ export class ServerManager {
       server.bind("server-info", updateInfo);
       server.bind("change-state", updateInfo);
       server.bind("check-delay", updateInfo);
-
-      console.log("连接服务器", item);
 
       this.#xdata.push(item);
     });

@@ -1,0 +1,47 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .device-item {
+      display: block;
+      padding: 4px;
+    }
+  </style>
+  device list: {{devices}}
+  <div>
+    <o-fill :value="devices">
+      <div class="device-item">
+        <div>设备名称: {{$data.name}}</div>
+        <div>设备版本: {{$data.version}}</div>
+        <div>设备状态: {{$data.state}}</div>
+        <div>{{$data._device}}</div>
+      </div>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-one-device-list",
+        data: {
+          _localUser: null, // 本地用户
+          devices: [], // 服务器列表
+        },
+        proto: {
+          async init(localUser) {
+            this._localUser = localUser;
+
+            debugger;
+
+            this.devices = devices;
+          },
+        },
+        detached() {
+          this._localUser = null;
+          this.devices = []; // 组件销毁时，清空设备列表
+        },
+      };
+    };
+  </script>
+</template>
