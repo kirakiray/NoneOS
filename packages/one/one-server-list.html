@@ -29,6 +29,27 @@
       background-color: var(--md-sys-color-error);
       box-shadow: 0 0 3px 1px var(--md-sys-color-error);
     }
+
+    /* 美化列表项子项的前置描述文字 */
+    localized-content {
+      display: inline-block;
+      min-width: 100px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-right: 8px;
+    }
+
+    /* 响应式设计，在小屏幕上减小宽度 */
+    @media (max-width: 768px) {
+      localized-content {
+        min-width: 80px;
+      }
+    }
+
+    /* 数值信息样式 */
+    .value-text {
+      font-weight: 600;
+    }
   </style>
   <p-list>
     <o-fill :value="servers">
@@ -44,7 +65,7 @@
                 <span lang="en">Server Version:</span>
                 <span lang="ja">サーバーバージョン:</span>
               </localized-content>
-              {{$data.version}}
+              <span class="value-text">{{$data.version}}</span>
             </div>
           </p-list-item>
           <p-list-item>
@@ -54,7 +75,7 @@
                 <span lang="en">Status:</span>
                 <span lang="ja">状態:</span>
               </localized-content>
-              {{$data.state}}
+              <span class="value-text">{{$data.state}}</span>
             </div>
           </p-list-item>
           <p-list-item>
@@ -64,7 +85,7 @@
                 <span lang="en">Server Address:</span>
                 <span lang="ja">サーバーアドレス:</span>
               </localized-content>
-              {{$data.url}}
+              <span class="value-text">{{$data.url}}</span>
             </div>
           </p-list-item>
           <p-list-item>
@@ -74,7 +95,7 @@
                 <span lang="en">Server Status:</span>
                 <span lang="ja">サーバー状態:</span>
               </localized-content>
-              {{$data.state}}
+              <span class="value-text">{{$data.state}}</span>
             </div>
           </p-list-item>
           <p-list-item>
@@ -84,7 +105,7 @@
                 <span lang="en">Delay:</span>
                 <span lang="ja">遅延:</span>
               </localized-content>
-              {{$data.delay}} ms
+              <span class="value-text">{{$data.delay}} ms</span>
             </div>
           </p-list-item>
         </p-list>
