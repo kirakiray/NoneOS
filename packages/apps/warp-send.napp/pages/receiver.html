@@ -121,21 +121,23 @@
             <p-progress :value="$data.progress" style="margin-top: 4px" />
           </o-if>
 
-          <p-button
-            variant="outlined"
-            on:click="$host.downloadFile($data)"
-            attr:disabled="$host.downloading"
-            slot="suffix"
-            size="small"
-            color="success"
-            style="margin-left: 16px"
-          >
-            <localized-content>
-              <span lang="cn">下载</span>
-              <span lang="en">Download</span>
-              <span lang="ja">ダウンロード</span>
-            </localized-content>
-          </p-button>
+          <o-if :value="!$data.dirName">
+            <p-button
+              variant="outlined"
+              on:click="$host.downloadFile($data)"
+              attr:disabled="$host.downloading"
+              slot="suffix"
+              size="small"
+              color="success"
+              style="margin-left: 16px"
+            >
+              <localized-content>
+                <span lang="cn">下载</span>
+                <span lang="en">Download</span>
+                <span lang="ja">ダウンロード</span>
+              </localized-content>
+            </p-button>
+          </o-if>
         </p-list-item>
       </o-fill>
     </p-list>
