@@ -110,10 +110,12 @@ export class HandServerClient extends EventTarget {
   }
 
   startDelayCheckLoop() {
-    clearInterval(this.pingInterval);
-    this.pingInterval = setInterval(() => {
+    clearTimeout(this.pingInterval);
+    const loop = () => {
       this.checkDelay();
-    }, 10000);
+      this.pingInterval = setTimeout(loop, 10000);
+    };
+    this.pingInterval = setTimeout(loop, 10000);
   }
 
   async checkDelay() {
@@ -260,7 +262,7 @@ export class HandServerClient extends EventTarget {
 
   // 处理WebSocket关闭事件
   _onClose(event) {
-    clearInterval(this.pingInterval);
+    clearTimeout(this.pingInterval);
     clearTimeout(this._delayTimeout);
     this._changeState("closed");
     console.log("WebSocket连接已关闭:", event);
@@ -268,7 +270,7 @@ export class HandServerClient extends EventTarget {
 
   // 处理WebSocket错误事件
   _onError(event) {
-    clearInterval(this.pingInterval);
+    clearTimeout(this.pingInterval);
     clearTimeout(this._delayTimeout);
     console.error("WebSocket错误:", event);
 

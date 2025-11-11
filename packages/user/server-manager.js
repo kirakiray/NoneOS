@@ -85,9 +85,41 @@ export class ServerManager {
       this.#xdata.push(item);
     });
 
-    this.#data.watchTick(() => {
-      // TODO: 握手服务器列表有更新，同步更新xdata
-      debugger;
+    this.#data.watchTick(async () => {
+      // 检查data中多出来的，添加到 xdata 中；少的则从 xdata 删除;
+      const xdataUrls = new Set(this.#xdata.map((item) => item.url));
+      const dataUrls = new Set(this.#data.map((item) => item.url));
+
+      // 检查data中多出来的，添加到 xdata 中
+      for (const url of dataUrls) {
+        if (!xdataUrls.has(url)) {
+          const server = await this.#self.connectServer(url, {
+            waitForAuthed: false,
+          });
+
+          const item = $.stanz({
+            name: "unknown", // 服务器名称
+            version: "-", // 服务器版本
+            state: server.state,
+            url,
+            delay: "-",
+            delays: [], // 记录延迟的曲线
+            _server: server,
+          });
+
+          this.#xdata.push(item);
+        }
+      }
+
+      // 检查xdata中多出来的，从 xdata 删除
+      for (const item of this.#xdata) {
+        if (!dataUrls.has(item.url)) {
+          const index = this.#xdata.indexOf(item);
+          if (index !== -1) {
+            this.#xdata.splice(index, 1);
+          }
+        }
+      }
     });
 
     return this.#xdata;

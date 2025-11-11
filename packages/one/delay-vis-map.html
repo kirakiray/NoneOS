@@ -184,28 +184,46 @@
               return { x, y };
             });
 
-            // 构建路径数据
+            // 构建路径数据并根据延迟值确定线段颜色
+            const pathGroup = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            
             points.forEach((point, index) => {
               if (index === 0) {
                 pathData += `M ${point.x} ${point.y} `;
               } else {
-                pathData += `L ${point.x} ${point.y} `;
+                // 计算当前线段的颜色
+                const prevDelay = delays[index - 1].delay;
+                const currentDelay = delays[index].delay;
+                const maxDelay = Math.max(prevDelay, currentDelay);
+                
+                let lineColor = "#4285f4"; // 默认蓝色
+                if (maxDelay > 2000) {
+                  lineColor = "#f44336"; // 红色 (>2000ms)
+                } else if (maxDelay > 500) {
+                  lineColor = "#ff9800"; // 橘色 (>500ms)
+                }
+                
+                // 为每条线段创建独立的path元素
+                const linePath = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "path"
+                );
+                const lineData = `M ${points[index-1].x} ${points[index-1].y} L ${point.x} ${point.y}`;
+                linePath.setAttribute("d", lineData);
+                linePath.setAttribute("fill", "none");
+                linePath.setAttribute("stroke", lineColor);
+                linePath.setAttribute("stroke-width", "2");
+                pathGroup.appendChild(linePath);
               }
             });
 
-            // 添加折线
-            const path = document.createElementNS(
-              "http://www.w3.org/2000/svg",
-              "path"
-            );
-            path.setAttribute("d", pathData);
-            path.setAttribute("fill", "none");
-            path.setAttribute("stroke", "#4285f4");
-            path.setAttribute("stroke-width", "2");
-            svg.appendChild(path);
+            svg.appendChild(pathGroup);
 
-            // 添加数据点
-            points.forEach((point) => {
+            // 添加数据点，根据延迟值确定颜色
+            points.forEach((point, index) => {
               const circle = document.createElementNS(
                 "http://www.w3.org/2000/svg",
                 "circle"
@@ -213,7 +231,17 @@
               circle.setAttribute("cx", point.x);
               circle.setAttribute("cy", point.y);
               circle.setAttribute("r", "3");
-              circle.setAttribute("fill", "#4285f4");
+              
+              // 根据延迟值设置点的颜色
+              const delay = delays[index].delay;
+              let pointColor = "#4285f4"; // 默认蓝色
+              if (delay > 2000) {
+                pointColor = "#f44336"; // 红色 (>2000ms)
+              } else if (delay > 500) {
+                pointColor = "#ff9800"; // 橘色 (>500ms)
+              }
+              
+              circle.setAttribute("fill", pointColor);
               svg.appendChild(circle);
             });
 
