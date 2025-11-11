@@ -130,7 +130,12 @@ export class HandServerClient extends EventTarget {
         if (this._pingTime) {
           this.delay = 8000;
           this.dispatchEvent(
-            new CustomEvent("check-delay", { detail: this.delay })
+            new CustomEvent("check-delay", {
+              detail: {
+                time: this._pingTime,
+                delay: this.delay,
+              },
+            })
           );
 
           this._pingTime = null;
@@ -183,7 +188,12 @@ export class HandServerClient extends EventTarget {
         if (this._pingTime) {
           this.delay = Date.now() - this._pingTime;
           this.dispatchEvent(
-            new CustomEvent("check-delay", { detail: this.delay })
+            new CustomEvent("check-delay", {
+              detail: {
+                time: this._pingTime,
+                delay: this.delay,
+              },
+            })
           );
 
           this._pingTime = null;

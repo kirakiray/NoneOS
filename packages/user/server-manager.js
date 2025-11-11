@@ -68,12 +68,13 @@ export class ServerManager {
 
       server.bind("server-info", updateInfo);
       server.bind("change-state", updateInfo);
-      server.bind("check-delay", () => {
-        updateInfo();
+      server.bind("check-delay", (e) => {
+        const { time, delay } = e.detail;
         item.delays.unshift({
-          time: Date.now(),
-          delay: server.delay,
+          time,
+          delay,
         });
+        updateInfo();
 
         // 超过60条记录，删除最旧的一条
         if (item.delays.length > 60) {

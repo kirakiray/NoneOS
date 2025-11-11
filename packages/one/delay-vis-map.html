@@ -7,9 +7,7 @@
 
     #delayVisMap {
       width: 100%;
-      min-height: 200px;
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
+      min-height: 160px;
     }
   </style>
   <div>
@@ -49,7 +47,7 @@
 
             // 设置SVG大小
             const displayWidth = svg.clientWidth || 400;
-            const displayHeight = svg.clientHeight || 200;
+            const displayHeight = svg.clientHeight || 160;
 
             svg.setAttribute("width", displayWidth);
             svg.setAttribute("height", displayHeight);
@@ -61,7 +59,7 @@
             // 设置动态Y轴范围
             const minDelay = 0;
             const maxDataDelay = Math.max(...delays.map((d) => d.delay));
-            
+
             // 根据数据最大值动态设置Y轴最大值
             let maxDelay;
             if (maxDataDelay <= 200) {
@@ -79,7 +77,7 @@
             } else {
               maxDelay = 8000;
             }
-            
+
             const range = maxDelay - minDelay;
 
             // 计算时间范围
@@ -93,7 +91,7 @@
             const width = displayWidth - margin.left - margin.right;
             const height = displayHeight - margin.top - margin.bottom;
 
-            // 添加辅助线
+            // 添加辅助线和刻度标签
             const gridLines = document.createElementNS(
               "http://www.w3.org/2000/svg",
               "g"
@@ -102,7 +100,16 @@
             gridLines.setAttribute("stroke-width", "1");
             gridLines.setAttribute("opacity", "0.5");
 
-            // 水平辅助线（Y轴）
+            // 创建刻度标签组
+            const tickLabels = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            tickLabels.setAttribute("font-family", "Arial");
+            tickLabels.setAttribute("font-size", "10");
+            tickLabels.setAttribute("fill", "#666");
+
+            // 水平辅助线和Y轴刻度标签
             const yTicks = 5;
             for (let i = 0; i <= yTicks; i++) {
               const y = margin.top + height - (i * height) / yTicks;
@@ -115,9 +122,21 @@
               line.setAttribute("x2", margin.left + width);
               line.setAttribute("y2", y);
               gridLines.appendChild(line);
+
+              // 添加Y轴刻度标签
+              const tickValue = minDelay + (maxDelay - minDelay) * (i / yTicks);
+              const label = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+              );
+              label.textContent = Math.round(tickValue);
+              label.setAttribute("x", margin.left - 5);
+              label.setAttribute("y", y + 3);
+              label.setAttribute("text-anchor", "end");
+              tickLabels.appendChild(label);
             }
 
-            // 垂直辅助线（X轴）
+            // 垂直辅助线和X轴刻度标签
             const xTicks = 5;
             for (let i = 0; i <= xTicks; i++) {
               const x = margin.left + (i * width) / xTicks;
@@ -130,9 +149,28 @@
               line.setAttribute("x2", x);
               line.setAttribute("y2", margin.top + height);
               gridLines.appendChild(line);
+
+              // 添加X轴刻度标签（显示时间）
+              const timeValue = minTime + (timeRange * i) / xTicks;
+              const date = new Date(timeValue);
+              const timeString = `${date.getHours()}:${date
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}`;
+
+              const label = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+              );
+              label.textContent = timeString;
+              label.setAttribute("x", x);
+              label.setAttribute("y", margin.top + height + 15);
+              label.setAttribute("text-anchor", "middle");
+              tickLabels.appendChild(label);
             }
 
             svg.appendChild(gridLines);
+            svg.appendChild(tickLabels);
 
             // 创建折线路径
             let pathData = "";
