@@ -86,7 +86,7 @@ export class ServerManager {
         updateInfo();
 
         // 超过60条记录，删除最旧的一条
-        if (item.delays.length > 60) {
+        if (item.delays.length > 18) {
           item.delays.pop();
         }
       });
