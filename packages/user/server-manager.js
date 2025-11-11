@@ -60,14 +60,23 @@ export class ServerManager {
       });
 
       const updateInfo = () => {
-        item.name = server.serverName; // 服务器名称
-        item.version = server.serverVersion; // 服务器版本
-        item.delay = server.delay;
+        item.name = server.serverName || "unknown"; // 服务器名称
+        item.version = server.serverVersion || "-"; // 服务器版本
+        item.delay = server.delay || "-";
         item.state = server.state;
       };
 
       server.bind("server-info", updateInfo);
-      server.bind("change-state", updateInfo);
+      server.bind("change-state", () => {
+        if (server.state === "closed") {
+          // 添加断连的记录
+          item.delays.unshift({
+            time: Date.now(),
+            delay: 8000,
+          });
+        }
+        updateInfo();
+      });
       server.bind("check-delay", (e) => {
         const { time, delay } = e.detail;
         item.delays.unshift({
