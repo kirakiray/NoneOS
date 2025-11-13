@@ -8,10 +8,15 @@ export class RemoteUser extends BaseUser {
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
   _rtcConnections = []; // RTC连接实例
+  #delays = []; // 延迟时间列表，单位毫秒
 
   constructor(publicKey, self) {
     super(publicKey);
     this.#self = self;
+  }
+
+  get delay() {
+    return this.#delays[this.#delays.length - 1] || 0;
   }
 
   // 是否可通过服务端转发到对方
@@ -39,6 +44,8 @@ export class RemoteUser extends BaseUser {
   get mode() {
     return this.#mode;
   }
+
+  async ping() {}
 
   // 检查连接状态
   async repairState() {
@@ -116,19 +123,6 @@ export class RemoteUser extends BaseUser {
     this.#servers = servers;
 
     this.repairState();
-  }
-
-  // 更新连接模式
-  // 如果用户已经server状态，则可以切换到rtc模式
-  async refreshMode() {
-    // 确认对方在线，判断并进行rtc连接
-    if (this.mode === 1) {
-      const bool = await this.#self.isMyDevice(this.userId);
-
-      if (bool) {
-        this.initRTC();
-      }
-    }
   }
 
   // 初始化RTC连接
@@ -261,7 +255,6 @@ export class RemoteUser extends BaseUser {
     }
 
     if (typeof userSessionId === "object") {
-      debugger;
       throw new Error("userSessionId 格式错误");
     }
 

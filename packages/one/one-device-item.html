@@ -1,5 +1,7 @@
 <template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <style>
     :host {
       display: block;
@@ -23,6 +25,7 @@
     }
   </style>
   <div class="container">
+    <n-user-state :userid="userId" style="margin-right: 8px"></n-user-state>
     <n-user-avatar :userid="userId"></n-user-avatar>
     <div class="user-name">{{userName}}</div>
   </div>
