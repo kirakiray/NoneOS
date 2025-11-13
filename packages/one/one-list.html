@@ -3,12 +3,20 @@
     :host {
       display: block;
     }
+    h3 {
+      font-weight: bold;
+      font-size: 13px;
+      padding: 8px;
+      margin: 0;
+      color: var(--md-sys-color-primary);
+    }
   </style>
+  <h3>我的设备</h3>
+  <o-page src="./one-device-list.html" id="one-device-list"></o-page>
+  <h3>握手服务器</h3>
   <o-page src="./one-server-list.html" id="one-server-list"></o-page>
   <script>
     export default async ({ load }) => {
-      await load("./one-server-list.html");
-
       return {
         tag: "n-one-list",
         data: {

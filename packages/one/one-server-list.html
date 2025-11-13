@@ -20,22 +20,17 @@
 
       return {
         data: {
-          _localUser: null, // 本地用户
           servers: [], // 服务器列表
         },
-        proto: {
-          async init() {
-            const serverManager = await localUser.serverManager();
+        proto: {},
+        async attached() {
+          const serverManager = await localUser.serverManager();
 
-            if (!this.ele.isConnected) {
-              return;
-            }
+          if (!this.ele.isConnected) {
+            return;
+          }
 
-            this.servers = serverManager.data;
-          },
-        },
-        attached() {
-          this.init();
+          this.servers = serverManager.data;
         },
         detached() {
           this.servers = []; // 组件销毁时，清空服务器列表

@@ -1,0 +1,60 @@
+<template component>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      padding: 4px 12px;
+    }
+
+    .container {
+      display: flex;
+      align-items: center;
+    }
+
+    n-user-avatar {
+      display: block;
+      width: 24px;
+      height: 24px;
+    }
+
+    .user-name {
+      font-size: 14px;
+      margin-left: 8px;
+    }
+  </style>
+  <div class="container">
+    <n-user-avatar :userid="userId"></n-user-avatar>
+    <div class="user-name">{{userName}}</div>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      return {
+        tag: "n-one-device-item",
+        data: {
+          userId: null,
+          userName: "",
+        },
+        watch: {
+          userId() {
+            this.initUser();
+          },
+        },
+        proto: {
+          async initUser() {
+            if (!this.userId) {
+              return;
+            }
+
+            const remoteUser = await localUser.connectUser(this.userId);
+
+            const info = await remoteUser.info();
+            this.userName = info.name;
+          },
+        },
+      };
+    };
+  </script>
+</template>
