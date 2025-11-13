@@ -134,14 +134,18 @@
         },
         proto: {
           async init() {
+            if (this._cancels) {
+              this._cancels.forEach((cancel) => cancel());
+              this._cancels = null;
+            }
+
             if (!this.url) {
               // TODO: 清空
               return;
             }
 
-            const serverClient = (this._server = await localUser.connectServer(
-              this.url
-            ));
+            const serverClient = (this._serverClient =
+              await localUser.connectServer(this.url));
 
             const updateInfo = () => {
               const { state, version, delay, delays } = serverClient;
@@ -152,12 +156,19 @@
               this.delays = delays;
             };
 
-            serverClient.bind("server-info", updateInfo);
-            serverClient.bind("check-delay", updateInfo);
-            serverClient.bind("change-state", updateInfo);
+            this._cancels = [
+              serverClient.bind("server-info", updateInfo),
+              serverClient.bind("check-delay", updateInfo),
+              serverClient.bind("change-state", updateInfo),
+            ];
           },
         },
-        attached() {},
+        detached() {
+          if (this._cancels) {
+            this._cancels.forEach((cancel) => cancel());
+            this._cancels = null;
+          }
+        },
       };
     };
   </script>
