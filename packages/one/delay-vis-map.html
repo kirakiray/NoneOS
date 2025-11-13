@@ -37,7 +37,31 @@
             this.drawChart();
           },
         },
-        attached() {},
+        attached() {
+          // 初始化ResizeObserver来监听容器尺寸变化
+          this.debounceTimer = null;
+          this.resizeObserver = new ResizeObserver(() => {
+            // 使用防抖避免频繁重绘
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+              this.drawChart();
+            }, 100); // 100ms防抖延迟
+          });
+          this.resizeObserver.observe(this.shadow.$("#delayVisMap").ele.parentElement);
+          
+          // 初始绘制
+          this.drawChart();
+        },
+        detached() {
+          // 组件销毁时断开ResizeObserver
+          if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+          }
+          // 清除防抖定时器
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+          }
+        },
         proto: {
           drawChart() {
             const svg = this.shadow.$("#delayVisMap").ele;
@@ -46,7 +70,7 @@
             svg.innerHTML = "";
 
             // 设置SVG大小
-            const displayWidth = svg.clientWidth || 400;
+            const displayWidth = svg.parentElement.clientWidth || svg.clientWidth || 400;
             const displayHeight = svg.clientHeight || 160;
 
             svg.setAttribute("width", displayWidth);

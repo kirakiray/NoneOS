@@ -130,12 +130,12 @@ export class HandServerClient extends EventTarget {
       // 超过8秒没有响应，认为延迟很大
       this._delayTimeout = setTimeout(() => {
         if (this._pingTime) {
-          this.delay = 8000;
+          this.delay = "timeout";
           this.dispatchEvent(
             new CustomEvent("check-delay", {
               detail: {
                 time: this._pingTime,
-                delay: this.delay,
+                delay: 8000,
               },
             })
           );
