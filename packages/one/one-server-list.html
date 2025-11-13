@@ -2,144 +2,42 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="./delay-vis-map.html"></l-m>
+  <l-m src="./one-server-item.html"></l-m>
   <style>
     :host {
       display: block;
     }
-
-    p-list-item {
-      display: block;
-    }
-
-    .point {
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      margin-right: 8px;
-      background-color: var(--md-sys-color-normal);
-      box-shadow: 0 0 3px 1px var(--md-sys-color-normal);
-    }
-
-    .point[point-state="authed"] {
-      background-color: var(--md-sys-color-success);
-      box-shadow: 0 0 3px 1px var(--md-sys-color-success);
-    }
-
-    .point[point-state="closed"] {
-      background-color: var(--md-sys-color-error);
-      box-shadow: 0 0 3px 1px var(--md-sys-color-error);
-    }
-
-    /* 美化列表项子项的前置描述文字 */
-    localized-content {
-      display: inline-block;
-      min-width: 100px;
-      font-weight: 500;
-      color: var(--md-sys-color-on-surface-variant);
-      margin-right: 8px;
-    }
-
-    /* 响应式设计，在小屏幕上减小宽度 */
-    @media (max-width: 768px) {
-      localized-content {
-        min-width: 80px;
-      }
-    }
-
-    /* 数值信息样式 */
-    .value-text {
-      font-weight: 600;
-    }
   </style>
   <p-list>
     <o-fill :value="servers">
-      <p-list-item button="suffix" collapse-childs="close">
-        <div class="point" attr:point-state="$data.state" slot="prefix"></div>
-        {{$data.name}}
-        <i toggle-collapse triangle slot="suffix"></i>
-        <p-list slot="childs" style="--ladder-left: 12px">
-          <p-list-item>
-            <div>
-              <localized-content>
-                <span lang="cn">服务器版本:</span>
-                <span lang="en">Server Version:</span>
-                <span lang="ja">サーバーバージョン:</span>
-              </localized-content>
-              <span class="value-text">{{$data.version}}</span>
-            </div>
-          </p-list-item>
-          <p-list-item>
-            <div>
-              <localized-content>
-                <span lang="cn">状态:</span>
-                <span lang="en">Status:</span>
-                <span lang="ja">状態:</span>
-              </localized-content>
-              <span class="value-text">{{$data.state}}</span>
-            </div>
-          </p-list-item>
-          <p-list-item>
-            <div>
-              <localized-content>
-                <span lang="cn">服务器地址:</span>
-                <span lang="en">Server Address:</span>
-                <span lang="ja">サーバーアドレス:</span>
-              </localized-content>
-              <span class="value-text">{{$data.url}}</span>
-            </div>
-          </p-list-item>
-          <p-list-item>
-            <div>
-              <localized-content>
-                <span lang="cn">服务器状态:</span>
-                <span lang="en">Server Status:</span>
-                <span lang="ja">サーバー状態:</span>
-              </localized-content>
-              <span class="value-text">{{$data.state}}</span>
-            </div>
-          </p-list-item>
-          <p-list-item>
-            <div>
-              <localized-content>
-                <span lang="cn">延迟:</span>
-                <span lang="en">Delay:</span>
-                <span lang="ja">遅延:</span>
-              </localized-content>
-              <span class="value-text">{{$data.delay}} ms</span>
-            </div>
-          </p-list-item>
-          <p-list-item>
-            <n-delay-vis-map :delays="$data.delays"></n-delay-vis-map>
-          </p-list-item>
-        </p-list>
-      </p-list-item>
+      <one-server-item :url="$data.url"></one-server-item>
     </o-fill>
   </p-list>
   <script>
     export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
       return {
-        tag: "n-one-server-list",
         data: {
           _localUser: null, // 本地用户
           servers: [], // 服务器列表
         },
         proto: {
-          async init(localUser) {
-            this._localUser = localUser;
-
+          async init() {
             const serverManager = await localUser.serverManager();
-            const servers = await serverManager.xdata();
 
             if (!this.ele.isConnected) {
               return;
             }
 
-            this.servers = servers;
+            this.servers = serverManager.data;
           },
         },
+        attached() {
+          this.init();
+        },
         detached() {
-          this._localUser = null;
           this.servers = []; // 组件销毁时，清空服务器列表
         },
       };

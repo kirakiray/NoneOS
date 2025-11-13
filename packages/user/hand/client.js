@@ -15,6 +15,7 @@ export class HandServerClient extends EventTarget {
     this.serverName = null; // 服务器名称
     this.serverVersion = null; // 服务器版本
     this.serverCid = null; // 服务器CID
+    this.delays = []; // 延迟曲线
   }
 
   async init() {
@@ -130,7 +131,11 @@ export class HandServerClient extends EventTarget {
       // 超过8秒没有响应，认为延迟很大
       this._delayTimeout = setTimeout(() => {
         if (this._pingTime) {
-          this.delay = "timeout";
+          this.delay = 8000;
+          this.delays.push({
+            time: this._pingTime,
+            delay: 8000,
+          });
           this.dispatchEvent(
             new CustomEvent("check-delay", {
               detail: {
@@ -189,6 +194,10 @@ export class HandServerClient extends EventTarget {
       if (responseData.type === "pong") {
         if (this._pingTime) {
           this.delay = Date.now() - this._pingTime;
+          this.delays.push({
+            time: this._pingTime,
+            delay: this.delay,
+          });
           this.dispatchEvent(
             new CustomEvent("check-delay", {
               detail: {
@@ -264,6 +273,10 @@ export class HandServerClient extends EventTarget {
   _onClose(event) {
     clearTimeout(this.pingInterval);
     clearTimeout(this._delayTimeout);
+    this.delays.push({
+      time: Date.now(),
+      delay: 8000,
+    });
     this._changeState("closed");
     console.log("WebSocket连接已关闭:", event);
   }

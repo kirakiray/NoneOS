@@ -8,24 +8,14 @@
   <script>
     export default async ({ load }) => {
       await load("./one-server-list.html");
-      const { createUser } = await load("/packages/user/main.js");
 
       return {
         tag: "n-one-list",
         data: {
-          _localUser: null,
           servers: [], // 服务器列表
         },
-        proto: {
-          // 初始化用户
-          async initUser() {
-            this._localUser = await createUser();
-            this.shadow.$("#one-server-list").init(this._localUser);
-          },
-        },
-        async attached() {
-          this.initUser();
-        },
+        proto: {},
+        async attached() {},
       };
     };
   </script>
