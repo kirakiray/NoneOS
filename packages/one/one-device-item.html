@@ -25,9 +25,9 @@
     }
   </style>
   <div class="container">
-    <n-user-state :userid="userId" style="margin-right: 8px"></n-user-state>
     <n-user-avatar :userid="userId"></n-user-avatar>
     <div class="user-name">{{userName}}</div>
+    <n-user-state :userid="userId" style="margin-left: 8px"></n-user-state>
   </div>
   <script>
     export default async ({ load }) => {
@@ -55,6 +55,10 @@
 
             const info = await remoteUser.info();
             this.userName = info.name;
+
+            setTimeout(() => {
+              remoteUser.ping();
+            }, 300);
           },
         },
       };

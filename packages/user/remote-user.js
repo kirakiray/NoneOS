@@ -45,7 +45,35 @@ export class RemoteUser extends BaseUser {
     return this.#mode;
   }
 
-  async ping() {}
+  ping() {
+    if (this.mode === 0) {
+      throw new Error("未连接到对方");
+    }
+
+    if (this.__pingTime) {
+      return;
+    }
+
+    this.__pingTime = Date.now();
+    this.__pingTimeout = setTimeout(() => {
+      this.__pingTime = 0;
+    }, 8000);
+
+    this.post({
+      type: "ping",
+      __internal_mark: 1,
+    });
+  }
+
+  pushDelays(delayData) {
+    this.#delays.push(delayData);
+    // 超出18条数据，删除最早的一条
+    if (this.#delays.length > 18) {
+      this.#delays.shift();
+    }
+
+    this.dispatchEvent(new CustomEvent("check-delay", { detail: delayData }));
+  }
 
   // 检查连接状态
   async repairState() {

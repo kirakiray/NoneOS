@@ -28,10 +28,13 @@ export default async function getCard({
     // 获取目标的远端用户并发送数据
     const remoteUser = await localUser.connectUser(fromUserId);
 
-    remoteUser.post({
-      type: "update-user-card",
-      cards,
-      __internal_mark: 1,
-    });
+    remoteUser.post(
+      {
+        type: "update-user-card",
+        cards,
+        __internal_mark: 1,
+      },
+      fromUserSessionId
+    );
   }
 }

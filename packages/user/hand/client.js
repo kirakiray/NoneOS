@@ -136,14 +136,6 @@ export class HandServerClient extends EventTarget {
             time: this._pingTime,
             delay: 8000,
           });
-          this.dispatchEvent(
-            new CustomEvent("check-delay", {
-              detail: {
-                time: this._pingTime,
-                delay: 8000,
-              },
-            })
-          );
 
           this._pingTime = null;
         }
@@ -198,14 +190,6 @@ export class HandServerClient extends EventTarget {
             time: this._pingTime,
             delay: this.delay,
           });
-          this.dispatchEvent(
-            new CustomEvent("check-delay", {
-              detail: {
-                time: this._pingTime,
-                delay: this.delay,
-              },
-            })
-          );
 
           this._pingTime = null;
           clearTimeout(this._delayTimeout); // 清除之前的定时器
@@ -275,6 +259,12 @@ export class HandServerClient extends EventTarget {
     if (this.delays.length > 18) {
       this.delays.shift();
     }
+
+    this.dispatchEvent(
+      new CustomEvent("check-delay", {
+        detail: delayData,
+      })
+    );
   }
 
   // 处理WebSocket关闭事件
