@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="/packages/one/delay-vis-map.html"></l-m>
 
   <style>
     :host {
@@ -202,29 +203,6 @@
       <p-list-item>
         <div class="flex-align-center">
           <localized-content class="label">
-            <span lang="cn">延迟</span>
-            <span lang="en">Latency</span>
-            <span lang="jp">遅延</span>
-          </localized-content>
-          {{delay}} ms
-          <p-button
-            size="mini"
-            on:click="checkDelay"
-            variant="text"
-            style="margin-left: 8px"
-          >
-            <localized-content>
-              <span lang="cn">检查延迟</span>
-              <span lang="en">Check Latency</span>
-              <span lang="jp">遅延を確認</span>
-            </localized-content>
-          </p-button>
-        </div>
-      </p-list-item>
-
-      <p-list-item>
-        <div class="flex-align-center">
-          <localized-content class="label">
             <span lang="cn">状态更新时间</span>
             <span lang="en">State Update Time</span>
             <span lang="jp">状態更新時間</span>
@@ -269,6 +247,33 @@
           <n-copy-span>{{serverCid}}</n-copy-span>
         </div>
       </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">延迟</span>
+            <span lang="en">Latency</span>
+            <span lang="jp">遅延</span>
+          </localized-content>
+          {{delay}} ms
+          <p-button
+            size="mini"
+            on:click="checkDelay"
+            variant="text"
+            style="margin-left: 8px"
+          >
+            <localized-content>
+              <span lang="cn">检查延迟</span>
+              <span lang="en">Check Latency</span>
+              <span lang="jp">遅延を確認</span>
+            </localized-content>
+          </p-button>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <n-delay-vis-map :delays="delays"></n-delay-vis-map>
+      </p-list-item>
     </p-list>
   </p-list-item>
   <script>
@@ -288,6 +293,7 @@
         },
         data: {
           state: "0",
+          delays: [],
           _offs: [],
           _serverClient: null,
           clickedShare: false,
@@ -328,6 +334,7 @@
             this.serverVersion = this._serverClient.serverVersion;
             this.delay = this._serverClient.delay;
             this.serverCid = this._serverClient.serverCid;
+            this.delays = this._serverClient.delays;
             this.stateUpdateTime = new Date(
               this._serverClient.stateUpdateTime
             ).toLocaleString();
