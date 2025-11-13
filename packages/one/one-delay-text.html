@@ -6,7 +6,9 @@
   </style>
   <span>{{delayText}}</span>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
       return {
         tag: "n-one-delay-text",
         data: {
@@ -22,7 +24,7 @@
           changeColor(color) {
             this.shadow.$("span").style.color = `var(--md-sys-color-${color})`;
           },
-          refreshText() {
+          async refreshText() {
             if (this.delays.length === 0) {
               this.delayText = "-";
               return;
@@ -52,31 +54,63 @@
             // 根据最后一个项目的延迟设置基础状态
             let baseStatus, color;
             if (lastItem.delay < 150) {
-              baseStatus = "网络畅通";
+              baseStatus = await getLocalized({
+                cn: "网络畅通",
+                en: "Network is clear",
+                ja: "ネットワークは明確です",
+              });
               color = "success";
             } else if (lastItem.delay < 400) {
-              baseStatus = "网络尚可";
+              baseStatus = await getLocalized({
+                cn: "网络尚可",
+                en: "Network is acceptable",
+                ja: "ネットワークは許容範囲内です",
+              });
               color = "primary";
             } else if (lastItem.delay < 1000) {
-              baseStatus = "网络略卡";
+              baseStatus = await getLocalized({
+                cn: "网络略卡",
+                en: "Network slightly lagging",
+                ja: "ネットワークがわずかに遅延しています",
+              });
               color = "normal";
             } else if (lastItem.delay < 8000) {
-              baseStatus = "网络拥堵";
+              baseStatus = await getLocalized({
+                cn: "网络拥堵",
+                en: "Network congested",
+                ja: "ネットワークが混雑しています",
+              });
               color = "error";
             } else {
-              baseStatus = "网络断开";
+              baseStatus = await getLocalized({
+                cn: "网络断开",
+                en: "Network disconnected",
+                ja: "ネットワークが切断されました",
+              });
               color = "error";
             }
 
             // 如果网络不稳定，在状态后添加不稳定的描述
-            if (isUnstable && delays.length > 1) {
-              if (hasDisconnect) {
-                this.delayText = `${baseStatus} (曾断开)`;
-              } else if (hasHighDelay) {
-                this.delayText = `${baseStatus} (不稳定)`;
-              } else {
-                this.delayText = `${baseStatus} (偶发波动)`;
-              }
+            // 但如果当前已经是"网络断开"状态，则不需要额外标注
+            if (isUnstable && delays.length > 1 && lastItem.delay < 8000) {
+              const stabilityDesc = await getLocalized({
+                cn: hasDisconnect
+                  ? "(曾断开)"
+                  : hasHighDelay
+                  ? "(不稳定)"
+                  : "(偶发波动)",
+                en: hasDisconnect
+                  ? "(was disconnected)"
+                  : hasHighDelay
+                  ? "(unstable)"
+                  : "(occasional fluctuations)",
+                ja: hasDisconnect
+                  ? "(切断されたことがありました)"
+                  : hasHighDelay
+                  ? "(不安定)"
+                  : "(偶発的な変動)",
+              });
+              this.delayText = `${baseStatus} ${stabilityDesc}`;
             } else {
               this.delayText = baseStatus;
             }

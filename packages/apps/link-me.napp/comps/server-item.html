@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/one/delay-vis-map.html"></l-m>
+  <l-m src="/packages/one/one-delay-text.html"></l-m>
 
   <style>
     :host {
@@ -268,6 +269,17 @@
               <span lang="jp">遅延を確認</span>
             </localized-content>
           </p-button>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">延迟状态</span>
+            <span lang="en">Delay Status</span>
+            <span lang="jp">遅延状態</span>
+          </localized-content>
+          <n-one-delay-text :delays="delays"></n-one-delay-text>
         </div>
       </p-list-item>
 
