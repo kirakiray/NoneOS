@@ -28,36 +28,60 @@
               return;
             }
 
-            // 判断最后项目的delay，小于200ms，显示"网络不错"
+            // 获取最后一个项目和所有延迟值
             const lastItem = this.delays[this.delays.length - 1];
+            const delays = this.delays.map((item) => item.delay);
+
+            // 计算平均延迟
+            const avgDelay =
+              delays.reduce((sum, delay) => sum + delay, 0) / delays.length;
+
+            // 检查是否有断开或高延迟的情况
+            const hasDisconnect = delays.some((delay) => delay >= 8000);
+            const hasHighDelay = delays.some(
+              (delay) => delay >= 1000 && delay < 8000
+            );
+
+            // 检查网络稳定性（如果最大延迟与最小延迟差异很大，则认为不稳定）
+            const minDelay = Math.min(...delays);
+            const maxDelay = Math.max(...delays);
+            const isUnstable =
+              maxDelay - minDelay > 1000 ||
+              delays.some((delay) => delay >= 8000);
+
+            // 根据最后一个项目的延迟设置基础状态
+            let baseStatus, color;
             if (lastItem.delay < 150) {
-              this.delayText = "网络畅通";
-              this.changeColor("success");
-              return;
+              baseStatus = "网络畅通";
+              color = "success";
+            } else if (lastItem.delay < 400) {
+              baseStatus = "网络尚可";
+              color = "primary";
+            } else if (lastItem.delay < 1000) {
+              baseStatus = "网络略卡";
+              color = "normal";
+            } else if (lastItem.delay < 8000) {
+              baseStatus = "网络拥堵";
+              color = "error";
+            } else {
+              baseStatus = "网络断开";
+              color = "error";
             }
 
-            // 判断最后项目的delay，小于500ms，显示"网络一般"
-            if (lastItem.delay < 400) {
-              this.delayText = "网络尚可";
-              this.changeColor("primary");
-              return;
+            // 如果网络不稳定，在状态后添加不稳定的描述
+            if (isUnstable && delays.length > 1) {
+              if (hasDisconnect) {
+                this.delayText = `${baseStatus} (曾断开)`;
+              } else if (hasHighDelay) {
+                this.delayText = `${baseStatus} (不稳定)`;
+              } else {
+                this.delayText = `${baseStatus} (偶发波动)`;
+              }
+            } else {
+              this.delayText = baseStatus;
             }
 
-            // 判断最后项目的delay，小于1000ms，显示"网络一般"
-            if (lastItem.delay < 1000) {
-              this.delayText = "网络略卡";
-              this.changeColor("normal");
-              return;
-            }
-
-            if (lastItem.delay < 8000) {
-              this.delayText = "网络拥堵";
-              this.changeColor("error");
-              return;
-            }
-
-            this.delayText = "网络断开";
-            this.changeColor("error");
+            this.changeColor(color);
           },
         },
       };
