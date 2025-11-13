@@ -160,10 +160,10 @@
               await localUser.connectServer(this.url));
 
             const updateInfo = () => {
-              const { state, version, delay, delays } = serverClient;
+              const { state, delay, delays } = serverClient;
               this.name = serverClient.serverName || "unknown";
               this.state = state;
-              this.version = version;
+              this.version = serverClient.serverVersion || "unknown";
               this.delay = delay;
               this.delays = delays;
             };
