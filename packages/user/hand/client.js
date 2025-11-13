@@ -132,7 +132,7 @@ export class HandServerClient extends EventTarget {
       this._delayTimeout = setTimeout(() => {
         if (this._pingTime) {
           this.delay = 8000;
-          this.delays.push({
+          this.pushDelays({
             time: this._pingTime,
             delay: 8000,
           });
@@ -194,7 +194,7 @@ export class HandServerClient extends EventTarget {
       if (responseData.type === "pong") {
         if (this._pingTime) {
           this.delay = Date.now() - this._pingTime;
-          this.delays.push({
+          this.pushDelays({
             time: this._pingTime,
             delay: this.delay,
           });
@@ -269,11 +269,19 @@ export class HandServerClient extends EventTarget {
     }
   }
 
+  pushDelays(delayData) {
+    this.delays.push(delayData);
+    // 超出18条数据，删除最早的一条
+    if (this.delays.length > 18) {
+      this.delays.shift();
+    }
+  }
+
   // 处理WebSocket关闭事件
   _onClose(event) {
     clearTimeout(this.pingInterval);
     clearTimeout(this._delayTimeout);
-    this.delays.push({
+    this.pushDelays({
       time: Date.now(),
       delay: 8000,
     });

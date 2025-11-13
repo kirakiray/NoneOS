@@ -1,5 +1,6 @@
 <template component>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="./one-delay-text.html"></l-m>
   <style>
     :host {
       display: block;
@@ -53,7 +54,18 @@
 
   <p-list-item button="suffix" collapse-childs="close">
     <div class="point" attr:point-state="state" slot="prefix"></div>
-    {{name}}
+    <div style="display: flex">
+      {{name}}
+      <n-one-delay-text
+        :delays="delays"
+        style="margin-left: auto; margin-right: 16px; font-size: 12px"
+      ></n-one-delay-text>
+    </div>
+    <!-- {{name}}
+    <n-one-delay-text
+      :delays="delays"
+      style="margin-right: 16px; font-size: 12px"
+    ></n-one-delay-text> -->
     <i toggle-collapse triangle slot="suffix"></i>
     <p-list slot="childs" style="--ladder-left: 12px">
       <p-list-item>

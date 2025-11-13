@@ -47,8 +47,10 @@
               this.drawChart();
             }, 100); // 100ms防抖延迟
           });
-          this.resizeObserver.observe(this.shadow.$("#delayVisMap").ele.parentElement);
-          
+          this.resizeObserver.observe(
+            this.shadow.$("#delayVisMap").ele.parentElement
+          );
+
           // 初始绘制
           this.drawChart();
         },
@@ -70,7 +72,8 @@
             svg.innerHTML = "";
 
             // 设置SVG大小
-            const displayWidth = svg.parentElement.clientWidth || svg.clientWidth || 400;
+            const displayWidth =
+              svg.parentElement.clientWidth || svg.clientWidth || 400;
             const displayHeight = svg.clientHeight || 160;
 
             svg.setAttribute("width", displayWidth);
@@ -213,7 +216,7 @@
               "http://www.w3.org/2000/svg",
               "g"
             );
-            
+
             points.forEach((point, index) => {
               if (index === 0) {
                 pathData += `M ${point.x} ${point.y} `;
@@ -222,20 +225,22 @@
                 const prevDelay = delays[index - 1].delay;
                 const currentDelay = delays[index].delay;
                 const maxDelay = Math.max(prevDelay, currentDelay);
-                
+
                 let lineColor = "#4285f4"; // 默认蓝色
                 if (maxDelay > 2000) {
                   lineColor = "#f44336"; // 红色 (>2000ms)
                 } else if (maxDelay > 500) {
                   lineColor = "#ff9800"; // 橘色 (>500ms)
                 }
-                
+
                 // 为每条线段创建独立的path元素
                 const linePath = document.createElementNS(
                   "http://www.w3.org/2000/svg",
                   "path"
                 );
-                const lineData = `M ${points[index-1].x} ${points[index-1].y} L ${point.x} ${point.y}`;
+                const lineData = `M ${points[index - 1].x} ${
+                  points[index - 1].y
+                } L ${point.x} ${point.y}`;
                 linePath.setAttribute("d", lineData);
                 linePath.setAttribute("fill", "none");
                 linePath.setAttribute("stroke", lineColor);
@@ -255,7 +260,7 @@
               circle.setAttribute("cx", point.x);
               circle.setAttribute("cy", point.y);
               circle.setAttribute("r", "3");
-              
+
               // 根据延迟值设置点的颜色
               const delay = delays[index].delay;
               let pointColor = "#4285f4"; // 默认蓝色
@@ -264,7 +269,7 @@
               } else if (delay > 500) {
                 pointColor = "#ff9800"; // 橘色 (>500ms)
               }
-              
+
               circle.setAttribute("fill", pointColor);
               svg.appendChild(circle);
             });

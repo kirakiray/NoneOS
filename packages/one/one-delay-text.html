@@ -1,0 +1,66 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+    }
+  </style>
+  <span>{{delayText}}</span>
+  <script>
+    export default async () => {
+      return {
+        tag: "n-one-delay-text",
+        data: {
+          delays: [],
+          delayText: "-",
+        },
+        watch: {
+          delays() {
+            this.refreshText();
+          },
+        },
+        proto: {
+          changeColor(color) {
+            this.shadow.$("span").style.color = `var(--md-sys-color-${color})`;
+          },
+          refreshText() {
+            if (this.delays.length === 0) {
+              this.delayText = "-";
+              return;
+            }
+
+            // 判断最后项目的delay，小于200ms，显示"网络不错"
+            const lastItem = this.delays[this.delays.length - 1];
+            if (lastItem.delay < 150) {
+              this.delayText = "网络畅通";
+              this.changeColor("success");
+              return;
+            }
+
+            // 判断最后项目的delay，小于500ms，显示"网络一般"
+            if (lastItem.delay < 400) {
+              this.delayText = "网络尚可";
+              this.changeColor("primary");
+              return;
+            }
+
+            // 判断最后项目的delay，小于1000ms，显示"网络一般"
+            if (lastItem.delay < 1000) {
+              this.delayText = "网络略卡";
+              this.changeColor("normal");
+              return;
+            }
+
+            if (lastItem.delay < 8000) {
+              this.delayText = "网络拥堵";
+              this.changeColor("error");
+              return;
+            }
+
+            this.delayText = "网络断开";
+            this.changeColor("error");
+          },
+        },
+      };
+    };
+  </script>
+</template>
