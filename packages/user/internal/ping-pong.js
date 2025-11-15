@@ -34,5 +34,14 @@ export const pong = async ({
     });
 
     remoteUser.__pingTime = null;
+
+    if (remoteUser.__pingLoop) {
+      remoteUser.__pingLoopTimeout = setTimeout(
+        () => {
+          remoteUser.ping();
+        },
+        remoteUser.__pingLoop < 5000 ? 5000 : remoteUser.__pingLoop
+      );
+    }
   }
 };

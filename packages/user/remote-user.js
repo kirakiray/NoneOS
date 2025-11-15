@@ -80,10 +80,23 @@ export class RemoteUser extends BaseUser {
   }
 
   // 检查连接状态
-  async repairState() {
+  async refreshConnectionMode() {
     const changeMode = (mode) => {
+      this._oldMode = this.#mode;
       this.#mode = mode;
       this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
+
+      if (mode !== 0) {
+        this.ping();
+        this.__pingLoop = 10000;
+      } else {
+        this.__pingLoop = null;
+        clearTimeout(this.__pingLoopTimeout);
+        this.pushDelays({
+          time: Date.now(),
+          delay: 8000,
+        });
+      }
     };
 
     // 先判断是否有rtc通道可用
@@ -154,7 +167,7 @@ export class RemoteUser extends BaseUser {
     // 更新可用服务器列表
     this.#servers = servers;
 
-    this.repairState();
+    this.refreshConnectionMode();
   }
 
   // 初始化RTC连接

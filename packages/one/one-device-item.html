@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="./one-delay-text.html"></l-m>
   <style>
     :host {
       display: block;
@@ -28,7 +29,10 @@
     <n-user-avatar :userid="userId"></n-user-avatar>
     <div class="user-name">{{userName}}</div>
     <n-user-state :userid="userId" style="margin-left: 8px"></n-user-state>
-    {{delays}}
+    <n-one-delay-text
+      :delays="delays"
+      style="font-size: 12px"
+    ></n-one-delay-text>
   </div>
   <script>
     export default async ({ load }) => {
@@ -70,8 +74,8 @@
             this.userName = info.name;
 
             setTimeout(() => {
-              remoteUser.ping();
-            }, 300);
+              remoteUser.initRTC();
+            }, 11000);
           },
         },
         detached() {
