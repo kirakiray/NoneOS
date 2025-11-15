@@ -25,7 +25,7 @@
             this.shadow.$("span").style.color = `var(--md-sys-color-${color})`;
           },
           async refreshText() {
-            if (this.delays.length === 0) {
+            if (!this.delays || this.delays.length === 0) {
               this.delayText = "-";
               return;
             }

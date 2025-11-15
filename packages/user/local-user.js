@@ -148,7 +148,9 @@ export class LocalUser extends BaseUser {
         if (internal[data.type]) {
           internal[data.type]({
             fromUserId: remoteUser.userId,
-            fromUserSessionId: rtcConnection.__oppositeUserSessionId,
+            fromUserSessionId: !rtcConnection
+              ? event.detail.fromUserSessionId
+              : rtcConnection.__oppositeUserSessionId,
             data,
             channel,
             localUser: this,

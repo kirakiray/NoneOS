@@ -36,6 +36,7 @@ export const pong = async ({
     remoteUser.__pingTime = null;
 
     if (remoteUser.__pingLoop) {
+      clearTimeout(remoteUser.__pingLoopTimeout);
       remoteUser.__pingLoopTimeout = setTimeout(
         () => {
           remoteUser.ping();

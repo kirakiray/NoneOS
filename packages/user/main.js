@@ -21,7 +21,7 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
       toUserSessionId,
     } = detail;
 
-    Object.values(localUsers).forEach((user) => {
+    Object.values(localUsers).forEach(async (user) => {
       if (user.sessionId === toUserSessionId) {
         // 查找到目标session标签页的用户实例，并将转发的数据进行出触发
         user.dispatchEvent(
@@ -32,6 +32,7 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
               proxySessionId,
               userDirName,
               result,
+              remoteUser: await user.connectUser(fromUserId),
             },
           })
         );
