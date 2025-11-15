@@ -19,6 +19,10 @@ export class RemoteUser extends BaseUser {
     return this.#delays[this.#delays.length - 1] || 0;
   }
 
+  get delays() {
+    return [...this.#delays];
+  }
+
   // 是否可通过服务端转发到对方
   get serverState() {
     return this.#servers.length ? 1 : 0;

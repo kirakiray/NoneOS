@@ -28,6 +28,7 @@
     <n-user-avatar :userid="userId"></n-user-avatar>
     <div class="user-name">{{userName}}</div>
     <n-user-state :userid="userId" style="margin-left: 8px"></n-user-state>
+    {{delays}}
   </div>
   <script>
     export default async ({ load }) => {
@@ -39,6 +40,7 @@
         data: {
           userId: null,
           userName: "",
+          delays: [],
         },
         watch: {
           userId() {
@@ -47,11 +49,22 @@
         },
         proto: {
           async initUser() {
+            if (this._cancels) {
+              this._cancels.forEach((cancel) => cancel());
+              this._cancels = null;
+            }
+
             if (!this.userId) {
               return;
             }
 
             const remoteUser = await localUser.connectUser(this.userId);
+
+            this._cancels = [
+              remoteUser.bind("check-delay", (e) => {
+                this.delays = remoteUser.delays;
+              }),
+            ];
 
             const info = await remoteUser.info();
             this.userName = info.name;
@@ -60,6 +73,12 @@
               remoteUser.ping();
             }, 300);
           },
+        },
+        detached() {
+          if (this._cancels) {
+            this._cancels.forEach((cancel) => cancel());
+            this._cancels = null;
+          }
         },
       };
     };
