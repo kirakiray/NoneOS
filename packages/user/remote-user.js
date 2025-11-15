@@ -13,6 +13,10 @@ export class RemoteUser extends BaseUser {
   constructor(publicKey, self) {
     super(publicKey);
     this.#self = self;
+
+    this.__pingLoop = setInterval(() => {
+      this.ping();
+    }, 10000);
   }
 
   get delay() {
@@ -87,18 +91,18 @@ export class RemoteUser extends BaseUser {
       this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
 
       if (mode === 0) {
-        this.__pingLoop = null;
-        clearTimeout(this.__pingLoopTimeout);
-        this.__pingLoopTimeout = setTimeout(() => {
-          this.ping();
-        }, 8000);
         this.pushDelays({
           time: Date.now(),
           delay: 8000,
         });
-      } else {
+      }
+      // else {
+      //   this.ping();
+      // }
+
+      if (this._oldMode === 0 && this.#mode !== 0) {
+        // 如果从不可用切换到服务端转发模式，则发送一次ping
         this.ping();
-        this.__pingLoop = 10000;
       }
     };
 
