@@ -69,7 +69,6 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
 
       // 重新检查
       await remoteUser.checkServer();
-      // remoteUser.refreshMode();
     }
   } else if (type === "card-change") {
     // 其他标签接受到了用户卡片

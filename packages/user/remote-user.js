@@ -81,6 +81,11 @@ export class RemoteUser extends BaseUser {
 
   // 检查连接状态
   async repairState() {
+    const changeMode = (mode) => {
+      this.#mode = mode;
+      this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
+    };
+
     // 先判断是否有rtc通道可用
     if (this._rtcConnections.length) {
       const hasConnected = this._rtcConnections.some((conn) => {
@@ -95,23 +100,18 @@ export class RemoteUser extends BaseUser {
 
       if (hasConnected) {
         // 如果有已连接的rtc通道，则更新连接状态
-        this._changeMode(2);
+        changeMode(2);
         return;
       }
     }
 
     if (this.#servers.length && this.#mode === 0) {
       // 如果之前是不可用的，则更新连接状态
-      this._changeMode(1);
+      changeMode(1);
       return;
     }
 
-    this._changeMode(0);
-  }
-
-  _changeMode(mode) {
-    this.#mode = mode;
-    this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
+    changeMode(0);
   }
 
   async checkServer() {
