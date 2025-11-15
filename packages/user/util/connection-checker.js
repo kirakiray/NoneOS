@@ -1,20 +1,18 @@
 const reconnectTimerSym = Symbol("reconnectTimer");
 
 let hidden = false;
-let hasHidden = false;
 
 document.addEventListener("visibilitychange", function () {
   if (document.hidden) {
     hidden = true;
-    hasHidden = true;
   } else {
     hidden = false;
   }
 });
 
-window.addEventListener("blur", () => {
-  hasHidden = true;
-});
+// window.addEventListener("blur", () => {
+//   hasHidden = true;
+// });
 
 // 进行重连
 export const checkAllConnection = (localUser, options) => {
@@ -32,7 +30,7 @@ export const checkAllConnection = (localUser, options) => {
 
     // 检查所有设备
     // 最小化过，且重新打开了，需要重新检查
-    if (hidden === false && !hasHidden) {
+    if (hidden === false) {
       await Promise.all(
         Object.keys(localUser.remotes).map(async (deviceId) => {
           try {
