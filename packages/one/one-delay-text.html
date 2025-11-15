@@ -56,36 +56,36 @@
             if (lastItem.delay < 120) {
               baseStatus = await getLocalized({
                 cn: "网络畅通",
-                en: "Network is clear",
-                ja: "ネットワークは明確です",
+                en: "Network is excellent",
+                ja: "ネットワークは良好です",
               });
               color = "success";
             } else if (lastItem.delay < 400) {
               baseStatus = await getLocalized({
                 cn: "网络尚可",
-                en: "Network is acceptable",
-                ja: "ネットワークは許容範囲内です",
+                en: "Network is good",
+                ja: "ネットワークは良好です",
               });
               color = "primary";
             } else if (lastItem.delay < 1000) {
               baseStatus = await getLocalized({
                 cn: "网络略卡",
-                en: "Network slightly lagging",
-                ja: "ネットワークがわずかに遅延しています",
+                en: "Network is slightly lagging",
+                ja: "ネットワークがやや遅いです",
               });
               color = "normal";
             } else if (lastItem.delay < 8000) {
               baseStatus = await getLocalized({
                 cn: "网络拥堵",
-                en: "Network congested",
-                ja: "ネットワークが混雑しています",
+                en: "Network is slow",
+                ja: "ネットワークが渋滞しています",
               });
               color = "error";
             } else {
               baseStatus = await getLocalized({
                 cn: "网络断开",
                 en: "Network disconnected",
-                ja: "ネットワークが切断されました",
+                ja: "ネットワーク接続が切断されました",
               });
               color = "error";
             }
@@ -100,15 +100,15 @@
                   ? "(不稳定)"
                   : "(偶发波动)",
                 en: hasDisconnect
-                  ? "(was disconnected)"
+                  ? "(connection lost)"
                   : hasHighDelay
                   ? "(unstable)"
-                  : "(occasional fluctuations)",
+                  : "(occasional lag)",
                 ja: hasDisconnect
-                  ? "(切断されたことがありました)"
+                  ? "(一時的に切断)"
                   : hasHighDelay
                   ? "(不安定)"
-                  : "(偶発的な変動)",
+                  : "(一時的な遅延)",
               });
               this.delayText = `${baseStatus} ${stabilityDesc}`;
             } else {
