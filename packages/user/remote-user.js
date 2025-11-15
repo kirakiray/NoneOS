@@ -86,16 +86,19 @@ export class RemoteUser extends BaseUser {
       this.#mode = mode;
       this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
 
-      if (mode !== 0) {
-        this.ping();
-        this.__pingLoop = 10000;
-      } else {
+      if (mode === 0) {
         this.__pingLoop = null;
         clearTimeout(this.__pingLoopTimeout);
+        this.__pingLoopTimeout = setTimeout(() => {
+          this.ping();
+        }, 8000);
         this.pushDelays({
           time: Date.now(),
           delay: 8000,
         });
+      } else {
+        this.ping();
+        this.__pingLoop = 10000;
       }
     };
 
