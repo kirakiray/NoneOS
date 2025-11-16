@@ -15,7 +15,9 @@ export class RemoteUser extends BaseUser {
     this.#self = self;
 
     this.__pingLoop = setInterval(() => {
-      this.ping();
+      if (this.mode !== 0) {
+        this.ping();
+      }
     }, 10000);
   }
 

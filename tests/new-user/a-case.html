@@ -18,29 +18,17 @@
 
       // 创建两个用户
       const user1 = await createUser({ user: "test-user1" });
-      const user2_1 = await createUser({ user: "test-user2" });
-      const user2_2 = await createUser({ user: "test-user2" });
-      const user2_3 = await createUser({ user: "test-user2" });
+      const user2 = await createUser({ user: "test-user2" });
 
       // 连接服务器
       await user1.connectAllServers();
-      await user2_1.connectAllServers();
-      await user2_2.connectAllServers();
-      await user2_3.connectAllServers();
+      await user2.connectAllServers();
 
-      user2_1.register("test1", ({ data }) => {
+      user2.register("test1", ({ data }) => {
         console.log(data);
       });
 
-      user2_2.register("test1", ({ data }) => {
-        console.log(data);
-      });
-
-      user2_3.register("test3", ({ data }) => {
-        throw new Error("不应该触发");
-      });
-
-      const remoteUser2 = await user1.connectUser(user2_1.userId);
+      const remoteUser2 = await user1.connectUser(user2.userId);
 
       remoteUser2.trigger("test1", {
         message: "Hello, World!",
