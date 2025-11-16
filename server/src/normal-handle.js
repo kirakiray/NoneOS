@@ -123,6 +123,25 @@ export const options = {
     const { delay } = message;
     client.delay = delay;
   },
+
+  // 监听用户关注列表
+  async follow_list({ client, clients, users, message }) {
+    if (!message?.users?.split) {
+      debugger;
+      return;
+    }
+
+    const followUsers = message.users.split(",");
+
+    // 最多只能关注32个用户
+    if (followUsers.length > 32) {
+      followUsers.splice(32);
+    }
+
+    client.followUsers = followUsers;
+
+    console.log("关注列表更新:", client, followUsers);
+  },
 };
 
 export default options;

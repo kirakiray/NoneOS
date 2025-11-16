@@ -224,6 +224,9 @@ export class HandServerClient extends EventTarget {
       this._changeState("authed");
       this.startDelayCheckLoop();
       this.checkDelay();
+
+      // 发送关注列表的用户
+      this.sendFollowList();
     } else if (responseData.type === "server_info") {
       this.serverName = responseData.serverName;
       this.serverVersion = responseData.serverVersion;
@@ -251,6 +254,16 @@ export class HandServerClient extends EventTarget {
     if (this.onchange) {
       this.onchange(this);
     }
+  }
+
+  // 向用户发送关注列表
+  async sendFollowList() {
+    const devices = await this.#user.myDevices();
+
+    this._send({
+      type: "follow_list",
+      users: devices.map((device) => device.userId).join(","),
+    });
   }
 
   pushDelays(delayData) {

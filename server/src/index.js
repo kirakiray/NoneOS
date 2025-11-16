@@ -4,7 +4,7 @@
 import { WebSocketServer } from "./ws-server.js";
 import { DeviceClient } from "./device-client.js";
 import adminHandle from "./admin-handle.js";
-import clientHandle from "./client-handle.js";
+import normalHandle from "./normal-handle.js";
 import { createRequire } from "node:module";
 import { unpack } from "../../packages/user/util/pack.js";
 
@@ -90,8 +90,8 @@ export const initServer = async ({
       message = obj;
     }
 
-    if (clientHandle[message.type]) {
-      clientHandle[message.type]({
+    if (normalHandle[message.type]) {
+      normalHandle[message.type]({
         client,
         clients,
         users,
