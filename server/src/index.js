@@ -90,13 +90,22 @@ export const initServer = async ({
       message = obj;
     }
 
-    if (normalHandle[message.type]) {
-      normalHandle[message.type]({
-        client,
-        clients,
-        users,
-        message,
-        binaryData,
+    try {
+      if (normalHandle[message.type]) {
+        normalHandle[message.type]({
+          client,
+          clients,
+          users,
+          message,
+          binaryData,
+        });
+        return;
+      }
+    } catch (error) {
+      client.send({
+        type: "error",
+        message: "消息格式错误",
+        response: message,
       });
       return;
     }

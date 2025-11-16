@@ -126,11 +126,6 @@ export const options = {
 
   // 监听用户关注列表
   async follow_list({ client, clients, users, message }) {
-    if (!message?.users?.split) {
-      debugger;
-      return;
-    }
-
     const followUsers = message.users.split(",");
 
     // 最多只能关注32个用户
