@@ -262,7 +262,7 @@ export class HandServerClient extends EventTarget {
 
     this._send({
       type: "follow_list",
-      users: devices.map((device) => device.userId).join(","),
+      follows: devices.map((device) => device.userId).join(","),
     });
   }
 

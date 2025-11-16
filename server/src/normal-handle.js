@@ -29,10 +29,12 @@ export const options = {
       clearTimeout(client._authTimer);
 
       // 添加到用户映射对象
-      let userPool = users.get(client.userId);
-      if (!userPool) {
+      const userInfo = users.get(client.userId);
+      let userPool;
+
+      if (!userInfo) {
         userPool = new Set();
-        users.set(client.userId, userPool);
+        users.set(client.userId, { userPool });
       }
 
       userPool.add(client);
@@ -64,8 +66,8 @@ export const options = {
   // 检查用户是否在线
   async find_user({ client, clients, users, message }) {
     const { userId } = message;
-    let userPool = users.get(userId);
-    userPool = userPool ? Array.from(userPool) : [];
+    const userInfo = users.get(userId);
+    const userPool = userInfo?.userPool ? Array.from(userInfo.userPool) : [];
 
     client.send({
       type: "response_find_user",
@@ -82,7 +84,7 @@ export const options = {
     const { userId, userSessionId } = options;
 
     if (userId) {
-      const targetUserClients = users.get(userId);
+      const targetUserClients = users.get(userId)?.userPool;
       if (!targetUserClients) return;
 
       let sendData;
@@ -126,14 +128,15 @@ export const options = {
 
   // 监听用户关注列表
   async follow_list({ client, clients, users, message }) {
-    const followUsers = message.users.split(",");
+    const followUsers = message.follows.split(",");
 
     // 最多只能关注32个用户
     if (followUsers.length > 32) {
       followUsers.splice(32);
     }
 
-    client.followUsers = followUsers;
+    const targetUserInfo = users.get(client.userId);
+    targetUserInfo.followUsers = followUsers;
 
     console.log("关注列表更新:", client, followUsers);
   },
