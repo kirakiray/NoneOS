@@ -239,6 +239,11 @@ export class HandServerClient extends EventTarget {
         // 直接上线
         const remoteUser = await this.#user.connectUser(userId);
         remoteUser.__addServer(this);
+
+        await remoteUser.refreshConnectionMode();
+
+        // 重新ping一次
+        remoteUser.ping();
       });
 
       // 通知下线应该不需要检查，直接下线对应的用户
@@ -246,6 +251,8 @@ export class HandServerClient extends EventTarget {
         // 直接下线对应的服务器
         const remoteUser = await this.#user.connectUser(userId);
         remoteUser.__removeServer(this);
+
+        remoteUser.refreshConnectionMode();
       });
 
       // [...responseData.online, ...responseData.offline].forEach(

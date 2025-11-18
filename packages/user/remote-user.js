@@ -380,8 +380,6 @@ export class RemoteUser extends BaseUser {
     if (index !== -1) {
       this.#servers.splice(index, 1);
     }
-
-    this.refreshConnectionMode();
   }
 
   // 直接上线
@@ -392,6 +390,5 @@ export class RemoteUser extends BaseUser {
     }
 
     this.#servers.push(serverClient);
-    this.refreshConnectionMode();
   }
 }
