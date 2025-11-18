@@ -373,4 +373,25 @@ export class RemoteUser extends BaseUser {
       __internal_mark: 1,
     });
   }
+
+  // 直接下线用的方法
+  __removeServer(serverClient) {
+    const index = this.#servers.indexOf(serverClient);
+    if (index !== -1) {
+      this.#servers.splice(index, 1);
+    }
+
+    this.refreshConnectionMode();
+  }
+
+  // 直接上线
+  __addServer(serverClient) {
+    // 确保不会重复添加
+    if (this.#servers.includes(serverClient)) {
+      return;
+    }
+
+    this.#servers.push(serverClient);
+    this.refreshConnectionMode();
+  }
 }

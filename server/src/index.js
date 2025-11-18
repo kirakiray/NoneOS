@@ -65,6 +65,21 @@ export const initServer = async ({
         if (userPool.size === 0) {
           // 没有tab了，删除用户
           users.delete(ws._client.userId);
+
+          // 通知关注列表用户，该用户下线了
+          for (const user of users.values()) {
+            const { followUsers } = user;
+            if (followUsers.includes(ws._client.userId)) {
+              user.userPool.forEach((userClient) => {
+                userClient.send({
+                  type: "notify_follow",
+                  online: [],
+                  offline: [ws._client.userId],
+                  message: "你关注的用户下线了",
+                });
+              });
+            }
+          }
         }
       }
     }

@@ -23,6 +23,7 @@ export const options = {
       client.publicKey = data.publicKey;
       client.state = "authed";
       client.userSessionId = data.userSessionId;
+      // 认证成功后，更新用户信息
       client.userInfo = data.info;
 
       // 清除认证定时器
@@ -41,9 +42,23 @@ export const options = {
         message: "认证成功",
       });
 
-      client.sendServerInfo();
+      // 遍历用户，在关注列表内的，通知对方
+      for (const user of users.values()) {
+        const { followUsers } = user;
+        if (followUsers.includes(client.userId)) {
+          user.userPool.forEach((userClient) => {
+            userClient.send({
+              type: "notify_follow",
+              online: [client.userId],
+              offline: [],
+              message: "你关注的用户上线了",
+            });
+          });
+        }
+      }
 
-      console.log("users: ", users);
+      // 向用户发送服务器信息
+      client.sendServerInfo();
     } catch (err) {
       console.error(err);
       // 发送认证失败消息

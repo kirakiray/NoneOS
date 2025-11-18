@@ -234,6 +234,23 @@ export class HandServerClient extends EventTarget {
       this.dispatchEvent(
         new CustomEvent("server-info", { detail: responseData })
       );
+    } else if (responseData.type === "notify_follow") {
+      responseData.online.forEach(async (userId) => {
+        // 直接上线
+        const remoteUser = await this.#user.connectUser(userId);
+        remoteUser.__addServer(this);
+      });
+
+      // 通知下线应该不需要检查，直接下线对应的用户
+      responseData.offline.forEach(async (userId) => {
+        // 直接下线对应的服务器
+        const remoteUser = await this.#user.connectUser(userId);
+        remoteUser.__removeServer(this);
+      });
+
+      this.dispatchEvent(
+        new CustomEvent("notify-follow", { detail: responseData })
+      );
     }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));
