@@ -19,23 +19,17 @@ export const options = {
       }
 
       // 匹配成功后，填入信息
-      client.userInfo = data.info;
       client.userId = await getHash(data.publicKey);
       client.publicKey = data.publicKey;
       client.state = "authed";
       client.userSessionId = data.userSessionId;
+      client.userInfo = data.info;
 
       // 清除认证定时器
       clearTimeout(client._authTimer);
 
       // 添加到用户映射对象
-      const userInfo = users.get(client.userId);
-      let userPool;
-
-      if (!userInfo) {
-        userPool = new Set();
-        users.set(client.userId, { userPool });
-      }
+      const { userPool } = client.userData;
 
       userPool.add(client);
 
@@ -48,6 +42,8 @@ export const options = {
       });
 
       client.sendServerInfo();
+
+      console.log("users: ", users);
     } catch (err) {
       console.error(err);
       // 发送认证失败消息
@@ -66,8 +62,10 @@ export const options = {
   // 检查用户是否在线
   async find_user({ client, clients, users, message }) {
     const { userId } = message;
-    const userInfo = users.get(userId);
-    const userPool = userInfo?.userPool ? Array.from(userInfo.userPool) : [];
+    const targetUserData = users.get(userId);
+    const userPool = targetUserData?.userPool
+      ? Array.from(targetUserData.userPool)
+      : [];
 
     client.send({
       type: "response_find_user",
@@ -135,10 +133,9 @@ export const options = {
       followUsers.splice(32);
     }
 
-    const targetUserInfo = users.get(client.userId);
-    targetUserInfo.followUsers = followUsers;
-
-    console.log("关注列表更新:", client, followUsers);
+    // 添加关注列表
+    const { userData } = client;
+    userData.followUsers = followUsers;
   },
 };
 

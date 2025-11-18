@@ -23,14 +23,14 @@ export const initServer = async ({
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new DeviceClient(ws, server); // 传递 clients Map 给 DeviceClient
+    const client = new DeviceClient(ws, server, users); // 传递 clients Map 给 DeviceClient
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
 
     client._authTimer = setTimeout(() => {
       client.close();
-    }, 1000 * 3); // 3秒未认证则关闭连接
+    }, 1000 * 5); // 5秒未认证则关闭连接
 
     client.send({
       type: "need_auth",
@@ -39,7 +39,7 @@ export const initServer = async ({
     });
 
     // 发送服务端的数据给对方
-    // 兼容操作 旧版本客户端
+    // TODO: 兼容操作 旧版本客户端，以后到时间，就要删除这个代码
     client.send({
       type: "update-server-info",
       data: {
@@ -55,13 +55,14 @@ export const initServer = async ({
     // 从Map中移除断开连接的客户端
     clients.delete(ws._client.cid);
     if (ws._client.userId) {
-      const userInfo = users.get(ws._client.userId);
-      const { userPool } = userInfo;
+      const userData = users.get(ws._client.userId);
+      const { userPool } = userData;
 
       if (userPool) {
         userPool.delete(ws._client);
 
         if (userPool.size === 0) {
+          // 没有tab了，删除用户
           users.delete(ws._client.userId);
         }
       }
@@ -72,18 +73,7 @@ export const initServer = async ({
   function onError(ws, error) {
     // TODO: 应该记录下错误信息
     if (ws._client) {
-      clients.delete(ws._client.cid);
-      if (ws._client.userId) {
-        const userInfo = users.get(ws._client.userId);
-        const { userPool } = userInfo;
-        if (userPool) {
-          userPool.delete(ws._client);
-
-          if (userPool.size === 0) {
-            users.delete(ws._client.userId);
-          }
-        }
-      }
+      onClose(ws);
     }
   }
 

@@ -20,19 +20,30 @@
       const user1 = await createUser({ user: "test-user1" });
       const user2 = await createUser({ user: "test-user2" });
 
-      // 连接服务器
-      await user1.connectAllServers();
-      await user2.connectAllServers();
+      const serverUrl = "ws://localhost:18290";
+      await user1.connectServer(serverUrl);
 
-      user2.register("test1", ({ data }) => {
-        console.log(data);
+      // const remoteUser2 = await user1.connectUser(user2.userId);
+      const remoteUser2 = await user1.connectUser({
+        userId: user2.userId,
+        publicKey: user2.publicKey,
       });
 
-      const remoteUser2 = await user1.connectUser(user2.userId);
+      await new Promise((r) => setTimeout(r, 300)); // remoteUser2 还没开始在服务器查找 user2，等待 200ms 确保跳过
 
-      remoteUser2.trigger("test1", {
-        message: "Hello, World!",
-      });
+      console.log("remoteUser2.mode:", remoteUser2.mode); // => 0，因为 user2 没上线
+
+      const server2 = await user2.connectServer(serverUrl);
+
+      await new Promise((r) => setTimeout(r, 300)); // 给 remoteUser2 反应时间
+
+      console.log("remoteUser2.mode:", remoteUser2.mode); // => 1，因为 user2 上线了
+
+      server2.socket.close(); // 关闭 user2 的服务器连接
+
+      await new Promise((r) => setTimeout(r, 300)); // 等待 user2 下线
+
+      console.log("remoteUser2.mode:", remoteUser2.mode); // => 0，因为 user2 下线了
     </script>
   </body>
 </html>
