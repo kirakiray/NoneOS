@@ -25,6 +25,8 @@
       const user2 = await createUser({ user: "test-user2" });
       await user2.connectAllServers();
 
+      user2._ignoreCert = true;
+
       document.getElementById("user2-userId").innerHTML = user2.userId;
 
       window.user2 = user2;

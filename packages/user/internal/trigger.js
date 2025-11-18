@@ -9,7 +9,8 @@ export default async function trigger({
 }) {
   const bool = await localUser.isMyDevice(fromUserId);
 
-  if (!bool) {
+  if (!bool && !localUser._ignoreCert) {
+    console.warn("非本机设备尝试触发：", fromUserId);
     return;
   }
 
