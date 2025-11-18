@@ -7,6 +7,10 @@ export const ping = async ({
 }) => {
   const remoteUser = await localUser.connectUser(fromUserId);
 
+  if (remoteUser.mode === 0) {
+    await remoteUser.checkServer();
+  }
+
   remoteUser.post(
     {
       type: "pong",

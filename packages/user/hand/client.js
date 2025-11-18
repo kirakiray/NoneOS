@@ -248,6 +248,14 @@ export class HandServerClient extends EventTarget {
         remoteUser.__removeServer(this);
       });
 
+      // [...responseData.online, ...responseData.offline].forEach(
+      //   async (userId) => {
+      //     // 重新检查
+      //     const remoteUser = await this.#user.connectUser(userId);
+      //     remoteUser.checkServer();
+      //   }
+      // );
+
       this.dispatchEvent(
         new CustomEvent("notify-follow", { detail: responseData })
       );
