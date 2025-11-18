@@ -54,6 +54,7 @@ export const initServer = async ({
     // TODO: 同步应该记录下关闭连接的客户端信息
     // 从Map中移除断开连接的客户端
     clients.delete(ws._client.cid);
+
     if (ws._client.userId) {
       const userData = users.get(ws._client.userId);
       const { userPool } = userData;
