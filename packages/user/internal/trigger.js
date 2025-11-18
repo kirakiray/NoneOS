@@ -7,6 +7,12 @@ export default async function trigger({
   localUser,
   proxySessionId,
 }) {
+  const bool = await localUser.isMyDevice(fromUserId);
+
+  if (!bool) {
+    return;
+  }
+
   const { name, data } = receivedData;
 
   const pool = localUser.registers[name];

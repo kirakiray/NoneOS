@@ -13,6 +13,16 @@ export default async function fsAgent({
 }) {
   const result = await localUser.isMyDevice(fromUserId);
 
+  if (!result) {
+    // 如果不是我的设备，返回错误
+    await returnData({
+      error: {
+        message: "Not my device",
+      },
+    });
+    return;
+  }
+
   const remoteUser = await localUser.connectUser(fromUserId);
 
   const { name, path, args, taskId } = data;
@@ -44,16 +54,6 @@ export default async function fsAgent({
 
     remoteUser.post(basePayload, fromUserSessionId);
   };
-
-  if (!result) {
-    // 如果不是我的设备，返回错误
-    await returnData({
-      error: {
-        message: "Not my device",
-      },
-    });
-    return;
-  }
 
   try {
     // 当仅有 hash 信息而缺少来源信息时，表明这是主动保存的数据，可从通过 write 操作写入的缓存中获取
