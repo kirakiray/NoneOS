@@ -228,7 +228,8 @@ class WebSocketServer {
 }
 
 class DeviceClient {
-  constructor(ws, server) {
+  #users;
+  constructor(ws, server, users) {
     if (ws._client) {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
@@ -236,9 +237,9 @@ class DeviceClient {
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null; // 认证完成后设置用户ID
     this.publicKey = null; // 认证完成后设置用户公钥
-    this.userInfo = null; // 认证完成后设置用户信息
     this.userSessionId = null; // 认证完成后设置用户会话ID
     this.delay = 0; // 延迟时间
+    this.#users = users;
 
     let cid = Math.random().toString(36).slice(2, 8);
 
@@ -251,6 +252,35 @@ class DeviceClient {
     this.ws = ws;
     this.server = server;
     this.connectTime = new Date(); // 记录连接时间
+  }
+
+  get userData() {
+    if (!this.userId) {
+      throw new Error("用户ID为空");
+    }
+
+    let userData = this.#users.get(this.userId);
+
+    if (!userData) {
+      userData = {
+        userId: this.userId,
+        userPool: new Set(),
+        followUsers: [], // 关注的用户ID列表
+        userInfo: null, // 认证完成后设置用户信息
+      };
+
+      this.#users.set(this.userId, userData);
+    }
+
+    return userData;
+  }
+
+  get userInfo() {
+    return this.userData.userInfo;
+  }
+
+  set userInfo(info) {
+    this.userData.userInfo = info;
   }
 
   sendServerInfo() {
@@ -530,21 +560,18 @@ const options = {
       }
 
       // 匹配成功后，填入信息
-      client.userInfo = data.info;
       client.userId = await getHash(data.publicKey);
       client.publicKey = data.publicKey;
       client.state = "authed";
       client.userSessionId = data.userSessionId;
+      // 认证成功后，更新用户信息
+      client.userInfo = data.info;
 
       // 清除认证定时器
       clearTimeout(client._authTimer);
 
       // 添加到用户映射对象
-      let userPool = users.get(client.userId);
-      if (!userPool) {
-        userPool = new Set();
-        users.set(client.userId, userPool);
-      }
+      const { userPool } = client.userData;
 
       userPool.add(client);
 
@@ -556,6 +583,22 @@ const options = {
         message: "认证成功",
       });
 
+      // 遍历用户，在关注列表内的，通知对方
+      for (const user of users.values()) {
+        const { followUsers } = user;
+        if (followUsers.includes(client.userId)) {
+          user.userPool.forEach((userClient) => {
+            userClient.send({
+              type: "notify_follow",
+              online: [client.userId],
+              offline: [],
+              message: "你关注的用户上线了",
+            });
+          });
+        }
+      }
+
+      // 向用户发送服务器信息
       client.sendServerInfo();
     } catch (err) {
       console.error(err);
@@ -575,8 +618,10 @@ const options = {
   // 检查用户是否在线
   async find_user({ client, clients, users, message }) {
     const { userId } = message;
-    let userPool = users.get(userId);
-    userPool = userPool ? Array.from(userPool) : [];
+    const targetUserData = users.get(userId);
+    const userPool = targetUserData?.userPool
+      ? Array.from(targetUserData.userPool)
+      : [];
 
     client.send({
       type: "response_find_user",
@@ -593,7 +638,7 @@ const options = {
     const { userId, userSessionId } = options;
 
     if (userId) {
-      const targetUserClients = users.get(userId);
+      const targetUserClients = users.get(userId)?.userPool;
       if (!targetUserClients) return;
 
       let sendData;
@@ -634,6 +679,20 @@ const options = {
     const { delay } = message;
     client.delay = delay;
   },
+
+  // 监听用户关注列表
+  async follow_list({ client, clients, users, message }) {
+    const followUsers = message.follows.split(",");
+
+    // 最多只能关注32个用户
+    if (followUsers.length > 32) {
+      followUsers.splice(32);
+    }
+
+    // 添加关注列表
+    const { userData } = client;
+    userData.followUsers = followUsers;
+  },
 };
 
 const require = createRequire(import.meta.url);
@@ -651,14 +710,14 @@ const initServer = async ({
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new DeviceClient(ws, server); // 传递 clients Map 给 DeviceClient
+    const client = new DeviceClient(ws, server, users); // 传递 clients Map 给 DeviceClient
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
 
     client._authTimer = setTimeout(() => {
       client.close();
-    }, 1000 * 3); // 3秒未认证则关闭连接
+    }, 1000 * 5); // 5秒未认证则关闭连接
 
     client.send({
       type: "need_auth",
@@ -667,7 +726,7 @@ const initServer = async ({
     });
 
     // 发送服务端的数据给对方
-    // 兼容操作 旧版本客户端
+    // TODO: 兼容操作 旧版本客户端，以后到时间，就要删除这个代码
     client.send({
       type: "update-server-info",
       data: {
@@ -682,10 +741,33 @@ const initServer = async ({
     // TODO: 同步应该记录下关闭连接的客户端信息
     // 从Map中移除断开连接的客户端
     clients.delete(ws._client.cid);
+
     if (ws._client.userId) {
-      const userPool = users.get(ws._client.userId);
+      const userData = users.get(ws._client.userId);
+      const { userPool } = userData;
+
       if (userPool) {
         userPool.delete(ws._client);
+
+        if (userPool.size === 0) {
+          // 没有tab了，删除用户
+          users.delete(ws._client.userId);
+
+          // 通知关注列表用户，该用户下线了
+          for (const user of users.values()) {
+            const { followUsers } = user;
+            if (followUsers.includes(ws._client.userId)) {
+              user.userPool.forEach((userClient) => {
+                userClient.send({
+                  type: "notify_follow",
+                  online: [],
+                  offline: [ws._client.userId],
+                  message: "你关注的用户下线了",
+                });
+              });
+            }
+          }
+        }
       }
     }
   }
@@ -694,13 +776,7 @@ const initServer = async ({
   function onError(ws, error) {
     // TODO: 应该记录下错误信息
     if (ws._client) {
-      clients.delete(ws._client.cid);
-      if (ws._client.userId) {
-        const userPool = users.get(ws._client.userId);
-        if (userPool) {
-          userPool.delete(ws._client);
-        }
-      }
+      onClose(ws);
     }
   }
 
@@ -718,13 +794,22 @@ const initServer = async ({
       message = obj;
     }
 
-    if (options[message.type]) {
-      options[message.type]({
-        client,
-        clients,
-        users,
-        message,
-        binaryData,
+    try {
+      if (options[message.type]) {
+        options[message.type]({
+          client,
+          clients,
+          users,
+          message,
+          binaryData,
+        });
+        return;
+      }
+    } catch (error) {
+      client.send({
+        type: "error",
+        message: "消息格式错误",
+        response: message,
       });
       return;
     }

@@ -33,6 +33,7 @@
     "../tests/new-user/post-sessionid/use-sessionid-rtc.ok.html",
     "../tests/new-user/post-sessionid/use-sessionid-server.ok.html",
     "../tests/new-user/public-key-user.ok.html",
+    "../tests/new-user/real-time-network.ok.html",
     "../tests/new-user/register-trigger-boardcast/boardcast-register.ok.html",
     "../tests/new-user/register-trigger-boardcast/trigger-register.ok.html",
     "../tests/new-user/rtc-post-data.ok.html",

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Time Network Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/user/main.js";
+
+      await test("Real Time Network Connection Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        const serverUrl = "ws://localhost:18290";
+        await user1.connectServer(serverUrl);
+
+        // 连接用户2
+        const remoteUser2 = await user1.connectUser({
+          userId: user2.userId,
+          publicKey: user2.publicKey,
+        });
+
+        // 等待确保remoteUser2还没开始在服务器查找user2
+        await new Promise((r) => setTimeout(r, 300));
+        
+        // 检查初始状态（user2未上线）
+        const initialMode = remoteUser2.mode;
+        console.log("Initial remoteUser2.mode:", initialMode); // 应该是 0
+
+        // 连接user2到服务器
+        const server2 = await user2.connectServer(serverUrl);
+
+        // 等待remoteUser2反应
+        await new Promise((r) => setTimeout(r, 300));
+        
+        // 检查user2上线后的状态
+        const onlineMode = remoteUser2.mode;
+        console.log("Online remoteUser2.mode:", onlineMode); // 应该是 1
+
+        // 断开user2的服务器连接
+        server2.socket.close();
+
+        // 等待user2下线
+        await new Promise((r) => setTimeout(r, 300));
+        
+        // 检查user2下线后的状态
+        const offlineMode = remoteUser2.mode;
+        console.log("Offline remoteUser2.mode:", offlineMode); // 应该是 0
+
+        // 返回测试结果
+        return {
+          assert:
+            initialMode === 0 &&
+            onlineMode === 1 &&
+            offlineMode === 0,
+          content: `
+            Initial mode (user2 offline): ${initialMode} (expected: 0)
+            Online mode (user2 connected): ${onlineMode} (expected: 1)
+            Offline mode (user2 disconnected): ${offlineMode} (expected: 0)
+          `,
+        };
+      });
+    </script>
+  </body>
+</html>
