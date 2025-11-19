@@ -9,6 +9,14 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 const packageJson = require("../package.json");
 
+/**
+ * 初始化服务器
+ * @param {Object} options - 服务器配置选项
+ * @param {string} options.password - 管理员密码
+ * @param {number} options.port - 服务器端口，默认8081
+ * @param {string} options.serverName - 服务器名称，默认"handserver"
+ * @returns {WebSocketServer} WebSocket服务器实例
+ */
 export const initServer = async ({
   password,
   port = 8081,
@@ -19,17 +27,26 @@ export const initServer = async ({
   const messageRouter = new MessageRouter(clientManager, password);
 
   // WebSocket事件处理函数
+  /**
+   * 处理新客户端连接
+   * @param {WebSocket} ws - WebSocket连接实例
+   */
   function onConnect(ws) {
     const client = new Client(ws, server, clientManager);
-    
+
     clientManager.addClient(client);
     console.log("新客户端已连接:", client.cid);
 
     // 发送认证请求
     client.sendNeedAuth();
-    
   }
 
+  /**
+   * 处理客户端断开连接
+   * @param {WebSocket} ws - WebSocket连接实例
+   * @param {number} code - 断开代码
+   * @param {string} reason - 断开原因
+   */
   function onClose(ws, code, reason) {
     const client = ws._client;
     if (client) {
@@ -38,6 +55,11 @@ export const initServer = async ({
     }
   }
 
+  /**
+   * 处理WebSocket错误
+   * @param {WebSocket} ws - WebSocket连接实例
+   * @param {Error} error - 错误对象
+   */
   function onError(ws, error) {
     console.error("WebSocket错误:", error);
     const client = ws._client;
@@ -46,6 +68,11 @@ export const initServer = async ({
     }
   }
 
+  /**
+   * 处理接收到的消息
+   * @param {WebSocket} ws - WebSocket连接实例
+   * @param {Object|string} message - 接收到的消息
+   */
   async function onMessage(ws, message) {
     await messageRouter.handleMessage(ws, message);
   }
@@ -64,7 +91,7 @@ export const initServer = async ({
 
   // 启动服务器
   server.start(port);
-  
+
   console.log(`NoneOS WebSocket服务器启动`);
   console.log(`服务器名称: ${serverName}`);
   console.log(`版本: ${packageJson.version}`);
@@ -79,7 +106,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const port = parseInt(process.env.PORT || "8081");
   const serverName = process.env.SERVER_NAME || "handserver";
 
-  initServer({ password, port, serverName }).catch(error => {
+  initServer({ password, port, serverName }).catch((error) => {
     console.error("启动服务器失败:", error);
     process.exit(1);
   });
