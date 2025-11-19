@@ -9,6 +9,7 @@ export class RemoteUser extends BaseUser {
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
   _rtcConnections = []; // RTC连接实例
   #delays = []; // 延迟时间列表，单位毫秒
+  _pingTimeMap = new Map(); // 存储pingID与发送时间的映射关系
 
   constructor(publicKey, self) {
     super(publicKey);
@@ -60,17 +61,23 @@ export class RemoteUser extends BaseUser {
       throw new Error("未连接到对方");
     }
 
-    if (this.__pingTime) {
-      return;
-    }
+    const pingID = Math.random().toString(36).slice(2);
 
-    this.__pingTime = Date.now();
-    this.__pingTimeout = setTimeout(() => {
-      this.__pingTime = 0;
-    }, 8000);
+    this._pingTimeMap.set(pingID, Date.now());
+
+    // if (this.__pingTime) {
+    //   console.log("上一次 ping 还未结束");
+    //   return;
+    // }
+
+    // this.__pingTime = Date.now();
+    // this.__pingTimeout = setTimeout(() => {
+    //   this.__pingTime = 0;
+    // }, 8000);
 
     this.post({
       type: "ping",
+      pingID,
       __internal_mark: 1,
     });
   }

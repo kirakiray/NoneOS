@@ -15,6 +15,7 @@ export const ping = async ({
     {
       type: "pong",
       __internal_mark: 1,
+      pingID: data.pingID,
     },
     fromUserSessionId
   );
@@ -29,14 +30,17 @@ export const pong = async ({
 }) => {
   const remoteUser = await localUser.connectUser(fromUserId);
 
-  clearTimeout(remoteUser.__pingTimeout);
-  if (remoteUser.__pingTime) {
-    const delay = Date.now() - remoteUser.__pingTime;
-    remoteUser.pushDelays({
-      time: remoteUser.__pingTime,
-      delay,
-    });
-
-    remoteUser.__pingTime = null;
+  const pingTime = remoteUser._pingTimeMap.get(data.pingID);
+  if (!pingTime) {
+    console.log("pingID 不存在: ", data.pingID);
+    return;
   }
+
+  const delay = Date.now() - pingTime;
+  remoteUser._pingTimeMap.clear();
+
+  remoteUser.pushDelays({
+    time: pingTime,
+    delay,
+  });
 };
