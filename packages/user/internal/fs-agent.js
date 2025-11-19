@@ -1,3 +1,4 @@
+// 和 file-system 相关的 agent 操作
 import { get } from "/packages/fs/main.js";
 import { getHash, getFileChunkHashes } from "/packages/util/hash/main.js";
 import { getChunk } from "/packages/chunk/main.js";
