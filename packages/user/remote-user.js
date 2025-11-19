@@ -65,16 +65,6 @@ export class RemoteUser extends BaseUser {
 
     this._pingTimeMap.set(pingID, Date.now());
 
-    // if (this.__pingTime) {
-    //   console.log("上一次 ping 还未结束");
-    //   return;
-    // }
-
-    // this.__pingTime = Date.now();
-    // this.__pingTimeout = setTimeout(() => {
-    //   this.__pingTime = 0;
-    // }, 8000);
-
     this.post({
       type: "ping",
       pingID,
