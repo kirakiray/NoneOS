@@ -100,14 +100,14 @@ export const initServer = async ({
   return server;
 };
 
-// 如果是直接运行此文件，则启动服务器
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const password = process.env.SERVER_PASSWORD || "noneos-server-password";
-  const port = parseInt(process.env.PORT || "8081");
-  const serverName = process.env.SERVER_NAME || "handserver";
+// // 如果是直接运行此文件，则启动服务器
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//   const password = process.env.SERVER_PASSWORD || "noneos-server-password";
+//   const port = parseInt(process.env.PORT || "8081");
+//   const serverName = process.env.SERVER_NAME || "handserver";
 
-  initServer({ password, port, serverName }).catch((error) => {
-    console.error("启动服务器失败:", error);
-    process.exit(1);
-  });
-}
+//   initServer({ password, port, serverName }).catch((error) => {
+//     console.error("启动服务器失败:", error);
+//     process.exit(1);
+//   });
+// }

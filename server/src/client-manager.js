@@ -2,7 +2,8 @@
  * 客户端管理器类
  * 负责管理所有连接到服务器的客户端，包括认证、用户状态跟踪等功能
  */
-import { getHash } from "../../packages/util/hash/main.js";
+import { getHash } from "../../packages/util/hash/get-hash.js";
+import { verify } from "../../packages/user/util/verify.js";
 
 export class ClientManager {
   constructor() {
@@ -104,7 +105,6 @@ export class ClientManager {
       throw new Error("cid 不匹配");
     }
 
-    const { verify } = await import("../../packages/user/util/verify.js");
     const result = await verify(signedData);
 
     if (!result) {
