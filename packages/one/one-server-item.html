@@ -168,6 +168,8 @@
               this.delays = delays;
             };
 
+            updateInfo();
+
             this._cancels = [
               serverClient.bind("server-info", updateInfo),
               serverClient.bind("check-delay", updateInfo),

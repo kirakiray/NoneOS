@@ -259,7 +259,8 @@ export class HandServerClient extends EventTarget {
       //   async (userId) => {
       //     // 重新检查
       //     const remoteUser = await this.#user.connectUser(userId);
-      //     remoteUser.checkServer();
+
+      //     await remoteUser.checkServer();
       //   }
       // );
 
