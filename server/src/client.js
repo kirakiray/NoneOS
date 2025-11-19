@@ -7,7 +7,7 @@ export class Client {
     this.ws = ws;
     this.server = server;
     this.clientManager = clientManager;
-    
+
     this.cid = this._generateCid();
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null;
@@ -16,10 +16,10 @@ export class Client {
     this.delay = 0;
     this.connectTime = new Date();
     this.userInfo = null;
-    
+
     this._authTimer = null;
     this._setupAuthTimeout();
-    
+
     ws._client = this;
   }
 
@@ -52,10 +52,12 @@ export class Client {
   }
 
   _isBinaryData(data) {
-    return data instanceof ArrayBuffer || 
-           data instanceof Uint8Array || 
-           data instanceof Buffer ||
-           typeof data === "string";
+    return (
+      data instanceof ArrayBuffer ||
+      data instanceof Uint8Array ||
+      data instanceof Buffer ||
+      typeof data === "string"
+    );
   }
 
   close() {
@@ -81,7 +83,7 @@ export class Client {
       type: "server_info",
       serverName: this.server.serverName,
       serverVersion: this.server.serverVersion,
-      cid: this.cid
+      cid: this.cid,
     });
   }
 
@@ -91,7 +93,7 @@ export class Client {
       type: "auth_success",
       userInfo: this.userInfo,
       userId: this.userId,
-      message: "认证成功"
+      message: "认证成功",
     });
   }
 
@@ -100,18 +102,7 @@ export class Client {
     this.send({
       type: "need_auth",
       cid: this.cid,
-      time: new Date().toISOString()
-    });
-  }
-
-  // 发送服务器更新信息（兼容旧版本）
-  sendServerUpdateInfo(serverName, serverVersion) {
-    this.send({
-      type: "update-server-info",
-      data: {
-        serverName,
-        serverVersion
-      }
+      time: new Date().toISOString(),
     });
   }
 
@@ -123,7 +114,7 @@ export class Client {
       userSessionId: this.userSessionId,
       connectTime: this.connectTime.toISOString(),
       state: this.state,
-      delay: this.delay
+      delay: this.delay,
     };
   }
 }

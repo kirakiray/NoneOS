@@ -28,8 +28,6 @@ export const initServer = async ({
     // 发送认证请求
     client.sendNeedAuth();
     
-    // 兼容旧版本客户端
-    client.sendServerUpdateInfo(serverName, packageJson.version);
   }
 
   function onClose(ws, code, reason) {
