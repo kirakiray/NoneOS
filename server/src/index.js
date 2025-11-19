@@ -24,7 +24,7 @@ export const initServer = async ({
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new DeviceClient(ws, server, users, followIndex); // 传递 clients Map 和 followIndex 给 DeviceClient
+    const client = new DeviceClient(ws, server, users); // 传递 clients Map 给 DeviceClient
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);

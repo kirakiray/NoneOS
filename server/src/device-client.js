@@ -1,7 +1,6 @@
 export class DeviceClient {
   #users;
-  #followIndex;
-  constructor(ws, server, users, followIndex) {
+  constructor(ws, server, users) {
     if (ws._client) {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
@@ -12,7 +11,6 @@ export class DeviceClient {
     this.userSessionId = null; // 认证完成后设置用户会话ID
     this.delay = 0; // 延迟时间
     this.#users = users;
-    this.#followIndex = followIndex;
 
     let cid = Math.random().toString(36).slice(2, 8);
 
@@ -46,10 +44,6 @@ export class DeviceClient {
     }
 
     return userData;
-  }
-
-  get followIndex() {
-    return this.#followIndex;
   }
 
   get userInfo() {
