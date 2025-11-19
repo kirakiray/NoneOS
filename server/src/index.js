@@ -20,10 +20,11 @@ export const initServer = async ({
   let server;
   const clients = new Map(); // 用户cid索引数据
   const users = new Map(); // 用户userId索引数据
+  const followIndex = new Map(); // 反向索引：被关注用户ID -> 关注者用户ID列表
 
   // 定义连接处理函数
   function onConnect(ws) {
-    const client = new DeviceClient(ws, server, users); // 传递 clients Map 给 DeviceClient
+    const client = new DeviceClient(ws, server, users, followIndex); // 传递 clients Map 和 followIndex 给 DeviceClient
     ws._client = client;
     clients.set(client.cid, client);
     console.log("新客户端已连接: ", client.cid);
@@ -66,18 +67,37 @@ export const initServer = async ({
           // 没有tab了，删除用户
           users.delete(ws._client.userId);
 
+          // 清理反向索引：移除该用户的所有关注关系
+          const followUsers = userData.followUsers || [];
+          for (const followedUserId of followUsers) {
+            const followers = followIndex.get(followedUserId);
+            if (followers) {
+              const index = followers.indexOf(ws._client.userId);
+              if (index > -1) {
+                followers.splice(index, 1);
+                // 如果该用户没有关注者了，删除索引条目
+                if (followers.length === 0) {
+                  followIndex.delete(followedUserId);
+                }
+              }
+            }
+          }
+
           // 通知关注列表用户，该用户下线了
-          for (const user of users.values()) {
-            const { followUsers } = user;
-            if (followUsers.includes(ws._client.userId)) {
-              user.userPool.forEach((userClient) => {
-                userClient.send({
-                  type: "notify_follow",
-                  online: [],
-                  offline: [ws._client.userId],
-                  message: "你关注的用户下线了",
+          const followers = followIndex.get(ws._client.userId);
+          if (followers) {
+            for (const followerId of followers) {
+              const followerUser = users.get(followerId);
+              if (followerUser && followerUser.userPool) {
+                followerUser.userPool.forEach((userClient) => {
+                  userClient.send({
+                    type: "notify_follow",
+                    online: [],
+                    offline: [ws._client.userId],
+                    message: "你关注的用户下线了",
+                  });
                 });
-              });
+              }
             }
           }
         }
@@ -113,6 +133,7 @@ export const initServer = async ({
           client,
           clients,
           users,
+          followIndex,
           message,
           binaryData,
         });
@@ -180,6 +201,7 @@ export const initServer = async ({
   // 将 clients Map 添加到 server 实例上，以便 DeviceClient 可以访问
   server.clients = clients;
   server.users = users;
+  server.followIndex = followIndex;
   server.serverName = serverName;
   server.serverVersion = packageJson.version;
 

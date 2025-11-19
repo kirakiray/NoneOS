@@ -4,7 +4,7 @@ import { pack } from "../../packages/user/util/pack.js";
 
 export const options = {
   // 认证用户信息
-  async authentication({ client, clients, users, message }) {
+  async authentication({ client, clients, users, followIndex, message }) {
     try {
       const data = message.signedData;
 
@@ -43,17 +43,20 @@ export const options = {
       });
 
       // 遍历用户，在关注列表内的，通知对方
-      for (const user of users.values()) {
-        const { followUsers } = user;
-        if (followUsers.includes(client.userId)) {
-          user.userPool.forEach((userClient) => {
-            userClient.send({
-              type: "notify_follow",
-              online: [client.userId],
-              offline: [],
-              message: "你关注的用户上线了",
+      const followers = followIndex.get(client.userId);
+      if (followers) {
+        for (const followerId of followers) {
+          const followerUser = users.get(followerId);
+          if (followerUser && followerUser.userPool) {
+            followerUser.userPool.forEach((userClient) => {
+              userClient.send({
+                type: "notify_follow",
+                online: [client.userId],
+                offline: [],
+                message: "你关注的用户上线了",
+              });
             });
-          });
+          }
         }
       }
 
@@ -75,7 +78,7 @@ export const options = {
     }
   },
   // 检查用户是否在线
-  async find_user({ client, clients, users, message }) {
+  async find_user({ client, clients, users, followIndex, message }) {
     const { userId } = message;
     const targetUserData = users.get(userId);
     const userPool = targetUserData?.userPool
@@ -92,7 +95,7 @@ export const options = {
   },
 
   // 转发用户数据
-  async agent_data({ client, clients, users, message, binaryData }) {
+  async agent_data({ client, clients, users, followIndex, message, binaryData }) {
     const { options, data } = message;
     const { userId, userSessionId } = options;
 
@@ -134,23 +137,52 @@ export const options = {
     }
   },
   // 更新延迟时间
-  async update_delay({ client, clients, users, message }) {
+  async update_delay({ client, clients, users, followIndex, message }) {
     const { delay } = message;
     client.delay = delay;
   },
 
   // 监听用户关注列表
-  async follow_list({ client, clients, users, message }) {
-    const followUsers = message.follows.split(",");
+  async follow_list({ client, clients, users, followIndex, message }) {
+    const newFollowUsers = message.follows.split(",");
 
     // 最多只能关注32个用户
-    if (followUsers.length > 32) {
-      followUsers.splice(32);
+    if (newFollowUsers.length > 32) {
+      newFollowUsers.splice(32);
     }
 
-    // 添加关注列表
+    // 获取当前用户的旧关注列表
     const { userData } = client;
-    userData.followUsers = followUsers;
+    const oldFollowUsers = userData.followUsers || [];
+
+    // 更新反向索引：移除旧的关注关系
+    for (const followedUserId of oldFollowUsers) {
+      const followers = followIndex.get(followedUserId);
+      if (followers) {
+        const index = followers.indexOf(client.userId);
+        if (index > -1) {
+          followers.splice(index, 1);
+          // 如果该用户没有关注者了，删除索引条目
+          if (followers.length === 0) {
+            followIndex.delete(followedUserId);
+          }
+        }
+      }
+    }
+
+    // 更新反向索引：添加新的关注关系
+    for (const followedUserId of newFollowUsers) {
+      if (!followIndex.has(followedUserId)) {
+        followIndex.set(followedUserId, []);
+      }
+      const followers = followIndex.get(followedUserId);
+      if (!followers.includes(client.userId)) {
+        followers.push(client.userId);
+      }
+    }
+
+    // 更新用户的关注列表
+    userData.followUsers = newFollowUsers;
   },
 };
 
