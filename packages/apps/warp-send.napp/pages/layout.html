@@ -15,25 +15,25 @@
     <slot></slot>
     <p-nav-bar slot="nav">
       <p-nav-item
-        attr:active-item="activeId === 'received'"
-        on:click="activeId = 'received'"
-      >
-        接收
-        <n-local-icon name="download" slot="icon"></n-local-icon>
-      </p-nav-item>
-      <p-nav-item
         attr:active-item="activeId === 'sent'"
-        on:click="activeId = 'sent'"
+        on:click="goPage('sent')"
       >
         <n-local-icon name="send" slot="icon"></n-local-icon>
         发送
       </p-nav-item>
       <p-nav-item
-        attr:active-item="activeId === 'settings'"
-        on:click="activeId = 'settings'"
+        attr:active-item="activeId === 'received'"
+        on:click="goPage('received')"
       >
-        <n-local-icon name="setting" slot="icon"></n-local-icon>
-        设置
+        接收
+        <n-local-icon name="download" slot="icon"></n-local-icon>
+      </p-nav-item>
+      <p-nav-item
+        attr:active-item="activeId === 'devices'"
+        on:click="goPage('devices')"
+      >
+        <n-local-icon name="device" slot="icon"></n-local-icon>
+        设备列表
       </p-nav-item>
     </p-nav-bar>
   </p-nav-layout>
@@ -45,9 +45,32 @@
           openDrawer: false,
           activeId: "",
         },
+        proto: {
+          goPage(type) {
+            if (this.activeId === type) {
+              return;
+            }
+
+            this.activeId = type;
+
+            // 跳转页面
+            switch (type) {
+              case "sent":
+                this.goto("./sent.html");
+                break;
+              case "received":
+                this.goto("./received.html");
+                break;
+              case "devices":
+                this.goto("./devices.html");
+                break;
+            }
+          },
+        },
         ready() {
           this.on("warp-send:set-active-id", (e) => {
             this.activeId = e.data.activeId;
+            e.stopPropagation();
           });
         },
       };

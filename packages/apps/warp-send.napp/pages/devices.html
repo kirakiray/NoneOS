@@ -1,10 +1,12 @@
 <template page>
+  <l-m src="/packages/one/one.html"></l-m>
+
   <style>
     :host {
       display: block;
     }
   </style>
-  接收文件
+  <n-one-list></n-one-list>
   <script>
     export const parent = "./layout.html";
 
@@ -14,7 +16,7 @@
         attached() {
           this.emit("warp-send:set-active-id", {
             data: {
-              activeId: "received",
+              activeId: "devices",
             },
             composed: true,
           });

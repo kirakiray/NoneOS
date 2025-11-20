@@ -4,7 +4,7 @@
       display: block;
     }
   </style>
-  接收文件
+  发送文件
   <script>
     export const parent = "./layout.html";
 
@@ -14,7 +14,7 @@
         attached() {
           this.emit("warp-send:set-active-id", {
             data: {
-              activeId: "received",
+              activeId: "sent",
             },
             composed: true,
           });
