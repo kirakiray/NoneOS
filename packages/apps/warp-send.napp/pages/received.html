@@ -1,0 +1,25 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  haha
+  <script>
+    export const parent = "./layout.html";
+
+    export default async () => {
+      return {
+        data: {},
+        attached() {
+          this.emit("warp-send:set-active-id", {
+            data: {
+              activeId: "received",
+            },
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>
