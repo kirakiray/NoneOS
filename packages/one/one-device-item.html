@@ -141,6 +141,8 @@
 
             const remoteUser = await localUser.connectUser(this.userId);
 
+            this.delays = remoteUser.delays;
+
             this._cancels = [
               remoteUser.bind("check-delay", (e) => {
                 this.delays = remoteUser.delays;
