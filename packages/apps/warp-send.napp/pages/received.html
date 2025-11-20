@@ -47,11 +47,31 @@
     </div>
 
     <div style="padding: 16px; display: flex; align-items: center">
-      自动保存到:
-      <span style="color: var(--md-sys-color-primary); padding: 0 4px">
-        浏览器缓存
+      <localized-content>
+        <span lang="cn">自动保存到</span>
+        <span lang="en">Auto Save To</span>
+        <span lang="ja"> 自動保存先 </span>
+      </localized-content>
+      :
+      <span style="color: var(--md-sys-color-primary); padding: 0 8px 0 4px">
+        <o-if :value="!!dirName"> {{dirName}} </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">浏览器缓存</span>
+            <span lang="en">Browser Cache</span>
+            <span lang="ja"> ブラウザキャッシュ </span>
+          </localized-content>
+        </o-else>
       </span>
-      <p-button size="small" variant="outlined"> 修改目录 </p-button>
+      <o-if :value="!hideChangeDirButton">
+        <p-button size="small" variant="outlined" on:click="changeDir">
+          <localized-content>
+            <span lang="cn">修改目录</span>
+            <span lang="en">Change Directory</span>
+            <span lang="ja"> ディレクトリを変更 </span>
+          </localized-content>
+        </p-button>
+      </o-if>
     </div>
   </div>
   <script>
@@ -60,6 +80,7 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
+      const { mount } = await load("/packages/fs/main.js");
 
       const userInfo = await localUser.info();
 
@@ -67,6 +88,18 @@
         data: {
           userName: userInfo.name,
           userId: localUser.userId,
+          dirName: null, // 保存目录的名字
+          _targetDirHandle: null, // 存到目标目录
+          hideChangeDirButton: !window.showDirectoryPicker, // 不支持showDirectoryPicker的浏览器，不允许修改默认目录
+        },
+        proto: {
+          async changeDir() {
+            const handle = await mount();
+
+            this.dirName = handle.name;
+
+            this._targetDirHandle = handle;
+          },
         },
         attached() {
           this.emit("warp-send:set-active-id", {
