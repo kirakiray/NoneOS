@@ -1,4 +1,5 @@
 <template component>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -11,9 +12,21 @@
       color: var(--md-sys-color-primary);
     }
   </style>
-  <h3>我的设备</h3>
+  <h3>
+    <localized-content>
+      <span lang="cn">我的设备</span>
+      <span lang="en">My Devices</span>
+      <span lang="ja"> マイデバイス </span>
+    </localized-content>
+  </h3>
   <o-page src="./one-device-list.html" id="one-device-list"></o-page>
-  <h3 style="margin-top: 8px">握手服务器</h3>
+  <h3 style="margin-top: 8px">
+    <localized-content>
+      <span lang="cn">握手服务器</span>
+      <span lang="en">Handshake Servers</span>
+      <span lang="ja"> ハンドシェイクサーバー </span>
+    </localized-content>
+  </h3>
   <o-page src="./one-server-list.html" id="one-server-list"></o-page>
   <script>
     export default async ({ load }) => {

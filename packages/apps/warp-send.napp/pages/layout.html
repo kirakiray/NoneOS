@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/navigation/nav-layout.html"></l-m>
   <l-m src="/packages/pui/navigation/nav-bar.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -19,13 +20,21 @@
         on:click="goPage('sent')"
       >
         <n-local-icon name="send" slot="icon"></n-local-icon>
-        发送
+        <localized-content>
+          <span lang="cn">发送</span>
+          <span lang="en">Send</span>
+          <span lang="ja"> 送信 </span>
+        </localized-content>
       </p-nav-item>
       <p-nav-item
         attr:active-item="activeId === 'received'"
         on:click="goPage('received')"
       >
-        接收
+        <localized-content>
+          <span lang="cn">接收</span>
+          <span lang="en">Receive</span>
+          <span lang="ja"> 受信 </span>
+        </localized-content>
         <n-local-icon name="download" slot="icon"></n-local-icon>
       </p-nav-item>
       <p-nav-item
@@ -33,7 +42,11 @@
         on:click="goPage('devices')"
       >
         <n-local-icon name="device" slot="icon"></n-local-icon>
-        设备列表
+        <localized-content>
+          <span lang="cn">设备列表</span>
+          <span lang="en">Device List</span>
+          <span lang="ja"> デバイスリスト </span>
+        </localized-content>
       </p-nav-item>
     </p-nav-bar>
   </p-nav-layout>

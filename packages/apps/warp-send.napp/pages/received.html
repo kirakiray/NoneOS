@@ -1,16 +1,73 @@
 <template page>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
+      height: 100%;
+    }
+    .container {
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px;
+      word-break: break-all;
+    }
+
+    .user-name {
+      font-size: 26px;
+    }
+
+    @media (max-width: 640px) {
+      .user-name {
+        font-size: 18px;
+      }
     }
   </style>
-  接收文件
+  <div class="container">
+    <n-user-avatar :userid="userId"></n-user-avatar>
+    <div style="padding: 16px" class="user-name">
+      <localized-content>
+        <span lang="cn">用户名</span>
+        <span lang="en">User Name</span>
+        <span lang="ja"> ユーザー名 </span>
+      </localized-content>
+      :
+      <span style="color: var(--md-sys-color-primary)"> {{userName}} </span>
+    </div>
+    <div>
+      ID:
+      <span style="color: var(--md-sys-color-primary); font-size: 14px">
+        {{userId}}
+      </span>
+    </div>
+
+    <div style="padding: 16px; display: flex; align-items: center">
+      自动保存到:
+      <span style="color: var(--md-sys-color-primary); padding: 0 4px">
+        浏览器缓存
+      </span>
+      <p-button size="small" variant="outlined"> 修改目录 </p-button>
+    </div>
+  </div>
   <script>
     export const parent = "./layout.html";
 
-    export default async () => {
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      const userInfo = await localUser.info();
+
       return {
-        data: {},
+        data: {
+          userName: userInfo.name,
+          userId: localUser.userId,
+        },
         attached() {
           this.emit("warp-send:set-active-id", {
             data: {
