@@ -2,6 +2,8 @@
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
   <style>
     :host {
       display: block;
@@ -19,7 +21,7 @@
       </localized-content>
     </h3>
     <div>
-      <p-button>
+      <p-button on:click="shadow.$('#file-input').ele.click()">
         <n-local-icon
           name="file"
           slot="prefix"
@@ -31,6 +33,15 @@
           <span lang="ja"> ファイル </span>
         </localized-content>
       </p-button>
+
+      <input
+        type="file"
+        id="file-input"
+        on:change="fileChange"
+        style="display: none"
+        multiple
+      />
+
       <p-button disabled>
         <n-local-icon
           name="folder"
@@ -63,13 +74,69 @@
         <span lang="ja"> デバイスに送信 </span>
       </localized-content>
     </h3>
+    <p-list>
+      <o-fill :value="devices">
+        <p-list-item
+          button
+          on:click="$host.selectDevice($data)"
+          attr:disabled="$host.userDisabled($data)"
+        >
+          <n-user-avatar
+            :userid="$data.userId"
+            slot="prefix"
+            style="width: 32px; height: 32px"
+          ></n-user-avatar>
+          <div>{{$data.userCard.name}}</div>
+          <div
+            style="
+              font-size: 12px;
+              color: var(--md-sys-color-normal);
+              word-break: break-all;
+            "
+          >
+            {{$data.userId}}
+          </div>
+        </p-list-item>
+      </o-fill>
+    </p-list>
   </div>
   <script>
     export const parent = "./layout.html";
 
-    export default async () => {
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      localUser.connectAllServers();
+
       return {
-        data: {},
+        data: {
+          devices: [], // 我的所有设备
+          inWarpUsers: [], // 正在 Warp 中的用户
+          selectedDevice: null, // 选中的设备
+        },
+        proto: {
+          selectDevice(device) {
+            if (this.userDisabled(device)) return;
+            this.selectedDevice = device;
+          },
+          userDisabled(device) {
+            return !this.inWarpUsers.find(
+              (item) => item.fromUserId === device.userId
+            );
+          },
+          fileChange(e) {
+            const files = Array.from(e.target.files);
+
+            debugger;
+          },
+          async loadDevices() {
+            const devices = await localUser.myDevices();
+
+            this.devices = devices;
+            console.log(devices);
+          },
+        },
         attached() {
           this.emit("warp-send:set-active-id", {
             data: {
@@ -77,6 +144,48 @@
             },
             composed: true,
           });
+
+          this._r_cancel = localUser.register(
+            `warp-send-radiate`,
+            ({ fromUserSessionId, fromUserId, data }) => {
+              if (data.online === true) {
+                // 确保不会重复
+                if (
+                  this.inWarpUsers.find(
+                    (item) => item.fromUserId === fromUserId
+                  )
+                ) {
+                  return;
+                }
+
+                this.inWarpUsers.push({
+                  fromUserSessionId,
+                  fromUserId,
+                });
+              } else if (data.online === false) {
+                // 删除
+                const idx = this.inWarpUsers.findIndex(
+                  (item) => item.fromUserId === fromUserId
+                );
+
+                if (this.selectedDevice.fromUserId === fromUserId) {
+                  this.selectedDevice = null;
+                }
+
+                if (idx !== -1) this.inWarpUsers.splice(idx, 1);
+              }
+            }
+          );
+
+          this.loadDevices();
+
+          // TODO: 打开的时候，广播一次自己的应用状态
+          localUser.broadcast("warp-send-radiate", {
+            search: true,
+          });
+        },
+        detached() {
+          this._r_cancel && this._r_cancel();
         },
       };
     };

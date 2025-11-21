@@ -82,6 +82,7 @@
       const localUser = await createUser();
       const { mount } = await load("/packages/fs/main.js");
 
+      localUser.connectAllServers();
       const userInfo = await localUser.info();
 
       return {
@@ -107,6 +108,28 @@
               activeId: "received",
             },
             composed: true,
+          });
+
+          // 广播一次自己的应用状态
+          localUser.broadcast("warp-send-radiate", {
+            online: true,
+          });
+
+          this._r_cancel = localUser.register(
+            `warp-send-radiate`,
+            ({ fromUserSessionId, fromUserId, data }) => {
+              if (data.search === true) {
+                // 有设备正在查找，广播一次自己的应用状态
+                localUser.broadcast("warp-send-radiate", {
+                  online: true,
+                });
+              }
+            }
+          );
+        },
+        detached() {
+          localUser.broadcast("warp-send-radiate", {
+            online: false,
           });
         },
       };

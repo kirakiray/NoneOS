@@ -216,6 +216,12 @@ export class LocalUser extends BaseUser {
     Promise.all(
       myDevices.map(async (device) => {
         const remoteUser = await this.connectUser(device.userId);
+
+        if (!remoteUser.mode) {
+          // 如果没在线，尝试先等待
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+
         remoteUser.trigger(name, data).catch(() => null); // 忽略连接失败的错误
       })
     );
