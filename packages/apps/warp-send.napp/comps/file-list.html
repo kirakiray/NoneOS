@@ -1,6 +1,7 @@
 <template component>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -8,7 +9,7 @@
   </style>
 
   <p-list>
-    <o-fill :value="sfiles">
+    <o-fill :value="files">
       <p-list-item>
         <n-local-icon
           name="file"
@@ -40,16 +41,10 @@
     export default async ({ load }) => {
       return {
         tag: "warp-file-list",
-        attrs: {
-          more: null,
-        },
         data: {
           files: null,
         },
         proto: {
-          get sfiles() {
-            return this.files.slice(0, parseInt(this.more));
-          },
           clickRemote(data, index) {
             this.files.splice(index, 1);
           },

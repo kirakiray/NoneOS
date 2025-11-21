@@ -20,17 +20,18 @@
         <span lang="en">Select Send</span>
         <span lang="ja"> 送信方法を選択 </span>
       </localized-content>
-      <o-if :value="files.length > 0">
-        (<span style="color: var(--md-sys-color-primary)">
-          {{files.length}} </span
-        >)
-      </o-if>
     </h3>
     <div
       style="padding: 0 0 8px 0"
       style.display="files.length > 0 ? 'block' : 'none'"
     >
-      <warp-file-list :files="files" more="5"></warp-file-list>
+      <warp-file-list
+        :files="files"
+        style="max-height: 190px; overflow: auto"
+      ></warp-file-list>
+      <div style="padding: 8px; font-size: 14px">
+        {{files.length}} 个文件，共 {{getFileSize(totalSize)}}
+      </div>
     </div>
     <div>
       <p-button
@@ -166,6 +167,7 @@
           inWarpUsers: [], // 正在 Warp 中的用户
           selectedDevice: null, // 选中的设备
           files: [], // 准备要发送的文件
+          totalSize: 0, // 所有文件的总大小
         },
         proto: {
           selectDevice(device) {
@@ -180,11 +182,16 @@
           fileChange(e) {
             const files = Array.from(e.target.files);
 
-            this.files = files.map((file) => ({
-              name: file.name,
-              size: file.size,
-              _file: file,
-            }));
+            this.totalSize = 0;
+
+            this.files = files.map((file) => {
+              this.totalSize += file.size;
+              return {
+                name: file.name,
+                size: file.size,
+                _file: file,
+              };
+            });
           },
           async loadDevices() {
             const devices = await localUser.myDevices();
@@ -194,6 +201,16 @@
           },
           sendFiles() {
             debugger;
+          },
+
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
           },
         },
         attached() {
