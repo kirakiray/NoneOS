@@ -1,0 +1,69 @@
+<template component>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+
+  <p-list>
+    <o-fill :value="sfiles">
+      <p-list-item>
+        <n-local-icon
+          name="file"
+          slot="prefix"
+          style="
+            display: block;
+            margin-right: 4px;
+            font-size: 18px;
+            color: var(--md-sys-color-primary);
+          "
+        ></n-local-icon>
+        <div style="display: flex; align-items: center; margin-right: 8px">
+          {{$data.name}}
+          <div style="margin-left: auto">{{$host.getFileSize($data.size)}}</div>
+        </div>
+        <p-button
+          icon
+          size="mini"
+          slot="suffix"
+          color="error"
+          on:click="$host.clickRemote($data,$index)"
+        >
+          <n-local-icon name="delete"></n-local-icon>
+        </p-button>
+      </p-list-item>
+    </o-fill>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "warp-file-list",
+        attrs: {
+          more: null,
+        },
+        data: {
+          files: null,
+        },
+        proto: {
+          get sfiles() {
+            return this.files.slice(0, parseInt(this.more));
+          },
+          clickRemote(data, index) {
+            this.files.splice(index, 1);
+          },
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
+          },
+        },
+      };
+    };
+  </script>
+</template>
