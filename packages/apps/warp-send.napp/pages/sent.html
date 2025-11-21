@@ -13,25 +13,73 @@
     }
   </style>
   <div class="container">
-    <h3>
+    <h3 style="margin-bottom: 8px">
       <localized-content>
         <span lang="cn">选择发送</span>
         <span lang="en">Select Send</span>
         <span lang="ja"> 送信方法を選択 </span>
       </localized-content>
+      <o-if :value="files.length > 0">
+        (<span style="color: var(--md-sys-color-primary)">
+          {{files.length}} </span
+        >)
+      </o-if>
     </h3>
+    <div
+      style="padding: 0 0 8px 0"
+      style.display="files.length > 0 ? 'block' : 'none'"
+    >
+      <p-list>
+        <o-fill :value="files">
+          <p-list-item>
+            <n-local-icon
+              name="file"
+              slot="prefix"
+              style="
+                display: block;
+                margin-right: 4px;
+                font-size: 18px;
+                color: var(--md-sys-color-primary);
+              "
+            ></n-local-icon>
+            {{$data.name}}
+            <p-button
+              icon
+              size="mini"
+              slot="suffix"
+              color="error"
+              on:click="$host.files.splice($index,1)"
+            >
+              <n-local-icon name="delete"></n-local-icon>
+            </p-button>
+          </p-list-item>
+        </o-fill>
+      </p-list>
+    </div>
     <div>
-      <p-button on:click="shadow.$('#file-input').ele.click()">
+      <p-button
+        variant="outlined"
+        on:click="shadow.$('#file-input').ele.click()"
+      >
         <n-local-icon
           name="file"
           slot="prefix"
           style="display: block; margin-right: 4px"
         ></n-local-icon>
-        <localized-content>
-          <span lang="cn">文件</span>
-          <span lang="en">File</span>
-          <span lang="ja"> ファイル </span>
-        </localized-content>
+        <o-if :value="files.length === 0">
+          <localized-content>
+            <span lang="cn">选择文件</span>
+            <span lang="en">Select Files</span>
+            <span lang="ja"> ファイルを選択 </span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">继续添加文件</span>
+            <span lang="en">Add More Files</span>
+            <span lang="ja"> さらにファイルを追加 </span>
+          </localized-content>
+        </o-else>
       </p-button>
 
       <input
@@ -42,7 +90,7 @@
         multiple
       />
 
-      <p-button disabled>
+      <p-button disabled variant="outlined">
         <n-local-icon
           name="folder"
           slot="prefix"
@@ -54,7 +102,7 @@
           <span lang="ja"> フォルダー </span>
         </localized-content>
       </p-button>
-      <p-button disabled>
+      <p-button disabled variant="outlined">
         <n-local-icon
           name="text"
           slot="prefix"
@@ -67,6 +115,7 @@
         </localized-content>
       </p-button>
     </div>
+
     <h3>
       <localized-content>
         <span lang="cn">到设备</span>
@@ -113,6 +162,18 @@
         </p-list-item>
       </o-fill>
     </p-list>
+    <div style="padding: 12px 0">
+      <p-button
+        on:click="sendFiles"
+        attr:disabled="!selectedDevice || files.length === 0"
+      >
+        <localized-content>
+          <span lang="cn">确认发送</span>
+          <span lang="en">Send</span>
+          <span lang="ja"> 送信 </span>
+        </localized-content>
+      </p-button>
+    </div>
   </div>
   <script>
     export const parent = "./layout.html";
@@ -128,6 +189,7 @@
           devices: [], // 我的所有设备
           inWarpUsers: [], // 正在 Warp 中的用户
           selectedDevice: null, // 选中的设备
+          files: [], // 准备要发送的文件
         },
         proto: {
           selectDevice(device) {
@@ -142,13 +204,20 @@
           fileChange(e) {
             const files = Array.from(e.target.files);
 
-            debugger;
+            this.files = files.map((file) => ({
+              name: file.name,
+              size: file.size,
+              _file: file,
+            }));
           },
           async loadDevices() {
             const devices = await localUser.myDevices();
 
             this.devices = devices;
             console.log(devices);
+          },
+          sendFiles() {
+            debugger;
           },
         },
         attached() {
