@@ -74,12 +74,21 @@
         <span lang="ja"> デバイスに送信 </span>
       </localized-content>
     </h3>
+    <style>
+      [name="tick-circle"] {
+        display: none;
+      }
+      [active-item] [name="tick-circle"] {
+        display: block;
+      }
+    </style>
     <p-list>
       <o-fill :value="devices">
         <p-list-item
           button
           on:click="$host.selectDevice($data)"
           attr:disabled="$host.userDisabled($data)"
+          attr:active-item="$host.selectedDevice?.userId === $data.userId"
         >
           <n-user-avatar
             :userid="$data.userId"
@@ -96,6 +105,11 @@
           >
             {{$data.userId}}
           </div>
+          <n-local-icon
+            name="tick-circle"
+            slot="suffix"
+            style="color: var(--md-sys-color-success); font-size: 20px"
+          ></n-local-icon>
         </p-list-item>
       </o-fill>
     </p-list>
@@ -118,7 +132,7 @@
         proto: {
           selectDevice(device) {
             if (this.userDisabled(device)) return;
-            this.selectedDevice = device;
+            this.selectedDevice = { ...device };
           },
           userDisabled(device) {
             return !this.inWarpUsers.find(
