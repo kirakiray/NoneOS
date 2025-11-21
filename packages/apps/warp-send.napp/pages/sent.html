@@ -155,6 +155,8 @@
   <script>
     export const parent = "./layout.html";
 
+    const cacheFiles = []; // 缓存的文件，防止页面跳转后被清除
+
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
@@ -166,7 +168,7 @@
           devices: [], // 我的所有设备
           inWarpUsers: [], // 正在 Warp 中的用户
           selectedDevice: null, // 选中的设备
-          files: [], // 准备要发送的文件
+          files: cacheFiles, // 准备要发送的文件
           totalSize: 0, // 所有文件的总大小
         },
         proto: {
@@ -180,18 +182,25 @@
             );
           },
           fileChange(e) {
-            const files = Array.from(e.target.files);
-
-            this.totalSize = 0;
-
-            this.files = files.map((file) => {
-              this.totalSize += file.size;
-              return {
-                name: file.name,
-                size: file.size,
-                _file: file,
-              };
+            Array.from(e.target.files).forEach((file) => {
+              // 去重并添加到files
+              if (
+                !this.files.find(
+                  (item) => item.name === file.name && item.size === file.size
+                )
+              ) {
+                this.files.push({
+                  name: file.name,
+                  size: file.size,
+                  _file: file,
+                });
+              }
             });
+
+            cacheFiles.splice(0, 100000, ...this.files); // 缓存文件，防止页面跳转后被清除
+
+            // 重新计算总大小
+            this.totalSize = this.files.reduce((acc, cur) => acc + cur.size, 0);
           },
           async loadDevices() {
             const devices = await localUser.myDevices();
@@ -202,7 +211,6 @@
           sendFiles() {
             debugger;
           },
-
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
             let index = 0;
