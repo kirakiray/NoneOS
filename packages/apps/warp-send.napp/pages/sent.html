@@ -155,7 +155,7 @@
   <script>
     export const parent = "./layout.html";
 
-    const cacheFiles = []; // 缓存的文件，防止页面跳转后被清除
+    export const cacheFiles = []; // 缓存的文件，防止页面跳转后被清除
 
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
@@ -209,7 +209,9 @@
             console.log(devices);
           },
           sendFiles() {
-            debugger;
+            this.goto(
+              `./sending.html?to=${this.selectedDevice.userId}&tosession=${this.selectedDevice.fromUserSessionId}`
+            );
           },
           getFileSize(b) {
             const units = ["B", "KB", "MB", "GB", "TB"];
