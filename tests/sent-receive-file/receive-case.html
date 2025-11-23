@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viiniewport" content="width=device-width, initial-scale=1.0" />
+    <title>receive case</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+  </head>
+  <body>
+    <script type="module">
+        const load = lm(import.meta);
+
+        const { createUser } = await load("/packages/user/main.js");
+        const localUser = await createUser("test-user2");
+    </script>
+  </body>
+</html>

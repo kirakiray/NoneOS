@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sent file</title>
+    <script src="/packages/libs/ofa/ofa.js"></script>
+    <script src="/packages/pui/public/init.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      const load = lm(import.meta);
+
+      const { cacheFiles } = await load(
+        "/packages/apps/warp-send.napp/pages/sent.html"
+      );
+
+      // 写一个js函数，传入大小，生成随机的file对象
+      const createFile = (size) => {
+        // 生成随机字节数组
+        // crypto.getRandomValues 单次最大 65536 字节，超过需分块
+        const buffer = new Uint8Array(size);
+        for (let offset = 0; offset < size; offset += 65534) {
+          crypto.getRandomValues(buffer.subarray(offset, offset + 65534));
+        }
+        const file = new File([buffer], `file${Date.now()}.txt`, {
+          type: "text/plain",
+        });
+
+        return file;
+      };
+
+      // 随机生成3个1mb 的file
+      const files = [];
+      for (let i = 0; i < 3; i++) {
+        files.push({
+          name: `file${i}.txt`,
+          size: 1024 * 1024,
+          _file: createFile(1024 * 1024),
+        });
+      }
+
+      // 加入队列
+      cacheFiles.push(...files);
+
+      // 跳转到page页面
+      $("body").push(
+        `<o-page src="/packages/apps/warp-send.napp/pages/sending.html?localname=test-user1" style="width:320px;height:480px;"></o-page>`
+      );
+    </script>
+  </body>
+</html>

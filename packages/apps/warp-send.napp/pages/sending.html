@@ -64,8 +64,13 @@
 
     import { setting } from "/packages/fs/fs-remote/file.js";
 
-    export default async ({ load }) => {
+    export default async ({ load, query }) => {
       const { cacheFiles } = await load("./sent.html");
+
+      const { to, tosession, localname } = query;
+
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser(localname || undefined);
 
       return {
         data: {

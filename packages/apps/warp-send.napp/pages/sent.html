@@ -4,6 +4,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
   <style>
     :host {
@@ -121,7 +122,13 @@
             slot="prefix"
             style="width: 32px; height: 32px"
           ></n-user-avatar>
-          <div>{{$data.userCard.name}}</div>
+          <div style="display: flex; align-items: center">
+            {{$data.userCard.name}}
+            <n-user-state
+              :userid="$data.userId"
+              style="margin-left: 4px"
+            ></n-user-state>
+          </div>
           <div
             style="
               font-size: 12px;
@@ -209,8 +216,12 @@
             console.log(devices);
           },
           sendFiles() {
+            const targetWarpUser = this.inWarpUsers.find(
+              (e) => e.fromUserId === this.selectedDevice.userId
+            );
+
             this.goto(
-              `./sending.html?to=${this.selectedDevice.userId}&tosession=${this.selectedDevice.fromUserSessionId}`
+              `./sending.html?to=${this.selectedDevice.userId}&tosession=${targetWarpUser.fromUserSessionId}`
             );
           },
           getFileSize(b) {
