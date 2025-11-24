@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>sent file</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <script src="/packages/pui/public/init.js" type="module"></script>
+  </head>
+  <body>
+    <iframe
+      src="./receive-case.html"
+      frameborder="0"
+      style="width: 400px; height: 480px; margin-bottom: 16px"
+    ></iframe>
+    <script type="module">
+      const load = lm(import.meta);
+
+      const { cacheFiles } = await load(
+        "/packages/apps/warp-send.napp/pages/sent.html"
+      );
+
+      {
+        // 确保 test-user1 和 test-user2 互相授权设备证书
+        const { createUser } = await load("/packages/user/main.js");
+
+        const testUser1 = await createUser({ user: "test-user1" });
+        const testUser2 = await createUser({ user: "test-user2" });
+
+        // 初始化证书管理器
+        const certManager1 = await testUser1.certManager();
+        const certManager2 = await testUser2.certManager();
+
+        // 相互授权设备权限
+        const cert1 = await certManager2.issue({
+          userId: testUser1.userId,
+          role: "device",
+        });
+        await certManager1.save(cert1);
+
+        const cert2 = await certManager1.issue({
+          userId: testUser2.userId,
+          role: "device",
+        });
+        await certManager2.save(cert2);
+      }
+
+      // 写一个js函数，传入大小，生成随机的file对象
+      const createFile = (size) => {
+        // 生成随机字节数组
+        // crypto.getRandomValues 单次最大 65536 字节，超过需分块
+        const buffer = new Uint8Array(size);
+        for (let offset = 0; offset < size; offset += 65534) {
+          crypto.getRandomValues(buffer.subarray(offset, offset + 65534));
+        }
+        const file = new File([buffer], `file${Date.now()}.txt`, {
+          type: "text/plain",
+        });
+
+        return file;
+      };
+
+      // 随机生成3个1mb 的file
+      const files = [];
+      for (let i = 0; i < 3; i++) {
+        files.push({
+          name: `file${i}.txt`,
+          size: 1024 * 1024,
+          _file: createFile(1024 * 1024),
+        });
+      }
+
+      // 加入队列
+      cacheFiles.push(...files);
+
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      // 获取iframe的相应用户数据
+      const iframe = document.querySelector("iframe");
+      const iframeWindow = iframe.contentWindow;
+
+      const receivedUser = iframeWindow.localUser;
+
+      // 跳转到page页面
+      $("body").push(
+        `<o-page src="/packages/apps/warp-send.napp/pages/sending.html?localname=test-user1&userId=${receivedUser.userId}&sessionId=${receivedUser.sessionId}" style="width:320px;height:480px;"></o-page>`
+      );
+    </script>
+  </body>
+</html>

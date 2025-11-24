@@ -6,7 +6,12 @@
   </style>
   接受中...
   <script>
-    export default async ({ load }) => {
+    export default async ({ load, query }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser({
+        user: query.localname,
+      });
+
       return {
         data: {
           files: [],

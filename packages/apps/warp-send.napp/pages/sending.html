@@ -70,7 +70,11 @@
       const { to, tosession, localname } = query;
 
       const { createUser } = await load("/packages/user/main.js");
-      const localUser = await createUser(localname || undefined);
+      const localUser = await createUser({
+        user: query.localname,
+      });
+
+      await localUser.connectAllServers();
 
       return {
         data: {
@@ -123,7 +127,21 @@
             // 切换到发送步骤
             this.step = 2;
 
-            debugger;
+            // 通知对方接受文件
+            const remoteUser = await localUser.connectUser(query.userId);
+
+            console.log("userId", query.userId);
+            console.log("sessionId", query.sessionId);
+
+            await remoteUser.trigger(`warp-send-radiate`, {
+              sessionId: query.sessionId,
+              received: "asdasd",
+            });
+
+            // // 广播给目标用户
+            // localUser.broadcast("warp-send-radiate", {
+            //   received: query.sessionId,
+            // });
           },
         },
         async attached() {
