@@ -24,7 +24,7 @@
         <span lang="en">Handshake server</span>
         <span lang="ja">ハンドシェイクサーバー</span>
       </localized-content>
-      <span style="color: var(--md-sys-color-primary)"> {{url}} </span>
+      <span style="color: var(--md-sys-color-primary)"> {{urlHost}} </span>
       <localized-content>
         <span lang="cn">已经存在</span>
         <span lang="en">already exists</span>
@@ -39,7 +39,7 @@
         <span lang="en">Confirm to add</span>
         <span lang="ja">追加しますか</span>
       </localized-content>
-      <span style="color: var(--md-sys-color-primary)"> {{url}} </span>
+      <span style="color: var(--md-sys-color-primary)"> {{urlHost}} </span>
       <localized-content>
         <span lang="cn">握手服务器添加到当前系统吗？</span>
         <span lang="en">handshake server to the current system?</span>
@@ -81,6 +81,9 @@
           exited: false,
         },
         proto: {
+          get urlHost() {
+            return new URL(url).host;
+          },
           addServer() {
             serverManager.data.push({ url });
             this.exited = true;
