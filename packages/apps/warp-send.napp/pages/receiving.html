@@ -21,6 +21,19 @@
         async attached() {
           const remoteUser = await localUser.connectUser(query.userId);
 
+          this._cancel = remoteUser.bind("receive-data", (data) => {
+            console.log("receive-data", data);
+          });
+
+          const defaultDir = await this.app.dedicatedHandle();
+
+          const taskDir = await defaultDir.get(query.taskHash, {
+            create: "dir",
+          });
+
+          let mainData = await taskDir.get("main.json");
+          mainData = await mainData.json();
+
           debugger;
         },
         detached() {

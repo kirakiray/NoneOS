@@ -120,7 +120,7 @@
 
           this._r_cancel = localUser.register(
             `warp-send-radiate`,
-            ({ fromUserSessionId, fromUserId, data }) => {
+            async ({ fromUserSessionId, fromUserId, data }) => {
               if (data.search === true) {
                 // 有设备正在查找，广播一次自己的应用状态
                 localUser.broadcast("warp-send-radiate", {
@@ -136,6 +136,21 @@
                 if (query.localname) {
                   path += `&localname=${query.localname}`;
                 }
+
+                // 写入临时项目目录
+                const defaultDir = await this.app.dedicatedHandle();
+
+                // 创建对应的目录
+                const taskDir = await defaultDir.get(taskHash, {
+                  create: "dir",
+                });
+
+                // 写入主文件数据
+                const mainFile = await taskDir.get("main.json", {
+                  create: "file",
+                });
+
+                await mainFile.write(JSON.stringify(data));
 
                 this.goto(path);
               }
