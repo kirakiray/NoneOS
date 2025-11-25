@@ -121,9 +121,9 @@
             cacheFiles.splice(0, cacheFiles.length);
 
             // 进入发送环节
-            this.sendFiles();
+            this.sendFiles({ taskHash });
           },
-          async sendFiles() {
+          async sendFiles({ taskHash }) {
             // 切换到发送步骤
             this.step = 2;
 
@@ -133,15 +133,11 @@
             console.log("userId", query.userId);
             console.log("sessionId", query.sessionId);
 
+            // 给目标用户传播事件
             await remoteUser.trigger(`warp-send-radiate`, {
-              sessionId: query.sessionId,
-              received: "asdasd",
+              received: query.sessionId,
+              taskHash,
             });
-
-            // // 广播给目标用户
-            // localUser.broadcast("warp-send-radiate", {
-            //   received: query.sessionId,
-            // });
           },
         },
         async attached() {
