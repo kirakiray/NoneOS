@@ -121,22 +121,26 @@
             cacheFiles.splice(0, cacheFiles.length);
 
             // 进入发送环节
-            this.sendFiles({ taskHash });
+            this.sendFiles({ taskHash, files: this._files });
           },
-          async sendFiles({ taskHash }) {
+          async sendFiles({ taskHash, files }) {
             // 切换到发送步骤
             this.step = 2;
 
             // 通知对方接受文件
             const remoteUser = await localUser.connectUser(query.userId);
 
-            console.log("userId", query.userId);
-            console.log("sessionId", query.sessionId);
-
             // 给目标用户传播事件
             await remoteUser.trigger(`warp-send-radiate`, {
-              received: query.sessionId,
-              taskHash,
+              received: query.sessionId, // 目标用户的sessionId
+              taskHash, // 任务的hash值
+              files: files.map((e) => {
+                return {
+                  name: e.name,
+                  size: e.size,
+                  hash: e.hash,
+                };
+              }),
             });
           },
         },

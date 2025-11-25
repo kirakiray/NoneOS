@@ -12,9 +12,19 @@
         user: query.localname,
       });
 
+      await localUser.connectAllServers();
+
       return {
         data: {
           files: [],
+        },
+        async attached() {
+          const remoteUser = await localUser.connectUser(query.userId);
+
+          debugger;
+        },
+        detached() {
+          // this._cancel && this._cancel();
         },
       };
     };

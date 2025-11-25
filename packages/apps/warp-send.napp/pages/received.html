@@ -131,9 +131,7 @@
 
                 const { taskHash } = data;
 
-                console.log("taskHash", taskHash);
-
-                let path = `./receiving.html?taskHash=${taskHash}`;
+                let path = `./receiving.html?taskHash=${taskHash}&userId=${fromUserId}`;
 
                 if (query.localname) {
                   path += `&localname=${query.localname}`;

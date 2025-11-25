@@ -401,6 +401,7 @@ export class LocalUser extends BaseUser {
           ).catch(() => null);
 
           if (!userData) {
+            this.#remotes[userId] = null;
             throw new Error("未能在任何在线服务器上找到该用户，连接失败");
           }
 
