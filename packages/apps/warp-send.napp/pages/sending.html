@@ -57,15 +57,11 @@
   </div>
 
   <script>
-    import {
-      getFileChunkHashesAsync,
-      getHash,
-    } from "/packages/util/hash/main.js";
-
-    import { setting } from "/packages/fs/fs-remote/file.js";
-
     export default async ({ load, query }) => {
       const { cacheFiles } = await load("./sent.html");
+      const { initSendTask, readySendTask } = await load(
+        "../util/create-task.js"
+      );
 
       const { to, tosession, localname } = query;
 
@@ -78,51 +74,13 @@
 
       return {
         data: {
-          waitSendFiles: [],
           _files: [],
-          step: 2, // 1: 计算hash值, 2: 发送文件，3: 完成
+          step: 1, // 1: 计算hash值, 2: 发送文件，3: 完成
           calculatingHashFileName: null, // 正在计算hash的文件名
           calculateHashCount: 0, // 已计算hash的文件数量
           fileCount: cacheFiles.length, // 文件总数
         },
         proto: {
-          async getHashes() {
-            // 所有的待发送文件
-            this._files = cacheFiles.map((file) => ({
-              name: file.name,
-              size: file.size,
-              _file: file._file,
-            }));
-
-            // 计算所有文件的hash
-            for (const file of this._files) {
-              this.calculatingHashFileName = file.name;
-              file.hashes = await getFileChunkHashesAsync(file._file, {
-                chunkSize: setting.chunkSize,
-              });
-
-              // 根据hashes计算文件的hash
-              file.hash = await getHash(file.hashes.join(""));
-
-              this.calculateHashCount++;
-            }
-
-            // 排序size并计算任务的ID
-            const filesSortedBySize = this._files.sort(
-              (a, b) => b.size - a.size
-            );
-
-            // 根据 hash 计算总任务的hash
-            const taskHash = await getHash(
-              filesSortedBySize.map((file) => file.hash).join("")
-            );
-
-            // 清空待发送文件
-            cacheFiles.splice(0, cacheFiles.length);
-
-            // 进入发送环节
-            this.sendFiles({ taskHash, files: this._files });
-          },
           async sendFiles({ taskHash, files }) {
             // 切换到发送步骤
             this.step = 2;
@@ -132,6 +90,7 @@
 
             // 给目标用户传播事件
             await remoteUser.trigger(`warp-send-radiate`, {
+              type: "start-send",
               received: query.sessionId, // 目标用户的sessionId
               taskHash, // 任务的hash值
               files: files.map((e) => {
@@ -142,11 +101,34 @@
                 };
               }),
             });
+
+            // 初始化发送任务
+            await initSendTask({
+              localUser,
+              taskHash,
+              files,
+            });
           },
         },
         async attached() {
           if (cacheFiles.length) {
-            this.getHashes();
+            // 先准备发送任务前的数据计算
+            const { files, taskHash } = await readySendTask(
+              cacheFiles,
+              ({ calculatingHashFileName, calculateHashCount }) => {
+                // 更新进度
+                this.calculatingHashFileName = calculatingHashFileName;
+                this.calculateHashCount = calculateHashCount;
+              }
+            );
+
+            debugger;
+
+            // 进入发送环节
+            this.sendFiles({ taskHash, files });
+
+            // 清空待发送文件
+            cacheFiles.splice(0, cacheFiles.length);
           }
         },
       };

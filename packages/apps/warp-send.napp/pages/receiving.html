@@ -8,6 +8,8 @@
   <script>
     export default async ({ load, query }) => {
       const { createUser } = await load("/packages/user/main.js");
+      const { initReceiveTask } = await load("../util/create-task.js");
+
       const localUser = await createUser({
         user: query.localname,
       });
@@ -19,25 +21,19 @@
           files: [],
         },
         async attached() {
-          const remoteUser = await localUser.connectUser(query.userId);
-
-          this._cancel = remoteUser.bind("receive-data", (data) => {
-            console.log("receive-data", data);
+          const { cancel } = await initReceiveTask({
+            localUser,
+            userId: query.userId,
+            taskHash: query.taskHash,
           });
 
-          const defaultDir = await this.app.dedicatedHandle();
-
-          const taskDir = await defaultDir.get(query.taskHash, {
-            create: "dir",
-          });
-
-          let mainData = await taskDir.get("main.json");
-          mainData = await mainData.json();
-
-          debugger;
+          this._cancel = cancel;
+          if (!this.ele.isConnected) {
+            cancel();
+          }
         },
         detached() {
-          // this._cancel && this._cancel();
+          this._cancel && this._cancel();
         },
       };
     };

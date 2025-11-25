@@ -88,6 +88,8 @@
       await localUser.connectAllServers();
       const userInfo = await localUser.info();
 
+      const { saveTask } = await load("../util/create-task.js");
+
       return {
         data: {
           userName: userInfo.name,
@@ -126,31 +128,18 @@
                 localUser.broadcast("warp-send-radiate", {
                   online: true,
                 });
-              } else if (data.received === localUser.sessionId) {
+              } else if (
+                data.received === localUser.sessionId &&
+                data.type === "start-send"
+              ) {
                 // 收到目标用户的确认，开始进入接受文件的环节
+                await saveTask(data);
 
-                const { taskHash } = data;
-
-                let path = `./receiving.html?taskHash=${taskHash}&userId=${fromUserId}`;
+                let path = `./receiving.html?taskHash=${data.taskHash}&userId=${fromUserId}`;
 
                 if (query.localname) {
                   path += `&localname=${query.localname}`;
                 }
-
-                // 写入临时项目目录
-                const defaultDir = await this.app.dedicatedHandle();
-
-                // 创建对应的目录
-                const taskDir = await defaultDir.get(taskHash, {
-                  create: "dir",
-                });
-
-                // 写入主文件数据
-                const mainFile = await taskDir.get("main.json", {
-                  create: "file",
-                });
-
-                await mainFile.write(JSON.stringify(data));
 
                 this.goto(path);
               }
