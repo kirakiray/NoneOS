@@ -139,7 +139,11 @@
                 parts[data.partIndex] = data.filesPart;
 
                 // 已收齐全部分片
-                if (parts.length === data.totalPart) {
+                // 确保 parts 中没有 undefined
+                if (
+                  parts.length === data.totalPart &&
+                  parts.every((p) => p !== undefined)
+                ) {
                   const fileContent = parts.join("");
                   const files = JSON.parse(fileContent);
 

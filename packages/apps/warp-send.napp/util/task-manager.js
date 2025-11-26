@@ -126,8 +126,8 @@ export const startSendTask = async ({
     (e) => {
       console.log("发送任务开始:", localUser, taskHash, files);
       sessionId = e.fromUserSessionId;
-      sendFileChunks();
       unsubscribeTaskStarter();
+      sendFileChunks(); // 执行发送任务
     }
   );
 };
@@ -183,34 +183,49 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
 
     const tempDir = await get("local/temp/received", { create: "dir" });
 
-    const taskDir = await tempDir.get(taskHash, {
-      create: "dir",
+    const taskDir = await tempDir.get(`${taskHash}`, {
+      // create: "dir",
     });
-
-    const unsubscribeDataListener = localUser.bind("receive-data", (e) => {
-      const { data, fromUserSessionId, fromUerId } = e.detail;
-
-      if (data.kind === "file-chunk") {
-        // 返回收到信息了
-        remoteUser.post(
-          {
-            kind: "ack",
-            taskHash,
-            fileHash: data.fileHash,
-            chunkHash: data.chunkHash,
-          },
-          fromUserSessionId
-        );
-
-        console.log("接收数据", data);
-      }
-    });
-
-    // 通知对方可以开始了
-    remoteUser.trigger(`start-send-task-${taskHash}-${localUser.userId}`);
 
     let mainDataFile = await taskDir.get("main.json");
     const mainData = await mainDataFile.json();
+
+    const unsubscribeDataListener = localUser.bind(
+      "receive-data",
+      async (e) => {
+        const { data, fromUserSessionId, fromUerId } = e.detail;
+
+        // 将块数据保存到本地
+        const fileTempDir = await taskDir.get(`__warp_temp_${data.fileHash}`, {
+          create: "dir",
+        });
+
+        // 保存块数据
+        const chunkHandle = await fileTempDir.get(data.chunkHash, {
+          create: "file",
+        });
+
+        await chunkHandle.write(data.chunk);
+
+        if (data.kind === "file-chunk") {
+          // 返回收到信息了
+          remoteUser.post(
+            {
+              kind: "ack",
+              taskHash,
+              fileHash: data.fileHash,
+              chunkHash: data.chunkHash,
+            },
+            fromUserSessionId
+          );
+
+          console.log("接收数据", data);
+        }
+      }
+    );
+
+    // 通知对方可以开始了
+    remoteUser.trigger(`start-send-task-${taskHash}-${localUser.userId}`);
 
     return {
       unsubscribe: () => {
