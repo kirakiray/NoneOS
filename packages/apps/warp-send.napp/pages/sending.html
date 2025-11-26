@@ -1,12 +1,25 @@
 <template page>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
     }
     .container {
       padding: 16px;
+    }
+    p-list-item {
+      width: 100%;
+      animation: list-item-anime 0.2s ease-in-out;
+    }
+    @keyframes list-item-anime {
+      0% {
+        height: 0px;
+      }
+      100% {
+        height: 36px;
+      }
     }
   </style>
 
@@ -47,12 +60,58 @@
           padding: 16px 0;
         "
       >
-        <n-local-icon
-          name="loading"
-          style="display: block; margin-right: 4px; font-size: 20px"
-        ></n-local-icon>
-        开始发送文件
+        <o-if :value="step === 2">
+          <n-local-icon
+            name="loading"
+            style="display: block; margin-right: 4px; font-size: 20px"
+          ></n-local-icon>
+          正在发送文件
+        </o-if>
+        <o-else>
+          <n-local-icon
+            name="tick-circle"
+            style="
+              display: block;
+              margin-right: 4px;
+              font-size: 20px;
+              color: var(--md-sys-color-success);
+            "
+          ></n-local-icon>
+          文件发送完成
+        </o-else>
       </div>
+
+      <!-- 显示发送进度 -->
+      <p-list>
+        <o-fill :value="sendingFiles" fill-key="fileHash">
+          <p-list-item>
+            <o-if :value="$data.done" slot="prefix">
+              <n-local-icon
+                name="tick-circle"
+                style="
+                  display: block;
+                  font-size: 20px;
+                  margin-right: 8px;
+                  color: var(--md-sys-color-success);
+                "
+              ></n-local-icon>
+            </o-if>
+            <o-else slot="prefix">
+              <n-local-icon
+                name="file"
+                style="
+                  display: block;
+                  font-size: 20px;
+                  margin-right: 8px;
+                  color: var(--md-sys-color-primary);
+                "
+              ></n-local-icon>
+            </o-else>
+            {{$data.name}}
+            <p-progress :value="($data.sent / $data.total) * 100"></p-progress>
+          </p-list-item>
+        </o-fill>
+      </p-list>
     </div>
   </div>
 
@@ -79,6 +138,7 @@
           calculatingHashFileName: null, // 正在计算hash的文件名
           calculateHashCount: 0, // 已计算hash的文件数量
           fileCount: cacheFiles.length, // 文件总数
+          sendingFiles: [], // 发送中的文件列表
         },
         proto: {
           async sendFiles({ taskHash, files }) {
@@ -119,15 +179,57 @@
             }
 
             // 初始化发送任务
-            await startSendTask({
+            const { unsubscribe } = await startSendTask({
               localUser,
               remoteUser,
               taskHash,
               files,
               callback: (e) => {
-                debugger;
+                // 参考接收页面的回调实现发送进度更新
+                let targetItem = this.sendingFiles.find(
+                  (item) => item.fileHash === e.fileHash
+                );
+
+                if (!targetItem) {
+                  this.sendingFiles.unshift({
+                    fileHash: e.fileHash,
+                    name: e.name,
+                    sent: 0,
+                    done: false,
+                    total: e.total,
+                  });
+
+                  targetItem = this.sendingFiles.find(
+                    (item) => item.fileHash === e.fileHash
+                  );
+                }
+
+                if (e.type === "send-chunk") {
+                  targetItem.sent = e.sent;
+                } else if (e.type === "file-sent") {
+                  targetItem.sent = targetItem.total;
+                  targetItem.done = true;
+
+                  // 检查是否所有文件都发送完成
+                  if (files.length === this.sendingFiles.length) {
+                    const allDone = this.sendingFiles.every(
+                      (item) => item.done
+                    );
+                    if (allDone) {
+                      this.step = 3; // 设置为完成状态
+                    }
+                  }
+                }
               },
             });
+
+            // 保存取消订阅函数
+            this._unsubscribe = unsubscribe;
+
+            // 如果组件已经断开连接，则取消订阅
+            if (!this.ele.isConnected) {
+              unsubscribe();
+            }
           },
         },
         async attached() {
@@ -148,6 +250,10 @@
             // 清空待发送文件
             cacheFiles.splice(0, cacheFiles.length);
           }
+        },
+        detached() {
+          // 组件断开时取消订阅
+          this._unsubscribe && this._unsubscribe();
         },
       };
     };

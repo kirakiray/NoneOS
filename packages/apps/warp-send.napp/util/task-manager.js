@@ -105,10 +105,24 @@ export const startSendTask = async ({
           return;
         }
 
+        // 调用回调函数通知开始发送块
+        if (callback) {
+          callback({
+            type: "send-chunk",
+            fileHash,
+            name: targetItem.name,
+            sent: chunkIndex, // 当前发送的块索引
+            total: targetItem.hashes.length, // 总块数
+          });
+        }
+
         const chunk = await targetItem._file.slice(
           chunkIndex * setting.chunkSize,
           (chunkIndex + 1) * setting.chunkSize
         );
+
+        // debug: 添加延迟方便调试
+        await new Promise((resolve) => setTimeout(resolve, 100));
 
         // 发送给对方
         remoteUser.post(
@@ -121,6 +135,17 @@ export const startSendTask = async ({
           },
           sessionId
         );
+
+        // 检查是否是最后一个块，如果是则调用文件发送完成的回调
+        if (chunkIndex === targetItem.hashes.length - 1 && callback) {
+          callback({
+            type: "file-sent",
+            fileHash,
+            name: targetItem.name,
+            sent: targetItem.hashes.length,
+            total: targetItem.hashes.length,
+          });
+        }
       }
     }
   });

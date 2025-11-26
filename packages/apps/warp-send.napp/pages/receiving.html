@@ -44,10 +44,7 @@
           ></n-local-icon>
         </o-else>
         {{$data.name}}
-        <p-progress
-          style="width: 100px"
-          :value="($data.loaded / $data.total) * 100"
-        ></p-progress>
+        <p-progress :value="($data.loaded / $data.total) * 100"></p-progress>
       </p-list-item>
     </o-fill>
   </p-list>
