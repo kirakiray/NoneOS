@@ -48,13 +48,15 @@
 
       // 写一个js函数，传入大小，生成随机的file对象
       const createFile = (size) => {
-        // 生成随机字节数组
-        // crypto.getRandomValues 单次最大 65536 字节，超过需分块
-        const buffer = new Uint8Array(size);
-        for (let offset = 0; offset < size; offset += 65534) {
-          crypto.getRandomValues(buffer.subarray(offset, offset + 65534));
+        // 生成随机文本内容
+        const chars =
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 ";
+        let text = "";
+        const charsLen = chars.length;
+        for (let i = 0; i < size; i++) {
+          text += chars.charAt(Math.floor(Math.random() * charsLen));
         }
-        const file = new File([buffer], `file${Date.now()}.txt`, {
+        const file = new File([text], `file${Date.now()}.txt`, {
           type: "text/plain",
         });
 

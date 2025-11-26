@@ -77,28 +77,34 @@ export const startSendTask = async ({
   // TODO: 实现发送任务初始化
   console.log("正在初始化发送任务:", { localUser, taskHash, files });
 
+  const fileMap = new Map(files.map((file) => [file.hash, file]));
+
   let sessionId = null;
 
   // 监听文件接受的情况
-  const unsubscribeAckListener = localUser.bind("receive-data", (e) => {
+  const unsubscribeAckListener = localUser.bind("receive-data", async (e) => {
     const { data, fromUserId, fromUserSessionId } = e.detail;
 
-    if (fromUserSessionId === sessionId && data.kind === "ack") {
-      const { fileHash, chunkHash } = data;
+    if (fromUserSessionId === sessionId && fromUserId === remoteUser.userId) {
+      const { fileHash, chunkHash, kind } = data;
 
-      console.log("得到返回结果:", data);
-    }
-  });
+      if (kind === "request-chunk") {
+        // 查找到目标文件，并切取块进行发送
+        const targetItem = fileMap.get(fileHash);
 
-  // 开始尽心进行发送文件
-  const sendFileChunks = async () => {
-    for (let item of files) {
-      const { _file: file, hashes, hash: fileHash } = item;
+        if (!targetItem) {
+          console.error(`未找到文件哈希值为 ${fileHash} 的文件`);
+          return;
+        }
 
-      // 进行分块操作
-      let chunkIndex = 0;
-      for (let chunkHash of hashes) {
-        const chunk = await file.slice(
+        const chunkIndex = targetItem.hashes.indexOf(chunkHash);
+
+        if (chunkIndex === -1) {
+          console.error(`未找到块哈希值为 ${chunkHash} 的文件块`);
+          return;
+        }
+
+        const chunk = await targetItem._file.slice(
           chunkIndex * setting.chunkSize,
           (chunkIndex + 1) * setting.chunkSize
         );
@@ -114,22 +120,62 @@ export const startSendTask = async ({
           },
           sessionId
         );
-
-        chunkIndex++;
       }
     }
-  };
+  });
 
-  // 这里可以添加实际的发送任务初始化逻辑，主要用来获取目标的sessionId
-  const unsubscribeTaskStarter = localUser.register(
-    `start-send-task-${taskHash}-${remoteUser.userId}`,
+  // 锁定双方的sessionId
+  const cancel = localUser.register(
+    `warp-confirm-both-session-${taskHash}-${remoteUser.userId}`,
     (e) => {
-      console.log("发送任务开始:", localUser, taskHash, files);
       sessionId = e.fromUserSessionId;
-      unsubscribeTaskStarter();
-      sendFileChunks(); // 执行发送任务
+
+      // 想对方发送确认信息
+      remoteUser.post(
+        {
+          kind: "confirm-both-session",
+          taskHash,
+        },
+        sessionId
+      );
+
+      cancel();
     }
   );
+
+  // // 开始尽心进行发送文件
+  // const sendFileChunks = async () => {
+  //   for (let item of files) {
+  //     const { _file: file, hashes, hash: fileHash } = item;
+
+  //     // 进行分块操作
+  //     let chunkIndex = 0;
+  //     for (let chunkHash of hashes) {
+  //       const chunk = await file.slice(
+  //         chunkIndex * setting.chunkSize,
+  //         (chunkIndex + 1) * setting.chunkSize
+  //       );
+
+  //       // 发送给对方
+  //       remoteUser.post(
+  //         {
+  //           kind: "file-chunk",
+  //           fileHash,
+  //           chunkHash,
+  //           taskHash,
+  //           chunk: new Uint8Array(await chunk.arrayBuffer()),
+  //         },
+  //         sessionId
+  //       );
+
+  //       chunkIndex++;
+  //     }
+  //   }
+  // };
+
+  return {
+    unsubscribe: unsubscribeAckListener,
+  };
 };
 
 /**
@@ -149,7 +195,7 @@ export const saveReceivedTask = async (taskData) => {
     });
 
     // 写入主数据文件
-    const mainDataFile = await taskDir.get("main.json", {
+    const mainDataFile = await taskDir.get("__warp_main.json", {
       create: "file",
     });
 
@@ -187,13 +233,21 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
       // create: "dir",
     });
 
-    let mainDataFile = await taskDir.get("main.json");
-    const mainData = await mainDataFile.json();
+    let sessionId = null;
 
     const unsubscribeDataListener = localUser.bind(
       "receive-data",
       async (e) => {
         const { data, fromUserSessionId, fromUerId } = e.detail;
+
+        if (
+          data.kind === "confirm-both-session" &&
+          data.taskHash === taskHash
+        ) {
+          // 确认对方的sessionId
+          sessionId = fromUserSessionId;
+          return;
+        }
 
         // 将块数据保存到本地
         const fileTempDir = await taskDir.get(`__warp_temp_${data.fileHash}`, {
@@ -205,27 +259,108 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
           create: "file",
         });
 
-        await chunkHandle.write(data.chunk);
+        const blob = new Blob([data.chunk]);
+
+        await chunkHandle.write(blob);
 
         if (data.kind === "file-chunk") {
-          // 返回收到信息了
-          remoteUser.post(
-            {
-              kind: "ack",
-              taskHash,
-              fileHash: data.fileHash,
-              chunkHash: data.chunkHash,
-            },
-            fromUserSessionId
-          );
+          const { chunkHash } = data;
 
-          console.log("接收数据", data);
+          // 返回数据
+          const chunkHandle = chunkGetter.get(chunkHash);
+
+          if (chunkHandle) {
+            chunkHandle.resolve(blob);
+          } else {
+            console.error(`未找到块哈希值为 ${chunkHash} 的文件块`);
+          }
         }
       }
     );
 
+    const chunkGetter = new Map();
+
+    // 获取块操作
+    const getChunk = async (fileHash, chunkHash) => {
+      const fileTempDir = await taskDir.get(`__warp_temp_${fileHash}`, {
+        create: "dir",
+      });
+
+      const chunkHandle = await fileTempDir.get(chunkHash);
+
+      if (chunkHandle) {
+        // TODO: 有缓存的情况下，验证chunk真实性
+        debugger;
+        // TODO: 返回chunk
+        return chunkHandle.file();
+      }
+
+      let resolve;
+      const pms = new Promise((res) => {
+        resolve = res;
+      });
+
+      // 没有chunk，从远端获取，先设置Promise，等chunk返回再resolve
+      chunkGetter.set(chunkHash, {
+        fileHash,
+        resolve,
+      });
+
+      // 发送请求
+      remoteUser.post(
+        {
+          kind: "request-chunk",
+          taskHash,
+          fileHash,
+          chunkHash,
+        },
+        sessionId
+      );
+
+      return pms;
+    };
+
+    let mainDataFile = await taskDir.get("__warp_main.json");
+
+    // 整体的项目数据
+    const mainData = await mainDataFile.json();
+
+    // 通知对方我准备好了
+    remoteUser.trigger(
+      `warp-confirm-both-session-${taskHash}-${localUser.userId}`
+    );
+
+    // 从本地文件获取参考信息，并向对方获取缺失的块信息
+    for (let item of mainData.files) {
+      const { hash: fileHash, hashes } = item;
+
+      const chunks = [];
+
+      for (let index = 0; index < hashes.length; index++) {
+        const chunkHash = hashes[index];
+        const chunk = await getChunk(fileHash, chunkHash);
+        chunks[index] = chunk;
+      }
+
+      // 合并成一个文件
+      const file = new File(chunks, item.name);
+
+      // 写入文件
+      const fileHandle = await taskDir.get(item.name, {
+        create: "file",
+      });
+      await fileHandle.write(file);
+
+      setTimeout(async () => {
+        const fileTempDir = await taskDir.get(`__warp_temp_${fileHash}`);
+
+        // 删除缓存
+        await fileTempDir.remove();
+      }, 1000);
+    }
+
     // 通知对方可以开始了
-    remoteUser.trigger(`start-send-task-${taskHash}-${localUser.userId}`);
+    // remoteUser.trigger(`start-send-task-${taskHash}-${localUser.userId}`);
 
     return {
       unsubscribe: () => {
