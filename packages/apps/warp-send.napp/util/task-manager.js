@@ -195,7 +195,7 @@ export const saveReceivedTask = async (taskData) => {
     });
 
     // 写入主数据文件
-    const mainDataFile = await taskDir.get("__warp_main.json", {
+    const mainDataFile = await tempRootDir.get(`${taskHash}.json`, {
       create: "file",
     });
 
@@ -320,7 +320,7 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
       return pms;
     };
 
-    let mainDataFile = await taskDir.get("__warp_main.json");
+    let mainDataFile = await tempDir.get(`${taskHash}.json`);
 
     // 整体的项目数据
     const mainData = await mainDataFile.json();
@@ -358,9 +358,6 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
         await fileTempDir.remove();
       }, 1000);
     }
-
-    // 通知对方可以开始了
-    // remoteUser.trigger(`start-send-task-${taskHash}-${localUser.userId}`);
 
     return {
       unsubscribe: () => {
