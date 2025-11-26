@@ -59,8 +59,8 @@
   <script>
     export default async ({ load, query }) => {
       const { cacheFiles } = await load("./sent.html");
-      const { initSendTask, readySendTask } = await load(
-        "../util/create-task.js"
+      const { startSendTask, prepareSendTask } = await load(
+        "../util/task-manager.js"
       );
 
       const { to, tosession, localname } = query;
@@ -103,7 +103,7 @@
             });
 
             // 初始化发送任务
-            await initSendTask({
+            await startSendTask({
               localUser,
               taskHash,
               files,
@@ -113,7 +113,7 @@
         async attached() {
           if (cacheFiles.length) {
             // 先准备发送任务前的数据计算
-            const { files, taskHash } = await readySendTask(
+            const { files, taskHash } = await prepareSendTask(
               cacheFiles,
               ({ calculatingHashFileName, calculateHashCount }) => {
                 // 更新进度

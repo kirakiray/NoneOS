@@ -8,7 +8,7 @@ import { getFileChunkHashesAsync, getHash } from "/packages/util/hash/main.js";
  * @param {Function} callback - 进度回调函数
  * @returns {Object} 包含taskHash和files的对象
  */
-export const readySendTask = async (files, callback) => {
+export const prepareSendTask = async (files, callback) => {
   // 将文件映射为内部格式
   const processedFiles = files.map((file) => ({
     name: file.name,
@@ -67,7 +67,7 @@ export const readySendTask = async (files, callback) => {
  * @param {string} params.taskHash - 任务哈希值
  * @param {Array} params.files - 文件数组
  */
-export const initSendTask = async ({ localUser, taskHash, files }) => {
+export const startSendTask = async ({ localUser, taskHash, files }) => {
   // TODO: 实现发送任务初始化
   console.log("正在初始化发送任务:", { localUser, taskHash, files });
   // 这里可以添加实际的发送任务初始化逻辑
@@ -77,7 +77,7 @@ export const initSendTask = async ({ localUser, taskHash, files }) => {
  * 保存已准备的接收任务
  * @param {Object} data - 要保存的任务数据
  */
-export const saveTask = async (taskData) => {
+export const saveReceivedTask = async (taskData) => {
   const { taskHash } = taskData;
 
   try {
@@ -118,7 +118,7 @@ export const saveTask = async (taskData) => {
  * @param {string} params.taskHash - 任务哈希值
  * @returns {Object} 包含取消函数的对象
  */
-export const initReceiveTask = async ({ localUser, userId, taskHash }) => {
+export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
   try {
     const remoteUser = await localUser.connectUser(userId);
 

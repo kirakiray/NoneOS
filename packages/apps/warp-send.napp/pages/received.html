@@ -88,7 +88,7 @@
       await localUser.connectAllServers();
       const userInfo = await localUser.info();
 
-      const { saveTask } = await load("../util/create-task.js");
+      const { saveReceivedTask } = await load("../util/task-manager.js");
 
       return {
         data: {
@@ -133,7 +133,7 @@
                 data.type === "start-send"
               ) {
                 // 收到目标用户的确认，开始进入接受文件的环节
-                await saveTask(data);
+                await saveReceivedTask(data);
 
                 let path = `./receiving.html?taskHash=${data.taskHash}&userId=${fromUserId}`;
 

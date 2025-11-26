@@ -8,7 +8,7 @@
   <script>
     export default async ({ load, query }) => {
       const { createUser } = await load("/packages/user/main.js");
-      const { initReceiveTask } = await load("../util/create-task.js");
+      const { startReceiveTask } = await load("../util/task-manager.js");
 
       const localUser = await createUser({
         user: query.localname,
@@ -21,7 +21,7 @@
           files: [],
         },
         async attached() {
-          const { unsubscribe } = await initReceiveTask({
+          const { unsubscribe } = await startReceiveTask({
             localUser,
             userId: query.userId,
             taskHash: query.taskHash,
