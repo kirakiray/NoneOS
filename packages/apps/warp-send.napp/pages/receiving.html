@@ -21,19 +21,19 @@
           files: [],
         },
         async attached() {
-          const { cancel } = await initReceiveTask({
+          const { unsubscribe } = await initReceiveTask({
             localUser,
             userId: query.userId,
             taskHash: query.taskHash,
           });
 
-          this._cancel = cancel;
+          this._unsubscribe = unsubscribe;
           if (!this.ele.isConnected) {
-            cancel();
+            unsubscribe();
           }
         },
         detached() {
-          this._cancel && this._cancel();
+          this._unsubscribe && this._unsubscribe();
         },
       };
     };
