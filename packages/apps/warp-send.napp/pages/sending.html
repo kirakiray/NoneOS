@@ -88,19 +88,36 @@
             // 通知对方接受文件
             const remoteUser = await localUser.connectUser(query.userId);
 
-            // 给目标用户传播事件
-            await remoteUser.trigger(`warp-send-radiate`, {
-              type: "start-send",
-              received: query.sessionId, // 目标用户的sessionId
-              taskHash, // 任务的hash值
-              files: files.map((e) => {
-                return {
-                  name: e.name,
-                  size: e.size,
-                  hash: e.hash,
-                };
-              }),
+            const realFiles = files.map((e) => {
+              return {
+                name: e.name,
+                size: e.size,
+                hash: e.hash,
+                hashes: e.hashes,
+              };
             });
+
+            const fileJSONString = JSON.stringify(realFiles);
+
+            // 按照每份大小200kb裁剪发送到对面
+            const chunkSize = 200 * 1024; // 200kb
+            const chunkCount = Math.ceil(fileJSONString.length / chunkSize);
+
+            for (let i = 0; i < chunkCount; i++) {
+              const start = i * chunkSize;
+              const end = start + chunkSize;
+
+              // 给目标用户传播事件
+              await remoteUser.trigger(`warp-send-radiate`, {
+                type: "start-send",
+                received: query.sessionId, // 目标用户的sessionId
+                taskHash, // 任务的hash值
+                // files: realFiles,
+                filesPart: fileJSONString.slice(start, end),
+                totalPart: chunkCount,
+                partIndex: i,
+              });
+            }
 
             // 初始化发送任务
             await startSendTask({

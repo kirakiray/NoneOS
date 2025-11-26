@@ -119,6 +119,7 @@
           localUser.broadcast("warp-send-radiate", {
             online: true,
           });
+          const pendingTasks = {};
 
           this._r_cancel = localUser.register(
             `warp-send-radiate`,
@@ -132,16 +133,35 @@
                 data.received === localUser.sessionId &&
                 data.type === "start-send"
               ) {
-                // 收到目标用户的确认，开始进入接受文件的环节
-                await saveReceivedTask(data);
+                // 按任务哈希缓存分片数组，首次命中则初始化
+                const parts = (pendingTasks[data.taskHash] ||= []);
 
-                let path = `./receiving.html?taskHash=${data.taskHash}&userId=${fromUserId}`;
+                parts[data.partIndex] = data.filesPart;
 
-                if (query.localname) {
-                  path += `&localname=${query.localname}`;
+                // 已收齐全部分片
+                if (parts.length === data.totalPart) {
+                  const fileContent = parts.join("");
+                  const files = JSON.parse(fileContent);
+
+                  // 拼装最终任务数据
+                  const task = {
+                    ...data,
+                    files,
+                    filesPart: undefined,
+                  };
+
+                  // 保存任务数据
+                  await saveReceivedTask(task);
+
+                  // 跳转至接收页
+                  const params = new URLSearchParams({
+                    taskHash: data.taskHash,
+                    userId: fromUserId,
+                    ...(query.localname && { localname: query.localname }),
+                  });
+
+                  this.goto(`./receiving.html?${params}`);
                 }
-
-                this.goto(path);
               }
             }
           );
