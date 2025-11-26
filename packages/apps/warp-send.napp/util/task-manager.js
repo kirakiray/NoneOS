@@ -205,7 +205,6 @@ export const startReceiveTask = async ({
 
     const taskDir = await tempDir.get(`${taskHash}`);
 
-    // let sessionId = null;
     let sessionIDResolve;
     let sessionId = new Promise((res) => {
       sessionIDResolve = res;
