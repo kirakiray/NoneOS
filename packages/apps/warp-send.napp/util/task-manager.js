@@ -64,13 +64,72 @@ export const prepareSendTask = async (files, callback) => {
  * 初始化发送任务
  * @param {Object} params - 参数对象
  * @param {Object} params.localUser - 本地用户对象
+ * @param {Object} params.remoteUser - 远程用户对象
  * @param {string} params.taskHash - 任务哈希值
  * @param {Array} params.files - 文件数组
  */
-export const startSendTask = async ({ localUser, taskHash, files }) => {
+export const startSendTask = async ({
+  localUser,
+  remoteUser,
+  taskHash,
+  files,
+}) => {
   // TODO: 实现发送任务初始化
   console.log("正在初始化发送任务:", { localUser, taskHash, files });
-  // 这里可以添加实际的发送任务初始化逻辑
+
+  let sessionId = null;
+
+  // 监听文件接受的情况
+  const cancel2 = localUser.bind("receive-data", (e) => {
+    const { data, fromUserId, fromUserSessionId } = e.detail;
+
+    if (fromUserSessionId === sessionId && data.kind === "ack") {
+      const { fileHash, chunkHash } = data;
+
+      console.log("得到返回结果:", data);
+    }
+  });
+
+  // 开始尽心进行发送文件
+  const run = async () => {
+    for (let item of files) {
+      const { _file: file, hashes, hash: fileHash } = item;
+
+      // 进行分块操作
+      let id = 0;
+      for (let chunkHash of hashes) {
+        const chunk = await file.slice(
+          id * setting.chunkSize,
+          (id + 1) * setting.chunkSize
+        );
+
+        // 发送给对方
+        remoteUser.post(
+          {
+            kind: "file-chunk",
+            fileHash,
+            chunkHash,
+            taskHash,
+            chunk: new Uint8Array(await chunk.arrayBuffer()),
+          },
+          sessionId
+        );
+
+        id++;
+      }
+    }
+  };
+
+  // 这里可以添加实际的发送任务初始化逻辑，主要用来获取目标的sessionId
+  const cancel1 = localUser.register(
+    `start-send-task-${taskHash}-${remoteUser.userId}`,
+    (e) => {
+      console.log("发送任务开始:", localUser, taskHash, files);
+      sessionId = e.fromUserSessionId;
+      run();
+      cancel1();
+    }
+  );
 };
 
 /**
@@ -122,21 +181,43 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
   try {
     const remoteUser = await localUser.connectUser(userId);
 
-    const unsubscribe = remoteUser.bind("receive-data", (data) => {
-      console.log("接收数据", data);
-    });
-
     const tempDir = await get("local/temp/received", { create: "dir" });
 
     const taskDir = await tempDir.get(taskHash, {
       create: "dir",
     });
 
+    const unsubscribe = localUser.bind("receive-data", (e) => {
+      const { data, fromUserSessionId, fromUerId } = e.detail;
+
+      if (data.kind === "file-chunk") {
+        // 返回收到信息了
+        remoteUser.post(
+          {
+            kind: "ack",
+            taskHash,
+            fileHash: data.fileHash,
+            chunkHash: data.chunkHash,
+          },
+          fromUserSessionId
+        );
+
+        console.log("接收数据", data);
+      }
+    });
+
+    // 通知对方可以开始了
+    remoteUser.trigger(`start-send-task-${taskHash}-${localUser.userId}`);
+
     let mainDataFile = await taskDir.get("main.json");
     const mainData = await mainDataFile.json();
 
     return {
-      unsubscribe,
+      unsubscribe: () => {
+        unsubscribe();
+        // TODO: 通知对方取消发送任务
+        debugger;
+      },
     };
   } catch (error) {
     console.error("初始化接收任务时出错:", error);
