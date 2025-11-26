@@ -80,7 +80,7 @@ export const startSendTask = async ({
   let sessionId = null;
 
   // 监听文件接受的情况
-  const cancel2 = localUser.bind("receive-data", (e) => {
+  const unsubscribeAckListener = localUser.bind("receive-data", (e) => {
     const { data, fromUserId, fromUserSessionId } = e.detail;
 
     if (fromUserSessionId === sessionId && data.kind === "ack") {
@@ -91,16 +91,16 @@ export const startSendTask = async ({
   });
 
   // 开始尽心进行发送文件
-  const run = async () => {
+  const sendFileChunks = async () => {
     for (let item of files) {
       const { _file: file, hashes, hash: fileHash } = item;
 
       // 进行分块操作
-      let id = 0;
+      let chunkIndex = 0;
       for (let chunkHash of hashes) {
         const chunk = await file.slice(
-          id * setting.chunkSize,
-          (id + 1) * setting.chunkSize
+          chunkIndex * setting.chunkSize,
+          (chunkIndex + 1) * setting.chunkSize
         );
 
         // 发送给对方
@@ -115,19 +115,19 @@ export const startSendTask = async ({
           sessionId
         );
 
-        id++;
+        chunkIndex++;
       }
     }
   };
 
   // 这里可以添加实际的发送任务初始化逻辑，主要用来获取目标的sessionId
-  const cancel1 = localUser.register(
+  const unsubscribeTaskStarter = localUser.register(
     `start-send-task-${taskHash}-${remoteUser.userId}`,
     (e) => {
       console.log("发送任务开始:", localUser, taskHash, files);
       sessionId = e.fromUserSessionId;
-      run();
-      cancel1();
+      sendFileChunks();
+      unsubscribeTaskStarter();
     }
   );
 };
@@ -187,7 +187,7 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
       create: "dir",
     });
 
-    const unsubscribe = localUser.bind("receive-data", (e) => {
+    const unsubscribeDataListener = localUser.bind("receive-data", (e) => {
       const { data, fromUserSessionId, fromUerId } = e.detail;
 
       if (data.kind === "file-chunk") {
@@ -214,7 +214,7 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
 
     return {
       unsubscribe: () => {
-        unsubscribe();
+        unsubscribeDataListener();
         // TODO: 通知对方取消发送任务
         debugger;
       },
