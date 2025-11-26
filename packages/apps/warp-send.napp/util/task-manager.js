@@ -73,6 +73,7 @@ export const startSendTask = async ({
   remoteUser,
   taskHash,
   files,
+  callback,
 }) => {
   // TODO: 实现发送任务初始化
   console.log("正在初始化发送任务:", { localUser, taskHash, files });
@@ -143,36 +144,6 @@ export const startSendTask = async ({
     }
   );
 
-  // // 开始尽心进行发送文件
-  // const sendFileChunks = async () => {
-  //   for (let item of files) {
-  //     const { _file: file, hashes, hash: fileHash } = item;
-
-  //     // 进行分块操作
-  //     let chunkIndex = 0;
-  //     for (let chunkHash of hashes) {
-  //       const chunk = await file.slice(
-  //         chunkIndex * setting.chunkSize,
-  //         (chunkIndex + 1) * setting.chunkSize
-  //       );
-
-  //       // 发送给对方
-  //       remoteUser.post(
-  //         {
-  //           kind: "file-chunk",
-  //           fileHash,
-  //           chunkHash,
-  //           taskHash,
-  //           chunk: new Uint8Array(await chunk.arrayBuffer()),
-  //         },
-  //         sessionId
-  //       );
-
-  //       chunkIndex++;
-  //     }
-  //   }
-  // };
-
   return {
     unsubscribe: unsubscribeAckListener,
   };
@@ -219,21 +190,26 @@ export const saveReceivedTask = async (taskData) => {
  * 初始化接收任务
  * @param {Object} params - 参数对象
  * @param {Object} params.localUser - 本地用户对象
- * @param {string} params.userId - 用户ID
+ * @param {Object} params.remoteUser - 远程用户对象
  * @param {string} params.taskHash - 任务哈希值
  * @returns {Object} 包含取消函数的对象
  */
-export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
+export const startReceiveTask = async ({
+  localUser,
+  remoteUser,
+  taskHash,
+  callback,
+}) => {
   try {
-    const remoteUser = await localUser.connectUser(userId);
-
     const tempDir = await get("local/temp/received", { create: "dir" });
 
-    const taskDir = await tempDir.get(`${taskHash}`, {
-      // create: "dir",
-    });
+    const taskDir = await tempDir.get(`${taskHash}`);
 
-    let sessionId = null;
+    // let sessionId = null;
+    let sessionIDResolve;
+    let sessionId = new Promise((res) => {
+      sessionIDResolve = res;
+    });
 
     const unsubscribeDataListener = localUser.bind(
       "receive-data",
@@ -245,7 +221,7 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
           data.taskHash === taskHash
         ) {
           // 确认对方的sessionId
-          sessionId = fromUserSessionId;
+          sessionIDResolve(fromUserSessionId);
           return;
         }
 
@@ -314,7 +290,7 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
           fileHash,
           chunkHash,
         },
-        sessionId
+        await sessionId
       );
 
       return pms;
@@ -336,10 +312,22 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
 
       const chunks = [];
 
+      let loaded = 0;
+
       for (let index = 0; index < hashes.length; index++) {
         const chunkHash = hashes[index];
         const chunk = await getChunk(fileHash, chunkHash);
         chunks[index] = chunk;
+
+        loaded++;
+
+        callback({
+          type: "load-chunk",
+          fileHash,
+          name: item.name,
+          loaded,
+          total: hashes.length,
+        });
       }
 
       // 合并成一个文件
@@ -351,17 +339,24 @@ export const startReceiveTask = async ({ localUser, userId, taskHash }) => {
       });
       await fileHandle.write(file);
 
+      callback({
+        type: "save-file",
+        fileHash,
+        name: item.name,
+      });
+
       setTimeout(async () => {
         const fileTempDir = await taskDir.get(`__warp_temp_${fileHash}`);
 
         // 删除缓存
         await fileTempDir.remove();
-      }, 1000);
+      }, 500);
     }
 
     return {
       unsubscribe: () => {
         unsubscribeDataListener();
+
         // TODO: 通知对方取消发送任务
         debugger;
       },

@@ -112,7 +112,6 @@
                 type: "start-send",
                 received: query.sessionId, // 目标用户的sessionId
                 taskHash, // 任务的hash值
-                // files: realFiles,
                 filesPart: fileJSONString.slice(start, end),
                 totalPart: chunkCount,
                 partIndex: i,
@@ -125,6 +124,9 @@
               remoteUser,
               taskHash,
               files,
+              callback: (e) => {
+                debugger;
+              },
             });
           },
         },

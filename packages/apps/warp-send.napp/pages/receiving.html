@@ -1,10 +1,56 @@
 <template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
   <style>
     :host {
       display: block;
     }
+    p-list-item {
+      animation: list-item-anime 0.2s ease-in-out;
+    }
+    @keyframes list-item-anime {
+      0% {
+        height: 0px;
+      }
+      100% {
+        height: 36px;
+      }
+    }
   </style>
-  接受中...
+  <p-list id="file-list">
+    <o-fill :value="files" fill-key="fileHash">
+      <p-list-item>
+        <o-if :value="$data.done" slot="prefix">
+          <n-local-icon
+            name="tick-circle"
+            style="
+              display: block;
+              font-size: 20px;
+              margin-right: 8px;
+              color: var(--md-sys-color-success);
+            "
+          ></n-local-icon>
+        </o-if>
+        <o-else slot="prefix">
+          <n-local-icon
+            name="file"
+            style="
+              display: block;
+              font-size: 20px;
+              margin-right: 8px;
+              color: var(--md-sys-color-primary);
+            "
+          ></n-local-icon>
+        </o-else>
+        {{$data.name}}
+        <p-progress
+          style="width: 100px"
+          :value="($data.loaded / $data.total) * 100"
+        ></p-progress>
+      </p-list-item>
+    </o-fill>
+  </p-list>
   <script>
     export default async ({ load, query }) => {
       const { createUser } = await load("/packages/user/main.js");
@@ -23,8 +69,34 @@
         async attached() {
           const { unsubscribe } = await startReceiveTask({
             localUser,
-            userId: query.userId,
+            remoteUser: await localUser.connectUser(query.userId),
             taskHash: query.taskHash,
+            callback: (e) => {
+              let targetItem = this.files.find(
+                (item) => item.fileHash === e.fileHash
+              );
+
+              if (!targetItem) {
+                this.files.unshift({
+                  fileHash: e.fileHash,
+                  name: e.name,
+                  loaded: 0,
+                  done: false,
+                  total: e.total,
+                });
+
+                targetItem = this.files.find(
+                  (item) => item.fileHash === e.fileHash
+                );
+              }
+
+              if (e.type === "load-chunk") {
+                targetItem.loaded = e.loaded;
+              } else if (e.type === "save-file") {
+                targetItem.loaded = targetItem.total;
+                targetItem.done = true;
+              }
+            },
           });
 
           this._unsubscribe = unsubscribe;
