@@ -18,7 +18,7 @@
       }
     }
   </style>
-  <div style="display: flex; align-items: center">
+  <div style="display: flex; align-items: center; padding: 8px">
     <o-if :value="allOK">
       <n-local-icon
         name="tick-circle"
@@ -75,7 +75,10 @@
           ></n-local-icon>
         </o-else>
         {{$data.name}}
-        <p-progress :value="($data.loaded / $data.total) * 100"></p-progress>
+        <p-progress
+          :value="($data.loaded / $data.total) * 100"
+          style="margin-top: 4px"
+        ></p-progress>
       </p-list-item>
     </o-fill>
   </p-list>

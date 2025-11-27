@@ -221,7 +221,7 @@
             );
 
             this.goto(
-              `./sending.html?to=${this.selectedDevice.userId}&tosession=${targetWarpUser.fromUserSessionId}`
+              `./sending.html?userId=${this.selectedDevice.userId}&sessionId=${targetWarpUser.fromUserSessionId}`
             );
           },
           getFileSize(b) {

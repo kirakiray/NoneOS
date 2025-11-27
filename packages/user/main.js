@@ -122,6 +122,8 @@ export const createUser = async (opts) => {
 
     const user = new LocalUser(userDirHandle);
 
+    console.log("用户:", options.user, " ,sessionId:", user.sessionId);
+
     localUsers[options.user] = user;
 
     await user.init();

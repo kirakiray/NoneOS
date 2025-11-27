@@ -122,7 +122,7 @@ export const startSendTask = async ({
         );
 
         // debug: 添加延迟方便调试
-        // await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // 发送给对方
         remoteUser.post(
