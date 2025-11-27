@@ -164,6 +164,10 @@
                     filesPart: undefined,
                   };
 
+                  if (this._targetDirHandle) {
+                    task.handleName = this._targetDirHandle.name;
+                  }
+
                   // 保存任务数据
                   await saveReceivedTask(task);
 

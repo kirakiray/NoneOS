@@ -200,6 +200,7 @@ export const saveReceivedTask = async (taskData) => {
         {
           taskHash: taskData.taskHash,
           files: taskData.files,
+          handleName: taskData.handleName,
         },
         null,
         2
