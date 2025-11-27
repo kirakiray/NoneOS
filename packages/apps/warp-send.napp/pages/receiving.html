@@ -25,7 +25,7 @@
       opacity: 1;
       transition: all 0.2s ease-in-out;
     }
-    .tool-container.hide {
+    .tool-container.hide-tool {
       padding-top: 0;
       height: 0;
       opacity: 0;
@@ -33,7 +33,7 @@
     }
   </style>
 
-  <div class="tool-container" class:hide="!allOK">
+  <div class="tool-container" class:hide-tool="!allOK">
     <p-button variant="text" on:click="back">
       <n-local-icon name="back" slot="prefix"> </n-local-icon>
       <localized-content>

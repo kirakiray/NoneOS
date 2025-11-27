@@ -30,14 +30,18 @@
       opacity: 1;
       transition: all 0.2s ease-in-out;
     }
-    .tool-container.hide {
+    .tool-container.hide-tool {
       padding-top: 0;
       height: 0;
       opacity: 0;
       pointer-events: none;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
-  <div class="tool-container" class:hide="step !== 3">
+  <div class="tool-container" class:hide-tool="step !== 3 && !isEmpty">
     <p-button variant="text" on:click="back">
       <n-local-icon name="back" slot="prefix"> </n-local-icon>
       <localized-content>
@@ -49,7 +53,24 @@
   </div>
 
   <div class="container">
-    <div>
+    <o-if :value="isEmpty">
+      <div
+        style="
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--md-sys-color-primary);
+        "
+      >
+        <localized-content>
+          <span lang="cn">暂无文件待发送</span>
+          <span lang="en">No files to send</span>
+          <span lang="ja">送信するファイルがありません</span>
+        </localized-content>
+      </div>
+    </o-if>
+    <div class:hide="isEmpty">
       <div style="font-size: 14px; display: flex; align-items: center">
         <o-if :value="step === 1">
           <localized-content>
@@ -89,7 +110,7 @@
         style="width: 100%; --progress-animation: none; margin-top: 4px"
       ></p-progress>
     </div>
-    <div>
+    <div class:hide="isEmpty">
       <div
         style="
           font-size: 14px;
@@ -196,6 +217,7 @@
           calculateHashCount: 0, // 已计算hash的文件数量
           fileCount: cacheFiles.length, // 文件总数
           sendingFiles: [], // 发送中的文件列表
+          isEmpty: false, // 是否为空
         },
         proto: {
           async sendFiles({ taskHash, files }) {
@@ -306,6 +328,8 @@
 
             // 清空待发送文件
             cacheFiles.splice(0, cacheFiles.length);
+          } else {
+            this.isEmpty = true;
           }
         },
         detached() {
