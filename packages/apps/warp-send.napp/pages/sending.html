@@ -2,6 +2,7 @@
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
       display: block;
@@ -27,11 +28,20 @@
     <div>
       <div style="font-size: 14px; display: flex; align-items: center">
         <o-if :value="step === 1">
-          正在计算文件
+          <localized-content>
+            <span lang="cn">正在计算文件</span>
+            <span lang="en">Calculating file</span>
+            <span lang="ja">ファイルを計算中</span>
+          </localized-content>
           <span style="color: var(--md-sys-color-primary)">
             {{calculatingHashFileName}}
           </span>
-          的哈希值 ({{calculateHashCount}} / {{fileCount}})
+          <localized-content>
+            <span lang="cn">的哈希值</span>
+            <span lang="en">hash value</span>
+            <span lang="ja">のハッシュ値</span>
+          </localized-content>
+          ({{calculateHashCount}} / {{fileCount}})
         </o-if>
         <o-else>
           <n-local-icon
@@ -43,7 +53,11 @@
               color: var(--md-sys-color-success);
             "
           ></n-local-icon>
-          计算文件哈希值完成
+          <localized-content>
+            <span lang="cn">计算文件哈希值完成</span>
+            <span lang="en">File hash calculation completed</span>
+            <span lang="ja">ファイルハッシュ値の計算完了</span>
+          </localized-content>
         </o-else>
       </div>
       <p-progress
@@ -65,7 +79,11 @@
             name="loading"
             style="display: block; margin-right: 4px; font-size: 20px"
           ></n-local-icon>
-          正在发送文件
+          <localized-content>
+            <span lang="cn">正在发送文件</span>
+            <span lang="en">Sending files</span>
+            <span lang="ja">ファイルを送信中</span>
+          </localized-content>
           <span
             style="
               display: inline-block;
@@ -87,7 +105,11 @@
               color: var(--md-sys-color-success);
             "
           ></n-local-icon>
-          文件发送完成
+          <localized-content>
+            <span lang="cn">文件发送完成</span>
+            <span lang="en">File sending completed</span>
+            <span lang="ja">ファイル送信完了</span>
+          </localized-content>
         </o-else>
       </div>
 
