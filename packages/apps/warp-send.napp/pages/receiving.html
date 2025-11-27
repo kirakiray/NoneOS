@@ -2,6 +2,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/progress/progress.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -17,7 +18,30 @@
         height: 36px;
       }
     }
+
+    .tool-container {
+      height: 36px;
+      opacity: 1;
+      transition: all 0.2s ease-in-out;
+    }
+    .tool-container.hide {
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
+
+  <div class="tool-container" class:hide="!allOK" style="padding: 0 8px">
+    <p-button variant="text" on:click="back">
+      <n-local-icon name="back" slot="prefix"> </n-local-icon>
+      返回
+    </p-button>
+    <p-button variant="outlined">
+      <n-local-icon name="download" slot="prefix"> </n-local-icon>
+      下载到本地
+    </p-button>
+  </div>
+
   <div style="display: flex; align-items: center; padding: 8px">
     <o-if :value="allOK">
       <n-local-icon
@@ -49,6 +73,7 @@
       {{files.length}}/{{originFileData.length}}
     </span>
   </div>
+
   <p-list id="file-list">
     <o-fill :value="files" fill-key="fileHash">
       <p-list-item>
