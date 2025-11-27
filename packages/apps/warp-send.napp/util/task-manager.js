@@ -397,3 +397,15 @@ export const startReceiveTask = async ({
     throw error;
   }
 };
+
+import { exportHandle } from "/packages/fs/task/main.js";
+
+// 下载到本地
+export const download = async (taskHash) => {
+  // 写入临时目录
+  const tempRootDir = await get("local/temp/received", { create: "dir" });
+
+  const taskDir = await tempRootDir.get(taskHash);
+
+  await exportHandle([taskDir.path]);
+};

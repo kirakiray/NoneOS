@@ -36,7 +36,7 @@
       <n-local-icon name="back" slot="prefix"> </n-local-icon>
       返回
     </p-button>
-    <p-button variant="outlined">
+    <p-button variant="outlined" on:click="download">
       <n-local-icon name="download" slot="prefix"> </n-local-icon>
       下载到本地
     </p-button>
@@ -110,7 +110,9 @@
   <script>
     export default async ({ load, query }) => {
       const { createUser } = await load("/packages/user/main.js");
-      const { startReceiveTask } = await load("../util/task-manager.js");
+      const { startReceiveTask, download } = await load(
+        "../util/task-manager.js"
+      );
 
       const localUser = await createUser({
         user: query.localname,
@@ -123,6 +125,12 @@
           files: [],
           originFileData: [],
           allOK: false,
+        },
+        proto: {
+          download() {
+            // 下载
+            download(query.taskHash);
+          },
         },
         async attached() {
           const { unsubscribe } = await startReceiveTask({
