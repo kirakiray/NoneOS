@@ -217,12 +217,16 @@ export const saveReceivedTask = async (taskData) => {
  * @param {Object} params.localUser - 本地用户对象
  * @param {Object} params.remoteUser - 远程用户对象
  * @param {string} params.taskHash - 任务哈希值
+ * @param {Object} params.handle - 实际保存文件的目标目录句柄
+ * @param {Function} params.callback - 回调函数
+ *
  * @returns {Object} 包含取消函数的对象
  */
 export const startReceiveTask = async ({
   localUser,
   remoteUser,
   taskHash,
+  handle: targetDirHandle,
   callback,
 }) => {
   try {
@@ -363,11 +367,19 @@ export const startReceiveTask = async ({
         // 合并成一个文件
         const file = new File(chunks, item.name);
 
-        // 写入文件
-        const fileHandle = await taskDir.get(item.name, {
-          create: "file",
-        });
-        await fileHandle.write(file);
+        if (targetDirHandle) {
+          // 写入文件
+          const fileHandle = await targetDirHandle.get(item.name, {
+            create: "file",
+          });
+          await fileHandle.write(file);
+        } else {
+          // 写入文件
+          const fileHandle = await taskDir.get(item.name, {
+            create: "file",
+          });
+          await fileHandle.write(file);
+        }
 
         callback({
           type: "save-file",
@@ -387,9 +399,6 @@ export const startReceiveTask = async ({
     return {
       unsubscribe: () => {
         unsubscribeDataListener();
-
-        // TODO: 通知对方取消发送任务
-        debugger;
       },
     };
   } catch (error) {

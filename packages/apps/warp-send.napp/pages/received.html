@@ -78,6 +78,11 @@
   <script>
     export const parent = "./layout.html";
 
+    // 给外部使用的数据
+    export const outData = {
+      handle: null, // 接收的目录
+    };
+
     export default async ({ load, query }) => {
       const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser({
@@ -103,6 +108,8 @@
           async changeDir() {
             const handle = await mount();
 
+            outData.handle = handle;
+
             this.dirName = handle.name;
 
             this._targetDirHandle = handle;
@@ -115,6 +122,8 @@
             },
             composed: true,
           });
+
+          outData.handle = null;
 
           // 广播一次自己的应用状态
           localUser.broadcast("warp-send-radiate", {

@@ -3,6 +3,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -22,7 +23,30 @@
         height: 36px;
       }
     }
+
+    .tool-container {
+      padding: 8px;
+      height: 36px;
+      opacity: 1;
+      transition: all 0.2s ease-in-out;
+    }
+    .tool-container.hide {
+      padding-top: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
   </style>
+  <div class="tool-container" class:hide="step !== 3">
+    <p-button variant="text" on:click="back">
+      <n-local-icon name="back" slot="prefix"> </n-local-icon>
+      <localized-content>
+        <span lang="cn">返回</span>
+        <span lang="en">Back</span>
+        <span lang="ja">戻る</span>
+      </localized-content>
+    </p-button>
+  </div>
 
   <div class="container">
     <div>
