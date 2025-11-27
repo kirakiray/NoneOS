@@ -97,6 +97,10 @@ export const createUser = async (opts) => {
     // publicKey:""
   };
 
+  if (opts && !opts.user) {
+    delete opts.user;
+  }
+
   Object.assign(options, opts);
 
   if (options.publicKey) {
