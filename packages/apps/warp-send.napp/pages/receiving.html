@@ -31,6 +31,9 @@
       opacity: 0;
       pointer-events: none;
     }
+    .hide {
+      display: none !important;
+    }
   </style>
 
   <div class="tool-container" class:hide-tool="!allOK">
@@ -42,16 +45,18 @@
         <span lang="ja">戻る</span>
       </localized-content>
     </p-button>
-    <o-if :value="isMountedHandle">
-      <p-button variant="outlined" on:click="download">
-        <n-local-icon name="download" slot="prefix"> </n-local-icon>
-        <localized-content>
-          <span lang="cn">下载到本地</span>
-          <span lang="en">Download to local</span>
-          <span lang="ja">ローカルにダウンロード</span>
-        </localized-content>
-      </p-button>
-    </o-if>
+    <p-button
+      variant="outlined"
+      on:click="download"
+      class:hide="isMountedHandle"
+    >
+      <n-local-icon name="download" slot="prefix"> </n-local-icon>
+      <localized-content>
+        <span lang="cn">下载到本地</span>
+        <span lang="en">Download to local</span>
+        <span lang="ja">ローカルにダウンロード</span>
+      </localized-content>
+    </p-button>
   </div>
 
   <div style="display: flex; align-items: center; padding: 8px">
@@ -199,15 +204,21 @@
                 );
               }
 
-              if (e.type === "load-chunk") {
+              if (e.type === "skip-file") {
+                targetItem.done = true;
+                targetItem.loaded = targetItem.total = 1;
+              } else if (e.type === "load-chunk") {
                 targetItem.loaded = e.loaded;
               } else if (e.type === "save-file") {
                 targetItem.loaded = targetItem.total;
                 targetItem.done = true;
+              }
 
-                if (this.files.length === this.originFileData.length) {
-                  this.allOK = true;
-                }
+              if (
+                this.files.length === this.originFileData.length &&
+                this.files.every((item) => item.done)
+              ) {
+                this.allOK = true;
               }
             },
           });

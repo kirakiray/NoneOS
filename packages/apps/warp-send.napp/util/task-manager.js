@@ -344,6 +344,23 @@ export const startReceiveTask = async ({
       for (let item of mainData.files) {
         const { hash: fileHash, hashes } = item;
 
+        // 判断是否已经保存到本地
+        const fileHandle = await taskDir.get(item.name);
+
+        if (fileHandle) {
+          const size = await fileHandle.size();
+
+          if (size === item.size) {
+            // 文件已经缓存完毕
+            callback({
+              type: "skip-file",
+              fileHash,
+              name: item.name,
+            });
+            continue;
+          }
+        }
+
         const chunks = [];
 
         let loaded = 0;
