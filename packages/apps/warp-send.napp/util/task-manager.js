@@ -122,7 +122,7 @@ export const startSendTask = async ({
         );
 
         // debug: 添加延迟方便调试
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         // 发送给对方
         remoteUser.post(
@@ -198,12 +198,12 @@ export const saveReceivedTask = async (taskData) => {
     await mainDataFile.write(
       JSON.stringify(
         {
-          ...taskData,
-          received: undefined,
+          taskHash: taskData.taskHash,
+          files: taskData.files,
         },
         null,
         2
-      ) // 格式化JSON
+      )
     );
   } catch (error) {
     console.error("保存任务时出错:", error);
@@ -325,57 +325,64 @@ export const startReceiveTask = async ({
     // 整体的项目数据
     const mainData = await mainDataFile.json();
 
+    callback({
+      type: "init",
+      data: mainData,
+    });
+
     // 通知对方我准备好了
     remoteUser.trigger(
       `warp-confirm-both-session-${taskHash}-${localUser.userId}`
     );
 
-    // 从本地文件获取参考信息，并向对方获取缺失的块信息
-    for (let item of mainData.files) {
-      const { hash: fileHash, hashes } = item;
+    (async () => {
+      // 从本地文件获取参考信息，并向对方获取缺失的块信息
+      for (let item of mainData.files) {
+        const { hash: fileHash, hashes } = item;
 
-      const chunks = [];
+        const chunks = [];
 
-      let loaded = 0;
+        let loaded = 0;
 
-      for (let index = 0; index < hashes.length; index++) {
-        const chunkHash = hashes[index];
-        const chunk = await getChunk(fileHash, chunkHash);
-        chunks[index] = chunk;
+        for (let index = 0; index < hashes.length; index++) {
+          const chunkHash = hashes[index];
+          const chunk = await getChunk(fileHash, chunkHash);
+          chunks[index] = chunk;
 
-        loaded++;
+          loaded++;
+
+          callback({
+            type: "load-chunk",
+            fileHash,
+            name: item.name,
+            loaded,
+            total: hashes.length,
+          });
+        }
+
+        // 合并成一个文件
+        const file = new File(chunks, item.name);
+
+        // 写入文件
+        const fileHandle = await taskDir.get(item.name, {
+          create: "file",
+        });
+        await fileHandle.write(file);
 
         callback({
-          type: "load-chunk",
+          type: "save-file",
           fileHash,
           name: item.name,
-          loaded,
-          total: hashes.length,
         });
+
+        setTimeout(async () => {
+          const fileTempDir = await taskDir.get(`__warp_temp_${fileHash}`);
+
+          // 删除缓存
+          await fileTempDir.remove();
+        }, 500);
       }
-
-      // 合并成一个文件
-      const file = new File(chunks, item.name);
-
-      // 写入文件
-      const fileHandle = await taskDir.get(item.name, {
-        create: "file",
-      });
-      await fileHandle.write(file);
-
-      callback({
-        type: "save-file",
-        fileHash,
-        name: item.name,
-      });
-
-      setTimeout(async () => {
-        const fileTempDir = await taskDir.get(`__warp_temp_${fileHash}`);
-
-        // 删除缓存
-        await fileTempDir.remove();
-      }, 500);
-    }
+    })();
 
     return {
       unsubscribe: () => {

@@ -18,6 +18,37 @@
       }
     }
   </style>
+  <div style="display: flex; align-items: center">
+    <o-if :value="allOK">
+      <n-local-icon
+        name="tick-circle"
+        style="
+          display: block;
+          margin-right: 4px;
+          font-size: 20px;
+          color: var(--md-sys-color-success);
+        "
+      ></n-local-icon>
+    </o-if>
+    <o-else>
+      <n-local-icon
+        name="loading"
+        style="display: block; margin-right: 4px"
+      ></n-local-icon>
+    </o-else>
+    <o-if :value="!allOK"> 正在接受文件 </o-if>
+    <o-else> 文件接受完毕 </o-else>
+    <span
+      style="
+        display: block;
+        margin-left: 4px;
+        font-size: 14px;
+        color: var(--md-sys-color-primary);
+      "
+    >
+      {{files.length}}/{{originFileData.length}}
+    </span>
+  </div>
   <p-list id="file-list">
     <o-fill :value="files" fill-key="fileHash">
       <p-list-item>
@@ -62,6 +93,8 @@
       return {
         data: {
           files: [],
+          originFileData: [],
+          allOK: false,
         },
         async attached() {
           const { unsubscribe } = await startReceiveTask({
@@ -69,6 +102,19 @@
             remoteUser: await localUser.connectUser(query.userId),
             taskHash: query.taskHash,
             callback: (e) => {
+              if (e.type === "init") {
+                this.originFileData = e.data.files.map((e) => {
+                  return {
+                    name: e.name,
+                    size: e.size,
+                    hash: e.hash,
+                    chunkLength: e.hashes.length,
+                  };
+                });
+
+                return;
+              }
+
               let targetItem = this.files.find(
                 (item) => item.fileHash === e.fileHash
               );
@@ -92,6 +138,10 @@
               } else if (e.type === "save-file") {
                 targetItem.loaded = targetItem.total;
                 targetItem.done = true;
+
+                if (this.files.length === this.originFileData.length) {
+                  this.allOK = true;
+                }
               }
             },
           });
