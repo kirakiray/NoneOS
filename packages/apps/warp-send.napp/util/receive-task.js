@@ -1,6 +1,5 @@
 import { get } from "/packages/fs/main.js";
-import { setting } from "/packages/fs/fs-remote/file.js";
-import { getFileChunkHashesAsync, getHash } from "/packages/util/hash/main.js";
+import { asyncPool } from "/packages/util/async-pool.js";
 
 /**
  * 初始化接收任务
@@ -154,21 +153,24 @@ export const startReceiveTask = async ({
           }
         }
 
-        // 下载文件块
-        const chunks = [];
-        for (let index = 0; index < hashes.length; index++) {
-          const chunkHash = hashes[index];
-          const chunk = await getChunk(fileHash, chunkHash);
-          chunks[index] = chunk;
+        // 下载文件块（使用 asyncPool 控制并发）
+        const chunks = await asyncPool(
+          hashes,
+          async (chunkHash, index) => {
+            const chunk = await getChunk(fileHash, chunkHash);
 
-          callback({
-            type: "load-chunk",
-            fileHash,
-            name: item.name,
-            loaded: index + 1,
-            total: hashes.length,
-          });
-        }
+            callback({
+              type: "load-chunk",
+              fileHash,
+              name: item.name,
+              loaded: index + 1,
+              total: hashes.length,
+            });
+
+            return chunk;
+          },
+          3 // 设置并发数为3
+        );
 
         // 合并文件并保存
         const file = new File(chunks, item.name);
