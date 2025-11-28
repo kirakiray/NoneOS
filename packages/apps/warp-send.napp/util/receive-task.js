@@ -32,7 +32,7 @@ export const startReceiveTask = async ({
     const unsubscribeDataListener = localUser.bind(
       "receive-data",
       async (e) => {
-        const { data, fromUserSessionId, fromUerId } = e.detail;
+        const { data, fromUserSessionId, fromUserId } = e.detail;
 
         if (
           data.kind === "confirm-both-session" &&
@@ -66,7 +66,9 @@ export const startReceiveTask = async ({
           if (chunkHandle) {
             chunkHandle.resolve(blob);
           } else {
-            console.error(`未找到块哈希值为 ${chunkHash} 的文件块`);
+            console.error(
+              `未在缓存中找到块哈希 ${chunkHash} 对应的 resolve，可能已返回、超时或未注册`
+            );
           }
         }
       }
@@ -94,14 +96,8 @@ export const startReceiveTask = async ({
         resolve = res;
       });
 
-      // 没有chunk，从远端获取，先设置Promise，等chunk返回再resolve
-      chunkGetter.set(chunkHash, {
-        fileHash,
-        resolve,
-      });
-
-      // 发送请求
-      remoteUser &&
+      let timer = setInterval(async () => {
+        // 5秒后重新发送请求
         remoteUser.post(
           {
             kind: "request-chunk",
@@ -111,6 +107,29 @@ export const startReceiveTask = async ({
           },
           await sessionId
         );
+      }, 5000);
+
+      pms.then(() => {
+        // 成功获取到chunk，清除定时器
+        clearInterval(timer);
+      });
+
+      // 没有chunk，从远端获取，先设置Promise，等chunk返回再resolve
+      chunkGetter.set(chunkHash, {
+        fileHash,
+        resolve,
+      });
+
+      // 发送请求
+      remoteUser.post(
+        {
+          kind: "request-chunk",
+          taskHash,
+          fileHash,
+          chunkHash,
+        },
+        await sessionId
+      );
 
       return pms;
     };
