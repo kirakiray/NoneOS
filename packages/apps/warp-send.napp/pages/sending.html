@@ -319,7 +319,7 @@
               ({ calculatingHashFileName, calculateHashCount }) => {
                 // 更新进度
                 this.calculatingHashFileName = calculatingHashFileName;
-                this.calculateHashCount = calculateHashCount;
+                this.calculateHashCount = calculateHashCount || 0;
               }
             );
 
