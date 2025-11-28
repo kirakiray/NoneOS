@@ -1,0 +1,128 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      padding: 16px;
+    }
+
+    h4 {
+      margin: 0;
+      margin-bottom: 8px;
+    }
+
+    .tool-container {
+      padding: 8px;
+      height: 36px;
+      opacity: 1;
+      transition: all 0.2s ease-in-out;
+    }
+    .tool-container.hide-tool {
+      padding-top: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+  </style>
+
+  <div class="tool-container" class:hide-tool="!allOK">
+    <p-button variant="text" on:click="back">
+      <n-local-icon name="back" slot="prefix"> </n-local-icon>
+      <localized-content>
+        <span lang="cn">返回</span>
+        <span lang="en">Back</span>
+        <span lang="ja">戻る</span>
+      </localized-content>
+    </p-button>
+  </div>
+
+  <div class="container">
+    <h4>
+      <localized-content>
+        <span lang="cn">下载历史</span>
+        <span lang="en">Download History</span>
+        <span lang="ja">ダウンロード履歴</span>
+      </localized-content>
+    </h4>
+    <p-list>
+      <o-fill :value="history" fill-key="taskHash">
+        <p-list-item button on:click="$host.clickItem($data)">
+          <localized-content style="display: flex; align-items: center">
+            <span lang="cn">
+              <span
+                style="
+                  display: block;
+                  margin-right: 4px;
+                  color: var(--md-sys-color-primary);
+                "
+              >
+                {{$data.files[0].name}}
+              </span>
+              <localized-content>
+                <span lang="cn">等</span>
+                <span lang="en">etc.</span>
+                <span lang="ja">など</span>
+              </localized-content>
+              <span
+                style="
+                  display: block;
+                  margin: 0 4px;
+                  color: var(--md-sys-color-primary);
+                "
+                >{{ $data.files.length }}</span
+              >
+              个文件
+              <localized-content>
+                <span lang="cn">个文件</span>
+                <span lang="en">files</span>
+                <span lang="ja">ファイル</span>
+              </localized-content>
+            </span>
+          </localized-content>
+          <o-if :value="$data.status === 'done'" slot="suffix">
+            <n-local-icon
+              name="tick-circle"
+              style="color: var(--md-sys-color-success); font-size: 20px"
+            ></n-local-icon>
+          </o-if>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    export default async ({ load }) => {
+      const { loadHistory } = await load("../util/task-manager.js");
+      return {
+        data: {
+          history: [],
+        },
+        proto: {
+          async loadHistory() {
+            const history = await loadHistory();
+            console.log("history", history);
+            this.history = history;
+          },
+          clickItem(item) {
+            this.goto(`./receiving.html?taskHash=${item.taskHash}`);
+          },
+        },
+        attached() {
+          this.loadHistory();
+
+          this.emit("warp-send:set-active-id", {
+            data: {
+              activeId: "received",
+            },
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>

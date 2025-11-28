@@ -167,9 +167,15 @@
         async attached() {
           this.isMountedHandle = !!outData.handle;
 
+          let remoteUser = null;
+
+          if (query.userId) {
+            remoteUser = await localUser.connectUser(query.userId);
+          }
+
           const { unsubscribe } = await startReceiveTask({
             localUser,
-            remoteUser: await localUser.connectUser(query.userId),
+            remoteUser,
             taskHash: query.taskHash,
             handle: outData.handle,
             callback: (e) => {

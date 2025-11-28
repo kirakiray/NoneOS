@@ -5,6 +5,7 @@
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
+      position: relative;
       display: block;
       height: 100%;
     }
@@ -29,6 +30,17 @@
       }
     }
   </style>
+  <p-button
+    variant="outlined"
+    on:click="goto('./history.html')"
+    style="position: absolute; top: 16px; right: 16px"
+  >
+    <localized-content>
+      <span lang="cn">下载历史</span>
+      <span lang="en">Download History</span>
+      <span lang="ja"> ダウンロード履歴 </span>
+    </localized-content>
+  </p-button>
   <div class="container">
     <n-user-avatar :userid="userId"></n-user-avatar>
     <div style="padding: 16px" class="user-name">
