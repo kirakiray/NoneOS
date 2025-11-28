@@ -21,18 +21,21 @@ export const startReceiveTask = async ({
 }) => {
   try {
     const tempDir = await get("local/temp/received", { create: "dir" });
-
     const taskDir = await tempDir.get(`${taskHash}`);
 
+    // Session ID promise
     let sessionIDResolve;
-    let sessionId = new Promise((res) => {
+    const sessionId = new Promise((res) => {
       sessionIDResolve = res;
     });
+
+    // Chunk getter map
+    const chunkGetter = new Map();
 
     const unsubscribeDataListener = localUser.bind(
       "receive-data",
       async (e) => {
-        const { data, fromUserSessionId, fromUserId } = e.detail;
+        const { data, fromUserSessionId } = e.detail;
 
         if (
           data.kind === "confirm-both-session" &&
@@ -43,24 +46,20 @@ export const startReceiveTask = async ({
           return;
         }
 
-        // 将块数据保存到本地
+        // 保存块数据到本地
         const fileTempDir = await taskDir.get(`__warp_temp_${data.fileHash}`, {
           create: "dir",
         });
 
-        // 保存块数据
         const chunkHandle = await fileTempDir.get(data.chunkHash, {
           create: "file",
         });
 
         const blob = new Blob([data.chunk]);
-
         await chunkHandle.write(blob);
 
         if (data.kind === "file-chunk") {
           const { chunkHash } = data;
-
-          // 返回数据
           const chunkHandle = chunkGetter.get(chunkHash);
 
           if (chunkHandle) {
@@ -73,8 +72,6 @@ export const startReceiveTask = async ({
         }
       }
     );
-
-    const chunkGetter = new Map();
 
     // 获取块操作
     const getChunk = async (fileHash, chunkHash) => {
@@ -96,23 +93,19 @@ export const startReceiveTask = async ({
         resolve = res;
       });
 
-      let timer = setInterval(async () => {
+      const requestData = {
+        kind: "request-chunk",
+        taskHash,
+        fileHash,
+        chunkHash,
+      };
+
+      const timer = setInterval(async () => {
         // 5秒后重新发送请求
-        remoteUser.post(
-          {
-            kind: "request-chunk",
-            taskHash,
-            fileHash,
-            chunkHash,
-          },
-          await sessionId
-        );
+        remoteUser.post(requestData, await sessionId);
       }, 5000);
 
-      pms.then(() => {
-        // 成功获取到chunk，清除定时器
-        clearInterval(timer);
-      });
+      pms.then(() => clearInterval(timer)); // 成功获取到chunk，清除定时器
 
       // 没有chunk，从远端获取，先设置Promise，等chunk返回再resolve
       chunkGetter.set(chunkHash, {
@@ -121,22 +114,13 @@ export const startReceiveTask = async ({
       });
 
       // 发送请求
-      remoteUser.post(
-        {
-          kind: "request-chunk",
-          taskHash,
-          fileHash,
-          chunkHash,
-        },
-        await sessionId
-      );
+      remoteUser.post(requestData, await sessionId);
 
       return pms;
     };
 
-    let mainDataFile = await tempDir.get(`${taskHash}.json`);
-
-    // 整体的项目数据
+    // 获取主数据文件
+    const mainDataFile = await tempDir.get(`${taskHash}.json`);
     const mainData = await mainDataFile.json();
 
     callback({
@@ -150,17 +134,15 @@ export const startReceiveTask = async ({
         `warp-confirm-both-session-${taskHash}-${localUser.userId}`
       );
 
+    // 处理文件接收
     (async () => {
-      // 从本地文件获取参考信息，并向对方获取缺失的块信息
-      for (let item of mainData.files) {
+      for (const item of mainData.files) {
         const { hash: fileHash, hashes } = item;
 
-        // 判断是否已经保存到本地
+        // 检查文件是否已存在且完整
         const fileHandle = await taskDir.get(item.name);
-
         if (fileHandle) {
           const size = await fileHandle.size();
-
           if (size === item.size) {
             // 文件已经缓存完毕
             callback({
@@ -172,42 +154,29 @@ export const startReceiveTask = async ({
           }
         }
 
+        // 下载文件块
         const chunks = [];
-
-        let loaded = 0;
-
         for (let index = 0; index < hashes.length; index++) {
           const chunkHash = hashes[index];
           const chunk = await getChunk(fileHash, chunkHash);
           chunks[index] = chunk;
 
-          loaded++;
-
           callback({
             type: "load-chunk",
             fileHash,
             name: item.name,
-            loaded,
+            loaded: index + 1,
             total: hashes.length,
           });
         }
 
-        // 合并成一个文件
+        // 合并文件并保存
         const file = new File(chunks, item.name);
+        const saveHandle = targetDirHandle
+          ? await targetDirHandle.get(item.name, { create: "file" })
+          : await taskDir.get(item.name, { create: "file" });
 
-        if (targetDirHandle) {
-          // 写入文件
-          const fileHandle = await targetDirHandle.get(item.name, {
-            create: "file",
-          });
-          await fileHandle.write(file);
-        } else {
-          // 写入文件
-          const fileHandle = await taskDir.get(item.name, {
-            create: "file",
-          });
-          await fileHandle.write(file);
-        }
+        await saveHandle.write(file);
 
         callback({
           type: "save-file",
@@ -215,10 +184,9 @@ export const startReceiveTask = async ({
           name: item.name,
         });
 
+        // 延迟删除临时文件
         setTimeout(async () => {
           const fileTempDir = await taskDir.get(`__warp_temp_${fileHash}`);
-
-          // 删除缓存
           await fileTempDir.remove();
         }, 500);
       }
