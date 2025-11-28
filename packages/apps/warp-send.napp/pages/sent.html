@@ -265,7 +265,10 @@
                   (item) => item.fromUserId === fromUserId
                 );
 
-                if (this.selectedDevice.fromUserId === fromUserId) {
+                if (
+                  this.selectedDevice &&
+                  this.selectedDevice.userId === fromUserId
+                ) {
                   this.selectedDevice = null;
                 }
 
