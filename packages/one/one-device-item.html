@@ -1,0 +1,169 @@
+<template component>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="./one-delay-text.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    p-list-item {
+      display: block;
+    }
+
+    n-user-avatar {
+      display: block;
+      width: 20px;
+      height: 20px;
+      margin-right: 0;
+    }
+
+    .user-name {
+      font-size: 14px;
+      margin-left: 8px;
+    }
+
+    /* 美化列表项子项的前置描述文字 */
+    localized-content {
+      display: inline-block;
+      min-width: 100px;
+      font-weight: 500;
+      color: var(--md-sys-color-on-surface-variant);
+      margin-right: 8px;
+    }
+
+    /* 响应式设计，在小屏幕上减小宽度 */
+    @media (max-width: 768px) {
+      localized-content {
+        min-width: 80px;
+      }
+    }
+
+    /* 数值信息样式 */
+    .value-text {
+      font-weight: 600;
+    }
+  </style>
+
+  <p-list-item button="suffix" collapse-childs="close">
+    <n-user-avatar :userid="userId" slot="prefix"></n-user-avatar>
+    <div style="display: flex; align-items: center">
+      <div class="user-name">{{userName}}</div>
+      <n-user-state :userid="userId" style="margin-left: 8px"></n-user-state>
+      <n-one-delay-text
+        :delays="delays"
+        style="margin-left: auto; margin-right: 16px; font-size: 12px"
+      ></n-one-delay-text>
+    </div>
+    <i toggle-collapse triangle slot="suffix"></i>
+    <p-list slot="childs" style="--ladder-left: 12px">
+      <p-list-item>
+        <div style="display: flex; align-items: center">
+          <localized-content>
+            <span lang="cn">用户ID:</span>
+            <span lang="en">User ID:</span>
+            <span lang="ja">ユーザーID:</span>
+          </localized-content>
+          <span
+            class="value-text"
+            style="position: relative; flex: 1; display: block; height: 100%"
+          >
+            <span
+              style="
+                display: block;
+                position: absolute;
+                left: 0;
+                height: 100%;
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+              "
+            >
+              {{userId}}
+            </span>
+          </span>
+        </div>
+      </p-list-item>
+      <p-list-item>
+        <div>
+          <localized-content>
+            <span lang="cn">用户名:</span>
+            <span lang="en">Username:</span>
+            <span lang="ja">ユーザー名:</span>
+          </localized-content>
+          <span class="value-text">{{userName}}</span>
+        </div>
+      </p-list-item>
+      <p-list-item>
+        <div>
+          <localized-content>
+            <span lang="cn">延迟:</span>
+            <span lang="en">Delay:</span>
+            <span lang="ja">遅延:</span>
+          </localized-content>
+          <n-one-delay-text :delays="delays"></n-one-delay-text>
+        </div>
+      </p-list-item>
+      <p-list-item>
+        <n-delay-vis-map :delays="delays"></n-delay-vis-map>
+      </p-list-item>
+    </p-list>
+  </p-list-item>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      return {
+        tag: "n-one-device-item",
+        data: {
+          userId: null,
+          userName: "",
+          delays: [],
+        },
+        watch: {
+          userId() {
+            this.initUser();
+          },
+        },
+        proto: {
+          async initUser() {
+            if (this._cancels) {
+              this._cancels.forEach((cancel) => cancel());
+              this._cancels = null;
+            }
+
+            if (!this.userId) {
+              return;
+            }
+
+            const remoteUser = await localUser.connectUser(this.userId);
+
+            this.delays = remoteUser.delays;
+
+            this._cancels = [
+              remoteUser.bind("check-delay", (e) => {
+                this.delays = remoteUser.delays;
+              }),
+            ];
+
+            const info = await remoteUser.info();
+            this.userName = info.name;
+
+            // setTimeout(() => {
+            //   remoteUser.initRTC();
+            // }, 11000);
+          },
+        },
+        detached() {
+          if (this._cancels) {
+            this._cancels.forEach((cancel) => cancel());
+            this._cancels = null;
+          }
+        },
+      };
+    };
+  </script>
+</template>

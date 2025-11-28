@@ -7,6 +7,15 @@ export default async function trigger({
   localUser,
   proxySessionId,
 }) {
+  // const bool = await localUser.isMyDevice(fromUserId);
+
+  // if (!bool && !localUser._ignoreCert) {
+  //   console.warn("非本机设备尝试触发：", fromUserId);
+  //   return;
+  // }
+
+  // TODO: 如果出现很多无效事件的时候，就记录下来，防止过多触发
+
   const { name, data } = receivedData;
 
   const pool = localUser.registers[name];

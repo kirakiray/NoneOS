@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Real Time Network Test</title>
+    <script src="/packages/libs/ofa/ofa.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      import { test } from "/ok-test/main.js";
+      import { createUser } from "/packages/user/main.js";
+
+      await test("Real Time Network Connection Test", async () => {
+        // 创建两个用户
+        const user1 = await createUser({ user: "test-user1" });
+        const user2 = await createUser({ user: "test-user2" });
+
+        const serverManager1 = await user1.serverManager();
+        const serverManager2 = await user2.serverManager();
+
+        // 初始化证书管理器
+        const certManager1 = await user1.certManager();
+        const certManager2 = await user2.certManager();
+
+        // 相互授权设备权限
+        const cert1 = await certManager2.issue({
+          userId: user1.userId,
+          role: "device",
+        });
+        const cert2 = await certManager1.issue({
+          userId: user2.userId,
+          role: "device",
+        });
+
+        await certManager1.save(cert1);
+        await certManager2.save(cert2);
+
+        await new Promise((r) => setTimeout(r, 200));
+
+        // 连接用户2
+        const remoteUser2 = await user1.connectUser({
+          userId: user2.userId,
+          publicKey: user2.publicKey,
+        });
+
+        await user1.connectAllServers();
+
+        // 等待确保remoteUser2还没开始在服务器查找user2
+        await new Promise((r) => setTimeout(r, 200));
+
+        // 检查初始状态（user2未上线）
+        const initialMode = remoteUser2.mode;
+        console.log("Initial remoteUser2.mode:", initialMode); // 应该是 0
+
+        const servers2 = [];
+
+        // 连接user2到服务器
+        await Promise.all(
+          serverManager1.data.map(async (server) => {
+            const server2 = await user2.connectServer(server.url);
+            servers2.push(server2);
+          })
+        );
+
+        // const server2_1 = await user2.connectServer(serverUrl);
+        // const server2_1 = await user2.connectServer(serverManager1.data[0].url);
+        // const server2_2 = await user2.connectServer(serverManager1.data[1].url);
+
+        // 等待remoteUser2反应
+        await new Promise((r) => setTimeout(r, 200));
+
+        // 检查user2上线后的状态
+        const onlineMode = remoteUser2.mode;
+        console.log("Online remoteUser2.mode:", onlineMode); // 应该是 1
+
+        // 强制断开user2的服务器连接
+        servers2.forEach((server) => server.socket.close());
+        // server2_1.socket.close();
+        // server2_2.socket.close();
+
+        // 等待user2下线
+        await new Promise((r) => setTimeout(r, 200));
+
+        // 检查user2下线后的状态
+        const offlineMode = remoteUser2.mode;
+        console.log("Offline remoteUser2.mode:", offlineMode); // 应该是 0
+
+        // 清理证书
+        await certManager1.delete(cert1.id);
+        await certManager1.delete(cert2.id);
+        await certManager2.delete(cert1.id);
+        await certManager2.delete(cert2.id);
+
+        // 返回测试结果
+        return {
+          assert: initialMode === 0 && onlineMode === 1 && offlineMode === 0,
+          content: `
+            Initial mode (user2 offline): ${initialMode} (expected: 0)
+            Online mode (user2 connected): ${onlineMode} (expected: 1)
+            Offline mode (user2 disconnected): ${offlineMode} (expected: 0)
+          `,
+        };
+      });
+    </script>
+  </body>
+</html>

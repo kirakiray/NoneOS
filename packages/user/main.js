@@ -21,7 +21,7 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
       toUserSessionId,
     } = detail;
 
-    Object.values(localUsers).forEach((user) => {
+    Object.values(localUsers).forEach(async (user) => {
       if (user.sessionId === toUserSessionId) {
         // 查找到目标session标签页的用户实例，并将转发的数据进行出触发
         user.dispatchEvent(
@@ -32,6 +32,7 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
               proxySessionId,
               userDirName,
               result,
+              remoteUser: await user.connectUser(fromUserId),
             },
           })
         );
@@ -69,7 +70,6 @@ publicBroadcastChannel.addEventListener("message", async (event) => {
 
       // 重新检查
       await remoteUser.checkServer();
-      // remoteUser.refreshMode();
     }
   } else if (type === "card-change") {
     // 其他标签接受到了用户卡片
@@ -97,6 +97,10 @@ export const createUser = async (opts) => {
     // publicKey:""
   };
 
+  if (opts && !opts.user) {
+    delete opts.user;
+  }
+
   Object.assign(options, opts);
 
   if (options.publicKey) {
@@ -117,6 +121,8 @@ export const createUser = async (opts) => {
     });
 
     const user = new LocalUser(userDirHandle);
+
+    console.log("用户:", options.user, " ,sessionId:", user.sessionId);
 
     localUsers[options.user] = user;
 

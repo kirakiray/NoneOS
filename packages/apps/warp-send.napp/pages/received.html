@@ -1,0 +1,207 @@
+<template page>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      position: relative;
+      display: block;
+      height: 100%;
+    }
+    .container {
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      height: 100%;
+      padding: 16px;
+      word-break: break-all;
+    }
+
+    .user-name {
+      font-size: 26px;
+    }
+
+    @media (max-width: 640px) {
+      .user-name {
+        font-size: 18px;
+      }
+    }
+  </style>
+  <p-button
+    variant="outlined"
+    on:click="goto('./history.html')"
+    style="position: absolute; top: 16px; right: 16px"
+  >
+    <localized-content>
+      <span lang="cn">缓存历史</span>
+      <span lang="en">Cache History</span>
+      <span lang="ja"> キャッシュ履歴 </span>
+    </localized-content>
+  </p-button>
+  <div class="container">
+    <n-user-avatar :userid="userId"></n-user-avatar>
+    <div style="padding: 16px" class="user-name">
+      <localized-content>
+        <span lang="cn">用户名</span>
+        <span lang="en">User Name</span>
+        <span lang="ja"> ユーザー名 </span>
+      </localized-content>
+      :
+      <span style="color: var(--md-sys-color-primary)"> {{userName}} </span>
+    </div>
+    <div>
+      ID:
+      <span style="color: var(--md-sys-color-primary); font-size: 14px">
+        {{userId}}
+      </span>
+    </div>
+
+    <div style="padding: 16px; display: flex; align-items: center">
+      <localized-content>
+        <span lang="cn">自动保存到</span>
+        <span lang="en">Auto Save To</span>
+        <span lang="ja"> 自動保存先 </span>
+      </localized-content>
+      :
+      <span style="color: var(--md-sys-color-primary); padding: 0 8px 0 4px">
+        <o-if :value="!!dirName"> {{dirName}} </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">浏览器缓存</span>
+            <span lang="en">Browser Cache</span>
+            <span lang="ja"> ブラウザキャッシュ </span>
+          </localized-content>
+        </o-else>
+      </span>
+      <o-if :value="!hideChangeDirButton">
+        <p-button size="small" variant="outlined" on:click="changeDir">
+          <localized-content>
+            <span lang="cn">修改目录</span>
+            <span lang="en">Change Directory</span>
+            <span lang="ja"> ディレクトリを変更 </span>
+          </localized-content>
+        </p-button>
+      </o-if>
+    </div>
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    // 给外部使用的数据
+    export const outData = {
+      handle: null, // 接收的目录
+    };
+
+    export default async ({ load, query }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser({
+        user: query.localname,
+      });
+
+      const { mount } = await load("/packages/fs/main.js");
+
+      await localUser.connectAllServers();
+      const userInfo = await localUser.info();
+
+      const { saveReceivedTask } = await load("../util/task-manager.js");
+
+      return {
+        data: {
+          userName: userInfo.name,
+          userId: localUser.userId,
+          dirName: null, // 保存目录的名字
+          _targetDirHandle: null, // 存到目标目录
+          hideChangeDirButton: !window.showDirectoryPicker, // 不支持showDirectoryPicker的浏览器，不允许修改默认目录
+        },
+        proto: {
+          async changeDir() {
+            const handle = await mount();
+
+            outData.handle = handle;
+
+            this.dirName = handle.name;
+
+            this._targetDirHandle = handle;
+          },
+        },
+        attached() {
+          this.emit("warp-send:set-active-id", {
+            data: {
+              activeId: "received",
+            },
+            composed: true,
+          });
+
+          outData.handle = null;
+
+          // 广播一次自己的应用状态
+          localUser.broadcast("warp-send-radiate", {
+            online: true,
+          });
+          const pendingTasks = {};
+
+          this._r_cancel = localUser.register(
+            `warp-send-radiate`,
+            async ({ fromUserSessionId, fromUserId, data }) => {
+              if (data.search === true) {
+                // 有设备正在查找，广播一次自己的应用状态
+                localUser.broadcast("warp-send-radiate", {
+                  online: true,
+                });
+              } else if (
+                data.received === localUser.sessionId &&
+                data.type === "start-send"
+              ) {
+                // 按任务哈希缓存分片数组，首次命中则初始化
+                const parts = (pendingTasks[data.taskHash] ||= []);
+
+                parts[data.partIndex] = data.filesPart;
+
+                // 已收齐全部分片
+                // 确保 parts 中没有 undefined
+                if (
+                  parts.length === data.totalPart &&
+                  parts.every((p) => p !== undefined)
+                ) {
+                  const fileContent = parts.join("");
+                  const files = JSON.parse(fileContent);
+
+                  // 拼装最终任务数据
+                  const task = {
+                    ...data,
+                    files,
+                    filesPart: undefined,
+                  };
+
+                  if (this._targetDirHandle) {
+                    task.handleName = this._targetDirHandle.name;
+                  }
+
+                  // 保存任务数据
+                  await saveReceivedTask(task);
+
+                  // 跳转至接收页
+                  const params = new URLSearchParams({
+                    taskHash: data.taskHash,
+                    userId: fromUserId,
+                    ...(query.localname && { localname: query.localname }),
+                  });
+
+                  this.goto(`./receiving.html?${params}`);
+                }
+              }
+            }
+          );
+        },
+        detached() {
+          localUser.broadcast("warp-send-radiate", {
+            online: false,
+          });
+        },
+      };
+    };
+  </script>
+</template>

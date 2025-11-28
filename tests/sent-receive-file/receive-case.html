@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viiniewport" content="width=device-width, initial-scale=1.0" />
+    <title>receive case</title>
+    <script src="/packages/libs/ofa/ofa.js#debug"></script>
+    <script src="/packages/none-os/init.js" type="module"></script>
+  </head>
+  <body>
+    <script type="module">
+      const load = lm(import.meta);
+
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser({
+        user: "test-user2",
+      });
+
+      window.localUser = localUser;
+    </script>
+    <o-app style="width: 380px; height: 480px">
+      <o-page
+        src="/packages/apps/warp-send.napp/pages/received.html?localname=test-user2"
+      ></o-page>
+    </o-app>
+  </body>
+</html>

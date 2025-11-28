@@ -1,0 +1,306 @@
+<template page>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="../comps/file-list.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    .container {
+      padding: 16px;
+    }
+  </style>
+  <div class="container">
+    <h3 style="margin-bottom: 8px">
+      <localized-content>
+        <span lang="cn">选择发送</span>
+        <span lang="en">Select Send</span>
+        <span lang="ja"> 送信方法を選択 </span>
+      </localized-content>
+    </h3>
+    <div
+      style="padding: 0 0 8px 0"
+      style.display="files.length > 0 ? 'block' : 'none'"
+    >
+      <warp-file-list
+        :files="files"
+        style="max-height: 190px; overflow: auto"
+      ></warp-file-list>
+      <div style="padding: 8px; font-size: 14px">
+        {{files.length}} 个文件，共 {{getFileSize(totalSize)}}
+      </div>
+    </div>
+    <div>
+      <p-button
+        variant="outlined"
+        on:click="shadow.$('#file-input').ele.click()"
+      >
+        <n-local-icon
+          name="file"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <o-if :value="files.length === 0">
+          <localized-content>
+            <span lang="cn">选择文件</span>
+            <span lang="en">Select Files</span>
+            <span lang="ja"> ファイルを選択 </span>
+          </localized-content>
+        </o-if>
+        <o-else>
+          <localized-content>
+            <span lang="cn">继续添加文件</span>
+            <span lang="en">Add More Files</span>
+            <span lang="ja"> さらにファイルを追加 </span>
+          </localized-content>
+        </o-else>
+      </p-button>
+
+      <input
+        type="file"
+        id="file-input"
+        on:change="fileChange"
+        style="display: none"
+        multiple
+      />
+
+      <p-button disabled variant="outlined">
+        <n-local-icon
+          name="folder"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <localized-content>
+          <span lang="cn">文件夹</span>
+          <span lang="en">Folder</span>
+          <span lang="ja"> フォルダー </span>
+        </localized-content>
+      </p-button>
+      <p-button disabled variant="outlined">
+        <n-local-icon
+          name="text"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <localized-content>
+          <span lang="cn">文本</span>
+          <span lang="en">Text</span>
+          <span lang="ja"> テキスト </span>
+        </localized-content>
+      </p-button>
+    </div>
+
+    <h3>
+      <localized-content>
+        <span lang="cn">到设备</span>
+        <span lang="en">To Device</span>
+        <span lang="ja"> デバイスに送信 </span>
+      </localized-content>
+    </h3>
+    <style>
+      [name="tick-circle"] {
+        display: none;
+      }
+      [active-item] [name="tick-circle"] {
+        display: block;
+      }
+    </style>
+    <p-list>
+      <o-fill :value="devices">
+        <p-list-item
+          button
+          on:click="$host.selectDevice($data)"
+          attr:disabled="$host.userDisabled($data)"
+          attr:active-item="$host.selectedDevice?.userId === $data.userId"
+        >
+          <n-user-avatar
+            :userid="$data.userId"
+            slot="prefix"
+            style="width: 32px; height: 32px"
+          ></n-user-avatar>
+          <div style="display: flex; align-items: center">
+            {{$data.userCard.name}}
+            <n-user-state
+              :userid="$data.userId"
+              style="margin-left: 4px"
+            ></n-user-state>
+          </div>
+          <div
+            style="
+              font-size: 12px;
+              color: var(--md-sys-color-normal);
+              word-break: break-all;
+            "
+          >
+            {{$data.userId}}
+          </div>
+          <n-local-icon
+            name="tick-circle"
+            slot="suffix"
+            style="color: var(--md-sys-color-success); font-size: 20px"
+          ></n-local-icon>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+    <div style="padding: 12px 0">
+      <p-button
+        on:click="sendFiles"
+        attr:disabled="!selectedDevice || files.length === 0"
+      >
+        <localized-content>
+          <span lang="cn">确认发送</span>
+          <span lang="en">Send</span>
+          <span lang="ja"> 送信 </span>
+        </localized-content>
+      </p-button>
+    </div>
+  </div>
+  <script>
+    export const parent = "./layout.html";
+
+    export const cacheFiles = []; // 缓存的文件，防止页面跳转后被清除
+
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      localUser.connectAllServers();
+
+      return {
+        data: {
+          devices: [], // 我的所有设备
+          inWarpUsers: [], // 正在 Warp 中的用户
+          selectedDevice: null, // 选中的设备
+          files: cacheFiles, // 准备要发送的文件
+          totalSize: 0, // 所有文件的总大小
+        },
+        proto: {
+          async selectDevice(device) {
+            if (this.userDisabled(device)) return;
+
+            // 尝试提前添加 rtc 连接
+            this.selectedDevice = { ...device };
+
+            const remoteUser = await localUser.connectUser(device.userId);
+
+            const targetWarpUser = this.inWarpUsers.find(
+              (item) => item.fromUserId === device.userId
+            );
+
+            // 初始化 RTC 连接
+            remoteUser.initRTC({
+              userSessionId: targetWarpUser.fromUserSessionId,
+            });
+          },
+          userDisabled(device) {
+            return !this.inWarpUsers.find(
+              (item) => item.fromUserId === device.userId
+            );
+          },
+          fileChange(e) {
+            Array.from(e.target.files).forEach((file) => {
+              // 去重并添加到files
+              if (
+                !this.files.find(
+                  (item) => item.name === file.name && item.size === file.size
+                )
+              ) {
+                this.files.push({
+                  name: file.name,
+                  size: file.size,
+                  _file: file,
+                });
+              }
+            });
+
+            cacheFiles.splice(0, 100000, ...this.files); // 缓存文件，防止页面跳转后被清除
+
+            // 重新计算总大小
+            this.totalSize = this.files.reduce((acc, cur) => acc + cur.size, 0);
+          },
+          async loadDevices() {
+            const devices = await localUser.myDevices();
+
+            this.devices = devices;
+            console.log(devices);
+          },
+          sendFiles() {
+            const targetWarpUser = this.inWarpUsers.find(
+              (e) => e.fromUserId === this.selectedDevice.userId
+            );
+
+            this.goto(
+              `./sending.html?userId=${this.selectedDevice.userId}&sessionId=${targetWarpUser.fromUserSessionId}`
+            );
+          },
+          getFileSize(b) {
+            const units = ["B", "KB", "MB", "GB", "TB"];
+            let index = 0;
+            while (b >= 1024 && index < units.length - 1) {
+              b /= 1024;
+              index++;
+            }
+            return `${b.toFixed(2)} ${units[index]}`;
+          },
+        },
+        attached() {
+          this.emit("warp-send:set-active-id", {
+            data: {
+              activeId: "sent",
+            },
+            composed: true,
+          });
+
+          this._r_cancel = localUser.register(
+            `warp-send-radiate`,
+            ({ fromUserSessionId, fromUserId, data }) => {
+              if (data.online === true) {
+                // 确保不会重复
+                if (
+                  this.inWarpUsers.find(
+                    (item) => item.fromUserId === fromUserId
+                  )
+                ) {
+                  return;
+                }
+
+                this.inWarpUsers.push({
+                  fromUserSessionId,
+                  fromUserId,
+                });
+              } else if (data.online === false) {
+                // 删除
+                const idx = this.inWarpUsers.findIndex(
+                  (item) => item.fromUserId === fromUserId
+                );
+
+                if (
+                  this.selectedDevice &&
+                  this.selectedDevice.userId === fromUserId
+                ) {
+                  this.selectedDevice = null;
+                }
+
+                if (idx !== -1) this.inWarpUsers.splice(idx, 1);
+              }
+            }
+          );
+
+          this.loadDevices();
+
+          // TODO: 打开的时候，广播一次自己的应用状态
+          localUser.broadcast("warp-send-radiate", {
+            search: true,
+          });
+        },
+        detached() {
+          this._r_cancel && this._r_cancel();
+        },
+      };
+    };
+  </script>
+</template>

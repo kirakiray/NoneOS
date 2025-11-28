@@ -15,6 +15,7 @@ export class HandServerClient extends EventTarget {
     this.serverName = null; // 服务器名称
     this.serverVersion = null; // 服务器版本
     this.serverCid = null; // 服务器CID
+    this.delays = []; // 延迟曲线
   }
 
   async init() {
@@ -107,11 +108,15 @@ export class HandServerClient extends EventTarget {
   // 处理WebSocket打开事件
   _onOpen() {
     // console.log("WebSocket连接已打开");
+  }
 
-    clearInterval(this.pingInterval);
-    this.pingInterval = setInterval(() => {
+  startDelayCheckLoop() {
+    clearTimeout(this.pingInterval);
+    const loop = () => {
       this.checkDelay();
-    }, 30000);
+      this.pingInterval = setTimeout(loop, 10000);
+    };
+    this.pingInterval = setTimeout(loop, 10000);
   }
 
   async checkDelay() {
@@ -122,6 +127,19 @@ export class HandServerClient extends EventTarget {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this._pingTime = Date.now();
       this._send({ type: "ping" });
+
+      // 超过8秒没有响应，认为延迟很大
+      this._delayTimeout = setTimeout(() => {
+        if (this._pingTime) {
+          this.delay = 8000;
+          this.pushDelays({
+            time: this._pingTime,
+            delay: 8000,
+          });
+
+          this._pingTime = null;
+        }
+      }, 8000);
     }
   }
 
@@ -166,15 +184,19 @@ export class HandServerClient extends EventTarget {
       responseData = JSON.parse(event.data);
 
       if (responseData.type === "pong") {
-        this.delay = Date.now() - this._pingTime;
-        this.dispatchEvent(
-          new CustomEvent("check-delay", { detail: this.delay })
-        );
+        if (this._pingTime) {
+          this.delay = Date.now() - this._pingTime;
+          this.pushDelays({
+            time: this._pingTime,
+            delay: this.delay,
+          });
 
-        this._pingTime = null;
+          this._pingTime = null;
+          clearTimeout(this._delayTimeout); // 清除之前的定时器
 
-        // 告诉服务端延迟时间
-        this._send({ type: "update_delay", delay: this.delay });
+          // 告诉服务端延迟时间
+          this._send({ type: "update_delay", delay: this.delay });
+        }
         return;
       }
     } catch (e) {
@@ -200,8 +222,11 @@ export class HandServerClient extends EventTarget {
       this._send({ type: "authentication", signedData });
     } else if (responseData.type === "auth_success") {
       this._changeState("authed");
-      this._pingTime = Date.now();
-      this._send({ type: "ping" }); // 即使发送延迟测试
+      this.startDelayCheckLoop();
+      this.checkDelay();
+
+      // 发送关注列表的用户
+      this.sendFollowList();
     } else if (responseData.type === "server_info") {
       this.serverName = responseData.serverName;
       this.serverVersion = responseData.serverVersion;
@@ -209,27 +234,40 @@ export class HandServerClient extends EventTarget {
       this.dispatchEvent(
         new CustomEvent("server-info", { detail: responseData })
       );
+    } else if (responseData.type === "notify_follow") {
+      responseData.online.forEach(async (userId) => {
+        // 直接上线
+        const remoteUser = await this.#user.connectUser(userId);
+        remoteUser.__addServer(this);
+
+        await remoteUser.refreshConnectionMode();
+
+        // 重新ping一次
+        remoteUser.ping();
+      });
+
+      // 通知下线应该不需要检查，直接下线对应的用户
+      responseData.offline.forEach(async (userId) => {
+        // 直接下线对应的服务器
+        const remoteUser = await this.#user.connectUser(userId);
+        remoteUser.__removeServer(this);
+
+        remoteUser.refreshConnectionMode();
+      });
+
+      // [...responseData.online, ...responseData.offline].forEach(
+      //   async (userId) => {
+      //     // 重新检查
+      //     const remoteUser = await this.#user.connectUser(userId);
+
+      //     await remoteUser.checkServer();
+      //   }
+      // );
+
+      this.dispatchEvent(
+        new CustomEvent("notify-follow", { detail: responseData })
+      );
     }
-    // else if (responseData.type === "agent_data") {
-    //   this.dispatchEvent(
-    //     new CustomEvent("agent-data", { detail: responseData })
-    //   );
-
-    //   if (this.onData) {
-    //     this.onData(responseData.fromUserId, responseData.data, responseData);
-    //   }
-
-    //   // console.log("收到agent消息:", responseData);
-
-    //   this.#user.dispatchEvent(
-    //     new CustomEvent("received-server-agent-data", {
-    //       detail: {
-    //         response: responseData,
-    //         server: this,
-    //       },
-    //     })
-    //   );
-    // }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));
   }
@@ -251,16 +289,46 @@ export class HandServerClient extends EventTarget {
     }
   }
 
+  // 向用户发送关注列表
+  async sendFollowList() {
+    const devices = await this.#user.myDevices();
+
+    this._send({
+      type: "follow_list",
+      follows: devices.map((device) => device.userId).join(","),
+    });
+  }
+
+  pushDelays(delayData) {
+    this.delays.push(delayData);
+    // 超出18条数据，删除最早的一条
+    if (this.delays.length > 18) {
+      this.delays.shift();
+    }
+
+    this.dispatchEvent(
+      new CustomEvent("check-delay", {
+        detail: delayData,
+      })
+    );
+  }
+
   // 处理WebSocket关闭事件
   _onClose(event) {
-    clearInterval(this.pingInterval);
+    clearTimeout(this.pingInterval);
+    clearTimeout(this._delayTimeout);
+    this.pushDelays({
+      time: Date.now(),
+      delay: 8000,
+    });
     this._changeState("closed");
     console.log("WebSocket连接已关闭:", event);
   }
 
   // 处理WebSocket错误事件
   _onError(event) {
-    clearInterval(this.pingInterval);
+    clearTimeout(this.pingInterval);
+    clearTimeout(this._delayTimeout);
     console.error("WebSocket错误:", event);
 
     // 触发错误事件

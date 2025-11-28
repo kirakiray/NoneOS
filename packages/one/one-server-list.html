@@ -1,0 +1,41 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="./delay-vis-map.html"></l-m>
+  <l-m src="./one-server-item.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <p-list>
+    <o-fill :value="servers">
+      <one-server-item :url="$data.url"></one-server-item>
+    </o-fill>
+  </p-list>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      return {
+        data: {
+          servers: [], // 服务器列表
+        },
+        proto: {},
+        async attached() {
+          const serverManager = await localUser.serverManager();
+
+          if (!this.ele.isConnected) {
+            return;
+          }
+
+          this.servers = serverManager.data;
+        },
+        detached() {
+          this.servers = []; // 组件销毁时，清空服务器列表
+        },
+      };
+    };
+  </script>
+</template>

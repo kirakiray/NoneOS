@@ -1,0 +1,131 @@
+<template page>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      text-align: center;
+    }
+  </style>
+  <h3>
+    <localized-content>
+      <span lang="cn">添加握手服务器</span>
+      <span lang="en">Add Handshake Server</span>
+      <span lang="ja">ハンドシェイクサーバーを追加</span>
+    </localized-content>
+  </h3>
+  <o-if :value="urlError">
+    <p style="color: var(--md-sys-color-error)">{{urlError}}</p>
+  </o-if>
+  <o-else-if :value="exited">
+    <p>
+      <localized-content>
+        <span lang="cn">握手服务器</span>
+        <span lang="en">Handshake server</span>
+        <span lang="ja">ハンドシェイクサーバー</span>
+      </localized-content>
+      <span style="color: var(--md-sys-color-primary)"> {{urlHost}} </span>
+      <localized-content>
+        <span lang="cn">已经存在</span>
+        <span lang="en">already exists</span>
+        <span lang="ja">は既に存在します</span>
+      </localized-content>
+    </p>
+  </o-else-if>
+  <o-else>
+    <p>
+      <localized-content>
+        <span lang="cn">确认要将</span>
+        <span lang="en">Confirm to add</span>
+        <span lang="ja">追加しますか</span>
+      </localized-content>
+      <span style="color: var(--md-sys-color-primary)"> {{urlHost}} </span>
+      <localized-content>
+        <span lang="cn">握手服务器添加到当前系统吗？</span>
+        <span lang="en">handshake server to the current system?</span>
+        <span lang="ja">ハンドシェイクサーバーを現在のシステムに？</span>
+      </localized-content>
+    </p>
+  </o-else>
+  <o-if :value="!urlError">
+    <p-button on:click="addServer" attr:disabled="!!urlError || exited">
+      <o-if :value="exited">
+        <localized-content>
+          <span lang="cn">已添加</span>
+          <span lang="en">Added</span>
+          <span lang="ja">追加済み</span>
+        </localized-content>
+      </o-if>
+      <o-if :value="!exited">
+        <localized-content>
+          <span lang="cn">确认添加</span>
+          <span lang="en">Confirm Add</span>
+          <span lang="ja">追加する</span>
+        </localized-content>
+      </o-if>
+    </p-button>
+  </o-if>
+  <script>
+    export default async ({ load }) => {
+      const url = new URLSearchParams(location.search).get("url");
+      const { createUser } = await load("/packages/user/main.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      const localUser = await createUser();
+      const serverManager = await localUser.serverManager();
+
+      return {
+        data: {
+          url,
+          urlError: "",
+          exited: false,
+        },
+        proto: {
+          get urlHost() {
+            return new URL(url).host;
+          },
+          addServer() {
+            serverManager.data.push({ url });
+            this.exited = true;
+          },
+        },
+        async attached() {
+          // 判断url是否合法
+          if (!url) {
+            this.urlError = await getLocalized({
+              cn: "分享的握手服务器出错",
+              en: "Shared handshaking server error",
+              jp: "共有ハンドシェイクサーバーエラー",
+            });
+            return;
+          }
+          let urlObj = null;
+          try {
+            urlObj = new URL(url);
+          } catch (error) {
+            this.urlError = await getLocalized({
+              cn: "请输入正确的服务器地址",
+              en: "Please enter a valid server address",
+              jp: "正しいサーバーアドレスを入力してください",
+            });
+            return;
+          }
+
+          // 必须是 wss协议
+          if (urlObj.protocol !== "wss:") {
+            this.urlError = await getLocalized({
+              cn: "请输入正确的服务器地址",
+              en: "Please enter a valid server address",
+              jp: "正しいサーバーアドレスを入力してください",
+            });
+            return;
+          }
+
+          // 查看是否已经添加过
+          const exited = serverManager.data.some((item) => item.url === url);
+          this.exited = exited;
+        },
+      };
+    };
+  </script>
+</template>

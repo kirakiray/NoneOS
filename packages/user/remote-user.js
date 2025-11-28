@@ -8,10 +8,31 @@ export class RemoteUser extends BaseUser {
   #self; // 和本机绑定的用户
   #servers = []; // 可用的服务器列表，按访问对方的速度排序
   _rtcConnections = []; // RTC连接实例
+  #delays = []; // 延迟时间列表，单位毫秒
+  _pingTimeMap = new Map(); // 存储pingID与发送时间的映射关系
 
   constructor(publicKey, self) {
     super(publicKey);
     this.#self = self;
+
+    this.__pingLoop = setInterval(() => {
+      if (this.mode !== 0) {
+        this.ping();
+      }
+    }, 10000);
+  }
+
+  get delay() {
+    return this.#delays[this.#delays.length - 1] || 0;
+  }
+
+  get delays() {
+    return [...this.#delays];
+  }
+
+  // 是否已经加密
+  get isEncrypted() {
+    return false;
   }
 
   // 是否可通过服务端转发到对方
@@ -40,8 +61,55 @@ export class RemoteUser extends BaseUser {
     return this.#mode;
   }
 
+  ping() {
+    if (this.mode === 0) {
+      throw new Error("未连接到对方");
+    }
+
+    const pingID = Math.random().toString(36).slice(2);
+
+    this._pingTimeMap.set(pingID, Date.now());
+
+    this.post({
+      type: "ping",
+      pingID,
+      __internal_mark: 1,
+    });
+  }
+
+  pushDelays(delayData) {
+    this.#delays.push(delayData);
+    // 超出18条数据，删除最早的一条
+    if (this.#delays.length > 18) {
+      this.#delays.shift();
+    }
+
+    this.dispatchEvent(new CustomEvent("check-delay", { detail: delayData }));
+  }
+
   // 检查连接状态
-  async repairState() {
+  async refreshConnectionMode() {
+    const changeMode = (mode) => {
+      this._oldMode = this.#mode;
+      this.#mode = mode;
+      this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
+
+      if (mode === 0) {
+        this.pushDelays({
+          time: Date.now(),
+          delay: 8000,
+        });
+      }
+      // else {
+      //   this.ping();
+      // }
+
+      if (this._oldMode === 0 && this.#mode !== 0) {
+        // 如果从不可用切换到服务端转发模式，则发送一次ping
+        this.ping();
+      }
+    };
+
     // 先判断是否有rtc通道可用
     if (this._rtcConnections.length) {
       const hasConnected = this._rtcConnections.some((conn) => {
@@ -56,23 +124,18 @@ export class RemoteUser extends BaseUser {
 
       if (hasConnected) {
         // 如果有已连接的rtc通道，则更新连接状态
-        this._changeMode(2);
+        changeMode(2);
         return;
       }
     }
 
     if (this.#servers.length && this.#mode === 0) {
       // 如果之前是不可用的，则更新连接状态
-      this._changeMode(1);
+      changeMode(1);
       return;
     }
 
-    this._changeMode(0);
-  }
-
-  _changeMode(mode) {
-    this.#mode = mode;
-    this.dispatchEvent(new CustomEvent("mode-change", { detail: mode }));
+    changeMode(0);
   }
 
   async checkServer() {
@@ -115,20 +178,7 @@ export class RemoteUser extends BaseUser {
     // 更新可用服务器列表
     this.#servers = servers;
 
-    this.repairState();
-  }
-
-  // 更新连接模式
-  // 如果用户已经server状态，则可以切换到rtc模式
-  async refreshMode() {
-    // 确认对方在线，判断并进行rtc连接
-    if (this.mode === 1) {
-      const bool = await this.#self.isMyDevice(this.userId);
-
-      if (bool) {
-        this.initRTC();
-      }
-    }
+    this.refreshConnectionMode();
   }
 
   // 初始化RTC连接
@@ -141,8 +191,6 @@ export class RemoteUser extends BaseUser {
     if (this.#mode === 2) {
       return;
     }
-
-    this._runInitRTC = 1; // 标记是否已运行过initRTC
 
     if (this.serverState === 0) {
       throw new Error("未找到合适的握手服务器");
@@ -263,7 +311,6 @@ export class RemoteUser extends BaseUser {
     }
 
     if (typeof userSessionId === "object") {
-      debugger;
       throw new Error("userSessionId 格式错误");
     }
 
@@ -275,11 +322,6 @@ export class RemoteUser extends BaseUser {
     });
 
     // console.log("打包后发送消息大小：", data.length / 1024, "KB");
-
-    if (this._runInitRTC && !this._rtcConnections.length) {
-      // 如果运行过initRTC，则再进行一次初始化，让下次可以使用rtc发送
-      this.initRTC();
-    }
 
     if (this.#mode === 0) {
       throw new Error("未连接到对方");
@@ -332,5 +374,23 @@ export class RemoteUser extends BaseUser {
       data,
       __internal_mark: 1,
     });
+  }
+
+  // 直接下线用的方法
+  __removeServer(serverClient) {
+    const index = this.#servers.indexOf(serverClient);
+    if (index !== -1) {
+      this.#servers.splice(index, 1);
+    }
+  }
+
+  // 直接上线
+  __addServer(serverClient) {
+    // 确保不会重复添加
+    if (this.#servers.includes(serverClient)) {
+      return;
+    }
+
+    this.#servers.push(serverClient);
   }
 }

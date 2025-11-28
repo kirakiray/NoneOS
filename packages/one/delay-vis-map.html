@@ -1,0 +1,314 @@
+<template component>
+  <style>
+    :host {
+      display: block;
+      padding: 16px;
+    }
+
+    #delayVisMap {
+      width: 100%;
+      min-height: 160px;
+    }
+  </style>
+  <div>
+    <svg id="delayVisMap" xmlns="http://www.w3.org/2000/svg"></svg>
+  </div>
+
+  <script>
+    export default async () => {
+      return {
+        tag: "n-delay-vis-map",
+        data: {
+          delays: [
+            { time: 1762784162213, delay: 35 },
+            { time: 1762784153180, delay: 37 },
+            { time: 1762784117181, delay: 37 },
+            { time: 1762784107179, delay: 36 },
+            { time: 1762784097178, delay: 37 },
+            { time: 1762784087180, delay: 37 },
+            { time: 1762784077182, delay: 39 },
+            { time: 1762784067181, delay: 37 },
+            { time: 1762784056626, delay: 40 },
+            { time: 1762784046627, delay: 42 },
+          ],
+        },
+        watch: {
+          delays() {
+            this.drawChart();
+          },
+        },
+        attached() {
+          // 初始化ResizeObserver来监听容器尺寸变化
+          this.debounceTimer = null;
+          this.resizeObserver = new ResizeObserver(() => {
+            // 使用防抖避免频繁重绘
+            clearTimeout(this.debounceTimer);
+            this.debounceTimer = setTimeout(() => {
+              this.drawChart();
+            }, 100); // 100ms防抖延迟
+          });
+          this.resizeObserver.observe(
+            this.shadow.$("#delayVisMap").ele.parentElement
+          );
+
+          // 初始绘制
+          this.drawChart();
+        },
+        detached() {
+          // 组件销毁时断开ResizeObserver
+          if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+          }
+          // 清除防抖定时器
+          if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer);
+          }
+        },
+        proto: {
+          drawChart() {
+            const svg = this.shadow.$("#delayVisMap").ele;
+
+            // 清除SVG内容
+            svg.innerHTML = "";
+
+            // 设置SVG大小
+            const displayWidth =
+              svg.parentElement.clientWidth || svg.clientWidth || 400;
+            const displayHeight = svg.clientHeight || 160;
+
+            svg.setAttribute("width", displayWidth);
+            svg.setAttribute("height", displayHeight);
+
+            // 获取数据
+            const delays = this.delays;
+            if (!delays || delays.length === 0) return;
+
+            // 设置动态Y轴范围
+            const minDelay = 0;
+            const maxDataDelay = Math.max(...delays.map((d) => d.delay));
+
+            // 根据数据最大值动态设置Y轴最大值
+            let maxDelay;
+            if (maxDataDelay <= 200) {
+              maxDelay = 200;
+            } else if (maxDataDelay <= 500) {
+              maxDelay = 500;
+            } else if (maxDataDelay <= 1000) {
+              maxDelay = 1000;
+            } else if (maxDataDelay <= 2000) {
+              maxDelay = 2000;
+            } else if (maxDataDelay <= 3000) {
+              maxDelay = 3000;
+            } else if (maxDataDelay <= 5000) {
+              maxDelay = 5000;
+            } else {
+              maxDelay = 8000;
+            }
+
+            const range = maxDelay - minDelay;
+
+            // 计算时间范围
+            const times = delays.map((d) => d.time);
+            const minTime = Math.min(...times);
+            const maxTime = Math.max(...times);
+            const timeRange = maxTime - minTime || 1; // 防止除零
+
+            // 设置边距（为轴标签留出空间）
+            const margin = { top: 20, right: 20, bottom: 40, left: 50 };
+            const width = displayWidth - margin.left - margin.right;
+            const height = displayHeight - margin.top - margin.bottom;
+
+            // 添加辅助线和刻度标签
+            const gridLines = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            gridLines.setAttribute("stroke", "#f0f0f0");
+            gridLines.setAttribute("stroke-width", "1");
+            gridLines.setAttribute("opacity", "0.5");
+
+            // 创建刻度标签组
+            const tickLabels = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+            tickLabels.setAttribute("font-family", "Arial");
+            tickLabels.setAttribute("font-size", "10");
+            tickLabels.setAttribute("fill", "#666");
+
+            // 水平辅助线和Y轴刻度标签
+            const yTicks = 5;
+            for (let i = 0; i <= yTicks; i++) {
+              const y = margin.top + height - (i * height) / yTicks;
+              const line = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "line"
+              );
+              line.setAttribute("x1", margin.left);
+              line.setAttribute("y1", y);
+              line.setAttribute("x2", margin.left + width);
+              line.setAttribute("y2", y);
+              gridLines.appendChild(line);
+
+              // 添加Y轴刻度标签
+              const tickValue = minDelay + (maxDelay - minDelay) * (i / yTicks);
+              const label = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+              );
+              label.textContent = Math.round(tickValue);
+              label.setAttribute("x", margin.left - 5);
+              label.setAttribute("y", y + 3);
+              label.setAttribute("text-anchor", "end");
+              tickLabels.appendChild(label);
+            }
+
+            // 垂直辅助线和X轴刻度标签
+            const xTicks = 5;
+            for (let i = 0; i <= xTicks; i++) {
+              const x = margin.left + (i * width) / xTicks;
+              const line = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "line"
+              );
+              line.setAttribute("x1", x);
+              line.setAttribute("y1", margin.top);
+              line.setAttribute("x2", x);
+              line.setAttribute("y2", margin.top + height);
+              gridLines.appendChild(line);
+
+              // 添加X轴刻度标签（显示时间）
+              const timeValue = minTime + (timeRange * i) / xTicks;
+              const date = new Date(timeValue);
+              const timeString = `${date.getHours()}:${date
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}`;
+
+              const label = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "text"
+              );
+              label.textContent = timeString;
+              label.setAttribute("x", x);
+              label.setAttribute("y", margin.top + height + 15);
+              label.setAttribute("text-anchor", "middle");
+              tickLabels.appendChild(label);
+            }
+
+            svg.appendChild(gridLines);
+            svg.appendChild(tickLabels);
+
+            // 创建折线路径
+            let pathData = "";
+            const points = delays.map((point, index) => {
+              const x =
+                margin.left + ((point.time - minTime) / timeRange) * width;
+              const y =
+                margin.top +
+                height -
+                ((point.delay - minDelay) / range) * height;
+              return { x, y };
+            });
+
+            // 构建路径数据并根据延迟值确定线段颜色
+            const pathGroup = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "g"
+            );
+
+            points.forEach((point, index) => {
+              if (index === 0) {
+                pathData += `M ${point.x} ${point.y} `;
+              } else {
+                // 计算当前线段的颜色
+                const prevDelay = delays[index - 1].delay;
+                const currentDelay = delays[index].delay;
+                const maxDelay = Math.max(prevDelay, currentDelay);
+
+                let lineColor = "#4285f4"; // 默认蓝色
+                if (maxDelay > 2000) {
+                  lineColor = "#f44336"; // 红色 (>2000ms)
+                } else if (maxDelay > 500) {
+                  lineColor = "#ff9800"; // 橘色 (>500ms)
+                }
+
+                // 为每条线段创建独立的path元素
+                const linePath = document.createElementNS(
+                  "http://www.w3.org/2000/svg",
+                  "path"
+                );
+                const lineData = `M ${points[index - 1].x} ${
+                  points[index - 1].y
+                } L ${point.x} ${point.y}`;
+                linePath.setAttribute("d", lineData);
+                linePath.setAttribute("fill", "none");
+                linePath.setAttribute("stroke", lineColor);
+                linePath.setAttribute("stroke-width", "2");
+                pathGroup.appendChild(linePath);
+              }
+            });
+
+            svg.appendChild(pathGroup);
+
+            // 添加数据点，根据延迟值确定颜色
+            points.forEach((point, index) => {
+              const circle = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "circle"
+              );
+              circle.setAttribute("cx", point.x);
+              circle.setAttribute("cy", point.y);
+              circle.setAttribute("r", "3");
+
+              // 根据延迟值设置点的颜色
+              const delay = delays[index].delay;
+              let pointColor = "#4285f4"; // 默认蓝色
+              if (delay > 2000) {
+                pointColor = "#f44336"; // 红色 (>2000ms)
+              } else if (delay > 500) {
+                pointColor = "#ff9800"; // 橘色 (>500ms)
+              }
+
+              circle.setAttribute("fill", pointColor);
+              svg.appendChild(circle);
+            });
+
+            // 添加轴标签
+            // Y轴标签
+            const yAxisLabel = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "text"
+            );
+            yAxisLabel.textContent = "delay";
+            yAxisLabel.setAttribute("x", 10);
+            yAxisLabel.setAttribute("y", margin.top + height / 2);
+            yAxisLabel.setAttribute("text-anchor", "middle");
+            yAxisLabel.setAttribute("font-family", "Arial");
+            yAxisLabel.setAttribute("font-size", "12");
+            yAxisLabel.setAttribute("fill", "#333");
+            yAxisLabel.setAttribute(
+              "transform",
+              `rotate(-90, 10, ${margin.top + height / 2})`
+            );
+            svg.appendChild(yAxisLabel);
+
+            // X轴标签
+            const xAxisLabel = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "text"
+            );
+            xAxisLabel.textContent = "time";
+            xAxisLabel.setAttribute("x", margin.left + width / 2);
+            xAxisLabel.setAttribute("y", displayHeight - 10);
+            xAxisLabel.setAttribute("text-anchor", "middle");
+            xAxisLabel.setAttribute("font-family", "Arial");
+            xAxisLabel.setAttribute("font-size", "12");
+            xAxisLabel.setAttribute("fill", "#333");
+            svg.appendChild(xAxisLabel);
+          },
+        },
+      };
+    };
+  </script>
+</template>

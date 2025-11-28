@@ -1,0 +1,124 @@
+<template component>
+  <style>
+    :host {
+      display: inline-block;
+    }
+  </style>
+  <span>{{delayText}}</span>
+  <script>
+    export default async ({ load }) => {
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      return {
+        tag: "n-one-delay-text",
+        data: {
+          delays: [],
+          delayText: "-",
+        },
+        watch: {
+          delays() {
+            this.refreshText();
+          },
+        },
+        proto: {
+          changeColor(color) {
+            this.shadow.$("span").style.color = `var(--md-sys-color-${color})`;
+          },
+          async refreshText() {
+            if (!this.delays || this.delays.length === 0) {
+              this.delayText = "-";
+              return;
+            }
+
+            // 获取最后一个项目和所有延迟值
+            const lastItem = this.delays[this.delays.length - 1];
+            const delays = this.delays.map((item) => item.delay);
+
+            // 计算平均延迟
+            const avgDelay =
+              delays.reduce((sum, delay) => sum + delay, 0) / delays.length;
+
+            // 检查是否有断开或高延迟的情况
+            const hasDisconnect = delays.some((delay) => delay >= 8000);
+            const hasHighDelay = delays.some(
+              (delay) => delay >= 1000 && delay < 8000
+            );
+
+            // 检查网络稳定性（如果最大延迟与最小延迟差异很大，则认为不稳定）
+            const minDelay = Math.min(...delays);
+            const maxDelay = Math.max(...delays);
+            const isUnstable =
+              maxDelay - minDelay > 1000 ||
+              delays.some((delay) => delay >= 8000);
+
+            // 根据最后一个项目的延迟设置基础状态
+            let baseStatus, color;
+            if (lastItem.delay < 120) {
+              baseStatus = await getLocalized({
+                cn: "网络畅通",
+                en: "Excellent",
+                ja: "良好",
+              });
+              color = "success";
+            } else if (lastItem.delay < 400) {
+              baseStatus = await getLocalized({
+                cn: "网络尚可",
+                en: "Good",
+                ja: "良好",
+              });
+              color = "primary";
+            } else if (lastItem.delay < 1000) {
+              baseStatus = await getLocalized({
+                cn: "网络略卡",
+                en: "Lagging",
+                ja: "遅い",
+              });
+              color = "normal";
+            } else if (lastItem.delay < 8000) {
+              baseStatus = await getLocalized({
+                cn: "网络拥堵",
+                en: "Slow",
+                ja: "渋滞",
+              });
+              color = "error";
+            } else {
+              baseStatus = await getLocalized({
+                cn: "网络断开",
+                en: "Disconnected",
+                ja: "切断",
+              });
+              color = "error";
+            }
+
+            // 如果网络不稳定，在状态后添加不稳定的描述
+            // 但如果当前已经是"网络断开"状态，则不需要额外标注
+            if (isUnstable && delays.length > 1 && lastItem.delay < 8000) {
+              const stabilityDesc = await getLocalized({
+                cn: hasDisconnect
+                  ? "(曾断开)"
+                  : hasHighDelay
+                  ? "(不稳定)"
+                  : "(偶发波动)",
+                en: hasDisconnect
+                  ? "(lost)"
+                  : hasHighDelay
+                  ? "(unstable)"
+                  : "(lag)",
+                ja: hasDisconnect
+                  ? "(切断)"
+                  : hasHighDelay
+                  ? "(不安定)"
+                  : "(遅延)",
+              });
+              this.delayText = `${baseStatus} ${stabilityDesc}`;
+            } else {
+              this.delayText = baseStatus;
+            }
+
+            this.changeColor(color);
+          },
+        },
+      };
+    };
+  </script>
+</template>

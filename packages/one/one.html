@@ -1,0 +1,20 @@
+<template component>
+  <!-- <l-m src="./one-list.html"></l-m> -->
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <n-one-list></n-one-list>
+  <script>
+    export default async ({ load }) => {
+      await load("./one-list.html");
+      
+      return {
+        tag: "n-one",
+        data: {},
+        proto: {},
+      };
+    };
+  </script>
+</template>

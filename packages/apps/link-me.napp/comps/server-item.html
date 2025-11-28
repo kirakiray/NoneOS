@@ -2,6 +2,8 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
+  <l-m src="/packages/one/delay-vis-map.html"></l-m>
+  <l-m src="/packages/one/one-delay-text.html"></l-m>
 
   <style>
     :host {
@@ -202,6 +204,54 @@
       <p-list-item>
         <div class="flex-align-center">
           <localized-content class="label">
+            <span lang="cn">状态更新时间</span>
+            <span lang="en">State Update Time</span>
+            <span lang="jp">状態更新時間</span>
+          </localized-content>
+          {{stateUpdateTime}}
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">服务器地址</span>
+            <span lang="en">Server URL</span>
+            <span lang="jp">サーバーアドレス</span>
+          </localized-content>
+          <n-copy-span>{{url}}</n-copy-span>
+          <p-button
+            size="small"
+            on:click="clickShareServer"
+            variant="text"
+            icon
+            attr:color="clickedShare ? 'success' : ''"
+            style="margin-left: 4px"
+          >
+            <o-if :value="!clickedShare">
+              <n-local-icon name="share"></n-local-icon>
+            </o-if>
+            <o-else>
+              <n-local-icon name="tick"></n-local-icon>
+            </o-else>
+          </p-button>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
+            <span lang="cn">服务器CID</span>
+            <span lang="en">Server CID</span>
+            <span lang="jp">サーバーCID</span>
+          </localized-content>
+          <n-copy-span>{{serverCid}}</n-copy-span>
+        </div>
+      </p-list-item>
+
+      <p-list-item>
+        <div class="flex-align-center">
+          <localized-content class="label">
             <span lang="cn">延迟</span>
             <span lang="en">Latency</span>
             <span lang="jp">遅延</span>
@@ -225,34 +275,16 @@
       <p-list-item>
         <div class="flex-align-center">
           <localized-content class="label">
-            <span lang="cn">状态更新时间</span>
-            <span lang="en">State Update Time</span>
-            <span lang="jp">状態更新時間</span>
+            <span lang="cn">延迟状态</span>
+            <span lang="en">Delay Status</span>
+            <span lang="jp">遅延状態</span>
           </localized-content>
-          {{stateUpdateTime}}
+          <n-one-delay-text :delays="delays"></n-one-delay-text>
         </div>
       </p-list-item>
 
       <p-list-item>
-        <div class="flex-align-center">
-          <localized-content class="label">
-            <span lang="cn">服务器地址</span>
-            <span lang="en">Server URL</span>
-            <span lang="jp">サーバーアドレス</span>
-          </localized-content>
-          <n-copy-span>{{url}}</n-copy-span>
-        </div>
-      </p-list-item>
-
-      <p-list-item>
-        <div class="flex-align-center">
-          <localized-content class="label">
-            <span lang="cn">服务器CID</span>
-            <span lang="en">Server CID</span>
-            <span lang="jp">サーバーCID</span>
-          </localized-content>
-          <n-copy-span>{{serverCid}}</n-copy-span>
-        </div>
+        <n-delay-vis-map :delays="delays"></n-delay-vis-map>
       </p-list-item>
     </p-list>
   </p-list-item>
@@ -273,8 +305,10 @@
         },
         data: {
           state: "0",
+          delays: [],
           _offs: [],
           _serverClient: null,
+          clickedShare: false,
         },
         watch: {
           url(newVal) {
@@ -282,6 +316,22 @@
           },
         },
         proto: {
+          clickShareServer(item) {
+            this.clickedShare = true;
+
+            setTimeout(() => {
+              this.clickedShare = false;
+            }, 1500);
+
+            // 复制到剪贴板
+            navigator.clipboard.writeText(
+              `${
+                location.origin
+              }/others/apps/add-hand-server/?url=${encodeURIComponent(
+                this.url
+              )}`
+            );
+          },
           checkDelay() {
             this._serverClient.checkDelay();
           },
@@ -296,6 +346,7 @@
             this.serverVersion = this._serverClient.serverVersion;
             this.delay = this._serverClient.delay;
             this.serverCid = this._serverClient.serverCid;
+            this.delays = this._serverClient.delays;
             this.stateUpdateTime = new Date(
               this._serverClient.stateUpdateTime
             ).toLocaleString();

@@ -148,7 +148,9 @@ export class LocalUser extends BaseUser {
         if (internal[data.type]) {
           internal[data.type]({
             fromUserId: remoteUser.userId,
-            fromUserSessionId: rtcConnection.__oppositeUserSessionId,
+            fromUserSessionId: !rtcConnection
+              ? event.detail.fromUserSessionId
+              : rtcConnection.__oppositeUserSessionId,
             data,
             channel,
             localUser: this,
@@ -214,6 +216,12 @@ export class LocalUser extends BaseUser {
     Promise.all(
       myDevices.map(async (device) => {
         const remoteUser = await this.connectUser(device.userId);
+
+        if (!remoteUser.mode) {
+          // 如果没在线，尝试先等待
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+
         remoteUser.trigger(name, data).catch(() => null); // 忽略连接失败的错误
       })
     );
@@ -393,6 +401,7 @@ export class LocalUser extends BaseUser {
           ).catch(() => null);
 
           if (!userData) {
+            this.#remotes[userId] = null;
             throw new Error("未能在任何在线服务器上找到该用户，连接失败");
           }
 

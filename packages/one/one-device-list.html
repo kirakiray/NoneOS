@@ -1,0 +1,43 @@
+<template page>
+  <l-m src="./one-device-item.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .device-item {
+      display: block;
+      padding: 4px;
+    }
+  </style>
+  <div>
+    <o-fill :value="devices">
+      <n-one-device-item :user-id="$data.userId"></n-one-device-item>
+    </o-fill>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      return {
+        data: {
+          devices: [], // 服务器列表
+        },
+        proto: {},
+        async attached() {
+          const devices = await localUser.myDevices();
+
+          if (!this.ele.isConnected) {
+            return;
+          }
+
+          this.devices = devices;
+        },
+        detached() {
+          this.devices = []; // 组件销毁时，清空设备列表
+        },
+      };
+    };
+  </script>
+</template>

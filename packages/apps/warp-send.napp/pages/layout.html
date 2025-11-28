@@ -1,107 +1,91 @@
 <template page>
-  <l-m src="/packages/pui/button/group.html"></l-m>
-  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/pui/navigation/nav-layout.html"></l-m>
+  <l-m src="/packages/pui/navigation/nav-bar.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
   <style>
     :host {
-      display: flex !important;
-      flex-direction: column;
-      width: 100%;
-      height: 100%;
+      display: block;
       background-color: var(--md-sys-color-surface-variant);
     }
-    .top {
-      padding: 16px;
-      word-break: break-all;
-    }
   </style>
-  <div class="top">
-    <h1 style="padding: 16px 0 8px; text-align: center; font-size: 20px">
-      <localized-content>
-        <span lang="cn">当前设备</span>
-        <span lang="en">Current Device</span>
-        <span lang="ja">現在のデバイス</span>
-      </localized-content>
-    </h1>
-    <div style="display: flex; align-items: center; justify-content: center">
-      <n-user-avatar
-        style="width: 48px; height: 48px; margin-right: 8px"
-        :userid="userId"
-      ></n-user-avatar>
-      <div>
-        <div style="font-size: 16px">{{ userName }}</div>
-        <div style="font-size: 12px">
-          <localized-content>
-            <span lang="cn">用户ID</span>
-            <span lang="en">User ID</span>
-            <span lang="ja">ユーザーID</span>
-          </localized-content>
-          : {{ userId }}
-        </div>
-      </div>
-    </div>
-    <div style="text-align: center; margin-top: 16px">
-      <p-button-group>
-        <p-button
-          on:click="clickType('receiver')"
-          attr:variant="!isSender ? 'contained' : 'outlined'"
-        >
-          <localized-content>
-            <span lang="cn">我是接收方</span>
-            <span lang="en">Receiver</span>
-            <span lang="ja">受信者</span>
-          </localized-content>
-        </p-button>
-        <p-button
-          on:click="clickType('sender')"
-          attr:variant="isSender ? 'contained' : 'outlined'"
-        >
-          <localized-content>
-            <span lang="cn">我是发送方</span>
-            <span lang="en">Sender</span>
-            <span lang="ja">送信者</span>
-          </localized-content>
-        </p-button>
-      </p-button-group>
-    </div>
-  </div>
-  <div style="flex: 1; position: relative">
-    <div
-      style="position: relative; margin: 0 auto; max-width: 800px; height: 100%"
-    >
-      <div
-        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%"
+
+  <p-nav-layout
+    attr:open-drawer="openDrawer ? '' : null"
+    on:click-drawer-mask="openDrawer = false"
+  >
+    <slot></slot>
+    <p-nav-bar slot="nav">
+      <p-nav-item
+        attr:active-item="activeId === 'sent'"
+        on:click="goPage('sent')"
       >
-        <slot></slot>
-      </div>
-    </div>
-  </div>
+        <n-local-icon name="send" slot="icon"></n-local-icon>
+        <localized-content>
+          <span lang="cn">发送</span>
+          <span lang="en">Send</span>
+          <span lang="ja"> 送信 </span>
+        </localized-content>
+      </p-nav-item>
+      <p-nav-item
+        attr:active-item="activeId === 'received'"
+        on:click="goPage('received')"
+      >
+        <localized-content>
+          <span lang="cn">接收</span>
+          <span lang="en">Receive</span>
+          <span lang="ja"> 受信 </span>
+        </localized-content>
+        <n-local-icon name="download" slot="icon"></n-local-icon>
+      </p-nav-item>
+      <p-nav-item
+        attr:active-item="activeId === 'devices'"
+        on:click="goPage('devices')"
+      >
+        <n-local-icon name="device" slot="icon"></n-local-icon>
+        <localized-content>
+          <span lang="cn">设备列表</span>
+          <span lang="en">Device List</span>
+          <span lang="ja"> デバイスリスト </span>
+        </localized-content>
+      </p-nav-item>
+    </p-nav-bar>
+  </p-nav-layout>
+
   <script>
-    export default async ({ load }) => {
-      const { createUser } = await load("/packages/user/main.js");
-
-      const localUser = await createUser();
-      localUser.connectAllServers();
-      const myInfo = await localUser.info();
-
+    export default async () => {
       return {
         data: {
-          isSender: false,
-          userId: localUser.userId,
-          userName: myInfo.name,
+          openDrawer: false,
+          activeId: "",
         },
         proto: {
-          clickType(type) {
-            this.isSender = type === "sender";
+          goPage(type) {
+            if (this.activeId === type) {
+              return;
+            }
 
-            if (this.isSender) {
-              this.goto("./sender.html");
-            } else {
-              this.goto("./receiver.html");
+            this.activeId = type;
+
+            // 跳转页面
+            switch (type) {
+              case "sent":
+                this.goto("./sent.html");
+                break;
+              case "received":
+                this.goto("./received.html");
+                break;
+              case "devices":
+                this.goto("./devices.html");
+                break;
             }
           },
         },
-        attached() {
-          this.isSender = this.app.current.src.includes("sender.html");
+        ready() {
+          this.on("warp-send:set-active-id", (e) => {
+            this.activeId = e.data.activeId;
+            e.stopPropagation();
+          });
         },
       };
     };

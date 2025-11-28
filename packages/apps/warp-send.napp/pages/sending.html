@@ -1,0 +1,343 @@
+<template page>
+  <l-m src="/packages/pui/progress/progress.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface-variant);
+    }
+    .container {
+      padding: 16px;
+    }
+    p-list-item {
+      width: 100%;
+      animation: list-item-anime 0.2s ease-in-out;
+    }
+    @keyframes list-item-anime {
+      0% {
+        height: 0px;
+      }
+      100% {
+        height: 36px;
+      }
+    }
+
+    .tool-container {
+      padding: 8px;
+      height: 36px;
+      opacity: 1;
+      transition: all 0.2s ease-in-out;
+    }
+    .tool-container.hide-tool {
+      padding-top: 0;
+      height: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hide {
+      display: none !important;
+    }
+  </style>
+  <div class="tool-container" class:hide-tool="step !== 3 && !isEmpty">
+    <p-button variant="text" on:click="back">
+      <n-local-icon name="back" slot="prefix"> </n-local-icon>
+      <localized-content>
+        <span lang="cn">返回</span>
+        <span lang="en">Back</span>
+        <span lang="ja">戻る</span>
+      </localized-content>
+    </p-button>
+  </div>
+
+  <div class="container">
+    <o-if :value="isEmpty">
+      <div
+        style="
+          font-size: 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--md-sys-color-primary);
+        "
+      >
+        <localized-content>
+          <span lang="cn">暂无文件待发送</span>
+          <span lang="en">No files to send</span>
+          <span lang="ja">送信するファイルがありません</span>
+        </localized-content>
+      </div>
+    </o-if>
+    <div class:hide="isEmpty">
+      <div style="font-size: 14px; display: flex; align-items: center">
+        <o-if :value="step === 1">
+          <localized-content>
+            <span lang="cn">正在计算文件</span>
+            <span lang="en">Calculating file</span>
+            <span lang="ja">ファイルを計算中</span>
+          </localized-content>
+          <span style="color: var(--md-sys-color-primary)">
+            {{calculatingHashFileName}}
+          </span>
+          <localized-content>
+            <span lang="cn">的哈希值</span>
+            <span lang="en">hash value</span>
+            <span lang="ja">のハッシュ値</span>
+          </localized-content>
+          ({{calculateHashCount}} / {{fileCount}})
+        </o-if>
+        <o-else>
+          <n-local-icon
+            name="tick-circle"
+            style="
+              display: block;
+              margin-right: 4px;
+              font-size: 20px;
+              color: var(--md-sys-color-success);
+            "
+          ></n-local-icon>
+          <localized-content>
+            <span lang="cn">计算文件哈希值完成</span>
+            <span lang="en">File hash calculation completed</span>
+            <span lang="ja">ファイルハッシュ値の計算完了</span>
+          </localized-content>
+        </o-else>
+      </div>
+      <p-progress
+        :value="calculateHashCount / fileCount * 100"
+        style="width: 100%; --progress-animation: none; margin-top: 4px"
+      ></p-progress>
+    </div>
+    <div class:hide="isEmpty">
+      <div
+        style="
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          padding: 8px 0;
+        "
+      >
+        <o-if :value="step === 2">
+          <n-local-icon
+            name="loading"
+            style="display: block; margin-right: 4px; font-size: 20px"
+          ></n-local-icon>
+          <localized-content>
+            <span lang="cn">正在发送文件</span>
+            <span lang="en">Sending files</span>
+            <span lang="ja">ファイルを送信中</span>
+          </localized-content>
+          <span
+            style="
+              display: inline-block;
+              margin-left: 4px;
+              color: var(--md-sys-color-primary);
+              font-size: 14px;
+            "
+          >
+            {{sendingFiles.length}}/{{fileCount}}
+          </span>
+        </o-if>
+        <o-else>
+          <n-local-icon
+            name="tick-circle"
+            style="
+              display: block;
+              margin-right: 4px;
+              font-size: 20px;
+              color: var(--md-sys-color-success);
+            "
+          ></n-local-icon>
+          <localized-content>
+            <span lang="cn">文件发送完成</span>
+            <span lang="en">File sending completed</span>
+            <span lang="ja">ファイル送信完了</span>
+          </localized-content>
+        </o-else>
+      </div>
+
+      <!-- 显示发送进度 -->
+      <p-list>
+        <o-fill :value="sendingFiles" fill-key="fileHash">
+          <p-list-item>
+            <o-if :value="$data.done" slot="prefix">
+              <n-local-icon
+                name="tick-circle"
+                style="
+                  display: block;
+                  font-size: 20px;
+                  margin-right: 8px;
+                  color: var(--md-sys-color-success);
+                "
+              ></n-local-icon>
+            </o-if>
+            <o-else slot="prefix">
+              <n-local-icon
+                name="file"
+                style="
+                  display: block;
+                  font-size: 20px;
+                  margin-right: 8px;
+                  color: var(--md-sys-color-primary);
+                "
+              ></n-local-icon>
+            </o-else>
+            {{$data.name}}
+            <p-progress
+              :value="($data.sent / $data.total) * 100"
+              style="margin-top: 4px"
+            ></p-progress>
+          </p-list-item>
+        </o-fill>
+      </p-list>
+    </div>
+  </div>
+
+  <script>
+    export default async ({ load, query }) => {
+      const { cacheFiles } = await load("./sent.html");
+      const { startSendTask, prepareSendTask } = await load(
+        "../util/task-manager.js"
+      );
+
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser({
+        user: query.localname,
+      });
+
+      await localUser.connectAllServers();
+
+      return {
+        data: {
+          _files: [],
+          step: 1, // 1: 计算hash值, 2: 发送文件，3: 完成
+          calculatingHashFileName: null, // 正在计算hash的文件名
+          calculateHashCount: 0, // 已计算hash的文件数量
+          fileCount: cacheFiles.length, // 文件总数
+          sendingFiles: [], // 发送中的文件列表
+          isEmpty: false, // 是否为空
+        },
+        proto: {
+          async sendFiles({ taskHash, files }) {
+            // 切换到发送步骤
+            this.step = 2;
+
+            // 通知对方接受文件
+            const remoteUser = await localUser.connectUser(query.userId);
+
+            const realFiles = files.map((e) => {
+              return {
+                name: e.name,
+                size: e.size,
+                hash: e.hash,
+                hashes: e.hashes,
+              };
+            });
+
+            const fileJSONString = JSON.stringify(realFiles);
+
+            // 按照每份大小200kb裁剪发送到对面
+            const chunkSize = 200 * 1024; // 200kb
+            const chunkCount = Math.ceil(fileJSONString.length / chunkSize);
+
+            for (let i = 0; i < chunkCount; i++) {
+              const start = i * chunkSize;
+              const end = start + chunkSize;
+
+              // 给目标用户传播事件
+              await remoteUser.trigger(`warp-send-radiate`, {
+                type: "start-send",
+                received: query.sessionId, // 目标用户的sessionId
+                taskHash, // 任务的hash值
+                filesPart: fileJSONString.slice(start, end),
+                totalPart: chunkCount,
+                partIndex: i,
+              });
+            }
+
+            // 初始化发送任务
+            const { unsubscribe } = await startSendTask({
+              localUser,
+              remoteUser,
+              taskHash,
+              files,
+              callback: (e) => {
+                // 参考接收页面的回调实现发送进度更新
+                let targetItem = this.sendingFiles.find(
+                  (item) => item.fileHash === e.fileHash
+                );
+
+                if (!targetItem) {
+                  this.sendingFiles.unshift({
+                    fileHash: e.fileHash,
+                    name: e.name,
+                    sent: 0,
+                    done: false,
+                    total: e.total,
+                  });
+
+                  targetItem = this.sendingFiles.find(
+                    (item) => item.fileHash === e.fileHash
+                  );
+                }
+
+                if (e.type === "send-chunk") {
+                  targetItem.sent = e.sent;
+                } else if (e.type === "file-sent") {
+                  targetItem.sent = targetItem.total;
+                  targetItem.done = true;
+
+                  // 检查是否所有文件都发送完成
+                  if (files.length === this.sendingFiles.length) {
+                    const allDone = this.sendingFiles.every(
+                      (item) => item.done
+                    );
+                    if (allDone) {
+                      this.step = 3; // 设置为完成状态
+                    }
+                  }
+                }
+              },
+            });
+
+            // 保存取消订阅函数
+            this._unsubscribe = unsubscribe;
+
+            // 如果组件已经断开连接，则取消订阅
+            if (!this.ele.isConnected) {
+              unsubscribe();
+            }
+          },
+        },
+        async attached() {
+          if (cacheFiles.length) {
+            // 先准备发送任务前的数据计算
+            const { files, taskHash } = await prepareSendTask(
+              cacheFiles,
+              ({ calculatingHashFileName, calculateHashCount }) => {
+                // 更新进度
+                this.calculatingHashFileName = calculatingHashFileName;
+                this.calculateHashCount = calculateHashCount || 0;
+              }
+            );
+
+            // 进入发送环节
+            this.sendFiles({ taskHash, files });
+
+            // 清空待发送文件
+            cacheFiles.splice(0, cacheFiles.length);
+          } else {
+            this.isEmpty = true;
+          }
+        },
+        detached() {
+          // 组件断开时取消订阅
+          this._unsubscribe && this._unsubscribe();
+        },
+      };
+    };
+  </script>
+</template>
