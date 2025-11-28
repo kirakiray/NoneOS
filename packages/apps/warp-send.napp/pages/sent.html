@@ -179,9 +179,22 @@
           totalSize: 0, // 所有文件的总大小
         },
         proto: {
-          selectDevice(device) {
+          async selectDevice(device) {
             if (this.userDisabled(device)) return;
+
+            // 尝试提前添加 rtc 连接
             this.selectedDevice = { ...device };
+
+            const remoteUser = await localUser.connectUser(device.userId);
+
+            const targetWarpUser = this.inWarpUsers.find(
+              (item) => item.fromUserId === device.userId
+            );
+
+            // 初始化 RTC 连接
+            remoteUser.initRTC({
+              userSessionId: targetWarpUser.fromUserSessionId,
+            });
           },
           userDisabled(device) {
             return !this.inWarpUsers.find(
