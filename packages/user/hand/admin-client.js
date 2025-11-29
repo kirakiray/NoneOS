@@ -24,9 +24,6 @@ export class AdminHandServerClient extends HandServerClient {
           if (type === "connections_info") {
             this.removeEventListener("message", listener);
             resolve(clients);
-          } else {
-            this.removeEventListener("message", listener);
-            reject(new Error("服务器返回错误类型"));
           }
         };
         this.addEventListener("message", listener);

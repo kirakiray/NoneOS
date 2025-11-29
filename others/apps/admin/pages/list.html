@@ -1,18 +1,102 @@
 <template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    n-user-avatar {
+      display: block;
+      width: 30px;
+      height: 30px;
+    }
+    .container {
+      padding: 8px;
+    }
   </style>
-  <div>{{val}}</div>
+  <div class="container">
+    <p-table>
+      <p-table-row head>
+        <p-table-cell max-width="60">头像</p-table-cell>
+        <p-table-cell max-width="100">ID</p-table-cell>
+        <p-table-cell>用户名</p-table-cell>
+        <p-table-cell>用户ID</p-table-cell>
+        <p-table-cell max-width="180">连接时间</p-table-cell>
+        <p-table-cell>操作</p-table-cell>
+      </p-table-row>
+      <o-fill :value="clients" fill-key="id">
+        <p-table-row>
+          <p-table-cell>
+            <n-user-avatar :userid="$data.userId"></n-user-avatar>
+          </p-table-cell>
+          <p-table-cell>{{$data.id}}</p-table-cell>
+          <p-table-cell>{{$data.username}}</p-table-cell>
+          <p-table-cell>{{$data.userId}}</p-table-cell>
+          <p-table-cell>{{$host.getTime($data.connectTime)}}</p-table-cell>
+          <p-table-cell>
+            <p-button
+              color="error"
+              size="small"
+              on:click="$host.kickClient($data.id)"
+              variant="outlined"
+            >
+              踢除
+            </p-button>
+          </p-table-cell>
+        </p-table-row>
+      </o-fill>
+    </p-table>
+    <div style="padding: 16px">
+      <p-button on:click="refreshClient" variant="outlined">刷新</p-button>
+    </div>
+  </div>
   <script>
     export const parent = "../layout.html";
     export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      const serverUrl = "ws://localhost:18290";
+
+      // 连接到服务器（管理员模式）
+      const serverClient = await localUser.connectServer(serverUrl, {
+        admin: 1,
+        password: "admin123",
+      });
+
+      console.log(serverClient);
+
       return {
         data: {
-          val: "haha",
+          clients: [],
+        },
+        proto: {
+          getTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          },
+          async kickClient(clientId) {
+            await serverClient.disconnectClient(clientId);
+            this.refreshClient();
+          },
+          async refreshClient() {
+            const clients = await serverClient.getClients();
+            console.log(clients);
+            this.clients = clients;
+          },
         },
         attached() {
+          this.refreshClient();
+
           this.emit("set-active-id", {
             data: {
               activeId: "list",
