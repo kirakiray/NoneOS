@@ -3,6 +3,7 @@
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/pui/table/table.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="../comps/pagination.html"></l-m>
   <style>
     :host {
       display: block;
@@ -49,9 +50,17 @@
         </p-table-row>
       </o-fill>
     </p-table>
-    <div style="padding: 8px">
-      <p-button on:click="refreshClient" variant="outlined">刷新</p-button>
-      {{pagination}}
+    <div style="padding: 8px; display: flex; align-items: center">
+      <p-button
+        on:click="refreshClient"
+        variant="outlined"
+        style="margin-right: 4px"
+        >刷新</p-button
+      >
+      <p-pagination
+        :pagination="pagination"
+        on:change="refreshClient"
+      ></p-pagination>
     </div>
   </div>
   <script>
@@ -75,7 +84,7 @@
           clients: [],
           pagination: {
             page: 1,
-            pageSize: 10,
+            pageSize: 2,
             total: 0,
             totalPages: 1,
           },
@@ -99,8 +108,8 @@
           },
           async refreshClient() {
             const { clients, pagination } = await serverClient.getClients({
-              page: 1,
-              pageSize: 2,
+              page: this.pagination.page,
+              pageSize: this.pagination.pageSize,
             });
 
             Object.assign(this.pagination, pagination);

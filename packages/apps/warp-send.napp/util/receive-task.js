@@ -101,7 +101,7 @@ export const startReceiveTask = async ({
 
       const timer = setInterval(async () => {
         // 5秒后重新发送请求
-        remoteUser.post(requestData, await sessionId);
+        remoteUser && remoteUser.post(requestData, await sessionId);
       }, 5000);
 
       pms.then(() => clearInterval(timer)); // 成功获取到chunk，清除定时器
@@ -113,7 +113,7 @@ export const startReceiveTask = async ({
       });
 
       // 发送请求
-      remoteUser.post(requestData, await sessionId);
+      remoteUser && remoteUser.post(requestData, await sessionId);
 
       return pms;
     };

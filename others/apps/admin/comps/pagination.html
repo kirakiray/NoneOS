@@ -1,0 +1,76 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    p-button {
+      margin: 0 4px;
+    }
+  </style>
+  <div style="display: flex; align-items: center">
+    <p-button on:click="clickPrev" variant="outlined">上一页</p-button>
+
+    <div class="page-buttons">
+      <o-fill :value="pageButtons">
+        <p-button on:click="$host.goToPage($data)" variant="outlined">
+          {{$data}}
+        </p-button>
+      </o-fill>
+    </div>
+    <p-button on:click="clickNext" variant="outlined">下一页</p-button>
+
+    {{pagination.page}}/{{pagination.totalPages}}
+  </div>
+  {{pagination}}
+  <script>
+    export default async () => {
+      return {
+        tag: "p-pagination",
+        data: {
+          pagination: {
+            // page: 1, // 页面id，从1开始
+            // pageSize: 10, // 单个页面的条数
+            // total: 0, // 总条数
+            // totalPages: 1, // 总页数
+          },
+          //   pageButtons: [1, 2, 3, 4],
+        },
+        proto: {
+          get pageButtons() {
+            const { totalPages, page } = this.pagination;
+            const pageButtons = [];
+            for (let i = 1; i <= totalPages; i++) {
+              pageButtons.push(i);
+            }
+            return pageButtons;
+          },
+          goToPage(id) {
+            this.pagination.page = id;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+          clickPrev() {
+            this.pagination.page--;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+          clickNext() {
+            this.pagination.page++;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+        },
+      };
+    };
+  </script>
+</template>
