@@ -49,8 +49,9 @@
         </p-table-row>
       </o-fill>
     </p-table>
-    <div style="padding: 16px">
+    <div style="padding: 8px">
       <p-button on:click="refreshClient" variant="outlined">刷新</p-button>
+      {{pagination}}
     </div>
   </div>
   <script>
@@ -72,6 +73,12 @@
       return {
         data: {
           clients: [],
+          pagination: {
+            page: 1,
+            pageSize: 10,
+            total: 0,
+            totalPages: 1,
+          },
         },
         proto: {
           getTime(timestamp) {
@@ -86,11 +93,18 @@
           },
           async kickClient(clientId) {
             await serverClient.disconnectClient(clientId);
-            this.refreshClient();
+            setTimeout(() => {
+              this.refreshClient();
+            }, 100);
           },
           async refreshClient() {
-            const clients = await serverClient.getClients();
-            console.log(clients);
+            const { clients, pagination } = await serverClient.getClients({
+              page: 1,
+              pageSize: 2,
+            });
+
+            Object.assign(this.pagination, pagination);
+
             this.clients = clients;
           },
         },
