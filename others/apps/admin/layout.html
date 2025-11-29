@@ -1,0 +1,65 @@
+<template page>
+  <l-m src="/packages/pui/navigation/nav-layout.html"></l-m>
+  <l-m src="/packages/pui/navigation/nav-bar.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface-variant);
+    }
+  </style>
+
+  <p-nav-layout
+    attr:open-drawer="openDrawer ? '' : null"
+    on:click-drawer-mask="openDrawer = false"
+  >
+    <slot></slot>
+    <p-nav-bar slot="nav">
+      <p-nav-item
+        attr:active-item="activeId === 'list'"
+        on:click="goPage('list')"
+      >
+        <n-local-icon name="list" slot="icon"></n-local-icon>
+        <localized-content>
+          <span lang="cn">用户</span>
+          <span lang="en">Users</span>
+          <span lang="ja">ユーザー</span>
+        </localized-content>
+      </p-nav-item>
+    </p-nav-bar>
+  </p-nav-layout>
+
+  <script>
+    export default async () => {
+      return {
+        data: {
+          openDrawer: false,
+          activeId: "",
+        },
+        proto: {
+          goPage(type) {
+            if (this.activeId === type) {
+              return;
+            }
+
+            this.activeId = type;
+
+            // 跳转页面
+            switch (type) {
+              case "list":
+                this.goto("./list.html");
+                break;
+            }
+          },
+        },
+        ready() {
+          this.on("set-active-id", (e) => {
+            this.activeId = e.data.activeId;
+            e.stopPropagation();
+          });
+        },
+      };
+    };
+  </script>
+</template>

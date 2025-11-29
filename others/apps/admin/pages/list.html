@@ -1,0 +1,26 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>{{val}}</div>
+  <script>
+    export const parent = "../layout.html";
+    export default async ({ load }) => {
+      return {
+        data: {
+          val: "haha",
+        },
+        attached() {
+          this.emit("set-active-id", {
+            data: {
+              activeId: "list",
+            },
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>
