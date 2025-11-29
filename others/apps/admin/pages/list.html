@@ -50,7 +50,14 @@
         </p-table-row>
       </o-fill>
     </p-table>
-    <div style="padding: 8px; display: flex; align-items: center">
+    <div
+      style="
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
       <p-button
         on:click="refreshClient"
         variant="outlined"
@@ -83,10 +90,10 @@
         data: {
           clients: [],
           pagination: {
-            page: 1,
-            pageSize: 2,
-            total: 0,
-            totalPages: 1,
+            page: 1, // 当前页码
+            pageSize: 10, // 每页显示条数
+            total: 0, // 总记录数
+            totalPages: 1, // 总页数
           },
         },
         proto: {
