@@ -10,63 +10,77 @@
       background-color: var(--md-sys-color-surface-variant);
     }
   </style>
+  <o-provider name="admin-setting" sync:active-server="activeServer">
+    <p-dialog :open="showServerDialog" on:click-mask="showServerDialog = false">
+      <div slot="title">切换服务器</div>
+      <o-page
+        src="./pages/switch.html"
+        style="width: 600px; height: 480px"
+      ></o-page>
+    </p-dialog>
 
-  <p-dialog :open="showServerDialog" on:click-mask="showServerDialog = false">
-    <div slot="title">切换服务器</div>
-    <o-page
-      src="./pages/switch.html"
-      style="width: 600px; height: 480px"
-    ></o-page>
-  </p-dialog>
-
-  <p-nav-layout>
-    <div
-      slot="top"
-      style="height: 50px; display: flex; align-items: center; padding: 0 12px"
-    >
-      <p-button variant="outlined" on:click="showServerDialog = true">
+    <p-nav-layout>
+      <div
+        slot="top"
+        style="
+          height: 50px;
+          display: flex;
+          align-items: center;
+          padding: 0 12px;
+        "
+      >
         <n-local-icon
           name="server"
-          slot="prefix"
           style="display: block; margin-right: 4px"
         ></n-local-icon>
-        切换服务器
-      </p-button>
-    </div>
-    <div style="height: 50px"></div>
-    <slot></slot>
-    <p-nav-bar slot="nav">
-      <p-nav-item
-        attr:active-item="activeId === 'list'"
-        on:click="goPage('list')"
-      >
-        <n-local-icon name="list" slot="icon"></n-local-icon>
-        <localized-content>
-          <span lang="cn">用户</span>
-          <span lang="en">Users</span>
-          <span lang="ja">ユーザー</span>
-        </localized-content>
-      </p-nav-item>
-      <p-nav-item
-        attr:active-item="activeId === 'config'"
-        on:click="goPage('config')"
-      >
-        <n-local-icon name="setting" slot="icon"></n-local-icon>
-        <localized-content>
-          <span lang="cn">配置</span>
-          <span lang="en">Config</span>
-          <span lang="ja">設定</span>
-        </localized-content>
-      </p-nav-item>
-    </p-nav-bar>
-  </p-nav-layout>
-
+        <span
+          style="
+            margin-right: 12px;
+            font-size: 14px;
+            color: var(--md-sys-color-primary);
+          "
+        >
+          {{activeServer}}
+        </span>
+        <p-button variant="outlined" on:click="showServerDialog = true">
+          切换服务器
+        </p-button>
+      </div>
+      <div style="height: 50px"></div>
+      <slot></slot>
+      <p-nav-bar slot="nav">
+        <p-nav-item
+          attr:active-item="activeId === 'list'"
+          on:click="goPage('list')"
+        >
+          <n-local-icon name="list" slot="icon"></n-local-icon>
+          <localized-content>
+            <span lang="cn">用户</span>
+            <span lang="en">Users</span>
+            <span lang="ja">ユーザー</span>
+          </localized-content>
+        </p-nav-item>
+        <p-nav-item
+          attr:active-item="activeId === 'config'"
+          on:click="goPage('config')"
+        >
+          <n-local-icon name="setting" slot="icon"></n-local-icon>
+          <localized-content>
+            <span lang="cn">配置</span>
+            <span lang="en">Config</span>
+            <span lang="ja">設定</span>
+          </localized-content>
+        </p-nav-item>
+      </p-nav-bar>
+    </p-nav-layout>
+  </o-provider>
   <script>
-    export default async () => {
+    export default async ({ load }) => {
       return {
         data: {
           activeId: "",
           showServerDialog: false,
+          activeServer: localStorage.getItem("activeServer"),
         },
         proto: {
           goPage(type) {

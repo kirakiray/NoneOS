@@ -27,7 +27,7 @@
             slot="suffix"
             on:click="$host.removeServer($event,$index)"
             variant="outlined"
-            size="small"
+            size="mini"
             color="error"
             style="position: relative; z-index: 3"
           >
@@ -56,6 +56,11 @@
   >
     添加
   </p-button>
+
+  <o-consumer
+    name="admin-setting"
+    watch:active-server="activeServer"
+  ></o-consumer>
   <script>
     export default async ({ load }) => {
       const { confirm, toast } = await load("/packages/pui/util.js");
@@ -67,7 +72,7 @@
           servers: localStorage.getItem("servers")
             ? JSON.parse(localStorage.getItem("servers"))
             : [],
-          activeServer: localStorage.getItem("activeServer"),
+          activeServer: "",
         },
         proto: {
           async removeServer(event, index) {
@@ -87,16 +92,10 @@
             localStorage.setItem("servers", JSON.stringify(this.servers));
           },
           setActiveServer(item) {
-            this.activeServer = item.server;
+            const adminSetting = this.getProvider("admin-setting");
 
-            localStorage.setItem("activeServer", this.activeServer);
-
-            this.emit("change-server", {
-              data: {
-                server: this.activeServer,
-              },
-              composed: true,
-            });
+            adminSetting.activeServer = item.server;
+            localStorage.setItem("activeServer", item.server);
           },
           addServer() {
             if (this.servers.some((item) => item.server === this.newServer)) {

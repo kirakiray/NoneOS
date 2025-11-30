@@ -70,6 +70,10 @@
       ></p-pagination>
     </div>
   </div>
+  <o-consumer
+    name="admin-setting"
+    watch:active-server="activeServer"
+  ></o-consumer>
   <script>
     export const parent = "../layout.html";
     export default async ({ load }) => {
@@ -77,14 +81,6 @@
       const localUser = await createUser();
 
       const serverUrl = "ws://localhost:18290";
-
-      // 连接到服务器（管理员模式）
-      const serverClient = await localUser.connectServer(serverUrl, {
-        admin: 1,
-        password: "admin123",
-      });
-
-      console.log(serverClient);
 
       return {
         data: {
@@ -94,6 +90,13 @@
             pageSize: 10, // 每页显示条数
             total: 0, // 总记录数
             totalPages: 1, // 总页数
+          },
+          activeServer: "", // 激活中的服务器
+          _serverClient: null,
+        },
+        watch: {
+          activeServer() {
+            this.refreshClient();
           },
         },
         proto: {
@@ -108,16 +111,31 @@
             return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
           },
           async kickClient(clientId) {
-            await serverClient.disconnectClient(clientId);
+            await this._serverClient.disconnectClient(clientId);
             setTimeout(() => {
               this.refreshClient();
             }, 100);
           },
           async refreshClient() {
-            const { clients, pagination } = await serverClient.getClients({
-              page: this.pagination.page,
-              pageSize: this.pagination.pageSize,
-            });
+            if (!this.activeServer) {
+              return;
+            }
+
+            // 连接到服务器（管理员模式）
+            this._serverClient = await localUser.connectServer(
+              this.activeServer,
+              {
+                admin: 1,
+                password: "admin123",
+              }
+            );
+
+            const { clients, pagination } = await this._serverClient.getClients(
+              {
+                page: this.pagination.page,
+                pageSize: this.pagination.pageSize,
+              }
+            );
 
             Object.assign(this.pagination, pagination);
 
