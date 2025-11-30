@@ -1,0 +1,122 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <h3>已添加的服务器列表</h3>
+  <o-if :value="servers.length">
+    <p-list>
+      <o-fill :value="servers">
+        <p-list-item
+          button
+          attr:active-item="$data.server === $host.activeServer"
+          on:click="$host.setActiveServer($data)"
+        >
+          <n-local-icon
+            name="server"
+            slot="prefix"
+            style="display: inline-block; margin-right: 4px; font-size: 18px"
+          ></n-local-icon>
+          {{$data.server}}
+          <p-button
+            variant="outlined"
+            slot="suffix"
+            on:click="$host.removeServer($event,$index)"
+            variant="outlined"
+            size="small"
+            color="error"
+            style="position: relative; z-index: 3"
+          >
+            删除
+          </p-button>
+        </p-list-item>
+      </o-fill>
+    </p-list>
+  </o-if>
+  <o-else>
+    <p style="color: var(--md-sys-color-normal); font-size: 12px">
+      暂无已添加的服务器
+    </p>
+  </o-else>
+  <h3>新增服务器</h3>
+  <p-input sync:value="newServer">
+    <label>服务器地址</label>
+  </p-input>
+  <p-input sync:value="newPassword" style="margin-top: 8px">
+    <label>密码</label>
+  </p-input>
+  <p-button
+    style="margin-top: 8px"
+    on:click="addServer"
+    attr:disabled="!newServer || !newPassword"
+  >
+    添加
+  </p-button>
+  <script>
+    export default async ({ load }) => {
+      const { confirm, toast } = await load("/packages/pui/util.js");
+
+      return {
+        data: {
+          newServer: "",
+          newPassword: "",
+          servers: localStorage.getItem("servers")
+            ? JSON.parse(localStorage.getItem("servers"))
+            : [],
+          activeServer: localStorage.getItem("activeServer"),
+        },
+        proto: {
+          async removeServer(event, index) {
+            event.stopPropagation();
+
+            const result = await confirm({
+              title: "确认删除",
+              content: `是否确认删除服务器 ${this.servers[index].server}？`,
+            });
+
+            if (!result) {
+              return;
+            }
+
+            this.servers.splice(index, 1);
+
+            localStorage.setItem("servers", JSON.stringify(this.servers));
+          },
+          setActiveServer(item) {
+            this.activeServer = item.server;
+
+            localStorage.setItem("activeServer", this.activeServer);
+
+            this.emit("change-server", {
+              data: {
+                server: this.activeServer,
+              },
+              composed: true,
+            });
+          },
+          addServer() {
+            if (this.servers.some((item) => item.server === this.newServer)) {
+              alert("服务器已存在");
+              return;
+            }
+
+            this.servers.push({
+              server: this.newServer,
+              password: this.newPassword,
+            });
+
+            localStorage.setItem("servers", JSON.stringify(this.servers));
+
+            this.newServer = "";
+            this.newPassword = "";
+          },
+        },
+        attached() {},
+      };
+    };
+  </script>
+</template>

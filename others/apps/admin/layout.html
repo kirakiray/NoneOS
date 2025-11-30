@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/navigation/nav-bar.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <style>
     :host {
       display: block;
@@ -10,10 +11,29 @@
     }
   </style>
 
-  <p-nav-layout
-    attr:open-drawer="openDrawer ? '' : null"
-    on:click-drawer-mask="openDrawer = false"
-  >
+  <p-dialog :open="showServerDialog" on:click-mask="showServerDialog = false">
+    <div slot="title">切换服务器</div>
+    <o-page
+      src="./pages/switch.html"
+      style="width: 600px; height: 480px"
+    ></o-page>
+  </p-dialog>
+
+  <p-nav-layout>
+    <div
+      slot="top"
+      style="height: 50px; display: flex; align-items: center; padding: 0 12px"
+    >
+      <p-button variant="outlined" on:click="showServerDialog = true">
+        <n-local-icon
+          name="server"
+          slot="prefix"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        切换服务器
+      </p-button>
+    </div>
+    <div style="height: 50px"></div>
     <slot></slot>
     <p-nav-bar slot="nav">
       <p-nav-item
@@ -27,6 +47,17 @@
           <span lang="ja">ユーザー</span>
         </localized-content>
       </p-nav-item>
+      <p-nav-item
+        attr:active-item="activeId === 'config'"
+        on:click="goPage('config')"
+      >
+        <n-local-icon name="setting" slot="icon"></n-local-icon>
+        <localized-content>
+          <span lang="cn">配置</span>
+          <span lang="en">Config</span>
+          <span lang="ja">設定</span>
+        </localized-content>
+      </p-nav-item>
     </p-nav-bar>
   </p-nav-layout>
 
@@ -34,8 +65,8 @@
     export default async () => {
       return {
         data: {
-          openDrawer: false,
           activeId: "",
+          showServerDialog: false,
         },
         proto: {
           goPage(type) {
@@ -48,7 +79,10 @@
             // 跳转页面
             switch (type) {
               case "list":
-                this.goto("./list.html");
+                this.goto("./pages/list.html");
+                break;
+              case "config":
+                this.goto("./pages/config.html");
                 break;
             }
           },
