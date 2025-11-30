@@ -42,6 +42,13 @@
         <span lang="ja"> キャッシュ履歴 </span>
       </localized-content>
     </h4>
+    <o-if :value="!history.length">
+      <localized-content style="color: var(--md-sys-color-normal);font-size: 12px;">
+        <span lang="cn">暂无缓存历史</span>
+        <span lang="en">No cache history</span>
+        <span lang="ja"> キャッシュ履歴はありません </span>
+      </localized-content>
+    </o-if>
     <p-list>
       <o-fill :value="history" fill-key="taskHash">
         <p-list-item button on:click="$host.clickItem($data)">
