@@ -112,8 +112,8 @@
         data: {
           userName: userInfo.name,
           userId: localUser.userId,
-          dirName: null, // 保存目录的名字
-          _targetDirHandle: null, // 存到目标目录
+          dirName: outData?.handle?.name || null, // 保存目录的名字
+          _targetDirHandle: outData.handle, // 存到目标目录
           hideChangeDirButton: !window.showDirectoryPicker, // 不支持showDirectoryPicker的浏览器，不允许修改默认目录
         },
         proto: {
@@ -134,8 +134,6 @@
             },
             composed: true,
           });
-
-          outData.handle = null;
 
           // 广播一次自己的应用状态
           localUser.broadcast("warp-send-radiate", {
