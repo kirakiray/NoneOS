@@ -2,7 +2,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/copy-span.html"></l-m>
-
+  <l-m src="/packages/one/delay-vis-map.html"></l-m>
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
@@ -149,22 +149,42 @@
           <slot></slot>
         </div>
       </p-list-item>
+
+      <p-list-item>
+        <n-delay-vis-map :delays="delays"></n-delay-vis-map>
+      </p-list-item>
     </p-list>
   </p-list-item>
   <script>
     export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
       return {
         tag: "n-cert-item",
         data: {
           item: null,
+          delays: [],
         },
         proto: {
           get signTime() {
             return new Date(this.item.signTime).toLocaleString();
           },
         },
+        async attached() {
+          const remoteUser = await localUser.connectUser(this.item.issuedTo);
+
+          this.delays = remoteUser.delays;
+
+          this._cancels = [
+            remoteUser.bind("check-delay", (e) => {
+              this.delays = remoteUser.delays;
+            }),
+          ];
+        },
         detached() {
           this.item = null;
+          this._cancels.forEach((cancel) => cancel());
         },
       };
     };
