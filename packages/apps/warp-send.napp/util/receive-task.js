@@ -165,6 +165,7 @@ export const startReceiveTask = async ({
               name: item.name,
               loaded: index + 1,
               total: hashes.length,
+              size: chunk.size,
             });
 
             return chunk;

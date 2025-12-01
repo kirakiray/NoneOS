@@ -68,15 +68,15 @@
       for (let i = 0; i < 3; i++) {
         files.push({
           name: `file${i}.txt`,
-          size: 1024 * 1024,
-          _file: createFile(1024 * 1024),
+          size: 1024 * 1024 * 10,
+          _file: createFile(1024 * 1024 * 5),
         });
       }
 
       // 加入队列
       cacheFiles.push(...files);
 
-      await new Promise((resolve) => setTimeout(resolve, 400));
+      await new Promise((resolve) => setTimeout(resolve, 200));
 
       // 获取iframe的相应用户数据
       const iframe = document.querySelector("iframe");
