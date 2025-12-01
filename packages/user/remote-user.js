@@ -267,6 +267,14 @@ export class RemoteUser extends BaseUser {
       );
     }
 
+    return this.updateCard();
+  }
+
+  // 更新用户卡片
+  async updateCard() {
+    // 尝试从本地卡片库上获取
+    const cardManager = await this.#self.cardManager();
+
     return new Promise((resolve, reject) => {
       // 直接尝试从对方获取卡片信息
       this.post({

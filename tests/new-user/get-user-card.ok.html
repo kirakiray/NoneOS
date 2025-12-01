@@ -30,7 +30,8 @@
         // 获取远端用户
         const remoteUser2 = await user1.connectUser(user2.userId);
         // 远端用户获取用户卡片数据
-        const info2 = await remoteUser2.info({ useOnline: true });
+        // const info2 = await remoteUser2.info({ useOnline: true });
+        const info2 = await remoteUser2.updateCard();
 
         // 验证获取的用户信息
         const hasInfo = !!info2;
