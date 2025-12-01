@@ -41,9 +41,24 @@
         <span lang="en">Cache History</span>
         <span lang="ja"> キャッシュ履歴 </span>
       </localized-content>
+      <p-button
+        variant="text"
+        color="error"
+        size="small"
+        on:click="deleteAll"
+        style="margin-left: 16px"
+      >
+        <localized-content>
+          <span lang="cn">删除所有缓存</span>
+          <span lang="en">Delete all caches</span>
+          <span lang="ja"> すべてのキャッシュを削除 </span>
+        </localized-content>
+      </p-button>
     </h4>
     <o-if :value="!history.length">
-      <localized-content style="color: var(--md-sys-color-normal);font-size: 12px;">
+      <localized-content
+        style="color: var(--md-sys-color-normal); font-size: 12px"
+      >
         <span lang="cn">暂无缓存历史</span>
         <span lang="en">No cache history</span>
         <span lang="ja"> キャッシュ履歴はありません </span>
@@ -96,6 +111,16 @@
               style="color: var(--md-sys-color-success); font-size: 20px"
             ></n-local-icon>
           </o-if>
+          <p-button
+            color="error"
+            size="mini"
+            slot="suffix"
+            variant="outlined"
+            on:click="$host.deleteItem($data,$event,$index)"
+            style="margin-left: 8px; z-index: 3"
+          >
+            删除
+          </p-button>
         </p-list-item>
       </o-fill>
     </p-list>
@@ -105,6 +130,10 @@
 
     export default async ({ load }) => {
       const { loadHistory } = await load("../util/task-manager.js");
+      const { confirm } = await load("/packages/pui/util.js");
+      const { getLocalized } = await load("/packages/i18n/localized-object.js");
+      const { get } = await load("/packages/fs/main.js");
+
       return {
         data: {
           history: [],
@@ -116,6 +145,66 @@
           },
           clickItem(item) {
             this.goto(`./receiving.html?taskHash=${item.taskHash}`);
+          },
+          async deleteAll() {
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "确认删除",
+                en: "Confirm Delete",
+                ja: "削除を確認",
+              }),
+              content: await getLocalized({
+                cn: `确认删除所有缓存？`,
+                en: `Are you sure you want to delete all caches?`,
+                ja: `すべてのキャッシュを削除しますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            const tempRootDir = await get("local/temp/received");
+
+            tempRootDir && (await tempRootDir.remove());
+
+            this.history = [];
+          },
+          async deleteItem(item, event, index) {
+            event.stopPropagation();
+
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "确认删除",
+                en: "Confirm Delete",
+                ja: "削除を確認",
+              }),
+              content: await getLocalized({
+                cn: `确认删除缓存包含“${item.files[0].name}”等 ${item.files.length} 个文件？`,
+                en: `Are you sure you want to delete the cache that includes “${item.files[0].name}” and ${item.files.length} other files?`,
+                ja: `“${item.files[0].name}” など ${item.files.length} 個のファイルを含むキャッシュを削除しますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            this.history.splice(index, 1);
+
+            const tempRootDir = await get("local/temp/received");
+
+            const targetJsonHandle = await tempRootDir.get(
+              item.taskHash + ".json"
+            );
+            const targetTempDir = await tempRootDir.get(item.taskHash);
+
+            if (targetJsonHandle) {
+              await targetJsonHandle.remove();
+            }
+            if (targetTempDir) {
+              await targetTempDir.remove();
+            }
           },
         },
         attached() {
