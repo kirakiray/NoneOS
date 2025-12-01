@@ -169,7 +169,7 @@ export const startReceiveTask = async ({
 
             return chunk;
           },
-          3 // 设置并发数为3
+          Number(localStorage.getItem("chunkConcurrency")) || 4
         );
 
         // 合并文件并保存

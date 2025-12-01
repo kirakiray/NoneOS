@@ -3,6 +3,8 @@
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/select/select.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
   <style>
     :host {
       position: relative;
@@ -86,6 +88,65 @@
         </p-button>
       </o-if>
     </div>
+    <div style="display: flex; align-items: center">
+      <p-select
+        variant="outlined"
+        sync:value="chunkConcurrency"
+        style="width: 100px"
+        on:change="changeChunkConcurrency"
+      >
+        <label>
+          <localized-content>
+            <span lang="cn">并发数</span>
+            <span lang="en">Concurrency</span>
+            <span lang="ja"> 並列数 </span>
+          </localized-content>
+        </label>
+        <p-option value="4">4</p-option>
+        <p-option value="8">8</p-option>
+        <p-option value="12">12</p-option>
+        <p-option value="16">16</p-option>
+        <p-option value="20">20</p-option>
+        <p-option value="24">24</p-option>
+        <p-option value="28">28</p-option>
+        <p-option value="32">32</p-option>
+        <p-option value="36">36</p-option>
+        <p-option value="40">40</p-option>
+        <p-option value="44">44</p-option>
+        <p-option value="48">48</p-option>
+        <p-option value="52">52</p-option>
+        <p-option value="56">56</p-option>
+        <p-option value="60">60</p-option>
+        <p-option value="64">64</p-option>
+      </p-select>
+      <p-tooltips placement="bottom">
+        <n-local-icon
+          name="exclamation-circle"
+          style="
+            display: block;
+            font-size: 20px;
+            cursor: pointer;
+            margin-left: 8px;
+            color: rgb(216, 178, 26);
+          "
+        ></n-local-icon>
+        <div slot="tips" style="width: 320px; white-space: wrap">
+          <localized-content>
+            <span lang="cn">
+              并发数表示同时下载的文件块数量，设置越大表示下载速度越快，但是会占用更多的网络带宽和系统资源。
+            </span>
+            <span lang="en">
+              Concurrency refers to the number of file chunks downloaded
+              simultaneously. A higher value means faster download speed but
+              consumes more network bandwidth and system resources.
+            </span>
+            <span lang="ja">
+              並列数は同時にダウンロードされるファイルチャンクの数を表します。値が大きいほどダウンロード速度が速くなりますが、より多くのネットワーク帯域幅とシステムリソースを消費します。
+            </span>
+          </localized-content>
+        </div>
+      </p-tooltips>
+    </div>
   </div>
   <script>
     export const parent = "./layout.html";
@@ -115,8 +176,12 @@
           dirName: outData?.handle?.name || null, // 保存目录的名字
           _targetDirHandle: outData.handle, // 存到目标目录
           hideChangeDirButton: !window.showDirectoryPicker, // 不支持showDirectoryPicker的浏览器，不允许修改默认目录
+          chunkConcurrency: localStorage.getItem("chunkConcurrency") || "4",
         },
         proto: {
+          changeChunkConcurrency() {
+            localStorage.setItem("chunkConcurrency", this.chunkConcurrency);
+          },
           async changeDir() {
             const handle = await mount();
 
