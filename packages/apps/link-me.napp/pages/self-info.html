@@ -140,20 +140,43 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
 
-      const user = await createUser();
-      const userInfo = await user.info();
+      const localUser = await createUser();
+      const userInfo = await localUser.info();
 
       return {
         data: {
-          userId: user.userId,
+          userId: localUser.userId,
           info: {},
           renameVal: userInfo.name,
           renameMode: false,
         },
         proto: {
-          clickSave() {
+          async clickSave() {
             userInfo.name = this.renameVal;
             this.renameMode = false;
+
+            // 广播给已经在线的设备，更新了用户名
+            const myDevices = await localUser.myDevices();
+
+            const selfCard = await localUser.createCard();
+
+            myDevices.map(async (device) => {
+              const remoteUser = await localUser.connectUser(device.userId);
+
+              if (!remoteUser.mode) {
+                // 如果没在线，尝试先等待
+                await new Promise((resolve) => setTimeout(resolve, 300));
+              }
+
+              if (remoteUser.mode != 0) {
+                // 向对方更新卡片信息
+                remoteUser.post({
+                  type: "update-user-card",
+                  cards: [selfCard],
+                  __internal_mark: 1,
+                });
+              }
+            });
           },
         },
         async attached() {
