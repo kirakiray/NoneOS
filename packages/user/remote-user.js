@@ -129,7 +129,7 @@ export class RemoteUser extends BaseUser {
       }
     }
 
-    if (this.#servers.length && this.#mode === 0) {
+    if (this.#servers.length) {
       // 如果之前是不可用的，则更新连接状态
       changeMode(1);
       return;
