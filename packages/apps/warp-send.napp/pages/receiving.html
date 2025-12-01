@@ -188,7 +188,7 @@
           let totalSize = 0;
           let startTime = null;
           let bytesReceivedInLastSecond = null; // 一秒内接收的字节数
-          let speedUpdateTimer = null; // 速度更新定时器
+          this._speedUpdateTimer = null; // 速度更新定时器
 
           const { unsubscribe } = await startReceiveTask({
             localUser,
@@ -206,14 +206,18 @@
                   };
                 });
 
-                clearInterval(speedUpdateTimer);
+                clearInterval(this._speedUpdateTimer);
                 bytesReceivedInLastSecond = 0;
                 totalSize = 0;
                 startTime = Date.now();
 
-                speedUpdateTimer = setInterval(() => {
+                this._speedUpdateTimer = setInterval(() => {
                   if (bytesReceivedInLastSecond !== null) {
-                    this.speed = `${(bytesReceivedInLastSecond / 1024 / 1024).toFixed(2)} MB/s`;
+                    this.speed = `${(
+                      bytesReceivedInLastSecond /
+                      1024 /
+                      1024
+                    ).toFixed(2)} MB/s`;
                   }
 
                   bytesReceivedInLastSecond = 0;
@@ -256,7 +260,7 @@
                 this.files.every((item) => item.done)
               ) {
                 this.allOK = true;
-                clearInterval(speedUpdateTimer);
+                clearInterval(this._speedUpdateTimer);
                 const diffTime = (Date.now() - startTime) / 1000;
                 this.speed = `Average: ${(
                   totalSize /
@@ -275,6 +279,7 @@
         },
         detached() {
           this._unsubscribe && this._unsubscribe();
+          clearInterval(this._speedUpdateTimer);
         },
       };
     };

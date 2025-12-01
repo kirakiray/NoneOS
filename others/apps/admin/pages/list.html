@@ -120,13 +120,23 @@
             if (!this.activeServer) {
               return;
             }
+            let servers;
+            try {
+              servers = JSON.parse(localStorage.getItem("servers")) || [];
+            } catch (e) {
+              servers = [];
+            }
+
+            const target = servers.find(
+              (item) => item.server === this.activeServer
+            );
 
             // 连接到服务器（管理员模式）
             this._serverClient = await localUser.connectServer(
               this.activeServer,
               {
                 admin: 1,
-                password: "admin123",
+                password: target?.password || "",
               }
             );
 
