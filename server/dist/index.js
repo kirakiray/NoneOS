@@ -843,9 +843,18 @@ class MessageRouter {
    * 处理获取连接信息消息（管理员）
    * @param {Object} params - 参数对象
    * @param {Client} params.client - 客户端实例
+   * @param {Object} params.message - 消息对象，可包含分页参数 {page, pageSize}
    */
-  handleGetConnections({ client }) {
-    const connectionsInfo = this.clientManager
+  handleGetConnections({ client, message }) {
+    // 获取分页参数，默认值为第1页，每页20条记录
+    const { page = 1, pageSize = 20 } = message || {};
+    
+    // 参数校验
+    const pageNum = Math.max(1, parseInt(page) || 1);
+    const size = Math.max(1, Math.min(100, parseInt(pageSize) || 20)); // 限制最大每页100条
+    
+    // 获取所有客户端连接信息
+    const allConnections = this.clientManager
       .getAllClients()
       .map((client2) => ({
         id: client2.cid,
@@ -857,9 +866,21 @@ class MessageRouter {
         delay: client2.delay,
       }));
 
+    // 计算分页数据
+    const total = allConnections.length;
+    const totalPages = Math.ceil(total / size);
+    const startIndex = (pageNum - 1) * size;
+    const connectionsInfo = allConnections.slice(startIndex, startIndex + size);
+
     client.send({
       type: "connections_info",
       clients: connectionsInfo,
+      pagination: {
+        page: pageNum,
+        pageSize: size,
+        total,
+        totalPages,
+      },
     });
   }
 

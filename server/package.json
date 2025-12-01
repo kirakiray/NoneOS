@@ -1,6 +1,6 @@
 {
   "name": "none-handshake",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "WebSocket server compatible with both Node.js and Bun",
   "type": "module",
   "main": "src/index.js",
