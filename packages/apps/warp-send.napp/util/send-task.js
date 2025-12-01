@@ -65,9 +65,9 @@ export const startSendTask = async ({
         );
 
         // debug: 添加延迟方便调试
-        if (location.host.includes("localhost")) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
+        // if (location.host.includes("localhost")) {
+        //   await new Promise((resolve) => setTimeout(resolve, 500));
+        // }
 
         // 发送给对方
         remoteUser.post(
