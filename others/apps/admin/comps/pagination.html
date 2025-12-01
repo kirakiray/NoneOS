@@ -1,0 +1,137 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+    p-button {
+      margin: 0 4px;
+    }
+  </style>
+  <div style="display: flex; align-items: center">
+    <p-button
+      on:click="clickPrev"
+      variant="outlined"
+      attr:disabled="pagination.page <=1"
+    >
+      上一页
+    </p-button>
+
+    <!-- <o-if :value="showPrevEtc"> ... </o-if> -->
+
+    <div class="page-buttons">
+      <o-fill :value="pageButtons">
+        <p-button
+          on:click="$host.goToPage($data)"
+          attr:variant="$host.pagination.page !== $data ? 'outlined' : 'contained'"
+        >
+          {{$data}}
+        </p-button>
+      </o-fill>
+    </div>
+    <!-- <o-if :value="showNextEtc">...</o-if> -->
+    <p-button
+      on:click="clickNext"
+      variant="outlined"
+      attr:disabled="pagination.page >= pagination.totalPages"
+    >
+      下一页
+    </p-button>
+
+    <input
+      type="number"
+      :value="pagination.page"
+      on:change="goToPage($event.target.value)"
+      style="width: 60px"
+    />
+    <b style="display: block; padding: 0 4px">/</b>
+    <span>{{pagination.totalPages}}</span>
+
+    <span style="display: block; margin-left: 12px">
+      每页
+      <select
+        name="pageSize"
+        :value="pagination.pageSize"
+        on:change="changePageSize($event.target.value)"
+      >
+        <option value="10">10</option>
+        <option value="20">20</option>
+        <option value="30">30</option>
+        <option value="40">40</option></select
+      >条
+    </span>
+  </div>
+  <script>
+    export default async () => {
+      return {
+        tag: "p-pagination",
+        data: {
+          pagination: {
+            // page: 1, // 页面id，从1开始
+            // pageSize: 10, // 单个页面的条数
+            // total: 0, // 总条数
+            // totalPages: 1, // 总页数
+          },
+        },
+        proto: {
+          //   get showPrevEtc() {
+          //     return this.pagination.page > 2;
+          //   },
+          //   get showNextEtc() {
+          //     return this.pagination.page < this.pagination.totalPages - 1;
+          //   },
+          get pageButtons() {
+            const { totalPages, page } = this.pagination;
+            const pageButtons = [];
+            // 只显示当前页紧邻的两个按钮
+            const start = Math.max(1, page - 2);
+            const end = Math.min(totalPages, page + 2);
+            for (let i = start; i <= end; i++) {
+              pageButtons.push(i);
+            }
+            return pageButtons;
+          },
+          changePageSize(pageSize) {
+            this.pagination.pageSize = pageSize;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+          goToPage(id) {
+            if (
+              id < 1 ||
+              id > this.pagination.totalPages ||
+              id === this.pagination.page
+            ) {
+              return;
+            }
+            this.pagination.page = id;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+          clickPrev() {
+            this.pagination.page--;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+          clickNext() {
+            this.pagination.page++;
+            this.emit("change", {
+              data: {
+                ...this.pagination,
+              },
+            });
+          },
+        },
+      };
+    };
+  </script>
+</template>

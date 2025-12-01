@@ -1,4 +1,4 @@
-export const home = "./pages/receiver.html";
+export const home = "./pages/list.html";
 
 export const pageAnime = {
   current: {
@@ -14,8 +14,3 @@ export const pageAnime = {
     transform: "translate(-30px, 0)",
   },
 };
-
-export const allowForward = true;
-
-const load = lm(import.meta);
-load("/packages/i18n/localized-content.html");

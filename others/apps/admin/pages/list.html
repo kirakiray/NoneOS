@@ -1,0 +1,158 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/comps/user-avatar.html"></l-m>
+  <l-m src="/packages/pui/table/table.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="../comps/pagination.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    n-user-avatar {
+      display: block;
+      width: 30px;
+      height: 30px;
+    }
+    .container {
+      padding: 8px;
+    }
+  </style>
+  <div class="container">
+    <p-table>
+      <p-table-row head>
+        <p-table-cell max-width="60">头像</p-table-cell>
+        <p-table-cell max-width="100">ID</p-table-cell>
+        <p-table-cell>用户名</p-table-cell>
+        <p-table-cell>用户ID</p-table-cell>
+        <p-table-cell max-width="180">连接时间</p-table-cell>
+        <p-table-cell>操作</p-table-cell>
+      </p-table-row>
+      <o-fill :value="clients" fill-key="id">
+        <p-table-row>
+          <p-table-cell>
+            <n-user-avatar :userid="$data.userId"></n-user-avatar>
+          </p-table-cell>
+          <p-table-cell>{{$data.id}}</p-table-cell>
+          <p-table-cell>{{$data.username}}</p-table-cell>
+          <p-table-cell>{{$data.userId}}</p-table-cell>
+          <p-table-cell>{{$host.getTime($data.connectTime)}}</p-table-cell>
+          <p-table-cell>
+            <p-button
+              color="error"
+              size="small"
+              on:click="$host.kickClient($data.id)"
+              variant="outlined"
+            >
+              踢除
+            </p-button>
+          </p-table-cell>
+        </p-table-row>
+      </o-fill>
+    </p-table>
+    <div
+      style="
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <p-button
+        on:click="refreshClient"
+        variant="outlined"
+        style="margin-right: 4px"
+        >刷新</p-button
+      >
+      <p-pagination
+        :pagination="pagination"
+        on:change="refreshClient"
+      ></p-pagination>
+    </div>
+  </div>
+  <o-consumer
+    name="admin-setting"
+    watch:active-server="activeServer"
+  ></o-consumer>
+  <script>
+    export const parent = "../layout.html";
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      const serverUrl = "ws://localhost:18290";
+
+      return {
+        data: {
+          clients: [],
+          pagination: {
+            page: 1, // 当前页码
+            pageSize: 10, // 每页显示条数
+            total: 0, // 总记录数
+            totalPages: 1, // 总页数
+          },
+          activeServer: "", // 激活中的服务器
+          _serverClient: null,
+        },
+        watch: {
+          activeServer() {
+            this.refreshClient();
+          },
+        },
+        proto: {
+          getTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          },
+          async kickClient(clientId) {
+            await this._serverClient.disconnectClient(clientId);
+            setTimeout(() => {
+              this.refreshClient();
+            }, 100);
+          },
+          async refreshClient() {
+            if (!this.activeServer) {
+              return;
+            }
+
+            // 连接到服务器（管理员模式）
+            this._serverClient = await localUser.connectServer(
+              this.activeServer,
+              {
+                admin: 1,
+                password: "admin123",
+              }
+            );
+
+            const { clients, pagination } = await this._serverClient.getClients(
+              {
+                page: this.pagination.page,
+                pageSize: this.pagination.pageSize,
+              }
+            );
+
+            Object.assign(this.pagination, pagination);
+
+            this.clients = clients;
+          },
+        },
+        attached() {
+          this.refreshClient();
+
+          this.emit("set-active-id", {
+            data: {
+              activeId: "list",
+            },
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>

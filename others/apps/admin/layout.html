@@ -1,0 +1,113 @@
+<template page>
+  <l-m src="/packages/pui/navigation/nav-layout.html"></l-m>
+  <l-m src="/packages/pui/navigation/nav-bar.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/i18n/localized-content.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <style>
+    :host {
+      display: block;
+      background-color: var(--md-sys-color-surface-variant);
+    }
+  </style>
+  <o-provider name="admin-setting" sync:active-server="activeServer">
+    <p-dialog :open="showServerDialog" on:click-mask="showServerDialog = false">
+      <div slot="title">切换服务器</div>
+      <o-page
+        src="./pages/switch.html"
+        style="width: 600px; height: 480px"
+      ></o-page>
+    </p-dialog>
+
+    <p-nav-layout>
+      <div
+        slot="top"
+        style="
+          height: 50px;
+          display: flex;
+          align-items: center;
+          padding: 0 12px;
+        "
+      >
+        <n-local-icon
+          name="server"
+          style="display: block; margin-right: 4px"
+        ></n-local-icon>
+        <span
+          style="
+            margin-right: 12px;
+            font-size: 14px;
+            color: var(--md-sys-color-primary);
+          "
+        >
+          {{activeServer}}
+        </span>
+        <p-button variant="outlined" on:click="showServerDialog = true">
+          切换服务器
+        </p-button>
+      </div>
+      <div style="height: 50px"></div>
+      <slot></slot>
+      <p-nav-bar slot="nav">
+        <p-nav-item
+          attr:active-item="activeId === 'list'"
+          on:click="goPage('list')"
+        >
+          <n-local-icon name="list" slot="icon"></n-local-icon>
+          <localized-content>
+            <span lang="cn">用户</span>
+            <span lang="en">Users</span>
+            <span lang="ja">ユーザー</span>
+          </localized-content>
+        </p-nav-item>
+        <p-nav-item
+          attr:active-item="activeId === 'config'"
+          on:click="goPage('config')"
+        >
+          <n-local-icon name="setting" slot="icon"></n-local-icon>
+          <localized-content>
+            <span lang="cn">配置</span>
+            <span lang="en">Config</span>
+            <span lang="ja">設定</span>
+          </localized-content>
+        </p-nav-item>
+      </p-nav-bar>
+    </p-nav-layout>
+  </o-provider>
+  <script>
+    export default async ({ load }) => {
+      return {
+        data: {
+          activeId: "",
+          showServerDialog: false,
+          activeServer: localStorage.getItem("activeServer"),
+        },
+        proto: {
+          goPage(type) {
+            if (this.activeId === type) {
+              return;
+            }
+
+            this.activeId = type;
+
+            // 跳转页面
+            switch (type) {
+              case "list":
+                this.goto("./pages/list.html");
+                break;
+              case "config":
+                this.goto("./pages/config.html");
+                break;
+            }
+          },
+        },
+        ready() {
+          this.on("set-active-id", (e) => {
+            this.activeId = e.data.activeId;
+            e.stopPropagation();
+          });
+        },
+      };
+    };
+  </script>
+</template>

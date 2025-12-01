@@ -101,7 +101,7 @@ export const startReceiveTask = async ({
 
       const timer = setInterval(async () => {
         // 5秒后重新发送请求
-        remoteUser.post(requestData, await sessionId);
+        remoteUser && remoteUser.post(requestData, await sessionId);
       }, 5000);
 
       pms.then(() => clearInterval(timer)); // 成功获取到chunk，清除定时器
@@ -113,7 +113,7 @@ export const startReceiveTask = async ({
       });
 
       // 发送请求
-      remoteUser.post(requestData, await sessionId);
+      remoteUser && remoteUser.post(requestData, await sessionId);
 
       return pms;
     };
@@ -165,11 +165,12 @@ export const startReceiveTask = async ({
               name: item.name,
               loaded: index + 1,
               total: hashes.length,
+              size: chunk.size,
             });
 
             return chunk;
           },
-          3 // 设置并发数为3
+          Number(localStorage.getItem("chunkConcurrency")) || 4
         );
 
         // 合并文件并保存

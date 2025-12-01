@@ -1,0 +1,33 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div style="padding: 16px">
+    <h3>配置</h3>
+  </div>
+  <script>
+    export const parent = "../layout.html";
+
+    export default async ({ load }) => {
+      return {
+        data: {
+          servers: [],
+        },
+        proto: {},
+        attached() {
+          this.emit("set-active-id", {
+            data: {
+              activeId: "config",
+            },
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script type="module">
+      import { createUser } from "/packages/user/main.js";
+
+      const users = [];
+
+      for (let i = 0; i < 50; i++) {
+        const user = await createUser({
+          user: `demo-test-user-${i}`,
+        });
+
+        await user.connectServer("ws://localhost:18290/");
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, 10);
+        });
+
+        users.push(user);
+      }
+
+      console.log(users);
+    </script>
+  </body>
+</html>

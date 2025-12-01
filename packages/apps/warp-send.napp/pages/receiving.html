@@ -102,6 +102,16 @@
     >
       {{files.length}}/{{originFileData.length}}
     </span>
+    <span
+      style="
+        display: block;
+        margin-left: 8px;
+        font-size: 14px;
+        color: var(--md-sys-color-success);
+      "
+    >
+      {{speed}}
+    </span>
   </div>
 
   <p-list id="file-list">
@@ -158,6 +168,7 @@
           originFileData: [],
           allOK: false,
           isMountedHandle: false,
+          speed: "",
         },
         proto: {
           download() {
@@ -174,49 +185,68 @@
             remoteUser = await localUser.connectUser(query.userId);
           }
 
+          let totalSize = 0;
+          let startTime = null;
+          let bytesReceivedInLastSecond = null; // 一秒内接收的字节数
+          let speedUpdateTimer = null; // 速度更新定时器
+
           const { unsubscribe } = await startReceiveTask({
             localUser,
             remoteUser,
             taskHash: query.taskHash,
             handle: outData.handle,
-            callback: (e) => {
-              if (e.type === "init") {
-                this.originFileData = e.data.files.map((e) => {
+            callback: (fileEvent) => {
+              if (fileEvent.type === "init") {
+                this.originFileData = fileEvent.data.files.map((fileInfo) => {
                   return {
-                    name: e.name,
-                    size: e.size,
-                    hash: e.hash,
-                    chunkLength: e.hashes.length,
+                    name: fileInfo.name,
+                    size: fileInfo.size,
+                    hash: fileInfo.hash,
+                    chunkLength: fileInfo.hashes.length,
                   };
                 });
 
+                clearInterval(speedUpdateTimer);
+                bytesReceivedInLastSecond = 0;
+                totalSize = 0;
+                startTime = Date.now();
+
+                speedUpdateTimer = setInterval(() => {
+                  if (bytesReceivedInLastSecond !== null) {
+                    this.speed = `${(bytesReceivedInLastSecond / 1024 / 1024).toFixed(2)} MB/s`;
+                  }
+
+                  bytesReceivedInLastSecond = 0;
+                }, 1000);
                 return;
               }
 
               let targetItem = this.files.find(
-                (item) => item.fileHash === e.fileHash
+                (item) => item.fileHash === fileEvent.fileHash
               );
 
               if (!targetItem) {
                 this.files.unshift({
-                  fileHash: e.fileHash,
-                  name: e.name,
+                  fileHash: fileEvent.fileHash,
+                  name: fileEvent.name,
                   loaded: 0,
                   done: false,
-                  total: e.total,
+                  total: fileEvent.total,
                 });
 
                 targetItem = this.files.find(
-                  (item) => item.fileHash === e.fileHash
+                  (item) => item.fileHash === fileEvent.fileHash
                 );
               }
 
-              if (e.type === "skip-file") {
+              if (fileEvent.type === "skip-file") {
                 targetItem.done = true;
                 targetItem.loaded = targetItem.total = 1;
-              } else if (e.type === "load-chunk") {
-                targetItem.loaded = e.loaded;
-              } else if (e.type === "save-file") {
+              } else if (fileEvent.type === "load-chunk") {
+                bytesReceivedInLastSecond += fileEvent.size;
+                totalSize += fileEvent.size;
+                targetItem.loaded = fileEvent.loaded;
+              } else if (fileEvent.type === "save-file") {
                 targetItem.loaded = targetItem.total;
                 targetItem.done = true;
               }
@@ -226,6 +256,14 @@
                 this.files.every((item) => item.done)
               ) {
                 this.allOK = true;
+                clearInterval(speedUpdateTimer);
+                const diffTime = (Date.now() - startTime) / 1000;
+                this.speed = `Average: ${(
+                  totalSize /
+                  1024 /
+                  1024 /
+                  diffTime
+                ).toFixed(2)} MB/s`;
               }
             },
           });

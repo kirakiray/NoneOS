@@ -5,6 +5,7 @@
   <l-m src="/packages/pui/list/list.html"></l-m>
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
   <style>
     :host {
@@ -100,7 +101,35 @@
         <span lang="en">To Device</span>
         <span lang="ja"> デバイスに送信 </span>
       </localized-content>
+
+      <p-button
+        size="mini"
+        on:click="showAddDialog = true"
+        variant="outlined"
+        style="position: relative; z-index: 3; margin-left: 16px"
+      >
+        <localized-content>
+          <span lang="en">Add Device</span>
+          <span lang="cn">添加设备</span>
+          <span lang="jp">デバイスを追加</span>
+        </localized-content>
+      </p-button>
     </h3>
+
+    <p-dialog :open="showAddDialog" on:click-mask="showAddDialog = false">
+      <div slot="title">
+        <localized-content>
+          <span lang="en">Add Device</span>
+          <span lang="cn">添加设备</span>
+          <span lang="jp">デバイスを追加</span>
+        </localized-content>
+      </div>
+      <o-page
+        src="/packages/apps/link-me.napp/pages/add-device.html"
+        on:add-device-success="refreshDevices()"
+      ></o-page>
+    </p-dialog>
+
     <style>
       [name="tick-circle"] {
         display: none;
@@ -177,6 +206,7 @@
           selectedDevice: null, // 选中的设备
           files: cacheFiles, // 准备要发送的文件
           totalSize: 0, // 所有文件的总大小
+          showAddDialog: false,
         },
         proto: {
           async selectDevice(device) {
