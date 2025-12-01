@@ -7,6 +7,7 @@
   <l-m src="/packages/comps/user-state.html"></l-m>
   <l-m src="/packages/pui/dialog/dialog.html"></l-m>
   <l-m src="../comps/file-list.html"></l-m>
+  <l-m src="../comps/warp-tutorial-btn.html"></l-m>
   <style>
     :host {
       display: block;
@@ -17,12 +18,14 @@
     }
   </style>
   <div class="container">
-    <h3 style="margin-bottom: 8px">
+    <h3 style="margin-bottom: 8px;display: flex;align-items: center;">
       <localized-content>
         <span lang="cn">选择发送</span>
         <span lang="en">Select Send</span>
         <span lang="ja"> 送信方法を選択 </span>
       </localized-content>
+
+      <n-warp-tutorial-btn></n-warp-tutorial-btn>
     </h3>
     <div
       style="padding: 0 0 8px 0"
