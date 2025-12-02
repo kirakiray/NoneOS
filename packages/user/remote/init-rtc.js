@@ -136,7 +136,6 @@ export default async function initRTC(remoteUser, rtcOptions) {
 const handleConnectionError = (remoteUser, error, action) => {
   console.error(`${action}失败:`, error);
   // 根据服务器状态切换模式
-
 };
 
 // 清理已关闭的RTC连接

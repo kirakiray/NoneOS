@@ -1,0 +1,106 @@
+<template component>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <l-m src="/packages/pui/dialog/dialog.html"></l-m>
+  <l-m src="/packages/pui/tooltips/tooltips.html"></l-m>
+  <style>
+    :host {
+      display: inline-block;
+      margin: 0 4px;
+    }
+    .content {
+      font-size: 16px;
+      max-width: 600px;
+      font-weight: normal;
+    }
+  </style>
+  <p-tooltips>
+    <p-button icon variant="text" size="small" on:click="showDialog = true">
+      <n-local-icon
+        name="question-circle"
+        style="font-size: 20px"
+      ></n-local-icon>
+    </p-button>
+    <div slot="tips">
+      <localized-content>
+        <span lang="cn">使用教程</span>
+        <span lang="en">Tutorial</span>
+        <span lang="ja"> チュートリアル </span>
+      </localized-content>
+    </div>
+  </p-tooltips>
+  <p-dialog :open="showDialog" on:click-mask="showDialog = false">
+    <div slot="title">
+      <localized-content>
+        <span lang="cn">使用教程</span>
+        <span lang="en">Tutorial</span>
+        <span lang="ja"> チュートリアル </span>
+      </localized-content>
+    </div>
+
+    <localized-content>
+      <div class="content" lang="cn">
+        <p>
+          WarpSend 是运行在 NoneOS 上的轻量级文件传输工具。无需安装任何
+          App，只需在两台设备上打开网页，即可快速互传文件。
+        </p>
+        <p>
+          两台设备无需处于同一局域网，即使相隔两地，系统也会自动完成 P2P
+          配对，建立直连通道，让传输更快更稳。
+        </p>
+        <p>
+          首次使用前，请先与对方设备完成配对：在发送界面点击“添加设备”按钮，配对成功后即可随时互传任意文件。
+        </p>
+      </div>
+      <div class="content" lang="en">
+        <p>
+          WarpSend is a lightweight file transfer tool running on NoneOS. No
+          need to install any App, just open the web page on two devices, and
+          you can quickly transfer files.
+        </p>
+        <p>
+          Two devices do not need to be in the same local network, even if they
+          are separated by two cities, the system will automatically complete
+          P2P pairing and establish a direct connection channel, making the
+          transfer faster and more stable.
+        </p>
+        <p>
+          Before the first use, please pair with the other device first: click
+          the "Add Device" button on the sending interface, and the pairing is
+          successful, you can transfer any file at any time.
+        </p>
+      </div>
+      <div class="content" lang="ja">
+        <p>
+          WarpSend は NoneOS 上で動作する軽量なファイル転送ツールです。 App
+          をインストールする必要はありません。 2 台のデバイス上で Web
+          ページを開くだけで、簡単にファイルを 転送できます。
+        </p>
+        <p>
+          2 台のデバイスが同一のローカルネットワークに属していなくても、 2
+          都市を跨いでも、システムが自動的に P2P ペアリングを完了し、
+          直接の接続チャンネルを構築します。 これにより、2
+          台のデバイスが互いに直接通信できるようになり、
+          ファイル転送が高速で安定します。
+        </p>
+        <p>
+          首次使用前には、必ずペアリングを完了させてください。
+          ペアリングが成功すると、どの時点でも任意のファイルを転送できます。
+        </p>
+      </div>
+    </localized-content>
+  </p-dialog>
+  <script>
+    export default async ({ load }) => {
+      return {
+        tag: "n-warp-tutorial-btn",
+        data: {
+          showDialog: false,
+        },
+        proto: {},
+        attached() {},
+        detached() {},
+      };
+    };
+  </script>
+</template>

@@ -28,6 +28,16 @@
 
             const card = await cardManager.get(userId);
             if (card) {
+              if (Date.now() - card.signTime > 1000 * 60 * 5) {
+                // 用户卡片时间有5分钟以上，主动更新一次卡片数据
+                setTimeout(async () => {
+                  const remoteUser = await localUser.connectUser(userId);
+
+                  if (remoteUser.mode != 0) {
+                    remoteUser.updateCard();
+                  }
+                }, 1000);
+              }
               this.name = card.name;
             } else {
               this.name = userId;

@@ -129,7 +129,7 @@ export class RemoteUser extends BaseUser {
       }
     }
 
-    if (this.#servers.length && this.#mode === 0) {
+    if (this.#servers.length) {
       // 如果之前是不可用的，则更新连接状态
       changeMode(1);
       return;
@@ -266,6 +266,14 @@ export class RemoteUser extends BaseUser {
         )
       );
     }
+
+    return this.updateCard();
+  }
+
+  // 更新用户卡片
+  async updateCard() {
+    // 尝试从本地卡片库上获取
+    const cardManager = await this.#self.cardManager();
 
     return new Promise((resolve, reject) => {
       // 直接尝试从对方获取卡片信息
