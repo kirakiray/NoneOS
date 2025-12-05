@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGWave 测试 - 最大音量</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        .volume-control {
+            margin: 15px 0;
+        }
+        .volume-control label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .volume-slider {
+            width: calc(100% - 60px);
+            display: inline-block;
+            margin: 0;
+        }
+        .volume-display {
+            display: inline-block;
+            width: 50px;
+            text-align: center;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        .volume-warning {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 GGWave 音频测试 - 最大音量</h1>
+        <p>输入文本以使用 ggwave 转换为响亮音频：</p>
+        
+        <input type="text" id="textInput" placeholder="输入要编码的文本..." value="你好世界">
+        
+        <div class="volume-control">
+            <label for="volumeSlider">音量控制：</label>
+            <input type="range" id="volumeSlider" class="volume-slider" min="0" max="1" step="0.1" value="1.0">
+            <span id="volumeDisplay" class="volume-display">100%</span>
+        </div>
+        
+        <div class="volume-warning">
+            ⚠️ 注意：在 100% 音量下，音频将被标准化到最大级别而不会削波。
+        </div>
+        
+        <button id="sendButton">🔊 发送响亮音频</button>
+        <div id="status" class="status" style="display: none;"></div>
+    </div>
+
+    <script type="module">
+        import { send } from './main.js';
+
+        const textInput = document.getElementById('textInput');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const volumeDisplay = document.getElementById('volumeDisplay');
+        const sendButton = document.getElementById('sendButton');
+        const status = document.getElementById('status');
+
+        function showStatus(message, type = 'info') {
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+        }
+
+        function hideStatus() {
+            status.style.display = 'none';
+        }
+
+        function updateVolumeDisplay() {
+            const volume = parseFloat(volumeSlider.value);
+            const percentage = Math.round(volume * 100);
+            volumeDisplay.textContent = `${percentage}%`;
+            
+            // Update color based on volume level
+            if (volume >= 0.8) {
+                volumeDisplay.style.color = '#dc3545'; // Red for high volume
+            } else if (volume >= 0.5) {
+                volumeDisplay.style.color = '#ffc107'; // Yellow for medium volume
+            } else {
+                volumeDisplay.style.color = '#007bff'; // Blue for low volume
+            }
+        }
+
+        // Update volume display when slider changes
+        volumeSlider.addEventListener('input', updateVolumeDisplay);
+
+        sendButton.addEventListener('click', async () => {
+            const text = textInput.value.trim();
+            const volume = parseFloat(volumeSlider.value);
+            
+            if (!text) {
+                showStatus('请输入一些文本', 'error');
+                return;
+            }
+
+            sendButton.disabled = true;
+            showStatus(`正在以 ${Math.round(volume * 100)}% 音量编码和播放音频...`, 'info');
+
+            try {
+                await send(text, volume);
+                showStatus(`✅ 音频已成功以 ${Math.round(volume * 100)}% 音量播放！`, 'success');
+            } catch (error) {
+                showStatus(`❌ 错误: ${error.message}`, 'error');
+                console.error('GGWave 错误:', error);
+            } finally {
+                sendButton.disabled = false;
+            }
+        });
+
+        // Allow Enter key to trigger send
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        // Initialize volume display
+        updateVolumeDisplay();
+    </script>
+</body>
+</html>
