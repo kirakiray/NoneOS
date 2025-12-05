@@ -1,0 +1,16 @@
+<template page>
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <div>
+    <p>nearby-device</p>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const user = await createUser();
+    };
+  </script>
+</template>
