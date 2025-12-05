@@ -82,6 +82,52 @@
         color: #856404;
         border: 1px solid #ffeaa7;
       }
+      
+      /* 接收和分析状态指示器样式 */
+      .analysis-status-container {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin: 20px 0;
+      }
+      
+      .status-indicator {
+        display: flex;
+        align-items: center;
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        opacity: 0.3;
+        transition: opacity 0.3s ease;
+      }
+      
+      .status-indicator.active {
+        opacity: 1;
+        animation: pulse 1.5s infinite;
+      }
+      
+      @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.7; }
+        100% { opacity: 1; }
+      }
+      
+      .status-indicator.receiving {
+        background-color: #cce5ff;
+        color: #004085;
+        border: 1px solid #b8daff;
+      }
+      
+      .status-indicator.analyzing {
+        background-color: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      
+      .indicator-icon {
+        margin-right: 8px;
+        font-size: 18px;
+      }
       .messages {
         margin-top: 30px;
         border: 2px solid #e9ecef;
@@ -176,6 +222,18 @@
       </div>
 
       <div id="status" class="status info" style="display: none"></div>
+      
+      <!-- 添加接收和分析状态指示器 -->
+      <div class="analysis-status-container">
+        <div id="receivingIndicator" class="status-indicator receiving">
+          <span class="indicator-icon">📡</span>
+          <span class="indicator-text">接收数据中...</span>
+        </div>
+        <div id="analyzingIndicator" class="status-indicator analyzing">
+          <span class="indicator-icon">🔍</span>
+          <span class="indicator-text">分析数据中...</span>
+        </div>
+      </div>
 
       <div class="messages">
         <h3>📨 接收到的消息</h3>
@@ -199,6 +257,8 @@
       const status = document.getElementById("status");
       const messagesList = document.getElementById("messagesList");
       const clearBtn = document.getElementById("clearBtn");
+      const receivingIndicator = document.getElementById("receivingIndicator");
+      const analyzingIndicator = document.getElementById("analyzingIndicator");
 
       function showStatus(message, type = "info") {
         status.textContent = message;
@@ -249,7 +309,9 @@
       }
 
       // 监听 GGWave 消息事件
-      function setupMessageListener(captureInstance) {
+      // 设置事件监听器
+      function setupEventListeners(captureInstance) {
+        // 监听消息事件
         captureInstance.addEventListener("ggwave-message", (event) => {
           const { message, timestamp } = event.detail;
           addMessage(message, timestamp);
@@ -264,6 +326,26 @@
             }
           }, 3000);
         });
+        
+        // 监听接收数据事件
+        captureInstance.addEventListener("receiving", () => {
+          receivingIndicator.classList.add("active");
+          console.log("receiving");
+          // 2秒后自动隐藏
+          setTimeout(() => {
+            receivingIndicator.classList.remove("active");
+          }, 2000);
+        });
+        
+        // 监听分析数据事件
+        captureInstance.addEventListener("analyzing", () => {
+          analyzingIndicator.classList.add("active");
+          console.log("analyzing");
+          // 2秒后自动隐藏
+          setTimeout(() => {
+            analyzingIndicator.classList.remove("active");
+          }, 2000);
+        });
       }
 
       startBtn.addEventListener("click", async () => {
@@ -273,7 +355,7 @@
 
           captureInstance = new GgwaveReceiver();
           await captureInstance.start();
-          setupMessageListener(captureInstance);
+          setupEventListeners(captureInstance);
 
           stopBtn.disabled = false;
           showStatus("🎤 正在捕获音频...", "info");

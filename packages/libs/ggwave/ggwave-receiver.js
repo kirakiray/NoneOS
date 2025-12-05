@@ -36,7 +36,7 @@ export class GgwaveReceiver extends EventTarget {
     }
 
     ggwave.__printCall = (message) => {
-      console.log(message);
+      // console.log(message);
       if (message.includes("Receiving sound data")) {
         this.dispatchEvent(new Event("receiving"));
       } else if (message.includes("Analyzing captured")) {
@@ -119,7 +119,7 @@ export class GgwaveReceiver extends EventTarget {
       this.recorder.connect(this.context.destination);
 
       this._isCapturing = true;
-      console.log("GGWave capture started");
+      // console.log("GGWave capture started");
     } catch (error) {
       // 出错时清理资源
       this.cleanupOnError();
@@ -168,7 +168,7 @@ export class GgwaveReceiver extends EventTarget {
     this.mediaStream = null;
     this.recorder = null;
 
-    console.log("GGWave capture stopped");
+    // console.log("GGWave capture stopped");
   }
 
   /**
