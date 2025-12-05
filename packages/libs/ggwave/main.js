@@ -1,10 +1,10 @@
 import ggwave from "./ggwave.js";
 
 /**
- * Converts a typed array to another typed array type
- * @param {TypedArray} src - Source typed array
- * @param {Function} type - Target typed array constructor (e.g., Float32Array)
- * @returns {TypedArray} Converted typed array
+ * 将类型化数组转换为另一种类型化数组类型
+ * @param {TypedArray} src - 源类型化数组
+ * @param {Function} type - 目标类型化数组构造函数（例如 Float32Array）
+ * @returns {TypedArray} 转换后的类型化数组
  */
 function convertTypedArray(src, type) {
   const buffer = new ArrayBuffer(src.byteLength);
@@ -14,38 +14,44 @@ function convertTypedArray(src, type) {
 }
 
 /**
- * Sends text as audio using ggwave
- * @param {string} text - Text to encode and send as audio
+ * 使用 ggwave 将文本作为音频发送
+ * @param {string} text - 要编码并发送为音频的文本
+ * @param {number} volume - 音量级别（0.0 到 1.0，默认：1.0 为最大音量）
  * @returns {Promise<void>}
  */
-export const send = async (text) => {
-  // Input validation
+export const send = async (text, volume = 1.0) => {
+  // 输入验证
   if (typeof text !== "string" || text.length === 0) {
-    throw new Error("Text must be a non-empty string");
+    throw new Error("文本必须是非空字符串");
+  }
+  
+  // 音量验证
+  if (typeof volume !== "number" || volume < 0 || volume > 1) {
+    throw new Error("音量必须是 0.0 到 1.0 之间的数字");
   }
 
   let context = null;
   let instance = null;
 
   try {
-    // Create audio context with optimal settings
+    // 创建具有最佳设置的音频上下文
     context = new AudioContext({
       sampleRate: 48000,
       latencyHint: "interactive",
     });
 
-    // Resume context if suspended (common in modern browsers)
+    // 如果音频上下文被暂停，则恢复它（在现代浏览器中很常见）
     if (context.state === "suspended") {
       await context.resume();
     }
 
-    // Initialize ggwave with context parameters
+    // 使用上下文参数初始化 ggwave
     const parameters = ggwave.getDefaultParameters();
     parameters.sampleRateInp = context.sampleRate;
     parameters.sampleRateOut = context.sampleRate;
     instance = ggwave.init(parameters);
 
-    // Encode the text to waveform
+    // 将文本编码为波形
     const waveform = ggwave.encode(
       instance,
       text,
@@ -54,11 +60,21 @@ export const send = async (text) => {
     );
 
     if (!waveform || waveform.length === 0) {
-      throw new Error("Failed to encode text to waveform");
+      throw new Error("无法将文本编码为波形");
     }
 
-    // Convert waveform to Float32Array and create audio buffer
+    // 将波形转换为 Float32Array 并应用音量/标准化
     const float32Array = convertTypedArray(waveform, Float32Array);
+    
+    // 标准化到最大范围并应用音量
+    const maxValue = Math.max(...float32Array.map(Math.abs));
+    if (maxValue > 0) {
+      const normalizationFactor = (0.95 * volume) / maxValue; // 0.95 以防止削波
+      for (let i = 0; i < float32Array.length; i++) {
+        float32Array[i] = float32Array[i] * normalizationFactor;
+      }
+    }
+
     const audioBuffer = context.createBuffer(
       1,
       float32Array.length,
@@ -66,19 +82,27 @@ export const send = async (text) => {
     );
     audioBuffer.getChannelData(0).set(float32Array);
 
-    // Create and configure audio source
+    // 创建并配置具有增益节点的音频源以实现最大音量
     const source = context.createBufferSource();
+    const gainNode = context.createGain();
+    
     source.buffer = audioBuffer;
-    source.connect(context.destination);
+    
+    // 连接源 -> 增益节点 -> 目标以进行音量控制
+    source.connect(gainNode);
+    gainNode.connect(context.destination);
+    
+    // 设置增益为最大值（1.0），因为我们已经对音频数据进行了标准化
+    gainNode.gain.value = 1.0;
 
-    // Start playback
+    // 开始播放
     source.start(0);
 
-    // Wait for playback to complete before cleaning up
+    // 等待播放完成后再清理资源
     return new Promise((resolve, reject) => {
       source.onended = () => {
         try {
-          // Clean up resources
+          // 清理资源
           if (instance) {
             ggwave.free(instance);
           }
@@ -92,16 +116,16 @@ export const send = async (text) => {
       };
 
       source.onerror = (error) => {
-        reject(new Error(`Audio playback failed: ${error.message}`));
+        reject(new Error(`音频播放失败: ${error.message}`));
       };
     });
   } catch (error) {
-    // Clean up resources on error
+    // 出错时清理资源
     if (instance) {
       try {
         ggwave.free(instance);
       } catch (cleanupError) {
-        console.warn("Failed to free ggwave instance:", cleanupError);
+        console.warn("释放 ggwave 实例失败:", cleanupError);
       }
     }
 
@@ -109,7 +133,7 @@ export const send = async (text) => {
       try {
         context.close();
       } catch (cleanupError) {
-        console.warn("Failed to close audio context:", cleanupError);
+        console.warn("关闭音频上下文失败:", cleanupError);
       }
     }
 
