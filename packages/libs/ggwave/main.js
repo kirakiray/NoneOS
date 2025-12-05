@@ -1,3 +1,4 @@
+// 声波
 import ggwave from "./ggwave.js";
 
 /**
@@ -24,7 +25,7 @@ export const send = async (text, volume = 1.0) => {
   if (typeof text !== "string" || text.length === 0) {
     throw new Error("文本必须是非空字符串");
   }
-  
+
   // 音量验证
   if (typeof volume !== "number" || volume < 0 || volume > 1) {
     throw new Error("音量必须是 0.0 到 1.0 之间的数字");
@@ -65,9 +66,16 @@ export const send = async (text, volume = 1.0) => {
 
     // 将波形转换为 Float32Array 并应用音量/标准化
     const float32Array = convertTypedArray(waveform, Float32Array);
-    
+
     // 标准化到最大范围并应用音量
-    const maxValue = Math.max(...float32Array.map(Math.abs));
+    let maxValue = 0;
+    for (let i = 0; i < float32Array.length; i++) {
+      const absValue = Math.abs(float32Array[i]);
+      if (absValue > maxValue) {
+        maxValue = absValue;
+      }
+    }
+
     if (maxValue > 0) {
       const normalizationFactor = (0.95 * volume) / maxValue; // 0.95 以防止削波
       for (let i = 0; i < float32Array.length; i++) {
@@ -85,13 +93,13 @@ export const send = async (text, volume = 1.0) => {
     // 创建并配置具有增益节点的音频源以实现最大音量
     const source = context.createBufferSource();
     const gainNode = context.createGain();
-    
+
     source.buffer = audioBuffer;
-    
+
     // 连接源 -> 增益节点 -> 目标以进行音量控制
     source.connect(gainNode);
     gainNode.connect(context.destination);
-    
+
     // 设置增益为最大值（1.0），因为我们已经对音频数据进行了标准化
     gainNode.gain.value = 1.0;
 
