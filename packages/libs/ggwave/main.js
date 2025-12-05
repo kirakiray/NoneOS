@@ -1,5 +1,67 @@
-// 声波
+// 使用ggwave库将文本编码为音频波形的相关库
 import ggwave from "./ggwave.js";
+
+// 实时捕获音频，并将其转换为字符
+export const capture = async () => {
+  let recorder;
+  let mediaStream;
+
+  let constraints = {
+    audio: {
+      // not sure if these are necessary to have
+      echoCancellation: false,
+      autoGainControl: false,
+      noiseSuppression: false,
+    },
+  };
+
+  navigator.mediaDevices
+    .getUserMedia(constraints)
+    .then(function (e) {
+      mediaStream = context.createMediaStreamSource(e);
+
+      var bufferSize = 1024;
+      var numberOfInputChannels = 1;
+      var numberOfOutputChannels = 1;
+
+      if (context.createScriptProcessor) {
+        recorder = context.createScriptProcessor(
+          bufferSize,
+          numberOfInputChannels,
+          numberOfOutputChannels
+        );
+      } else {
+        recorder = context.createJavaScriptNode(
+          bufferSize,
+          numberOfInputChannels,
+          numberOfOutputChannels
+        );
+      }
+
+      recorder.onaudioprocess = function (e) {
+        var source = e.inputBuffer;
+        var res = ggwave.decode(
+          instance,
+          convertTypedArray(
+            new Float32Array(source.getChannelData(0)),
+            Int8Array
+          )
+        );
+
+        if (res && res.length > 0) {
+          res = new TextDecoder("utf-8").decode(res);
+          //   rxData.value = res;
+          console.log("Received:", res);
+        }
+      };
+
+      mediaStream.connect(recorder);
+      recorder.connect(context.destination);
+    })
+    .catch(function (e) {
+      console.error(e);
+    });
+};
 
 /**
  * 将类型化数组转换为另一种类型化数组类型
