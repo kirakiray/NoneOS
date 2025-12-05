@@ -35,6 +35,15 @@ export class GgwaveReceiver extends EventTarget {
       return;
     }
 
+    ggwave.__printCall = (message) => {
+      console.log(message);
+      if (message.includes("Receiving sound data")) {
+        this.dispatchEvent(new Event("receiving"));
+      } else if (message.includes("Analyzing captured")) {
+        this.dispatchEvent(new Event("analyzing"));
+      }
+    };
+
     try {
       // 创建音频上下文
       this.context = new AudioContext({
@@ -126,6 +135,7 @@ export class GgwaveReceiver extends EventTarget {
     if (!this._isCapturing) return;
 
     this._isCapturing = false;
+    delete ggwave.__printCall;
 
     if (this.recorder) {
       this.recorder.disconnect();
@@ -208,7 +218,7 @@ export class GgwaveReceiver extends EventTarget {
       }
       this.context = null; // 清除引用
     }
-    
+
     // 清除其他引用
     this.mediaStream = null;
     this.recorder = null;
