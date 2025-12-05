@@ -189,7 +189,7 @@
     </div>
 
     <script type="module">
-      import { capture } from "./main.js";
+      import { GgwaveReceiver } from "./main.js";
 
       let captureInstance = null;
       let messageCount = 0;
@@ -271,7 +271,8 @@
           startBtn.disabled = true;
           showStatus("正在初始化音频捕获...", "info");
 
-          captureInstance = await capture();
+          captureInstance = new GgwaveReceiver();
+          await captureInstance.start();
           setupMessageListener(captureInstance);
 
           stopBtn.disabled = false;

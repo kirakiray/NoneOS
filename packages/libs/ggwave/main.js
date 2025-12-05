@@ -1,154 +1,180 @@
 // 使用ggwave库将文本编码为音频波形的相关库
 import ggwave from "./ggwave.js";
 
-// 实时捕获音频，并将其转换为字符
-export const capture = async () => {
-  let context = null;
-  let instance = null;
-  let recorder = null;
-  let mediaStream = null;
-  let isCapturing = false;
+/**
+ * GGWave 接收器类，用于捕获音频并将其转换为文本消息
+ */
+export class GgwaveReceiver extends EventTarget {
+  constructor() {
+    super();
+    this.context = null;
+    this.instance = null;
+    this.recorder = null;
+    this.mediaStream = null;
+    this.isCapturing = false;
+  }
 
-  try {
-    // 创建音频上下文
-    context = new AudioContext({
-      sampleRate: 48000,
-      latencyHint: "interactive",
-    });
-
-    // 如果音频上下文被暂停，则恢复它
-    if (context.state === "suspended") {
-      await context.resume();
+  /**
+   * 开始捕获音频
+   * @returns {Promise<void>}
+   */
+  async start() {
+    if (this.isCapturing) {
+      console.warn("GGWave capture is already running");
+      return;
     }
 
-    // 初始化 ggwave
-    const parameters = ggwave.getDefaultParameters();
-    parameters.sampleRateInp = context.sampleRate;
-    parameters.sampleRateOut = context.sampleRate;
-    instance = ggwave.init(parameters);
+    try {
+      // 创建音频上下文
+      this.context = new AudioContext({
+        sampleRate: 48000,
+        latencyHint: "interactive",
+      });
 
-    let constraints = {
-      audio: {
-        echoCancellation: false,
-        autoGainControl: false,
-        noiseSuppression: false,
-      },
-    };
+      // 如果音频上下文被暂停，则恢复它
+      if (this.context.state === "suspended") {
+        await this.context.resume();
+      }
 
-    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-    mediaStream = context.createMediaStreamSource(stream);
+      // 初始化 ggwave
+      const parameters = ggwave.getDefaultParameters();
+      parameters.sampleRateInp = this.context.sampleRate;
+      parameters.sampleRateOut = this.context.sampleRate;
+      this.instance = ggwave.init(parameters);
 
-    const bufferSize = 1024;
-    const numberOfInputChannels = 1;
-    const numberOfOutputChannels = 1;
+      let constraints = {
+        audio: {
+          echoCancellation: false,
+          autoGainControl: false,
+          noiseSuppression: false,
+        },
+      };
 
-    if (context.createScriptProcessor) {
-      recorder = context.createScriptProcessor(
-        bufferSize,
-        numberOfInputChannels,
-        numberOfOutputChannels
-      );
-    } else {
-      recorder = context.createJavaScriptNode(
-        bufferSize,
-        numberOfInputChannels,
-        numberOfOutputChannels
-      );
-    }
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.mediaStream = this.context.createMediaStreamSource(stream);
 
-    const target = new EventTarget();
+      const bufferSize = 1024;
+      const numberOfInputChannels = 1;
+      const numberOfOutputChannels = 1;
 
-    recorder.onaudioprocess = function (e) {
-      var source = e.inputBuffer;
-      var res = ggwave.decode(
-        instance,
-        convertTypedArray(new Float32Array(source.getChannelData(0)), Int8Array)
-      );
-
-      if (res && res.length > 0) {
-        res = new TextDecoder("utf-8").decode(res);
-        console.log("Received:", res);
-
-        // 触发自定义事件，让外部可以监听接收到的消息
-        // window.dispatchEvent(
-        target.dispatchEvent(
-          new CustomEvent("ggwave-message", {
-            detail: { message: res, timestamp: Date.now() },
-          })
+      if (this.context.createScriptProcessor) {
+        this.recorder = this.context.createScriptProcessor(
+          bufferSize,
+          numberOfInputChannels,
+          numberOfOutputChannels
+        );
+      } else {
+        this.recorder = this.context.createJavaScriptNode(
+          bufferSize,
+          numberOfInputChannels,
+          numberOfOutputChannels
         );
       }
-    };
 
-    mediaStream.connect(recorder);
-    recorder.connect(context.destination);
+      this.recorder.onaudioprocess = (e) => {
+        var source = e.inputBuffer;
+        var res = ggwave.decode(
+          this.instance,
+          convertTypedArray(new Float32Array(source.getChannelData(0)), Int8Array)
+        );
 
-    isCapturing = true;
-    console.log("GGWave capture started");
+        if (res && res.length > 0) {
+          res = new TextDecoder("utf-8").decode(res);
+          console.log("Received:", res);
 
-    Object.assign(target, {
-      stop: async () => {
-        if (!isCapturing) return;
-
-        isCapturing = false;
-
-        if (recorder) {
-          recorder.disconnect();
-          recorder.onaudioprocess = null;
+          // 触发自定义事件，让外部可以监听接收到的消息
+          this.dispatchEvent(
+            new CustomEvent("ggwave-message", {
+              detail: { message: res, timestamp: Date.now() },
+            })
+          );
         }
+      };
 
-        if (mediaStream) {
-          mediaStream.disconnect();
-        }
+      this.mediaStream.connect(this.recorder);
+      this.recorder.connect(this.context.destination);
 
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
-        }
+      this.isCapturing = true;
+      console.log("GGWave capture started");
+    } catch (error) {
+      // 出错时清理资源
+      this.cleanupOnError();
+      throw new Error(`音频捕获初始化失败: ${error.message}`);
+    }
+  }
 
-        if (instance) {
-          ggwave.free(instance);
-        }
+  /**
+   * 停止捕获音频
+   * @returns {Promise<void>}
+   */
+  async stop() {
+    if (!this.isCapturing) return;
 
-        if (context) {
-          await context.close();
-        }
+    this.isCapturing = false;
 
-        console.log("GGWave capture stopped");
-      },
-      isCapturing: () => isCapturing,
-    });
-
-    // 返回清理函数
-    return target;
-  } catch (error) {
-    // 出错时清理资源
-    if (recorder) {
-      recorder.disconnect();
-      recorder.onaudioprocess = null;
+    if (this.recorder) {
+      this.recorder.disconnect();
+      this.recorder.onaudioprocess = null;
     }
 
-    if (mediaStream) {
-      mediaStream.disconnect();
+    if (this.mediaStream) {
+      this.mediaStream.disconnect();
     }
 
-    if (instance) {
+    if (this.stream) {
+      this.stream.getTracks().forEach((track) => track.stop());
+    }
+
+    if (this.instance) {
+      ggwave.free(this.instance);
+    }
+
+    if (this.context) {
+      await this.context.close();
+    }
+
+    console.log("GGWave capture stopped");
+  }
+
+  /**
+   * 检查是否正在捕获音频
+   * @returns {boolean}
+   */
+  isCapturing() {
+    return this.isCapturing;
+  }
+
+  /**
+   * 发生错误时清理资源
+   * @private
+   */
+  cleanupOnError() {
+    if (this.recorder) {
+      this.recorder.disconnect();
+      this.recorder.onaudioprocess = null;
+    }
+
+    if (this.mediaStream) {
+      this.mediaStream.disconnect();
+    }
+
+    if (this.instance) {
       try {
-        ggwave.free(instance);
+        ggwave.free(this.instance);
       } catch (cleanupError) {
         console.warn("释放 ggwave 实例失败:", cleanupError);
       }
     }
 
-    if (context) {
+    if (this.context) {
       try {
-        await context.close();
+        this.context.close();
       } catch (cleanupError) {
         console.warn("关闭音频上下文失败:", cleanupError);
       }
     }
-
-    throw new Error(`音频捕获初始化失败: ${error.message}`);
   }
-};
+}
 
 /**
  * 将类型化数组转换为另一种类型化数组类型
