@@ -11,7 +11,7 @@ export class GgwaveReceiver extends EventTarget {
     this.instance = null;
     this.recorder = null;
     this.mediaStream = null;
-    this.isCapturing = false;
+    this._isCapturing = false;  // 使用私有属性避免命名冲突
   }
 
   /**
@@ -19,7 +19,7 @@ export class GgwaveReceiver extends EventTarget {
    * @returns {Promise<void>}
    */
   async start() {
-    if (this.isCapturing) {
+    if (this._isCapturing) {
       console.warn("GGWave capture is already running");
       return;
     }
@@ -94,7 +94,7 @@ export class GgwaveReceiver extends EventTarget {
       this.mediaStream.connect(this.recorder);
       this.recorder.connect(this.context.destination);
 
-      this.isCapturing = true;
+      this._isCapturing = true;
       console.log("GGWave capture started");
     } catch (error) {
       // 出错时清理资源
@@ -108,9 +108,9 @@ export class GgwaveReceiver extends EventTarget {
    * @returns {Promise<void>}
    */
   async stop() {
-    if (!this.isCapturing) return;
+    if (!this._isCapturing) return;
 
-    this.isCapturing = false;
+    this._isCapturing = false;
 
     if (this.recorder) {
       this.recorder.disconnect();
@@ -141,7 +141,7 @@ export class GgwaveReceiver extends EventTarget {
    * @returns {boolean}
    */
   isCapturing() {
-    return this.isCapturing;
+    return this._isCapturing;
   }
 
   /**
