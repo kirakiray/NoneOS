@@ -62,6 +62,7 @@ export class GgwaveReceiver extends EventTarget {
       };
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.stream = stream; // 保存原始的 MediaStream 对象
       this.mediaStream = this.context.createMediaStreamSource(stream);
 
       const bufferSize = 1024;
@@ -136,16 +137,26 @@ export class GgwaveReceiver extends EventTarget {
     }
 
     if (this.stream) {
-      this.stream.getTracks().forEach((track) => track.stop());
+      // 停止所有媒体流轨道，这是解决浏览器显示录制中状态的关键
+      this.stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      this.stream = null; // 清除引用
     }
 
     if (this.instance) {
       ggwave.free(this.instance);
+      this.instance = null; // 清除引用
     }
 
     if (this.context) {
       await this.context.close();
+      this.context = null; // 清除引用
     }
+
+    // 清除其他引用
+    this.mediaStream = null;
+    this.recorder = null;
 
     console.log("GGWave capture stopped");
   }
@@ -172,12 +183,21 @@ export class GgwaveReceiver extends EventTarget {
       this.mediaStream.disconnect();
     }
 
+    if (this.stream) {
+      // 停止所有媒体流轨道
+      this.stream.getTracks().forEach((track) => {
+        track.stop();
+      });
+      this.stream = null; // 清除引用
+    }
+
     if (this.instance) {
       try {
         ggwave.free(this.instance);
       } catch (cleanupError) {
         console.warn("释放 ggwave 实例失败:", cleanupError);
       }
+      this.instance = null; // 清除引用
     }
 
     if (this.context) {
@@ -186,6 +206,11 @@ export class GgwaveReceiver extends EventTarget {
       } catch (cleanupError) {
         console.warn("关闭音频上下文失败:", cleanupError);
       }
+      this.context = null; // 清除引用
     }
+    
+    // 清除其他引用
+    this.mediaStream = null;
+    this.recorder = null;
   }
 }
