@@ -70,7 +70,8 @@ export const capture = async () => {
         console.log("Received:", res);
 
         // 触发自定义事件，让外部可以监听接收到的消息
-        window.dispatchEvent(
+        // window.dispatchEvent(
+        target.dispatchEvent(
           new CustomEvent("ggwave-message", {
             detail: { message: res, timestamp: Date.now() },
           })
