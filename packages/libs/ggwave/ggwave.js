@@ -14,7 +14,9 @@ var Module=moduleArg;var readyPromiseResolve,readyPromiseReject;Module["ready"]=
 );
 })();
 
-if (typeof exports === 'object' && typeof module === 'object')
-  module.exports = ggwave_factory;
-else if (typeof define === 'function' && define['amd'])
-  define([], () => ggwave_factory);
+export default await ggwave_factory();
+
+// if (typeof exports === 'object' && typeof module === 'object')
+//   module.exports = ggwave_factory;
+// else if (typeof define === 'function' && define['amd'])
+//   define([], () => ggwave_factory);
