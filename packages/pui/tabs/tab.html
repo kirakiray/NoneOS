@@ -97,6 +97,14 @@
           return this.shadow.$(".container");
         },
       },
+      watch: {
+        activeItem() {
+          const parents = this.parents.filter((e) => e.tag === "p-tabs");
+          if (parents.length > 0) {
+            parents[0]._fixActive();
+          }
+        },
+      },
       ready() {
         this.on("click", () => {
           this.emit("click-tab-item");

@@ -1,33 +1,77 @@
 <template page>
   <l-m src="/packages/comps/copy-span.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
-  <localized-content>
-    <p lang="cn">请复制下方地址，在需要添加并配对 NoneOS 的浏览器中打开。</p>
-    <p lang="en">
-      Please copy the address below and open it in the browser to add and pair
-      NoneOS.
-    </p>
-    <p lang="jp">
-      NoneOS
-      を追加およびペアリングするには、下記のアドレスをコピーしてブラウザで開いてください。
-    </p>
-  </localized-content>
-  <div style="max-width: 600px; color: var(--md-sys-color-primary)">
-    <n-copy-span> {{url}} </n-copy-span>
+  <l-m src="/packages/pui/tabs/tabs.html"></l-m>
+  <style>
+    #qrcode-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    #qrcode-container img {
+      display: block;
+      border-radius: 16px;
+    }
+
+    .hide {
+      display: none !important;
+    }
+  </style>
+  <div>
+    <p-tabs style="width: 100%; margin: 4px 0">
+      <p-tab attr:active-item="type === 'link'" on:click="type = 'link'">
+        <localized-content>
+          <span lang="cn">链接或二维码</span>
+          <span lang="en">Link or QR Code</span>
+          <span lang="ja">リンクまたは QR コード</span>
+        </localized-content>
+      </p-tab>
+      <p-tab attr:active-item="type === 'nearby'" on:click="type = 'nearby'">
+        <localized-content>
+          <span lang="cn">就近声波</span>
+          <span lang="en">Nearby Wave</span>
+          <span lang="ja">近接波</span>
+        </localized-content>
+      </p-tab>
+    </p-tabs>
   </div>
-  <br />
-  <localized-content>
-    <p lang="cn">也可扫描二维码，在目标浏览器中打开。</p>
-    <p lang="en">
-      Alternatively, you can scan the QR code below to open it in the target
-      browser.
-    </p>
-    <p lang="jp">
-      または、下記の QR コードをスキャンして、ターゲット
-      ブラウザで開いてください。
-    </p>
-  </localized-content>
-  <div id="qrcode-container"></div>
+  <div class:hide="type !== 'link'">
+    <localized-content>
+      <p lang="cn">请复制下方地址，在需要添加并配对 NoneOS 的浏览器中打开。</p>
+      <p lang="en">
+        Please copy the address below and open it in the browser to add and pair
+        NoneOS.
+      </p>
+      <p lang="jp">
+        NoneOS
+        を追加およびペアリングするには、下記のアドレスをコピーしてブラウザで開いてください。
+      </p>
+    </localized-content>
+    <div style="max-width: 600px; color: var(--md-sys-color-primary)">
+      <n-copy-span> {{url}} </n-copy-span>
+    </div>
+    <br />
+    <localized-content>
+      <p lang="cn">也可扫描二维码，在目标浏览器中打开。</p>
+      <p lang="en">
+        Alternatively, you can scan the QR code below to open it in the target
+        browser.
+      </p>
+      <p lang="jp">
+        または、下記の QR コードをスキャンして、ターゲット
+        ブラウザで開いてください。
+      </p>
+    </localized-content>
+    <div id="qrcode-container"></div>
+  </div>
+  <div class:hide="type !== 'nearby'">
+    <o-page
+      src="./nearby-device.html"
+      :invite-code="sessionInviteCode"
+    ></o-page>
+  </div>
   <o-page
     src="./pair-device.html"
     :invite-code="sessionInviteCode"
@@ -48,6 +92,8 @@
         data: {
           userId: user.userId,
           sessionInviteCode,
+          type: "link",
+          // type: "nearby",
         },
         proto: {
           get url() {

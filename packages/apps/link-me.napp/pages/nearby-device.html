@@ -1,0 +1,198 @@
+<template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    .hide {
+      display: none !important;
+    }
+  </style>
+  <div style="max-width: 600px">
+    <p>
+      <localized-content>
+        <span lang="cn">
+          请先在任意一台设备上点击“接收声波”，再在另一台设备上点击“发送声波”以建立连接。
+        </span>
+        <span lang="en">
+          Please click "Receive Soundwave" on any device first, then click "Send
+          Soundwave" on the other device to establish a connection.
+        </span>
+        <span lang="ja">
+          先に任意のデバイスで「受信音波」をクリックしてください。次に、他のデバイスで「送信音波」をクリックしてください。
+        </span>
+      </localized-content>
+    </p>
+    <p class:hide="clickRecevied" style="color: var(--md-sys-color-primary)">
+      <localized-content>
+        <span lang="cn">
+          发送端请将音量调至最大，确保声波清晰，便于对方快速识别并完成配对。
+        </span>
+        <span lang="en">
+          Please adjust the volume of the sender to the maximum, ensuring that
+          the soundwave is clear enough for the receiver to quickly identify and
+          complete the pairing.
+        </span>
+        <span lang="ja">
+          送信端は、音量を最大に調整してください。これにより、受信端が迅速に音波を
+          認識し、ペアリングを完了できるようになります。
+        </span>
+      </localized-content>
+    </p>
+    <p class:hide="!clickRecevied" style="color: var(--md-sys-color-primary)">
+      <localized-content>
+        <span lang="cn">
+          接收端请将麦克风靠近发送端扬声器，保证声波信号完整捕捉。
+        </span>
+        <span lang="en">
+          Please place the microphone close to the sender's speaker to ensure
+          that the soundwave signal is captured completely.
+        </span>
+        <span lang="ja">
+          受信端は、送信端のスピーカーに近づけてください。これにより、音波信号が
+          完全にキャプチャーされるようになります。
+        </span>
+      </localized-content>
+    </p>
+    <div
+      class:hide="!clickRecevied"
+      style="
+        display: flex;
+        align-items: center;
+        color: var(--md-sys-color-primary);
+        margin: 8px 0;
+      "
+    >
+      <n-local-icon
+        name="loading"
+        style="display: block; margin-right: 4px"
+      ></n-local-icon>
+      <o-if :value="isReceiving" style="color: var(--md-sys-color-success)">
+        <localized-content>
+          <span lang="cn"> 正在接收中... </span>
+          <span lang="en"> Receiving... </span>
+          <span lang="ja"> 受信中... </span>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <localized-content>
+          <span lang="cn"> 等待对方发送声波... </span>
+          <span lang="en">
+            Waiting for the sender to send the soundwave...
+          </span>
+          <span lang="ja"> 送信端から音波を待っています... </span>
+        </localized-content>
+      </o-else>
+    </div>
+    <p-button
+      attr:disabled="clickRecevied || isSending"
+      on:click="sendData"
+      variant="outlined"
+      style="margin: 0 8px"
+    >
+      <n-local-icon
+        name="wave"
+        slot="prefix"
+        style="margin-right: 4px; display: block"
+      ></n-local-icon>
+      <localized-content>
+        <span lang="cn"> 发送声波 </span>
+        <span lang="en"> Send Soundwave </span>
+        <span lang="ja"> 送信音波 </span>
+      </localized-content>
+    </p-button>
+    <p-button on:click="receiveData" attr:disabled="isReceiving || isSending">
+      <n-local-icon
+        name="receiver"
+        slot="prefix"
+        style="margin-right: 4px; display: block"
+      ></n-local-icon>
+      <o-if :value="!clickRecevied">
+        <localized-content>
+          <span lang="cn"> 接收声波 </span>
+          <span lang="en"> Receive Soundwave </span>
+          <span lang="ja"> 受信音波 </span>
+        </localized-content>
+      </o-if>
+      <o-else>
+        <localized-content>
+          <span lang="cn"> 停止接收 </span>
+          <span lang="en"> Stop Receiving </span>
+          <span lang="ja"> 受信を停止 </span>
+        </localized-content>
+      </o-else>
+    </p-button>
+  </div>
+  <script>
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+
+      const { send, GgwaveReceiver } = await load(
+        "/packages/libs/ggwave/main.js"
+      );
+
+      return {
+        data: {
+          clickRecevied: false,
+          _receiver: null,
+          isReceiving: false, // 是否正在接收声波
+          isSending: false, // 是否正在发送声波
+          // inviteCode: null, // 邀请码
+        },
+        proto: {
+          async sendData() {
+            this.isSending = true;
+            await send(
+              JSON.stringify({
+                userId: localUser.userId,
+                inviteCode: this.inviteCode,
+              })
+            );
+            this.isSending = false;
+          },
+          receiveData() {
+            if (this.clickRecevied) {
+              this._receiver.stop();
+              this.clickRecevied = false;
+              return;
+            }
+
+            this.clickRecevied = true;
+
+            this._receiver.start();
+
+            this._receiver.addEventListener("receiving", () => {
+              // 确认开始接收到声波信号
+              console.log("receiving");
+              this.isReceiving = true;
+            });
+
+            this._receiver.addEventListener("ggwave-message", (event) => {
+              const { message } = event.detail;
+              this.isReceiving = false;
+
+              // 确认成功接收消息
+              console.log("data", message);
+
+              const data = JSON.parse(message);
+
+              // 打开邀请页面
+              window.open(
+                `${location.origin}/others/apps/invite/?userId=${data.userId}&inviteCode=${data.inviteCode}`
+              );
+            });
+          },
+        },
+        attached() {
+          this._receiver = new GgwaveReceiver();
+        },
+        detached() {
+          this._receiver.stop();
+          this._receiver = null;
+        },
+      };
+    };
+  </script>
+</template>
