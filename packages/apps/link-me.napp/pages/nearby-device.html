@@ -156,6 +156,14 @@
             if (this.clickRecevied) {
               this._receiver.stop();
               this.clickRecevied = false;
+              this._receiver.removeEventListener(
+                "receiving",
+                this._receiving_func
+              );
+              this._receiver.removeEventListener(
+                "ggwave-message",
+                this._message_func
+              );
               return;
             }
 
@@ -163,26 +171,32 @@
 
             this._receiver.start();
 
-            this._receiver.addEventListener("receiving", () => {
-              // 确认开始接收到声波信号
-              console.log("receiving");
-              this.isReceiving = true;
-            });
+            this._receiver.addEventListener(
+              "receiving",
+              (this._receiving_func = () => {
+                // 确认开始接收到声波信号
+                console.log("receiving");
+                this.isReceiving = true;
+              })
+            );
 
-            this._receiver.addEventListener("ggwave-message", (event) => {
-              const { message } = event.detail;
-              this.isReceiving = false;
+            this._receiver.addEventListener(
+              "ggwave-message",
+              (this._message_func = (event) => {
+                const { message } = event.detail;
+                this.isReceiving = false;
 
-              // 确认成功接收消息
-              console.log("data", message);
+                // 确认成功接收消息
+                console.log("data", message);
 
-              const data = JSON.parse(message);
+                const data = JSON.parse(message);
 
-              // 打开邀请页面
-              window.open(
-                `${location.origin}/others/apps/invite/?userId=${data.userId}&inviteCode=${data.inviteCode}`
-              );
-            });
+                // 打开邀请页面
+                window.open(
+                  `${location.origin}/others/apps/invite/?userId=${data.userId}&inviteCode=${data.inviteCode}`
+                );
+              })
+            );
           },
         },
         attached() {

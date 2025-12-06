@@ -1,6 +1,6 @@
 {
   "name": "noneos",
-  "version": "3.2.8",
+  "version": "3.2.9",
   "description": "A browser-based operating system",
   "type": "module",
   "scripts": {
