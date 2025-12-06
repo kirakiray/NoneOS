@@ -21,12 +21,12 @@
   </style>
   <div>
     <p-tabs style="width: 100%; margin: 4px 0">
-      <p-tab attr:active-item="type === 'link'" on:click="type = 'link'"
-        >通过链接</p-tab
-      >
-      <p-tab attr:active-item="type === 'nearby'" on:click="type = 'nearby'"
-        >就近连接</p-tab
-      >
+      <p-tab attr:active-item="type === 'link'" on:click="type = 'link'">
+        链接或二维码
+      </p-tab>
+      <p-tab attr:active-item="type === 'nearby'" on:click="type = 'nearby'">
+        就近声波
+      </p-tab>
     </p-tabs>
   </div>
   <div class:hide="type !== 'link'">
@@ -59,7 +59,10 @@
     <div id="qrcode-container"></div>
   </div>
   <div class:hide="type !== 'nearby'">
-    <o-page src="./nearby-device.html"></o-page>
+    <o-page
+      src="./nearby-device.html"
+      :invite-code="sessionInviteCode"
+    ></o-page>
   </div>
   <o-page
     src="./pair-device.html"
@@ -81,7 +84,8 @@
         data: {
           userId: user.userId,
           sessionInviteCode,
-          type: "link",
+          // type: "link",
+          type: "nearby",
         },
         proto: {
           get url() {

@@ -104,7 +104,7 @@ export class GgwaveReceiver extends EventTarget {
 
         if (res && res.length > 0) {
           res = new TextDecoder("utf-8").decode(res);
-          console.log("Received:", res);
+          // console.log("Received:", res);
 
           // 触发自定义事件，让外部可以监听接收到的消息
           this.dispatchEvent(

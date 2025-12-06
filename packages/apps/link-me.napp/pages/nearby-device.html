@@ -1,16 +1,134 @@
 <template page>
+  <l-m src="/packages/comps/local-icon/local-icon.html"></l-m>
   <style>
     :host {
       display: block;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
   <div>
-    <p>nearby-device</p>
+    <p>
+      请先在任意一台设备上点击“接收声波”，再在另一台设备上点击“发送声波”以建立连接。
+    </p>
+    <p class:hide="clickRecevied">
+      发送端请将音量调至最大，确保声波清晰，便于对方快速识别并完成配对。
+    </p>
+    <p class:hide="!clickRecevied">
+      接收端请将麦克风靠近发送端扬声器，保证声波信号完整捕捉。
+    </p>
+    <div
+      class:hide="!clickRecevied"
+      style="
+        display: flex;
+        align-items: center;
+        color: var(--md-sys-color-primary);
+        margin: 8px 0;
+      "
+    >
+      <n-local-icon
+        name="loading"
+        style="display: block; margin-right: 4px"
+      ></n-local-icon>
+      <o-if :value="isReceiving" style="color: var(--md-sys-color-success)">
+        正在接收中...
+      </o-if>
+      <o-else> 等待对方发送声波... </o-else>
+    </div>
+    <p-button on:click="receiveData" attr:disabled="isReceiving || isSending">
+      <n-local-icon
+        name="receiver"
+        slot="prefix"
+        style="margin-right: 4px; display: block"
+      ></n-local-icon>
+      <o-if :value="!clickRecevied"> 接收声波 </o-if>
+      <o-else> 停止接收 </o-else>
+    </p-button>
+    <p-button
+      attr:disabled="clickRecevied || isSending"
+      on:click="sendData"
+      variant="outlined"
+      style="margin: 0 8px"
+    >
+      <n-local-icon
+        name="send"
+        slot="prefix"
+        style="margin-right: 4px; display: block"
+      ></n-local-icon>
+      发送声波
+    </p-button>
   </div>
   <script>
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
-      const user = await createUser();
+      const localUser = await createUser();
+
+      const { send, GgwaveReceiver } = await load(
+        "/packages/libs/ggwave/main.js"
+      );
+
+      return {
+        data: {
+          clickRecevied: false,
+          _receiver: null,
+          isReceiving: false, // 是否正在接收声波
+          isSending: false, // 是否正在发送声波
+          // inviteCode: null, // 邀请码
+        },
+        proto: {
+          async sendData() {
+            this.isSending = true;
+            await send(
+              JSON.stringify({
+                userId: localUser.userId,
+                inviteCode: this.inviteCode,
+              })
+            );
+            this.isSending = false;
+          },
+          receiveData() {
+            if (this.clickRecevied) {
+              this._receiver.stop();
+              this.clickRecevied = false;
+              return;
+            }
+
+            this.clickRecevied = true;
+
+            this._receiver.start();
+
+            this._receiver.addEventListener("receiving", () => {
+              // 确认开始接收到声波信号
+              console.log("receiving");
+              this.isReceiving = true;
+            });
+
+            this._receiver.addEventListener("ggwave-message", (event) => {
+              const { message } = event.detail;
+              this.isReceiving = false;
+
+              // 确认成功接收消息
+              console.log("data", message);
+
+              const data = JSON.parse(message);
+
+              // 打开邀请页面
+              window.open(
+                `${location.origin}/others/apps/invite/?userId=${data.userId}&inviteCode=${data.inviteCode}`
+              );
+            });
+          },
+        },
+        attached() {
+          this._receiver = new GgwaveReceiver();
+        },
+        detached() {
+          this._receiver.stop();
+          this._receiver = null;
+        },
+      };
     };
   </script>
 </template>
