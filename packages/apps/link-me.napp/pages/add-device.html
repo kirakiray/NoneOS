@@ -22,10 +22,18 @@
   <div>
     <p-tabs style="width: 100%; margin: 4px 0">
       <p-tab attr:active-item="type === 'link'" on:click="type = 'link'">
-        链接或二维码
+        <localized-content>
+          <span lang="cn">链接或二维码</span>
+          <span lang="en">Link or QR Code</span>
+          <span lang="ja">リンクまたは QR コード</span>
+        </localized-content>
       </p-tab>
       <p-tab attr:active-item="type === 'nearby'" on:click="type = 'nearby'">
-        就近声波
+        <localized-content>
+          <span lang="cn">就近声波</span>
+          <span lang="en">Nearby Wave</span>
+          <span lang="ja">近接波</span>
+        </localized-content>
       </p-tab>
     </p-tabs>
   </div>
@@ -84,8 +92,8 @@
         data: {
           userId: user.userId,
           sessionInviteCode,
-          // type: "link",
-          type: "nearby",
+          type: "link",
+          // type: "nearby",
         },
         proto: {
           get url() {
