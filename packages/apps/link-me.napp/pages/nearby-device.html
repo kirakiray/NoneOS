@@ -191,10 +191,11 @@
 
                 const data = JSON.parse(message);
 
-                // 打开邀请页面
-                window.open(
-                  `${location.origin}/others/apps/invite/?userId=${data.userId}&inviteCode=${data.inviteCode}`
-                );
+                // 模拟a标签打开
+                const a = document.createElement("a");
+                a.href = `${location.origin}/others/apps/invite/?userId=${data.userId}&inviteCode=${data.inviteCode}`;
+                a.target = "_blank";
+                a.click();
               })
             );
           },
