@@ -1,0 +1,23 @@
+{
+  "name": "drizzle-orm-test",
+  "version": "1.0.0",
+  "description": "Drizzle ORM test with SQLite",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js",
+    "migrate": "node migrate.js",
+    "dev:bun": "bun index.js"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.30.10",
+    "better-sqlite3": "^9.4.3",
+    "drizzle-kit": "^0.21.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11"
+  },
+  "keywords": ["drizzle", "sqlite", "orm", "bun"],
+  "author": "",
+  "license": "ISC"
+}

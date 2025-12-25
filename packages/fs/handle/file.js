@@ -1,7 +1,11 @@
 import { BaseHandle } from "./base.js";
 import { notify } from "../public/base.js";
 import { extendFileHandle } from "../public/file.js";
-import isSafari from "../../libs/util/is-safari.js";
+
+export const isSafari = (() => {
+  const ua = navigator.userAgent.toLowerCase();
+  return ua.includes("safari") && !ua.includes("chrome");
+})();
 
 export class FileHandle extends BaseHandle {
   constructor(...args) {
