@@ -21,6 +21,7 @@ export const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
+  save,
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();

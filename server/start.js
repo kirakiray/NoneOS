@@ -14,9 +14,14 @@ const serverName =
   "hand server";
 
 const server = await initServer({
-  password: "admin123",
   port: port,
   serverName,
+  password: "admin123",
+  save: {
+    dir: "./db_save", // 数据持久化目录
+    maxEntries: 1000, // 内存最大缓存记录数
+    flushInterval: 10 * 60 * 1000, // 定时刷盘间隔（毫秒）
+  },
 });
 
 // 优雅关闭服务器

@@ -59,7 +59,7 @@ export class MessageRouter {
 
     let binaryData = null;
 
-    // 处理二进制数据
+    // 处理二进制数据 
     if (message instanceof Buffer) {
       try {
         const { obj, data } = unpack(message);
