@@ -104,7 +104,6 @@ typings/
 /test-results/
 /playwright-report/
 /playwright/.cache/
-old/
 /test-results/
 /playwright-report/
 /blob-report/
@@ -117,3 +116,17 @@ rootkeys
 client/electron/out
 client/electron/sources
 client/bun/sources
+
+old
+
+# SQLite
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+
+# Drizzle ORM
+drizzle/
+drizzle.config.js
