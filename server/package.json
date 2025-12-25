@@ -12,9 +12,6 @@
   "author": "YAO",
   "license": "Apache-2.0",
   "dependencies": {
-    "ws": "^8.18.1",
-    "drizzle-orm": "^0.30.10",
-    "better-sqlite3": "^9.4.3",
-    "drizzle-kit": "^0.21.1"
+    "ws": "^8.18.1"
   }
 }
