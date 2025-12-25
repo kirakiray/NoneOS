@@ -51,6 +51,15 @@ export const initServer = async ({
     const client = ws._client;
     if (client) {
       console.log("客户端断开连接:", client.cid);
+
+      // 触发断开连接事件
+      client.emit("disconnected", {
+        clientId: client.cid,
+        userId: client.userId,
+        code: code,
+        timestamp: new Date(),
+      });
+
       clientManager.removeClient(client.cid);
     }
   }

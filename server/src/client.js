@@ -12,6 +12,7 @@ export class Client extends EventEmitter {
    * @param {ClientManager} clientManager - 客户端管理器实例
    */
   constructor(ws, server, clientManager) {
+    super();
     if (ws._client) {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
