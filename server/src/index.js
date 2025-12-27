@@ -5,6 +5,7 @@ import { ClientManager } from "./client-manager.js";
 import { MessageRouter } from "./message-router.js";
 import { Client } from "./client.js";
 import { createRequire } from "node:module";
+import { ConnectionSaver } from "./connection-save.js";
 
 const require = createRequire(import.meta.url);
 const packageJson = require("../package.json");
@@ -21,11 +22,12 @@ export const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
-  save,
+  connectionSave,
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();
   const messageRouter = new MessageRouter(clientManager, password);
+  const connectionSaver = new ConnectionSaver(connectionSave);
 
   // WebSocket事件处理函数
   /**
@@ -34,6 +36,7 @@ export const initServer = async ({
    */
   function onConnect(ws) {
     const client = new Client(ws, server, clientManager);
+    connectionSaver.handleClient(client);
 
     clientManager.addClient(client);
     console.log("新客户端已连接:", client.cid);
