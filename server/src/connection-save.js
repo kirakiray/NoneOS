@@ -8,38 +8,38 @@ export class ConnectionSaver {
     this.flushInterval = flushInterval;
 
     this.caches = [];
-    
+
     // Handle process exit events to save remaining data
     this._setupExitHandlers();
   }
 
   _setupExitHandlers() {
     // Handle normal process termination
-    process.on('exit', () => {
+    process.on("exit", () => {
       this.saveToFile();
     });
 
     // Handle process termination due to signals
-    process.on('SIGINT', () => {
+    process.on("SIGINT", () => {
       this.saveToFile();
       process.exit(0);
     });
 
-    process.on('SIGTERM', () => {
+    process.on("SIGTERM", () => {
       this.saveToFile();
       process.exit(0);
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
-      console.error('Uncaught Exception:', error);
+    process.on("uncaughtException", (error) => {
+      console.error("Uncaught Exception:", error);
       this.saveToFile();
       process.exit(1);
     });
 
     // Handle unhandled promise rejections
-    process.on('unhandledRejection', (reason, promise) => {
-      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    process.on("unhandledRejection", (reason, promise) => {
+      console.error("Unhandled Rejection at:", promise, "reason:", reason);
       this.saveToFile();
       process.exit(1);
     });
@@ -50,17 +50,17 @@ export class ConnectionSaver {
     if (this.caches.length === 0) return;
 
     try {
+      const caches = this.caches;
+
+      // 清空缓存
+      this.caches = [];
+
       // 确保目录存在
       await fs.mkdir(this.dir, { recursive: true });
 
       // 生成文件名（使用时间戳）
       const fileName = `connections-${Date.now()}.json`;
       const filePath = path.join(this.dir, fileName);
-
-      const caches = this.caches;
-
-      // 清空缓存
-      this.caches = [];
 
       // 写入文件
       await fs.writeFile(filePath, JSON.stringify(caches, null, 2));

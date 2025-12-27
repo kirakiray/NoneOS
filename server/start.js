@@ -19,7 +19,7 @@ const server = await initServer({
   password: "admin123",
   // 记录用户数据连接的配置
   connectionSave: {
-    dir: import.meta.resolve("./connection_save"), // 数据存储到的目录
+    dir: "./connection_save", // 数据存储到的目录
     maxEntries: 1000, // 内存最大缓存记录数
     flushInterval: 10 * 60 * 1000, // 定时刷盘间隔（毫秒）
   },
