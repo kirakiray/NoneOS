@@ -8,6 +8,41 @@ export class ConnectionSaver {
     this.flushInterval = flushInterval;
 
     this.caches = [];
+    
+    // Handle process exit events to save remaining data
+    this._setupExitHandlers();
+  }
+
+  _setupExitHandlers() {
+    // Handle normal process termination
+    process.on('exit', () => {
+      this.saveToFile();
+    });
+
+    // Handle process termination due to signals
+    process.on('SIGINT', () => {
+      this.saveToFile();
+      process.exit(0);
+    });
+
+    process.on('SIGTERM', () => {
+      this.saveToFile();
+      process.exit(0);
+    });
+
+    // Handle uncaught exceptions
+    process.on('uncaughtException', (error) => {
+      console.error('Uncaught Exception:', error);
+      this.saveToFile();
+      process.exit(1);
+    });
+
+    // Handle unhandled promise rejections
+    process.on('unhandledRejection', (reason, promise) => {
+      console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+      this.saveToFile();
+      process.exit(1);
+    });
   }
 
   // 保存数据到文件
