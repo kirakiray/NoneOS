@@ -50,8 +50,8 @@
       <slot></slot>
       <p-nav-bar slot="nav">
         <p-nav-item
-          attr:active-item="activeId === 'list'"
-          on:click="goPage('list')"
+          attr:active-item="activeId === 'online'"
+          on:click="goPage('online')"
         >
           <n-local-icon name="list" slot="icon"></n-local-icon>
           <localized-content>
@@ -103,8 +103,8 @@
 
             // 跳转页面
             switch (type) {
-              case "list":
-                this.goto("./pages/list.html");
+              case "online":
+                this.goto("./pages/online.html");
                 break;
               case "record":
                 this.goto("./pages/record.html");
