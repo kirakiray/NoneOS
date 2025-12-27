@@ -21,7 +21,6 @@ export class Client extends EventEmitter {
     this.server = server;
     this.clientManager = clientManager;
 
-    this.id = crypto.randomUUID();
     this.cid = this._generateCid(); // 方便后期通过cid添加用户的操作
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null;
