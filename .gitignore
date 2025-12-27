@@ -116,6 +116,7 @@ rootkeys
 client/electron/out
 client/electron/sources
 client/bun/sources
+/connection_save
 
 old
 

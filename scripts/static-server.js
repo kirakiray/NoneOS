@@ -23,6 +23,23 @@ app.use(async (ctx, next) => {
 app.use(home);
 
 const _server = app.listen(5559);
+
+// 进程退出时关闭服务器
+process.on("SIGINT", () => {
+  console.log("收到 SIGINT，关闭服务器...");
+  _server.close(() => {
+    console.log("服务器已关闭");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  console.log("收到 SIGTERM，关闭服务器...");
+  _server.close(() => {
+    console.log("服务器已关闭");
+    process.exit(0);
+  });
+});
 console.log(`server start => http://localhost:5559/`);
 
 export default {
