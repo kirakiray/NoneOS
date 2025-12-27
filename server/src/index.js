@@ -22,15 +22,14 @@ export const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
-  dbName,
-  connectionSave,
+  saver,
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();
   const messageRouter = new MessageRouter(clientManager, password);
   let connectionSaver;
-  if (connectionSave) {
-    connectionSaver = new ConnectionSaver(connectionSave);
+  if (saver) {
+    connectionSaver = new ConnectionSaver(saver);
   }
 
   // WebSocket事件处理函数

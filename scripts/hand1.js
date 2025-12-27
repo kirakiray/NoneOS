@@ -17,13 +17,9 @@ const server = await initServer({
   port: port,
   serverName,
   password: "admin123",
-  dbName: "hand1",
-  // 记录用户数据连接的配置
-  //   connectionSave: {
-  //     dir: "./connection1", // 数据数据库名
-  //     maxEntries: 1000, // 内存最大缓存记录数
-  //     flushInterval: 10 * 60 * 1000, // 定时刷盘间隔（毫秒）
-  //   },
+  saver: {
+    clientDB: "hand1-client",
+  },
 });
 
 // 优雅关闭服务器

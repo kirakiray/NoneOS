@@ -12,6 +12,7 @@
   "author": "YAO",
   "license": "Apache-2.0",
   "dependencies": {
+    "level": "^10.0.0",
     "ws": "^8.18.1"
   }
 }
