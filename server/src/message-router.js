@@ -59,7 +59,7 @@ export class MessageRouter {
 
     let binaryData = null;
 
-    // 处理二进制数据 
+    // 处理二进制数据
     if (message instanceof Buffer) {
       try {
         const { obj, data } = unpack(message);
@@ -263,11 +263,11 @@ export class MessageRouter {
   handleGetConnections({ client, message }) {
     // 获取分页参数，默认值为第1页，每页20条记录
     const { page = 1, pageSize = 20 } = message || {};
-    
+
     // 参数校验
     const pageNum = Math.max(1, parseInt(page) || 1);
     const size = Math.max(1, Math.min(100, parseInt(pageSize) || 20)); // 限制最大每页100条
-    
+
     // 获取所有客户端连接信息
     const allConnections = this.clientManager
       .getAllClients()

@@ -61,6 +61,17 @@
           </localized-content>
         </p-nav-item>
         <p-nav-item
+          attr:active-item="activeId === 'record'"
+          on:click="goPage('record')"
+        >
+          <n-local-icon name="list" slot="icon"></n-local-icon>
+          <localized-content>
+            <span lang="cn">存储记录</span>
+            <span lang="en">Connection Records</span>
+            <span lang="ja">接続記録</span>
+          </localized-content>
+        </p-nav-item>
+        <p-nav-item
           attr:active-item="activeId === 'config'"
           on:click="goPage('config')"
         >
@@ -94,6 +105,9 @@
             switch (type) {
               case "list":
                 this.goto("./pages/list.html");
+                break;
+              case "record":
+                this.goto("./pages/record.html");
                 break;
               case "config":
                 this.goto("./pages/config.html");

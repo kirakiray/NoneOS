@@ -1,12 +1,59 @@
 import { Level } from "level";
 
-const getId = (cid) => 9999999999999 - Date.now() + ":" + cid;
+const getId = (cid) => Date.now() + ":" + cid;
 
 export class ConnectionSaver {
   constructor({ clientDB }) {
     // Initialize LevelDB
     this.db = new Level(clientDB);
   }
+
+  // 获取特定条件的数据
+  async batchGet(options = {}) {
+    const { limit = 10, reverse = true, gt, gte, lt, lte } = options;
+    const results = [];
+
+    try {
+      for await (const [key, value] of this.db.iterator({
+        limit,
+        reverse,
+        gt,
+        gte,
+        lt,
+        lte,
+      })) {
+        results.push({
+          key,
+          value: JSON.parse(value),
+        });
+      }
+      return results;
+    } catch (error) {
+      console.error("Error in batchGet:", error);
+      throw error;
+    }
+  }
+
+  // async getAll(options = {}) {
+  //   const { limit = -1, reverse = true } = options;
+  //   const results = [];
+
+  //   try {
+  //     for await (const [key, value] of this.db.iterator({
+  //       limit,
+  //       reverse,
+  //     })) {
+  //       results.push({
+  //         key,
+  //         value: JSON.parse(value),
+  //       });
+  //     }
+  //     return results;
+  //   } catch (error) {
+  //     console.error("Error in getAll:", error);
+  //     throw error;
+  //   }
+  // }
 
   handleClient(client) {
     client.on("authenticated", () => {
