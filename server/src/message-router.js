@@ -11,9 +11,10 @@ export class MessageRouter {
    * @param {ClientManager} clientManager - 客户端管理器实例
    * @param {string} adminPassword - 管理员密码
    */
-  constructor({ clientManager, password }) {
+  constructor({ clientManager, password, connectionSaver }) {
     this.clientManager = clientManager;
     this.adminPassword = password;
+    this.connectionSaver = connectionSaver;
     this.handlers = new Map();
     this._setupDefaultHandlers();
   }
@@ -88,6 +89,7 @@ export class MessageRouter {
         message,
         binaryData,
         clientManager: this.clientManager,
+        connectionSaver: this.connectionSaver,
       });
     } catch (error) {
       console.error(`处理消息 ${message.type} 时出错:`, error);
