@@ -11,9 +11,9 @@ export class MessageRouter {
    * @param {ClientManager} clientManager - 客户端管理器实例
    * @param {string} adminPassword - 管理员密码
    */
-  constructor(clientManager, adminPassword) {
+  constructor({ clientManager, password }) {
     this.clientManager = clientManager;
-    this.adminPassword = adminPassword;
+    this.adminPassword = password;
     this.handlers = new Map();
     this._setupDefaultHandlers();
   }
@@ -100,5 +100,4 @@ export class MessageRouter {
       });
     }
   }
-
 }

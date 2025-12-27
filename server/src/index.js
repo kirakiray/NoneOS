@@ -26,7 +26,7 @@ export const initServer = async ({
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();
-  const messageRouter = new MessageRouter(clientManager, password);
+  const messageRouter = new MessageRouter({ clientManager, password });
   let connectionSaver;
   if (saver) {
     connectionSaver = new ConnectionSaver(saver);
