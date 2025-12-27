@@ -23,9 +23,7 @@ export class MessageRouter {
    */
   _setupDefaultHandlers() {
     // 基础消息处理
-    // this.register("ping", this.handlePing);
     for (let [name, handler] of Object.entries(routerData)) {
-      console.log(name, handler);
       this.register(name, handler, handler.admin);
     }
   }
