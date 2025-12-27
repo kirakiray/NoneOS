@@ -22,6 +22,7 @@ export const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
+  dbName,
   connectionSave,
 }) => {
   // 初始化管理器
