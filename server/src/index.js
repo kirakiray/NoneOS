@@ -27,7 +27,10 @@ export const initServer = async ({
   // 初始化管理器
   const clientManager = new ClientManager();
   const messageRouter = new MessageRouter(clientManager, password);
-  const connectionSaver = new ConnectionSaver(connectionSave);
+  let connectionSaver;
+  if (connectionSave) {
+    connectionSaver = new ConnectionSaver(connectionSave);
+  }
 
   // WebSocket事件处理函数
   /**
@@ -36,7 +39,7 @@ export const initServer = async ({
    */
   function onConnect(ws) {
     const client = new Client(ws, server, clientManager);
-    connectionSaver.handleClient(client);
+    connectionSaver && connectionSaver.handleClient(client);
 
     clientManager.addClient(client);
     console.log("新客户端已连接:", client.cid);
