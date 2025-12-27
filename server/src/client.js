@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events';
+import { EventEmitter } from "events";
 
 /**
  * 客户端类
@@ -21,7 +21,8 @@ export class Client extends EventEmitter {
     this.server = server;
     this.clientManager = clientManager;
 
-    this.cid = this._generateCid();
+    this.id = crypto.randomUUID();
+    this.cid = this._generateCid(); // 方便后期通过cid添加用户的操作
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null;
     this.publicKey = null;
@@ -110,13 +111,13 @@ export class Client extends EventEmitter {
       clearTimeout(this._authTimer);
       this._authTimer = null;
     }
-    
+
     // 触发认证成功事件
-    this.emit('authenticated', {
+    this.emit("authenticated", {
       userId: userId,
       clientId: this.cid,
       userInfo: this.userInfo,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
   }
 

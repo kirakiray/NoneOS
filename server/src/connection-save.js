@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import path from "path";
 
 export class ConnectionSaver {
@@ -14,39 +15,37 @@ export class ConnectionSaver {
   }
 
   _setupExitHandlers() {
-    // Handle normal process termination
+    // 统一处理保存并退出
+    const saveAndExit = (code = 0) => {
+      this.saveToFile(true); // Always use sync mode during exit
+      process.exit(code);
+    };
+
+    // 统一异常日志并保存退出
+    const handleError = (error) => {
+      console.error(error);
+      saveAndExit(1);
+    };
+
     process.on("exit", () => {
-      this.saveToFile();
+      try {
+        this.saveToFile(true); // Use sync mode during exit
+      } catch (error) {
+        console.error("Error during exit save:", error);
+      }
     });
-
-    // Handle process termination due to signals
-    process.on("SIGINT", () => {
-      this.saveToFile();
-      process.exit(0);
-    });
-
-    process.on("SIGTERM", () => {
-      this.saveToFile();
-      process.exit(0);
-    });
-
-    // Handle uncaught exceptions
-    process.on("uncaughtException", (error) => {
-      console.error("Uncaught Exception:", error);
-      this.saveToFile();
-      process.exit(1);
-    });
-
-    // Handle unhandled promise rejections
-    process.on("unhandledRejection", (reason, promise) => {
-      console.error("Unhandled Rejection at:", promise, "reason:", reason);
-      this.saveToFile();
-      process.exit(1);
-    });
+    process.on("SIGINT", () => saveAndExit(0));
+    process.on("SIGTERM", () => saveAndExit(0));
+    process.on("uncaughtException", (err) =>
+      handleError(`Uncaught Exception: ${err}`)
+    );
+    process.on("unhandledRejection", (reason, promise) =>
+      handleError(`Unhandled Rejection at: ${promise}, reason: ${reason}`)
+    );
   }
 
   // 保存数据到文件
-  async saveToFile() {
+  async saveToFile(sync = false) {
     if (this.caches.length === 0) return;
 
     try {
@@ -55,15 +54,28 @@ export class ConnectionSaver {
       // 清空缓存
       this.caches = [];
 
-      // 确保目录存在
-      await fs.mkdir(this.dir, { recursive: true });
+      if (sync) {
+        // 同步方式写入文件
+        // 确保目录存在
+        fsSync.mkdirSync(this.dir, { recursive: true });
 
-      // 生成文件名（使用时间戳）
-      const fileName = `connections-${Date.now()}.json`;
-      const filePath = path.join(this.dir, fileName);
+        // 生成文件名（使用时间戳）
+        const fileName = `connections-${Date.now()}.json`;
+        const filePath = path.join(this.dir, fileName);
 
-      // 写入文件
-      await fs.writeFile(filePath, JSON.stringify(caches, null, 2));
+        // 同步写入文件
+        fsSync.writeFileSync(filePath, JSON.stringify(caches, null, 2));
+      } else {
+        // 异步方式写入文件
+        await fs.mkdir(this.dir, { recursive: true });
+
+        // 生成文件名（使用时间戳）
+        const fileName = `connections-${Date.now()}.json`;
+        const filePath = path.join(this.dir, fileName);
+
+        // 写入文件
+        await fs.writeFile(filePath, JSON.stringify(caches, null, 2));
+      }
     } catch (error) {
       console.error("Error saving connection data:", error);
     }
@@ -87,7 +99,7 @@ export class ConnectionSaver {
   handleClient(client) {
     client.on("authenticated", () => {
       this.caches.push({
-        id: crypto.randomUUID(),
+        id: client.id,
         type: "authenticated",
         userId: client.userId,
         timestamp: Date.now(),
@@ -96,7 +108,7 @@ export class ConnectionSaver {
 
     client.on("disconnected", () => {
       this.caches.push({
-        id: crypto.randomUUID(),
+        id: client.id,
         type: "disconnected",
         userId: client.userId,
         timestamp: Date.now(),
