@@ -1,4 +1,4 @@
-const handleRecord = ({ client }) => {
+const handleRecord = ({ client, connectionSaver }) => {
   client.send({
     type: "get_records",
     records: [],
