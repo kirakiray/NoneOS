@@ -67,6 +67,8 @@ export class ConnectionSaver {
 
     for await (const [key, value] of this._client_db.iterator(opts)) {
       try {
+        if (key === COUNT_KEY) continue;
+
         results.push({
           key,
           value: JSON.parse(value),
