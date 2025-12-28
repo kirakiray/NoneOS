@@ -1,52 +1,56 @@
 import { Level } from "level";
 
 const getId = (cid) => Date.now() + ":" + cid;
-const COUNT_KEY = '@@count';
+const COUNT_KEY = "@@count";
 
 export class ConnectionSaver {
   constructor({ clientDB }) {
     // Initialize LevelDB
-    this.db = new Level(clientDB);
+    this._client_db = new Level(clientDB);
     // 初始化计数器
     this.initCount();
+    this._count = null;
   }
 
   // 初始化总数量
   async initCount() {
     try {
-      await this.db.get(COUNT_KEY);
+      this._count = parseInt(await this._client_db.get(COUNT_KEY), 10);
     } catch (err) {
-      if (err.type === 'NotFoundError') {
-        await this.db.put(COUNT_KEY, '0');
+      if (err.type === "NotFoundError") {
+        await this._client_db.put(COUNT_KEY, "0");
+        this._count = 0;
       }
     }
   }
 
   // 添加数据并增加计数
   async putWithCount(key, value) {
-    const batch = this.db.batch();
-    batch.put(key, value);
-    const current = parseInt(await this.db.get(COUNT_KEY), 10);
-    batch.put(COUNT_KEY, (current + 1).toString());
+    const batch = this._client_db.batch();
+    batch.put(key, JSON.stringify(value));
+    this._count++;
+    batch.put(COUNT_KEY, this._count.toString());
     await batch.write();
   }
 
   // 删除数据并减少计数
   async delWithCount(key) {
-    const exists = await this.db.get(key).then(() => true).catch(() => false);
+    const exists = await this._client_db
+      .get(key)
+      .then(() => true)
+      .catch(() => false);
     if (!exists) return;
 
-    const batch = this.db.batch();
+    const batch = this._client_db.batch();
     batch.del(key);
-    const current = parseInt(await this.db.get(COUNT_KEY), 10);
-    batch.put(COUNT_KEY, (current - 1).toString());
+    this._count--;
+    batch.put(COUNT_KEY, this._count.toString());
     await batch.write();
   }
 
   // 获取总数
   async getTotalLength() {
-    const count = await this.db.get(COUNT_KEY);
-    return parseInt(count, 10);
+    return this._count;
   }
 
   // 获取特定条件的数据
@@ -54,52 +58,47 @@ export class ConnectionSaver {
     const { limit = 10, reverse = true, gt, gte, lt, lte } = options;
     const results = [];
 
-    try {
-      for await (const [key, value] of this.db.iterator({
-        limit,
-        reverse,
-        gt,
-        gte,
-        lt,
-        lte,
-      })) {
+    const opts = { limit, reverse };
+
+    if (gt) opts.gt = gt;
+    if (gte) opts.gte = gte;
+    if (lt) opts.lt = lt;
+    if (lte) opts.lte = lte;
+
+    for await (const [key, value] of this._client_db.iterator(opts)) {
+      try {
         results.push({
           key,
           value: JSON.parse(value),
         });
+      } catch (err) {
+        // 忽略解析失败的记录
+        console.error("Error parsing JSON for key:", key, value, err);
       }
-      return results;
-    } catch (error) {
-      console.error("Error in batchGet:", error);
-      throw error;
     }
+
+    return results;
   }
 
   async handleClient(client) {
     client.on("authenticated", async () => {
       // 记录认证事件
-      await this.putWithCount(
-        getId(client.cid),
-        JSON.stringify({
-          type: "authenticated",
-          userId: client.userId,
-          userName: client?.userInfo?.name,
-          timestamp: Date.now(),
-        })
-      );
+      await this.putWithCount(getId(client.cid), {
+        type: "authenticated",
+        userId: client.userId,
+        userName: client?.userInfo?.name,
+        timestamp: Date.now(),
+      });
     });
 
     client.on("disconnected", async () => {
       // 记录断开连接事件
-      await this.putWithCount(
-        getId(client.cid),
-        JSON.stringify({
-          type: "disconnected",
-          userId: client.userId,
-          userName: client?.userInfo?.name,
-          timestamp: Date.now(),
-        })
-      );
+      await this.putWithCount(getId(client.cid), {
+        type: "disconnected",
+        userId: client.userId,
+        userName: client?.userInfo?.name,
+        timestamp: Date.now(),
+      });
     });
   }
 }
