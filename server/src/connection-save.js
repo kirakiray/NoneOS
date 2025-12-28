@@ -34,27 +34,6 @@ export class ConnectionSaver {
     }
   }
 
-  // async getAll(options = {}) {
-  //   const { limit = -1, reverse = true } = options;
-  //   const results = [];
-
-  //   try {
-  //     for await (const [key, value] of this.db.iterator({
-  //       limit,
-  //       reverse,
-  //     })) {
-  //       results.push({
-  //         key,
-  //         value: JSON.parse(value),
-  //       });
-  //     }
-  //     return results;
-  //   } catch (error) {
-  //     console.error("Error in getAll:", error);
-  //     throw error;
-  //   }
-  // }
-
   handleClient(client) {
     client.on("authenticated", () => {
       // 记录认证事件
