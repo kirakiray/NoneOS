@@ -8,8 +8,8 @@ export class ConnectionSaver {
     // Initialize LevelDB
     this._client_db = new Level(clientDB);
     // 初始化计数器
-    this.initCount();
     this._count = null;
+    this.initCount();
   }
 
   // 初始化总数量
