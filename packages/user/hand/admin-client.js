@@ -73,4 +73,32 @@ export class AdminHandServerClient extends HandServerClient {
       throw new Error("WebSocket连接未建立，无法发送断开请求");
     }
   }
+
+  async getRecords(options = {}) {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      // 等待服务器响应
+      this.socket.send(
+        JSON.stringify({
+          type: "get_records",
+          password: this.password,
+          ...options, // 可包含 page 和 pageSize 参数
+        })
+      );
+
+      return new Promise((resolve, reject) => {
+        const listener = (event) => {
+          const { type, records, pagination } = event.detail;
+          console.log("type", type, event.detail);
+          if (type === "get_records") {
+            this.removeEventListener("message", listener);
+            resolve({ records, pagination });
+          }
+        };
+
+        this.addEventListener("message", listener);
+      });
+    } else {
+      throw new Error("WebSocket连接未建立，无法发送请求");
+    }
+  }
 }

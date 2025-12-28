@@ -79,8 +79,9 @@
     export default async ({ load }) => {
       const { createUser } = await load("/packages/user/main.js");
       const localUser = await createUser();
-
-      const serverUrl = "ws://localhost:18290";
+      const { default: getServerClient } = await load(
+        "../util/get-server-client.js"
+      );
 
       return {
         data: {
@@ -120,25 +121,12 @@
             if (!this.activeServer) {
               return;
             }
-            let servers;
-            try {
-              servers = JSON.parse(localStorage.getItem("servers")) || [];
-            } catch (e) {
-              servers = [];
-            }
-
-            const target = servers.find(
-              (item) => item.server === this.activeServer
-            );
 
             // 连接到服务器（管理员模式）
-            this._serverClient = await localUser.connectServer(
-              this.activeServer,
-              {
-                admin: 1,
-                password: target?.password || "",
-              }
-            );
+            this._serverClient = await getServerClient({
+              activeServer: this.activeServer,
+              localUser,
+            });
 
             const { clients, pagination } = await this._serverClient.getClients(
               {

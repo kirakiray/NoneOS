@@ -69,7 +69,7 @@ export class MessageRouter {
     if (!handlerInfo) {
       client.send({
         type: "error",
-        message: "未知的消息类型",
+        message: `未知的消息类型：${message.type}`,
         response: message,
       });
       return;
