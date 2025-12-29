@@ -170,7 +170,7 @@ export class AdminHandServerClient extends HandServerClient {
     const lastItem = await this.getLastRecord();
 
     await this._syncRecords({
-      gte: lastItem.id,
+      gte: lastItem?.id,
     });
   }
 
