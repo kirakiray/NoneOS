@@ -4,6 +4,47 @@ export class AdminHandServerClient extends HandServerClient {
   constructor({ url, user, password }) {
     super({ url, user });
     this.password = password;
+    if (typeof window !== "undefined" && window.indexedDB) {
+      this.initDB();
+    }
+  }
+
+  async initDB() {
+    return new Promise((resolve, reject) => {
+      // 打开（或创建）数据库
+      const request = indexedDB.open("AdminRecordsDB", 1);
+
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        // 创建一个 object store
+        if (!db.objectStoreNames.contains("records")) {
+          db.createObjectStore("records", { keyPath: "id" });
+        }
+      };
+
+      request.onsuccess = (event) => {
+        this.db = event.target.result;
+        resolve(this.db);
+      };
+
+      request.onerror = (event) => {
+        console.error("IndexedDB error:", event.target.errorCode);
+        reject(event.target.errorCode);
+      };
+    });
+  }
+
+  async saveRecordsToLocal(records) {
+    if (!this.db) throw new Error("IndexedDB not initialized.");
+    const transaction = this.db.transaction(["records"], "readwrite");
+    const store = transaction.objectStore("records");
+    for (const record of records) {
+      store.put(record);
+    }
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = (event) => reject(event.target.error);
+    });
   }
 
   // 获取在线列表用户数据（支持分页）
@@ -92,6 +133,37 @@ export class AdminHandServerClient extends HandServerClient {
           if (type === "get_records") {
             this.removeEventListener("message", listener);
             resolve({ records, pagination });
+          }
+        };
+
+        this.addEventListener("message", listener);
+      });
+    } else {
+      throw new Error("WebSocket连接未建立，无法发送请求");
+    }
+  }
+
+  async syncRecords() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(
+        JSON.stringify({
+          type: "sync_records",
+          password: this.password,
+        })
+      );
+
+      return new Promise((resolve, reject) => {
+        const listener = async (event) => {
+          const { type, records } = event.detail;
+          if (type === "sync_records") {
+            try {
+              debugger;
+              await this.saveRecordsToLocal(records);
+              this.removeEventListener("message", listener);
+              resolve(records);
+            } catch (error) {
+              reject(error);
+            }
           }
         };
 

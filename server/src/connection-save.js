@@ -81,7 +81,7 @@ class Saver {
 
   // 获取特定条件的数据
   async batchGet(options = {}) {
-    const { limit = 10, reverse = true, gt, gte, lt, lte } = options;
+    const { limit = 10, reverse = false, gt, gte, lt, lte } = options;
     const results = [];
 
     const opts = { limit, reverse };
@@ -96,8 +96,8 @@ class Saver {
         if (key === COUNT_KEY) continue;
 
         results.push({
-          key,
-          value: JSON.parse(value),
+          id: key,
+          ...JSON.parse(value),
         });
       } catch (err) {
         // 忽略解析失败的记录

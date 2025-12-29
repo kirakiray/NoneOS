@@ -55,19 +55,14 @@
               localUser,
             });
 
-            debugger;
-            
-            await this._serverClient.syncRecords(); // 先同步记录
-
-
-            // const { records, pagination } = await this._serverClient.getRecords(
-            //   {
-            //     page: this.pagination.page,
-            //     pageSize: this.pagination.pageSize,
-            //   }
-            // );
-            // Object.assign(this.pagination, pagination);
-            // this.records = records;
+            const { records, pagination } = await this._serverClient.getRecords(
+              {
+                page: this.pagination.page,
+                pageSize: this.pagination.pageSize,
+              }
+            );
+            Object.assign(this.pagination, pagination);
+            this.records = records;
           },
         },
         attached() {

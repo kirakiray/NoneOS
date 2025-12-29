@@ -269,6 +269,10 @@ export class HandServerClient extends EventTarget {
       );
     }
 
+    if (responseData.type === "error") {
+      console.error(responseData);
+    }
+
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));
   }
 

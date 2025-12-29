@@ -8,3 +8,4 @@ export { default as follow_list } from "./follow_list.js";
 export { default as get_connections } from "./get_connections.js";
 export { default as disconnect_client } from "./disconnect_client.js";
 export { default as get_records } from "./get_records.js";
+export { default as sync_records } from "./sync_records.js";
