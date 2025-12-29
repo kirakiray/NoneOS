@@ -6,19 +6,45 @@ const COUNT_KEY = "@@count";
 export class ConnectionSaver {
   constructor(dbName) {
     // Initialize LevelDB
-    this._connection_db = new Level(`handdb-connection-${dbName}`);
-    // 初始化计数器
-    this._count = null;
+    this.connectionDB = new Saver(`handdb-connection-${dbName}`);
+  }
+
+  updateState(state, client) {
+    // 记录认证事件
+    this.connectionDB.putWithCount(getId(client.cid), {
+      state,
+      userId: client.userId,
+      userName: client?.userInfo?.name,
+      timestamp: Date.now(),
+    });
+  }
+
+  async handleClient(client) {
+    client.on("authenticated", async () => {
+      // 记录认证事件
+      this.updateState("authenticated", client);
+    });
+
+    client.on("disconnected", async () => {
+      // 记录断开连接事件
+      this.updateState("disconnected", client);
+    });
+  }
+}
+
+class Saver {
+  constructor(name) {
+    this._db = new Level(name);
     this.initCount();
   }
 
   // 初始化总数量
   async initCount() {
     try {
-      this._count = parseInt(await this._connection_db.get(COUNT_KEY), 10);
+      this._count = parseInt(await this._db.get(COUNT_KEY), 10);
     } catch (err) {
       if (err.type === "NotFoundError") {
-        await this._connection_db.put(COUNT_KEY, "0");
+        await this._db.put(COUNT_KEY, "0");
         this._count = 0;
       }
     }
@@ -26,7 +52,7 @@ export class ConnectionSaver {
 
   // 添加数据并增加计数
   async putWithCount(key, value) {
-    const batch = this._connection_db.batch();
+    const batch = this._db.batch();
     batch.put(key, JSON.stringify(value));
     this._count++;
     batch.put(COUNT_KEY, this._count.toString());
@@ -35,13 +61,13 @@ export class ConnectionSaver {
 
   // 删除数据并减少计数
   async delWithCount(key) {
-    const exists = await this._connection_db
+    const exists = await this._db
       .get(key)
       .then(() => true)
       .catch(() => false);
     if (!exists) return;
 
-    const batch = this._connection_db.batch();
+    const batch = this._db.batch();
     batch.del(key);
     this._count--;
     batch.put(COUNT_KEY, this._count.toString());
@@ -65,7 +91,7 @@ export class ConnectionSaver {
     if (lt) opts.lt = lt;
     if (lte) opts.lte = lte;
 
-    for await (const [key, value] of this._connection_db.iterator(opts)) {
+    for await (const [key, value] of this._db.iterator(opts)) {
       try {
         if (key === COUNT_KEY) continue;
 
@@ -80,27 +106,5 @@ export class ConnectionSaver {
     }
 
     return results;
-  }
-
-  async handleClient(client) {
-    client.on("authenticated", async () => {
-      // 记录认证事件
-      await this.putWithCount(getId(client.cid), {
-        type: "authenticated",
-        userId: client.userId,
-        userName: client?.userInfo?.name,
-        timestamp: Date.now(),
-      });
-    });
-
-    client.on("disconnected", async () => {
-      // 记录断开连接事件
-      await this.putWithCount(getId(client.cid), {
-        type: "disconnected",
-        userId: client.userId,
-        userName: client?.userInfo?.name,
-        timestamp: Date.now(),
-      });
-    });
   }
 }

@@ -8,7 +8,9 @@ const handleRecord = async ({ client, connectionSaver, message }) => {
     const size = Math.max(1, Math.min(100, parseInt(pageSize) || 10)); // 限制最大每页100条
 
     // 先获取所有记录来计算总数 (这是一个简化实现，实际生产环境中可能需要更高效的计数方法)
-    const allRecords = await connectionSaver.batchGet({ limit: -1 }); // 获取所有记录
+    const allRecords = await connectionSaver.connectionDB.batchGet({
+      limit: -1,
+    }); // 获取所有记录
     const total = allRecords.length;
     const totalPages = Math.ceil(total / size);
 
@@ -18,7 +20,7 @@ const handleRecord = async ({ client, connectionSaver, message }) => {
 
     client.send({
       type: "get_records",
-      records: pagedRecords.map(record => record.value), // 只返回记录的值部分
+      records: pagedRecords.map((record) => record.value), // 只返回记录的值部分
       pagination: {
         page: pageNum, // 当前页码
         pageSize: size, // 每页显示条数
