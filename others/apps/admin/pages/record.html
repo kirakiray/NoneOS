@@ -6,9 +6,30 @@
     :host {
       display: block;
     }
+
+    h3 {
+      margin: 0;
+    }
   </style>
   <div style="padding: 16px">
-    <h3>存储记录</h3>
+    <h3 style="display: flex">
+      存储记录
+
+      <div style="margin-left: 16px; font-size: 14px">
+        <span>本地数：{{ localCount }}</span>
+        <span style="display: inline-block; margin-left: 8px">
+          在线数：{{ onlineCount }}
+        </span>
+        <p-button
+          size="small"
+          variant="outlined"
+          on:click="syncRecords"
+          style="margin-left: 16px"
+        >
+          同步记录
+        </p-button>
+      </div>
+    </h3>
     {{ records }}
     <br />
     {{ pagination }}
@@ -31,6 +52,8 @@
         data: {
           records: [],
           activeServer: "", // 激活中的服务器
+          localCount: "-",
+          onlineCount: "-",
           pagination: {
             page: 1, // 当前页码
             pageSize: 10, // 每页显示条数
@@ -40,11 +63,11 @@
         },
         watch: {
           activeServer() {
-            this.syncRecords();
+            this.changeServer();
           },
         },
         proto: {
-          async syncRecords() {
+          async changeServer() {
             if (!this.activeServer) {
               return;
             }
@@ -55,7 +78,16 @@
               localUser,
             });
 
-            await this._serverClient.syncRecords(); // 先同步记录
+            // 获取本地记录数
+            this.localCount = await this._serverClient.getLocalRecordLength();
+
+            // 获取在线记录数
+            this.onlineCount = await this._serverClient.getOnlineRecordLength();
+          },
+          async syncRecords() {
+            await this._serverClient.syncRecords(async () => {
+              this.localCount = await this._serverClient.getLocalRecordLength();
+            });
           },
         },
         attached() {

@@ -36,7 +36,7 @@ export class AdminHandServerClient extends HandServerClient {
     );
   }
 
-  async syncRecords() {
+  async syncRecords(callback) {
     try {
       // 获取总数
       const totalLength = await this.getOnlineRecordLength();
@@ -51,9 +51,11 @@ export class AdminHandServerClient extends HandServerClient {
           limit: 500,
         });
 
+        callback && callback(records);
+
         // 如果还有未同步的记录，继续递归调用
         if (records.length >= 500) {
-          await this.syncRecords();
+          await this.syncRecords(callback);
         }
       }
     } catch (error) {
@@ -121,7 +123,10 @@ export class AdminHandServerClient extends HandServerClient {
       request.onupgradeneeded = (event) => {
         const db = event.target.result;
         if (!db.objectStoreNames.contains("records")) {
-          db.createObjectStore("records", { keyPath: "id" });
+          db.createObjectStore("records", {
+            keyPath: "id",
+            autoIncrement: true,
+          });
         }
       };
 
