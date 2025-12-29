@@ -3,6 +3,7 @@
   <l-m src="/packages/pui/list/list-item.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/table/table.html"></l-m>
   <style>
     :host {
       display: block;
@@ -10,6 +11,14 @@
 
     h3 {
       margin: 0;
+    }
+
+    [data-state="authenticated"] {
+      color: var(--md-sys-color-success);
+    }
+
+    [data-state="disconnected"] {
+      color: var(--md-sys-color-error);
     }
   </style>
   <div style="padding: 16px">
@@ -34,31 +43,24 @@
 
     <!-- 记录列表 -->
     <div style="margin-top: 16px">
-      <p-list>
+      <p-table>
+        <p-table-row head>
+          <p-table-cell max-width="120">类型</p-table-cell>
+          <p-table-cell>用户名</p-table-cell>
+          <p-table-cell max-width="180">时间</p-table-cell>
+          <p-table-cell max-width="300">ID</p-table-cell>
+        </p-table-row>
         <o-fill :value="records">
-          <p-list-item>
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                width: 100%;
-              "
-            >
-              <div>
-                <strong>ID: {{$data.id}}</strong>
-                <div v-if="$data.data">数据: {{$data.data}}</div>
-                <div v-if="$data.timestamp">
-                  时间: {{new Date($data.timestamp).toLocaleString()}}
-                </div>
-              </div>
-              <div style="text-align: right; color: #666; font-size: 12px">
-                <div v-if="$data.type">类型: {{$data.type}}</div>
-              </div>
-            </div>
-          </p-list-item>
+          <p-table-row>
+            <p-table-cell attr:data-state="$data.state">
+              {{$data.state}}
+            </p-table-cell>
+            <p-table-cell>{{$data.userName}}</p-table-cell>
+            <p-table-cell>{{$host.getTime($data.timestamp)}}</p-table-cell>
+            <p-table-cell>{{$data.id}}</p-table-cell>
+          </p-table-row>
         </o-fill>
-      </p-list>
+      </p-table>
     </div>
 
     <!-- 分页控件 -->
@@ -133,6 +135,16 @@
           },
         },
         proto: {
+          getTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          },
           async changeServer() {
             if (!this.activeServer) {
               return;
