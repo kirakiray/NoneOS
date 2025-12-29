@@ -39,17 +39,22 @@ export class AdminHandServerClient extends HandServerClient {
   async syncRecords() {
     try {
       // 获取总数
-      const totalLength = await this.getRecordLength();
-      const localCount = await this.getLocalDBCount();
+      const totalLength = await this.getOnlineRecordLength();
+      const localCount = await this.getLocalRecordLength();
 
       if (localCount < totalLength) {
         // 获取本地db后那一条
-        const lastItem = await this.getLastRecord();
+        const lastItem = await this.getLocalLastRecord();
 
-        await this._syncRecords({
+        const records = await this._syncRecords({
           gte: lastItem?.id,
-          limit: 100,
+          limit: 500,
         });
+
+        // 如果还有未同步的记录，继续递归调用
+        if (records.length >= 500) {
+          await this.syncRecords();
+        }
       }
     } catch (error) {
       console.error("同步记录时出错:", error);
@@ -68,10 +73,12 @@ export class AdminHandServerClient extends HandServerClient {
     );
 
     await this.saveRecordsToLocal(records);
+
     return records;
   }
 
-  async getRecordLength() {
+  // 获取在线的记录数量
+  async getOnlineRecordLength() {
     const { length } = await this._sendWebSocketRequest(
       {
         type: "get_record_length",
@@ -95,13 +102,13 @@ export class AdminHandServerClient extends HandServerClient {
     }, "readwrite");
   }
 
-  async getLastRecord() {
+  async getLocalLastRecord() {
     return this._indexedDBOperation((store) => {
       return store.openCursor(null, "prev");
     }, "readonly");
   }
 
-  async getLocalDBCount() {
+  async getLocalRecordLength() {
     return this._indexedDBOperation((store) => {
       return store.count();
     }, "readonly");
@@ -129,16 +136,9 @@ export class AdminHandServerClient extends HandServerClient {
     });
   }
 
-  // 获取 IndexedDB 实例，确保已初始化
-  async _getDb() {
-    const db = await this._db;
-    if (!db) throw new Error("IndexedDB not initialized.");
-    return db;
-  }
-
   // 通用的 IndexedDB 操作辅助方法
   async _indexedDBOperation(operation, mode = "readonly") {
-    const db = await this._getDb();
+    const db = await this._db;
     const transaction = db.transaction(["records"], mode);
     const store = transaction.objectStore("records");
 
@@ -149,13 +149,11 @@ export class AdminHandServerClient extends HandServerClient {
         if (result) {
           // 如果操作返回的是一个请求对象，处理其事件
           result.onsuccess = (event) => {
-            if (result.result) {
-              if (result.result?.value) {
-                // 游标返回值
-                resolve(result.result.value);
-              } else {
-                resolve(result.result);
-              }
+            if (result.result?.value) {
+              // 游标返回值
+              resolve(result.result.value);
+            } else {
+              resolve(result.result);
             }
           };
           result.onerror = (event) => {
