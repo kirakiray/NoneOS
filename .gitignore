@@ -116,8 +116,7 @@ rootkeys
 client/electron/out
 client/electron/sources
 client/bun/sources
-/hand1-client
-/hand2-client
+/handdb-*
 
 old
 

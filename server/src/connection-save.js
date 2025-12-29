@@ -4,9 +4,9 @@ const getId = (cid) => Date.now() + ":" + cid;
 const COUNT_KEY = "@@count";
 
 export class ConnectionSaver {
-  constructor({ clientDB }) {
+  constructor(dbName) {
     // Initialize LevelDB
-    this._client_db = new Level(clientDB);
+    this._connection_db = new Level(`handdb-connection-${dbName}`);
     // 初始化计数器
     this._count = null;
     this.initCount();
@@ -15,10 +15,10 @@ export class ConnectionSaver {
   // 初始化总数量
   async initCount() {
     try {
-      this._count = parseInt(await this._client_db.get(COUNT_KEY), 10);
+      this._count = parseInt(await this._connection_db.get(COUNT_KEY), 10);
     } catch (err) {
       if (err.type === "NotFoundError") {
-        await this._client_db.put(COUNT_KEY, "0");
+        await this._connection_db.put(COUNT_KEY, "0");
         this._count = 0;
       }
     }
@@ -26,7 +26,7 @@ export class ConnectionSaver {
 
   // 添加数据并增加计数
   async putWithCount(key, value) {
-    const batch = this._client_db.batch();
+    const batch = this._connection_db.batch();
     batch.put(key, JSON.stringify(value));
     this._count++;
     batch.put(COUNT_KEY, this._count.toString());
@@ -35,13 +35,13 @@ export class ConnectionSaver {
 
   // 删除数据并减少计数
   async delWithCount(key) {
-    const exists = await this._client_db
+    const exists = await this._connection_db
       .get(key)
       .then(() => true)
       .catch(() => false);
     if (!exists) return;
 
-    const batch = this._client_db.batch();
+    const batch = this._connection_db.batch();
     batch.del(key);
     this._count--;
     batch.put(COUNT_KEY, this._count.toString());
@@ -65,7 +65,7 @@ export class ConnectionSaver {
     if (lt) opts.lt = lt;
     if (lte) opts.lte = lte;
 
-    for await (const [key, value] of this._client_db.iterator(opts)) {
+    for await (const [key, value] of this._connection_db.iterator(opts)) {
       try {
         if (key === COUNT_KEY) continue;
 

@@ -17,9 +17,7 @@ const server = await initServer({
   port: port,
   serverName,
   password: "admin123",
-  saver: {
-    clientDB: "hand1-client",
-  },
+  dbName: "hand1-db",
 });
 
 // 优雅关闭服务器

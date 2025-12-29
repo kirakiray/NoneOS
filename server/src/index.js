@@ -22,13 +22,13 @@ export const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
-  saver,
+  dbName,
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();
   let connectionSaver;
-  if (saver) {
-    connectionSaver = new ConnectionSaver(saver);
+  if (dbName) {
+    connectionSaver = new ConnectionSaver(dbName);
   }
   const messageRouter = new MessageRouter({
     clientManager,
