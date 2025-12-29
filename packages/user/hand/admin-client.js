@@ -116,6 +116,50 @@ export class AdminHandServerClient extends HandServerClient {
     }, "readonly");
   }
 
+  // 获取本地记录列表（支持分页）
+  async getLocalRecords(options = {}) {
+    const { page = 1, pageSize = 10 } = options;
+    const offset = (page - 1) * pageSize;
+
+    return await this._indexedDBOperation((store) => {
+      const results = [];
+      let count = 0;
+
+      // 使用游标遍历所有记录
+      const cursorRequest = store.openCursor();
+
+      cursorRequest.onsuccess = (event) => {
+        const cursor = event.target.result;
+        if (cursor) {
+          if (count >= offset && results.length < pageSize) {
+            results.push(cursor.value);
+          }
+          count++;
+
+          if (results.length < pageSize) {
+            cursor.continue();
+          } else {
+            // 如果已经收集了足够的记录，可以提前结束或跳到目标位置
+            // 但为了简单，我们继续遍历直到收集完所需数量
+          }
+        }
+      };
+
+      // 返回一个 Promise 来获取结果
+      return new Promise((resolve, reject) => {
+        cursorRequest.onerror = (event) => {
+          reject(event.target.error);
+        };
+
+        // 当游标遍历完成时，resolve 结果
+        const transaction = cursorRequest.transaction;
+        transaction.oncomplete = () => {
+          resolve(results);
+        };
+      });
+    }, "readonly");
+  }
+
   initDB() {
     this._db = new Promise((resolve, reject) => {
       const request = indexedDB.open("AdminRecordsDB", 1);
@@ -150,6 +194,11 @@ export class AdminHandServerClient extends HandServerClient {
     return new Promise((resolve, reject) => {
       try {
         const result = operation(store, transaction);
+
+        if (result instanceof Promise) {
+          result.then(resolve);
+          return;
+        }
 
         if (result) {
           // 如果操作返回的是一个请求对象，处理其事件

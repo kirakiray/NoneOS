@@ -1,5 +1,6 @@
 <template page>
   <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/list/list-item.html"></l-m>
   <l-m src="/packages/pui/input/input.html"></l-m>
   <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
@@ -30,9 +31,69 @@
         </p-button>
       </div>
     </h3>
-    {{ records }}
-    <br />
-    {{ pagination }}
+
+    <!-- 记录列表 -->
+    <div style="margin-top: 16px">
+      <p-list>
+        <o-fill :value="records">
+          <p-list-item>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                width: 100%;
+              "
+            >
+              <div>
+                <strong>ID: {{$data.id}}</strong>
+                <div v-if="$data.data">数据: {{$data.data}}</div>
+                <div v-if="$data.timestamp">
+                  时间: {{new Date($data.timestamp).toLocaleString()}}
+                </div>
+              </div>
+              <div style="text-align: right; color: #666; font-size: 12px">
+                <div v-if="$data.type">类型: {{$data.type}}</div>
+              </div>
+            </div>
+          </p-list-item>
+        </o-fill>
+      </p-list>
+    </div>
+
+    <!-- 分页控件 -->
+    <div
+      style="
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <p-button
+        attr:disabled="pagination.page <= 1 ? '' : null"
+        on:click="prevPage"
+        style="margin-right: 8px"
+      >
+        上一页
+      </p-button>
+
+      <span style="margin: 0 8px">
+        第 <span :text="pagination.page"></span> 页，共
+        <span :text="pagination.totalPages"></span> 页 (<span
+          :text="pagination.total"
+        ></span>
+        条记录)
+      </span>
+
+      <p-button
+        attr:disabled="pagination.page >= pagination.totalPages ? '' : null"
+        on:click="nextPage"
+        style="margin-left: 8px"
+      >
+        下一页
+      </p-button>
+    </div>
   </div>
   <o-consumer
     name="admin-setting"
@@ -65,6 +126,11 @@
           activeServer() {
             this.changeServer();
           },
+          async "pagination.page"() {
+            if (this._serverClient) {
+              await this.loadRecords();
+            }
+          },
         },
         proto: {
           async changeServer() {
@@ -83,10 +149,48 @@
 
             // 获取在线记录数
             this.onlineCount = await this._serverClient.getOnlineRecordLength();
+
+            // 加载本地记录
+            await this.loadRecords();
+          },
+          async loadRecords() {
+            if (!this._serverClient) {
+              return;
+            }
+
+            try {
+              const records = await this._serverClient.getLocalRecords({
+                page: this.pagination.page,
+                pageSize: this.pagination.pageSize,
+              });
+
+              this.records = records;
+
+              // 更新总记录数和总页数
+              this.pagination.total =
+                await this._serverClient.getLocalRecordLength();
+              this.pagination.totalPages = Math.ceil(
+                this.pagination.total / this.pagination.pageSize
+              );
+            } catch (error) {
+              console.error("获取本地记录失败:", error);
+            }
+          },
+          nextPage() {
+            if (this.pagination.page < this.pagination.totalPages) {
+              this.pagination.page++;
+            }
+          },
+          prevPage() {
+            if (this.pagination.page > 1) {
+              this.pagination.page--;
+            }
           },
           async syncRecords() {
             await this._serverClient.syncRecords(async () => {
               this.localCount = await this._serverClient.getLocalRecordLength();
+              // 同步后重新加载记录
+              await this.loadRecords();
             });
           },
         },
