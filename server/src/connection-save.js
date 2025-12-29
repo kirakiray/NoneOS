@@ -1,7 +1,6 @@
 import { Level } from "level";
 
 const getId = (cid) => Date.now() + ":" + cid;
-const COUNT_KEY = "@@count";
 
 export class ConnectionSaver {
   constructor(dbName) {
@@ -32,6 +31,8 @@ export class ConnectionSaver {
   }
 }
 
+const COUNT_KEY = "@@count";
+
 class Saver {
   constructor(name) {
     this._db = new Level(name);
@@ -41,7 +42,7 @@ class Saver {
   // 初始化总数量
   async initCount() {
     try {
-      this._count = parseInt(await this._db.get(COUNT_KEY), 10);
+      this._count = parseInt(await this._db.get(COUNT_KEY), 10) || 0;
     } catch (err) {
       if (err.type === "NotFoundError") {
         await this._db.put(COUNT_KEY, "0");

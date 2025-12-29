@@ -138,12 +138,45 @@ export class AdminHandServerClient extends HandServerClient {
     });
   }
 
+  async getRecordLength() {
+    if (this.socket && this.socket.readyState === WebSocket.OPEN) {
+      this.socket.send(
+        JSON.stringify({
+          type: "get_record_length",
+          password: this.password,
+        })
+      );
+
+      return new Promise((resolve, reject) => {
+        const listener = async (event) => {
+          const { type, length } = event.detail;
+          if (type === "get_record_length") {
+            try {
+              this.removeEventListener("message", listener);
+              resolve(length);
+            } catch (error) {
+              reject(error);
+            }
+          }
+        };
+
+        this.addEventListener("message", listener);
+      });
+    } else {
+      throw new Error("WebSocket连接未建立，无法发送请求");
+    }
+  }
+
   async syncRecords() {
+    // 获取总数
+    const totalLength = await this.getRecordLength();
+
     // 获取本地db后那一条
     const lastItem = await this.getLastRecord();
 
     await this._syncRecords({
       gte: lastItem?.id,
+      limit: 100,
     });
   }
 
