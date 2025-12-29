@@ -4,13 +4,11 @@ export class AdminHandServerClient extends HandServerClient {
   constructor({ url, user, password }) {
     super({ url, user });
     this.password = password;
-    if (typeof window !== "undefined" && window.indexedDB) {
-      this.initDB();
-    }
+    this.initDB();
   }
 
-  async initDB() {
-    return new Promise((resolve, reject) => {
+  initDB() {
+    this._db = new Promise((resolve, reject) => {
       // 打开（或创建）数据库
       const request = indexedDB.open("AdminRecordsDB", 1);
 
@@ -23,27 +21,13 @@ export class AdminHandServerClient extends HandServerClient {
       };
 
       request.onsuccess = (event) => {
-        this.db = event.target.result;
-        resolve(this.db);
+        resolve(event.target.result);
       };
 
       request.onerror = (event) => {
         console.error("IndexedDB error:", event.target.errorCode);
         reject(event.target.errorCode);
       };
-    });
-  }
-
-  async saveRecordsToLocal(records) {
-    if (!this.db) throw new Error("IndexedDB not initialized.");
-    const transaction = this.db.transaction(["records"], "readwrite");
-    const store = transaction.objectStore("records");
-    for (const record of records) {
-      store.put(record);
-    }
-    return new Promise((resolve, reject) => {
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = (event) => reject(event.target.error);
     });
   }
 
@@ -143,7 +127,27 @@ export class AdminHandServerClient extends HandServerClient {
     }
   }
 
+  async saveRecordsToLocal(records) {
+    const db = await this._db;
+    if (!db) throw new Error("IndexedDB not initialized.");
+    const transaction = db.transaction(["records"], "readwrite");
+    const store = transaction.objectStore("records");
+    for (const record of records) {
+      store.put(record);
+    }
+    return new Promise((resolve, reject) => {
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = (event) => reject(event.target.error);
+    });
+  }
+
   async syncRecords() {
+    debugger;
+
+    await this._syncRecords();
+  }
+
+  async _syncRecords() {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       this.socket.send(
         JSON.stringify({
@@ -157,7 +161,6 @@ export class AdminHandServerClient extends HandServerClient {
           const { type, records } = event.detail;
           if (type === "sync_records") {
             try {
-              debugger;
               await this.saveRecordsToLocal(records);
               this.removeEventListener("message", listener);
               resolve(records);
