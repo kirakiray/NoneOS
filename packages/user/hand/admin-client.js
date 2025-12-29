@@ -99,34 +99,6 @@ export class AdminHandServerClient extends HandServerClient {
     }
   }
 
-  // async getRecords(options = {}) {
-  //   if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-  //     // 等待服务器响应
-  //     this.socket.send(
-  //       JSON.stringify({
-  //         type: "get_records",
-  //         password: this.password,
-  //         ...options, // 可包含 page 和 pageSize 参数
-  //       })
-  //     );
-
-  //     return new Promise((resolve, reject) => {
-  //       const listener = (event) => {
-  //         const { type, records, pagination } = event.detail;
-  //         console.log("type", type, event.detail);
-  //         if (type === "get_records") {
-  //           this.removeEventListener("message", listener);
-  //           resolve({ records, pagination });
-  //         }
-  //       };
-
-  //       this.addEventListener("message", listener);
-  //     });
-  //   } else {
-  //     throw new Error("WebSocket连接未建立，无法发送请求");
-  //   }
-  // }
-
   async saveRecordsToLocal(records) {
     const db = await this._db;
     if (!db) throw new Error("IndexedDB not initialized.");
@@ -143,19 +115,20 @@ export class AdminHandServerClient extends HandServerClient {
 
   async getLastRecord() {
     const db = await this._db;
-    if (!db) throw new Error("IndexedDB not initialized.");
     const transaction = db.transaction(["records"], "readonly");
     const store = transaction.objectStore("records");
-    // TODO: 应该通过游标获取最后一条
-    const request = store.getAll();
+
+    // 打开反向游标（从最大键开始）
+    const request = store.openCursor(null, "prev"); // 'prev' 表示倒序
 
     return new Promise((resolve, reject) => {
       request.onsuccess = (event) => {
-        const records = event.target.result;
-        if (records.length > 0) {
-          resolve(records[records.length - 1]);
+        const cursor = event.target.result;
+        if (cursor) {
+          // 第一个反向游标就是最后一条记录
+          resolve(cursor.value);
         } else {
-          resolve(null);
+          resolve(null); // 空表
         }
       };
 
