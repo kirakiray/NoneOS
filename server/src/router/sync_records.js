@@ -2,7 +2,7 @@ const handleSyncRecords = async ({ client, connectionSaver, message }) => {
   try {
     const allRecords = await connectionSaver.connectionDB.batchGet({
       gte: message.gte,
-      limit: -1,
+      limit: message.limit || 100,
     }); // 获取所有记录
 
     client.send({
