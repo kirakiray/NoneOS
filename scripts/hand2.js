@@ -2,7 +2,7 @@
 // node --inspect server2/start.js --port=8081
 // bun server2/start.js --port=8081
 
-import { initServer } from "./src/index.js";
+import { initServer } from "../server/src/index.js";
 
 const port =
   parseInt(
@@ -14,9 +14,10 @@ const serverName =
   "hand server";
 
 const server = await initServer({
-  password: "admin123",
   port: port,
   serverName,
+  password: "admin123",
+  dbName: "hand2-db",
 });
 
 // 优雅关闭服务器

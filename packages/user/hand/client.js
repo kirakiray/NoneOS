@@ -18,6 +18,10 @@ export class HandServerClient extends EventTarget {
     this.delays = []; // 延迟曲线
   }
 
+  get url() {
+    return this.#url;
+  }
+
   async init() {
     if (this.socket) {
       return;
@@ -267,6 +271,10 @@ export class HandServerClient extends EventTarget {
       this.dispatchEvent(
         new CustomEvent("notify-follow", { detail: responseData })
       );
+    }
+
+    if (responseData.type === "error") {
+      console.error(responseData);
     }
 
     this.dispatchEvent(new CustomEvent("message", { detail: responseData }));

@@ -5,6 +5,7 @@ import { ClientManager } from "./client-manager.js";
 import { MessageRouter } from "./message-router.js";
 import { Client } from "./client.js";
 import { createRequire } from "node:module";
+import { ConnectionSaver } from "./connection-save.js";
 
 const require = createRequire(import.meta.url);
 const packageJson = require("../package.json");
@@ -21,10 +22,19 @@ export const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
+  dbName,
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();
-  const messageRouter = new MessageRouter(clientManager, password);
+  let connectionSaver;
+  if (dbName) {
+    connectionSaver = new ConnectionSaver(dbName);
+  }
+  const messageRouter = new MessageRouter({
+    clientManager,
+    connectionSaver,
+    password,
+  });
 
   // WebSocket事件处理函数
   /**
@@ -33,9 +43,9 @@ export const initServer = async ({
    */
   function onConnect(ws) {
     const client = new Client(ws, server, clientManager);
+    connectionSaver && connectionSaver.handleClient(client);
 
     clientManager.addClient(client);
-    console.log("新客户端已连接:", client.cid);
 
     // 发送认证请求
     client.sendNeedAuth();
@@ -50,7 +60,14 @@ export const initServer = async ({
   function onClose(ws, code, reason) {
     const client = ws._client;
     if (client) {
-      console.log("客户端断开连接:", client.cid);
+      // 触发断开连接事件
+      client.emit("disconnected", {
+        clientId: client.cid,
+        userId: client.userId,
+        code: code,
+        timestamp: new Date(),
+      });
+
       clientManager.removeClient(client.cid);
     }
   }

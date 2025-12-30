@@ -1,8 +1,10 @@
+import { EventEmitter } from "events";
+
 /**
  * 客户端类
  * 表示一个连接到服务器的客户端连接，处理客户端的状态和通信
  */
-export class Client {
+export class Client extends EventEmitter {
   /**
    * 构造函数，初始化客户端
    * @param {WebSocket} ws - WebSocket连接实例
@@ -10,6 +12,7 @@ export class Client {
    * @param {ClientManager} clientManager - 客户端管理器实例
    */
   constructor(ws, server, clientManager) {
+    super();
     if (ws._client) {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
@@ -18,7 +21,7 @@ export class Client {
     this.server = server;
     this.clientManager = clientManager;
 
-    this.cid = this._generateCid();
+    this.cid = this._generateCid(); // 方便后期通过cid添加用户的操作
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null;
     this.publicKey = null;
@@ -107,6 +110,14 @@ export class Client {
       clearTimeout(this._authTimer);
       this._authTimer = null;
     }
+
+    // 触发认证成功事件
+    this.emit("authenticated", {
+      userId: userId,
+      clientId: this.cid,
+      userInfo: this.userInfo,
+      timestamp: new Date(),
+    });
   }
 
   /**

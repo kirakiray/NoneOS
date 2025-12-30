@@ -1,0 +1,221 @@
+<template page>
+  <l-m src="/packages/pui/list/list.html"></l-m>
+  <l-m src="/packages/pui/list/list-item.html"></l-m>
+  <l-m src="/packages/pui/input/input.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
+  <l-m src="/packages/pui/table/table.html"></l-m>
+  <style>
+    :host {
+      display: block;
+    }
+
+    h3 {
+      margin: 0;
+    }
+
+    [data-state="authenticated"] {
+      color: var(--md-sys-color-success);
+    }
+
+    [data-state="disconnected"] {
+      color: var(--md-sys-color-error);
+    }
+  </style>
+  <div style="padding: 16px">
+    <h3 style="display: flex">
+      存储记录
+
+      <div style="margin-left: 16px; font-size: 14px">
+        <span>本地数：{{ localCount }}</span>
+        <span style="display: inline-block; margin-left: 8px">
+          在线数：{{ onlineCount }}
+        </span>
+        <p-button
+          size="small"
+          variant="outlined"
+          on:click="syncRecords"
+          style="margin-left: 16px"
+        >
+          同步记录
+        </p-button>
+      </div>
+    </h3>
+
+    <!-- 记录列表 -->
+    <div style="margin-top: 16px">
+      <p-table>
+        <p-table-row head>
+          <p-table-cell max-width="120">类型</p-table-cell>
+          <p-table-cell>用户名</p-table-cell>
+          <p-table-cell max-width="180">时间</p-table-cell>
+          <p-table-cell max-width="300">ID</p-table-cell>
+        </p-table-row>
+        <o-fill :value="records">
+          <p-table-row>
+            <p-table-cell attr:data-state="$data.state">
+              {{$data.state}}
+            </p-table-cell>
+            <p-table-cell>{{$data.userName}}</p-table-cell>
+            <p-table-cell>{{$host.getTime($data.timestamp)}}</p-table-cell>
+            <p-table-cell>{{$data.id}}</p-table-cell>
+          </p-table-row>
+        </o-fill>
+      </p-table>
+    </div>
+
+    <!-- 分页控件 -->
+    <div
+      style="
+        margin-top: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      "
+    >
+      <p-button
+        attr:disabled="pagination.page <= 1 ? '' : null"
+        on:click="prevPage"
+        style="margin-right: 8px"
+      >
+        上一页
+      </p-button>
+
+      <span style="margin: 0 8px">
+        第 <span :text="pagination.page"></span> 页，共
+        <span :text="pagination.totalPages"></span> 页 (<span
+          :text="pagination.total"
+        ></span>
+        条记录)
+      </span>
+
+      <p-button
+        attr:disabled="pagination.page >= pagination.totalPages ? '' : null"
+        on:click="nextPage"
+        style="margin-left: 8px"
+      >
+        下一页
+      </p-button>
+    </div>
+  </div>
+  <o-consumer
+    name="admin-setting"
+    watch:active-server="activeServer"
+  ></o-consumer>
+  <script>
+    export const parent = "../layout.html";
+
+    export default async ({ load }) => {
+      const { createUser } = await load("/packages/user/main.js");
+      const localUser = await createUser();
+      const { default: getServerClient } = await load(
+        "../util/get-server-client.js"
+      );
+
+      return {
+        data: {
+          records: [],
+          activeServer: "", // 激活中的服务器
+          localCount: "-",
+          onlineCount: "-",
+          pagination: {
+            page: 1, // 当前页码
+            pageSize: 10, // 每页显示条数
+            total: 0, // 总记录数
+            totalPages: 1, // 总页数
+          },
+        },
+        watch: {
+          activeServer() {
+            this.changeServer();
+          },
+          async "pagination.page"() {
+            if (this._serverClient) {
+              await this.loadRecords();
+            }
+          },
+        },
+        proto: {
+          getTime(timestamp) {
+            const date = new Date(timestamp);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, "0");
+            const day = String(date.getDate()).padStart(2, "0");
+            const hours = String(date.getHours()).padStart(2, "0");
+            const minutes = String(date.getMinutes()).padStart(2, "0");
+            const seconds = String(date.getSeconds()).padStart(2, "0");
+            return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+          },
+          async changeServer() {
+            if (!this.activeServer) {
+              return;
+            }
+
+            // 连接到服务器（管理员模式）
+            this._serverClient = await getServerClient({
+              activeServer: this.activeServer,
+              localUser,
+            });
+
+            // 获取本地记录数
+            this.localCount = await this._serverClient.getLocalRecordLength();
+
+            // 获取在线记录数
+            this.onlineCount = await this._serverClient.getOnlineRecordLength();
+
+            // 加载本地记录
+            await this.loadRecords();
+          },
+          async loadRecords() {
+            if (!this._serverClient) {
+              return;
+            }
+
+            try {
+              const records = await this._serverClient.getLocalRecords({
+                page: this.pagination.page,
+                pageSize: this.pagination.pageSize,
+              });
+
+              this.records = records;
+
+              // 更新总记录数和总页数
+              this.pagination.total =
+                await this._serverClient.getLocalRecordLength();
+              this.pagination.totalPages = Math.ceil(
+                this.pagination.total / this.pagination.pageSize
+              );
+            } catch (error) {
+              console.error("获取本地记录失败:", error);
+            }
+          },
+          nextPage() {
+            if (this.pagination.page < this.pagination.totalPages) {
+              this.pagination.page++;
+            }
+          },
+          prevPage() {
+            if (this.pagination.page > 1) {
+              this.pagination.page--;
+            }
+          },
+          async syncRecords() {
+            await this._serverClient.syncRecords(async () => {
+              this.localCount = await this._serverClient.getLocalRecordLength();
+
+              // 同步后重新加载记录
+              await this.loadRecords();
+            });
+          },
+        },
+        attached() {
+          this.emit("set-active-id", {
+            data: {
+              activeId: "record",
+            },
+            composed: true,
+          });
+        },
+      };
+    };
+  </script>
+</template>

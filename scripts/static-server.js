@@ -1,7 +1,6 @@
 import Koa from "koa";
 import serve from "koa-static";
 import path from "path";
-import HandShakeServer from "noneos-handshake";
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);
 const home = serve(path.normalize(__dirname + "/../"));
@@ -23,15 +22,26 @@ app.use(async (ctx, next) => {
 app.use(home);
 
 const _server = app.listen(5559);
+
+// 进程退出时关闭服务器
+process.on("SIGINT", () => {
+  console.log("收到 SIGINT，关闭服务器...");
+  _server.close(() => {
+    console.log("服务器已关闭");
+    process.exit(0);
+  });
+});
+
+process.on("SIGTERM", () => {
+  console.log("收到 SIGTERM，关闭服务器...");
+  _server.close(() => {
+    console.log("服务器已关闭");
+    process.exit(0);
+  });
+});
 console.log(`server start => http://localhost:5559/`);
 
 export default {
   server: _server,
   home: path.normalize(__dirname + "/../"),
 };
-
-const server = new HandShakeServer({
-  name: "local-test-server",
-  port: 5569,
-  allows: ["http://localhost:5569"],
-});
