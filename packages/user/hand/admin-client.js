@@ -125,8 +125,8 @@ export class AdminHandServerClient extends HandServerClient {
       const results = [];
       let count = 0;
 
-      // 使用游标遍历所有记录
-      const cursorRequest = store.openCursor();
+      // 使用反向游标遍历所有记录（降序）
+      const cursorRequest = store.openCursor(null, 'prev');
 
       cursorRequest.onsuccess = (event) => {
         const cursor = event.target.result;
