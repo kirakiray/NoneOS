@@ -162,7 +162,11 @@ export class AdminHandServerClient extends HandServerClient {
 
   initDB() {
     this._db = new Promise((resolve, reject) => {
-      const request = indexedDB.open("AdminRecordsDB", 1);
+      const request = indexedDB.open(
+        "AdminRecordsDB-" +
+          // 提取域名+端口并统一替换非法字符为“-”，保证 IndexedDB 名称合法且可读
+          new URL(this.url).host.replace(/[:/]/g, "-")
+      );
 
       request.onupgradeneeded = (event) => {
         const db = event.target.result;

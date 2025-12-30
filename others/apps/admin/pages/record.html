@@ -201,6 +201,7 @@
           async syncRecords() {
             await this._serverClient.syncRecords(async () => {
               this.localCount = await this._serverClient.getLocalRecordLength();
+
               // 同步后重新加载记录
               await this.loadRecords();
             });

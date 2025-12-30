@@ -18,6 +18,10 @@ export class HandServerClient extends EventTarget {
     this.delays = []; // 延迟曲线
   }
 
+  get url() {
+    return this.#url;
+  }
+
   async init() {
     if (this.socket) {
       return;
