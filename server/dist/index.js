@@ -1,5 +1,7 @@
 #!/usr/bin/env node
+import { EventEmitter } from 'events';
 import { createRequire } from 'node:module';
+import { Level } from 'level';
 
 /**
  * WebSocket服务器类
@@ -584,6 +586,245 @@ function unpack(buffer) {
 // console.log("unpacked obj:", obj);
 // console.log("unpacked data:", data);
 
+const handlePing = ({ client }) => {
+  client.send({
+    type: "pong",
+    timestamp: new Date().toISOString(),
+  });
+};
+
+handlePing.admin = false;
+
+const handleEcho = ({ client, message }) => {
+  client.send({
+    type: "echo",
+    message: message.message,
+    timestamp: new Date().toISOString(),
+  });
+};
+
+handleEcho.admin = false;
+
+const handleAuthentication = async ({ client, message, clientManager }) => {
+  try {
+    const userId = await clientManager.authenticateClient(
+      client,
+      message.signedData
+    );
+    client.onAuthenticated(userId);
+    client.sendAuthSuccess();
+    client.sendServerInfo();
+  } catch (error) {
+    client.send({
+      type: "error",
+      kind: "authentication",
+      message: error.message,
+    });
+
+    setTimeout(() => {
+      client.close();
+    }, 100);
+  }
+};
+
+handleAuthentication.admin = false;
+
+const handleFindUser = ({ client, message, clientManager }) => {
+  const { userId } = message;
+  const targetUserData = clientManager.getUserById(userId);
+  const userPool = targetUserData?.userPool
+    ? Array.from(targetUserData.userPool)
+    : [];
+
+  client.send({
+    type: "response_find_user",
+    userId,
+    publicKey: userPool.length > 0 ? userPool[0].publicKey : null,
+    tabs: userPool,
+    isOnline: userPool && userPool.length > 0,
+  });
+};
+
+handleFindUser.admin = false;
+
+const handleAgentData = async ({ client, message, binaryData, clientManager }) => {
+  const { options, data } = message;
+  const { userId, userSessionId } = options;
+
+  if (!userId) return;
+
+  const targetUserData = clientManager.getUserById(userId);
+  if (!targetUserData || !targetUserData.userPool) return;
+
+  let sendData;
+  try {
+    sendData = pack(
+      {
+        type: "agent_data",
+        fromUserId: client.userId,
+        fromUserSessionId: client.userSessionId,
+      },
+      binaryData
+    );
+  } catch (err) {
+    console.error("打包数据失败:", err);
+    return;
+  }
+
+  let targetDeviceClient = null;
+
+  if (userSessionId) {
+    targetDeviceClient = Array.from(targetUserData.userPool).find(
+      (c) => c.userSessionId === userSessionId
+    );
+  }
+
+  if (!targetDeviceClient) {
+    targetDeviceClient = targetUserData.userPool.values().next().value;
+  }
+
+  if (targetDeviceClient) {
+    targetDeviceClient.send(sendData);
+  }
+};
+
+handleAgentData.admin = false;
+
+const handleUpdateDelay = ({ client, message }) => {
+  const { delay } = message;
+  client.delay = delay;
+};
+
+handleUpdateDelay.admin = false;
+
+const handleFollowList = ({ client, message, clientManager }) => {
+  const newFollowUsers = message.follows.split(",");
+  clientManager.updateFollowList(client, newFollowUsers);
+};
+
+handleFollowList.admin = false;
+
+const handleGetConnections = ({ client, message, clientManager }) => {
+  // 获取分页参数，默认值为第1页，每页20条记录
+  const { page = 1, pageSize = 20 } = message || {};
+
+  // 参数校验
+  const pageNum = Math.max(1, parseInt(page) || 1);
+  const size = Math.max(1, Math.min(100, parseInt(pageSize) || 20)); // 限制最大每页100条
+
+  // 获取所有客户端连接信息
+  const allConnections = clientManager
+    .getAllClients()
+    .map((client2) => ({
+      id: client2.cid,
+      userId: client2.userId,
+      userInfo: client2.userInfo,
+      connectTime: client2.connectTime,
+      state: client2.state,
+      username: client2.userInfo?.name,
+      delay: client2.delay,
+    }));
+
+  // 计算分页数据
+  const total = allConnections.length;
+  const totalPages = Math.ceil(total / size);
+  const startIndex = (pageNum - 1) * size;
+  const connectionsInfo = allConnections.slice(startIndex, startIndex + size);
+
+  client.send({
+    type: "connections_info",
+    clients: connectionsInfo,
+    pagination: {
+      page: pageNum,
+      pageSize: size,
+      total,
+      totalPages,
+    },
+  });
+};
+
+handleGetConnections.admin = true;
+
+const handleDisconnectClient = ({ client, message, clientManager }) => {
+  const { clientId } = message;
+  if (!clientId) {
+    client.send({ type: "error", message: "缺少客户端ID参数" });
+    return;
+  }
+
+  const targetClient = clientManager.getClientById(clientId);
+  if (targetClient) {
+    targetClient.close();
+    client.send({
+      type: "success",
+      message: `已断开客户端 ${clientId} 的连接`,
+    });
+  } else {
+    client.send({
+      type: "error",
+      message: `未找到客户端 ${clientId}`,
+    });
+  }
+};
+
+handleDisconnectClient.admin = true;
+
+const handleSyncRecords = async ({ client, connectionSaver, message }) => {
+  try {
+    const allRecords = await connectionSaver.connectionDB.batchGet({
+      gte: message.gte,
+      limit: message.limit || 100,
+    }); // 获取所有记录
+
+    client.send({
+      type: "sync_records",
+      records: allRecords,
+    });
+  } catch (error) {
+    console.error("Error in handleSyncRecords:", error);
+    client.send({
+      type: "sync_records",
+      records: [],
+    });
+  }
+};
+
+handleSyncRecords.admin = true;
+
+const handleGetRecordLength = async ({ client, connectionSaver, message }) => {
+  try {
+    const length = await connectionSaver.connectionDB.getTotalLength(); // 获取记录长度
+
+    client.send({
+      type: "get_record_length",
+      length,
+    });
+  } catch (error) {
+    console.error("Error in handleGetRecordLength:", error);
+    client.send({
+      type: "get_record_length",
+      length: 0,
+    });
+  }
+};
+
+handleGetRecordLength.admin = true;
+
+var routerData = /*#__PURE__*/Object.freeze({
+  __proto__: null,
+  agent_data: handleAgentData,
+  authentication: handleAuthentication,
+  disconnect_client: handleDisconnectClient,
+  echo: handleEcho,
+  find_user: handleFindUser,
+  follow_list: handleFollowList,
+  get_connections: handleGetConnections,
+  get_record_length: handleGetRecordLength,
+  ping: handlePing,
+  sync_records: handleSyncRecords,
+  update_delay: handleUpdateDelay
+});
+
 /**
  * 消息路由器类
  * 负责处理来自客户端的消息，根据消息类型分发到相应的处理器
@@ -595,9 +836,10 @@ class MessageRouter {
    * @param {ClientManager} clientManager - 客户端管理器实例
    * @param {string} adminPassword - 管理员密码
    */
-  constructor(clientManager, adminPassword) {
+  constructor({ clientManager, password, connectionSaver }) {
     this.clientManager = clientManager;
-    this.adminPassword = adminPassword;
+    this.adminPassword = password;
+    this.connectionSaver = connectionSaver;
     this.handlers = new Map();
     this._setupDefaultHandlers();
   }
@@ -607,17 +849,9 @@ class MessageRouter {
    */
   _setupDefaultHandlers() {
     // 基础消息处理
-    this.register("ping", this.handlePing);
-    this.register("echo", this.handleEcho);
-    this.register("authentication", this.handleAuthentication);
-    this.register("find_user", this.handleFindUser);
-    this.register("agent_data", this.handleAgentData);
-    this.register("update_delay", this.handleUpdateDelay);
-    this.register("follow_list", this.handleFollowList);
-
-    // 管理员消息处理
-    this.register("get_connections", this.handleGetConnections, true);
-    this.register("disconnect_client", this.handleDisconnectClient, true);
+    for (let [name, handler] of Object.entries(routerData)) {
+      this.register(name, handler, handler.admin);
+    }
   }
 
   /**
@@ -660,7 +894,7 @@ class MessageRouter {
     if (!handlerInfo) {
       client.send({
         type: "error",
-        message: "未知的消息类型",
+        message: `未知的消息类型：${message.type}`,
         response: message,
       });
       return;
@@ -680,6 +914,7 @@ class MessageRouter {
         message,
         binaryData,
         clientManager: this.clientManager,
+        connectionSaver: this.connectionSaver,
       });
     } catch (error) {
       console.error(`处理消息 ${message.type} 时出错:`, error);
@@ -690,234 +925,13 @@ class MessageRouter {
       });
     }
   }
-
-  // 基础消息处理器
-  /**
-   * 处理ping消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   */
-  handlePing({ client }) {
-    client.send({
-      type: "pong",
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  /**
-   * 处理echo消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   */
-  handleEcho({ client, message }) {
-    client.send({
-      type: "echo",
-      message: message.message,
-      timestamp: new Date().toISOString(),
-    });
-  }
-
-  /**
-   * 处理认证消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   */
-  async handleAuthentication({ client, message }) {
-    try {
-      const userId = await this.clientManager.authenticateClient(
-        client,
-        message.signedData
-      );
-      client.onAuthenticated(userId);
-      client.sendAuthSuccess();
-      client.sendServerInfo();
-    } catch (error) {
-      client.send({
-        type: "error",
-        kind: "authentication",
-        message: error.message,
-      });
-
-      setTimeout(() => {
-        client.close();
-      }, 100);
-    }
-  }
-
-  /**
-   * 处理查找用户消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   */
-  handleFindUser({ client, message }) {
-    const { userId } = message;
-    const targetUserData = this.clientManager.getUserById(userId);
-    const userPool = targetUserData?.userPool
-      ? Array.from(targetUserData.userPool)
-      : [];
-
-    client.send({
-      type: "response_find_user",
-      userId,
-      publicKey: userPool.length > 0 ? userPool[0].publicKey : null,
-      tabs: userPool,
-      isOnline: userPool && userPool.length > 0,
-    });
-  }
-
-  /**
-   * 处理代理数据消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   * @param {Buffer} params.binaryData - 二进制数据
-   */
-  async handleAgentData({ client, message, binaryData }) {
-    const { options, data } = message;
-    const { userId, userSessionId } = options;
-
-    if (!userId) return;
-
-    const targetUserData = this.clientManager.getUserById(userId);
-    if (!targetUserData || !targetUserData.userPool) return;
-
-    let sendData;
-    try {
-      sendData = pack(
-        {
-          type: "agent_data",
-          fromUserId: client.userId,
-          fromUserSessionId: client.userSessionId,
-        },
-        binaryData
-      );
-    } catch (err) {
-      console.error("打包数据失败:", err);
-      return;
-    }
-
-    let targetDeviceClient = null;
-
-    if (userSessionId) {
-      targetDeviceClient = Array.from(targetUserData.userPool).find(
-        (c) => c.userSessionId === userSessionId
-      );
-    }
-
-    if (!targetDeviceClient) {
-      targetDeviceClient = targetUserData.userPool.values().next().value;
-    }
-
-    if (targetDeviceClient) {
-      targetDeviceClient.send(sendData);
-    }
-  }
-
-  /**
-   * 处理更新延迟消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   */
-  handleUpdateDelay({ client, message }) {
-    const { delay } = message;
-    client.delay = delay;
-  }
-
-  /**
-   * 处理关注列表消息
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   */
-  handleFollowList({ client, message }) {
-    const newFollowUsers = message.follows.split(",");
-    this.clientManager.updateFollowList(client, newFollowUsers);
-  }
-
-  // 管理员消息处理器
-  /**
-   * 处理获取连接信息消息（管理员）
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象，可包含分页参数 {page, pageSize}
-   */
-  handleGetConnections({ client, message }) {
-    // 获取分页参数，默认值为第1页，每页20条记录
-    const { page = 1, pageSize = 20 } = message || {};
-    
-    // 参数校验
-    const pageNum = Math.max(1, parseInt(page) || 1);
-    const size = Math.max(1, Math.min(100, parseInt(pageSize) || 20)); // 限制最大每页100条
-    
-    // 获取所有客户端连接信息
-    const allConnections = this.clientManager
-      .getAllClients()
-      .map((client2) => ({
-        id: client2.cid,
-        userId: client2.userId,
-        userInfo: client2.userInfo,
-        connectTime: client2.connectTime,
-        state: client2.state,
-        username: client2.userInfo?.name,
-        delay: client2.delay,
-      }));
-
-    // 计算分页数据
-    const total = allConnections.length;
-    const totalPages = Math.ceil(total / size);
-    const startIndex = (pageNum - 1) * size;
-    const connectionsInfo = allConnections.slice(startIndex, startIndex + size);
-
-    client.send({
-      type: "connections_info",
-      clients: connectionsInfo,
-      pagination: {
-        page: pageNum,
-        pageSize: size,
-        total,
-        totalPages,
-      },
-    });
-  }
-
-  /**
-   * 处理断开客户端连接消息（管理员）
-   * @param {Object} params - 参数对象
-   * @param {Client} params.client - 客户端实例
-   * @param {Object} params.message - 消息对象
-   */
-  handleDisconnectClient({ client, message }) {
-    const { clientId } = message;
-    if (!clientId) {
-      client.send({ type: "error", message: "缺少客户端ID参数" });
-      return;
-    }
-
-    const targetClient = this.clientManager.getClientById(clientId);
-    if (targetClient) {
-      targetClient.close();
-      client.send({
-        type: "success",
-        message: `已断开客户端 ${clientId} 的连接`,
-      });
-    } else {
-      client.send({
-        type: "error",
-        message: `未找到客户端 ${clientId}`,
-      });
-    }
-  }
 }
 
 /**
  * 客户端类
  * 表示一个连接到服务器的客户端连接，处理客户端的状态和通信
  */
-class Client {
+class Client extends EventEmitter {
   /**
    * 构造函数，初始化客户端
    * @param {WebSocket} ws - WebSocket连接实例
@@ -925,6 +939,7 @@ class Client {
    * @param {ClientManager} clientManager - 客户端管理器实例
    */
   constructor(ws, server, clientManager) {
+    super();
     if (ws._client) {
       throw new Error("客户端已经初始化过:" + ws._client.cid);
     }
@@ -933,7 +948,7 @@ class Client {
     this.server = server;
     this.clientManager = clientManager;
 
-    this.cid = this._generateCid();
+    this.cid = this._generateCid(); // 方便后期通过cid添加用户的操作
     this.state = "unauth"; // 未认证：unauth；认证完成：authed
     this.userId = null;
     this.publicKey = null;
@@ -1022,6 +1037,14 @@ class Client {
       clearTimeout(this._authTimer);
       this._authTimer = null;
     }
+
+    // 触发认证成功事件
+    this.emit("authenticated", {
+      userId: userId,
+      clientId: this.cid,
+      userInfo: this.userInfo,
+      timestamp: new Date(),
+    });
   }
 
   /**
@@ -1076,6 +1099,116 @@ class Client {
   }
 }
 
+const getId = (cid) => Date.now() + ":" + cid;
+
+class ConnectionSaver {
+  constructor(dbName) {
+    // Initialize LevelDB
+    this.connectionDB = new Saver(`handdb-connection-${dbName}`);
+  }
+
+  updateState(state, client) {
+    // 记录认证事件
+    this.connectionDB.putWithCount(getId(client.cid), {
+      state,
+      userId: client.userId,
+      userName: client?.userInfo?.name,
+      timestamp: Date.now(),
+    });
+  }
+
+  async handleClient(client) {
+    client.on("authenticated", async () => {
+      // 记录认证事件
+      this.updateState("authenticated", client);
+    });
+
+    client.on("disconnected", async () => {
+      // 记录断开连接事件
+      this.updateState("disconnected", client);
+    });
+  }
+}
+
+const COUNT_KEY = "@@count";
+
+class Saver {
+  constructor(name) {
+    this._db = new Level(name);
+    this.initCount();
+  }
+
+  // 初始化总数量
+  async initCount() {
+    try {
+      this._count = parseInt(await this._db.get(COUNT_KEY), 10) || 0;
+    } catch (err) {
+      if (err.type === "NotFoundError") {
+        await this._db.put(COUNT_KEY, "0");
+        this._count = 0;
+      }
+    }
+  }
+
+  // 添加数据并增加计数
+  async putWithCount(key, value) {
+    const batch = this._db.batch();
+    batch.put(key, JSON.stringify(value));
+    this._count++;
+    batch.put(COUNT_KEY, this._count.toString());
+    await batch.write();
+  }
+
+  // 删除数据并减少计数
+  async delWithCount(key) {
+    const exists = await this._db
+      .get(key)
+      .then(() => true)
+      .catch(() => false);
+    if (!exists) return;
+
+    const batch = this._db.batch();
+    batch.del(key);
+    this._count--;
+    batch.put(COUNT_KEY, this._count.toString());
+    await batch.write();
+  }
+
+  // 获取总数
+  async getTotalLength() {
+    return this._count;
+  }
+
+  // 获取特定条件的数据
+  async batchGet(options = {}) {
+    const { limit = 10, reverse = false, gt, gte, lt, lte } = options;
+    const results = [];
+
+    const opts = { limit, reverse };
+
+    if (gt) opts.gt = gt;
+    if (gte) opts.gte = gte;
+    if (lt) opts.lt = lt;
+    if (lte) opts.lte = lte;
+
+    for await (const [key, value] of this._db.iterator(opts)) {
+      try {
+        if (key === COUNT_KEY) continue;
+
+        results.push({
+          id: key,
+          ...JSON.parse(value),
+        });
+      } catch (err) {
+        // 忽略解析失败的记录
+        console.error("Error parsing JSON for key:", key, value, err);
+      }
+    }
+
+    return results;
+  }
+}
+
 const require = createRequire(import.meta.url);
 const packageJson = require("../package.json");
 
@@ -1091,10 +1224,19 @@ const initServer = async ({
   password,
   port = 8081,
   serverName = "handserver",
+  dbName,
 }) => {
   // 初始化管理器
   const clientManager = new ClientManager();
-  const messageRouter = new MessageRouter(clientManager, password);
+  let connectionSaver;
+  if (dbName) {
+    connectionSaver = new ConnectionSaver(dbName);
+  }
+  const messageRouter = new MessageRouter({
+    clientManager,
+    connectionSaver,
+    password,
+  });
 
   // WebSocket事件处理函数
   /**
@@ -1103,9 +1245,9 @@ const initServer = async ({
    */
   function onConnect(ws) {
     const client = new Client(ws, server, clientManager);
+    connectionSaver && connectionSaver.handleClient(client);
 
     clientManager.addClient(client);
-    console.log("新客户端已连接:", client.cid);
 
     // 发送认证请求
     client.sendNeedAuth();
@@ -1120,7 +1262,14 @@ const initServer = async ({
   function onClose(ws, code, reason) {
     const client = ws._client;
     if (client) {
-      console.log("客户端断开连接:", client.cid);
+      // 触发断开连接事件
+      client.emit("disconnected", {
+        clientId: client.cid,
+        userId: client.userId,
+        code: code,
+        timestamp: new Date(),
+      });
+
       clientManager.removeClient(client.cid);
     }
   }

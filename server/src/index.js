@@ -46,7 +46,6 @@ export const initServer = async ({
     connectionSaver && connectionSaver.handleClient(client);
 
     clientManager.addClient(client);
-    console.log("新客户端已连接:", client.cid);
 
     // 发送认证请求
     client.sendNeedAuth();
@@ -61,8 +60,6 @@ export const initServer = async ({
   function onClose(ws, code, reason) {
     const client = ws._client;
     if (client) {
-      console.log("客户端断开连接:", client.cid);
-
       // 触发断开连接事件
       client.emit("disconnected", {
         clientId: client.cid,
