@@ -40,7 +40,8 @@
     "noneos-handshake": "^0.3.0",
     "rollup": "^4.35.0",
     "shelljs": "^0.10.0",
-    "ws": "^8.18.2"
+    "ws": "^8.18.2",
+    "level": "^10.0.0"
   },
   "dependencies": {
     "crossway": "^1.0.0"
