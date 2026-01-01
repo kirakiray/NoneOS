@@ -311,6 +311,38 @@ export class RemoteUser extends BaseUser {
     });
   }
 
+  // 获取挂载信息
+  async getMounted() {
+    return new Promise((resolve, reject) => {
+      this.post({
+        type: "get-mounted",
+        __internal_mark: 1,
+      });
+
+      const off = this.bind("response-mounted", (event) => {
+        if (event.detail) {
+          resolve(
+            event.detail.map((e) => {
+              return {
+                ...e,
+                path: `$user-${this.userId}:${e.path}`,
+              };
+            })
+          );
+        } else {
+          resolve([]);
+        }
+        off();
+      });
+
+      // 超时
+      const timeout = setTimeout(() => {
+        reject(new Error("获取挂载信息超时"));
+        off();
+      }, 10000);
+    });
+  }
+
   // 发送消息给这个远端用户
   // post(msg, opts) {
   async post(msg, userSessionId) {

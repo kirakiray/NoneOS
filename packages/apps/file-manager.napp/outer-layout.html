@@ -370,6 +370,27 @@
                         },
                       ];
                     }
+
+                    // 获取对方挂载信息
+                    remoteUser.getMounted().then((mounteds) => {
+                      mounteds.forEach((mounted) => {
+                        if (
+                          !targetItem.dirs.some((d) => d.path === mounted.path)
+                        ) {
+                          targetItem.dirs.push({
+                            name: mounted.name,
+                            path: mounted.path,
+                          });
+                        } else {
+                          const targetDir = targetItem.dirs.find(
+                            (d) => d.path === mounted.path
+                          );
+                          if (targetDir) {
+                            targetDir.name = mounted.name;
+                          }
+                        }
+                      });
+                    });
                   } else {
                     if (targetItem && targetItem.dirs.length) {
                       targetItem.dirs = [];

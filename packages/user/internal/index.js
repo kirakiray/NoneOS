@@ -8,6 +8,7 @@ import getCard from "./get-card.js";
 import updateUserCard from "./update-user-card.js";
 import trigger from "./trigger.js";
 import { ping, pong } from "./ping-pong.js";
+import { getMounted, responseMounted } from "./get-mount.js";
 
 // 内部操作相关的函数
 export default {
@@ -19,6 +20,8 @@ export default {
   "receive-observe": receiveObserve,
   "get-card": getCard,
   "update-user-card": updateUserCard,
+  "get-mounted": getMounted,
+  "response-mounted": responseMounted,
   trigger: trigger,
   ping: ping,
   pong: pong,
