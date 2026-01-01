@@ -61,6 +61,18 @@
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
             <o-fill :value="locals" name="path-item"> </o-fill>
+            <p-list-item button on:click="mountTab">
+              <n-local-icon
+                slot="prefix"
+                name="add"
+                style="padding-left: var(--padding-left, 8px)"
+              ></n-local-icon>
+              <localized-content>
+                <span lang="cn">挂载</span>
+                <span lang="en">Mount</span>
+                <span lang="ja">マウント</span>
+              </localized-content>
+            </p-list-item>
           </p-list>
         </p-list-item>
         <p-list-item collapse-childs="open" button="suffix">
@@ -140,9 +152,12 @@
 
   <script>
     export default async ({ load, url }) => {
-      const { get } = await load("/packages/fs/main.js");
+      const { get, mount, getMounted } = await load("/packages/fs/main.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
+
+      const { EverCache } = await load("/packages/libs/ever-cache.js");
+      const mountedDiskCache = new EverCache("mounted-disk");
 
       const { createUser } = await load("/packages/user/main.js");
 
@@ -190,6 +205,7 @@
           ],
           selectedRootName: null, // 选中的目录的名称
           remotes: [], // 远端设备
+          mounted: [], // 挂载的设备
           showErrorDialog: false,
           dialogData: {
             title: "",
@@ -197,6 +213,24 @@
           },
         },
         proto: {
+          async mountTab() {
+            const handle = await mount({
+              save: true,
+            });
+
+            mountedDiskCache.setItem(handle.name, handle._handle);
+          },
+          async loadMounted() {
+            const mounted = await getMounted();
+            debugger;
+            this.mounted = mounted.map((e) => {
+              return {
+                name: e.name,
+                path: e.path,
+                icon: e.icon,
+              };
+            });
+          },
           openDialog(e) {
             this.showErrorDialog = true;
             this.dialogData.title = e.data.title;
@@ -214,6 +248,7 @@
           },
         },
         async ready() {
+          this.loadMounted();
           const isSafari =
             navigator.userAgent.includes("Safari") &&
             !navigator.userAgent.includes("Chrome");
