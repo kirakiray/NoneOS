@@ -101,6 +101,43 @@
     }
   };
 
+  // db相关的操作
+  let _handleDB = null;
+  const getHandleDB = async () => {
+    if (_handleDB) return _handleDB;
+
+    return new Promise((resolve) => {
+      const req = indexedDB.open("handles-db", 1);
+      req.onupgradeneeded = () =>
+        req.result.createObjectStore("handles", { keyPath: "id" });
+      req.onsuccess = () => {
+        _handleDB = req.result;
+        resolve(req.result);
+      };
+      req.onerror = (e) => {
+        _handleDB = null;
+      };
+      req.onblocked = () => {
+        _handleDB = null;
+      };
+    });
+  };
+
+  // 加载指定ID的句柄
+  const loadHandle = async (id) => {
+    const db = await getHandleDB();
+    return new Promise((resolve, reject) => {
+      const req = db.transaction("handles").objectStore("handles").get(id);
+      req.onsuccess = (e) => {
+        const result = e.target.result;
+        resolve(result ? result.handle : null);
+      };
+      req.onerror = () => {
+        reject(req.error);
+      };
+    });
+  };
+
   // 响应文件相关的请求
   const resposeFs = (event) => {
     const { request } = event;
@@ -184,42 +221,6 @@
         }
       })()
     );
-  };
-
-  let _handleDB = null;
-  const getHandleDB = async () => {
-    if (_handleDB) return _handleDB;
-
-    return new Promise((resolve) => {
-      const req = indexedDB.open("handles-db", 1);
-      req.onupgradeneeded = () =>
-        req.result.createObjectStore("handles", { keyPath: "id" });
-      req.onsuccess = () => {
-        _handleDB = req.result;
-        resolve(req.result);
-      };
-      req.onerror = (e) => {
-        _handleDB = null;
-      };
-      req.onblocked = () => {
-        _handleDB = null;
-      };
-    });
-  };
-
-  // 加载指定ID的句柄
-  const loadHandle = async (id) => {
-    const db = await getHandleDB();
-    return new Promise((resolve, reject) => {
-      const req = db.transaction("handles").objectStore("handles").get(id);
-      req.onsuccess = (e) => {
-        const result = e.target.result;
-        resolve(result ? result.handle : null);
-      };
-      req.onerror = () => {
-        reject(req.error);
-      };
-    });
   };
 
   const configs = {

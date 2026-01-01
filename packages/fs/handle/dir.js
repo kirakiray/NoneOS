@@ -2,19 +2,6 @@ import { BaseHandle } from "./base.js";
 import { FileHandle } from "./file.js";
 import { extendDirHandle } from "../public/dir.js";
 
-const checkPermission = async (handle) => {
-  try {
-    const result = await handle.queryPermission({ mode: "readwrite" });
-
-    if (result !== "granted") {
-      // 进行申请权限
-      await handle.requestPermission({ mode: "readwrite" });
-    }
-  } catch (err) {
-    throw new Error(`Permission denied: ${err.message}`);
-  }
-};
-
 export class DirHandle extends BaseHandle {
   constructor(...args) {
     super(...args);
@@ -22,8 +9,6 @@ export class DirHandle extends BaseHandle {
 
   async get(name, options) {
     const { create } = options || {};
-
-    await checkPermission(this._handle);
 
     if (name.includes("/")) {
       return await this._getByMultiPath(name, options);
@@ -92,8 +77,6 @@ export class DirHandle extends BaseHandle {
   }
 
   async *keys() {
-    await checkPermission(this._handle);
-
     for await (let key of this._handle.keys()) {
       yield key;
     }

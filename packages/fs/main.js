@@ -4,7 +4,7 @@ import {
   getMounted,
   unmount,
   get as mountedGet,
-} from "./handle/mount.js";
+} from "./handle/mount/mount.js";
 export { mount, getMounted, unmount };
 import { get as systemHandleGet } from "./handle/main.js";
 
