@@ -182,7 +182,7 @@
     let { pathname, origin, searchParams } = new URL(request.url);
     pathname = decodeURIComponent(pathname);
 
-    const mountedId = pathname.replace(/\/\$mount\-(.+):.+/, "$1");
+    const mountedId = pathname.replace(/\/\$mount\-(.+)>.+/, "$1");
     const pathsArr = pathname.split("/").slice(2);
 
     // 改用直接的 opfs 读取文件方法

@@ -164,7 +164,7 @@
       {{$data.name}}
 
       <p-button
-        class:hide="$data.icon !== 'ssd'"
+        class:hide="!$data.isLocalMount"
         on:click="$host.unmountTab($data,$event)"
         size="mini"
         variant="text"
@@ -284,6 +284,7 @@
                 name: e.name,
                 path: e.path,
                 icon: "ssd",
+                isLocalMount: true,
               };
             });
           },
@@ -378,6 +379,7 @@
                           !targetItem.dirs.some((d) => d.path === mounted.path)
                         ) {
                           targetItem.dirs.push({
+                            icon: "ssd",
                             name: mounted.name,
                             path: mounted.path,
                           });
