@@ -23,6 +23,16 @@ export const mount = async (options) => {
   return handle;
 };
 
+export const unmount = async (id) => {
+  // 确认是存在的句柄
+  const handle = await loadHandle(id);
+  if (!handle) {
+    throw new Error(`Handle ${id} does not exist`);
+  }
+
+  return deleteHandle(id);
+};
+
 export const get = async (path, options) => {
   const pathArr = path.split("/");
   const rootName = pathArr[0];

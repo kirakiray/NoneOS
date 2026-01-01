@@ -8,6 +8,7 @@
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -46,6 +47,10 @@
     .left-bottom {
       margin-top: auto;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
   <n-horsp-pannel on:open-dialog="openDialog">
     <div slot="left" class="left-con">
@@ -72,7 +77,8 @@
             </localized-content>
             <i toggle-collapse triangle slot="suffix"></i>
             <p-list slot="childs">
-              <o-fill :value="mounted" name="path-item"> </o-fill>
+              <o-fill :value="mounted" name="path-item" fill-key="path">
+              </o-fill>
               <p-list-item button on:click="mountTab">
                 <n-local-icon
                   slot="prefix"
@@ -156,6 +162,19 @@
         style="padding-left: var(--padding-left, 8px)"
       ></n-local-icon>
       {{$data.name}}
+
+      <p-button
+        class:hide="$data.icon !== 'ssd'"
+        on:click="$host.unmountTab($data,$event)"
+        size="mini"
+        variant="text"
+        color="normal"
+        style="z-index: 3"
+        slot="suffix"
+        icon
+      >
+        <n-local-icon name="eject"></n-local-icon>
+      </p-button>
     </p-list-item>
   </template>
   <p-dialog :open="showErrorDialog" on:click-mask="showErrorDialog=false">
@@ -165,7 +184,10 @@
 
   <script>
     export default async ({ load, url }) => {
-      const { get, mount, getMounted } = await load("/packages/fs/main.js");
+      const { get, mount, getMounted, unmount } = await load(
+        "/packages/fs/main.js"
+      );
+      const { confirm } = await load("/packages/pui/util.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
@@ -224,15 +246,42 @@
           showMounted: !!window.showDirectoryPicker, // 是否展示挂载的设备
         },
         proto: {
+          async unmountTab(data, event) {
+            event.stopPropagation();
+
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "确认卸载",
+                en: "Confirm Unmount",
+                ja: "アンマウントを確認",
+              }),
+              content: await getLocalized({
+                cn: `是否确认卸载 ${data.name}？`,
+                en: `Are you sure to unmount ${data.name}?`,
+                ja: `${data.name} をアンマウントしますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await unmount(data.id);
+            debugger;
+            this.loadMounted();
+          },
           async mountTab() {
             mount({
               save: true,
             });
+
+            this.loadMounted();
           },
           async loadMounted() {
             const mounted = await getMounted();
             this.mounted = mounted.map((e) => {
               return {
+                id: e.id,
                 name: e.name,
                 path: e.path,
                 icon: "ssd",

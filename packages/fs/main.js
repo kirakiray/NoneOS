@@ -1,6 +1,11 @@
 export { init } from "./handle/main.js";
-import { mount, getMounted, get as mountedGet } from "./handle/mount.js";
-export { mount, getMounted };
+import {
+  mount,
+  getMounted,
+  unmount,
+  get as mountedGet,
+} from "./handle/mount.js";
+export { mount, getMounted, unmount };
 import { get as systemHandleGet } from "./handle/main.js";
 
 export const get = async (path, options) => {
