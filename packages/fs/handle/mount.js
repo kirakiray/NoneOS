@@ -1,4 +1,5 @@
 import { DirHandle } from "./dir.js";
+import { RESET_PATH } from "../public/base.js";
 
 export const mount = async (options) => {
   if (!window.showDirectoryPicker) {
@@ -22,16 +23,27 @@ export const mount = async (options) => {
   return handle;
 };
 
+export const get = async (path, options) => {
+  debugger;
+};
+
 // 获取已经挂载的句柄列表
 export const getMounted = async () => {
   const allHandles = await getAllHandles();
 
   // 重新包装
-  return allHandles.map((item) => ({
-    id: item.id,
-    name: item.handle.name,
-    handle: new DirHandle(item.handle),
-  }));
+  return allHandles.map((item) => {
+    const handle = new DirHandle(item.handle);
+
+    handle[RESET_PATH] = `$mount-${item.id}:${item.handle.name}`;
+
+    return {
+      id: item.id,
+      name: item.handle.name,
+      path: handle.path,
+      handle,
+    };
+  });
 };
 
 // db相关的操作

@@ -61,20 +61,33 @@
           <i toggle-collapse triangle slot="suffix"></i>
           <p-list slot="childs">
             <o-fill :value="locals" name="path-item"> </o-fill>
-            <p-list-item button on:click="mountTab">
-              <n-local-icon
-                slot="prefix"
-                name="add"
-                style="padding-left: var(--padding-left, 8px)"
-              ></n-local-icon>
-              <localized-content>
-                <span lang="cn">挂载</span>
-                <span lang="en">Mount</span>
-                <span lang="ja">マウント</span>
-              </localized-content>
-            </p-list-item>
           </p-list>
         </p-list-item>
+        <o-if :value="showMounted">
+          <p-list-item collapse-childs="open" button="suffix">
+            <localized-content style="font-size: 13px; font-weight: 600">
+              <span lang="cn">本机文件夹</span>
+              <span lang="en">Local Folder</span>
+              <span lang="ja">ローカルフォルダ</span>
+            </localized-content>
+            <i toggle-collapse triangle slot="suffix"></i>
+            <p-list slot="childs">
+              <o-fill :value="mounted" name="path-item"> </o-fill>
+              <p-list-item button on:click="mountTab">
+                <n-local-icon
+                  slot="prefix"
+                  name="add"
+                  style="padding-left: var(--padding-left, 8px)"
+                ></n-local-icon>
+                <localized-content>
+                  <span lang="cn">添加</span>
+                  <span lang="en">Add</span>
+                  <span lang="ja">追加</span>
+                </localized-content>
+              </p-list-item>
+            </p-list>
+          </p-list-item>
+        </o-if>
         <p-list-item collapse-childs="open" button="suffix">
           <span style="font-size: 13px; font-weight: 600">
             <localized-content>
@@ -208,6 +221,7 @@
             title: "",
             content: "",
           },
+          showMounted: !!window.showDirectoryPicker, // 是否展示挂载的设备
         },
         proto: {
           async mountTab() {
@@ -221,7 +235,7 @@
               return {
                 name: e.name,
                 path: e.path,
-                _handle: e.handle,
+                icon: "ssd",
               };
             });
           },

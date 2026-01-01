@@ -1,12 +1,15 @@
 export { init } from "./handle/main.js";
-export { mount, getMounted } from "./handle/mount.js";
+import { mount, getMounted, get as mountedGet } from "./handle/mount.js";
+export { mount, getMounted };
 import { get as systemHandleGet } from "./handle/main.js";
-// import { createGet } from "./fs-remote/main.js";
-// import { createUser } from "../user/main.js";
 
 export const get = async (path, options) => {
   if (!path) {
     throw new Error("path is required");
+  }
+
+  if (path.startsWith("$mount-")) {
+    return mountedGet(path, options);
   }
 
   // 判断是否有远端用户的目录引用
