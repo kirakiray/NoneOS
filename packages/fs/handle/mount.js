@@ -34,18 +34,31 @@ export const getMounted = async () => {
   }));
 };
 
-// 保存db相关的操作
-// 数据库初始化（只在 keyPath 上加了 'id'）
-const dbPromise = new Promise((resolve) => {
-  const req = indexedDB.open("handles-db", 1);
-  req.onupgradeneeded = () =>
-    req.result.createObjectStore("handles", { keyPath: "id" });
-  req.onsuccess = () => resolve(req.result);
-});
+// db相关的操作
+let _handleDB = null;
+const getHandleDB = async () => {
+  if (_handleDB) return _handleDB;
+
+  return new Promise((resolve) => {
+    const req = indexedDB.open("handles-db", 1);
+    req.onupgradeneeded = () =>
+      req.result.createObjectStore("handles", { keyPath: "id" });
+    req.onsuccess = () => {
+      _handleDB = req.result;
+      resolve(req.result);
+    };
+    req.onerror = (e) => {
+      _handleDB = null;
+    };
+    req.onblocked = () => {
+      _handleDB = null;
+    };
+  });
+};
 
 // 保存（自动生成唯一ID，返回ID值）
 const saveHandle = async (handle) => {
-  const db = await dbPromise;
+  const db = await getHandleDB();
 
   let id;
   if (handle.getUniqueId) {
@@ -72,7 +85,7 @@ const saveHandle = async (handle) => {
 
 // 获取所有句柄列表（含ID和名称）
 const getAllHandles = async () => {
-  const db = await dbPromise;
+  const db = await getHandleDB();
   return new Promise((resolve) => {
     db.transaction("handles").objectStore("handles").getAll().onsuccess = (
       e
@@ -84,14 +97,14 @@ const getAllHandles = async () => {
 
 // // 加载指定ID的句柄
 // const loadHandle = async (id) => {
-//   const db = await dbPromise;
+//   const db = await getHandleDB();
 //   return (await db.transaction("handles").objectStore("handles").get(id))
 //     ?.handle;
 // };
 
 // 删除指定ID
 const deleteHandle = async (id) => {
-  const db = await dbPromise;
+  const db = await getHandleDB();
   await db
     .transaction("handles", "readwrite")
     .objectStore("handles")
