@@ -73,6 +73,18 @@
 
               if (index === 0) {
                 if (e.includes(":")) {
+                  // 挂载模式
+                  if (e.startsWith("$mount-")) {
+                    // 挂载模式
+                    const [mark, rootName] = e.split(":");
+
+                    arr.push({
+                      name: rootName,
+                      kind: "folder-local",
+                      path: e,
+                    });
+                    continue;
+                  }
                   // 协议模式
                   if (e.startsWith("$user-")) {
                     // 用户模式
