@@ -156,9 +156,6 @@
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
-      const { EverCache } = await load("/packages/libs/ever-cache.js");
-      const mountedDiskCache = new EverCache("mounted-disk");
-
       const { createUser } = await load("/packages/user/main.js");
 
       const localUser = await createUser();
@@ -214,20 +211,17 @@
         },
         proto: {
           async mountTab() {
-            const handle = await mount({
+            mount({
               save: true,
             });
-
-            mountedDiskCache.setItem(handle.name, handle._handle);
           },
           async loadMounted() {
             const mounted = await getMounted();
-            debugger;
             this.mounted = mounted.map((e) => {
               return {
                 name: e.name,
                 path: e.path,
-                icon: e.icon,
+                _handle: e.handle,
               };
             });
           },

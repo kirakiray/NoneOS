@@ -26,7 +26,12 @@ export const mount = async (options) => {
 export const getMounted = async () => {
   const allHandles = await getAllHandles();
 
-  debugger;
+  // 重新包装
+  return allHandles.map((item) => ({
+    id: item.id,
+    name: item.handle.name,
+    handle: new DirHandle(item.handle),
+  }));
 };
 
 // 保存db相关的操作
@@ -46,18 +51,35 @@ const saveHandle = async (handle) => {
   if (handle.getUniqueId) {
     id = await handle.getUniqueId();
   } else {
-    // TODO: 判断已经保存的是否重复，isSameEntry判断
     id = `${handle.kind}-${Date.now()}`;
+    const allHandles = await getAllHandles();
+
+    const isSame = allHandles.some((item) => item.handle.isSameEntry(handle));
+    if (isSame) {
+      // 已经挂载过了
+      return;
+    }
   }
 
   await db.transaction("handles", "readwrite").objectStore("handles").put({
     id,
-    name: handle.name,
     handle,
     time: Date.now(),
   });
 
   return id;
+};
+
+// 获取所有句柄列表（含ID和名称）
+const getAllHandles = async () => {
+  const db = await dbPromise;
+  return new Promise((resolve) => {
+    db.transaction("handles").objectStore("handles").getAll().onsuccess = (
+      e
+    ) => {
+      resolve(e.target.result);
+    };
+  });
 };
 
 // // 加载指定ID的句柄
@@ -66,12 +88,6 @@ const saveHandle = async (handle) => {
 //   return (await db.transaction("handles").objectStore("handles").get(id))
 //     ?.handle;
 // };
-
-// 获取所有句柄列表（含ID和名称）
-const getAllHandles = async () => {
-  const db = await dbPromise;
-  return db.transaction("handles").objectStore("handles").getAll();
-};
 
 // 删除指定ID
 const deleteHandle = async (id) => {
