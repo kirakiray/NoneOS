@@ -71,6 +71,19 @@
               const e = pathArr[index];
               pathStr += `${e}/`;
 
+              // 挂载模式
+              if (e.startsWith("$mount-")) {
+                // 挂载模式
+                const [mark, reRootName] = e.split(">");
+
+                arr.push({
+                  name: reRootName,
+                  kind: "folder-local",
+                  path: e,
+                });
+                continue;
+              }
+
               if (index === 0) {
                 if (e.includes(":")) {
                   // 协议模式
@@ -89,7 +102,7 @@
                       remoteRoot: 1,
                     });
 
-                    // 挂载模式
+                    // 远程文件的挂载模式
                     if (rootName.startsWith("$mount-")) {
                       // 挂载模式
                       const [mark, reRootName] = rootName.split(">");
