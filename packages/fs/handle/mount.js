@@ -17,7 +17,7 @@ export const mount = async (options) => {
   const handle = new DirHandle(directoryHandle);
 
   if (options.save) {
-    saveHandle(handle._handle);
+    await saveHandle(handle._handle);
   }
 
   return handle;

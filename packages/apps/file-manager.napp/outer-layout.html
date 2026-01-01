@@ -267,11 +267,10 @@
             }
 
             await unmount(data.id);
-            debugger;
             this.loadMounted();
           },
           async mountTab() {
-            mount({
+            await mount({
               save: true,
             });
 
