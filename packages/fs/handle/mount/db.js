@@ -31,7 +31,9 @@ export const saveHandle = async (handle) => {
     id = `${handle.kind}-${Date.now()}`;
     const allHandles = await getAllHandles();
 
-    const isSame = allHandles.some((item) => item.handle.isSameEntry(handle));
+    const isSame = await Promise.all(
+      allHandles.map((item) => item.handle.isSameEntry(handle))
+    ).then((results) => results.some(Boolean));
     if (isSame) {
       // 已经挂载过了
       return;
