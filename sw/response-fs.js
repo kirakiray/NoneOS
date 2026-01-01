@@ -9,7 +9,7 @@ const resposeFs = (event) => {
 
   // 检查路径是否以 $mount- 开头
   if (pathname.startsWith("/$mount-")) {
-    return resposeMountedFs(event);
+    return responseMountedFs(event);
   }
 
   const paths = pathname.split("/");
@@ -40,7 +40,7 @@ const resposeFs = (event) => {
 };
 
 // 返回$mount-开头的文件
-const resposeMountedFs = (event) => {
+const responseMountedFs = (event) => {
   const { request } = event;
   let { pathname, origin, searchParams } = new URL(request.url);
   pathname = decodeURIComponent(pathname);
