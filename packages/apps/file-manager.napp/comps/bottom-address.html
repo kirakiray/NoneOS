@@ -89,11 +89,24 @@
                       remoteRoot: 1,
                     });
 
-                    arr.push({
-                      name: rootName,
-                      kind: "dir",
-                      path: e,
-                    });
+                    // 挂载模式
+                    if (rootName.startsWith("$mount-")) {
+                      // 挂载模式
+                      const [mark, reRootName] = rootName.split(">");
+
+                      arr.push({
+                        name: reRootName,
+                        kind: "folder-local",
+                        path: e,
+                      });
+                    } else {
+                      arr.push({
+                        name: rootName,
+                        kind: "dir",
+                        path: e,
+                      });
+                    }
+
                     continue;
                   }
                 }

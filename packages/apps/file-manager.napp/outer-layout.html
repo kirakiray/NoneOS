@@ -8,6 +8,7 @@
   <l-m src="/packages/comps/user-avatar.html"></l-m>
   <l-m src="/packages/comps/user-name.html"></l-m>
   <l-m src="/packages/comps/user-state.html"></l-m>
+  <l-m src="/packages/pui/button/button.html"></l-m>
   <style>
     :host {
       display: block;
@@ -46,6 +47,10 @@
     .left-bottom {
       margin-top: auto;
     }
+
+    .hide {
+      display: none !important;
+    }
   </style>
   <n-horsp-pannel on:open-dialog="openDialog">
     <div slot="left" class="left-con">
@@ -63,6 +68,32 @@
             <o-fill :value="locals" name="path-item"> </o-fill>
           </p-list>
         </p-list-item>
+        <o-if :value="showMounted">
+          <p-list-item collapse-childs="open" button="suffix">
+            <localized-content style="font-size: 13px; font-weight: 600">
+              <span lang="cn">本机文件夹</span>
+              <span lang="en">Local Folder</span>
+              <span lang="ja">ローカルフォルダ</span>
+            </localized-content>
+            <i toggle-collapse triangle slot="suffix"></i>
+            <p-list slot="childs">
+              <o-fill :value="mounted" name="path-item" fill-key="path">
+              </o-fill>
+              <p-list-item button on:click="mountTab">
+                <n-local-icon
+                  slot="prefix"
+                  name="add"
+                  style="padding-left: var(--padding-left, 8px)"
+                ></n-local-icon>
+                <localized-content>
+                  <span lang="cn">添加</span>
+                  <span lang="en">Add</span>
+                  <span lang="ja">追加</span>
+                </localized-content>
+              </p-list-item>
+            </p-list>
+          </p-list-item>
+        </o-if>
         <p-list-item collapse-childs="open" button="suffix">
           <span style="font-size: 13px; font-weight: 600">
             <localized-content>
@@ -131,6 +162,19 @@
         style="padding-left: var(--padding-left, 8px)"
       ></n-local-icon>
       {{$data.name}}
+
+      <p-button
+        class:hide="!$data.isLocalMount"
+        on:click="$host.unmountTab($data,$event)"
+        size="mini"
+        variant="text"
+        color="normal"
+        style="z-index: 3"
+        slot="suffix"
+        icon
+      >
+        <n-local-icon name="eject"></n-local-icon>
+      </p-button>
     </p-list-item>
   </template>
   <p-dialog :open="showErrorDialog" on:click-mask="showErrorDialog=false">
@@ -140,7 +184,10 @@
 
   <script>
     export default async ({ load, url }) => {
-      const { get } = await load("/packages/fs/main.js");
+      const { get, mount, getMounted, unmount } = await load(
+        "/packages/fs/main.js"
+      );
+      const { confirm } = await load("/packages/pui/util.js");
 
       const { getLocalized } = await load("/packages/i18n/localized-object.js");
 
@@ -190,13 +237,57 @@
           ],
           selectedRootName: null, // 选中的目录的名称
           remotes: [], // 远端设备
+          mounted: [], // 挂载的设备
           showErrorDialog: false,
           dialogData: {
             title: "",
             content: "",
           },
+          showMounted: !!window.showDirectoryPicker, // 是否展示挂载的设备
         },
         proto: {
+          async unmountTab(data, event) {
+            event.stopPropagation();
+
+            const result = await confirm({
+              title: await getLocalized({
+                cn: "确认卸载",
+                en: "Confirm Unmount",
+                ja: "アンマウントを確認",
+              }),
+              content: await getLocalized({
+                cn: `是否确认卸载 ${data.name}？`,
+                en: `Are you sure to unmount ${data.name}?`,
+                ja: `${data.name} をアンマウントしますか？`,
+              }),
+            });
+
+            if (!result) {
+              return;
+            }
+
+            await unmount(data.id);
+            this.loadMounted();
+          },
+          async mountTab() {
+            await mount({
+              save: true,
+            });
+
+            this.loadMounted();
+          },
+          async loadMounted() {
+            const mounted = await getMounted();
+            this.mounted = mounted.map((e) => {
+              return {
+                id: e.id,
+                name: e.name,
+                path: e.path,
+                icon: "ssd",
+                isLocalMount: true,
+              };
+            });
+          },
           openDialog(e) {
             this.showErrorDialog = true;
             this.dialogData.title = e.data.title;
@@ -214,6 +305,7 @@
           },
         },
         async ready() {
+          this.loadMounted();
           const isSafari =
             navigator.userAgent.includes("Safari") &&
             !navigator.userAgent.includes("Chrome");
@@ -279,6 +371,28 @@
                         },
                       ];
                     }
+
+                    // 获取对方挂载信息
+                    remoteUser.getMounted().then((mounteds) => {
+                      mounteds.forEach((mounted) => {
+                        if (
+                          !targetItem.dirs.some((d) => d.path === mounted.path)
+                        ) {
+                          targetItem.dirs.push({
+                            icon: "ssd",
+                            name: mounted.name,
+                            path: mounted.path,
+                          });
+                        } else {
+                          const targetDir = targetItem.dirs.find(
+                            (d) => d.path === mounted.path
+                          );
+                          if (targetDir) {
+                            targetDir.name = mounted.name;
+                          }
+                        }
+                      });
+                    });
                   } else {
                     if (targetItem && targetItem.dirs.length) {
                       targetItem.dirs = [];

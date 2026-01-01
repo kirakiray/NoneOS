@@ -15,7 +15,7 @@
         .getDirectoryHandle(dirName)
         .catch(() => null);
       if (!dirHandle) {
-        throw new Error(`目录 ${currentPath} 不存在`);
+        throw new Error(`Directory ${currentPath} does not exist`);
       }
       currentDir = dirHandle;
     }
@@ -25,7 +25,7 @@
       .catch(() => null);
 
     if (!fileHandle) {
-      throw new Error(`文件 ${filepath} 不存在`);
+      throw new Error(`File ${filepath} does not exist`);
     }
 
     return fileHandle;
@@ -101,11 +101,53 @@
     }
   };
 
+  // db相关的操作
+  let _handleDB = null;
+  const getHandleDB = async () => {
+    if (_handleDB) return _handleDB;
+
+    return new Promise((resolve) => {
+      const req = indexedDB.open("handles-db", 1);
+      req.onupgradeneeded = () =>
+        req.result.createObjectStore("handles", { keyPath: "id" });
+      req.onsuccess = () => {
+        _handleDB = req.result;
+        resolve(req.result);
+      };
+      req.onerror = (e) => {
+        _handleDB = null;
+      };
+      req.onblocked = () => {
+        _handleDB = null;
+      };
+    });
+  };
+
+  // 加载指定ID的句柄
+  const loadHandle = async (id) => {
+    const db = await getHandleDB();
+    return new Promise((resolve, reject) => {
+      const req = db.transaction("handles").objectStore("handles").get(id);
+      req.onsuccess = (e) => {
+        const result = e.target.result;
+        resolve(result ? result.handle : null);
+      };
+      req.onerror = () => {
+        reject(req.error);
+      };
+    });
+  };
+
   // 响应文件相关的请求
   const resposeFs = (event) => {
     const { request } = event;
     let { pathname, origin, searchParams } = new URL(request.url);
     pathname = decodeURIComponent(pathname);
+
+    // 检查路径是否以 $mount- 开头
+    if (pathname.startsWith("/$mount-")) {
+      return responseMountedFs(event);
+    }
 
     const paths = pathname.split("/");
     const filepath = [paths[1].replace("$", ""), ...paths.slice(2)].join("/");
@@ -120,6 +162,53 @@
           const prefix = pathname.split(".").pop();
 
           return new Response(await fileHandle.getFile(), {
+            status: 200,
+            headers: {
+              "Content-Type": getContentType(prefix),
+            },
+          });
+        } catch (err) {
+          return new Response(err.stack || err.toString(), {
+            status: 400,
+          });
+        }
+      })()
+    );
+  };
+
+  // 返回$mount-开头的文件
+  const responseMountedFs = (event) => {
+    const { request } = event;
+    let { pathname, origin, searchParams } = new URL(request.url);
+    pathname = decodeURIComponent(pathname);
+
+    const mountedId = pathname.replace(/\/\$mount\-(.+)>.+/, "$1");
+    const pathsArr = pathname.split("/").slice(2);
+
+    // 改用直接的 opfs 读取文件方法
+    event.respondWith(
+      (async () => {
+        try {
+          const rootHandle = await loadHandle(mountedId);
+
+          if (!rootHandle) {
+            throw new Error(`Mounted ID ${mountedId} not found`);
+          }
+
+          let finalHandle = rootHandle;
+          for (let i = 0; i < pathsArr.length; i++) {
+            const part = pathsArr[i];
+            const isLast = i === pathsArr.length - 1;
+            if (isLast) {
+              finalHandle = await finalHandle.getFileHandle(part);
+            } else {
+              finalHandle = await finalHandle.getDirectoryHandle(part);
+            }
+          }
+
+          const prefix = pathname.split(".").pop();
+
+          return new Response(await finalHandle.getFile(), {
             status: 200,
             headers: {
               "Content-Type": getContentType(prefix),

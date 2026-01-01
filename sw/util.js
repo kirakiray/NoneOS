@@ -12,7 +12,7 @@ export const getFile = async (filepath) => {
       .getDirectoryHandle(dirName)
       .catch(() => null);
     if (!dirHandle) {
-      throw new Error(`目录 ${currentPath} 不存在`);
+      throw new Error(`Directory ${currentPath} does not exist`);
     }
     currentDir = dirHandle;
   }
@@ -22,7 +22,7 @@ export const getFile = async (filepath) => {
     .catch(() => null);
 
   if (!fileHandle) {
-    throw new Error(`文件 ${filepath} 不存在`);
+    throw new Error(`File ${filepath} does not exist`);
   }
 
   return fileHandle;

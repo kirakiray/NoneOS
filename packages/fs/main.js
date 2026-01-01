@@ -1,12 +1,20 @@
 export { init } from "./handle/main.js";
-export { mount } from "./handle/mount.js";
+import {
+  mount,
+  getMounted,
+  unmount,
+  get as mountedGet,
+} from "./handle/mount/mount.js";
+export { mount, getMounted, unmount };
 import { get as systemHandleGet } from "./handle/main.js";
-import { createGet } from "./fs-remote/main.js";
-import { createUser } from "../user/main.js";
 
 export const get = async (path, options) => {
   if (!path) {
     throw new Error("path is required");
+  }
+
+  if (path.startsWith("$mount-")) {
+    return mountedGet(path, options);
   }
 
   // 判断是否有远端用户的目录引用
@@ -20,6 +28,8 @@ export const get = async (path, options) => {
       userId = mark.split("-")[1];
     }
 
+    const { createUser } = await import("/packages/user/main.js");
+
     const localUser = await createUser();
     const remoteUser = await localUser.connectUser(userId);
 
@@ -31,6 +41,8 @@ export const get = async (path, options) => {
         console.log("initRTC error", error);
       }
     }
+
+    const { createGet } = await import("./fs-remote/main.js");
 
     // 远端用户的目录引用
     const remoteGet = createGet({ remoteUser });

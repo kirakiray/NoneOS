@@ -1,3 +1,5 @@
+export const RESET_PATH = Symbol("resetPath");
+
 export class PublicBaseHandle {
   #parent;
   #root;
@@ -15,6 +17,10 @@ export class PublicBaseHandle {
   }
 
   get path() {
+    if (this[RESET_PATH]) {
+      return this[RESET_PATH];
+    }
+
     if (this.parent) {
       return `${this.parent.path}/${this.name}`;
     }
