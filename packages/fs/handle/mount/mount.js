@@ -53,7 +53,7 @@ export const unmount = async (id) => {
 export const get = async (path, options) => {
   const pathArr = path.split("/");
   const rootName = pathArr[0];
-  const [mark, reRootName] = rootName.split(":");
+  const [mark, reRootName] = rootName.split(">");
   const dirId = mark.replace(/\$mount-/, "");
 
   const _handle = await loadHandle(dirId);
@@ -62,7 +62,7 @@ export const get = async (path, options) => {
 
   const handle = new DirHandle(_handle);
 
-  handle[RESET_PATH] = `$mount-${dirId}:${reRootName}`;
+  handle[RESET_PATH] = `$mount-${dirId}>${reRootName}`;
 
   if (pathArr.length === 1) {
     return handle;
@@ -86,7 +86,7 @@ export const getMounted = async () => {
   return allHandles.map((item) => {
     const handle = new DirHandle(item.handle);
 
-    handle[RESET_PATH] = `$mount-${item.id}:${item.handle.name}`;
+    handle[RESET_PATH] = `$mount-${item.id}>${item.handle.name}`;
 
     return {
       id: item.id,
