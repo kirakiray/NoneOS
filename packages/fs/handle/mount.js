@@ -24,7 +24,24 @@ export const mount = async (options) => {
 };
 
 export const get = async (path, options) => {
-  debugger;
+  const pathArr = path.split("/");
+  const rootName = pathArr[0];
+  const [mark, reRootName] = rootName.split(":");
+  const dirId = mark.replace(/\$mount-/, "");
+
+  const _handle = await loadHandle(dirId);
+
+  const handle = new DirHandle(_handle);
+
+  handle[RESET_PATH] = `$mount-${dirId}:${reRootName}`;
+
+  if (pathArr.length === 1) {
+    return handle;
+  }
+
+  const remainingPath = pathArr.slice(1).join("/");
+
+  return handle.get(remainingPath, options);
 };
 
 // 获取已经挂载的句柄列表
@@ -107,12 +124,20 @@ const getAllHandles = async () => {
   });
 };
 
-// // 加载指定ID的句柄
-// const loadHandle = async (id) => {
-//   const db = await getHandleDB();
-//   return (await db.transaction("handles").objectStore("handles").get(id))
-//     ?.handle;
-// };
+// 加载指定ID的句柄
+const loadHandle = async (id) => {
+  const db = await getHandleDB();
+  return new Promise((resolve, reject) => {
+    const req = db.transaction("handles").objectStore("handles").get(id);
+    req.onsuccess = (e) => {
+      const result = e.target.result;
+      resolve(result ? result.handle : null);
+    };
+    req.onerror = () => {
+      reject(req.error);
+    };
+  });
+};
 
 // 删除指定ID
 const deleteHandle = async (id) => {
