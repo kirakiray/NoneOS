@@ -350,7 +350,37 @@
             // 尝试连接对方
             const remoteUser = await localUser.connectUser(e.userId);
 
+            const refreshMounted = async () => {
+              // 获取对方挂载信息
+              remoteUser.getMounted().then((mounteds) => {
+                const targetItem = this.remotes.find(
+                  (item) => item.userId === remoteUser.userId
+                );
+
+                mounteds.forEach((mounted) => {
+                  if (!targetItem.dirs.some((d) => d.path === mounted.path)) {
+                    targetItem.dirs.push({
+                      icon: "ssd",
+                      name: mounted.name,
+                      path: mounted.path,
+                    });
+                  } else {
+                    const targetDir = targetItem.dirs.find(
+                      (d) => d.path === mounted.path
+                    );
+                    if (targetDir) {
+                      targetDir.name = mounted.name;
+                    }
+                  }
+                });
+              });
+            };
+
             if (this.ele.isConnected) {
+              if (remoteUser.mode != 0) {
+                refreshMounted();
+              }
+
               this._cancels.push(
                 remoteUser.bind("mode-change", async (e) => {
                   const targetItem = this.remotes.find(
@@ -372,27 +402,7 @@
                       ];
                     }
 
-                    // 获取对方挂载信息
-                    remoteUser.getMounted().then((mounteds) => {
-                      mounteds.forEach((mounted) => {
-                        if (
-                          !targetItem.dirs.some((d) => d.path === mounted.path)
-                        ) {
-                          targetItem.dirs.push({
-                            icon: "ssd",
-                            name: mounted.name,
-                            path: mounted.path,
-                          });
-                        } else {
-                          const targetDir = targetItem.dirs.find(
-                            (d) => d.path === mounted.path
-                          );
-                          if (targetDir) {
-                            targetDir.name = mounted.name;
-                          }
-                        }
-                      });
-                    });
+                    refreshMounted();
                   } else {
                     if (targetItem && targetItem.dirs.length) {
                       targetItem.dirs = [];
