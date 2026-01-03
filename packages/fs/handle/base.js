@@ -1,5 +1,5 @@
 import { PublicBaseHandle, notify } from "../public/base.js";
-import { getHash } from "../util.js";
+import { getHash } from "../../util/hash/get-hash.js";
 
 export class BaseHandle extends PublicBaseHandle {
   // 对OPFS进行封装
