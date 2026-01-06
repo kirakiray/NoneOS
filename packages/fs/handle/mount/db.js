@@ -31,12 +31,19 @@ export const saveHandle = async (handle) => {
     id = `${handle.kind}-${Date.now()}`;
     const allHandles = await getAllHandles();
 
-    const isSame = await Promise.all(
-      allHandles.map((item) => item.handle.isSameEntry(handle))
-    ).then((results) => results.some(Boolean));
-    if (isSame) {
+    let targetItem = null;
+
+    await Promise.all(
+      allHandles.map((item) => {
+        const result = item.handle.isSameEntry(handle);
+        targetItem = item;
+        return result;
+      })
+    );
+
+    if (targetItem) {
       // 已经挂载过了
-      return;
+      return targetItem.id;
     }
   }
 

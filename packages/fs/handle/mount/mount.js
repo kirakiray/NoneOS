@@ -33,10 +33,19 @@ export const mount = async (options) => {
 
   const handle = new DirHandle(directoryHandle);
 
-  if (options.save) {
-    await saveHandle(handle._handle);
+  if (options?.save) {
+    await save(handle);
   }
 
+  return handle;
+};
+
+export const save = async (handle) => {
+  if (!handle[RESET_PATH]) {
+    const id = await saveHandle(handle._handle);
+
+    handle[RESET_PATH] = `$mount-${id}>${encodeURI(handle.name)}`;
+  }
   return handle;
 };
 
@@ -62,7 +71,7 @@ export const get = async (path, options) => {
 
   const handle = new DirHandle(_handle);
 
-  handle[RESET_PATH] = `$mount-${dirId}>${reRootName}`;
+  handle[RESET_PATH] = `$mount-${dirId}>${encodeURI(reRootName)}`;
 
   if (pathArr.length === 1) {
     return handle;
@@ -86,7 +95,7 @@ export const getMounted = async () => {
   return allHandles.map((item) => {
     const handle = new DirHandle(item.handle);
 
-    handle[RESET_PATH] = `$mount-${item.id}>${item.handle.name}`;
+    handle[RESET_PATH] = `$mount-${item.id}>${encodeURI(item.handle.name)}`;
 
     return {
       id: item.id,
