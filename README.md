@@ -1,3 +1,35 @@
+
+<div align="right">
+  <details>
+    <summary >🌐 Language</summary>
+    <div>
+      <div align="center">
+        <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=en">English</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=zh-CN">简体中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=zh-TW">繁體中文</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=ja">日本語</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=ko">한국어</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=hi">हिन्दी</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=th">ไทย</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=fr">Français</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=de">Deutsch</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=es">Español</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=it">Italiano</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=ru">Русский</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=pt">Português</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=nl">Nederlands</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=pl">Polski</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=ar">العربية</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=fa">فارسی</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=tr">Türkçe</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=vi">Tiếng Việt</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=id">Bahasa Indonesia</a>
+        | <a href="https://openaitx.github.io/view.html?user=kirakiray&project=NoneOS&lang=as">অসমীয়া</
+      </div>
+    </div>
+  </details>
+</div>
+
 # NoneOS - A Lightweight Virtual Operating System Based on Browser
 
 [中文](./md/README_CN.md) | [日本語](./md/README_JP.md)
